@@ -1,5 +1,8 @@
 import { serverUrl } from "./server-url";
 
+/** GET and HEAD carry no body; passing a null stream fails the fetch outright. */
+const METHODS_WITHOUT_BODY = new Set(["GET", "HEAD"]);
+
 export function proxyToServer({ request }: { request: Request }) {
   const baseUrl = serverUrl();
   if (!baseUrl) {
@@ -16,12 +19,14 @@ export function proxyToServer({ request }: { request: Request }) {
   const headers = new Headers(request.headers);
   headers.set("accept-encoding", "identity");
 
+  const hasBody =
+    !METHODS_WITHOUT_BODY.has(request.method.toUpperCase()) && request.body;
+
   return fetch(target, {
-    body: request.body,
     headers,
     method: request.method,
     redirect: "manual",
-    // @ts-expect-error Node requires duplex for streamed request bodies.
-    duplex: "half",
+    // Node requires duplex when streaming a request body.
+    ...(hasBody ? { body: request.body, duplex: "half" } : {}),
   });
 }
