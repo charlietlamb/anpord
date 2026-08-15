@@ -252,6 +252,14 @@
       0 1px 3px oklch(0 0 0 / 0.3);
   }
 
+  /* Pressing removes the lift and darkens the top, so the control reads as
+     depressed rather than merely smaller. */
+  .primary-button-shadow:active:not(:disabled) {
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.08),
+      inset 0 1px 2px oklch(0 0 0 / 0.18);
+  }
+
   /* Neutral counterpart. Same anatomy at lower contrast, so outline and
      secondary sit in the same material as primary without competing. */
   .input-bevel-shadow {
@@ -263,6 +271,10 @@
     box-shadow:
       inset 0 1px 0 oklch(1 0 0 / 0.06),
       0 1px 2px oklch(0 0 0 / 0.2);
+  }
+
+  .input-bevel-shadow:active:not(:disabled) {
+    box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.1);
   }
 }
 
