@@ -16,7 +16,7 @@ export const Route = createRootRoute({
       { title: "Anpord" },
       {
         name: "description",
-        content: "Customer configuration for AI products.",
+        content: "Write, version, and ship the prompts behind your product.",
       },
     ],
     links: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
