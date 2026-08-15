@@ -1,4 +1,5 @@
 import { Input } from "@anpord/ui/components/input";
+import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -52,6 +53,8 @@ function NewPromptPage() {
         onContentChange={setContent}
         onSubmit={onSubmit}
         saving={saving}
+        submitIcon={PlusIcon}
+        submitLabel="Create prompt"
       >
         <Input
           aria-label="Prompt name"

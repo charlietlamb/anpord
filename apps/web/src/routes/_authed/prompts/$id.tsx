@@ -1,5 +1,6 @@
 import type { ResolvedPrompt } from "@anpord/schema/prompts";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
+import { ArrowUpIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -88,6 +89,8 @@ function PromptDetailPage() {
         onSubmit={onSubmit}
         readOnly={readOnly}
         saving={saving}
+        submitIcon={ArrowUpIcon}
+        submitLabel="Save version"
         version={viewed?.version}
       >
         <ToolbarButton menu>{latest.name}</ToolbarButton>

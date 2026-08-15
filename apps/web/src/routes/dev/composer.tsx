@@ -1,5 +1,6 @@
 import type { ResolvedPrompt } from "@anpord/schema/prompts";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
+import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -22,6 +23,8 @@ function Preview({ initial, version }: { initial: string; version?: number }) {
       onContentChange={setContent}
       onSubmit={() => undefined}
       saving={false}
+      submitIcon={PlusIcon}
+      submitLabel="Create prompt"
       version={version}
     >
       <ToolbarButton menu>checkout-greeting</ToolbarButton>
