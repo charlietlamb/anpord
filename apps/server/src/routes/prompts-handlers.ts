@@ -8,10 +8,6 @@ import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { toHttpError } from "../http/prompt-errors";
 
-/**
- * Handlers resolve the actor and the owning service, call one method, and let
- * `toHttpError` own the domain-to-transport mapping. No rules live here.
- */
 export const PromptsHandlers = HttpApiBuilder.group(
   AnpordApi,
   "prompts",

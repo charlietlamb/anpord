@@ -2,6 +2,7 @@ import type { PromptSummary, ResolvedPrompt } from "@anpord/schema/prompts";
 import type {
   PublicPrompt,
   PublicPromptSummary,
+  PublicVersion,
 } from "@anpord/schema/public/shapes";
 import { DateTime } from "effect";
 
@@ -26,4 +27,10 @@ export const toPublicSummary = (row: PromptSummary): PublicPromptSummary => ({
   name: row.name,
   productionVersion: row.productionVersion,
   updatedAt: instant(row.updatedAt),
+});
+
+export const toPublicVersion = (row: ResolvedPrompt): PublicVersion => ({
+  createdAt: instant(row.createdAt),
+  message: row.commitMessage,
+  version: row.version,
 });

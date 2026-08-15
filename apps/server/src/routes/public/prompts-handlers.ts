@@ -3,12 +3,13 @@ import { PromptCatalog } from "@anpord/prompts/catalog";
 import { PromptPublishing } from "@anpord/prompts/publishing";
 import { PromptResolution } from "@anpord/prompts/resolution";
 import { CurrentActor } from "@anpord/schema/authentication";
-import { PRODUCTION } from "@anpord/schema/prompts";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { toHttpError } from "../../http/prompt-errors";
-import { toPublicPrompt, toPublicSummary } from "./to-public";
+import { fromPublicCreate, fromPublicUpdate } from "./from-public";
+import { answeringChannel, selectorFor } from "./selector";
+import { toPublicPrompt, toPublicSummary, toPublicVersion } from "./to-public";
 
 const OK = { ok: true } as const;
 
@@ -23,30 +24,23 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
           const resolution = yield* PromptResolution;
           const authoring = yield* PromptAuthoring;
 
-          const selector = payload.version
-            ? { version: payload.version }
-            : { channel: payload.channel };
-          const prompt = yield* resolution.get(actor, payload.id, selector);
-
-          /** Say which channel answered, so an omitted selector is not a silent default. */
-          const channel = payload.version
-            ? null
-            : (payload.channel ?? PRODUCTION);
-          const publicPrompt = { ...toPublicPrompt(prompt), channel };
+          const prompt = yield* resolution.get(
+            actor,
+            payload.id,
+            selectorFor(payload)
+          );
+          const publicPrompt = {
+            ...toPublicPrompt(prompt),
+            /** Naming the channel keeps an omitted selector from reading as none. */
+            channel: answeringChannel(payload),
+          };
 
           if (!payload.includeVersions) {
             return publicPrompt;
           }
 
           const history = yield* authoring.listVersions(actor, payload.id);
-          return {
-            ...publicPrompt,
-            versions: history.map((row) => ({
-              createdAt: toPublicPrompt(row).createdAt,
-              message: row.commitMessage,
-              version: row.version,
-            })),
-          };
+          return { ...publicPrompt, versions: history.map(toPublicVersion) };
         }).pipe(Effect.catchAll(toHttpError))
       )
       .handle("list", () =>
@@ -61,14 +55,10 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
-          const created = yield* catalog.create(actor, {
-            commitMessage: payload.message,
-            config: payload.config,
-            content: payload.content,
-            description: payload.description,
-            id: payload.id,
-            name: payload.name,
-          });
+          const created = yield* catalog.create(
+            actor,
+            fromPublicCreate(payload)
+          );
           return toPublicPrompt(created);
         }).pipe(Effect.catchAll(toHttpError))
       )
@@ -76,11 +66,11 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const authoring = yield* PromptAuthoring;
-          const version = yield* authoring.addVersion(actor, payload.id, {
-            commitMessage: payload.message,
-            config: payload.config,
-            content: payload.content,
-          });
+          const version = yield* authoring.addVersion(
+            actor,
+            payload.id,
+            fromPublicUpdate(payload)
+          );
           return toPublicPrompt(version);
         }).pipe(Effect.catchAll(toHttpError))
       )

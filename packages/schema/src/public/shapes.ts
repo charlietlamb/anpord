@@ -38,6 +38,7 @@ export const PublicVersion = Schema.Struct({
   description: "One entry in a prompt's history.",
   identifier: "Version",
 });
+export type PublicVersion = typeof PublicVersion.Type;
 
 /** One schema rather than a union: a union with a superset encodes ambiguously. */
 export const PublicPromptWithVersions = Schema.Struct({

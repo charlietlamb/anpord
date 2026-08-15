@@ -19,7 +19,6 @@ const PromptsServiceLayer = PromptsLayer.pipe(
   Layer.provide(Layer.mergeAll(DatabaseLayer, CacheLayer))
 );
 
-/** Every dependency the request path needs, composed once. */
 export const AppLayer = Layer.mergeAll(
   ServerConfigLive,
   AuthLayer,

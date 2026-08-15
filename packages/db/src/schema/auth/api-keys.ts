@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { organization } from "./organizations";
 
 /**
  * `referenceId` holds the organization, not the user, so a key keeps working
@@ -21,7 +22,9 @@ export const apikey = pgTable(
     start: text("start"),
     prefix: text("prefix"),
     key: text("key").notNull(),
-    referenceId: text("reference_id").notNull(),
+    referenceId: text("reference_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
     refillInterval: integer("refill_interval"),
     refillAmount: integer("refill_amount"),
     lastRefillAt: timestamp("last_refill_at"),

@@ -8,5 +8,4 @@ export const query = <A>(operation: string, run: () => Promise<A>) =>
     catch: (cause) => new PromptStoreError({ cause, operation }),
   });
 
-/** Drizzle returns arrays; absence is an Option rather than an empty list. */
 export const head = <A>(rows: readonly A[]) => Option.fromNullable(rows.at(0));
