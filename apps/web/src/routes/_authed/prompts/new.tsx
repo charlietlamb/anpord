@@ -56,14 +56,16 @@ function NewPromptPage() {
         submitIcon={PlusIcon}
         submitLabel="Create prompt"
       >
-        <TextTIcon className="ml-1 size-4 shrink-0 text-muted-foreground" />
-        <Input
-          aria-label="Prompt name"
-          className="h-7 w-56 border-0 bg-transparent px-1.5 font-medium text-sm shadow-none focus-visible:ring-0"
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Untitled prompt"
-          value={name}
-        />
+        <span className="relative flex items-center">
+          <TextTIcon className="pointer-events-none absolute left-2 size-4 text-muted-foreground" />
+          <Input
+            aria-label="Prompt name"
+            className="h-7 w-56 border-0 bg-transparent pr-2 pl-7 font-medium text-sm shadow-none focus-visible:ring-0"
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Untitled prompt"
+            value={name}
+          />
+        </span>
         {id ? (
           <span className="font-mono text-muted-foreground/70 text-xs">
             {id}
