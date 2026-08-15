@@ -77,3 +77,33 @@ policy the script applies. Vercel's hobby tier covers the frontend.
 
 To stop paying for the server, pause the App Runner service; that keeps the
 configuration and stops compute billing.
+
+## MCP server → Manufact
+
+The MCP server exposes the public API as tools. It is bundled into a single
+file before deploying, because Manufact generates its own Dockerfile for
+managed uploads and its `npm install` cannot resolve `workspace:*`.
+
+```bash
+cd apps/mcp && bun run bundle    # writes dist/main.js + a deployable manifest
+cd dist && mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy
+```
+
+`.env.deploy` needs `ANPORD_API_KEY` and `ANPORD_BASE_URL`. Both are ignored by
+git; the key is an `anp_` key minted against the organization the server should
+act for.
+
+Live at `https://wild-wave-dxlyk.run.mcp-use.com/mcp`.
+
+## CLI
+
+Published as the `anpord` binary from `packages/sdk`. It reads `ANPORD_API_KEY`
+and optionally `ANPORD_BASE_URL`.
+
+```bash
+anpord list
+anpord get support-reply              # content on stdout, so > file works
+anpord get support-reply --at 3       # not --version: the CLI owns that flag
+anpord push support-reply - -m "why"  # - reads stdin
+anpord promote support-reply --to production --at 3
+```
