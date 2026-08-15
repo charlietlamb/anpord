@@ -12,7 +12,7 @@ export function ComposerContext({
   return (
     <div
       className={cn(
-        "relative z-0 mx-1.5 -mb-5 flex items-center gap-0.5 rounded-t-xl bg-muted/70 px-2 pt-1.5 pb-6 text-muted-foreground text-sm ring-1 ring-border/50",
+        "relative z-0 mx-1.5 -mb-5 flex items-center gap-0.5 rounded-t-xl border border-border border-b-0 bg-muted px-2 pt-1.5 pb-6 text-muted-foreground text-sm",
         className
       )}
       {...props}
@@ -21,9 +21,9 @@ export function ComposerContext({
 }
 
 /**
- * The input surface. A hairline ring rather than a border keeps the edge from
- * reading as a control, and the shadow separates it from the page without
- * looking raised.
+ * The input surface. A real border draws the perimeter and an inset highlight
+ * catches light along the top edge, the same two-edge anatomy the buttons use,
+ * so the shape stays defined instead of dissolving into its own shadow.
  */
 export function ComposerSurface({
   className,
@@ -32,7 +32,7 @@ export function ComposerSurface({
   return (
     <div
       className={cn(
-        "relative z-10 flex flex-col rounded-[18px] bg-card shadow-elevated ring-1 ring-black/[0.07] transition-shadow focus-within:ring-ring dark:ring-white/[0.16]",
+        "relative z-10 flex flex-col rounded-[18px] border border-border bg-card shadow-elevated transition-colors focus-within:border-ring",
         className
       )}
       {...props}
