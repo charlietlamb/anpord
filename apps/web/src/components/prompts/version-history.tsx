@@ -13,6 +13,17 @@ const ABSOLUTE = new Intl.DateTimeFormat("en", {
   month: "short",
 });
 
+const MARKDOWN_PREFIX = /^\s*(?:#{1,6}\s+|[*-]\s+|>\s*)/;
+const EMPHASIS = /[*_`]/g;
+
+/** The preview is chrome, so heading hashes read as syntax rather than text. */
+const preview = (content: string) =>
+  content
+    .trim()
+    .split("\n")[0]
+    ?.replace(MARKDOWN_PREFIX, "")
+    .replace(EMPHASIS, "") ?? "";
+
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
@@ -82,12 +93,14 @@ export function VersionHistory({
             <li key={version.versionId}>
               <div
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm transition-colors",
-                  selected ? "bg-muted/60" : "hover:bg-muted/40"
+                  "group flex items-center gap-3 rounded-lg border border-transparent px-2.5 py-2.5 text-sm transition-colors",
+                  selected
+                    ? "border-sidebar-border bg-sidebar-accent"
+                    : "hover:bg-sidebar-accent/50"
                 )}
               >
-                {/* The rail makes the sequence legible; the ring lifts the
-                    node off the line it sits on. */}
+                {/* Commits on a branch: the dots sit on an unbroken rail, so
+                    they stay opaque rather than punching a ring through it. */}
                 <span
                   aria-hidden="true"
                   className="relative flex w-3.5 shrink-0 justify-center self-stretch"
@@ -101,8 +114,8 @@ export function VersionHistory({
                   />
                   <span
                     className={cn(
-                      "relative size-[7px] self-center rounded-full ring-[3px] ring-card",
-                      live ? "bg-primary" : "bg-muted-foreground/40"
+                      "relative size-[7px] self-center rounded-full",
+                      live ? "bg-primary" : "bg-muted-foreground"
                     )}
                   />
                 </span>
@@ -112,12 +125,30 @@ export function VersionHistory({
                   onClick={() => onSelect(version)}
                   type="button"
                 >
-                  {/* The content is what you scan when choosing a version;
-                      the message, when there is one, says why it changed. */}
-                  <span className="truncate text-foreground/80">
-                    {version.commitMessage ?? version.content}
+                  {/* A written message is the author's account of the change;
+                      falling back to the content is the code guessing, so it
+                      reads quieter to keep the two distinguishable. */}
+                  <span
+                    className={cn(
+                      "truncate",
+                      version.commitMessage
+                        ? "text-foreground/80"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {version.commitMessage ?? preview(version.content)}
                   </span>
                 </button>
+
+                {/* Which version is live is worth more than a 7px dot, and
+                    the label sits in the reserved column either way. */}
+                <span className="w-14 shrink-0 text-right">
+                  {live ? (
+                    <span className="font-medium text-[0.6875rem] text-primary">
+                      Current
+                    </span>
+                  ) : null}
+                </span>
 
                 {/* Right-aligned so the numbers hold a column as they grow. */}
                 <span className="ml-2 w-8 shrink-0 text-right font-medium text-muted-foreground text-xs tabular-nums">

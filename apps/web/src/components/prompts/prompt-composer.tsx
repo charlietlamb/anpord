@@ -72,13 +72,15 @@ export function PromptComposer({
         />
 
         <ComposerToolbar>
+          {/* Silent until there is something to count; an inert button
+              announcing its own emptiness is chrome, not information. */}
           <ComposerToolbarGroup>
-            <ToolbarButton disabled={variables.length === 0}>
-              <BracketsCurlyIcon />
-              {variables.length === 0
-                ? "No variables"
-                : `${variables.length} variable${variables.length > 1 ? "s" : ""}`}
-            </ToolbarButton>
+            {variables.length > 0 ? (
+              <ToolbarButton>
+                <BracketsCurlyIcon />
+                {variables.length} variable{variables.length > 1 ? "s" : ""}
+              </ToolbarButton>
+            ) : null}
           </ComposerToolbarGroup>
 
           <ComposerToolbarGroup className="ml-auto">
