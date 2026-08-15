@@ -328,3 +328,81 @@
       "dlig" 0;
   }
 }
+
+@layer components {
+  /**
+   * Editor typography. A prompt reads as one voice, so headings step down
+   * gently rather than dominating the way document headings do.
+   */
+  .prompt-prose .tiptap {
+    outline: none;
+  }
+  .prompt-prose .tiptap > * + * {
+    margin-top: 0.7em;
+  }
+  .prompt-prose h1 {
+    font-size: 1.1875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .prompt-prose h2 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+  .prompt-prose h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+  .prompt-prose ul,
+  .prompt-prose ol {
+    padding-left: 1.25rem;
+  }
+  .prompt-prose ul {
+    list-style: disc;
+  }
+  .prompt-prose ol {
+    list-style: decimal;
+  }
+  .prompt-prose li::marker {
+    color: var(--muted-foreground);
+  }
+  .prompt-prose code {
+    padding: 0.1em 0.3em;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--muted);
+    border-radius: 4px;
+  }
+  .prompt-prose pre {
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    background: var(--muted);
+    border-radius: 8px;
+  }
+  .prompt-prose pre code {
+    padding: 0;
+    background: none;
+  }
+  .prompt-prose blockquote {
+    padding-left: 0.875rem;
+    color: var(--muted-foreground);
+    border-left: 2px solid var(--border);
+  }
+
+  /** Interpolated at runtime, so it reads as a slot rather than prose. */
+  .prompt-prose .prompt-variable {
+    padding: 0.05em 0.2em;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--primary) 16%, transparent);
+    border-radius: 3px;
+  }
+
+  .prompt-prose .tiptap p.is-editor-empty:first-child::before {
+    float: left;
+    height: 0;
+    color: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+    pointer-events: none;
+    content: attr(data-placeholder);
+  }
+}

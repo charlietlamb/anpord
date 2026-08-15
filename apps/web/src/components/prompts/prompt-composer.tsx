@@ -4,7 +4,7 @@ import {
   ComposerToolbar,
   ComposerToolbarGroup,
 } from "@anpord/ui/components/composer";
-import { PromptEditor } from "@anpord/ui/components/prompt-editor";
+import { MarkdownEditor } from "@anpord/ui/components/editor/markdown-editor";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { extractVariables } from "@anpord/ui/lib/prompt-variables";
@@ -63,7 +63,8 @@ export function PromptComposer({
       </ComposerContext>
 
       <ComposerSurface>
-        <PromptEditor
+        <MarkdownEditor
+          className="max-h-[min(24rem,50vh)] overflow-y-auto px-4 pt-4 pb-2 text-[0.9375rem] leading-7"
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."
           readOnly={readOnly}
