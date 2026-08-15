@@ -6,8 +6,7 @@ import {
 } from "@anpord/ui/components/composer";
 import { PromptEditor } from "@anpord/ui/components/prompt-editor";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
-import { Kbd } from "@anpord/ui/components/ui/kbd";
-import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
+import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { extractVariables } from "@anpord/ui/lib/prompt-variables";
 import type { Icon } from "@phosphor-icons/react";
 import {
@@ -16,10 +15,6 @@ import {
   SpinnerGapIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { useIsClient } from "@/lib/use-is-client";
-
-/** currentColor is the fill here, so the caps need their own contrast. */
-const CAP = "border-white/20 bg-white/16 text-white/80";
 
 interface PromptComposerProps {
   readonly children?: ReactNode;
@@ -50,17 +45,8 @@ export function PromptComposer({
   submitLabel,
   version,
 }: PromptComposerProps) {
-  /** navigator is server-undefined, so the glyph resolves after mount. */
-  const isClient = useIsClient();
   const variables = extractVariables(content);
   const canSubmit = content.trim().length > 0 && !(saving || readOnly);
-
-  /** Saves from inside the editor, where the caret spends all its time. */
-  useShortcut("enter", {
-    disabled: !canSubmit,
-    meta: true,
-    onTrigger: onSubmit,
-  });
 
   return (
     <div className="w-full">
@@ -95,11 +81,12 @@ export function PromptComposer({
           </ComposerToolbarGroup>
 
           <ComposerToolbarGroup className="ml-auto">
-            <button
-              className="ml-1 inline-flex h-8 items-center gap-2 rounded-lg bg-primary pr-2 pl-3 font-medium text-primary-foreground text-sm shadow-[inset_0_0_0_1px_oklch(1_0_0/10%),inset_0_1px_0_oklch(1_0_0/22%),0_1px_3px_oklch(0_0_0/18%)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:shadow-none dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%),inset_0_1px_0_oklch(1_0_0/24%),0_1px_3px_oklch(0_0_0/30%)]"
+            <ShortcutButton
+              className="ml-1 h-8"
               disabled={!canSubmit}
+              metaShortcut="enter"
               onClick={onSubmit}
-              type="button"
+              size="sm"
             >
               {saving ? (
                 <SpinnerGapIcon className="animate-spin" size={15} />
@@ -107,13 +94,7 @@ export function PromptComposer({
                 <SubmitIcon size={15} weight="bold" />
               )}
               {submitLabel}
-              {isClient ? (
-                <span className="flex items-center gap-0.5">
-                  <Kbd className={CAP}>{isMac() ? "⌘" : "Ctrl"}</Kbd>
-                  <Kbd className={CAP}>↵</Kbd>
-                </span>
-              ) : null}
-            </button>
+            </ShortcutButton>
           </ComposerToolbarGroup>
         </ComposerToolbar>
       </ComposerSurface>

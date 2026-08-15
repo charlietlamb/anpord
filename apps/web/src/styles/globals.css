@@ -236,21 +236,33 @@
     }
   }
 
-  /* Primary counterpart to input-bevel-shadow: a single subtle top-light inset,
-     matching the secondary button's restraint so both read as one flat material.
-     No heavy bottom band, no drop shadow. */
+  /* The edge on a filled control comes from light, not a drawn ring: a faint
+     inset hairline defines the perimeter, a top bevel catches light, and a
+     tight shadow lifts it. A ring reads as a gap on dark surfaces. */
   .primary-button-shadow {
-    box-shadow: 0 1px 1px 0 oklch(1 0 0 / 0.12) inset;
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.1),
+      inset 0 1px 0 oklch(1 0 0 / 0.22),
+      0 1px 3px oklch(0 0 0 / 0.18);
+  }
+  .dark .primary-button-shadow {
+    box-shadow:
+      inset 0 0 0 1px oklch(1 0 0 / 0.08),
+      inset 0 1px 0 oklch(1 0 0 / 0.24),
+      0 1px 3px oklch(0 0 0 / 0.3);
   }
 
-  /* Neutral counterpart to the primary bevel for inputs + outline/secondary buttons:
-     a single subtle top-light inset for a clean, muted feel. Pure neutral white alpha
-     (chroma 0) — no color cast. Subtle in light, slightly stronger in dark. */
+  /* Neutral counterpart. Same anatomy at lower contrast, so outline and
+     secondary sit in the same material as primary without competing. */
   .input-bevel-shadow {
-    box-shadow: 0 1px 1px 0 oklch(1 0 0 / 0.04) inset;
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.6),
+      0 1px 2px oklch(0 0 0 / 0.06);
   }
   .dark .input-bevel-shadow {
-    box-shadow: 0 1px 1px 0 oklch(1 0 0 / 0.05) inset;
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.06),
+      0 1px 2px oklch(0 0 0 / 0.2);
   }
 }
 

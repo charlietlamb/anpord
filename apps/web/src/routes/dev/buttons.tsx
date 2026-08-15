@@ -1,3 +1,6 @@
+import { Button } from "@anpord/ui/components/button";
+import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
+import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   type ButtonOption,
@@ -159,6 +162,29 @@ function ButtonOptions() {
               <OnSurface option={option} />
             </div>
           ))}
+        </div>
+
+        <h2 className="mt-14 mb-3 font-heading text-lg tracking-tight">
+          Shared variants
+        </h2>
+        <div className="mb-10 flex flex-wrap items-center gap-3 rounded-[18px] bg-card p-5 shadow-[inset_0_0_0_1px_oklch(0_0_0/4%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
+          <ShortcutButton metaShortcut="enter" size="sm">
+            <PlusIcon size={15} weight="bold" />
+            Create prompt
+          </ShortcutButton>
+          <Button size="sm">Default</Button>
+          <Button size="sm" variant="outline">
+            Outline
+          </Button>
+          <Button size="sm" variant="secondary">
+            Secondary
+          </Button>
+          <Button size="sm" variant="ghost">
+            Ghost
+          </Button>
+          <Button size="sm" variant="destructive">
+            Destructive
+          </Button>
         </div>
 
         <h2 className="mt-14 mb-3 font-heading text-lg tracking-tight">

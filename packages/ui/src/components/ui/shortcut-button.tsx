@@ -22,6 +22,9 @@ function shortcutGlyph(key: string) {
 // biome-ignore lint/suspicious/noExplicitAny: keyboard-triggered click has no real DOM event
 const SYNTHETIC_CLICK = { preventBaseUIHandler: () => undefined } as any;
 
+/** Filled variants need their own cap contrast; ghost ones inherit the text. */
+const FILLED_CAPS = "border-white/20 bg-white/16 text-white/80";
+
 export function ShortcutButton({
   metaShortcut,
   singleShortcut,
@@ -29,9 +32,14 @@ export function ShortcutButton({
   className,
   disabled,
   onClick,
+  variant,
   ...props
 }: ShortcutButtonProps) {
   const key = metaShortcut ?? singleShortcut;
+  const capClass =
+    variant === undefined || variant === "default" || variant === "destructive"
+      ? FILLED_CAPS
+      : undefined;
 
   useShortcut(key ?? "", {
     meta: Boolean(metaShortcut),
@@ -41,16 +49,19 @@ export function ShortcutButton({
 
   return (
     <Button
-      className={cn("gap-1.5", className)}
+      className={cn("gap-2", className)}
       disabled={disabled}
       onClick={onClick}
+      variant={variant}
       {...props}
     >
       {children}
       {key ? (
         <span className="flex items-center gap-0.5">
-          {metaShortcut ? <Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd> : null}
-          <Kbd>{shortcutGlyph(key)}</Kbd>
+          {metaShortcut ? (
+            <Kbd className={capClass}>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+          ) : null}
+          <Kbd className={capClass}>{shortcutGlyph(key)}</Kbd>
         </span>
       ) : null}
     </Button>
