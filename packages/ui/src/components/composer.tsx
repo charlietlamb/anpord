@@ -12,7 +12,7 @@ export function ComposerContext({
   return (
     <div
       className={cn(
-        "relative z-0 mx-1.5 -mb-5 flex items-center gap-0.5 rounded-t-xl border border-border border-b-0 bg-muted px-2 pt-1.5 pb-6 text-muted-foreground text-sm",
+        "relative z-0 mx-1.5 -mb-5 flex items-center gap-0.5 rounded-t-xl border border-border-surface border-b-0 bg-muted px-2 pt-1.5 pb-6 text-muted-foreground text-sm",
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ export function ComposerSurface({
   return (
     <div
       className={cn(
-        "relative z-10 flex flex-col rounded-[18px] border border-border bg-card shadow-elevated transition-colors focus-within:border-ring",
+        "relative z-10 flex flex-col rounded-[18px] border border-border-surface bg-card shadow-elevated transition-colors focus-within:border-ring",
         className
       )}
       {...props}

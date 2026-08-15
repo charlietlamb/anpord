@@ -77,7 +77,7 @@ export function VersionHistory({
   const hidden = versions.length - shown.length;
 
   return (
-    <section className="mt-4 rounded-xl border border-border bg-card px-1.5 pb-1.5 shadow-raised">
+    <section className="mt-4 rounded-xl border border-border-surface bg-card px-1.5 pb-1.5 shadow-raised">
       <h2 className="px-2.5 pt-2.5 pb-1.5 font-medium text-muted-foreground text-xs">
         Versions
       </h2>
