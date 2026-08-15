@@ -3,7 +3,7 @@ import { Kbd } from "@anpord/ui/components/ui/kbd";
 import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
-import { PlusIcon } from "@phosphor-icons/react";
+import { PencilLineIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useIsClient } from "@/lib/use-is-client";
 
@@ -46,7 +46,7 @@ export function Landing() {
               )}
               to="/login"
             >
-              <PlusIcon size={15} weight="bold" />
+              <PencilLineIcon size={15} />
               Start Prompting
               {isClient ? (
                 <span className="flex items-center gap-0.5">

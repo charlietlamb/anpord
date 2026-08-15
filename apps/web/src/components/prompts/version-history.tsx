@@ -66,7 +66,7 @@ export function VersionHistory({
 
   return (
     <section className="mt-4 rounded-xl p-1 shadow-[inset_0_0_0_1px_oklch(0_0_0/5%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
-      <h2 className="px-3 pt-2 pb-1 font-medium text-[0.6875rem] text-muted-foreground uppercase tracking-wider">
+      <h2 className="px-3 pt-2 pb-1.5 font-medium text-muted-foreground text-xs">
         Versions
       </h2>
 
@@ -79,10 +79,19 @@ export function VersionHistory({
             <li key={version.versionId}>
               <div
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                  selected ? "bg-muted" : "hover:bg-muted/60"
+                  "group flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                  selected ? "bg-muted/60" : "hover:bg-muted/40"
                 )}
               >
+                {/* A dot carries "live" without the weight of a badge. */}
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "size-1.5 shrink-0 rounded-full",
+                    live ? "bg-primary" : "bg-transparent"
+                  )}
+                />
+
                 <button
                   className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none"
                   onClick={() => onSelect(version)}
@@ -91,21 +100,12 @@ export function VersionHistory({
                   <span className="w-6 shrink-0 font-medium text-muted-foreground text-xs tabular-nums">
                     v{version.version}
                   </span>
-                  <span
-                    className={cn(
-                      "truncate",
-                      version.commitMessage ? "" : "text-muted-foreground/70"
-                    )}
-                  >
-                    {version.commitMessage ?? "No message"}
-                  </span>
+                  {version.commitMessage ? (
+                    <span className="truncate">{version.commitMessage}</span>
+                  ) : (
+                    <span className="truncate text-muted-foreground/60">—</span>
+                  )}
                 </button>
-
-                {live ? (
-                  <span className="shrink-0 rounded bg-primary/12 px-1.5 py-0.5 font-semibold text-[0.625rem] text-primary uppercase tracking-wide">
-                    Live
-                  </span>
-                ) : null}
 
                 <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
                   {isClient ? when(version.createdAt, now) : null}

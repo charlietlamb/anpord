@@ -1,5 +1,4 @@
 import type { ResolvedPrompt } from "@anpord/schema/prompts";
-import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { ArrowUpIcon, TextTIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
@@ -83,6 +82,17 @@ function PromptDetailPage() {
     );
   }
 
+  const dirty = !readOnly && content !== latest.content;
+
+  const describeState = () => {
+    if (readOnly) {
+      return `Viewing v${viewed?.version} · read only`;
+    }
+    return dirty
+      ? `Unsaved · saving creates v${latest.version + 1}`
+      : `v${latest.version} · saved`;
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
       <PromptComposer
@@ -95,29 +105,28 @@ function PromptDetailPage() {
         submitLabel="Save version"
         version={viewed?.version}
       >
-        <ToolbarButton menu>
-          <TextTIcon />
-          {latest.name}
-        </ToolbarButton>
+        <span className="flex min-w-0 items-center gap-1.5 px-1.5">
+          <TextTIcon className="size-4 shrink-0 text-muted-foreground" />
+          <span className="truncate font-medium text-sm">{latest.name}</span>
+          <span className="truncate font-mono text-muted-foreground/70 text-xs">
+            {latest.id}
+          </span>
+        </span>
+
+        {/* Status lives with the identity so the editor stays uninterrupted. */}
+        <span className="ml-auto shrink-0 pr-1 text-muted-foreground text-xs">
+          {describeState()}
+        </span>
       </PromptComposer>
 
       {readOnly ? (
-        <div className="mt-3 flex items-center gap-3 text-muted-foreground text-xs">
-          <span>Viewing v{viewed?.version} — read only.</span>
-          <button
-            className="font-medium text-foreground underline-offset-2 hover:underline"
-            onClick={() => setViewing(null)}
-            type="button"
-          >
-            Back to latest
-          </button>
-        </div>
-      ) : null}
-
-      {!readOnly && content !== latest.content ? (
-        <p className="mt-3 text-muted-foreground text-xs">
-          Unsaved changes — saving creates v{latest.version + 1}.
-        </p>
+        <button
+          className="mt-3 self-start text-muted-foreground text-xs underline-offset-2 hover:text-foreground hover:underline"
+          onClick={() => setViewing(null)}
+          type="button"
+        >
+          Back to latest
+        </button>
       ) : null}
 
       <VersionHistory

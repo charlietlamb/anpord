@@ -102,6 +102,15 @@ Rewrite each affected file deliberately, then verify with `bun run typecheck`
 before moving on. If more than a handful of files are affected, rewrite whole
 files rather than patching lines.
 
+## Interface Text
+
+Never uppercase interface text. `uppercase` and `tracking-wider` on a label
+shout at the reader, cost legibility, and date the design; a smaller size or a
+muted colour separates a heading from its content without raising the voice.
+
+Sentence case everywhere — headings, labels, buttons, badges. Reserve capitals
+for proper nouns and identifiers the system itself defines.
+
 ## Naming
 
 - Files kebab-case, matching their main export.
