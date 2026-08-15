@@ -8,7 +8,6 @@ import { ClientOnly } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { CommandMenu } from "@/components/dashboard/command-menu";
-import { EnsureActiveOrganization } from "@/components/dashboard/ensure-active-organization";
 import { usePageTitle } from "@/lib/use-page-title";
 
 interface DashboardShellProps {
@@ -23,7 +22,6 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
     <TooltipProvider>
       <SidebarProvider defaultOpen={sidebarOpen}>
         <ClientOnly>
-          <EnsureActiveOrganization />
           <CommandMenu />
         </ClientOnly>
         <AppSidebar />

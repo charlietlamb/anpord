@@ -6,6 +6,7 @@ import { magicLink, organization } from "better-auth/plugins";
 import { Context, Effect, Layer, Redacted } from "effect";
 import { AuthConfig } from "./config";
 import { COOKIE_PREFIX } from "./cookies";
+import { resolveActiveOrganization } from "./default-organization";
 import { makeSendMagicLink } from "./email";
 
 const makeAuth = Effect.gen(function* () {
@@ -32,6 +33,27 @@ const makeAuth = Effect.gen(function* () {
        * without a database round-trip. The short TTL keeps revocation responsive.
        */
       cookieCache: { enabled: true, maxAge: 300 },
+    },
+    databaseHooks: {
+      session: {
+        create: {
+          /**
+           * Attaching the organization as the session is written means a first
+           * sign-in already has one, so nothing downstream has to handle a
+           * session that cannot address any data.
+           */
+          before: async (session) => {
+            const activeOrganizationId = await resolveActiveOrganization(
+              db,
+              session.userId
+            );
+
+            return activeOrganizationId
+              ? { data: { ...session, activeOrganizationId } }
+              : undefined;
+          },
+        },
+      },
     },
     socialProviders,
     plugins: [
