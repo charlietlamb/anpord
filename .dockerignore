@@ -5,13 +5,12 @@ node_modules
 .env.*
 !.env.example
 # Not built here, but their manifests are: the lockfile covers every workspace
-# member, so omitting one makes a frozen install fail.
+# member, so omitting one makes a frozen install fail. packages/sdk stays in
+# full because the MCP image builds it.
 apps/web
 !apps/web/package.json
 packages/ui
 !packages/ui/package.json
-packages/sdk
-!packages/sdk/package.json
 context
 .claude
 .turbo
