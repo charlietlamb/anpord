@@ -9,6 +9,7 @@
     "./authentication": "./src/authentication.ts",
     "./errors": "./src/errors.ts",
     "./health-api": "./src/health-api.ts",
+    "./oauth-api": "./src/oauth-api.ts",
     "./prompts": "./src/prompts.ts",
     "./prompts-api": "./src/prompts-api.ts",
     "./public/api": "./src/public/api.ts",

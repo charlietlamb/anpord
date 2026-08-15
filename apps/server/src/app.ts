@@ -2,6 +2,7 @@ import { Auth } from "@anpord/auth";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
+import { isAuthorizeRoute, withConsentPrompt } from "./http/require-consent";
 import { isDiscoveryRoute, toAuthRequest } from "./http/well-known";
 import { AppLayer } from "./layer";
 import { ApiLive } from "./routes/api-layer";
@@ -37,6 +38,9 @@ export const main = Effect.gen(function* () {
             const { pathname } = new URL(request.url);
             if (isDiscoveryRoute(pathname)) {
               return auth.handler(toAuthRequest(request));
+            }
+            if (isAuthorizeRoute(pathname)) {
+              return auth.handler(withConsentPrompt(request));
             }
             if (isAuthRoute(pathname)) {
               return auth.handler(request);

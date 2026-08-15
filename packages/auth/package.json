@@ -7,6 +7,7 @@
     ".": "./src/auth.ts",
     "./config": "./src/config.ts",
     "./cookies": "./src/cookies.ts",
+    "./oauth-clients": "./src/oauth-clients.ts",
     "./organization": "./src/default-organization.ts"
   },
   "scripts": {
