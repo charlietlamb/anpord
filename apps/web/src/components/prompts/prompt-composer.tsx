@@ -19,7 +19,7 @@ import type { ReactNode } from "react";
 import { useIsClient } from "@/lib/use-is-client";
 
 /** currentColor is the fill here, so the caps need their own contrast. */
-const CAP = "border-black/14 bg-black/14 text-black/60";
+const CAP = "border-white/20 bg-white/16 text-white/80";
 
 interface PromptComposerProps {
   readonly children?: ReactNode;
@@ -96,7 +96,7 @@ export function PromptComposer({
 
           <ComposerToolbarGroup className="ml-auto">
             <button
-              className="ml-1 inline-flex h-8 items-center gap-2 rounded-lg bg-primary pr-2 pl-3 font-medium text-primary-foreground text-sm shadow-[inset_0_1px_0_oklch(1_0_0/18%),0_1px_2px_oklch(0_0_0/22%)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:shadow-none"
+              className="ml-1 inline-flex h-8 items-center gap-2 rounded-lg bg-primary pr-2 pl-3 font-medium text-primary-foreground text-sm shadow-[inset_0_0_0_1px_oklch(1_0_0/10%),inset_0_1px_0_oklch(1_0_0/22%),0_1px_3px_oklch(0_0_0/18%)] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:shadow-none dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%),inset_0_1px_0_oklch(1_0_0/24%),0_1px_3px_oklch(0_0_0/30%)]"
               disabled={!canSubmit}
               onClick={onSubmit}
               type="button"

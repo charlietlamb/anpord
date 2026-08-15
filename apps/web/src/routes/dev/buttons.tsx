@@ -15,6 +15,8 @@ export const Route = createFileRoute("/dev/buttons")({
  * question is how much weight this can carry without becoming the loudest
  * thing on the page.
  */
+const CAP = "border-white/20 bg-white/16 text-white/80";
+
 const OPTIONS: ButtonOption[] = [
   {
     title: "1 · Current",
@@ -85,6 +87,52 @@ const OPTIONS: ButtonOption[] = [
 
 const RADII = ["rounded-md", "rounded-lg", "rounded-xl"];
 
+/** Edge treatments compared on the chosen fill. A ring proved wrong here: a
+ * dark one reads as a gap, a light one glows. Insets define the edge instead. */
+const RINGS: ButtonOption[] = [
+  {
+    title: "none",
+    note: "",
+    shell: "bg-primary text-primary-foreground",
+    caps: CAP,
+  },
+  {
+    title: "inset top",
+    note: "",
+    shell:
+      "bg-primary text-primary-foreground shadow-[inset_0_1px_0_oklch(1_0_0/22%),0_1px_2px_oklch(0_0_0/25%)]",
+    caps: CAP,
+  },
+  {
+    title: "hairline only",
+    note: "",
+    shell:
+      "bg-primary text-primary-foreground shadow-[inset_0_0_0_1px_oklch(1_0_0/12%)]",
+    caps: CAP,
+  },
+  {
+    title: "outer dark",
+    note: "",
+    shell:
+      "bg-primary text-primary-foreground shadow-[0_0_0_1px_oklch(0_0_0/40%)]",
+    caps: CAP,
+  },
+  {
+    title: "bevel",
+    note: "",
+    shell:
+      "bg-primary text-primary-foreground shadow-[inset_0_1px_0_oklch(1_0_0/22%),inset_0_-1px_0_oklch(0_0_0/22%),0_1px_2px_oklch(0_0_0/25%)]",
+    caps: CAP,
+  },
+  {
+    title: "hairline + bevel + lift",
+    note: "chosen",
+    shell:
+      "bg-primary text-primary-foreground shadow-[inset_0_0_0_1px_oklch(1_0_0/10%),inset_0_1px_0_oklch(1_0_0/22%),0_1px_3px_oklch(0_0_0/18%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%),inset_0_1px_0_oklch(1_0_0/24%),0_1px_3px_oklch(0_0_0/30%)]",
+    caps: CAP,
+  },
+];
+
 function ButtonOptions() {
   return (
     <main className="min-h-svh bg-background text-foreground">
@@ -109,6 +157,21 @@ function ButtonOptions() {
                 {option.note}
               </p>
               <OnSurface option={option} />
+            </div>
+          ))}
+        </div>
+
+        <h2 className="mt-14 mb-3 font-heading text-lg tracking-tight">
+          Edge treatments
+        </h2>
+        <div className="mb-10 grid gap-5 sm:grid-cols-3">
+          {RINGS.map((ring) => (
+            <div key={ring.title}>
+              <p className="mb-2 text-muted-foreground text-xs">
+                {ring.title}
+                {ring.note ? ` — ${ring.note}` : ""}
+              </p>
+              <OnSurface option={ring} />
             </div>
           ))}
         </div>
