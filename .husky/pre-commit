@@ -1,0 +1,8 @@
+bun run fix
+git update-index --again
+bun run check
+bun run typecheck
+bun run knip
+bun run test
+rm -rf "${TMPDIR:-/tmp}"/react-doctor-* || true
+bun run doctor

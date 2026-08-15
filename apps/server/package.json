@@ -1,0 +1,27 @@
+{
+  "name": "@anpord/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --env-file=../../.env --hot run src/server.ts",
+    "build": "tsc --project tsconfig.json --noEmit",
+    "start": "bun --env-file=../../.env run src/server.ts",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/auth": "workspace:*",
+    "@anpord/cache": "workspace:*",
+    "@anpord/db": "workspace:*",
+    "@anpord/prompts": "workspace:*",
+    "@anpord/schema": "workspace:*",
+    "@effect/platform": "catalog:",
+    "@effect/platform-bun": "catalog:",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

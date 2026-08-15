@@ -1,0 +1,23 @@
+{
+  "name": "@anpord/cache",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./cache": "./src/cache.ts",
+    "./config": "./src/config.ts",
+    "./layer": "./src/layer.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "ioredis": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

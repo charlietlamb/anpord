@@ -1,0 +1,27 @@
+{
+  "name": "@anpord/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/auth.ts",
+    "./config": "./src/config.ts",
+    "./cookies": "./src/cookies.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/db": "workspace:*",
+    "@better-auth/drizzle-adapter": "catalog:",
+    "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
+    "effect": "catalog:",
+    "resend": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

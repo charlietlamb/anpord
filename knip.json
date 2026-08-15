@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    "apps/web": {
+      "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "vite.config.ts"],
+      "project": "src/**",
+      "ignore": ["src/routeTree.gen.ts"]
+    },
+    "apps/server": {
+      "entry": ["src/server.ts"]
+    },
+    "packages/sdk": {
+      "entry": ["src/index.ts", "tsdown.config.ts"],
+      "project": "src/**"
+    },
+    "packages/*": {
+      "entry": ["src/**/*.{ts,tsx}"]
+    }
+  },
+  "ignore": ["context/**"],
+  "ignoreBinaries": ["lsof"],
+  "ignoreDependencies": [
+    "@base-ui/react",
+    "@biomejs/biome",
+    "@phosphor-icons/react",
+    "@tanstack/start-server-core",
+    "class-variance-authority"
+  ],
+  "rules": {
+    "catalog": "off"
+  }
+}

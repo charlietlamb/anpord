@@ -1,0 +1,31 @@
+{
+  "name": "@anpord/prompts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./errors": "./src/domain/errors.ts",
+    "./actor": "./src/domain/actor.ts",
+    "./layer": "./src/layer.ts",
+    "./catalog": "./src/services/prompt-catalog.ts",
+    "./authoring": "./src/services/prompt-authoring.ts",
+    "./resolution": "./src/services/prompt-resolution.ts",
+    "./publishing": "./src/services/prompt-publishing.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/cache": "workspace:*",
+    "@anpord/db": "workspace:*",
+    "@anpord/ids": "workspace:*",
+    "@anpord/schema": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

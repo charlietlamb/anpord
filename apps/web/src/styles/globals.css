@@ -1,0 +1,306 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@source "../../../../packages/ui/src/**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant data-open (&:where(
+  [data-state="open"],
+  [data-open]:not([data-open="false"])
+));
+@custom-variant data-closed (&:where(
+  [data-state="closed"],
+  [data-closed]:not([data-closed="false"])
+));
+@custom-variant data-checked (&:where(
+  [data-state="checked"],
+  [data-checked]:not([data-checked="false"])
+));
+@custom-variant data-unchecked (&:where(
+  [data-state="unchecked"],
+  [data-unchecked]:not([data-unchecked="false"])
+));
+@custom-variant data-selected (&:where([data-selected="true"]));
+@custom-variant data-disabled (&:where(
+  [data-disabled="true"],
+  [data-disabled]:not([data-disabled="false"])
+));
+@custom-variant data-active (&:where(
+  [data-state="active"],
+  [data-active]:not([data-active="false"])
+));
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant data-vertical (&:where([data-orientation="vertical"]));
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@theme inline {
+  --font-heading: "Funnel Display Variable", ui-sans-serif, sans-serif;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-border: var(--primary-border);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --color-border-faint: var(--border-faint);
+  --color-border-loud: var(--border-loud);
+  --color-alpha-2: var(--alpha-2);
+  --color-alpha-4: var(--alpha-4);
+  --color-alpha-6: var(--alpha-6);
+  --color-alpha-8: var(--alpha-8);
+  --default-transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --default-transition-duration: 200ms;
+}
+
+:root {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0.32 0 0);
+  --sidebar-accent: oklch(0.935 0 0);
+  --sidebar-accent-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0.68 0.1 220);
+  --primary: oklch(0.68 0.1 220);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-border: color-mix(in oklab, var(--primary), black 18%);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.68 0.1 220);
+  --radius: 0.625rem;
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.145 0 0);
+  --border-faint: var(--border);
+  --border-loud: var(--border);
+  --alpha-2: oklch(0 0 0 / 2%);
+  --alpha-4: oklch(0 0 0 / 4%);
+  --alpha-6: oklch(0 0 0 / 6%);
+  --alpha-8: oklch(0 0 0 / 8%);
+  --shadow-popover:
+    0 0 0 1px oklch(0 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 4%),
+    0 6px 14px oklch(0 0 0 / 6%);
+}
+
+.dark {
+  --background: oklch(0.145 0.004 285.823);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.185 0.005 285.885);
+  --card-foreground: oklch(0.97 0 0);
+  --sidebar: oklch(0.128 0.004 285.823);
+  --sidebar-foreground: oklch(0.86 0.004 286);
+  --sidebar-accent: oklch(0.225 0.006 285.885);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.779 0.117 213.7);
+  --popover: oklch(0.205 0.006 285.885);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.779 0.117 213.7);
+  --primary-foreground: oklch(0.21 0.04 230);
+  --primary-border: color-mix(in oklab, var(--primary), black 22%);
+  --secondary: oklch(0.3 0.006 286.033);
+  --secondary-foreground: oklch(0.955 0 0);
+  --muted: oklch(0.295 0.006 286.033);
+  --muted-foreground: oklch(0.72 0.015 286.067);
+  --accent: oklch(0.3 0.006 286.033);
+  --accent-foreground: oklch(0.955 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 17%);
+  --border-faint: oklch(1 0 0 / 17%);
+  --border-loud: oklch(1 0 0 / 17%);
+  --alpha-2: oklch(1 0 0 / 2%);
+  --alpha-4: oklch(1 0 0 / 4%);
+  --alpha-6: oklch(1 0 0 / 6%);
+  --alpha-8: oklch(1 0 0 / 8%);
+  --shadow-popover:
+    0 0 0 1px oklch(1 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 12%),
+    0 6px 14px oklch(0 0 0 / 16%);
+  --input: oklch(1 0 0 / 20%);
+  --ring: oklch(0.779 0.117 213.7);
+}
+
+@layer utilities {
+  .corner-ticks {
+    position: relative;
+  }
+  .corner-ticks::before,
+  .corner-ticks::after {
+    position: absolute;
+    z-index: 10;
+    width: 9px;
+    height: 9px;
+    pointer-events: none;
+    content: "";
+  }
+  .corner-ticks::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid var(--border-loud);
+    border-left: 1px solid var(--border-loud);
+  }
+  .corner-ticks::after {
+    right: -1px;
+    bottom: -1px;
+    border-right: 1px solid var(--border-loud);
+    border-bottom: 1px solid var(--border-loud);
+  }
+
+  .btn-primary-glow {
+    position: relative;
+  }
+  .btn-primary-glow::before {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+    background: linear-gradient(to bottom, white, transparent);
+    border-radius: inherit;
+    opacity: 0.06;
+    transition: opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  .btn-primary-glow:hover::before {
+    opacity: 0.12;
+  }
+  .btn-primary-glow:active::before {
+    opacity: 0;
+    transition-duration: 0.05s;
+  }
+
+  .skeleton-shimmer {
+    overflow: hidden;
+  }
+  :where(.skeleton-shimmer) {
+    position: relative;
+  }
+  .skeleton-shimmer::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(1 0 0 / 4%),
+      transparent
+    );
+    transform: translateX(-100%);
+    animation: skeleton-shimmer 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  }
+  @keyframes skeleton-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer::after {
+      animation: none;
+    }
+  }
+
+  /* Primary counterpart to input-bevel-shadow: a single subtle top-light inset,
+     matching the secondary button's restraint so both read as one flat material.
+     No heavy bottom band, no drop shadow. */
+  .primary-button-shadow {
+    box-shadow: 0 1px 1px 0 oklch(1 0 0 / 0.12) inset;
+  }
+
+  /* Neutral counterpart to the primary bevel for inputs + outline/secondary buttons:
+     a single subtle top-light inset for a clean, muted feel. Pure neutral white alpha
+     (chroma 0) — no color cast. Subtle in light, slightly stronger in dark. */
+  .input-bevel-shadow {
+    box-shadow: 0 1px 1px 0 oklch(1 0 0 / 0.04) inset;
+  }
+  .dark .input-bevel-shadow {
+    box-shadow: 0 1px 1px 0 oklch(1 0 0 / 0.05) inset;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer base {
+  .font-heading {
+    font-weight: 350;
+  }
+}
+
+@layer base {
+  pre,
+  code,
+  .font-mono {
+    font-feature-settings:
+      "calt" 0,
+      "liga" 0,
+      "dlig" 0;
+  }
+}

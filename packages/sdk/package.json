@@ -1,0 +1,55 @@
+{
+  "name": "anpord",
+  "version": "0.0.0",
+  "description": "TypeScript SDK for Anpord — customer configuration for AI products.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "anpord",
+    "configuration",
+    "feature-flags",
+    "ai",
+    "sdk"
+  ],
+  "homepage": "https://anpord.com",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests",
+    "lint:publish": "publint --strict",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "publint": "0.3.22",
+    "tsdown": "0.22.14",
+    "typescript": "catalog:"
+  }
+}

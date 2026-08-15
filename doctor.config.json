@@ -1,0 +1,16 @@
+{
+  "ignore": {
+    "files": [
+      "**/src/components/ui/**",
+      "**/.output/**",
+      "**/.nitro/**",
+      "**/.tanstack/**",
+      "**/dist/**",
+      "context/**"
+    ]
+  },
+  "rules": {
+    "react-doctor/no-prevent-default": "off",
+    "deslop/unused-dependency": "off"
+  }
+}
