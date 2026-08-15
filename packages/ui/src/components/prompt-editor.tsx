@@ -17,6 +17,7 @@ interface PromptEditorProps {
   readonly className?: string;
   readonly onChange: (value: string) => void;
   readonly placeholder?: string;
+  readonly readOnly?: boolean;
   readonly value: string;
 }
 
@@ -29,6 +30,7 @@ export function PromptEditor({
   className,
   onChange,
   placeholder,
+  readOnly,
   value,
 }: PromptEditorProps) {
   const id = useId();
@@ -59,11 +61,12 @@ export function PromptEditor({
       <textarea
         className={cn(
           SHARED_TEXT,
-          "absolute inset-0 size-full resize-none bg-transparent px-4 pt-4 pb-2 text-foreground caret-foreground outline-none",
+          "absolute inset-0 size-full resize-none bg-transparent px-4 pt-4 pb-2 text-foreground caret-foreground outline-none read-only:cursor-default read-only:text-muted-foreground",
           "placeholder:text-muted-foreground/70"
         )}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        readOnly={readOnly}
         spellCheck={false}
         value={value}
       />

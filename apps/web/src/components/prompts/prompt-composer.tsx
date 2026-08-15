@@ -20,6 +20,7 @@ interface PromptComposerProps {
   readonly content: string;
   readonly onContentChange: (value: string) => void;
   readonly onSubmit: () => void;
+  readonly readOnly?: boolean;
   readonly saving: boolean;
   readonly version?: number;
 }
@@ -33,11 +34,12 @@ export function PromptComposer({
   content,
   onContentChange,
   onSubmit,
+  readOnly,
   saving,
   version,
 }: PromptComposerProps) {
   const variables = extractVariables(content);
-  const canSubmit = content.trim().length > 0 && !saving;
+  const canSubmit = content.trim().length > 0 && !(saving || readOnly);
 
   return (
     <div className="w-full">
@@ -57,6 +59,7 @@ export function PromptComposer({
         <PromptEditor
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."
+          readOnly={readOnly}
           value={content}
         />
 
