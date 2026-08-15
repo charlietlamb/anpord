@@ -44,8 +44,9 @@ offered as "Create new service role" when you pick a private ECR image.
 | `PORT` | `3003` — already set in the image |
 
 Suggested size is 0.25 vCPU / 0.5 GB, which is the floor and enough for this
-workload. Set the health check path to `/api/prompts`; it answers 401
-unauthenticated, which App Runner counts as healthy.
+workload. Set the health check path to `/api/healthz`, which answers 200.
+App Runner counts only 2xx as healthy, so an authenticated route returning 401
+fails the check even though the server is up.
 
 Re-running the script after the service exists is an ordinary deploy.
 
