@@ -1,0 +1,88 @@
+name: Deploy server
+
+# Only what the image actually contains. The web app deploys itself through
+# Vercel, so a frontend-only change should not rebuild a container.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/server/**"
+      - "packages/auth/**"
+      - "packages/cache/**"
+      - "packages/db/**"
+      - "packages/ids/**"
+      - "packages/prompts/**"
+      - "packages/schema/**"
+      - "bun.lock"
+      - ".github/workflows/deploy-server.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-2
+  ECR_REPO: anpord-server
+  APPRUNNER_SERVICE: anpord-server
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Tagged with the commit as well as latest, so a bad deploy can be rolled
+      # back to a specific image rather than whatever latest happens to be.
+      - name: Build and push
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker build --platform linux/amd64 \
+            -f apps/server/Dockerfile \
+            -t "$REGISTRY/$ECR_REPO:latest" \
+            -t "$REGISTRY/$ECR_REPO:${{ github.sha }}" .
+          docker push "$REGISTRY/$ECR_REPO:latest"
+          docker push "$REGISTRY/$ECR_REPO:${{ github.sha }}"
+
+      - name: Deploy
+        run: |
+          ARN="$(aws apprunner list-services --region "$AWS_REGION" \
+            --query "ServiceSummaryList[?ServiceName=='$APPRUNNER_SERVICE'].ServiceArn | [0]" \
+            --output text)"
+          if [ "$ARN" = "None" ] || [ -z "$ARN" ]; then
+            echo "No service named $APPRUNNER_SERVICE; create it first (see DEPLOY.md)."
+            exit 1
+          fi
+          aws apprunner start-deployment --service-arn "$ARN" --region "$AWS_REGION" >/dev/null
+          echo "Deploying to $ARN"
+
+      - name: Wait for the deployment to settle
+        run: |
+          ARN="$(aws apprunner list-services --region "$AWS_REGION" \
+            --query "ServiceSummaryList[?ServiceName=='$APPRUNNER_SERVICE'].ServiceArn | [0]" \
+            --output text)"
+          for _ in $(seq 1 40); do
+            STATUS="$(aws apprunner describe-service --service-arn "$ARN" \
+              --region "$AWS_REGION" --query 'Service.Status' --output text)"
+            echo "status: $STATUS"
+            case "$STATUS" in
+              RUNNING) exit 0 ;;
+              CREATE_FAILED|DELETE_FAILED) exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "Timed out waiting for the service to reach RUNNING."
+          exit 1
