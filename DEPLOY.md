@@ -107,3 +107,15 @@ anpord get support-reply --at 3       # not --version: the CLI owns that flag
 anpord push support-reply - -m "why"  # - reads stdin
 anpord promote support-reply --to production --at 3
 ```
+
+## Verifying a deploy
+
+```bash
+bun run e2e                                    # against localhost
+API=https://api.anpord.com MCP=https://mcp.anpord.com bun run e2e
+```
+
+Checks discovery metadata, that unauthenticated calls are refused with a
+`WWW-Authenticate` challenge, that the MCP server demands OAuth, and — when
+`ANPORD_API_KEY` is set — that authenticated reads and their error codes work.
+Everything it does is safe against production.

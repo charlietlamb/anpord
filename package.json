@@ -74,6 +74,7 @@
     "dev": "turbo dev --continue=always",
     "dev:kill": "lsof -ti:3003,3005 | xargs kill 2>/dev/null || true",
     "doctor": "react-doctor --yes",
+    "e2e": "bash scripts/e2e-v1.sh",
     "fix": "ultracite fix",
     "knip": "knip --no-config-hints",
     "openapi": "bun run packages/schema/scripts/generate-openapi.ts",
