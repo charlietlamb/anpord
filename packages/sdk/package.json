@@ -1,7 +1,7 @@
 {
   "name": "anpord",
   "version": "0.0.0",
-  "description": "TypeScript SDK for Anpord — customer configuration for AI products.",
+  "description": "TypeScript SDK and CLI for Anpord \u2014 prompt management for AI products.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -24,7 +24,19 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./client": {
+      "import": {
+        "types": "./dist/client.d.mts",
+        "default": "./dist/client.mjs"
+      }
+    },
+    "./config": {
+      "import": {
+        "types": "./dist/config.d.mts",
+        "default": "./dist/config.mjs"
+      }
+    }
   },
   "keywords": [
     "anpord",
@@ -51,5 +63,15 @@
     "publint": "0.3.22",
     "tsdown": "0.22.14",
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@anpord/schema": "workspace:*",
+    "@effect/cli": "catalog:",
+    "@effect/platform": "catalog:",
+    "@effect/platform-bun": "catalog:",
+    "effect": "catalog:"
+  },
+  "bin": {
+    "anpord": "./dist/cli.mjs"
   }
 }

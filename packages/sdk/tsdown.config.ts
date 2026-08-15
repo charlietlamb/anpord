@@ -1,10 +1,10 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
-  format: ["esm", "cjs"],
-  dts: true,
   clean: true,
-  treeshake: true,
+  dts: true,
+  entry: ["src/index.ts", "src/client.ts", "src/cli.ts", "src/config.ts"],
+  format: ["esm", "cjs"],
   target: "node18",
+  treeshake: true,
 });

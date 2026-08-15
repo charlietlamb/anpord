@@ -17,7 +17,7 @@
       }
     },
     {
-      "includes": ["packages/db/src/schema.ts"],
+      "includes": ["packages/db/src/schema.ts", "packages/sdk/src/index.ts"],
       "linter": {
         "rules": {
           "performance": { "noBarrelFile": "off" }

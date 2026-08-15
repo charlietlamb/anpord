@@ -1,0 +1,24 @@
+{
+  "name": "@anpord/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "mcp-use dev --entry src/server.ts",
+    "build": "tsc --project tsconfig.json --noEmit",
+    "start": "bun run src/main.ts",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/schema": "workspace:*",
+    "anpord": "workspace:*",
+    "effect": "catalog:",
+    "mcp-use": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

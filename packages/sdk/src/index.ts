@@ -1,5 +1,2 @@
-/**
- * Placeholder release. The client lands in a future version — this exists so
- * the package name is reserved and consumers can pin something real.
- */
-export const VERSION = "0.0.0";
+export type { AnpordClient, ClientOptions } from "./client";
+export { AnpordApi, DEFAULT_BASE_URL, layer, make } from "./client";
