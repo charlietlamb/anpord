@@ -4,11 +4,11 @@ import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
 import { jwt, magicLink, mcp, organization } from "better-auth/plugins";
-import { Context, Effect, Layer, Redacted } from "effect";
+import { Context, Effect, Layer, Option, Redacted } from "effect";
 import { AuthConfig } from "./config";
 import { COOKIE_PREFIX } from "./cookies";
-import { resolveActiveOrganization } from "./default-organization";
 import { makeSendMagicLink } from "./email";
+import { resolveActiveOrganization } from "./organization-store";
 
 const makeAuth = Effect.gen(function* () {
   const config = yield* AuthConfig;
@@ -44,14 +44,19 @@ const makeAuth = Effect.gen(function* () {
            * session that cannot address any data.
            */
           before: async (session) => {
-            const activeOrganizationId = await resolveActiveOrganization(
-              db,
-              session.userId
+            /** The one place this leaves Effect: Better Auth wants a promise. */
+            const resolved = await Effect.runPromise(
+              resolveActiveOrganization(db, session.userId).pipe(
+                Effect.catchAll(() => Effect.succeedNone)
+              )
             );
 
-            return activeOrganizationId
-              ? { data: { ...session, activeOrganizationId } }
-              : undefined;
+            return Option.match(resolved, {
+              onNone: () => undefined,
+              onSome: (activeOrganizationId) => ({
+                data: { ...session, activeOrganizationId },
+              }),
+            });
           },
         },
       },

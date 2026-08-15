@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { OrganizationId } from "@anpord/schema/actor";
 import { ChannelName, PromptId, VersionNumber } from "@anpord/schema/prompts";
 import { Schema } from "effect";
 import { promptPrefix, selectorKey } from "./keys";
@@ -7,7 +8,9 @@ const channel = (value: string) => Schema.decodeSync(ChannelName)(value);
 const version = (value: number) => Schema.decodeSync(VersionNumber)(value);
 const promptId = (value: string) => Schema.decodeSync(PromptId)(value);
 
-const ORG = "org_1";
+const org = (value: string) => Schema.decodeSync(OrganizationId)(value);
+
+const ORG = org("org_1");
 const ID = promptId("hello-world");
 
 describe("cache keys", () => {
@@ -39,7 +42,9 @@ describe("cache keys", () => {
   });
 
   test("organizations are isolated", () => {
-    expect(promptPrefix("org_1", ID)).not.toBe(promptPrefix("org_2", ID));
+    expect(promptPrefix(org("org_1"), ID)).not.toBe(
+      promptPrefix(org("org_2"), ID)
+    );
   });
 
   test("a renamed handle uses a different prefix, so both need invalidating", () => {

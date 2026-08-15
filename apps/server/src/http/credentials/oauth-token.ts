@@ -12,7 +12,9 @@ const unauthorized = (message: string) => new Unauthorized({ message });
 export const resolveOAuthToken = (
   auth: AuthInstance,
   token: string,
-  organizationOf: (userId: string) => Promise<string | undefined>
+  organizationOf: (
+    userId: string
+  ) => Effect.Effect<Option.Option<string>, unknown>
 ) =>
   Effect.gen(function* () {
     const session = yield* Effect.tryPromise({
@@ -28,13 +30,13 @@ export const resolveOAuthToken = (
       return yield* Effect.fail(unauthorized("Access token is not active"));
     }
 
-    const organizationId = yield* Effect.promise(() =>
-      organizationOf(userId.value)
+    const organizationId = yield* organizationOf(userId.value).pipe(
+      Effect.mapError(() => unauthorized("Could not resolve the organization"))
     );
 
     return yield* Schema.decodeUnknown(Actor)({
       id: userId.value,
-      organizationId,
+      organizationId: Option.getOrUndefined(organizationId),
     }).pipe(
       Effect.mapError(() => unauthorized("No organization for this user"))
     );

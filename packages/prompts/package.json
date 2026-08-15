@@ -5,7 +5,6 @@
   "type": "module",
   "exports": {
     "./errors": "./src/domain/errors.ts",
-    "./actor": "./src/domain/actor.ts",
     "./layer": "./src/layer.ts",
     "./catalog": "./src/services/prompt-catalog.ts",
     "./authoring": "./src/services/prompt-authoring.ts",

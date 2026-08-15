@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { prompt } from "@anpord/db/schema/prompts/prompts";
+import type { OrganizationId } from "@anpord/schema/actor";
 import type { PromptId, PromptName } from "@anpord/schema/prompts";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
@@ -16,7 +17,7 @@ export interface PromptRepositoryShape {
     archivedAt: Date
   ) => Effect.Effect<void, PromptStoreError>;
   readonly findById: (
-    organizationId: string,
+    organizationId: OrganizationId,
     id: PromptId
   ) => Effect.Effect<Option.Option<PromptRow>, PromptStoreError>;
   readonly insert: (input: {
@@ -25,10 +26,10 @@ export interface PromptRepositoryShape {
     readonly id: PromptId;
     readonly internalId: string;
     readonly name: PromptName;
-    readonly organizationId: string;
+    readonly organizationId: OrganizationId;
   }) => Effect.Effect<void, PromptStoreError>;
   readonly listByOrganization: (
-    organizationId: string
+    organizationId: OrganizationId
   ) => Effect.Effect<readonly PromptListRow[], PromptStoreError>;
   readonly touch: (
     internalId: string,

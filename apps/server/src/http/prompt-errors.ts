@@ -41,7 +41,9 @@ export const toHttpError = (
           message: "A version was created concurrently. Please retry.",
         })
       );
-    default:
+    case "PromptStoreError":
       return Effect.die(error);
+    default:
+      return Effect.die(error satisfies never);
   }
 };

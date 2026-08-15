@@ -2,6 +2,7 @@ import type { Database } from "@anpord/db/client";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { prompt } from "@anpord/db/schema/prompts/prompts";
+import type { OrganizationId } from "@anpord/schema/actor";
 import { PRODUCTION } from "@anpord/schema/prompts";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 
@@ -22,7 +23,7 @@ export interface PromptListRow {
  */
 export const selectPromptList = (
   db: Database["Type"],
-  organizationId: string
+  organizationId: OrganizationId
 ) => {
   const latest = db
     .select({

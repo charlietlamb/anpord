@@ -13,4 +13,3 @@ export const ID_PREFIXES = {
 } as const;
 
 export type IdEntity = keyof typeof ID_PREFIXES;
-export type IdPrefix = (typeof ID_PREFIXES)[IdEntity];

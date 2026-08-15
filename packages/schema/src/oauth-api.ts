@@ -1,6 +1,6 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
-import { NotFound } from "./errors";
+import { InternalError, NotFound } from "./errors";
 
 export const OAuthClient = Schema.Struct({
   name: Schema.String,
@@ -14,4 +14,5 @@ export class OAuthGroup extends HttpApiGroup.make("oauth")
       .setPath(ClientPath)
       .addSuccess(OAuthClient)
   )
+  .addError(InternalError)
   .addError(NotFound) {}
