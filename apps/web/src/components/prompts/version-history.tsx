@@ -1,11 +1,11 @@
 import type { ResolvedPrompt } from "@anpord/schema/prompts";
 import { cn } from "@anpord/ui/lib/utils";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
-import { useState } from "react";
 import { UserAvatar } from "@/components/user/user-avatar";
 import { useIsClient } from "@/lib/use-is-client";
 
-const VISIBLE_BY_DEFAULT = 5;
+/** Three rows plus a sliver of the fourth, so the list reads as scrollable. */
+const VISIBLE_HEIGHT = "max-h-[8.75rem]";
 
 const RELATIVE = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 const ABSOLUTE = new Intl.DateTimeFormat("en", {
@@ -64,7 +64,6 @@ export function VersionHistory({
   selectedVersion,
   versions,
 }: VersionHistoryProps) {
-  const [expanded, setExpanded] = useState(false);
   /** Locale formatting differs between server and client, so defer to mount. */
   const isClient = useIsClient();
   const now = Date.now();
@@ -73,21 +72,25 @@ export function VersionHistory({
     return null;
   }
 
-  const shown = expanded ? versions : versions.slice(0, VISIBLE_BY_DEFAULT);
-  const hidden = versions.length - shown.length;
-
   return (
     <section className="mt-4 rounded-xl border border-border-surface bg-card px-1.5 pb-1.5 shadow-raised">
       <h2 className="px-2.5 pt-2.5 pb-1.5 font-medium text-muted-foreground text-xs">
         Versions
       </h2>
 
-      <ul>
-        {shown.map((version, index) => {
+      {/* Scrolls rather than truncating, so reaching older versions is one
+          gesture instead of a click that reflows the page. */}
+      <ul
+        className={cn(
+          "overflow-y-auto overscroll-contain pr-1",
+          VISIBLE_HEIGHT
+        )}
+      >
+        {versions.map((version, index) => {
           const live = version.version === liveVersion;
           const selected = version.version === selectedVersion;
           const first = index === 0;
-          const last = index === shown.length - 1;
+          const last = index === versions.length - 1;
 
           return (
             <li key={version.versionId}>
@@ -181,16 +184,6 @@ export function VersionHistory({
           );
         })}
       </ul>
-
-      {hidden > 0 ? (
-        <button
-          className="w-full rounded-lg px-2.5 py-2 text-left text-muted-foreground text-xs hover:text-foreground"
-          onClick={() => setExpanded(true)}
-          type="button"
-        >
-          Show {hidden} older {hidden === 1 ? "version" : "versions"}
-        </button>
-      ) : null}
     </section>
   );
 }
