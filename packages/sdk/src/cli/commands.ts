@@ -1,16 +1,12 @@
 import { ChannelName, PromptId, VersionNumber } from "@anpord/schema/prompts";
 import { Args, Command, Options } from "@effect/cli";
-import { Effect, Option, Schema } from "effect";
+import { Data, Effect, Option } from "effect";
 import { AnpordApi } from "../client";
 import { json, note, promptContent } from "./render";
 
 const promptId = Args.text({ name: "id" }).pipe(
   Args.withDescription("The prompt's id, such as support-reply"),
-  Args.mapEffect((value) =>
-    Schema.decodeUnknown(PromptId)(value).pipe(
-      Effect.mapError((issue) => ({ _tag: "InvalidArgument", issue }) as never)
-    )
-  )
+  Args.withSchema(PromptId)
 );
 
 const channel = Options.text("channel").pipe(
@@ -100,6 +96,16 @@ const promote = Command.make(
     })
 ).pipe(Command.withDescription("Point a channel at a version"));
 
+class StdinUnreadable extends Data.TaggedError("StdinUnreadable")<{
+  readonly cause: unknown;
+}> {}
+
+/** A closed pipe fails the read, so it is a typed error rather than a defect. */
+const readStdin = Effect.tryPromise({
+  catch: (cause) => new StdinUnreadable({ cause }),
+  try: () => Bun.stdin.text(),
+});
+
 /** A tuple fixes the order; separate keys are sorted by name, not by position. */
 const target = Args.all([
   promptId,
@@ -114,10 +120,7 @@ const push = Command.make(
   ({ message: why, target: [id, content] }) =>
     Effect.gen(function* () {
       const api = yield* AnpordApi;
-      const body =
-        content === "-"
-          ? yield* Effect.promise(() => Bun.stdin.text())
-          : content;
+      const body = content === "-" ? yield* readStdin : content;
 
       const prompt = yield* api.prompts.update({
         payload: {
