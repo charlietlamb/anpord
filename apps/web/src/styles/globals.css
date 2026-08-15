@@ -245,11 +245,14 @@
       inset 0 1px 0 oklch(1 0 0 / 0.22),
       0 1px 3px oklch(0 0 0 / 0.18);
   }
+  /* The darkened border alone reads as a groove against a near-black page, so
+     a faint outer halo separates the perimeter from the background. */
   .dark .primary-button-shadow {
     box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.08),
-      inset 0 1px 0 oklch(1 0 0 / 0.24),
-      0 1px 3px oklch(0 0 0 / 0.3);
+      inset 0 0 0 1px oklch(1 0 0 / 0.16),
+      inset 0 1px 0 oklch(1 0 0 / 0.3),
+      0 0 0 1px oklch(1 0 0 / 0.07),
+      0 2px 7px oklch(0 0 0 / 0.45);
   }
 
   /* Pressing removes the lift and darkens the top, so the control reads as
@@ -275,6 +278,34 @@
 
   .input-bevel-shadow:active:not(:disabled) {
     box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.1);
+  }
+
+  /* The buttons' bevel and lift at panel scale. Tailwind's shadow scale has
+     no step this soft and cannot express an inset bevel, so the drop is a
+     token while the hairline stays a ring utility in the markup. */
+  .shadow-elevated {
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.7),
+      0 3px 10px oklch(0 0 0 / 0.06),
+      0 20px 48px -24px oklch(0 0 0 / 0.16);
+  }
+  .dark .shadow-elevated {
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.07),
+      0 3px 10px oklch(0 0 0 / 0.32),
+      0 20px 48px -24px oklch(0 0 0 / 0.65);
+  }
+
+  /* Same bevel, closer to the page, so secondary surfaces stay subordinate. */
+  .shadow-raised {
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.7),
+      0 1px 3px oklch(0 0 0 / 0.04);
+  }
+  .dark .shadow-raised {
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.07),
+      0 1px 3px oklch(0 0 0 / 0.2);
   }
 }
 

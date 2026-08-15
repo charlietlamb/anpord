@@ -32,7 +32,7 @@ export function ComposerSurface({
   return (
     <div
       className={cn(
-        "relative z-10 flex flex-col rounded-[18px] bg-card shadow-[inset_0_0_0_1px_oklch(0_0_0/4%),0_2px_6px_oklch(0_0_0/5%),0_12px_32px_-16px_oklch(0_0_0/14%)] transition-shadow focus-within:shadow-[inset_0_0_0_1px_var(--ring),0_2px_6px_oklch(0_0_0/5%),0_12px_32px_-16px_oklch(0_0_0/14%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%),0_2px_6px_oklch(0_0_0/25%),0_12px_32px_-16px_oklch(0_0_0/50%)]",
+        "relative z-10 flex flex-col rounded-[18px] bg-card shadow-elevated ring-1 ring-black/[0.07] transition-shadow focus-within:ring-ring dark:ring-white/[0.16]",
         className
       )}
       {...props}
