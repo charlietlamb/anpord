@@ -3,7 +3,7 @@ import { schema } from "@anpord/db/schema";
 import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
-import { magicLink, organization } from "better-auth/plugins";
+import { jwt, magicLink, mcp, organization } from "better-auth/plugins";
 import { Context, Effect, Layer, Redacted } from "effect";
 import { AuthConfig } from "./config";
 import { COOKIE_PREFIX } from "./cookies";
@@ -74,6 +74,16 @@ const makeAuth = Effect.gen(function* () {
         startingCharactersConfig: {
           charactersLength: 8,
           shouldStore: true,
+        },
+      }),
+      jwt(),
+      mcp({
+        loginPage: "/login",
+        oidcConfig: {
+          allowDynamicClientRegistration: true,
+          consentPage: "/oauth/consent",
+          loginPage: "/login",
+          scopes: ["prompts:read", "prompts:write"],
         },
       }),
     ],

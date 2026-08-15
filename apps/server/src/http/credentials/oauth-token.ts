@@ -1,0 +1,41 @@
+import type { AuthInstance } from "@anpord/auth";
+import { Actor } from "@anpord/schema/actor";
+import { Unauthorized } from "@anpord/schema/errors";
+import { Effect, Option, Schema } from "effect";
+
+const unauthorized = (message: string) => new Unauthorized({ message });
+
+/**
+ * The token identifies the person, and the organization comes from their
+ * membership, so a token cannot widen its own reach by claiming one.
+ */
+export const resolveOAuthToken = (
+  auth: AuthInstance,
+  token: string,
+  organizationOf: (userId: string) => Promise<string | undefined>
+) =>
+  Effect.gen(function* () {
+    const session = yield* Effect.tryPromise({
+      catch: () => unauthorized("Could not verify the access token"),
+      try: () =>
+        auth.api.getMcpSession({
+          headers: new Headers({ authorization: `Bearer ${token}` }),
+        }),
+    });
+
+    const userId = Option.fromNullable(session?.userId);
+    if (Option.isNone(userId)) {
+      return yield* Effect.fail(unauthorized("Access token is not active"));
+    }
+
+    const organizationId = yield* Effect.promise(() =>
+      organizationOf(userId.value)
+    );
+
+    return yield* Schema.decodeUnknown(Actor)({
+      id: userId.value,
+      organizationId,
+    }).pipe(
+      Effect.mapError(() => unauthorized("No organization for this user"))
+    );
+  });

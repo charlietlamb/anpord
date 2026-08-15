@@ -2,6 +2,7 @@ import { Auth } from "@anpord/auth";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
+import { isDiscoveryRoute, toAuthRequest } from "./http/well-known";
 import { AppLayer } from "./layer";
 import { ApiLive } from "./routes/api-layer";
 import { PublicApiLive } from "./routes/public/api-layer";
@@ -34,6 +35,9 @@ export const main = Effect.gen(function* () {
           port: config.port,
           fetch: (request) => {
             const { pathname } = new URL(request.url);
+            if (isDiscoveryRoute(pathname)) {
+              return auth.handler(toAuthRequest(request));
+            }
             if (isAuthRoute(pathname)) {
               return auth.handler(request);
             }

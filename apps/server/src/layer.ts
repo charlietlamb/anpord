@@ -23,5 +23,6 @@ const PromptsServiceLayer = PromptsLayer.pipe(
 export const AppLayer = Layer.mergeAll(
   ServerConfigLive,
   AuthLayer,
+  DatabaseLayer,
   PromptsServiceLayer
 );

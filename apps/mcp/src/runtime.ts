@@ -1,16 +1,20 @@
 import { type AnpordApi, layer } from "anpord/client";
-import { clientOptionsConfig } from "anpord/config";
-import type { ConfigError } from "effect";
-import { Effect, Layer, ManagedRuntime } from "effect";
-
-const ClientLayer: Layer.Layer<AnpordApi, ConfigError.ConfigError> =
-  Layer.unwrapEffect(Effect.map(clientOptionsConfig, layer));
+import { baseUrlConfig } from "anpord/config";
+import { Effect, Redacted } from "effect";
 
 /**
- * One runtime for the process rather than one per tool call, so the HTTP client
- * and its connection pool are built once.
+ * A client per caller, not per process: the token belongs to the person who
+ * authorised this request, so two users of the same server never share one.
  */
-const runtime = ManagedRuntime.make(ClientLayer);
-
-export const runTool = <A, E>(effect: Effect.Effect<A, E, AnpordApi>) =>
-  runtime.runPromise(effect);
+export const runAs = <A, E>(
+  accessToken: string,
+  effect: Effect.Effect<A, E, AnpordApi>
+) =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      const baseUrl = yield* baseUrlConfig;
+      return yield* effect.pipe(
+        Effect.provide(layer({ apiKey: Redacted.make(accessToken), baseUrl }))
+      );
+    })
+  );

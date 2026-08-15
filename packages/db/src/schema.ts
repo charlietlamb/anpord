@@ -2,6 +2,12 @@ import { account } from "./schema/auth/accounts";
 import { apikey } from "./schema/auth/api-keys";
 import { invitation } from "./schema/auth/invitations";
 import { member } from "./schema/auth/members";
+import {
+  jwks,
+  oauthAccessToken,
+  oauthApplication,
+  oauthConsent,
+} from "./schema/auth/oauth";
 import { organization } from "./schema/auth/organizations";
 import { session } from "./schema/auth/sessions";
 import { user } from "./schema/auth/users";
@@ -16,6 +22,12 @@ export { account } from "./schema/auth/accounts";
 export { apikey } from "./schema/auth/api-keys";
 export { invitation } from "./schema/auth/invitations";
 export { member } from "./schema/auth/members";
+export {
+  jwks,
+  oauthAccessToken,
+  oauthApplication,
+  oauthConsent,
+} from "./schema/auth/oauth";
 export { organization } from "./schema/auth/organizations";
 export { session } from "./schema/auth/sessions";
 export { user } from "./schema/auth/users";
@@ -29,7 +41,11 @@ export const schema = {
   account,
   apikey,
   invitation,
+  jwks,
   member,
+  oauthAccessToken,
+  oauthApplication,
+  oauthConsent,
   organization,
   prompt,
   promptChannel,

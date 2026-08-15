@@ -1,47 +1,35 @@
 import { Auth } from "@anpord/auth";
-import { Actor } from "@anpord/schema/actor";
-import { Unauthorized } from "@anpord/schema/errors";
+import { resolveActiveOrganization } from "@anpord/auth/organization";
+import { Database } from "@anpord/db/client";
 import { ApiKeyAuthentication } from "@anpord/schema/public/authentication";
 import { HttpApiBuilder } from "@effect/platform";
-import { Effect, Layer, Option, Redacted, Schema } from "effect";
+import { Effect, Layer, Redacted } from "effect";
+import { resolveApiKey } from "./credentials/api-key";
+import { resolveOAuthToken } from "./credentials/oauth-token";
 
-const unauthorized = (message: string) => new Unauthorized({ message });
+const API_KEY_PREFIX = "anp_";
 
+/**
+ * Both credentials resolve to the same actor, so nothing downstream knows how
+ * the caller authenticated. A machine uses a key it minted; a person going
+ * through an MCP client uses their own token and gets their own organization
+ * rather than the key owner's.
+ */
 export const ApiKeyAuthenticationLive = Layer.effect(
   ApiKeyAuthentication,
   Effect.gen(function* () {
     const auth = yield* Auth;
+    const db = yield* Database;
 
     return ApiKeyAuthentication.of({
-      bearer: (token) =>
-        Effect.gen(function* () {
-          const verified = yield* Effect.tryPromise({
-            try: () =>
-              auth.api.verifyApiKey({
-                body: { key: Redacted.value(token) },
-              }),
-            catch: () => unauthorized("Could not verify the API key"),
-          });
-
-          if (!verified.valid) {
-            return yield* Effect.fail(unauthorized("Invalid API key"));
-          }
-
-          const key = Option.fromNullable(verified.key);
-          if (Option.isNone(key)) {
-            return yield* Effect.fail(unauthorized("Invalid API key"));
-          }
-
-          /** The key belongs to an organization; the user is whoever minted it. */
-          const metadata = (key.value.metadata ?? {}) as {
-            readonly createdBy?: string;
-          };
-
-          return yield* Schema.decodeUnknown(Actor)({
-            id: metadata.createdBy ?? key.value.referenceId,
-            organizationId: key.value.referenceId,
-          }).pipe(Effect.mapError(() => unauthorized("API key is malformed")));
-        }),
+      bearer: (credential) => {
+        const token = Redacted.value(credential);
+        return token.startsWith(API_KEY_PREFIX)
+          ? resolveApiKey(auth, token)
+          : resolveOAuthToken(auth, token, (userId) =>
+              resolveActiveOrganization(db, userId)
+            );
+      },
     });
   })
 ).pipe(Layer.provide(HttpApiBuilder.middlewareCors()));

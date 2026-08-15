@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/auth.ts",
     "./config": "./src/config.ts",
-    "./cookies": "./src/cookies.ts"
+    "./cookies": "./src/cookies.ts",
+    "./organization": "./src/default-organization.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",

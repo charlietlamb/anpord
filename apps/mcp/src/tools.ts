@@ -7,7 +7,14 @@ import { AnpordApi } from "anpord/client";
 import { Effect, Schema } from "effect";
 import type { MCPServer } from "mcp-use";
 import { z } from "zod";
-import { runTool } from "./runtime";
+import { runAs } from "./runtime";
+
+export interface AnpordUser {
+  readonly email?: string;
+  readonly id: string;
+  readonly name?: string;
+  readonly roles: string[];
+}
 
 const text = (value: string) => ({
   content: [{ text: value, type: "text" as const }],
@@ -17,7 +24,7 @@ const asJson = (value: unknown) => text(JSON.stringify(value, null, 2));
 
 const promptId = z.string().describe("The prompt's id, such as support-reply");
 
-export const register = (server: MCPServer) => {
+export const register = (server: MCPServer<AnpordUser>) => {
   server.tool(
     {
       description:
@@ -38,8 +45,9 @@ export const register = (server: MCPServer) => {
       }),
       name: "get_prompt",
     },
-    (input) =>
-      runTool(
+    (input, ctx) =>
+      runAs(
+        ctx.auth.accessToken,
         Effect.gen(function* () {
           const api = yield* AnpordApi;
           const payload = yield* Schema.decodeUnknown(GetPromptRequest)(input);
@@ -51,12 +59,13 @@ export const register = (server: MCPServer) => {
 
   server.tool(
     {
-      description: "List every prompt, without content.",
+      description: "List every prompt you can see, without content.",
       inputSchema: z.object({}),
       name: "list_prompts",
     },
-    () =>
-      runTool(
+    (_input, ctx) =>
+      runAs(
+        ctx.auth.accessToken,
         Effect.gen(function* () {
           const api = yield* AnpordApi;
           const { data } = yield* api.prompts.list({ payload: {} });
@@ -72,8 +81,9 @@ export const register = (server: MCPServer) => {
       inputSchema: z.object({ id: promptId }),
       name: "list_versions",
     },
-    (input) =>
-      runTool(
+    (input, ctx) =>
+      runAs(
+        ctx.auth.accessToken,
         Effect.gen(function* () {
           const api = yield* AnpordApi;
           const { id } = yield* Schema.decodeUnknown(GetPromptRequest)(input);
@@ -97,8 +107,9 @@ export const register = (server: MCPServer) => {
       }),
       name: "update_prompt",
     },
-    (input) =>
-      runTool(
+    (input, ctx) =>
+      runAs(
+        ctx.auth.accessToken,
         Effect.gen(function* () {
           const api = yield* AnpordApi;
           const payload =
@@ -121,8 +132,9 @@ export const register = (server: MCPServer) => {
       }),
       name: "promote_prompt",
     },
-    (input) =>
-      runTool(
+    (input, ctx) =>
+      runAs(
+        ctx.auth.accessToken,
         Effect.gen(function* () {
           const api = yield* AnpordApi;
           const payload =
