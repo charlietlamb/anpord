@@ -112,15 +112,17 @@ export function VersionHistory({
                   onClick={() => onSelect(version)}
                   type="button"
                 >
-                  <span className="w-6 shrink-0 font-medium text-muted-foreground text-xs tabular-nums">
-                    v{version.version}
-                  </span>
                   {/* The content is what you scan when choosing a version;
                       the message, when there is one, says why it changed. */}
                   <span className="truncate text-foreground/80">
                     {version.commitMessage ?? version.content}
                   </span>
                 </button>
+
+                {/* Right-aligned so the numbers hold a column as they grow. */}
+                <span className="ml-2 w-8 shrink-0 text-right font-medium text-muted-foreground text-xs tabular-nums">
+                  v{version.version}
+                </span>
 
                 {version.author ? <UserAvatar user={version.author} /> : null}
 
