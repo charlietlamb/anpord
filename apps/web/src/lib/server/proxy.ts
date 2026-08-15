@@ -1,16 +1,20 @@
 import { serverUrl } from "./server-url";
 
-/** GET and HEAD carry no body; passing a null stream fails the fetch outright. */
+/** GET and HEAD carry no body, so reading one would throw. */
 const METHODS_WITHOUT_BODY = new Set(["GET", "HEAD"]);
 
-export function proxyToServer({ request }: { request: Request }) {
+/**
+ * Buffers the body instead of forwarding the stream. A streamed body has to be
+ * non-null and unread at the moment fetch takes it, which does not hold once
+ * the framework has touched the request — undici then fails the whole call with
+ * "expected non-null body source". Prompts are small, so the copy is cheap.
+ */
+export async function proxyToServer({ request }: { request: Request }) {
   const baseUrl = serverUrl();
   if (!baseUrl) {
     return new Response(
       "AUTH_SERVER_URL or BETTER_AUTH_URL is not configured",
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 
@@ -19,14 +23,14 @@ export function proxyToServer({ request }: { request: Request }) {
   const headers = new Headers(request.headers);
   headers.set("accept-encoding", "identity");
 
-  const hasBody =
-    !METHODS_WITHOUT_BODY.has(request.method.toUpperCase()) && request.body;
+  const body = METHODS_WITHOUT_BODY.has(request.method.toUpperCase())
+    ? undefined
+    : await request.arrayBuffer();
 
   return fetch(target, {
     headers,
     method: request.method,
     redirect: "manual",
-    // Node requires duplex when streaming a request body.
-    ...(hasBody ? { body: request.body, duplex: "half" } : {}),
+    ...(body && body.byteLength > 0 ? { body } : {}),
   });
 }
