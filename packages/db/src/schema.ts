@@ -1,15 +1,3 @@
-export * from "./schema/auth/accounts";
-export * from "./schema/auth/invitations";
-export * from "./schema/auth/members";
-export * from "./schema/auth/organizations";
-export * from "./schema/auth/sessions";
-export * from "./schema/auth/users";
-export * from "./schema/auth/verifications";
-export * from "./schema/prompts/prompt-channel-events";
-export * from "./schema/prompts/prompt-channels";
-export * from "./schema/prompts/prompt-versions";
-export * from "./schema/prompts/prompts";
-
 import { account } from "./schema/auth/accounts";
 import { invitation } from "./schema/auth/invitations";
 import { member } from "./schema/auth/members";

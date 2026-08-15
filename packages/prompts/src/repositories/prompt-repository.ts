@@ -1,5 +1,5 @@
 import { Database } from "@anpord/db/client";
-import { prompt } from "@anpord/db/schema";
+import { prompt } from "@anpord/db/schema/prompts/prompts";
 import type { PromptId, PromptName } from "@anpord/schema/prompts";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
@@ -7,8 +7,6 @@ import type { PromptStoreError } from "../domain/errors";
 import type { PromptListRow } from "./prompt-list-query";
 import { selectPromptList } from "./prompt-list-query";
 import { head, query } from "./query";
-
-export type { PromptListRow } from "./prompt-list-query";
 
 type PromptRow = typeof prompt.$inferSelect;
 

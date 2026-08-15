@@ -105,6 +105,7 @@ files rather than patching lines.
 ## Naming
 
 - Files kebab-case, matching their main export.
+- Import from defining modules; do not add re-exports or barrel files.
 - No `utils.ts`, `helpers.ts`, `misc.ts`, `common.ts` — name the responsibility.
 - Tagged errors read as facts: `PromptNotFound`, `VersionConflict`.
 - Spans read `Service.method`: `Prompts.create`.

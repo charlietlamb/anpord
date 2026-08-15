@@ -1,5 +1,7 @@
 import type { Database } from "@anpord/db/client";
-import { prompt, promptChannel, promptVersion } from "@anpord/db/schema";
+import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
+import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
+import { prompt } from "@anpord/db/schema/prompts/prompts";
 import { PRODUCTION } from "@anpord/schema/prompts";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 

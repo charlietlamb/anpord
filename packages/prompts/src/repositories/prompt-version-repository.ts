@@ -1,5 +1,5 @@
 import { Database } from "@anpord/db/client";
-import { promptVersion } from "@anpord/db/schema";
+import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { PromptId } from "@anpord/schema/prompts";
 import { and, desc, eq } from "drizzle-orm";

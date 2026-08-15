@@ -1,11 +1,11 @@
-import type { promptVersion } from "@anpord/db/schema";
+import type { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import {
   type ChannelName,
   PromptSummary,
   ResolvedPrompt,
 } from "@anpord/schema/prompts";
 import { Effect, ParseResult, Schema } from "effect";
-import type { PromptListRow } from "../repositories/prompt-repository";
+import type { PromptListRow } from "../repositories/prompt-list-query";
 import { PromptStoreError } from "./errors";
 
 type VersionRow = typeof promptVersion.$inferSelect;

@@ -1,9 +1,7 @@
 import { Database } from "@anpord/db/client";
-import {
-  promptChannel,
-  promptChannelEvent,
-  promptVersion,
-} from "@anpord/db/schema";
+import { promptChannelEvent } from "@anpord/db/schema/prompts/prompt-channel-events";
+import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
+import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { ChannelName } from "@anpord/schema/prompts";
 import { and, eq } from "drizzle-orm";

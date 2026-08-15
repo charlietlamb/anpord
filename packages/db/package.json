@@ -6,7 +6,8 @@
   "exports": {
     "./client": "./src/client.ts",
     "./config": "./src/config.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema.ts",
+    "./schema/*": "./src/schema/*.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",

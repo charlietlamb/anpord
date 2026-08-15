@@ -6,6 +6,8 @@ import {
 } from "@anpord/ui/components/composer";
 import { PromptEditor } from "@anpord/ui/components/prompt-editor";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
+import { Kbd } from "@anpord/ui/components/ui/kbd";
+import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import { extractVariables } from "@anpord/ui/lib/prompt-variables";
 import {
   ArrowUpIcon,
@@ -14,6 +16,7 @@ import {
   SpinnerGapIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { useIsClient } from "@/lib/use-is-client";
 
 interface PromptComposerProps {
   readonly children?: ReactNode;
@@ -38,8 +41,17 @@ export function PromptComposer({
   saving,
   version,
 }: PromptComposerProps) {
+  /** navigator is server-undefined, so the glyph resolves after mount. */
+  const isClient = useIsClient();
   const variables = extractVariables(content);
   const canSubmit = content.trim().length > 0 && !(saving || readOnly);
+
+  /** Saves from inside the editor, where the caret spends all its time. */
+  useShortcut("enter", {
+    disabled: !canSubmit,
+    meta: true,
+    onTrigger: onSubmit,
+  });
 
   return (
     <div className="w-full">
@@ -76,7 +88,7 @@ export function PromptComposer({
           <ComposerToolbarGroup className="ml-auto">
             <button
               aria-label="Save version"
-              className="ml-1 inline-flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="ml-1 inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary pr-2 pl-2.5 text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
               disabled={!canSubmit}
               onClick={onSubmit}
               type="button"
@@ -86,6 +98,12 @@ export function PromptComposer({
               ) : (
                 <ArrowUpIcon size={16} weight="bold" />
               )}
+              {isClient ? (
+                <span className="flex items-center gap-0.5">
+                  <Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+                  <Kbd>↵</Kbd>
+                </span>
+              ) : null}
             </button>
           </ComposerToolbarGroup>
         </ComposerToolbar>
