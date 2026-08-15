@@ -1,9 +1,25 @@
 import { Logo } from "@anpord/ui/components/logo";
+import { Kbd } from "@anpord/ui/components/ui/kbd";
+import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
-import { Link } from "@tanstack/react-router";
+import { PlusIcon } from "@phosphor-icons/react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useIsClient } from "@/lib/use-is-client";
+
+/** currentColor is the fill here, so the caps need their own contrast. */
+const CAP = "border-white/20 bg-white/16 text-white/80";
 
 export function Landing() {
+  const navigate = useNavigate();
+  /** The caps promise a shortcut, so it has to actually work. */
+  useShortcut("enter", {
+    meta: true,
+    onTrigger: () => navigate({ to: "/login" }),
+  });
+  /** navigator is server-undefined, so the glyph resolves after mount. */
+  const isClient = useIsClient();
+
   return (
     <main className="min-h-svh bg-background text-foreground">
       <div className="mx-auto flex min-h-svh w-full max-w-3xl flex-col px-6">
@@ -26,11 +42,18 @@ export function Landing() {
             <Link
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "btn-primary-glow h-10 px-8 text-sm"
+                "h-10 gap-2 pr-2.5 pl-4 text-sm"
               )}
               to="/login"
             >
-              Get started
+              <PlusIcon size={15} weight="bold" />
+              Start Prompting
+              {isClient ? (
+                <span className="flex items-center gap-0.5">
+                  <Kbd className={CAP}>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+                  <Kbd className={CAP}>↵</Kbd>
+                </span>
+              ) : null}
             </Link>
           </div>
         </section>

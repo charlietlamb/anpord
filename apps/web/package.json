@@ -22,6 +22,7 @@
     "@tanstack/react-table": "catalog:",
     "@tanstack/start-server-core": "1.169.14",
     "better-auth": "catalog:",
+    "effect": "catalog:",
     "next-themes": "catalog:",
     "nitro": "catalog:",
     "react": "catalog:",

@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authed/prompts/")({
 });
 
 /** Fetched on the client: the list is session-scoped and needs the cookie. */
-function PromptList({ prompts }: { prompts: PromptSummary[] | null }) {
+function PromptList({ prompts }: { prompts: readonly PromptSummary[] | null }) {
   if (prompts === null) {
     return <p className="mt-10 text-muted-foreground text-sm">Loading…</p>;
   }
@@ -57,7 +57,7 @@ function PromptList({ prompts }: { prompts: PromptSummary[] | null }) {
 }
 
 function PromptsPage() {
-  const [prompts, setPrompts] = useState<PromptSummary[] | null>(null);
+  const [prompts, setPrompts] = useState<readonly PromptSummary[] | null>(null);
 
   useEffect(() => {
     let active = true;

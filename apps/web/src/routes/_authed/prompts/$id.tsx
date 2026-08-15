@@ -18,7 +18,9 @@ export const Route = createFileRoute("/_authed/prompts/$id")({
  */
 function PromptDetailPage() {
   const { id } = Route.useParams();
-  const [versions, setVersions] = useState<ResolvedPrompt[] | null>(null);
+  const [versions, setVersions] = useState<readonly ResolvedPrompt[] | null>(
+    null
+  );
   const [viewing, setViewing] = useState<number | null>(null);
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);

@@ -19,7 +19,8 @@ const WEEK = 7 * DAY;
 
 /** Recent edits read better as elapsed time; older ones as a date. */
 function when(value: Date, now: number) {
-  const elapsed = now - value.getTime();
+  const at = value instanceof Date ? value : new Date(value);
+  const elapsed = now - at.getTime();
 
   if (elapsed < HOUR) {
     return RELATIVE.format(
@@ -33,7 +34,7 @@ function when(value: Date, now: number) {
   if (elapsed < WEEK) {
     return RELATIVE.format(-Math.floor(elapsed / DAY), "day");
   }
-  return ABSOLUTE.format(value);
+  return ABSOLUTE.format(at);
 }
 
 interface VersionHistoryProps {
