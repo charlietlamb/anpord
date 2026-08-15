@@ -71,9 +71,11 @@ export function VersionHistory({
       </h2>
 
       <ul>
-        {shown.map((version) => {
+        {shown.map((version, index) => {
           const live = version.version === liveVersion;
           const selected = version.version === selectedVersion;
+          const first = index === 0;
+          const last = index === shown.length - 1;
 
           return (
             <li key={version.versionId}>
@@ -83,14 +85,26 @@ export function VersionHistory({
                   selected ? "bg-muted/60" : "hover:bg-muted/40"
                 )}
               >
-                {/* A dot carries "live" without the weight of a badge. */}
+                {/* The rail makes the sequence legible; the ring lifts the
+                    node off the line it sits on. */}
                 <span
                   aria-hidden="true"
-                  className={cn(
-                    "size-1.5 shrink-0 rounded-full",
-                    live ? "bg-primary" : "bg-transparent"
-                  )}
-                />
+                  className="relative flex w-3.5 shrink-0 justify-center self-stretch"
+                >
+                  <span
+                    className={cn(
+                      "absolute w-px bg-border",
+                      first ? "top-1/2" : "top-[-0.625rem]",
+                      last ? "bottom-1/2" : "bottom-[-0.625rem]"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "relative size-[7px] self-center rounded-full ring-[3px] ring-card",
+                      live ? "bg-primary" : "bg-muted-foreground/40"
+                    )}
+                  />
+                </span>
 
                 <button
                   className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none"
@@ -100,11 +114,11 @@ export function VersionHistory({
                   <span className="w-6 shrink-0 font-medium text-muted-foreground text-xs tabular-nums">
                     v{version.version}
                   </span>
-                  {version.commitMessage ? (
-                    <span className="truncate">{version.commitMessage}</span>
-                  ) : (
-                    <span className="truncate text-muted-foreground/60">—</span>
-                  )}
+                  {/* The content is what you scan when choosing a version;
+                      the message, when there is one, says why it changed. */}
+                  <span className="truncate text-foreground/80">
+                    {version.commitMessage ?? version.content}
+                  </span>
                 </button>
 
                 <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
