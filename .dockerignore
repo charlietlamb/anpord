@@ -1,0 +1,29 @@
+node_modules
+**/node_modules
+.git
+.env
+.env.*
+!.env.example
+# Not built here, but their manifests are: the lockfile covers every workspace
+# member, so omitting one makes a frozen install fail.
+apps/web
+!apps/web/package.json
+packages/ui
+!packages/ui/package.json
+packages/sdk
+!packages/sdk/package.json
+context
+.claude
+.turbo
+**/.turbo
+dist
+**/dist
+.output
+**/.output
+.nitro
+**/.nitro
+.vercel
+**/.vercel
+*.log
+.DS_Store
+scripts
