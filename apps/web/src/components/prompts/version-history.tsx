@@ -2,6 +2,7 @@ import type { ResolvedPrompt } from "@anpord/schema/prompts";
 import { cn } from "@anpord/ui/lib/utils";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { UserAvatar } from "@/components/user/user-avatar";
 import { useIsClient } from "@/lib/use-is-client";
 
 const VISIBLE_BY_DEFAULT = 5;
@@ -120,6 +121,8 @@ export function VersionHistory({
                     {version.commitMessage ?? version.content}
                   </span>
                 </button>
+
+                {version.author ? <UserAvatar user={version.author} /> : null}
 
                 <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
                   {isClient ? when(version.createdAt, now) : null}

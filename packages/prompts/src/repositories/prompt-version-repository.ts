@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { user } from "@anpord/db/schema/auth/users";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { PromptId } from "@anpord/schema/prompts";
@@ -7,7 +8,12 @@ import { Context, Effect, Layer, type Option } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { head, query } from "./query";
 
-export type VersionRow = typeof promptVersion.$inferSelect;
+export type VersionRow = typeof promptVersion.$inferSelect & {
+  readonly author: {
+    readonly image: string | null;
+    readonly name: string;
+  } | null;
+};
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -49,11 +55,26 @@ export const PromptVersionRepositoryLive = Layer.effect(
     const db = yield* Database;
     const ids = yield* IdGenerator;
 
+    /** Versions are shown with their author, so every read carries the join. */
+    const selectVersion = () =>
+      db
+        .select({
+          internalId: promptVersion.internalId,
+          promptInternalId: promptVersion.promptInternalId,
+          version: promptVersion.version,
+          content: promptVersion.content,
+          config: promptVersion.config,
+          commitMessage: promptVersion.commitMessage,
+          createdBy: promptVersion.createdBy,
+          createdAt: promptVersion.createdAt,
+          author: { image: user.image, name: user.name },
+        })
+        .from(promptVersion)
+        .leftJoin(user, eq(user.id, promptVersion.createdBy));
+
     const byNumber = (promptInternalId: string, version: number) =>
       query("promptVersion.byNumber", () =>
-        db
-          .select()
-          .from(promptVersion)
+        selectVersion()
           .where(
             and(
               eq(promptVersion.promptInternalId, promptInternalId),
@@ -65,9 +86,7 @@ export const PromptVersionRepositoryLive = Layer.effect(
 
     const latest = (promptInternalId: string) =>
       query("promptVersion.latest", () =>
-        db
-          .select()
-          .from(promptVersion)
+        selectVersion()
           .where(eq(promptVersion.promptInternalId, promptInternalId))
           .orderBy(desc(promptVersion.version))
           .limit(1)
@@ -105,7 +124,13 @@ export const PromptVersionRepositoryLive = Layer.effect(
               })
               .returning();
 
-            return row;
+            const [author] = await db
+              .select({ image: user.image, name: user.name })
+              .from(user)
+              .where(eq(user.id, input.actorId))
+              .limit(1);
+
+            return { ...row, author: author ?? null };
           }).pipe(
             Effect.catchIf(
               (error) => isUniqueViolation(error.cause),
@@ -116,9 +141,7 @@ export const PromptVersionRepositoryLive = Layer.effect(
 
       list: (promptInternalId) =>
         query("promptVersion.list", () =>
-          db
-            .select()
-            .from(promptVersion)
+          selectVersion()
             .where(eq(promptVersion.promptInternalId, promptInternalId))
             .orderBy(desc(promptVersion.version))
         ),

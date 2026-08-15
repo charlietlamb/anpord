@@ -66,7 +66,15 @@ export const PromptConfig = Schema.Record({
 });
 export type PromptConfig = typeof PromptConfig.Type;
 
+/** Who wrote a version. Absent when the account has since been removed. */
+export const Author = Schema.Struct({
+  image: Schema.NullOr(Schema.String),
+  name: Schema.String,
+});
+export type Author = typeof Author.Type;
+
 export const ResolvedPrompt = Schema.Struct({
+  author: Schema.NullOr(Author),
   channel: Schema.NullOr(ChannelName),
   commitMessage: Schema.NullOr(CommitMessage),
   config: PromptConfig,

@@ -10,6 +10,7 @@ const identity = {
 
 const row = (overrides: Record<string, unknown>) =>
   ({
+    author: { image: null, name: "Charlie Lamb" },
     internalId: "ver_01",
     promptInternalId: "pmt_01",
     version: 1,
@@ -31,6 +32,22 @@ describe("row decoding", () => {
     expect(view.versionId).toBe("ver_01");
     expect(view.id).toBe(identity.id);
     expect(view.name).toBe(identity.name);
+  });
+
+  test("the author travels with the version", () => {
+    const view = Effect.runSync(
+      Effect.orDie(toResolved(identity, null, row({})))
+    );
+
+    expect(view.author?.name).toBe("Charlie Lamb");
+  });
+
+  test("a version whose author was removed still decodes", () => {
+    const view = Effect.runSync(
+      Effect.orDie(toResolved(identity, null, row({ author: null })))
+    );
+
+    expect(view.author).toBeNull();
   });
 
   test("a non-positive version is rejected rather than passed through", () => {

@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { user } from "@anpord/db/schema/auth/users";
 import { promptChannelEvent } from "@anpord/db/schema/prompts/prompt-channel-events";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
@@ -38,12 +39,16 @@ export const PromptChannelRepositoryLive = Layer.effect(
       resolve: (promptInternalId, channel) =>
         query("promptChannel.resolve", () =>
           db
-            .select({ version: promptVersion })
+            .select({
+              version: promptVersion,
+              author: { image: user.image, name: user.name },
+            })
             .from(promptChannel)
             .innerJoin(
               promptVersion,
               eq(promptChannel.versionInternalId, promptVersion.internalId)
             )
+            .leftJoin(user, eq(user.id, promptVersion.createdBy))
             .where(
               and(
                 eq(promptChannel.promptInternalId, promptInternalId),
@@ -53,7 +58,9 @@ export const PromptChannelRepositoryLive = Layer.effect(
             .limit(1)
         ).pipe(
           Effect.map((rows) =>
-            head(rows).pipe(Option.map((row) => row.version))
+            head(rows).pipe(
+              Option.map((row) => ({ ...row.version, author: row.author }))
+            )
           )
         ),
 

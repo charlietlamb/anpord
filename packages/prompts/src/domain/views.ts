@@ -1,4 +1,3 @@
-import type { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import {
   type ChannelName,
   PromptSummary,
@@ -6,9 +5,8 @@ import {
 } from "@anpord/schema/prompts";
 import { Effect, ParseResult, Schema } from "effect";
 import type { PromptListRow } from "../repositories/prompt-list-query";
+import type { VersionRow } from "../repositories/prompt-version-repository";
 import { PromptStoreError } from "./errors";
-
-type VersionRow = typeof promptVersion.$inferSelect;
 
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
@@ -37,6 +35,7 @@ export const toResolved = (
   row: VersionRow
 ): Effect.Effect<ResolvedPrompt, PromptStoreError> =>
   decodeResolved({
+    author: row.author,
     channel,
     commitMessage: row.commitMessage,
     config: row.config ?? {},
