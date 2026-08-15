@@ -8,6 +8,9 @@ import { RootErrorComponent } from "@/components/layout/root-error";
 import { RootNotFound } from "@/components/layout/root-not-found";
 import "../styles/globals.css";
 
+/** Orange while developing, so a local tab is never mistaken for production. */
+const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
+
 export const Route = createRootRoute({
   head: () => ({
     meta: [
@@ -19,7 +22,7 @@ export const Route = createRootRoute({
         content: "Write, version, and ship the prompts behind your product.",
       },
     ],
-    links: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    links: [{ rel: "icon", type: "image/svg+xml", href: FAVICON }],
   }),
   component: RootComponent,
   errorComponent: RootErrorComponent,
