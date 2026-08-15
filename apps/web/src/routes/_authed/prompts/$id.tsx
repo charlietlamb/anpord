@@ -84,15 +84,6 @@ function PromptDetailPage() {
 
   const dirty = !readOnly && content !== latest.content;
 
-  const describeState = () => {
-    if (readOnly) {
-      return `Viewing v${viewed?.version} · read only`;
-    }
-    return dirty
-      ? `Unsaved · saving creates v${latest.version + 1}`
-      : `v${latest.version} · saved`;
-  };
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
       <PromptComposer
@@ -113,10 +104,21 @@ function PromptDetailPage() {
           </span>
         </span>
 
-        {/* Status lives with the identity so the editor stays uninterrupted. */}
-        <span className="ml-auto shrink-0 pr-1 text-muted-foreground text-xs">
-          {describeState()}
-        </span>
+        {/* Saved is the resting state, so only the exceptions get a mark. */}
+        {dirty ? (
+          <span className="ml-auto flex shrink-0 items-center">
+            <span
+              aria-hidden="true"
+              className="size-1.5 rounded-full bg-amber-500"
+            />
+            <span className="sr-only">Unsaved changes</span>
+          </span>
+        ) : null}
+        {readOnly ? (
+          <span className="ml-auto shrink-0 pr-1 text-muted-foreground text-xs">
+            Read only
+          </span>
+        ) : null}
       </PromptComposer>
 
       {readOnly ? (

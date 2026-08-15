@@ -65,8 +65,8 @@ export function VersionHistory({
   const hidden = versions.length - shown.length;
 
   return (
-    <section className="mt-4 rounded-xl p-1 shadow-[inset_0_0_0_1px_oklch(0_0_0/5%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
-      <h2 className="px-3 pt-2 pb-1.5 font-medium text-muted-foreground text-xs">
+    <section className="mt-4 rounded-xl px-1.5 pb-1.5 shadow-[inset_0_0_0_1px_oklch(0_0_0/5%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
+      <h2 className="px-2.5 pt-2.5 pb-1.5 font-medium text-muted-foreground text-xs">
         Versions
       </h2>
 
@@ -79,7 +79,7 @@ export function VersionHistory({
             <li key={version.versionId}>
               <div
                 className={cn(
-                  "group flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
+                  "group flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm transition-colors",
                   selected ? "bg-muted/60" : "hover:bg-muted/40"
                 )}
               >
@@ -111,16 +111,19 @@ export function VersionHistory({
                   {isClient ? when(version.createdAt, now) : null}
                 </span>
 
-                {live ? null : (
-                  <button
-                    aria-label={`Restore v${version.version}`}
-                    className="-mr-1 shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
-                    onClick={() => onRestore(version)}
-                    type="button"
-                  >
-                    <ArrowCounterClockwiseIcon size={14} />
-                  </button>
-                )}
+                {/* Reserved either way, so the timestamps stay in a column. */}
+                <span className="flex w-5 shrink-0 justify-end">
+                  {live ? null : (
+                    <button
+                      aria-label={`Restore v${version.version}`}
+                      className="rounded-md text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                      onClick={() => onRestore(version)}
+                      type="button"
+                    >
+                      <ArrowCounterClockwiseIcon size={14} />
+                    </button>
+                  )}
+                </span>
               </div>
             </li>
           );
@@ -129,7 +132,7 @@ export function VersionHistory({
 
       {hidden > 0 ? (
         <button
-          className="w-full rounded-lg px-3 py-2 text-left text-muted-foreground text-xs hover:text-foreground"
+          className="w-full rounded-lg px-2.5 py-2 text-left text-muted-foreground text-xs hover:text-foreground"
           onClick={() => setExpanded(true)}
           type="button"
         >

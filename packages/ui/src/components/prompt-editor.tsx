@@ -36,7 +36,12 @@ export function PromptEditor({
   const id = useId();
 
   return (
-    <div className={cn("relative", className)}>
+    <div
+      className={cn(
+        "relative max-h-[min(24rem,50vh)] overflow-y-auto overscroll-contain",
+        className
+      )}
+    >
       <div
         aria-hidden="true"
         className={cn(
@@ -61,7 +66,7 @@ export function PromptEditor({
       <textarea
         className={cn(
           SHARED_TEXT,
-          "absolute inset-0 size-full resize-none bg-transparent px-4 pt-4 pb-2 text-foreground caret-foreground outline-none read-only:cursor-default read-only:text-muted-foreground",
+          "absolute inset-0 size-full resize-none overflow-hidden bg-transparent px-4 pt-4 pb-2 text-foreground caret-foreground outline-none read-only:cursor-default read-only:text-muted-foreground",
           "placeholder:text-muted-foreground/70"
         )}
         onChange={(event) => onChange(event.target.value)}
