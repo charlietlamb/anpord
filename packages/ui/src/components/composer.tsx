@@ -40,7 +40,10 @@ export function ComposerSurface({
   );
 }
 
-/** Toolbar inside the surface, so the whole thing reads as one object. */
+/**
+ * Toolbar inside the surface, so the whole thing reads as one object. A hairline
+ * separates the controls from the text without breaking that.
+ */
 export function ComposerToolbar({
   className,
   ...props
@@ -48,7 +51,7 @@ export function ComposerToolbar({
   return (
     <div
       className={cn(
-        "flex items-center gap-1 px-2 pb-2 text-muted-foreground",
+        "mt-1 flex items-center gap-1 border-border/60 border-t px-2 pt-2 pb-2 text-muted-foreground",
         className
       )}
       {...props}

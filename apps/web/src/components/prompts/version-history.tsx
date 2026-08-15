@@ -124,9 +124,11 @@ export function VersionHistory({
                   v{version.version}
                 </span>
 
-                {version.author ? <UserAvatar user={version.author} /> : null}
+                <span className="flex w-5 shrink-0 justify-center">
+                  {version.author ? <UserAvatar user={version.author} /> : null}
+                </span>
 
-                <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
+                <span className="w-24 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
                   {isClient ? when(version.createdAt, now) : null}
                 </span>
 
