@@ -390,20 +390,10 @@
     border-left: 2px solid var(--border);
   }
 
-  /**
-   * Interpolated at runtime, so it reads as a slot rather than prose. Coloured
-   * text carries it more clearly than a tint alone, which washes out against a
-   * dark surface at any opacity subtle enough not to shout.
-   */
+  /** Interpolated at runtime, so it reads as a slot rather than prose. */
   .prompt-prose .prompt-variable {
-    padding: 0.1em 0.25em;
-    font-family: var(--font-mono);
-    font-size: 0.9em;
     font-weight: 500;
     color: var(--primary);
-    white-space: nowrap;
-    background: color-mix(in oklab, var(--primary) 14%, transparent);
-    border-radius: 4px;
   }
 
   .prompt-prose .tiptap p.is-editor-empty:first-child::before {
