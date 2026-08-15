@@ -15,6 +15,13 @@
       "when": 1786748658187,
       "tag": "0001_burly_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786817055927,
+      "tag": "0002_great_king_cobra",
+      "breakpoints": true
     }
   ]
 }

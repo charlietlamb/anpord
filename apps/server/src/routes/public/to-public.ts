@@ -1,0 +1,29 @@
+import type { PromptSummary, ResolvedPrompt } from "@anpord/schema/prompts";
+import type {
+  PublicPrompt,
+  PublicPromptSummary,
+} from "@anpord/schema/public/shapes";
+import { DateTime } from "effect";
+
+/** Rows carry `Date`; the public contract is an instant that encodes to ISO. */
+const instant = (value: Date) => DateTime.unsafeFromDate(new Date(value));
+
+/** The only place internal shapes become public ones. */
+export const toPublicPrompt = (row: ResolvedPrompt): PublicPrompt => ({
+  channel: row.channel,
+  config: row.config,
+  content: row.content,
+  createdAt: instant(row.createdAt),
+  id: row.id,
+  message: row.commitMessage,
+  name: row.name,
+  version: row.version,
+});
+
+export const toPublicSummary = (row: PromptSummary): PublicPromptSummary => ({
+  id: row.id,
+  latestVersion: row.latestVersion,
+  name: row.name,
+  productionVersion: row.productionVersion,
+  updatedAt: instant(row.updatedAt),
+});

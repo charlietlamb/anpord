@@ -1,0 +1,1123 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Anpord API",
+    "version": "1.0.0",
+    "description": "Prompt management. Every endpoint takes a JSON body over POST and authenticates with a bearer API key."
+  },
+  "paths": {
+    "/v1/prompts.get": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "operationId": "prompts.get",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A prompt, with its version history when `includeVersions` is set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prompt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Returns the content a caller should send to a model. With no selector this is the production version.",
+        "summary": "Resolve a prompt",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetPromptRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/prompts.list": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "operationId": "prompts.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every prompt in the organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PromptList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Every prompt in the organization, without content.",
+        "summary": "List prompts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListPromptsRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/prompts.create": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "operationId": "prompts.create",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A prompt, with its version history when `includeVersions` is set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prompt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Creates the prompt and its first version in one call.",
+        "summary": "Create a prompt",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePromptRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/prompts.update": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "operationId": "prompts.update",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A prompt, with its version history when `includeVersions` is set.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prompt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Content is versioned, so updating a prompt appends a version rather than overwriting one. Earlier versions stay readable.",
+        "summary": "Add a version",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePromptRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/prompts.promote": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "operationId": "prompts.promote",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Points a channel, such as production, at a version. This is how a version goes live without callers changing anything.",
+        "summary": "Promote a version to a channel",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromotePromptRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/prompts.archive": {
+      "post": {
+        "tags": [
+          "Prompts"
+        ],
+        "operationId": "prompts.archive",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The operation succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ok"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Hides the prompt from listings. Pinned versions keep resolving.",
+        "summary": "Archive a prompt",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchivePromptRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GetPromptRequest": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9_-]*$",
+            "title": "maxLength(36)",
+            "minLength": 1,
+            "maxLength": 36,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "includeVersions": {
+            "type": "boolean"
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "Resolve a prompt. Give a version to pin one, a channel to follow one, or neither for production."
+      },
+      "Int": {
+        "type": "integer",
+        "description": "an integer",
+        "title": "int"
+      },
+      "Prompt": {
+        "type": "object",
+        "required": [
+          "channel",
+          "config",
+          "content",
+          "createdAt",
+          "id",
+          "message",
+          "name",
+          "version"
+        ],
+        "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "a string matching the pattern ^[a-z0-9][a-z0-9_-]*$",
+                "title": "maxLength(36)",
+                "minLength": 1,
+                "maxLength": 36,
+                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "config": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "additionalProperties": {
+              "$id": "/schemas/unknown",
+              "title": "unknown"
+            }
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "a string at most 500 character(s) long",
+                "title": "maxLength(500)",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "a string at most 255 character(s) long",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Version"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A prompt, with its version history when `includeVersions` is set."
+      },
+      "Instant": {
+        "type": "string",
+        "description": "An ISO-8601 timestamp in UTC."
+      },
+      "Version": {
+        "type": "object",
+        "required": [
+          "createdAt",
+          "message",
+          "version"
+        ],
+        "properties": {
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "a string at most 500 character(s) long",
+                "title": "maxLength(500)",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "One entry in a prompt's history."
+      },
+      "HttpApiDecodeError": {
+        "type": "object",
+        "required": [
+          "issues",
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "HttpApiDecodeError"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The request did not match the expected schema"
+      },
+      "Issue": {
+        "type": "object",
+        "required": [
+          "_tag",
+          "path",
+          "message"
+        ],
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Pointer",
+              "Unexpected",
+              "Missing",
+              "Composite",
+              "Refinement",
+              "Transformation",
+              "Type",
+              "Forbidden"
+            ],
+            "description": "The tag identifying the type of parse issue"
+          },
+          "path": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PropertyKey"
+            },
+            "description": "The path to the property where the issue occurred"
+          },
+          "message": {
+            "type": "string",
+            "description": "A descriptive message explaining the issue"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Represents an error encountered while parsing a value to match the schema"
+      },
+      "PropertyKey": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "key"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "symbol"
+                ]
+              },
+              "key": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "description": "an object to be decoded into a globally shared symbol"
+          }
+        ]
+      },
+      "BadRequest": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "BadRequest"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Conflict": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Conflict"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotFound": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "NotFound"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Unauthorized": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Unauthorized"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ListPromptsRequest": {
+        "$id": "/schemas/%7B%7D",
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "array"
+          }
+        ],
+        "description": "No parameters; returns every prompt in the organization."
+      },
+      "PromptList": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PromptSummary"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Every prompt in the organization."
+      },
+      "PromptSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "latestVersion",
+          "name",
+          "productionVersion",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "latestVersion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Int",
+                "description": "a positive number",
+                "title": "positive",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "a string at most 255 character(s) long",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "productionVersion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Int",
+                "description": "a positive number",
+                "title": "positive",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Instant"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A prompt without its content."
+      },
+      "CreatePromptRequest": {
+        "type": "object",
+        "required": [
+          "content",
+          "id",
+          "name"
+        ],
+        "properties": {
+          "config": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "additionalProperties": {
+              "$id": "/schemas/unknown",
+              "title": "unknown"
+            }
+          },
+          "content": {
+            "type": "string",
+            "description": "a string at least 1 character(s) long",
+            "title": "minLength(1)",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "message": {
+            "type": "string",
+            "description": "a string at most 500 character(s) long",
+            "title": "maxLength(500)",
+            "maxLength": 500
+          },
+          "name": {
+            "type": "string",
+            "description": "a string at most 255 character(s) long",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "additionalProperties": false,
+        "description": "Create a prompt and its first version."
+      },
+      "UpdatePromptRequest": {
+        "type": "object",
+        "required": [
+          "content",
+          "id"
+        ],
+        "properties": {
+          "config": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "additionalProperties": {
+              "$id": "/schemas/unknown",
+              "title": "unknown"
+            }
+          },
+          "content": {
+            "type": "string",
+            "description": "a string at least 1 character(s) long",
+            "title": "minLength(1)",
+            "minLength": 1
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "message": {
+            "type": "string",
+            "description": "a string at most 500 character(s) long",
+            "title": "maxLength(500)",
+            "maxLength": 500
+          }
+        },
+        "additionalProperties": false,
+        "description": "Add a version to a prompt. The new version becomes the latest."
+      },
+      "PromotePromptRequest": {
+        "type": "object",
+        "required": [
+          "channel",
+          "id",
+          "version"
+        ],
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9_-]*$",
+            "title": "maxLength(36)",
+            "minLength": 1,
+            "maxLength": 36,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "Point a channel at a version."
+      },
+      "Ok": {
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The operation succeeded."
+      },
+      "ArchivePromptRequest": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Archive a prompt. Existing versions stay readable by number."
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [],
+  "tags": [
+    {
+      "name": "Prompts",
+      "description": "Read and write prompts. Content is versioned, so writes append rather than overwrite, and channels decide which version callers receive."
+    }
+  ],
+  "servers": [
+    {
+      "description": "Production",
+      "url": "https://api.anpord.com"
+    }
+  ]
+}

@@ -10,12 +10,18 @@
     "./errors": "./src/errors.ts",
     "./health-api": "./src/health-api.ts",
     "./prompts": "./src/prompts.ts",
-    "./prompts-api": "./src/prompts-api.ts"
+    "./prompts-api": "./src/prompts-api.ts",
+    "./public/api": "./src/public/api.ts",
+    "./public/authentication": "./src/public/authentication.ts",
+    "./public/prompts-api": "./src/public/prompts-api.ts",
+    "./public/requests": "./src/public/requests.ts",
+    "./public/shapes": "./src/public/shapes.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",
-    "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "bun test --pass-with-no-tests"
+    "openapi": "bun run scripts/generate-openapi.ts",
+    "test": "bun test --pass-with-no-tests",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "@effect/platform": "catalog:",

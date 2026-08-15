@@ -4,9 +4,12 @@ import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
 import { AppLayer } from "./layer";
 import { ApiLive } from "./routes/api-layer";
+import { PublicApiLive } from "./routes/public/api-layer";
 
 const isAuthRoute = (pathname: string) =>
   pathname === "/api/auth" || pathname.startsWith("/api/auth/");
+
+const isPublicRoute = (pathname: string) => pathname.startsWith("/v1/");
 
 export const main = Effect.gen(function* () {
   const memoMap = yield* Layer.makeMemoMap;
@@ -18,16 +21,26 @@ export const main = Effect.gen(function* () {
     ({ dispose }) => Effect.promise(dispose)
   );
 
+  const publicApi = yield* Effect.acquireRelease(
+    Effect.sync(() => HttpApiBuilder.toWebHandler(PublicApiLive, { memoMap })),
+    ({ dispose }) => Effect.promise(dispose)
+  );
+
   const server = yield* Effect.acquireRelease(
     Effect.try({
       try: () =>
         Bun.serve({
           hostname: config.host,
           port: config.port,
-          fetch: (request) =>
-            isAuthRoute(new URL(request.url).pathname)
-              ? auth.handler(request)
-              : api.handler(request),
+          fetch: (request) => {
+            const { pathname } = new URL(request.url);
+            if (isAuthRoute(pathname)) {
+              return auth.handler(request);
+            }
+            return isPublicRoute(pathname)
+              ? publicApi.handler(request)
+              : api.handler(request);
+          },
         }),
       /**
        * A stale process holding the port is the usual cause, and Bun's raw

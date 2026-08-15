@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { schema } from "@anpord/db/schema";
+import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
 import { magicLink, organization } from "better-auth/plugins";
@@ -61,6 +62,19 @@ const makeAuth = Effect.gen(function* () {
       magicLink({
         expiresIn: 300,
         sendMagicLink: ({ email, url }) => sendMagicLink({ email, url }),
+      }),
+      /**
+       * Keys authenticate the public API. The plugin stores only a hash, so a
+       * key is shown once at creation and never again; the leading characters
+       * are kept in the clear so the dashboard can identify a key in a list.
+       */
+      apiKey({
+        defaultPrefix: "anp_",
+        enableMetadata: true,
+        startingCharactersConfig: {
+          charactersLength: 8,
+          shouldStore: true,
+        },
       }),
     ],
     secret: Redacted.value(config.secret),
