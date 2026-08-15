@@ -2,6 +2,7 @@ import { Auth } from "@anpord/auth";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
+import { withAuthenticateChallenge } from "./http/challenge";
 import { isAuthorizeRoute, withConsentPrompt } from "./http/require-consent";
 import { isDiscoveryRoute, toAuthRequest } from "./http/well-known";
 import { AppLayer } from "./layer";
@@ -35,7 +36,8 @@ export const main = Effect.gen(function* () {
           hostname: config.host,
           port: config.port,
           fetch: (request) => {
-            const { pathname } = new URL(request.url);
+            const url = new URL(request.url);
+            const { pathname } = url;
             if (isDiscoveryRoute(pathname)) {
               return auth.handler(toAuthRequest(request));
             }
@@ -45,9 +47,14 @@ export const main = Effect.gen(function* () {
             if (isAuthRoute(pathname)) {
               return auth.handler(request);
             }
-            return isPublicRoute(pathname)
-              ? publicApi.handler(request)
-              : api.handler(request);
+            if (isPublicRoute(pathname)) {
+              return publicApi
+                .handler(request)
+                .then((response) =>
+                  withAuthenticateChallenge(response, url.origin)
+                );
+            }
+            return api.handler(request);
           },
         }),
       /**

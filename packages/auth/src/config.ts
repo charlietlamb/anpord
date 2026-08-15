@@ -40,6 +40,7 @@ export interface AuthConfigShape {
   readonly github:
     | { readonly clientId: string; readonly clientSecret: Redacted<string> }
     | undefined;
+  readonly mcpResource: string;
   readonly resend:
     | { readonly apiKey: Redacted<string>; readonly from: string }
     | undefined;
@@ -63,6 +64,9 @@ export const AuthConfigLive = Layer.effect(
     ),
     webUrl: Config.string("WEB_URL").pipe(
       Config.withDefault("http://localhost:3005")
+    ),
+    mcpResource: Config.string("MCP_RESOURCE_URL").pipe(
+      Config.withDefault("http://localhost:3010/mcp")
     ),
     trustedOrigins: Config.string("AUTH_TRUSTED_ORIGINS").pipe(
       Config.map((value) =>

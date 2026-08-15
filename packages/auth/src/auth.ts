@@ -79,6 +79,8 @@ const makeAuth = Effect.gen(function* () {
       jwt(),
       mcp({
         loginPage: "/login",
+        /** RFC 8707: tokens are bound to the MCP server, not the site. */
+        resource: config.mcpResource,
         oidcConfig: {
           allowDynamicClientRegistration: true,
           consentPage: "/oauth/consent",
