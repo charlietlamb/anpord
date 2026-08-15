@@ -3,6 +3,7 @@ import { ArrowUpIcon, TextTIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ComposerHeading } from "@/components/prompts/composer-heading";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { VersionHistory } from "@/components/prompts/version-history";
 import { addVersion, listVersions } from "@/lib/prompts-client";
@@ -86,6 +87,8 @@ function PromptDetailPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
+      <ComposerHeading promptName={latest.name} />
+
       <PromptComposer
         content={readOnly ? (viewed?.content ?? "") : content}
         onContentChange={setContent}

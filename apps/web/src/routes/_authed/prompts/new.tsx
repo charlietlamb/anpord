@@ -3,6 +3,7 @@ import { PlusIcon, TextTIcon } from "@phosphor-icons/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ComposerHeading } from "@/components/prompts/composer-heading";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { createPrompt } from "@/lib/prompts-client";
 
@@ -48,6 +49,8 @@ function NewPromptPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
+      <ComposerHeading />
+
       <PromptComposer
         content={content}
         onContentChange={setContent}
