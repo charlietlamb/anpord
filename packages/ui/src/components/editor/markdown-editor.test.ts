@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { Window } from "happy-dom";
 
 let toMarkdown: (input: string) => string;
+let typeMarkdown: (input: string) => string;
 
 beforeAll(async () => {
   const view = new Window();
@@ -16,10 +17,31 @@ beforeAll(async () => {
   const { StarterKit } = await import("@tiptap/starter-kit");
   const { Variable } = await import("./variable-node");
 
+  const element = view.document.createElement("div");
+  view.document.body.appendChild(element);
+
   const editor = new Editor({
     content: "",
+    element: element as never,
     extensions: [StarterKit, Markdown, Variable],
   });
+
+  /** Input rules only run through the text-input path a keystroke takes. */
+  typeMarkdown = (input) => {
+    editor.commands.clearContent();
+    for (const character of input) {
+      const { from, to } = editor.state.selection;
+      const handled = editor.view.someProp("handleTextInput", (handler) =>
+        Boolean(
+          handler(editor.view, from, to, character, () => editor.state.tr)
+        )
+      );
+      if (!handled) {
+        editor.view.dispatch(editor.state.tr.insertText(character, from, to));
+      }
+    }
+    return editor.getMarkdown().trim();
+  };
 
   toMarkdown = (input) => {
     editor.commands.setContent(input, {
@@ -44,6 +66,11 @@ describe("markdown round-trip", () => {
     expect(toMarkdown("Use {{topic.name}} and {{a-b}}.")).toBe(
       "Use {{topic.name}} and {{a-b}}."
     );
+  });
+
+  test("a variable typed by hand becomes one, unduplicated", () => {
+    expect(typeMarkdown("cool {{asdf}} end")).toBe("cool {{asdf}} end");
+    expect(typeMarkdown("hi {{customer_name}}")).toBe("hi {{customer_name}}");
   });
 
   test("structure is preserved", () => {

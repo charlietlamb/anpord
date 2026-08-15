@@ -1,6 +1,14 @@
-import { Node } from "@tiptap/core";
+import { Node, nodeInputRule } from "@tiptap/core";
 
 const VARIABLE = /^\{\{\s*([\w.-]+)\s*\}\}/;
+
+/**
+ * Anchored to the end so it fires as the final brace is typed. The whole
+ * `{{name}}` must be inside the match: nodeInputRule replaces exactly what it
+ * matched, so a narrower capture leaves the outer braces behind and the text
+ * becomes `{{{{name}}}}`.
+ */
+const TYPED_VARIABLE = /(?:^|[^{])(\{\{\s*([\w.-]+)\s*\}\})$/;
 
 /**
  * A variable is an atom, not prose. Serialising it through the markdown escaper
@@ -26,6 +34,20 @@ export const Variable = Node.create({
 
   parseHTML() {
     return [{ tag: "span[data-variable]" }];
+  },
+
+  /**
+   * The markdown tokenizer only runs when content is parsed, so without this a
+   * variable typed by hand stays plain text until the document is reloaded.
+   */
+  addInputRules() {
+    return [
+      nodeInputRule({
+        find: TYPED_VARIABLE,
+        type: this.type,
+        getAttributes: (match) => ({ name: match[2] }),
+      }),
+    ];
   },
 
   renderHTML({ HTMLAttributes, node }) {
