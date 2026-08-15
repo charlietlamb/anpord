@@ -124,16 +124,6 @@ function PromptDetailPage() {
         ) : null}
       </PromptComposer>
 
-      {readOnly ? (
-        <button
-          className="mt-3 self-start text-muted-foreground text-xs underline-offset-2 hover:text-foreground hover:underline"
-          onClick={() => setViewing(null)}
-          type="button"
-        >
-          Back to latest
-        </button>
-      ) : null}
-
       <VersionHistory
         liveVersion={latest.version}
         onRestore={onRestore}

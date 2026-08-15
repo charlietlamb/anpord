@@ -19,6 +19,7 @@
     "@tanstack/react-form": "catalog:",
     "@tanstack/react-table": "catalog:",
     "@tiptap/core": "catalog:",
+    "@tiptap/extensions": "catalog:",
     "@tiptap/markdown": "catalog:",
     "@tiptap/pm": "catalog:",
     "@tiptap/react": "catalog:",

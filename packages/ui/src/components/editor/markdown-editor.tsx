@@ -1,4 +1,5 @@
 import type { Editor } from "@tiptap/core";
+import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
@@ -29,19 +30,24 @@ export function MarkdownEditor({
   readOnly,
   value,
 }: MarkdownEditorProps) {
-  const editor = useEditor({
-    content: value,
-    contentType: "markdown",
-    editable: !readOnly,
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Markdown,
-      Variable,
-    ],
-    immediatelyRender: false,
-    onUpdate: ({ editor: instance }: { editor: Editor }) =>
-      onChange(instance.getMarkdown()),
-  });
+  const editor = useEditor(
+    {
+      content: value,
+      contentType: "markdown",
+      editable: !readOnly,
+      extensions: [
+        StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+        Markdown,
+        Variable,
+        /** Sets data-placeholder on the empty node, which the CSS renders. */
+        Placeholder.configure({ placeholder: placeholder ?? "" }),
+      ],
+      immediatelyRender: false,
+      onUpdate: ({ editor: instance }: { editor: Editor }) =>
+        onChange(instance.getMarkdown()),
+    },
+    [placeholder]
+  );
 
   /** Restoring a version replaces the value from outside the editor. */
   useEffect(() => {
@@ -61,10 +67,6 @@ export function MarkdownEditor({
   }, [editor, readOnly]);
 
   return (
-    <EditorContent
-      className={cn("prompt-prose", className)}
-      data-placeholder={placeholder}
-      editor={editor}
-    />
+    <EditorContent className={cn("prompt-prose", className)} editor={editor} />
   );
 }
