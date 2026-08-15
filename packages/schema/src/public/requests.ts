@@ -20,6 +20,13 @@ export const GetPromptRequest = Schema.Struct({
   identifier: "GetPromptRequest",
 });
 
+export const ListVersionsRequest = Schema.Struct({
+  id: PromptId,
+}).annotations({
+  description: "Show a prompt's version history.",
+  identifier: "ListVersionsRequest",
+});
+
 export const ListPromptsRequest = Schema.Struct({}).annotations({
   description: "No parameters; returns every prompt in the organization.",
   identifier: "ListPromptsRequest",

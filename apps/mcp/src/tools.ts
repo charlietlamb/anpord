@@ -1,5 +1,6 @@
 import {
   GetPromptRequest,
+  ListVersionsRequest,
   PromotePromptRequest,
   UpdatePromptRequest,
 } from "@anpord/schema/public/requests";
@@ -86,7 +87,8 @@ export const register = (server: MCPServer<AnpordUser>) => {
         ctx.auth.accessToken,
         Effect.gen(function* () {
           const api = yield* AnpordApi;
-          const { id } = yield* Schema.decodeUnknown(GetPromptRequest)(input);
+          const { id } =
+            yield* Schema.decodeUnknown(ListVersionsRequest)(input);
           const prompt = yield* api.prompts.get({
             payload: { id, includeVersions: true },
           });
