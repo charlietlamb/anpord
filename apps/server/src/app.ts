@@ -1,6 +1,6 @@
 import { Auth } from "@anpord/auth";
 import { HttpApiBuilder } from "@effect/platform";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
 import { AppLayer } from "./layer";
 import { ApiLive } from "./routes/api-layer";
@@ -39,7 +39,18 @@ export const main = Effect.gen(function* () {
           `Cannot bind ${config.host}:${config.port} — another process is using it. Run: lsof -ti:${config.port} | xargs kill`,
           { cause }
         ),
-    }),
+    }).pipe(
+      /**
+       * On restart the previous process may still hold the port for a moment,
+       * so a few quick retries beat failing and taking every sibling dev task
+       * down with us.
+       */
+      Effect.retry(
+        Schedule.exponential("120 millis").pipe(
+          Schedule.compose(Schedule.recurs(6))
+        )
+      )
+    ),
     (running) => Effect.sync(() => running.stop(true))
   );
 

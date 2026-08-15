@@ -57,7 +57,7 @@
     "vite": "7.1.12"
   },
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --continue=always",
     "dev:kill": "lsof -ti:3003,3005 | xargs kill 2>/dev/null || true",
     "build": "turbo run build",
     "start": "bun --cwd apps/web start",

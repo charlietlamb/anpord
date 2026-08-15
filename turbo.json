@@ -9,9 +9,15 @@
       "cache": false,
       "persistent": true
     },
-    "db:generate": { "cache": false },
-    "db:migrate": { "cache": false },
-    "test": { "outputs": [] },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    },
+    "test": {
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": []
