@@ -114,9 +114,9 @@
   --foreground: oklch(0.145 0 0);
   --border-faint: var(--border);
   --border-loud: var(--border);
-  /* Outer edge of a raised surface. Darker than --border so the inner
-     highlight has something to sit against, the way the buttons do it. */
-  --border-surface: oklch(0.86 0 0);
+  /* Outer edge of a raised surface. A shade past --border, enough for the
+     inner highlight to sit against without the edge drawing attention. */
+  --border-surface: oklch(0.895 0 0);
   --alpha-2: oklch(0 0 0 / 2%);
   --alpha-4: oklch(0 0 0 / 4%);
   --alpha-6: oklch(0 0 0 / 6%);
@@ -152,9 +152,9 @@
   --border: oklch(1 0 0 / 17%);
   --border-faint: oklch(1 0 0 / 17%);
   --border-loud: oklch(1 0 0 / 17%);
-  /* Inverted here: the outer edge lifts off a dark page rather than cutting
-     into a light one, so it is brighter than --border, not darker. */
-  --border-surface: oklch(1 0 0 / 26%);
+  /* Inverted here: the edge lifts off a dark page rather than cutting into a
+     light one, so it sits above --border rather than below it. */
+  --border-surface: oklch(1 0 0 / 21%);
   --alpha-2: oklch(1 0 0 / 2%);
   --alpha-4: oklch(1 0 0 / 4%);
   --alpha-6: oklch(1 0 0 / 6%);
