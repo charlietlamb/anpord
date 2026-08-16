@@ -85,7 +85,7 @@ function PromptDetailPage() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col lg:h-[calc(100svh-3.5rem)]">
+    <div className="flex min-h-0 flex-1 flex-col lg:absolute lg:inset-0 lg:top-14">
       <PromptEditorHeader
         dirty={dirty}
         name={latest.name}
