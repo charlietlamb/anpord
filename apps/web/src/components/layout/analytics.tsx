@@ -26,7 +26,12 @@ export function Analytics({ children }: { children: ReactNode }) {
       apiKey={POSTHOG_KEY}
       options={{
         api_host: POSTHOG_HOST,
-        capture_pageview: "history_change",
+        /**
+         * The default captures the first page as well as later navigation.
+         * `history_change` only listens for history API calls, so a visitor who
+         * lands and leaves without navigating is never counted at all.
+         */
+        capture_pageview: true,
         /** Replay is the reason PostHog is here, so it is on from the start. */
         disable_session_recording: !ANALYTICS_ENABLED,
         person_profiles: "identified_only",
