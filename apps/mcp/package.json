@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@anpord/schema": "workspace:*",
-    "anpord": "workspace:*",
     "effect": "catalog:",
     "mcp-use": "catalog:",
     "zod": "catalog:"

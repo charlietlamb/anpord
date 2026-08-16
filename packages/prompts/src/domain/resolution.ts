@@ -20,3 +20,16 @@ export const resolutionFor = (selector: PromptSelector): Resolution => {
     ? { _tag: "Latest" }
     : { _tag: "ByChannel", channel };
 };
+
+export const answeringChannel = (
+  resolution: Resolution
+): ChannelName | null => {
+  switch (resolution._tag) {
+    case "ByVersion":
+      return null;
+    case "Latest":
+      return LATEST;
+    default:
+      return resolution.channel;
+  }
+};

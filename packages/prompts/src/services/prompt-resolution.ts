@@ -11,7 +11,7 @@ import {
 } from "../domain/errors";
 import { selectorKey } from "../domain/keys";
 import type { Resolution } from "../domain/resolution";
-import { resolutionFor } from "../domain/resolution";
+import { answeringChannel, resolutionFor } from "../domain/resolution";
 import { toResolved } from "../domain/views";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
@@ -83,7 +83,7 @@ export const PromptResolutionLive = Layer.effect(
           const resolved = yield* Option.match(found, {
             onNone: () => Effect.fail(missing(id, resolution)),
             onSome: (version) =>
-              toResolved(row, selector.channel ?? null, version),
+              toResolved(row, answeringChannel(resolution), version),
           });
 
           yield* cache.set(key, ResolvedPrompt, resolved);

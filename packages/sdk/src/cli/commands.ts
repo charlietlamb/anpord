@@ -1,8 +1,8 @@
 import { ChannelName, PromptId, VersionNumber } from "@anpord/schema/prompts";
+import { AnpordApi } from "@anpord/schema/public/client";
 import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
-import { AnpordApi } from "../client";
 import { json, note, promptContent } from "./render";
 
 const promptId = Args.text({ name: "id" }).pipe(

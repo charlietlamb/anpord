@@ -1,5 +1,5 @@
+import { DEFAULT_BASE_URL } from "@anpord/schema/public/client";
 import { Config } from "effect";
-import { DEFAULT_BASE_URL } from "./client";
 
 export const apiKeyConfig = Config.redacted("ANPORD_API_KEY");
 

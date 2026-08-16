@@ -113,6 +113,31 @@ else
   fi
 fi
 
+echo "--- published sdk ---"
+sdk_dist="$(dirname "$0")/../packages/sdk/dist/index.mjs"
+if [ -z "$KEY" ]; then
+  echo "SKIP  set ANPORD_API_KEY to check the sdk"
+  skip=$((skip + 1))
+elif [ ! -f "$sdk_dist" ]; then
+  echo "SKIP  run 'bun run build' to check the sdk"
+  skip=$((skip + 1))
+else
+  sdk_out=$(ANPORD_SDK="$sdk_dist" ANPORD_BASE="$API" bun -e '
+    const { Anpord, AnpordError } = await import(process.env.ANPORD_SDK);
+    const anpord = new Anpord({ baseUrl: process.env.ANPORD_BASE });
+    const { data } = await anpord.prompts.list();
+    console.log(`list:${Array.isArray(data)}`);
+    try {
+      await anpord.prompts.get({ id: "definitely-not-a-prompt" });
+      console.log("missing:no-throw");
+    } catch (error) {
+      console.log(`missing:${error instanceof AnpordError}:${error.status}`);
+    }
+  ' 2>&1 || true)
+  contains "reads through the sdk" 'list:true' "$sdk_out"
+  contains "surfaces a typed 404" 'missing:true:404' "$sdk_out"
+fi
+
 echo
 echo "$pass passed, $fail failed, $skip skipped"
 [ "$fail" -eq 0 ]

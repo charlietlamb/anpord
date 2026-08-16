@@ -26,15 +26,10 @@ ENV NODE_ENV=production
 COPY package.json bun.lock tsconfig.json ./
 COPY apps/mcp ./apps/mcp
 COPY packages/schema ./packages/schema
-COPY packages/sdk ./packages/sdk
 
 COPY --from=install /app/node_modules ./node_modules
 COPY --from=install /app/apps/mcp/node_modules ./apps/mcp/node_modules
 COPY --from=install /app/packages/schema/node_modules ./packages/schema/node_modules
-COPY --from=install /app/packages/sdk/node_modules ./packages/sdk/node_modules
-
-# The MCP imports the SDK's built entry, so only that package is built.
-RUN cd packages/sdk && bun run build
 
 ENV HOST=0.0.0.0
 ENV PORT=3000

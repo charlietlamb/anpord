@@ -1,4 +1,4 @@
-import { type AnpordApi, layer } from "anpord/client";
+import { type AnpordApi, layer } from "@anpord/schema/public/client";
 import { Effect, Redacted } from "effect";
 
 import { baseUrl } from "./config";

@@ -24,7 +24,7 @@ export const PublicPrompt = Schema.Struct({
   version: VersionNumber,
 }).annotations({
   description: "A prompt resolved at a specific version.",
-  identifier: "Prompt",
+  identifier: "ResolvedPrompt",
 });
 export type PublicPrompt = typeof PublicPrompt.Type;
 
@@ -38,17 +38,12 @@ export const PublicVersion = Schema.Struct({
 });
 export type PublicVersion = typeof PublicVersion.Type;
 
-export const PublicPromptWithVersions = Schema.Struct({
-  channel: Schema.NullOr(ChannelName),
-  config: PromptConfig,
-  content: Schema.String,
-  createdAt: Instant,
-  id: PromptId,
-  message: Schema.NullOr(CommitMessage),
-  name: PromptName,
-  version: VersionNumber,
-  versions: Schema.optional(Schema.Array(PublicVersion)),
-}).annotations({
+export const PublicPromptWithVersions = Schema.extend(
+  PublicPrompt,
+  Schema.Struct({
+    versions: Schema.optional(Schema.Array(PublicVersion)),
+  })
+).annotations({
   description:
     "A prompt, with its version history when `includeVersions` is set.",
   identifier: "Prompt",

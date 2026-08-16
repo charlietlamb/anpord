@@ -1,4 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import {
+  ChannelName,
+  PromptId,
+  PromptName,
+  VersionNumber,
+} from "@anpord/schema/prompts";
 import { Anpord } from "./anpord";
 import { AnpordError, asAnpordError, MissingApiKey } from "./errors";
 
@@ -40,6 +46,42 @@ describe("surface", () => {
       "promote",
       "update",
     ]);
+  });
+
+  test("a result is the decoded value, not a tuple carrying the response", () => {
+    const reachable = async (anpord: Anpord) => {
+      const prompt = await anpord.prompts.get({
+        id: PromptId.make("greeting"),
+      });
+      const listed = await anpord.prompts.list();
+      const created = await anpord.prompts.create({
+        content: "hello",
+        id: PromptId.make("greeting"),
+        name: PromptName.make("Greeting"),
+      });
+      const updated = await anpord.prompts.update({
+        content: "hello again",
+        id: PromptId.make("greeting"),
+      });
+      const promoted = await anpord.prompts.promote({
+        channel: ChannelName.make("production"),
+        id: PromptId.make("greeting"),
+        version: VersionNumber.make(1),
+      });
+      const archived = await anpord.prompts.archive({
+        id: PromptId.make("greeting"),
+      });
+      return [
+        prompt.content,
+        listed.data.length,
+        created.version,
+        updated.version,
+        promoted.ok,
+        archived.ok,
+      ] as const;
+    };
+
+    expect(reachable).toBeInstanceOf(Function);
   });
 });
 

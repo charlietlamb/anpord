@@ -59,6 +59,7 @@
         "src/prompts.ts",
         "src/public/api.ts",
         "src/public/authentication.ts",
+        "src/public/client.ts",
         "src/public/prompts-api.ts",
         "src/public/requests.ts",
         "src/public/shapes.ts",

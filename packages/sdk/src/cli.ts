@@ -1,9 +1,9 @@
 #!/usr/bin/env node
+import { layer } from "@anpord/schema/public/client";
 import { Command } from "@effect/cli";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { commands } from "./cli/commands";
-import { layer } from "./client";
 import { clientOptionsConfig } from "./config";
 
 const anpord = Command.make("anpord").pipe(Command.withSubcommands(commands));

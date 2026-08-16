@@ -20,7 +20,6 @@
       "version": "0.0.0",
       "dependencies": {
         "@anpord/schema": "workspace:*",
-        "anpord": "workspace:*",
         "effect": "catalog:",
         "mcp-use": "catalog:",
         "zod": "catalog:",

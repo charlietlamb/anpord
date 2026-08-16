@@ -1,10 +1,10 @@
+import { AnpordApi } from "@anpord/schema/public/client";
 import {
   GetPromptRequest,
   ListVersionsRequest,
   PromotePromptRequest,
   UpdatePromptRequest,
 } from "@anpord/schema/public/requests";
-import { AnpordApi } from "anpord/client";
 import { Effect, Schema } from "effect";
 import type { MCPServer } from "mcp-use";
 import { z } from "zod";

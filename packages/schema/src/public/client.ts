@@ -1,4 +1,3 @@
-import { PublicApi } from "@anpord/schema/public/api";
 import {
   FetchHttpClient,
   HttpApiClient,
@@ -6,6 +5,7 @@ import {
   HttpClientRequest,
 } from "@effect/platform";
 import { Effect, Layer, Redacted } from "effect";
+import { PublicApi } from "./api";
 
 export const DEFAULT_BASE_URL = "https://api.anpord.com";
 

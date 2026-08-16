@@ -1,6 +1,10 @@
-import { FetchHttpClient } from "@effect/platform";
+import {
+  type AnpordClient,
+  DEFAULT_BASE_URL,
+  make,
+} from "@anpord/schema/public/client";
+import { FetchHttpClient, type HttpClientResponse } from "@effect/platform";
 import { Cause, Effect, Exit, Option, Redacted } from "effect";
-import { type AnpordClient, DEFAULT_BASE_URL, make } from "./client";
 import { asAnpordError, MissingApiKey } from "./errors";
 
 export interface AnpordOptions {
@@ -14,16 +18,24 @@ type Payload<Method> = Method extends (request: {
   ? P
   : never;
 
+type WithoutResponse<A> = A extends readonly [
+  unknown,
+  HttpClientResponse.HttpClientResponse,
+]
+  ? never
+  : A;
+
 type Result<Method> = Method extends (
   request: never
 ) => Effect.Effect<infer A, unknown, never>
-  ? A
+  ? WithoutResponse<A>
   : never;
 
 type Promised<Group> = {
-  readonly [Method in keyof Group]: Payload<Group[Method]> extends
-    | Record<string, never>
-    | undefined
+  readonly [Method in keyof Group]: Payload<Group[Method]> extends Record<
+    string,
+    never
+  >
     ? (request?: Payload<Group[Method]>) => Promise<Result<Group[Method]>>
     : (request: Payload<Group[Method]>) => Promise<Result<Group[Method]>>;
 };

@@ -34,6 +34,8 @@ const statusOf = (error: unknown) => {
       return 404;
     case "Conflict":
       return 409;
+    case "InternalError":
+      return 500;
     default:
       return;
   }

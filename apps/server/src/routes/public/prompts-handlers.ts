@@ -8,7 +8,7 @@ import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { withPromptErrors } from "../../http/prompt-errors";
 import { fromPublicCreate, fromPublicUpdate } from "./from-public";
-import { answeringChannel, selectorFor } from "./selector";
+import { selectorFor } from "./selector";
 import { toPublicPrompt, toPublicSummary, toPublicVersion } from "./to-public";
 
 const OK = { ok: true } as const;
@@ -29,10 +29,7 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
             payload.id,
             selectorFor(payload)
           );
-          const publicPrompt = {
-            ...toPublicPrompt(prompt),
-            channel: answeringChannel(payload),
-          };
+          const publicPrompt = toPublicPrompt(prompt);
 
           if (!payload.includeVersions) {
             return publicPrompt;

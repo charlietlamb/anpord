@@ -14,6 +14,7 @@
     "./prompts-api": "./src/prompts-api.ts",
     "./public/api": "./src/public/api.ts",
     "./public/authentication": "./src/public/authentication.ts",
+    "./public/client": "./src/public/client.ts",
     "./public/prompts-api": "./src/public/prompts-api.ts",
     "./public/requests": "./src/public/requests.ts",
     "./public/shapes": "./src/public/shapes.ts"
