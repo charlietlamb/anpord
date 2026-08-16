@@ -29,3 +29,13 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
       - run: bun run knip
+
+      # The spec is what documentation and third-party clients are built from,
+      # so it has to keep describing the API the code actually serves.
+      - name: Verify the committed OpenAPI spec matches the code
+        run: |
+          bun run openapi
+          if ! git diff --exit-code --stat openapi.json; then
+            echo "openapi.json is stale. Run 'bun run openapi' and commit the result."
+            exit 1
+          fi
