@@ -7,15 +7,21 @@ export function proxyToServer({ request }: { request: Request }) {
   return forward(request, new URL(request.url).pathname);
 }
 
+const AUTH_BASE = "/api/auth";
+
 /**
- * The metadata names https://www.anpord.com as the issuer, so RFC 8414 clients
- * look for it here rather than under /api/auth. Better Auth serves it one level
- * down, so the root path is rewritten onto the auth base the way the API server
- * already does for its own origin.
+ * Better Auth serves its metadata under /api/auth, but clients look for it
+ * where RFC 8414 says it lives. An issuer without a path puts the well-known
+ * segment at the root; one with a path — which is how the MCP server names this
+ * server — puts the segment before the path, as /.well-known/<doc>/api/auth.
+ * Both forms are answered so either resolution strategy finds the document.
  */
 export function proxyDiscoveryToServer({ request }: { request: Request }) {
   const { pathname } = new URL(request.url);
-  return forward(request, `/api/auth${pathname}`);
+  const document = pathname.endsWith(AUTH_BASE)
+    ? pathname.slice(0, -AUTH_BASE.length)
+    : pathname;
+  return forward(request, `${AUTH_BASE}${document}`);
 }
 
 /**
