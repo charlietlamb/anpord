@@ -1,6 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
+    "apps/docs": {
+      "entry": ["scripts/*.ts", "style.css"],
+      "project": "scripts/**"
+    },
     "apps/server": {
       "entry": ["src/server.ts"]
     },

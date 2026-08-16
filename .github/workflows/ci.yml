@@ -30,19 +30,12 @@ jobs:
       - run: bun run test
       - run: bun run knip
 
-      # The spec is what documentation and third-party clients are built from,
-      # so it has to keep describing the API the code actually serves. The build
-      # above regenerates the reference pages from it, so a new endpoint that
-      # nobody documented shows up here as an uncommitted page.
-      - name: Verify the committed OpenAPI spec and reference pages match the code
+      # The spec is what the reference documentation and third-party clients are
+      # built from, so it has to keep describing the API the code serves.
+      - name: Verify the committed OpenAPI spec matches the code
         run: |
           bun run openapi
-          if ! git diff --exit-code --stat openapi.json apps/docs/api-reference; then
-            echo "Run 'bun run openapi && bun run build' and commit the result."
-            exit 1
-          fi
-          if [ -n "$(git status --porcelain apps/docs/api-reference)" ]; then
-            git status --short apps/docs/api-reference
-            echo "An endpoint has no reference page. Run 'bun run build' and commit it."
+          if ! git diff --exit-code --stat openapi.json; then
+            echo "openapi.json is stale. Run 'bun run openapi' and commit the result."
             exit 1
           fi

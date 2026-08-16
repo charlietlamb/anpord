@@ -51,7 +51,6 @@
       },
       {
         "tab": "API reference",
-        "openapi": "openapi.json",
         "groups": [
           {
             "group": "Reference",
@@ -59,14 +58,10 @@
           },
           {
             "group": "Prompts",
-            "pages": [
-              "api-reference/prompts-get",
-              "api-reference/prompts-list",
-              "api-reference/prompts-create",
-              "api-reference/prompts-update",
-              "api-reference/prompts-promote",
-              "api-reference/prompts-archive"
-            ]
+            "openapi": {
+              "source": "openapi.json",
+              "directory": "api-reference"
+            }
           }
         ]
       }
