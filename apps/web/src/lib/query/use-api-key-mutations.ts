@@ -16,8 +16,8 @@ const useApiKeyMutation = <TInput, TResult>(
 };
 
 export const useCreateApiKey = () =>
-  useApiKeyMutation(async (name: string) => {
-    const { data, error } = await authClient.apiKey.create({ name });
+  useApiKeyMutation(async (input: { name: string; organizationId: string }) => {
+    const { data, error } = await authClient.apiKey.create(input);
     if (error) {
       throw new Error(error.message ?? "Couldn't create the key");
     }

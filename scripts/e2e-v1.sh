@@ -114,7 +114,7 @@ else
 fi
 
 echo "--- published sdk ---"
-sdk_dist="$(dirname "$0")/../packages/sdk/dist/index.mjs"
+sdk_dist="$(cd "$(dirname "$0")/.." && pwd)/packages/sdk/dist/index.mjs"
 if [ -z "$KEY" ]; then
   echo "SKIP  set ANPORD_API_KEY to check the sdk"
   skip=$((skip + 1))

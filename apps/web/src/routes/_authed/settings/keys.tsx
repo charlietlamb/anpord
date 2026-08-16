@@ -6,12 +6,14 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ApiKeyRow } from "@/components/settings/api-key-row";
+import { SettingsPanel } from "@/components/settings/settings-panel";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { apiKeyQueries } from "@/lib/query/api-key-queries";
 import {
   useCreateApiKey,
   useRevokeApiKey,
 } from "@/lib/query/use-api-key-mutations";
+import { useOrganizations } from "@/lib/use-organizations";
 
 export const Route = createFileRoute("/_authed/settings/keys")({
   component: ApiKeysPage,
@@ -19,6 +21,7 @@ export const Route = createFileRoute("/_authed/settings/keys")({
 
 function ApiKeysPage() {
   const { open: openDialog } = useDialog();
+  const { activeOrganization } = useOrganizations();
   const keys = useQuery(apiKeyQueries.list());
   const create = useCreateApiKey();
   const revoke = useRevokeApiKey();
@@ -26,17 +29,20 @@ function ApiKeysPage() {
   const onNew = () =>
     openDialog("newApiKey", {
       onSubmit: (name) =>
-        create.mutate(name, {
-          onError: (error) =>
-            toast.error("Couldn't create the key", {
-              description: error.message,
-            }),
-          onSuccess: (created) => {
-            if (created?.key) {
-              openDialog("apiKeyCreated", { apiKey: created.key, name });
-            }
-          },
-        }),
+        create.mutate(
+          { name, organizationId: activeOrganization?.id ?? "" },
+          {
+            onError: (error) =>
+              toast.error("Couldn't create the key", {
+                description: error.message,
+              }),
+            onSuccess: (created) => {
+              if (created?.key) {
+                openDialog("apiKeyCreated", { apiKey: created.key, name });
+              }
+            },
+          }
+        ),
     });
 
   const onRevoke = (id: string, name: string) =>
@@ -59,22 +65,18 @@ function ApiKeysPage() {
   const rows = keys.data ?? [];
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="font-heading text-lg tracking-tight">API keys</h2>
-          <p className="mt-1 text-muted-foreground text-sm">
-            Authenticate the SDK and the CLI. A key acts for this organization.
-          </p>
-        </div>
-        <Button className="shrink-0" onClick={onNew} size="sm">
+    <SettingsPanel
+      actions={
+        <Button onClick={onNew} size="sm">
           <PlusIcon weight="bold" />
           New key
         </Button>
-      </div>
-
+      }
+      description="Authenticate the SDK and the CLI. A key acts for this organization."
+      title="API keys"
+    >
       {keys.isPending ? (
-        <p className="mt-6 text-muted-foreground text-sm">Loading…</p>
+        <p className="text-muted-foreground text-sm">Loading…</p>
       ) : (
         <ApiKeyList
           onRevoke={onRevoke}
@@ -86,7 +88,7 @@ function ApiKeysPage() {
           }))}
         />
       )}
-    </div>
+    </SettingsPanel>
   );
 }
 
@@ -106,7 +108,7 @@ function ApiKeyList({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="mt-6 rounded-xl border border-border-surface border-dashed px-6 py-12 text-center">
+      <div className="rounded-xl border border-border-surface border-dashed px-6 py-12 text-center">
         <p className="font-heading text-base tracking-tight">No keys yet</p>
         <p className="mt-1 text-muted-foreground text-sm">
           Create one to use the SDK or the CLI.
@@ -118,7 +120,7 @@ function ApiKeyList({
   return (
     <div
       className={cn(
-        "mt-6 flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent/50",
+        "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent/50",
         ROW_DIVIDERS
       )}
     >
