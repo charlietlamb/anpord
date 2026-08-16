@@ -1,5 +1,7 @@
 import { createIsomorphicFn } from "@tanstack/react-start";
-import { getCookie } from "@tanstack/react-start/server";
+/** react-start/server re-exports react-start-server, which no longer carries
+ * the cookie helpers; they live in the core package it is built on. */
+import { getCookie } from "@tanstack/start-server-core";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 
