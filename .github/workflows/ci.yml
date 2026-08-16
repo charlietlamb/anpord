@@ -40,6 +40,27 @@ jobs:
             exit 1
           fi
 
+      # `catalog:` is a workspace protocol npm cannot install, so a published
+      # package has to name real versions. They are checked against the catalog
+      # rather than merely being concrete, which is what stops the published
+      # package drifting from what the workspace builds against.
+      - name: Verify the SDK depends on the catalog's versions
+        run: |
+          node -e "
+            const root = require('./package.json').catalog ?? {};
+            const sdk = require('./packages/sdk/package.json');
+            let wrong = 0;
+            for (const [name, specifier] of Object.entries(sdk.dependencies ?? {})) {
+              const expected = root[name];
+              if (expected === undefined) continue;
+              if (specifier !== '^' + expected) {
+                console.error(name + ' is ' + specifier + ', catalog says ^' + expected);
+                wrong = 1;
+              }
+            }
+            process.exit(wrong);
+          "
+
       # A frozen install resolves the whole workspace, so a manifest the image
       # never copies fails the build rather than the package that omitted it.
       - name: Verify the server image copies every workspace manifest

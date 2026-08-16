@@ -184,15 +184,15 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "bin": {
         "anpord": "./dist/cli.mjs",
       },
       "dependencies": {
-        "@effect/cli": "catalog:",
-        "@effect/platform": "catalog:",
-        "@effect/platform-node": "catalog:",
-        "effect": "catalog:",
+        "@effect/cli": "^0.75.2",
+        "@effect/platform": "^0.96.1",
+        "@effect/platform-node": "^0.107.0",
+        "effect": "^3.21.2",
       },
       "devDependencies": {
         "@anpord/schema": "workspace:*",
