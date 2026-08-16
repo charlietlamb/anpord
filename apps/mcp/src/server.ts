@@ -1,15 +1,12 @@
 import { MCPServer } from "mcp-use";
-import { oauthBetterAuthProvider } from "mcp-use/oauth/better-auth";
-import { authUrl as authURL, resource } from "./config";
+import { anpordOAuth } from "./oauth";
 import type { AnpordUser } from "./tools";
 import { register } from "./tools";
-
-const oauth = oauthBetterAuthProvider({ authURL, resource });
 
 const server = new MCPServer<AnpordUser>({
   description: "Read and version the prompts behind your product.",
   name: "anpord",
-  oauth,
+  oauth: anpordOAuth,
   version: "0.1.0",
 });
 
