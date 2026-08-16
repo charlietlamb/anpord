@@ -1,27 +1,52 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
 import { PromptList } from "@/components/prompts/prompt-list";
+import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
+
+interface PromptsBodyProps {
+  readonly error: Error | null;
+  readonly hasMore: boolean;
+  readonly isPending: boolean;
+  readonly loadingMore: boolean;
+  readonly onLoadMore: () => void;
+  readonly prompts: readonly PromptSummary[] | undefined;
+  readonly search: string;
+}
 
 export function PromptsBody({
   error,
+  hasMore,
   isPending,
+  loadingMore,
+  onLoadMore,
   prompts,
-}: {
-  error: Error | null;
-  isPending: boolean;
-  prompts: readonly PromptSummary[] | undefined;
-}) {
+  search,
+}: PromptsBodyProps) {
   if (isPending) {
-    return <p className="mt-10 text-muted-foreground text-sm">Loading…</p>;
+    return (
+      <div className="mt-4">
+        <PromptListSkeleton />
+      </div>
+    );
   }
 
   /** A failed load is not an empty account, so it never renders as "no prompts". */
   if (error || !prompts) {
     return (
-      <p className="mt-10 text-muted-foreground text-sm">
+      <p className="mt-6 text-muted-foreground text-sm">
         Couldn't load your prompts. {error?.message}
       </p>
     );
   }
 
-  return <PromptList prompts={prompts} />;
+  return (
+    <div className="mt-4">
+      <PromptList
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={onLoadMore}
+        prompts={prompts}
+        search={search}
+      />
+    </div>
+  );
 }

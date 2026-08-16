@@ -7,7 +7,9 @@ import {
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
 import { Badge } from "@anpord/ui/components/ui/badge";
+import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
 import { CaretUpDownIcon, CheckIcon } from "@phosphor-icons/react";
+import { useChannelColor } from "@/lib/query/use-channel-colors";
 
 interface ChannelRowProps {
   readonly channel: string;
@@ -24,6 +26,8 @@ export function ChannelRow({
   version,
   versions,
 }: ChannelRowProps) {
+  const channelColor = useChannelColor();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -35,9 +39,7 @@ export function ChannelRow({
           />
         }
       >
-        <span className="truncate text-[0.8125rem] text-muted-foreground">
-          {channel}
-        </span>
+        <ChannelBadge color={channelColor(channel)} name={channel} size="xs" />
         <span className="flex shrink-0 items-center gap-1.5">
           {version === null ? (
             <Badge size="xs" variant="outline">

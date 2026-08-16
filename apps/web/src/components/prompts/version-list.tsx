@@ -1,4 +1,6 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
+import { cn } from "@anpord/ui/lib/utils";
 import type { KeyboardEvent } from "react";
 import { VersionRow } from "@/components/prompts/version-row";
 
@@ -53,7 +55,10 @@ export function VersionList({
   return (
     <div
       aria-label="Versions"
-      className="flex max-h-[17rem] flex-col divide-y divide-border-surface overflow-y-auto overscroll-contain"
+      className={cn(
+        "flex max-h-[17rem] flex-col overflow-y-auto overscroll-contain",
+        ROW_DIVIDERS
+      )}
       onKeyDown={move}
       role="listbox"
     >

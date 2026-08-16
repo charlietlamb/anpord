@@ -26,10 +26,9 @@ import {
   IdentityAvatar,
   IdentityLabel,
 } from "@/components/dashboard/sidebar-identity";
+import { DOCS_URL } from "@/lib/urls";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { useSignOut } from "@/lib/use-sign-out";
-
-const DOCS_URL = "https://docs.anpord.com";
 
 export function NavUser() {
   const { resolvedTheme, setTheme } = useTheme();

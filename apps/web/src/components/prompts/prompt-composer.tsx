@@ -58,17 +58,21 @@ export function PromptComposer({
 
   return (
     <div className={cn("flex w-full flex-col", fill && "min-h-0 flex-1")}>
-      <ComposerContext>
-        {children}
-        {version === undefined ? null : (
-          <>
-            <span className="text-border">/</span>
-            <ToolbarButton menu>
-              <ClockCounterClockwiseIcon />v{version}
-            </ToolbarButton>
-          </>
-        )}
-      </ComposerContext>
+      {/* With nothing to name, the strip is a bar of empty chrome above the
+          prompt rather than context for it. */}
+      {children || version !== undefined ? (
+        <ComposerContext>
+          {children}
+          {version === undefined ? null : (
+            <>
+              <span className="text-border">/</span>
+              <ToolbarButton menu>
+                <ClockCounterClockwiseIcon />v{version}
+              </ToolbarButton>
+            </>
+          )}
+        </ComposerContext>
+      ) : null}
 
       <ComposerSurface className={cn("relative", fill && "min-h-0 flex-1")}>
         {readOnly && onEditRequest ? (

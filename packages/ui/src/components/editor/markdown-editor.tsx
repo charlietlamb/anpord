@@ -5,6 +5,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { useEffect } from "react";
 import { cn } from "../../lib/utils";
+import { PasteMarkdown } from "./paste-markdown";
 import { Variable } from "./variable-node";
 
 interface MarkdownEditorProps {
@@ -38,6 +39,7 @@ export function MarkdownEditor({
       extensions: [
         StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
         Markdown,
+        PasteMarkdown,
         Variable,
         /** Sets data-placeholder on the empty node, which the CSS renders. */
         Placeholder.configure({ placeholder: placeholder ?? "" }),

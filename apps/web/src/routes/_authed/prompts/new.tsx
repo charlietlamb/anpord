@@ -70,7 +70,7 @@ function NewPromptPage() {
           />
         </span>
         {id ? (
-          <span className="font-mono text-muted-foreground/70 text-xs">
+          <span className="ml-auto truncate pr-2 font-mono text-muted-foreground/70 text-xs">
             {id}
           </span>
         ) : null}

@@ -121,6 +121,11 @@
   --alpha-4: oklch(0 0 0 / 4%);
   --alpha-6: oklch(0 0 0 / 6%);
   --alpha-8: oklch(0 0 0 / 8%);
+  /* Muted against the surface: a snippet is read, not scanned like an editor. */
+  --code-keyword: oklch(0.52 0.14 305);
+  --code-call: oklch(0.52 0.11 250);
+  --code-key: oklch(0.48 0.09 200);
+  --code-string: oklch(0.48 0.11 150);
   --shadow-popover:
     0 0 0 1px oklch(0 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 4%),
     0 6px 14px oklch(0 0 0 / 6%);
@@ -159,6 +164,10 @@
   --alpha-4: oklch(1 0 0 / 4%);
   --alpha-6: oklch(1 0 0 / 6%);
   --alpha-8: oklch(1 0 0 / 8%);
+  --code-keyword: oklch(0.76 0.11 305);
+  --code-call: oklch(0.78 0.09 250);
+  --code-key: oklch(0.76 0.08 200);
+  --code-string: oklch(0.76 0.1 150);
   --shadow-popover:
     0 0 0 1px oklch(1 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 12%),
     0 6px 14px oklch(0 0 0 / 16%);

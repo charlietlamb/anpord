@@ -7,6 +7,7 @@ import { useDialog } from "@/lib/dialog/dialogs";
 
 export const Route = createFileRoute("/_authed/settings/members")({
   component: MembersSettings,
+  staticData: { title: "Members" },
 });
 
 function MembersSettings() {

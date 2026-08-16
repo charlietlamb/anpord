@@ -54,7 +54,7 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog onOpenChange={(next) => (next ? null : onClose())} open={open}>
-      <AlertDialogContent>
+      <AlertDialogContent onOverlayClick={pending ? undefined : onClose}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

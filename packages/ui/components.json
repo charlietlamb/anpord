@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "../../apps/web/src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "phosphor",
+  "aliases": {
+    "components": "@anpord/ui/components",
+    "hooks": "@anpord/ui/hooks",
+    "lib": "@anpord/ui/lib",
+    "ui": "@anpord/ui/components/ui",
+    "utils": "@anpord/ui/lib/utils"
+  }
+}

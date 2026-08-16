@@ -1,6 +1,7 @@
 import { Logo } from "@anpord/ui/components/logo";
 import { Link } from "@tanstack/react-router";
 import { UserMenu } from "@/components/auth/user-menu";
+import { SiteNav } from "@/components/layout/site-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export function SiteHeader() {
@@ -15,6 +16,7 @@ export function SiteHeader() {
         Anpord
       </Link>
       <nav className="flex items-center gap-1">
+        <SiteNav />
         <ThemeToggle />
         <UserMenu />
       </nav>

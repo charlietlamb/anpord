@@ -4,7 +4,9 @@ import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { PencilLineIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { GithubIcon } from "@/components/icons/github-icon";
 import { SiteLayout } from "@/components/layout/site-layout";
+import { REPO_URL } from "@/lib/urls";
 import { useIsClient } from "@/lib/use-is-client";
 
 /** currentColor is the fill here, so the caps need their own contrast. */
@@ -30,7 +32,7 @@ export function Landing() {
           Write prompts with typed variables, version every edit, and roll back
           to any of them — without redeploying.
         </p>
-        <div className="fade-in-0 slide-in-from-bottom-2 mt-8 animate-in fill-mode-both ease-out [animation-delay:150ms] [animation-duration:500ms]">
+        <div className="fade-in-0 slide-in-from-bottom-2 mt-8 flex animate-in flex-wrap items-center gap-3 fill-mode-both ease-out [animation-delay:150ms] [animation-duration:500ms]">
           <Link
             className={cn(
               buttonVariants({ size: "lg" }),
@@ -47,6 +49,18 @@ export function Landing() {
               </span>
             ) : null}
           </Link>
+          <a
+            className={cn(
+              buttonVariants({ size: "lg", variant: "outline" }),
+              "h-10 gap-2 px-4 text-sm"
+            )}
+            href={REPO_URL}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <GithubIcon className="size-[15px]" />
+            View source
+          </a>
         </div>
       </section>
     </SiteLayout>
