@@ -52,7 +52,10 @@ export function ChannelRow({
         </span>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="min-w-56">
+      <DropdownMenuContent
+        align="start"
+        className="w-(--anchor-width) max-w-(--anchor-width)"
+      >
         {versions.map((row) => (
           <DropdownMenuItem
             className="gap-2"

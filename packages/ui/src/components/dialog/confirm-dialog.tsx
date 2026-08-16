@@ -1,7 +1,6 @@
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -9,13 +8,13 @@ import {
   AlertDialogTitle,
 } from "@anpord/ui/components/ui/alert-dialog";
 import { Kbd } from "@anpord/ui/components/ui/kbd";
-import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
+import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
+import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { useState } from "react";
 
 export interface ConfirmDialogProps {
-  cancelLabel?: string;
   confirmLabel?: string;
   description: string;
   destructive?: boolean;
@@ -31,11 +30,11 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
   destructive,
   onConfirm,
 }: ConfirmDialogProps) {
   const [pending, setPending] = useState(false);
+  const metaKeyLabel = useMetaKeyLabel();
 
   async function handleConfirm() {
     setPending(true);
@@ -61,9 +60,6 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>
-            {cancelLabel}
-          </AlertDialogCancel>
           <AlertDialogAction
             className={cn(
               "gap-1.5",
@@ -78,7 +74,7 @@ export function ConfirmDialog({
             {pending ? "Working…" : confirmLabel}
             {pending ? null : (
               <span className="flex items-center gap-0.5">
-                <Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+                <Kbd>{metaKeyLabel}</Kbd>
                 <Kbd>↵</Kbd>
               </span>
             )}
