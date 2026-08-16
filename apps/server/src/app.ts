@@ -3,6 +3,7 @@ import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
 import { withAuthenticateChallenge } from "./http/challenge";
+import { publicOrigin } from "./http/public-origin";
 import { isAuthorizeRoute, withConsentPrompt } from "./http/require-consent";
 import { isDiscoveryRoute, toAuthRequest } from "./http/well-known";
 import { AppLayer } from "./layer";
@@ -51,7 +52,7 @@ export const main = Effect.gen(function* () {
               return publicApi
                 .handler(request)
                 .then((response) =>
-                  withAuthenticateChallenge(response, url.origin)
+                  withAuthenticateChallenge(response, publicOrigin(request))
                 );
             }
             return api.handler(request);
