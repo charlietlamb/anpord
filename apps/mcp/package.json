@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "mcp-use dev --entry src/server.ts",
+    "dev": "PORT=3010 ANPORD_AUTH_URL=http://localhost:3005/api/auth ANPORD_BASE_URL=http://127.0.0.1:3003 mcp-use dev --entry src/server.ts --port 3010",
     "build": "tsc --project tsconfig.json --noEmit",
     "start": "bun run src/main.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",

@@ -1,4 +1,4 @@
-import { Config, Effect } from "effect";
+import { Config, Effect, Option } from "effect";
 
 const settings = Config.all({
   authUrl: Config.string("ANPORD_AUTH_URL").pipe(
@@ -8,9 +8,19 @@ const settings = Config.all({
     Config.withDefault("https://api.anpord.com")
   ),
   port: Config.integer("PORT").pipe(Config.withDefault(3010)),
-  resource: Config.string("MCP_RESOURCE_URL").pipe(
-    Config.withDefault("https://mcp.anpord.com/mcp")
-  ),
+  resource: Config.string("MCP_RESOURCE_URL").pipe(Config.option),
 });
 
-export const { authUrl, baseUrl, port, resource } = Effect.runSync(settings);
+const settled = Effect.runSync(settings);
+
+export const { authUrl, baseUrl, port } = settled;
+
+/**
+ * A client rejects metadata whose resource is not the URL it connected to, so
+ * the identifier follows the port the server actually listens on. Only a
+ * deployment knows its public origin, which is what MCP_RESOURCE_URL names.
+ */
+export const resource = Option.getOrElse(
+  settled.resource,
+  () => `http://localhost:${port}/mcp`
+);
