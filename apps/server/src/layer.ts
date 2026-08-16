@@ -10,6 +10,7 @@ import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
+import { TelemetryLive } from "./telemetry";
 
 const DatabaseLayer = DatabaseLive.pipe(Layer.provide(DatabaseConfigLive));
 const CacheLayer = CacheLive.pipe(Layer.provide(CacheConfigLive));
@@ -35,6 +36,7 @@ const PromptsServiceLayer = PromptsLayer.pipe(
 
 export const AppLayer = Layer.mergeAll(
   ServerConfigLive,
+  TelemetryLive,
   AuthLayer,
   OrganizationLayer,
   DatabaseLayer,

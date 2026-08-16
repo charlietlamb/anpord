@@ -18,8 +18,11 @@
     "@anpord/notifications": "workspace:*",
     "@anpord/prompts": "workspace:*",
     "@anpord/schema": "workspace:*",
+    "@effect/opentelemetry": "catalog:",
     "@effect/platform": "catalog:",
     "@effect/platform-bun": "catalog:",
+    "@opentelemetry/sdk-logs": "catalog:",
+    "@opentelemetry/sdk-trace-base": "catalog:",
     "effect": "catalog:"
   },
   "devDependencies": {

@@ -52,6 +52,8 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `GITHUB_CLIENT_SECRET` | *secret* |
 | `MCP_RESOURCE_URL` | `https://mcp.anpord.com/mcp`. Set by the deploy workflow from the `MCP_RESOURCE_URL` repository variable, so it only needs setting here to change it. Without it the auth server issues tokens for `http://localhost:3010/mcp` and the MCP client rejects them |
 | `RESEND_API_KEY` | *secret* |
+| `AXIOM_TOKEN` | *secret*. Optional: without it the server runs without telemetry. Needs ingest permission on the dataset |
+| `AXIOM_DATASET` | Defaults to `anpord`. The dataset must already exist; ingest does not create one |
 | `EMAIL_FROM` | |
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
