@@ -81,7 +81,7 @@ export function ConsentCard({
       ) : null}
 
       <div className="overflow-hidden rounded-xl border border-border-surface bg-card shadow-raised">
-        <div className="border-border border-b bg-muted/30 px-4 py-3">
+        <div className="border-border border-b bg-muted px-4 py-3">
           <p className="font-medium text-muted-foreground text-xs">
             Permissions for {clientName}
           </p>

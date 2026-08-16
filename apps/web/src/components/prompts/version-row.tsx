@@ -35,7 +35,7 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
         "h-auto w-full flex-col items-stretch gap-1 rounded-none px-3.5 py-2.5 text-left",
         viewing
           ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "hover:bg-sidebar-accent/60"
+          : "hover:bg-muted"
       )}
       onClick={onSelect}
       role="option"

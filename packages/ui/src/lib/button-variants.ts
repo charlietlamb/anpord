@@ -10,7 +10,7 @@ export const buttonVariants = cva(
         outline:
           "input-bevel-shadow border-border bg-background text-foreground hover:bg-muted aria-expanded:bg-muted dark:bg-input/30",
         secondary:
-          "input-bevel-shadow border-border bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "input-bevel-shadow border-border bg-secondary text-secondary-foreground hover:bg-muted",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted dark:hover:bg-muted/50",
         destructive:

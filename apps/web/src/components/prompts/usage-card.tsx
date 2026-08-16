@@ -34,7 +34,7 @@ export function UsageCard({ promptId }: UsageCardProps) {
       className="px-0 py-0"
       title="Use this prompt"
     >
-      <code className="block overflow-x-auto whitespace-pre bg-muted/60 px-3.5 py-2.5 font-mono text-[0.75rem] leading-relaxed">
+      <code className="block overflow-x-auto whitespace-pre bg-muted px-3.5 py-2.5 font-mono text-[0.75rem] leading-relaxed">
         {tokens(promptId).map((token) => (
           <span className={token.tone} key={token.text}>
             {token.text}

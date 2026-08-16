@@ -29,7 +29,7 @@ export function ErrorCard({
               label="Copy error"
               value={detail}
             />
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border bg-muted/40 py-2.5 pr-10 pl-3 font-mono text-muted-foreground text-xs leading-relaxed">
+            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border bg-muted py-2.5 pr-10 pl-3 font-mono text-muted-foreground text-xs leading-relaxed">
               {detail}
             </pre>
           </div>

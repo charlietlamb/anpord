@@ -30,7 +30,7 @@ export function GeneralSettings() {
               {(field) => <field.TextField label="Slug" />}
             </form.AppField>
           </div>
-          <div className="flex justify-end border-border border-t bg-muted/30 px-6 py-4">
+          <div className="flex justify-end border-border border-t bg-muted px-6 py-4">
             <form.AppForm>
               <form.SubmitButton
                 fullWidth={false}

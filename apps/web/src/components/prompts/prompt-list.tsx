@@ -45,7 +45,7 @@ export function PromptList({
     <div className="flex flex-col gap-3">
       <div
         className={cn(
-          "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent/50",
+          "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
           ROW_DIVIDERS
         )}
       >

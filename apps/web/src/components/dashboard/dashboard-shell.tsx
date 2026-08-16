@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { Dither } from "@anpord/ui/components/ui/dither";
 import {
   SidebarInset,
   SidebarProvider,
@@ -23,7 +24,8 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
           <CommandMenu />
         </ClientOnly>
         <AppSidebar />
-        <SidebarInset className="relative overflow-hidden border border-sidebar-border ring-1 ring-black/[0.04] md:peer-data-[variant=inset]:shadow-md">
+        <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border ring-1 ring-black/[0.04] md:peer-data-[variant=inset]:shadow-md">
+          <Dither className="-z-10 text-foreground/[0.13] dark:text-foreground/[0.07]" />
           <header className="flex h-11 items-center gap-2 border-border border-b px-4">
             <SidebarTrigger />
             <DashboardBreadcrumbs />

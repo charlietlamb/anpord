@@ -20,7 +20,7 @@ export function RailCard({
   title,
 }: RailCardProps) {
   return (
-    <section className="shrink-0 overflow-clip rounded-xl border border-border-surface bg-sidebar-accent/50 shadow-raised">
+    <section className="shrink-0 overflow-clip rounded-xl border border-border-surface bg-sidebar-accent shadow-raised">
       <CardHeader action={action} sticky title={title} />
       <div className={cn("px-3.5 py-3", className)}>{children}</div>
     </section>

@@ -23,7 +23,7 @@ export function ApiKeyCreatedDialog({
       open={open}
       title={`${name} is ready`}
     >
-      <div className="flex items-center gap-2 rounded-lg border border-border-surface bg-muted/60 px-3 py-2.5">
+      <div className="flex items-center gap-2 rounded-lg border border-border-surface bg-muted px-3 py-2.5">
         <code className="min-w-0 flex-1 truncate font-mono text-[0.8125rem]">
           {apiKey}
         </code>

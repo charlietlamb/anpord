@@ -9,7 +9,7 @@ export function PromptListSkeleton() {
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent/50",
+        "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
         ROW_DIVIDERS
       )}
     >

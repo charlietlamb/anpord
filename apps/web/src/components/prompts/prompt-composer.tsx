@@ -85,7 +85,7 @@ export function PromptComposer({
       <ComposerSurface
         className={cn(
           "relative",
-          filename && "overflow-clip bg-sidebar-accent/50",
+          filename && "overflow-clip bg-sidebar-accent",
           fill && "min-h-0"
         )}
       >
