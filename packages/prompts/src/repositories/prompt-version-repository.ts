@@ -6,6 +6,7 @@ import type { PromptId } from "@anpord/schema/prompts";
 import { and, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
+import { isUniqueViolation } from "./postgres-errors";
 import { head, query } from "./query";
 
 export type VersionRow = typeof promptVersion.$inferSelect & {
@@ -15,24 +16,19 @@ export type VersionRow = typeof promptVersion.$inferSelect & {
   } | null;
 };
 
-const UNIQUE_VIOLATION = "23505";
-
-const isUniqueViolation = (cause: unknown) =>
-  typeof cause === "object" &&
-  cause !== null &&
-  "code" in cause &&
-  (cause as { code?: string }).code === UNIQUE_VIOLATION;
+export interface AppendVersionInput {
+  readonly actorId: string;
+  readonly commitMessage: string | null;
+  readonly config: unknown;
+  readonly content: string;
+  readonly promptId: PromptId;
+  readonly promptInternalId: string;
+}
 
 export interface PromptVersionRepositoryShape {
-  /** `promptId` is carried only to name the prompt in a conflict error. */
-  readonly append: (input: {
-    readonly actorId: string;
-    readonly commitMessage: string | null;
-    readonly config: unknown;
-    readonly content: string;
-    readonly promptId: PromptId;
-    readonly promptInternalId: string;
-  }) => Effect.Effect<VersionRow, PromptStoreError | VersionConflict>;
+  readonly append: (
+    input: AppendVersionInput
+  ) => Effect.Effect<VersionRow, PromptStoreError | VersionConflict>;
   readonly byNumber: (
     promptInternalId: string,
     version: number

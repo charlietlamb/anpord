@@ -1,9 +1,5 @@
 import { Schema } from "effect";
 
-/**
- * Channels address a version; `latest` is derived from max(version) rather than
- * stored, so it can never drift from the version table.
- */
 export const ChannelName = Schema.String.pipe(
   Schema.minLength(1),
   Schema.maxLength(36),
@@ -12,14 +8,16 @@ export const ChannelName = Schema.String.pipe(
       "Channel must be lowercase alphanumeric, optionally with - or _",
   }),
   Schema.brand("ChannelName")
-);
+).annotations({
+  description:
+    "Addresses a version. `latest` is derived from the highest version rather " +
+    "than stored, so it cannot drift from the version table.",
+});
 export type ChannelName = typeof ChannelName.Type;
 
-/** The two channels the system maintains itself. */
 export const PRODUCTION = ChannelName.make("production");
 export const LATEST = ChannelName.make("latest");
 
-/** The handle callers pass in requests. Slug-shaped, unique per org, mutable. */
 export const PromptId = Schema.String.pipe(
   Schema.minLength(1),
   Schema.maxLength(255),

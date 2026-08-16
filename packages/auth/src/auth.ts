@@ -8,11 +8,34 @@ import { Context, Effect, Layer, Option, Redacted } from "effect";
 import { AuthConfig } from "./config";
 import { COOKIE_PREFIX } from "./cookies";
 import { makeSendMagicLink } from "./email";
-import { resolveActiveOrganization } from "./organization-store";
+import type { OrganizationStoreShape } from "./organization-store";
+import { OrganizationStore } from "./organization-store";
+
+const SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES = 300;
+const API_KEY_PREFIX = "anp_";
+const IDENTIFIABLE_PREFIX_LENGTH = 8;
+
+const attachOrganizationBeforeWrite =
+  (organizations: OrganizationStoreShape) =>
+  async (session: { userId: string }) => {
+    const organization = await Effect.runPromise(
+      organizations
+        .resolveActive(session.userId)
+        .pipe(Effect.catchAll(() => Effect.succeedNone))
+    );
+
+    return Option.match(organization, {
+      onNone: () => undefined,
+      onSome: (activeOrganizationId) => ({
+        data: { ...session, activeOrganizationId },
+      }),
+    });
+  };
 
 const makeAuth = Effect.gen(function* () {
   const config = yield* AuthConfig;
   const db = yield* Database;
+  const organizations = yield* OrganizationStore;
   const socialProviders = config.github
     ? {
         github: {
@@ -29,36 +52,14 @@ const makeAuth = Effect.gen(function* () {
     advanced: { cookiePrefix: COOKIE_PREFIX },
     database: drizzleAdapter(db, { provider: "pg", schema }),
     session: {
-      /**
-       * Cache the validated session in a signed cookie so repeated reads resolve
-       * without a database round-trip. The short TTL keeps revocation responsive.
-       */
-      cookieCache: { enabled: true, maxAge: 300 },
+      cookieCache: {
+        enabled: true,
+        maxAge: SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES,
+      },
     },
     databaseHooks: {
       session: {
-        create: {
-          /**
-           * Attaching the organization as the session is written means a first
-           * sign-in already has one, so nothing downstream has to handle a
-           * session that cannot address any data.
-           */
-          before: async (session) => {
-            /** The one place this leaves Effect: Better Auth wants a promise. */
-            const resolved = await Effect.runPromise(
-              resolveActiveOrganization(db, session.userId).pipe(
-                Effect.catchAll(() => Effect.succeedNone)
-              )
-            );
-
-            return Option.match(resolved, {
-              onNone: () => undefined,
-              onSome: (activeOrganizationId) => ({
-                data: { ...session, activeOrganizationId },
-              }),
-            });
-          },
-        },
+        create: { before: attachOrganizationBeforeWrite(organizations) },
       },
     },
     socialProviders,
@@ -68,23 +69,17 @@ const makeAuth = Effect.gen(function* () {
         expiresIn: 300,
         sendMagicLink: ({ email, url }) => sendMagicLink({ email, url }),
       }),
-      /**
-       * Keys authenticate the public API. The plugin stores only a hash, so a
-       * key is shown once at creation and never again; the leading characters
-       * are kept in the clear so the dashboard can identify a key in a list.
-       */
       apiKey({
-        defaultPrefix: "anp_",
+        defaultPrefix: API_KEY_PREFIX,
         enableMetadata: true,
         startingCharactersConfig: {
-          charactersLength: 8,
+          charactersLength: IDENTIFIABLE_PREFIX_LENGTH,
           shouldStore: true,
         },
       }),
       jwt(),
       mcp({
         loginPage: "/login",
-        /** RFC 8707: tokens are bound to the MCP server, not the site. */
         resource: config.mcpResource,
         oidcConfig: {
           allowDynamicClientRegistration: true,

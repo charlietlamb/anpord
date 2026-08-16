@@ -7,6 +7,8 @@
  */
 export const ID_PREFIXES = {
   channelEvent: "chev",
+  member: "mem",
+  organization: "org",
   prompt: "pmt",
   promptChannel: "chn",
   promptVersion: "ver",

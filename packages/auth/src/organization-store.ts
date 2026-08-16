@@ -1,12 +1,13 @@
-import type { Database } from "@anpord/db/client";
+import { Database } from "@anpord/db/client";
 import { member } from "@anpord/db/schema/auth/members";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
+import { IdGenerator } from "@anpord/ids/id";
 import { desc, eq } from "drizzle-orm";
-import { Clock, Data, Effect, Option, Random } from "effect";
+import { Clock, Context, Data, Effect, Layer, Option, Random } from "effect";
 import { displayName, slugify } from "./organization-naming";
 
-const SLUG_SUFFIX_MAX = 1_000_000;
+const SLUG_DISAMBIGUATOR_MAX = 1_000_000;
 
 export class OrganizationStoreError extends Data.TaggedError(
   "OrganizationStoreError"
@@ -15,101 +16,106 @@ export class OrganizationStoreError extends Data.TaggedError(
   readonly operation: string;
 }> {}
 
-/** Random rather than crypto, so a seeded runtime gives stable ids in tests. */
-const uuid = Effect.gen(function* () {
-  const bytes: string[] = [];
-  for (let index = 0; index < 32; index++) {
-    const nibble = yield* Random.nextIntBetween(0, 16);
-    bytes.push(nibble.toString(16));
-  }
-  const hex = bytes.join("");
-  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+export interface OrganizationStoreShape {
+  readonly resolveActive: (
+    userId: string
+  ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
+}
+
+export class OrganizationStore extends Context.Tag(
+  "@anpord/auth/OrganizationStore"
+)<OrganizationStore, OrganizationStoreShape>() {}
+
+const make = Effect.gen(function* () {
+  const db = yield* Database;
+  const ids = yield* IdGenerator;
+
+  const tryStore = <A>(operation: string, run: () => Promise<A>) =>
+    Effect.tryPromise({
+      catch: (cause) => new OrganizationStoreError({ cause, operation }),
+      try: run,
+    });
+
+  const firstRow = <A>(rows: readonly A[]) => Option.fromNullable(rows.at(0));
+
+  const existingMembership = (userId: string) =>
+    tryStore("member.findByUser", () =>
+      db
+        .select({ organizationId: member.organizationId })
+        .from(member)
+        .where(eq(member.userId, userId))
+        .orderBy(desc(member.createdAt))
+        .limit(1)
+    ).pipe(Effect.map(firstRow));
+
+  const ownerProfile = (userId: string) =>
+    tryStore("user.findById", () =>
+      db
+        .select({ email: user.email, name: user.name })
+        .from(user)
+        .where(eq(user.id, userId))
+        .limit(1)
+    ).pipe(Effect.map(firstRow));
+
+  const provisionPersonalOrganization = (
+    userId: string,
+    profile: { readonly email: string; readonly name: string | null }
+  ) =>
+    Effect.gen(function* () {
+      const name = displayName(profile.name, profile.email);
+      const organizationId = yield* ids.generate("organization");
+      const memberId = yield* ids.generate("member");
+      const disambiguator = yield* Random.nextIntBetween(
+        0,
+        SLUG_DISAMBIGUATOR_MAX
+      );
+      const now = new Date(yield* Clock.currentTimeMillis);
+
+      yield* tryStore("organization.insert", () =>
+        db.insert(organization).values({
+          createdAt: now,
+          id: organizationId,
+          name: `${name}'s Org`,
+          slug: `${slugify(name)}-${disambiguator}`,
+        })
+      );
+
+      yield* tryStore("member.insert", () =>
+        db.insert(member).values({
+          createdAt: now,
+          id: memberId,
+          organizationId,
+          role: "owner",
+          userId,
+        })
+      );
+
+      return organizationId;
+    });
+
+  const resolveActive = (userId: string) =>
+    Effect.gen(function* () {
+      const membership = yield* existingMembership(userId);
+
+      if (Option.isSome(membership)) {
+        return Option.some(membership.value.organizationId);
+      }
+
+      const profile = yield* ownerProfile(userId);
+
+      return yield* Option.match(profile, {
+        onNone: () => Effect.succeedNone,
+        onSome: (found) =>
+          provisionPersonalOrganization(userId, found).pipe(
+            Effect.map(Option.some)
+          ),
+      });
+    }).pipe(
+      Effect.withSpan("OrganizationStore.resolveActive"),
+      Effect.annotateLogs({ userId })
+    );
+
+  return OrganizationStore.of({ resolveActive });
 });
 
-const query = <A>(operation: string, run: () => Promise<A>) =>
-  Effect.tryPromise({
-    catch: (cause) => new OrganizationStoreError({ cause, operation }),
-    try: run,
-  });
-
-const existingMembership = (db: Database["Type"], userId: string) =>
-  query("member.findByUser", () =>
-    db
-      .select({ organizationId: member.organizationId })
-      .from(member)
-      .where(eq(member.userId, userId))
-      .orderBy(desc(member.createdAt))
-      .limit(1)
-  ).pipe(Effect.map((rows) => Option.fromNullable(rows.at(0))));
-
-const owner = (db: Database["Type"], userId: string) =>
-  query("user.findById", () =>
-    db
-      .select({ email: user.email, name: user.name })
-      .from(user)
-      .where(eq(user.id, userId))
-      .limit(1)
-  ).pipe(Effect.map((rows) => Option.fromNullable(rows.at(0))));
-
-const provision = (
-  db: Database["Type"],
-  userId: string,
-  profile: { readonly email: string; readonly name: string | null }
-) =>
-  Effect.gen(function* () {
-    const name = displayName(profile.name, profile.email);
-    const organizationId = yield* uuid;
-    const memberId = yield* uuid;
-    /** Slugs are unique, and two people can share a display name. */
-    const suffix = yield* Random.nextIntBetween(0, SLUG_SUFFIX_MAX);
-    const now = new Date(yield* Clock.currentTimeMillis);
-
-    yield* query("organization.insert", () =>
-      db.insert(organization).values({
-        createdAt: now,
-        id: organizationId,
-        name: `${name}'s Org`,
-        slug: `${slugify(name)}-${suffix}`,
-      })
-    );
-
-    yield* query("member.insert", () =>
-      db.insert(member).values({
-        createdAt: now,
-        id: memberId,
-        organizationId,
-        role: "owner",
-        userId,
-      })
-    );
-
-    return organizationId;
-  });
-
-/**
- * Every session needs an organization: it scopes every query and every write.
- * Resolving it here rather than in the client means API and SDK callers get a
- * usable session too, not just someone who has loaded the dashboard.
- */
-export const resolveActiveOrganization = (
-  db: Database["Type"],
-  userId: string
-) =>
-  Effect.gen(function* () {
-    const membership = yield* existingMembership(db, userId);
-
-    if (Option.isSome(membership)) {
-      return Option.some(membership.value.organizationId);
-    }
-
-    const profile = yield* owner(db, userId);
-
-    return yield* Option.match(profile, {
-      onNone: () => Effect.succeedNone,
-      onSome: (found) =>
-        provision(db, userId, found).pipe(Effect.map(Option.some)),
-    });
-  }).pipe(
-    Effect.withSpan("Organizations.resolveActive"),
-    Effect.annotateLogs({ userId })
-  );
+export const OrganizationStoreLive = Layer.effect(OrganizationStore, make);

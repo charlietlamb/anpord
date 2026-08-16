@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@anpord/db": "workspace:*",
+    "@anpord/ids": "workspace:*",
     "@better-auth/api-key": "catalog:",
     "@better-auth/drizzle-adapter": "catalog:",
     "better-auth": "catalog:",
