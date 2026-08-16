@@ -36,7 +36,10 @@ const makeAuth = Effect.gen(function* () {
   const deliverMagicLink = sendMagicLink(emails);
 
   return betterAuth({
-    advanced: { cookiePrefix: COOKIE_PREFIX },
+    advanced: {
+      cookiePrefix: COOKIE_PREFIX,
+      ipAddress: { ipAddressHeaders: ["x-forwarded-for"] },
+    },
     baseURL: config.url,
     database: drizzleAdapter(db, { provider: "pg", schema }),
     databaseHooks: {
