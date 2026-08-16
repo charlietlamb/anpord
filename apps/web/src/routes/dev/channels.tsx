@@ -25,7 +25,9 @@ const asChannel = (seed: (typeof SEED)[number]): Channel =>
 
 function ChannelsPreview() {
   const { open: openDialog } = useDialog();
-  const [rows, setRows] = useState<readonly Channel[]>(SEED.map(asChannel));
+  const [rows, setRows] = useState<readonly Channel[]>(() =>
+    SEED.map(asChannel)
+  );
 
   const onNew = () =>
     openDialog("channel", {

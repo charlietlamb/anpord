@@ -84,9 +84,12 @@ function PromptDetailPage() {
   const dirty = editing && submitted !== base.content.trim();
 
   const servedChannels = (version: number): readonly string[] =>
-    (channels.data ?? [])
-      .filter((placement) => placement.version === version)
-      .map((placement) => placement.channel);
+    (channels.data ?? []).reduce<string[]>((names, placement) => {
+      if (placement.version === version) {
+        names.push(placement.channel);
+      }
+      return names;
+    }, []);
 
   const appendVersion = () =>
     addVersion.mutate(

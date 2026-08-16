@@ -11,6 +11,7 @@
   },
   "rules": {
     "react-doctor/no-prevent-default": "off",
-    "deslop/unused-dependency": "off"
+    "deslop/unused-dependency": "off",
+    "socket/low-supply-chain-score": "warn"
   }
 }
