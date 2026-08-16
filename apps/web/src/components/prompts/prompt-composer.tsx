@@ -21,6 +21,8 @@ import type { ReactNode } from "react";
 interface PromptComposerProps {
   readonly children?: ReactNode;
   readonly content: string;
+  /** Names the prompt on the surface, the way a file names its buffer. */
+  readonly filename?: string;
   /** Grows into the page instead of sitting at its own height. */
   readonly fill?: boolean;
   readonly onContentChange: (value: string) => void;
@@ -37,12 +39,31 @@ interface PromptComposerProps {
 }
 
 /**
+ * Names the prompt on the surface the way a file names its buffer, so the
+ * editor says what is being edited without borrowing the page's heading.
+ */
+function ComposerFilename({ name }: { readonly name?: string }) {
+  if (!name) {
+    return null;
+  }
+
+  return (
+    <header className="flex items-center gap-2 border-border-surface border-b bg-[color-mix(in_oklab,var(--sidebar-accent)_50%,var(--card))] px-4 py-2">
+      <span className="truncate font-mono text-muted-foreground text-xs">
+        {name}
+      </span>
+    </header>
+  );
+}
+
+/**
  * The editing surface: identity above, prompt body in the middle, and the
  * controls that act on it inside the same ring so it reads as one object.
  */
 export function PromptComposer({
   children,
   content,
+  filename,
   fill,
   onContentChange,
   onEditRequest,
@@ -74,7 +95,15 @@ export function PromptComposer({
         </ComposerContext>
       ) : null}
 
-      <ComposerSurface className={cn("relative", fill && "min-h-0 flex-1")}>
+      {/* `overflow-clip` rounds the header's top edge to the surface without
+          establishing a scroll container, which the editor owns. */}
+      <ComposerSurface
+        className={cn(
+          "relative",
+          filename && "overflow-clip",
+          fill && "min-h-0 flex-1"
+        )}
+      >
         {readOnly && onEditRequest ? (
           <Button
             aria-label="Edit from this version"
@@ -83,6 +112,8 @@ export function PromptComposer({
             variant="ghost"
           />
         ) : null}
+        <ComposerFilename name={filename} />
+
         <MarkdownEditor
           className={cn(
             "overflow-y-auto overscroll-contain px-4 pt-4 pb-2 text-[0.9375rem] leading-7",

@@ -239,6 +239,7 @@ function PromptDetailPage() {
         <main className="flex min-h-0 min-w-0 flex-col">
           <PromptComposer
             content={content}
+            filename={`${id}.md`}
             fill
             onContentChange={setDraft}
             onEditRequest={onEditRequest}
