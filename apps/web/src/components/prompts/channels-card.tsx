@@ -39,7 +39,7 @@ export function ChannelsCard({
   versions,
 }: ChannelsCardProps) {
   return (
-    <RailCard className="px-0 py-1" title="Channels">
+    <RailCard className="px-0 py-0" title="Channels">
       {withProduction(channels).map((placement) => (
         <ChannelRow
           channel={placement.channel}
