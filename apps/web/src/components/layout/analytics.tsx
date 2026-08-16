@@ -1,18 +1,44 @@
 import { Databuddy } from "@databuddy/sdk/react";
+import { PostHogProvider } from "@posthog/react";
+import type { ReactNode } from "react";
+import {
+  ANALYTICS_ENABLED,
+  DATABUDDY_CLIENT_ID,
+  POSTHOG_HOST,
+  POSTHOG_KEY,
+} from "@/lib/analytics/config";
+import { useIdentify } from "@/lib/analytics/use-identify";
 
-const CLIENT_ID = "777a32ef-c09d-4ed6-966e-12ecea4ebd5f";
+/** Sits inside the provider, which is what gives it a client to identify on. */
+function Identify() {
+  useIdentify();
+  return null;
+}
 
 /**
- * Route changes are tracked by the script itself, so mounting once at the root
- * covers every page. Development is excluded rather than left to filter out
- * later, which keeps local navigation out of the numbers entirely.
+ * Both providers track route changes themselves, so mounting once at the root
+ * covers every page without a call per route. Databuddy answers what the site
+ * is doing in aggregate; PostHog ties that to a person and records the replay.
  */
-export function Analytics() {
+export function Analytics({ children }: { children: ReactNode }) {
   return (
-    <Databuddy
-      clientId={CLIENT_ID}
-      disabled={import.meta.env.DEV}
-      trackWebVitals
-    />
+    <PostHogProvider
+      apiKey={POSTHOG_KEY}
+      options={{
+        api_host: POSTHOG_HOST,
+        capture_pageview: "history_change",
+        /** Replay is the reason PostHog is here, so it is on from the start. */
+        disable_session_recording: !ANALYTICS_ENABLED,
+        person_profiles: "identified_only",
+      }}
+    >
+      {children}
+      <Identify />
+      <Databuddy
+        clientId={DATABUDDY_CLIENT_ID}
+        disabled={!ANALYTICS_ENABLED}
+        trackWebVitals
+      />
+    </PostHogProvider>
   );
 }

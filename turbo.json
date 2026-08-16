@@ -3,7 +3,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["AUTH_SERVER_URL", "BETTER_AUTH_URL"],
+      "env": [
+        "AUTH_SERVER_URL",
+        "BETTER_AUTH_URL",
+        "VITE_POSTHOG_HOST",
+        "VITE_POSTHOG_KEY"
+      ],
       "outputs": [".output/**", ".vercel/output/**", "dist/**", ".nitro/**"]
     },
     "dev": {

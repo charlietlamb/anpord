@@ -12,10 +12,13 @@ export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        <Providers>
-          <DialogProvider registry={dialogRegistry}>{children}</DialogProvider>
-        </Providers>
-        <Analytics />
+        <Analytics>
+          <Providers>
+            <DialogProvider registry={dialogRegistry}>
+              {children}
+            </DialogProvider>
+          </Providers>
+        </Analytics>
         <Scripts />
       </body>
     </html>
