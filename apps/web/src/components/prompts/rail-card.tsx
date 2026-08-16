@@ -16,11 +16,13 @@ export function RailCard({
 }: RailCardProps) {
   return (
     <section className="rounded-xl border border-border-surface bg-card shadow-raised">
-      <header className="flex items-center justify-between gap-2 px-3 pt-2.5 pb-1.5">
-        <h2 className="font-medium text-muted-foreground text-xs">{title}</h2>
+      <header className="flex items-center justify-between gap-2 border-border-surface border-b px-3.5 py-2.5">
+        <h2 className="font-heading text-[0.9375rem] tracking-[-0.015em]">
+          {title}
+        </h2>
         {action}
       </header>
-      <div className={cn("px-3 pb-3", className)}>{children}</div>
+      <div className={cn("px-3.5 py-3", className)}>{children}</div>
     </section>
   );
 }

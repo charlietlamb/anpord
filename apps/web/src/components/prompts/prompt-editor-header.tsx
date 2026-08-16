@@ -1,4 +1,5 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
+import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { ArrowUpIcon, SpinnerGapIcon } from "@phosphor-icons/react";
@@ -26,9 +27,7 @@ export function PromptEditorHeader({
         <h1 className="min-w-0 truncate font-heading text-xl tracking-[-0.02em]">
           {name}
         </h1>
-        <Badge className="shrink-0 font-mono" size="sm" variant="outline">
-          {promptId}
-        </Badge>
+        <CopyableId className="shrink-0" value={promptId} />
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-2">

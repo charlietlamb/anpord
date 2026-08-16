@@ -1,4 +1,5 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { initials } from "@anpord/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { DetailRow } from "@/components/prompts/detail-row";
@@ -17,7 +18,7 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
   return (
     <RailCard className="grid gap-2.5" title="Details">
       <DetailRow label="Identifier">
-        <code className="font-mono text-[0.8125rem]">{viewed.id}</code>
+        <CopyableId value={viewed.id} />
       </DetailRow>
       <DetailRow label="Created">
         <time
