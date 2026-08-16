@@ -35,7 +35,6 @@ describe("resolveOAuthToken", () => {
     expect(Exit.isFailure(exit)).toBe(true);
   });
 
-  /** A signed-in user without a membership must not resolve to some other org. */
   test("rejects a user who belongs to no organization", async () => {
     const exit = await run(
       resolveOAuthToken(authWith({ userId: "user_1" }), "t", org(null))
@@ -44,7 +43,6 @@ describe("resolveOAuthToken", () => {
     expect(Exit.isFailure(exit)).toBe(true);
   });
 
-  /** A store failure is a 401, not a crash: the caller can retry. */
   test("fails rather than dies when the organization cannot be read", async () => {
     const exit = await run(
       resolveOAuthToken(authWith({ userId: "user_1" }), "t", () =>

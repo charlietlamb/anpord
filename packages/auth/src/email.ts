@@ -18,10 +18,6 @@ const body = (url: string) =>
     "If you didn't request this, you can ignore this email.",
   ].join("\n");
 
-/**
- * Sends the magic link, or logs it when Resend is unconfigured so local
- * development works without an API key — the link is copied from the server log.
- */
 export const makeSendMagicLink = (config: AuthConfigShape) => {
   const credentials = config.resend;
   if (!credentials) {

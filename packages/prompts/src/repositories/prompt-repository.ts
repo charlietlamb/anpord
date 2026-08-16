@@ -7,7 +7,7 @@ import { Context, Effect, Layer, type Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
 import type { PromptListRow } from "./prompt-list-query";
 import { selectPromptList } from "./prompt-list-query";
-import { head, query } from "./query";
+import { head, tryStore } from "./query";
 
 type PromptRow = typeof prompt.$inferSelect;
 
@@ -56,9 +56,8 @@ export const PromptRepositoryLive = Layer.effect(
     const db = yield* Database;
 
     return {
-      /** The public slug is unique per organization, so scope and handle together. */
       findById: (organizationId, id) =>
-        query("prompt.findById", () =>
+        tryStore("prompt.findById", () =>
           db
             .select()
             .from(prompt)
@@ -73,7 +72,7 @@ export const PromptRepositoryLive = Layer.effect(
         ).pipe(Effect.map(head)),
 
       insert: (input) =>
-        query("prompt.insert", () =>
+        tryStore("prompt.insert", () =>
           db.insert(prompt).values({
             internalId: input.internalId,
             id: input.id,
@@ -84,18 +83,13 @@ export const PromptRepositoryLive = Layer.effect(
           })
         ).pipe(Effect.asVoid),
 
-      /** Latest and production come from different sources, so both are joined. */
       listByOrganization: (organizationId) =>
-        query("prompt.listByOrganization", () =>
+        tryStore("prompt.listByOrganization", () =>
           selectPromptList(db, organizationId)
         ),
 
-      /**
-       * Versions and channels reference the internal id, so changing the
-       * public handle touches this row only.
-       */
       update: (internalId, changes, updatedAt) =>
-        query("prompt.update", () =>
+        tryStore("prompt.update", () =>
           db
             .update(prompt)
             .set({ ...changes, updatedAt })
@@ -103,7 +97,7 @@ export const PromptRepositoryLive = Layer.effect(
         ).pipe(Effect.asVoid),
 
       touch: (internalId, updatedAt) =>
-        query("prompt.touch", () =>
+        tryStore("prompt.touch", () =>
           db
             .update(prompt)
             .set({ updatedAt })
@@ -111,7 +105,7 @@ export const PromptRepositoryLive = Layer.effect(
         ).pipe(Effect.asVoid),
 
       archive: (internalId, archivedAt) =>
-        query("prompt.archive", () =>
+        tryStore("prompt.archive", () =>
           db
             .update(prompt)
             .set({ archivedAt })

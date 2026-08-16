@@ -4,10 +4,6 @@ import { Effect, Option } from "effect";
 import { PromptNotFound } from "../domain/errors";
 import type { PromptRepositoryShape } from "../repositories/prompt-repository";
 
-/**
- * Scoping and existence are the same lookup: a prompt in another organization
- * is indistinguishable from one that does not exist.
- */
 export const requirePrompt = (
   prompts: PromptRepositoryShape,
   actor: Actor,

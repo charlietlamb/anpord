@@ -16,7 +16,6 @@ const channel = Options.text("channel").pipe(
   Options.optional
 );
 
-/** Not --version: that is the CLI's own flag and wins before the command runs. */
 const version = Options.integer("at").pipe(
   Options.withDescription("Pin an exact version"),
   Options.withSchema(VersionNumber),
@@ -101,7 +100,6 @@ const readStdin = Effect.flatMap(FileSystem.FileSystem, (fs) =>
   fs.readFileString("/dev/stdin")
 );
 
-/** A tuple fixes the order; separate keys are sorted by name, not by position. */
 const target = Args.all([
   promptId,
   Args.text({ name: "content" }).pipe(

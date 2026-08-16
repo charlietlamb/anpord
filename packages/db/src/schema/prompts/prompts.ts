@@ -8,11 +8,6 @@ import {
 import { organization } from "../auth/organizations";
 import { user } from "../auth/users";
 
-/**
- * Three identifiers, each with one job: `internal_id` is the stable key every
- * other table references, `id` is the slug callers pass in requests and may
- * change, and `name` is free-form display text.
- */
 export const prompt = pgTable(
   "prompt",
   {

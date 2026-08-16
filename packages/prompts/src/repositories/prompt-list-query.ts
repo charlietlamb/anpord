@@ -16,11 +16,6 @@ export interface PromptListRow {
   readonly updatedAt: Date;
 }
 
-/**
- * A read projection, not a row read: latest comes from an aggregate over
- * versions while production comes through the channel pointer, so the two
- * columns need different joins.
- */
 export const selectPromptList = (
   db: Database["Type"],
   organizationId: OrganizationId

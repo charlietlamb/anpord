@@ -16,7 +16,6 @@ import {
 
 const PromptPath = Schema.Struct({ id: PromptId });
 
-/** Callers address a channel or pin a version; omitting both means production. */
 const ResolveQuery = Schema.Struct({
   channel: Schema.optional(ChannelName),
   version: Schema.optional(VersionNumberFromString),

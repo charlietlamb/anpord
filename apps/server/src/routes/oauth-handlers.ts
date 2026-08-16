@@ -5,11 +5,6 @@ import { InternalError, NotFound } from "@anpord/schema/errors";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Option } from "effect";
 
-/**
- * Unauthenticated on purpose: the consent screen renders before the user has
- * agreed to anything, and a client's display name is what its registration
- * already made public.
- */
 export const OAuthHandlers = HttpApiBuilder.group(
   AnpordApi,
   "oauth",

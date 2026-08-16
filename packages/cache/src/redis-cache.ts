@@ -7,10 +7,6 @@ const SCAN_BATCH = 256;
 const warn = (message: string, annotations: Record<string, string>) =>
   Effect.logWarning(message).pipe(Effect.annotateLogs(annotations));
 
-/**
- * Every operation is best-effort: the cache fronts the source of truth, so a
- * Redis outage or a stale payload degrades to a miss rather than an error.
- */
 export const makeRedisCache = (
   redis: Redis,
   ttlSeconds: number

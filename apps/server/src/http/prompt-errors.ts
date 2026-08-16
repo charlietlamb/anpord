@@ -4,11 +4,6 @@ import { Effect } from "effect";
 
 type PromptHttpError = Conflict | NotFound;
 
-/**
- * Domain errors carry no transport concern, so the mapping lives here rather
- * than leaking status codes into the service. A store failure is deliberately
- * left to fail the request as a defect — it is not a client-correctable state.
- */
 export const toHttpError = (
   error: PromptError
 ): Effect.Effect<never, PromptHttpError> => {

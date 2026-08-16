@@ -10,9 +10,4 @@ const settings = Config.all({
   port: Config.integer("PORT").pipe(Config.withDefault(3010)),
 });
 
-/**
- * Read once at startup rather than per request: mcp-use owns the lifecycle, so
- * there is no ambient runtime to yield from, and a malformed PORT should stop
- * the process instead of reaching listen() as NaN.
- */
 export const { authUrl, baseUrl, port } = Effect.runSync(settings);

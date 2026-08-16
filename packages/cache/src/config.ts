@@ -3,7 +3,6 @@ import type { Redacted } from "effect/Redacted";
 
 export interface CacheConfigShape {
   readonly ttlSeconds: number;
-  /** Absent until Redis is configured; the cache then reads through to Postgres. */
   readonly url: Option.Option<Redacted<string>>;
 }
 

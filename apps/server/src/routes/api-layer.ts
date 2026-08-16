@@ -10,7 +10,6 @@ import { HealthHandlers } from "./health-handlers";
 import { OAuthHandlers } from "./oauth-handlers";
 import { PromptsHandlers } from "./prompts-handlers";
 
-/** New surfaces join here; nothing else in the server needs to change. */
 const GroupsLive = Layer.mergeAll(
   HealthHandlers,
   OAuthHandlers,

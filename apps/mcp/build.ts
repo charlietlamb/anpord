@@ -22,10 +22,6 @@ if (!built.success) {
 const root = await Bun.file("../../package.json").json();
 const local = await Bun.file("package.json").json();
 
-/**
- * A deployable manifest: the workspace protocol and the catalog only resolve
- * inside this repository, so the upload pins real versions instead.
- */
 await writeFile(
   `${OUT}/package.json`,
   `${JSON.stringify(

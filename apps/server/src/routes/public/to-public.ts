@@ -6,10 +6,8 @@ import type {
 } from "@anpord/schema/public/shapes";
 import { DateTime } from "effect";
 
-/** Rows carry `Date`; the public contract is an instant that encodes to ISO. */
 const instant = (value: Date) => DateTime.unsafeFromDate(new Date(value));
 
-/** The only place internal shapes become public ones. */
 export const toPublicPrompt = (row: ResolvedPrompt): PublicPrompt => ({
   channel: row.channel,
   config: row.config,

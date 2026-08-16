@@ -12,11 +12,6 @@ export const OrganizationId = Schema.String.pipe(
 );
 export type OrganizationId = typeof OrganizationId.Type;
 
-/**
- * Who is acting, and the organization every operation is scoped to. Branding
- * both ids makes them impossible to transpose, since each is otherwise a bare
- * string. Not auth-specific: an API key resolves to an actor too.
- */
 export const Actor = Schema.Struct({
   id: UserId,
   organizationId: OrganizationId,

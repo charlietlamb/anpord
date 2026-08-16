@@ -19,10 +19,6 @@ export class VersionNotFound extends Data.TaggedError("VersionNotFound")<{
   readonly version: number;
 }> {}
 
-/**
- * Two writers computed the same next version and one lost the unique index
- * race. Callers should re-read and retry rather than surface this.
- */
 export class VersionConflict extends Data.TaggedError("VersionConflict")<{
   readonly promptId: PromptId;
 }> {}

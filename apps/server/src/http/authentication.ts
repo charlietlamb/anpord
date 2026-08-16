@@ -7,10 +7,6 @@ import { Effect, Layer, Option, Schema } from "effect";
 
 const unauthorized = (message: string) => new Unauthorized({ message });
 
-/**
- * Better Auth owns session validation, so the middleware forwards the raw
- * headers rather than parsing cookies itself.
- */
 export const AuthenticationLive = Layer.effect(
   Authentication,
   Effect.gen(function* () {

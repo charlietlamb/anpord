@@ -85,10 +85,6 @@ export const PromptCatalogLive = Layer.effect(
           Effect.annotateLogs({ orgId: actor.organizationId })
         ),
 
-      /**
-       * Versions and channels reference the internal id, so changing the public
-       * handle touches this row only. Cache keys are internal too, so they hold.
-       */
       update: (actor, id, request) =>
         Effect.gen(function* () {
           const row = yield* requirePrompt(prompts, actor, id);

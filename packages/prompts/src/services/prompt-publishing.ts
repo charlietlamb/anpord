@@ -15,7 +15,6 @@ import { PromptVersionRepository } from "../repositories/prompt-version-reposito
 import { requirePrompt } from "./require-prompt";
 
 export interface PromptPublishingShape {
-  /** Used by authoring and catalog to publish a version they just wrote. */
   readonly publishVersion: (input: {
     readonly actor: Actor;
     readonly channel: ChannelName;

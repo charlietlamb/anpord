@@ -10,10 +10,6 @@ import {
 import { user } from "../auth/users";
 import { prompt } from "./prompts";
 
-/**
- * Append-only. Rows are never updated or deleted, so a version is a stable
- * artifact something in production may still be resolving to.
- */
 export const promptVersion = pgTable(
   "prompt_version",
   {

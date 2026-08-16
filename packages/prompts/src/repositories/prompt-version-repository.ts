@@ -7,7 +7,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { isUniqueViolation } from "./postgres-errors";
-import { head, query } from "./query";
+import { head, tryStore } from "./query";
 
 export type VersionRow = typeof promptVersion.$inferSelect & {
   readonly author: {
@@ -51,7 +51,6 @@ export const PromptVersionRepositoryLive = Layer.effect(
     const db = yield* Database;
     const ids = yield* IdGenerator;
 
-    /** Versions are shown with their author, so every read carries the join. */
     const selectVersion = () =>
       db
         .select({
@@ -69,7 +68,7 @@ export const PromptVersionRepositoryLive = Layer.effect(
         .leftJoin(user, eq(user.id, promptVersion.createdBy));
 
     const byNumber = (promptInternalId: string, version: number) =>
-      query("promptVersion.byNumber", () =>
+      tryStore("promptVersion.byNumber", () =>
         selectVersion()
           .where(
             and(
@@ -81,7 +80,7 @@ export const PromptVersionRepositoryLive = Layer.effect(
       ).pipe(Effect.map(head));
 
     const latest = (promptInternalId: string) =>
-      query("promptVersion.latest", () =>
+      tryStore("promptVersion.latest", () =>
         selectVersion()
           .where(eq(promptVersion.promptInternalId, promptInternalId))
           .orderBy(desc(promptVersion.version))
@@ -92,14 +91,9 @@ export const PromptVersionRepositoryLive = Layer.effect(
       byNumber,
       latest,
 
-      /**
-       * The next number is read then inserted, so concurrent writers can pick
-       * the same one. The unique index rejects the loser, surfaced as a
-       * retryable conflict rather than a raw store error.
-       */
       append: (input) =>
         Effect.flatMap(ids.generate("promptVersion"), (internalId) =>
-          query("promptVersion.append", async () => {
+          tryStore("promptVersion.append", async () => {
             const [previous] = await db
               .select({ version: promptVersion.version })
               .from(promptVersion)
@@ -136,7 +130,7 @@ export const PromptVersionRepositoryLive = Layer.effect(
         ),
 
       list: (promptInternalId) =>
-        query("promptVersion.list", () =>
+        tryStore("promptVersion.list", () =>
           selectVersion()
             .where(eq(promptVersion.promptInternalId, promptInternalId))
             .orderBy(desc(promptVersion.version))

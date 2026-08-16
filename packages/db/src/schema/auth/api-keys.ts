@@ -8,11 +8,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization } from "./organizations";
 
-/**
- * `referenceId` holds the organization, not the user, so a key keeps working
- * when the member who created it leaves. Only a hash of the key is stored;
- * `start` keeps the leading characters so a key stays identifiable in a list.
- */
 export const apikey = pgTable(
   "apikey",
   {

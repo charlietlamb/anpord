@@ -1,10 +1,6 @@
 import { HttpApiSchema } from "@effect/platform";
 import { Schema } from "effect";
 
-/**
- * Transport-level errors. Domain errors stay inside services; groups map them
- * to these so status codes live with the contract rather than the handler.
- */
 export class NotFound extends Schema.TaggedError<NotFound>()(
   "NotFound",
   { message: Schema.String },

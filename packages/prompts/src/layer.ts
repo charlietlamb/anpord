@@ -14,16 +14,11 @@ const RepositoriesLive = Layer.mergeAll(
   PromptChannelRepositoryLive
 ).pipe(Layer.provide(IdGeneratorLive));
 
-/** Authoring and catalog both publish, so publishing sits beneath them. */
 const InternalsLive = Layer.mergeAll(
   RepositoriesLive,
   PromptPublishingLive.pipe(Layer.provide(RepositoriesLive))
 );
 
-/**
- * Callers provide Database + Cache; repositories, publishing and id generation
- * are implementation details and stay out of the caller's requirements.
- */
 export const PromptsLayer = Layer.mergeAll(
   PromptCatalogLive,
   PromptAuthoringLive,

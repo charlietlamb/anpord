@@ -14,10 +14,6 @@ export interface ClientOptions {
   readonly baseUrl?: string;
 }
 
-/**
- * Derived from the same definition that serves traffic and generates the
- * OpenAPI document, so a change to an endpoint reaches every consumer at once.
- */
 export const make = ({ apiKey, baseUrl = DEFAULT_BASE_URL }: ClientOptions) =>
   HttpApiClient.make(PublicApi, {
     baseUrl,

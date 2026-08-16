@@ -1,7 +1,6 @@
 import { HttpApi, OpenApi } from "@effect/platform";
 import { PublicPromptsGroup } from "./prompts-api";
 
-/** Separate from `/api` so the dashboard can break freely and `/v1` cannot. */
 export class PublicApi extends HttpApi.make("anpord-public")
   .add(PublicPromptsGroup)
   .prefix("/v1")

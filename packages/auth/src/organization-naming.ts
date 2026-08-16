@@ -1,6 +1,5 @@
 const SLUG_MAX = 32;
 
-/** Personal orgs are named after their owner, so the workspace reads as theirs. */
 export const displayName = (name: string | null, email: string) =>
   name?.trim() || email.split("@")[0] || "Workspace";
 

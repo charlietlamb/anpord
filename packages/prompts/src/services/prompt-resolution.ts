@@ -32,7 +32,6 @@ export const PromptResolutionLive = Layer.effect(
     const channels = yield* PromptChannelRepository;
     const cache = yield* Cache;
 
-    /** `latest` is derived from the version table; every other channel is a pointer. */
     const readVersion = (
       promptInternalId: string,
       selector: PromptSelector

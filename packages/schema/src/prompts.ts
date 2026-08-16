@@ -29,7 +29,6 @@ export const PromptId = Schema.String.pipe(
 );
 export type PromptId = typeof PromptId.Type;
 
-/** Free-form display text. Not an identifier and not unique. */
 export const PromptName = Schema.String.pipe(
   Schema.minLength(1),
   Schema.maxLength(255),
@@ -43,17 +42,12 @@ export const VersionNumber = Schema.Int.pipe(
 );
 export type VersionNumber = typeof VersionNumber.Type;
 
-/** URL params arrive as strings; this decodes into the branded version number. */
 export const VersionNumberFromString = Schema.NumberFromString.pipe(
   Schema.int(),
   Schema.positive(),
   Schema.brand("VersionNumber")
 );
 
-/**
- * Rows arrive as `Date`; cached JSON arrives as an ISO string. Accepting both
- * lets one contract serve the store and the cache without a second schema.
- */
 export const Timestamp = Schema.Union(Schema.DateFromSelf, Schema.Date);
 
 export const CommitMessage = Schema.String.pipe(Schema.maxLength(500));
@@ -64,7 +58,6 @@ export const PromptConfig = Schema.Record({
 });
 export type PromptConfig = typeof PromptConfig.Type;
 
-/** Who wrote a version. Absent when the account has since been removed. */
 export const Author = Schema.Struct({
   image: Schema.NullOr(Schema.String),
   name: Schema.String,
@@ -85,7 +78,6 @@ export const ResolvedPrompt = Schema.Struct({
 });
 export type ResolvedPrompt = typeof ResolvedPrompt.Type;
 
-/** `name` is the public handle; the internal id never crosses the wire. */
 export const PromptSummary = Schema.Struct({
   description: Schema.NullOr(Schema.String),
   id: PromptId,
@@ -128,7 +120,6 @@ export const SetChannelRequest = Schema.Struct({
 });
 export type SetChannelRequest = typeof SetChannelRequest.Type;
 
-/** Omitting both resolves the production channel. */
 export const PromptSelector = Schema.Struct({
   channel: Schema.optional(ChannelName),
   version: Schema.optional(VersionNumber),

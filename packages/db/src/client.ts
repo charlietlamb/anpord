@@ -23,12 +23,6 @@ export const DatabaseLive = Layer.scoped(
           keepAlive: true,
         });
 
-        /**
-         * Serverless Postgres drops idle connections, which `pg` surfaces as an
-         * emitter `error`. Without a listener Node rethrows it and kills the
-         * process; the pool has already discarded the client, so the next query
-         * simply opens a fresh one.
-         */
         created.on("error", (cause) => {
           Effect.runFork(
             Effect.logWarning("idle database connection dropped").pipe(

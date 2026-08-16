@@ -8,13 +8,11 @@ import {
   VersionNumber,
 } from "../prompts";
 
-/** The internal `Timestamp` also accepts a `Date`, which has no JSON form. */
 const Instant = Schema.DateTimeUtc.annotations({
   description: "An ISO-8601 timestamp in UTC.",
   identifier: "Instant",
 });
 
-/** Separate from `ResolvedPrompt` so internal fields cannot leak to customers. */
 export const PublicPrompt = Schema.Struct({
   channel: Schema.NullOr(ChannelName),
   config: PromptConfig,
@@ -40,7 +38,6 @@ export const PublicVersion = Schema.Struct({
 });
 export type PublicVersion = typeof PublicVersion.Type;
 
-/** One schema rather than a union: a union with a superset encodes ambiguously. */
 export const PublicPromptWithVersions = Schema.Struct({
   channel: Schema.NullOr(ChannelName),
   config: PromptConfig,

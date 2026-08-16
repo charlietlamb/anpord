@@ -15,10 +15,6 @@ interface CreateDependencies {
   readonly versions: PromptVersionRepositoryShape;
 }
 
-/**
- * Three writes in order — prompt, first version, then the production pointer —
- * so it lives apart from the single-statement catalog operations.
- */
 export const createPrompt = (
   deps: CreateDependencies,
   actor: Actor,

@@ -8,10 +8,6 @@ import {
 
 const NAMESPACE = "prompt";
 
-/**
- * Keyed on what callers pass, so a resolve is a single cache read with no
- * lookup first. A rename invalidates both handles, so no entry is orphaned.
- */
 export function promptPrefix(organizationId: OrganizationId, id: PromptId) {
   return `${NAMESPACE}:${organizationId}:${encodeURIComponent(id)}:`;
 }

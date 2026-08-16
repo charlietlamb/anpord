@@ -57,22 +57,12 @@ export const main = Effect.gen(function* () {
             return api.handler(request);
           },
         }),
-      /**
-       * A stale process holding the port is the usual cause, and Bun's raw
-       * error does not say which port. Turbo tears down every dev task when one
-       * exits, so the web server dies with it — name the fix in the message.
-       */
       catch: (cause) =>
         new Error(
           `Cannot bind ${config.host}:${config.port} — another process is using it. Run: lsof -ti:${config.port} | xargs kill`,
           { cause }
         ),
     }).pipe(
-      /**
-       * On restart the previous process may still hold the port for a moment,
-       * so a few quick retries beat failing and taking every sibling dev task
-       * down with us.
-       */
       Effect.retry(
         Schedule.exponential("120 millis").pipe(
           Schedule.compose(Schedule.recurs(6))

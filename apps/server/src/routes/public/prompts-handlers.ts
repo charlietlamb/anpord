@@ -31,7 +31,6 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
           );
           const publicPrompt = {
             ...toPublicPrompt(prompt),
-            /** Naming the channel keeps an omitted selector from reading as none. */
             channel: answeringChannel(payload),
           };
 

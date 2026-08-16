@@ -17,7 +17,6 @@ import { promptChannel } from "./schema/prompts/prompt-channels";
 import { promptVersion } from "./schema/prompts/prompt-versions";
 import { prompt } from "./schema/prompts/prompts";
 
-/** drizzle-kit reads table exports, not the object, to diff against the database. */
 export { account } from "./schema/auth/accounts";
 export { apikey } from "./schema/auth/api-keys";
 export { invitation } from "./schema/auth/invitations";

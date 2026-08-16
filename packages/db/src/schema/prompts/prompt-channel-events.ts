@@ -3,10 +3,6 @@ import { user } from "../auth/users";
 import { promptVersion } from "./prompt-versions";
 import { prompt } from "./prompts";
 
-/**
- * Deploys, as distinct from edits. `prompt_version` records who wrote a
- * version; this records who put one live and what it replaced.
- */
 export const promptChannelEvent = pgTable(
   "prompt_channel_event",
   {

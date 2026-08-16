@@ -8,11 +8,6 @@ const DISCOVERY = new Set([
 
 export const isDiscoveryRoute = (pathname: string) => DISCOVERY.has(pathname);
 
-/**
- * The specification puts discovery at the root, while Better Auth serves it
- * under its own base path. Rewriting keeps one implementation rather than a
- * second copy of the document that could drift.
- */
 export const toAuthRequest = (request: Request) => {
   const url = new URL(request.url);
   url.pathname = `${AUTH_BASE}${url.pathname}`;

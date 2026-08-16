@@ -11,24 +11,17 @@ import { PromptStoreError } from "./errors";
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
 
-/**
- * A row that cannot decode means storage holds something the contract forbids —
- * a bad migration or an out-of-band write — so it fails loudly here rather than
- * reaching callers as a value that only looks valid.
- */
 const asStoreError = (operation: string) => (issue: ParseResult.ParseError) =>
   new PromptStoreError({
     cause: ParseResult.TreeFormatter.formatErrorSync(issue),
     operation,
   });
 
-/** Identity comes off the prompt row; brands are applied by the decode below. */
 export interface PromptIdentity {
   readonly id: string;
   readonly name: string;
 }
 
-/** Rows carry storage concerns (internal ids, FKs); views carry what callers read. */
 export const toResolved = (
   identity: PromptIdentity,
   channel: ChannelName | null,

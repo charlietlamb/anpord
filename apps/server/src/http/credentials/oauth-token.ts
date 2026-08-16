@@ -5,10 +5,6 @@ import { Effect, Option, Schema } from "effect";
 
 const unauthorized = (message: string) => new Unauthorized({ message });
 
-/**
- * The token identifies the person, and the organization comes from their
- * membership, so a token cannot widen its own reach by claiming one.
- */
 export const resolveOAuthToken = (
   auth: AuthInstance,
   token: string,

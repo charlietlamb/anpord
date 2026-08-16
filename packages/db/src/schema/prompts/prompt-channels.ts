@@ -9,11 +9,6 @@ import { user } from "../auth/users";
 import { promptVersion } from "./prompt-versions";
 import { prompt } from "./prompts";
 
-/**
- * A named address callers resolve against, holding the version it currently
- * points at. Deploying moves one row, so a channel can never resolve to two
- * versions at once. `latest` is derived from max(version) and never stored.
- */
 export const promptChannel = pgTable(
   "prompt_channel",
   {

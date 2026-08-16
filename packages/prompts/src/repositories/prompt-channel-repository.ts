@@ -9,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
 import type { VersionRow } from "./prompt-version-repository";
-import { head, query } from "./query";
+import { head, tryStore } from "./query";
 
 export interface PromptChannelRepositoryShape {
   readonly move: (input: {
@@ -37,7 +37,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
 
     return {
       resolve: (promptInternalId, channel) =>
-        query("promptChannel.resolve", () =>
+        tryStore("promptChannel.resolve", () =>
           db
             .select({
               version: promptVersion,
@@ -64,17 +64,13 @@ export const PromptChannelRepositoryLive = Layer.effect(
           )
         ),
 
-      /**
-       * The pointer move and its audit row are one operation: a deploy that
-       * left no event would make the history lie about what shipped.
-       */
       move: (input) =>
         Effect.all([
           ids.generate("promptChannel"),
           ids.generate("channelEvent"),
         ]).pipe(
           Effect.flatMap(([channelInternalId, eventInternalId]) =>
-            query("promptChannel.move", async () => {
+            tryStore("promptChannel.move", async () => {
               const [existing] = await db
                 .select()
                 .from(promptChannel)
