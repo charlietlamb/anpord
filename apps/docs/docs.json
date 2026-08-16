@@ -11,6 +11,15 @@
   "appearance": {
     "default": "dark"
   },
+  "fonts": {
+    "heading": {
+      "family": "Funnel Display",
+      "weight": 500
+    },
+    "body": {
+      "family": "Geist"
+    }
+  },
   "favicon": "/favicon.svg",
   "logo": {
     "light": "/logo/light.svg",
@@ -42,6 +51,7 @@
       },
       {
         "tab": "API reference",
+        "openapi": "openapi.json",
         "groups": [
           {
             "group": "Reference",

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "bun run sync",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "dev": "bun run sync && mint dev",
+    "dev": "bun run build && mint dev",
     "sync": "bun run scripts/sync-openapi.ts",
     "check:links": "mint broken-links"
   },
