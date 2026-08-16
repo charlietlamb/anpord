@@ -2,6 +2,7 @@ import { PromptAuthoring } from "@anpord/prompts/authoring";
 import { PromptCatalog } from "@anpord/prompts/catalog";
 import { PromptPublishing } from "@anpord/prompts/publishing";
 import { PromptResolution } from "@anpord/prompts/resolution";
+import { PAGE_LIMIT_DEFAULT } from "@anpord/schema/domain/prompts";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
@@ -13,11 +14,17 @@ export const PromptsHandlers = HttpApiBuilder.group(
   "prompts",
   (handlers) =>
     handlers
-      .handle("list", () =>
+      .handle("list", ({ urlParams }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
-          return yield* catalog.list(actor);
+          return yield* catalog.list(actor, {
+            cursor: urlParams.cursor,
+            limit: urlParams.limit ?? PAGE_LIMIT_DEFAULT,
+            search: urlParams.q,
+            sort: urlParams.sort,
+            status: urlParams.status,
+          });
         }).pipe(withPromptErrors)
       )
       .handle("create", ({ payload }) =>
@@ -46,6 +53,18 @@ export const PromptsHandlers = HttpApiBuilder.group(
           const actor = yield* CurrentActor;
           const authoring = yield* PromptAuthoring;
           return yield* authoring.addVersion(actor, path.id, payload);
+        }).pipe(withPromptErrors)
+      )
+      .handle("updateVersion", ({ path, payload }) =>
+        Effect.gen(function* () {
+          const actor = yield* CurrentActor;
+          const authoring = yield* PromptAuthoring;
+          return yield* authoring.updateVersion(
+            actor,
+            path.id,
+            path.version,
+            payload
+          );
         }).pipe(withPromptErrors)
       )
       .handle("listVersions", ({ path }) =>

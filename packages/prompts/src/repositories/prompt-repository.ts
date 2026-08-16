@@ -5,7 +5,7 @@ import type { PromptId, PromptName } from "@anpord/schema/domain/prompts";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
-import type { PromptListRow } from "./prompt-list-query";
+import type { PromptListParams, PromptListRow } from "./prompt-list-query";
 import { selectPromptList } from "./prompt-list-query";
 import { head, tryStore } from "./query";
 
@@ -28,8 +28,11 @@ export interface PromptRepositoryShape {
     readonly name: PromptName;
     readonly organizationId: OrganizationId;
   }) => Effect.Effect<void, PromptStoreError>;
+  /** Returns up to `limit + 1` rows: the extra one tells the caller whether a
+   * further page exists without a second count query. */
   readonly listByOrganization: (
-    organizationId: OrganizationId
+    organizationId: OrganizationId,
+    params: PromptListParams
   ) => Effect.Effect<readonly PromptListRow[], PromptStoreError>;
   readonly touch: (
     internalId: string,
@@ -83,9 +86,9 @@ export const PromptRepositoryLive = Layer.effect(
           })
         ).pipe(Effect.asVoid),
 
-      listByOrganization: (organizationId) =>
+      listByOrganization: (organizationId, params) =>
         tryStore("prompt.listByOrganization", () =>
-          selectPromptList(db, organizationId)
+          selectPromptList(db, organizationId, params)
         ),
 
       update: (internalId, changes, updatedAt) =>

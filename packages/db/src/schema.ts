@@ -12,6 +12,7 @@ import { organization } from "./schema/auth/organizations";
 import { session } from "./schema/auth/sessions";
 import { user } from "./schema/auth/users";
 import { verification } from "./schema/auth/verifications";
+import { channel } from "./schema/prompts/channels";
 import { promptChannelEvent } from "./schema/prompts/prompt-channel-events";
 import { promptChannel } from "./schema/prompts/prompt-channels";
 import { promptVersion } from "./schema/prompts/prompt-versions";
@@ -31,6 +32,7 @@ export { organization } from "./schema/auth/organizations";
 export { session } from "./schema/auth/sessions";
 export { user } from "./schema/auth/users";
 export { verification } from "./schema/auth/verifications";
+export { channel } from "./schema/prompts/channels";
 export { promptChannelEvent } from "./schema/prompts/prompt-channel-events";
 export { promptChannel } from "./schema/prompts/prompt-channels";
 export { promptVersion } from "./schema/prompts/prompt-versions";
@@ -47,6 +49,7 @@ export const schema = {
   oauthConsent,
   organization,
   prompt,
+  channel,
   promptChannel,
   promptChannelEvent,
   promptVersion,

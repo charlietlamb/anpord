@@ -6,6 +6,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "../auth/users";
+import { channel } from "./channels";
 import { promptVersion } from "./prompt-versions";
 import { prompt } from "./prompts";
 
@@ -16,7 +17,9 @@ export const promptChannel = pgTable(
     promptInternalId: text("prompt_internal_id")
       .notNull()
       .references(() => prompt.internalId, { onDelete: "cascade" }),
-    name: text("name").notNull(),
+    channelInternalId: text("channel_internal_id")
+      .notNull()
+      .references(() => channel.internalId, { onDelete: "restrict" }),
     versionInternalId: text("version_internal_id")
       .notNull()
       .references(() => promptVersion.internalId, { onDelete: "restrict" }),
@@ -26,9 +29,9 @@ export const promptChannel = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("prompt_channel_prompt_internal_id_name_idx").on(
+    uniqueIndex("prompt_channel_prompt_internal_id_channel_idx").on(
       table.promptInternalId,
-      table.name
+      table.channelInternalId
     ),
     index("prompt_channel_version_internal_id_idx").on(table.versionInternalId),
   ]

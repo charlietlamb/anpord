@@ -1,3 +1,4 @@
+import { Channel } from "@anpord/schema/domain/channels";
 import {
   type ChannelName,
   ChannelPlacement,
@@ -5,11 +6,13 @@ import {
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
 import { Effect, ParseResult, Schema } from "effect";
+import type { ChannelCountRow } from "../repositories/channel-repository";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";
 import type { PromptListRow } from "../repositories/prompt-list-query";
 import type { VersionRow } from "../repositories/prompt-version-repository";
 import { PromptStoreError } from "./errors";
 
+const decodeChannel = Schema.decodeUnknown(Channel);
 const decodePlacement = Schema.decodeUnknown(ChannelPlacement);
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
@@ -47,6 +50,11 @@ export const toPlacement = (
   row: ChannelRow
 ): Effect.Effect<ChannelPlacement, PromptStoreError> =>
   decodePlacement(row).pipe(Effect.mapError(asStoreError("views.toPlacement")));
+
+export const toChannel = (
+  row: ChannelCountRow
+): Effect.Effect<Channel, PromptStoreError> =>
+  decodeChannel(row).pipe(Effect.mapError(asStoreError("views.toChannel")));
 
 export const toSummary = (
   row: PromptListRow

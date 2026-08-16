@@ -3,11 +3,13 @@ import type {
   AddVersionRequest,
   PromptId,
   ResolvedPrompt,
+  UpdateVersionRequest,
 } from "@anpord/schema/domain/prompts";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
-import { Clock, Context, Effect, Layer } from "effect";
+import { Clock, Context, Effect, Layer, Option } from "effect";
 import { answeringChannels } from "../domain/answering-channels";
 import type { PromptError } from "../domain/errors";
+import { VersionNotFound } from "../domain/errors";
 import { toResolved } from "../domain/views";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
@@ -26,6 +28,12 @@ export interface PromptAuthoringShape {
     actor: Actor,
     id: PromptId
   ) => Effect.Effect<readonly ResolvedPrompt[], PromptError>;
+  readonly updateVersion: (
+    actor: Actor,
+    id: PromptId,
+    version: number,
+    request: UpdateVersionRequest
+  ) => Effect.Effect<ResolvedPrompt, PromptError>;
 }
 
 export class PromptAuthoring extends Context.Tag(
@@ -77,6 +85,41 @@ export const PromptAuthoringLive = Layer.effect(
         }).pipe(
           Effect.withSpan("PromptAuthoring.addVersion"),
           Effect.annotateLogs({ orgId: actor.organizationId, promptId: id })
+        ),
+
+      updateVersion: (actor, id, version, request) =>
+        Effect.gen(function* () {
+          const row = yield* requirePrompt(prompts, actor, id);
+
+          const updated = yield* versions.update({
+            commitMessage: request.commitMessage,
+            config: request.config,
+            content: request.content,
+            promptInternalId: row.internalId,
+            version,
+          });
+
+          const target = yield* Option.match(updated, {
+            onNone: () =>
+              Effect.fail(new VersionNotFound({ promptId: id, version })),
+            onSome: Effect.succeed,
+          });
+
+          const placements = yield* channels.list(row.internalId);
+          const channelOf = yield* answeringChannels(placements);
+
+          const now = new Date(yield* Clock.currentTimeMillis);
+          yield* prompts.touch(row.internalId, now);
+          yield* promptCache.invalidate(actor.organizationId, id);
+
+          return yield* toResolved(row, channelOf(target.internalId), target);
+        }).pipe(
+          Effect.withSpan("PromptAuthoring.updateVersion"),
+          Effect.annotateLogs({
+            orgId: actor.organizationId,
+            promptId: id,
+            version,
+          })
         ),
 
       listVersions: (actor, id) =>

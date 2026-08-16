@@ -19,7 +19,7 @@ import {
   PromptPublishing,
   PromptPublishingLive,
 } from "../../src/services/prompt-publishing";
-import { actor, promptId, promptRow } from "../fixtures/prompt-rows";
+import { actor, noopCache, promptId, promptRow } from "../fixtures/prompt-rows";
 
 const unreachable = (method: string) => () =>
   Effect.die(`unexpected call to ${method}`);
@@ -47,9 +47,10 @@ const versions = Layer.succeed(PromptVersionRepository, {
   byNumber: unreachable("byNumber"),
   latest: unreachable("latest"),
   list: unreachable("list"),
+  update: unreachable("update"),
 } satisfies PromptVersionRepositoryShape);
 
-const cache = Layer.succeed(PromptCache, { invalidate: () => Effect.void });
+const cache = Layer.succeed(PromptCache, noopCache);
 
 const listChannels = (found: boolean, rows: readonly ChannelRow[]) =>
   Effect.runPromiseExit(

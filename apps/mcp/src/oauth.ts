@@ -1,19 +1,7 @@
+import { SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
 import { OAuthError, OAuthErrorCode, oauthCustomProvider } from "mcp-use/oauth";
 import { authUrl, resource } from "./config";
 import type { AnpordUser } from "./tools";
-
-/**
- * What the authorization server grants and this resource server advertises.
- * The OIDC scopes come with the identity token every client receives.
- */
-const SUPPORTED_SCOPES = [
-  "openid",
-  "profile",
-  "email",
-  "offline_access",
-  "prompts:read",
-  "prompts:write",
-] as const;
 
 const endpoint = (name: string) => `${authUrl}/mcp/${name}`;
 

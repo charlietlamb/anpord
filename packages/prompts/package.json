@@ -7,6 +7,7 @@
     "./errors": "./src/domain/errors.ts",
     "./layer": "./src/layer.ts",
     "./catalog": "./src/services/prompt-catalog.ts",
+    "./channels": "./src/services/channel-catalog.ts",
     "./authoring": "./src/services/prompt-authoring.ts",
     "./resolution": "./src/services/prompt-resolution.ts",
     "./publishing": "./src/services/prompt-publishing.ts"

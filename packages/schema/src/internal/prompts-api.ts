@@ -6,27 +6,46 @@ import {
   ChannelName,
   ChannelPlacement,
   CreatePromptRequest,
+  LimitFromString,
   PromptId,
-  PromptSummary,
+  PromptPage,
+  PromptSortOrder,
+  PromptStatusFilter,
   ResolvedPrompt,
   SetChannelRequest,
   UpdatePromptRequest,
+  UpdateVersionRequest,
   VersionNumberFromString,
 } from "../domain/prompts";
 import { Authentication } from "./authentication";
 
 const PromptPath = Schema.Struct({ id: PromptId });
 
+const VersionPath = Schema.Struct({
+  id: PromptId,
+  version: VersionNumberFromString,
+});
+
 const ResolveQuery = Schema.Struct({
   channel: Schema.optional(ChannelName),
   version: Schema.optional(VersionNumberFromString),
 });
 
+const ListQuery = Schema.Struct({
+  /** The cursor is the previous page's last row, encoded so callers treat it
+   * as opaque rather than building one by hand. */
+  cursor: Schema.optional(Schema.String),
+  limit: Schema.optional(LimitFromString),
+  q: Schema.optional(Schema.String),
+  sort: Schema.optional(PromptSortOrder),
+  status: Schema.optional(PromptStatusFilter),
+});
+
 export class PromptsGroup extends HttpApiGroup.make("prompts")
   .add(
-    HttpApiEndpoint.get("list", "/prompts").addSuccess(
-      Schema.Array(PromptSummary)
-    )
+    HttpApiEndpoint.get("list", "/prompts")
+      .setUrlParams(ListQuery)
+      .addSuccess(PromptPage)
   )
   .add(
     HttpApiEndpoint.post("create", "/prompts")
@@ -49,6 +68,12 @@ export class PromptsGroup extends HttpApiGroup.make("prompts")
     HttpApiEndpoint.get("listVersions", "/prompts/:id/versions")
       .setPath(PromptPath)
       .addSuccess(Schema.Array(ResolvedPrompt))
+  )
+  .add(
+    HttpApiEndpoint.patch("updateVersion", "/prompts/:id/versions/:version")
+      .setPath(VersionPath)
+      .setPayload(UpdateVersionRequest)
+      .addSuccess(ResolvedPrompt)
   )
   .add(
     HttpApiEndpoint.get("listChannels", "/prompts/:id/channels")

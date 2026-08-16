@@ -1,4 +1,5 @@
 export const ID_PREFIXES = {
+  channel: "chl",
   channelEvent: "chev",
   member: "mem",
   organization: "org",

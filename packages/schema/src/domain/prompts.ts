@@ -48,6 +48,16 @@ export const VersionNumberFromString = Schema.NumberFromString.pipe(
   Schema.brand("VersionNumber")
 );
 
+/** Capped so a caller cannot ask for the whole table in one request. */
+export const PAGE_LIMIT_MAX = 100;
+export const PAGE_LIMIT_DEFAULT = 25;
+
+export const LimitFromString = Schema.NumberFromString.pipe(
+  Schema.int(),
+  Schema.positive(),
+  Schema.lessThanOrEqualTo(PAGE_LIMIT_MAX)
+);
+
 export const Timestamp = Schema.Union(Schema.DateFromSelf, Schema.Date);
 
 export const CommitMessage = Schema.String.pipe(Schema.maxLength(500));
@@ -96,6 +106,30 @@ export const PromptSummary = Schema.Struct({
 });
 export type PromptSummary = typeof PromptSummary.Type;
 
+/** Keyset rather than offset: prompts are ordered by when they were last
+ * touched, and editing one mid-scroll would shift every offset after it. The
+ * id breaks ties, since two prompts can share a timestamp. */
+export const PromptCursor = Schema.Struct({
+  id: PromptId,
+  updatedAt: Timestamp,
+});
+export type PromptCursor = typeof PromptCursor.Type;
+
+/** "live" is a prompt some channel currently serves; "draft" is one no channel
+ * points at yet, which is a different thing from having no versions. */
+export const PromptStatusFilter = Schema.Literal("all", "draft", "live");
+export type PromptStatusFilter = typeof PromptStatusFilter.Type;
+
+export const PromptSortOrder = Schema.Literal("name", "updated");
+export type PromptSortOrder = typeof PromptSortOrder.Type;
+
+export const PromptPage = Schema.Struct({
+  items: Schema.Array(PromptSummary),
+  /** Opaque to callers, and null once the last page has been read. */
+  nextCursor: Schema.NullOr(Schema.String),
+});
+export type PromptPage = typeof PromptPage.Type;
+
 export const CreatePromptRequest = Schema.Struct({
   commitMessage: Schema.optional(CommitMessage),
   config: Schema.optional(PromptConfig),
@@ -114,6 +148,16 @@ export const AddVersionRequest = Schema.Struct({
   publish: Schema.optional(Schema.Boolean),
 });
 export type AddVersionRequest = typeof AddVersionRequest.Type;
+
+/** Correcting a version rewrites history in place, so it carries only the
+ * content: the author, the number, and the time it was first saved all still
+ * describe the change that was made. */
+export const UpdateVersionRequest = Schema.Struct({
+  commitMessage: Schema.optional(CommitMessage),
+  config: Schema.optional(PromptConfig),
+  content: Schema.String.pipe(Schema.minLength(1)),
+});
+export type UpdateVersionRequest = typeof UpdateVersionRequest.Type;
 
 export const UpdatePromptRequest = Schema.Struct({
   description: Schema.optional(Schema.String),

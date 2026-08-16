@@ -1,8 +1,10 @@
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Layer } from "effect";
+import { ChannelRepositoryLive } from "./repositories/channel-repository";
 import { PromptChannelRepositoryLive } from "./repositories/prompt-channel-repository";
 import { PromptRepositoryLive } from "./repositories/prompt-repository";
 import { PromptVersionRepositoryLive } from "./repositories/prompt-version-repository";
+import { ChannelCatalogLive } from "./services/channel-catalog";
 import { PromptAuthoringLive } from "./services/prompt-authoring";
 import { PromptCacheLive } from "./services/prompt-cache";
 import { PromptCatalogLive } from "./services/prompt-catalog";
@@ -12,7 +14,8 @@ import { PromptResolutionLive } from "./services/prompt-resolution";
 const RepositoriesLive = Layer.mergeAll(
   PromptRepositoryLive,
   PromptVersionRepositoryLive,
-  PromptChannelRepositoryLive
+  PromptChannelRepositoryLive,
+  ChannelRepositoryLive
 ).pipe(Layer.provide(IdGeneratorLive));
 
 const PublishingLive = PromptPublishingLive.pipe(
@@ -29,5 +32,6 @@ export const PromptsLayer = Layer.mergeAll(
   PromptCatalogLive,
   PromptAuthoringLive,
   PromptResolutionLive,
-  PublishingLive
+  PublishingLive,
+  ChannelCatalogLive
 ).pipe(Layer.provide(InternalsLive), Layer.provide(IdGeneratorLive));

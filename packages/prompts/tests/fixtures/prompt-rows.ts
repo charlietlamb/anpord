@@ -1,6 +1,13 @@
 import { OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { PromptId } from "@anpord/schema/domain/prompts";
+import { Effect } from "effect";
 import type { VersionRow } from "../../src/repositories/prompt-version-repository";
+import type { PromptCacheShape } from "../../src/services/prompt-cache";
+
+export const noopCache: PromptCacheShape = {
+  invalidate: () => Effect.void,
+  invalidateOrganization: () => Effect.void,
+};
 
 export const actor = {
   id: UserId.make("user_1"),

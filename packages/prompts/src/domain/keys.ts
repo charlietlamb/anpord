@@ -4,8 +4,12 @@ import { resolutionFor } from "./resolution";
 
 const NAMESPACE = "prompt";
 
+export function organizationPrefix(organizationId: OrganizationId) {
+  return `${NAMESPACE}:${organizationId}:`;
+}
+
 export function promptPrefix(organizationId: OrganizationId, id: PromptId) {
-  return `${NAMESPACE}:${organizationId}:${encodeURIComponent(id)}:`;
+  return `${organizationPrefix(organizationId)}${encodeURIComponent(id)}:`;
 }
 
 export function selectorKey(

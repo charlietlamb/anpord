@@ -4,7 +4,7 @@ import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { PromptId } from "@anpord/schema/domain/prompts";
 import { and, desc, eq } from "drizzle-orm";
-import { Context, Effect, Layer, type Option } from "effect";
+import { Context, Effect, Layer, Option } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { isUniqueViolation } from "./postgres-errors";
 import { head, tryStore } from "./query";
@@ -25,6 +25,14 @@ interface AppendVersionInput {
   readonly promptInternalId: string;
 }
 
+interface UpdateVersionInput {
+  readonly commitMessage: string | undefined;
+  readonly config: unknown;
+  readonly content: string;
+  readonly promptInternalId: string;
+  readonly version: number;
+}
+
 export interface PromptVersionRepositoryShape {
   readonly append: (
     input: AppendVersionInput
@@ -39,6 +47,9 @@ export interface PromptVersionRepositoryShape {
   readonly list: (
     promptInternalId: string
   ) => Effect.Effect<readonly VersionRow[], PromptStoreError>;
+  readonly update: (
+    input: UpdateVersionInput
+  ) => Effect.Effect<Option.Option<VersionRow>, PromptStoreError>;
 }
 
 export class PromptVersionRepository extends Context.Tag(
@@ -134,6 +145,32 @@ export const PromptVersionRepositoryLive = Layer.effect(
           selectVersion()
             .where(eq(promptVersion.promptInternalId, promptInternalId))
             .orderBy(desc(promptVersion.version))
+        ),
+
+      update: (input) =>
+        tryStore("promptVersion.update", () =>
+          db
+            .update(promptVersion)
+            .set({
+              content: input.content,
+              ...(input.commitMessage === undefined
+                ? {}
+                : { commitMessage: input.commitMessage }),
+              ...(input.config === undefined ? {} : { config: input.config }),
+            })
+            .where(
+              and(
+                eq(promptVersion.promptInternalId, input.promptInternalId),
+                eq(promptVersion.version, input.version)
+              )
+            )
+            .returning({ internalId: promptVersion.internalId })
+        ).pipe(
+          Effect.flatMap((rows) =>
+            Option.isNone(head(rows))
+              ? Effect.succeedNone
+              : byNumber(input.promptInternalId, input.version)
+          )
         ),
     } satisfies PromptVersionRepositoryShape;
   })

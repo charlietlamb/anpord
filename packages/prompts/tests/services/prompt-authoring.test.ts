@@ -22,6 +22,7 @@ import { PromptCache } from "../../src/services/prompt-cache";
 import { PromptPublishing } from "../../src/services/prompt-publishing";
 import {
   actor,
+  noopCache,
   promptId,
   promptRow,
   versionRow,
@@ -45,7 +46,7 @@ const publishing = Layer.succeed(PromptPublishing, {
   setChannel: unreachable("setChannel"),
 });
 
-const cache = Layer.succeed(PromptCache, { invalidate: () => Effect.void });
+const cache = Layer.succeed(PromptCache, noopCache);
 
 const placement = (channel: string, version: number): ChannelRow => ({
   channel,
@@ -79,6 +80,7 @@ const listVersions = (
                   Effect.succeed(
                     rows.map((version) => versionRow(version, `pv_${version}`))
                   ),
+                update: unreachable("update"),
               } satisfies PromptVersionRepositoryShape),
               Layer.succeed(PromptChannelRepository, {
                 list: () => Effect.succeed(placements),

@@ -2,6 +2,7 @@ import { PromptAuthoring } from "@anpord/prompts/authoring";
 import { PromptCatalog } from "@anpord/prompts/catalog";
 import { PromptPublishing } from "@anpord/prompts/publishing";
 import { PromptResolution } from "@anpord/prompts/resolution";
+import { PAGE_LIMIT_MAX } from "@anpord/schema/domain/prompts";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
@@ -43,8 +44,8 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
-          const rows = yield* catalog.list(actor);
-          return { data: rows.map(toPublicSummary) };
+          const page = yield* catalog.list(actor, { limit: PAGE_LIMIT_MAX });
+          return { data: page.items.map(toPublicSummary) };
         }).pipe(withPromptErrors)
       )
       .handle("create", ({ payload }) =>

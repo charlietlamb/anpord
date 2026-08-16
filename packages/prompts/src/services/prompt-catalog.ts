@@ -3,13 +3,20 @@ import type { Actor } from "@anpord/schema/domain/actor";
 import type {
   CreatePromptRequest,
   PromptId,
-  PromptSummary,
+  PromptPage,
+  PromptSortOrder,
+  PromptStatusFilter,
   ResolvedPrompt,
   UpdatePromptRequest,
 } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import { PromptIdTaken } from "../domain/errors";
+import {
+  cursorFor,
+  decodePromptCursor,
+  encodePromptCursor,
+} from "../domain/prompt-cursor";
 import { toSummary } from "../domain/views";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
@@ -17,6 +24,14 @@ import { createPrompt } from "./create-prompt";
 import { PromptCache } from "./prompt-cache";
 import { PromptPublishing } from "./prompt-publishing";
 import { requirePrompt } from "./require-prompt";
+
+export interface PromptListQuery {
+  readonly cursor?: string;
+  readonly limit: number;
+  readonly search?: string;
+  readonly sort?: PromptSortOrder;
+  readonly status?: PromptStatusFilter;
+}
 
 export interface PromptCatalogShape {
   readonly archive: (
@@ -28,8 +43,9 @@ export interface PromptCatalogShape {
     request: CreatePromptRequest
   ) => Effect.Effect<ResolvedPrompt, PromptError>;
   readonly list: (
-    actor: Actor
-  ) => Effect.Effect<readonly PromptSummary[], PromptError>;
+    actor: Actor,
+    query: PromptListQuery
+  ) => Effect.Effect<PromptPage, PromptError>;
   readonly update: (
     actor: Actor,
     id: PromptId,
@@ -77,9 +93,33 @@ export const PromptCatalogLive = Layer.effect(
           })
         ),
 
-      list: (actor) =>
-        prompts.listByOrganization(actor.organizationId).pipe(
-          Effect.flatMap((rows) => Effect.all(rows.map(toSummary))),
+      list: (actor, query) =>
+        Effect.gen(function* () {
+          const sort = query.sort ?? "updated";
+          const cursor =
+            query.cursor === undefined
+              ? undefined
+              : yield* decodePromptCursor(query.cursor, sort);
+
+          const rows = yield* prompts.listByOrganization(actor.organizationId, {
+            cursor,
+            limit: query.limit,
+            search: query.search,
+            sort,
+            status: query.status,
+          });
+
+          const page = rows.slice(0, query.limit);
+          const last = page.at(-1);
+
+          return {
+            items: yield* Effect.all(page.map(toSummary)),
+            nextCursor:
+              rows.length > query.limit && last !== undefined
+                ? encodePromptCursor(cursorFor(last, sort))
+                : null,
+          } satisfies PromptPage;
+        }).pipe(
           Effect.withSpan("PromptCatalog.list"),
           Effect.annotateLogs({ orgId: actor.organizationId })
         ),

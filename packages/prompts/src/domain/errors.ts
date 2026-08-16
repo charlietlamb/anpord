@@ -29,13 +29,41 @@ export class VersionConflict extends Data.TaggedError("VersionConflict")<{
   readonly promptId: PromptId;
 }> {}
 
+export class ChannelNameTaken extends Data.TaggedError("ChannelNameTaken")<{
+  readonly channel: ChannelName;
+}> {}
+
+export class ChannelMissing extends Data.TaggedError("ChannelMissing")<{
+  readonly channel: ChannelName;
+}> {}
+
+export class ChannelInUse extends Data.TaggedError("ChannelInUse")<{
+  readonly channel: ChannelName;
+  readonly promptCount: number;
+}> {}
+
+/** `production` is named by the schema, the MCP tools and the SDK, so renaming
+ * or removing it would break callers that never asked for the change. */
+export class ChannelReserved extends Data.TaggedError("ChannelReserved")<{
+  readonly channel: ChannelName;
+}> {}
+
 export class PromptStoreError extends Data.TaggedError("PromptStoreError")<{
   readonly cause: unknown;
   readonly operation: string;
 }> {}
 
+export class InvalidCursor extends Data.TaggedError("InvalidCursor")<{
+  readonly cursor: string;
+}> {}
+
 export type PromptError =
+  | ChannelInUse
+  | ChannelMissing
+  | ChannelNameTaken
   | ChannelNotFound
+  | ChannelReserved
+  | InvalidCursor
   | PromptIdTaken
   | PromptHasNoVersions
   | PromptNotFound

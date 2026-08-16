@@ -36,6 +36,13 @@
       "when": 1786832109310,
       "tag": "0004_keen_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786900000000,
+      "tag": "0005_org_owned_channels",
+      "breakpoints": true
     }
   ]
 }
