@@ -1,4 +1,3 @@
-import { Cache } from "@anpord/cache/cache";
 import type { Actor } from "@anpord/schema/actor";
 import type {
   AddVersionRequest,
@@ -8,10 +7,10 @@ import type {
 import { PRODUCTION } from "@anpord/schema/prompts";
 import { Clock, Context, Effect, Layer } from "effect";
 import type { PromptError } from "../domain/errors";
-import { promptPrefix } from "../domain/keys";
 import { toResolved } from "../domain/views";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
+import { PromptCache } from "./prompt-cache";
 import { PromptPublishing } from "./prompt-publishing";
 import { requirePrompt } from "./require-prompt";
 
@@ -37,7 +36,7 @@ export const PromptAuthoringLive = Layer.effect(
     const prompts = yield* PromptRepository;
     const versions = yield* PromptVersionRepository;
     const publishing = yield* PromptPublishing;
-    const cache = yield* Cache;
+    const promptCache = yield* PromptCache;
 
     return {
       addVersion: (actor, id, request) =>
@@ -65,7 +64,7 @@ export const PromptAuthoringLive = Layer.effect(
 
           const now = new Date(yield* Clock.currentTimeMillis);
           yield* prompts.touch(row.internalId, now);
-          yield* cache.invalidatePrefix(promptPrefix(actor.organizationId, id));
+          yield* promptCache.invalidate(actor.organizationId, id);
 
           return yield* toResolved(
             row,

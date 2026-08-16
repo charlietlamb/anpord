@@ -1,4 +1,3 @@
-import { Cache } from "@anpord/cache/cache";
 import type { Actor } from "@anpord/schema/actor";
 import type {
   ChannelName,
@@ -8,10 +7,10 @@ import type {
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import { VersionNotFound } from "../domain/errors";
-import { promptPrefix } from "../domain/keys";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
+import { PromptCache } from "./prompt-cache";
 import { requirePrompt } from "./require-prompt";
 
 export interface PromptPublishingShape {
@@ -39,7 +38,7 @@ export const PromptPublishingLive = Layer.effect(
     const prompts = yield* PromptRepository;
     const versions = yield* PromptVersionRepository;
     const channels = yield* PromptChannelRepository;
-    const cache = yield* Cache;
+    const promptCache = yield* PromptCache;
 
     const publishVersion: PromptPublishingShape["publishVersion"] = (input) =>
       Effect.gen(function* () {
@@ -53,8 +52,9 @@ export const PromptPublishingLive = Layer.effect(
           versionInternalId: input.versionInternalId,
         });
 
-        yield* cache.invalidatePrefix(
-          promptPrefix(input.actor.organizationId, input.promptId)
+        yield* promptCache.invalidate(
+          input.actor.organizationId,
+          input.promptId
         );
 
         yield* Effect.logInfo("prompt channel moved").pipe(

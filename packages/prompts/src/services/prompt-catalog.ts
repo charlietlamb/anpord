@@ -1,4 +1,3 @@
-import { Cache } from "@anpord/cache/cache";
 import { IdGenerator } from "@anpord/ids/id";
 import type { Actor } from "@anpord/schema/actor";
 import type {
@@ -11,11 +10,11 @@ import type {
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import { PromptIdTaken } from "../domain/errors";
-import { promptPrefix } from "../domain/keys";
 import { toSummary } from "../domain/views";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
 import { createPrompt } from "./create-prompt";
+import { PromptCache } from "./prompt-cache";
 import { PromptPublishing } from "./prompt-publishing";
 import { requirePrompt } from "./require-prompt";
 
@@ -49,7 +48,7 @@ export const PromptCatalogLive = Layer.effect(
     const prompts = yield* PromptRepository;
     const versions = yield* PromptVersionRepository;
     const publishing = yield* PromptPublishing;
-    const cache = yield* Cache;
+    const promptCache = yield* PromptCache;
     const ids = yield* IdGenerator;
 
     const requireIdFree = (actor: Actor, id: PromptId) =>
@@ -96,11 +95,10 @@ export const PromptCatalogLive = Layer.effect(
           const updatedAt = new Date(yield* Clock.currentTimeMillis);
           yield* prompts.update(row.internalId, request, updatedAt);
 
-          const handles = new Set([id, request.id ?? id]);
-          yield* Effect.all(
-            [...handles].map((handle) =>
-              cache.invalidatePrefix(promptPrefix(actor.organizationId, handle))
-            )
+          yield* promptCache.invalidate(
+            actor.organizationId,
+            id,
+            request.id ?? id
           );
 
           yield* Effect.logInfo("prompt updated");
@@ -115,7 +113,7 @@ export const PromptCatalogLive = Layer.effect(
           const archivedAt = new Date(yield* Clock.currentTimeMillis);
 
           yield* prompts.archive(row.internalId, archivedAt);
-          yield* cache.invalidatePrefix(promptPrefix(actor.organizationId, id));
+          yield* promptCache.invalidate(actor.organizationId, id);
           yield* Effect.logInfo("prompt archived");
         }).pipe(
           Effect.withSpan("PromptCatalog.archive"),
