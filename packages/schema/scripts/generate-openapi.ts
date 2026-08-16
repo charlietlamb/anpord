@@ -2,7 +2,8 @@ import { writeFileSync } from "node:fs";
 import { OpenApi } from "@effect/platform";
 import { PublicApi } from "../src/public/api";
 
-const OUTPUT = new URL("../../../openapi.json", import.meta.url).pathname;
+const OUTPUT = new URL("../../../apps/docs/openapi.json", import.meta.url)
+  .pathname;
 
 writeFileSync(
   OUTPUT,

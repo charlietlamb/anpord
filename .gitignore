@@ -14,4 +14,3 @@ build
 *.tsbuildinfo
 .vercel
 .openlogs
-apps/docs/openapi.json

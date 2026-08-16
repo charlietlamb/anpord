@@ -7,7 +7,11 @@
     "ultracite/biome/tanstack"
   ],
   "files": {
-    "includes": ["!openapi.json", "!packages/ui/src/components/ui", "!context"]
+    "includes": [
+      "!apps/docs/openapi.json",
+      "!packages/ui/src/components/ui",
+      "!context"
+    ]
   },
   "linter": {
     "rules": {

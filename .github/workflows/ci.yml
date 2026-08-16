@@ -35,8 +35,8 @@ jobs:
       - name: Verify the committed OpenAPI spec matches the code
         run: |
           bun run openapi
-          if ! git diff --exit-code --stat openapi.json; then
-            echo "openapi.json is stale. Run 'bun run openapi' and commit the result."
+          if ! git diff --exit-code --stat apps/docs/openapi.json; then
+            echo "apps/docs/openapi.json is stale. Run 'bun run openapi' and commit the result."
             exit 1
           fi
 
