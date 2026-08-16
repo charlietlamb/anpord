@@ -527,7 +527,7 @@
         "properties": {
           "channel": {
             "type": "string",
-            "description": "a string matching the pattern ^[a-z0-9][a-z0-9_-]*$",
+            "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
             "title": "maxLength(36)",
             "minLength": 1,
             "maxLength": 36,
@@ -576,7 +576,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "description": "a string matching the pattern ^[a-z0-9][a-z0-9_-]*$",
+                "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
                 "title": "maxLength(36)",
                 "minLength": 1,
                 "maxLength": 36,
@@ -1041,7 +1041,7 @@
         "properties": {
           "channel": {
             "type": "string",
-            "description": "a string matching the pattern ^[a-z0-9][a-z0-9_-]*$",
+            "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
             "title": "maxLength(36)",
             "minLength": 1,
             "maxLength": 36,

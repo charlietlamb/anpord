@@ -70,6 +70,29 @@ jobs:
 
           mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy --yes
 
+      # deploy returns as soon as the build is queued, so the checks below would
+      # otherwise pass against the previous revision still serving traffic.
+      - name: Wait for the new revision to roll out
+        env:
+          MANUFACT_SERVER_ID: ${{ secrets.MANUFACT_SERVER_ID }}
+        run: |
+          for attempt in $(seq 1 40); do
+            state="$(mcp-use deployments list --server "$MANUFACT_SERVER_ID" --json | node -e "
+              const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+              const latest = data.items.reduce((a, b) =>
+                b.deploymentVersion > a.deploymentVersion ? b : a);
+              process.stdout.write(latest.status + ' ' + latest.pipelinePhase);
+            ")"
+            echo "attempt $attempt: $state"
+            case "$state" in
+              "running complete") echo "revision live"; exit 0 ;;
+              failed*|*failed) echo "deployment failed"; exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "revision never rolled out"
+          exit 1
+
       # A server that answers an anonymous request is one that lost its OAuth
       # configuration, which is worth failing the deploy over.
       - name: Verify the deployment refuses anonymous callers
