@@ -25,4 +25,4 @@ export const resolveApiKey = (auth: AuthInstance, token: string) =>
       id: metadata.createdBy ?? key.value.referenceId,
       organizationId: key.value.referenceId,
     }).pipe(Effect.mapError(() => unauthorized("API key is malformed")));
-  });
+  }).pipe(Effect.withSpan("Authentication.resolveApiKey"));

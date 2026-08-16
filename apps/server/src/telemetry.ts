@@ -12,14 +12,6 @@ const telemetryConfig = Config.all({
   ),
 });
 
-/**
- * Spans and logs leave over OTLP, so the `Effect.withSpan` calls the services
- * already carry become the trace rather than needing a second instrumentation
- * pass. Logs are correlated with the span they were emitted inside.
- *
- * Without a token the layer is empty: a missing credential should leave the
- * server running without telemetry rather than refuse to start.
- */
 export const TelemetryLive = Layer.unwrapEffect(
   telemetryConfig.pipe(
     Config.map(({ dataset, token, url }) =>
