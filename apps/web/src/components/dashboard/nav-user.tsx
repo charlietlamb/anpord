@@ -15,6 +15,7 @@ import {
 } from "@anpord/ui/components/ui/sidebar";
 import { cn } from "@anpord/ui/lib/utils";
 import {
+  BookOpenIcon,
   DotsThreeVerticalIcon,
   MoonIcon,
   SignOutIcon,
@@ -27,6 +28,8 @@ import {
 } from "@/components/dashboard/sidebar-identity";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { useSignOut } from "@/lib/use-sign-out";
+
+const DOCS_URL = "https://docs.anpord.com";
 
 export function NavUser() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -83,6 +86,15 @@ export function NavUser() {
                 <UserIcon className="size-4" />
                 Account
               </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2"
+                render={
+                  <a href={DOCS_URL} rel="noreferrer" target="_blank">
+                    <BookOpenIcon className="size-4" />
+                    Documentation
+                  </a>
+                }
+              />
               <DropdownMenuItem
                 className="gap-2"
                 closeOnClick={false}
