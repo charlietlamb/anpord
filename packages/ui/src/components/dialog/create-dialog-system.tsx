@@ -18,6 +18,9 @@ export interface DialogContextValue<TMap extends DialogComponentMap> {
   close: () => void;
   closeAll: () => void;
   open: <K extends keyof TMap>(key: K, props: TMap[K]) => void;
+  /** Swaps the dialog on top for another in one update, so a step that leads
+   * to a second dialog does not tear the overlay down and rebuild it. */
+  replace: <K extends keyof TMap>(key: K, props: TMap[K]) => void;
   stack: DialogEntry<TMap>[];
 }
 
@@ -86,6 +89,11 @@ export function createDialogSystem<
             setStack((prev) => [...prev, { key, props } as DialogEntry<TMap>]);
           });
         },
+        replace: (key, props) =>
+          setStack((prev) => [
+            ...prev.slice(0, -1),
+            { key, props } as DialogEntry<TMap>,
+          ]),
         close: () => setStack((prev) => prev.slice(0, -1)),
         closeAll: () => setStack([]),
       }),

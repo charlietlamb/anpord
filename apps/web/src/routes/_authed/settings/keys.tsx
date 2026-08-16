@@ -20,29 +20,36 @@ export const Route = createFileRoute("/_authed/settings/keys")({
 });
 
 function ApiKeysPage() {
-  const { open: openDialog } = useDialog();
+  const {
+    close: closeDialog,
+    open: openDialog,
+    replace: replaceDialog,
+  } = useDialog();
   const { activeOrganization } = useOrganizations();
-  const keys = useQuery(apiKeyQueries.list());
+  const organizationId = activeOrganization?.id ?? "";
+  const keys = useQuery(apiKeyQueries.list(organizationId));
   const create = useCreateApiKey();
   const revoke = useRevokeApiKey();
 
   const onNew = () =>
     openDialog("newApiKey", {
-      onSubmit: (name) =>
-        create.mutate(
-          { name, organizationId: activeOrganization?.id ?? "" },
-          {
-            onError: (error) =>
-              toast.error("Couldn't create the key", {
-                description: error.message,
-              }),
-            onSuccess: (created) => {
-              if (created?.key) {
-                openDialog("apiKeyCreated", { apiKey: created.key, name });
-              }
-            },
+      onSubmit: async (name) => {
+        try {
+          const created = await create.mutateAsync({
+            name,
+            organizationId,
+          });
+          if (created?.key) {
+            replaceDialog("apiKeyCreated", { apiKey: created.key, name });
+            return;
           }
-        ),
+          closeDialog();
+        } catch (error) {
+          toast.error("Couldn't create the key", {
+            description: error instanceof Error ? error.message : undefined,
+          });
+        }
+      },
     });
 
   const onRevoke = (id: string, name: string) =>

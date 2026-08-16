@@ -6,7 +6,7 @@ import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 const keySchema = z.object({ name: z.string().min(1).max(64) });
 
 interface NewApiKeyDialogProps {
-  readonly onSubmit: (name: string) => void;
+  readonly onSubmit: (name: string) => Promise<void>;
 }
 
 export function NewApiKeyDialog({ onSubmit }: NewApiKeyDialogProps) {
@@ -15,9 +15,8 @@ export function NewApiKeyDialog({ onSubmit }: NewApiKeyDialogProps) {
 
   const form = useAppForm({
     defaultValues: { name: "" },
-    onSubmit: ({ value }) => {
-      onSubmit(value.name);
-      close();
+    onSubmit: async ({ value }) => {
+      await onSubmit(value.name);
     },
     validators: { onChange: keySchema },
   });

@@ -23,7 +23,7 @@ export interface DialogMap {
     version: number;
   };
   inviteMember: Record<never, never>;
-  newApiKey: { onSubmit: (name: string) => void };
+  newApiKey: { onSubmit: (name: string) => Promise<void> };
   newChannel: { onSubmit: (channel: string) => void; version: number };
 }
 
