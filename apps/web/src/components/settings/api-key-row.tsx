@@ -1,11 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
-import { DotsThreeIcon } from "@phosphor-icons/react";
+import { TrashIcon } from "@phosphor-icons/react";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface ApiKeyRowProps {
@@ -38,28 +32,15 @@ export function ApiKeyRow({
         </span>
       ) : null}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              aria-label={`Actions for ${name}`}
-              className="size-7 shrink-0"
-              size="icon"
-              variant="ghost"
-            >
-              <DotsThreeIcon size={16} weight="bold" />
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={onRevoke}
-          >
-            Revoke
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        aria-label={`Revoke ${name}`}
+        className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+        onClick={onRevoke}
+        size="icon"
+        variant="ghost"
+      >
+        <TrashIcon size={15} />
+      </Button>
     </div>
   );
 }
