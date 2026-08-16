@@ -47,6 +47,10 @@ jobs:
       # The upload is a standalone bundle rather than this repository: Manufact
       # generates its own Dockerfile and installs with npm, which cannot resolve
       # the workspace protocol every manifest here uses.
+      #
+      # Both the build machine and the rollout fail transiently on the provider's
+      # side, and a retry of the identical bundle then succeeds in about a minute,
+      # so a whole deploy is attempted more than once before the job gives up.
       - name: Deploy
         env:
           ANPORD_API_URL: ${{ vars.ANPORD_API_URL }}
@@ -68,29 +72,44 @@ jobs:
           printf '{"organizationId":"%s","serverId":"%s","sourceType":"managed"}' \
             "$MANUFACT_ORG_ID" "$MANUFACT_SERVER_ID" > .mcp-use/cloud/link.json
 
-          mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy --yes
-
-      # deploy returns as soon as the build is queued, so the checks below would
-      # otherwise pass against the previous revision still serving traffic.
-      - name: Wait for the new revision to roll out
-        env:
-          MANUFACT_SERVER_ID: ${{ secrets.MANUFACT_SERVER_ID }}
-        run: |
-          for attempt in $(seq 1 40); do
-            state="$(mcp-use deployments list --server "$MANUFACT_SERVER_ID" --json | node -e "
+          # deploy returns as soon as the build is queued, so the rollout has to
+          # be waited on here rather than by the checks that follow, which would
+          # otherwise pass against the previous revision still serving traffic.
+          latest_state() {
+            mcp-use deployments list --server "$MANUFACT_SERVER_ID" --json | node -e "
               const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
               const latest = data.items.reduce((a, b) =>
                 b.deploymentVersion > a.deploymentVersion ? b : a);
               process.stdout.write(latest.status + ' ' + latest.pipelinePhase);
-            ")"
-            echo "attempt $attempt: $state"
-            case "$state" in
-              "running complete") echo "revision live"; exit 0 ;;
-              failed*|*failed) echo "deployment failed"; exit 1 ;;
-            esac
-            sleep 15
+            "
+          }
+
+          for deploy_attempt in 1 2 3; do
+            echo "::group::deploy attempt $deploy_attempt"
+            mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy --yes
+
+            outcome=pending
+            for attempt in $(seq 1 40); do
+              state="$(latest_state)"
+              echo "attempt $attempt: $state"
+              case "$state" in
+                "running complete") outcome=live; break ;;
+                # A revision that stops before it runs is done being retried by
+                # the provider: it never starts, so polling it only burns time.
+                failed*|*failed|stopped*) outcome=dead; break ;;
+              esac
+              sleep 15
+            done
+            echo "::endgroup::"
+
+            if [ "$outcome" = live ]; then
+              echo "revision live"
+              exit 0
+            fi
+            echo "deploy attempt $deploy_attempt did not roll out ($outcome)"
           done
-          echo "revision never rolled out"
+
+          echo "no deploy attempt rolled out"
           exit 1
 
       # A server that answers an anonymous request is one that lost its OAuth
