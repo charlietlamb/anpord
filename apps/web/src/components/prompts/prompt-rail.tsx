@@ -41,10 +41,7 @@ export function PromptRail({
     <aside className="order-2 flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:overscroll-contain">
       <RailCard
         action={
-          <Badge
-            className="h-5 px-2 font-medium text-[0.6875rem] tabular-nums"
-            variant="secondary"
-          >
+          <Badge className="tabular-nums" size="xs" variant="secondary">
             {versions.length}
           </Badge>
         }

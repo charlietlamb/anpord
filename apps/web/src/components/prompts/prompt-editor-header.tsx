@@ -1,5 +1,6 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
+import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { ArrowUpIcon, SpinnerGapIcon } from "@phosphor-icons/react";
 
 interface PromptEditorHeaderProps {
@@ -25,34 +26,19 @@ export function PromptEditorHeader({
         <h1 className="min-w-0 truncate font-heading text-xl tracking-[-0.02em]">
           {name}
         </h1>
-        <Badge
-          className="h-6 shrink-0 px-2.5 font-medium font-mono text-[0.6875rem]"
-          variant="outline"
-        >
+        <Badge className="shrink-0 font-mono" size="sm" variant="outline">
           {promptId}
         </Badge>
       </div>
 
       <div className="ml-auto flex shrink-0 items-center gap-2">
         {viewingVersion === null ? null : (
-          <Badge
-            className="h-6 px-2.5 font-medium text-[0.6875rem]"
-            variant="secondary"
-          >
+          <Badge size="sm" variant="secondary">
             Viewing v{viewingVersion}
           </Badge>
         )}
         {dirty ? (
-          <Badge
-            className="h-6 gap-1.5 px-2.5 font-medium text-[0.6875rem]"
-            variant="secondary"
-          >
-            <span
-              aria-hidden="true"
-              className="size-1.5 rounded-full bg-amber-500"
-            />
-            Unsaved changes
-          </Badge>
+          <StatusBadge tone="pending">Unsaved changes</StatusBadge>
         ) : null}
         <ShortcutButton
           className="h-[1.875rem]"

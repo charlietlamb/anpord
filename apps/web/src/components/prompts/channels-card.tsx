@@ -24,10 +24,7 @@ export function ChannelsCard({
     <RailCard className="grid gap-2.5" title="Channels">
       {channels.length === 0 ? (
         <DetailRow label="production">
-          <Badge
-            className="h-5 px-2 font-medium text-[0.6875rem]"
-            variant="outline"
-          >
+          <Badge size="xs" variant="outline">
             Not set
           </Badge>
         </DetailRow>

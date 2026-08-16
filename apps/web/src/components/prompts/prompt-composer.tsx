@@ -71,7 +71,7 @@ export function PromptComposer({
           className={cn(
             "overflow-y-auto overscroll-contain px-4 pt-4 pb-2 text-[0.9375rem] leading-7",
             fill
-              ? "prompt-prose-wide min-h-[24rem] flex-1 lg:min-h-0"
+              ? "prompt-prose-wide max-h-[32rem] min-h-[18rem] flex-1 lg:max-h-none lg:min-h-0"
               : "max-h-[min(24rem,50vh)]"
           )}
           onChange={onContentChange}

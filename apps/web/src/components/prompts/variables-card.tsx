@@ -13,11 +13,7 @@ export function VariablesCard({ variables }: VariablesCardProps) {
   return (
     <RailCard className="flex flex-wrap gap-1.5" title="Variables">
       {variables.map((name) => (
-        <Badge
-          className="h-6 px-2.5 font-medium font-mono text-[0.6875rem]"
-          key={name}
-          variant="outline"
-        >
+        <Badge className="font-mono" key={name} size="sm" variant="outline">
           {name}
         </Badge>
       ))}

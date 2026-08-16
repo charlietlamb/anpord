@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@anpord/ui/lib/utils"
 
 const badgeVariants = cva(
-  "group/badge inline-flex h-7 w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-transparent px-3 text-xs font-semibold whitespace-nowrap shadow-sm transition-all focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
+  "group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-transparent whitespace-nowrap shadow-sm transition-all focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
@@ -21,8 +21,14 @@ const badgeVariants = cva(
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
+      size: {
+        default: "h-7 px-3 text-xs font-semibold",
+        sm: "h-6 gap-1.5 px-2.5 text-[0.6875rem] font-medium",
+        xs: "h-5 gap-1 px-2 text-[0.625rem] font-medium",
+      },
     },
     defaultVariants: {
+      size: "default",
       variant: "default",
     },
   }
@@ -30,6 +36,7 @@ const badgeVariants = cva(
 
 function Badge({
   className,
+  size = "default",
   variant = "default",
   render,
   ...props
@@ -38,12 +45,13 @@ function Badge({
     defaultTagName: "span",
     props: mergeProps<"span">(
       {
-        className: cn(badgeVariants({ variant }), className),
+        className: cn(badgeVariants({ size, variant }), className),
       },
       props
     ),
     render,
     state: {
+      size,
       slot: "badge",
       variant,
     },

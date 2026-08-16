@@ -44,10 +44,7 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
           v{version.version}
         </span>
         {version.channel ? (
-          <Badge
-            className="h-5 px-2 font-medium text-[0.6875rem]"
-            variant="secondary"
-          >
+          <Badge size="xs" variant="secondary">
             {version.channel}
           </Badge>
         ) : null}

@@ -39,3 +39,16 @@ jobs:
             echo "openapi.json is stale. Run 'bun run openapi' and commit the result."
             exit 1
           fi
+
+      # A frozen install resolves the whole workspace, so a manifest the image
+      # never copies fails the build rather than the package that omitted it.
+      - name: Verify the server image copies every workspace manifest
+        run: |
+          missing=0
+          for manifest in apps/*/package.json packages/*/package.json; do
+            if ! grep -qF "COPY ${manifest} " apps/server/Dockerfile; then
+              echo "apps/server/Dockerfile does not copy ${manifest}"
+              missing=1
+            fi
+          done
+          exit "$missing"
