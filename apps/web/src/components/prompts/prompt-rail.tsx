@@ -45,7 +45,7 @@ export function PromptRail({
             {versions.length}
           </Badge>
         }
-        className="px-0 pb-0"
+        className="px-0 py-0"
         title="Versions"
       >
         <VersionList

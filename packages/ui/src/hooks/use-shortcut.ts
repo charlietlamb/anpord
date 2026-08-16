@@ -27,11 +27,15 @@ export function useShortcut(
         return;
       }
       event.preventDefault();
+      /* An editor handles the same keys, so the shortcut has to claim the
+         event on the way down rather than after the editor has acted on it. */
+      event.stopPropagation();
       onTrigger();
     };
 
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener("keydown", handler, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", handler, { capture: true });
   }, [key, meta, disabled, onTrigger]);
 }
 

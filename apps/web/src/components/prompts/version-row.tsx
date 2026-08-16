@@ -30,7 +30,7 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
     <Button
       aria-selected={viewing}
       className={cn(
-        "h-auto w-full flex-col items-stretch gap-1 rounded-none border-border-surface border-b px-3.5 py-2.5 text-left last:border-b-0",
+        "h-auto w-full flex-col items-stretch gap-1 rounded-none border-border-surface border-t px-3.5 py-2.5 text-left first:border-t-0",
         viewing
           ? "bg-sidebar-accent text-sidebar-accent-foreground"
           : "hover:bg-sidebar-accent/60"
