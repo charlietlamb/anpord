@@ -21,8 +21,8 @@ const endpoint = (name: string) => `${authUrl}/mcp/${name}`;
 const FALLBACK_TTL_SECONDS = 60 * 60;
 
 interface McpSession {
+  readonly accessTokenExpiresAt?: string | number;
   readonly clientId?: string;
-  readonly expiresAt?: string | number;
   readonly scopes?: readonly string[] | string;
   readonly userId?: string;
 }
@@ -30,7 +30,7 @@ interface McpSession {
 const invalid = (message: string) =>
   new OAuthError(OAuthErrorCode.InvalidToken, message);
 
-const secondsUntil = (expiresAt: McpSession["expiresAt"]) => {
+const secondsUntil = (expiresAt: McpSession["accessTokenExpiresAt"]) => {
   if (expiresAt === undefined) {
     return Math.floor(Date.now() / 1000) + FALLBACK_TTL_SECONDS;
   }
@@ -50,7 +50,7 @@ const scopesOf = (scopes: McpSession["scopes"]) => {
  * signature against. The session behind one is resolved at the authorization
  * server instead, which is the same introspection the API performs.
  */
-const verifyAccessToken = async (token: string) => {
+const verifyAccessToken = (verifiedResource: URL) => async (token: string) => {
   const response = await fetch(endpoint("get-session"), {
     headers: { authorization: `Bearer ${token}` },
   });
@@ -66,15 +66,19 @@ const verifyAccessToken = async (token: string) => {
 
   return {
     clientId: session.clientId ?? "",
-    expiresAt: secondsUntil(session.expiresAt),
+    expiresAt: secondsUntil(session.accessTokenExpiresAt),
     extra: { userId: session.userId },
+    /** The binding the caller asked for, which introspection has now proven. */
+    resource: verifiedResource,
     scopes: scopesOf(session.scopes),
     token,
   };
 };
 
 export const anpordOAuth = oauthCustomProvider<AnpordUser>({
-  createTokenVerifier: () => ({ verifyAccessToken }),
+  createTokenVerifier: (canonical) => ({
+    verifyAccessToken: verifyAccessToken(canonical),
+  }),
   mapAuthInfo: (authInfo) => ({
     payload: {},
     permissions: [],
