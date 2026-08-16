@@ -1,7 +1,8 @@
 import { Button } from "@anpord/ui/components/button";
 import { Kbd } from "@anpord/ui/components/ui/kbd";
 import { cn } from "@anpord/ui/lib/utils";
-import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
+import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
+import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import type { ComponentProps } from "react";
 
 interface ShortcutButtonProps extends ComponentProps<typeof Button> {
@@ -36,6 +37,7 @@ export function ShortcutButton({
   ...props
 }: ShortcutButtonProps) {
   const key = metaShortcut ?? singleShortcut;
+  const metaKeyLabel = useMetaKeyLabel();
   const capClass =
     variant === undefined || variant === "default" || variant === "destructive"
       ? FILLED_CAPS
@@ -59,7 +61,7 @@ export function ShortcutButton({
       {key ? (
         <span className="flex items-center gap-0.5">
           {metaShortcut ? (
-            <Kbd className={capClass}>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+            <Kbd className={capClass}>{metaKeyLabel}</Kbd>
           ) : null}
           <Kbd className={capClass}>{shortcutGlyph(key)}</Kbd>
         </span>

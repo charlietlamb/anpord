@@ -1,5 +1,5 @@
+import { relativeTime } from "@anpord/ui/lib/relative-time";
 import { useSyncExternalStore } from "react";
-import { relativeTime } from "@/lib/relative-time";
 
 const NEVER_CHANGES = () => () => undefined;
 
@@ -10,7 +10,7 @@ const NEVER_CHANGES = () => () => undefined;
 export function useRelativeTime(value: Date) {
   return useSyncExternalStore(
     NEVER_CHANGES,
-    () => relativeTime(value, Date.now()),
+    () => relativeTime(value, new Date()),
     () => null
   );
 }

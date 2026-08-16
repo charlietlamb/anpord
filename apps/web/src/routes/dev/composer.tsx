@@ -1,11 +1,9 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { PlusIcon, TextTIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
-import { VersionHistory } from "@/components/prompts/version-history";
 
 export const Route = createFileRoute("/dev/composer")({
   component: ComposerPreview,
@@ -35,28 +33,6 @@ function Preview({ initial, version }: { initial: string; version?: number }) {
   );
 }
 
-const HOUR = 3_600_000;
-const DAY = 24 * HOUR;
-
-const VERSIONS = [
-  { version: 3, commitMessage: "tightened the tone", ago: 2 * HOUR },
-  { version: 2, commitMessage: "added company variable", ago: DAY },
-  { version: 1, commitMessage: null, ago: 12 * DAY },
-].map(
-  (row) =>
-    ({
-      channel: null,
-      commitMessage: row.commitMessage,
-      config: {},
-      content: SAMPLE,
-      createdAt: new Date(Date.now() - row.ago),
-      id: "checkout-greeting",
-      name: "Checkout greeting",
-      version: row.version,
-      versionId: `ver_${row.version}`,
-    }) as unknown as ResolvedPrompt
-);
-
 function ComposerPreview() {
   return (
     <main className="min-h-svh bg-background text-foreground">
@@ -75,18 +51,6 @@ function ComposerPreview() {
           With variables and a version
         </p>
         <Preview initial={SAMPLE} version={3} />
-
-        <p className="mt-10 mb-3 font-heading text-muted-foreground text-sm">
-          With version history
-        </p>
-        <Preview initial={SAMPLE} version={3} />
-        <VersionHistory
-          liveVersion={3}
-          onRestore={() => undefined}
-          onSelect={() => undefined}
-          selectedVersion={3}
-          versions={VERSIONS}
-        />
 
         <p className="mt-10 mb-3 font-heading text-muted-foreground text-sm">
           Empty state
