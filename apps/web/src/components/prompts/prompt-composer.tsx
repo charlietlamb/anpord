@@ -80,35 +80,37 @@ export function PromptComposer({
           value={content}
         />
 
-        <ComposerToolbar>
-          {/* Silent until there is something to count; an inert button
-              announcing its own emptiness is chrome, not information. */}
-          <ComposerToolbarGroup>
-            {variables.length > 0 ? (
-              <ToolbarButton>
-                <BracketsCurlyIcon />
-                {variables.length} variable{variables.length > 1 ? "s" : ""}
-              </ToolbarButton>
-            ) : null}
-          </ComposerToolbarGroup>
+        {/* On a full page the rail counts the variables and the header owns the
+            write, so repeating either here would say the same thing twice. */}
+        {fill ? null : (
+          <ComposerToolbar>
+            <ComposerToolbarGroup>
+              {variables.length > 0 ? (
+                <ToolbarButton>
+                  <BracketsCurlyIcon />
+                  {variables.length} variable{variables.length > 1 ? "s" : ""}
+                </ToolbarButton>
+              ) : null}
+            </ComposerToolbarGroup>
 
-          <ComposerToolbarGroup className="ml-auto">
-            <ShortcutButton
-              className="ml-1 h-8"
-              disabled={!canSubmit}
-              metaShortcut="enter"
-              onClick={onSubmit}
-              size="sm"
-            >
-              {saving ? (
-                <SpinnerGapIcon className="animate-spin" size={15} />
-              ) : (
-                <SubmitIcon size={15} weight="bold" />
-              )}
-              {submitLabel}
-            </ShortcutButton>
-          </ComposerToolbarGroup>
-        </ComposerToolbar>
+            <ComposerToolbarGroup className="ml-auto">
+              <ShortcutButton
+                className="ml-1 h-8"
+                disabled={!canSubmit}
+                metaShortcut="enter"
+                onClick={onSubmit}
+                size="sm"
+              >
+                {saving ? (
+                  <SpinnerGapIcon className="animate-spin" size={15} />
+                ) : (
+                  <SubmitIcon size={15} weight="bold" />
+                )}
+                {submitLabel}
+              </ShortcutButton>
+            </ComposerToolbarGroup>
+          </ComposerToolbar>
+        )}
       </ComposerSurface>
     </div>
   );
