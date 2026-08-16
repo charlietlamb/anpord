@@ -1,10 +1,6 @@
 import type { OrganizationId } from "@anpord/schema/actor";
-import {
-  LATEST,
-  PRODUCTION,
-  type PromptId,
-  type PromptSelector,
-} from "@anpord/schema/prompts";
+import type { PromptId, PromptSelector } from "@anpord/schema/prompts";
+import { resolutionFor } from "./resolution";
 
 const NAMESPACE = "prompt";
 
@@ -18,11 +14,14 @@ export function selectorKey(
   selector: PromptSelector
 ) {
   const prefix = promptPrefix(organizationId, id);
+  const resolution = resolutionFor(selector);
 
-  if (selector.version !== undefined) {
-    return `${prefix}v:${selector.version}`;
+  switch (resolution._tag) {
+    case "ByVersion":
+      return `${prefix}v:${resolution.version}`;
+    case "Latest":
+      return `${prefix}latest`;
+    default:
+      return `${prefix}c:${resolution.channel}`;
   }
-
-  const channel = selector.channel ?? PRODUCTION;
-  return channel === LATEST ? `${prefix}latest` : `${prefix}c:${channel}`;
 }

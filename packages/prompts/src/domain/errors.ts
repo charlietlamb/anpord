@@ -14,6 +14,12 @@ export class ChannelNotFound extends Data.TaggedError("ChannelNotFound")<{
   readonly promptId: PromptId;
 }> {}
 
+export class PromptHasNoVersions extends Data.TaggedError(
+  "PromptHasNoVersions"
+)<{
+  readonly promptId: PromptId;
+}> {}
+
 export class VersionNotFound extends Data.TaggedError("VersionNotFound")<{
   readonly promptId: PromptId;
   readonly version: number;
@@ -31,6 +37,7 @@ export class PromptStoreError extends Data.TaggedError("PromptStoreError")<{
 export type PromptError =
   | ChannelNotFound
   | PromptIdTaken
+  | PromptHasNoVersions
   | PromptNotFound
   | PromptStoreError
   | VersionConflict

@@ -36,6 +36,10 @@ const toHttpError = (
           message: "A version was created concurrently. Please retry.",
         })
       );
+    case "PromptHasNoVersions":
+      return Effect.fail(
+        new NotFound({ message: `"${error.promptId}" has no versions yet` })
+      );
     case "PromptStoreError":
       return Effect.die(error);
     default:

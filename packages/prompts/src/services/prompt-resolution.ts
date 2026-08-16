@@ -1,11 +1,17 @@
 import { Cache } from "@anpord/cache/cache";
 import type { Actor } from "@anpord/schema/actor";
 import type { PromptId, PromptSelector } from "@anpord/schema/prompts";
-import { LATEST, PRODUCTION, ResolvedPrompt } from "@anpord/schema/prompts";
+import { ResolvedPrompt } from "@anpord/schema/prompts";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
-import { ChannelNotFound, VersionNotFound } from "../domain/errors";
+import {
+  ChannelNotFound,
+  PromptHasNoVersions,
+  VersionNotFound,
+} from "../domain/errors";
 import { selectorKey } from "../domain/keys";
+import type { Resolution } from "../domain/resolution";
+import { resolutionFor } from "../domain/resolution";
 import { toResolved } from "../domain/views";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
@@ -32,27 +38,33 @@ export const PromptResolutionLive = Layer.effect(
     const channels = yield* PromptChannelRepository;
     const cache = yield* Cache;
 
-    const readVersion = (
-      promptInternalId: string,
-      selector: PromptSelector
-    ) => {
-      if (selector.version !== undefined) {
-        return versions.byNumber(promptInternalId, selector.version);
+    const readVersion = (promptInternalId: string, resolution: Resolution) => {
+      switch (resolution._tag) {
+        case "ByVersion":
+          return versions.byNumber(promptInternalId, resolution.version);
+        case "Latest":
+          return versions.latest(promptInternalId);
+        default:
+          return channels.resolve(promptInternalId, resolution.channel);
       }
-
-      const channel = selector.channel ?? PRODUCTION;
-      return channel === LATEST
-        ? versions.latest(promptInternalId)
-        : channels.resolve(promptInternalId, channel);
     };
 
-    const missing = (id: PromptId, selector: PromptSelector) =>
-      selector.version === undefined
-        ? new ChannelNotFound({
-            channel: selector.channel ?? PRODUCTION,
+    const missing = (id: PromptId, resolution: Resolution) => {
+      switch (resolution._tag) {
+        case "ByVersion":
+          return new VersionNotFound({
             promptId: id,
-          })
-        : new VersionNotFound({ promptId: id, version: selector.version });
+            version: resolution.version,
+          });
+        case "Latest":
+          return new PromptHasNoVersions({ promptId: id });
+        default:
+          return new ChannelNotFound({
+            channel: resolution.channel,
+            promptId: id,
+          });
+      }
+    };
 
     return {
       get: (actor, id, selector = {}) =>
@@ -65,10 +77,11 @@ export const PromptResolutionLive = Layer.effect(
           }
 
           const row = yield* requirePrompt(prompts, actor, id);
-          const found = yield* readVersion(row.internalId, selector);
+          const resolution = resolutionFor(selector);
+          const found = yield* readVersion(row.internalId, resolution);
 
           const resolved = yield* Option.match(found, {
-            onNone: () => Effect.fail(missing(id, selector)),
+            onNone: () => Effect.fail(missing(id, resolution)),
             onSome: (version) =>
               toResolved(row, selector.channel ?? null, version),
           });
