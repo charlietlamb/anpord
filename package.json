@@ -16,6 +16,7 @@
     "@effect/cli": "0.75.2",
     "@effect/platform": "0.96.1",
     "@effect/platform-bun": "0.89.0",
+    "@effect/platform-node": "0.107.0",
     "@fontsource-variable/funnel-display": "5.3.0",
     "@fontsource-variable/geist": "5.2.9",
     "@fontsource-variable/geist-mono": "5.2.8",

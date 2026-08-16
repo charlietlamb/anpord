@@ -1,6 +1,6 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { Command } from "@effect/cli";
-import { BunContext, BunRuntime } from "@effect/platform-bun";
+import { NodeContext, NodeRuntime } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { commands } from "./cli/commands";
 import { layer } from "./client";
@@ -14,6 +14,6 @@ Command.run(anpord, {
   name: "Anpord",
   version: "0.1.0",
 })(process.argv).pipe(
-  Effect.provide(Layer.mergeAll(ClientLayer, BunContext.layer)),
-  BunRuntime.runMain
+  Effect.provide(Layer.mergeAll(ClientLayer, NodeContext.layer)),
+  NodeRuntime.runMain
 );

@@ -1,6 +1,7 @@
 import { ChannelName, PromptId, VersionNumber } from "@anpord/schema/prompts";
 import { Args, Command, Options } from "@effect/cli";
-import { Data, Effect, Option } from "effect";
+import { FileSystem } from "@effect/platform";
+import { Effect, Option } from "effect";
 import { AnpordApi } from "../client";
 import { json, note, promptContent } from "./render";
 
@@ -96,15 +97,9 @@ const promote = Command.make(
     })
 ).pipe(Command.withDescription("Point a channel at a version"));
 
-class StdinUnreadable extends Data.TaggedError("StdinUnreadable")<{
-  readonly cause: unknown;
-}> {}
-
-/** A closed pipe fails the read, so it is a typed error rather than a defect. */
-const readStdin = Effect.tryPromise({
-  catch: (cause) => new StdinUnreadable({ cause }),
-  try: () => Bun.stdin.text(),
-});
+const readStdin = Effect.flatMap(FileSystem.FileSystem, (fs) =>
+  fs.readFileString("/dev/stdin")
+);
 
 /** A tuple fixes the order; separate keys are sorted by name, not by position. */
 const target = Args.all([
