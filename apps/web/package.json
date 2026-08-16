@@ -14,6 +14,7 @@
     "@anpord/schema": "workspace:*",
     "@anpord/ui": "workspace:*",
     "@better-auth/api-key": "catalog:",
+    "@databuddy/sdk": "^2.6.0",
     "@fontsource-variable/funnel-display": "catalog:",
     "@fontsource-variable/geist": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",
