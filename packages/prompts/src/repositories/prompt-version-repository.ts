@@ -16,7 +16,7 @@ export type VersionRow = typeof promptVersion.$inferSelect & {
   } | null;
 };
 
-export interface AppendVersionInput {
+interface AppendVersionInput {
   readonly actorId: string;
   readonly commitMessage: string | null;
   readonly config: unknown;

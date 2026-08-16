@@ -1,8 +1,18 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/biome/core"],
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/type-aware",
+    "ultracite/biome/react",
+    "ultracite/biome/tanstack"
+  ],
   "files": {
     "includes": ["!openapi.json", "!packages/ui/src/components/ui", "!context"]
+  },
+  "linter": {
+    "rules": {
+      "correctness": { "useImportExtensions": "off" }
+    }
   },
   "javascript": {
     "globals": ["Bun"]
@@ -13,6 +23,22 @@
       "linter": {
         "rules": {
           "style": { "useFilenamingConvention": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/ui/src/components/data-table/**"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noArrayIndexKey": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/ui/src/**", "**/*.test.ts", "**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "correctness": { "noUnresolvedImports": "off" }
         }
       }
     },

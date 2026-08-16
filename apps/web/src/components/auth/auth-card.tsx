@@ -1,7 +1,7 @@
 import { Button } from "@anpord/ui/components/button";
 import { Input } from "@anpord/ui/components/input";
 import { Logo } from "@anpord/ui/components/logo";
-import { type FormEvent, useState } from "react";
+import { type SyntheticEvent, useState } from "react";
 import { MagicLinkSent } from "@/components/auth/magic-link-sent";
 import { sendMagicLink, signInWithGithub } from "@/components/auth/sign-in";
 import { GithubIcon } from "@/components/icons/github-icon";
@@ -19,7 +19,7 @@ export function AuthCard({ redirect }: AuthCardProps) {
     return <MagicLinkSent email={sentTo} onBack={() => setSentTo(null)} />;
   }
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = email.trim();
     if (!trimmed || sending) {

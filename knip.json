@@ -1,20 +1,78 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
+    "apps/server": {
+      "entry": ["src/server.ts"]
+    },
     "apps/web": {
       "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "vite.config.ts"],
       "project": "src/**",
       "ignore": ["src/routeTree.gen.ts"]
     },
-    "apps/server": {
-      "entry": ["src/server.ts"]
+    "packages/auth": {
+      "entry": [
+        "src/auth.ts",
+        "src/config.ts",
+        "src/cookies.ts",
+        "src/oauth-clients.ts",
+        "src/organization-store.ts"
+      ],
+      "project": "src/**"
+    },
+    "packages/cache": {
+      "entry": ["src/cache.ts", "src/config.ts", "src/layer.ts"],
+      "project": "src/**"
+    },
+    "packages/db": {
+      "entry": [
+        "src/client.ts",
+        "src/config.ts",
+        "src/schema.ts",
+        "src/schema/**/*.ts"
+      ],
+      "project": "src/**"
+    },
+    "packages/ids": {
+      "entry": ["src/id.ts", "src/layer.ts", "src/prefixes.ts"],
+      "project": "src/**"
+    },
+    "packages/prompts": {
+      "entry": [
+        "src/domain/errors.ts",
+        "src/layer.ts",
+        "src/services/prompt-authoring.ts",
+        "src/services/prompt-catalog.ts",
+        "src/services/prompt-publishing.ts",
+        "src/services/prompt-resolution.ts"
+      ],
+      "project": "src/**"
+    },
+    "packages/schema": {
+      "entry": [
+        "src/actor.ts",
+        "src/api.ts",
+        "src/authentication.ts",
+        "src/errors.ts",
+        "src/health-api.ts",
+        "src/oauth-api.ts",
+        "src/prompts-api.ts",
+        "src/prompts.ts",
+        "src/public/api.ts",
+        "src/public/authentication.ts",
+        "src/public/prompts-api.ts",
+        "src/public/requests.ts",
+        "src/public/shapes.ts",
+        "scripts/generate-openapi.ts"
+      ],
+      "project": "src/**"
     },
     "packages/sdk": {
       "entry": ["src/index.ts", "tsdown.config.ts"],
       "project": "src/**"
     },
-    "packages/*": {
-      "entry": ["src/**/*.{ts,tsx}"]
+    "packages/ui": {
+      "entry": ["src/**/*.{ts,tsx}"],
+      "project": "src/**"
     }
   },
   "ignore": ["context/**"],
