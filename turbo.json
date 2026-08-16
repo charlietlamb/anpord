@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".output/**", "dist/**", ".nitro/**"]
+      "env": ["AUTH_SERVER_URL", "BETTER_AUTH_URL"],
+      "outputs": [".output/**", ".vercel/output/**", "dist/**", ".nitro/**"]
     },
     "dev": {
       "cache": false,
