@@ -1,10 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import {
-  ChannelName,
-  PromptId,
-  PromptName,
-  VersionNumber,
-} from "@anpord/schema/prompts";
 import { Anpord } from "./anpord";
 import { AnpordError, asAnpordError, MissingApiKey } from "./errors";
 
@@ -51,25 +45,25 @@ describe("surface", () => {
   test("a result is the decoded value, not a tuple carrying the response", () => {
     const reachable = async (anpord: Anpord) => {
       const prompt = await anpord.prompts.get({
-        id: PromptId.make("greeting"),
+        id: "greeting",
       });
       const listed = await anpord.prompts.list();
       const created = await anpord.prompts.create({
         content: "hello",
-        id: PromptId.make("greeting"),
-        name: PromptName.make("Greeting"),
+        id: "greeting",
+        name: "Greeting",
       });
       const updated = await anpord.prompts.update({
         content: "hello again",
-        id: PromptId.make("greeting"),
+        id: "greeting",
       });
       const promoted = await anpord.prompts.promote({
-        channel: ChannelName.make("production"),
-        id: PromptId.make("greeting"),
-        version: VersionNumber.make(1),
+        channel: "production",
+        id: "greeting",
+        version: 1,
       });
       const archived = await anpord.prompts.archive({
-        id: PromptId.make("greeting"),
+        id: "greeting",
       });
       return [
         prompt.content,
@@ -82,6 +76,27 @@ describe("surface", () => {
     };
 
     expect(reachable).toBeInstanceOf(Function);
+  });
+});
+
+const NAMES_THE_FIELD = /^id: /;
+const EXPLAINS_THE_RULE = /^id: Prompt id must be lowercase/;
+
+describe("validation", () => {
+  test("an id the api would refuse is named, not dumped as a schema", async () => {
+    const anpord = new Anpord({ apiKey: "unused" });
+    const failure = anpord.prompts.get({ id: "NOT A VALID ID" });
+    await expect(failure).rejects.toThrow(EXPLAINS_THE_RULE);
+  });
+
+  test("a rejected field never reaches the network", async () => {
+    const anpord = new Anpord({
+      apiKey: "unused",
+      baseUrl: "http://127.0.0.1:1",
+    });
+    await expect(anpord.prompts.get({ id: "" })).rejects.toThrow(
+      NAMES_THE_FIELD
+    );
   });
 });
 

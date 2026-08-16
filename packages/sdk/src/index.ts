@@ -1,11 +1,3 @@
-export {
-  ChannelName,
-  CommitMessage,
-  PromptConfig,
-  PromptId,
-  PromptName,
-  VersionNumber,
-} from "@anpord/schema/prompts";
 export type { AnpordClient, ClientOptions } from "@anpord/schema/public/client";
 export {
   AnpordApi,

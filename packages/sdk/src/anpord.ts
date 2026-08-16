@@ -4,7 +4,7 @@ import {
   make,
 } from "@anpord/schema/public/client";
 import { FetchHttpClient, type HttpClientResponse } from "@effect/platform";
-import { Cause, Effect, Exit, Option, Redacted } from "effect";
+import { type Brand, Cause, Effect, Exit, Option, Redacted } from "effect";
 import { asAnpordError, MissingApiKey } from "./errors";
 
 export interface AnpordOptions {
@@ -17,6 +17,18 @@ type Payload<Method> = Method extends (request: {
 }) => unknown
   ? P
   : never;
+
+type Unbranded<A> = A extends string & Brand.Brand<string>
+  ? string
+  : A extends number & Brand.Brand<string>
+    ? number
+    : A extends readonly (infer Item)[]
+      ? readonly Unbranded<Item>[]
+      : A extends Date
+        ? A
+        : A extends object
+          ? { readonly [K in keyof A]: Unbranded<A[K]> }
+          : A;
 
 type WithoutResponse<A> = A extends readonly [
   unknown,
@@ -31,13 +43,15 @@ type Result<Method> = Method extends (
   ? WithoutResponse<A>
   : never;
 
+type Request<Method> = Unbranded<Payload<Method>>;
+
 type Promised<Group> = {
   readonly [Method in keyof Group]: Payload<Group[Method]> extends Record<
     string,
     never
   >
-    ? (request?: Payload<Group[Method]>) => Promise<Result<Group[Method]>>
-    : (request: Payload<Group[Method]>) => Promise<Result<Group[Method]>>;
+    ? (request?: Request<Group[Method]>) => Promise<Result<Group[Method]>>
+    : (request: Request<Group[Method]>) => Promise<Result<Group[Method]>>;
 };
 
 const resolveApiKey = (provided: string | undefined) => {

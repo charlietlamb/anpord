@@ -1,3 +1,6 @@
+import type { ParseError } from "effect/ParseResult";
+import { ArrayFormatter } from "effect/ParseResult";
+
 export class MissingApiKey extends Error {
   readonly name = "MissingApiKey";
 
@@ -41,8 +44,26 @@ const statusOf = (error: unknown) => {
   }
 };
 
+const rejectedFields = (error: unknown) => {
+  if ((error as { readonly _tag?: unknown })._tag !== "ParseError") {
+    return;
+  }
+  const issues = ArrayFormatter.formatErrorSync(error as ParseError);
+  return issues
+    .map((issue) =>
+      issue.path.length > 0
+        ? `${issue.path.join(".")}: ${issue.message}`
+        : issue.message
+    )
+    .join("; ");
+};
+
 const messageOf = (error: unknown) => {
   if (typeof error === "object" && error !== null) {
+    const rejected = rejectedFields(error);
+    if (rejected) {
+      return rejected;
+    }
     const message = (error as { message?: unknown }).message;
     if (typeof message === "string" && message.length > 0) {
       return message;
