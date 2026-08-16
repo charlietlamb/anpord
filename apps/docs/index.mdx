@@ -1,0 +1,50 @@
+---
+title: "Anpord"
+description: "Prompt management for AI products"
+---
+
+Anpord keeps the prompts your product sends to a model outside your codebase, so
+changing one does not mean shipping a release.
+
+Content is versioned. Updating a prompt appends a version rather than replacing
+one, and a channel decides which version callers receive. Pointing the
+`production` channel at a new version is how a change goes live.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="play" href="/quickstart">
+    Resolve your first prompt in a few minutes.
+  </Card>
+  <Card title="Concepts" icon="book" href="/concepts">
+    Versions, channels, and how resolution works.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Every endpoint, with request and response shapes.
+  </Card>
+  <Card title="CLI" icon="terminal" href="/tools/cli">
+    Read and publish prompts from your terminal.
+  </Card>
+</CardGroup>
+
+## Install
+
+<CodeGroup>
+
+```bash npm
+npm install anpord
+```
+
+```bash bun
+bun add anpord
+```
+
+</CodeGroup>
+
+```ts
+import { Anpord } from "anpord";
+
+const anpord = new Anpord();
+
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+```
+
+With no selector, `get` returns the version the `production` channel points at.

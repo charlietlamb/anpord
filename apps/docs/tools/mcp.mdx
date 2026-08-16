@@ -1,0 +1,61 @@
+---
+title: "MCP server"
+description: "Give an assistant access to your prompts"
+---
+
+Anpord runs a hosted MCP server, so an assistant such as Claude can read and
+publish your prompts directly.
+
+## Connect
+
+<CodeGroup>
+
+```json Claude Desktop
+{
+  "mcpServers": {
+    "anpord": {
+      "url": "https://mcp.anpord.com/mcp"
+    }
+  }
+}
+```
+
+```bash Claude Code
+claude mcp add --transport http anpord https://mcp.anpord.com/mcp
+```
+
+</CodeGroup>
+
+## Authentication
+
+The server implements OAuth 2.1, so you never paste an API key into a client.
+Connecting opens a browser, you sign in and approve access, and the client stores
+the token it receives.
+
+The assistant then acts as you: it reaches the prompts your account can reach and
+nothing else. An anonymous request is refused.
+
+## Tools
+
+| Tool | Purpose |
+| --- | --- |
+| `list_prompts` | Every prompt in the organization |
+| `get_prompt` | Resolve a prompt, optionally by channel or version |
+| `list_versions` | A prompt's history |
+| `update_prompt` | Append a version |
+| `promote_prompt` | Point a channel at a version |
+
+<Note>
+  Creating and archiving prompts are deliberately absent. An assistant can write
+  a new version and promote one, but the set of prompts stays under your control.
+</Note>
+
+## What it is for
+
+The server is most useful when the assistant is already editing the code that
+sends the prompt. It can read the live version, see how it has changed, propose a
+rewrite, and publish it without leaving the conversation.
+
+Because publishing appends a version rather than overwriting one, a change an
+assistant makes is reviewable and reversible. It does not reach your users until
+someone promotes it.

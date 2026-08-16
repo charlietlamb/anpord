@@ -1,0 +1,83 @@
+---
+title: "Publishing changes"
+description: "Adding versions and putting one live"
+---
+
+## Add a version
+
+```ts
+await anpord.prompts.update({
+  id: "support-reply",
+  content: "You are a support agent for {{product}}. Be brief and warm.",
+  message: "Warmer tone",
+});
+```
+
+The response carries the number the new version was given. Nothing is live yet:
+callers asking for production still receive whatever that channel points at.
+
+The message is optional and worth writing. It is what someone reading the
+history months later has to work from.
+
+## Put it live
+
+```ts
+await anpord.prompts.promote({
+  id: "support-reply",
+  channel: "production",
+  version: 5,
+});
+```
+
+Separating the two steps is deliberate. You can write a version, review it, try
+it against a `staging` channel, and promote only once it is right.
+
+## Roll back
+
+A rollback is a promotion at an earlier number:
+
+```ts
+await anpord.prompts.promote({
+  id: "support-reply",
+  channel: "production",
+  version: 4,
+});
+```
+
+Because versions are appended and never overwritten, the version you are going
+back to is still exactly as it was.
+
+## From the terminal
+
+```bash
+anpord push support-reply "You are a support agent. Be brief." -m "Tighter"
+anpord promote support-reply --to production --at 5
+```
+
+Content can come from a file, which suits prompts long enough to deserve one:
+
+```bash
+cat prompts/support-reply.md | anpord push support-reply - -m "Rewrite"
+```
+
+## From CI
+
+Publishing on merge keeps the prompts in your repository and the live version in
+sync:
+
+```yaml
+- name: Publish prompts
+  env:
+    ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
+  run: |
+    for file in prompts/*.md; do
+      id="$(basename "$file" .md)"
+      anpord push "$id" - -m "${{ github.event.head_commit.message }}" < "$file"
+    done
+```
+
+<Note>
+  This adds a version without promoting one, so a merge never changes what
+  production serves on its own. Promote deliberately, by hand or in a separate
+  job.
+</Note>

@@ -1,0 +1,93 @@
+---
+title: "Resolving prompts"
+description: "Reading the right version at runtime"
+---
+
+## In production
+
+Ask for the prompt by id and let the production channel decide the version:
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+
+const completion = await model.complete(prompt.content);
+```
+
+This is the call you want in application code. Changing which version ships is
+then a promotion, not a deploy.
+
+## Pinning a version
+
+Pass a version to address one exactly:
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply", version: 3 });
+```
+
+Useful for reproducing a past run, or for an evaluation that has to compare
+versions against each other rather than follow whatever is live.
+
+## Reading history
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "support-reply",
+  includeVersions: true,
+});
+
+for (const version of prompt.versions ?? []) {
+  console.log(version.version, version.message, version.createdAt);
+}
+```
+
+History is omitted unless you ask for it, so the common read stays small.
+
+## Caching
+
+Every resolve is a network call. If you resolve on a hot path, cache the result
+for as long as you are willing to wait for a promotion to take effect:
+
+```ts
+const cache = new Map<string, { at: number; content: string }>();
+const TTL = 60_000;
+
+const content = async (id: string) => {
+  const hit = cache.get(id);
+  if (hit && Date.now() - hit.at < TTL) {
+    return hit.content;
+  }
+
+  const prompt = await anpord.prompts.get({ id });
+  cache.set(id, { at: Date.now(), content: prompt.content });
+  return prompt.content;
+};
+```
+
+<Warning>
+  A cache is also a failure mode: a promoted version will not reach callers until
+  entries expire. Keep the window short enough that a rollback still counts as
+  fast.
+</Warning>
+
+## Falling back
+
+Treat a resolve like any other network call. Keeping a copy of the prompt in
+your code means an outage degrades quality rather than breaking the feature:
+
+```ts
+import { AnpordError } from "anpord";
+
+const FALLBACK = "You are a support agent. Be brief.";
+
+const resolve = async (id: string) => {
+  try {
+    const prompt = await anpord.prompts.get({ id });
+    return prompt.content;
+  } catch (error) {
+    if (error instanceof AnpordError) {
+      return FALLBACK;
+    }
+    throw error;
+  }
+};
+```

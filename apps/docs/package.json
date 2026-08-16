@@ -1,0 +1,16 @@
+{
+  "name": "@anpord/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run sync",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "dev": "bun run sync && mint dev",
+    "sync": "bun run scripts/sync-openapi.ts",
+    "check:links": "mint broken-links"
+  },
+  "devDependencies": {
+    "mint": "4.2.51"
+  }
+}

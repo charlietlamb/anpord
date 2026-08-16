@@ -1,0 +1,79 @@
+---
+title: "Concepts"
+description: "Versions, channels, and how a prompt resolves"
+---
+
+## Prompts
+
+A prompt has an id you choose, such as `support-reply`. The id is how every
+caller addresses it, so it stays fixed while the content behind it changes.
+
+Ids are lowercase alphanumeric and may contain `/`, `_`, or `-`, which lets you
+group them by path: `checkout/upsell`, `email/welcome`.
+
+## Versions
+
+Content is versioned. `update` appends a version rather than replacing one, so
+every earlier version stays readable and a bad change is a promotion away from
+being undone.
+
+Versions are numbered from 1 and carry an optional message describing why the
+content changed.
+
+## Channels
+
+A channel is a named pointer at a version. `production` is the one callers get
+by default; you can add others, such as `staging`, for the same prompt.
+
+Promoting is how a version goes live:
+
+```ts
+await anpord.prompts.promote({
+  id: "support-reply",
+  channel: "production",
+  version: 4,
+});
+```
+
+Nothing in your application changes. The next `get` returns version 4.
+
+<Note>
+  `latest` is derived from the highest version rather than stored, so it cannot
+  drift from the version table. It is useful in development and a poor choice in
+  production, where an unreviewed edit would ship immediately.
+</Note>
+
+## Resolution
+
+`get` takes at most one selector, and they are checked in this order:
+
+<Steps>
+  <Step title="A version, if you gave one">
+    `{ id, version: 3 }` returns exactly version 3. The response reports no
+    channel, because you addressed the version directly.
+  </Step>
+  <Step title="A channel, if you gave one">
+    `{ id, channel: "staging" }` returns whichever version that channel points
+    at.
+  </Step>
+  <Step title="Production otherwise">
+    `{ id }` resolves the `production` channel.
+  </Step>
+</Steps>
+
+A version wins over a channel when both are given.
+
+The response names the channel that answered, so you can log which version a
+caller actually received:
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+
+prompt.version; // 4
+prompt.channel; // "production"
+```
+
+## Archiving
+
+Archiving hides a prompt from listings. Callers pinned to a version keep
+resolving it, so archiving never breaks something already running.

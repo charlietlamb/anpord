@@ -1,0 +1,113 @@
+---
+title: "CLI"
+description: "Read and publish prompts from your terminal"
+---
+
+The CLI ships in the same package as the SDK.
+
+<CodeGroup>
+
+```bash npx
+npx anpord list
+```
+
+```bash global
+npm install -g anpord
+anpord list
+```
+
+</CodeGroup>
+
+Authentication comes from the environment:
+
+```bash
+export ANPORD_API_KEY="anp_..."
+```
+
+## Commands
+
+### get
+
+```bash
+anpord get <id> [--json] [--channel <name>] [--at <version>]
+```
+
+Prints the prompt's content to stdout, which makes it pipeable:
+
+```bash
+anpord get support-reply > prompt.txt
+anpord get support-reply | pbcopy
+```
+
+`--json` prints the whole prompt instead, including its version and channel.
+`--channel` and `--at` select which version to resolve, following the same rules
+as the API.
+
+### list
+
+```bash
+anpord list [--json]
+```
+
+One prompt per line as `id`, latest version, and name.
+
+### versions
+
+```bash
+anpord versions <id>
+```
+
+The prompt's history as JSON.
+
+### push
+
+```bash
+anpord push <id> <content> [-m <message>]
+```
+
+Appends a version. Pass `-` to read the content from stdin:
+
+```bash
+cat prompts/support-reply.md | anpord push support-reply - -m "Rewrite"
+```
+
+Pushing does not change what production serves. Promote when you are ready.
+
+### promote
+
+```bash
+anpord promote <id> --to <channel> --at <version>
+```
+
+Points a channel at a version.
+
+```bash
+anpord promote support-reply --to production --at 5
+```
+
+## Scripting
+
+Content goes to stdout and everything else to stderr, so redirecting a prompt to
+a file captures the prompt and nothing else. A failure exits non-zero:
+
+```bash
+if ! anpord get support-reply > prompt.txt; then
+  echo "could not resolve the prompt" >&2
+  exit 1
+fi
+```
+
+## Completions
+
+```bash
+anpord --completions zsh
+```
+
+Also available for `bash`, `fish`, and `sh`.
+
+## Configuration
+
+| Variable | Purpose |
+| --- | --- |
+| `ANPORD_API_KEY` | Required. The key the CLI authenticates with. |
+| `ANPORD_BASE_URL` | Optional. Defaults to `https://api.anpord.com`. |

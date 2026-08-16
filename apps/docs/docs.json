@@ -1,0 +1,83 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Anpord",
+  "description": "Prompt management for AI products",
+  "colors": {
+    "primary": "#f7f7f7",
+    "light": "#f7f7f7",
+    "dark": "#171816"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "favicon": "/favicon.svg",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://www.anpord.com"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": ["index", "quickstart", "concepts"]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/resolving-prompts",
+              "guides/publishing",
+              "guides/channels"
+            ]
+          },
+          {
+            "group": "Tools",
+            "pages": ["tools/cli", "tools/mcp"]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "Reference",
+            "pages": ["api-reference/introduction"]
+          },
+          {
+            "group": "Prompts",
+            "pages": [
+              "api-reference/prompts-get",
+              "api-reference/prompts-list",
+              "api-reference/prompts-create",
+              "api-reference/prompts-update",
+              "api-reference/prompts-promote",
+              "api-reference/prompts-archive"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/charlietlamb/anpord"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://www.anpord.com"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/charlietlamb/anpord"
+    }
+  }
+}

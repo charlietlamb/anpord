@@ -1,0 +1,97 @@
+---
+title: "Quickstart"
+description: "Resolve your first prompt"
+---
+
+## Get an API key
+
+Create a key in the dashboard under **Settings → API keys**. Keys are scoped to
+one organization, so a key only ever reads that organization's prompts.
+
+Set it in your environment:
+
+```bash
+export ANPORD_API_KEY="anp_..."
+```
+
+## Install
+
+<CodeGroup>
+
+```bash npm
+npm install anpord
+```
+
+```bash bun
+bun add anpord
+```
+
+</CodeGroup>
+
+## Resolve a prompt
+
+```ts
+import { Anpord } from "anpord";
+
+const anpord = new Anpord();
+
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+
+console.log(prompt.content);
+```
+
+The constructor reads `ANPORD_API_KEY` when you do not pass one. To hold the key
+yourself:
+
+```ts
+const anpord = new Anpord({ apiKey: process.env.MY_KEY });
+```
+
+## Create and publish
+
+```ts
+await anpord.prompts.create({
+  id: "support-reply",
+  name: "Support reply",
+  content: "You are a support agent for {{product}}. Be brief.",
+});
+
+await anpord.prompts.update({
+  id: "support-reply",
+  content: "You are a support agent for {{product}}. Be brief and warm.",
+  message: "Warmer tone",
+});
+
+await anpord.prompts.promote({
+  id: "support-reply",
+  channel: "production",
+  version: 2,
+});
+```
+
+`create` makes the prompt and its first version. `update` appends a version
+rather than overwriting one, so version 1 stays readable. Until you promote,
+callers asking for production keep receiving version 1.
+
+## Handle failures
+
+Every failure is an `AnpordError` carrying the status the API returned.
+
+```ts
+import { Anpord, AnpordError } from "anpord";
+
+try {
+  await anpord.prompts.get({ id: "does-not-exist" });
+} catch (error) {
+  if (error instanceof AnpordError && error.status === 404) {
+    // fall back to a prompt you ship with the code
+  }
+  throw error;
+}
+```
+
+<Note>
+  An id that cannot be valid is refused before the request leaves your process,
+  and the message names the field: `id: Prompt id must be lowercase alphanumeric,
+  optionally with / _ or -`.
+</Note>
