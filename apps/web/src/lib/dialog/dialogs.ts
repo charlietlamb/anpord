@@ -5,6 +5,7 @@ export interface DialogMap {
   confirm: Omit<ConfirmDialogProps, "open" | "onClose">;
   createOrganization: Record<never, never>;
   inviteMember: Record<never, never>;
+  newChannel: { onSubmit: (channel: string) => void; version: number };
 }
 
 export const { DialogProvider, useDialog, useDialogOpen } =

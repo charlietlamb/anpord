@@ -15,10 +15,11 @@ import { VersionList } from "@/components/prompts/version-list";
 interface PromptRailProps {
   readonly channels: readonly ChannelPlacement[];
   readonly editing: boolean;
+  readonly onAddChannel: () => void;
   readonly onEditFrom: () => void;
-  readonly onPromote: (channel: string) => void;
+  readonly onPoint: (channel: string, version: number) => void;
   readonly onSelect: (version: ResolvedPrompt) => void;
-  readonly promoting: boolean;
+  readonly pointing: boolean;
   readonly variables: readonly string[];
   readonly versions: readonly ResolvedPrompt[];
   readonly viewed: ResolvedPrompt;
@@ -27,10 +28,11 @@ interface PromptRailProps {
 export function PromptRail({
   channels,
   editing,
-  onPromote,
+  onAddChannel,
+  onPoint,
   onEditFrom,
   onSelect,
-  promoting,
+  pointing,
   variables,
   versions,
   viewed,
@@ -70,9 +72,10 @@ export function PromptRail({
 
       <ChannelsCard
         channels={channels}
-        onPromote={onPromote}
-        promoting={promoting}
-        viewed={viewed}
+        onAddChannel={onAddChannel}
+        onPoint={onPoint}
+        pointing={pointing}
+        versions={versions}
       />
 
       <DetailsCard created={oldest.createdAt} viewed={viewed} />

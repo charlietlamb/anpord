@@ -1,4 +1,5 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { extractVariables } from "@anpord/ui/lib/prompt-variables";
 import { ArrowUpIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
@@ -89,6 +90,38 @@ function PromptDetailPage() {
     });
   };
 
+  const pointChannel = (channel: string, version: number) =>
+    promote.mutate(
+      { channel, version },
+      {
+        onError: (error) =>
+          toast.error("Couldn't move the channel", {
+            description: error instanceof Error ? error.message : undefined,
+          }),
+        onSuccess: () => toast.success(`${channel} now serves v${version}`),
+      }
+    );
+
+  /** Production is what callers receive, so moving it asks first. */
+  const onPoint = (channel: string, version: number) => {
+    if (channel !== PRODUCTION) {
+      pointChannel(channel, version);
+      return;
+    }
+    openDialog("confirm", {
+      confirmLabel: `Point at v${version}`,
+      description: `Callers asking for production will receive v${version}.`,
+      onConfirm: () => pointChannel(channel, version),
+      title: `Point production at v${version}?`,
+    });
+  };
+
+  const onAddChannel = () =>
+    openDialog("newChannel", {
+      onSubmit: (channel: string) => pointChannel(channel, viewed.version),
+      version: viewed.version,
+    });
+
   /**
    * History is read-only, so typing in it asks first: the edit becomes a new
    * version rather than a change to the one being read.
@@ -134,25 +167,13 @@ function PromptDetailPage() {
         <PromptRail
           channels={channels.data ?? []}
           editing={editing}
+          onAddChannel={onAddChannel}
           onEditFrom={() => editFrom(viewed)}
-          onPromote={(channel) =>
-            promote.mutate(
-              { channel, version: viewed.version },
-              {
-                onError: (error) =>
-                  toast.error("Couldn't move the channel", {
-                    description:
-                      error instanceof Error ? error.message : undefined,
-                  }),
-                onSuccess: () =>
-                  toast.success(`${channel} now serves v${viewed.version}`),
-              }
-            )
-          }
+          onPoint={onPoint}
           onSelect={(version: ResolvedPrompt) =>
             setSelection({ kind: "history", version: version.version })
           }
-          promoting={promote.isPending}
+          pointing={promote.isPending}
           variables={extractVariables(content)}
           versions={rows}
           viewed={viewed}

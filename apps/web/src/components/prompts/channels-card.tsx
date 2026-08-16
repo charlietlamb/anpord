@@ -3,53 +3,63 @@ import type {
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
-import { Badge } from "@anpord/ui/components/ui/badge";
-import { DetailRow } from "@/components/prompts/detail-row";
+import { PlusIcon } from "@phosphor-icons/react";
+import { ChannelRow } from "@/components/prompts/channel-row";
 import { RailCard } from "@/components/prompts/rail-card";
+
+const PRODUCTION = "production";
 
 interface ChannelsCardProps {
   readonly channels: readonly ChannelPlacement[];
-  readonly onPromote: (channel: string) => void;
-  readonly promoting: boolean;
-  readonly viewed: ResolvedPrompt;
+  readonly onAddChannel: () => void;
+  readonly onPoint: (channel: string, version: number) => void;
+  readonly pointing: boolean;
+  readonly versions: readonly ResolvedPrompt[];
 }
+
+interface Placement {
+  readonly channel: string;
+  readonly version: number | null;
+}
+
+/** Production is always offered, so a prompt with no channels reads the same
+ * as one that has them rather than as an empty state to interpret. */
+const withProduction = (
+  channels: readonly ChannelPlacement[]
+): readonly Placement[] =>
+  channels.some((placement) => placement.channel === PRODUCTION)
+    ? channels
+    : [{ channel: PRODUCTION, version: null }, ...channels];
 
 export function ChannelsCard({
   channels,
-  onPromote,
-  promoting,
-  viewed,
+  onAddChannel,
+  onPoint,
+  pointing,
+  versions,
 }: ChannelsCardProps) {
   return (
-    <RailCard className="grid gap-2.5" title="Channels">
-      {channels.length === 0 ? (
-        <DetailRow label="production">
-          <Badge size="xs" variant="outline">
-            Not set
-          </Badge>
-        </DetailRow>
-      ) : (
-        channels.map((placement) => (
-          <DetailRow key={placement.channel} label={placement.channel}>
-            <span className="tabular-nums">v{placement.version}</span>
-          </DetailRow>
-        ))
-      )}
+    <RailCard className="px-0 py-1" title="Channels">
+      {withProduction(channels).map((placement) => (
+        <ChannelRow
+          channel={placement.channel}
+          disabled={pointing}
+          key={placement.channel}
+          onPoint={(version) => onPoint(placement.channel, version)}
+          version={placement.version}
+          versions={versions}
+        />
+      ))}
 
-      {channels.map((placement) =>
-        placement.version === viewed.version ? null : (
-          <Button
-            className="w-full justify-start"
-            disabled={promoting}
-            key={`promote-${placement.channel}`}
-            onClick={() => onPromote(placement.channel)}
-            size="sm"
-            variant="outline"
-          >
-            Point {placement.channel} at v{viewed.version}
-          </Button>
-        )
-      )}
+      <Button
+        className="h-8 w-full justify-start gap-2 px-3.5 font-normal text-[0.8125rem] text-muted-foreground"
+        disabled={pointing}
+        onClick={onAddChannel}
+        variant="ghost"
+      >
+        <PlusIcon className="size-3.5" />
+        New channel
+      </Button>
     </RailCard>
   );
 }

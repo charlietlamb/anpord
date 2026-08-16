@@ -86,10 +86,11 @@ function EditorPreview() {
           <PromptRail
             channels={CHANNELS}
             editing={editing}
+            onAddChannel={() => undefined}
             onEditFrom={() => undefined}
-            onPromote={() => undefined}
+            onPoint={() => undefined}
             onSelect={() => undefined}
-            promoting={false}
+            pointing={false}
             variables={extractVariables(content)}
             versions={VERSIONS}
             viewed={VERSIONS[0] as ResolvedPrompt}
