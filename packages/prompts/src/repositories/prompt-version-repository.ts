@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { user } from "@anpord/db/schema/auth/users";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
-import type { PromptId } from "@anpord/schema/prompts";
+import type { PromptId } from "@anpord/schema/domain/prompts";
 import { and, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";

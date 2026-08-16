@@ -2,7 +2,7 @@ import {
   type ChannelName,
   PromptSummary,
   ResolvedPrompt,
-} from "@anpord/schema/prompts";
+} from "@anpord/schema/domain/prompts";
 import { Effect, ParseResult, Schema } from "effect";
 import type { PromptListRow } from "../repositories/prompt-list-query";
 import type { VersionRow } from "../repositories/prompt-version-repository";

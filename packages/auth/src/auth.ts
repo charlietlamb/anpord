@@ -1,41 +1,29 @@
 import { Database } from "@anpord/db/client";
 import { schema } from "@anpord/db/schema";
-import { apiKey } from "@better-auth/api-key";
+import { EmailSender } from "@anpord/notifications/email/sender";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
-import { jwt, magicLink, mcp, organization } from "better-auth/plugins";
-import { Context, Effect, Layer, Option, Redacted } from "effect";
-import { AuthConfig } from "./config";
-import { COOKIE_PREFIX } from "./cookies";
-import { makeSendMagicLink } from "./email";
-import type { OrganizationStoreShape } from "./organization-store";
-import { OrganizationStore } from "./organization-store";
+import { jwt, magicLink, organization } from "better-auth/plugins";
+import { Context, Effect, Layer, Redacted } from "effect";
+import { AuthConfig } from "./config/auth-config";
+import { apiKeyPlugin } from "./credentials/api-key-plugin";
+import { mcpPlugin } from "./oauth/mcp-plugin";
+import { attachOrganizationBeforeWrite } from "./organization/attach-organization-before-write";
+import { OrganizationStore } from "./organization/organization-store";
+import { COOKIE_PREFIX } from "./session/cookies";
+import {
+  MAGIC_LINK_EXPIRY_SECONDS,
+  sendMagicLink,
+} from "./session/send-magic-link";
 
 const SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES = 300;
-const API_KEY_PREFIX = "anp_";
-const IDENTIFIABLE_PREFIX_LENGTH = 8;
-
-const attachOrganizationBeforeWrite =
-  (organizations: OrganizationStoreShape) =>
-  async (session: { userId: string }) => {
-    const organization = await Effect.runPromise(
-      organizations
-        .resolveActive(session.userId)
-        .pipe(Effect.catchAll(() => Effect.succeedNone))
-    );
-
-    return Option.match(organization, {
-      onNone: () => undefined,
-      onSome: (activeOrganizationId) => ({
-        data: { ...session, activeOrganizationId },
-      }),
-    });
-  };
 
 const makeAuth = Effect.gen(function* () {
   const config = yield* AuthConfig;
   const db = yield* Database;
   const organizations = yield* OrganizationStore;
+  const emails = yield* EmailSender;
+
   const socialProviders = config.github
     ? {
         github: {
@@ -44,52 +32,37 @@ const makeAuth = Effect.gen(function* () {
         },
       }
     : {};
-  const sendMagicLink = makeSendMagicLink(config);
+
+  const deliverMagicLink = sendMagicLink(emails);
 
   return betterAuth({
-    baseURL: config.url,
-    trustedOrigins: [...config.trustedOrigins],
     advanced: { cookiePrefix: COOKIE_PREFIX },
+    baseURL: config.url,
     database: drizzleAdapter(db, { provider: "pg", schema }),
+    databaseHooks: {
+      session: {
+        create: { before: attachOrganizationBeforeWrite(organizations) },
+      },
+    },
+    plugins: [
+      organization(),
+      magicLink({
+        expiresIn: MAGIC_LINK_EXPIRY_SECONDS,
+        sendMagicLink: ({ email, url }) => deliverMagicLink({ email, url }),
+      }),
+      apiKeyPlugin(),
+      jwt(),
+      mcpPlugin(config.mcpResource),
+    ],
+    secret: Redacted.value(config.secret),
     session: {
       cookieCache: {
         enabled: true,
         maxAge: SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES,
       },
     },
-    databaseHooks: {
-      session: {
-        create: { before: attachOrganizationBeforeWrite(organizations) },
-      },
-    },
     socialProviders,
-    plugins: [
-      organization(),
-      magicLink({
-        expiresIn: 300,
-        sendMagicLink: ({ email, url }) => sendMagicLink({ email, url }),
-      }),
-      apiKey({
-        defaultPrefix: API_KEY_PREFIX,
-        enableMetadata: true,
-        startingCharactersConfig: {
-          charactersLength: IDENTIFIABLE_PREFIX_LENGTH,
-          shouldStore: true,
-        },
-      }),
-      jwt(),
-      mcp({
-        loginPage: "/login",
-        resource: config.mcpResource,
-        oidcConfig: {
-          allowDynamicClientRegistration: true,
-          consentPage: "/oauth/consent",
-          loginPage: "/login",
-          scopes: ["prompts:read", "prompts:write"],
-        },
-      }),
-    ],
-    secret: Redacted.value(config.secret),
+    trustedOrigins: [...config.trustedOrigins],
   });
 });
 

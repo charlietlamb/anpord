@@ -1,5 +1,5 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
-import { BadRequest, Conflict, NotFound } from "../errors";
+import { BadRequest, Conflict, NotFound } from "../domain/errors";
 import { ApiKeyAuthentication } from "./authentication";
 import {
   ArchivePromptRequest,

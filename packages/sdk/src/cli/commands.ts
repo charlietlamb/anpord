@@ -1,4 +1,8 @@
-import { ChannelName, PromptId, VersionNumber } from "@anpord/schema/prompts";
+import {
+  ChannelName,
+  PromptId,
+  VersionNumber,
+} from "@anpord/schema/domain/prompts";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";

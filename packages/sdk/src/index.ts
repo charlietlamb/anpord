@@ -10,5 +10,5 @@ export type {
   PublicPromptSummary,
   PublicVersion,
 } from "@anpord/schema/public/shapes";
-export { Anpord, type AnpordOptions } from "./anpord";
-export { AnpordError, MissingApiKey } from "./errors";
+export { Anpord, type AnpordOptions } from "./client/anpord";
+export { AnpordError, MissingApiKey } from "./client/errors";

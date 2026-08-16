@@ -1,4 +1,4 @@
-import type { PromptSummary } from "@anpord/schema/prompts";
+import type { PromptSummary } from "@anpord/schema/domain/prompts";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";

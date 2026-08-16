@@ -5,10 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./src/auth.ts",
-    "./config": "./src/config.ts",
-    "./cookies": "./src/cookies.ts",
-    "./oauth-clients": "./src/oauth-clients.ts",
-    "./organization": "./src/organization-store.ts"
+    "./config": "./src/config/auth-config.ts",
+    "./credentials/api-key-prefix": "./src/credentials/api-key-prefix.ts",
+    "./oauth/client-lookup": "./src/oauth/oauth-client-lookup.ts",
+    "./organization": "./src/organization/organization-store.ts",
+    "./session/cookies": "./src/session/cookies.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",
@@ -18,12 +19,12 @@
   "dependencies": {
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
+    "@anpord/notifications": "workspace:*",
     "@better-auth/api-key": "catalog:",
     "@better-auth/drizzle-adapter": "catalog:",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
-    "effect": "catalog:",
-    "resend": "catalog:"
+    "effect": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

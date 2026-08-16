@@ -1,5 +1,5 @@
 import type { PromptError } from "@anpord/prompts/errors";
-import { Conflict, NotFound } from "@anpord/schema/errors";
+import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
 
 type PromptHttpError = Conflict | NotFound;

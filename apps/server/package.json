@@ -15,6 +15,7 @@
     "@anpord/cache": "workspace:*",
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
+    "@anpord/notifications": "workspace:*",
     "@anpord/prompts": "workspace:*",
     "@anpord/schema": "workspace:*",
     "@effect/platform": "catalog:",

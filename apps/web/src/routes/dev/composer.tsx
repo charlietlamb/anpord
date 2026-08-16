@@ -1,4 +1,4 @@
-import type { ResolvedPrompt } from "@anpord/schema/prompts";
+import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { PlusIcon, TextTIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";

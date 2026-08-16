@@ -1,7 +1,7 @@
 import type { IdGeneratorShape } from "@anpord/ids/id";
-import type { Actor } from "@anpord/schema/actor";
-import type { CreatePromptRequest } from "@anpord/schema/prompts";
-import { PRODUCTION } from "@anpord/schema/prompts";
+import type { Actor } from "@anpord/schema/domain/actor";
+import type { CreatePromptRequest } from "@anpord/schema/domain/prompts";
+import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Effect } from "effect";
 import { toResolved } from "../domain/views";
 import type { PromptRepositoryShape } from "../repositories/prompt-repository";

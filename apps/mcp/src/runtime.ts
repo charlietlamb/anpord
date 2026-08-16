@@ -1,4 +1,8 @@
-import { type AnpordApi, layer } from "@anpord/schema/public/client";
+import {
+  AnpordApi,
+  type AnpordClient,
+  layer,
+} from "@anpord/schema/public/client";
 import { Effect, Redacted } from "effect";
 
 import { baseUrl } from "./config";
@@ -13,12 +17,18 @@ const describe = (error: unknown) =>
     ? String((error as { message: unknown }).message)
     : "The request failed. Please try again.";
 
-export const runAs = <A, E>(
-  accessToken: string,
-  effect: Effect.Effect<A, E, AnpordApi>
+export interface ToolContext {
+  readonly auth: { readonly accessToken: string };
+}
+
+export const callApi = <A, E>(
+  ctx: ToolContext,
+  use: (api: AnpordClient) => Effect.Effect<A, E>
 ) =>
-  effect.pipe(
-    Effect.provide(layer({ apiKey: Redacted.make(accessToken), baseUrl })),
+  Effect.flatMap(AnpordApi, use).pipe(
+    Effect.provide(
+      layer({ apiKey: Redacted.make(ctx.auth.accessToken), baseUrl })
+    ),
     Effect.catchAll((error) => Effect.succeed(failure(describe(error)))),
     Effect.catchAllCause((cause) =>
       Effect.logError("mcp tool failed", cause).pipe(

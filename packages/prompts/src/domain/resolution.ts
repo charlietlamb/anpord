@@ -2,8 +2,8 @@ import type {
   ChannelName,
   PromptSelector,
   VersionNumber,
-} from "@anpord/schema/prompts";
-import { LATEST, PRODUCTION } from "@anpord/schema/prompts";
+} from "@anpord/schema/domain/prompts";
+import { LATEST, PRODUCTION } from "@anpord/schema/domain/prompts";
 
 export type Resolution =
   | { readonly _tag: "ByVersion"; readonly version: VersionNumber }

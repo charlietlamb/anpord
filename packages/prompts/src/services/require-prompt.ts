@@ -1,5 +1,5 @@
-import type { Actor } from "@anpord/schema/actor";
-import type { PromptId } from "@anpord/schema/prompts";
+import type { Actor } from "@anpord/schema/domain/actor";
+import type { PromptId } from "@anpord/schema/domain/prompts";
 import { Effect, Option } from "effect";
 import { PromptNotFound } from "../domain/errors";
 import type { PromptRepositoryShape } from "../repositories/prompt-repository";

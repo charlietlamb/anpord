@@ -1,4 +1,4 @@
-import type { ResolvedPrompt } from "@anpord/schema/prompts";
+import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { cn } from "@anpord/ui/lib/utils";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { UserAvatar } from "@/components/user/user-avatar";

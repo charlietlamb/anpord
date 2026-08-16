@@ -1,10 +1,10 @@
-import type { Actor } from "@anpord/schema/actor";
+import type { Actor } from "@anpord/schema/domain/actor";
 import type {
   AddVersionRequest,
   PromptId,
   ResolvedPrompt,
-} from "@anpord/schema/prompts";
-import { PRODUCTION } from "@anpord/schema/prompts";
+} from "@anpord/schema/domain/prompts";
+import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer } from "effect";
 import type { PromptError } from "../domain/errors";
 import { toResolved } from "../domain/views";

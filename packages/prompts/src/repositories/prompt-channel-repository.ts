@@ -4,7 +4,7 @@ import { promptChannelEvent } from "@anpord/db/schema/prompts/prompt-channel-eve
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
-import type { ChannelName } from "@anpord/schema/prompts";
+import type { ChannelName } from "@anpord/schema/domain/prompts";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";

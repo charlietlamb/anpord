@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { asAnpordError } from "../errors";
+import { asAnpordError } from "../client/errors";
 
 const MISSING_KEY =
   "Set ANPORD_API_KEY to an API key from https://www.anpord.com/settings/keys";

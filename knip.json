@@ -6,7 +6,8 @@
       "project": "scripts/**"
     },
     "apps/server": {
-      "entry": ["src/server.ts"]
+      "entry": ["src/server.ts", "tests/**/*.test.ts"],
+      "project": ["src/**", "tests/**"]
     },
     "apps/web": {
       "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "vite.config.ts"],
@@ -16,12 +17,14 @@
     "packages/auth": {
       "entry": [
         "src/auth.ts",
-        "src/config.ts",
-        "src/cookies.ts",
-        "src/oauth-clients.ts",
-        "src/organization-store.ts"
+        "src/config/auth-config.ts",
+        "src/credentials/api-key-prefix.ts",
+        "src/oauth/oauth-client-lookup.ts",
+        "src/organization/organization-store.ts",
+        "src/session/cookies.ts",
+        "tests/**/*.test.ts"
       ],
-      "project": "src/**"
+      "project": ["src/**", "tests/**"]
     },
     "packages/cache": {
       "entry": ["src/cache.ts", "src/config.ts", "src/layer.ts"],
@@ -40,6 +43,16 @@
       "entry": ["src/id.ts", "src/layer.ts", "src/prefixes.ts"],
       "project": "src/**"
     },
+    "packages/notifications": {
+      "entry": [
+        "src/email/email-config.ts",
+        "src/email/email-sender.ts",
+        "src/email/layer.ts",
+        "src/email/magic-link-email.ts",
+        "tests/**/*.test.ts"
+      ],
+      "project": ["src/**", "tests/**"]
+    },
     "packages/prompts": {
       "entry": [
         "src/domain/errors.ts",
@@ -47,20 +60,21 @@
         "src/services/prompt-authoring.ts",
         "src/services/prompt-catalog.ts",
         "src/services/prompt-publishing.ts",
-        "src/services/prompt-resolution.ts"
+        "src/services/prompt-resolution.ts",
+        "tests/**/*.test.ts"
       ],
-      "project": "src/**"
+      "project": ["src/**", "tests/**"]
     },
     "packages/schema": {
       "entry": [
-        "src/actor.ts",
-        "src/api.ts",
-        "src/authentication.ts",
-        "src/errors.ts",
-        "src/health-api.ts",
-        "src/oauth-api.ts",
-        "src/prompts-api.ts",
-        "src/prompts.ts",
+        "src/domain/actor.ts",
+        "src/domain/errors.ts",
+        "src/domain/prompts.ts",
+        "src/internal/api.ts",
+        "src/internal/authentication.ts",
+        "src/internal/health-api.ts",
+        "src/internal/oauth-api.ts",
+        "src/internal/prompts-api.ts",
         "src/public/api.ts",
         "src/public/authentication.ts",
         "src/public/client.ts",
@@ -74,11 +88,12 @@
     "packages/sdk": {
       "entry": [
         "src/index.ts",
-        "src/cli.ts",
-        "src/config.ts",
+        "src/cli/main.ts",
+        "src/client/config.ts",
+        "tests/**/*.test.ts",
         "tsdown.config.ts"
       ],
-      "project": "src/**"
+      "project": ["src/**", "tests/**"]
     },
     "packages/ui": {
       "entry": ["src/**/*.{ts,tsx}"],

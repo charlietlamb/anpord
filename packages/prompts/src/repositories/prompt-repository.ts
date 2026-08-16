@@ -1,7 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { prompt } from "@anpord/db/schema/prompts/prompts";
-import type { OrganizationId } from "@anpord/schema/actor";
-import type { PromptId, PromptName } from "@anpord/schema/prompts";
+import type { OrganizationId } from "@anpord/schema/domain/actor";
+import type { PromptId, PromptName } from "@anpord/schema/domain/prompts";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";

@@ -6,7 +6,7 @@ import {
   PromptId,
   PromptName,
   VersionNumber,
-} from "../prompts";
+} from "../domain/prompts";
 
 const Instant = Schema.DateTimeUtc.annotations({
   description: "An ISO-8601 timestamp in UTC.",

@@ -2,25 +2,17 @@ import { Auth } from "@anpord/auth";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
-import { withAuthenticateChallenge } from "./http/challenge";
-import { publicOrigin } from "./http/public-origin";
-import { isAuthorizeRoute, withConsentPrompt } from "./http/require-consent";
-import { isDiscoveryRoute, toAuthRequest } from "./http/well-known";
+import { routeRequest } from "./http/request/route-request";
 import { AppLayer } from "./layer";
-import { ApiLive } from "./routes/api-layer";
+import { ApiLive } from "./routes/internal/api-layer";
 import { PublicApiLive } from "./routes/public/api-layer";
-
-const isAuthRoute = (pathname: string) =>
-  pathname === "/api/auth" || pathname.startsWith("/api/auth/");
-
-const isPublicRoute = (pathname: string) => pathname.startsWith("/v1/");
 
 export const main = Effect.gen(function* () {
   const memoMap = yield* Layer.makeMemoMap;
   const auth = yield* Auth;
   const config = yield* ServerConfig;
 
-  const api = yield* Effect.acquireRelease(
+  const internalApi = yield* Effect.acquireRelease(
     Effect.sync(() => HttpApiBuilder.toWebHandler(ApiLive, { memoMap })),
     ({ dispose }) => Effect.promise(dispose)
   );
@@ -34,29 +26,9 @@ export const main = Effect.gen(function* () {
     Effect.try({
       try: () =>
         Bun.serve({
+          fetch: routeRequest({ auth, internalApi, publicApi }),
           hostname: config.host,
           port: config.port,
-          fetch: (request) => {
-            const url = new URL(request.url);
-            const { pathname } = url;
-            if (isDiscoveryRoute(pathname)) {
-              return auth.handler(toAuthRequest(request));
-            }
-            if (isAuthorizeRoute(pathname)) {
-              return auth.handler(withConsentPrompt(request));
-            }
-            if (isAuthRoute(pathname)) {
-              return auth.handler(request);
-            }
-            if (isPublicRoute(pathname)) {
-              return publicApi
-                .handler(request)
-                .then((response) =>
-                  withAuthenticateChallenge(response, publicOrigin(request))
-                );
-            }
-            return api.handler(request);
-          },
         }),
       catch: (cause) =>
         new Error(

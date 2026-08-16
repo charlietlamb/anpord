@@ -1,4 +1,4 @@
-import type { ChannelName, PromptId } from "@anpord/schema/prompts";
+import type { ChannelName, PromptId } from "@anpord/schema/domain/prompts";
 import { Data } from "effect";
 
 export class PromptNotFound extends Data.TaggedError("PromptNotFound")<{

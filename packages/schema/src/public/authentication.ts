@@ -1,6 +1,6 @@
 import { HttpApiMiddleware, HttpApiSecurity } from "@effect/platform";
-import { CurrentActor } from "../authentication";
-import { Unauthorized } from "../errors";
+import { Unauthorized } from "../domain/errors";
+import { CurrentActor } from "../internal/authentication";
 
 export class ApiKeyAuthentication extends HttpApiMiddleware.Tag<ApiKeyAuthentication>()(
   "@anpord/schema/ApiKeyAuthentication",

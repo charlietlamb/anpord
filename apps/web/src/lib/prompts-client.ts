@@ -2,7 +2,7 @@ import {
   type CreatePromptRequest,
   PromptSummary,
   ResolvedPrompt,
-} from "@anpord/schema/prompts";
+} from "@anpord/schema/domain/prompts";
 import { Effect, Schema } from "effect";
 
 const BASE = "/api/prompts";

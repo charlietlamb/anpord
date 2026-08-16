@@ -14,8 +14,7 @@
   "dependencies": {
     "@anpord/schema": "workspace:*",
     "effect": "catalog:",
-    "mcp-use": "catalog:",
-    "zod": "catalog:"
+    "mcp-use": "catalog:"
   },
   "devDependencies": {
     "@types/bun": "catalog:",

@@ -1,7 +1,7 @@
 import { Cache } from "@anpord/cache/cache";
-import type { Actor } from "@anpord/schema/actor";
-import type { PromptId, PromptSelector } from "@anpord/schema/prompts";
-import { ResolvedPrompt } from "@anpord/schema/prompts";
+import type { Actor } from "@anpord/schema/domain/actor";
+import type { PromptId, PromptSelector } from "@anpord/schema/domain/prompts";
+import { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import {

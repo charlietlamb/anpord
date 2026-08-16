@@ -6,7 +6,7 @@ import {
   PromptId,
   PromptName,
   VersionNumber,
-} from "../prompts";
+} from "../domain/prompts";
 
 export const GetPromptRequest = Schema.Struct({
   channel: Schema.optional(ChannelName),

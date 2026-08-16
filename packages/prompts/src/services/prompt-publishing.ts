@@ -1,9 +1,9 @@
-import type { Actor } from "@anpord/schema/actor";
+import type { Actor } from "@anpord/schema/domain/actor";
 import type {
   ChannelName,
   PromptId,
   SetChannelRequest,
-} from "@anpord/schema/prompts";
+} from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import { VersionNotFound } from "../domain/errors";

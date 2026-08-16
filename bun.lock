@@ -29,7 +29,6 @@
         "@anpord/schema": "workspace:*",
         "effect": "catalog:",
         "mcp-use": "catalog:",
-        "zod": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "catalog:",
@@ -44,6 +43,7 @@
         "@anpord/cache": "workspace:*",
         "@anpord/db": "workspace:*",
         "@anpord/ids": "workspace:*",
+        "@anpord/notifications": "workspace:*",
         "@anpord/prompts": "workspace:*",
         "@anpord/schema": "workspace:*",
         "@effect/platform": "catalog:",
@@ -95,12 +95,12 @@
       "dependencies": {
         "@anpord/db": "workspace:*",
         "@anpord/ids": "workspace:*",
+        "@anpord/notifications": "workspace:*",
         "@better-auth/api-key": "catalog:",
         "@better-auth/drizzle-adapter": "catalog:",
         "better-auth": "catalog:",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
-        "resend": "catalog:",
       },
       "devDependencies": {
         "typescript": "catalog:",
@@ -136,6 +136,17 @@
       "version": "0.0.0",
       "dependencies": {
         "effect": "catalog:",
+      },
+      "devDependencies": {
+        "typescript": "catalog:",
+      },
+    },
+    "packages/notifications": {
+      "name": "@anpord/notifications",
+      "version": "0.0.0",
+      "dependencies": {
+        "effect": "catalog:",
+        "resend": "catalog:",
       },
       "devDependencies": {
         "typescript": "catalog:",
@@ -291,6 +302,8 @@
     "@anpord/ids": ["@anpord/ids@workspace:packages/ids"],
 
     "@anpord/mcp": ["@anpord/mcp@workspace:apps/mcp"],
+
+    "@anpord/notifications": ["@anpord/notifications@workspace:packages/notifications"],
 
     "@anpord/prompts": ["@anpord/prompts@workspace:packages/prompts"],
 

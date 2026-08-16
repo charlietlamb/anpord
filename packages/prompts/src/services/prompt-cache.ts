@@ -1,6 +1,6 @@
 import { Cache } from "@anpord/cache/cache";
-import type { OrganizationId } from "@anpord/schema/actor";
-import type { PromptId } from "@anpord/schema/prompts";
+import type { OrganizationId } from "@anpord/schema/domain/actor";
+import type { PromptId } from "@anpord/schema/domain/prompts";
 import { Context, Effect, Layer } from "effect";
 import { promptPrefix } from "../domain/keys";
 

@@ -1,0 +1,24 @@
+{
+  "name": "@anpord/notifications",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./email/config": "./src/email/email-config.ts",
+    "./email/layer": "./src/email/layer.ts",
+    "./email/magic-link": "./src/email/magic-link-email.ts",
+    "./email/sender": "./src/email/email-sender.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "resend": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

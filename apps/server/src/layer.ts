@@ -6,6 +6,7 @@ import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
 import { IdGeneratorLive } from "@anpord/ids/layer";
+import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
@@ -19,7 +20,12 @@ const OrganizationLayer = OrganizationStoreLive.pipe(
 
 const AuthLayer = AuthLive.pipe(
   Layer.provide(
-    Layer.mergeAll(AuthConfigLive, DatabaseLayer, OrganizationLayer)
+    Layer.mergeAll(
+      AuthConfigLive,
+      DatabaseLayer,
+      OrganizationLayer,
+      EmailSenderLive
+    )
   )
 );
 
