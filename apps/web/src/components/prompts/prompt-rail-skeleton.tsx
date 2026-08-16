@@ -22,7 +22,7 @@ interface PromptRailSkeletonProps {
  */
 export function PromptRailSkeleton({ promptId }: PromptRailSkeletonProps) {
   return (
-    <aside className="order-2 flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-6 xl:pr-8">
+    <aside className="order-2 flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:overscroll-contain">
       <RailCard
         action={<Skeleton className="h-4 w-5 rounded-full" />}
         className="px-0 py-0"

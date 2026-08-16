@@ -17,6 +17,7 @@ import {
   SpinnerGapIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { CardHeader } from "@/components/prompts/card-header";
 
 interface PromptComposerProps {
   readonly children?: ReactNode;
@@ -36,24 +37,6 @@ interface PromptComposerProps {
   /** Names the write, which differs between creating and versioning. */
   readonly submitLabel: string;
   readonly version?: number;
-}
-
-/**
- * Names the prompt on the surface the way a file names its buffer, so the
- * editor says what is being edited without borrowing the page's heading.
- */
-function ComposerFilename({ name }: { readonly name?: string }) {
-  if (!name) {
-    return null;
-  }
-
-  return (
-    <header className="flex items-center gap-2 border-border-surface border-b bg-[color-mix(in_oklab,var(--sidebar-accent)_50%,var(--card))] px-4 py-2">
-      <span className="truncate font-mono text-muted-foreground text-xs">
-        {name}
-      </span>
-    </header>
-  );
 }
 
 /**
@@ -78,7 +61,7 @@ export function PromptComposer({
   const canSubmit = content.trim().length > 0 && !(saving || readOnly);
 
   return (
-    <div className={cn("flex w-full flex-col", fill && "min-h-0 flex-1")}>
+    <div className={cn("flex w-full flex-col", fill && "min-h-0")}>
       {/* With nothing to name, the strip is a bar of empty chrome above the
           prompt rather than context for it. */}
       {children || version !== undefined ? (
@@ -95,13 +78,15 @@ export function PromptComposer({
         </ComposerContext>
       ) : null}
 
-      {/* `overflow-clip` rounds the header's top edge to the surface without
-          establishing a scroll container, which the editor owns. */}
+      {/* Titled like the cards beside it, so it takes their surface too rather
+          than sitting on the page as a different kind of object. `overflow-clip`
+          rounds the header's top edge without establishing a scroll container,
+          which the editor owns. */}
       <ComposerSurface
         className={cn(
           "relative",
-          filename && "overflow-clip",
-          fill && "min-h-0 flex-1"
+          filename && "overflow-clip bg-sidebar-accent/50",
+          fill && "min-h-0"
         )}
       >
         {readOnly && onEditRequest ? (
@@ -112,13 +97,16 @@ export function PromptComposer({
             variant="ghost"
           />
         ) : null}
-        <ComposerFilename name={filename} />
+        <CardHeader title={filename} />
 
         <MarkdownEditor
           className={cn(
-            "overflow-y-auto overscroll-contain px-4 pt-4 pb-2 text-[0.9375rem] leading-7",
+            "overflow-y-auto overscroll-contain px-4 py-4 text-[0.9375rem] leading-7",
+            /* Grows with the prompt rather than claiming the whole row: a short
+               one keeps a few spare lines to write into, and the page height is
+               the ceiling past which the editor scrolls instead. */
             fill
-              ? "prompt-prose-wide max-h-[32rem] min-h-[18rem] flex-1 lg:max-h-none lg:min-h-0"
+              ? "max-h-[calc(100svh-16rem)] min-h-[10rem]"
               : "max-h-[min(24rem,50vh)]"
           )}
           onChange={onContentChange}

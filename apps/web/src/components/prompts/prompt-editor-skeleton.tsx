@@ -4,6 +4,7 @@ import { Skeleton } from "@anpord/ui/components/skeleton";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { ArrowUpIcon } from "@phosphor-icons/react";
+import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
 import { PromptRailSkeleton } from "@/components/prompts/prompt-rail-skeleton";
 import { SkeletonLines } from "@/components/prompts/skeleton-lines";
 
@@ -20,9 +21,9 @@ interface PromptEditorSkeletonProps {
  */
 export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col pt-6 lg:absolute lg:inset-0 lg:top-14">
-      <div className="px-6 lg:pr-[2.125rem] xl:px-8 xl:pr-[2.625rem]">
-        <header className="mx-auto flex w-full max-w-[1600px] shrink-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border-surface bg-sidebar-accent/50 px-4 py-3 shadow-raised">
+    <PromptEditorLayout
+      header={
+        <header className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border-surface bg-sidebar-accent/50 px-4 py-3 shadow-raised">
           <div className="flex min-w-0 items-center gap-3">
             <Skeleton className="h-6 w-44" />
             <CopyableId className="shrink-0" value={promptId} />
@@ -42,22 +43,20 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
             </ShortcutButton>
           </div>
         </header>
-      </div>
+      }
+    >
+      <main className="flex min-h-0 min-w-0 flex-col">
+        <div className="flex min-h-0 w-full flex-1 flex-col">
+          <ComposerSurface className="min-h-0 flex-1">
+            <SkeletonLines
+              className="gap-3.5 px-4 pt-4 pb-2"
+              widths={BODY_LINES}
+            />
+          </ComposerSurface>
+        </div>
+      </main>
 
-      <div className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-6 overflow-y-auto px-6 py-6 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden lg:pr-0 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8 xl:px-8 xl:pr-0">
-        <main className="flex min-h-0 min-w-0 flex-col">
-          <div className="flex min-h-0 w-full flex-1 flex-col">
-            <ComposerSurface className="min-h-0 flex-1">
-              <SkeletonLines
-                className="gap-3.5 px-4 pt-4 pb-2"
-                widths={BODY_LINES}
-              />
-            </ComposerSurface>
-          </div>
-        </main>
-
-        <PromptRailSkeleton promptId={promptId} />
-      </div>
-    </div>
+      <PromptRailSkeleton promptId={promptId} />
+    </PromptEditorLayout>
   );
 }

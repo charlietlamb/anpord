@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
+import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
 import { PromptEditorSkeleton } from "@/components/prompts/prompt-editor-skeleton";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
@@ -217,8 +218,8 @@ function PromptDetailPage() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col pt-6 lg:absolute lg:inset-0 lg:top-14">
-      <div className="px-6 lg:pr-[2.125rem] xl:px-8 xl:pr-[2.625rem]">
+    <PromptEditorLayout
+      header={
         <PromptEditorHeader
           correctingVersion={correcting ? viewed.version : null}
           dirty={dirty}
@@ -233,41 +234,39 @@ function PromptDetailPage() {
           saving={addVersion.isPending || correctVersion.isPending}
           viewingVersion={editing ? null : viewed.version}
         />
-      </div>
-
-      <div className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-6 overflow-y-auto px-6 py-6 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden lg:pr-0 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8 xl:px-8 xl:pr-0">
-        <main className="flex min-h-0 min-w-0 flex-col">
-          <PromptComposer
-            content={content}
-            filename={`${id}.md`}
-            fill
-            onContentChange={setDraft}
-            onEditRequest={onEditRequest}
-            onSubmit={onSave}
-            readOnly={!editing}
-            saving={addVersion.isPending}
-            submitIcon={ArrowUpIcon}
-            submitLabel="Save version"
-          />
-        </main>
-
-        <PromptRail
-          channels={channels.data ?? []}
-          channelsPending={channels.isPending}
-          editing={editing}
-          onAddChannel={onAddChannel}
-          onEditFrom={() => editFrom(viewed)}
-          onPoint={onPoint}
-          onPromote={() => onPoint(PRODUCTION, viewed.version)}
-          onSelect={(version: ResolvedPrompt) =>
-            setSelection({ kind: "history", version: version.version })
-          }
-          pointing={promote.isPending}
-          variables={extractVariables(content)}
-          versions={rows}
-          viewed={viewed}
+      }
+    >
+      <main className="flex min-h-0 min-w-0 flex-col">
+        <PromptComposer
+          content={content}
+          filename={`${id}.md`}
+          fill
+          onContentChange={setDraft}
+          onEditRequest={onEditRequest}
+          onSubmit={onSave}
+          readOnly={!editing}
+          saving={addVersion.isPending}
+          submitIcon={ArrowUpIcon}
+          submitLabel="Save version"
         />
-      </div>
-    </div>
+      </main>
+
+      <PromptRail
+        channels={channels.data ?? []}
+        channelsPending={channels.isPending}
+        editing={editing}
+        onAddChannel={onAddChannel}
+        onEditFrom={() => editFrom(viewed)}
+        onPoint={onPoint}
+        onPromote={() => onPoint(PRODUCTION, viewed.version)}
+        onSelect={(version: ResolvedPrompt) =>
+          setSelection({ kind: "history", version: version.version })
+        }
+        pointing={promote.isPending}
+        variables={extractVariables(content)}
+        versions={rows}
+        viewed={viewed}
+      />
+    </PromptEditorLayout>
   );
 }

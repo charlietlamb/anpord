@@ -45,7 +45,7 @@ export function PromptRail({
   const oldest = versions.at(-1) ?? viewed;
 
   return (
-    <aside className="order-2 flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-6 xl:pr-8">
+    <aside className="order-2 flex min-h-0 flex-col gap-3 lg:overflow-y-auto lg:overscroll-contain">
       <RailCard
         action={
           <Badge className="tabular-nums" size="xs" variant="secondary">

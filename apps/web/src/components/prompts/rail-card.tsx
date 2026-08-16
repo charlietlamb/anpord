@@ -1,5 +1,6 @@
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
+import { CardHeader } from "@/components/prompts/card-header";
 
 interface RailCardProps {
   readonly action?: ReactNode;
@@ -20,10 +21,7 @@ export function RailCard({
 }: RailCardProps) {
   return (
     <section className="shrink-0 overflow-clip rounded-xl border border-border-surface bg-sidebar-accent/50 shadow-raised">
-      <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-border-surface border-b bg-[color-mix(in_oklab,var(--sidebar-accent)_50%,var(--background))] px-3.5 py-1.5">
-        <h2 className="font-heading text-sm tracking-[-0.015em]">{title}</h2>
-        {action}
-      </header>
+      <CardHeader action={action} sticky title={title} />
       <div className={cn("px-3.5 py-3", className)}>{children}</div>
     </section>
   );
