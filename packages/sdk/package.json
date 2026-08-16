@@ -1,6 +1,6 @@
 {
   "name": "anpord",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "TypeScript SDK and CLI for Anpord — prompt management for AI products.",
   "license": "MIT",
   "type": "module",
@@ -54,7 +54,8 @@
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test --pass-with-no-tests",
     "lint:publish": "publint --strict",
-    "prepublishOnly": "bun run build"
+    "prepack": "bun run build && node ../../scripts/resolve-catalog.mjs package.json",
+    "postpack": "node ../../scripts/resolve-catalog.mjs package.json restore"
   },
   "devDependencies": {
     "@anpord/schema": "workspace:*",

@@ -101,7 +101,11 @@
       "project": "src/**"
     }
   },
-  "ignore": ["context/**", "scripts/server-workspace-deps.mjs"],
+  "ignore": [
+    "context/**",
+    "scripts/resolve-catalog.mjs",
+    "scripts/server-workspace-deps.mjs"
+  ],
   "ignoreBinaries": ["lsof"],
   "ignoreDependencies": [
     "@base-ui/react",
