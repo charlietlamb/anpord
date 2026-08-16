@@ -1,6 +1,6 @@
 {
   "name": "anpord",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript SDK and CLI for Anpord — prompt management for AI products.",
   "license": "MIT",
   "type": "module",
