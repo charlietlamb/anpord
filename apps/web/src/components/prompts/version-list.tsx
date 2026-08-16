@@ -48,10 +48,12 @@ export function VersionList({
     }
   };
 
+  /* Three rows and a sliver of the fourth, so a long history reads as
+     scrollable rather than filling the rail. */
   return (
     <div
       aria-label="Versions"
-      className="flex flex-col divide-y divide-border-surface"
+      className="flex max-h-[17rem] flex-col divide-y divide-border-surface overflow-y-auto overscroll-contain"
       onKeyDown={move}
       role="listbox"
     >
