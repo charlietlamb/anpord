@@ -59,10 +59,10 @@ export function ConfirmDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="sm:justify-stretch">
           <AlertDialogAction
             className={cn(
-              "gap-1.5",
+              "w-full gap-1.5",
               destructive && buttonVariants({ variant: "destructive" })
             )}
             disabled={pending}

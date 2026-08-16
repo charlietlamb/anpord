@@ -52,7 +52,7 @@ export function ChannelsCard({
       ))}
 
       <Button
-        className="h-8 w-full justify-start gap-2 px-3.5 font-normal text-[0.8125rem] text-muted-foreground"
+        className="h-8 w-full justify-start gap-2 rounded-none px-3.5 font-normal text-[0.8125rem] text-muted-foreground"
         disabled={pointing}
         onClick={onAddChannel}
         variant="ghost"

@@ -29,7 +29,7 @@ export function ChannelRow({
       <DropdownMenuTrigger
         render={
           <Button
-            className="h-8 w-full justify-between gap-2 px-3.5 font-normal"
+            className="h-8 w-full justify-between gap-2 rounded-none px-3.5 font-normal focus-visible:ring-0 focus-visible:ring-offset-0 data-[popup-open]:bg-sidebar-accent"
             disabled={disabled}
             variant="ghost"
           />

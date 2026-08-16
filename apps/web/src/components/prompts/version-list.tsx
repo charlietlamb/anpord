@@ -51,7 +51,7 @@ export function VersionList({
   return (
     <div
       aria-label="Versions"
-      className="flex max-h-[min(28rem,45vh)] flex-col divide-y divide-border-surface overflow-y-auto overscroll-contain"
+      className="flex flex-col divide-y divide-border-surface"
       onKeyDown={move}
       role="listbox"
     >
