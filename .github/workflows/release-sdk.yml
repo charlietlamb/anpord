@@ -1,0 +1,86 @@
+name: Release SDK
+
+# A tag rather than a branch push, so publishing is a deliberate act and the
+# published version is always reachable from a specific commit.
+on:
+  push:
+    tags: ["sdk-v*"]
+
+concurrency:
+  group: release-sdk
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # npm trusts this workflow directly through OIDC, so there is no token to
+      # store or rotate. The same identity signs the provenance attestation.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      # npm does the publishing: bun cannot exchange the OIDC token trusted
+      # publishing relies on. Trusted publishing needs npm 11.5.1 or later,
+      # which is newer than the version bundled with Node 24.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - run: npm install --global npm@latest
+
+      - run: bun install --frozen-lockfile
+
+      # A tag that disagrees with the manifest would publish a version nobody
+      # asked for, and npm versions cannot be replaced once taken.
+      - name: Verify the tag matches the package version
+        run: |
+          TAGGED="${GITHUB_REF_NAME#sdk-v}"
+          PACKAGED="$(node -p "require('./packages/sdk/package.json').version")"
+          if [ "$TAGGED" != "$PACKAGED" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match packages/sdk version ${PACKAGED}."
+            exit 1
+          fi
+          echo "Publishing anpord@${PACKAGED}"
+
+      # The same gates as CI: a tag can be pushed without a green run behind it,
+      # so the release re-proves the workspace rather than trusting the branch.
+      - run: bun run build
+      - run: bun run check
+      - run: bun run typecheck
+      - run: bun run test
+
+      - name: Verify the package is publishable
+        run: bun run --cwd packages/sdk lint:publish
+
+      # Republishing an existing version fails the job, so a re-run of an
+      # already-released tag stops here rather than erroring at the registry.
+      - name: Verify the version is unpublished
+        run: |
+          VERSION="$(node -p "require('./packages/sdk/package.json').version")"
+          if npm view "anpord@${VERSION}" version >/dev/null 2>&1; then
+            echo "anpord@${VERSION} is already on npm. Bump the version and tag again."
+            exit 1
+          fi
+
+      # No NODE_AUTH_TOKEN: npm exchanges this job's OIDC identity for a
+      # short-lived credential, and provenance is implied by that exchange.
+      - name: Publish
+        run: npm publish --access public
+        working-directory: packages/sdk
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./packages/sdk/package.json').version")"
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "anpord v${VERSION}" \
+            --notes "\`npm install anpord@${VERSION}\`" \
+            --verify-tag

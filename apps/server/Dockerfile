@@ -48,6 +48,7 @@ COPY --from=install /app/packages/auth/node_modules ./packages/auth/node_modules
 COPY --from=install /app/packages/cache/node_modules ./packages/cache/node_modules
 COPY --from=install /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=install /app/packages/ids/node_modules ./packages/ids/node_modules
+COPY --from=install /app/packages/notifications/node_modules ./packages/notifications/node_modules
 COPY --from=install /app/packages/prompts/node_modules ./packages/prompts/node_modules
 COPY --from=install /app/packages/schema/node_modules ./packages/schema/node_modules
 

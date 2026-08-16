@@ -1,7 +1,7 @@
 {
   "name": "anpord",
   "version": "0.1.0",
-  "description": "TypeScript SDK and CLI for Anpord \u2014 prompt management for AI products.",
+  "description": "TypeScript SDK and CLI for Anpord — prompt management for AI products.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -34,10 +34,13 @@
   },
   "keywords": [
     "anpord",
-    "configuration",
-    "feature-flags",
+    "prompts",
+    "prompt-management",
+    "versioning",
     "ai",
-    "sdk"
+    "llm",
+    "sdk",
+    "cli"
   ],
   "homepage": "https://anpord.com",
   "engines": {
@@ -55,8 +58,8 @@
   },
   "devDependencies": {
     "@anpord/schema": "workspace:*",
-    "publint": "0.3.22",
-    "tsdown": "0.22.14",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
@@ -67,5 +70,13 @@
   },
   "bin": {
     "anpord": "./dist/cli.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charlietlamb/anpord.git",
+    "directory": "packages/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/charlietlamb/anpord/issues"
   }
 }

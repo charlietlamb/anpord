@@ -57,7 +57,14 @@ jobs:
           docker push "$REGISTRY/$ECR_REPO:latest"
           docker push "$REGISTRY/$ECR_REPO:${{ github.sha }}"
 
-      - name: Deploy
+      # The auth server mints MCP tokens for whatever this names, so leaving it
+      # unset issues tokens for localhost that the MCP server then rejects. It
+      # is merged into the existing environment rather than written over it,
+      # because update-service replaces the whole map and would otherwise drop
+      # the database URL and every secret alongside it.
+      - name: Set MCP_RESOURCE_URL on the service
+        env:
+          MCP_RESOURCE_URL: ${{ vars.MCP_RESOURCE_URL }}
         run: |
           ARN="$(aws apprunner list-services --region "$AWS_REGION" \
             --query "ServiceSummaryList[?ServiceName=='$APPRUNNER_SERVICE'].ServiceArn | [0]" \
@@ -66,6 +73,68 @@ jobs:
             echo "No service named $APPRUNNER_SERVICE; create it first (see DEPLOY.md)."
             exit 1
           fi
+
+          WANTED="${MCP_RESOURCE_URL:-https://mcp.anpord.com/mcp}"
+
+          aws apprunner describe-service --service-arn "$ARN" --region "$AWS_REGION" \
+            --query 'Service.SourceConfiguration' --output json > /tmp/source-current.json
+
+          # The whole ImageRepository block is carried over untouched apart from
+          # the one variable, so Port, StartCommand and the secret references
+          # survive an update that would otherwise replace them wholesale.
+          MCP_RESOURCE_URL="$WANTED" node -e "
+            const fs = require('node:fs');
+            const source = JSON.parse(fs.readFileSync('/tmp/source-current.json', 'utf8'));
+            const repository = source.ImageRepository;
+            if (!repository) {
+              console.error('Service is not image-based; refusing to rewrite its source.');
+              process.exit(1);
+            }
+            const image = repository.ImageConfiguration ?? {};
+            const env = image.RuntimeEnvironmentVariables ?? {};
+            if (env.MCP_RESOURCE_URL === process.env.MCP_RESOURCE_URL) {
+              fs.writeFileSync('/tmp/unchanged', '');
+              process.exit(0);
+            }
+            fs.writeFileSync('/tmp/source.json', JSON.stringify({
+              ImageRepository: {
+                ...repository,
+                ImageConfiguration: {
+                  ...image,
+                  RuntimeEnvironmentVariables: {
+                    ...env,
+                    MCP_RESOURCE_URL: process.env.MCP_RESOURCE_URL,
+                  },
+                },
+              },
+              AutoDeploymentsEnabled: source.AutoDeploymentsEnabled ?? false,
+            }));
+          "
+
+          if [ -f /tmp/unchanged ]; then
+            echo "MCP_RESOURCE_URL already set to $WANTED"
+            exit 0
+          fi
+
+          aws apprunner update-service --service-arn "$ARN" --region "$AWS_REGION" \
+            --source-configuration file:///tmp/source.json >/dev/null
+          echo "Set MCP_RESOURCE_URL=$WANTED"
+
+          # update-service is asynchronous and start-deployment is rejected while
+          # the service is still updating, so the next step has to wait.
+          for _ in $(seq 1 40); do
+            STATUS="$(aws apprunner describe-service --service-arn "$ARN" \
+              --region "$AWS_REGION" --query 'Service.Status' --output text)"
+            [ "$STATUS" = "RUNNING" ] && break
+            echo "waiting for update: $STATUS"
+            sleep 15
+          done
+
+      - name: Deploy
+        run: |
+          ARN="$(aws apprunner list-services --region "$AWS_REGION" \
+            --query "ServiceSummaryList[?ServiceName=='$APPRUNNER_SERVICE'].ServiceArn | [0]" \
+            --output text)"
           aws apprunner start-deployment --service-arn "$ARN" --region "$AWS_REGION" >/dev/null
           echo "Deploying to $ARN"
 

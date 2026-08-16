@@ -26,19 +26,32 @@ the script deliberately does not create on your behalf:
 **An access role**, so App Runner may pull from ECR. In the console this is
 offered as "Create new service role" when you pick a private ECR image.
 
-**The environment variables**, set on the service:
+**The environment variables**, set on the service.
+
+The five marked *secret* are stored in Secrets Manager under `anpord/server/<NAME>`
+and referenced by the service as `RuntimeEnvironmentSecrets`, so their values never
+appear in the service configuration. Reading them needs the instance role
+`AppRunnerAnpordInstanceRole`, whose inline policy grants
+`secretsmanager:GetSecretValue` on `anpord/server/*` and nothing else. Rotate one
+with `aws secretsmanager put-secret-value --secret-id anpord/server/<NAME>`; the
+service picks it up on its next deployment.
+
+Rotating `BETTER_AUTH_SECRET` additionally invalidates every session, and the
+`jwks` row holds a key encrypted with it — delete that row after rotating so
+Better Auth generates a fresh one, or MCP token signing breaks.
 
 | Variable | Notes |
 | --- | --- |
-| `DATABASE_URL` | Neon. Include `?sslmode=require` |
-| `REDIS_URL` | Upstash TCP endpoint, unquoted |
-| `BETTER_AUTH_SECRET` | |
+| `DATABASE_URL` | *secret*. Neon. Include `?sslmode=require` |
+| `REDIS_URL` | *secret*. Upstash TCP endpoint, unquoted |
+| `BETTER_AUTH_SECRET` | *secret*. 48 random bytes, base64url |
 | `BETTER_AUTH_URL` | The App Runner URL, once known |
 | `WEB_URL` | `https://anpord.com` |
 | `AUTH_TRUSTED_ORIGINS` | `https://anpord.com` |
 | `GITHUB_CLIENT_ID` | |
-| `GITHUB_CLIENT_SECRET` | |
-| `RESEND_API_KEY` | |
+| `GITHUB_CLIENT_SECRET` | *secret* |
+| `MCP_RESOURCE_URL` | `https://mcp.anpord.com/mcp`. Set by the deploy workflow from the `MCP_RESOURCE_URL` repository variable, so it only needs setting here to change it. Without it the auth server issues tokens for `http://localhost:3010/mcp` and the MCP client rejects them |
+| `RESEND_API_KEY` | *secret* |
 | `EMAIL_FROM` | |
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
@@ -93,7 +106,14 @@ cd dist && mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy
 git; the key is an `anp_` key minted against the organization the server should
 act for.
 
-Live at `https://wild-wave-dxlyk.run.mcp-use.com/mcp`.
+Live at `https://mcp.anpord.com/mcp`. The generated `*.run.mcp-use.com` slug
+stops routing once the custom domain verifies, so the domain is the only URL a
+client should be given.
+
+Tokens are opaque, so the server resolves each one at the authorization server
+rather than verifying a signature. It also has to hand the SDK the resource the
+token was issued for; without that binding every authenticated call is refused
+and the connector lists no tools.
 
 ## CLI
 

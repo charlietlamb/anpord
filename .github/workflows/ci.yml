@@ -52,3 +52,18 @@ jobs:
             fi
           done
           exit "$missing"
+
+      # Copying a manifest only installs the package's dependencies in the build
+      # stage. A workspace member the server imports whose node_modules never
+      # reaches the release stage builds and pushes cleanly, then fails at
+      # startup on a missing package and rolls the deployment back.
+      - name: Verify the server image copies the node_modules it depends on
+        run: |
+          missing=0
+          for package in $(node scripts/server-workspace-deps.mjs); do
+            if ! grep -qF "/app/${package}/node_modules " apps/server/Dockerfile; then
+              echo "apps/server/Dockerfile does not copy ${package}/node_modules"
+              missing=1
+            fi
+          done
+          exit "$missing"
