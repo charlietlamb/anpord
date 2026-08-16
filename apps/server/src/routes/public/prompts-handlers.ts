@@ -6,7 +6,7 @@ import { CurrentActor } from "@anpord/schema/authentication";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
-import { toHttpError } from "../../http/prompt-errors";
+import { withPromptErrors } from "../../http/prompt-errors";
 import { fromPublicCreate, fromPublicUpdate } from "./from-public";
 import { answeringChannel, selectorFor } from "./selector";
 import { toPublicPrompt, toPublicSummary, toPublicVersion } from "./to-public";
@@ -40,7 +40,7 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
 
           const history = yield* authoring.listVersions(actor, payload.id);
           return { ...publicPrompt, versions: history.map(toPublicVersion) };
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("list", () =>
         Effect.gen(function* () {
@@ -48,7 +48,7 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
           const catalog = yield* PromptCatalog;
           const rows = yield* catalog.list(actor);
           return { data: rows.map(toPublicSummary) };
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
@@ -59,7 +59,7 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
             fromPublicCreate(payload)
           );
           return toPublicPrompt(created);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("update", ({ payload }) =>
         Effect.gen(function* () {
@@ -71,7 +71,7 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
             fromPublicUpdate(payload)
           );
           return toPublicPrompt(version);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("promote", ({ payload }) =>
         Effect.gen(function* () {
@@ -82,7 +82,7 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
             version: payload.version,
           });
           return OK;
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("archive", ({ payload }) =>
         Effect.gen(function* () {
@@ -90,6 +90,6 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
           const catalog = yield* PromptCatalog;
           yield* catalog.archive(actor, payload.id);
           return OK;
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
 );

@@ -4,7 +4,7 @@ import { Effect } from "effect";
 
 type PromptHttpError = Conflict | NotFound;
 
-export const toHttpError = (
+const toHttpError = (
   error: PromptError
 ): Effect.Effect<never, PromptHttpError> => {
   switch (error._tag) {
@@ -42,3 +42,7 @@ export const toHttpError = (
       return Effect.die(error satisfies never);
   }
 };
+
+export const withPromptErrors = <A, R>(
+  effect: Effect.Effect<A, PromptError, R>
+) => Effect.catchAll(effect, toHttpError);

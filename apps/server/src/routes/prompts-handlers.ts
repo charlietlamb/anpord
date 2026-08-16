@@ -6,7 +6,7 @@ import { AnpordApi } from "@anpord/schema/api";
 import { CurrentActor } from "@anpord/schema/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
-import { toHttpError } from "../http/prompt-errors";
+import { withPromptErrors } from "../http/prompt-errors";
 
 export const PromptsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -18,55 +18,55 @@ export const PromptsHandlers = HttpApiBuilder.group(
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
           return yield* catalog.list(actor);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("create", ({ payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
           return yield* catalog.create(actor, payload);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("archive", ({ path }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
           return yield* catalog.archive(actor, path.id);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("get", ({ path, urlParams }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const resolution = yield* PromptResolution;
           return yield* resolution.get(actor, path.id, urlParams);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("addVersion", ({ path, payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const authoring = yield* PromptAuthoring;
           return yield* authoring.addVersion(actor, path.id, payload);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("listVersions", ({ path }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const authoring = yield* PromptAuthoring;
           return yield* authoring.listVersions(actor, path.id);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("update", ({ path, payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const catalog = yield* PromptCatalog;
           return yield* catalog.update(actor, path.id, payload);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
       .handle("setChannel", ({ path, payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           const publishing = yield* PromptPublishing;
           return yield* publishing.setChannel(actor, path.id, payload);
-        }).pipe(Effect.catchAll(toHttpError))
+        }).pipe(withPromptErrors)
       )
 );
