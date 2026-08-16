@@ -20,6 +20,7 @@
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
     "@anpord/notifications": "workspace:*",
+    "@anpord/schema": "workspace:*",
     "@better-auth/api-key": "catalog:",
     "@better-auth/drizzle-adapter": "catalog:",
     "better-auth": "catalog:",
