@@ -51,6 +51,8 @@ jobs:
         env:
           ANPORD_API_URL: ${{ vars.ANPORD_API_URL }}
           ANPORD_AUTH_URL: ${{ vars.ANPORD_AUTH_URL }}
+          MANUFACT_ORG_ID: ${{ secrets.MANUFACT_ORG_ID }}
+          MANUFACT_SERVER_ID: ${{ secrets.MANUFACT_SERVER_ID }}
           MCP_RESOURCE_URL: ${{ vars.MCP_RESOURCE_URL }}
         run: |
           cd apps/mcp/dist
@@ -59,6 +61,13 @@ jobs:
             echo "ANPORD_AUTH_URL=${ANPORD_AUTH_URL:-https://www.anpord.com/api/auth}"
             echo "MCP_RESOURCE_URL=${MCP_RESOURCE_URL:-https://mcp.anpord.com/mcp}"
           } > .env.deploy
+
+          # Bundling clears dist, and without this file a deploy creates a new
+          # server rather than replacing the one already serving the domain.
+          mkdir -p .mcp-use/cloud
+          printf '{"organizationId":"%s","serverId":"%s","sourceType":"managed"}' \
+            "$MANUFACT_ORG_ID" "$MANUFACT_SERVER_ID" > .mcp-use/cloud/link.json
+
           mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy --yes
 
       # A server that answers an anonymous request is one that lost its OAuth
