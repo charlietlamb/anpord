@@ -1,4 +1,5 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { Button } from "@anpord/ui/components/button";
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { initials } from "@anpord/ui/lib/initials";
 import { cn } from "@anpord/ui/lib/utils";
@@ -26,18 +27,17 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
   const label = version.commitMessage ?? preview(version.content);
 
   return (
-    <button
+    <Button
       aria-selected={viewing}
       className={cn(
-        "flex w-full flex-col gap-1 rounded-lg border px-2.5 py-2 text-left outline-none transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-ring/50",
+        "h-auto w-full flex-col items-stretch gap-1 rounded-none border-border-surface border-b px-3.5 py-2.5 text-left last:border-b-0",
         viewing
-          ? "border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground"
-          : "border-transparent hover:bg-muted/50"
+          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+          : "hover:bg-sidebar-accent/60"
       )}
       onClick={onSelect}
       role="option"
-      type="button"
+      variant="ghost"
     >
       <span className="flex items-baseline gap-2">
         <span className="font-medium text-[0.8125rem] tabular-nums">
@@ -71,6 +71,6 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
           {when}
         </time>
       </span>
-    </button>
+    </Button>
   );
 }

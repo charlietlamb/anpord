@@ -377,6 +377,7 @@
    * gently rather than dominating the way document headings do.
    */
   .prompt-prose .tiptap {
+    min-height: 100%;
     outline: none;
   }
   /* A full-width page would otherwise run the line past a readable measure. */

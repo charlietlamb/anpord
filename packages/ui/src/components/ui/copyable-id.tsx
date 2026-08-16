@@ -1,6 +1,7 @@
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { Badge } from "@anpord/ui/components/ui/badge";
+import { Button } from "@anpord/ui/components/button";
 import { cn } from "@anpord/ui/lib/utils";
 
 interface CopyableIdProps {
@@ -19,10 +20,11 @@ export function CopyableId({ className, value }: CopyableIdProps) {
         className
       )}
       render={
-        <button
+        <Button
           aria-label={copied ? `Copied ${value}` : `Copy ${value}`}
+          className="h-auto rounded-[inherit] px-0 py-0 font-normal hover:bg-transparent"
           onClick={() => copy(value)}
-          type="button"
+          variant="ghost"
         />
       }
       size="sm"

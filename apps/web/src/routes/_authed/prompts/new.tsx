@@ -35,7 +35,7 @@ function NewPromptPage() {
 
     setSaving(true);
     try {
-      await createPrompt({ content, id, name } as never);
+      await createPrompt({ content: content.trim(), id, name } as never);
       toast.success("Prompt created", { description: "Live on production." });
       navigate({ params: { id }, to: "/prompts/$id" });
     } catch (error) {

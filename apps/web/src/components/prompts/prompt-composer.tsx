@@ -1,3 +1,4 @@
+import { Button } from "@anpord/ui/components/button";
 import {
   ComposerContext,
   ComposerSurface,
@@ -23,6 +24,8 @@ interface PromptComposerProps {
   /** Grows into the page instead of sitting at its own height. */
   readonly fill?: boolean;
   readonly onContentChange: (value: string) => void;
+  /** Called when someone tries to write into content that is read-only. */
+  readonly onEditRequest?: () => void;
   readonly onSubmit: () => void;
   readonly readOnly?: boolean;
   readonly saving: boolean;
@@ -42,6 +45,7 @@ export function PromptComposer({
   content,
   fill,
   onContentChange,
+  onEditRequest,
   onSubmit,
   readOnly,
   saving,
@@ -66,7 +70,15 @@ export function PromptComposer({
         )}
       </ComposerContext>
 
-      <ComposerSurface className={cn(fill && "min-h-0 flex-1")}>
+      <ComposerSurface className={cn("relative", fill && "min-h-0 flex-1")}>
+        {readOnly && onEditRequest ? (
+          <Button
+            aria-label="Edit from this version"
+            className="absolute inset-0 z-10 h-auto cursor-text rounded-none hover:bg-transparent"
+            onClick={onEditRequest}
+            variant="ghost"
+          />
+        ) : null}
         <MarkdownEditor
           className={cn(
             "overflow-y-auto overscroll-contain px-4 pt-4 pb-2 text-[0.9375rem] leading-7",

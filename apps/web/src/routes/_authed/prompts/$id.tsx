@@ -10,6 +10,7 @@ import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
 import { PromptEditorSkeleton } from "@/components/prompts/prompt-editor-skeleton";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
+import { useDialog } from "@/lib/dialog/dialogs";
 import { promptQueries } from "@/lib/query/prompt-queries";
 import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";
 import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";
@@ -28,6 +29,8 @@ type Selection =
 
 function PromptDetailPage() {
   const { id } = Route.useParams();
+
+  const { open: openDialog } = useDialog();
 
   const versions = useQuery(promptQueries.versions(id));
   const channels = useQuery(promptQueries.channels(id));
@@ -56,11 +59,13 @@ function PromptDetailPage() {
     : (rows.find((row) => row.version === selection.version) ?? latest);
 
   const content = editing ? (draft ?? latest.content) : viewed.content;
-  const dirty = editing && draft !== null && draft !== latest.content;
+  /** Trailing whitespace is an artefact of typing, not an edit worth a version. */
+  const submitted = content.trim();
+  const dirty = editing && submitted !== latest.content.trim();
 
   const onSave = () =>
     addVersion.mutate(
-      { content },
+      { content: submitted },
       {
         onError: (error) =>
           toast.error("Couldn't save the version", {
@@ -76,11 +81,27 @@ function PromptDetailPage() {
       }
     );
 
-  const onEditFrom = () => {
-    setDraft(viewed.content);
+  const editFrom = (from: ResolvedPrompt) => {
+    setDraft(from.content);
     setSelection({ kind: "draft" });
-    toast.success(`Editing from v${viewed.version}`, {
+    toast.success(`Editing from v${from.version}`, {
       description: "Save to add it as a new version.",
+    });
+  };
+
+  /**
+   * History is read-only, so typing in it asks first: the edit becomes a new
+   * version rather than a change to the one being read.
+   */
+  const onEditRequest = () => {
+    if (editing) {
+      return;
+    }
+    openDialog("confirm", {
+      confirmLabel: `Edit from v${viewed.version}`,
+      description: `Saving adds a new version with these changes. v${viewed.version} stays as it is.`,
+      onConfirm: () => editFrom(viewed),
+      title: `Edit from v${viewed.version}?`,
     });
   };
 
@@ -101,6 +122,7 @@ function PromptDetailPage() {
             content={content}
             fill
             onContentChange={setDraft}
+            onEditRequest={onEditRequest}
             onSubmit={onSave}
             readOnly={!editing}
             saving={addVersion.isPending}
@@ -112,7 +134,7 @@ function PromptDetailPage() {
         <PromptRail
           channels={channels.data ?? []}
           editing={editing}
-          onEditFrom={onEditFrom}
+          onEditFrom={() => editFrom(viewed)}
           onPromote={(channel) =>
             promote.mutate(
               { channel, version: viewed.version },

@@ -10,6 +10,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
 import { PromptRail } from "@/components/prompts/prompt-rail";
+import { useDialog } from "@/lib/dialog/dialogs";
 
 export const Route = createFileRoute("/dev/editor")({
   component: EditorPreview,
@@ -44,6 +45,8 @@ const CHANNELS = [
 
 function EditorPreview() {
   const [content, setContent] = useState(BODY);
+  const [editing, setEditing] = useState(true);
+  const { open: openDialog } = useDialog();
 
   return (
     <DashboardShell sidebarOpen>
@@ -63,7 +66,17 @@ function EditorPreview() {
               content={content}
               fill
               onContentChange={setContent}
+              onEditRequest={() =>
+                openDialog("confirm", {
+                  confirmLabel: "Edit from v8",
+                  description:
+                    "Saving adds a new version with these changes. v8 stays as it is.",
+                  onConfirm: () => setEditing(true),
+                  title: "Edit from v8?",
+                })
+              }
               onSubmit={() => undefined}
+              readOnly={!editing}
               saving={false}
               submitIcon={ArrowUpIcon}
               submitLabel="Save version"
@@ -72,7 +85,7 @@ function EditorPreview() {
 
           <PromptRail
             channels={CHANNELS}
-            editing
+            editing={editing}
             onEditFrom={() => undefined}
             onPromote={() => undefined}
             onSelect={() => undefined}
