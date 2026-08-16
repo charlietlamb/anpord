@@ -8,6 +8,7 @@ import { MarkdownEditor } from "@anpord/ui/components/editor/markdown-editor";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { extractVariables } from "@anpord/ui/lib/prompt-variables";
+import { cn } from "@anpord/ui/lib/utils";
 import type { Icon } from "@phosphor-icons/react";
 import {
   BracketsCurlyIcon,
@@ -19,6 +20,8 @@ import type { ReactNode } from "react";
 interface PromptComposerProps {
   readonly children?: ReactNode;
   readonly content: string;
+  /** Grows into the page instead of sitting at its own height. */
+  readonly fill?: boolean;
   readonly onContentChange: (value: string) => void;
   readonly onSubmit: () => void;
   readonly readOnly?: boolean;
@@ -37,6 +40,7 @@ interface PromptComposerProps {
 export function PromptComposer({
   children,
   content,
+  fill,
   onContentChange,
   onSubmit,
   readOnly,
@@ -49,7 +53,7 @@ export function PromptComposer({
   const canSubmit = content.trim().length > 0 && !(saving || readOnly);
 
   return (
-    <div className="w-full">
+    <div className={cn("flex w-full flex-col", fill && "min-h-0 flex-1")}>
       <ComposerContext>
         {children}
         {version === undefined ? null : (
@@ -62,9 +66,14 @@ export function PromptComposer({
         )}
       </ComposerContext>
 
-      <ComposerSurface>
+      <ComposerSurface className={cn(fill && "min-h-0 flex-1")}>
         <MarkdownEditor
-          className="max-h-[min(24rem,50vh)] overflow-y-auto px-4 pt-4 pb-2 text-[0.9375rem] leading-7"
+          className={cn(
+            "overflow-y-auto overscroll-contain px-4 pt-4 pb-2 text-[0.9375rem] leading-7",
+            fill
+              ? "prompt-prose-wide min-h-[24rem] flex-1 lg:min-h-0"
+              : "max-h-[min(24rem,50vh)]"
+          )}
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."
           readOnly={readOnly}

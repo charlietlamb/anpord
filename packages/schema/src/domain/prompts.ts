@@ -78,6 +78,14 @@ export const ResolvedPrompt = Schema.Struct({
 });
 export type ResolvedPrompt = typeof ResolvedPrompt.Type;
 
+export const ChannelPlacement = Schema.Struct({
+  channel: ChannelName,
+  updatedAt: Timestamp,
+  updatedBy: Schema.NullOr(Author),
+  version: VersionNumber,
+});
+export type ChannelPlacement = typeof ChannelPlacement.Type;
+
 export const PromptSummary = Schema.Struct({
   description: Schema.NullOr(Schema.String),
   id: PromptId,

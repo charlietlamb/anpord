@@ -379,6 +379,10 @@
   .prompt-prose .tiptap {
     outline: none;
   }
+  /* A full-width page would otherwise run the line past a readable measure. */
+  .prompt-prose-wide .tiptap {
+    max-width: 78ch;
+  }
   .prompt-prose .tiptap > * + * {
     margin-top: 0.7em;
   }

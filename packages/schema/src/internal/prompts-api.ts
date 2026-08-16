@@ -4,6 +4,7 @@ import { Conflict, NotFound } from "../domain/errors";
 import {
   AddVersionRequest,
   ChannelName,
+  ChannelPlacement,
   CreatePromptRequest,
   PromptId,
   PromptSummary,
@@ -48,6 +49,11 @@ export class PromptsGroup extends HttpApiGroup.make("prompts")
     HttpApiEndpoint.get("listVersions", "/prompts/:id/versions")
       .setPath(PromptPath)
       .addSuccess(Schema.Array(ResolvedPrompt))
+  )
+  .add(
+    HttpApiEndpoint.get("listChannels", "/prompts/:id/channels")
+      .setPath(PromptPath)
+      .addSuccess(Schema.Array(ChannelPlacement))
   )
   .add(
     HttpApiEndpoint.put("setChannel", "/prompts/:id/channels")

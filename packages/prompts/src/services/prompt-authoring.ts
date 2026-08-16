@@ -6,8 +6,10 @@ import type {
 } from "@anpord/schema/domain/prompts";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer } from "effect";
+import { answeringChannels } from "../domain/answering-channels";
 import type { PromptError } from "../domain/errors";
 import { toResolved } from "../domain/views";
+import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
 import { PromptCache } from "./prompt-cache";
@@ -35,6 +37,7 @@ export const PromptAuthoringLive = Layer.effect(
   Effect.gen(function* () {
     const prompts = yield* PromptRepository;
     const versions = yield* PromptVersionRepository;
+    const channels = yield* PromptChannelRepository;
     const publishing = yield* PromptPublishing;
     const promptCache = yield* PromptCache;
 
@@ -79,10 +82,17 @@ export const PromptAuthoringLive = Layer.effect(
       listVersions: (actor, id) =>
         Effect.gen(function* () {
           const row = yield* requirePrompt(prompts, actor, id);
-          const rows = yield* versions.list(row.internalId);
+          const [rows, placements] = yield* Effect.all([
+            versions.list(row.internalId),
+            channels.list(row.internalId),
+          ]);
+
+          const channelOf = yield* answeringChannels(placements);
 
           return yield* Effect.all(
-            rows.map((version) => toResolved(row, null, version))
+            rows.map((version) =>
+              toResolved(row, channelOf(version.internalId), version)
+            )
           );
         }).pipe(
           Effect.withSpan("PromptAuthoring.listVersions"),

@@ -48,7 +48,7 @@ function NewPromptPage() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center overflow-y-auto px-6 py-10">
       <ComposerHeading />
 
       <PromptComposer

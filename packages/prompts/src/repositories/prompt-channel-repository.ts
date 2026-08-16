@@ -11,7 +11,21 @@ import type { PromptStoreError } from "../domain/errors";
 import type { VersionRow } from "./prompt-version-repository";
 import { head, tryStore } from "./query";
 
+export interface ChannelRow {
+  readonly channel: string;
+  readonly updatedAt: Date;
+  readonly updatedBy: {
+    readonly image: string | null;
+    readonly name: string;
+  } | null;
+  readonly version: number;
+  readonly versionInternalId: string;
+}
+
 export interface PromptChannelRepositoryShape {
+  readonly list: (
+    promptInternalId: string
+  ) => Effect.Effect<readonly ChannelRow[], PromptStoreError>;
   readonly move: (input: {
     readonly actorId: string;
     readonly channel: ChannelName;
@@ -36,6 +50,26 @@ export const PromptChannelRepositoryLive = Layer.effect(
     const ids = yield* IdGenerator;
 
     return {
+      list: (promptInternalId) =>
+        tryStore("promptChannel.list", () =>
+          db
+            .select({
+              channel: promptChannel.name,
+              updatedAt: promptChannel.updatedAt,
+              updatedBy: { image: user.image, name: user.name },
+              version: promptVersion.version,
+              versionInternalId: promptChannel.versionInternalId,
+            })
+            .from(promptChannel)
+            .innerJoin(
+              promptVersion,
+              eq(promptChannel.versionInternalId, promptVersion.internalId)
+            )
+            .leftJoin(user, eq(user.id, promptChannel.updatedBy))
+            .where(eq(promptChannel.promptInternalId, promptInternalId))
+            .orderBy(promptChannel.name)
+        ),
+
       resolve: (promptInternalId, channel) =>
         tryStore("promptChannel.resolve", () =>
           db

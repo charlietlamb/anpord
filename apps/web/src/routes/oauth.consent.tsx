@@ -1,19 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { ConsentCard } from "@/components/auth/consent-card";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { authClient, useSession } from "@/lib/auth-client";
-
-const fetchClientName = async (clientId: string) => {
-  const response = await fetch(
-    `/api/oauth/clients/${encodeURIComponent(clientId)}`
-  );
-  if (!response.ok) {
-    return;
-  }
-  const client = (await response.json()) as { name?: string };
-  return client.name;
-};
+import { oauthClientQueries } from "@/lib/query/oauth-client-queries";
 
 export const Route = createFileRoute("/oauth/consent")({
   component: ConsentPage,
@@ -33,22 +23,7 @@ function ConsentPage() {
   const { client_id, scope } = Route.useSearch();
   const { data: session, isPending } = useSession();
   const { data: organization } = authClient.useActiveOrganization();
-  const [name, setName] = useState<string>();
-
-  useEffect(() => {
-    if (!client_id) {
-      return;
-    }
-    let active = true;
-    fetchClientName(client_id).then((resolved) => {
-      if (active) {
-        setName(resolved);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [client_id]);
+  const { data: name } = useQuery(oauthClientQueries.name(client_id));
 
   if (!(isPending || session?.user)) {
     return <Navigate replace to="/login" />;

@@ -1,140 +1,141 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { ArrowUpIcon, TextTIcon } from "@phosphor-icons/react";
+import { extractVariables } from "@anpord/ui/lib/prompt-variables";
+import { ArrowUpIcon } from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { ComposerHeading } from "@/components/prompts/composer-heading";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
-import { VersionHistory } from "@/components/prompts/version-history";
-import { addVersion, listVersions } from "@/lib/prompts-client";
+import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
+import { PromptEditorSkeleton } from "@/components/prompts/prompt-editor-skeleton";
+import { PromptRail } from "@/components/prompts/prompt-rail";
+import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
+import { promptQueries } from "@/lib/query/prompt-queries";
+import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";
+import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";
 
 export const Route = createFileRoute("/_authed/prompts/$id")({
   component: PromptDetailPage,
 });
 
 /**
- * The newest version is the working copy; older ones open read-only so an edit
- * can never overwrite history. Restoring copies content forward as a draft.
+ * Editing the working copy and reading a past version are different acts, so a
+ * selection names which one rather than overloading a nullable version number.
  */
+type Selection =
+  | { readonly kind: "draft" }
+  | { readonly kind: "history"; readonly version: number };
+
 function PromptDetailPage() {
   const { id } = Route.useParams();
-  const [versions, setVersions] = useState<readonly ResolvedPrompt[] | null>(
-    null
-  );
-  const [viewing, setViewing] = useState<number | null>(null);
-  const [content, setContent] = useState("");
-  const [saving, setSaving] = useState(false);
 
-  const load = useCallback(async () => {
-    const rows = await listVersions(id);
-    setVersions(rows);
-    setViewing(null);
-    setContent(rows.at(0)?.content ?? "");
-  }, [id]);
+  const versions = useQuery(promptQueries.versions(id));
+  const channels = useQuery(promptQueries.channels(id));
+  const addVersion = useAddPromptVersion(id);
 
-  useEffect(() => {
-    load().catch((error: unknown) => {
-      toast.error("Couldn't load the prompt", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-      setVersions([]);
-    });
-  }, [load]);
+  /** Holding the draft rather than seeding it from the fetch is what keeps a
+   * background refetch from overwriting text mid-sentence. */
+  const [draft, setDraft] = useState<string | null>(null);
+  const [selection, setSelection] = useState<Selection>({ kind: "draft" });
 
-  const latest = versions?.at(0) ?? null;
-  const viewed =
-    viewing === null
-      ? latest
-      : (versions?.find((row) => row.version === viewing) ?? latest);
-  const readOnly = viewing !== null;
+  const promote = useSetPromptChannel(id);
 
-  const onSubmit = async () => {
-    setSaving(true);
-    try {
-      const next = await addVersion(id, { content, publish: true });
-      toast.success(`Saved v${next.version}`, {
-        description: "Live on production.",
-      });
-      await load();
-    } catch (error) {
-      toast.error("Couldn't save the version", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const rows = versions.data;
+  const latest = rows?.at(0) ?? null;
 
-  const onRestore = (version: ResolvedPrompt) => {
-    setViewing(null);
-    setContent(version.content);
-    toast.success(`Restored v${version.version}`, {
-      description: "Save to publish it as a new version.",
-    });
-  };
-
-  if (!(versions && latest)) {
-    return (
-      <div className="mx-auto flex w-full max-w-2xl flex-1 items-center justify-center px-6">
-        <p className="text-muted-foreground text-sm">
-          {versions === null ? "Loading…" : "Prompt not found."}
-        </p>
-      </div>
-    );
+  if (versions.isPending) {
+    return <PromptEditorSkeleton />;
+  }
+  if (!(rows && latest)) {
+    return <PromptUnavailable failed={versions.error !== null} />;
   }
 
-  const dirty = !readOnly && content !== latest.content;
+  const editing = selection.kind === "draft";
+  const viewed = editing
+    ? latest
+    : (rows.find((row) => row.version === selection.version) ?? latest);
+
+  const content = editing ? (draft ?? latest.content) : viewed.content;
+  const dirty = editing && draft !== null && draft !== latest.content;
+
+  const onSave = () =>
+    addVersion.mutate(
+      { content },
+      {
+        onError: (error) =>
+          toast.error("Couldn't save the version", {
+            description: error instanceof Error ? error.message : undefined,
+          }),
+        onSuccess: (created) => {
+          setDraft(null);
+          setSelection({ kind: "draft" });
+          toast.success(`Saved v${created.version}`, {
+            description: "Point a channel at it to publish.",
+          });
+        },
+      }
+    );
+
+  const onEditFrom = () => {
+    setDraft(viewed.content);
+    setSelection({ kind: "draft" });
+    toast.success(`Editing from v${viewed.version}`, {
+      description: "Save to add it as a new version.",
+    });
+  };
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
-      <ComposerHeading promptName={latest.name} />
-
-      <PromptComposer
-        content={readOnly ? (viewed?.content ?? "") : content}
-        onContentChange={setContent}
-        onSubmit={onSubmit}
-        readOnly={readOnly}
-        saving={saving}
-        submitIcon={ArrowUpIcon}
-        submitLabel="Save version"
-        version={viewed?.version}
-      >
-        <span className="flex min-w-0 items-center gap-1.5 px-1.5">
-          <TextTIcon className="size-4 shrink-0 text-muted-foreground" />
-          <span className="truncate font-medium text-sm">{latest.name}</span>
-          <span className="truncate font-mono text-muted-foreground/70 text-xs">
-            {latest.id}
-          </span>
-        </span>
-
-        {/* Saved is the resting state, so only the exceptions get a mark. */}
-        {dirty ? (
-          <span className="ml-auto flex shrink-0 items-center">
-            <span
-              aria-hidden="true"
-              className="size-1.5 rounded-full bg-amber-500"
-            />
-            <span className="sr-only">Unsaved changes</span>
-          </span>
-        ) : null}
-        {readOnly ? (
-          <span className="ml-auto shrink-0 pr-1 text-muted-foreground text-xs">
-            Read only
-          </span>
-        ) : null}
-      </PromptComposer>
-
-      <VersionHistory
-        liveVersion={latest.version}
-        onRestore={onRestore}
-        onSelect={(version) =>
-          setViewing(
-            version.version === latest.version ? null : version.version
-          )
-        }
-        selectedVersion={viewed?.version ?? null}
-        versions={versions}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <PromptEditorHeader
+        dirty={dirty}
+        name={latest.name}
+        onSave={onSave}
+        promptId={latest.id}
+        saving={addVersion.isPending}
+        viewingVersion={editing ? null : viewed.version}
       />
+
+      <div className="mx-auto grid min-h-0 w-full max-w-[1600px] flex-1 grid-cols-1 gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8 xl:px-8">
+        <main className="flex min-h-0 min-w-0 flex-col">
+          <PromptComposer
+            content={content}
+            fill
+            onContentChange={setDraft}
+            onSubmit={onSave}
+            readOnly={!editing}
+            saving={addVersion.isPending}
+            submitIcon={ArrowUpIcon}
+            submitLabel="Save version"
+          />
+        </main>
+
+        <PromptRail
+          channels={channels.data ?? []}
+          editing={editing}
+          onEditFrom={onEditFrom}
+          onPromote={(channel) =>
+            promote.mutate(
+              { channel, version: viewed.version },
+              {
+                onError: (error) =>
+                  toast.error("Couldn't move the channel", {
+                    description:
+                      error instanceof Error ? error.message : undefined,
+                  }),
+                onSuccess: () =>
+                  toast.success(`${channel} now serves v${viewed.version}`),
+              }
+            )
+          }
+          onSelect={(version: ResolvedPrompt) =>
+            setSelection({ kind: "history", version: version.version })
+          }
+          promoting={promote.isPending}
+          variables={extractVariables(content)}
+          versions={rows}
+          viewed={viewed}
+        />
+      </div>
     </div>
   );
 }

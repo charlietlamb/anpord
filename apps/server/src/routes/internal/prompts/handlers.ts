@@ -62,6 +62,13 @@ export const PromptsHandlers = HttpApiBuilder.group(
           return yield* catalog.update(actor, path.id, payload);
         }).pipe(withPromptErrors)
       )
+      .handle("listChannels", ({ path }) =>
+        Effect.gen(function* () {
+          const actor = yield* CurrentActor;
+          const publishing = yield* PromptPublishing;
+          return yield* publishing.listChannels(actor, path.id);
+        }).pipe(withPromptErrors)
+      )
       .handle("setChannel", ({ path, payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;

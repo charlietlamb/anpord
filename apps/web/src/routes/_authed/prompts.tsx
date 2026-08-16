@@ -5,10 +5,11 @@ export const Route = createFileRoute("/_authed/prompts")({
   staticData: { title: "Prompts" },
 });
 
-/** Fills the inset so child routes can centre themselves vertically. */
+/** Each route owns its own scrolling, so the editor can hold a fixed header
+ * above two panes that scroll independently. */
 function PromptsLayout() {
   return (
-    <div className="flex flex-1 flex-col overflow-auto">
+    <div className="flex min-h-0 flex-1 flex-col">
       <Outlet />
     </div>
   );

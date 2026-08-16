@@ -1,12 +1,14 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import type {
   ChannelName,
+  ChannelPlacement,
   PromptId,
   SetChannelRequest,
 } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import { VersionNotFound } from "../domain/errors";
+import { toPlacement } from "../domain/views";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
@@ -14,6 +16,10 @@ import { PromptCache } from "./prompt-cache";
 import { requirePrompt } from "./require-prompt";
 
 export interface PromptPublishingShape {
+  readonly listChannels: (
+    actor: Actor,
+    id: PromptId
+  ) => Effect.Effect<readonly ChannelPlacement[], PromptError>;
   readonly publishVersion: (input: {
     readonly actor: Actor;
     readonly channel: ChannelName;
@@ -68,6 +74,17 @@ export const PromptPublishingLive = Layer.effect(
 
     return {
       publishVersion,
+
+      listChannels: (actor, id) =>
+        Effect.gen(function* () {
+          const row = yield* requirePrompt(prompts, actor, id);
+          const rows = yield* channels.list(row.internalId);
+
+          return yield* Effect.all(rows.map(toPlacement));
+        }).pipe(
+          Effect.withSpan("PromptPublishing.listChannels"),
+          Effect.annotateLogs({ orgId: actor.organizationId, promptId: id })
+        ),
 
       setChannel: (actor, id, request) =>
         Effect.gen(function* () {
