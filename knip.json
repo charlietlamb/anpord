@@ -68,7 +68,12 @@
       "project": "src/**"
     },
     "packages/sdk": {
-      "entry": ["src/index.ts", "tsdown.config.ts"],
+      "entry": [
+        "src/index.ts",
+        "src/cli.ts",
+        "src/config.ts",
+        "tsdown.config.ts"
+      ],
       "project": "src/**"
     },
     "packages/ui": {
