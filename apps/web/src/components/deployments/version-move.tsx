@@ -8,18 +8,33 @@ interface VersionMoveProps {
   readonly to: number;
 }
 
+/**
+ * Where a channel moved, and which way.
+ *
+ * The arrow turns for a move backwards, which is all a rollback needs: the
+ * two numbers already say it, and a colour beside them would be the only one
+ * in the card.
+ */
 export function VersionMove({ className, from, to }: VersionMoveProps) {
+  const back = from !== null && to < from;
+
   return (
     <span
       className={cn(
         "flex items-center gap-1.5 text-muted-foreground text-xs tabular-nums",
         className
       )}
+      title={back ? `Rolled back from v${from} to v${to}` : undefined}
     >
       {from === null ? null : (
         <>
           <span>v{from}</span>
-          <ArrowRightIcon aria-hidden="true" size={11} weight="bold" />
+          <ArrowRightIcon
+            aria-hidden="true"
+            className={cn(back && "rotate-180")}
+            size={11}
+            weight="bold"
+          />
         </>
       )}
       <span className="text-foreground/80">v{to}</span>

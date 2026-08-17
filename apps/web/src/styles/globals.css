@@ -143,8 +143,8 @@
   --code-key: oklch(0.48 0.09 200);
   --code-string: oklch(0.48 0.11 150);
   --shadow-popover:
-    0 0 0 1px oklch(0 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 4%),
-    0 6px 14px oklch(0 0 0 / 6%);
+    0 0 0 1px var(--border-surface), 0 16px 32px oklch(0 0 0 / 10%),
+    0 4px 10px oklch(0 0 0 / 8%);
 }
 
 .dark {
@@ -158,7 +158,7 @@
   --sidebar-accent-foreground: oklch(0.97 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.779 0.117 213.7);
-  --popover: oklch(0.205 0.012 248);
+  --popover: oklch(0.295 0.012 248);
   --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.62 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
@@ -184,9 +184,12 @@
   --code-call: oklch(0.78 0.09 250);
   --code-key: oklch(0.76 0.08 200);
   --code-string: oklch(0.76 0.1 150);
+  /* A menu opens over the cards rather than beside them, so its edge has to
+     read against a raised surface, not the page. The ring matches the border
+     those cards carry and the shadow is deepened to seat it above them. */
   --shadow-popover:
-    0 0 0 1px oklch(1 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 12%),
-    0 6px 14px oklch(0 0 0 / 16%);
+    0 0 0 1px var(--border-surface), 0 1px 0 oklch(1 0 0 / 6%) inset,
+    0 16px 32px oklch(0 0 0 / 40%), 0 4px 10px oklch(0 0 0 / 30%);
   --input: oklch(1 0 0 / 20%);
   --ring: oklch(0.72 0 0);
 }

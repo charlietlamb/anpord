@@ -25,7 +25,7 @@ export function ChannelsScreen({
   rows,
 }: ChannelsScreenProps) {
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-y-auto px-6 py-10">
+    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-y-auto px-5 pt-5 pb-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl tracking-tight">Channels</h1>
@@ -69,12 +69,12 @@ function ChannelsBody({
   rows,
 }: ChannelsBodyProps) {
   if (isPending) {
-    return <p className="mt-6 text-muted-foreground text-sm">Loading…</p>;
+    return <p className="mt-5 text-muted-foreground text-sm">Loading…</p>;
   }
 
   if (error) {
     return (
-      <p className="mt-6 text-muted-foreground text-sm">
+      <p className="mt-5 text-muted-foreground text-sm">
         Couldn't load your channels. {error.message}
       </p>
     );
@@ -82,7 +82,7 @@ function ChannelsBody({
 
   if (rows.length === 0) {
     return (
-      <div className="mt-6 rounded-xl border border-border-surface border-dashed px-6 py-14 text-center">
+      <div className="mt-5 rounded-xl border border-border-surface border-dashed px-6 py-14 text-center">
         <p className="font-heading text-base tracking-tight">No channels yet</p>
         <p className="mt-1 text-muted-foreground text-sm">
           Create one to publish a version under a name.
@@ -94,7 +94,7 @@ function ChannelsBody({
   return (
     <div
       className={cn(
-        "mt-6 flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
+        "mt-5 flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
         ROW_DIVIDERS
       )}
     >

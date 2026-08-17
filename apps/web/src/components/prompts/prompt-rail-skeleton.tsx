@@ -4,9 +4,9 @@ import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";
 import { DetailRow } from "@/components/prompts/detail-row";
-import { RailCard } from "@/components/prompts/rail-card";
 import { UsageCard } from "@/components/prompts/usage-card";
 import { VersionListSkeleton } from "@/components/prompts/version-list-skeleton";
+import { RailCard } from "@/components/rail/rail-card";
 
 const DETAIL_LABELS = ["Identifier", "Created", "Last saved"];
 const CHANNEL_ROWS = ["production", "staging"];

@@ -23,7 +23,7 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
   return (
     <PromptEditorLayout
       header={
-        <header className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border-surface bg-sidebar-accent px-4 py-3 shadow-raised">
+        <header className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
           <div className="flex min-w-0 items-center gap-3">
             <Skeleton className="h-6 w-44" />
             <CopyableId className="shrink-0" value={promptId} />
@@ -45,7 +45,7 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
         </header>
       }
     >
-      <main className="flex min-w-0 flex-col">
+      <main className="relative flex min-h-[20rem] min-w-0 flex-col">
         <div className="flex w-full flex-col">
           <ComposerSurface className="min-h-[24rem]">
             <SkeletonLines

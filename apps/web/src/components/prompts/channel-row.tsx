@@ -54,9 +54,13 @@ export function ChannelRow({
         </span>
       </DropdownMenuTrigger>
 
+      {/* Rows of the same shape read as one block without a rule between them,
+          the way the version list in the rail is separated. */}
       <DropdownMenuContent
         align="start"
-        className="w-(--anchor-width) max-w-(--anchor-width)"
+        /* Parted by the faintest edge rather than the card's border: inside a
+           lifted surface that weight reads as a rule instead of a seam. */
+        className="w-(--anchor-width) max-w-(--anchor-width) p-0 [&>*:not(:first-child)]:border-t [&>*:not(:first-child)]:border-t-alpha-6 [&>*]:rounded-none"
       >
         {versions.map((row) => (
           <DropdownMenuItem

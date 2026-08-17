@@ -16,7 +16,7 @@ export function GeneralSettings() {
     >
       {activeOrganization ? (
         <form
-          className="max-w-2xl overflow-hidden rounded-xl border border-border"
+          className="overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent"
           onSubmit={(event) => {
             event.preventDefault();
             form.handleSubmit();

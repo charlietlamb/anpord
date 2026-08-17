@@ -11,7 +11,7 @@ import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { ChannelRow } from "@/components/prompts/channel-row";
-import { RailCard } from "@/components/prompts/rail-card";
+import { RailCard } from "@/components/rail/rail-card";
 import { channelQueries } from "@/lib/query/channel-queries";
 
 interface ChannelsCardProps {

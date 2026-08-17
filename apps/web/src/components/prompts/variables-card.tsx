@@ -1,5 +1,5 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
-import { RailCard } from "@/components/prompts/rail-card";
+import { RailCard } from "@/components/rail/rail-card";
 
 interface VariablesCardProps {
   readonly variables: readonly string[];

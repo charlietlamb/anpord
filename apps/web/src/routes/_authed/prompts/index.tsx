@@ -89,7 +89,7 @@ function PromptsPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-y-auto px-6 py-10">
+    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-y-auto px-5 pt-5 pb-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl tracking-tight">Prompts</h1>
@@ -106,7 +106,7 @@ function PromptsPage() {
         </Link>
       </div>
 
-      <div className="mt-6 flex items-center gap-2">
+      <div className="mt-5 flex items-center gap-2">
         <div className="min-w-0 flex-1">
           <PromptSearch onChange={setSearch} value={search} />
         </div>

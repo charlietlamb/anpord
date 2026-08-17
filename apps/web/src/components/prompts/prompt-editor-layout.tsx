@@ -15,13 +15,12 @@ export function PromptEditorLayout({
   header,
 }: PromptEditorLayoutProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-6">
-      <div className="mx-auto w-full max-w-5xl px-6 xl:px-8">{header}</div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-5">
+      <div className="mx-auto w-full max-w-4xl shrink-0 px-5 xl:px-6">
+        {header}
+      </div>
 
-      {/* The rail sets the height both columns share, so a long prompt
-          scrolls inside its own box rather than running on past the cards
-          beside it and leaving an empty column. */}
-      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-start gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-8 xl:px-8">
+      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 px-5 pt-4 pb-6 lg:grid-cols-[minmax(0,1fr)_16rem] xl:grid-cols-[minmax(0,1fr)_17rem] xl:gap-5 xl:px-6">
         {children}
       </div>
     </div>

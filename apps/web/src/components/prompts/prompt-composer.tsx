@@ -17,7 +17,7 @@ import {
   SpinnerGapIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { CardHeader } from "@/components/prompts/card-header";
+import { CardHeader } from "@/components/rail/card-header";
 
 interface PromptComposerProps {
   readonly children?: ReactNode;
@@ -61,7 +61,12 @@ export function PromptComposer({
   const canSubmit = content.trim().length > 0 && !(saving || readOnly);
 
   return (
-    <div className={cn("flex w-full flex-col", fill && "min-h-0")}>
+    <div
+      className={cn(
+        "flex w-full flex-col",
+        fill && "min-h-0 lg:absolute lg:inset-x-0 lg:top-0 lg:max-h-full"
+      )}
+    >
       {children || version !== undefined ? (
         <ComposerContext>
           {children}
@@ -96,9 +101,7 @@ export function PromptComposer({
         <MarkdownEditor
           className={cn(
             "overflow-y-auto overscroll-contain px-4 py-4 text-[0.9375rem] leading-7",
-            fill
-              ? "max-h-[calc(100svh-13rem)] min-h-[24rem]"
-              : "max-h-[min(24rem,50vh)]"
+            fill ? "" : "max-h-[min(24rem,50vh)]"
           )}
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."

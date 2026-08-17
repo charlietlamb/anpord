@@ -9,10 +9,10 @@ import { ArrowCounterClockwiseIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import { ChannelsCard } from "@/components/prompts/channels-card";
 import { DeploymentsCard } from "@/components/prompts/deployments-card";
 import { DetailsCard } from "@/components/prompts/details-card";
-import { RailCard } from "@/components/prompts/rail-card";
 import { UsageCard } from "@/components/prompts/usage-card";
 import { VariablesCard } from "@/components/prompts/variables-card";
 import { VersionList } from "@/components/prompts/version-list";
+import { RailCard } from "@/components/rail/rail-card";
 
 interface PromptRailProps {
   readonly channels: readonly ChannelPlacement[];
@@ -62,7 +62,7 @@ export function PromptRail({
           viewedVersion={viewed.version}
         />
         {editing ? null : (
-          <div className="flex gap-1.5 px-3 pt-1.5 pb-3">
+          <div className="flex gap-1.5 border-border-surface border-t bg-sidebar-accent p-2">
             <Button
               className="flex-1"
               onClick={onEditFrom}

@@ -1,5 +1,5 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
-import { RailCard } from "@/components/prompts/rail-card";
+import { RailCard } from "@/components/rail/rail-card";
 
 interface UsageCardProps {
   readonly promptId: string;

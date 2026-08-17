@@ -265,7 +265,7 @@ function PromptDetailPage() {
         />
       }
     >
-      <main className="flex min-w-0 flex-col">
+      <main className="relative flex min-h-[20rem] min-w-0 flex-col">
         <PromptComposer
           content={content}
           filename={`${id}.md`}

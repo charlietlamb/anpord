@@ -3,7 +3,7 @@ import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { initials } from "@anpord/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { DetailRow } from "@/components/prompts/detail-row";
-import { RailCard } from "@/components/prompts/rail-card";
+import { RailCard } from "@/components/rail/rail-card";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface DetailsCardProps {

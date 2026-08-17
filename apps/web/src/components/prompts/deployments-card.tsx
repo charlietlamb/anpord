@@ -3,9 +3,8 @@ import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
 import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { DeploymentKindBadge } from "@/components/deployments/deployment-kind-badge";
 import { VersionMove } from "@/components/deployments/version-move";
-import { RailCard } from "@/components/prompts/rail-card";
+import { RailCard } from "@/components/rail/rail-card";
 import { deploymentQueries } from "@/lib/query/deployment-queries";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 import { useRelativeTime } from "@/lib/use-relative-time";
@@ -93,10 +92,6 @@ function CardRow({ deployment }: { readonly deployment: Deployment }) {
         from={deployment.fromVersion}
         to={deployment.toVersion}
       />
-
-      {deployment.kind === "rollback" ? (
-        <DeploymentKindBadge kind={deployment.kind} />
-      ) : null}
 
       <time
         className="ml-auto shrink-0 truncate whitespace-nowrap text-right text-muted-foreground text-xs tabular-nums"

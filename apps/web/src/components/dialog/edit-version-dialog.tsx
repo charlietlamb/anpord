@@ -36,7 +36,7 @@ export function EditVersionDialog({
     >
       <div className="flex flex-col gap-2">
         <Button
-          className="h-auto flex-col items-start gap-1 px-3.5 py-3 text-left"
+          className="h-auto w-full flex-col items-start gap-1 whitespace-normal px-3.5 py-3 text-left"
           onClick={choose(onEditFrom)}
           variant="outline"
         >
@@ -44,13 +44,13 @@ export function EditVersionDialog({
             <ArrowCounterClockwiseIcon size={15} />
             Edit from v{version}
           </span>
-          <span className="font-normal text-muted-foreground text-xs leading-snug">
+          <span className="w-full font-normal text-muted-foreground text-xs leading-snug">
             Saving adds a new version. v{version} stays as it is.
           </span>
         </Button>
 
         <Button
-          className="h-auto flex-col items-start gap-1 px-3.5 py-3 text-left"
+          className="h-auto w-full flex-col items-start gap-1 whitespace-normal px-3.5 py-3 text-left"
           onClick={choose(onCorrect)}
           variant="outline"
         >
@@ -58,7 +58,7 @@ export function EditVersionDialog({
             <PencilSimpleIcon size={15} />
             Overwrite v{version}
           </span>
-          <span className="font-normal text-muted-foreground text-xs leading-snug">
+          <span className="w-full font-normal text-muted-foreground text-xs leading-snug">
             {servedBy.length > 0
               ? `Replaces the content in place. ${servedBy.join(", ")} serves this version, so callers see the change.`
               : "Replaces the content in place, for fixing a mistake."}
