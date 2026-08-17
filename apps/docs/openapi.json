@@ -56,6 +56,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
           "404": {
             "description": "NotFound",
             "content": {
@@ -137,6 +147,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
                 }
               }
             }
@@ -226,6 +246,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
           "404": {
             "description": "NotFound",
             "content": {
@@ -307,6 +337,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
                 }
               }
             }
@@ -396,6 +436,16 @@
               }
             }
           },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
           "404": {
             "description": "NotFound",
             "content": {
@@ -477,6 +527,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
                 }
               }
             }
@@ -797,6 +857,25 @@
         },
         "additionalProperties": false
       },
+      "Forbidden": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Forbidden"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "Conflict": {
         "type": "object",
         "required": [
@@ -959,9 +1038,10 @@
           },
           "content": {
             "type": "string",
-            "description": "a string at least 1 character(s) long",
-            "title": "minLength(1)",
-            "minLength": 1
+            "description": "a string at most 262144 character(s) long",
+            "title": "maxLength(262144)",
+            "minLength": 1,
+            "maxLength": 262144
           },
           "description": {
             "type": "string"
@@ -1009,9 +1089,10 @@
           },
           "content": {
             "type": "string",
-            "description": "a string at least 1 character(s) long",
-            "title": "minLength(1)",
-            "minLength": 1
+            "description": "a string at most 262144 character(s) long",
+            "title": "maxLength(262144)",
+            "minLength": 1,
+            "maxLength": 262144
           },
           "id": {
             "type": "string",
