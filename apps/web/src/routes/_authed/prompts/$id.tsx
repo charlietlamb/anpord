@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LiveLine } from "@/components/prompts/live-line";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
 import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
@@ -20,8 +21,9 @@ import { useUpdatePrompt } from "@/lib/query/use-update-prompt";
 import { useUpdatePromptVersion } from "@/lib/query/use-update-prompt-version";
 
 export const Route = createFileRoute("/_authed/prompts/$id")({
-  component: PromptDetailPage,
-  staticData: { crumb: (params) => params.id },
+  /** The client fetches these: the API is addressed relatively, which has no
+   * base on the server, and the session cookie is the browser's to send. */
+  ssr: false,
   loader: async ({ context, params }) => {
     const { promptQueries: queries } = await import(
       "@/lib/query/prompt-queries"
@@ -31,6 +33,8 @@ export const Route = createFileRoute("/_authed/prompts/$id")({
       context.queryClient.ensureQueryData(queries.channels(params.id)),
     ]);
   },
+  component: PromptDetailPage,
+  staticData: { crumb: (params) => params.id },
 });
 
 /**
@@ -87,6 +91,11 @@ function PromptDetailPage() {
   const content = editing ? (draft ?? base.content) : viewed.content;
   const submitted = content.trim();
   const dirty = editing && submitted !== base.content.trim();
+
+  const livePlacement =
+    (channels.data ?? []).find(
+      (placement) => placement.channel === PRODUCTION
+    ) ?? null;
 
   const servedChannels = (version: number): readonly string[] =>
     (channels.data ?? []).reduce<string[]>((names, placement) => {
@@ -155,28 +164,58 @@ function PromptDetailPage() {
     });
   };
 
-  const pointChannel = (channel: string, version: number) =>
-    promote.mutate(
+  /** Where a channel sits now, which both the confirmation and the undo need
+   * and neither should recompute. */
+  const versionOn = (channel: string): number | null =>
+    (channels.data ?? []).find((placement) => placement.channel === channel)
+      ?.version ?? null;
+
+  const pointChannel = (channel: string, version: number) => {
+    const servedBefore = versionOn(channel);
+
+    return promote.mutate(
       { channel, version },
       {
         onError: (error) =>
           toast.error("Couldn't move the channel", {
             description: error instanceof Error ? error.message : undefined,
           }),
-        onSuccess: () => toast.success(`${channel} now serves v${version}`),
+        onSuccess: () =>
+          toast.success(`${channel} now serves v${version}`, {
+            action:
+              servedBefore === null
+                ? undefined
+                : {
+                    label: `Undo to v${servedBefore}`,
+                    onClick: () => pointChannel(channel, servedBefore),
+                  },
+          }),
       }
     );
+  };
 
+  /** Naming both ends is what makes this a decision rather than a restatement:
+   * a caller cannot tell a routine step forward from a rollback nine versions
+   * back without being told where the channel is now. */
   const onPoint = (channel: string, version: number) => {
+    const current = versionOn(channel);
+
     if (channel !== PRODUCTION) {
       pointChannel(channel, version);
       return;
     }
+
     openDialog("confirm", {
-      confirmLabel: `Point at v${version}`,
-      description: `Callers asking for production will receive v${version}.`,
+      confirmLabel: `Promote v${version}`,
+      description:
+        current === null
+          ? `Every caller asking for production will receive v${version}, immediately. You can point it elsewhere at any time. Versions are never overwritten.`
+          : `Production serves v${current}. Every caller will receive v${version} instead, immediately. You can point it back to v${current} at any time. Versions are never overwritten.`,
       onConfirm: () => pointChannel(channel, version),
-      title: `Point production at v${version}?`,
+      title:
+        current !== null && version < current
+          ? `Roll production back to v${version}?`
+          : `Promote v${version} to production?`,
     });
   };
 
@@ -219,6 +258,13 @@ function PromptDetailPage() {
         <PromptEditorHeader
           correctingVersion={correcting ? viewed.version : null}
           dirty={dirty}
+          live={
+            <LiveLine
+              pending={channels.isPending}
+              placement={livePlacement}
+              viewingVersion={viewed.version}
+            />
+          }
           name={latest.name}
           onCancelCorrection={() => {
             setDraft(null);

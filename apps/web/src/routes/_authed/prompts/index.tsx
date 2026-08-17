@@ -42,14 +42,17 @@ const filtersFrom = (search: Record<string, unknown>): PromptListFilters => ({
 });
 
 export const Route = createFileRoute("/_authed/prompts/")({
-  component: PromptsPage,
   loaderDeps: ({ search }) => filtersFrom(search),
+  /** The client fetches these: the API is addressed relatively, which has no
+   * base on the server, and the session cookie is the browser's to send. */
+  ssr: false,
   loader: async ({ context, deps }) => {
     const { promptQueries: queries } = await import(
       "@/lib/query/prompt-queries"
     );
     return context.queryClient.ensureInfiniteQueryData(queries.list(deps));
   },
+  component: PromptsPage,
 });
 
 /** Fetched on the client: the list is session-scoped and needs the cookie. */

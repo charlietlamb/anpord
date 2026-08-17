@@ -16,11 +16,16 @@ export function Analytics({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    import("@/components/layout/posthog-analytics").then((module) => {
-      if (mounted) {
-        setPostHog(() => module.PostHogAnalytics);
-      }
-    });
+    import("@/components/layout/posthog-analytics")
+      .then((module) => {
+        if (mounted) {
+          setPostHog(() => module.PostHogAnalytics);
+        }
+      })
+      .catch(() => {
+        /** Analytics that cannot load is a page without analytics, never a
+         * page that fails. */
+      });
     return () => {
       mounted = false;
     };
