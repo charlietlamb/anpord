@@ -5,10 +5,6 @@ import { Schema } from "effect";
  * granted `prompts:write` passes a `prompts:read` requirement without the grant
  * being listed twice.
  */
-export const RESOURCES = ["prompts", "channels", "apiKeys", "members"] as const;
-
-export type Resource = (typeof RESOURCES)[number];
-
 export const Permission = Schema.Literal(
   "prompts:read",
   "prompts:write",

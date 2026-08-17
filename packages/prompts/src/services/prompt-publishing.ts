@@ -70,7 +70,13 @@ export const PromptPublishingLive = Layer.effect(
             versionInternalId: input.versionInternalId,
           })
         );
-      });
+      }).pipe(
+        Effect.withSpan("PromptPublishing.publishVersion"),
+        Effect.annotateLogs({
+          orgId: input.actor.organizationId,
+          promptId: input.promptId,
+        })
+      );
 
     return {
       publishVersion,

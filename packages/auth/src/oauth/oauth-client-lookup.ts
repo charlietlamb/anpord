@@ -1,5 +1,5 @@
 import type { Database } from "@anpord/db/client";
-import { oauthApplication } from "@anpord/db/schema";
+import { oauthApplication } from "@anpord/db/schema/auth/oauth";
 import { eq } from "drizzle-orm";
 
 export async function findOAuthClientName(

@@ -12,15 +12,6 @@ interface RouteOptions {
 }
 
 /**
- * The same builder, with `.handle` taking the endpoint's permission between the
- * name and the handler. Required rather than optional, which is the point: a
- * route cannot be registered without someone deciding who may reach it.
- *
- * Every other member is passed through untouched, so the builder's own
- * exhaustiveness check — the one that reports "Endpoint not handled" — still
- * holds, and the handler keeps its inferred path, payload, and url params.
- */
-/**
  * The builder's own `handle`, with the permission between the name and the
  * handler. Written against the library's types rather than inferred from the
  * value, so the name stays checked against the endpoints still unhandled, the

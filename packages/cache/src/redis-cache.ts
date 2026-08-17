@@ -13,12 +13,10 @@ export const makeRedisCache = (
 ): CacheShape => ({
   get: <A, I>(key: string, schema: Schema.Schema<A, I>) =>
     Effect.tryPromise(() => redis.get(key)).pipe(
-      Effect.withSpan("Cache.read"),
       Effect.flatMap((raw) =>
         raw === null
           ? Effect.succeedNone
           : Schema.decodeUnknown(Schema.parseJson(schema))(raw).pipe(
-              Effect.withSpan("Cache.decode"),
               Effect.map(Option.some),
               Effect.catchAll((issue) =>
                 warn("cache payload no longer matches its schema", {
@@ -32,7 +30,8 @@ export const makeRedisCache = (
         warn("cache get failed", { cause: String(cause), key }).pipe(
           Effect.as(Option.none<A>())
         )
-      )
+      ),
+      Effect.withSpan("Cache.get")
     ),
 
   set: <A, I>(key: string, schema: Schema.Schema<A, I>, value: A) =>
@@ -43,7 +42,8 @@ export const makeRedisCache = (
       Effect.asVoid,
       Effect.catchAll((cause) =>
         warn("cache set failed", { cause: String(cause), key })
-      )
+      ),
+      Effect.withSpan("Cache.set")
     ),
 
   invalidatePrefix: (prefix: string) =>
@@ -65,6 +65,7 @@ export const makeRedisCache = (
     }).pipe(
       Effect.catchAll((cause) =>
         warn("cache invalidate failed", { cause: String(cause), prefix })
-      )
+      ),
+      Effect.withSpan("Cache.invalidatePrefix")
     ),
 });

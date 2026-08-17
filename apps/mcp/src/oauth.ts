@@ -1,4 +1,5 @@
 import { SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
+import { Clock, Duration, Effect } from "effect";
 import { OAuthError, OAuthErrorCode, oauthCustomProvider } from "mcp-use/oauth";
 import { authUrl, resource } from "./config";
 import type { AnpordUser } from "./tools";
@@ -18,12 +19,21 @@ interface McpSession {
 const invalid = (message: string) =>
   new OAuthError(OAuthErrorCode.InvalidToken, message);
 
+/** OAuth counts expiry in whole seconds, so a millisecond instant is floored
+ * rather than rounded: a token is never reported as living longer than it does. */
+const epochSeconds = (millis: number) =>
+  Math.floor(Duration.toSeconds(Duration.millis(millis)));
+
 const secondsUntil = (expiresAt: McpSession["accessTokenExpiresAt"]) => {
   if (expiresAt === undefined) {
-    return Math.floor(Date.now() / 1000) + FALLBACK_TTL_SECONDS;
+    return (
+      epochSeconds(Effect.runSync(Clock.currentTimeMillis)) +
+      FALLBACK_TTL_SECONDS
+    );
   }
-  const at = typeof expiresAt === "number" ? expiresAt : Date.parse(expiresAt);
-  return Math.floor(at / 1000);
+  return epochSeconds(
+    typeof expiresAt === "number" ? expiresAt : Date.parse(expiresAt)
+  );
 };
 
 const scopesOf = (scopes: McpSession["scopes"]) => {
