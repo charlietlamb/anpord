@@ -1,9 +1,11 @@
 import type { ConfirmDialogProps } from "@anpord/ui/components/dialog/confirm-dialog";
 import { createDialogSystem } from "@anpord/ui/components/dialog/create-dialog-system";
 import type { ChannelColor } from "@anpord/ui/lib/channel-colors";
+import type { ApplyPlacementsDialogProps } from "@/components/dialog/apply-placements-dialog";
 
 export interface DialogMap {
   apiKeyCreated: { apiKey: string; name: string };
+  applyPlacements: ApplyPlacementsDialogProps;
   channel: {
     color?: ChannelColor;
     name?: string;

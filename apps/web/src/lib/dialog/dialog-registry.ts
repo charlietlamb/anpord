@@ -14,6 +14,10 @@ const named = <K extends string>(
 ) => lazy(async () => ({ default: (await load())[name] }));
 
 export const dialogRegistry: DialogRegistry<DialogMap> = {
+  applyPlacements: named(
+    () => import("@/components/dialog/apply-placements-dialog"),
+    "ApplyPlacementsDialog"
+  ),
   apiKeyCreated: named(
     () => import("@/components/dialog/api-key-created-dialog"),
     "ApiKeyCreatedDialog"

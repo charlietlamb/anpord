@@ -3,7 +3,7 @@ import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
 import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { DeploymentKindBadge } from "@/components/deployments/deployment-kind-badge";
 import { VersionMove } from "@/components/deployments/version-move";
 import { RailCard } from "@/components/prompts/rail-card";
 import { deploymentQueries } from "@/lib/query/deployment-queries";
@@ -19,21 +19,7 @@ export function DeploymentsCard({ promptId }: DeploymentsCardProps) {
   const rows = deployments.data?.items ?? [];
 
   return (
-    <RailCard
-      action={
-        rows.length === 0 ? null : (
-          <Link
-            className="text-muted-foreground text-xs hover:text-foreground hover:underline"
-            search={{ prompt: promptId }}
-            to="/deployments"
-          >
-            All
-          </Link>
-        )
-      }
-      className="px-0 py-0"
-      title="Deployments"
-    >
+    <RailCard className="px-0 py-0" title="History">
       <DeploymentsCardBody
         failed={deployments.isError}
         isPending={deployments.isPending}
@@ -107,6 +93,10 @@ function CardRow({ deployment }: { readonly deployment: Deployment }) {
         from={deployment.fromVersion}
         to={deployment.toVersion}
       />
+
+      {deployment.kind === "rollback" ? (
+        <DeploymentKindBadge kind={deployment.kind} />
+      ) : null}
 
       <time
         className="ml-auto w-16 shrink-0 text-right text-muted-foreground text-xs tabular-nums"
