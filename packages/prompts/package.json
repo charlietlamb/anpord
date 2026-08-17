@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./errors": "./src/domain/errors.ts",
-    "./layer": "./src/layer.ts",
+    "./authoring": "./src/services/prompt-authoring.ts",
     "./catalog": "./src/services/prompt-catalog.ts",
     "./channels": "./src/services/channel-catalog.ts",
-    "./authoring": "./src/services/prompt-authoring.ts",
-    "./resolution": "./src/services/prompt-resolution.ts",
-    "./publishing": "./src/services/prompt-publishing.ts"
+    "./deployments": "./src/services/deployments.ts",
+    "./errors": "./src/domain/errors.ts",
+    "./layer": "./src/layer.ts",
+    "./publishing": "./src/services/prompt-publishing.ts",
+    "./resolution": "./src/services/prompt-resolution.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",

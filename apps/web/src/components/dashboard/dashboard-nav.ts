@@ -5,6 +5,7 @@ import {
   HouseIcon,
   type Icon,
   type IconWeight,
+  RocketLaunchIcon,
 } from "@phosphor-icons/react";
 
 export interface NavItem {
@@ -24,6 +25,11 @@ export const DASHBOARD_NAV: NavSection[] = [
   { items: [{ label: "Overview", icon: HouseIcon, to: "/" }] },
   { items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] },
   { items: [{ label: "Channels", icon: BroadcastIcon, to: "/channels" }] },
+  {
+    items: [
+      { label: "Deployments", icon: RocketLaunchIcon, to: "/deployments" },
+    ],
+  },
   { items: [{ label: "Settings", icon: GearIcon, to: "/settings" }] },
 ];
 
