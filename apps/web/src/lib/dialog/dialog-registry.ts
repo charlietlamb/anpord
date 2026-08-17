@@ -1,23 +1,53 @@
 import type { DialogRegistry } from "@anpord/ui/components/dialog/create-dialog-system";
-import { ApiKeyCreatedDialog } from "@/components/dialog/api-key-created-dialog";
-import { ConfirmDialog } from "@/components/dialog/app-confirm-dialog";
-import { ChannelDialog } from "@/components/dialog/channel-dialog";
-import { CreateOrganizationDialog } from "@/components/dialog/create-organization-dialog";
-import { EditPromptDialog } from "@/components/dialog/edit-prompt-dialog";
-import { EditVersionDialog } from "@/components/dialog/edit-version-dialog";
-import { InviteMemberDialog } from "@/components/dialog/invite-member-dialog";
-import { NewApiKeyDialog } from "@/components/dialog/new-api-key-dialog";
-import { NewChannelDialog } from "@/components/dialog/new-channel-dialog";
+import { type ComponentType, lazy } from "react";
 import type { DialogMap } from "@/lib/dialog/dialogs";
 
+/** Each dialog is a named export rather than a default, so the module has to be
+ * unwrapped before `lazy` will take it. `DialogRegistry<DialogMap>` is what ties
+ * each key to its own props; this only has to describe "a component". */
+// biome-ignore lint/suspicious/noExplicitAny: props are checked by the registry type
+type AnyDialog = ComponentType<any>;
+
+const named = <K extends string>(
+  load: () => Promise<Record<K, AnyDialog>>,
+  name: K
+) => lazy(async () => ({ default: (await load())[name] }));
+
 export const dialogRegistry: DialogRegistry<DialogMap> = {
-  apiKeyCreated: ApiKeyCreatedDialog,
-  newApiKey: NewApiKeyDialog,
-  channel: ChannelDialog,
-  confirm: ConfirmDialog,
-  createOrganization: CreateOrganizationDialog,
-  editPrompt: EditPromptDialog,
-  editVersion: EditVersionDialog,
-  inviteMember: InviteMemberDialog,
-  newChannel: NewChannelDialog,
+  apiKeyCreated: named(
+    () => import("@/components/dialog/api-key-created-dialog"),
+    "ApiKeyCreatedDialog"
+  ),
+  newApiKey: named(
+    () => import("@/components/dialog/new-api-key-dialog"),
+    "NewApiKeyDialog"
+  ),
+  channel: named(
+    () => import("@/components/dialog/channel-dialog"),
+    "ChannelDialog"
+  ),
+  confirm: named(
+    () => import("@/components/dialog/app-confirm-dialog"),
+    "ConfirmDialog"
+  ),
+  createOrganization: named(
+    () => import("@/components/dialog/create-organization-dialog"),
+    "CreateOrganizationDialog"
+  ),
+  editPrompt: named(
+    () => import("@/components/dialog/edit-prompt-dialog"),
+    "EditPromptDialog"
+  ),
+  editVersion: named(
+    () => import("@/components/dialog/edit-version-dialog"),
+    "EditVersionDialog"
+  ),
+  inviteMember: named(
+    () => import("@/components/dialog/invite-member-dialog"),
+    "InviteMemberDialog"
+  ),
+  newChannel: named(
+    () => import("@/components/dialog/new-channel-dialog"),
+    "NewChannelDialog"
+  ),
 };
