@@ -96,7 +96,9 @@ export function PromptComposer({
         <MarkdownEditor
           className={cn(
             "overflow-y-auto overscroll-contain px-4 py-4 text-[0.9375rem] leading-7",
-            fill ? "min-h-[26rem]" : "max-h-[min(24rem,50vh)]"
+            fill
+              ? "max-h-[calc(100svh-13rem)] min-h-[24rem]"
+              : "max-h-[min(24rem,50vh)]"
           )}
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."

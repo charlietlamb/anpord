@@ -25,7 +25,7 @@ export function ChannelsScreen({
   rows,
 }: ChannelsScreenProps) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col overflow-y-auto px-6 py-10">
+    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-y-auto px-6 py-10">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl tracking-tight">Channels</h1>
