@@ -7,11 +7,8 @@ import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { PromptFilterButton } from "@/components/prompts/prompt-filter-button";
 import { PromptSearch } from "@/components/prompts/prompt-search";
 import { PromptsBody } from "@/components/prompts/prompts-body";
+import type { PromptListFilters } from "@/lib/query/prompt-list-filters";
 import { promptQueries } from "@/lib/query/prompt-queries";
-
-export const Route = createFileRoute("/_authed/prompts/")({
-  component: PromptsPage,
-});
 
 /** Long enough that typing a word is one request rather than five, short
  * enough that the list still feels like it is following along. */
@@ -33,6 +30,33 @@ type Sort = (typeof SORT_OPTIONS)[number]["value"];
 
 const DEFAULT_STATUS: Status = "all";
 const DEFAULT_SORT: Sort = "updated";
+
+const filtersFrom = (search: Record<string, unknown>): PromptListFilters => ({
+  search: typeof search.q === "string" ? search.q : "",
+  sort: SORT_OPTIONS.some((option) => option.value === search.sort)
+    ? (search.sort as Sort)
+    : DEFAULT_SORT,
+  status: STATUS_OPTIONS.some((option) => option.value === search.status)
+    ? (search.status as Status)
+    : DEFAULT_STATUS,
+});
+
+export const Route = createFileRoute("/_authed/prompts/")({
+  component: PromptsPage,
+  /** Hovering a link starts the list fetch, so the click renders from cache
+   * rather than mounting and only then asking for the rows. The filters live in
+   * the URL, so the preloaded query is the one the page actually reads. */
+  loaderDeps: ({ search }) => filtersFrom(search),
+  /** Imported here rather than at the top of the file because a loader lives in
+   * the eagerly-loaded route module: a static import would pull the decoder,
+   * and Effect behind it, into the chunk every page waits for. */
+  loader: async ({ context, deps }) => {
+    const { promptQueries: queries } = await import(
+      "@/lib/query/prompt-queries"
+    );
+    return context.queryClient.ensureInfiniteQueryData(queries.list(deps));
+  },
+});
 
 /** Fetched on the client: the list is session-scoped and needs the cookie. */
 function PromptsPage() {

@@ -22,6 +22,18 @@ import { useUpdatePromptVersion } from "@/lib/query/use-update-prompt-version";
 export const Route = createFileRoute("/_authed/prompts/$id")({
   component: PromptDetailPage,
   staticData: { crumb: (params) => params.id },
+  /** Both reads start while the route chunk is still downloading, so opening a
+   * prompt from the list arrives with its history rather than a skeleton. The
+   * import is dynamic to keep the decoder out of the boot chunk. */
+  loader: async ({ context, params }) => {
+    const { promptQueries: queries } = await import(
+      "@/lib/query/prompt-queries"
+    );
+    return Promise.all([
+      context.queryClient.ensureQueryData(queries.versions(params.id)),
+      context.queryClient.ensureQueryData(queries.channels(params.id)),
+    ]);
+  },
 });
 
 /**
