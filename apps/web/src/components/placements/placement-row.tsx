@@ -17,20 +17,15 @@ interface PlacementRowProps {
 }
 
 export function PlacementRow({
-  channels,
   changeFor,
+  channels,
   onStage,
   onStageLatest,
   prompt,
 }: PlacementRowProps) {
-  const anyBehind = prompt.placements.some(
-    (placement) =>
-      prompt.latestVersion !== null && placement.version < prompt.latestVersion
-  );
-
   return (
     <TableRow className="group/row">
-      <TableCell className="sticky left-0 z-10 bg-sidebar-accent">
+      <TableCell className="px-4 py-2.5">
         <Link
           className="flex min-w-0 flex-col gap-0.5"
           params={{ id: prompt.id }}
@@ -45,29 +40,12 @@ export function PlacementRow({
         </Link>
       </TableCell>
 
-      <TableCell>
-        {prompt.latestVersion === null ? (
-          <span className="text-muted-foreground text-xs">No versions</span>
-        ) : (
-          <Button
-            className="h-7 gap-1.5 px-2 font-normal tabular-nums"
-            disabled={!anyBehind}
-            onClick={() => onStageLatest(prompt)}
-            size="sm"
-            title={
-              anyBehind
-                ? `Stage every channel on this row to v${prompt.latestVersion}`
-                : "Every channel is already on the newest version"
-            }
-            variant="ghost"
-          >
-            v{prompt.latestVersion}
-          </Button>
-        )}
+      <TableCell className="px-3 py-2.5">
+        <LatestButton onStageLatest={onStageLatest} prompt={prompt} />
       </TableCell>
 
       {channels.map((channel) => (
-        <TableCell className="group/cell p-0" key={channel}>
+        <TableCell className="p-0" key={channel}>
           <PlacementCell
             channel={channel}
             onStage={onStage}
@@ -77,5 +55,39 @@ export function PlacementRow({
         </TableCell>
       ))}
     </TableRow>
+  );
+}
+
+interface LatestButtonProps {
+  readonly onStageLatest: (prompt: PromptPlacements) => void;
+  readonly prompt: PromptPlacements;
+}
+
+/** Staging a whole row is the common act, so the newest version doubles as the
+ * control that moves every channel onto it. */
+function LatestButton({ onStageLatest, prompt }: LatestButtonProps) {
+  if (prompt.latestVersion === null) {
+    return <span className="text-muted-foreground text-xs">No versions</span>;
+  }
+
+  const behind = prompt.placements.some(
+    (placement) => placement.version < (prompt.latestVersion ?? 0)
+  );
+
+  return (
+    <Button
+      className="h-7 px-2 font-medium tabular-nums"
+      disabled={!behind}
+      onClick={() => onStageLatest(prompt)}
+      size="sm"
+      title={
+        behind
+          ? `Stage every channel on this row to v${prompt.latestVersion}`
+          : "Every channel is already on the newest version"
+      }
+      variant="ghost"
+    >
+      v{prompt.latestVersion}
+    </Button>
   );
 }

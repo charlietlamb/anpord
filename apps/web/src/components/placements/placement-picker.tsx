@@ -5,7 +5,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
-import { cn } from "@anpord/ui/lib/utils";
 import { CheckIcon } from "@phosphor-icons/react";
 import type { ReactElement } from "react";
 
@@ -13,12 +12,13 @@ interface PlacementPickerProps {
   readonly children: ReactElement;
   readonly latestVersion: number | null;
   readonly onPick: (version: number) => void;
-  /** What the channel serves now, which is what the check marks and what
-   * decides whether a row below it reads as a rollback. */
+  /** What the channel serves now, which is what the check marks. */
   readonly served: number | null;
   readonly versions: readonly ResolvedPrompt[];
 }
 
+/** The list the prompt rail already uses to point a channel, so pointing one
+ * from the grid is the act people know rather than a second one. */
 export function PlacementPicker({
   children,
   latestVersion,
@@ -30,35 +30,27 @@ export function PlacementPicker({
     <DropdownMenu>
       <DropdownMenuTrigger render={children} />
 
-      <DropdownMenuContent align="start" className="min-w-64">
+      <DropdownMenuContent align="start" className="min-w-72">
         {versions.length === 0 ? (
           <DropdownMenuItem disabled>No versions yet</DropdownMenuItem>
         ) : null}
 
-        {versions.map((row) => (
+        {versions.map((version) => (
           <DropdownMenuItem
-            className={cn(
-              "gap-2",
-              /** Anything below what is served now moves backwards, marked
-               * here so the half of the list that rolls back is visible
-               * before anything is clicked. */
-              served !== null &&
-                row.version < served &&
-                "border-l-2 border-l-amber-500"
-            )}
-            key={row.versionId}
-            onClick={() => onPick(row.version)}
+            className="gap-2"
+            key={version.versionId}
+            onClick={() => onPick(version.version)}
           >
             <span className="w-4 shrink-0">
-              {row.version === served ? (
+              {version.version === served ? (
                 <CheckIcon className="size-3.5" />
               ) : null}
             </span>
-            <span className="font-medium tabular-nums">v{row.version}</span>
+            <span className="font-medium tabular-nums">v{version.version}</span>
             <span className="min-w-0 flex-1 truncate text-muted-foreground">
-              {row.commitMessage ?? "No message"}
+              {version.commitMessage ?? "No message"}
             </span>
-            {row.version === latestVersion ? (
+            {version.version === latestVersion ? (
               <span className="shrink-0 text-muted-foreground text-xs">
                 latest
               </span>

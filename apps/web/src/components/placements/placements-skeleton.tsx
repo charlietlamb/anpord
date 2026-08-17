@@ -2,8 +2,8 @@ import { Skeleton } from "@anpord/ui/components/skeleton";
 import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
 
-/** Mirrors a row's two lines and three cells, so the grid does not resize as
- * it loads. */
+/** Mirrors a row's two lines and its cells, so the grid does not resize as it
+ * loads. */
 const ROWS = ["first", "second", "third", "fourth", "fifth"];
 const CELLS = ["one", "two", "three"];
 
@@ -11,7 +11,7 @@ export function PlacementsSkeleton() {
   return (
     <div
       className={cn(
-        "mt-6 flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
+        "overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
         ROW_DIVIDERS
       )}
     >
@@ -23,7 +23,7 @@ export function PlacementsSkeleton() {
           </div>
           <Skeleton className="h-4 w-8" />
           {CELLS.map((cell) => (
-            <Skeleton className="h-4 w-12" key={cell} />
+            <Skeleton className="h-4 w-16" key={cell} />
           ))}
         </div>
       ))}

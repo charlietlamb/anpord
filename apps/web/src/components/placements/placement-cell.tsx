@@ -4,9 +4,9 @@ import { cn } from "@anpord/ui/lib/utils";
 import { CaretUpDownIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { VersionMove } from "@/components/deployments/version-move";
 import { PlacementPicker } from "@/components/placements/placement-picker";
-import { isRollback, type StagedChange } from "@/lib/placements/staged-changes";
+import { VersionChange } from "@/components/placements/version-change";
+import type { StagedChange } from "@/lib/placements/staged-changes";
 import { promptQueries } from "@/lib/query/prompt-queries";
 
 interface PlacementCellProps {
@@ -30,8 +30,8 @@ export function PlacementCell({
     enabled: opened,
   });
 
-  const placement = prompt.placements.find((row) => row.channel === channel);
-  const served = placement?.version ?? null;
+  const served =
+    prompt.placements.find((row) => row.channel === channel)?.version ?? null;
   const behind =
     served !== null && prompt.latestVersion !== null
       ? prompt.latestVersion - served
@@ -53,85 +53,76 @@ export function PlacementCell({
       versions={versions.data ?? []}
     >
       <Button
-        aria-label={label({
+        aria-label={describe({
           behind,
           channel,
-          prompt: prompt.name,
+          name: prompt.name,
           served,
           staged,
         })}
         className={cn(
-          "h-auto w-full justify-between gap-2 rounded-none px-3 py-2.5 font-normal",
-          "focus-visible:ring-inset data-[popup-open]:bg-sidebar-accent",
-          staged &&
-            (isRollback(staged)
-              ? "border-l-2 border-l-amber-500 bg-amber-500/5"
-              : "border-l-2 border-l-primary bg-primary/5")
+          "h-9 w-full justify-between gap-2 rounded-none px-3 font-normal",
+          "data-[popup-open]:bg-muted",
+          staged && "bg-muted"
         )}
         onFocus={() => setOpened(true)}
         onPointerEnter={() => setOpened(true)}
         variant="ghost"
       >
-        <CellFace behind={behind} served={served} staged={staged} />
-        <CaretUpDownIcon className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover/cell:opacity-50" />
+        <CellValue behind={behind} served={served} staged={staged} />
+        <CaretUpDownIcon className="size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-60" />
       </Button>
     </PlacementPicker>
   );
 }
 
-function CellFace({
-  behind,
-  served,
-  staged,
-}: {
+interface CellValueProps {
   readonly behind: number;
   readonly served: number | null;
   readonly staged: StagedChange | undefined;
-}) {
+}
+
+/** A staged cell reads as its destination with the version it leaves behind
+ * struck through, so the change is legible without a second colour. */
+function CellValue({ behind, served, staged }: CellValueProps) {
   if (staged) {
-    return <VersionMove from={staged.from} to={staged.to} />;
+    return <VersionChange from={staged.from} to={staged.to} />;
   }
 
   if (served === null) {
-    return <span className="text-muted-foreground text-xs">Not set</span>;
+    return <span className="text-muted-foreground">Not set</span>;
   }
 
   return (
-    <span className="flex items-baseline gap-1.5">
-      <span className="font-medium text-[0.8125rem] tabular-nums">
-        v{served}
-      </span>
+    <span className="flex items-baseline gap-1.5 tabular-nums">
+      <span className="font-medium text-[0.8125rem]">v{served}</span>
       {behind > 0 ? (
-        <span
-          className="text-muted-foreground text-xs tabular-nums"
-          title={`${behind} ${behind === 1 ? "version" : "versions"} behind latest`}
-        >
-          ·{behind}
-        </span>
+        <span className="text-muted-foreground">{behind} behind</span>
       ) : null}
     </span>
   );
 }
 
-/** Spelled out because "v2 ·5" reads as nothing at all when it is spoken. */
-const label = ({
+/** Spelled out because "v2 5 behind" reads as nothing at all when spoken. */
+const describe = ({
   behind,
   channel,
-  prompt,
+  name,
   served,
   staged,
 }: {
   readonly behind: number;
   readonly channel: string;
-  readonly prompt: string;
+  readonly name: string;
   readonly served: number | null;
   readonly staged: StagedChange | undefined;
 }) => {
   if (staged) {
-    return `${prompt}, ${channel}, staged to move from ${staged.from === null ? "nothing" : `version ${staged.from}`} to version ${staged.to}`;
+    const from = staged.from === null ? "not set" : `version ${staged.from}`;
+    return `${name}, ${channel}, staged to move from ${from} to version ${staged.to}`;
   }
   if (served === null) {
-    return `${prompt}, ${channel}, not set`;
+    return `${name}, ${channel}, not set`;
   }
-  return `${prompt}, ${channel}, version ${served}${behind > 0 ? `, ${behind} behind latest` : ""}`;
+  return `${name}, ${channel}, version ${served}${behind > 0 ? `, ${behind} behind latest` : ""}`;
 };

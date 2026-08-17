@@ -7,12 +7,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@anpord/ui/components/ui/alert-dialog";
+import { Badge } from "@anpord/ui/components/ui/badge";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
-import { WarningIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import { VersionMove } from "@/components/deployments/version-move";
+import { VersionChange } from "@/components/placements/version-change";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 import { isRollback, type StagedChange } from "@/lib/placements/staged-changes";
 
@@ -24,15 +24,15 @@ export interface ApplyPlacementsDialogProps {
 const countOf = (count: number) =>
   `${count} ${count === 1 ? "change" : "changes"}`;
 
-/** Named separately from the count because the lede is about direction, and a
- * batch that only moves forward has nothing to warn about. */
+/** The lede is about direction, because a batch that only moves forward has
+ * nothing to warn about. */
 const ledeFor = (rollbacks: number) => {
   if (rollbacks === 0) {
     return "Callers receive the new version immediately.";
   }
-  return rollbacks === 1
-    ? "One channel moves backward. Callers receive the older version immediately."
-    : `${rollbacks} channels move backward. Callers receive the older versions immediately.`;
+  const subject =
+    rollbacks === 1 ? "One channel moves" : `${rollbacks} channels move`;
+  return `${subject} backward. Callers receive the older version immediately.`;
 };
 
 export function ApplyPlacementsDialog({
@@ -45,7 +45,7 @@ export function ApplyPlacementsDialog({
 
   const rollbacks = changes.filter(isRollback).length;
 
-  const handleConfirm = async () => {
+  const confirm = async () => {
     setPending(true);
     try {
       await onConfirm();
@@ -73,27 +73,10 @@ export function ApplyPlacementsDialog({
           )}
         >
           {changes.map((change) => (
-            <div
-              className="flex items-center gap-3 px-3 py-2.5"
+            <ChangeRow
+              change={change}
               key={`${change.promptId}:${change.channel}`}
-            >
-              <span className="w-4 shrink-0">
-                {isRollback(change) ? (
-                  <WarningIcon
-                    className="size-3.5 text-amber-500"
-                    weight="fill"
-                  />
-                ) : null}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-[0.8125rem]">
-                {change.promptName}
-                <span className="text-muted-foreground">
-                  {" "}
-                  · {change.channel}
-                </span>
-              </span>
-              <VersionMove from={change.from} to={change.to} />
-            </div>
+            />
           ))}
         </div>
 
@@ -106,12 +89,31 @@ export function ApplyPlacementsDialog({
           <AlertDialogAction
             className={cn(buttonVariants({ size: "sm" }))}
             disabled={pending}
-            onClick={handleConfirm}
+            onClick={confirm}
           >
             {pending ? "Applying…" : `Apply ${countOf(changes.length)}`}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function ChangeRow({ change }: { readonly change: StagedChange }) {
+  return (
+    <div className="flex items-center gap-3 px-3 py-2.5">
+      <span className="min-w-0 flex-1 truncate text-[0.8125rem]">
+        {change.promptName}
+        <span className="text-muted-foreground"> · {change.channel}</span>
+      </span>
+
+      {isRollback(change) ? (
+        <Badge size="xs" variant="outline">
+          Rollback
+        </Badge>
+      ) : null}
+
+      <VersionChange className="shrink-0" from={change.from} to={change.to} />
+    </div>
   );
 }

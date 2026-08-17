@@ -1,4 +1,7 @@
-import type { PromptPlacements } from "@anpord/schema/domain/placements";
+import type {
+  PlacementChange,
+  PromptPlacements,
+} from "@anpord/schema/domain/placements";
 
 /**
  * One pending move, holding both ends.
@@ -81,6 +84,25 @@ export const stageRowToLatest = (
 
   return next;
 };
+
+/** Where a staged move is going, as the API takes it. */
+export const toPlacementChange = (change: StagedChange) =>
+  ({
+    channel: change.channel,
+    promptId: change.promptId,
+    version: change.to,
+  }) as PlacementChange;
+
+/** Where a staged move came from, which is what undoing it points back at. A
+ * first deployment has nowhere to return to, so it is left out. */
+export const toReversal = (change: StagedChange) =>
+  change.from === null
+    ? null
+    : ({
+        channel: change.channel,
+        promptId: change.promptId,
+        version: change.from,
+      } as PlacementChange);
 
 /** Ordered so the review reads the way it should be read: what moves backwards
  * first, then everything else by prompt. */
