@@ -7,6 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "../auth/users";
 import { channel } from "./channels";
+import { promptRelease } from "./prompt-releases";
 import { promptVersion } from "./prompt-versions";
 import { prompt } from "./prompts";
 
@@ -20,9 +21,16 @@ export const promptChannel = pgTable(
     channelInternalId: text("channel_internal_id")
       .notNull()
       .references(() => channel.internalId, { onDelete: "restrict" }),
-    versionInternalId: text("version_internal_id")
+    releaseInternalId: text("release_internal_id")
       .notNull()
-      .references(() => promptVersion.internalId, { onDelete: "restrict" }),
+      .references(() => promptRelease.internalId, { onDelete: "restrict" }),
+    /** The version a pinned release serves, denormalised so listing prompts
+     * stays one join rather than a JSON read per row. Null while a rollout is
+     * running, because there is no single answer. */
+    versionInternalId: text("version_internal_id").references(
+      () => promptVersion.internalId,
+      { onDelete: "restrict" }
+    ),
     updatedBy: text("updated_by").references(() => user.id, {
       onDelete: "set null",
     }),

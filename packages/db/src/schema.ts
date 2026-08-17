@@ -15,6 +15,8 @@ import { verification } from "./schema/auth/verifications";
 import { channel } from "./schema/prompts/channels";
 import { promptChannelEvent } from "./schema/prompts/prompt-channel-events";
 import { promptChannel } from "./schema/prompts/prompt-channels";
+import { promptReleaseVersion } from "./schema/prompts/prompt-release-versions";
+import { promptRelease } from "./schema/prompts/prompt-releases";
 import { promptVersion } from "./schema/prompts/prompt-versions";
 import { prompt } from "./schema/prompts/prompts";
 
@@ -32,6 +34,8 @@ export const schema = {
   channel,
   promptChannel,
   promptChannelEvent,
+  promptRelease,
+  promptReleaseVersion,
   promptVersion,
   session,
   user,
