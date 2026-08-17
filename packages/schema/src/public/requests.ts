@@ -3,6 +3,7 @@ import {
   ChannelName,
   CommitMessage,
   PromptConfig,
+  PromptContent,
   PromptId,
   PromptName,
   VersionNumber,
@@ -34,7 +35,7 @@ export const ListPromptsRequest = Schema.Struct({}).annotations({
 
 export const CreatePromptRequest = Schema.Struct({
   config: Schema.optional(PromptConfig),
-  content: Schema.String.pipe(Schema.minLength(1)),
+  content: PromptContent,
   description: Schema.optional(Schema.String),
   id: PromptId,
   message: Schema.optional(CommitMessage),
@@ -46,7 +47,7 @@ export const CreatePromptRequest = Schema.Struct({
 
 export const UpdatePromptRequest = Schema.Struct({
   config: Schema.optional(PromptConfig),
-  content: Schema.String.pipe(Schema.minLength(1)),
+  content: PromptContent,
   id: PromptId,
   message: Schema.optional(CommitMessage),
 }).annotations({

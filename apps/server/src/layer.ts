@@ -10,6 +10,7 @@ import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
+import { VerifiedKeysLive } from "./http/authentication/verified-keys";
 import { TelemetryLive } from "./telemetry";
 
 const DatabaseLayer = DatabaseLive.pipe(Layer.provide(DatabaseConfigLive));
@@ -34,10 +35,16 @@ const PromptsServiceLayer = PromptsLayer.pipe(
   Layer.provide(Layer.mergeAll(DatabaseLayer, CacheLayer))
 );
 
+const VerifiedKeysLayer = VerifiedKeysLive.pipe(Layer.provide(AuthLayer));
+
 export const AppLayer = Layer.mergeAll(
+  /** The router reads the trusted origins to tell our own dashboard from
+   * another site driving a signed-in session. */
+  AuthConfigLive,
   ServerConfigLive,
   TelemetryLive,
   AuthLayer,
+  VerifiedKeysLayer,
   OrganizationLayer,
   DatabaseLayer,
   PromptsServiceLayer

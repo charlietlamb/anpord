@@ -62,6 +62,23 @@ export const Timestamp = Schema.Union(Schema.DateFromSelf, Schema.Date);
 
 export const CommitMessage = Schema.String.pipe(Schema.maxLength(500));
 
+/**
+ * Generous for a prompt somebody wrote and small enough that a request cannot
+ * exhaust the instance holding it. Bounded here rather than only at the socket
+ * so the caller is told which field was too long instead of having the
+ * connection cut.
+ */
+const CONTENT_MAX_LENGTH = 256 * 1024;
+
+export const PromptContent = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(CONTENT_MAX_LENGTH, {
+    message: () => "Prompt content is longer than 256 KB",
+  })
+);
+
+export const PromptDescription = Schema.String.pipe(Schema.maxLength(2000));
+
 export const PromptConfig = Schema.Record({
   key: Schema.String,
   value: Schema.Unknown,
@@ -133,8 +150,8 @@ export type PromptPage = typeof PromptPage.Type;
 export const CreatePromptRequest = Schema.Struct({
   commitMessage: Schema.optional(CommitMessage),
   config: Schema.optional(PromptConfig),
-  content: Schema.String.pipe(Schema.minLength(1)),
-  description: Schema.optional(Schema.String),
+  content: PromptContent,
+  description: Schema.optional(PromptDescription),
   id: PromptId,
   name: PromptName,
   publish: Schema.optional(Schema.Boolean),
@@ -144,7 +161,7 @@ export type CreatePromptRequest = typeof CreatePromptRequest.Type;
 export const AddVersionRequest = Schema.Struct({
   commitMessage: Schema.optional(CommitMessage),
   config: Schema.optional(PromptConfig),
-  content: Schema.String.pipe(Schema.minLength(1)),
+  content: PromptContent,
   publish: Schema.optional(Schema.Boolean),
 });
 export type AddVersionRequest = typeof AddVersionRequest.Type;
@@ -155,12 +172,12 @@ export type AddVersionRequest = typeof AddVersionRequest.Type;
 export const UpdateVersionRequest = Schema.Struct({
   commitMessage: Schema.optional(CommitMessage),
   config: Schema.optional(PromptConfig),
-  content: Schema.String.pipe(Schema.minLength(1)),
+  content: PromptContent,
 });
 export type UpdateVersionRequest = typeof UpdateVersionRequest.Type;
 
 export const UpdatePromptRequest = Schema.Struct({
-  description: Schema.optional(Schema.String),
+  description: Schema.optional(PromptDescription),
   id: Schema.optional(PromptId),
   name: Schema.optional(PromptName),
 });

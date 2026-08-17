@@ -56,7 +56,7 @@ function ApiKeysPage() {
     openDialog("confirm", {
       confirmLabel: `Revoke ${name}`,
       description:
-        "Anything using this key stops working immediately. This cannot be undone.",
+        "Anything using this key stops working within a few seconds. This cannot be undone.",
       destructive: true,
       onConfirm: () =>
         revoke.mutate(id, {

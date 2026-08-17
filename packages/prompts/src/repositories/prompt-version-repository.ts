@@ -4,10 +4,17 @@ import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { PromptId } from "@anpord/schema/domain/prompts";
 import { and, desc, eq } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
+import { Context, Effect, Layer, Option, Schedule } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { isUniqueViolation } from "./postgres-errors";
 import { head, tryStore } from "./query";
+
+/** Three attempts covers the contention a small team produces; beyond that the
+ * collision is not transient and the caller should hear about it. */
+const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
+  Schedule.jittered,
+  Schedule.compose(Schedule.recurs(3))
+);
 
 export type VersionRow = typeof promptVersion.$inferSelect & {
   readonly author: {
@@ -136,7 +143,16 @@ export const PromptVersionRepositoryLive = Layer.effect(
             Effect.catchIf(
               (error) => isUniqueViolation(error.cause),
               () => new VersionConflict({ promptId: input.promptId })
-            )
+            ),
+            /** The number is read and then written, so two authors saving at
+             * once aim at the same one and the unique index refuses the second.
+             * Retrying re-reads it, which is what lets the next attempt land;
+             * without this the loser's work is dropped and they are told to try
+             * again by hand. Jittered so a burst does not collide in step. */
+            Effect.retry({
+              schedule: APPEND_RETRY,
+              while: (error) => error._tag === "VersionConflict",
+            })
           )
         ),
 

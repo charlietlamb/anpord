@@ -5,20 +5,20 @@ import { ApiKeyAuthentication } from "@anpord/schema/public/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Redacted } from "effect";
 import { resolveOAuthToken } from "./oauth-token";
-import { makeVerifiedKeys } from "./verified-keys";
+import { VerifiedKeys } from "./verified-keys";
 
 export const ApiKeyAuthenticationLive = Layer.effect(
   ApiKeyAuthentication,
   Effect.gen(function* () {
     const auth = yield* Auth;
     const organizations = yield* OrganizationStore;
-    const verifyKey = yield* makeVerifiedKeys(auth);
+    const keys = yield* VerifiedKeys;
 
     return ApiKeyAuthentication.of({
       bearer: (credential) => {
         const token = Redacted.value(credential);
         return token.startsWith(API_KEY_PREFIX)
-          ? verifyKey(token)
+          ? keys.verify(token)
           : resolveOAuthToken(auth, token, organizations.resolveActive);
       },
     });

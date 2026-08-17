@@ -5,6 +5,7 @@ import { isAuthorizeRoute, withConsentPrompt } from "./consent-route";
 import { isDiscoveryRoute, toAuthRequest } from "./discovery-route";
 import { publicOrigin } from "./public-origin";
 import { isPublicRoute } from "./public-route";
+import { isSameOrigin } from "./same-origin";
 import { withServerTiming } from "./server-timing";
 
 interface WebHandler {
@@ -15,10 +16,20 @@ interface RouteTargets {
   readonly auth: AuthInstance;
   readonly internalApi: WebHandler;
   readonly publicApi: WebHandler;
+  readonly trustedOrigins: readonly string[];
 }
 
+const crossSite = () =>
+  new Response(
+    JSON.stringify({
+      _tag: "Forbidden",
+      message: "This request did not come from a trusted origin.",
+    }),
+    { status: 403, headers: { "content-type": "application/json" } }
+  );
+
 export const routeRequest =
-  ({ auth, internalApi, publicApi }: RouteTargets) =>
+  ({ auth, internalApi, publicApi, trustedOrigins }: RouteTargets) =>
   (request: Request) =>
     withServerTiming(() => {
       const { pathname } = new URL(request.url);
@@ -41,6 +52,12 @@ export const routeRequest =
           .then((response) =>
             withAuthenticateChallenge(response, publicOrigin(request))
           );
+      }
+
+      /** The dashboard API is reached with a session cookie, so it is the
+       * surface another site could drive on a signed-in person's behalf. */
+      if (!isSameOrigin(request, trustedOrigins)) {
+        return Promise.resolve(crossSite());
       }
 
       return internalApi.handler(request);

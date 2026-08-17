@@ -1,5 +1,5 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { Context, Effect, Layer, Redacted } from "effect";
+import { Context, Duration, Effect, Layer, Redacted } from "effect";
 import { Pool } from "pg";
 import { DatabaseConfig } from "./config";
 import { schema } from "./schema";
@@ -21,6 +21,10 @@ export const DatabaseLive = Layer.scoped(
           idleTimeoutMillis: 30_000,
           connectionTimeoutMillis: 10_000,
           keepAlive: true,
+          /** Postgres cancels the query itself rather than the caller merely
+           * giving up on it, so a slow statement releases its pool slot instead
+           * of holding one until every slot is taken. */
+          statement_timeout: Duration.toMillis(config.statementTimeout),
         });
 
         created.on("error", (cause) => {
