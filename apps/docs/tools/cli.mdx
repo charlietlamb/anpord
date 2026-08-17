@@ -39,9 +39,11 @@ anpord get support-reply > prompt.txt
 anpord get support-reply | pbcopy
 ```
 
-`--json` prints the whole prompt instead, including its version and channel.
-`--channel` and `--at` select which version to resolve, following the same rules
-as the API.
+`--json` prints the whole prompt instead, including its version and channel. `--channel` and `--at` select which version to resolve, following the same rules as the API.
+
+<Note>
+The flag to pin a version is `--at`. `--version` prints the CLI's own version.
+</Note>
 
 ### list
 
@@ -49,7 +51,7 @@ as the API.
 anpord list [--json]
 ```
 
-One prompt per line as `id`, latest version, and name.
+One prompt per line as `id`, latest version, and name. Returns up to 100 prompts.
 
 ### versions
 
@@ -57,7 +59,7 @@ One prompt per line as `id`, latest version, and name.
 anpord versions <id>
 ```
 
-The prompt's history as JSON.
+The prompt's history as JSON. Takes no flags.
 
 ### push
 
@@ -79,7 +81,7 @@ Pushing does not change what production serves. Promote when you are ready.
 anpord promote <id> --to <channel> --at <version>
 ```
 
-Points a channel at a version.
+Points a channel at a version. Both flags are required.
 
 ```bash
 anpord promote support-reply --to production --at 5
@@ -87,8 +89,7 @@ anpord promote support-reply --to production --at 5
 
 ## Scripting
 
-Content goes to stdout and everything else to stderr, so redirecting a prompt to
-a file captures the prompt and nothing else. A failure exits non-zero:
+Content goes to stdout and everything else to stderr, so redirecting a prompt to a file captures the prompt and nothing else. A failure exits non-zero with a single line and no stack trace:
 
 ```bash
 if ! anpord get support-reply > prompt.txt; then
@@ -103,7 +104,7 @@ fi
 anpord --completions zsh
 ```
 
-Also available for `bash`, `fish`, and `sh`.
+Also available for `bash` and `fish`.
 
 ## Configuration
 
@@ -111,3 +112,7 @@ Also available for `bash`, `fish`, and `sh`.
 | --- | --- |
 | `ANPORD_API_KEY` | Required. The key the CLI authenticates with. |
 | `ANPORD_BASE_URL` | Optional. Defaults to `https://api.anpord.com`. |
+
+<Note>
+`ANPORD_BASE_URL` is read by the CLI and the MCP server. The SDK constructor does not read it — pass `{ baseUrl }` to point the client elsewhere.
+</Note>

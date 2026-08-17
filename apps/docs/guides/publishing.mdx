@@ -13,11 +13,7 @@ await anpord.prompts.update({
 });
 ```
 
-The response carries the number the new version was given. Nothing is live yet:
-callers asking for production still receive whatever that channel points at.
-
-The message is optional and worth writing. It is what someone reading the
-history months later has to work from.
+The response carries the number the new version was given. Nothing is live yet: callers asking for production still receive whatever that channel points at.
 
 ## Put it live
 
@@ -29,8 +25,7 @@ await anpord.prompts.promote({
 });
 ```
 
-Separating the two steps is deliberate. You can write a version, review it, try
-it against a `staging` channel, and promote only once it is right.
+Promoting to a channel that does not exist yet creates it, so a move never fails on a missing channel. It fails only if the prompt or the version is missing.
 
 ## Roll back
 
@@ -44,8 +39,7 @@ await anpord.prompts.promote({
 });
 ```
 
-Because versions are appended and never overwritten, the version you are going
-back to is still exactly as it was.
+Because versions are appended and never overwritten, the version you are going back to is still exactly as it was.
 
 ## From the terminal
 
@@ -62,8 +56,7 @@ cat prompts/support-reply.md | anpord push support-reply - -m "Rewrite"
 
 ## From CI
 
-Publishing on merge keeps the prompts in your repository and the live version in
-sync:
+Publishing on merge keeps the prompts in your repository and the live version in sync:
 
 ```yaml
 - name: Publish prompts
@@ -77,7 +70,5 @@ sync:
 ```
 
 <Note>
-  This adds a version without promoting one, so a merge never changes what
-  production serves on its own. Promote deliberately, by hand or in a separate
-  job.
+This adds a version without promoting one, so a merge never changes what production serves on its own. Promote deliberately, by hand or in a separate job.
 </Note>

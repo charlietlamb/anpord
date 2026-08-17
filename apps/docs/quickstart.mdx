@@ -1,18 +1,37 @@
 ---
-title: "Quickstart"
-description: "Resolve your first prompt"
+title: "Introduction"
+description: "Prompt management for AI products. Change a prompt without shipping a release."
 ---
+
+Anpord keeps the prompts your product sends to a model outside your codebase. Your application asks for a prompt by id, and Anpord decides which version it gets.
+
+<Info>
+**TL;DR**
+
+Create a key in the dashboard, `npm install anpord`, then `anpord.prompts.get({ id })`. Updating a prompt appends a version; pointing the `production` channel at it is how the change goes live — no deploy.
+</Info>
+
+## The mental model
+
+Three terms carry the whole product: **prompt → version → channel**.
+
+| Term | What it is |
+| --- | --- |
+| **Prompt** | An id you choose, such as `support-reply`. Every caller addresses this, and it never changes. |
+| **Version** | One revision of the content. Numbered from 1, append-only, so nothing is ever overwritten. |
+| **Channel** | A named pointer at a version. `production` is what callers get by default. |
+
+Changing what your product sends is a promotion — moving a channel to a different version — rather than a code change.
 
 ## Get an API key
 
-Create a key in the dashboard under **Settings → API keys**. Keys are scoped to
-one organization, so a key only ever reads that organization's prompts.
-
-Set it in your environment:
+Create a key in the dashboard under **Settings → API keys**, then set it in your environment:
 
 ```bash
 export ANPORD_API_KEY="anp_..."
 ```
+
+Keys are scoped to one organization, so a key only ever reads that organization's prompts.
 
 ## Install
 
@@ -40,12 +59,9 @@ const prompt = await anpord.prompts.get({ id: "support-reply" });
 console.log(prompt.content);
 ```
 
-The constructor reads `ANPORD_API_KEY` when you do not pass one. To hold the key
-yourself:
+The constructor reads `ANPORD_API_KEY` when you do not pass one. To hold the key yourself, pass `{ apiKey }`.
 
-```ts
-const anpord = new Anpord({ apiKey: process.env.MY_KEY });
-```
+With no selector, `get` returns the version the `production` channel points at. This is the call you want in application code: changing which version ships becomes a promotion, not a deploy.
 
 ## Create and publish
 
@@ -69,9 +85,11 @@ await anpord.prompts.promote({
 });
 ```
 
-`create` makes the prompt and its first version. `update` appends a version
-rather than overwriting one, so version 1 stays readable. Until you promote,
-callers asking for production keep receiving version 1.
+`create` makes the prompt and its first version. `update` appends a version rather than overwriting one, so version 1 stays readable. Until you promote, callers asking for production keep receiving version 1.
+
+<Info>
+Separating `update` from `promote` is deliberate. You can write a version, review it, try it against a `staging` channel, and promote only once it is right.
+</Info>
 
 ## Handle failures
 
@@ -91,7 +109,7 @@ try {
 ```
 
 <Note>
-  An id that cannot be valid is refused before the request leaves your process,
-  and the message names the field: `id: Prompt id must be lowercase alphanumeric,
-  optionally with / _ or -`.
+An id that cannot be valid is refused before the request leaves your process, and the message names the field: `id: Prompt id must be lowercase alphanumeric, optionally with / _ or -`.
 </Note>
+
+Next, read [versions and channels](/concepts) to understand how resolution works, or go straight to [resolving prompts](/guides/resolving-prompts) for the runtime patterns.

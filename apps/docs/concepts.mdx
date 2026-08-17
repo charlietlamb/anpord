@@ -1,47 +1,51 @@
 ---
-title: "Concepts"
-description: "Versions, channels, and how a prompt resolves"
+title: "Versions and channels"
+sidebarTitle: "Versions and channels"
+description: "How a prompt id turns into the content your caller receives"
 ---
 
 ## Prompts
 
-A prompt has an id you choose, such as `support-reply`. The id is how every
-caller addresses it, so it stays fixed while the content behind it changes.
+A prompt has an id you choose, such as `support-reply`. The id is how every caller addresses it, so it stays fixed while the content behind it changes.
 
-Ids are lowercase alphanumeric and may contain `/`, `_`, or `-`, which lets you
-group them by path: `checkout/upsell`, `email/welcome`.
+Ids are lowercase alphanumeric and may contain `/`, `_`, or `-`, up to 255 characters. That lets you group them by path: `checkout/upsell`, `email/welcome`.
 
 ## Versions
 
-Content is versioned. `update` appends a version rather than replacing one, so
-every earlier version stays readable and a bad change is a promotion away from
-being undone.
+Content is versioned. `update` appends a version rather than replacing one, so every earlier version stays readable and a bad change is one promotion away from being undone.
 
-Versions are numbered from 1 and carry an optional message describing why the
-content changed.
+Versions are numbered from 1 and carry an optional message describing why the content changed. The message is worth writing — it is what someone reading the history months later has to work from.
 
 ## Channels
 
-A channel is a named pointer at a version. `production` is the one callers get
-by default; you can add others, such as `staging`, for the same prompt.
+A channel is a named pointer at a version. Callers ask for a channel rather than a number, so the number can change without them.
 
-Promoting is how a version goes live:
+Every prompt gets `production`, and a `get` with no selector resolves it. Promoting to a name that does not exist yet creates it:
 
 ```ts
 await anpord.prompts.promote({
   id: "support-reply",
-  channel: "production",
-  version: 4,
+  channel: "staging",
+  version: 6,
 });
 ```
 
-Nothing in your application changes. The next `get` returns version 4.
+Now the same prompt answers differently depending on who asks:
 
-<Note>
-  `latest` is derived from the highest version rather than stored, so it cannot
-  drift from the version table. It is useful in development and a poor choice in
-  production, where an unreviewed edit would ship immediately.
-</Note>
+```ts
+await anpord.prompts.get({ id: "support-reply" });                      // production
+await anpord.prompts.get({ id: "support-reply", channel: "staging" });  // version 6
+```
+
+Which suits running a new prompt against internal traffic while customers keep receiving the version you trust:
+
+```ts
+const channel = process.env.NODE_ENV === "production" ? "production" : "staging";
+
+const prompt = await anpord.prompts.get({ id: "support-reply", channel });
+```
+
+Channel names are lowercase alphanumeric and may contain `_` or `-`, up to 36 characters. Name them after the audience, not the version: `production`, `staging`, `beta`.
 
 ## Resolution
 
@@ -49,12 +53,10 @@ Nothing in your application changes. The next `get` returns version 4.
 
 <Steps>
   <Step title="A version, if you gave one">
-    `{ id, version: 3 }` returns exactly version 3. The response reports no
-    channel, because you addressed the version directly.
+    `{ id, version: 3 }` returns exactly version 3. The response reports no channel, because you addressed the version directly.
   </Step>
   <Step title="A channel, if you gave one">
-    `{ id, channel: "staging" }` returns whichever version that channel points
-    at.
+    `{ id, channel: "staging" }` returns whichever version that channel points at.
   </Step>
   <Step title="Production otherwise">
     `{ id }` resolves the `production` channel.
@@ -63,8 +65,7 @@ Nothing in your application changes. The next `get` returns version 4.
 
 A version wins over a channel when both are given.
 
-The response names the channel that answered, so you can log which version a
-caller actually received:
+The response names the channel that answered, so you can log which version a caller actually received:
 
 ```ts
 const prompt = await anpord.prompts.get({ id: "support-reply" });
@@ -73,7 +74,20 @@ prompt.version; // 4
 prompt.channel; // "production"
 ```
 
+## The latest channel
+
+`latest` always resolves the highest version:
+
+```ts
+await anpord.prompts.get({ id: "support-reply", channel: "latest" });
+```
+
+It is derived from the version table rather than stored, so it cannot fall out of step with it. Useful in development, and a poor choice in production.
+
+<Warning>
+Do not point production traffic at `latest`. Every edit ships the moment it is written, with no review and nothing to roll back to.
+</Warning>
+
 ## Archiving
 
-Archiving hides a prompt from listings. Callers pinned to a version keep
-resolving it, so archiving never breaks something already running.
+Archiving hides a prompt from listings. Callers pinned to a version keep resolving it, so archiving never breaks something already running.

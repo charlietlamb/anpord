@@ -13,9 +13,6 @@ const prompt = await anpord.prompts.get({ id: "support-reply" });
 const completion = await model.complete(prompt.content);
 ```
 
-This is the call you want in application code. Changing which version ships is
-then a promotion, not a deploy.
-
 ## Pinning a version
 
 Pass a version to address one exactly:
@@ -24,10 +21,15 @@ Pass a version to address one exactly:
 const prompt = await anpord.prompts.get({ id: "support-reply", version: 3 });
 ```
 
-Useful for reproducing a past run, or for an evaluation that has to compare
-versions against each other rather than follow whatever is live.
+Useful for reproducing a past run, or for an evaluation that has to compare versions against each other rather than follow whatever is live.
+
+<Note>
+`version` wins when you pass both `version` and `channel` — the channel is ignored rather than rejected.
+</Note>
 
 ## Reading history
+
+There is no separate versions call. Ask `get` to include the history:
 
 ```ts
 const prompt = await anpord.prompts.get({
@@ -40,12 +42,11 @@ for (const version of prompt.versions ?? []) {
 }
 ```
 
-History is omitted unless you ask for it, so the common read stays small.
+History is omitted unless you ask for it, so the common read stays small. Each entry carries `version`, `message`, and `createdAt` — not the content. Fetch a specific version to read its text.
 
 ## Caching
 
-Every resolve is a network call. If you resolve on a hot path, cache the result
-for as long as you are willing to wait for a promotion to take effect:
+Every resolve is a network call. If you resolve on a hot path, cache the result for as long as you are willing to wait for a promotion to take effect:
 
 ```ts
 const cache = new Map<string, { at: number; content: string }>();
@@ -64,15 +65,12 @@ const content = async (id: string) => {
 ```
 
 <Warning>
-  A cache is also a failure mode: a promoted version will not reach callers until
-  entries expire. Keep the window short enough that a rollback still counts as
-  fast.
+A cache is also a failure mode: a promoted version will not reach callers until entries expire. Keep the window short enough that a rollback still counts as fast.
 </Warning>
 
 ## Falling back
 
-Treat a resolve like any other network call. Keeping a copy of the prompt in
-your code means an outage degrades quality rather than breaking the feature:
+Treat a resolve like any other network call. Keeping a copy of the prompt in your code means an outage degrades quality rather than breaking the feature:
 
 ```ts
 import { AnpordError } from "anpord";

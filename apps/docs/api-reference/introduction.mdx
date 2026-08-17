@@ -3,16 +3,16 @@ title: "Introduction"
 description: "How the API is shaped"
 ---
 
-The API lives at `https://api.anpord.com`. Every endpoint is a `POST` taking a
-JSON body, named after the operation rather than a resource path:
+The API lives at `https://api.anpord.com`. Every endpoint is a `POST` taking a JSON body, named after the operation rather than a resource path:
 
 ```
 POST /v1/prompts.get
 POST /v1/prompts.promote
 ```
 
-There are no path or query parameters. Everything travels in the body, so a call
-looks the same whatever it does.
+There are no path or query parameters. Everything travels in the body, so a call looks the same whatever it does.
+
+Six endpoints make up the surface: `prompts.get`, `prompts.list`, `prompts.create`, `prompts.update`, `prompts.promote`, and `prompts.archive`. Version history comes from `prompts.get` with `includeVersions`, not a separate call.
 
 ## Authentication
 
@@ -25,8 +25,7 @@ curl https://api.anpord.com/v1/prompts.get \
   -d '{"id":"support-reply"}'
 ```
 
-Keys are scoped to one organization. A request without a usable key is answered
-with `401` and a `WWW-Authenticate` header naming where to authenticate.
+Keys are scoped to one organization. A request without a usable key is answered with `401` and a `WWW-Authenticate` header naming where to authenticate.
 
 ## Errors
 
@@ -41,9 +40,6 @@ Failures carry a JSON body with a `message` explaining what went wrong.
 
 ## Clients
 
-The [TypeScript SDK](/quickstart) wraps these endpoints and turns failures into
-an `AnpordError` carrying the status. The [CLI](/tools/cli) covers the same
-operations from a terminal.
+The [TypeScript SDK](/quickstart) wraps these endpoints and turns failures into an `AnpordError` carrying the status. The [CLI](/tools/cli) covers the same operations from a terminal.
 
-The OpenAPI description is generated from the same definitions that serve the
-requests, so it cannot drift from the running API.
+The OpenAPI description is generated from the same definitions that serve the requests, so it cannot drift from the running API.
