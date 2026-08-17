@@ -23,8 +23,6 @@ export function useUpdatePromptVersion(id: string) {
             row.version === updated.version ? updated : row
           )
       );
-      /** A channel may serve the edited version, so what callers receive can
-       * have changed without the placement itself moving. */
       queryClient.invalidateQueries({ queryKey: promptKeys.channels(id) });
       queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
     },

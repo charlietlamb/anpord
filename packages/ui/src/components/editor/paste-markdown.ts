@@ -34,8 +34,6 @@ export const PasteMarkdown = Extension.create({
       new Plugin({
         props: {
           handlePaste(_view, event) {
-            /** Copying inside the editor carries HTML, which already round
-             * trips; only plain text needs interpreting. */
             if (event.clipboardData?.types.includes("text/html")) {
               return false;
             }

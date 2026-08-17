@@ -39,9 +39,6 @@ export const main = Effect.gen(function* () {
             trustedOrigins: authConfig.trustedOrigins,
           }),
           hostname: config.host,
-          /** A prompt is text a person wrote, so a request larger than this is
-           * a mistake or an attempt to exhaust the instance. Refusing it at the
-           * socket keeps the body from being read into memory at all. */
           maxRequestBodySize: MAX_REQUEST_BODY_BYTES,
           port: config.port,
         }),

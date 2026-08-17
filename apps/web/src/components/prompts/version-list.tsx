@@ -50,8 +50,6 @@ export function VersionList({
     }
   };
 
-  /* Three rows and a sliver of the fourth, so a long history reads as
-     scrollable rather than filling the rail. */
   return (
     <div
       aria-label="Versions"

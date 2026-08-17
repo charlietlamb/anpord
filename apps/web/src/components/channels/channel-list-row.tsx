@@ -21,8 +21,6 @@ export function ChannelListRow({
   onDelete,
   onEdit,
 }: ChannelListRowProps) {
-  /** Production is named in the schema, the MCP tools and the SDK, so it is
-   * the one channel that cannot be renamed away or removed. */
   const reserved = channel.name === PRODUCTION;
 
   return (

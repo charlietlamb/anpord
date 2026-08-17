@@ -41,7 +41,6 @@ export function MarkdownEditor({
         Markdown,
         PasteMarkdown,
         Variable,
-        /** Sets data-placeholder on the empty node, which the CSS renders. */
         Placeholder.configure({ placeholder: placeholder ?? "" }),
       ],
       immediatelyRender: false,
@@ -51,7 +50,6 @@ export function MarkdownEditor({
     [placeholder]
   );
 
-  /** Restoring a version replaces the value from outside the editor. */
   useEffect(() => {
     if (!editor || editor.isDestroyed) {
       return;

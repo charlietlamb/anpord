@@ -13,7 +13,6 @@ interface ComposerHeadingProps {
 
 export function ComposerHeading({ promptName }: ComposerHeadingProps) {
   const user = useCurrentUser();
-  /** The session resolves on the client, so the name arrives after mount. */
   const isClient = useIsClient();
 
   const greeting =

@@ -29,7 +29,6 @@ export function PromptsBody({
     );
   }
 
-  /** A failed load is not an empty account, so it never renders as "no prompts". */
   if (error || !prompts) {
     return (
       <p className="mt-6 text-muted-foreground text-sm">

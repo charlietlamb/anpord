@@ -43,13 +43,7 @@ const filtersFrom = (search: Record<string, unknown>): PromptListFilters => ({
 
 export const Route = createFileRoute("/_authed/prompts/")({
   component: PromptsPage,
-  /** Hovering a link starts the list fetch, so the click renders from cache
-   * rather than mounting and only then asking for the rows. The filters live in
-   * the URL, so the preloaded query is the one the page actually reads. */
   loaderDeps: ({ search }) => filtersFrom(search),
-  /** Imported here rather than at the top of the file because a loader lives in
-   * the eagerly-loaded route module: a static import would pull the decoder,
-   * and Effect behind it, into the chunk every page waits for. */
   loader: async ({ context, deps }) => {
     const { promptQueries: queries } = await import(
       "@/lib/query/prompt-queries"
@@ -60,9 +54,6 @@ export const Route = createFileRoute("/_authed/prompts/")({
 
 /** Fetched on the client: the list is session-scoped and needs the cookie. */
 function PromptsPage() {
-  /** The field renders from this immediately while the URL, and so the query,
-   * follows at the throttled rate. `clearOnDefault` keeps an empty search out
-   * of the address bar rather than leaving `?q=` behind. */
   const [search, setSearch] = useQueryState(
     "q",
     parseAsString

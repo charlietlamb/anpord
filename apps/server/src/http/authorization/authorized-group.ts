@@ -93,8 +93,6 @@ export const authorized = <E, Provides, R, Endpoints extends AnyEndpoint>(
         }
 
         return (name: string, options: RouteOptions, handler: unknown) => {
-          /** Authorising outside the handler is what keeps a refusal from
-           * reaching a service: the body is never entered. */
           const guarded =
             typeof handler === "function"
               ? (...args: readonly unknown[]) =>

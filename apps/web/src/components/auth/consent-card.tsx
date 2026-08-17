@@ -28,7 +28,6 @@ export function ConsentCard({
   const [submitting, setSubmitting] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  /** The success path keeps the buttons disabled, because a redirect follows. */
   const decide = async (accept: boolean) => {
     setSubmitting(true);
     setFailed(false);

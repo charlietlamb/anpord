@@ -21,9 +21,6 @@ export const isSameOrigin = (
 
   const origin = request.headers.get("origin");
 
-  /** A non-browser caller sends no origin at all. Those authenticate with a
-   * bearer token rather than a cookie, so they are not what this protects
-   * against, and refusing them would break every server-side client. */
   if (origin === null) {
     return request.headers.get("cookie") === null;
   }

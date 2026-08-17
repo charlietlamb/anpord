@@ -37,8 +37,6 @@ describe("append retry", () => {
     expect(attempts()).toBe(1);
   });
 
-  /** The reason this exists: without a retry the loser of a race has their
-   * work dropped and is told to try again by hand. */
   it("lands a write that lost one race", async () => {
     const { effect, attempts } = appendThatFails(1);
     await expect(Effect.runPromise(effect)).resolves.toBe(2);
@@ -50,8 +48,6 @@ describe("append retry", () => {
     await expect(Effect.runPromise(effect)).resolves.toBe(4);
   });
 
-  /** Past a few attempts the collision is not transient, and the caller is
-   * better served by an error than by an unbounded wait. */
   it("gives up rather than retrying forever", async () => {
     const { effect, attempts } = appendThatFails(Number.POSITIVE_INFINITY);
     await expect(Effect.runPromise(effect)).rejects.toThrow();

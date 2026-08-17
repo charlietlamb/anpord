@@ -17,9 +17,6 @@ interface SiteLayoutProps {
 export function SiteLayout({ children, center }: SiteLayoutProps) {
   return (
     <main className="relative isolate bg-background text-foreground">
-      {/* The field is decoration that paints itself onto a canvas, so nothing
-          on screen waits for it. Hydrating it at idle keeps its animation loop
-          from competing with the text for the first frame. */}
       <Hydrate when={idle()}>
         <Dither className="fixed inset-0 -z-10 h-svh w-full text-foreground/[0.16] dark:text-foreground/[0.10]" />
       </Hydrate>

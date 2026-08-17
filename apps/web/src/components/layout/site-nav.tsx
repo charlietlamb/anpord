@@ -19,7 +19,6 @@ export function SiteNav() {
   const isClient = useIsClient();
   const matchRoute = useMatchRoute();
   const signedIn = isClient && !isPending && Boolean(session?.user);
-  /** Sign in is the page itself here, so the link would lead nowhere. */
   const onLogin = Boolean(matchRoute({ to: "/login" }));
 
   return (

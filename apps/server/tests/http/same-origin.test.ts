@@ -25,8 +25,6 @@ describe("isSameOrigin", () => {
     ).toBe(true);
   });
 
-  /** The attack this exists to stop: another site driving a signed-in session
-   * through the browser, which attaches the cookie for it. */
   it("refuses a write from another site", () => {
     expect(
       isSameOrigin(
@@ -57,14 +55,10 @@ describe("isSameOrigin", () => {
     ).toBe(false);
   });
 
-  /** A server-side caller sends no origin and no cookie. Refusing those would
-   * break every non-browser client without closing anything. */
   it("allows a write with neither origin nor cookie", () => {
     expect(isSameOrigin(request("POST"), TRUSTED)).toBe(true);
   });
 
-  /** A cookie with no origin cannot come from a browser doing a cross-site
-   * request, but it is close enough to one to refuse. */
   it("refuses a cookie-bearing write that names no origin", () => {
     expect(
       isSameOrigin(

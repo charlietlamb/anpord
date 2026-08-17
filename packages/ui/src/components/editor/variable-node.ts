@@ -36,10 +36,6 @@ export const Variable = Node.create({
     return [{ tag: "span[data-variable]" }];
   },
 
-  /**
-   * The markdown tokenizer only runs when content is parsed, so without this a
-   * variable typed by hand stays plain text until the document is reloaded.
-   */
   addInputRules() {
     return [
       nodeInputRule({
@@ -67,10 +63,8 @@ export const Variable = Node.create({
     attrs: { name: (token as { name?: string }).name ?? "" },
   }),
 
-  /** Emitted verbatim, so the escaper never sees the underscore. */
   renderMarkdown: (node) => `{{${node.attrs?.name ?? ""}}}`,
 
-  /** marked has no concept of {{…}}, so the syntax is registered here. */
   markdownTokenizer: {
     name: "variable",
     level: "inline",

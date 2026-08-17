@@ -22,10 +22,6 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
   return (
     <TooltipProvider>
       <SidebarProvider defaultOpen={sidebarOpen}>
-        {/* Nothing is on screen until the shortcut fires, so the palette can
-            wait for a quiet frame. It binds a global key listener rather than
-            hanging off a trigger, which is why this waits for idle rather than
-            for interaction with a boundary. */}
         <Hydrate when={idle()}>
           <ClientOnly>
             <CommandMenu />

@@ -128,8 +128,6 @@ export const ChannelCatalogLive = Layer.effect(
 
           yield* channels.update(row.internalId, request);
 
-          /** A rename changes what `GET /prompts/:id?channel=` resolves, so
-           * every prompt reachable through this channel must be re-read. */
           yield* promptCache.invalidateOrganization(actor.organizationId);
 
           yield* Effect.logInfo("channel updated");

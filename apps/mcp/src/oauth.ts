@@ -56,7 +56,6 @@ const verifyAccessToken = (verifiedResource: URL) => async (token: string) => {
     clientId: session.clientId ?? "",
     expiresAt: secondsUntil(session.accessTokenExpiresAt),
     extra: { userId: session.userId },
-    /** The binding the caller asked for, which introspection has now proven. */
     resource: verifiedResource,
     scopes: scopesOf(session.scopes),
     token,

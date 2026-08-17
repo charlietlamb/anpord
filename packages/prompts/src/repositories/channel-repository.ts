@@ -30,7 +30,6 @@ export interface ChannelRepositoryShape {
     readonly name: ChannelName;
     readonly organizationId: OrganizationId;
   }) => Effect.Effect<void, PromptStoreError>;
-  /** Left joined so a channel nothing points at still reports a count of zero. */
   readonly list: (
     organizationId: OrganizationId
   ) => Effect.Effect<readonly ChannelCountRow[], PromptStoreError>;

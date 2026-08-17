@@ -62,8 +62,6 @@ export function PromptComposer({
 
   return (
     <div className={cn("flex w-full flex-col", fill && "min-h-0")}>
-      {/* With nothing to name, the strip is a bar of empty chrome above the
-          prompt rather than context for it. */}
       {children || version !== undefined ? (
         <ComposerContext>
           {children}
@@ -78,10 +76,6 @@ export function PromptComposer({
         </ComposerContext>
       ) : null}
 
-      {/* Titled like the cards beside it, so it takes their surface too rather
-          than sitting on the page as a different kind of object. `overflow-clip`
-          rounds the header's top edge without establishing a scroll container,
-          which the editor owns. */}
       <ComposerSurface
         className={cn(
           "relative",
@@ -102,9 +96,6 @@ export function PromptComposer({
         <MarkdownEditor
           className={cn(
             "overflow-y-auto overscroll-contain px-4 py-4 text-[0.9375rem] leading-7",
-            /* Grows with the prompt rather than claiming the whole row: a short
-               one keeps a few spare lines to write into, and the page height is
-               the ceiling past which the editor scrolls instead. */
             fill
               ? "max-h-[calc(100svh-16rem)] min-h-[10rem]"
               : "max-h-[min(24rem,50vh)]"
@@ -115,8 +106,6 @@ export function PromptComposer({
           value={content}
         />
 
-        {/* On a full page the rail counts the variables and the header owns the
-            write, so repeating either here would say the same thing twice. */}
         {fill ? null : (
           <ComposerToolbar>
             <ComposerToolbarGroup>

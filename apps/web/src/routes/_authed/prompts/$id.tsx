@@ -22,9 +22,6 @@ import { useUpdatePromptVersion } from "@/lib/query/use-update-prompt-version";
 export const Route = createFileRoute("/_authed/prompts/$id")({
   component: PromptDetailPage,
   staticData: { crumb: (params) => params.id },
-  /** Both reads start while the route chunk is still downloading, so opening a
-   * prompt from the list arrives with its history rather than a skeleton. The
-   * import is dynamic to keep the decoder out of the boot chunk. */
   loader: async ({ context, params }) => {
     const { promptQueries: queries } = await import(
       "@/lib/query/prompt-queries"
@@ -62,8 +59,6 @@ function PromptDetailPage() {
   const channels = useQuery(promptQueries.channels(id));
   const addVersion = useAddPromptVersion(id);
 
-  /** Holding the draft rather than seeding it from the fetch is what keeps a
-   * background refetch from overwriting text mid-sentence. */
   const [draft, setDraft] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>({ kind: "draft" });
 
@@ -88,11 +83,8 @@ function PromptDetailPage() {
       ? latest
       : (rows.find((row) => row.version === selection.version) ?? latest);
 
-  /** A correction edits the version being read, so its baseline is that
-   * version rather than the latest one. */
   const base = correcting ? viewed : latest;
   const content = editing ? (draft ?? base.content) : viewed.content;
-  /** Trailing whitespace is an artefact of typing, not an edit worth a version. */
   const submitted = content.trim();
   const dirty = editing && submitted !== base.content.trim();
 
@@ -138,8 +130,6 @@ function PromptDetailPage() {
       }
     );
 
-  /** Overwriting rewrites history and can change what a channel already
-   * serves, so it asks before replacing the version. */
   const onSave = () => {
     if (selection.kind !== "correcting") {
       appendVersion();
@@ -177,7 +167,6 @@ function PromptDetailPage() {
       }
     );
 
-  /** Production is what callers receive, so moving it asks first. */
   const onPoint = (channel: string, version: number) => {
     if (channel !== PRODUCTION) {
       pointChannel(channel, version);
@@ -211,11 +200,6 @@ function PromptDetailPage() {
       version: viewed.version,
     });
 
-  /**
-   * History is read-only, so typing in it asks first. Branching is the safe
-   * default; correcting the version in place is offered for the case it exists
-   * to serve, a version saved with a mistake in it.
-   */
   const onEditRequest = () => {
     if (editing) {
       return;

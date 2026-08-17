@@ -26,7 +26,6 @@ beforeAll(async () => {
     extensions: [StarterKit, Markdown, Variable],
   });
 
-  /** Input rules only run through the text-input path a keystroke takes. */
   typeMarkdown = (input) => {
     editor.commands.clearContent();
     for (const character of input) {

@@ -13,7 +13,6 @@ import {
 
 export const Route = createFileRoute("/_authed/channels/")({
   component: ChannelsPage,
-  /** Dynamic so the decoder stays out of the chunk every page waits for. */
   loader: async ({ context }) => {
     const { channelQueries: queries } = await import(
       "@/lib/query/channel-queries"

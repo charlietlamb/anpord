@@ -27,8 +27,6 @@ export function useShortcut(
         return;
       }
       event.preventDefault();
-      /* An editor handles the same keys, so the shortcut has to claim the
-         event on the way down rather than after the editor has acted on it. */
       event.stopPropagation();
       onTrigger();
     };

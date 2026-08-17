@@ -54,8 +54,6 @@ export const routeRequest =
           );
       }
 
-      /** The dashboard API is reached with a session cookie, so it is the
-       * surface another site could drive on a signed-in person's behalf. */
       if (!isSameOrigin(request, trustedOrigins)) {
         return Promise.resolve(crossSite());
       }

@@ -18,12 +18,6 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
-    /**
-     * The provider is mounted here rather than by the SSR integration because
-     * that package inlines its own copy of QueryClientContext; a provider from
-     * that copy publishes on a context our components never read, which throws
-     * "No QueryClient set" at render.
-     */
     Wrap: ({ children }) => (
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),

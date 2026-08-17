@@ -16,8 +16,6 @@ export function useIdentify() {
     const user = session?.user;
 
     if (!user) {
-      /** Only reset a session we actually identified, so anonymous visitors
-       * keep the id that ties their pageviews together. */
       if (identified.current) {
         identified.current = null;
         posthog.reset();

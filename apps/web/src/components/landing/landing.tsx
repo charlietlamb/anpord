@@ -14,12 +14,10 @@ const CAP = "border-white/20 bg-white/16 text-white/80";
 
 export function Landing() {
   const navigate = useNavigate();
-  /** The caps promise a shortcut, so it has to actually work. */
   useShortcut("enter", {
     meta: true,
     onTrigger: () => navigate({ to: "/login" }),
   });
-  /** navigator is server-undefined, so the glyph resolves after mount. */
   const isClient = useIsClient();
 
   return (

@@ -9,8 +9,6 @@ export interface PromptCacheShape {
     organizationId: OrganizationId,
     ...handles: readonly PromptId[]
   ) => Effect.Effect<void>;
-  /** A channel rename changes what every prompt resolves to, so the whole
-   * organisation is swept rather than one handle at a time. */
   readonly invalidateOrganization: (
     organizationId: OrganizationId
   ) => Effect.Effect<void>;

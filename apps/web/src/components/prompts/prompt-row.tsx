@@ -30,7 +30,6 @@ function LiveBadge({ prompt }: { readonly prompt: PromptSummary }) {
 
 export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
   const updated = useRelativeTime(prompt.updatedAt);
-  /** Only worth saying when it differs from what production serves. */
   const ahead =
     prompt.latestVersion !== null &&
     prompt.latestVersion !== prompt.productionVersion;

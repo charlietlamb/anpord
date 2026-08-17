@@ -41,9 +41,6 @@ export const AuthenticationLive = Layer.effect(
             );
           }
 
-          /** A membership that cannot be read grants nothing rather than
-           * everything, so a database blip narrows what the caller may do
-           * instead of opening the organisation up. */
           const role = yield* organizations
             .roleOf(organizationId.value, user.value.id)
             .pipe(Effect.orElseSucceed(() => Option.none<string>()));

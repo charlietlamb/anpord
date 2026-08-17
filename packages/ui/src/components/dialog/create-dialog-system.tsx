@@ -67,9 +67,6 @@ export function createDialogSystem<
           if (!entry) {
             return null;
           }
-          /** A registry entry may be lazy, so opening one suspends until its
-           * chunk lands. There is no fallback because the trigger already
-           * rendered; a spinner would flash over the page it came from. */
           return (
             <Suspense fallback={null} key={String(key)}>
               <Dialog {...(entry.props as object)} />

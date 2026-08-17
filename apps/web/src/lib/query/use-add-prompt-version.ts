@@ -15,10 +15,6 @@ export function useAddPromptVersion(id: string) {
   return useMutation({
     mutationFn: (input: AddVersionInput) => addVersion(id, input),
     onSuccess: (created) => {
-      /**
-       * The response is the new version in full, so the history is extended
-       * from it directly; refetching would only re-fetch what we already hold.
-       */
       queryClient.setQueryData(
         promptKeys.versions(id),
         (previous: readonly ResolvedPrompt[] | undefined) => [

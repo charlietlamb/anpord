@@ -130,8 +130,6 @@ export const PromptChannelRepositoryLive = Layer.effect(
                   );
                 }
 
-                /** Publishing to a channel the organisation has not used before
-                 * still creates it, so a move never fails on a missing row. */
                 const [created] = await db
                   .insert(channel)
                   .values({

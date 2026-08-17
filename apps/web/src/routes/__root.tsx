@@ -49,8 +49,6 @@ export const Route = createRootRouteWithContext<{
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: FAVICON },
-      /** The stylesheet is what discovers these, so without a preload they
-       * start a request behind it and the first text paints unstyled. */
       {
         rel: "preload",
         as: "font",

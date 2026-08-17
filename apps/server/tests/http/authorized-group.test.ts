@@ -20,6 +20,8 @@ interface Registered {
 const asBuilder = (group: unknown) =>
   authorized(group as never) as unknown as Registered;
 
+const noop = () => undefined;
+
 const as = (permissions: readonly Permission[]): Actor => ({
   id: UserId.make("user_1"),
   organizationId: OrganizationId.make("org_1"),
@@ -46,9 +48,7 @@ const collector = () => {
 const run = (
   permission: Permission,
   actor: Actor,
-  onRun: () => void = () => {
-    // only meaningful when the body is reached
-  }
+  onRun: () => void = noop
 ) => {
   const group = collector();
   asBuilder(group).handle("endpoint", { permission }, (() =>
@@ -87,8 +87,6 @@ describe("authorized", () => {
     ).toBe(true);
   });
 
-  /** The reason the check wraps the handler rather than sitting inside it: a
-   * refusal must never reach the service. */
   it("never enters the body of a refused handler", () => {
     let entered = false;
     run("organization:admin", as([]), () => {

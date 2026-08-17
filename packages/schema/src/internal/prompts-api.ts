@@ -32,8 +32,6 @@ const ResolveQuery = Schema.Struct({
 });
 
 const ListQuery = Schema.Struct({
-  /** The cursor is the previous page's last row, encoded so callers treat it
-   * as opaque rather than building one by hand. */
   cursor: Schema.optional(Schema.String),
   limit: Schema.optional(LimitFromString),
   q: Schema.optional(Schema.String),
