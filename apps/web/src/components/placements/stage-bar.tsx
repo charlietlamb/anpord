@@ -1,4 +1,7 @@
 import { Button } from "@anpord/ui/components/button";
+import { Kbd } from "@anpord/ui/components/ui/kbd";
+import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
+import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import type { StagedMap } from "@/lib/placements/staged-changes";
 import { rollbackCount } from "@/lib/placements/staged-changes";
 
@@ -18,6 +21,12 @@ export function StageBar({
   onDiscard,
   staged,
 }: StageBarProps) {
+  const metaKeyLabel = useMetaKeyLabel();
+  const idle = staged.size === 0 || applying;
+
+  useShortcut("Enter", { disabled: idle, meta: true, onTrigger: onApply });
+  useShortcut("Escape", { disabled: idle, onTrigger: onDiscard });
+
   if (staged.size === 0) {
     return null;
   }
@@ -45,8 +54,17 @@ export function StageBar({
         >
           Discard
         </Button>
-        <Button disabled={applying} onClick={onApply} size="sm">
+        <Button
+          className="gap-2"
+          disabled={applying}
+          onClick={onApply}
+          size="sm"
+        >
           {applying ? "Applying…" : `Apply ${changeCount(staged.size)}`}
+          <span className="flex items-center gap-0.5">
+            <Kbd>{metaKeyLabel}</Kbd>
+            <Kbd>↵</Kbd>
+          </span>
         </Button>
       </div>
     </div>

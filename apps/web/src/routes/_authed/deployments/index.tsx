@@ -17,6 +17,9 @@ const filtersFrom = (search: Record<string, unknown>) => ({
   search: typeof search.q === "string" ? search.q : "",
 });
 
+const applied = (count: number) =>
+  `${count} ${count === 1 ? "change" : "changes"}`;
+
 export const Route = createFileRoute("/_authed/deployments/")({
   loaderDeps: ({ search }) => filtersFrom(search),
   /** The client fetches these: the API is addressed relatively, which has no
@@ -70,15 +73,43 @@ function DeploymentsPage() {
           (result) => result.error !== null
         );
 
-        if (failed.length === 0) {
-          staging.discard();
-          return;
+        if (failed.length > 0) {
+          toast.error(
+            `Couldn't apply ${failed.length} of ${changes.length} changes`,
+            { description: failed[0]?.error ?? undefined }
+          );
         }
 
-        toast.error(
-          `Couldn't apply ${failed.length} of ${changes.length} changes`,
-          { description: failed[0]?.error ?? undefined }
+        /** Offered for the batch rather than per change, because the batch is
+         * the unit anyone decided on. Only what actually moved is offered
+         * back, and a first deployment has nowhere to return to. */
+        const undoable = changes.filter(
+          (change) =>
+            change.from !== null &&
+            !failed.some(
+              (result) =>
+                result.change.promptId === change.promptId &&
+                result.change.channel === change.channel
+            )
         );
+
+        staging.discard();
+
+        if (undoable.length > 0) {
+          toast.success(`Applied ${applied(changes.length - failed.length)}`, {
+            action: {
+              label: "Undo",
+              onClick: () =>
+                apply.mutate(
+                  undoable.map((change) => ({
+                    channel: change.channel,
+                    promptId: change.promptId,
+                    version: change.from,
+                  })) as PlacementChange[]
+                ),
+            },
+          });
+        }
       },
     });
   };
