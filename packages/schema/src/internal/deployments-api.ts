@@ -1,15 +1,19 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
-import { Deployment } from "../domain/deployments";
-import { Forbidden } from "../domain/errors";
+import { DeploymentPage } from "../domain/deployments";
+import { Conflict, Forbidden, NotFound } from "../domain/errors";
 import { ChannelName, LimitFromString, PromptId } from "../domain/prompts";
 import { Authentication } from "./authentication";
 
 const DeploymentQuery = Schema.Struct({
   channel: Schema.optional(ChannelName),
-  /** The timestamp of the last row already read. Keyset rather than a page
-   * number, so a deployment made while someone reads cannot shift the page. */
-  before: Schema.optional(Schema.DateTimeUtc),
+  cursor: Schema.optional(
+    Schema.String.annotations({
+      description:
+        "The nextCursor of the page already read. Opaque, and only ever " +
+        "returned by this endpoint.",
+    })
+  ),
   limit: Schema.optional(LimitFromString),
   prompt: Schema.optional(PromptId),
 });
@@ -18,7 +22,9 @@ export class DeploymentsGroup extends HttpApiGroup.make("deployments")
   .add(
     HttpApiEndpoint.get("list", "/deployments")
       .setUrlParams(DeploymentQuery)
-      .addSuccess(Schema.Array(Deployment))
+      .addSuccess(DeploymentPage)
   )
+  .addError(Conflict)
   .addError(Forbidden)
+  .addError(NotFound)
   .middleware(Authentication) {}

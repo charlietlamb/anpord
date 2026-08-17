@@ -2,28 +2,21 @@ import type { Deployment } from "@anpord/schema/domain/deployments";
 import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
 import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
-import { ArrowRightIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { VersionMove } from "@/components/deployments/version-move";
 import { RailCard } from "@/components/prompts/rail-card";
-import { listDeployments } from "@/lib/deployments-client";
-import { deploymentKeys } from "@/lib/query/deployment-keys";
+import { deploymentQueries } from "@/lib/query/deployment-queries";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 import { useRelativeTime } from "@/lib/use-relative-time";
-
-const RAIL_LIMIT = 5;
 
 interface DeploymentsCardProps {
   readonly promptId: string;
 }
 
 export function DeploymentsCard({ promptId }: DeploymentsCardProps) {
-  const deployments = useQuery({
-    queryKey: [...deploymentKeys.list({ prompt: promptId }), RAIL_LIMIT],
-    queryFn: () => listDeployments({ limit: RAIL_LIMIT, prompt: promptId }),
-  });
-
-  const rows = deployments.data ?? [];
+  const deployments = useQuery(deploymentQueries.forPrompt(promptId));
+  const rows = deployments.data?.items ?? [];
 
   return (
     <RailCard
@@ -31,6 +24,7 @@ export function DeploymentsCard({ promptId }: DeploymentsCardProps) {
         rows.length === 0 ? null : (
           <Link
             className="text-muted-foreground text-xs hover:text-foreground hover:underline"
+            search={{ prompt: promptId }}
             to="/deployments"
           >
             All
@@ -40,20 +34,39 @@ export function DeploymentsCard({ promptId }: DeploymentsCardProps) {
       className="px-0 py-0"
       title="Deployments"
     >
-      <DeploymentsCardBody isPending={deployments.isPending} rows={rows} />
+      <DeploymentsCardBody
+        failed={deployments.isError}
+        isPending={deployments.isPending}
+        rows={rows}
+      />
     </RailCard>
   );
 }
 
 interface DeploymentsCardBodyProps {
+  readonly failed: boolean;
   readonly isPending: boolean;
   readonly rows: readonly Deployment[];
 }
 
-function DeploymentsCardBody({ isPending, rows }: DeploymentsCardBodyProps) {
+function DeploymentsCardBody({
+  failed,
+  isPending,
+  rows,
+}: DeploymentsCardBodyProps) {
   if (isPending) {
     return (
       <p className="px-3.5 py-3 text-muted-foreground text-xs">Loading…</p>
+    );
+  }
+
+  /** Distinct from the empty state below, which would otherwise claim the
+   * prompt has never been deployed when the request simply failed. */
+  if (failed) {
+    return (
+      <p className="px-3.5 py-3 text-muted-foreground text-xs">
+        Couldn't load deployments.
+      </p>
     );
   }
 
@@ -66,11 +79,14 @@ function DeploymentsCardBody({ isPending, rows }: DeploymentsCardBodyProps) {
   }
 
   return (
-    <div className={cn("flex flex-col", ROW_DIVIDERS)}>
+    <ul
+      aria-label="Recent deployments"
+      className={cn("flex flex-col", ROW_DIVIDERS)}
+    >
       {rows.map((deployment) => (
         <CardRow deployment={deployment} key={deployment.id} />
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -79,29 +95,25 @@ function CardRow({ deployment }: { readonly deployment: Deployment }) {
   const channelColor = useChannelColor();
 
   return (
-    <div className="flex items-center gap-2 px-3.5 py-2.5">
+    <li className="flex items-center gap-2 px-3.5 py-2.5">
       <ChannelBadge
         color={channelColor(deployment.channel)}
         name={deployment.channel}
         size="xs"
       />
 
-      <span className="flex items-center gap-1 text-muted-foreground text-xs tabular-nums">
-        {deployment.fromVersion === null ? null : (
-          <>
-            <span>v{deployment.fromVersion}</span>
-            <ArrowRightIcon aria-hidden="true" size={10} weight="bold" />
-          </>
-        )}
-        <span className="text-foreground/80">v{deployment.toVersion}</span>
-      </span>
+      <VersionMove
+        className="gap-1"
+        from={deployment.fromVersion}
+        to={deployment.toVersion}
+      />
 
       <time
-        className="ml-auto shrink-0 text-muted-foreground text-xs tabular-nums"
+        className="ml-auto w-16 shrink-0 text-right text-muted-foreground text-xs tabular-nums"
         dateTime={new Date(deployment.deployedAt).toISOString()}
       >
         {when}
       </time>
-    </div>
+    </li>
   );
 }

@@ -16,10 +16,13 @@ const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
   Schedule.compose(Schedule.recurs(3))
 );
 
+/** The author comes from a left join onto a nullable actor, so a deleted user
+ * arrives as a row of nulls rather than as no row. The name is nullable here
+ * because the database says so; `authorOf` is what turns that into no author. */
 export type VersionRow = typeof promptVersion.$inferSelect & {
   readonly author: {
     readonly image: string | null;
-    readonly name: string;
+    readonly name: string | null;
   } | null;
 };
 

@@ -1,9 +1,13 @@
-import { infiniteQueryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import type { DeploymentFilters } from "@/lib/deployments-client";
 import { listDeployments } from "@/lib/deployments-client";
 import { deploymentKeys } from "@/lib/query/deployment-keys";
 
-const DEPLOYMENTS_PAGE_SIZE = 25;
+const PAGE_SIZE = 25;
+
+/** The rail sits beside the editor rather than being the page, so it carries
+ * enough to show the recent shape of a prompt and no more. */
+const RAIL_SIZE = 5;
 
 type DeploymentListFilters = Pick<DeploymentFilters, "channel" | "prompt">;
 
@@ -14,16 +18,16 @@ export const deploymentQueries = {
       queryFn: ({ pageParam }) =>
         listDeployments({
           ...filters,
-          before: pageParam ?? undefined,
-          limit: DEPLOYMENTS_PAGE_SIZE,
+          cursor: pageParam ?? undefined,
+          limit: PAGE_SIZE,
         }),
-      initialPageParam: null as Date | null,
-      /** The endpoint returns rows rather than a cursor, so the next page
-       * starts at the oldest row already read. A short page means there was
-       * nothing left to fill it. */
-      getNextPageParam: (page) =>
-        page.length < DEPLOYMENTS_PAGE_SIZE
-          ? undefined
-          : (page.at(-1)?.deployedAt ?? undefined),
+      initialPageParam: null as string | null,
+      getNextPageParam: (page) => page.nextCursor ?? undefined,
+    }),
+
+  forPrompt: (promptId: string) =>
+    queryOptions({
+      queryKey: deploymentKeys.forPrompt(promptId),
+      queryFn: () => listDeployments({ limit: RAIL_SIZE, prompt: promptId }),
     }),
 } as const;

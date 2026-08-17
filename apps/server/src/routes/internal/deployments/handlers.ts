@@ -1,10 +1,12 @@
 import { Deployments } from "@anpord/prompts/deployments";
 import { Permissions } from "@anpord/schema/domain/permissions";
+import { PAGE_LIMIT_DEFAULT } from "@anpord/schema/domain/prompts";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
-import { DateTime, Effect } from "effect";
+import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
+import { withPromptErrors } from "../../../http/prompt-errors";
 
 export const DeploymentsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -12,7 +14,9 @@ export const DeploymentsHandlers = HttpApiBuilder.group(
   (handlers) =>
     authorized(handlers).handle(
       "list",
-      { permission: Permissions.Prompts.Read },
+      /** A deployment is a channel event, so reading one is reading a channel
+       * rather than reading a prompt. */
+      { permission: Permissions.Channels.Read },
       ({ urlParams }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
@@ -20,17 +24,10 @@ export const DeploymentsHandlers = HttpApiBuilder.group(
 
           return yield* deployments.list(actor, {
             channel: urlParams.channel,
-            cursor:
-              urlParams.before === undefined
-                ? undefined
-                : DateTime.toDate(urlParams.before),
-            limit: urlParams.limit,
+            cursor: urlParams.cursor,
+            limit: urlParams.limit ?? PAGE_LIMIT_DEFAULT,
             promptId: urlParams.prompt,
           });
-        }).pipe(
-          /** A read of an append-only log cannot conflict or miss; a store
-           * failure is a defect, the same as every other repository read. */
-          Effect.catchTag("PromptStoreError", Effect.die)
-        )
+        }).pipe(withPromptErrors)
     ).done
 );

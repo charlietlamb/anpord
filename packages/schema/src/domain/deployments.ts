@@ -41,3 +41,11 @@ export const Deployment = Schema.Struct({
   identifier: "Deployment",
 });
 export type Deployment = typeof Deployment.Type;
+
+export const DeploymentPage = Schema.Struct({
+  items: Schema.Array(Deployment),
+  /** Opaque to callers, and null once the last page has been read. A short page
+   * does not mean the end: only this saying so does. */
+  nextCursor: Schema.NullOr(Schema.String),
+});
+export type DeploymentPage = typeof DeploymentPage.Type;
