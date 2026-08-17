@@ -7,7 +7,6 @@ import { ArrowUpIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { LiveLine } from "@/components/prompts/live-line";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
 import { PromptRail } from "@/components/prompts/prompt-rail";
@@ -56,9 +55,6 @@ function EditorPreview() {
           <PromptEditorHeader
             correctingVersion={null}
             dirty={content !== BODY}
-            live={
-              <LiveLine pending={false} placement={null} viewingVersion={1} />
-            }
             name="Support triage"
             onCancelCorrection={() => undefined}
             onEditDetails={() => undefined}

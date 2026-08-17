@@ -1,5 +1,6 @@
 import { Auth } from "@anpord/auth";
 import { AuthConfig } from "@anpord/auth/config";
+import { logDatabase } from "@anpord/db/describe";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect, Layer, Schedule } from "effect";
 import { ServerConfig } from "./config";
@@ -57,6 +58,7 @@ export const main = Effect.gen(function* () {
     (running) => Effect.sync(() => running.stop(true))
   );
 
+  yield* logDatabase;
   yield* Effect.logInfo(
     `server listening on http://${config.host}:${server.port}`
   );

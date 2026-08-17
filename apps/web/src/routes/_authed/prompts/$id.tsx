@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { LiveLine } from "@/components/prompts/live-line";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
 import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
@@ -91,11 +90,6 @@ function PromptDetailPage() {
   const content = editing ? (draft ?? base.content) : viewed.content;
   const submitted = content.trim();
   const dirty = editing && submitted !== base.content.trim();
-
-  const livePlacement =
-    (channels.data ?? []).find(
-      (placement) => placement.channel === PRODUCTION
-    ) ?? null;
 
   const servedChannels = (version: number): readonly string[] =>
     (channels.data ?? []).reduce<string[]>((names, placement) => {
@@ -258,13 +252,6 @@ function PromptDetailPage() {
         <PromptEditorHeader
           correctingVersion={correcting ? viewed.version : null}
           dirty={dirty}
-          live={
-            <LiveLine
-              pending={channels.isPending}
-              placement={livePlacement}
-              viewingVersion={viewed.version}
-            />
-          }
           name={latest.name}
           onCancelCorrection={() => {
             setDraft(null);
