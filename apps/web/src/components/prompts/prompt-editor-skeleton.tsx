@@ -45,9 +45,9 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
         </header>
       }
     >
-      <main className="flex min-h-0 min-w-0 flex-col">
-        <div className="flex min-h-0 w-full flex-1 flex-col">
-          <ComposerSurface className="min-h-0 flex-1">
+      <main className="flex min-w-0 flex-col">
+        <div className="flex w-full flex-col">
+          <ComposerSurface className="min-h-[26rem]">
             <SkeletonLines
               className="gap-3.5 px-4 pt-4 pb-2"
               widths={BODY_LINES}

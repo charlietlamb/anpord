@@ -27,7 +27,7 @@ export function CardHeader({
   return (
     <header
       className={cn(
-        "flex items-center justify-between gap-2 border-border-surface border-b bg-[color-mix(in_oklab,var(--sidebar-accent)_50%,var(--background))] px-3.5 py-1.5",
+        "flex items-center justify-between gap-2 border-border-surface border-b bg-[color-mix(in_oklab,var(--sidebar-accent)_50%,var(--background))] px-3.5 py-1.5 transition-surface",
         sticky && "sticky top-0 z-10",
         className
       )}

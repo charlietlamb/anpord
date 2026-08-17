@@ -10,7 +10,6 @@
     "./deployments": "./src/services/deployments.ts",
     "./errors": "./src/domain/errors.ts",
     "./layer": "./src/layer.ts",
-    "./placements": "./src/services/placements.ts",
     "./publishing": "./src/services/prompt-publishing.ts",
     "./resolution": "./src/services/prompt-resolution.ts"
   },

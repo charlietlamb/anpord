@@ -1,6 +1,5 @@
 import { Channel } from "@anpord/schema/domain/channels";
 import { Deployment } from "@anpord/schema/domain/deployments";
-import { PromptPlacements } from "@anpord/schema/domain/placements";
 import {
   type ChannelName,
   ChannelPlacement,
@@ -10,10 +9,6 @@ import {
 import { Effect, ParseResult, Schema } from "effect";
 import type { ChannelCountRow } from "../repositories/channel-repository";
 import type { DeploymentRow } from "../repositories/deployment-repository";
-import type {
-  PlacementPromptRow,
-  PlacementRow,
-} from "../repositories/placement-repository";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";
 import type { PromptListRow } from "../repositories/prompt-list-query";
 import type { VersionRow } from "../repositories/prompt-version-repository";
@@ -22,7 +17,6 @@ import { PromptStoreError } from "./errors";
 const decodeChannel = Schema.decodeUnknown(Channel);
 const decodeDeployment = Schema.decodeUnknown(Deployment);
 const decodePlacement = Schema.decodeUnknown(ChannelPlacement);
-const decodePromptPlacements = Schema.decodeUnknown(PromptPlacements);
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
 
@@ -118,21 +112,6 @@ export const toDeployment = (
     promptName: row.promptName,
     toVersion: row.toVersion,
   }).pipe(Effect.mapError(asStoreError("views.toDeployment")));
-
-export const toPromptPlacements = (
-  row: PlacementPromptRow,
-  placements: readonly PlacementRow[]
-): Effect.Effect<PromptPlacements, PromptStoreError> =>
-  Effect.all(placements.map((placement) => toPlacement(placement))).pipe(
-    Effect.flatMap((decoded) =>
-      decodePromptPlacements({
-        id: row.id,
-        latestVersion: row.latestVersion,
-        name: row.name,
-        placements: decoded,
-      }).pipe(Effect.mapError(asStoreError("views.toPromptPlacements")))
-    )
-  );
 
 export const toSummary = (
   row: PromptListRow

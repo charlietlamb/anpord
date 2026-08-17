@@ -40,6 +40,21 @@
   }
 }
 
+/* A resize cannot be tweened: the browser repaints each frame, so a transition
+   on width or height stutters rather than smooths. What is worth easing are the
+   discrete moves either side of it — a surface changing colour, a panel
+   arriving once the layout has settled. */
+@utility transition-surface {
+  transition-timing-function: var(--ease-emphasised);
+  transition-duration: 200ms;
+  transition-property:
+    background-color, border-color, color, box-shadow, opacity;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-duration: 1ms;
+  }
+}
+
 @theme inline {
   --font-heading: "Funnel Display Variable", ui-sans-serif, sans-serif;
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
@@ -83,6 +98,7 @@
   --color-alpha-8: var(--alpha-8);
   --default-transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
   --default-transition-duration: 200ms;
+  --ease-emphasised: cubic-bezier(0.2, 0, 0, 1);
 }
 
 :root {
@@ -108,7 +124,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.92 0 0);
   --input: oklch(0.92 0 0);
-  --ring: oklch(0.68 0.1 220);
+  --ring: oklch(0.45 0 0);
   --radius: 0.625rem;
   --background: oklch(0.99 0 0);
   --foreground: oklch(0.145 0 0);
@@ -132,26 +148,26 @@
 }
 
 .dark {
-  --background: oklch(0.145 0.004 285.823);
+  --background: oklch(0.152 0.008 248);
   --foreground: oklch(0.97 0 0);
-  --card: oklch(0.185 0.005 285.885);
+  --card: oklch(0.185 0.01 248);
   --card-foreground: oklch(0.97 0 0);
-  --sidebar: oklch(0.128 0.004 285.823);
-  --sidebar-foreground: oklch(0.86 0.004 286);
-  --sidebar-accent: oklch(0.225 0.006 285.885);
+  --sidebar: oklch(0.128 0.008 248);
+  --sidebar-foreground: oklch(0.86 0.008 248);
+  --sidebar-accent: oklch(0.225 0.012 248);
   --sidebar-accent-foreground: oklch(0.97 0 0);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.779 0.117 213.7);
-  --popover: oklch(0.205 0.006 285.885);
+  --popover: oklch(0.205 0.012 248);
   --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.62 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
   --primary-border: color-mix(in oklab, var(--primary), black 22%);
-  --secondary: oklch(0.3 0.006 286.033);
+  --secondary: oklch(0.3 0.012 248);
   --secondary-foreground: oklch(0.955 0 0);
-  --muted: oklch(0.295 0.006 286.033);
-  --muted-foreground: oklch(0.72 0.015 286.067);
-  --accent: oklch(0.3 0.006 286.033);
+  --muted: oklch(0.295 0.012 248);
+  --muted-foreground: oklch(0.72 0.015 248);
+  --accent: oklch(0.3 0.012 248);
   --accent-foreground: oklch(0.955 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 17%);
@@ -172,7 +188,7 @@
     0 0 0 1px oklch(1 0 0 / 6%), 0 25px 25px oklch(0 0 0 / 12%),
     0 6px 14px oklch(0 0 0 / 16%);
   --input: oklch(1 0 0 / 20%);
-  --ring: oklch(0.779 0.117 213.7);
+  --ring: oklch(0.72 0 0);
 }
 
 @layer utilities {
@@ -246,6 +262,7 @@
       transform: translateX(100%);
     }
   }
+
   @media (prefers-reduced-motion: reduce) {
     .skeleton-shimmer::after {
       animation: none;

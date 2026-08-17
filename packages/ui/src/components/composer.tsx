@@ -32,7 +32,7 @@ export function ComposerSurface({
   return (
     <div
       className={cn(
-        "relative z-10 flex flex-col rounded-[18px] border border-border-surface bg-card shadow-elevated transition-colors focus-within:border-ring",
+        "relative z-10 flex flex-col rounded-[18px] border border-border-surface bg-card shadow-elevated transition-surface focus-within:border-ring",
         className
       )}
       {...props}

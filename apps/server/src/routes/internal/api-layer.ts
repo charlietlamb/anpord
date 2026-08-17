@@ -6,7 +6,6 @@ import { ChannelsHandlers } from "./channels/handlers";
 import { DeploymentsHandlers } from "./deployments/handlers";
 import { HealthHandlers } from "./health/handlers";
 import { OAuthHandlers } from "./oauth/handlers";
-import { PlacementsHandlers } from "./placements/handlers";
 import { PromptsHandlers } from "./prompts/handlers";
 
 const GroupsLive = Layer.mergeAll(
@@ -14,8 +13,7 @@ const GroupsLive = Layer.mergeAll(
   OAuthHandlers,
   PromptsHandlers,
   ChannelsHandlers,
-  DeploymentsHandlers,
-  PlacementsHandlers
+  DeploymentsHandlers
 );
 
 export const ApiLive = apiSurface(AnpordApi, GroupsLive, AuthenticationLive);

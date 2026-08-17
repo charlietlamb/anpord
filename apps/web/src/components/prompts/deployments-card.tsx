@@ -99,7 +99,7 @@ function CardRow({ deployment }: { readonly deployment: Deployment }) {
       ) : null}
 
       <time
-        className="ml-auto w-16 shrink-0 text-right text-muted-foreground text-xs tabular-nums"
+        className="ml-auto shrink-0 truncate whitespace-nowrap text-right text-muted-foreground text-xs tabular-nums"
         dateTime={new Date(deployment.deployedAt).toISOString()}
       >
         {when}
