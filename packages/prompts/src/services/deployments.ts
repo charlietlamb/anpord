@@ -27,12 +27,16 @@ export class Deployments extends Context.Tag("@anpord/prompts/Deployments")<
   DeploymentsShape
 >() {}
 
-/** A deployment that lowers the version is a rollback, which reads differently
- * from a move forward and is worth naming rather than leaving the reader to
- * compare two numbers. */
+/** A deployment that lowers the version is a rollback and one that repeats the
+ * serving version moved nothing, both of which read differently from a move
+ * forward and are worth naming rather than leaving the reader to compare two
+ * numbers. */
 const kindOf = (row: DeploymentRow): Deployment["kind"] => {
   if (row.fromVersion === null) {
     return "first";
+  }
+  if (row.toVersion === row.fromVersion) {
+    return "repeat";
   }
   return row.toVersion < row.fromVersion ? "rollback" : "promotion";
 };

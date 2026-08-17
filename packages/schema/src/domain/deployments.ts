@@ -12,8 +12,17 @@ import {
  * What kind of move this was. Derived from the versions rather than stored, so
  * it cannot disagree with them, and named here rather than left to the reader
  * to work out by comparing two numbers.
+ *
+ * A repeat is a move to the version already serving. Nothing changed for
+ * callers, so it reads as its own kind rather than as a promotion that happens
+ * to be a no-op.
  */
-export const DeploymentKind = Schema.Literal("first", "promotion", "rollback");
+export const DeploymentKind = Schema.Literal(
+  "first",
+  "promotion",
+  "repeat",
+  "rollback"
+);
 export type DeploymentKind = typeof DeploymentKind.Type;
 
 export const Deployment = Schema.Struct({

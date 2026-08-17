@@ -7,6 +7,7 @@ import { Button } from "@anpord/ui/components/button";
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { ArrowCounterClockwiseIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import { ChannelsCard } from "@/components/prompts/channels-card";
+import { DeploymentsCard } from "@/components/prompts/deployments-card";
 import { DetailsCard } from "@/components/prompts/details-card";
 import { RailCard } from "@/components/prompts/rail-card";
 import { UsageCard } from "@/components/prompts/usage-card";
@@ -95,6 +96,8 @@ export function PromptRail({
         pointing={pointing}
         versions={versions}
       />
+
+      <DeploymentsCard promptId={viewed.id} />
 
       <DetailsCard created={oldest.createdAt} viewed={viewed} />
 
