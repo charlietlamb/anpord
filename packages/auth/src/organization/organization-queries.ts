@@ -2,7 +2,7 @@ import type { Database } from "@anpord/db/client";
 import { member } from "@anpord/db/schema/auth/members";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { OrganizationStoreError } from "./organization-store-error";
 
@@ -42,6 +42,26 @@ export const findLatestMembership = (db: Db, userId: string) =>
       .from(member)
       .where(eq(member.userId, userId))
       .orderBy(desc(member.createdAt))
+      .limit(1)
+  ).pipe(Effect.map(firstRow));
+
+/** Scoped to the organisation as well as the user, because a person can hold a
+ * different role in each one and the session names which is active. */
+export const findMemberRole = (
+  db: Db,
+  organizationId: string,
+  userId: string
+) =>
+  tryQuery("member.findRole", () =>
+    db
+      .select({ role: member.role })
+      .from(member)
+      .where(
+        and(
+          eq(member.organizationId, organizationId),
+          eq(member.userId, userId)
+        )
+      )
       .limit(1)
   ).pipe(Effect.map(firstRow));
 

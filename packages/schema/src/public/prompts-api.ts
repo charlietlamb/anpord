@@ -1,5 +1,5 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
-import { BadRequest, Conflict, NotFound } from "../domain/errors";
+import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { ApiKeyAuthentication } from "./authentication";
 import {
   ArchivePromptRequest,
@@ -77,6 +77,7 @@ export class PublicPromptsGroup extends HttpApiGroup.make("prompts")
       )
   )
   .addError(BadRequest)
+  .addError(Forbidden)
   .addError(Conflict)
   .addError(NotFound)
   .middleware(ApiKeyAuthentication)

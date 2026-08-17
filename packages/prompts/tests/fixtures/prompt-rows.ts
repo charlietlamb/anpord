@@ -1,4 +1,6 @@
+import type { Actor } from "@anpord/schema/domain/actor";
 import { OrganizationId, UserId } from "@anpord/schema/domain/actor";
+import { ROLE_PERMISSIONS } from "@anpord/schema/domain/permissions";
 import { PromptId } from "@anpord/schema/domain/prompts";
 import { Effect } from "effect";
 import type { VersionRow } from "../../src/repositories/prompt-version-repository";
@@ -9,9 +11,13 @@ export const noopCache: PromptCacheShape = {
   invalidateOrganization: () => Effect.void,
 };
 
-export const actor = {
+/** An owner, so a service test exercises the operation rather than the
+ * permission check. Authorisation is enforced at the HTTP boundary and is
+ * covered by its own tests. */
+export const actor: Actor = {
   id: UserId.make("user_1"),
   organizationId: OrganizationId.make("org_1"),
+  permissions: ROLE_PERMISSIONS.owner,
 };
 
 export const promptId = PromptId.make("greeting");

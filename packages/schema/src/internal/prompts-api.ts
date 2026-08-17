@@ -1,6 +1,6 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
-import { Conflict, NotFound } from "../domain/errors";
+import { Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
   AddVersionRequest,
   ChannelName,
@@ -98,5 +98,6 @@ export class PromptsGroup extends HttpApiGroup.make("prompts")
       .addSuccess(Schema.Void)
   )
   .addError(Conflict)
+  .addError(Forbidden)
   .addError(NotFound)
   .middleware(Authentication) {}

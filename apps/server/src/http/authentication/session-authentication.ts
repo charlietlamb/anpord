@@ -1,6 +1,8 @@
 import { Auth } from "@anpord/auth";
+import { OrganizationStore } from "@anpord/auth/organization";
 import { Actor } from "@anpord/schema/domain/actor";
 import { Unauthorized } from "@anpord/schema/domain/errors";
+import { permissionsForRole } from "@anpord/schema/domain/permissions";
 import { Authentication } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder, HttpServerRequest } from "@effect/platform";
 import { Effect, Layer, Option, Schema } from "effect";
@@ -11,6 +13,7 @@ export const AuthenticationLive = Layer.effect(
   Authentication,
   Effect.gen(function* () {
     const auth = yield* Auth;
+    const organizations = yield* OrganizationStore;
 
     return Authentication.of({
       session: () =>
@@ -38,9 +41,20 @@ export const AuthenticationLive = Layer.effect(
             );
           }
 
+          /** A membership that cannot be read grants nothing rather than
+           * everything, so a database blip narrows what the caller may do
+           * instead of opening the organisation up. */
+          const role = yield* organizations
+            .roleOf(organizationId.value, user.value.id)
+            .pipe(Effect.orElseSucceed(() => Option.none<string>()));
+
           return yield* Schema.decodeUnknown(Actor)({
             id: user.value.id,
             organizationId: organizationId.value,
+            permissions: Option.match(role, {
+              onNone: () => [],
+              onSome: permissionsForRole,
+            }),
           }).pipe(
             Effect.mapError(() =>
               unauthorized("Session identifiers are malformed")

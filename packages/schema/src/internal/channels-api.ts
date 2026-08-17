@@ -5,7 +5,7 @@ import {
   CreateChannelRequest,
   UpdateChannelRequest,
 } from "../domain/channels";
-import { Conflict, NotFound } from "../domain/errors";
+import { Conflict, Forbidden, NotFound } from "../domain/errors";
 import { ChannelName } from "../domain/prompts";
 import { Authentication } from "./authentication";
 
@@ -32,5 +32,6 @@ export class ChannelsGroup extends HttpApiGroup.make("channels")
       .addSuccess(Schema.Void)
   )
   .addError(Conflict)
+  .addError(Forbidden)
   .addError(NotFound)
   .middleware(Authentication) {}

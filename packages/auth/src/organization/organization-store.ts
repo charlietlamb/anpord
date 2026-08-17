@@ -1,12 +1,20 @@
 import { Database } from "@anpord/db/client";
 import { IdGenerator } from "@anpord/ids/id";
 import { Context, Effect, Layer, Option } from "effect";
-import { findLatestMembership, findOwnerProfile } from "./organization-queries";
+import {
+  findLatestMembership,
+  findMemberRole,
+  findOwnerProfile,
+} from "./organization-queries";
 import type { OrganizationStoreError } from "./organization-store-error";
 import { provisionPersonalOrganization } from "./provision-personal-organization";
 
 export interface OrganizationStoreShape {
   readonly resolveActive: (
+    userId: string
+  ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
+  readonly roleOf: (
+    organizationId: string,
     userId: string
   ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
 }
@@ -41,7 +49,14 @@ const make = Effect.gen(function* () {
       Effect.annotateLogs({ userId })
     );
 
-  return OrganizationStore.of({ resolveActive });
+  const roleOf = (organizationId: string, userId: string) =>
+    findMemberRole(db, organizationId, userId).pipe(
+      Effect.map(Option.map((row) => row.role)),
+      Effect.withSpan("OrganizationStore.roleOf"),
+      Effect.annotateLogs({ organizationId, userId })
+    );
+
+  return OrganizationStore.of({ resolveActive, roleOf });
 });
 
 export const OrganizationStoreLive = Layer.effect(OrganizationStore, make);
