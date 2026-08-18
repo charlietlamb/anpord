@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { ChannelName } from "@anpord/schema/domain/prompts";
 import { Effect, Exit, Layer, Option } from "effect";
+import { ChannelRepository } from "../../src/repositories/channel-repository";
 import {
   type ChannelRow,
   PromptChannelRepository,
@@ -50,6 +51,17 @@ const publishing = Layer.succeed(PromptPublishing, {
 
 const cache = Layer.succeed(PromptCache, noopCache);
 
+/** No default channel, so a published version is answered by the newest one. */
+const channelCatalog = Layer.succeed(ChannelRepository, {
+  byName: unreachable("byName"),
+  defaultChannel: () => Effect.succeedNone,
+  insert: unreachable("insert"),
+  list: unreachable("list"),
+  remove: unreachable("remove"),
+  setDefault: unreachable("setDefault"),
+  update: unreachable("update"),
+});
+
 const placement = (channel: string, version: number): ChannelRow => ({
   channel,
   updatedAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -74,6 +86,7 @@ const listVersions = (
               prompts,
               publishing,
               cache,
+              channelCatalog,
               Layer.succeed(PromptVersionRepository, {
                 append: unreachable("append"),
                 byNumber: unreachable("byNumber"),

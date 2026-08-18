@@ -8,7 +8,6 @@ import type {
   PromptSortOrder,
   PromptStatusFilter,
 } from "@anpord/schema/domain/prompts";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import {
   and,
   asc,
@@ -102,9 +101,11 @@ export const selectPromptList = (
     .leftJoin(latest, eq(latest.promptInternalId, prompt.internalId))
     .leftJoin(
       channel,
+      /* The channel the organisation answers a bare request from, so the
+         column shows what a caller receives rather than a channel by name. */
       and(
         eq(channel.organizationId, organizationId),
-        eq(channel.name, PRODUCTION)
+        eq(channel.isDefault, true)
       )
     )
     .leftJoin(

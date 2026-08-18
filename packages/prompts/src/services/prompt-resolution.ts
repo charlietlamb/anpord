@@ -1,11 +1,7 @@
 import { Cache } from "@anpord/cache/cache";
 import type { Actor } from "@anpord/schema/domain/actor";
 import type { PromptId, PromptSelector } from "@anpord/schema/domain/prompts";
-import {
-  ChannelName,
-  PRODUCTION,
-  ResolvedPrompt,
-} from "@anpord/schema/domain/prompts";
+import { ChannelName, ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import {
@@ -78,8 +74,8 @@ export const PromptResolutionLive = Layer.effect(
 
         if (Option.isNone(fallback)) {
           return {
-            channel: PRODUCTION,
-            found: yield* channels.resolve(promptInternalId, PRODUCTION),
+            channel: null,
+            found: yield* versions.latest(promptInternalId),
           };
         }
 

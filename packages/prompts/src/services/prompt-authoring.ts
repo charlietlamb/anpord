@@ -5,12 +5,13 @@ import type {
   ResolvedPrompt,
   UpdateVersionRequest,
 } from "@anpord/schema/domain/prompts";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
+import { ChannelName } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import { answeringChannels } from "../domain/answering-channels";
 import type { PromptError } from "../domain/errors";
 import { VersionNotFound } from "../domain/errors";
 import { toResolved } from "../domain/views";
+import { ChannelRepository } from "../repositories/channel-repository";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
@@ -46,6 +47,7 @@ export const PromptAuthoringLive = Layer.effect(
     const prompts = yield* PromptRepository;
     const versions = yield* PromptVersionRepository;
     const channels = yield* PromptChannelRepository;
+    const channelCatalog = yield* ChannelRepository;
     const publishing = yield* PromptPublishing;
     const promptCache = yield* PromptCache;
 
@@ -63,10 +65,22 @@ export const PromptAuthoringLive = Layer.effect(
             promptInternalId: row.internalId,
           });
 
-          if (request.publish) {
+          /* Published to the channel the organisation answers a bare request
+             from. Holding none, the newest version already answers, so there
+             is nowhere a publish would make it more readable. */
+          const fallback = yield* channelCatalog.defaultChannel(
+            actor.organizationId
+          );
+          const channel = Option.map(fallback, (channelRow) =>
+            ChannelName.make(channelRow.name)
+          );
+          const publishedTo =
+            request.publish && Option.isSome(channel) ? channel.value : null;
+
+          if (publishedTo !== null) {
             yield* publishing.publishVersion({
               actor,
-              channel: PRODUCTION,
+              channel: publishedTo,
               promptId: id,
               promptInternalId: row.internalId,
               versionInternalId: version.internalId,
@@ -77,11 +91,7 @@ export const PromptAuthoringLive = Layer.effect(
           yield* prompts.touch(row.internalId, now);
           yield* promptCache.invalidate(actor.organizationId, id);
 
-          return yield* toResolved(
-            row,
-            request.publish ? PRODUCTION : null,
-            version
-          );
+          return yield* toResolved(row, publishedTo, version);
         }).pipe(
           Effect.withSpan("PromptAuthoring.addVersion"),
           Effect.annotateLogs({ orgId: actor.organizationId, promptId: id })

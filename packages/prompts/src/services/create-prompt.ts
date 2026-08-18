@@ -1,7 +1,7 @@
 import type { IdGeneratorShape } from "@anpord/ids/id";
 import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
 import type { CreatePromptRequest } from "@anpord/schema/domain/prompts";
-import { ChannelName, PRODUCTION } from "@anpord/schema/domain/prompts";
+import { ChannelName } from "@anpord/schema/domain/prompts";
 import { Effect, Option } from "effect";
 import { toResolved } from "../domain/views";
 import type { ChannelRepositoryShape } from "../repositories/channel-repository";
@@ -44,26 +44,26 @@ export const createPrompt = (
     });
 
     /* Published to whichever channel the organisation answers a bare request
-       from, and to production when it has not chosen one. The two decisions
-       have to agree: resolution falls back to production, so publishing
-       somewhere else would leave a new prompt that cannot be read without
-       naming a channel. */
+       from. The two decisions have to agree: an organisation holding no
+       default is answered from its newest version, so publishing a first
+       version to a channel nobody reads would only hide it. */
     const fallback = yield* deps.channels.defaultChannel(actor.organizationId);
-    const channel = Option.match(fallback, {
-      onNone: () => PRODUCTION,
-      onSome: (row) => ChannelName.make(row.name),
-    });
-    const published = request.publish !== false;
+    const channel = Option.map(fallback, (row) => ChannelName.make(row.name));
+    const published = request.publish !== false && Option.isSome(channel);
 
-    if (published) {
+    if (published && Option.isSome(channel)) {
       yield* deps.publishing.publishVersion({
         actor,
-        channel,
+        channel: channel.value,
         promptId: request.id,
         promptInternalId: internalId,
         versionInternalId: version.internalId,
       });
     }
 
-    return yield* toResolved(request, published ? channel : null, version);
+    return yield* toResolved(
+      request,
+      published ? Option.getOrNull(channel) : null,
+      version
+    );
   });

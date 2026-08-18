@@ -66,8 +66,10 @@ describe("selectPromptList", () => {
     { limit: 10 }
   ).toSQL().sql;
 
-  test("reaches production through the channel table", () => {
-    expect(query).toContain('"channel"."name"');
+  test("reaches the default channel through the channel table", () => {
+    /* Joined on the flag rather than a name, so renaming the channel an
+       organisation answers from does not empty the column. */
+    expect(query).toContain('"channel"."is_default"');
     expect(query).toContain(
       '"prompt_channel"."channel_internal_id" = "channel"."internal_id"'
     );

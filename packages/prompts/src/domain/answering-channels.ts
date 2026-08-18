@@ -1,4 +1,4 @@
-import { ChannelName, PRODUCTION } from "@anpord/schema/domain/prompts";
+import { ChannelName } from "@anpord/schema/domain/prompts";
 import { Effect, ParseResult, Schema } from "effect";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";
 import { PromptStoreError } from "./errors";
@@ -7,20 +7,15 @@ const decodeChannel = Schema.decodeUnknown(ChannelName);
 
 /**
  * Several channels may point at one version, but `ResolvedPrompt.channel` is
- * singular and is part of the public wire shape. Production wins so the field
- * answers the question callers actually ask; `listChannels` carries the rest.
+ * singular and is part of the public wire shape.
+ *
+ * Which one to name is settled alphabetically rather than by preferring a
+ * channel: the organisation chooses which one answers a bare request, and a
+ * pure function over these rows cannot know it. `listChannels` carries the
+ * rest either way.
  */
-const preferred = (left: ChannelRow, right: ChannelRow) => {
-  if (left.channel === PRODUCTION) {
-    return left;
-  }
-
-  if (right.channel === PRODUCTION) {
-    return right;
-  }
-
-  return left.channel <= right.channel ? left : right;
-};
+const preferred = (left: ChannelRow, right: ChannelRow) =>
+  left.channel <= right.channel ? left : right;
 
 export const answeringChannels = (
   rows: readonly ChannelRow[]
