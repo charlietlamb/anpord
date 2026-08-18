@@ -3,13 +3,38 @@ import {
   DEFAULT_BASE_URL,
   make,
 } from "@anpord/schema/public/client";
+import { render } from "@anpord/template/render";
 import { FetchHttpClient, type HttpClientResponse } from "@effect/platform";
-import { type Brand, Cause, Effect, Exit, Option, Redacted } from "effect";
+import {
+  type Brand,
+  Cause,
+  Effect,
+  Exit,
+  ManagedRuntime,
+  Option,
+  Redacted,
+} from "effect";
+import { noopLayer } from "./cache/noop";
+import { layer, PromptCache } from "./cache/prompt-cache";
+import { resolvePrompt } from "./cache/resolve";
+import {
+  type CacheOptions,
+  cacheEnabled,
+  settingsFrom,
+} from "./cache/settings";
+import type {
+  GetPromptOptions,
+  PromptMetadata,
+  PromptSelector,
+} from "./cache/types";
 import { asAnpordError, MissingApiKey } from "./errors";
 
 export interface AnpordOptions {
   readonly apiKey?: string;
   readonly baseUrl?: string;
+  /** False disables it, an object tunes it. Answers are held for fifteen
+   * seconds and served while a refresh runs behind them. */
+  readonly cache?: boolean | CacheOptions;
 }
 
 type Payload<Method> = Method extends (request: {
@@ -62,8 +87,19 @@ const resolveApiKey = (provided: string | undefined) => {
   return apiKey;
 };
 
+type Prompts = Promised<AnpordClient["prompts"]>;
+type Prompt = Awaited<ReturnType<Prompts["get"]>>;
+
+export type PromptResult = Prompt & { readonly anpord: PromptMetadata };
+
+export interface PromptsSurface extends Omit<Prompts, "get"> {
+  readonly get: (options: GetPromptOptions) => Promise<PromptResult>;
+}
+
 export class Anpord {
-  readonly prompts: Promised<AnpordClient["prompts"]>;
+  readonly prompts: PromptsSurface;
+
+  private readonly runtime: ManagedRuntime.ManagedRuntime<PromptCache, never>;
 
   constructor(options: AnpordOptions = {}) {
     const apiKey = resolveApiKey(options.apiKey);
@@ -72,9 +108,83 @@ export class Anpord {
       baseUrl: options.baseUrl ?? DEFAULT_BASE_URL,
     }).pipe(Effect.provide(FetchHttpClient.layer), Effect.runSync);
 
-    this.prompts = promised(client.prompts);
+    const fetch = (selector: PromptSelector) =>
+      client.prompts.get({ payload: selector as never });
+
+    this.runtime = ManagedRuntime.make(
+      cacheEnabled(options.cache)
+        ? layer(settingsFrom(options.cache), fetch)
+        : noopLayer(fetch)
+    );
+
+    const group = promised(client.prompts);
+
+    const forget = (id: string) =>
+      this.runtime
+        .runPromise(
+          Effect.flatMap(PromptCache, (cache) => cache.invalidate(id))
+        )
+        .catch(() => undefined);
+
+    this.prompts = {
+      ...group,
+      archive: invalidating(group.archive, forget),
+      get: (request) => this.resolve(request),
+      promote: invalidating(group.promote, forget),
+      update: invalidating(group.update, forget),
+    };
+  }
+
+  /** Background refreshes belong to this runtime, so a caller who is finished
+   * with the client can take them with it. */
+  dispose() {
+    return this.runtime.dispose();
+  }
+
+  [Symbol.asyncDispose]() {
+    return this.runtime.dispose();
+  }
+
+  private async resolve(options: GetPromptOptions): Promise<PromptResult> {
+    const exit = await this.runtime.runPromiseExit(resolvePrompt(options));
+    if (Exit.isFailure(exit)) {
+      throw asAnpordError(
+        Cause.failureOption(exit.cause).pipe(
+          Option.getOrElse(() => Cause.squash(exit.cause))
+        )
+      );
+    }
+
+    const prompt = exit.value.value as Prompt;
+    const value =
+      options.variables === undefined
+        ? prompt
+        : {
+            ...prompt,
+            content: render(prompt.content, options.variables).content,
+          };
+
+    /** Not enumerable, so a caller who serialises a prompt or compares it
+     * against a fixture sees exactly what they saw before. */
+    return Object.defineProperty(value, "anpord", {
+      enumerable: false,
+      value: exit.value.metadata,
+    }) as PromptResult;
   }
 }
+
+/** A write this process made is a write this process knows about, so the
+ * answer it holds is knowably wrong the moment the write succeeds. */
+const invalidating =
+  <Request extends { readonly id: string }, Value>(
+    write: (request: Request) => Promise<Value>,
+    forget: (id: string) => Promise<void>
+  ) =>
+  async (request: Request) => {
+    const result = await write(request);
+    await forget(request.id);
+    return result;
+  };
 
 const promised = <Group extends Record<string, unknown>>(group: Group) =>
   Object.fromEntries(

@@ -63,6 +63,7 @@
     "typescript": "catalog:"
   },
   "dependencies": {
+    "@anpord/template": "workspace:*",
     "@effect/cli": "^0.75.2",
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.107.0",
