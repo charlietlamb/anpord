@@ -15,7 +15,10 @@ import { seedTenant } from "./harness/seed";
 import { AUTH_SECRET, SERVER_PORT } from "./harness/settings";
 import { apiScenarios } from "./scenarios/api";
 import { cliScenarios } from "./scenarios/cli";
+import { lifecycleScenarios } from "./scenarios/lifecycle";
+import { resolutionScenarios } from "./scenarios/resolution";
 import { sdkScenarios } from "./scenarios/sdk";
+import { validationScenarios } from "./scenarios/validation";
 import type { World } from "./world";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -46,6 +49,9 @@ const prepareWorkspace = () => {
 
 const SURFACES = [
   { name: "api", scenarios: apiScenarios },
+  { name: "resolution", scenarios: resolutionScenarios },
+  { name: "lifecycle", scenarios: lifecycleScenarios },
+  { name: "validation", scenarios: validationScenarios },
   { name: "sdk", scenarios: sdkScenarios },
   { name: "cli", scenarios: cliScenarios },
 ] as const;

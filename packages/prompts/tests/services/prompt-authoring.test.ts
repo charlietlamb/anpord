@@ -34,6 +34,8 @@ const unreachable = (method: string) => () =>
 const prompts = Layer.succeed(PromptRepository, {
   archive: unreachable("archive"),
   findById: () => Effect.succeed(Option.some(promptRow)),
+  findByIdIncludingArchived: () => Effect.succeed(Option.some(promptRow)),
+  idExists: () => Effect.succeed(true),
   insert: unreachable("insert"),
   listByOrganization: unreachable("listByOrganization"),
   touch: unreachable("touch"),

@@ -9,7 +9,7 @@ import type {
   ResolvedPrompt,
   UpdatePromptRequest,
 } from "@anpord/schema/domain/prompts";
-import { Clock, Context, Effect, Layer, Option } from "effect";
+import { Clock, Context, Effect, Layer } from "effect";
 import type { PromptError } from "../domain/errors";
 import { PromptIdTaken } from "../domain/errors";
 import {
@@ -69,9 +69,9 @@ export const PromptCatalogLive = Layer.effect(
 
     const requireIdFree = (actor: Actor, id: PromptId) =>
       Effect.gen(function* () {
-        const existing = yield* prompts.findById(actor.organizationId, id);
+        const taken = yield* prompts.idExists(actor.organizationId, id);
 
-        if (Option.isSome(existing)) {
+        if (taken) {
           return yield* Effect.fail(new PromptIdTaken({ id }));
         }
       });

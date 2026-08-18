@@ -28,6 +28,9 @@ const promptsWith = (found: boolean): PromptRepositoryShape => ({
   archive: unreachable("archive"),
   findById: () =>
     Effect.succeed(found ? Option.some(promptRow) : Option.none()),
+  findByIdIncludingArchived: () =>
+    Effect.succeed(found ? Option.some(promptRow) : Option.none()),
+  idExists: () => Effect.succeed(found),
   insert: unreachable("insert"),
   listByOrganization: unreachable("listByOrganization"),
   touch: unreachable("touch"),

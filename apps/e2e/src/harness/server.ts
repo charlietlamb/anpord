@@ -13,6 +13,9 @@ const PORT_RELEASE_TIMEOUT_MS = 5000;
 
 export interface RunningServer {
   readonly baseUrl: string;
+  /** What the server has written so far, for a scenario that needs to prove
+   * something reached the log rather than only the response. */
+  readonly output: () => string;
   readonly stop: () => void;
 }
 
@@ -89,5 +92,5 @@ export const startServer = async (
     throw new Error(`${(cause as Error).message}\n${output}`);
   }
 
-  return { baseUrl: `http://127.0.0.1:${port}`, stop };
+  return { baseUrl: `http://127.0.0.1:${port}`, output: () => output, stop };
 };

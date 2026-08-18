@@ -17,8 +17,25 @@ export const requirePrompt = (
   prompts: PromptRepositoryShape,
   actor: Actor,
   id: PromptId
+) => scopedRead(prompts.findById(actor.organizationId, id), id);
+
+/**
+ * The same scoping for a read that must still answer once the prompt is
+ * archived. Archiving hides a prompt from the dashboard rather than retiring
+ * the versions a running service already pinned itself to.
+ */
+export const requireReadablePrompt = (
+  prompts: PromptRepositoryShape,
+  actor: Actor,
+  id: PromptId
 ) =>
-  prompts.findById(actor.organizationId, id).pipe(
+  scopedRead(prompts.findByIdIncludingArchived(actor.organizationId, id), id);
+
+const scopedRead = (
+  read: ReturnType<PromptRepositoryShape["findById"]>,
+  id: PromptId
+) =>
+  read.pipe(
     Effect.flatMap(
       Option.match({
         onNone: () => Effect.fail(new PromptNotFound({ id })),

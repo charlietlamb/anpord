@@ -44,6 +44,8 @@ const row = (
 const fakeStore = (rows: readonly PromptListRow[]): PromptRepositoryShape => ({
   archive: unreachable("archive"),
   findById: unreachable("findById"),
+  findByIdIncludingArchived: unreachable("findByIdIncludingArchived"),
+  idExists: unreachable("idExists"),
   insert: unreachable("insert"),
   listByOrganization: (_organizationId, params) => {
     const byName = params.sort === "name";

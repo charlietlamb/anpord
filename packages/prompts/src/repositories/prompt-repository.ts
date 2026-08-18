@@ -21,6 +21,20 @@ export interface PromptRepositoryShape {
     organizationId: OrganizationId,
     id: PromptId
   ) => Effect.Effect<Option.Option<PromptRow>, PromptStoreError>;
+  /** Archived rows included, for reads. Archiving hides a prompt from the
+   * dashboard; a service pinned to a version it already shipped keeps working,
+   * which is what the public contract promises. */
+  readonly findByIdIncludingArchived: (
+    organizationId: OrganizationId,
+    id: PromptId
+  ) => Effect.Effect<Option.Option<PromptRow>, PromptStoreError>;
+  /** Archived rows included. An id an archived prompt still holds is not free:
+   * the unique index covers both, so treating it as free turns an ordinary
+   * conflict into a store error the caller cannot act on. */
+  readonly idExists: (
+    organizationId: OrganizationId,
+    id: PromptId
+  ) => Effect.Effect<boolean, PromptStoreError>;
   readonly insert: (input: {
     readonly authorId: string | null;
     readonly description: string | null;
@@ -72,6 +86,28 @@ export const PromptRepositoryLive = Layer.effect(
             )
             .limit(1)
         ).pipe(Effect.map(head)),
+
+      findByIdIncludingArchived: (organizationId, id) =>
+        tryStore("prompt.findByIdIncludingArchived", () =>
+          db
+            .select()
+            .from(prompt)
+            .where(
+              and(eq(prompt.organizationId, organizationId), eq(prompt.id, id))
+            )
+            .limit(1)
+        ).pipe(Effect.map(head)),
+
+      idExists: (organizationId, id) =>
+        tryStore("prompt.idExists", () =>
+          db
+            .select({ internalId: prompt.internalId })
+            .from(prompt)
+            .where(
+              and(eq(prompt.organizationId, organizationId), eq(prompt.id, id))
+            )
+            .limit(1)
+        ).pipe(Effect.map((rows) => rows.length > 0)),
 
       insert: (input) =>
         tryStore("prompt.insert", () =>

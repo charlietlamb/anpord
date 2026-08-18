@@ -23,6 +23,13 @@ export function selectorKey(
   switch (resolution._tag) {
     case "ByVersion":
       return `${prefix}v:${resolution.version}`;
+    /* Its own key rather than the default channel's: the organisation may
+       point the default at another channel, and a key naming the old one
+       would answer from a channel nobody asked for. */
+    case "Default":
+      return `${prefix}default`;
+    /* Keyed apart from a stored channel of the same name, because it answers
+       from the version table rather than from a placement. */
     case "Latest":
       return `${prefix}latest`;
     default:
