@@ -1,0 +1,19 @@
+{
+  "name": "@anpord/sandbox-watch",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "anpord-watch": "./src/watch.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

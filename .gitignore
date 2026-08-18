@@ -22,3 +22,6 @@ apps/mcp/.mcp-use/
 
 # Written while resolving catalog specifiers for publish
 packages/*/package.json.catalog
+
+# Captured sandbox sessions, which contain run output rather than source.
+apps/sandbox-lab/.sessions/

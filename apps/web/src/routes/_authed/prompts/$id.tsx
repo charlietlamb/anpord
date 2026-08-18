@@ -265,7 +265,9 @@ function PromptDetailPage() {
         />
       }
     >
-      <main className="relative flex min-h-[20rem] min-w-0 flex-col">
+      {/* Held in place while the rail scrolls past it: the prompt is what the
+          rail describes, so losing sight of it costs the reader the subject. */}
+      <main className="relative flex min-h-[20rem] min-w-0 flex-col lg:sticky lg:top-4 lg:h-[calc(100svh-8.5rem)]">
         <PromptComposer
           content={content}
           filename={`${id}.md`}

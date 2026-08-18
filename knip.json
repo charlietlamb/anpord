@@ -9,6 +9,10 @@
       "entry": ["src/main.ts"],
       "project": ["src/**"]
     },
+    "apps/sandbox-lab": {
+      "entry": ["src/run.ts", "src/hard.ts", "src/replay.ts", "src/ingest.ts"],
+      "project": ["src/**"]
+    },
     "apps/server": {
       "entry": ["src/server.ts", "tests/**/*.test.ts"],
       "project": ["src/**", "tests/**"]
@@ -69,6 +73,10 @@
         "tests/**/*.test.ts"
       ],
       "project": ["src/**", "tests/**"]
+    },
+    "packages/sandbox-watch": {
+      "entry": ["src/watch.ts"],
+      "project": ["src/**"]
     },
     "packages/schema": {
       "entry": [
