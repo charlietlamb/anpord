@@ -100,15 +100,13 @@ export const cliScenarios: readonly Scenario<World>[] = [
       equals("exits cleanly", read.code, 0);
 
       const prompt = JSON.parse(read.stdout) as {
+        readonly content: string;
         readonly id: string;
         readonly version: number;
       };
       equals("id round trips", prompt.id, id);
-      isTrue(
-        "carries a version",
-        Number.isInteger(prompt.version),
-        `expected a version, got ${prompt.version}`
-      );
+      equals("serving the only version there is", prompt.version, 1);
+      contains("with the body it was created with", prompt.content, "Original");
     },
   },
   {
@@ -144,9 +142,15 @@ export const cliScenarios: readonly Scenario<World>[] = [
 
       contains("augments the sdk", written, 'import "anpord"');
       contains("declares the registry", written, "AnpordPromptVariables");
-      contains("includes the prompt", written, id);
-      contains("names a spaced variable", written, "customer_name");
-      contains("names the other variable", written, "product");
+      /* Matched together rather than separately: gen writes every prompt in
+         the organisation, so finding the id and finding a variable somewhere
+         in the file would both hold even if this prompt contributed neither. */
+      const entry = new RegExp(`"${id}":\\s*\\{[^}]*customer_name[^}]*product`);
+      isTrue(
+        "names this prompt with both of its variables",
+        entry.test(written),
+        `no entry for ${id} carrying both variables:\n${written}`
+      );
     },
   },
   {

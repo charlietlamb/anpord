@@ -183,11 +183,20 @@ export const lifecycleScenarios: readonly Scenario<World>[] = [
         [id]
       );
 
-      equals("the history has no gaps", stored.length, written.length + 1);
+      isTrue(
+        "the retry absorbed the contention",
+        written.length === attempts,
+        `only ${written.length} of ${attempts} writes landed; the rest gave up`
+      );
+
+      /* Compared against the sequence it should be rather than counted: a
+         history of 1,2,3,5,8 has the right length and the wrong contents. */
       equals(
-        "and no repeats",
-        new Set(stored.map((row) => row.version)).size,
-        stored.length
+        "the history runs unbroken",
+        stored.map((row) => row.version).join(","),
+        Array.from({ length: stored.length }, (_row, index) => index + 1).join(
+          ","
+        )
       );
     },
   },

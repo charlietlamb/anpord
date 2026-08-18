@@ -1,4 +1,4 @@
-import { contains, equals, isTrue } from "../harness/expect";
+import { contains, equals } from "../harness/expect";
 import { givenPrompt } from "../harness/given";
 import { callApi } from "../harness/http";
 import type { Scenario } from "../harness/run";
@@ -9,20 +9,20 @@ const CONTENT_MAX = 256 * 1024;
 const call = (world: World, endpoint: string, payload: unknown) =>
   callApi(world.baseUrl, world.writeKey.key, endpoint, payload);
 
+/** The field is named rather than merely asserting some rejection happened:
+ * a check that accepts any 400 keeps passing when the wrong validator fires,
+ * which is the regression it exists to catch. */
 const rejected = async (
   world: World,
   check: string,
+  field: string,
   endpoint: string,
   payload: unknown
 ) => {
   const { body, status } = await call(world, endpoint, payload);
 
   equals(check, status, 400);
-  isTrue(
-    `${check} says what was wrong`,
-    JSON.stringify(body).length > 2,
-    "a rejection came back with nothing to read"
-  );
+  contains(`${check} names the field`, JSON.stringify(body), field);
 };
 
 /**
@@ -34,31 +34,43 @@ export const validationScenarios: readonly Scenario<World>[] = [
   {
     name: "validation: an id has to be one a url and a filesystem can carry",
     run: async (world) => {
-      await rejected(world, "uppercase is refused", "prompts.create", {
+      await rejected(world, "uppercase is refused", "id", "prompts.create", {
         content: "c",
         id: "NotLowercase",
         name: "x",
       });
-      await rejected(world, "a space is refused", "prompts.create", {
+      await rejected(world, "a space is refused", "id", "prompts.create", {
         content: "c",
         id: "has a space",
         name: "x",
       });
-      await rejected(world, "a leading dash is refused", "prompts.create", {
-        content: "c",
-        id: "-leading",
-        name: "x",
-      });
+      await rejected(
+        world,
+        "a leading dash is refused",
+        "id",
+        "prompts.create",
+        {
+          content: "c",
+          id: "-leading",
+          name: "x",
+        }
+      );
     },
   },
   {
     name: "validation: content is bounded, and the caller is told which field",
     run: async (world) => {
-      await rejected(world, "empty content is refused", "prompts.create", {
-        content: "",
-        id: "val-empty",
-        name: "x",
-      });
+      await rejected(
+        world,
+        "empty content is refused",
+        "content",
+        "prompts.create",
+        {
+          content: "",
+          id: "val-empty",
+          name: "x",
+        }
+      );
 
       const { body, status } = await call(world, "prompts.create", {
         content: "z".repeat(CONTENT_MAX + 1),
@@ -82,7 +94,7 @@ export const validationScenarios: readonly Scenario<World>[] = [
       });
       equals("a prompt id may carry a slash", slashed.status, 200);
 
-      await rejected(world, "a channel may not", "prompts.promote", {
+      await rejected(world, "a channel may not", "channel", "prompts.promote", {
         channel: "with/a/slash",
         id,
         version: 1,
@@ -94,17 +106,23 @@ export const validationScenarios: readonly Scenario<World>[] = [
     run: async (world) => {
       const { id } = await givenPrompt(world, "val-version");
 
-      await rejected(world, "zero is refused", "prompts.promote", {
+      await rejected(world, "zero is refused", "version", "prompts.promote", {
         channel: "production",
         id,
         version: 0,
       });
-      await rejected(world, "a negative is refused", "prompts.promote", {
-        channel: "production",
-        id,
-        version: -1,
-      });
-      await rejected(world, "a fraction is refused", "prompts.get", {
+      await rejected(
+        world,
+        "a negative is refused",
+        "version",
+        "prompts.promote",
+        {
+          channel: "production",
+          id,
+          version: -1,
+        }
+      );
+      await rejected(world, "a fraction is refused", "version", "prompts.get", {
         id,
         version: 1.5,
       });

@@ -53,6 +53,16 @@ export const seedTenant = async (
       [memberId, organizationId, userId, OWNER, now]
     );
 
+    /* The same channel signing up gives a new organisation. Without it the
+       test organisations are a shape no real one has: no default, so nothing
+       exercises the resolution path every customer actually takes. */
+    await client.query(
+      `insert into channel
+         (internal_id, organization_id, name, color, is_default, created_at)
+       values ($1, $2, 'production', 'green', true, $3)`,
+      [`chl_${randomUUID().replaceAll("-", "")}`, organizationId, now]
+    );
+
     const sessionToken = randomUUID();
     await client.query(
       `insert into session

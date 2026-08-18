@@ -124,8 +124,17 @@ export const sdkScenarios: readonly Scenario<World>[] = [
     name: "sdk: without a fallback an unreachable api fails loudly",
     run: async (world) => {
       await withClient(world, { baseUrl: UNREACHABLE }, async (client) => {
-        await rejects("the read fails", () =>
+        const failure = await rejects("the read fails", () =>
           client.prompts.get({ id: "sdk-no-fallback" })
+        );
+
+        /* Carrying no status is what marks it as an availability failure
+           rather than an answer, which is the difference between reaching for
+           a fallback and giving up. */
+        equals(
+          "as something that never reached the api",
+          (failure as { status?: number }).status,
+          undefined
         );
       });
     },
@@ -170,22 +179,39 @@ export const sdkScenarios: readonly Scenario<World>[] = [
     },
   },
   {
-    name: "sdk: concurrent reads of one prompt share a single fetch",
+    name: "sdk: concurrent cold reads agree, and warm reads come from the cache",
     run: async (world) => {
-      const { id } = await givenPrompt(world, "sdk-single-flight", {
+      const { id } = await givenPrompt(world, "sdk-concurrent", {
         content: "shared body",
       });
 
       await withClient(world, {}, async (client) => {
-        const reads = await Promise.all(
+        const cold = await Promise.all(
           Array.from({ length: 12 }, () => client.prompts.get({ id }))
         );
 
-        equals("every read answered", reads.length, 12);
         isTrue(
           "all agree on the content",
-          reads.every((prompt) => prompt.content === "shared body"),
+          cold.every((prompt) => prompt.content === "shared body"),
           "reads disagreed about the content"
+        );
+
+        /* Every cold read fetches: the cache is filled by whichever finishes,
+           it does not coalesce them. Asserted rather than assumed, so adding
+           single flight is a change this scenario notices. */
+        equals(
+          "none of them was served from the cache",
+          cold.filter((prompt) => prompt.anpord.freshness === "cached").length,
+          0
+        );
+
+        const warm = await Promise.all(
+          Array.from({ length: 12 }, () => client.prompts.get({ id }))
+        );
+        equals(
+          "once filled, every read is",
+          warm.filter((prompt) => prompt.anpord.freshness === "cached").length,
+          12
         );
       });
     },

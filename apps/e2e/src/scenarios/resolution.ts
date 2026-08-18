@@ -100,22 +100,41 @@ export const resolutionScenarios: readonly Scenario<World>[] = [
         version: 2,
       });
 
-      await world.query(
-        `update channel set is_default = true
-          where name = 'staging' and organization_id = (
-            select organization_id from prompt where id = $1
-          )`,
+      const [owner] = await world.query<{ organization_id: string }>(
+        "select organization_id from prompt where id = $1",
         [id]
       );
+      const organizationId = owner?.organization_id;
 
-      const bare = await call<PromptShape>(world, "prompts.get", { id });
+      /* Cleared before the new one is set, never in a single statement: the
+         schema holds a partial unique index over the organization, and
+         postgres checks it per row, so raising the second default before
+         lowering the first collides even though the end state is legal. */
+      const pointDefaultAt = async (name: string) => {
+        await world.query(
+          "update channel set is_default = false where organization_id = $1",
+          [organizationId]
+        );
+        await world.query(
+          `update channel set is_default = true
+            where organization_id = $1 and name = $2`,
+          [organizationId, name]
+        );
+      };
 
-      equals("the default takes over", bare.body.version, 2);
-      equals("and says which answered", bare.body.channel ?? null, "staging");
+      try {
+        await pointDefaultAt("staging");
 
-      await world.query(
-        "update channel set is_default = false where name = 'staging'"
-      );
+        const bare = await call<PromptShape>(world, "prompts.get", { id });
+
+        equals("the default takes over", bare.body.version, 2);
+        equals("and says which answered", bare.body.channel ?? null, "staging");
+      } finally {
+        /* Scoped to this organization and always run: a prompt created while
+           the default points elsewhere is published there and nowhere else,
+           so leaving it moved would strand every later fixture. */
+        await pointDefaultAt("production");
+      }
     },
   },
   {

@@ -66,6 +66,10 @@ export class ApiKeyStore {
    * Verified against the running server before reuse. A preserved key is only
    * useful while the organization it points at still exists, and a reset
    * database leaves the file pointing at nothing.
+   *
+   * A key that cannot be reused is replaced rather than reported, because the
+   * alternative is a run where every scenario fails on an unrelated 404 and
+   * nothing names the key file as the reason.
    */
   async resolve(name: string, owner: KeyOwner): Promise<StoredKey> {
     const existing = this.file.keys[name];
@@ -74,7 +78,15 @@ export class ApiKeyStore {
       return existing;
     }
 
-    return await this.mint(name, owner);
+    const minted = await this.mint(name, owner);
+
+    if (!(await this.isUsable(minted, owner))) {
+      throw new Error(
+        `The key just minted for ${name} cannot read this organization. The stored keys are out of step with the database; delete ${this.path} and run again.`
+      );
+    }
+
+    return minted;
   }
 
   private async isUsable(stored: StoredKey, owner: KeyOwner) {
