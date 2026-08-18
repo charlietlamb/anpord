@@ -1,0 +1,68 @@
+---
+title: "Quickstart"
+description: "Fetch your first prompt"
+---
+
+## Get a key
+
+Create a key in the dashboard under **Settings → API keys**. Keys are scoped to one organization, so a key only ever reads that organization's prompts.
+
+```bash
+export ANPORD_API_KEY="anp_..."
+```
+
+## Install
+
+<CodeGroup>
+
+```bash npm
+npm install anpord
+```
+
+```bash bun
+bun add anpord
+```
+
+</CodeGroup>
+
+## Create a prompt
+
+Write it in the dashboard, or from code:
+
+```ts
+import { Anpord } from "anpord";
+
+const anpord = new Anpord();
+
+await anpord.prompts.create({
+  id: "support-reply",
+  name: "Support reply",
+  content: "You are a support agent. Be brief and warm.",
+});
+```
+
+The id is how every caller addresses this prompt. It stays fixed while the content behind it changes.
+
+## Read it back
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o",
+  messages: [{ role: "system", content: prompt.content }],
+});
+```
+
+That is the whole integration. Editing `support-reply` in the dashboard changes what this code sends, with no deploy.
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Prompts, versions and channels" icon="book-open" href="/concepts">
+    What happens between the id and the content.
+  </Card>
+  <Card title="Variables" icon="brackets-curly" href="/variables">
+    Values filled in at runtime, checked at build time.
+  </Card>
+</CardGroup>

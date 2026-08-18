@@ -9,6 +9,8 @@ export interface Tenant {
   readonly userId: string;
 }
 
+/** Minting a key needs a signed-in person, and the sign-in itself is a magic
+ * link to a mailbox nothing here owns, so a session is seeded directly. */
 const SESSION_DAYS = 7;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -51,8 +53,6 @@ export const seedTenant = async (
       [memberId, organizationId, userId, OWNER, now]
     );
 
-    /** Minting a key needs a signed-in person, and the sign-in itself is a
-     * magic link to a mailbox nothing here owns. */
     const sessionToken = randomUUID();
     await client.query(
       `insert into session

@@ -87,6 +87,16 @@ Points a channel at a version. Both flags are required.
 anpord promote support-reply --to production --at 5
 ```
 
+### generate
+
+```bash
+anpord generate [--out <path>]
+```
+
+Writes TypeScript declarations describing which variables each prompt takes, so a misspelled or missing variable fails the build. Defaults to `anpord-env.d.ts`. `gen` is an alias.
+
+Run it again whenever a prompt gains or loses a variable, and commit the result. See [Variables](/variables).
+
 ## Scripting
 
 Content goes to stdout and everything else to stderr, so redirecting a prompt to a file captures the prompt and nothing else. A failure exits non-zero with a single line and no stack trace:
@@ -114,5 +124,5 @@ Also available for `bash` and `fish`.
 | `ANPORD_BASE_URL` | Optional. Defaults to `https://api.anpord.com`. |
 
 <Note>
-`ANPORD_BASE_URL` is read by the CLI and the MCP server. The SDK constructor does not read it — pass `{ baseUrl }` to point the client elsewhere.
+`ANPORD_BASE_URL` is read by the CLI and the MCP server. The SDK constructor does not read it, so pass `{ baseUrl }` to point the client elsewhere.
 </Note>

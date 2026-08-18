@@ -1,0 +1,63 @@
+---
+title: "Freshness and caching"
+description: "What the SDK serves when the network is slow or gone"
+---
+
+`get` reads from memory. The first call for a prompt fetches it, and calls inside the next fifteen seconds are answered without touching the network.
+
+## Why every answer says where it came from
+
+A cached answer and a fresh one look identical, so the SDK labels each one:
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+
+prompt.anpord.freshness; // "fresh" | "cached" | "stale" | "fallback"
+prompt.anpord.ageMs;     // how old the content is
+prompt.anpord.reason;    // why, when it is stale or a fallback
+```
+
+| Freshness | What happened |
+| --- | --- |
+| `fresh` | Fetched from the API on this call. |
+| `cached` | Served from memory, inside the fifteen second window. |
+| `stale` | The window passed, the fetch failed, and the last good answer was served instead. `reason` names the failure. |
+| `fallback` | Nothing had been cached and the API could not be reached, so the text you supplied was served. |
+
+Log `freshness` and you can tell a degraded application from a healthy one before anyone reports it.
+
+## Fifteen seconds
+
+The default window is short because a prompt change should reach production quickly. Once it passes, the next call fetches again, so a busy service makes one request every fifteen seconds per prompt rather than one per call.
+
+Raise it if you would rather trade propagation speed for fewer requests.
+
+```ts
+const anpord = new Anpord({
+  cache: { ttlMs: 60_000 },
+});
+```
+
+Disable it entirely with `cache: false`, and every call goes to the API.
+
+## When the API is unreachable
+
+A stale answer is served for up to twenty four hours, so an outage does not reach your users. Past that, or before anything has been cached, `get` needs somewhere to fall back to:
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "support-reply",
+  fallback: "You are a support agent. Be brief and warm.",
+});
+```
+
+Without a fallback the call throws, and your model call fails with it. Supply one for any prompt on a request path.
+
+## Tuning
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `ttlMs` | `15_000` | How long an answer is fresh. |
+| `maxStaleMs` | `86_400_000` | How long a stale answer may still be served. |
+| `capacity` | `1000` | How many answers are held before the least used is dropped. |
+| `maxConcurrentRefresh` | `8` | How many refreshes may run at once. |

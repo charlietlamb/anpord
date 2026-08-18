@@ -51,9 +51,33 @@ exists, and a stale key is replaced rather than trusted.
 ## Adding a scenario
 
 Scenarios are plain objects with a `name` and a `run`, grouped by the surface
-they exercise. `run` receives the `World`: base url, both tenants, both keys, a
-scratch directory, and a `query` for asserting against the database rather than
-only against the response.
+they exercise. `run` receives the `World`: base url, both keys, a scratch
+directory, and a `query` for asserting against what was stored rather than only
+against what the response claimed.
 
-Keep a scenario's fixtures its own. Depending on what an earlier scenario left
-behind turns one failure into a cascade of them.
+State the world you need with `givenPrompt` rather than building it by hand. It
+goes through the API, throws if setup fails, and gives every prompt a unique id,
+so two scenarios cannot collide and none of them depends on what ran first:
+
+```ts
+{
+  name: "api: something worth proving",
+  run: async (world) => {
+    const { id } = await givenPrompt(world, "api-thing", {
+      content: "Hello {{name}}.",
+      versions: ["a second body"],
+      promote: { channel: "production", version: 1 },
+    });
+
+    const read = await callApi(world.baseUrl, world.writeKey.key, "prompts.get", { id });
+    equals("serves the promoted version", read.body.version, 1);
+  },
+}
+```
+
+Behaviour that must hold on every surface belongs in `harness/surface.ts` rather
+than being written once per file. Describe the surface with `PromptSurface` and
+run the shared sequence against it, so a third way in cannot quietly disagree
+with the first two.
+
+Adding a whole surface is one entry in `SURFACES` in `main.ts`.

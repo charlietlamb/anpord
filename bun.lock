@@ -27,6 +27,7 @@
       "version": "0.0.0",
       "dependencies": {
         "anpord": "workspace:*",
+        "effect": "catalog:",
         "pg": "catalog:",
       },
       "devDependencies": {

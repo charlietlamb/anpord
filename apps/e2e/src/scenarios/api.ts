@@ -1,84 +1,55 @@
 import { contains, equals, isTrue } from "../harness/expect";
+import { givenPrompt, type PromptShape } from "../harness/given";
+import { callApi } from "../harness/http";
 import type { Scenario } from "../harness/run";
+import { rollback } from "../harness/surface";
 import type { World } from "../world";
 
-interface Call {
-  readonly body: unknown;
-  readonly status: number;
-}
-
-const call = async (
+const call = <Body = unknown>(
   world: World,
   endpoint: string,
   payload: unknown,
   key = world.writeKey.key
-): Promise<Call> => {
-  const response = await fetch(`${world.baseUrl}/v1/${endpoint}`, {
-    body: JSON.stringify(payload),
-    headers: {
-      authorization: `Bearer ${key}`,
-      "content-type": "application/json",
-    },
-    method: "POST",
-  });
+) => callApi<Body>(world.baseUrl, key, endpoint, payload);
 
-  const text = await response.text();
-
-  return {
-    body: text.length > 0 ? JSON.parse(text) : null,
-    status: response.status,
-  };
-};
-
-const asPrompt = (body: unknown) =>
-  body as {
-    readonly version: number;
-    readonly content: string;
-    readonly id: string;
-  };
+/** The surface under test, expressed as the operations every surface shares,
+ * so a behaviour proved here can be proved identically elsewhere. */
+const apiSurface = (world: World) => ({
+  get: async (id: string, selector?: { readonly channel?: string }) =>
+    (await call<PromptShape>(world, "prompts.get", { id, ...selector })).body,
+  promote: async (id: string, channel: string, version: number) => {
+    await call(world, "prompts.promote", { channel, id, version });
+  },
+  update: async (id: string, content: string) =>
+    (await call<PromptShape>(world, "prompts.update", { content, id })).body
+      .version,
+});
 
 export const apiScenarios: readonly Scenario<World>[] = [
   {
     name: "api: a key creates, reads back, and versions a prompt",
     run: async (world) => {
-      const id = "support-reply";
-
-      const created = await call(world, "prompts.create", {
+      const { id } = await givenPrompt(world, "api-versions", {
         content: "You are a support agent for {{product}}.",
-        id,
-        name: "Support reply",
       });
-      equals("create status", created.status, 200);
-      equals("first version", asPrompt(created.body).version, 1);
 
-      const read = await call(world, "prompts.get", { id });
+      const read = await call<PromptShape>(world, "prompts.get", { id });
       equals("get status", read.status, 200);
-      contains(
-        "content round trips",
-        asPrompt(read.body).content,
-        "{{product}}"
-      );
+      contains("content round trips", read.body.content, "{{product}}");
 
-      const updated = await call(world, "prompts.update", {
+      const updated = await call<PromptShape>(world, "prompts.update", {
         content: "You are a senior support agent for {{product}}.",
         id,
         message: "warmer tone",
       });
       equals("update status", updated.status, 200);
-      equals("second version", asPrompt(updated.body).version, 2);
+      equals("second version", updated.body.version, 2);
     },
   },
   {
     name: "api: a key writes without a user row behind it",
     run: async (world) => {
-      const id = "attribution-check";
-
-      const created = await call(world, "prompts.create", {
-        content: "hello",
-        id,
-        name: "Attribution check",
-      });
-      equals("create status", created.status, 200);
+      const { id } = await givenPrompt(world, "api-attribution");
 
       const authored = await world.query<{ created_by: string | null }>(
         `select v.created_by
@@ -93,42 +64,14 @@ export const apiScenarios: readonly Scenario<World>[] = [
     },
   },
   {
-    name: "api: promoting moves the channel and the read follows it",
+    name: "api: a channel can be pointed forwards and rolled back",
     run: async (world) => {
-      const id = "release-notes";
-
-      await call(world, "prompts.create", {
+      const { id } = await givenPrompt(world, "api-rollback", {
         content: "v1 body",
-        id,
-        name: "Release notes",
-        publish: false,
-      });
-      await call(world, "prompts.update", { content: "v2 body", id });
-
-      const promoted = await call(world, "prompts.promote", {
-        channel: "production",
-        id,
-        version: 1,
-      });
-      equals("promote status", promoted.status, 200);
-
-      const pinned = await call(world, "prompts.get", {
-        channel: "production",
-        id,
-      });
-      equals("production serves v1", asPrompt(pinned.body).version, 1);
-
-      await call(world, "prompts.promote", {
-        channel: "production",
-        id,
-        version: 2,
+        versions: ["v2 body"],
       });
 
-      const moved = await call(world, "prompts.get", {
-        channel: "production",
-        id,
-      });
-      equals("production now serves v2", asPrompt(moved.body).version, 2);
+      await rollback(apiSurface(world), id, 2, 1);
     },
   },
   {
@@ -147,19 +90,12 @@ export const apiScenarios: readonly Scenario<World>[] = [
   {
     name: "api: a duplicate id is a conflict, not a second prompt",
     run: async (world) => {
-      const id = "only-once";
-
-      const first = await call(world, "prompts.create", {
-        content: "a",
-        id,
-        name: "Only once",
-      });
-      equals("first create", first.status, 200);
+      const { id } = await givenPrompt(world, "api-duplicate");
 
       const second = await call(world, "prompts.create", {
         content: "b",
         id,
-        name: "Only once again",
+        name: "Duplicate",
       });
       equals("second create conflicts", second.status, 409);
 
@@ -172,13 +108,7 @@ export const apiScenarios: readonly Scenario<World>[] = [
   {
     name: "api: a key cannot archive, and the guard answers before the write",
     run: async (world) => {
-      const id = "guarded";
-
-      await call(world, "prompts.create", {
-        content: "keep me",
-        id,
-        name: "Guarded",
-      });
+      const { id } = await givenPrompt(world, "api-guarded");
 
       const archived = await call(world, "prompts.archive", { id });
       equals("archive is refused", archived.status, 403);
@@ -206,12 +136,8 @@ export const apiScenarios: readonly Scenario<World>[] = [
   {
     name: "api: one organization cannot read another's prompts",
     run: async (world) => {
-      const id = "tenant-isolated";
-
-      await call(world, "prompts.create", {
+      const { id } = await givenPrompt(world, "api-isolated", {
         content: "private to the first tenant",
-        id,
-        name: "Tenant isolated",
       });
 
       const foreign = await call(

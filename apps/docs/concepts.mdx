@@ -14,7 +14,7 @@ Ids are lowercase alphanumeric and may contain `/`, `_`, or `-`, up to 255 chara
 
 Content is versioned. `update` appends a version rather than replacing one, so every earlier version stays readable and a bad change is one promotion away from being undone.
 
-Versions are numbered from 1 and carry an optional message describing why the content changed. The message is worth writing — it is what someone reading the history months later has to work from.
+Versions are numbered from 1 and carry an optional message describing why the content changed. The message is worth writing. It is what someone reading the history months later has to work from.
 
 ## Channels
 
@@ -91,3 +91,34 @@ Do not point production traffic at `latest`. Every edit ships the moment it is w
 ## Archiving
 
 Archiving hides a prompt from listings. Callers pinned to a version keep resolving it, so archiving never breaks something already running.
+
+## Pinning a version
+
+Pass a version to address one exactly:
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply", version: 3 });
+```
+
+Useful for reproducing a past run, or for an evaluation that has to compare versions against each other rather than follow whatever is live.
+
+<Note>
+`version` wins when you pass both `version` and `channel`. The channel is ignored rather than rejected.
+</Note>
+
+## Reading history
+
+There is no separate versions call. Ask `get` to include the history:
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "support-reply",
+  includeVersions: true,
+});
+
+for (const version of prompt.versions ?? []) {
+  console.log(version.version, version.message, version.createdAt);
+}
+```
+
+History is omitted unless you ask for it, so the common read stays small. Each entry carries `version`, `message`, and `createdAt`, not the content. Fetch a specific version to read its text.

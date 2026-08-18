@@ -1,21 +1,29 @@
-import { Anpord } from "anpord";
+import { Anpord, type AnpordOptions } from "anpord";
 import { contains, equals, isTrue, rejects } from "../harness/expect";
+import { givenPrompt } from "../harness/given";
 import type { Scenario } from "../harness/run";
+import { drafting } from "../harness/surface";
 import type { World } from "../world";
 
-const clientFor = (world: World, options: Record<string, unknown> = {}) =>
-  new Anpord({
+/** An address nothing answers on, so a scenario can ask what the client does
+ * when the api cannot be reached at all. */
+const UNREACHABLE = "http://127.0.0.1:1";
+
+/**
+ * The client is disposed whatever the scenario does, because a leaked one
+ * keeps a background refresh fiber alive and the run never ends.
+ */
+const withClient = async (
+  world: World,
+  options: Omit<AnpordOptions, "apiKey">,
+  use: (client: Anpord) => Promise<void>
+) => {
+  const client = new Anpord({
     apiKey: world.writeKey.key,
     baseUrl: world.baseUrl,
     ...options,
   });
 
-const withClient = async (
-  world: World,
-  options: Record<string, unknown>,
-  use: (client: Anpord) => Promise<void>
-) => {
-  const client = clientFor(world, options);
   try {
     await use(client);
   } finally {
@@ -23,78 +31,54 @@ const withClient = async (
   }
 };
 
+const sdkSurface = (client: Anpord) => ({
+  get: (id: string, selector?: { readonly channel?: string }) =>
+    client.prompts.get({ id, ...selector }),
+  promote: async (id: string, channel: string, version: number) => {
+    await client.prompts.promote({ channel, id, version });
+  },
+  update: async (id: string, content: string) =>
+    (await client.prompts.update({ content, id })).version,
+});
+
 export const sdkScenarios: readonly Scenario<World>[] = [
   {
     name: "sdk: reads a prompt and reports how it was answered",
     run: async (world) => {
-      await withClient(world, {}, async (client) => {
-        await client.prompts.create({
-          content: "Summarise this ticket.",
-          id: "sdk-basic",
-          name: "Sdk basic",
-        });
+      const { id } = await givenPrompt(world, "sdk-basic", {
+        content: "Summarise this ticket.",
+      });
 
-        const first = await client.prompts.get({ id: "sdk-basic" });
+      await withClient(world, {}, async (client) => {
+        const first = await client.prompts.get({ id });
         equals("served from the api", first.anpord.freshness, "fresh");
         contains("content", first.content, "Summarise");
 
-        const second = await client.prompts.get({ id: "sdk-basic" });
-        isTrue(
-          "second read is cached",
-          second.anpord.freshness !== "fresh",
-          `expected a cached read, got ${second.anpord.freshness}`
-        );
+        const second = await client.prompts.get({ id });
+        equals("the second read is held", second.anpord.freshness, "cached");
       });
     },
   },
   {
     name: "sdk: an update drafts a version without moving production",
     run: async (world) => {
+      const { id } = await givenPrompt(world, "sdk-drafting");
+
       await withClient(world, {}, async (client) => {
-        await client.prompts.create({
-          content: "first body",
-          id: "sdk-invalidate",
-          name: "Sdk invalidate",
-        });
-
-        const before = await client.prompts.get({ id: "sdk-invalidate" });
-        equals("initial version", before.version, 1);
-
-        const drafted = await client.prompts.update({
-          content: "second body",
-          id: "sdk-invalidate",
-        });
-        equals("the write returns the new version", drafted.version, 2);
-
-        /** Updating writes a version, promoting ships it, so callers keep
-         * reading v1 until somebody decides otherwise. */
-        const after = await client.prompts.get({ id: "sdk-invalidate" });
-        equals("production has not moved", after.version, 1);
-
-        await client.prompts.promote({
-          channel: "production",
-          id: "sdk-invalidate",
-          version: 2,
-        });
-
-        const promoted = await client.prompts.get({ id: "sdk-invalidate" });
-        equals("promotion is visible", promoted.version, 2);
-        contains("new content", promoted.content, "second body");
+        await drafting(sdkSurface(client), id, 1);
       });
     },
   },
   {
     name: "sdk: interpolates variables and refuses a missing one",
     run: async (world) => {
-      await withClient(world, {}, async (client) => {
-        await client.prompts.create({
-          content: "Hello {{customer_name}}, welcome to {{product}}.",
-          id: "sdk-variables",
-          name: "Sdk variables",
-        });
+      const { id } = await givenPrompt(world, "sdk-variables", {
+        content: "Hello {{customer_name}}, welcome to {{product}}.",
+      });
 
+      await withClient(world, {}, async (client) => {
         const filled = await client.prompts.get({
-          id: "sdk-variables",
+          id,
           variables: { customer_name: "Ada", product: "Anpord" },
         });
 
@@ -108,7 +92,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
 
         const failure = await rejects("a missing variable fails", () =>
           client.prompts.get({
-            id: "sdk-variables",
+            id,
             variables: { customer_name: "Ada" } as never,
           })
         );
@@ -124,12 +108,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
   {
     name: "sdk: a fallback answers when the api cannot be reached",
     run: async (world) => {
-      const client = new Anpord({
-        apiKey: world.writeKey.key,
-        baseUrl: "http://127.0.0.1:1",
-      });
-
-      try {
+      await withClient(world, { baseUrl: UNREACHABLE }, async (client) => {
         const prompt = await client.prompts.get({
           fallback: "Offline body for {{name}}",
           id: "sdk-fallback",
@@ -138,40 +117,27 @@ export const sdkScenarios: readonly Scenario<World>[] = [
 
         contains("fallback is used", prompt.content, "Grace");
         equals("marked as a fallback", prompt.anpord.freshness, "fallback");
-      } finally {
-        await client.dispose();
-      }
+      });
     },
   },
   {
     name: "sdk: without a fallback an unreachable api fails loudly",
     run: async (world) => {
-      const client = new Anpord({
-        apiKey: world.writeKey.key,
-        baseUrl: "http://127.0.0.1:1",
-      });
-
-      try {
+      await withClient(world, { baseUrl: UNREACHABLE }, async (client) => {
         await rejects("the read fails", () =>
           client.prompts.get({ id: "sdk-no-fallback" })
         );
-      } finally {
-        await client.dispose();
-      }
+      });
     },
   },
   {
     name: "sdk: a disabled cache asks the api every time",
     run: async (world) => {
-      await withClient(world, { cache: false }, async (client) => {
-        await client.prompts.create({
-          content: "uncached body",
-          id: "sdk-uncached",
-          name: "Sdk uncached",
-        });
+      const { id } = await givenPrompt(world, "sdk-uncached");
 
-        const first = await client.prompts.get({ id: "sdk-uncached" });
-        const second = await client.prompts.get({ id: "sdk-uncached" });
+      await withClient(world, { cache: false }, async (client) => {
+        const first = await client.prompts.get({ id });
+        const second = await client.prompts.get({ id });
 
         equals("first is fresh", first.anpord.freshness, "fresh");
         equals("second is fresh too", second.anpord.freshness, "fresh");
@@ -181,57 +147,38 @@ export const sdkScenarios: readonly Scenario<World>[] = [
   {
     name: "sdk: a channel read follows a promotion once the entry expires",
     run: async (world) => {
+      const { id } = await givenPrompt(world, "sdk-channel", {
+        content: "channel v1",
+        versions: ["channel v2"],
+      });
+
       await withClient(world, { cache: { ttlMs: 1 } }, async (client) => {
-        await client.prompts.create({
-          content: "channel v1",
-          id: "sdk-channel",
-          name: "Sdk channel",
-        });
-        await client.prompts.update({
-          content: "channel v2",
-          id: "sdk-channel",
-        });
+        await client.prompts.promote({ channel: "production", id, version: 1 });
+        equals(
+          "production serves v1",
+          (await client.prompts.get({ channel: "production", id })).version,
+          1
+        );
 
-        await client.prompts.promote({
-          channel: "production",
-          id: "sdk-channel",
-          version: 1,
-        });
-
-        const pinned = await client.prompts.get({
-          channel: "production",
-          id: "sdk-channel",
-        });
-        equals("production serves v1", pinned.version, 1);
-
-        await client.prompts.promote({
-          channel: "production",
-          id: "sdk-channel",
-          version: 2,
-        });
-
-        const moved = await client.prompts.get({
-          channel: "production",
-          id: "sdk-channel",
-        });
-        equals("production now serves v2", moved.version, 2);
+        await client.prompts.promote({ channel: "production", id, version: 2 });
+        equals(
+          "production now serves v2",
+          (await client.prompts.get({ channel: "production", id })).version,
+          2
+        );
       });
     },
   },
   {
     name: "sdk: concurrent reads of one prompt share a single fetch",
     run: async (world) => {
-      await withClient(world, {}, async (client) => {
-        await client.prompts.create({
-          content: "shared body",
-          id: "sdk-single-flight",
-          name: "Sdk single flight",
-        });
+      const { id } = await givenPrompt(world, "sdk-single-flight", {
+        content: "shared body",
+      });
 
+      await withClient(world, {}, async (client) => {
         const reads = await Promise.all(
-          Array.from({ length: 12 }, () =>
-            client.prompts.get({ id: "sdk-single-flight" })
-          )
+          Array.from({ length: 12 }, () => client.prompts.get({ id }))
         );
 
         equals("every read answered", reads.length, 12);

@@ -1,0 +1,76 @@
+---
+title: "Troubleshooting"
+description: "Common failures and what they mean"
+---
+
+## `freshness` says `fallback`
+
+Nothing was cached and the API could not be reached, so the text you passed as `fallback` was served. `reason` names the failure.
+
+Expect this on a cold start during an outage. If it happens steadily, the process is probably short lived and never keeps a cache long enough to fill it. Check that the client is created once rather than per request:
+
+```ts
+// once, at module scope
+const anpord = new Anpord();
+```
+
+## `freshness` says `stale`
+
+The cached answer passed its window, the refetch failed, and the last good answer was served rather than an error. Your application is running on content that may be out of date but is still correct.
+
+`reason` names the failure. Editing a prompt during this window will not reach callers until the API is reachable again.
+
+## `get` throws instead of falling back
+
+A fallback is only reached when the failure is an availability failure. A prompt that does not exist, a key without access, or a malformed request are answered rather than retried, so they surface as errors:
+
+| Error | Meaning |
+| --- | --- |
+| `NotFound` | No prompt with that id in this organization. |
+| `Unauthorized` | The key is missing or not valid. |
+| `Forbidden` | The key is valid but not for this organization. |
+| `BadRequest` | The id, channel, or version did not pass validation. |
+| `Conflict` | The write collided with another, such as creating an id that exists. |
+| `422` | The request was understood but the values were not acceptable. |
+
+```ts
+import { AnpordError } from "anpord";
+
+try {
+  await anpord.prompts.get({ id: "support-reply" });
+} catch (error) {
+  if (error instanceof AnpordError) {
+    error.status; // 404, 401, 403, 400, 409
+  }
+}
+```
+
+## `MissingApiKey`
+
+The constructor found no key. Either set `ANPORD_API_KEY` in the environment or pass one:
+
+```ts
+const anpord = new Anpord({ apiKey: process.env.MY_KEY });
+```
+
+## A variable that does not exist
+
+`tsc` rejects a name the prompt does not use, and a name it does use that you did not pass. Both come from `anpord-env.d.ts`.
+
+If the error names a variable you just added in the dashboard, the declarations are behind. Run `anpord generate` again.
+
+If the error names a prompt id that no longer exists, the declarations are ahead of a deleted prompt. Regenerate.
+
+## An edit that has not reached production
+
+Writing a version does not publish it. A channel has to point at it:
+
+```ts
+await anpord.prompts.promote({
+  id: "support-reply",
+  channel: "production",
+  version: 5,
+});
+```
+
+After promoting, callers still hold cached content for up to fifteen seconds by default. See [Freshness and caching](/freshness).

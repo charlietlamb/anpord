@@ -1,31 +1,48 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
+import { runProcess } from "./process";
 import { AUTH_SECRET } from "./settings";
+import { waitUntil } from "./wait";
 
 const READY = "server listening on";
 const BOOT_TIMEOUT_MS = 45_000;
-const POLL_MS = 100;
+/** The kill returns before the kernel releases the socket, and how long that
+ * takes depends on the machine, so the port is watched rather than guessed at
+ * with a sleep long enough to look safe. */
+const PORT_RELEASE_TIMEOUT_MS = 5000;
 
 export interface RunningServer {
   readonly baseUrl: string;
-  readonly output: () => string;
   readonly stop: () => void;
 }
+
+const portIsFree = async (port: number) =>
+  (await runProcess("lsof", ["-ti", `:${port}`])).stdout.trim().length === 0;
 
 /**
  * A run killed part way through, or a server started by hand against this
  * cluster, leaves the port held. The port belongs to the tests, so reclaiming
  * it is safer than asking a developer to hunt down the process.
  */
-const reclaimPort = (port: number) =>
-  new Promise<void>((resolve) => {
-    const kill = spawn("sh", ["-c", `lsof -ti:${port} | xargs kill -9`]);
-    kill.on("close", () => setTimeout(resolve, 300));
+const reclaimPort = async (port: number) => {
+  if (await portIsFree(port)) {
+    return;
+  }
+
+  await runProcess("sh", ["-c", `lsof -ti:${port} | xargs kill -9`]);
+
+  await waitUntil(async () => await portIsFree(port), {
+    describe: `port ${port} becoming free`,
+    timeoutMs: PORT_RELEASE_TIMEOUT_MS,
   });
+};
 
 /**
  * The real server binary rather than an in-process handler, so a run exercises
  * routing, authentication, and encoding exactly as a deployment does.
+ *
+ * REDIS_URL is removed rather than blanked: an empty value still reads as a
+ * url and sends the server retrying against nothing.
  */
 export const startServer = async (
   repositoryRoot: string,
@@ -34,8 +51,6 @@ export const startServer = async (
 ): Promise<RunningServer> => {
   await reclaimPort(port);
 
-  /** An empty REDIS_URL still reads as a url and sends the server retrying
-   * against nothing, so the variable is removed rather than blanked. */
   const { REDIS_URL, ...inherited } = process.env;
 
   const child = spawn("bun", ["run", "src/server.ts"], {
@@ -58,26 +73,21 @@ export const startServer = async (
   child.stdout.on("data", collect);
   child.stderr.on("data", collect);
 
-  const server: RunningServer = {
-    baseUrl: `http://127.0.0.1:${port}`,
-    output: () => output,
-    stop: () => child.kill("SIGKILL"),
-  };
+  const stop = () => child.kill("SIGKILL");
 
-  const deadline = Date.now() + BOOT_TIMEOUT_MS;
-
-  while (Date.now() < deadline) {
-    if (output.includes(READY)) {
-      return server;
-    }
-
-    if (child.exitCode !== null) {
-      throw new Error(`The server exited while starting:\n${output}`);
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, POLL_MS));
+  try {
+    await waitUntil(() => output.includes(READY), {
+      describe: "the server starting",
+      failed: () =>
+        child.exitCode === null
+          ? undefined
+          : `The server exited while starting:\n${output}`,
+      timeoutMs: BOOT_TIMEOUT_MS,
+    });
+  } catch (cause) {
+    stop();
+    throw new Error(`${(cause as Error).message}\n${output}`);
   }
 
-  server.stop();
-  throw new Error(`The server did not start within 45s:\n${output}`);
+  return { baseUrl: `http://127.0.0.1:${port}`, stop };
 };

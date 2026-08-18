@@ -1,115 +1,40 @@
 ---
 title: "Introduction"
-description: "Prompt management for AI products. Change a prompt without shipping a release."
+description: "Prompt management for AI products"
 ---
 
-Anpord keeps the prompts your product sends to a model outside your codebase. Your application asks for a prompt by id, and Anpord decides which version it gets.
+Anpord serves your prompts the way a feature flag service serves your flags. Your application asks for a prompt by id, and you change what it receives without deploying.
 
-<Info>
-**TL;DR**
+## Why it exists
 
-Create a key in the dashboard, `npm install anpord`, then `anpord.prompts.get({ id })`. Updating a prompt appends a version; pointing the `production` channel at it is how the change goes live — no deploy.
-</Info>
+A prompt in your codebase is a string in a release. Rewording it means a pull request, a review, and a deploy, so the person who knows what the prompt should say waits on the person who can ship it.
 
-## The mental model
+Anpord keeps the text outside the binary. Editing a prompt writes a new version, and pointing a channel at that version is what puts it live.
 
-Three terms carry the whole product: **prompt → version → channel**.
+## What you get
 
-| Term | What it is |
-| --- | --- |
-| **Prompt** | An id you choose, such as `support-reply`. Every caller addresses this, and it never changes. |
-| **Version** | One revision of the content. Numbered from 1, append-only, so nothing is ever overwritten. |
-| **Channel** | A named pointer at a version. `production` is what callers get by default. |
+<CardGroup cols={2}>
+  <Card title="Versions that never disappear" icon="clock-counter-clockwise">
+    Every edit appends. Rolling back is pointing a channel at an older number.
+  </Card>
+  <Card title="Variables the compiler checks" icon="brackets-curly">
+    `anpord generate` writes declarations, so a misspelled variable fails the build rather than the request.
+  </Card>
+  <Card title="Answers that survive an outage" icon="shield-check">
+    The SDK caches, serves stale content while it refreshes, and falls back to text you supply.
+  </Card>
+  <Card title="One id, many audiences" icon="git-branch">
+    Staging reads one version while customers read another, from the same prompt.
+  </Card>
+</CardGroup>
 
-Changing what your product sends is a promotion — moving a channel to a different version — rather than a code change.
+## Start here
 
-## Get an API key
-
-Create a key in the dashboard under **Settings → API keys**, then set it in your environment:
-
-```bash
-export ANPORD_API_KEY="anp_..."
-```
-
-Keys are scoped to one organization, so a key only ever reads that organization's prompts.
-
-## Install
-
-<CodeGroup>
-
-```bash npm
-npm install anpord
-```
-
-```bash bun
-bun add anpord
-```
-
-</CodeGroup>
-
-## Resolve a prompt
-
-```ts
-import { Anpord } from "anpord";
-
-const anpord = new Anpord();
-
-const prompt = await anpord.prompts.get({ id: "support-reply" });
-
-console.log(prompt.content);
-```
-
-The constructor reads `ANPORD_API_KEY` when you do not pass one. To hold the key yourself, pass `{ apiKey }`.
-
-With no selector, `get` returns the version the `production` channel points at. This is the call you want in application code: changing which version ships becomes a promotion, not a deploy.
-
-## Create and publish
-
-```ts
-await anpord.prompts.create({
-  id: "support-reply",
-  name: "Support reply",
-  content: "You are a support agent for {{product}}. Be brief.",
-});
-
-await anpord.prompts.update({
-  id: "support-reply",
-  content: "You are a support agent for {{product}}. Be brief and warm.",
-  message: "Warmer tone",
-});
-
-await anpord.prompts.promote({
-  id: "support-reply",
-  channel: "production",
-  version: 2,
-});
-```
-
-`create` makes the prompt and its first version. `update` appends a version rather than overwriting one, so version 1 stays readable. Until you promote, callers asking for production keep receiving version 1.
-
-<Info>
-Separating `update` from `promote` is deliberate. You can write a version, review it, try it against a `staging` channel, and promote only once it is right.
-</Info>
-
-## Handle failures
-
-Every failure is an `AnpordError` carrying the status the API returned.
-
-```ts
-import { Anpord, AnpordError } from "anpord";
-
-try {
-  await anpord.prompts.get({ id: "does-not-exist" });
-} catch (error) {
-  if (error instanceof AnpordError && error.status === 404) {
-    // fall back to a prompt you ship with the code
-  }
-  throw error;
-}
-```
-
-<Note>
-An id that cannot be valid is refused before the request leaves your process, and the message names the field: `id: Prompt id must be lowercase alphanumeric, optionally with / _ or -`.
-</Note>
-
-Next, read [versions and channels](/concepts) to understand how resolution works, or go straight to [resolving prompts](/guides/resolving-prompts) for the runtime patterns.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="play" href="/getting-started">
+    Fetch your first prompt.
+  </Card>
+  <Card title="Prompts, versions and channels" icon="book-open" href="/concepts">
+    How a prompt id turns into content.
+  </Card>
+</CardGroup>

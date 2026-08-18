@@ -62,17 +62,13 @@ export class ApiKeyStore {
     this.file = readFile(options.path);
   }
 
-  held(name: string) {
-    return this.file.keys[name];
-  }
-
   /**
    * Verified against the running server before reuse. A preserved key is only
    * useful while the organization it points at still exists, and a reset
    * database leaves the file pointing at nothing.
    */
   async resolve(name: string, owner: KeyOwner): Promise<StoredKey> {
-    const existing = this.held(name);
+    const existing = this.file.keys[name];
 
     if (existing && (await this.isUsable(existing, owner))) {
       return existing;

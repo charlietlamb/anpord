@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "anpord": "workspace:*",
+    "effect": "catalog:",
     "pg": "catalog:"
   },
   "devDependencies": {

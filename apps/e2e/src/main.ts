@@ -1,18 +1,17 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Client } from "pg";
+import { Effect } from "effect";
 import { ApiKeyStore } from "./harness/api-keys";
 import {
   DATABASE_URL,
   migrateDatabase,
   resetDatabase,
-  startDatabase,
-  stopDatabase,
 } from "./harness/database";
+import { summarise } from "./harness/report";
+import { connection, database, server } from "./harness/resources";
 import { type Outcome, runScenarios } from "./harness/run";
 import { seedTenant } from "./harness/seed";
-import { startServer } from "./harness/server";
 import { AUTH_SECRET, SERVER_PORT } from "./harness/settings";
 import { apiScenarios } from "./scenarios/api";
 import { cliScenarios } from "./scenarios/cli";
@@ -23,22 +22,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_ROOT = resolve(HERE, "../../..");
 const STATE = resolve(HERE, "../.e2e");
 
-const summarise = (outcomes: readonly Outcome[]) => {
-  const failed = outcomes.filter((outcome) => !outcome.passed);
+const say = (message: string) =>
+  Effect.sync(() => process.stdout.write(`${message}\n`));
 
-  process.stdout.write(
-    `\n${outcomes.length - failed.length}/${outcomes.length} scenarios passed\n`
-  );
-
-  for (const outcome of failed) {
-    process.stdout.write(`  failed: ${outcome.name}\n`);
-  }
-
-  return failed.length === 0;
-};
-
-/** Set before any layer reads Config, so the harness talks to the test
- * cluster rather than whatever .env points at. */
+/** Set before anything reads Config, so the harness talks to the test cluster
+ * rather than whatever .env points at. */
 const applyTestEnvironment = () => {
   process.env.DATABASE_URL = DATABASE_URL;
   process.env.BETTER_AUTH_SECRET = AUTH_SECRET;
@@ -46,79 +34,76 @@ const applyTestEnvironment = () => {
   delete process.env.REDIS_URL;
 };
 
-const main = async () => {
-  applyTestEnvironment();
-
-  const dataDirectory = resolve(STATE, "postgres");
+/** A fresh directory per run, so a scenario cannot pass by reading a file an
+ * earlier run wrote. */
+const prepareWorkspace = () => {
   const workspace = resolve(STATE, "workspace");
-
   mkdirSync(STATE, { recursive: true });
   rmSync(workspace, { force: true, recursive: true });
   mkdirSync(workspace, { recursive: true });
-
-  process.stdout.write("starting postgres\n");
-  await startDatabase(dataDirectory);
-  await resetDatabase();
-
-  process.stdout.write("applying migrations\n");
-  await migrateDatabase(REPOSITORY_ROOT);
-
-  process.stdout.write("seeding tenants\n");
-  const tenant = await seedTenant(DATABASE_URL, "acme");
-  const other = await seedTenant(DATABASE_URL, "globex");
-
-  process.stdout.write("starting the server\n");
-  const server = await startServer(REPOSITORY_ROOT, DATABASE_URL, SERVER_PORT);
-
-  const client = new Client({ connectionString: DATABASE_URL });
-  await client.connect();
-
-  try {
-    const keys = new ApiKeyStore({
-      authSecret: AUTH_SECRET,
-      baseUrl: server.baseUrl,
-      path: resolve(STATE, "api-keys.json"),
-    });
-    const writeKey = await keys.resolve("e2e-writer", tenant);
-    const otherKey = await keys.resolve("e2e-other", other);
-
-    const world: World = {
-      baseUrl: server.baseUrl,
-      databaseUrl: DATABASE_URL,
-      directory: workspace,
-      other,
-      otherKey,
-      query: async <Row>(sql: string, values: readonly unknown[] = []) => {
-        const result = await client.query(sql, [...values]);
-        return result.rows as readonly Row[];
-      },
-      repositoryRoot: REPOSITORY_ROOT,
-      tenant,
-      writeKey,
-    };
-
-    process.stdout.write("\napi\n");
-    const api = await runScenarios(apiScenarios, world);
-
-    process.stdout.write("\nsdk\n");
-    const sdk = await runScenarios(sdkScenarios, world);
-
-    process.stdout.write("\ncli\n");
-    const cliOutcomes = await runScenarios(cliScenarios, world);
-
-    const passed = summarise([...api, ...sdk, ...cliOutcomes]);
-    process.exitCode = passed ? 0 : 1;
-  } finally {
-    await client.end();
-    server.stop();
-
-    /** Left running by default: the preserved key points at this cluster, so
-     * a developer can keep poking at what the scenarios just built. */
-    if (process.argv.includes("--stop")) {
-      await stopDatabase(dataDirectory);
-      process.stdout.write("stopped postgres\n");
-    }
-  }
+  return workspace;
 };
 
-await main();
+const SURFACES = [
+  { name: "api", scenarios: apiScenarios },
+  { name: "sdk", scenarios: sdkScenarios },
+  { name: "cli", scenarios: cliScenarios },
+] as const;
+
+/**
+ * Every resource is acquired inside the scope, so a failure part way through
+ * still gives back the cluster, the server and the connection. The cluster is
+ * kept running by default because the preserved key points at it.
+ */
+const run = Effect.gen(function* () {
+  applyTestEnvironment();
+
+  const workspace = prepareWorkspace();
+  const keepDatabase = !process.argv.includes("--stop");
+
+  yield* say("starting postgres");
+  yield* database(resolve(STATE, "postgres"), keepDatabase);
+  yield* Effect.promise(() => resetDatabase());
+
+  yield* say("applying migrations");
+  yield* Effect.promise(() => migrateDatabase(REPOSITORY_ROOT));
+
+  yield* say("seeding tenants");
+  const tenant = yield* Effect.promise(() => seedTenant(DATABASE_URL, "acme"));
+  const other = yield* Effect.promise(() => seedTenant(DATABASE_URL, "globex"));
+
+  yield* say("starting the server");
+  const running = yield* server(REPOSITORY_ROOT, DATABASE_URL, SERVER_PORT);
+  const client = yield* connection(DATABASE_URL);
+
+  const keys = new ApiKeyStore({
+    authSecret: AUTH_SECRET,
+    baseUrl: running.baseUrl,
+    path: resolve(STATE, "api-keys.json"),
+  });
+
+  const world: World = {
+    baseUrl: running.baseUrl,
+    directory: workspace,
+    otherKey: yield* Effect.promise(() => keys.resolve("e2e-other", other)),
+    query: async <Row>(sql: string, values: readonly unknown[] = []) => {
+      const result = await client.query(sql, [...values]);
+      return result.rows as readonly Row[];
+    },
+    repositoryRoot: REPOSITORY_ROOT,
+    writeKey: yield* Effect.promise(() => keys.resolve("e2e-writer", tenant)),
+  };
+
+  const outcomes: Outcome[] = [];
+  for (const surface of SURFACES) {
+    yield* say(`\n${surface.name}`);
+    outcomes.push(
+      ...(yield* Effect.promise(() => runScenarios(surface.scenarios, world)))
+    );
+  }
+
+  return summarise(outcomes);
+});
+
+const passed = await Effect.runPromise(Effect.scoped(run));
+process.exitCode = passed ? 0 : 1;

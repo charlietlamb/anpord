@@ -5,6 +5,10 @@
       "entry": ["style.css"],
       "project": []
     },
+    "apps/e2e": {
+      "entry": ["src/main.ts"],
+      "project": ["src/**"]
+    },
     "apps/server": {
       "entry": ["src/server.ts", "tests/**/*.test.ts"],
       "project": ["src/**", "tests/**"]
