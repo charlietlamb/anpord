@@ -141,7 +141,7 @@ const out = Options.file("out").pipe(
  * so a large organisation does not open a connection per prompt. */
 const READ_AT_ONCE = 8;
 
-const generate = Command.make("generate", { out }, ({ out: path }) =>
+const writeDeclarations = ({ out: path }: { readonly out: string }) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
     const fs = yield* FileSystem.FileSystem;
@@ -165,9 +165,26 @@ const generate = Command.make("generate", { out }, ({ out: path }) =>
     return yield* note(
       `Wrote ${prompts.length} ${prompts.length === 1 ? "prompt" : "prompts"} to ${path}`
     );
-  })
-).pipe(
-  Command.withDescription("Write TypeScript declarations for prompt variables")
+  });
+
+const DESCRIPTION = "Write TypeScript declarations for prompt variables";
+
+const generate = Command.make("generate", { out }, writeDeclarations).pipe(
+  Command.withDescription(DESCRIPTION)
 );
 
-export const commands = [generate, get, list, promote, push, versions] as const;
+/** A second command rather than an alias, because a command carries one name
+ * and the shorter one is what anybody types twice. */
+const gen = Command.make("gen", { out }, writeDeclarations).pipe(
+  Command.withDescription(DESCRIPTION)
+);
+
+export const commands = [
+  gen,
+  generate,
+  get,
+  list,
+  promote,
+  push,
+  versions,
+] as const;
