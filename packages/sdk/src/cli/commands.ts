@@ -4,9 +4,11 @@ import {
   VersionNumber,
 } from "@anpord/schema/domain/prompts";
 import { AnpordApi } from "@anpord/schema/public/client";
+import { extractVariables } from "@anpord/template/extract";
 import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
+import { declarationFile } from "./declarations";
 import { json, note, promptContent } from "./render";
 
 const promptId = Args.text({ name: "id" }).pipe(
@@ -130,4 +132,42 @@ const push = Command.make(
     })
 ).pipe(Command.withDescription("Add a version to a prompt"));
 
-export const commands = [get, list, promote, push, versions] as const;
+const out = Options.file("out").pipe(
+  Options.withDescription("Where to write the declarations"),
+  Options.withDefault("anpord-env.d.ts")
+);
+
+/** Reading one prompt at a time because the list carries no content, bounded
+ * so a large organisation does not open a connection per prompt. */
+const READ_AT_ONCE = 8;
+
+const generate = Command.make("generate", { out }, ({ out: path }) =>
+  Effect.gen(function* () {
+    const api = yield* AnpordApi;
+    const fs = yield* FileSystem.FileSystem;
+    const { data } = yield* api.prompts.list({ payload: {} });
+
+    const prompts = yield* Effect.forEach(
+      data,
+      (summary) =>
+        api.prompts
+          .get({ payload: { id: summary.id } })
+          .pipe(
+            Effect.map(
+              (prompt) => [prompt.id, extractVariables(prompt.content)] as const
+            )
+          ),
+      { concurrency: READ_AT_ONCE }
+    );
+
+    yield* fs.writeFileString(path, declarationFile(prompts));
+
+    return yield* note(
+      `Wrote ${prompts.length} ${prompts.length === 1 ? "prompt" : "prompts"} to ${path}`
+    );
+  })
+).pipe(
+  Command.withDescription("Write TypeScript declarations for prompt variables")
+);
+
+export const commands = [generate, get, list, promote, push, versions] as const;

@@ -12,3 +12,4 @@ export type {
 } from "@anpord/schema/public/shapes";
 export { Anpord, type AnpordOptions } from "./client/anpord";
 export { AnpordError, MissingApiKey } from "./client/errors";
+export type { AnpordPromptVariables } from "./client/variables";

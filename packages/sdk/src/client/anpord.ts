@@ -3,7 +3,7 @@ import {
   DEFAULT_BASE_URL,
   make,
 } from "@anpord/schema/public/client";
-import { render } from "@anpord/template/render";
+import { render, type Variables } from "@anpord/template/render";
 import { FetchHttpClient, type HttpClientResponse } from "@effect/platform";
 import {
   type Brand,
@@ -28,6 +28,7 @@ import type {
   PromptSelector,
 } from "./cache/types";
 import { asAnpordError, MissingApiKey } from "./errors";
+import type { VariablesFor } from "./variables";
 
 export interface AnpordOptions {
   readonly apiKey?: string;
@@ -93,7 +94,14 @@ type Prompt = Awaited<ReturnType<Prompts["get"]>>;
 export type PromptResult = Prompt & { readonly anpord: PromptMetadata };
 
 export interface PromptsSurface extends Omit<Prompts, "get"> {
-  readonly get: (options: GetPromptOptions) => Promise<PromptResult>;
+  /** The id binds the variables: generate declarations and a name the template
+   * does not use, or one it does and the caller forgot, is a compile error. */
+  readonly get: <const Id extends string, const Given extends Variables>(
+    options: GetPromptOptions & {
+      readonly id: Id;
+      readonly variables?: VariablesFor<Id, Given> & Given;
+    }
+  ) => Promise<PromptResult>;
 }
 
 export class Anpord {

@@ -4,7 +4,7 @@ import { apiOperations, commandNames } from "../../src/cli/coverage";
 const OPERATION_COMMANDS: Record<string, readonly string[]> = {
   archive: [],
   create: [],
-  get: ["get", "versions"],
+  get: ["generate", "get", "versions"],
   list: ["list"],
   promote: ["promote"],
   update: ["push"],
