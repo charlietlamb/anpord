@@ -51,71 +51,183 @@ const MASK_CEILING = 0.6;
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
-const coverage = (x: number, y: number, time: number) => {
-  let sum = 0;
-  for (const wave of MASK_WAVES) {
-    sum +=
-      wave.amplitude *
-      Math.sin(
-        TWO_PI * (wave.dx * x + wave.dy * y + wave.speed * time) + wave.phase
-      );
+interface Wave {
+  readonly amplitude: number;
+  readonly dx: number;
+  readonly dy: number;
+  readonly phase: number;
+  readonly speed: number;
+}
+
+/**
+ * A wave is `sin(ax + by + c)`, which expands to
+ * `sin(ax)cos(by + c) + cos(ax)sin(by + c)`. The second half is constant across
+ * a row and the first across a column, so each is computed once per row or
+ * column instead of once per cell: a full screen goes from millions of trig
+ * calls to a few thousand.
+ */
+const writeRowTerms = (
+  waves: readonly Wave[],
+  y: number,
+  time: number,
+  into: Scratch
+) => {
+  for (let index = 0; index < waves.length; index++) {
+    const wave = waves[index];
+    const angle = TWO_PI * (wave.dy * y + wave.speed * time) + wave.phase;
+    into.sines[index] = Math.sin(angle);
+    into.cosines[index] = Math.cos(angle);
   }
+};
+
+const writeColumnTerms = (
+  waves: readonly Wave[],
+  x: number,
+  into: Scratch,
+  offset: number
+) => {
+  for (let index = 0; index < waves.length; index++) {
+    const angle = TWO_PI * waves[index].dx * x;
+    into.sines[offset + index] = Math.sin(angle);
+    into.cosines[offset + index] = Math.cos(angle);
+  }
+};
+
+const combine = (
+  waves: readonly Wave[],
+  row: { cosines: Float64Array; sines: Float64Array },
+  column: { cosines: Float64Array; sines: Float64Array },
+  offset: number
+) => {
+  let sum = 0;
+  for (let index = 0; index < waves.length; index++) {
+    const at = offset + index;
+    sum +=
+      waves[index].amplitude *
+      (column.sines[at] * row.cosines[index] +
+        column.cosines[at] * row.sines[index]);
+  }
+  return sum;
+};
+
+const pocketOf = (sum: number) => {
   const level = clamp((sum / MASK_SUM) * 0.5 + 0.5);
   return clamp(
     (level ** MASK_FALLOFF - MASK_FLOOR) / (MASK_CEILING - MASK_FLOOR)
   );
 };
 
-const tone = (x: number, y: number, time: number) => {
-  const heading = time * DRIFT.turn;
-  const driftX = x + Math.cos(heading) * DRIFT.radius * time;
-  const driftY = y + Math.sin(heading) * DRIFT.radius * time;
+const toneOf = (sum: number) => clamp((sum / 1.06) * CONTRAST + 0.5);
 
-  let sum = 0;
-  for (const wave of WAVES) {
-    sum +=
-      wave.amplitude *
-      Math.sin(
-        TWO_PI * (wave.dx * driftX + wave.dy * driftY + wave.speed * time) +
-          wave.phase
-      );
+/** The threshold map flattened once, so the inner loop indexes a typed array
+ * rather than walking two levels of object. */
+const thresholds = (() => {
+  const matrix = bayerMatrix(MATRIX_ORDER);
+  const size = matrix.length;
+  const flat = new Uint8Array(size * size);
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      flat[y * size + x] = matrix[y][x];
+    }
   }
-  return clamp((sum / 1.06) * CONTRAST + 0.5);
-};
 
-export interface FieldCell {
-  readonly column: number;
-  readonly row: number;
+  return { flat, levels: size * size, size };
+})();
+
+interface Scratch {
+  cosines: Float64Array;
+  sines: Float64Array;
 }
 
+const maskScratch: Scratch = {
+  cosines: new Float64Array(0),
+  sines: new Float64Array(0),
+};
+const toneScratch: Scratch = {
+  cosines: new Float64Array(0),
+  sines: new Float64Array(0),
+};
+const maskRowScratch: Scratch = {
+  cosines: new Float64Array(0),
+  sines: new Float64Array(0),
+};
+const toneRowScratch: Scratch = {
+  cosines: new Float64Array(0),
+  sines: new Float64Array(0),
+};
+
+/** Grown to fit and then kept. The field runs several times a second, and
+ * allocating a pair of arrays per frame is work the collector has to undo. */
+const scratch = (held: Scratch, columns: number, waves: number) => {
+  const needed = columns * waves;
+
+  if (held.sines.length < needed) {
+    held.sines = new Float64Array(needed);
+    held.cosines = new Float64Array(needed);
+  }
+
+  return held;
+};
+
+/**
+ * Writes which cells are lit into the caller's mask rather than returning a
+ * list of them. A full screen is hundreds of thousands of cells, and allocating
+ * an object per lit one made the field cost more to collect than to compute.
+ */
 export const ditherField = (
+  mask: Uint8Array,
   columns: number,
   rows: number,
   time: number
-): FieldCell[] => {
-  const matrix = bayerMatrix(MATRIX_ORDER);
-  const size = matrix.length;
-  const levels = size * size;
-  const cells: FieldCell[] = [];
+) => {
+  const { flat, levels, size } = thresholds;
   const aspect = columns / Math.max(1, rows);
+  const heading = time * DRIFT.turn;
+  const driftX = Math.cos(heading) * DRIFT.radius * time;
+  const driftY = Math.sin(heading) * DRIFT.radius * time;
+
+  mask.fill(0);
+
+  /* Both fields' column terms, built once for the frame and kept between them.
+     The mask reads the undrifted column and the tone the drifted one, so they
+     are held apart. */
+  const maskColumns = scratch(maskScratch, columns, MASK_WAVES.length);
+  const toneColumns = scratch(toneScratch, columns, WAVES.length);
+
+  for (let column = 0; column < columns; column++) {
+    const x = (column / columns) * aspect;
+    writeColumnTerms(MASK_WAVES, x, maskColumns, column * MASK_WAVES.length);
+    writeColumnTerms(WAVES, x + driftX, toneColumns, column * WAVES.length);
+  }
+
+  const maskRow = scratch(maskRowScratch, 1, MASK_WAVES.length);
+  const toneRow = scratch(toneRowScratch, 1, WAVES.length);
 
   for (let row = 0; row < rows; row++) {
+    const y = row / rows;
+    const rowOffset = row * columns;
+    const thresholdRow = (row % size) * size;
+    writeRowTerms(MASK_WAVES, y, time, maskRow);
+    writeRowTerms(WAVES, y + driftY, time, toneRow);
+
     for (let column = 0; column < columns; column++) {
-      const x = (column / columns) * aspect;
-      const y = row / rows;
-      const pocket = coverage(x, y, time);
+      const pocket = pocketOf(
+        combine(MASK_WAVES, maskRow, maskColumns, column * MASK_WAVES.length)
+      );
       if (pocket === 0) {
         continue;
       }
 
       /* The pocket scales the tone rather than clipping it, so a dot thins out
          toward the edge instead of the pocket ending on a hard line. */
-      const value = tone(x, y, time) * pocket;
-      if (matrix[row % size][column % size] < value * levels) {
-        cells.push({ column, row });
+      const value =
+        toneOf(combine(WAVES, toneRow, toneColumns, column * WAVES.length)) *
+        pocket;
+
+      if (flat[thresholdRow + (column % size)] < value * levels) {
+        mask[rowOffset + column] = 1;
       }
     }
   }
-
-  return cells;
 };

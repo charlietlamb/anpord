@@ -29,9 +29,7 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
         </Hydrate>
         <AppSidebar />
         <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border ring-1 ring-black/[0.04] md:peer-data-[variant=inset]:shadow-md">
-          <Hydrate when={idle()}>
-            <Dither className="-z-10 text-foreground/[0.13] dark:text-foreground/[0.07]" />
-          </Hydrate>
+          <Dither className="-z-10 text-foreground/[0.13] dark:text-foreground/[0.07]" />
           <header className="sticky top-0 z-20 flex h-11 shrink-0 items-center gap-2 border-border border-b bg-card px-4 transition-surface">
             <SidebarTrigger />
             <DashboardBreadcrumbs />
