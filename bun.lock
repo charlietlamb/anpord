@@ -63,6 +63,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@anpord/schema": "workspace:*",
+        "@anpord/template": "workspace:*",
         "@anpord/ui": "workspace:*",
         "@better-auth/api-key": "catalog:",
         "@databuddy/sdk": "catalog:",
@@ -208,10 +209,18 @@
         "typescript": "catalog:",
       },
     },
+    "packages/template": {
+      "name": "@anpord/template",
+      "version": "0.0.0",
+      "devDependencies": {
+        "typescript": "catalog:",
+      },
+    },
     "packages/ui": {
       "name": "@anpord/ui",
       "version": "0.0.0",
       "dependencies": {
+        "@anpord/template": "workspace:*",
         "@base-ui/react": "catalog:",
         "@phosphor-icons/react": "catalog:",
         "@tanstack/react-form": "catalog:",
@@ -336,6 +345,8 @@
     "@anpord/schema": ["@anpord/schema@workspace:packages/schema"],
 
     "@anpord/server": ["@anpord/server@workspace:apps/server"],
+
+    "@anpord/template": ["@anpord/template@workspace:packages/template"],
 
     "@anpord/ui": ["@anpord/ui@workspace:packages/ui"],
 

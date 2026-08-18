@@ -1,3 +1,4 @@
+import { extractVariables } from "@anpord/template/extract";
 import { Button } from "@anpord/ui/components/button";
 import {
   ComposerContext,
@@ -8,7 +9,6 @@ import {
 import { MarkdownEditor } from "@anpord/ui/components/editor/markdown-editor";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { extractVariables } from "@anpord/ui/lib/prompt-variables";
 import { cn } from "@anpord/ui/lib/utils";
 import type { Icon } from "@phosphor-icons/react";
 import {

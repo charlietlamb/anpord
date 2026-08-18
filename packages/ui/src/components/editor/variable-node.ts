@@ -1,14 +1,13 @@
+import { VARIABLE_PATTERN, variableAtStart } from "@anpord/template/syntax";
 import { Node, nodeInputRule } from "@tiptap/core";
-
-const VARIABLE = /^\{\{\s*([\w.-]+)\s*\}\}/;
 
 /**
  * Anchored to the end so it fires as the final brace is typed. The whole
  * `{{name}}` must be inside the match: nodeInputRule replaces exactly what it
  * matched, so a narrower capture leaves the outer braces behind and the text
- * becomes `{{{{name}}}}`.
+ * becomes `{{{{name}}}}`, which the renderer then reads as an escape.
  */
-const TYPED_VARIABLE = /(?:^|[^{])(\{\{\s*([\w.-]+)\s*\}\})$/;
+const TYPED_VARIABLE = new RegExp(`(?:^|[^{])(${VARIABLE_PATTERN})$`);
 
 /**
  * A variable is an atom, not prose. Serialising it through the markdown escaper
@@ -70,7 +69,7 @@ export const Variable = Node.create({
     level: "inline",
     start: (src) => src.indexOf("{{"),
     tokenize: (src) => {
-      const match = VARIABLE.exec(src);
+      const match = variableAtStart().exec(src);
       if (!match) {
         return;
       }

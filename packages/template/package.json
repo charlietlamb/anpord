@@ -1,0 +1,20 @@
+{
+  "name": "@anpord/template",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./errors": "./src/errors.ts",
+    "./extract": "./src/extract.ts",
+    "./render": "./src/render.ts",
+    "./syntax": "./src/syntax.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

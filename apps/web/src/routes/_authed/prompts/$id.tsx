@@ -1,6 +1,6 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
-import { extractVariables } from "@anpord/ui/lib/prompt-variables";
+import { extractVariables } from "@anpord/template/extract";
 import { ArrowUpIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";

@@ -14,6 +14,7 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
+    "@anpord/template": "workspace:*",
     "@base-ui/react": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@tanstack/react-form": "catalog:",

@@ -32,12 +32,22 @@ const CONTRAST = 1.9;
 const MASK_WAVES = [
   { amplitude: 0.62, dx: 0.23, dy: 0.17, phase: 1.7, speed: 0.011 },
   { amplitude: 0.38, dx: -0.14, dy: 0.29, phase: 3.9, speed: -0.007 },
+  { amplitude: 0.7, dx: 0.71, dy: 0.38, phase: 0.6, speed: 0.017 },
 ] as const;
+
+/** Derived rather than written down, so the field keeps normalising to itself
+ * when a wave above is retuned. */
+const MASK_SUM = MASK_WAVES.reduce((total, wave) => total + wave.amplitude, 0);
+
+/** Raising the field to a power isolates its peaks: the mid-range collapses
+ * toward nothing, so pockets stay separate instead of merging into one mass
+ * whenever the waves happen to align. */
+const MASK_FALLOFF = 2.5;
 
 /** Above this the pocket is solid, below it nothing draws. The gap between the
  * two is the pocket's edge, which frays rather than cutting. */
-const MASK_FLOOR = 0.34;
-const MASK_CEILING = 0.72;
+const MASK_FLOOR = 0.24;
+const MASK_CEILING = 0.6;
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -50,8 +60,10 @@ const coverage = (x: number, y: number, time: number) => {
         TWO_PI * (wave.dx * x + wave.dy * y + wave.speed * time) + wave.phase
       );
   }
-  const level = sum / 1 + 0.5;
-  return clamp((level - MASK_FLOOR) / (MASK_CEILING - MASK_FLOOR));
+  const level = clamp((sum / MASK_SUM) * 0.5 + 0.5);
+  return clamp(
+    (level ** MASK_FALLOFF - MASK_FLOOR) / (MASK_CEILING - MASK_FLOOR)
+  );
 };
 
 const tone = (x: number, y: number, time: number) => {
