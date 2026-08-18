@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { connect } from "node:net";
 import { join } from "node:path";
 import { runProcess } from "./process";
 import { AUTH_SECRET } from "./settings";
@@ -19,8 +20,22 @@ export interface RunningServer {
   readonly stop: () => void;
 }
 
-const portIsFree = async (port: number) =>
-  (await runProcess("lsof", ["-ti", `:${port}`])).stdout.trim().length === 0;
+/**
+ * Asked of the socket rather than of `lsof`, which is absent on a bare CI
+ * image. A missing tool would answer "free" for a port something is holding,
+ * and the failure would land later as an unexplained bind error.
+ */
+const portIsFree = (port: number) =>
+  new Promise<boolean>((resolve) => {
+    const socket = connect({ host: "127.0.0.1", port });
+    const settle = (free: boolean) => {
+      socket.destroy();
+      resolve(free);
+    };
+
+    socket.once("connect", () => settle(false));
+    socket.once("error", () => settle(true));
+  });
 
 /**
  * A run killed part way through, or a server started by hand against this
@@ -32,9 +47,12 @@ const reclaimPort = async (port: number) => {
     return;
   }
 
-  await runProcess("sh", ["-c", `lsof -ti:${port} | xargs kill -9`]);
+  await runProcess("sh", [
+    "-c",
+    `lsof -ti:${port} | xargs kill -9 2>/dev/null || fuser -k ${port}/tcp 2>/dev/null || true`,
+  ]);
 
-  await waitUntil(async () => await portIsFree(port), {
+  await waitUntil(() => portIsFree(port), {
     describe: `port ${port} becoming free`,
     timeoutMs: PORT_RELEASE_TIMEOUT_MS,
   });

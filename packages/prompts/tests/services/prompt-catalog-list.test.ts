@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { IdGenerator } from "@anpord/ids/id";
 import type { PromptSortOrder } from "@anpord/schema/domain/prompts";
 import { Effect, Exit, Layer } from "effect";
+import { ChannelRepository } from "../../src/repositories/channel-repository";
 import type { PromptListRow } from "../../src/repositories/prompt-list-query";
 import {
   PromptRepository,
@@ -119,6 +120,15 @@ const list = (rows: readonly PromptListRow[], query: PromptListQuery) =>
                 listChannels: unreachable("listChannels"),
                 publishVersion: unreachable("publishVersion"),
                 setChannel: unreachable("setChannel"),
+              }),
+              Layer.succeed(ChannelRepository, {
+                byName: unreachable("byName"),
+                defaultChannel: unreachable("defaultChannel"),
+                insert: unreachable("insert"),
+                list: unreachable("list"),
+                remove: unreachable("remove"),
+                setDefault: unreachable("setDefault"),
+                update: unreachable("update"),
               }),
               Layer.succeed(PromptCache, noopCache),
               Layer.succeed(IdGenerator, {

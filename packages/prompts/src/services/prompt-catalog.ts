@@ -18,6 +18,7 @@ import {
   encodePromptCursor,
 } from "../domain/prompt-cursor";
 import { toSummary } from "../domain/views";
+import { ChannelRepository } from "../repositories/channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
 import { createPrompt } from "./create-prompt";
@@ -66,6 +67,7 @@ export const PromptCatalogLive = Layer.effect(
     const publishing = yield* PromptPublishing;
     const promptCache = yield* PromptCache;
     const ids = yield* IdGenerator;
+    const channels = yield* ChannelRepository;
 
     const requireIdFree = (actor: Actor, id: PromptId) =>
       Effect.gen(function* () {
@@ -81,7 +83,7 @@ export const PromptCatalogLive = Layer.effect(
         Effect.gen(function* () {
           yield* requireIdFree(actor, request.id);
           return yield* createPrompt(
-            { ids, prompts, publishing, versions },
+            { channels, ids, prompts, publishing, versions },
             actor,
             request
           );

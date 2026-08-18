@@ -39,8 +39,11 @@ describe("cache keys", () => {
     expect(keys.size).toBe(4);
   });
 
-  test("an omitted selector resolves the production channel", () => {
-    expect(selectorKey(ORG, ID, {})).toBe(
+  test("an omitted selector keys apart from any named channel", () => {
+    /* The organisation chooses which channel answers it and may point the
+       default elsewhere, so sharing a key would serve a channel nobody asked
+       for. */
+    expect(selectorKey(ORG, ID, {})).not.toBe(
       selectorKey(ORG, ID, { channel: channel("production") })
     );
   });

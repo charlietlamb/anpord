@@ -2,6 +2,7 @@ import type { Database } from "@anpord/db/client";
 import { member } from "@anpord/db/schema/auth/members";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
+import { channel } from "@anpord/db/schema/prompts/channels";
 import { and, desc, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { OrganizationStoreError } from "./organization-store-error";
@@ -80,4 +81,36 @@ export const insertOrganization = (db: Db, values: NewOrganization) =>
 export const insertOwnerMembership = (db: Db, values: NewOwnerMembership) =>
   tryQuery("member.insert", () =>
     db.insert(member).values({ ...values, role: "owner" })
+  );
+
+/** The one place a channel is named in code.
+ *
+ * Every other reader asks which channel an organisation marked default, so
+ * this name is a starting point the organisation may rename or point away
+ * from rather than a value the product depends on. */
+const SEEDED_CHANNEL = { color: "green", name: "production" } as const;
+
+/** Gives a new organisation a channel to answer requests that name none.
+ * Without it a bare `get` falls through to the newest version, which publishes
+ * every edit the moment it is written. */
+export const insertDefaultChannel = (
+  db: Db,
+  values: {
+    readonly createdAt: Date;
+    readonly internalId: string;
+    readonly organizationId: string;
+  }
+) =>
+  tryQuery("channel.seed", () =>
+    db
+      .insert(channel)
+      .values({
+        color: SEEDED_CHANNEL.color,
+        createdAt: values.createdAt,
+        internalId: values.internalId,
+        isDefault: true,
+        name: SEEDED_CHANNEL.name,
+        organizationId: values.organizationId,
+      })
+      .onConflictDoNothing()
   );

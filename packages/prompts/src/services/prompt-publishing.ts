@@ -5,9 +5,10 @@ import type {
   PromptId,
   SetChannelRequest,
 } from "@anpord/schema/domain/prompts";
+import { LATEST } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
-import { VersionNotFound } from "../domain/errors";
+import { ChannelReserved, VersionNotFound } from "../domain/errors";
 import { toPlacement } from "../domain/views";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
@@ -94,6 +95,13 @@ export const PromptPublishingLive = Layer.effect(
 
       setChannel: (actor, id, request) =>
         Effect.gen(function* () {
+          /* `latest` is read from the version table rather than stored, so a
+             placement under that name would never be consulted: the promotion
+             would report success and change nothing a caller can see. */
+          if (request.channel === LATEST) {
+            yield* Effect.fail(new ChannelReserved({ channel: LATEST }));
+          }
+
           const row = yield* requirePrompt(prompts, actor, id);
           const found = yield* versions.byNumber(
             row.internalId,

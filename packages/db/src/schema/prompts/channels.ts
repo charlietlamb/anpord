@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   pgTable,
   text,
@@ -18,6 +20,8 @@ export const channel = pgTable(
       .references(() => organization.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     color: text("color").notNull(),
+    /** Which channel answers a request that names none. */
+    isDefault: boolean("is_default").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
@@ -26,5 +30,9 @@ export const channel = pgTable(
       table.name
     ),
     index("channel_organization_id_idx").on(table.organizationId),
+    /** Partial, so an organisation may hold one default or none at all. */
+    uniqueIndex("channel_one_default_idx")
+      .on(table.organizationId)
+      .where(sql`${table.isDefault}`),
   ]
 );

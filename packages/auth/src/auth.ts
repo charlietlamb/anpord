@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { schema } from "@anpord/db/schema";
+import { IdGenerator } from "@anpord/ids/id";
 import { EmailSender } from "@anpord/notifications/email/sender";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
@@ -10,6 +11,7 @@ import { apiKeyPlugin } from "./credentials/api-key-plugin";
 import { mcpPlugin } from "./oauth/mcp-plugin";
 import { attachOrganizationBeforeWrite } from "./organization/attach-organization-before-write";
 import { OrganizationStore } from "./organization/organization-store";
+import { seedDefaultChannel } from "./organization/seed-default-channel";
 import { COOKIE_PREFIX } from "./session/cookies";
 import {
   MAGIC_LINK_EXPIRY_SECONDS,
@@ -23,6 +25,7 @@ const makeAuth = Effect.gen(function* () {
   const db = yield* Database;
   const organizations = yield* OrganizationStore;
   const emails = yield* EmailSender;
+  const ids = yield* IdGenerator;
 
   const socialProviders = config.github
     ? {
@@ -48,7 +51,12 @@ const makeAuth = Effect.gen(function* () {
       },
     },
     plugins: [
-      organization(),
+      organization({
+        organizationHooks: {
+          afterCreateOrganization: ({ organization: created }) =>
+            Effect.runPromise(seedDefaultChannel(db, ids, created.id)),
+        },
+      }),
       magicLink({
         expiresIn: MAGIC_LINK_EXPIRY_SECONDS,
         sendMagicLink: ({ email, url }) => deliverMagicLink({ email, url }),

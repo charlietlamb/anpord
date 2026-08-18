@@ -25,6 +25,7 @@ const AuthLayer = AuthLive.pipe(
     Layer.mergeAll(
       AuthConfigLive,
       DatabaseLayer,
+      IdGeneratorLive,
       OrganizationLayer,
       EmailSenderLive
     )

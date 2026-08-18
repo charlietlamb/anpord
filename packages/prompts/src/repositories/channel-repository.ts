@@ -23,6 +23,11 @@ export interface ChannelRepositoryShape {
     organizationId: OrganizationId,
     name: ChannelName
   ) => Effect.Effect<Option.Option<ChannelRecord>, PromptStoreError>;
+  /** The channel answering a request that named none, if the organisation
+   * holds one. */
+  readonly defaultChannel: (
+    organizationId: OrganizationId
+  ) => Effect.Effect<Option.Option<ChannelRecord>, PromptStoreError>;
   readonly insert: (input: {
     readonly color: ChannelColor;
     readonly createdAt: Date;
@@ -34,6 +39,12 @@ export interface ChannelRepositoryShape {
     organizationId: OrganizationId
   ) => Effect.Effect<readonly ChannelCountRow[], PromptStoreError>;
   readonly remove: (
+    internalId: string
+  ) => Effect.Effect<void, PromptStoreError>;
+  /** Clears the organisation's current default before setting this one, so the
+   * partial unique index never sees two. */
+  readonly setDefault: (
+    organizationId: OrganizationId,
     internalId: string
   ) => Effect.Effect<void, PromptStoreError>;
   readonly update: (
@@ -88,6 +99,20 @@ export const ChannelRepositoryLive = Layer.effect(
             .limit(1)
         ).pipe(Effect.map(head)),
 
+      defaultChannel: (organizationId) =>
+        tryStore("channel.defaultChannel", () =>
+          db
+            .select()
+            .from(channel)
+            .where(
+              and(
+                eq(channel.organizationId, organizationId),
+                eq(channel.isDefault, true)
+              )
+            )
+            .limit(1)
+        ).pipe(Effect.map(head)),
+
       insert: (input) =>
         tryStore("channel.insert", () =>
           db.insert(channel).values({
@@ -110,6 +135,26 @@ export const ChannelRepositoryLive = Layer.effect(
       remove: (internalId) =>
         tryStore("channel.remove", () =>
           db.delete(channel).where(eq(channel.internalId, internalId))
+        ).pipe(Effect.asVoid),
+
+      setDefault: (organizationId, internalId) =>
+        tryStore("channel.setDefault", () =>
+          db.transaction(async (tx) => {
+            await tx
+              .update(channel)
+              .set({ isDefault: false })
+              .where(
+                and(
+                  eq(channel.organizationId, organizationId),
+                  eq(channel.isDefault, true)
+                )
+              );
+
+            await tx
+              .update(channel)
+              .set({ isDefault: true })
+              .where(eq(channel.internalId, internalId));
+          })
         ).pipe(Effect.asVoid),
     } satisfies ChannelRepositoryShape;
   })

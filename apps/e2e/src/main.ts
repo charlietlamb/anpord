@@ -15,6 +15,7 @@ import { seedTenant } from "./harness/seed";
 import { AUTH_SECRET, SERVER_PORT } from "./harness/settings";
 import { apiScenarios } from "./scenarios/api";
 import { cliScenarios } from "./scenarios/cli";
+import { deploymentScenarios } from "./scenarios/deployments";
 import { lifecycleScenarios } from "./scenarios/lifecycle";
 import { resolutionScenarios } from "./scenarios/resolution";
 import { sdkScenarios } from "./scenarios/sdk";
@@ -52,6 +53,7 @@ const SURFACES = [
   { name: "resolution", scenarios: resolutionScenarios },
   { name: "lifecycle", scenarios: lifecycleScenarios },
   { name: "validation", scenarios: validationScenarios },
+  { name: "deployments", scenarios: deploymentScenarios },
   { name: "sdk", scenarios: sdkScenarios },
   { name: "cli", scenarios: cliScenarios },
 ] as const;
@@ -92,11 +94,13 @@ const run = Effect.gen(function* () {
     baseUrl: running.baseUrl,
     directory: workspace,
     otherKey: yield* Effect.promise(() => keys.resolve("e2e-other", other)),
+    otherSessionToken: other.sessionToken,
     query: async <Row>(sql: string, values: readonly unknown[] = []) => {
       const result = await client.query(sql, [...values]);
       return result.rows as readonly Row[];
     },
     repositoryRoot: REPOSITORY_ROOT,
+    sessionToken: tenant.sessionToken,
     writeKey: yield* Effect.promise(() => keys.resolve("e2e-writer", tenant)),
   };
 

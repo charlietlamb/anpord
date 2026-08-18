@@ -4,6 +4,7 @@ import { Clock, Effect, Random } from "effect";
 import { displayName, slugify } from "./organization-naming";
 import type { OwnerProfile } from "./organization-queries";
 import {
+  insertDefaultChannel,
   insertOrganization,
   insertOwnerMembership,
 } from "./organization-queries";
@@ -20,6 +21,7 @@ export const provisionPersonalOrganization = (
     const name = displayName(profile.name, profile.email);
     const organizationId = yield* ids.generate("organization");
     const memberId = yield* ids.generate("member");
+    const channelId = yield* ids.generate("channel");
     const disambiguator = yield* Random.nextIntBetween(
       0,
       SLUG_DISAMBIGUATOR_MAX
@@ -38,6 +40,12 @@ export const provisionPersonalOrganization = (
       id: memberId,
       organizationId,
       userId,
+    });
+
+    yield* insertDefaultChannel(db, {
+      createdAt,
+      internalId: channelId,
+      organizationId,
     });
 
     return organizationId;

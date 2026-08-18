@@ -6,7 +6,6 @@ import type {
   UpdateChannelRequest,
 } from "@anpord/schema/domain/channels";
 import type { ChannelName } from "@anpord/schema/domain/prompts";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import {
@@ -49,10 +48,17 @@ export const ChannelCatalogLive = Layer.effect(
     const promptCache = yield* PromptCache;
     const ids = yield* IdGenerator;
 
-    const requireReserved = (name: ChannelName) =>
-      name === PRODUCTION
-        ? Effect.fail(new ChannelReserved({ channel: name }))
-        : Effect.void;
+    /** The default answers every request that names no channel, so renaming or
+     * removing it would change what callers receive without them asking.
+     * Point the default elsewhere first. */
+    const requireNotDefault = (actor: Actor, name: ChannelName) =>
+      Effect.gen(function* () {
+        const fallback = yield* channels.defaultChannel(actor.organizationId);
+
+        if (Option.isSome(fallback) && fallback.value.name === name) {
+          return yield* Effect.fail(new ChannelReserved({ channel: name }));
+        }
+      });
 
     const requireNameFree = (actor: Actor, name: ChannelName) =>
       Effect.gen(function* () {
@@ -122,7 +128,7 @@ export const ChannelCatalogLive = Layer.effect(
           const renaming = request.name !== undefined && request.name !== name;
 
           if (renaming) {
-            yield* requireReserved(name);
+            yield* requireNotDefault(actor, name);
             yield* requireNameFree(actor, request.name as ChannelName);
           }
 
@@ -140,7 +146,7 @@ export const ChannelCatalogLive = Layer.effect(
 
       remove: (actor, name) =>
         Effect.gen(function* () {
-          yield* requireReserved(name);
+          yield* requireNotDefault(actor, name);
 
           const row = yield* requireChannel(actor, name);
           const rows = yield* channels.list(actor.organizationId);

@@ -10,6 +10,7 @@ WORKDIR /app
 # workspace, so a missing member reads as a changed lockfile and fails frozen.
 COPY package.json bun.lock ./
 COPY apps/docs/package.json ./apps/docs/
+COPY apps/e2e/package.json ./apps/e2e/
 COPY apps/mcp/package.json ./apps/mcp/
 COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
@@ -20,6 +21,7 @@ COPY packages/ids/package.json ./packages/ids/
 COPY packages/notifications/package.json ./packages/notifications/
 COPY packages/prompts/package.json ./packages/prompts/
 COPY packages/schema/package.json ./packages/schema/
+COPY packages/template/package.json ./packages/template/
 COPY packages/sdk/package.json ./packages/sdk/
 COPY packages/ui/package.json ./packages/ui/
 

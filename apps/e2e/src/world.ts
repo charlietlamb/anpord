@@ -11,6 +11,7 @@ export interface World {
   /** A second organization, so tenant isolation is something a scenario can
    * check rather than assume. */
   readonly otherKey: StoredKey;
+  readonly otherSessionToken: string;
   /** For asserting against what was stored, rather than only against what the
    * response claimed. */
   readonly query: <Row>(
@@ -18,5 +19,8 @@ export interface World {
     values?: readonly unknown[]
   ) => Promise<readonly Row[]>;
   readonly repositoryRoot: string;
+  /** The dashboard signs in rather than carrying a key, so anything only it
+   * can do is reached with a session. */
+  readonly sessionToken: string;
   readonly writeKey: StoredKey;
 }
