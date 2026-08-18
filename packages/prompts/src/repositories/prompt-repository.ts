@@ -22,7 +22,7 @@ export interface PromptRepositoryShape {
     id: PromptId
   ) => Effect.Effect<Option.Option<PromptRow>, PromptStoreError>;
   readonly insert: (input: {
-    readonly actorId: string;
+    readonly authorId: string | null;
     readonly description: string | null;
     readonly id: PromptId;
     readonly internalId: string;
@@ -81,7 +81,7 @@ export const PromptRepositoryLive = Layer.effect(
             organizationId: input.organizationId,
             name: input.name,
             description: input.description,
-            createdBy: input.actorId,
+            createdBy: input.authorId,
           })
         ).pipe(Effect.asVoid),
 

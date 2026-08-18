@@ -1,4 +1,4 @@
-import type { Actor } from "@anpord/schema/domain/actor";
+import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
 import type {
   ChannelName,
   ChannelPlacement,
@@ -51,7 +51,7 @@ export const PromptPublishingLive = Layer.effect(
         const movedAt = new Date(yield* Clock.currentTimeMillis);
 
         yield* channels.move({
-          actorId: input.actor.id,
+          authorId: authorIdOf(input.actor),
           channel: input.channel,
           movedAt,
           promptInternalId: input.promptInternalId,

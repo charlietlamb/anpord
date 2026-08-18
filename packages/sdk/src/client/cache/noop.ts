@@ -1,5 +1,5 @@
 import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
-import { type Effect, Layer, Option } from "effect";
+import { Effect, Layer } from "effect";
 import { PromptCache, type PromptCacheShape } from "./prompt-cache";
 import type { PromptSelector } from "./types";
 
@@ -11,8 +11,10 @@ export const noopLayer = (
   ) => Effect.Effect<PublicPromptWithVersions, unknown>
 ) =>
   Layer.succeed(PromptCache, {
-    held: () => Option.none() as never,
-    invalidate: () => undefined as never,
+    /** Effects rather than bare values: yielding an Option would make an empty
+     * one a failure, and every read would end in NoSuchElementException. */
+    held: () => Effect.succeedNone,
+    invalidate: () => Effect.void,
     load: fetch,
-    stale: () => Option.none() as never,
+    stale: () => Effect.succeedNone,
   } satisfies PromptCacheShape);

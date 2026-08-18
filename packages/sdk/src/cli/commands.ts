@@ -9,7 +9,7 @@ import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { declarationFile } from "./declarations";
-import { json, note, promptContent } from "./render";
+import { json, note, promptContent, row } from "./render";
 
 const promptId = Args.text({ name: "id" }).pipe(
   Args.withDescription("The prompt's id, such as support-reply"),
@@ -63,8 +63,8 @@ const list = Command.make("list", { asJson }, ({ asJson: wantsJson }) =>
     if (wantsJson) {
       return yield* json(data);
     }
-    return yield* Effect.forEach(data, (row) =>
-      note(`${row.id}\tv${row.latestVersion ?? "-"}\t${row.name}`)
+    return yield* Effect.forEach(data, (summary) =>
+      row(`${summary.id}\tv${summary.latestVersion ?? "-"}\t${summary.name}`)
     );
   })
 ).pipe(Command.withDescription("List every prompt"));

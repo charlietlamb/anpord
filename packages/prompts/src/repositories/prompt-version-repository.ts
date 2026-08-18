@@ -27,7 +27,7 @@ export type VersionRow = typeof promptVersion.$inferSelect & {
 };
 
 interface AppendVersionInput {
-  readonly actorId: string;
+  readonly authorId: string | null;
   readonly commitMessage: string | null;
   readonly config: unknown;
   readonly content: string;
@@ -131,15 +131,17 @@ export const PromptVersionRepositoryLive = Layer.effect(
                 content: input.content,
                 config: input.config ?? {},
                 commitMessage: input.commitMessage,
-                createdBy: input.actorId,
+                createdBy: input.authorId,
               })
               .returning();
 
-            const [author] = await db
-              .select({ image: user.image, name: user.name })
-              .from(user)
-              .where(eq(user.id, input.actorId))
-              .limit(1);
+            const [author] = input.authorId
+              ? await db
+                  .select({ image: user.image, name: user.name })
+                  .from(user)
+                  .where(eq(user.id, input.authorId))
+                  .limit(1)
+              : [];
 
             return { ...row, author: author ?? null };
           }).pipe(

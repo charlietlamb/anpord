@@ -4,6 +4,16 @@ import { Effect } from "effect";
 
 type PromptHttpError = Conflict | NotFound;
 
+/**
+ * A failure the caller cannot act on is still a failure an operator has to see.
+ * Dying without logging first turns an outage into an empty 500 with no trace
+ * of what broke.
+ */
+const logged = (error: unknown) =>
+  Effect.logError("Unhandled prompt failure", error).pipe(
+    Effect.zipRight(Effect.die(error))
+  );
+
 const toHttpError = (
   error: PromptError
 ): Effect.Effect<never, PromptHttpError> => {
@@ -67,9 +77,9 @@ const toHttpError = (
         new NotFound({ message: "That page cursor is not valid" })
       );
     case "PromptStoreError":
-      return Effect.die(error);
+      return logged(error);
     default:
-      return Effect.die(error satisfies never);
+      return logged(error satisfies never);
   }
 };
 

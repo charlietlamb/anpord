@@ -1,5 +1,5 @@
 import type { IdGeneratorShape } from "@anpord/ids/id";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
 import type { CreatePromptRequest } from "@anpord/schema/domain/prompts";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Effect } from "effect";
@@ -24,7 +24,7 @@ export const createPrompt = (
     const internalId = yield* deps.ids.generate("prompt");
 
     yield* deps.prompts.insert({
-      actorId: actor.id,
+      authorId: authorIdOf(actor),
       description: request.description ?? null,
       id: request.id,
       internalId,
@@ -33,7 +33,7 @@ export const createPrompt = (
     });
 
     const version = yield* deps.versions.append({
-      actorId: actor.id,
+      authorId: authorIdOf(actor),
       commitMessage: request.commitMessage ?? null,
       config: request.config,
       content: request.content,

@@ -60,6 +60,7 @@ export const resolveOAuthToken = (
       id: userId.value,
       organizationId: Option.getOrUndefined(organizationId),
       permissions: permissionsForScopes(session?.scopes),
+      isUser: true,
     }).pipe(
       Effect.mapError(() => unauthorized("No organization for this user"))
     );

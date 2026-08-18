@@ -1,4 +1,4 @@
-import type { Actor } from "@anpord/schema/domain/actor";
+import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
 import type {
   AddVersionRequest,
   PromptId,
@@ -55,7 +55,7 @@ export const PromptAuthoringLive = Layer.effect(
           const row = yield* requirePrompt(prompts, actor, id);
 
           const version = yield* versions.append({
-            actorId: actor.id,
+            authorId: authorIdOf(actor),
             commitMessage: request.commitMessage ?? null,
             config: request.config,
             content: request.content,

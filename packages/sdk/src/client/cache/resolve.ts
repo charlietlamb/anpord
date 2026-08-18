@@ -31,7 +31,10 @@ export const resolvePrompt = (options: GetPromptOptions) =>
       return {
         metadata: {
           ageMs: held.value.ageMs,
-          freshness: held.value.ageMs > 0 ? "cached" : "fresh",
+          /** Where the answer came from, not how old it is. An entry read in
+           * the same millisecond it was stored is still an entry, and calling
+           * it fresh made a cache hit indistinguishable from a network read. */
+          freshness: "cached",
           key,
         },
         value: held.value.value,

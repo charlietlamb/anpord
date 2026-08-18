@@ -26,6 +26,7 @@ const as = (permissions: readonly Permission[]): Actor => ({
   id: UserId.make("user_1"),
   organizationId: OrganizationId.make("org_1"),
   permissions,
+  isUser: true,
 });
 
 /** Stands in for the builder so a test can run the handler the wrapper

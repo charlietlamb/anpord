@@ -1,0 +1,19 @@
+{
+  "name": "@anpord/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests",
+    "e2e": "bun run src/main.ts"
+  },
+  "dependencies": {
+    "anpord": "workspace:*",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@types/pg": "catalog:",
+    "typescript": "catalog:"
+  }
+}

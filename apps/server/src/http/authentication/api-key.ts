@@ -31,13 +31,10 @@ export const resolveApiKey = (auth: AuthInstance, token: string) =>
       return yield* Effect.fail(unauthorized("Invalid API key"));
     }
 
-    const metadata = (key.value.metadata ?? {}) as {
-      readonly createdBy?: string;
-    };
-
     return yield* Schema.decodeUnknown(Actor)({
-      id: metadata.createdBy ?? key.value.referenceId,
+      id: key.value.referenceId,
       organizationId: key.value.referenceId,
       permissions: API_KEY_PERMISSIONS,
+      isUser: false,
     }).pipe(Effect.mapError(() => unauthorized("API key is malformed")));
   }).pipe(Effect.withSpan("Authentication.resolveApiKey"));

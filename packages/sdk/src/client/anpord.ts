@@ -115,9 +115,14 @@ export class Anpord {
     }
 
     const prompt = exit.value.value;
+
+    /** A copy every time. The cache hands back the same object on every hit,
+     * so annotating the original would both stamp one caller's metadata onto
+     * the next caller's answer and fail outright the second time, since the
+     * property is not configurable. */
     const value =
       options.variables === undefined
-        ? prompt
+        ? { ...prompt }
         : {
             ...prompt,
             content: render(prompt.content, options.variables).content,

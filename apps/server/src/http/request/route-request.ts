@@ -3,6 +3,7 @@ import { isAuthRoute } from "./auth-route";
 import { withAuthenticateChallenge } from "./authenticate-challenge";
 import { isAuthorizeRoute, withConsentPrompt } from "./consent-route";
 import { isDiscoveryRoute, toAuthRequest } from "./discovery-route";
+import { withServerErrorLog } from "./log-server-error";
 import { publicOrigin } from "./public-origin";
 import { isPublicRoute } from "./public-route";
 import { isSameOrigin } from "./same-origin";
@@ -31,32 +32,34 @@ const crossSite = () =>
 export const routeRequest =
   ({ auth, internalApi, publicApi, trustedOrigins }: RouteTargets) =>
   (request: Request) =>
-    withServerTiming(() => {
-      const { pathname } = new URL(request.url);
+    withServerTiming(() =>
+      withServerErrorLog(request, () => {
+        const { pathname } = new URL(request.url);
 
-      if (isDiscoveryRoute(pathname)) {
-        return auth.handler(toAuthRequest(request));
-      }
+        if (isDiscoveryRoute(pathname)) {
+          return auth.handler(toAuthRequest(request));
+        }
 
-      if (isAuthorizeRoute(pathname)) {
-        return auth.handler(withConsentPrompt(request));
-      }
+        if (isAuthorizeRoute(pathname)) {
+          return auth.handler(withConsentPrompt(request));
+        }
 
-      if (isAuthRoute(pathname)) {
-        return auth.handler(request);
-      }
+        if (isAuthRoute(pathname)) {
+          return auth.handler(request);
+        }
 
-      if (isPublicRoute(pathname)) {
-        return publicApi
-          .handler(request)
-          .then((response) =>
-            withAuthenticateChallenge(response, publicOrigin(request))
-          );
-      }
+        if (isPublicRoute(pathname)) {
+          return publicApi
+            .handler(request)
+            .then((response) =>
+              withAuthenticateChallenge(response, publicOrigin(request))
+            );
+        }
 
-      if (!isSameOrigin(request, trustedOrigins)) {
-        return Promise.resolve(crossSite());
-      }
+        if (!isSameOrigin(request, trustedOrigins)) {
+          return Promise.resolve(crossSite());
+        }
 
-      return internalApi.handler(request);
-    });
+        return internalApi.handler(request);
+      })
+    );

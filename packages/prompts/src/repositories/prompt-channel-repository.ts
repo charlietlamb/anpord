@@ -35,7 +35,7 @@ export interface PromptChannelRepositoryShape {
     promptInternalId: string
   ) => Effect.Effect<readonly ChannelRow[], PromptStoreError>;
   readonly move: (input: {
-    readonly actorId: string;
+    readonly authorId: string | null;
     readonly channel: ChannelName;
     readonly movedAt: Date;
     readonly promptInternalId: string;
@@ -227,7 +227,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
                     promptInternalId: input.promptInternalId,
                     kind: "pinned",
                     definition: pinned(version.version as VersionNumber),
-                    createdBy: input.actorId,
+                    createdBy: input.authorId,
                     createdAt: input.movedAt,
                   });
 
@@ -242,7 +242,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
                       .set({
                         releaseInternalId,
                         versionInternalId: input.versionInternalId,
-                        updatedBy: input.actorId,
+                        updatedBy: input.authorId,
                         updatedAt: input.movedAt,
                       })
                       .where(eq(promptChannel.internalId, existing.internalId));
@@ -253,7 +253,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
                       channelInternalId,
                       releaseInternalId,
                       versionInternalId: input.versionInternalId,
-                      updatedBy: input.actorId,
+                      updatedBy: input.authorId,
                       updatedAt: input.movedAt,
                     });
                   }
@@ -264,7 +264,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
                     channel: input.channel,
                     fromVersionInternalId: existing?.versionInternalId ?? null,
                     toVersionInternalId: input.versionInternalId,
-                    actorId: input.actorId,
+                    actorId: input.authorId,
                     createdAt: input.movedAt,
                   });
                 })

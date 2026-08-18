@@ -1,17 +1,20 @@
 import type { PromptSelector } from "./types";
 
 const NAMESPACE = "prompt";
-const LATEST = "latest";
-const PRODUCTION = "production";
 
-/** Which version a selector asks for, in the same shape the server's own key
- * uses, so the two schemes read alike when someone compares them. */
+/**
+ * Which version a selector asks for.
+ *
+ * Asking for no channel is its own selector rather than a named one: the
+ * organisation decides which channel answers, it can rename or drop that
+ * channel, and naming a guess here would key the answer under a channel the
+ * server never resolved.
+ */
 const selectorSegment = (selector: PromptSelector) => {
   if (selector.version !== undefined) {
     return `v:${selector.version}`;
   }
-  const channel = selector.channel ?? PRODUCTION;
-  return channel === LATEST ? LATEST : `c:${channel}`;
+  return selector.channel === undefined ? "default" : `c:${selector.channel}`;
 };
 
 /**

@@ -22,6 +22,18 @@
         "mint": "catalog:",
       },
     },
+    "apps/e2e": {
+      "name": "@anpord/e2e",
+      "version": "0.0.0",
+      "dependencies": {
+        "anpord": "workspace:*",
+        "pg": "catalog:",
+      },
+      "devDependencies": {
+        "@types/pg": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "apps/mcp": {
       "name": "@anpord/mcp",
       "version": "0.0.0",
@@ -334,6 +346,8 @@
     "@anpord/db": ["@anpord/db@workspace:packages/db"],
 
     "@anpord/docs": ["@anpord/docs@workspace:apps/docs"],
+
+    "@anpord/e2e": ["@anpord/e2e@workspace:apps/e2e"],
 
     "@anpord/ids": ["@anpord/ids@workspace:packages/ids"],
 

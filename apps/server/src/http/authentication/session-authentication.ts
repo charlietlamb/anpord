@@ -52,6 +52,7 @@ export const AuthenticationLive = Layer.effect(
               onNone: () => [],
               onSome: permissionsForRole,
             }),
+            isUser: true,
           }).pipe(
             Effect.mapError(() =>
               unauthorized("Session identifiers are malformed")

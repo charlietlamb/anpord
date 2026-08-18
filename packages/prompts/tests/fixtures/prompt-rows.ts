@@ -18,6 +18,7 @@ export const actor: Actor = {
   id: UserId.make("user_1"),
   organizationId: OrganizationId.make("org_1"),
   permissions: ROLE_PERMISSIONS.owner,
+  isUser: true,
 };
 
 export const promptId = PromptId.make("greeting");
