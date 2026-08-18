@@ -36,15 +36,17 @@ export const cliScenarios: readonly Scenario<World>[] = [
     run: async (world) => {
       const { id } = await givenPrompt(world, "cli-stdin");
 
-      const pushed = await cli(
-        world,
-        ["push", id, "-"],
-        "Body delivered over stdin."
-      );
+      /* Long enough to arrive in more than one chunk, which is what a pipe
+         does and what reading it as a file got wrong: the body was whatever
+         had landed by the time the read happened. */
+      const body = `Body delivered over stdin. ${"padding ".repeat(20_000)}end.`;
+
+      const pushed = await cli(world, ["push", id, "-"], body);
       equals("push exits cleanly", pushed.code, 0);
 
       const read = await cli(world, ["get", id, "--at", pushedVersion(pushed)]);
       contains("stdin content is live", read.stdout, "stdin");
+      equals("all of it arrived", read.stdout.trim().length, body.length);
     },
   },
   {

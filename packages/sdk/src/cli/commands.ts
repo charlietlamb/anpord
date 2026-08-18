@@ -102,9 +102,26 @@ const promote = Command.make(
     })
 ).pipe(Command.withDescription("Point a channel at a version"));
 
-const readStdin = Effect.flatMap(FileSystem.FileSystem, (fs) =>
-  fs.readFileString("/dev/stdin")
-);
+/**
+ * Read from the stream rather than by opening `/dev/stdin` as a file. The path
+ * only names the pipe, so reading it races whoever is writing: a body arriving
+ * in more than one chunk, which is what a pipe does under load, was read as
+ * whatever had landed by then.
+ */
+const readStdin = Effect.async<string, Error>((resume) => {
+  let body = "";
+
+  process.stdin.setEncoding("utf8");
+  process.stdin.on("data", (chunk) => {
+    body += chunk;
+  });
+  process.stdin.on("end", () => resume(Effect.succeed(body)));
+  process.stdin.on("error", (cause) =>
+    resume(
+      Effect.fail(new Error("Could not read the content from stdin", { cause }))
+    )
+  );
+});
 
 const target = Args.all([
   promptId,
