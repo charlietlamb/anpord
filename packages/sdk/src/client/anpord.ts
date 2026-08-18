@@ -4,16 +4,8 @@ import {
   make,
 } from "@anpord/schema/public/client";
 import { render, type Variables } from "@anpord/template/render";
-import { FetchHttpClient, type HttpClientResponse } from "@effect/platform";
-import {
-  type Brand,
-  Cause,
-  Effect,
-  Exit,
-  ManagedRuntime,
-  Option,
-  Redacted,
-} from "effect";
+import { FetchHttpClient } from "@effect/platform";
+import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
 import { noopLayer } from "./cache/noop";
 import { layer, PromptCache } from "./cache/prompt-cache";
 import { resolvePrompt } from "./cache/resolve";
@@ -28,6 +20,7 @@ import type {
   PromptSelector,
 } from "./cache/types";
 import { asAnpordError, MissingApiKey } from "./errors";
+import { type Promised, promised } from "./promised";
 import type { VariablesFor } from "./variables";
 
 export interface AnpordOptions {
@@ -37,48 +30,6 @@ export interface AnpordOptions {
    * seconds and served while a refresh runs behind them. */
   readonly cache?: boolean | CacheOptions;
 }
-
-type Payload<Method> = Method extends (request: {
-  readonly payload: infer P;
-}) => unknown
-  ? P
-  : never;
-
-type Unbranded<A> = A extends string & Brand.Brand<string>
-  ? string
-  : A extends number & Brand.Brand<string>
-    ? number
-    : A extends readonly (infer Item)[]
-      ? readonly Unbranded<Item>[]
-      : A extends Date
-        ? A
-        : A extends object
-          ? { readonly [K in keyof A]: Unbranded<A[K]> }
-          : A;
-
-type WithoutResponse<A> = A extends readonly [
-  unknown,
-  HttpClientResponse.HttpClientResponse,
-]
-  ? never
-  : A;
-
-type Result<Method> = Method extends (
-  request: never
-) => Effect.Effect<infer A, unknown, never>
-  ? WithoutResponse<A>
-  : never;
-
-type Request<Method> = Unbranded<Payload<Method>>;
-
-type Promised<Group> = {
-  readonly [Method in keyof Group]: Payload<Group[Method]> extends Record<
-    string,
-    never
-  >
-    ? (request?: Request<Group[Method]>) => Promise<Result<Group[Method]>>
-    : (request: Request<Group[Method]>) => Promise<Result<Group[Method]>>;
-};
 
 const resolveApiKey = (provided: string | undefined) => {
   const apiKey = provided ?? globalThis.process?.env?.ANPORD_API_KEY;
@@ -163,7 +114,7 @@ export class Anpord {
       );
     }
 
-    const prompt = exit.value.value as Prompt;
+    const prompt = exit.value.value;
     const value =
       options.variables === undefined
         ? prompt
@@ -193,25 +144,3 @@ const invalidating =
     await forget(request.id);
     return result;
   };
-
-const promised = <Group extends Record<string, unknown>>(group: Group) =>
-  Object.fromEntries(
-    Object.entries(group).map(([method, run]) => [
-      method,
-      async (request: unknown) => {
-        const exit = await Effect.runPromiseExit(
-          (run as (input: unknown) => Effect.Effect<unknown, unknown, never>)({
-            payload: request ?? {},
-          })
-        );
-        if (Exit.isSuccess(exit)) {
-          return exit.value;
-        }
-        throw asAnpordError(
-          Cause.failureOption(exit.cause).pipe(
-            Option.getOrElse(() => Cause.squash(exit.cause))
-          )
-        );
-      },
-    ])
-  ) as Promised<Group>;

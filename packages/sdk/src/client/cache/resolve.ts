@@ -1,14 +1,15 @@
+import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
 import { Clock, Effect, Option } from "effect";
 import { asAnpordError } from "../errors";
 import { isAvailabilityFailure } from "./failure";
 import { fallbackPrompt } from "./fallback";
 import { promptKey } from "./keys";
-import { PromptCache, type PromptCacheShape } from "./prompt-cache";
+import { PromptCache } from "./prompt-cache";
 import type { GetPromptOptions, PromptMetadata } from "./types";
 
-interface Resolved<Value> {
+interface Resolved {
   readonly metadata: PromptMetadata;
-  readonly value: Value;
+  readonly value: PublicPromptWithVersions;
 }
 
 /**
@@ -20,9 +21,9 @@ interface Resolved<Value> {
  * time. Then the fallback, which the caller asked for. Then the failure, since
  * with nothing cached and no fallback there is no honest answer to give.
  */
-export const resolvePrompt = <Value>(options: GetPromptOptions) =>
+export const resolvePrompt = (options: GetPromptOptions) =>
   Effect.gen(function* () {
-    const cache = (yield* PromptCache) as PromptCacheShape<Value>;
+    const cache = yield* PromptCache;
     const key = promptKey(options);
 
     const held = yield* cache.held(options);
@@ -34,7 +35,7 @@ export const resolvePrompt = <Value>(options: GetPromptOptions) =>
           key,
         },
         value: held.value.value,
-      } satisfies Resolved<Value>;
+      } satisfies Resolved;
     }
 
     const loaded = yield* Effect.either(cache.load(options));
@@ -42,7 +43,7 @@ export const resolvePrompt = <Value>(options: GetPromptOptions) =>
       return {
         metadata: { ageMs: 0, freshness: "fresh", key },
         value: loaded.right,
-      } satisfies Resolved<Value>;
+      } satisfies Resolved;
     }
 
     const error = asAnpordError(loaded.left);
@@ -60,7 +61,7 @@ export const resolvePrompt = <Value>(options: GetPromptOptions) =>
           reason: error.message,
         },
         value: remembered.value.value,
-      } satisfies Resolved<Value>;
+      } satisfies Resolved;
     }
 
     if (options.fallback === undefined) {
@@ -70,8 +71,8 @@ export const resolvePrompt = <Value>(options: GetPromptOptions) =>
     const now = yield* Clock.currentTimeMillis;
     return {
       metadata: { ageMs: 0, freshness: "fallback", key, reason: error.message },
-      value: fallbackPrompt(options, options.fallback, now) as Value,
-    } satisfies Resolved<Value>;
+      value: fallbackPrompt(options, options.fallback, now),
+    } satisfies Resolved;
   }).pipe(
     Effect.withSpan("Prompts.resolve", {
       attributes: { key: promptKey(options) },

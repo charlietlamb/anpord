@@ -1,14 +1,27 @@
 import { describe, expect, test } from "bun:test";
-import { Effect, Ref, TestClock, TestContext } from "effect";
+import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
+import { DateTime, Effect, Ref, TestClock, TestContext } from "effect";
 import { layer, type PromptCache } from "../../src/client/cache/prompt-cache";
 import { resolvePrompt } from "../../src/client/cache/resolve";
 import { settingsFrom } from "../../src/client/cache/settings";
 import type { PromptSelector } from "../../src/client/cache/types";
 import { AnpordError } from "../../src/client/errors";
 
-interface Answer {
-  readonly content: string;
-}
+type Answer = PublicPromptWithVersions;
+
+/** A prompt shaped the way the API returns one, so the cache is exercised
+ * against what it actually holds rather than a stand-in. */
+const answer = (content: string): Answer =>
+  ({
+    channel: "production",
+    config: {},
+    content,
+    createdAt: DateTime.unsafeMake(0),
+    id: "greeting",
+    message: null,
+    name: "greeting",
+    version: 1,
+  }) as Answer;
 
 /** Counts what reached the network, so a test can say how many calls a run
  * made rather than inferring it from the values that came back. */
@@ -47,10 +60,10 @@ const withCache = <A, E>(
 
 describe("reading the same prompt twice", () => {
   test("asks the network once", async () => {
-    const calls = await withCache([{ content: "one" }], (counter) =>
+    const calls = await withCache([answer("one")], (counter) =>
       Effect.gen(function* () {
-        yield* resolvePrompt<Answer>(selector);
-        yield* resolvePrompt<Answer>(selector);
+        yield* resolvePrompt(selector);
+        yield* resolvePrompt(selector);
         return yield* Ref.get(counter);
       })
     );
@@ -60,12 +73,12 @@ describe("reading the same prompt twice", () => {
 
   test("keeps a channel and a version apart", async () => {
     const calls = await withCache(
-      [{ content: "a" }, { content: "b" }, { content: "c" }],
+      [answer("a"), answer("b"), answer("c")],
       (counter) =>
         Effect.gen(function* () {
-          yield* resolvePrompt<Answer>({ id: "greeting" });
-          yield* resolvePrompt<Answer>({ channel: "staging", id: "greeting" });
-          yield* resolvePrompt<Answer>({ id: "greeting", version: 2 });
+          yield* resolvePrompt({ id: "greeting" });
+          yield* resolvePrompt({ channel: "staging", id: "greeting" });
+          yield* resolvePrompt({ id: "greeting", version: 2 });
           return yield* Ref.get(counter);
         })
     );
@@ -76,17 +89,15 @@ describe("reading the same prompt twice", () => {
   /** A response asked for without history has no versions to hand to a caller
    * who wanted them. */
   test("keeps a request for history apart from one without", async () => {
-    const calls = await withCache(
-      [{ content: "a" }, { content: "b" }],
-      (counter) =>
-        Effect.gen(function* () {
-          yield* resolvePrompt<Answer>({ id: "greeting" });
-          yield* resolvePrompt<Answer>({
-            id: "greeting",
-            includeVersions: true,
-          });
-          return yield* Ref.get(counter);
-        })
+    const calls = await withCache([answer("a"), answer("b")], (counter) =>
+      Effect.gen(function* () {
+        yield* resolvePrompt({ id: "greeting" });
+        yield* resolvePrompt({
+          id: "greeting",
+          includeVersions: true,
+        });
+        return yield* Ref.get(counter);
+      })
     );
 
     expect(calls).toBe(2);
@@ -95,14 +106,12 @@ describe("reading the same prompt twice", () => {
 
 describe("an answer that has aged past its window", () => {
   test("is served immediately rather than waited on", async () => {
-    const result = await withCache(
-      [{ content: "old" }, { content: "new" }],
-      () =>
-        Effect.gen(function* () {
-          yield* resolvePrompt<Answer>(selector);
-          yield* TestClock.adjust("30 seconds");
-          return yield* resolvePrompt<Answer>(selector);
-        })
+    const result = await withCache([answer("old"), answer("new")], () =>
+      Effect.gen(function* () {
+        yield* resolvePrompt(selector);
+        yield* TestClock.adjust("30 seconds");
+        return yield* resolvePrompt(selector);
+      })
     );
 
     expect(result.value.content).toBe("old");
@@ -110,16 +119,14 @@ describe("an answer that has aged past its window", () => {
   });
 
   test("is replaced by the refresh it started", async () => {
-    const result = await withCache(
-      [{ content: "old" }, { content: "new" }],
-      () =>
-        Effect.gen(function* () {
-          yield* resolvePrompt<Answer>(selector);
-          yield* TestClock.adjust("30 seconds");
-          yield* resolvePrompt<Answer>(selector);
-          yield* TestClock.adjust("1 second");
-          return yield* resolvePrompt<Answer>(selector);
-        })
+    const result = await withCache([answer("old"), answer("new")], () =>
+      Effect.gen(function* () {
+        yield* resolvePrompt(selector);
+        yield* TestClock.adjust("30 seconds");
+        yield* resolvePrompt(selector);
+        yield* TestClock.adjust("1 second");
+        return yield* resolvePrompt(selector);
+      })
     );
 
     expect(result.value.content).toBe("new");
@@ -127,15 +134,13 @@ describe("an answer that has aged past its window", () => {
 
   /** A pinned version cannot change, so asking again would only cost a call. */
   test("never expires when a version is pinned", async () => {
-    const calls = await withCache(
-      [{ content: "one" }, { content: "two" }],
-      (counter) =>
-        Effect.gen(function* () {
-          yield* resolvePrompt<Answer>({ id: "greeting", version: 3 });
-          yield* TestClock.adjust("1 hour");
-          yield* resolvePrompt<Answer>({ id: "greeting", version: 3 });
-          return yield* Ref.get(counter);
-        })
+    const calls = await withCache([answer("one"), answer("two")], (counter) =>
+      Effect.gen(function* () {
+        yield* resolvePrompt({ id: "greeting", version: 3 });
+        yield* TestClock.adjust("1 hour");
+        yield* resolvePrompt({ id: "greeting", version: 3 });
+        return yield* Ref.get(counter);
+      })
     );
 
     expect(calls).toBe(1);
@@ -149,13 +154,13 @@ describe("a failure", () => {
     const calls = await withCache(
       [
         new AnpordError("down", { cause: undefined, status: 500 }),
-        { content: "back" },
+        answer("back"),
       ],
       (counter) =>
         Effect.gen(function* () {
-          yield* Effect.either(resolvePrompt<Answer>(selector));
+          yield* Effect.either(resolvePrompt(selector));
           yield* TestClock.adjust("1 milli");
-          yield* Effect.either(resolvePrompt<Answer>(selector));
+          yield* Effect.either(resolvePrompt(selector));
           return yield* Ref.get(counter);
         })
     );
@@ -166,14 +171,14 @@ describe("a failure", () => {
   test("is answered by what is held, however old, when nothing else can be", async () => {
     const result = await withCache(
       [
-        { content: "written" },
+        answer("written"),
         new AnpordError("down", { cause: undefined, status: 500 }),
       ],
       () =>
         Effect.gen(function* () {
-          yield* resolvePrompt<Answer>(selector);
+          yield* resolvePrompt(selector);
           yield* TestClock.adjust("48 hours");
-          return yield* resolvePrompt<Answer>(selector);
+          return yield* resolvePrompt(selector);
         })
     );
 
@@ -188,14 +193,14 @@ describe("what the caller is given when the network fails", () => {
   test("prefers what was written over the fallback it was given", async () => {
     const result = await withCache(
       [
-        { content: "written" },
+        answer("written"),
         new AnpordError("down", { cause: undefined, status: 500 }),
       ],
       () =>
         Effect.gen(function* () {
-          yield* resolvePrompt<Answer>(selector);
+          yield* resolvePrompt(selector);
           yield* TestClock.adjust("48 hours");
-          return yield* resolvePrompt<Answer>({
+          return yield* resolvePrompt({
             ...selector,
             fallback: "hardcoded",
           });
@@ -209,7 +214,7 @@ describe("what the caller is given when the network fails", () => {
   test("uses the fallback when nothing was ever written", async () => {
     const result = await withCache(
       [new AnpordError("down", { cause: undefined, status: 500 })],
-      () => resolvePrompt<Answer>({ ...selector, fallback: "hardcoded" })
+      () => resolvePrompt({ ...selector, fallback: "hardcoded" })
     );
 
     expect(result.value.content).toBe("hardcoded");
@@ -219,7 +224,7 @@ describe("what the caller is given when the network fails", () => {
   test("fails when it was given no fallback and holds nothing", async () => {
     const result = await withCache(
       [new AnpordError("down", { cause: undefined, status: 500 })],
-      () => Effect.either(resolvePrompt<Answer>(selector))
+      () => Effect.either(resolvePrompt(selector))
     );
 
     expect(result._tag).toBe("Left");
@@ -230,10 +235,7 @@ describe("what the caller is given when the network fails", () => {
   test("refuses a fallback when the server says the prompt is not there", async () => {
     const result = await withCache(
       [new AnpordError("no such prompt", { cause: undefined, status: 404 })],
-      () =>
-        Effect.either(
-          resolvePrompt<Answer>({ ...selector, fallback: "hardcoded" })
-        )
+      () => Effect.either(resolvePrompt({ ...selector, fallback: "hardcoded" }))
     );
 
     expect(result._tag).toBe("Left");
@@ -242,10 +244,7 @@ describe("what the caller is given when the network fails", () => {
   test("refuses a fallback when the key is rejected", async () => {
     const result = await withCache(
       [new AnpordError("bad key", { cause: undefined, status: 401 })],
-      () =>
-        Effect.either(
-          resolvePrompt<Answer>({ ...selector, fallback: "hardcoded" })
-        )
+      () => Effect.either(resolvePrompt({ ...selector, fallback: "hardcoded" }))
     );
 
     expect(result._tag).toBe("Left");
@@ -254,7 +253,7 @@ describe("what the caller is given when the network fails", () => {
   test("names a version no answer can carry, so a fallback is recognisable", async () => {
     const result = await withCache(
       [new AnpordError("down", { cause: undefined, status: 503 })],
-      () => resolvePrompt<Answer>({ ...selector, fallback: "hardcoded" })
+      () => resolvePrompt({ ...selector, fallback: "hardcoded" })
     );
 
     expect((result.value as unknown as { version: number }).version).toBe(0);

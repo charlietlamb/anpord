@@ -48,6 +48,7 @@ export const PublicPromptWithVersions = Schema.extend(
     "A prompt, with its version history when `includeVersions` is set.",
   identifier: "Prompt",
 });
+export type PublicPromptWithVersions = typeof PublicPromptWithVersions.Type;
 
 export const PublicPromptSummary = Schema.Struct({
   id: PromptId,

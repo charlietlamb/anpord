@@ -1,68 +1,64 @@
+import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
 import {
   Cache,
   Clock,
   Context,
-  Data,
   Duration,
   Effect,
   Exit,
   Layer,
   Option,
 } from "effect";
+import { type CacheKey, cacheKey } from "./cache-key";
 import { promptKey, promptPrefix } from "./keys";
 import type { CacheSettings } from "./settings";
 import type { PromptSelector } from "./types";
 
-/** Structural rather than referential, so two identical selectors are one
- * entry and one in-flight request rather than two. A plain object literal
- * hashes by reference and every call would miss. */
-const cacheKey = (selector: PromptSelector) =>
-  Data.struct({
-    channel: selector.channel,
-    id: selector.id,
-    includeVersions: selector.includeVersions,
-    version: selector.version,
-  });
-
-type CacheKey = ReturnType<typeof cacheKey>;
-
-interface Held<Value> {
+interface Held {
   readonly ageMs: number;
-  readonly value: Value;
+  readonly value: PublicPromptWithVersions;
 }
 
-export interface PromptCacheShape<Value> {
+export interface PromptCacheShape {
   /** Fresh enough to serve, or absent. A stale entry starts a refresh and is
    * still returned, so no caller waits for a value that already exists. */
   readonly held: (
     selector: PromptSelector
-  ) => Effect.Effect<Option.Option<Held<Value>>>;
+  ) => Effect.Effect<Option.Option<Held>>;
   readonly invalidate: (id: string) => Effect.Effect<void>;
   /** Asks the network and keeps the answer. Never serves what is already
    * held: `held` and `stale` decide that, and a load that quietly returned
    * an old value would make the order they are tried in meaningless. */
-  readonly load: (selector: PromptSelector) => Effect.Effect<Value, unknown>;
+  readonly load: (
+    selector: PromptSelector
+  ) => Effect.Effect<PublicPromptWithVersions, unknown>;
   /** Whatever is held, however old. Only for when the API cannot be reached:
    * there is no age at which failing outright is the better answer. */
   readonly stale: (
     selector: PromptSelector
-  ) => Effect.Effect<Option.Option<Held<Value>>>;
+  ) => Effect.Effect<Option.Option<Held>>;
 }
 
 export class PromptCache extends Context.Tag("@anpord/sdk/PromptCache")<
   PromptCache,
-  PromptCacheShape<unknown>
+  PromptCacheShape
 >() {}
 
-const make = <Value>(
+const make = (
   settings: CacheSettings,
-  fetch: (selector: PromptSelector) => Effect.Effect<Value, unknown>
+  fetch: (
+    selector: PromptSelector
+  ) => Effect.Effect<PublicPromptWithVersions, unknown>
 ) =>
   Effect.gen(function* () {
     const scope = yield* Effect.scope;
     const permits = yield* Effect.makeSemaphore(settings.maxConcurrentRefresh);
 
-    const cache = yield* Cache.makeWith<CacheKey, Value, unknown>({
+    const cache = yield* Cache.makeWith<
+      CacheKey,
+      PublicPromptWithVersions,
+      unknown
+    >({
       capacity: settings.capacity,
       lookup: (selector) => fetch(selector),
       /** A failure is not an answer, so it is not kept: the next call tries
@@ -108,10 +104,10 @@ const make = <Value>(
         const age = yield* ageOf(key);
 
         if (Option.isNone(value) || Option.isNone(age)) {
-          return Option.none<Held<Value>>();
+          return Option.none<Held>();
         }
         if (age.value > limitMs) {
-          return Option.none<Held<Value>>();
+          return Option.none<Held>();
         }
         if (age.value > ttl) {
           yield* revalidate(key);
@@ -143,18 +139,12 @@ const make = <Value>(
           })
         ),
       stale: (selector) => heldWithin(selector, Number.POSITIVE_INFINITY),
-    } satisfies PromptCacheShape<Value>;
+    } satisfies PromptCacheShape;
   });
 
-export const layer = <Value>(
+export const layer = (
   settings: CacheSettings,
-  fetch: (selector: PromptSelector) => Effect.Effect<Value, unknown>
-) =>
-  Layer.scoped(
-    PromptCache,
-    make(settings, fetch) as Effect.Effect<
-      PromptCacheShape<unknown>,
-      never,
-      never
-    >
-  );
+  fetch: (
+    selector: PromptSelector
+  ) => Effect.Effect<PublicPromptWithVersions, unknown>
+) => Layer.scoped(PromptCache, make(settings, fetch));
