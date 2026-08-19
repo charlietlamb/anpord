@@ -58,6 +58,9 @@ export type HarnessUsage = typeof HarnessUsage.Type;
 
 export interface RunHarness {
   readonly harness: HarnessName;
+  /** Pinned, because the cell key carries it: an unpinned install silently
+   * compares two different harnesses a month apart. */
+  readonly harnessVersion: string;
   readonly model: string;
   readonly prompt: string;
   readonly sandbox: SandboxHandle;

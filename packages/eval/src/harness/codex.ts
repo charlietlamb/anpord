@@ -7,6 +7,7 @@ import {
   type RunHarness,
 } from "../ports/harness";
 import { decodeCodexLine } from "./codex-events";
+import { CODEX_BIN } from "./codex-install";
 
 /** Codex reads the prompt from argv, so it is quoted rather than interpolated
  * raw: a task prompt is customer text and will eventually contain a quote. */
@@ -16,7 +17,7 @@ const command = (request: RunHarness) =>
   [
     `cd ${request.workspace}`,
     "&&",
-    "codex exec --json --skip-git-repo-check",
+    `${CODEX_BIN} exec --json --skip-git-repo-check`,
     "--dangerously-bypass-approvals-and-sandbox",
     quoted(request.prompt),
   ].join(" ");
@@ -64,7 +65,7 @@ export const CodexRunnerLive = Layer.succeed(
           events,
           harness: "codex",
           usage: Ref.get(usage),
-          version: "unknown",
+          version: request.harnessVersion,
         } satisfies HarnessSessionShape;
       }).pipe(Effect.withSpan("CodexRunner.run")),
   })

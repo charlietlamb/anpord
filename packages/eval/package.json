@@ -35,6 +35,7 @@
     "./ports/sandbox": "./src/ports/sandbox.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
     "./runtime": "./src/runtime.ts",
+    "./services/agent-trial": "./src/services/agent-trial.ts",
     "./services/trial-runner": "./src/services/trial-runner.ts",
     "./services/trial-set": "./src/services/trial-set.ts",
     "./workflow/trial": "./src/workflow/trial.ts"

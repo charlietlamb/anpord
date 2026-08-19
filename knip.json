@@ -63,6 +63,7 @@
         "src/layer.ts",
         "src/ports/harness.ts",
         "src/runtime.ts",
+        "src/services/agent-trial.ts",
         "src/services/trial-set.ts",
         "src/workflow/trial.ts",
         "tests/**/*.test.ts"
