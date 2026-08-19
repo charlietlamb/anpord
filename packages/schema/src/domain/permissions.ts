@@ -14,6 +14,8 @@ export const Permission = Schema.Literal(
   "apiKeys:write",
   "members:read",
   "members:write",
+  "evals:read",
+  "evals:write",
   /** Destructive and irreversible: archiving a prompt, deleting a channel,
    * removing a member, deleting the organisation. Held by owners alone, so a
    * compromised member account cannot empty the catalogue. */
@@ -26,6 +28,7 @@ export const Permissions = {
   Prompts: { Read: "prompts:read", Write: "prompts:write" },
   Channels: { Read: "channels:read", Write: "channels:write" },
   ApiKeys: { Read: "apiKeys:read", Write: "apiKeys:write" },
+  Evals: { Read: "evals:read", Write: "evals:write" },
   Members: { Read: "members:read", Write: "members:write" },
   Organization: { Admin: "organization:admin" },
 } as const satisfies Record<string, Record<string, Permission>>;
@@ -38,12 +41,16 @@ const READ_ONLY: readonly Permission[] = [
   "prompts:read",
   "channels:read",
   "members:read",
+  "evals:read",
 ];
 
 const AUTHOR: readonly Permission[] = [
   ...READ_ONLY,
   "prompts:write",
   "channels:write",
+  /* Running an eval spends real money on sandboxes and model tokens, so it
+     sits with the other authoring permissions rather than with reads. */
+  "evals:write",
 ];
 
 /**

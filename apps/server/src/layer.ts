@@ -5,12 +5,19 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import { CodexRunnerLive } from "@anpord/eval/harness/codex";
+import { EvalSandboxLive } from "@anpord/eval/layer";
+import { ScorerGroundTruthLive } from "@anpord/eval/scoring/ground-truth";
+import { AgentTrialLive } from "@anpord/eval/services/agent-trial";
+import { PlaygroundLive } from "@anpord/eval/services/playground";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
+import { BunContext } from "@effect/platform-bun";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
 import { VerifiedKeysLive } from "./http/authentication/verified-keys";
+import { EvalCredentialsLive } from "./routes/internal/evals/credentials";
 import { TelemetryLive } from "./telemetry";
 
 const DatabaseLayer = DatabaseLive.pipe(Layer.provide(DatabaseConfigLive));
@@ -38,6 +45,22 @@ const PromptsServiceLayer = PromptsLayer.pipe(
 
 const VerifiedKeysLayer = VerifiedKeysLive.pipe(Layer.provide(AuthLayer));
 
+/** Runs execute in this process rather than through a worker: a trial is
+ * already scoped, so it cleans up after itself, and one fewer moving part is
+ * worth more right now than surviving a restart mid-run. */
+const EvalLayer = Layer.mergeAll(
+  PlaygroundLive.pipe(
+    Layer.provide(
+      AgentTrialLive.pipe(
+        Layer.provide(Layer.mergeAll(CodexRunnerLive, ScorerGroundTruthLive)),
+        Layer.provideMerge(EvalSandboxLive)
+      )
+    ),
+    Layer.provide(IdGeneratorLive)
+  ),
+  EvalCredentialsLive.pipe(Layer.provide(BunContext.layer))
+);
+
 export const AppLayer = Layer.mergeAll(
   /** The router reads the trusted origins to tell our own dashboard from
    * another site driving a signed-in session. */
@@ -48,5 +71,6 @@ export const AppLayer = Layer.mergeAll(
   VerifiedKeysLayer,
   OrganizationLayer,
   DatabaseLayer,
-  PromptsServiceLayer
+  PromptsServiceLayer,
+  EvalLayer
 );

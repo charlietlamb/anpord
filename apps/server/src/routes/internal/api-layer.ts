@@ -4,6 +4,7 @@ import { AuthenticationLive } from "../../http/authentication/session-authentica
 import { apiSurface } from "../api-surface";
 import { ChannelsHandlers } from "./channels/handlers";
 import { DeploymentsHandlers } from "./deployments/handlers";
+import { EvalsHandlers } from "./evals/handlers";
 import { HealthHandlers } from "./health/handlers";
 import { OAuthHandlers } from "./oauth/handlers";
 import { PromptsHandlers } from "./prompts/handlers";
@@ -13,7 +14,8 @@ const GroupsLive = Layer.mergeAll(
   OAuthHandlers,
   PromptsHandlers,
   ChannelsHandlers,
-  DeploymentsHandlers
+  DeploymentsHandlers,
+  EvalsHandlers
 );
 
 export const ApiLive = apiSurface(AnpordApi, GroupsLive, AuthenticationLive);
