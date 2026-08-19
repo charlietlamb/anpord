@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "bun test --pass-with-no-tests"
+    "test": "bun test --pass-with-no-tests",
+    "eval": "bun run src/bin/eval-run.ts"
   },
   "dependencies": {
     "@anpord/db": "workspace:*",
@@ -36,6 +37,7 @@
     "./ports/harness": "./src/ports/harness.ts",
     "./ports/sandbox": "./src/ports/sandbox.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
+    "./report": "./src/report.ts",
     "./repositories/event-repository": "./src/repositories/event-repository.ts",
     "./runtime": "./src/runtime.ts",
     "./scoring/ground-truth": "./src/scoring/ground-truth.ts",

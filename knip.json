@@ -45,10 +45,12 @@
     },
     "packages/eval": {
       "entry": [
+        "src/bin/eval-run.ts",
         "src/domain/matrix.ts",
         "src/harness/codex.ts",
         "src/layer.ts",
         "src/ports/harness.ts",
+        "src/report.ts",
         "src/runtime.ts",
         "src/scoring/ground-truth.ts",
         "src/services/agent-trial-set.ts",
