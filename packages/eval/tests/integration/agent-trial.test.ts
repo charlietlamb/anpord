@@ -6,7 +6,7 @@ import { ScorerGroundTruthLive } from "../../src/scoring/ground-truth";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
 import {
   AGENT_PROMPT,
-  brokenFiles,
+  brokenSource,
   SETUP_COMMAND,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
@@ -35,7 +35,7 @@ describe.if(READY)("an agent trial against a real harness and provider", () => {
         return yield* trial.run({
           autoStopMinutes: 15,
           credentials: codexCredentials ?? Redacted.make(""),
-          files: brokenFiles,
+          source: brokenSource,
           harness: "codex",
           harnessVersion: "0.144.4",
           home: "/home/daytona",

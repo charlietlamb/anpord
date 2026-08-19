@@ -7,7 +7,7 @@ import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
 import { runAgentTrialSet } from "../../src/services/agent-trial-set";
 import {
   AGENT_PROMPT,
-  brokenFiles,
+  brokenSource,
   SETUP_COMMAND,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
@@ -36,7 +36,7 @@ describe.if(READY)("a set of agent trials", () => {
           autoStopMinutes: 15,
           concurrency: 3,
           credentials: codexCredentials ?? Redacted.make(""),
-          files: brokenFiles,
+          source: brokenSource,
           harness: "codex",
           harnessVersion: "0.144.4",
           home: "/home/daytona",

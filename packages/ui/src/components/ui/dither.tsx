@@ -68,6 +68,10 @@ export function Dither({ className, speed = 1 }: DitherProps) {
     let frame = 0;
     let columns = 0;
     let rows = 0;
+    let ratio = 1;
+    let spacing = DOT;
+    let surfaceWidth = 0;
+    let surfaceHeight = 0;
     let time = 0;
     let mask = new Uint8Array(0);
     let image: ImageData | undefined;
@@ -77,19 +81,24 @@ export function Dither({ className, speed = 1 }: DitherProps) {
       const width = Math.max(1, Math.floor(bounds.width));
       const height = Math.max(1, Math.floor(bounds.height));
 
-      /* One canvas pixel per dot, scaled up by CSS. The pattern is dots rather
-         than an image, so drawing it at device resolution would cost nine times
-         as much for a grid nobody can see the edges of anyway. The dot keeps
-         its size at every window: the field is the same texture on a laptop
-         and on a large display. */
-      columns = Math.ceil(width / DOT);
-      rows = Math.ceil(height / DOT);
+      /* The canvas is the full device surface and a dot is one of its pixels,
+         so the texture stays as fine as the display can draw. Only the lit
+         cells are written, and the grid steps `DOT` at a time, so the cost is
+         the number of dots rather than the number of pixels. */
+      ratio = window.devicePixelRatio ?? 1;
+      const step = Math.max(1, Math.round(DOT * ratio));
 
-      if (canvas.width !== columns || canvas.height !== rows) {
-        canvas.width = columns;
-        canvas.height = rows;
+      surfaceWidth = Math.max(1, Math.round(width * ratio));
+      surfaceHeight = Math.max(1, Math.round(height * ratio));
+      columns = Math.ceil(surfaceWidth / step);
+      rows = Math.ceil(surfaceHeight / step);
+      spacing = step;
+
+      if (canvas.width !== surfaceWidth || canvas.height !== surfaceHeight) {
+        canvas.width = surfaceWidth;
+        canvas.height = surfaceHeight;
         mask = new Uint8Array(columns * rows);
-        image = context.createImageData(columns, rows);
+        image = context.createImageData(surfaceWidth, surfaceHeight);
       }
     };
 
@@ -105,13 +114,33 @@ export function Dither({ className, speed = 1 }: DitherProps) {
       ditherField(mask, columns, rows, time);
 
       const pixels = image.data;
-      for (let index = 0; index < mask.length; index++) {
-        const at = index * 4;
-        const lit = mask[index];
-        pixels[at] = red;
-        pixels[at + 1] = green;
-        pixels[at + 2] = blue;
-        pixels[at + 3] = lit === 1 ? alpha : 0;
+      pixels.fill(0);
+
+      for (let row = 0; row < rows; row++) {
+        const y = row * spacing;
+        if (y >= surfaceHeight) {
+          break;
+        }
+
+        const maskRow = row * columns;
+        const pixelRow = y * surfaceWidth;
+
+        for (let column = 0; column < columns; column++) {
+          if (mask[maskRow + column] !== 1) {
+            continue;
+          }
+
+          const x = column * spacing;
+          if (x >= surfaceWidth) {
+            break;
+          }
+
+          const at = (pixelRow + x) * 4;
+          pixels[at] = red;
+          pixels[at + 1] = green;
+          pixels[at + 2] = blue;
+          pixels[at + 3] = alpha;
+        }
       }
 
       context.putImageData(image, 0, 0);
@@ -150,9 +179,6 @@ export function Dither({ className, speed = 1 }: DitherProps) {
       aria-hidden
       className={cn(
         "pointer-events-none absolute inset-0 h-full w-full",
-        /* The canvas holds one pixel per dot and CSS stretches it, so the
-           browser must not smooth it back into a blur. */
-        "[image-rendering:pixelated]",
         className
       )}
       ref={canvasRef}

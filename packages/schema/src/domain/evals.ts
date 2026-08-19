@@ -22,22 +22,63 @@ export type EvalTrialStatus = typeof EvalTrialStatus.Type;
 export const EvalRunStatus = Schema.Literal("running", "finished", "failed");
 export type EvalRunStatus = typeof EvalRunStatus.Type;
 
-/** The task under test. Sent whole rather than referenced by id, because the
- * playground's purpose is editing it and running it again immediately. */
-export const EvalTaskInput = Schema.Struct({
-  files: Schema.Record({ key: Schema.String, value: Schema.String }),
-  name: Schema.String,
-  prompt: Schema.String,
-  setupCommand: Schema.NullOr(Schema.String),
-  verifyCommand: Schema.String,
-});
-export type EvalTaskInput = typeof EvalTaskInput.Type;
+/**
+ * Where the code the agent works on comes from.
+ *
+ * A union rather than a file map, because the three answers are genuinely
+ * different situations: nothing to start from, a repository to clone, or
+ * fixture files written in. A playground that only offers the third is a file
+ * editor wearing a playground's name.
+ */
+export const EvalSource = Schema.Union(
+  Schema.Struct({ kind: Schema.Literal("empty") }),
+  Schema.Struct({
+    kind: Schema.Literal("repo"),
+    ref: Schema.NullOr(Schema.String),
+    url: Schema.String,
+  }),
+  Schema.Struct({
+    files: Schema.Record({ key: Schema.String, value: Schema.String }),
+    kind: Schema.Literal("files"),
+  })
+);
+export type EvalSource = typeof EvalSource.Type;
 
-export const StartEvalRequest = Schema.Struct({
+/**
+ * One case the agent attempts: a dataset row in the sense Braintrust means
+ * it, where `goal` is the input and `verify` is the ground truth.
+ *
+ * A run carries its cases inline. With one case that is a single evaluation,
+ * which is what a playground with no dataset does; with many it is a dataset,
+ * and nothing downstream can tell the difference. Shaping the request around
+ * a single task is what would make datasets a rewrite rather than an addition.
+ */
+export const EvalCase = Schema.Struct({
+  goal: Schema.String,
+  metadata: Schema.Record({ key: Schema.String, value: Schema.String }),
+  name: Schema.String,
+  setup: Schema.NullOr(Schema.String),
+  source: EvalSource,
+  verify: Schema.String,
+});
+export type EvalCase = typeof EvalCase.Type;
+
+/** A column in the grid: one harness, one model, one sandbox. A second task
+ * is how a customer compares Codex against another harness on the same
+ * cases, and it is the reason anyone keeps using this. */
+export const EvalTask = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String,
   provider: EvalProvider,
-  task: EvalTaskInput,
+});
+export type EvalTask = typeof EvalTask.Type;
+
+export const StartEvalRequest = Schema.Struct({
+  cases: Schema.Array(EvalCase).pipe(Schema.minItems(1)),
+  /** Resolved per case, so one prompt applies to every row rather than being
+   * retyped for each. `{{goal}}` is the case's own goal. */
+  prompt: Schema.String,
+  tasks: Schema.Array(EvalTask).pipe(Schema.minItems(1)),
   trials: Schema.Int.pipe(Schema.between(1, 10)),
 });
 export type StartEvalRequest = typeof StartEvalRequest.Type;
@@ -84,31 +125,34 @@ export const EvalDistribution = Schema.Struct({
 });
 export type EvalDistribution = typeof EvalDistribution.Type;
 
-export const EvalRun = Schema.Struct({
-  cellKey: Schema.String,
+/** One square of the grid: what one task did on one case. */
+export const EvalCell = Schema.Struct({
+  caseName: Schema.String,
   distribution: Schema.NullOr(EvalDistribution),
+  status: EvalRunStatus,
+  taskIndex: Schema.Int,
+  trials: Schema.Array(EvalTrial),
+});
+export type EvalCell = typeof EvalCell.Type;
+
+export const EvalRun = Schema.Struct({
+  cases: Schema.Array(Schema.String),
+  cells: Schema.Array(EvalCell),
   failure: Schema.NullOr(Schema.String),
   finishedAt: Schema.NullOr(Schema.DateTimeUtc),
-  harness: EvalHarness,
   id: Schema.String,
-  model: Schema.String,
-  provider: EvalProvider,
   startedAt: Schema.DateTimeUtc,
   status: EvalRunStatus,
-  taskName: Schema.String,
-  trials: Schema.Array(EvalTrial),
+  tasks: Schema.Array(EvalTask),
 });
 export type EvalRun = typeof EvalRun.Type;
 
 export const EvalRunSummary = Schema.Struct({
-  distribution: Schema.NullOr(EvalDistribution),
-  harness: EvalHarness,
+  caseCount: Schema.Int,
   id: Schema.String,
-  model: Schema.String,
-  provider: EvalProvider,
   startedAt: Schema.DateTimeUtc,
   status: EvalRunStatus,
-  taskName: Schema.String,
+  taskCount: Schema.Int,
 });
 export type EvalRunSummary = typeof EvalRunSummary.Type;
 

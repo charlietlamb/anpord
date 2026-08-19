@@ -12,7 +12,7 @@ import { TrialRepository } from "../../src/repositories/trial-repository";
 import { CellRun } from "../../src/services/cell-run";
 import {
   AGENT_PROMPT,
-  brokenFiles,
+  brokenSource,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
 import {
@@ -101,7 +101,7 @@ describe.if(READY)("a cell run recorded end to end", () => {
             provider: "daytona",
           },
           concurrency: 2,
-          files: brokenFiles,
+          source: brokenSource,
           organizationId,
           startedBy: null,
           taskId: task.id,

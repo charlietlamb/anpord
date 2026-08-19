@@ -13,15 +13,16 @@ import { TaskRepository } from "../repositories/task-repository";
 import { TrialRepository } from "../repositories/trial-repository";
 import { AgentTrial, type AgentTrialRequest } from "./agent-trial";
 import { runAgentTrialSet } from "./agent-trial-set";
+import type { WorkspaceSource } from "./workspace";
 
 export interface CellRunRequest {
   readonly agent: Omit<
     AgentTrialRequest,
-    "files" | "setupCommand" | "verifyCommand" | "workspace"
+    "setupCommand" | "source" | "verifyCommand" | "workspace"
   >;
   readonly concurrency: number;
-  readonly files: Readonly<Record<string, string>>;
   readonly organizationId: string;
+  readonly source: WorkspaceSource;
   readonly startedBy: string | null;
   readonly taskId: string;
   readonly trials: number;
@@ -105,7 +106,7 @@ export const CellRunLive = Layer.effect(
         const outcome = yield* runAgentTrialSet(agent, {
           ...request.agent,
           concurrency: request.concurrency,
-          files: request.files,
+          source: request.source,
           setupCommand: task.setupCommand,
           trials: request.trials,
           verifyCommand: task.verifyCommand,

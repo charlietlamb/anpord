@@ -57,7 +57,10 @@ const program = Effect.gen(function* () {
     autoStopMinutes: 15,
     concurrency: trials,
     credentials,
-    files: { "total.mjs": BROKEN, "total.test.mjs": TEST },
+    source: {
+      files: { "total.mjs": BROKEN, "total.test.mjs": TEST },
+      kind: "files",
+    },
     harness: "codex",
     harnessVersion: HARNESS_VERSION,
     home: "/home/daytona",

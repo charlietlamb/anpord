@@ -37,12 +37,13 @@ export const SETUP_COMMAND: string | null = null;
  * through `tail` reports the success of tail while the runner exits 1. */
 export const VERIFY_COMMAND = "node --test 2>&1";
 
-const named = (source: string): Readonly<Record<string, string>> => ({
-  "total.mjs": source,
-  "total.test.mjs": TEST_SOURCE,
-});
+const named = (source: string) =>
+  ({
+    files: { "total.mjs": source, "total.test.mjs": TEST_SOURCE },
+    kind: "files",
+  }) as const;
 
-export const brokenFiles = named(BROKEN_SOURCE);
+export const brokenSource = named(BROKEN_SOURCE);
 
 export const AGENT_PROMPT =
   "the test fails, fix total.mjs so it passes. do not edit the test.";

@@ -1,9 +1,15 @@
 import {
   Playground,
+  type PlaygroundCell,
   type PlaygroundRun,
 } from "@anpord/eval/services/playground";
 import { NotFound } from "@anpord/schema/domain/errors";
-import type { EvalRun, EvalRunSummary } from "@anpord/schema/domain/evals";
+import type {
+  EvalCell,
+  EvalRun,
+  EvalRunSummary,
+  EvalTrial,
+} from "@anpord/schema/domain/evals";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
@@ -12,44 +18,39 @@ import { DateTime, Effect, Option, Redacted } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { EvalCredentials } from "./credentials";
 
+/** Pinned, because the cell key carries it: an unpinned install silently
+ * compares two different harnesses a month apart. */
 const HARNESS_VERSION = "0.144.4";
 
 const summarise = (run: PlaygroundRun): EvalRunSummary => ({
-  distribution: Option.getOrNull(run.distribution),
-  harness: "codex",
+  caseCount: run.cases.length,
   id: run.id,
-  model: run.model,
-  provider: run.provider,
   startedAt: DateTime.unsafeMake(run.startedAt),
   status: run.status,
-  taskName: run.taskName,
+  taskCount: run.tasks.length,
 });
 
-/** The journal is the product's evidence, so it travels with the trial rather
- * than behind another request: an exit code the caller cannot see is the thing
- * this system exists to stop being invisible. */
-const detail = (run: PlaygroundRun): EvalRun => ({
-  ...summarise(run),
-  cellKey: run.cellKey,
-  failure: Option.getOrNull(run.failure),
-  finishedAt: Option.map(run.finishedAt, DateTime.unsafeMake).pipe(
-    Option.getOrNull
-  ),
-  trials: run.trials.map((trial) =>
-    Option.match(trial.result, {
-      onNone: () => ({
-        commands: 0,
-        failedCommands: 0,
-        filesChanged: [],
-        journal: [],
-        modelMs: 0,
-        ordinal: trial.ordinal,
-        passed: false,
-        sandboxId: null,
-        sandboxMs: 0,
-        status: "running" as const,
-        voidFields: [],
-      }),
+const waiting = (ordinal: number): EvalTrial => ({
+  commands: 0,
+  failedCommands: 0,
+  filesChanged: [],
+  journal: [],
+  modelMs: 0,
+  ordinal,
+  passed: false,
+  sandboxId: null,
+  sandboxMs: 0,
+  status: "running",
+  voidFields: [],
+});
+
+/** The journal travels with the trial rather than behind another request. An
+ * exit code the caller cannot see is the thing this system exists to stop
+ * being invisible. */
+const asTrials = (cell: PlaygroundCell): readonly EvalTrial[] =>
+  cell.trials.map((trial, index) =>
+    Option.match(trial, {
+      onNone: () => waiting(index + 1),
       onSome: (result) => ({
         commands: result.commands,
         failedCommands: result.failedCommands,
@@ -62,7 +63,7 @@ const detail = (run: PlaygroundRun): EvalRun => ({
             output: event.output.slice(0, 4000),
           })),
         modelMs: result.outcome.modelMs,
-        ordinal: trial.ordinal,
+        ordinal: index + 1,
         passed: result.outcome.passed,
         sandboxId: result.sandboxId,
         sandboxMs: result.outcome.sandboxMs,
@@ -70,7 +71,34 @@ const detail = (run: PlaygroundRun): EvalRun => ({
         voidFields: [...result.outcome.voidFields],
       }),
     })
+  );
+
+const asCell = (cell: PlaygroundCell): EvalCell => ({
+  caseName: cell.caseName,
+  distribution: Option.getOrNull(cell.distribution),
+  status: cell.status,
+  taskIndex: cell.taskIndex,
+  trials: asTrials(cell),
+});
+
+const detail = (run: PlaygroundRun): EvalRun => ({
+  cases: [...run.cases],
+  cells: run.cells.map(asCell),
+  failure: Option.getOrNull(run.failure),
+  finishedAt: Option.map(run.finishedAt, DateTime.unsafeMake).pipe(
+    Option.getOrNull
   ),
+  id: run.id,
+  startedAt: DateTime.unsafeMake(run.startedAt),
+  status: run.status,
+  /* The domain knows three harnesses and the API exposes the one that works,
+     so the boundary narrows rather than leaking a name a client cannot act
+     on. Adding Claude Code widens both, in that order. */
+  tasks: run.tasks.map((task) => ({
+    harness: "codex" as const,
+    model: task.model,
+    provider: task.provider,
+  })),
 });
 
 export const EvalsHandlers = HttpApiBuilder.group(
@@ -96,19 +124,22 @@ export const EvalsHandlers = HttpApiBuilder.group(
           const credentials = yield* EvalCredentials;
 
           const id = yield* playground.start({
+            cases: payload.cases.map((subject) => ({
+              goal: subject.goal,
+              name: subject.name,
+              setup: subject.setup,
+              source: subject.source,
+              verify: subject.verify,
+            })),
             credentials: Redacted.make(credentials.codexAuth),
-            harness: "codex",
-            harnessVersion: HARNESS_VERSION,
-            model: payload.model,
             organizationId: actor.organizationId,
-            provider: payload.provider,
-            task: {
-              files: payload.task.files,
-              name: payload.task.name,
-              prompt: payload.task.prompt,
-              setupCommand: payload.task.setupCommand,
-              verifyCommand: payload.task.verifyCommand,
-            },
+            prompt: payload.prompt,
+            tasks: payload.tasks.map((task) => ({
+              harness: task.harness,
+              harnessVersion: HARNESS_VERSION,
+              model: task.model,
+              provider: task.provider,
+            })),
             trials: payload.trials,
           });
 

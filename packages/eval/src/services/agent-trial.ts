@@ -21,7 +21,7 @@ import type { TrialOutcome } from "../domain/trial";
 import { HarnessRunner } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
-import { prepareWorkspace } from "./workspace";
+import { prepareWorkspace, type WorkspaceSource } from "./workspace";
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;
@@ -29,7 +29,6 @@ export interface AgentTrialRequest {
    * rather than a live OAuth token. Unwrapped once, at the line that writes it
    * into the sandbox. */
   readonly credentials: Redacted.Redacted<string>;
-  readonly files: Readonly<Record<string, string>>;
   readonly harness: HarnessName;
   readonly harnessVersion: string;
   readonly home: string;
@@ -37,6 +36,7 @@ export interface AgentTrialRequest {
   readonly prompt: string;
   readonly provider: ProviderName;
   readonly setupCommand: string | null;
+  readonly source: WorkspaceSource;
   readonly verifyCommand: string;
   readonly workspace: string;
 }
@@ -82,7 +82,7 @@ export const AgentTrialLive = Layer.effect(
 
         yield* prepareWorkspace({
           credentials: request.credentials,
-          files: request.files,
+          source: request.source,
           harnessVersion: request.harnessVersion,
           home: request.home,
           sandbox,
