@@ -43,7 +43,6 @@
     "./services/agent-trial-set": "./src/services/agent-trial-set.ts",
     "./services/cell-run": "./src/services/cell-run.ts",
     "./services/trial-runner": "./src/services/trial-runner.ts",
-    "./services/trial-set": "./src/services/trial-set.ts",
     "./services/workspace": "./src/services/workspace.ts",
     "./workflow/trial": "./src/workflow/trial.ts"
   }

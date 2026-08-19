@@ -3,11 +3,8 @@ import { Effect, Layer } from "effect";
 import { CodexRunnerLive } from "../../src/harness/codex";
 import { EvalSandboxLive } from "../../src/layer";
 import { ScorerGroundTruthLive } from "../../src/scoring/ground-truth";
-import { AgentTrialLive } from "../../src/services/agent-trial";
-import {
-  AgentTrialSet,
-  AgentTrialSetLive,
-} from "../../src/services/agent-trial-set";
+import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
+import { runAgentTrialSet } from "../../src/services/agent-trial-set";
 import {
   AGENT_PROMPT,
   brokenFiles,
@@ -22,8 +19,7 @@ import {
 
 const READY = hasDaytona && hasCodex;
 
-const TestLayer = AgentTrialSetLive.pipe(
-  Layer.provide(AgentTrialLive),
+const TestLayer = AgentTrialLive.pipe(
   Layer.provide(CodexRunnerLive),
   Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
@@ -35,8 +31,8 @@ describe.if(READY)("a set of agent trials", () => {
   it("reports a distribution over several agent runs", async () => {
     const result = await Effect.runPromise(
       Effect.gen(function* () {
-        const set = yield* AgentTrialSet;
-        return yield* set.run({
+        const trial = yield* AgentTrial;
+        return yield* runAgentTrialSet(trial, {
           autoStopMinutes: 15,
           concurrency: 3,
           credentials: codexCredentials ?? "",

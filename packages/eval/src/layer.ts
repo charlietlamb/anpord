@@ -8,7 +8,6 @@ import { TaskRepositoryLive } from "./repositories/task-repository";
 import { TrialRepositoryLive } from "./repositories/trial-repository";
 import { ScorerGroundTruthLive } from "./scoring/ground-truth";
 import { AgentTrialLive } from "./services/agent-trial";
-import { AgentTrialSetLive } from "./services/agent-trial-set";
 import { CellRunLive } from "./services/cell-run";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 
@@ -25,8 +24,7 @@ export const EvalSandboxLive = SandboxProviderLive.pipe(
   Layer.provide(SandboxAdaptersLive)
 );
 
-const AgentLive = AgentTrialSetLive.pipe(
-  Layer.provide(AgentTrialLive),
+const AgentLive = AgentTrialLive.pipe(
   Layer.provide(Layer.mergeAll(CodexRunnerLive, ScorerGroundTruthLive))
 );
 

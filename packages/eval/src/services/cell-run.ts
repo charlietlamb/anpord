@@ -11,8 +11,8 @@ import { EventRepository } from "../repositories/event-repository";
 import { RunRepository } from "../repositories/run-repository";
 import { TaskRepository } from "../repositories/task-repository";
 import { TrialRepository } from "../repositories/trial-repository";
-import type { AgentTrialRequest } from "./agent-trial";
-import { AgentTrialSet } from "./agent-trial-set";
+import { AgentTrial, type AgentTrialRequest } from "./agent-trial";
+import { runAgentTrialSet } from "./agent-trial-set";
 
 export interface CellRunRequest {
   readonly agent: Omit<
@@ -57,7 +57,7 @@ export const CellRunLive = Layer.effect(
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
     const trials = yield* TrialRepository;
-    const set = yield* AgentTrialSet;
+    const agent = yield* AgentTrial;
 
     const run = (request: CellRunRequest) =>
       Effect.gen(function* () {
@@ -102,7 +102,7 @@ export const CellRunLive = Layer.effect(
           taskInternalId: task.internalId,
         });
 
-        const outcome = yield* set.run({
+        const outcome = yield* runAgentTrialSet(agent, {
           ...request.agent,
           concurrency: request.concurrency,
           files: request.files,
@@ -128,7 +128,7 @@ export const CellRunLive = Layer.effect(
           outcome.trials,
           (result, index) =>
             Effect.gen(function* () {
-              const trial = yield* trials.insert({
+              const row = yield* trials.insert({
                 cellInternalId: cell.internalId,
                 ordinal: index + 1,
                 provider: request.agent.provider,
@@ -137,20 +137,20 @@ export const CellRunLive = Layer.effect(
               const took = result.outcome.modelMs + result.outcome.sandboxMs;
 
               yield* trials.claim(
-                trial.internalId,
+                row.internalId,
                 result.sandboxId,
                 new Date(settledAt - took)
               );
               yield* trials.settle({
                 attempt: 1,
                 finishedAt,
-                internalId: trial.internalId,
+                internalId: row.internalId,
                 outcome: result.outcome,
               });
 
               yield* events.append({
                 events: result.events,
-                trialInternalId: trial.internalId,
+                trialInternalId: row.internalId,
               });
             }),
           { discard: true }
