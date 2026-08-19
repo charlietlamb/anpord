@@ -11,6 +11,7 @@
     },
     "apps/sandbox-lab": {
       "entry": [
+        "src/daytona-spike.ts",
         "src/daytona.ts",
         "src/hard.ts",
         "src/ingest.ts",
