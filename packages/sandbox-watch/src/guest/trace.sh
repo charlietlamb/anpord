@@ -32,7 +32,16 @@ anpord_trace() {
     >> "$ANPORD_TRACE_LOG" 2>/dev/null
 }
 
-if [ -n "$BASH_VERSION" ]; then
+# zsh has a DEBUG trap too, but it reports the command in $ZSH_DEBUG_CMD rather
+# than $BASH_COMMAND, and it fires after rather than before. Daytona's default
+# shell is zsh, so guarding on BASH_VERSION alone collected nothing there.
+if [ -n "$ZSH_VERSION" ]; then
+  mkdir -p "$(dirname "$ANPORD_TRACE_LOG")" 2>/dev/null
+  anpord_zsh_trace() {
+    BASH_COMMAND=$ZSH_DEBUG_CMD anpord_trace
+  }
+  trap anpord_zsh_trace DEBUG
+elif [ -n "$BASH_VERSION" ]; then
   mkdir -p "$(dirname "$ANPORD_TRACE_LOG")" 2>/dev/null
   trap anpord_trace DEBUG
 fi
