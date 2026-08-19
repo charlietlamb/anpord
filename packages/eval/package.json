@@ -29,6 +29,7 @@
     "./domain/errors": "./src/domain/errors.ts",
     "./domain/matrix": "./src/domain/matrix.ts",
     "./domain/trial": "./src/domain/trial.ts",
+    "./harness/codex": "./src/harness/codex.ts",
     "./layer": "./src/layer.ts",
     "./ports/harness": "./src/ports/harness.ts",
     "./ports/sandbox": "./src/ports/sandbox.ts",

@@ -58,10 +58,11 @@
     },
     "packages/eval": {
       "entry": [
-        "src/layer.ts",
-        "src/runtime.ts",
         "src/domain/matrix.ts",
+        "src/harness/codex.ts",
+        "src/layer.ts",
         "src/ports/harness.ts",
+        "src/runtime.ts",
         "src/services/trial-set.ts",
         "src/workflow/trial.ts",
         "tests/**/*.test.ts"

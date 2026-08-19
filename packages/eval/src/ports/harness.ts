@@ -25,10 +25,19 @@ export const HarnessEvent = Schema.Union(
     role: Schema.Literal("assistant", "user"),
     text: Schema.String,
   }),
+  /* A command the agent ran, with the exit code captured where it still
+     exists. This is the column an eval platform reading a tool-call string
+     cannot have, and the reason the journal is the instrument rather than the
+     harness's own account of itself. */
   Schema.Struct({
-    _tag: Schema.Literal("ToolCall"),
-    input: Schema.String,
-    name: Schema.String,
+    _tag: Schema.Literal("Command"),
+    command: Schema.String,
+    exitCode: Schema.NullOr(Schema.Int),
+    output: Schema.String,
+  }),
+  Schema.Struct({
+    _tag: Schema.Literal("FileChange"),
+    paths: Schema.Array(Schema.String),
   }),
   Schema.Struct({
     _tag: Schema.Literal("Finished"),
