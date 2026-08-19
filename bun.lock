@@ -48,18 +48,6 @@
         "typescript": "catalog:",
       },
     },
-    "apps/sandbox-lab": {
-      "name": "@anpord/sandbox-lab",
-      "version": "0.0.0",
-      "dependencies": {
-        "@anpord/sandbox-watch": "workspace:*",
-        "@daytonaio/sdk": "^0.205.0",
-        "e2b": "^2.9.0",
-      },
-      "devDependencies": {
-        "typescript": "catalog:",
-      },
-    },
     "apps/server": {
       "name": "@anpord/server",
       "version": "0.0.0",
@@ -219,16 +207,6 @@
         "@anpord/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
-      },
-      "devDependencies": {
-        "typescript": "catalog:",
-      },
-    },
-    "packages/sandbox-watch": {
-      "name": "@anpord/sandbox-watch",
-      "version": "0.0.0",
-      "bin": {
-        "anpord-watch": "./src/watch.ts",
       },
       "devDependencies": {
         "typescript": "catalog:",
@@ -404,10 +382,6 @@
     "@anpord/notifications": ["@anpord/notifications@workspace:packages/notifications"],
 
     "@anpord/prompts": ["@anpord/prompts@workspace:packages/prompts"],
-
-    "@anpord/sandbox-lab": ["@anpord/sandbox-lab@workspace:apps/sandbox-lab"],
-
-    "@anpord/sandbox-watch": ["@anpord/sandbox-watch@workspace:packages/sandbox-watch"],
 
     "@anpord/schema": ["@anpord/schema@workspace:packages/schema"],
 

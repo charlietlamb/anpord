@@ -9,19 +9,6 @@
       "entry": ["src/main.ts"],
       "project": ["src/**"]
     },
-    "apps/sandbox-lab": {
-      "entry": [
-        "src/daytona-spike.ts",
-        "src/daytona.ts",
-        "src/eval.ts",
-        "src/hard.ts",
-        "src/ingest.ts",
-        "src/replay.ts",
-        "src/replicate.ts",
-        "src/run.ts"
-      ],
-      "project": ["src/**"]
-    },
     "apps/server": {
       "entry": ["src/server.ts", "tests/**/*.test.ts"],
       "project": ["src/**", "tests/**"]
@@ -99,10 +86,6 @@
         "tests/**/*.test.ts"
       ],
       "project": ["src/**", "tests/**"]
-    },
-    "packages/sandbox-watch": {
-      "entry": ["src/void.ts", "src/watch.ts", "test/**/*.test.ts"],
-      "project": ["src/**", "test/**"]
     },
     "packages/schema": {
       "entry": [
