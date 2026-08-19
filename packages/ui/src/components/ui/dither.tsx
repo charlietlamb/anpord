@@ -8,10 +8,10 @@ const DOT = 3;
 const SECONDS_PER_FRAME = 1 / 8;
 const DRIFT_RATE = 0.22;
 
-/** The field costs a wave evaluation per cell, so a very large window would
- * spend a whole frame on texture nobody is looking at. Past this the dots grow
- * instead of multiplying: the pattern is the same shape, drawn coarser. */
-const MAX_CELLS = 260_000;
+/* The dot holds its size at every window. Growing it on a large display to
+   save work changes the thing people actually see: a coarsened grid reads as a
+   different texture rather than as the same one drawn cheaper. Cost is already
+   bounded by SECONDS_PER_FRAME, which redraws eight times a second. */
 
 interface DitherProps {
   readonly className?: string;
@@ -79,13 +79,11 @@ export function Dither({ className, speed = 1 }: DitherProps) {
 
       /* One canvas pixel per dot, scaled up by CSS. The pattern is dots rather
          than an image, so drawing it at device resolution would cost nine times
-         as much for a grid nobody can see the edges of anyway. */
-      const cells = (width / DOT) * (height / DOT);
-      const coarsen = cells > MAX_CELLS ? Math.sqrt(cells / MAX_CELLS) : 1;
-      const dot = DOT * coarsen;
-
-      columns = Math.ceil(width / dot);
-      rows = Math.ceil(height / dot);
+         as much for a grid nobody can see the edges of anyway. The dot keeps
+         its size at every window: the field is the same texture on a laptop
+         and on a large display. */
+      columns = Math.ceil(width / DOT);
+      rows = Math.ceil(height / DOT);
 
       if (canvas.width !== columns || canvas.height !== rows) {
         canvas.width = columns;

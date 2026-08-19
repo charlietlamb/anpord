@@ -1,3 +1,4 @@
+import { CodeField } from "@anpord/ui/components/form/code-field";
 import { MultiSelectField } from "@anpord/ui/components/form/multi-select-field";
 import { SelectField } from "@anpord/ui/components/form/select-field";
 import { SubmitButton } from "@anpord/ui/components/form/submit-button";
@@ -10,6 +11,7 @@ export const { useAppForm, withForm } = createFormHook({
   fieldContext,
   formContext,
   fieldComponents: {
+    CodeField,
     TextField,
     SelectField,
     MultiSelectField,

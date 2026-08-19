@@ -6,3 +6,5 @@ declare module "mcp-use/react" {
     tools: typeof import("./src/server.js");
   }
 }
+
+export {};
