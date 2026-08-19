@@ -32,8 +32,7 @@ not audited... not individual Function invocations or Sandbox `exec` calls."
 
 ## What we collect that nobody else does
 
-Measured against E2B, not inferred. The Daytona equivalent is not yet
-evidence, for the reason given below.
+Measured against E2B and Daytona, not inferred.
 
 **Exit codes and real timing.** Every command with its status and duration,
 captured at the call site where the status still exists.
@@ -57,11 +56,18 @@ the exit code of every command in order. The eighth is the git tree hash, which
 differs because `git add -A` committed `.pyc` files that embed a source
 timestamp. Content replicates; commit identity does not.
 
-The equivalent Daytona run proved nothing. Every command failed with
-`fork/exec /usr/bin/zsh: no such file or directory`, and the comparator read
-two identical error strings as agreement. A comparator that calls two failed
-runs identical will eventually report a perfect pass rate on a broken
-provider, so a run with any void field is now rejected before it is scored.
+The first Daytona run proved nothing. Every command failed with `fork/exec
+/usr/bin/zsh: no such file or directory` and the comparator read two identical
+error strings as agreement. The cause was ours, not the provider's: Daytona
+resolves the working directory before spawning a shell, so a cwd that does not
+exist yet fails to start rather than failing to run. Commands now run from a
+directory known to exist and change directory inside the command.
+
+A comparator that calls two failed runs identical will eventually report a
+perfect pass rate on a broken provider, so a run with any void field is now
+rejected before it is scored. Both halves are verified: the corrected adapter
+scores the same task identically on E2B and Daytona, and reintroducing the bad
+cwd on purpose produces exit -1, which the gate rejects before scoring.
 
 ## The unit of measurement
 
@@ -169,6 +175,7 @@ Silently thinning would repeat the exact failure we are correcting.
 | | E2B | Daytona | Vercel | Modal | Cloudflare |
 | --- | --- | --- | --- | --- | --- |
 | commands, exit codes | yes | yes | yes | yes | yes |
+| in-guest command trace | bash | zsh | - | - | - |
 | file events | yes | no | no | no | yes |
 | network requests | no | no | yes | no | no |
 | collector at boot | yes | yes | no | yes | yes |

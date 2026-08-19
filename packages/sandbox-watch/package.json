@@ -15,5 +15,9 @@
   },
   "devDependencies": {
     "typescript": "catalog:"
+  },
+  "exports": {
+    "./void": "./src/void.ts",
+    "./event": "./src/event.ts"
   }
 }

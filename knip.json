@@ -13,6 +13,7 @@
       "entry": [
         "src/daytona-spike.ts",
         "src/daytona.ts",
+        "src/eval.ts",
         "src/hard.ts",
         "src/ingest.ts",
         "src/replay.ts",

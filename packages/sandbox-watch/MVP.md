@@ -25,7 +25,11 @@ inferred.
 | Harness runs headless | `claude -p --output-format stream-json` emits `system/init` with `session_id`, `cwd`, `model`, `permissionMode` |
 | Harness honours a proxy | `ANTHROPIC_BASE_URL` respected: `duration_api_ms: 0`, never reached the real API |
 | The loop closes | broken code, tests fail, agent runs, tests re-run |
-| A run can be rebuilt | replayed into a fresh sandbox on E2B: 7 of 8 fields matched, the eighth being a git tree hash that carried `.pyc` files. Not yet demonstrated on any second provider. |
+| A run can be rebuilt | replayed into a fresh sandbox on E2B: 7 of 8 fields matched, the eighth being a git tree hash that carried `.pyc` files |
+| Two providers agree | the same task scored identically on E2B and Daytona: fails before the fix, passes after |
+| A cell is repeatable | 5 Daytona trials, 5 of 5 sound, identical exit codes, wall clock spread 1.55x |
+| Sandboxes boot concurrently | 5 at once on Daytona, no rate limiting |
+| Nested commands are visible | a DEBUG trap caught `sh -c` inside a command, which produced no output and no journal entry |
 | Exit codes are recoverable | captured at the call site, where they still exist |
 | Writes nobody named | 590 file events across 246 paths from one `pip install` |
 
