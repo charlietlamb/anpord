@@ -270,6 +270,16 @@
     .skeleton-shimmer::after {
       animation: none;
     }
+
+    /* Reduced motion means gentler, not none: an element that fades in still
+       explains that it arrived, while one that slides does it by moving,
+       which is the part that causes trouble. */
+    .animate-in {
+      --tw-enter-translate-x: 0;
+      --tw-enter-translate-y: 0;
+      --tw-enter-scale: 1;
+      animation-duration: 120ms;
+    }
   }
 
   /* The edge on a filled control comes from light, not a drawn ring: a faint
