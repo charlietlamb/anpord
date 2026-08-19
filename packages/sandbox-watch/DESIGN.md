@@ -32,7 +32,8 @@ not audited... not individual Function invocations or Sandbox `exec` calls."
 
 ## What we collect that nobody else does
 
-Proven against E2B and Daytona, not inferred:
+Measured against E2B, not inferred. The Daytona equivalent is not yet
+evidence, for the reason given below.
 
 **Exit codes and real timing.** Every command with its status and duration,
 captured at the call site where the status still exists.
@@ -50,11 +51,17 @@ protocol, which is the only coverage that does not depend on a client honouring
 a proxy.
 
 **A rebuildable run.** Captured a session, drove a fresh sandbox from the
-recorded commands alone, and compared: commits, working tree, file contents,
-dependency version, test result and the exit code of every command in order all
-matched. On Daytona, eight of eight. On E2B, eight of nine, the ninth being
-`.pyc` files that embed a source timestamp and therefore differ by
-construction — hashing sources without the cache agreed exactly.
+recorded commands alone, and compared. On E2B, seven of eight fields matched:
+the commits, working tree, file contents, dependency version, test result and
+the exit code of every command in order. The eighth is the git tree hash, which
+differs because `git add -A` committed `.pyc` files that embed a source
+timestamp. Content replicates; commit identity does not.
+
+The equivalent Daytona run proved nothing. Every command failed with
+`fork/exec /usr/bin/zsh: no such file or directory`, and the comparator read
+two identical error strings as agreement. A comparator that calls two failed
+runs identical will eventually report a perfect pass rate on a broken
+provider, so a run with any void field is now rejected before it is scored.
 
 ## The unit of measurement
 
@@ -87,8 +94,9 @@ says `assert -1 == 5`; that is the score. No LLM in the loop, no rubric to
 drift.
 
 The failure this prevents is specific and common: a pipeline exits with its
-last command, so `pytest | tail` reports the success of `tail`. We measured it
-on both providers. Any platform that trusts a reported exit code silently
+last command, so `pytest | tail` reports the success of `tail`. We measured it.
+The obvious fix is provider-specific too: `PIPESTATUS[0]` is `1` in bash and
+unset in zsh, which is Daytona's default shell. Any platform that trusts a reported exit code silently
 records failures as passes, and ours refuses piped commands for scoring.
 
 ### 2. Harness and model comparison

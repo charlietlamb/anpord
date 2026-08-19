@@ -83,8 +83,8 @@
       "project": ["src/**", "tests/**"]
     },
     "packages/sandbox-watch": {
-      "entry": ["src/watch.ts"],
-      "project": ["src/**"]
+      "entry": ["src/void.ts", "src/watch.ts", "test/**/*.test.ts"],
+      "project": ["src/**", "test/**"]
     },
     "packages/schema": {
       "entry": [

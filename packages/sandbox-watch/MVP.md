@@ -25,7 +25,7 @@ inferred.
 | Harness runs headless | `claude -p --output-format stream-json` emits `system/init` with `session_id`, `cwd`, `model`, `permissionMode` |
 | Harness honours a proxy | `ANTHROPIC_BASE_URL` respected: `duration_api_ms: 0`, never reached the real API |
 | The loop closes | broken code, tests fail, agent runs, tests re-run |
-| A run can be rebuilt | replayed into a fresh sandbox: 8/8 fields matched on Daytona, 8/9 on E2B |
+| A run can be rebuilt | replayed into a fresh sandbox on E2B: 7 of 8 fields matched, the eighth being a git tree hash that carried `.pyc` files. Not yet demonstrated on any second provider. |
 | Exit codes are recoverable | captured at the call site, where they still exist |
 | Writes nobody named | 590 file events across 246 paths from one `pip install` |
 
