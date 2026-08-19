@@ -10,7 +10,13 @@
       "project": ["src/**"]
     },
     "apps/sandbox-lab": {
-      "entry": ["src/run.ts", "src/hard.ts", "src/replay.ts", "src/ingest.ts"],
+      "entry": [
+        "src/hard.ts",
+        "src/ingest.ts",
+        "src/replay.ts",
+        "src/replicate.ts",
+        "src/run.ts"
+      ],
       "project": ["src/**"]
     },
     "apps/server": {
