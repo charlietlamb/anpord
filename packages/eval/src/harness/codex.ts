@@ -1,9 +1,9 @@
 import { Effect, Layer, Option, Ref, Stream } from "effect";
 import { HarnessUnavailable } from "../domain/errors";
+import type { HarnessUsage } from "../domain/harness-event";
 import {
   HarnessRunner,
   type HarnessSessionShape,
-  type HarnessUsage,
   type RunHarness,
 } from "../ports/harness";
 import { decodeCodexLine } from "./codex-events";

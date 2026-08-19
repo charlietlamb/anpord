@@ -4,7 +4,7 @@ import { IdGenerator } from "@anpord/ids/id";
 import { asc, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
-import type { HarnessEvent } from "../ports/harness";
+import type { HarnessEvent } from "../domain/harness-event";
 import { tryStore } from "./query";
 
 type EventRow = typeof evalEvent.$inferSelect;

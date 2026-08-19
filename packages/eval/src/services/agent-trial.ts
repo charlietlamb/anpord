@@ -9,11 +9,18 @@ import {
 } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
-import { outcomeOf, type TrialOutcome } from "../domain/trial";
-import { authenticateCodex, installCodex } from "../harness/codex-install";
-import type { HarnessEvent, HarnessUsage } from "../ports/harness";
+import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import {
+  commandsIn,
+  failedCommandsIn,
+  filesIn,
+  sessionIdOf,
+} from "../domain/journal";
+import type { TrialOutcome } from "../domain/trial";
 import { HarnessRunner } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
+import { Scorer } from "../ports/scorer";
+import { prepareWorkspace } from "./workspace";
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;
@@ -33,9 +40,11 @@ export interface AgentTrialRequest {
 export interface AgentTrialResult {
   readonly commands: number;
   readonly events: readonly HarnessEvent[];
+  readonly failedCommands: number;
   readonly filesChanged: readonly string[];
   readonly outcome: TrialOutcome;
   readonly sandboxId: string;
+  readonly sessionId: string | null;
   readonly usage: Option.Option<HarnessUsage>;
 }
 
@@ -54,20 +63,12 @@ export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<
   AgentTrialShape
 >() {}
 
-const commandsIn = (events: readonly HarnessEvent[]) =>
-  events.filter((event) => event._tag === "Command").length;
-
-const filesIn = (events: readonly HarnessEvent[]) => [
-  ...new Set(
-    events.flatMap((event) => (event._tag === "FileChange" ? event.paths : []))
-  ),
-];
-
 export const AgentTrialLive = Layer.effect(
   AgentTrial,
   Effect.gen(function* () {
     const harnesses = yield* HarnessRunner;
     const sandboxes = yield* SandboxProvider;
+    const scorer = yield* Scorer;
 
     const run = (request: AgentTrialRequest) =>
       Effect.gen(function* () {
@@ -79,20 +80,15 @@ export const AgentTrialLive = Layer.effect(
           workspace: request.workspace,
         });
 
-        yield* installCodex(sandbox, request.harnessVersion);
-        yield* authenticateCodex(sandbox, request.credentials, request.home);
-
-        for (const [path, content] of Object.entries(request.files)) {
-          yield* sandbox.writeFile(`${request.workspace}/${path}`, content);
-        }
-
-        if (request.setupCommand !== null) {
-          yield* Stream.runDrain(
-            sandbox.exec(request.setupCommand, {
-              timeoutMs: 300_000,
-            })
-          );
-        }
+        yield* prepareWorkspace({
+          credentials: request.credentials,
+          files: request.files,
+          harnessVersion: request.harnessVersion,
+          home: request.home,
+          sandbox,
+          setupCommand: request.setupCommand,
+          workspace: request.workspace,
+        });
 
         const modelStarted = yield* Clock.currentTimeMillis;
 
@@ -111,40 +107,35 @@ export const AgentTrialLive = Layer.effect(
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
-        /* Scored by running the verifier ourselves rather than by reading what
-           the agent said it achieved. Codex reports its own commands and their
-           exit codes, and a harness that fooled itself with a pipeline would
-           report success while the tests failed. */
-        const verify = yield* Stream.runCollect(
-          sandbox.exec(request.verifyCommand, { timeoutMs: 300_000 })
-        );
-        const chunks = Chunk.toReadonlyArray(verify);
-        const exit = chunks.find((chunk) => chunk.stream === "exit");
-        const output = chunks
-          .filter((chunk) => chunk.stream !== "exit")
-          .map((chunk) => chunk.data)
-          .join("");
+        /* Scored through the port rather than inline, so the verdict comes
+           from running the verifier ourselves and inherits the refusal to
+           score through an unguarded pipeline. A harness that fooled itself
+           with `| tail` would otherwise report success while the tests
+           failed. */
+        const scored = yield* scorer.score({
+          commandCount: commandsIn(events),
+          modelMs: modelFinished - modelStarted,
+          sandbox,
+          verifyCommand: request.verifyCommand,
+          workspace: request.workspace,
+        });
 
-        const exitCode = exit === undefined ? 1 : exit.exitCode;
         const finishedAt = yield* Clock.currentTimeMillis;
 
         return {
           commands: commandsIn(events),
           events,
+          failedCommands: failedCommandsIn(events),
           filesChanged: filesIn(events),
-          outcome: outcomeOf({
-            commandCount: commandsIn(events),
-            exitCode,
-            fingerprint: {
-              verify:
-                output.trim() === "" && exit !== undefined
-                  ? `exited ${exitCode}`
-                  : output,
-            },
-            modelMs: modelFinished - modelStarted,
+          outcome: {
+            ...scored,
+            /* Model time and sandbox time are separated here because the
+               scorer only sees the verifier, and a slow provider would
+               otherwise read as a slow model. */
             sandboxMs: finishedAt - startedAt - (modelFinished - modelStarted),
-          }),
+          },
           sandboxId: sandbox.id,
+          sessionId: sessionIdOf(events),
           usage: yield* session.usage,
         } satisfies AgentTrialResult;
       }).pipe(

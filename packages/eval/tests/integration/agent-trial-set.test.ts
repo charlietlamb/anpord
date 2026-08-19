@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { Effect, Layer } from "effect";
 import { CodexRunnerLive } from "../../src/harness/codex";
 import { EvalSandboxLive } from "../../src/layer";
+import { ScorerGroundTruthLive } from "../../src/scoring/ground-truth";
 import { AgentTrialLive } from "../../src/services/agent-trial";
 import {
   AgentTrialSet,
@@ -34,6 +35,7 @@ const READY = Boolean(process.env.DAYTONA_API_KEY && CREDENTIALS);
 const TestLayer = AgentTrialSetLive.pipe(
   Layer.provide(AgentTrialLive),
   Layer.provide(CodexRunnerLive),
+  Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
 );
 
