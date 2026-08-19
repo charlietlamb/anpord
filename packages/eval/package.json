@@ -11,6 +11,7 @@
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
     "@daytonaio/sdk": "^0.205.0",
+    "@effect/workflow": "catalog:",
     "drizzle-orm": "catalog:",
     "e2b": "^2.9.0",
     "effect": "catalog:"
@@ -27,6 +28,7 @@
     "./layer": "./src/layer.ts",
     "./ports/harness": "./src/ports/harness.ts",
     "./ports/sandbox": "./src/ports/sandbox.ts",
-    "./ports/scorer": "./src/ports/scorer.ts"
+    "./ports/scorer": "./src/ports/scorer.ts",
+    "./workflow/trial": "./src/workflow/trial.ts"
   }
 }

@@ -30,14 +30,25 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
       }).pipe(
         /* A non-zero exit rejects in this SDK, so the failure is folded back
            into a result. An exit code is data, not an error: treating it as
-           one would lose the very thing the journal exists to record. */
-        Effect.catchAll((error) =>
-          Effect.succeed({
-            exitCode: (error as { exitCode?: number }).exitCode ?? 1,
-            stderr: (error as { stderr?: string }).stderr ?? "",
-            stdout: (error as { stdout?: string }).stdout ?? "",
-          })
-        )
+           one would lose the very thing the journal exists to record.
+           The output hangs off the rejection`s `result`, not off the error
+           itself, and reading the wrong one yields an empty string that the
+           void gate then reads as a command which never ran. */
+        Effect.catchAll((error) => {
+          const failure = error as {
+            exitCode?: number;
+            result?: { exitCode?: number; stderr?: string; stdout?: string };
+            stderr?: string;
+            stdout?: string;
+          };
+          const result = failure.result ?? failure;
+
+          return Effect.succeed({
+            exitCode: result.exitCode ?? failure.exitCode ?? 1,
+            stderr: result.stderr ?? "",
+            stdout: result.stdout ?? "",
+          });
+        })
       )
     ).pipe(
       Stream.flatMap((result) =>

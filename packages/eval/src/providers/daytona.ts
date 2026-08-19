@@ -10,6 +10,7 @@ import type {
 
 const HOME = "/home/daytona";
 const DEFAULT_TIMEOUT_MS = 120_000;
+const AUTO_DELETE_FACTOR = 6;
 
 /**
  * Daytona resolves the working directory before spawning a shell, so a command
@@ -88,7 +89,15 @@ export const makeDaytonaAdapter = Effect.sync((): SandboxAdapterShape => {
       Effect.tryPromise({
         catch: unavailable,
         try: () =>
-          daytona.create({ autoStopInterval: request.autoStopMinutes }),
+          daytona.create({
+            /* Two TTLs, because compensation does not run when a workflow is
+               interrupted rather than failed. Measured against Daytona: a
+               killed process bypasses the scope finalizer and the sandbox
+               stays started. autoStop bounds the compute and autoDelete the
+               storage, whatever happens to our process. */
+            autoDeleteInterval: request.autoStopMinutes * AUTO_DELETE_FACTOR,
+            autoStopInterval: request.autoStopMinutes,
+          }),
       }).pipe(
         Effect.tap((sandbox) =>
           Effect.tryPromise({

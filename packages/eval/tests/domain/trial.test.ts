@@ -56,3 +56,34 @@ describe("outcomeOf", () => {
     expect(outcome.status).toBe("void");
   });
 });
+
+describe("the void gate and quiet commands", () => {
+  /* A regression: E2B returns an empty stdout for a failing pytest, so a
+     fingerprint built from raw output matched the empty-string void pattern
+     and threw away a legitimate failure. The gate must ask whether the command
+     ran, not whether it printed. */
+  it("does not void a command that ran quietly", () => {
+    const outcome = outcomeOf({
+      commandCount: 2,
+      exitCode: 1,
+      fingerprint: { verify: "exited 1" },
+      modelMs: 0,
+      sandboxMs: 900,
+    });
+
+    expect(outcome.status).toBe("failed");
+    expect(outcome.voidFields).toEqual([]);
+  });
+
+  it("still voids a command that produced nothing at all", () => {
+    const outcome = outcomeOf({
+      commandCount: 0,
+      exitCode: 1,
+      fingerprint: { verify: "" },
+      modelMs: 0,
+      sandboxMs: 12,
+    });
+
+    expect(outcome.status).toBe("void");
+  });
+});
