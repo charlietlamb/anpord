@@ -40,7 +40,7 @@ export interface TrialRunnerShape {
    * caller that forgets to close it cannot compile. */
   readonly run: (
     request: TrialRequest
-  ) => Effect.Effect<TrialResult, SandboxUnavailable, SandboxProvider>;
+  ) => Effect.Effect<TrialResult, SandboxUnavailable>;
 }
 
 export class TrialRunner extends Context.Tag("@anpord/eval/TrialRunner")<

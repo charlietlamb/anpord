@@ -1,6 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { Effect, Layer } from "effect";
 import { CodexRunnerLive } from "../../src/harness/codex";
 import { EvalSandboxLive } from "../../src/layer";
@@ -16,21 +14,13 @@ import {
   SETUP_COMMAND,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
+import {
+  codexCredentials,
+  hasCodex,
+  hasDaytona,
+} from "../fixtures/credentials";
 
-const SCRATCH =
-  "/private/tmp/claude-501/-Users-charlielamb-Documents-anpord/12b411dd-d640-4169-a77f-0b9be144cdbd/scratchpad";
-
-const read = (path: string) => {
-  try {
-    return readFileSync(path, "utf8").trim();
-  } catch {
-    return;
-  }
-};
-
-process.env.DAYTONA_API_KEY ??= read(`${SCRATCH}/daytona.key`);
-const CREDENTIALS = read(`${homedir()}/.codex/auth.json`);
-const READY = Boolean(process.env.DAYTONA_API_KEY && CREDENTIALS);
+const READY = hasDaytona && hasCodex;
 
 const TestLayer = AgentTrialSetLive.pipe(
   Layer.provide(AgentTrialLive),
@@ -49,7 +39,7 @@ describe.if(READY)("a set of agent trials", () => {
         return yield* set.run({
           autoStopMinutes: 15,
           concurrency: 3,
-          credentials: CREDENTIALS ?? "",
+          credentials: codexCredentials ?? "",
           files: brokenFiles,
           harness: "codex",
           harnessVersion: "0.144.4",

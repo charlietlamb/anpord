@@ -3,7 +3,6 @@ import type { ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
 import type { SandboxUnavailable } from "../domain/errors";
 import type { TrialOutcome } from "../domain/trial";
-import type { SandboxProvider } from "../ports/sandbox";
 import { TrialRunner } from "../services/trial-runner";
 
 export interface TrialSetRequest {
@@ -27,7 +26,7 @@ export interface TrialSetShape {
    * is never the answer: a rate over N is. */
   readonly run: (
     request: TrialSetRequest
-  ) => Effect.Effect<TrialSetResult, SandboxUnavailable, SandboxProvider>;
+  ) => Effect.Effect<TrialSetResult, SandboxUnavailable>;
 }
 
 export class TrialSet extends Context.Tag("@anpord/eval/TrialSet")<

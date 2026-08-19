@@ -1,29 +1,17 @@
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
 import { Effect, Layer } from "effect";
 import { EvalSandboxLive } from "../../src/layer";
 import { TrialRunnerLive } from "../../src/services/trial-runner";
 import { TrialSet, TrialSetLive } from "../../src/services/trial-set";
 
-const SCRATCH =
-  "/private/tmp/claude-501/-Users-charlielamb-Documents-anpord/12b411dd-d640-4169-a77f-0b9be144cdbd/scratchpad";
-
-const keyed = (name: string) => {
-  try {
-    return readFileSync(`${SCRATCH}/${name}`, "utf8").trim();
-  } catch {
-    return;
-  }
-};
-
-process.env.DAYTONA_API_KEY ??= keyed("daytona.key");
-const HAS_KEY = Boolean(process.env.DAYTONA_API_KEY);
+const HAS_KEY = hasDaytona;
 
 import {
   FIXED_SOURCE,
   TEST_SOURCE,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
+import { hasDaytona } from "../fixtures/credentials";
 
 const TestLayer = TrialSetLive.pipe(
   Layer.provide(TrialRunnerLive),

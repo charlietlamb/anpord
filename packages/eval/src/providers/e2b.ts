@@ -10,6 +10,33 @@ import type {
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
+interface CommandResult {
+  readonly exitCode: number;
+  readonly stderr: string;
+  readonly stdout: string;
+}
+
+/** The shape this SDK rejects with when a command exits non-zero: the output
+ * hangs off `result` rather than off the error itself. Returns null when the
+ * rejection is anything else, which is a genuine provider failure and belongs
+ * in the error channel. */
+const asCommandResult = (rejection: unknown): CommandResult | null => {
+  const carried = (rejection as { result?: unknown })?.result;
+  const source = (carried ?? rejection) as {
+    exitCode?: number;
+    stderr?: string;
+    stdout?: string;
+  };
+
+  return typeof source?.exitCode === "number"
+    ? {
+        exitCode: source.exitCode,
+        stderr: source.stderr ?? "",
+        stdout: source.stdout ?? "",
+      }
+    : null;
+};
+
 const unavailable = (reason: unknown) =>
   new SandboxUnavailable({
     provider: "e2b",
@@ -21,35 +48,31 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
     Stream.fromEffect(
       Effect.tryPromise({
         catch: unavailable,
+        /* The fold happens inside `try`, before the rejection is turned into a
+           SandboxUnavailable. Catching afterwards reads `result` off an error
+           that never carries it, which silently yields an empty output: the
+           exit code survives but the failing test's own words do not, and the
+           journal exists to keep exactly those. Anything still thrown here is
+           a real provider failure and reaches `catch`. */
         try: () =>
-          sandbox.commands.run(command, {
-            cwd: options?.cwd ?? workspace,
-            envs: options?.env as Record<string, string> | undefined,
-            timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-          }),
-      }).pipe(
-        /* A non-zero exit rejects in this SDK, so the failure is folded back
-           into a result. An exit code is data, not an error: treating it as
-           one would lose the very thing the journal exists to record.
-           The output hangs off the rejection`s `result`, not off the error
-           itself, and reading the wrong one yields an empty string that the
-           void gate then reads as a command which never ran. */
-        Effect.catchAll((error) => {
-          const failure = error as {
-            exitCode?: number;
-            result?: { exitCode?: number; stderr?: string; stdout?: string };
-            stderr?: string;
-            stdout?: string;
-          };
-          const result = failure.result ?? failure;
+          sandbox.commands
+            .run(command, {
+              cwd: options?.cwd ?? workspace,
+              envs: options?.env as Record<string, string> | undefined,
+              timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+            })
+            .catch((rejection: unknown) => {
+              const failed = asCommandResult(rejection);
 
-          return Effect.succeed({
-            exitCode: result.exitCode ?? failure.exitCode ?? 1,
-            stderr: result.stderr ?? "",
-            stdout: result.stdout ?? "",
-          });
-        })
-      )
+              /* A non-zero exit is data, not an error. Rethrowing here would
+                 lose the very thing being measured. */
+              if (failed === null) {
+                throw rejection;
+              }
+
+              return failed;
+            }),
+      })
     ).pipe(
       Stream.flatMap((result) =>
         Stream.make(

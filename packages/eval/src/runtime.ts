@@ -2,8 +2,7 @@ import { ClusterWorkflowEngine } from "@effect/cluster";
 import { NodeClusterSocket } from "@effect/platform-node";
 import { PgClient } from "@effect/sql-pg";
 import { Config, Layer, Redacted } from "effect";
-import { SandboxAdaptersLive } from "./providers/resolve";
-import { SandboxProviderLive } from "./services/sandbox-provider";
+import { EvalSandboxLive } from "./layer";
 import { TrialRunnerLive } from "./services/trial-runner";
 import { TrialWorkflowLive } from "./workflow/trial";
 
@@ -34,14 +33,10 @@ export const WorkflowEngineLive = ClusterWorkflowEngine.layer.pipe(
   Layer.provideMerge(clusterDatabase)
 );
 
-const SandboxLive = SandboxProviderLive.pipe(
-  Layer.provide(SandboxAdaptersLive)
-);
-
 /** Everything a trial needs to execute durably: the workflow definition, the
  * runner it calls, and the engine that makes an activity survive a restart. */
 export const EvalWorkflowLive = TrialWorkflowLive.pipe(
   Layer.provide(TrialRunnerLive),
-  Layer.provide(SandboxLive),
+  Layer.provide(EvalSandboxLive),
   Layer.provideMerge(WorkflowEngineLive)
 );

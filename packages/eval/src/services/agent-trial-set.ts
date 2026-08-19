@@ -2,8 +2,11 @@ import { Context, Effect, Layer } from "effect";
 import { type Distribution, distributionOf } from "../domain/distribution";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import type { TrialOutcome } from "../domain/trial";
-import type { SandboxProvider } from "../ports/sandbox";
-import { AgentTrial, type AgentTrialRequest } from "./agent-trial";
+import {
+  AgentTrial,
+  type AgentTrialRequest,
+  type AgentTrialResult,
+} from "./agent-trial";
 
 export interface AgentTrialSetRequest extends AgentTrialRequest {
   readonly concurrency: number;
@@ -15,6 +18,9 @@ export interface AgentTrialSetResult {
   readonly distribution: Distribution;
   readonly outcomes: readonly TrialOutcome[];
   readonly sandboxIds: readonly string[];
+  /** The trials themselves, so a caller that persists a run has the journal
+   * and not only the summary over it. */
+  readonly trials: readonly AgentTrialResult[];
 }
 
 export interface AgentTrialSetShape {
@@ -22,8 +28,7 @@ export interface AgentTrialSetShape {
     request: AgentTrialSetRequest
   ) => Effect.Effect<
     AgentTrialSetResult,
-    HarnessUnavailable | SandboxUnavailable,
-    SandboxProvider
+    HarnessUnavailable | SandboxUnavailable
   >;
 }
 
@@ -58,6 +63,7 @@ export const AgentTrialSetLive = Layer.effect(
           distribution: distributionOf(outcomes),
           outcomes,
           sandboxIds: results.map((result) => result.sandboxId),
+          trials: results,
         } satisfies AgentTrialSetResult;
       }).pipe(
         Effect.withSpan("AgentTrialSet.run", {

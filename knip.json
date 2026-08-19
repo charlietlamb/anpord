@@ -66,6 +66,7 @@
         "src/scoring/ground-truth.ts",
         "src/services/agent-trial-set.ts",
         "src/services/agent-trial.ts",
+        "src/services/cell-run.ts",
         "src/services/trial-set.ts",
         "src/workflow/trial.ts",
         "tests/**/*.test.ts"

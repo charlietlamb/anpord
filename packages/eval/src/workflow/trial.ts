@@ -3,7 +3,6 @@ import { Clock, Effect, Schedule, Schema } from "effect";
 import { ProviderName } from "../domain/cell";
 import { SandboxUnavailable } from "../domain/errors";
 import { TrialOutcome } from "../domain/trial";
-import { SandboxProvider } from "../ports/sandbox";
 import { TrialRepository } from "../repositories/trial-repository";
 import { TrialRunner } from "../services/trial-runner";
 
@@ -30,7 +29,6 @@ export const TrialWorkflow = Workflow.make({
 export const TrialWorkflowLive = TrialWorkflow.toLayer(
   Effect.fn(function* (payload) {
     const runner = yield* TrialRunner;
-    const sandboxes = yield* SandboxProvider;
     const trials = yield* TrialRepository;
 
     return yield* Activity.make({
@@ -68,7 +66,6 @@ export const TrialWorkflowLive = TrialWorkflow.toLayer(
         return result.outcome;
       }),
     }).pipe(
-      Effect.provideService(SandboxProvider, sandboxes),
       Effect.withSpan("TrialWorkflow.run", {
         attributes: { provider: payload.provider },
       })

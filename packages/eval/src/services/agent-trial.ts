@@ -51,11 +51,7 @@ export interface AgentTrialResult {
 export interface AgentTrialShape {
   readonly run: (
     request: AgentTrialRequest
-  ) => Effect.Effect<
-    AgentTrialResult,
-    HarnessUnavailable | SandboxUnavailable,
-    SandboxProvider
-  >;
+  ) => Effect.Effect<AgentTrialResult, HarnessUnavailable | SandboxUnavailable>;
 }
 
 export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<

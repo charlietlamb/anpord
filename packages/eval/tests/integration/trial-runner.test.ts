@@ -1,27 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
 import { Effect, Layer } from "effect";
 import type { ProviderName } from "../../src/domain/cell";
 import { EvalSandboxLive } from "../../src/layer";
 import { TrialRunner, TrialRunnerLive } from "../../src/services/trial-runner";
-
-const SCRATCH =
-  "/private/tmp/claude-501/-Users-charlielamb-Documents-anpord/12b411dd-d640-4169-a77f-0b9be144cdbd/scratchpad";
-
-const keyed = (name: string) => {
-  try {
-    return readFileSync(`${SCRATCH}/${name}`, "utf8").trim();
-  } catch {
-    return;
-  }
-};
-
-process.env.E2B_API_KEY ??= keyed("e2b.key");
-process.env.DAYTONA_API_KEY ??= keyed("daytona.key");
-
-const HAS_KEYS = Boolean(
-  process.env.E2B_API_KEY && process.env.DAYTONA_API_KEY
-);
 
 import {
   BROKEN_SOURCE,
@@ -29,6 +10,9 @@ import {
   TEST_SOURCE,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
+import { hasDaytona, hasE2B } from "../fixtures/credentials";
+
+const HAS_KEYS = hasDaytona && hasE2B;
 
 const TestLayer = TrialRunnerLive.pipe(Layer.provideMerge(EvalSandboxLive));
 
