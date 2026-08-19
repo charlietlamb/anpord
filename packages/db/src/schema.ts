@@ -12,6 +12,11 @@ import { organization } from "./schema/auth/organizations";
 import { session } from "./schema/auth/sessions";
 import { user } from "./schema/auth/users";
 import { verification } from "./schema/auth/verifications";
+import { evalCell } from "./schema/evals/eval-cells";
+import { evalEvent } from "./schema/evals/eval-events";
+import { evalRun } from "./schema/evals/eval-runs";
+import { evalTask } from "./schema/evals/eval-tasks";
+import { evalTrial } from "./schema/evals/eval-trials";
 import { channel } from "./schema/prompts/channels";
 import { promptChannelEvent } from "./schema/prompts/prompt-channel-events";
 import { promptChannel } from "./schema/prompts/prompt-channels";
@@ -30,6 +35,11 @@ export const schema = {
   oauthApplication,
   oauthConsent,
   organization,
+  evalCell,
+  evalEvent,
+  evalRun,
+  evalTask,
+  evalTrial,
   prompt,
   channel,
   promptChannel,

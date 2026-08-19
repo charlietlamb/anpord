@@ -56,6 +56,10 @@
       ],
       "project": "src/**"
     },
+    "packages/eval": {
+      "entry": ["src/layer.ts", "src/ports/harness.ts", "tests/**/*.test.ts"],
+      "project": ["src/**", "tests/**"]
+    },
     "packages/ids": {
       "entry": ["src/id.ts", "src/layer.ts", "src/prefixes.ts"],
       "project": "src/**"

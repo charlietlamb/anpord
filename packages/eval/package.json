@@ -1,0 +1,32 @@
+{
+  "name": "@anpord/eval",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/db": "workspace:*",
+    "@anpord/ids": "workspace:*",
+    "@daytonaio/sdk": "^0.205.0",
+    "drizzle-orm": "catalog:",
+    "e2b": "^2.9.0",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./domain/cell": "./src/domain/cell.ts",
+    "./domain/distribution": "./src/domain/distribution.ts",
+    "./domain/errors": "./src/domain/errors.ts",
+    "./domain/trial": "./src/domain/trial.ts",
+    "./layer": "./src/layer.ts",
+    "./ports/harness": "./src/ports/harness.ts",
+    "./ports/sandbox": "./src/ports/sandbox.ts",
+    "./ports/scorer": "./src/ports/scorer.ts"
+  }
+}

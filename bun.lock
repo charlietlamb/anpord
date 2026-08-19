@@ -168,6 +168,22 @@
         "typescript": "catalog:",
       },
     },
+    "packages/eval": {
+      "name": "@anpord/eval",
+      "version": "0.0.0",
+      "dependencies": {
+        "@anpord/db": "workspace:*",
+        "@anpord/ids": "workspace:*",
+        "@daytonaio/sdk": "^0.205.0",
+        "drizzle-orm": "catalog:",
+        "e2b": "^2.9.0",
+        "effect": "catalog:",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/ids": {
       "name": "@anpord/ids",
       "version": "0.0.0",
@@ -371,6 +387,8 @@
     "@anpord/docs": ["@anpord/docs@workspace:apps/docs"],
 
     "@anpord/e2e": ["@anpord/e2e@workspace:apps/e2e"],
+
+    "@anpord/eval": ["@anpord/eval@workspace:packages/eval"],
 
     "@anpord/ids": ["@anpord/ids@workspace:packages/ids"],
 
