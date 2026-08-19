@@ -99,3 +99,43 @@ describe("axisVerdict", () => {
     expect(axisVerdict(results, "harness").separated).toBe(false);
   });
 });
+
+describe("what an axis verdict refuses to claim", () => {
+  const voidedCell = (harness: "codex" | "claude-code") => ({
+    cell: cell(harness, "e2b"),
+    distribution: {
+      ...distribution(0),
+      passed: 0,
+      scored: 0,
+      trials: 10,
+      voided: 10,
+    },
+  });
+
+  /* A cell where nothing scored has a pass rate of zero because there is
+     nothing to divide, not because the agent failed. Reading that sentinel as
+     a measured rate turns a provider outage into the headline finding that
+     the other provider is better. */
+  it("does not read a fully voided cell as a zero pass rate", () => {
+    const verdict = axisVerdict(
+      [
+        voidedCell("codex"),
+        { cell: cell("claude-code", "daytona"), distribution: distribution(1) },
+      ],
+      "harness"
+    );
+
+    expect(verdict.separated).toBe(false);
+    expect(verdict.values).toEqual(["claude-code"]);
+  });
+
+  it("reports no separation when nothing scored at all", () => {
+    const verdict = axisVerdict(
+      [voidedCell("codex"), voidedCell("claude-code")],
+      "harness"
+    );
+
+    expect(verdict.separated).toBe(false);
+    expect(verdict.spread).toBe(0);
+  });
+});

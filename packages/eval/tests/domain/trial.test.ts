@@ -87,3 +87,56 @@ describe("the void gate and quiet commands", () => {
     expect(outcome.status).toBe("void");
   });
 });
+
+describe("a verifier that tested nothing", () => {
+  /* The worst failure this system can have. A runner that finds no tests
+     exits zero and says so, and scoring that as a pass reports a cell where
+     the workspace was empty as passing every trial, deterministically. */
+  it("voids a run that found no tests rather than passing it", () => {
+    const outcome = outcomeOf({
+      commandCount: 3,
+      exitCode: 0,
+      fingerprint: {
+        verify: "ℹ tests 0\nℹ suites 0\nℹ pass 0\nℹ fail 0\n",
+      },
+      modelMs: 100,
+      sandboxMs: 100,
+    });
+
+    expect(outcome.status).toBe("void");
+    expect(outcome.passed).toBe(false);
+    expect(outcome.voidFields).toEqual(["verify"]);
+  });
+
+  it("voids other runners that say the same thing", () => {
+    for (const output of [
+      "No tests found",
+      "0 tests, 0 assertions",
+      "no tests to run",
+    ]) {
+      expect(
+        outcomeOf({
+          commandCount: 1,
+          exitCode: 0,
+          fingerprint: { verify: output },
+          modelMs: 0,
+          sandboxMs: 0,
+        }).status
+      ).toBe("void");
+    }
+  });
+
+  it("still passes a run that actually tested something", () => {
+    const outcome = outcomeOf({
+      commandCount: 3,
+      exitCode: 0,
+      fingerprint: {
+        verify: "ℹ tests 1\nℹ pass 1\nℹ fail 0\n",
+      },
+      modelMs: 100,
+      sandboxMs: 100,
+    });
+
+    expect(outcome.status).toBe("passed");
+  });
+});

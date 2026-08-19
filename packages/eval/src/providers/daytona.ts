@@ -20,7 +20,10 @@ const AUTO_DELETE_FACTOR = 6;
  * change directory inside the command instead.
  */
 const cdInto = (workspace: string, command: string) =>
-  `cd ${workspace} 2>/dev/null || true; ${command}`;
+  /* The cd must fail loudly. Swallowing it with `|| true` runs the verifier in
+     the home directory instead, where a test runner finds no tests, exits
+     zero, and the trial is recorded as a pass having tested nothing. */
+  `cd ${workspace} && ${command}`;
 
 const unavailable = (reason: unknown) =>
   new SandboxUnavailable({

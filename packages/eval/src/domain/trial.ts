@@ -62,6 +62,22 @@ export const checkVoid = (
   return { fields, voided: fields.length > 0 };
 };
 
+/** A runner that found nothing to run exits zero and says so.
+ *
+ * Scoring that as a pass is the worst failure this system can have: a cell
+ * where the workspace was empty, or the files landed somewhere else, reports
+ * every trial as passing and reports the cell deterministic, because all the
+ * trials agree and none of them did anything. Maximum confidence, no evidence.
+ */
+const VACUOUS_PATTERNS: readonly RegExp[] = [
+  /^\s*(?:ℹ\s*)?tests\s+0\s*$/m,
+  /\b0\s+(?:tests?|specs?|examples?)\b/i,
+  /\bno tests? (?:found|ran|to run|were found)\b/i,
+];
+
+export const isVacuous = (output: string) =>
+  VACUOUS_PATTERNS.some((pattern) => pattern.test(output));
+
 export interface ScoreInput {
   readonly commandCount: number;
   readonly exitCode: number;
@@ -84,6 +100,24 @@ export const outcomeOf = (input: ScoreInput): TrialOutcome => {
       sandboxMs: input.sandboxMs,
       status: "void",
       voidFields: check.fields,
+    };
+  }
+
+  /* A zero exit from a runner that found no tests is not a pass. It is the
+     same absence of evidence a non-run is, so it voids rather than scores. */
+  const vacuous = Object.entries(input.fingerprint)
+    .filter(([, value]) => isVacuous(String(value)))
+    .map(([key]) => key);
+
+  if (vacuous.length > 0) {
+    return {
+      commandCount: input.commandCount,
+      exitCode: input.exitCode,
+      modelMs: input.modelMs,
+      passed: false,
+      sandboxMs: input.sandboxMs,
+      status: "void",
+      voidFields: vacuous,
     };
   }
 

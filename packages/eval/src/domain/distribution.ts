@@ -13,6 +13,11 @@ export interface Distribution {
   readonly voided: number;
 }
 
+/** How far apart two runs of the same cell may be and still count as
+ * agreeing. Deliberately small: the spread is the finding, and a cell that
+ * varies by more than a few commands is telling you something. */
+const COMMAND_AGREEMENT = 4;
+
 const median = (values: readonly number[]) => {
   if (values.length === 0) {
     return 0;
@@ -48,15 +53,25 @@ export const distributionOf = (
   /* A cell is deterministic when every scored trial agreed and they took
      roughly the same number of commands. Passing 7 of 10 in 9 to 41 commands
      is a different animal from passing 10 of 10 in 9 to 11, and reporting
-     only a rate would call them the same. */
+     only a rate would call them the same.
+
+     One trial can never show this. A single run trivially agrees with itself
+     and its spread is zero, so calling it deterministic would make the
+     strongest claim the system offers from the one sample size that cannot
+     support it. */
   const agreed = passed.length === scored.length || passed.length === 0;
-  const tight = commandMax <= commandMin * 1.5;
+
+  /* An absolute window rather than a ratio. A ratio is scale-dependent: at
+     100 commands it permits a 50-command swing, which is not agreement by any
+     reading, while at 2 commands it permits one. What matters is how far
+     apart the runs actually were. */
+  const tight = commandMax - commandMin <= COMMAND_AGREEMENT;
 
   return {
     commandMax,
     commandMedian: median(commands),
     commandMin,
-    deterministic: scored.length > 0 && agreed && tight,
+    deterministic: scored.length > 1 && agreed && tight,
     failed: scored.length - passed.length,
     passRate: scored.length === 0 ? 0 : passed.length / scored.length,
     passed: passed.length,

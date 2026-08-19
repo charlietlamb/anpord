@@ -102,6 +102,14 @@ export const axisVerdict = (
   const byValue = new Map<string, number[]>();
 
   for (const result of results) {
+    /* A cell where nothing scored has a pass rate of zero because there is
+       nothing to divide, not because the agent failed. Feeding that sentinel
+       in as a measured rate is how a provider outage becomes the headline
+       finding that the other provider is better. */
+    if (result.distribution.scored === 0) {
+      continue;
+    }
+
     const value = valueOn(result.cell, axis);
     const rates = byValue.get(value) ?? [];
     rates.push(result.distribution.passRate);
@@ -116,7 +124,11 @@ export const axisVerdict = (
 
   return {
     axis,
-    separated: spread >= SEPARATION_THRESHOLD,
+    /* Compared with a tolerance, because the threshold is a judgement rather
+       than a measurement and two twenty-point gaps should not land on
+       opposite sides of it through binary floating point. */
+    separated:
+      means.length >= 2 && spread - SEPARATION_THRESHOLD > -Number.EPSILON * 8,
     spread,
     values: [...byValue.keys()],
   };

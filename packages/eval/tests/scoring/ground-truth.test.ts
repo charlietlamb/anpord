@@ -100,3 +100,28 @@ describe("ScorerGroundTruthLive", () => {
     expect(outcome.passed).toBe(false);
   });
 });
+
+describe("isUnguardedPipeline and ordinary commands", () => {
+  /* Every one of these was refused by a bare substring test, which voided the
+     whole cell before the sandbox was touched and reported a pass rate of
+     zero with no diagnostic. */
+  it("accepts a command whose pipe is not a pipeline", () => {
+    for (const command of [
+      "node --test || exit 1",
+      "grep -E 'foo|bar' out.txt && node --test",
+      'echo "a|b" && node --test',
+      "awk '/a|b/' f && node --test",
+    ]) {
+      expect(isUnguardedPipeline(command)).toBe(false);
+    }
+  });
+
+  it("still catches a real pipeline", () => {
+    for (const command of [
+      "node --test | tail -1",
+      "node --test 2>&1 | head -5",
+    ]) {
+      expect(isUnguardedPipeline(command)).toBe(true);
+    }
+  });
+});

@@ -3,16 +3,54 @@ import { outcomeOf } from "../domain/trial";
 import type { ExecChunk, SandboxHandle } from "../ports/sandbox";
 import { type ScoreRequest, Scorer } from "../ports/scorer";
 
-const PIPE = /\|/;
+/** A single `|` that is not `||`, outside single or double quotes.
+ *
+ * A bare substring test refuses far too much: `node --test || exit 1` is a
+ * defensive verifier, and `grep -E 'a|b'` is an ordinary one. Both were
+ * rejected before, which voided every trial in the cell before the sandbox was
+ * even touched and reported a pass rate of zero with no diagnostic. */
+export const isUnguardedPipeline = (command: string) => {
+  let quote: string | null = null;
 
-/** A pipeline exits with its last command, so `bun test | tail` reports the
- * success of tail while the runner exits 1. A verifier written that way records
- * every failure as a pass, which is the defect this product exists to find,
- * so it is refused at the point of scoring rather than discovered in a result. */
-export const isUnguardedPipeline = (command: string) =>
-  PIPE.test(command) &&
-  !command.includes("PIPESTATUS") &&
-  !command.includes("pipefail");
+  for (let index = 0; index < command.length; index++) {
+    const character = command[index];
+
+    if (quote !== null) {
+      if (character === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (character === "'" || character === '"') {
+      quote = character;
+      continue;
+    }
+
+    if (character !== "|") {
+      continue;
+    }
+
+    /* `||` is a fallback, not a pipeline: its exit code is the last command
+       that actually ran, which is what we want to read. */
+    if (command[index + 1] === "|") {
+      index++;
+      continue;
+    }
+
+    if (command[index - 1] === "|") {
+      continue;
+    }
+
+    /* A pipeline exits with its last command, so `bun test | tail` reports the
+       success of tail while the runner exits 1. A verifier written that way
+       records every failure as a pass, which is the defect this product exists
+       to find, so it is refused rather than discovered in a result. */
+    return !(command.includes("PIPESTATUS") || command.includes("pipefail"));
+  }
+
+  return false;
+};
 
 const outputOf = (chunks: readonly ExecChunk[]) =>
   chunks
