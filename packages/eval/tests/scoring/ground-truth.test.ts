@@ -1,0 +1,102 @@
+import { describe, expect, it } from "bun:test";
+import { Effect, Stream } from "effect";
+import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
+import { Scorer } from "../../src/ports/scorer";
+import {
+  isUnguardedPipeline,
+  ScorerGroundTruthLive,
+} from "../../src/scoring/ground-truth";
+
+const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
+  exec: () => Stream.fromIterable(chunks),
+  id: "sbx-1",
+  provider: "daytona",
+  writeFile: () => Effect.void,
+});
+
+const score = (sandbox: SandboxHandle, verifyCommand: string) =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      const scorer = yield* Scorer;
+      return yield* scorer.score({
+        commandCount: 4,
+        modelMs: 1000,
+        sandbox,
+        verifyCommand,
+        workspace: "/tmp/w",
+      });
+    }).pipe(Effect.provide(ScorerGroundTruthLive))
+  );
+
+describe("isUnguardedPipeline", () => {
+  /* Measured on both providers: bun test | tail exits 0 while the runner exits 1. A
+     verifier written that way records every failure as a pass. */
+  it("catches a verifier that would report its own success", () => {
+    expect(isUnguardedPipeline("bun test | tail -1")).toBe(true);
+    expect(isUnguardedPipeline("bun test")).toBe(false);
+  });
+
+  it("accepts a pipeline that guards its exit code", () => {
+    expect(isUnguardedPipeline("set -o pipefail; bun test | tail -1")).toBe(
+      false
+    );
+  });
+});
+
+describe("ScorerGroundTruthLive", () => {
+  it("passes on a zero exit", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        { data: "1 pass", stream: "stdout" },
+        { exitCode: 0, stream: "exit" },
+      ]),
+      "bun test"
+    );
+
+    expect(outcome.status).toBe("passed");
+  });
+
+  it("fails on a non-zero exit", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        { data: "1 fail", stream: "stdout" },
+        { exitCode: 1, stream: "exit" },
+      ]),
+      "bun test"
+    );
+
+    expect(outcome.status).toBe("failed");
+  });
+
+  it("does not void a verifier that passed quietly", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        { data: "", stream: "stdout" },
+        { exitCode: 0, stream: "exit" },
+      ]),
+      "bun test"
+    );
+
+    expect(outcome.status).toBe("passed");
+  });
+
+  /* Nothing came back at all, so there is no evidence to score. */
+  it("voids a verifier that never ran", async () => {
+    const outcome = await score(sandboxYielding([]), "bun test");
+
+    expect(outcome.status).toBe("void");
+  });
+
+  it("refuses to score through an unguarded pipeline", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        { data: "1 pass", stream: "stdout" },
+        { exitCode: 0, stream: "exit" },
+      ]),
+      "bun test | tail -1"
+    );
+
+    expect(outcome.status).toBe("void");
+    expect(outcome.passed).toBe(false);
+  });
+});

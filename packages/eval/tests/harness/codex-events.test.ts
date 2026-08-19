@@ -7,11 +7,11 @@ import { decodeCodexLine } from "../../src/harness/codex-events";
    journal in production. */
 const THREAD = '{"type":"thread.started","thread_id":"01a01a91-dfd4-7950"}';
 const COMMAND =
-  '{"type":"item.completed","item":{"id":"item_6","type":"command_execution","command":"/bin/zsh -lc \'pytest -q\'","aggregated_output":"1 passed in 0.00s\\n","exit_code":0,"status":"completed"}}';
+  '{"type":"item.completed","item":{"id":"item_6","type":"command_execution","command":"/bin/zsh -lc \'bun test\'","aggregated_output":"1 pass\\n","exit_code":0,"status":"completed"}}';
 const FAILED =
-  '{"type":"item.completed","item":{"id":"item_1","type":"command_execution","command":"pytest","aggregated_output":"E   assert 5 == 6\\n","exit_code":1,"status":"failed"}}';
+  '{"type":"item.completed","item":{"id":"item_1","type":"command_execution","command":"bun test","aggregated_output":"expect(5).toBe(6)\\n","exit_code":1,"status":"failed"}}';
 const FILE =
-  '{"type":"item.completed","item":{"id":"item_5","type":"file_change","changes":[{"path":"/tmp/calc.py","kind":"update"}],"status":"completed"}}';
+  '{"type":"item.completed","item":{"id":"item_5","type":"file_change","changes":[{"path":"/tmp/total.ts","kind":"update"}],"status":"completed"}}';
 const TURN =
   '{"type":"turn.completed","usage":{"input_tokens":98371,"cached_input_tokens":87552,"output_tokens":757,"reasoning_output_tokens":175}}';
 
@@ -36,7 +36,7 @@ describe("decodeCodexLine", () => {
 
     expect(event).toMatchObject({
       _tag: "FileChange",
-      paths: ["/tmp/calc.py"],
+      paths: ["/tmp/total.ts"],
     });
   });
 

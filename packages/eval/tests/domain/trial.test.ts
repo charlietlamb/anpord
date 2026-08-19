@@ -10,7 +10,7 @@ const base = {
 
 describe("outcomeOf", () => {
   it("passes when the verifier exits zero", () => {
-    const outcome = outcomeOf({ ...base, fingerprint: { tests: "1 passed" } });
+    const outcome = outcomeOf({ ...base, fingerprint: { tests: "1 pass" } });
 
     expect(outcome.status).toBe("passed");
     expect(outcome.passed).toBe(true);
@@ -21,7 +21,7 @@ describe("outcomeOf", () => {
     const outcome = outcomeOf({
       ...base,
       exitCode: 1,
-      fingerprint: { tests: "1 failed" },
+      fingerprint: { tests: "1 fail" },
     });
 
     expect(outcome.status).toBe("failed");
@@ -58,7 +58,7 @@ describe("outcomeOf", () => {
 });
 
 describe("the void gate and quiet commands", () => {
-  /* A regression: E2B returns an empty stdout for a failing pytest, so a
+  /* A regression: E2B returns an empty stdout for a failing test run, so a
      fingerprint built from raw output matched the empty-string void pattern
      and threw away a legitimate failure. The gate must ask whether the command
      ran, not whether it printed. */

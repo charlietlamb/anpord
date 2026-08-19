@@ -23,23 +23,25 @@ const HAS_KEYS = Boolean(
   process.env.E2B_API_KEY && process.env.DAYTONA_API_KEY
 );
 
-const BROKEN = "def total(items):\n    return sum(items) - 1\n";
-const FIXED = "def total(items):\n    return sum(items)\n";
-const TEST =
-  "from calc import total\n\n\ndef test_total():\n    assert total([1, 2, 3]) == 6\n";
+import {
+  BROKEN_SOURCE,
+  FIXED_SOURCE,
+  TEST_SOURCE,
+  VERIFY_COMMAND,
+} from "../fixtures/broken-task";
 
 const TestLayer = TrialRunnerLive.pipe(Layer.provideMerge(EvalSandboxLive));
 
-const trial = (provider: ProviderName, calc: string) =>
+const trial = (provider: ProviderName, source: string) =>
   Effect.runPromise(
     Effect.gen(function* () {
       const runner = yield* TrialRunner;
       return yield* runner.run({
         autoStopMinutes: 10,
-        files: { "calc.py": calc, "test_calc.py": TEST },
+        files: { "total.mjs": source, "total.test.mjs": TEST_SOURCE },
         provider,
-        setupCommand: "python3 -m pip install --quiet pytest 2>&1 | tail -1",
-        verifyCommand: "python3 -m pytest -q",
+        setupCommand: null,
+        verifyCommand: VERIFY_COMMAND,
         workspace: "/tmp/anpord-task",
       });
     }).pipe(Effect.provide(TestLayer))
@@ -51,8 +53,8 @@ describe.if(HAS_KEYS)("a trial against a real provider", () => {
      a reported pass rate. */
   for (const provider of ["daytona", "e2b"] as const) {
     it(`${provider} fails the broken task and passes the fixed one`, async () => {
-      const broken = await trial(provider, BROKEN);
-      const fixed = await trial(provider, FIXED);
+      const broken = await trial(provider, BROKEN_SOURCE);
+      const fixed = await trial(provider, FIXED_SOURCE);
 
       expect(broken.outcome.status).toBe("failed");
       expect(broken.outcome.passed).toBe(false);

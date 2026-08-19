@@ -1,10 +1,14 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { Effect, Layer, Option } from "effect";
+import { Effect, Layer } from "effect";
 import { CodexRunnerLive } from "../../src/harness/codex";
 import { EvalSandboxLive } from "../../src/layer";
-import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
+import { AgentTrialLive } from "../../src/services/agent-trial";
+import {
+  AgentTrialSet,
+  AgentTrialSetLive,
+} from "../../src/services/agent-trial-set";
 import {
   AGENT_PROMPT,
   brokenFiles,
@@ -27,21 +31,22 @@ process.env.DAYTONA_API_KEY ??= read(`${SCRATCH}/daytona.key`);
 const CREDENTIALS = read(`${homedir()}/.codex/auth.json`);
 const READY = Boolean(process.env.DAYTONA_API_KEY && CREDENTIALS);
 
-const TestLayer = AgentTrialLive.pipe(
+const TestLayer = AgentTrialSetLive.pipe(
+  Layer.provide(AgentTrialLive),
   Layer.provide(CodexRunnerLive),
   Layer.provideMerge(EvalSandboxLive)
 );
 
-describe.if(READY)("an agent trial against a real harness and provider", () => {
-  /* The whole product in one test: an agent is given a broken repository, it
-     works inside a sandbox, and the verdict comes from running the verifier
-     ourselves rather than from what the agent said it achieved. */
-  it("lets Codex fix a broken task and scores it from ground truth", async () => {
+describe.if(READY)("a set of agent trials", () => {
+  /* The claim the product rests on: one agent run is not repeatable, so the
+     reportable unit is a rate over N with the spread beside it. */
+  it("reports a distribution over several agent runs", async () => {
     const result = await Effect.runPromise(
       Effect.gen(function* () {
-        const trial = yield* AgentTrial;
-        return yield* trial.run({
+        const set = yield* AgentTrialSet;
+        return yield* set.run({
           autoStopMinutes: 15,
+          concurrency: 3,
           credentials: CREDENTIALS ?? "",
           files: brokenFiles,
           harness: "codex",
@@ -51,24 +56,25 @@ describe.if(READY)("an agent trial against a real harness and provider", () => {
           prompt: AGENT_PROMPT,
           provider: "daytona",
           setupCommand: SETUP_COMMAND,
+          trials: 3,
           verifyCommand: VERIFY_COMMAND,
           workspace: "/tmp/anpord-task",
         });
       }).pipe(Effect.provide(TestLayer))
     );
 
-    expect(result.outcome.status).toBe("passed");
-    expect(result.outcome.passed).toBe(true);
-    expect(result.outcome.voidFields).toEqual([]);
+    expect(result.outcomes).toHaveLength(3);
+    expect(result.distribution.trials).toBe(3);
+    expect(result.distribution.voided).toBe(0);
+    expect(result.distribution.passRate).toBeGreaterThan(0);
 
-    /* The columns an eval platform reading a tool-call string cannot have. */
-    expect(result.commands).toBeGreaterThan(0);
-    expect(result.filesChanged.length).toBeGreaterThan(0);
-    expect(Option.isSome(result.usage)).toBe(true);
+    /* Every trial gets its own sandbox. State carried between them would
+         invalidate the comparison without anything reporting it. */
+    expect(new Set(result.sandboxIds).size).toBe(3);
 
-    /* Model time is separated from sandbox time, or a slow provider reads as
-         a slow model and the third axis becomes unreadable. */
-    expect(result.outcome.modelMs).toBeGreaterThan(0);
-    expect(result.outcome.sandboxMs).toBeGreaterThan(0);
-  }, 900_000);
+    expect(result.commandSpread).toHaveLength(3);
+    for (const commands of result.commandSpread) {
+      expect(commands).toBeGreaterThan(0);
+    }
+  }, 1_200_000);
 });

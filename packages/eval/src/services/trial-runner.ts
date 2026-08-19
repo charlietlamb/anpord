@@ -119,7 +119,7 @@ export const TrialRunnerLive = Layer.effect(
         }
 
         /* The verifier is run unpiped. A pipeline exits with its last command,
-           so `pytest | tail` reports the success of tail while pytest exits 1,
+           so `bun test | tail` reports the success of tail while the runner exits 1,
            and any platform that trusts that records failures as passes. */
         const verify = yield* runCommand(sandbox, request.verifyCommand);
         journal.push(verify);

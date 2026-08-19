@@ -78,7 +78,7 @@ describe.if(Boolean(URL))("trial repository against a real database", () => {
           organizationId,
           prompt: "the parser rejects valid input, fix it",
           setupCommand: null,
-          verifyCommand: "python3 -m pytest -q",
+          verifyCommand: "bun test",
           workspace: "/tmp/anpord-task",
         });
 
@@ -120,7 +120,7 @@ describe.if(Boolean(URL))("trial repository against a real database", () => {
           outcome: outcomeOf({
             commandCount: 5,
             exitCode: 0,
-            fingerprint: { tests: "1 passed" },
+            fingerprint: { tests: "1 pass" },
             modelMs: 0,
             sandboxMs: 4500,
           }),

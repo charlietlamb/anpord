@@ -34,8 +34,11 @@
     "./ports/harness": "./src/ports/harness.ts",
     "./ports/sandbox": "./src/ports/sandbox.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
+    "./repositories/event-repository": "./src/repositories/event-repository.ts",
     "./runtime": "./src/runtime.ts",
+    "./scoring/ground-truth": "./src/scoring/ground-truth.ts",
     "./services/agent-trial": "./src/services/agent-trial.ts",
+    "./services/agent-trial-set": "./src/services/agent-trial-set.ts",
     "./services/trial-runner": "./src/services/trial-runner.ts",
     "./services/trial-set": "./src/services/trial-set.ts",
     "./workflow/trial": "./src/workflow/trial.ts"

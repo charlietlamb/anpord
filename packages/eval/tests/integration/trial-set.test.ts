@@ -19,8 +19,11 @@ const keyed = (name: string) => {
 process.env.DAYTONA_API_KEY ??= keyed("daytona.key");
 const HAS_KEY = Boolean(process.env.DAYTONA_API_KEY);
 
-const TEST =
-  "from calc import total\n\n\ndef test_total():\n    assert total([1, 2, 3]) == 6\n";
+import {
+  FIXED_SOURCE,
+  TEST_SOURCE,
+  VERIFY_COMMAND,
+} from "../fixtures/broken-task";
 
 const TestLayer = TrialSetLive.pipe(
   Layer.provide(TrialRunnerLive),
@@ -38,14 +41,11 @@ describe.if(HAS_KEY)("a trial set against a real provider", () => {
         return yield* set.run({
           autoStopMinutes: 10,
           concurrency: 3,
-          files: {
-            "calc.py": "def total(items):\n    return sum(items)\n",
-            "test_calc.py": TEST,
-          },
+          files: { "total.mjs": FIXED_SOURCE, "total.test.mjs": TEST_SOURCE },
           provider: "daytona",
-          setupCommand: "python3 -m pip install --quiet pytest 2>&1 | tail -1",
+          setupCommand: null,
           trials: 3,
-          verifyCommand: "python3 -m pytest -q",
+          verifyCommand: VERIFY_COMMAND,
           workspace: "/tmp/anpord-task",
         });
       }).pipe(Effect.provide(TestLayer))
