@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Effect, Layer } from "effect";
 import type { ProviderName } from "../../src/domain/cell";
 import { EvalSandboxLive } from "../../src/layer";
+import { ScorerGroundTruthLive } from "../../src/scoring/ground-truth";
 import { TrialRunner, TrialRunnerLive } from "../../src/services/trial-runner";
 
 import {
@@ -14,7 +15,10 @@ import { hasDaytona, hasE2B } from "../fixtures/credentials";
 
 const HAS_KEYS = hasDaytona && hasE2B;
 
-const TestLayer = TrialRunnerLive.pipe(Layer.provideMerge(EvalSandboxLive));
+const TestLayer = TrialRunnerLive.pipe(
+  Layer.provide(ScorerGroundTruthLive),
+  Layer.provideMerge(EvalSandboxLive)
+);
 
 const trial = (provider: ProviderName, source: string) =>
   Effect.runPromise(

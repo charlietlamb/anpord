@@ -92,7 +92,7 @@ describe.if(READY)("a cell run recorded end to end", () => {
         const result = yield* cells.run({
           agent: {
             autoStopMinutes: 15,
-            credentials: codexCredentials ?? "",
+            credentials: codexCredentials ?? Redacted.make(""),
             harness: "codex",
             harnessVersion: "0.144.4",
             home: "/home/daytona",

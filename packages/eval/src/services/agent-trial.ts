@@ -5,6 +5,7 @@ import {
   Effect,
   Layer,
   type Option,
+  type Redacted,
   Stream,
 } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
@@ -24,7 +25,10 @@ import { prepareWorkspace } from "./workspace";
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;
-  readonly credentials: string;
+  /** Redacted, so an accidental log or span attribute renders as <redacted>
+   * rather than a live OAuth token. Unwrapped once, at the line that writes it
+   * into the sandbox. */
+  readonly credentials: Redacted.Redacted<string>;
   readonly files: Readonly<Record<string, string>>;
   readonly harness: HarnessName;
   readonly harnessVersion: string;

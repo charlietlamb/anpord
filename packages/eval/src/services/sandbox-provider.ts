@@ -40,7 +40,7 @@ export const SandboxProviderLive = Layer.effect(
         yield* limit.take(1);
         yield* Effect.addFinalizer(() => limit.release(1));
 
-        const adapter = adapters.resolve(request.provider);
+        const adapter = yield* adapters.resolve(request.provider);
 
         return yield* Effect.acquireRelease(adapter.open(request), (handle) =>
           Effect.orDie(adapter.destroy(handle))
@@ -54,7 +54,7 @@ export const SandboxProviderLive = Layer.effect(
 
     const attach = (provider: ProviderName, id: string) =>
       Effect.gen(function* () {
-        const adapter = adapters.resolve(provider);
+        const adapter = yield* adapters.resolve(provider);
         return yield* adapter.attach(id);
       }).pipe(
         Effect.withSpan("SandboxProvider.attach", {

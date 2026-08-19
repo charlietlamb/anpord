@@ -15,32 +15,33 @@ const scriptedAdapters = (live: Ref.Ref<Live>) =>
   Layer.succeed(
     SandboxAdapters,
     SandboxAdapters.of({
-      resolve: (provider) => ({
-        attach: (id) => Effect.succeed({ id } as SandboxHandle),
-        destroy: () =>
-          Ref.update(live, (state) => ({
-            ...state,
-            destroyed: state.destroyed + 1,
-            now: state.now - 1,
-          })),
-        open: () =>
-          Ref.updateAndGet(live, (state) => ({
-            ...state,
-            max: Math.max(state.max, state.now + 1),
-            now: state.now + 1,
-            opened: state.opened + 1,
-          })).pipe(
-            Effect.map(
-              (state): SandboxHandle => ({
-                exec: () => Stream.empty,
-                id: `sbx-${state.opened}`,
-                provider,
-                writeFile: () => Effect.void,
-              })
-            )
-          ),
-        provider,
-      }),
+      resolve: (provider) =>
+        Effect.succeed({
+          attach: (id) => Effect.succeed({ id } as SandboxHandle),
+          destroy: () =>
+            Ref.update(live, (state) => ({
+              ...state,
+              destroyed: state.destroyed + 1,
+              now: state.now - 1,
+            })),
+          open: () =>
+            Ref.updateAndGet(live, (state) => ({
+              ...state,
+              max: Math.max(state.max, state.now + 1),
+              now: state.now + 1,
+              opened: state.opened + 1,
+            })).pipe(
+              Effect.map(
+                (state): SandboxHandle => ({
+                  exec: () => Stream.empty,
+                  id: `sbx-${state.opened}`,
+                  provider,
+                  writeFile: () => Effect.void,
+                })
+              )
+            ),
+          provider,
+        }),
     })
   );
 

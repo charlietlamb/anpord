@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
+import { Redacted } from "effect";
 
 /**
  * Where the integration tests find their keys.
@@ -30,7 +31,9 @@ process.env.DAYTONA_API_KEY ??= readKey("daytona.key");
  * the CLI writes for itself rather than an API key. */
 export const codexCredentials = (() => {
   try {
-    return readFileSync(`${homedir()}/.codex/auth.json`, "utf8").trim();
+    return Redacted.make(
+      readFileSync(`${homedir()}/.codex/auth.json`, "utf8").trim()
+    );
   } catch {
     return;
   }

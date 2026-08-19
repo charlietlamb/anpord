@@ -3,6 +3,7 @@ import { NodeClusterSocket } from "@effect/platform-node";
 import { PgClient } from "@effect/sql-pg";
 import { Config, Layer, Redacted } from "effect";
 import { EvalSandboxLive } from "./layer";
+import { ScorerGroundTruthLive } from "./scoring/ground-truth";
 import { TrialRunnerLive } from "./services/trial-runner";
 import { TrialWorkflowLive } from "./workflow/trial";
 
@@ -36,7 +37,7 @@ export const WorkflowEngineLive = ClusterWorkflowEngine.layer.pipe(
 /** Everything a trial needs to execute durably: the workflow definition, the
  * runner it calls, and the engine that makes an activity survive a restart. */
 export const EvalWorkflowLive = TrialWorkflowLive.pipe(
-  Layer.provide(TrialRunnerLive),
+  Layer.provide(TrialRunnerLive.pipe(Layer.provide(ScorerGroundTruthLive))),
   Layer.provide(EvalSandboxLive),
   Layer.provideMerge(WorkflowEngineLive)
 );

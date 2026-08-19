@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Redacted } from "effect";
 import { CodexRunnerLive } from "../../src/harness/codex";
 import { EvalSandboxLive } from "../../src/layer";
 import { ScorerGroundTruthLive } from "../../src/scoring/ground-truth";
@@ -35,7 +35,7 @@ describe.if(READY)("a set of agent trials", () => {
         return yield* runAgentTrialSet(trial, {
           autoStopMinutes: 15,
           concurrency: 3,
-          credentials: codexCredentials ?? "",
+          credentials: codexCredentials ?? Redacted.make(""),
           files: brokenFiles,
           harness: "codex",
           harnessVersion: "0.144.4",

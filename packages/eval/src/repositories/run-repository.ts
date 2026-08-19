@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { IdGenerator } from "@anpord/ids/id";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { CellKey, HarnessName, ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
@@ -49,14 +49,23 @@ export const RunRepositoryLive = Layer.effect(
     const ids = yield* IdGenerator;
 
     return RunRepository.of({
+      /* Scoped in SQL, not in memory. A run id is unique per organization
+         rather than globally, so a bare id predicate reads every tenant's
+         matching row into this process and leaves correctness resting on a
+         filter that a later refactor can drop while still compiling. It also
+         cannot use the composite index, so it scans. */
       findById: (organizationId, id) =>
         tryStore("run.findById", () =>
-          db.select().from(evalRun).where(eq(evalRun.id, id))
-        ).pipe(
-          Effect.map((rows) =>
-            head(rows.filter((row) => row.organizationId === organizationId))
-          )
-        ),
+          db
+            .select()
+            .from(evalRun)
+            .where(
+              and(
+                eq(evalRun.organizationId, organizationId),
+                eq(evalRun.id, id)
+              )
+            )
+        ).pipe(Effect.map(head)),
 
       finish: (internalId, finishedAt) =>
         tryStore("run.finish", () =>
@@ -68,7 +77,10 @@ export const RunRepositoryLive = Layer.effect(
 
       insert: (input) =>
         Effect.gen(function* () {
-          const internalId = yield* ids.generate("evalRun");
+          /* Two prefixes, not two draws from one. The public id is what a
+             caller quotes back and the internal id is what rows reference, so
+             a call site that swaps them should not typecheck as plausible. */
+          const internalId = yield* ids.generate("evalRunInternal");
           const id = yield* ids.generate("evalRun");
 
           const rows = yield* tryStore("run.insert", () =>

@@ -78,5 +78,9 @@ export class SandboxAdapters extends Context.Tag(
   "@anpord/eval/SandboxAdapters"
 )<
   SandboxAdapters,
-  { readonly resolve: (provider: ProviderName) => SandboxAdapterShape }
+  {
+    readonly resolve: (
+      provider: ProviderName
+    ) => Effect.Effect<SandboxAdapterShape>;
+  }
 >() {}

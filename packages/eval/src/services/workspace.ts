@@ -1,10 +1,10 @@
-import { Effect, Stream } from "effect";
+import { Effect, type Redacted, Stream } from "effect";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import { authenticateCodex, installCodex } from "../harness/codex-install";
 import type { SandboxHandle } from "../ports/sandbox";
 
 export interface PrepareWorkspace {
-  readonly credentials: string;
+  readonly credentials: Redacted.Redacted<string>;
   readonly files: Readonly<Record<string, string>>;
   readonly harnessVersion: string;
   readonly home: string;

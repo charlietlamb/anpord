@@ -1,4 +1,4 @@
-import { Effect, Stream } from "effect";
+import { Effect, Redacted, Stream } from "effect";
 import { HarnessUnavailable } from "../domain/errors";
 import type { SandboxHandle } from "../ports/sandbox";
 
@@ -47,10 +47,10 @@ export const installCodex = (sandbox: SandboxHandle, version: string) =>
  */
 export const authenticateCodex = (
   sandbox: SandboxHandle,
-  auth: string,
+  auth: Redacted.Redacted<string>,
   home: string
 ) =>
-  sandbox.writeFile(`${home}/.codex/auth.json`, auth).pipe(
+  sandbox.writeFile(`${home}/.codex/auth.json`, Redacted.value(auth)).pipe(
     Effect.mapError(
       (cause) =>
         new HarnessUnavailable({ harness: "codex", reason: cause.reason })

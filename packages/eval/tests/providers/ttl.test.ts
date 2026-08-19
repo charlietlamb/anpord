@@ -23,20 +23,21 @@ const recordingAdapters = (seen: Ref.Ref<OpenSandbox[]>) =>
   Layer.succeed(
     SandboxAdapters,
     SandboxAdapters.of({
-      resolve: (provider) => ({
-        attach: () => Effect.succeed({ id: "sbx" } as SandboxHandle),
-        destroy: () => Effect.void,
-        open: (request) =>
-          Ref.update(seen, (all) => [...all, request]).pipe(
-            Effect.as({
-              exec: () => Stream.empty,
-              id: "sbx-1",
-              provider,
-              writeFile: () => Effect.void,
-            } as SandboxHandle)
-          ),
-        provider,
-      }),
+      resolve: (provider) =>
+        Effect.succeed({
+          attach: () => Effect.succeed({ id: "sbx" } as SandboxHandle),
+          destroy: () => Effect.void,
+          open: (request) =>
+            Ref.update(seen, (all) => [...all, request]).pipe(
+              Effect.as({
+                exec: () => Stream.empty,
+                id: "sbx-1",
+                provider,
+                writeFile: () => Effect.void,
+              } as SandboxHandle)
+            ),
+          provider,
+        }),
     })
   );
 

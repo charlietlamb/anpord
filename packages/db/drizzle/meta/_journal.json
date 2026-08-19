@@ -57,6 +57,13 @@
       "when": 1786986400001,
       "tag": "0007_default_channel",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787161290529,
+      "tag": "0008_eval_tables",
+      "breakpoints": true
     }
   ]
 }

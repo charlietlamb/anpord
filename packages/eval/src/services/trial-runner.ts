@@ -1,12 +1,13 @@
 import { Chunk, Clock, Context, Effect, Layer, Stream } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { SandboxUnavailable } from "../domain/errors";
-import { outcomeOf, type TrialOutcome } from "../domain/trial";
+import type { TrialOutcome } from "../domain/trial";
 import {
   type ExecChunk,
   type SandboxHandle,
   SandboxProvider,
 } from "../ports/sandbox";
+import { Scorer } from "../ports/scorer";
 
 interface RanCommand {
   readonly command: string;
@@ -97,6 +98,7 @@ export const TrialRunnerLive = Layer.effect(
   TrialRunner,
   Effect.gen(function* () {
     const provider = yield* SandboxProvider;
+    const scorer = yield* Scorer;
 
     const run = (request: TrialRequest) =>
       Effect.gen(function* () {
@@ -118,25 +120,24 @@ export const TrialRunnerLive = Layer.effect(
           yield* sandbox.writeFile(`${request.workspace}/${path}`, content);
         }
 
-        /* The verifier is run unpiped. A pipeline exits with its last command,
-           so `bun test | tail` reports the success of tail while the runner exits 1,
-           and any platform that trusts that records failures as passes. */
-        const verify = yield* runCommand(sandbox, request.verifyCommand);
-        journal.push(verify);
+        /* Scored through the port, exactly as the agent path is. Calling
+           outcomeOf here instead would score by a weaker rule than the rest of
+           the system: the scorer is what refuses to read a verdict out of an
+           unguarded pipeline, and this is the durable path, so a divergence
+           here is a false pass rate in the place that persists. */
+        const scored = yield* scorer.score({
+          commandCount: journal.length,
+          modelMs: 0,
+          sandbox,
+          verifyCommand: request.verifyCommand,
+          workspace: request.workspace,
+        });
 
         const finishedAt = yield* Clock.currentTimeMillis;
 
         return {
           journal,
-          outcome: outcomeOf({
-            commandCount: journal.length,
-            exitCode: verify.exitCode,
-            /* The gate asks whether the command ran, which is not the same
-               question as whether it printed anything. */
-            fingerprint: { verify: verify.evidence },
-            modelMs: 0,
-            sandboxMs: finishedAt - startedAt,
-          }),
+          outcome: { ...scored, sandboxMs: finishedAt - startedAt },
           sandboxId: sandbox.id,
         } satisfies TrialResult;
       }).pipe(
