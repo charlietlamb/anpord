@@ -11,6 +11,9 @@
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
     "@daytonaio/sdk": "^0.205.0",
+    "@effect/cluster": "catalog:",
+    "@effect/platform-node": "catalog:",
+    "@effect/sql-pg": "catalog:",
     "@effect/workflow": "catalog:",
     "drizzle-orm": "catalog:",
     "e2b": "^2.9.0",
@@ -24,11 +27,15 @@
     "./domain/cell": "./src/domain/cell.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/errors": "./src/domain/errors.ts",
+    "./domain/matrix": "./src/domain/matrix.ts",
     "./domain/trial": "./src/domain/trial.ts",
     "./layer": "./src/layer.ts",
     "./ports/harness": "./src/ports/harness.ts",
     "./ports/sandbox": "./src/ports/sandbox.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
+    "./runtime": "./src/runtime.ts",
+    "./services/trial-runner": "./src/services/trial-runner.ts",
+    "./services/trial-set": "./src/services/trial-set.ts",
     "./workflow/trial": "./src/workflow/trial.ts"
   }
 }
