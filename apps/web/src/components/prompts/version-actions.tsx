@@ -3,9 +3,9 @@ import { Button } from "@anpord/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
@@ -24,8 +24,11 @@ interface VersionActionsProps {
 }
 
 /**
- * What can be done to one version, from the row that names it. Publishing is a
- * channel chosen inside the act rather than a separate list to visit first.
+ * What can be done to one version, from the row that names it.
+ *
+ * The channels sit in the menu under a heading rather than behind a submenu:
+ * there are only ever a handful, and a submenu asks for a second aim of the
+ * pointer to reach what the first one already had room to show.
  */
 export function VersionActions({
   channels,
@@ -53,31 +56,26 @@ export function VersionActions({
         <DotsThreeIcon weight="bold" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Promote to</DropdownMenuSubTrigger>
-          {/* Opens to the left because the rail it lives in is already at the
-              right edge of the screen: asked to open right, it finds no room
-              and flips back over the row that opened it. */}
-          <DropdownMenuContent align="start" side="left" sideOffset={4}>
-            {channels.map((channel) => (
-              <DropdownMenuItem
-                key={channel.name}
-                onClick={() => onPromote(channel.name)}
-              >
-                <ChannelDot color={channelColor(channel.name)} />
-                <span className="flex-1 truncate">{channel.name}</span>
-                {serves.has(channel.name) ? (
-                  <CheckIcon className="size-3.5 shrink-0" weight="bold" />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenuSub>
-
+      <DropdownMenuContent align="end" className="min-w-44">
         <DropdownMenuItem onClick={onEditFrom}>
           Edit from v{version}
         </DropdownMenuItem>
+
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Promote to</DropdownMenuLabel>
+          {channels.map((channel) => (
+            <DropdownMenuItem
+              key={channel.name}
+              onClick={() => onPromote(channel.name)}
+            >
+              <ChannelDot color={channelColor(channel.name)} />
+              <span className="flex-1 truncate">{channel.name}</span>
+              {serves.has(channel.name) ? (
+                <CheckIcon className="size-3.5 shrink-0" weight="bold" />
+              ) : null}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

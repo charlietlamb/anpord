@@ -163,7 +163,7 @@
 .dark {
   --background: oklch(0.152 0.008 248);
   --foreground: oklch(0.97 0 0);
-  --card: oklch(0.185 0.01 248);
+  --card: oklch(0.185 0.008 248);
   --card-foreground: oklch(0.97 0 0);
   --sidebar: oklch(0.128 0.008 248);
   --sidebar-foreground: oklch(0.86 0.008 248);
@@ -173,8 +173,10 @@
   --sidebar-ring: oklch(0.779 0.117 213.7);
   /* One step above the page, not five. A menu has to read as lifted, but at
      the old value it was the lightest thing on screen and matched --muted
-     exactly, so its own hover state had nothing to move to. */
-  --popover: oklch(0.208 0.011 248);
+     exactly, so its own hover state had nothing to move to.
+     Chroma falls as the surfaces rise: a blue cast the page carries as depth
+     reads as a wash once it is lit, so the lifted surfaces trend to neutral. */
+  --popover: oklch(0.207 0.006 248);
   --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.62 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
@@ -182,11 +184,11 @@
   /* The surfaces climb in even steps from the page: background, muted and
      accent, then popover above all three. A hover that outweighs the menu it
      sits in reads as the menu flashing rather than the row lighting up. */
-  --secondary: oklch(0.223 0.011 248);
+  --secondary: oklch(0.222 0.005 248);
   --secondary-foreground: oklch(0.955 0 0);
-  --muted: oklch(0.223 0.011 248);
-  --muted-foreground: oklch(0.72 0.015 248);
-  --accent: oklch(0.262 0.012 248);
+  --muted: oklch(0.222 0.005 248);
+  --muted-foreground: oklch(0.72 0.012 248);
+  --accent: oklch(0.262 0.004 248);
   --accent-foreground: oklch(0.955 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 17%);
