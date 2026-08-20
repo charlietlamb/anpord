@@ -13,7 +13,9 @@ interface ActionClusterProps {
  */
 export function ActionCluster({ children, className }: ActionClusterProps) {
   return (
-    <div className={cn("flex shrink-0 items-center gap-1.5", className)}>
+    <div
+      className={cn("flex min-w-0 items-center justify-end gap-1.5", className)}
+    >
       {children}
     </div>
   );

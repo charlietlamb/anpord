@@ -16,7 +16,7 @@ interface CopyableIdProps {
  * there is a reason for it to be a control.
  */
 export function CopyableId({ className, value }: CopyableIdProps) {
-  const { copied, copy } = useCopy(2000);
+  const { copied, copy } = useCopy(1000);
 
   return (
     <Button

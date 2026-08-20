@@ -30,7 +30,7 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
         </ComposerSurface>
       </main>
 
-      <PromptRailSkeleton />
+      <PromptRailSkeleton promptId={promptId} />
     </PromptEditorLayout>
   );
 }

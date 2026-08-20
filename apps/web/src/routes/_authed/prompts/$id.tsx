@@ -265,6 +265,7 @@ function PromptDetailPage() {
               setSelection({ kind: "history", version: viewed.version });
             }}
             onSave={onSave}
+            promptId={latest.id}
             saving={addVersion.isPending || correctVersion.isPending}
           />
         }

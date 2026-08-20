@@ -105,6 +105,7 @@ function EditorPreview() {
               dirty={content !== BODY}
               onCancelCorrection={() => undefined}
               onSave={() => undefined}
+              promptId="support-triage"
               saving={false}
             />
           }

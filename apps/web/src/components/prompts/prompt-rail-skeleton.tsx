@@ -22,7 +22,12 @@ const DETAIL_ROWS = [
  * The rail's labels and spacing are known before the fetch, so only the values
  * inside them are placeheld and the sections keep their final geometry.
  */
-export function PromptRailSkeleton() {
+interface PromptRailSkeletonProps {
+  /** Known from the address, so the copy controls work before the fetch. */
+  readonly promptId: string;
+}
+
+export function PromptRailSkeleton({ promptId }: PromptRailSkeletonProps) {
   return (
     <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:-mx-2 lg:h-svh lg:overflow-y-auto lg:overscroll-contain lg:px-2 lg:pt-5 lg:pb-8">
       <div className="flex justify-end">
@@ -31,6 +36,7 @@ export function PromptRailSkeleton() {
           dirty={false}
           onCancelCorrection={NOTHING_YET}
           onSave={NOTHING_YET}
+          promptId={promptId}
           saving={false}
         />
       </div>

@@ -18,7 +18,9 @@ export function PromptEditorLayout({ children }: PromptEditorLayoutProps) {
     <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto">
       {/* The columns carry their own vertical padding: a sticky rail measured
           against a padded row would stop short of the screen's edge. */}
-      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 items-start gap-8 px-5 lg:grid-cols-[minmax(0,1fr)_15rem] xl:gap-10 xl:px-6">
+      {/* The rail holds a row of controls and a list of messages, so it is
+          sized to the wider of the two rather than to the labels alone. */}
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-start gap-8 px-5 lg:grid-cols-[minmax(0,1fr)_18rem] xl:gap-10 xl:px-6">
         {children}
       </div>
     </div>
