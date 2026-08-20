@@ -63,8 +63,11 @@ export function VersionActions({
 
         <DropdownMenuGroup>
           <DropdownMenuLabel>Promote to</DropdownMenuLabel>
+          {/* Stays open: pointing several channels at one version is one
+              decision made in a few clicks, not a few trips to the menu. */}
           {channels.map((channel) => (
             <DropdownMenuItem
+              closeOnClick={false}
               key={channel.name}
               onClick={() => onPromote(channel.name)}
             >
