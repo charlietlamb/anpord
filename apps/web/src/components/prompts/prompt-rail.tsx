@@ -44,8 +44,11 @@ export function PromptRail({
 }: PromptRailProps) {
   const oldest = versions.at(-1) ?? viewed;
 
+  /* Held in view while the prompt scrolls past it. Capped to the screen so a
+     rail longer than the viewport can still reach its end, and its own
+     scrollbar hidden so the page keeps the only one on screen. */
   return (
-    <aside className="order-2 flex min-h-0 flex-col gap-6 overflow-y-auto pb-24">
+    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100svh-5rem)] lg:overflow-y-auto lg:pb-4">
       <RailSection
         action={
           <span className="text-muted-foreground text-xs tabular-nums">

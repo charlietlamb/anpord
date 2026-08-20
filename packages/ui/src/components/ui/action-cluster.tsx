@@ -18,28 +18,3 @@ export function ActionCluster({ children, className }: ActionClusterProps) {
     </div>
   );
 }
-
-interface ActionGroupProps {
-  readonly children: ReactNode;
-  readonly className?: string;
-}
-
-/**
- * Actions that belong together, joined into one pill so the group reads as a
- * single control with parts rather than as neighbours that happen to touch.
- */
-export function ActionGroup({ children, className }: ActionGroupProps) {
-  return (
-    <div
-      className={cn(
-        "flex items-center rounded-full border border-border-faint",
-        "[&>*]:rounded-none [&>*]:border-0",
-        "[&>*:first-child]:rounded-l-full [&>*:last-child]:rounded-r-full",
-        "[&>*:not(:first-child)]:border-border-faint [&>*:not(:first-child)]:border-l",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}

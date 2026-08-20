@@ -1,8 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
-import {
-  ActionCluster,
-  ActionGroup,
-} from "@anpord/ui/components/ui/action-cluster";
+import { ActionCluster } from "@anpord/ui/components/ui/action-cluster";
 import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
 import {
   ArrowUpIcon,
@@ -42,34 +39,32 @@ export function PromptEditorActions({
 
   return (
     <ActionCluster>
-      <ActionGroup>
-        <ActionTooltip label={editLabel}>
-          <Button
-            aria-label={editLabel}
-            onClick={correcting ? onCancelCorrection : onEditDetails}
-            size="icon-round"
-            variant="subtle"
-          >
-            {correcting ? <XIcon /> : <PencilSimpleIcon />}
-          </Button>
-        </ActionTooltip>
+      <ActionTooltip label={editLabel}>
+        <Button
+          aria-label={editLabel}
+          onClick={correcting ? onCancelCorrection : onEditDetails}
+          size="icon-round"
+          variant="subtle"
+        >
+          {correcting ? <XIcon /> : <PencilSimpleIcon />}
+        </Button>
+      </ActionTooltip>
 
-        <ActionTooltip label={saveLabel} metaShortcut="enter">
-          <Button
-            aria-label={saveLabel}
-            disabled={!dirty || saving}
-            onClick={onSave}
-            size="icon-round"
-            variant="subtle"
-          >
-            {saving ? (
-              <SpinnerGapIcon className="animate-spin" />
-            ) : (
-              <ArrowUpIcon weight="bold" />
-            )}
-          </Button>
-        </ActionTooltip>
-      </ActionGroup>
+      <ActionTooltip label={saveLabel} metaShortcut="enter">
+        <Button
+          aria-label={saveLabel}
+          disabled={!dirty || saving}
+          onClick={onSave}
+          size="icon-round"
+          variant="subtle"
+        >
+          {saving ? (
+            <SpinnerGapIcon className="animate-spin" />
+          ) : (
+            <ArrowUpIcon weight="bold" />
+          )}
+        </Button>
+      </ActionTooltip>
     </ActionCluster>
   );
 }

@@ -33,7 +33,7 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
         />
       }
     >
-      <main className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto pb-24">
+      <main className="relative flex min-w-0 flex-col">
         <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
           <Skeleton className="h-7 w-44" />
           <CopyableId className="shrink-0" value={promptId} />

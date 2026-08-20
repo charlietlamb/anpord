@@ -22,7 +22,7 @@ interface PromptRailSkeletonProps {
  */
 export function PromptRailSkeleton({ promptId }: PromptRailSkeletonProps) {
   return (
-    <aside className="order-2 flex min-h-0 flex-col gap-6 overflow-y-auto pb-24">
+    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100svh-5rem)] lg:overflow-y-auto lg:pb-4">
       <RailSection action={<Skeleton className="h-3.5 w-4" />} title="Versions">
         <VersionListSkeleton />
       </RailSection>
