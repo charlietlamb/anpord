@@ -42,12 +42,12 @@ const MASK_SUM = MASK_WAVES.reduce((total, wave) => total + wave.amplitude, 0);
 /** Raising the field to a power isolates its peaks: the mid-range collapses
  * toward nothing, so pockets stay separate instead of merging into one mass
  * whenever the waves happen to align. */
-const MASK_FALLOFF = 2.5;
+const MASK_FALLOFF = 2;
 
 /** Above this the pocket is solid, below it nothing draws. The gap between the
  * two is the pocket's edge, which frays rather than cutting. */
-const MASK_FLOOR = 0.24;
-const MASK_CEILING = 0.6;
+const MASK_FLOOR = 0.16;
+const MASK_CEILING = 0.55;
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 

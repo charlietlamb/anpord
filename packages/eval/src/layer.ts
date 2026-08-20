@@ -10,6 +10,7 @@ import { TrialRecorderLive } from "./repositories/trial-record";
 import { TrialRepositoryLive } from "./repositories/trial-repository";
 import { ScorerGroundTruthLive } from "./scoring/ground-truth";
 import { AgentTrialLive } from "./services/agent-trial";
+import { BaselinesLive } from "./services/baselines";
 import { CellRunLive } from "./services/cell-run";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 
@@ -36,6 +37,12 @@ const AgentLive = AgentTrialLive.pipe(
  * caller. Those two are what a composition root chooses: one because a test
  * points at a different server, the other because a trial needs credentials
  * the domain has no business holding. */
+/** Baselines read through RunQuery, so they compose after the repositories
+ * rather than beside them. */
+export const EvalBaselinesLive = BaselinesLive.pipe(
+  Layer.provide(EvalRepositoriesLive)
+);
+
 export const EvalLayer = CellRunLive.pipe(
   Layer.provide(AgentLive),
   /* provideMerge rather than provide: the repositories are part of what this

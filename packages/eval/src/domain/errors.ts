@@ -55,4 +55,16 @@ export class RunNotFound extends Data.TaggedError("RunNotFound")<{
   readonly id: string;
 }> {}
 
-export type EvalError = EvalStoreError | RunNotFound | TaskNotFound;
+/** A cell that cannot serve as a reference. Refusing at promotion is the last
+ * cheap moment: a promoted void is read as a measured zero by every later
+ * comparison and reports a collapse that never happened. */
+export class VoidBaseline extends Data.TaggedError("VoidBaseline")<{
+  readonly cellInternalId: string;
+  readonly reason: string;
+}> {}
+
+export type EvalError =
+  | EvalStoreError
+  | RunNotFound
+  | TaskNotFound
+  | VoidBaseline;

@@ -12,6 +12,7 @@ import { organization } from "./schema/auth/organizations";
 import { session } from "./schema/auth/sessions";
 import { user } from "./schema/auth/users";
 import { verification } from "./schema/auth/verifications";
+import { evalBaseline } from "./schema/evals/eval-baselines";
 import { evalCell } from "./schema/evals/eval-cells";
 import { evalEvent } from "./schema/evals/eval-events";
 import { evalRun } from "./schema/evals/eval-runs";
@@ -35,6 +36,7 @@ export const schema = {
   oauthApplication,
   oauthConsent,
   organization,
+  evalBaseline,
   evalCell,
   evalEvent,
   evalRun,

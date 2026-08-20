@@ -64,6 +64,13 @@
       "when": 1787161290529,
       "tag": "0008_eval_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787227123873,
+      "tag": "0009_perfect_firebrand",
+      "breakpoints": true
     }
   ]
 }

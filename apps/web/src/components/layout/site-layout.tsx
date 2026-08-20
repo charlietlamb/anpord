@@ -15,7 +15,7 @@ interface SiteLayoutProps {
 export function SiteLayout({ children, center }: SiteLayoutProps) {
   return (
     <main className="relative isolate bg-background text-foreground">
-      <Dither className="fixed inset-0 -z-10 h-svh w-full text-foreground/[0.16] dark:text-foreground/[0.10]" />
+      <Dither className="fixed inset-0 -z-10 h-svh w-full text-foreground/[0.16] dark:text-foreground/[0.14]" />
       <div className="mx-auto flex min-h-svh w-full max-w-3xl flex-col px-6">
         <SiteHeader />
         <div

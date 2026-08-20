@@ -1,5 +1,6 @@
 export const ID_PREFIXES = {
   channel: "chl",
+  evalBaseline: "bas",
   evalCell: "cel",
   evalEvent: "evt",
   evalRun: "run",

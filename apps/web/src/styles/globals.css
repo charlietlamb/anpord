@@ -500,12 +500,41 @@
 
 /* The chrome recedes into near-black and the app lifts off it, so the surface
    you work on is the lit thing on screen rather than one shade among several. */
+/**
+ * The work surface is black and the chrome around it is lit, so the page a
+ * reader looks at longest carries the least light and the shell frames it.
+ *
+ * Chroma stays under 0.01 on the surfaces: a tinted grey reads as muddy, and
+ * the eye only finds a colour cast striking when the thing beside it is
+ * neutral. The cyan is spent on the accent, where it is the only colour on
+ * screen and carries the whole identity.
+ */
 .dark[data-surfaces="inverted"] {
-  --sidebar: oklch(0.095 0.007 248);
-  --background: oklch(0.125 0.008 248);
-  --card: oklch(0.235 0.012 248);
-  --sidebar-accent: oklch(0.3 0.014 248);
-  --popover: oklch(0.36 0.014 248);
+  --sidebar: oklch(0.135 0.005 215);
+  --background: oklch(0.115 0.004 215);
+  --card: oklch(0 0 0);
+  --sidebar-accent: oklch(0.115 0.004 215);
+  --popover: oklch(0.185 0.007 215);
+  --muted: oklch(0.13 0.005 215);
+  --secondary: oklch(0.13 0.005 215);
+  --accent: oklch(0.155 0.006 215);
+  --muted-foreground: oklch(0.72 0.012 215);
+  --sidebar-foreground: oklch(0.86 0.008 215);
+
+  /* A card sits on black, so its edge is what separates it rather than a step
+     in lightness. */
+  --border: oklch(1 0 0 / 16%);
+  --border-faint: oklch(1 0 0 / 10%);
+  --border-loud: oklch(1 0 0 / 24%);
+  --border-surface: oklch(1 0 0 / 18%);
+  --sidebar-border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 20%);
+
+  --primary: oklch(0.72 0.14 200);
+  --primary-foreground: oklch(0.14 0.02 215);
+  --primary-border: color-mix(in oklab, var(--primary), black 26%);
+  --ring: oklch(0.72 0.14 200);
+  --sidebar-ring: oklch(0.72 0.14 200);
 }
 
 /* The order the app already uses, with each step widened until it is a step
