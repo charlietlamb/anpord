@@ -1,5 +1,4 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
-import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { toast } from "sonner";
@@ -37,35 +36,31 @@ export function PromptEditorTitle({
     toInput: (value: string) => ({ name: value }),
   });
 
+  /* The identifier is stated once, at the head of the rail, rather than twice
+     on the same screen. */
   return (
-    <div className="mb-5 flex flex-col gap-1">
-      <div className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
-        <InlineEdit
-          ariaLabel="Prompt name"
-          className="flex-1 font-heading text-2xl tracking-tight"
-          onBlur={title.flush}
-          onCancel={title.reset}
-          onChange={(value) => title.onChange(value)}
-          placeholder="Untitled"
-          value={title.value}
-        />
+    <div className="mb-5 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
+      <InlineEdit
+        ariaLabel="Prompt name"
+        className="flex-1 font-heading text-2xl tracking-tight"
+        onBlur={title.flush}
+        onCancel={title.reset}
+        onChange={(value) => title.onChange(value)}
+        placeholder="Untitled"
+        value={title.value}
+      />
 
-        {correctingVersion === null ? null : (
-          <Badge size="sm" variant="secondary">
-            Overwriting v{correctingVersion}
-          </Badge>
-        )}
-        {viewingVersion === null || correctingVersion !== null ? null : (
-          <Badge size="sm" variant="secondary">
-            Viewing v{viewingVersion}
-          </Badge>
-        )}
-        {dirty ? (
-          <StatusBadge tone="pending">Unsaved changes</StatusBadge>
-        ) : null}
-      </div>
-
-      <CopyableId className="self-start" value={promptId} />
+      {correctingVersion === null ? null : (
+        <Badge size="sm" variant="secondary">
+          Overwriting v{correctingVersion}
+        </Badge>
+      )}
+      {viewingVersion === null || correctingVersion !== null ? null : (
+        <Badge size="sm" variant="secondary">
+          Viewing v{viewingVersion}
+        </Badge>
+      )}
+      {dirty ? <StatusBadge tone="pending">Unsaved changes</StatusBadge> : null}
     </div>
   );
 }

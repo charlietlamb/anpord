@@ -1,6 +1,12 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { initials } from "@anpord/ui/lib/initials";
+import {
+  ClockCounterClockwiseIcon,
+  FloppyDiskIcon,
+  HashIcon,
+  UserIcon,
+} from "@phosphor-icons/react";
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { RailSection } from "@/components/rail/rail-section";
@@ -16,11 +22,12 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
   const savedLabel = useRelativeTime(viewed.createdAt);
 
   return (
-    <RailSection className="grid gap-2.5" title="Details">
-      <DetailRow label="Identifier">
+    <RailSection className="flex flex-col" title="Details">
+      <DetailRow icon={HashIcon} label="Identifier">
         <CopyableId value={viewed.id} />
       </DetailRow>
-      <DetailRow label="Created">
+
+      <DetailRow icon={ClockCounterClockwiseIcon} label="Created">
         <time
           className="tabular-nums"
           dateTime={new Date(created).toISOString()}
@@ -28,7 +35,8 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
           {createdLabel}
         </time>
       </DetailRow>
-      <DetailRow label="Last saved">
+
+      <DetailRow icon={FloppyDiskIcon} label="Last saved">
         <time
           className="tabular-nums"
           dateTime={new Date(viewed.createdAt).toISOString()}
@@ -36,9 +44,10 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
           {savedLabel}
         </time>
       </DetailRow>
+
       {viewed.author ? (
-        <DetailRow label="Author">
-          <span className="flex items-center justify-end gap-1.5">
+        <DetailRow icon={UserIcon} label="Author">
+          <span className="flex items-center gap-1.5">
             <IdentityAvatar
               className="size-4"
               fallbackClassName="text-[0.5rem]"

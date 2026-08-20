@@ -9,7 +9,6 @@ import type { ReactNode } from "react";
 import { ChannelsCard } from "@/components/prompts/channels-card";
 import { DeploymentsCard } from "@/components/prompts/deployments-card";
 import { DetailsCard } from "@/components/prompts/details-card";
-import { UsageCard } from "@/components/prompts/usage-card";
 import { VariablesCard } from "@/components/prompts/variables-card";
 import { VersionList } from "@/components/prompts/version-list";
 import { RailSection } from "@/components/rail/rail-section";
@@ -54,6 +53,8 @@ export function PromptRail({
   return (
     <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:h-svh lg:overflow-y-auto lg:overflow-x-clip lg:overscroll-contain lg:pt-5 lg:pb-8">
       <div className="flex justify-end">{actions}</div>
+
+      <DetailsCard created={oldest.createdAt} viewed={viewed} />
 
       <RailSection
         action={
@@ -106,11 +107,7 @@ export function PromptRail({
 
       <DeploymentsCard promptId={viewed.id} />
 
-      <DetailsCard created={oldest.createdAt} viewed={viewed} />
-
       <VariablesCard variables={variables} />
-
-      <UsageCard promptId={viewed.id} />
     </aside>
   );
 }
