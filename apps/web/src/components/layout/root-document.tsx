@@ -7,12 +7,7 @@ import { DialogProvider } from "@/lib/dialog/dialogs";
 
 export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html
-      className="antialiased"
-      data-surfaces="inverted"
-      lang="en"
-      suppressHydrationWarning
-    >
+    <html className="antialiased" lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

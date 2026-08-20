@@ -20,7 +20,7 @@ export function ToolbarButton({
   return (
     <button
       className={cn(
-        "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2 font-medium text-[0.8125rem] text-muted-foreground outline-none transition-colors",
+        "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-2 font-medium text-label text-muted-foreground outline-none transition-colors",
         "hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
         "disabled:pointer-events-none disabled:opacity-50",
         "[&_svg]:size-4 [&_svg]:shrink-0",

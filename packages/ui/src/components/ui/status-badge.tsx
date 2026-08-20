@@ -10,8 +10,8 @@ const dotVariants = cva("size-1.5 shrink-0 rounded-full", {
   variants: {
     tone: {
       neutral: "bg-muted-foreground",
-      pending: "bg-amber-500",
-      positive: "bg-emerald-500",
+      pending: "bg-warning",
+      positive: "bg-success",
       critical: "bg-destructive",
     },
   },

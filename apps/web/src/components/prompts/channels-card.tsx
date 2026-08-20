@@ -6,12 +6,12 @@ import type {
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
 import { Skeleton } from "@anpord/ui/components/skeleton";
-import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
+import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { ChannelRow } from "@/components/prompts/channel-row";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 import { channelQueries } from "@/lib/query/channel-queries";
 
 interface ChannelsCardProps {
@@ -70,13 +70,10 @@ export function ChannelsCard({
   const defined = useQuery(channelQueries.list());
 
   return (
-    <RailCard
-      className={cn("flex flex-col px-0 py-0", ROW_DIVIDERS)}
-      title="Channels"
-    >
+    <RailSection className="flex flex-col" title="Channels">
       {pending ? (
-        <div className="flex h-8 items-center justify-between gap-2 px-3.5">
-          <span className="truncate text-[0.8125rem] text-muted-foreground">
+        <div className="flex h-7 items-center justify-between gap-2">
+          <span className="truncate text-label text-muted-foreground">
             {PRODUCTION}
           </span>
           <Skeleton className="h-3.5 w-6" />
@@ -95,14 +92,17 @@ export function ChannelsCard({
       )}
 
       <Button
-        className="h-8 w-full justify-start gap-2 rounded-none px-3.5 font-normal text-[0.8125rem] text-muted-foreground"
+        className={cn(
+          BLEED_ROW,
+          "h-7 justify-start gap-2 rounded-md font-normal text-label text-muted-foreground"
+        )}
         disabled={pointing}
         onClick={onAddChannel}
         variant="ghost"
       >
-        <PlusIcon className="size-3.5" />
+        <PlusIcon className="size-3.5 opacity-60" />
         New channel
       </Button>
-    </RailCard>
+    </RailSection>
   );
 }

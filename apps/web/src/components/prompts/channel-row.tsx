@@ -6,8 +6,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
-import { Badge } from "@anpord/ui/components/ui/badge";
-import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
+import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
+import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
+import { cn } from "@anpord/ui/lib/utils";
 import { CaretUpDownIcon, CheckIcon } from "@phosphor-icons/react";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 
@@ -33,24 +34,24 @@ export function ChannelRow({
       <DropdownMenuTrigger
         render={
           <Button
-            className="h-8 w-full justify-between gap-2 rounded-none px-3.5 font-normal focus-visible:ring-0 focus-visible:ring-offset-0 data-[popup-open]:bg-sidebar-accent"
+            className={cn(
+              BLEED_ROW,
+              "h-7 justify-between gap-2 rounded-md font-normal text-muted-foreground data-[popup-open]:bg-muted"
+            )}
             disabled={disabled}
             variant="ghost"
           />
         }
       >
-        <ChannelBadge color={channelColor(channel)} name={channel} size="xs" />
-        <span className="flex shrink-0 items-center gap-1.5">
-          {version === null ? (
-            <Badge size="xs" variant="outline">
-              Not set
-            </Badge>
-          ) : (
-            <span className="font-medium text-[0.8125rem] tabular-nums">
-              v{version}
-            </span>
-          )}
-          <CaretUpDownIcon className="size-3.5 opacity-50" />
+        <span className="flex min-w-0 items-center gap-2">
+          <ChannelDot color={channelColor(channel)} />
+          <span className="truncate text-label">{channel}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1">
+          <span className="text-label tabular-nums">
+            {version === null ? "Not set" : `v${version}`}
+          </span>
+          <CaretUpDownIcon className="size-3 opacity-40" />
         </span>
       </DropdownMenuTrigger>
 

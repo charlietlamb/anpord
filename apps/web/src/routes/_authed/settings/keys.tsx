@@ -115,7 +115,7 @@ function ApiKeyList({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-border-surface border-dashed px-6 py-12 text-center">
+      <div className="py-12 text-center">
         <p className="font-heading text-base tracking-tight">No keys yet</p>
         <p className="mt-1 text-muted-foreground text-sm">
           Create one to use the SDK or the CLI.
@@ -125,12 +125,7 @@ function ApiKeyList({
   }
 
   return (
-    <div
-      className={cn(
-        "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
-        ROW_DIVIDERS
-      )}
-    >
+    <div className={cn("-mx-3 flex flex-col", ROW_DIVIDERS)}>
       {rows.map((row) => (
         <ApiKeyRow
           createdAt={row.createdAt}

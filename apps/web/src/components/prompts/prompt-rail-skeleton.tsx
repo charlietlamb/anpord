@@ -1,12 +1,12 @@
 import { Button } from "@anpord/ui/components/button";
 import { Skeleton } from "@anpord/ui/components/skeleton";
-import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
+import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { UsageCard } from "@/components/prompts/usage-card";
 import { VersionListSkeleton } from "@/components/prompts/version-list-skeleton";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 
 const DETAIL_LABELS = ["Identifier", "Created", "Last saved"];
 const CHANNEL_ROWS = ["production", "staging"];
@@ -17,50 +17,46 @@ interface PromptRailSkeletonProps {
 }
 
 /**
- * The rail's frames and labels are known before the fetch, so only the values
- * inside them are placeheld and the cards keep their final geometry.
+ * The rail's labels and spacing are known before the fetch, so only the values
+ * inside them are placeheld and the sections keep their final geometry.
  */
 export function PromptRailSkeleton({ promptId }: PromptRailSkeletonProps) {
   return (
-    <aside className="order-2 flex flex-col gap-3">
-      <RailCard
-        action={<Skeleton className="h-4 w-5 rounded-full" />}
-        className="px-0 py-0"
-        title="Versions"
-      >
+    <aside className="order-2 flex flex-col gap-6">
+      <RailSection action={<Skeleton className="h-3.5 w-4" />} title="Versions">
         <VersionListSkeleton />
-      </RailCard>
+      </RailSection>
 
-      <RailCard
-        className={cn("flex flex-col px-0 py-0", ROW_DIVIDERS)}
-        title="Channels"
-      >
+      <RailSection className="flex flex-col" title="Channels">
         {CHANNEL_ROWS.map((channel) => (
           <div
-            className="flex h-8 items-center justify-between gap-2 px-3.5"
+            className="flex h-7 items-center justify-between gap-2"
             key={channel}
           >
-            <Skeleton className="h-3.5 w-16" />
-            <Skeleton className="h-3.5 w-6" />
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-3 w-6" />
           </div>
         ))}
         <Button
-          className="h-8 w-full justify-start gap-2 rounded-none px-3.5 font-normal text-[0.8125rem] text-muted-foreground"
+          className={cn(
+            BLEED_ROW,
+            "h-7 justify-start gap-2 rounded-md font-normal text-label text-muted-foreground"
+          )}
           disabled
           variant="ghost"
         >
-          <PlusIcon className="size-3.5" />
+          <PlusIcon className="size-3.5 opacity-60" />
           New channel
         </Button>
-      </RailCard>
+      </RailSection>
 
-      <RailCard className="grid gap-2.5" title="Details">
+      <RailSection className="grid gap-2.5" title="Details">
         {DETAIL_LABELS.map((label) => (
           <DetailRow key={label} label={label}>
             <Skeleton className="ml-auto h-3.5 w-24" />
           </DetailRow>
         ))}
-      </RailCard>
+      </RailSection>
 
       <UsageCard promptId={promptId} />
     </aside>

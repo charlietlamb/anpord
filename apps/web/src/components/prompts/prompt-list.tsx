@@ -1,8 +1,10 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
+import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
 import { cn } from "@anpord/ui/lib/utils";
-import { SpinnerGapIcon } from "@phosphor-icons/react";
+import { PlusIcon, SpinnerGapIcon } from "@phosphor-icons/react";
+import { Link } from "@tanstack/react-router";
 import { PromptRow } from "@/components/prompts/prompt-row";
 
 interface PromptListProps {
@@ -17,7 +19,7 @@ interface PromptListProps {
  * on screen but mean opposite things, so they are never phrased alike. */
 function NoPrompts({ search }: { readonly search: string }) {
   return (
-    <div className="rounded-xl border border-border-surface border-dashed px-6 py-14 text-center">
+    <div className="py-14 text-center">
       <p className="font-heading text-base tracking-tight">
         {search ? "No matching prompts" : "No prompts yet"}
       </p>
@@ -26,6 +28,15 @@ function NoPrompts({ search }: { readonly search: string }) {
           ? `Nothing matches “${search}”.`
           : "Create one to start versioning what your application sends."}
       </p>
+      {search ? null : (
+        <Link
+          className={cn(buttonVariants({ size: "sm" }), "mt-4")}
+          to="/prompts/new"
+        >
+          <PlusIcon weight="bold" />
+          New prompt
+        </Link>
+      )}
     </div>
   );
 }
@@ -43,12 +54,7 @@ export function PromptList({
 
   return (
     <div className="flex flex-col gap-3">
-      <div
-        className={cn(
-          "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
-          ROW_DIVIDERS
-        )}
-      >
+      <div className={cn("-mx-3 flex flex-col", ROW_DIVIDERS)}>
         {prompts.map((prompt) => (
           <PromptRow key={prompt.id} prompt={prompt} />
         ))}

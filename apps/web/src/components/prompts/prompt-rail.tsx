@@ -4,7 +4,6 @@ import type {
 } from "@anpord/schema/domain/prompts";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
-import { Badge } from "@anpord/ui/components/ui/badge";
 import { ArrowCounterClockwiseIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import { ChannelsCard } from "@/components/prompts/channels-card";
 import { DeploymentsCard } from "@/components/prompts/deployments-card";
@@ -12,7 +11,7 @@ import { DetailsCard } from "@/components/prompts/details-card";
 import { UsageCard } from "@/components/prompts/usage-card";
 import { VariablesCard } from "@/components/prompts/variables-card";
 import { VersionList } from "@/components/prompts/version-list";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 
 interface PromptRailProps {
   readonly channels: readonly ChannelPlacement[];
@@ -46,14 +45,13 @@ export function PromptRail({
   const oldest = versions.at(-1) ?? viewed;
 
   return (
-    <aside className="order-2 flex flex-col gap-3">
-      <RailCard
+    <aside className="order-2 flex flex-col gap-6">
+      <RailSection
         action={
-          <Badge className="tabular-nums" size="xs" variant="secondary">
+          <span className="text-muted-foreground text-xs tabular-nums">
             {versions.length}
-          </Badge>
+          </span>
         }
-        className="px-0 py-0"
         title="Versions"
       >
         <VersionList
@@ -62,7 +60,7 @@ export function PromptRail({
           viewedVersion={viewed.version}
         />
         {editing ? null : (
-          <div className="flex gap-1.5 border-border-surface border-t bg-sidebar-accent p-2">
+          <div className="mt-2 flex gap-1.5">
             <Button
               className="flex-1"
               onClick={onEditFrom}
@@ -86,7 +84,7 @@ export function PromptRail({
             )}
           </div>
         )}
-      </RailCard>
+      </RailSection>
 
       <ChannelsCard
         channels={channels}

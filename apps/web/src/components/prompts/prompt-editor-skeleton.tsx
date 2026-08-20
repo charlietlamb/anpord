@@ -45,15 +45,10 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
         </header>
       }
     >
-      <main className="relative flex min-h-[20rem] min-w-0 flex-col lg:sticky lg:top-4 lg:h-[calc(100svh-8.5rem)]">
-        <div className="flex w-full flex-col">
-          <ComposerSurface className="min-h-[24rem]">
-            <SkeletonLines
-              className="gap-3.5 px-4 pt-4 pb-2"
-              widths={BODY_LINES}
-            />
-          </ComposerSurface>
-        </div>
+      <main className="relative flex min-w-0 flex-col">
+        <ComposerSurface>
+          <SkeletonLines className="gap-3.5 py-1" widths={BODY_LINES} />
+        </ComposerSurface>
       </main>
 
       <PromptRailSkeleton promptId={promptId} />

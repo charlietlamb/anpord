@@ -1,5 +1,4 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { Dither } from "@anpord/ui/components/ui/dither";
 import {
   SidebarInset,
   SidebarProvider,
@@ -28,9 +27,8 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
           </ClientOnly>
         </Hydrate>
         <AppSidebar />
-        <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border bg-card ring-1 ring-black/[0.04] md:peer-data-[variant=inset]:shadow-md">
-          <Dither className="-z-10 text-foreground/[0.13] dark:text-foreground/[0.11]" />
-          <header className="sticky top-0 z-20 flex h-11 shrink-0 items-center gap-2 border-border border-b bg-card px-4 transition-surface">
+        <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border bg-background md:peer-data-[variant=inset]:shadow-none">
+          <header className="sticky top-0 z-20 flex h-11 shrink-0 items-center gap-2 border-border-faint border-b bg-background px-4 transition-surface">
             <SidebarTrigger />
             <DashboardBreadcrumbs />
           </header>

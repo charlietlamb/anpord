@@ -1,7 +1,6 @@
 import { extractVariables } from "@anpord/template/extract";
 import { Button } from "@anpord/ui/components/button";
 import {
-  ComposerContext,
   ComposerSurface,
   ComposerToolbar,
   ComposerToolbarGroup,
@@ -11,13 +10,9 @@ import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { cn } from "@anpord/ui/lib/utils";
 import type { Icon } from "@phosphor-icons/react";
-import {
-  BracketsCurlyIcon,
-  ClockCounterClockwiseIcon,
-  SpinnerGapIcon,
-} from "@phosphor-icons/react";
+import { BracketsCurlyIcon, SpinnerGapIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { CardHeader } from "@/components/rail/card-header";
+import { ComposerContextRow } from "@/components/prompts/composer-context-row";
 
 interface PromptComposerProps {
   readonly children?: ReactNode;
@@ -61,33 +56,12 @@ export function PromptComposer({
   const canSubmit = content.trim().length > 0 && !(saving || readOnly);
 
   return (
-    <div
-      className={cn(
-        "flex w-full flex-col",
-        fill && "min-h-0 lg:absolute lg:inset-x-0 lg:top-0 lg:max-h-full"
-      )}
-    >
-      {children || version !== undefined ? (
-        <ComposerContext>
-          {children}
-          {version === undefined ? null : (
-            <>
-              <span className="text-border">/</span>
-              <ToolbarButton menu>
-                <ClockCounterClockwiseIcon />v{version}
-              </ToolbarButton>
-            </>
-          )}
-        </ComposerContext>
-      ) : null}
+    <div className="flex w-full flex-col">
+      <ComposerContextRow filename={filename} version={version}>
+        {children}
+      </ComposerContextRow>
 
-      <ComposerSurface
-        className={cn(
-          "relative",
-          filename && "overflow-clip bg-sidebar-accent",
-          fill && "min-h-0"
-        )}
-      >
+      <ComposerSurface>
         {readOnly && onEditRequest ? (
           <Button
             aria-label="Edit from this version"
@@ -96,12 +70,13 @@ export function PromptComposer({
             variant="ghost"
           />
         ) : null}
-        <CardHeader title={filename} />
 
+        {/* Grows with what is written. The page owns the scroll, so a long
+            prompt reads as one document rather than a window onto one. */}
         <MarkdownEditor
           className={cn(
-            "overflow-y-auto overscroll-contain px-4 py-4 text-[0.9375rem] leading-7",
-            fill ? "" : "max-h-[min(24rem,50vh)]"
+            "prompt-prose-wide text-[0.9375rem] leading-7",
+            fill ? "" : "max-h-[min(24rem,50vh)] overflow-y-auto"
           )}
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."

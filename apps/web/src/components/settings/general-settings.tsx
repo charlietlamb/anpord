@@ -16,21 +16,19 @@ export function GeneralSettings() {
     >
       {activeOrganization ? (
         <form
-          className="overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent"
+          className="flex max-w-md flex-col gap-5"
           onSubmit={(event) => {
             event.preventDefault();
             form.handleSubmit();
           }}
         >
-          <div className="grid gap-5 p-6">
-            <form.AppField name="name">
-              {(field) => <field.TextField label="Name" />}
-            </form.AppField>
-            <form.AppField name="slug">
-              {(field) => <field.TextField label="Slug" />}
-            </form.AppField>
-          </div>
-          <div className="flex justify-end border-border border-t bg-muted px-6 py-4">
+          <form.AppField name="name">
+            {(field) => <field.TextField label="Name" />}
+          </form.AppField>
+          <form.AppField name="slug">
+            {(field) => <field.TextField label="Slug" />}
+          </form.AppField>
+          <div className="flex justify-start">
             <form.AppForm>
               <form.SubmitButton
                 fullWidth={false}

@@ -2,8 +2,9 @@ import type * as React from "react";
 import { cn } from "../lib/utils";
 
 /**
- * A context strip that sits behind the surface, revealing only its top edge.
- * Negative bottom margin plus a lower z-index produce the tucked-under look.
+ * A row of context above the writing surface. It names what is being edited
+ * and sits on the page at reduced contrast, so the prompt below stays the
+ * loudest thing in the column.
  */
 export function ComposerContext({
   className,
@@ -12,7 +13,7 @@ export function ComposerContext({
   return (
     <div
       className={cn(
-        "relative z-0 mx-1.5 -mb-5 flex items-center gap-0.5 rounded-t-xl border border-border-surface border-b-0 bg-muted px-2 pt-1.5 pb-6 text-muted-foreground text-sm",
+        "flex items-center gap-0.5 pb-2 text-muted-foreground text-sm",
         className
       )}
       {...props}
@@ -21,28 +22,20 @@ export function ComposerContext({
 }
 
 /**
- * The input surface. A real border draws the perimeter and an inset highlight
- * catches light along the top edge, the same two-edge anatomy the buttons use,
- * so the shape stays defined instead of dissolving into its own shadow.
+ * The input surface. It draws nothing at all: the prompt is the page's subject,
+ * and neither a frame nor a focus ring around the thing you came to read earns
+ * its place. The caret already says where you are typing.
  */
 export function ComposerSurface({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "relative z-10 flex flex-col rounded-[18px] border border-border-surface bg-card shadow-elevated transition-surface focus-within:border-ring",
-        className
-      )}
-      {...props}
-    />
-  );
+  return <div className={cn("relative flex flex-col", className)} {...props} />;
 }
 
 /**
- * Toolbar inside the surface, so the whole thing reads as one object. A hairline
- * separates the controls from the text without breaking that.
+ * Toolbar beneath the writing surface. A hairline separates the controls from
+ * the text without drawing a container around either.
  */
 export function ComposerToolbar({
   className,
@@ -51,7 +44,7 @@ export function ComposerToolbar({
   return (
     <div
       className={cn(
-        "mt-1 flex items-center gap-1 border-border/60 border-t px-2 pt-2 pb-2 text-muted-foreground",
+        "mt-1 flex items-center gap-1 border-border-faint border-t px-1 pt-2 pb-1 text-muted-foreground",
         className
       )}
       {...props}

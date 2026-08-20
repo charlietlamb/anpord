@@ -7,14 +7,9 @@ const ROWS = ["first", "second", "third", "fourth"];
 
 export function PromptListSkeleton() {
   return (
-    <div
-      className={cn(
-        "flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
-        ROW_DIVIDERS
-      )}
-    >
+    <div className={cn("-mx-3 flex flex-col", ROW_DIVIDERS)}>
       {ROWS.map((row) => (
-        <div className="flex flex-col gap-2 px-4 py-3.5" key={row}>
+        <div className="flex flex-col gap-2 px-3 py-3" key={row}>
           <div className="flex items-center gap-2.5">
             <Skeleton className="h-4 w-40" />
             <Skeleton className="ml-auto h-5 w-24 rounded-md" />

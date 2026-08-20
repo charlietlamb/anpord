@@ -1,10 +1,8 @@
 import type { Deployment } from "@anpord/schema/domain/deployments";
-import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
-import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
-import { cn } from "@anpord/ui/lib/utils";
+import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import { useQuery } from "@tanstack/react-query";
 import { VersionMove } from "@/components/deployments/version-move";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 import { deploymentQueries } from "@/lib/query/deployment-queries";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 import { useRelativeTime } from "@/lib/use-relative-time";
@@ -18,13 +16,13 @@ export function DeploymentsCard({ promptId }: DeploymentsCardProps) {
   const rows = deployments.data?.items ?? [];
 
   return (
-    <RailCard className="px-0 py-0" title="History">
+    <RailSection title="History">
       <DeploymentsCardBody
         failed={deployments.isError}
         isPending={deployments.isPending}
         rows={rows}
       />
-    </RailCard>
+    </RailSection>
   );
 }
 
@@ -40,16 +38,14 @@ function DeploymentsCardBody({
   rows,
 }: DeploymentsCardBodyProps) {
   if (isPending) {
-    return (
-      <p className="px-3.5 py-3 text-muted-foreground text-xs">Loading…</p>
-    );
+    return <p className="py-1 text-muted-foreground text-xs">Loading…</p>;
   }
 
   /** Distinct from the empty state below, which would otherwise claim the
    * prompt has never been deployed when the request simply failed. */
   if (failed) {
     return (
-      <p className="px-3.5 py-3 text-muted-foreground text-xs">
+      <p className="py-1 text-muted-foreground text-xs">
         Couldn't load deployments.
       </p>
     );
@@ -57,17 +53,12 @@ function DeploymentsCardBody({
 
   if (rows.length === 0) {
     return (
-      <p className="px-3.5 py-3 text-muted-foreground text-xs">
-        Not deployed yet.
-      </p>
+      <p className="py-1 text-muted-foreground text-xs">Not deployed yet.</p>
     );
   }
 
   return (
-    <ul
-      aria-label="Recent deployments"
-      className={cn("flex flex-col", ROW_DIVIDERS)}
-    >
+    <ul aria-label="Recent deployments" className="flex flex-col">
       {rows.map((deployment) => (
         <CardRow deployment={deployment} key={deployment.id} />
       ))}
@@ -80,21 +71,18 @@ function CardRow({ deployment }: { readonly deployment: Deployment }) {
   const channelColor = useChannelColor();
 
   return (
-    <li className="flex items-center gap-2 px-3.5 py-2.5">
-      <ChannelBadge
-        color={channelColor(deployment.channel)}
-        name={deployment.channel}
-        size="xs"
-      />
+    <li className="flex h-7 items-center gap-2 text-muted-foreground">
+      <ChannelDot color={channelColor(deployment.channel)} />
+      <span className="truncate text-label">{deployment.channel}</span>
 
       <VersionMove
-        className="gap-1"
+        className="gap-1 text-label"
         from={deployment.fromVersion}
         to={deployment.toVersion}
       />
 
       <time
-        className="ml-auto shrink-0 truncate whitespace-nowrap text-right text-muted-foreground text-xs tabular-nums"
+        className="ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums opacity-60"
         dateTime={new Date(deployment.deployedAt).toISOString()}
       >
         {when}

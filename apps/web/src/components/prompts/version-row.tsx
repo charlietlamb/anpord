@@ -1,9 +1,7 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
-import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
-import { initials } from "@anpord/ui/lib/initials";
+import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import { cn } from "@anpord/ui/lib/utils";
-import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
@@ -23,6 +21,11 @@ interface VersionRowProps {
   readonly viewing: boolean;
 }
 
+/**
+ * One line per version. A dot carries the channel, the number anchors the row,
+ * and the message fills what is left — so the list scans down its left edge
+ * rather than asking the eye to step over a badge on every row.
+ */
 export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
   const when = useRelativeTime(version.createdAt);
   const channelColor = useChannelColor();
@@ -32,48 +35,36 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
     <Button
       aria-selected={viewing}
       className={cn(
-        "h-auto w-full flex-col items-stretch gap-1 rounded-none px-3.5 py-2.5 text-left",
-        viewing
-          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-          : "hover:bg-muted"
+        "h-7 w-full justify-start gap-2 rounded-md px-2 font-normal",
+        viewing ? "bg-muted text-foreground" : "text-muted-foreground"
       )}
       onClick={onSelect}
       role="option"
       variant="ghost"
     >
-      <span className="flex items-center gap-2">
-        <span className="font-medium text-[0.8125rem] tabular-nums">
-          v{version.version}
-        </span>
-        {version.channel ? (
-          <ChannelBadge
-            color={channelColor(version.channel)}
-            name={version.channel}
-            size="xs"
-          />
-        ) : null}
-        {version.author ? (
-          <IdentityAvatar
-            className="ml-auto size-4 shrink-0"
-            fallbackClassName="text-[0.5rem]"
-            image={version.author.image}
-            label={version.author.name}
-            text={initials(version.author.name)}
-          />
-        ) : null}
+      <ChannelDot
+        color={version.channel ? channelColor(version.channel) : undefined}
+      />
+
+      <span
+        className={cn(
+          "shrink-0 text-label tabular-nums",
+          viewing && "font-medium"
+        )}
+      >
+        v{version.version}
       </span>
 
-      <span className="flex items-baseline gap-3">
-        <span className="line-clamp-2 min-w-0 flex-1 text-[0.8125rem] text-foreground/80 leading-snug">
-          {label}
-        </span>
-        <time
-          className="shrink-0 text-muted-foreground text-xs tabular-nums"
-          dateTime={new Date(version.createdAt).toISOString()}
-        >
-          {when}
-        </time>
+      <span className="min-w-0 flex-1 truncate text-left text-label">
+        {label}
       </span>
+
+      <time
+        className="shrink-0 text-xs tabular-nums opacity-60"
+        dateTime={new Date(version.createdAt).toISOString()}
+      >
+        {when}
+      </time>
     </Button>
   );
 }

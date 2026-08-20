@@ -20,7 +20,7 @@ export function PromptEditorLayout({
         {header}
       </div>
 
-      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 items-start gap-4 px-5 pt-4 pb-6 lg:grid-cols-[minmax(0,1fr)_16rem] xl:grid-cols-[minmax(0,1fr)_17rem] xl:gap-5 xl:px-6">
+      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 items-start gap-8 px-5 pt-6 pb-24 lg:grid-cols-[minmax(0,1fr)_15rem] xl:gap-10 xl:px-6">
         {children}
       </div>
     </div>

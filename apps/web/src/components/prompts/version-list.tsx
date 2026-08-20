@@ -1,6 +1,4 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
-import { cn } from "@anpord/ui/lib/utils";
 import type { KeyboardEvent } from "react";
 import { VersionRow } from "@/components/prompts/version-row";
 
@@ -53,10 +51,10 @@ export function VersionList({
   return (
     <div
       aria-label="Versions"
-      className={cn(
-        "flex max-h-[17rem] flex-col overflow-y-auto overscroll-contain",
-        ROW_DIVIDERS
-      )}
+      /* Pulled out to either side so a row's hover reaches past the text while
+         the list itself still measures the rail. Rows of one line need no rule
+         between them: the gap already tells them apart. */
+      className="-mx-2 flex max-h-[17rem] flex-col overflow-y-auto overscroll-contain"
       onKeyDown={move}
       role="listbox"
     >

@@ -82,7 +82,7 @@ function ChannelsBody({
 
   if (rows.length === 0) {
     return (
-      <div className="mt-5 rounded-xl border border-border-surface border-dashed px-6 py-14 text-center">
+      <div className="mt-5 py-14 text-center">
         <p className="font-heading text-base tracking-tight">No channels yet</p>
         <p className="mt-1 text-muted-foreground text-sm">
           Create one to publish a version under a name.
@@ -92,12 +92,7 @@ function ChannelsBody({
   }
 
   return (
-    <div
-      className={cn(
-        "mt-5 flex flex-col overflow-hidden rounded-xl border border-border-surface bg-sidebar-accent",
-        ROW_DIVIDERS
-      )}
-    >
+    <div className={cn("-mx-3 mt-5 flex flex-col", ROW_DIVIDERS)}>
       {rows.map((channel) => (
         <ChannelListRow
           channel={channel}

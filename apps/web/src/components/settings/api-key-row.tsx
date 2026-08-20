@@ -18,7 +18,7 @@ export function ApiKeyRow({
   const created = useRelativeTime(new Date(createdAt));
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate font-medium text-sm">{name}</span>
         <span className="font-mono text-muted-foreground text-xs">

@@ -36,7 +36,7 @@ export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
 
   return (
     <Link
-      className="flex flex-col gap-1.5 px-4 py-3.5 transition-colors hover:bg-muted"
+      className="flex flex-col gap-1.5 rounded-lg px-3 py-3 transition-colors hover:bg-muted"
       params={{ id: prompt.id }}
       to="/prompts/$id"
     >

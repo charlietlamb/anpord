@@ -24,7 +24,7 @@ export function ChannelListRow({
   const reserved = channel.name === PRODUCTION;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
       <ChannelBadge color={channel.color} name={channel.name} />
 
       <span className="ml-auto text-muted-foreground text-xs tabular-nums">

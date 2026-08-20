@@ -1,10 +1,10 @@
-import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
+import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 import { SETTINGS_NAV } from "@/components/settings/settings-nav";
 
-/** Carries a heading of its own so both columns begin at their first card
+/** Carries a heading of its own so both columns begin at their first section
  * rather than one starting a title higher than the other. */
 export function SettingsSidebar() {
   return (
@@ -16,19 +16,18 @@ export function SettingsSidebar() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-6">
         {SETTINGS_NAV.map((section) => (
-          <RailCard
-            className="px-0 py-0"
-            key={section.label}
-            title={section.label}
-          >
-            <nav className={cn("flex flex-col", ROW_DIVIDERS)}>
+          <RailSection key={section.label} title={section.label}>
+            <nav className="flex flex-col">
               {section.items.map((item) => (
                 <Link
                   activeOptions={{ exact: item.to === "/settings" }}
                   activeProps={{ className: "bg-muted text-foreground" }}
-                  className="flex items-center gap-2 px-3.5 py-2.5 text-[0.8125rem] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className={cn(
+                    BLEED_ROW,
+                    "flex items-center gap-2 rounded-md py-1.5 text-label text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  )}
                   key={item.to}
                   to={item.to}
                 >
@@ -37,7 +36,7 @@ export function SettingsSidebar() {
                 </Link>
               ))}
             </nav>
-          </RailCard>
+          </RailSection>
         ))}
       </div>
     </aside>

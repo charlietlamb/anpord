@@ -3,7 +3,7 @@ import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { initials } from "@anpord/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { DetailRow } from "@/components/prompts/detail-row";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface DetailsCardProps {
@@ -16,7 +16,7 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
   const savedLabel = useRelativeTime(viewed.createdAt);
 
   return (
-    <RailCard className="grid gap-2.5" title="Details">
+    <RailSection className="grid gap-2.5" title="Details">
       <DetailRow label="Identifier">
         <CopyableId value={viewed.id} />
       </DetailRow>
@@ -50,6 +50,6 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
           </span>
         </DetailRow>
       ) : null}
-    </RailCard>
+    </RailSection>
   );
 }

@@ -1,5 +1,5 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
-import { RailCard } from "@/components/rail/rail-card";
+import { RailSection } from "@/components/rail/rail-section";
 
 interface UsageCardProps {
   readonly promptId: string;
@@ -27,20 +27,21 @@ export function UsageCard({ promptId }: UsageCardProps) {
   const code = snippet(promptId);
 
   return (
-    <RailCard
+    <RailSection
       action={
         <CopyButton className="size-6" label="Copy snippet" value={code} />
       }
-      className="px-0 py-0"
       title="Use this prompt"
     >
-      <code className="block overflow-x-auto whitespace-pre bg-muted px-3.5 py-2.5 font-mono text-[0.75rem] leading-relaxed">
+      {/* The one surface in the rail that keeps a fill: code is quoted matter,
+          and the well is what marks it as something to copy rather than read. */}
+      <code className="block overflow-x-auto whitespace-pre rounded-md bg-muted px-2.5 py-2 font-mono text-xs leading-relaxed">
         {tokens(promptId).map((token) => (
           <span className={token.tone} key={token.text}>
             {token.text}
           </span>
         ))}
       </code>
-    </RailCard>
+    </RailSection>
   );
 }
