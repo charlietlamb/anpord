@@ -44,13 +44,23 @@ export function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group {...props} />;
 }
 
+/**
+ * Names a group of items. It has to be legible as something other than an item
+ * — at the same size, colour and indent it reads as one that simply does not
+ * respond — so it sits smaller, dimmer, and above a rule that closes whatever
+ * came before it.
+ */
 export function DropdownMenuLabel({
   className,
   ...props
 }: MenuPrimitive.GroupLabel.Props) {
   return (
     <MenuPrimitive.GroupLabel
-      className={cn("px-2 py-1.5 text-muted-foreground text-xs", className)}
+      className={cn(
+        "-mx-1 mt-1 mb-0.5 border-border-faint border-t px-3 pt-2 pb-1 font-medium text-[0.6875rem] text-muted-foreground/70 tracking-wide",
+        "first:mt-0 first:border-t-0 first:pt-1",
+        className
+      )}
       {...props}
     />
   );
