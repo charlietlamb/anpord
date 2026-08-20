@@ -1,4 +1,3 @@
-import { IdGenerator } from "@anpord/ids/id";
 import {
   Clock,
   Context,
@@ -10,6 +9,7 @@ import {
   Ref,
   Stream,
 } from "effect";
+import { caseIdentityOf } from "../domain/case-identity";
 import { renderPrompt } from "../domain/prompt";
 import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
@@ -63,7 +63,6 @@ export const GridRunLive = Layer.scoped(
   GridRun,
   Effect.gen(function* () {
     const agent = yield* AgentTrial;
-    const ids = yield* IdGenerator;
     const query = yield* RunQuery;
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
@@ -95,22 +94,31 @@ export const GridRunLive = Layer.scoped(
         })
       );
 
+    /* Resolved by content, never inserted fresh. The cell key is hashed over
+       the task, so a new row per run gave every run its own key and a
+       promoted baseline could never match a later run: comparison across
+       time, the one thing this exists for, was impossible. */
     const registerCases = (input: StartGrid) =>
-      Effect.forEach(input.cases, (subject) =>
-        ids.generate("evalTask").pipe(
-          Effect.flatMap((id) =>
-            tasks.insert({
-              id,
-              name: subject.name,
-              organizationId: input.organizationId,
-              prompt: renderPrompt(input.prompt, { goal: subject.goal }),
-              setupCommand: subject.setup,
-              verifyCommand: subject.verify,
-              workspace: WORKSPACE,
-            })
-          )
-        )
-      );
+      Effect.forEach(input.cases, (subject) => {
+        const prompt = renderPrompt(input.prompt, { goal: subject.goal });
+
+        return tasks.upsertByIdentity({
+          identity: caseIdentityOf({
+            name: subject.name,
+            prompt,
+            setupCommand: subject.setup,
+            source: subject.source,
+            verifyCommand: subject.verify,
+            workspace: WORKSPACE,
+          }),
+          name: subject.name,
+          organizationId: input.organizationId,
+          prompt,
+          setupCommand: subject.setup,
+          verifyCommand: subject.verify,
+          workspace: WORKSPACE,
+        });
+      });
 
     const execute = (
       input: StartGrid,

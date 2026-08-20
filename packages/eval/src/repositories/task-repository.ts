@@ -31,6 +31,20 @@ export interface TaskRepositoryShape {
     internalId: string,
     bracketedAt: Date
   ) => Effect.Effect<void, EvalStoreError>;
+  /** Finds the task for a case definition, or writes it.
+   *
+   * The same case must resolve to the same row on every run: the cell key
+   * is hashed over the task, so a fresh row each time gives every run its
+   * own key and no baseline can ever match a later run. */
+  readonly upsertByIdentity: (input: {
+    readonly identity: string;
+    readonly name: string;
+    readonly organizationId: string;
+    readonly prompt: string;
+    readonly setupCommand: string | null;
+    readonly verifyCommand: string;
+    readonly workspace: string;
+  }) => Effect.Effect<TaskRow, EvalStoreError>;
 }
 
 export class TaskRepository extends Context.Tag("@anpord/eval/TaskRepository")<
@@ -75,6 +89,39 @@ export const TaskRepositoryLive = Layer.effect(
                 setupCommand: input.setupCommand,
                 verifyCommand: input.verifyCommand,
                 workspace: input.workspace,
+              })
+              .returning()
+          );
+
+          return rows[0] as TaskRow;
+        }),
+
+      /* The identity is the public id, so the existing unique index on
+         (organizationId, id) does the deduplication and two runs racing the
+         same new case cannot create two rows. */
+      upsertByIdentity: (input) =>
+        Effect.gen(function* () {
+          const internalId = yield* ids.generate("evalTask");
+
+          const rows = yield* tryStore("task.upsertByIdentity", () =>
+            db
+              .insert(evalTask)
+              .values({
+                id: input.identity,
+                internalId,
+                name: input.name,
+                organizationId: input.organizationId,
+                prompt: input.prompt,
+                setupCommand: input.setupCommand,
+                verifyCommand: input.verifyCommand,
+                workspace: input.workspace,
+              })
+              /* Nothing to update: the identity is the content, so a row that
+                 already exists is already correct. The clause exists to make
+                 the insert return the existing row rather than conflict. */
+              .onConflictDoUpdate({
+                set: { name: input.name },
+                target: [evalTask.organizationId, evalTask.id],
               })
               .returning()
           );
