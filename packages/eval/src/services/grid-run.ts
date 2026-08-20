@@ -114,8 +114,8 @@ export const GridRunLive = Layer.scoped(
 
         return tasks.upsertByIdentity({
           identity: caseIdentityOf({
+            goal: subject.goal,
             name: subject.name,
-            prompt,
             setupCommand: subject.setup,
             source: subject.source,
             verifyCommand: subject.verify,

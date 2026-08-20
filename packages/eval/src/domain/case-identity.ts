@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import type { WorkspaceSource } from "../services/workspace";
 
 export interface CaseDefinition {
+  readonly goal: string;
   readonly name: string;
-  readonly prompt: string;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
   readonly verifyCommand: string | null;
@@ -38,13 +38,18 @@ const sourceOf = (source: WorkspaceSource) => {
  * Content addressed rather than named, because a name is a label a person
  * edits. Change the goal or the verifier and it is a different case, which
  * earns a new identity and keeps the old one comparable to its own past.
+ *
+ * The prompt is deliberately absent. It is the thing under test, like the
+ * model and the harness, not part of what is being asked: hashing it made
+ * every prompt edit a new case, so the one question every customer has,
+ * "I changed my prompt, did the agent get worse", could never be answered.
  */
 export const caseIdentityOf = (input: CaseDefinition): string =>
   createHash("sha256")
     .update(
       [
         input.name,
-        input.prompt,
+        input.goal,
         input.setupCommand ?? "",
         input.verifyCommand ?? "",
         input.workspace,
