@@ -21,7 +21,7 @@ export function ComposerHeading({ promptName }: ComposerHeadingProps) {
       : "What are you creating today?";
 
   return (
-    <h1 className="fade-in-0 slide-in-from-bottom-1 mb-4 animate-in text-balance px-4 font-heading text-2xl tracking-tight ease-out [animation-duration:400ms]">
+    <h1 className="fade-in-0 slide-in-from-bottom-1 mb-5 animate-in text-balance font-heading text-2xl tracking-tight ease-out [animation-duration:400ms]">
       {promptName ? `Editing ${promptName}` : greeting}
     </h1>
   );

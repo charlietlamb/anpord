@@ -1,5 +1,5 @@
-import { Input } from "@anpord/ui/components/input";
-import { PlusIcon, TextTIcon } from "@phosphor-icons/react";
+import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
+import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -60,18 +60,20 @@ function NewPromptPage() {
         submitIcon={PlusIcon}
         submitLabel="Create prompt"
       >
-        <span className="relative flex items-center">
-          <TextTIcon className="pointer-events-none absolute left-2 size-4 text-muted-foreground" />
-          <Input
-            aria-label="Prompt name"
-            className="h-7 w-56 border-0 bg-transparent pr-2 pl-7 font-medium text-sm shadow-none focus-visible:ring-0"
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Untitled prompt"
-            value={name}
-          />
-        </span>
+        {/* The name is written where it will be read, the same way it is
+            renamed later, rather than in a field that outweighs the prompt
+            below it. */}
+        <InlineEdit
+          ariaLabel="Prompt name"
+          className="min-w-0 flex-1 font-medium text-base"
+          onBlur={() => undefined}
+          onCancel={() => setName("")}
+          onChange={setName}
+          placeholder="Untitled prompt"
+          value={name}
+        />
         {id ? (
-          <span className="ml-auto truncate pr-2 font-mono text-muted-foreground/70 text-xs">
+          <span className="ml-auto shrink-0 truncate font-mono text-muted-foreground/70 text-xs">
             {id}
           </span>
         ) : null}
