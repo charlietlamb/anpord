@@ -14,9 +14,10 @@ interface InlineEditProps {
 }
 
 /**
- * A value edited where it is read. It carries no border until it is pointed
- * at, so the page shows a heading rather than a form, and the field is still
- * a real input for anyone arriving by keyboard.
+ * A value edited where it is read. It draws nothing of its own — the caret
+ * says it is editable and the text keeps the weight it had — so the page
+ * shows a heading rather than a form, while still being a real input for
+ * anyone arriving by keyboard.
  */
 export function InlineEdit({
   ariaLabel,
@@ -42,9 +43,8 @@ export function InlineEdit({
     <input
       aria-label={ariaLabel}
       className={cn(
-        "-mx-2 min-w-0 rounded-md border border-transparent bg-transparent px-2 py-0.5",
-        "hover:border-border-faint focus:border-border focus:outline-none",
-        "transition-colors placeholder:text-muted-foreground",
+        "min-w-0 border-0 bg-transparent p-0 focus:outline-none",
+        "placeholder:text-muted-foreground",
         className
       )}
       onBlur={onBlur}
