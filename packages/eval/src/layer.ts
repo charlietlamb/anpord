@@ -5,6 +5,7 @@ import { SandboxAdaptersLive } from "./providers/resolve";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
+import { TrialRecorderLive } from "./repositories/trial-record";
 import { TrialRepositoryLive } from "./repositories/trial-repository";
 import { ScorerGroundTruthLive } from "./scoring/ground-truth";
 import { AgentTrialLive } from "./services/agent-trial";
@@ -15,6 +16,7 @@ export const EvalRepositoriesLive = Layer.mergeAll(
   EventRepositoryLive,
   RunRepositoryLive,
   TaskRepositoryLive,
+  TrialRecorderLive,
   TrialRepositoryLive
 ).pipe(Layer.provide(IdGeneratorLive));
 

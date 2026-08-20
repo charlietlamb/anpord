@@ -7,10 +7,9 @@ import type {
   SandboxUnavailable,
 } from "../domain/errors";
 import { TaskNotFound } from "../domain/errors";
-import { EventRepository } from "../repositories/event-repository";
 import { RunRepository } from "../repositories/run-repository";
 import { TaskRepository } from "../repositories/task-repository";
-import { TrialRepository } from "../repositories/trial-repository";
+import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial, type AgentTrialRequest } from "./agent-trial";
 import { runAgentTrialSet } from "./agent-trial-set";
 import type { WorkspaceSource } from "./workspace";
@@ -54,10 +53,9 @@ export class CellRun extends Context.Tag("@anpord/eval/CellRun")<
 export const CellRunLive = Layer.effect(
   CellRun,
   Effect.gen(function* () {
-    const events = yield* EventRepository;
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
-    const trials = yield* TrialRepository;
+    const recorder = yield* TrialRecorder;
     const agent = yield* AgentTrial;
 
     const run = (request: CellRunRequest) =>
@@ -116,10 +114,11 @@ export const CellRunLive = Layer.effect(
         const settledAt = yield* Clock.currentTimeMillis;
         const finishedAt = new Date(settledAt);
 
-        /* Each trial is written with its own journal, so an exit code stays
-           recoverable after the sandbox is gone. The ordinal is the trial's
-           identity within the cell and comes from its position, since trials
-           run concurrently and finish in no particular order.
+        /* Each trial is written with its own journal in one transaction, so
+           an exit code stays recoverable after the sandbox is gone and a crash
+           can never leave a settled trial with no events. The ordinal is the
+           trial's identity within the cell and comes from its position, since
+           trials run concurrently and finish in no particular order.
 
            Each trial's start is derived from its own measured duration rather
            than from one shared timestamp: trials run concurrently and take
@@ -127,33 +126,20 @@ export const CellRunLive = Layer.effect(
            as having started and finished at the same instant. */
         yield* Effect.forEach(
           outcome.trials,
-          (result, index) =>
-            Effect.gen(function* () {
-              const row = yield* trials.insert({
-                cellInternalId: cell.internalId,
-                ordinal: index + 1,
-                provider: request.agent.provider,
-              });
+          (result, index) => {
+            const took = result.outcome.modelMs + result.outcome.sandboxMs;
 
-              const took = result.outcome.modelMs + result.outcome.sandboxMs;
-
-              yield* trials.claim(
-                row.internalId,
-                result.sandboxId,
-                new Date(settledAt - took)
-              );
-              yield* trials.settle({
-                attempt: 1,
-                finishedAt,
-                internalId: row.internalId,
-                outcome: result.outcome,
-              });
-
-              yield* events.append({
-                events: result.events,
-                trialInternalId: row.internalId,
-              });
-            }),
+            return recorder.record({
+              cellInternalId: cell.internalId,
+              events: result.events,
+              finishedAt,
+              ordinal: index + 1,
+              outcome: result.outcome,
+              provider: request.agent.provider,
+              sandboxId: result.sandboxId,
+              startedAt: new Date(settledAt - took),
+            });
+          },
           { discard: true }
         );
 
