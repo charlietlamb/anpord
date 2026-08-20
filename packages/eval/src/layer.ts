@@ -3,6 +3,7 @@ import { Layer } from "effect";
 import { CodexRunnerLive } from "./harness/codex";
 import { SandboxAdaptersLive } from "./providers/resolve";
 import { EventRepositoryLive } from "./repositories/event-repository";
+import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
 import { TrialRecorderLive } from "./repositories/trial-record";
@@ -14,6 +15,7 @@ import { SandboxProviderLive } from "./services/sandbox-provider";
 
 export const EvalRepositoriesLive = Layer.mergeAll(
   EventRepositoryLive,
+  RunQueryLive,
   RunRepositoryLive,
   TaskRepositoryLive,
   TrialRecorderLive,

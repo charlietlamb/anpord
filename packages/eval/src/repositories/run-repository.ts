@@ -11,6 +11,16 @@ import { head, tryStore } from "./query";
 type RunRow = typeof evalRun.$inferSelect;
 type CellRow = typeof evalCell.$inferSelect;
 
+interface InsertCell {
+  readonly cellKey: CellKey;
+  readonly harness: HarnessName;
+  readonly harnessVersion: string;
+  readonly model: string;
+  readonly provider: ProviderName;
+  readonly runInternalId: string;
+  readonly taskInternalId: string;
+}
+
 export interface RunRepositoryShape {
   readonly findById: (
     organizationId: string,
@@ -26,15 +36,14 @@ export interface RunRepositoryShape {
     readonly startedBy: string | null;
     readonly trialCount: number;
   }) => Effect.Effect<RunRow, EvalStoreError>;
-  readonly insertCell: (input: {
-    readonly cellKey: CellKey;
-    readonly harness: HarnessName;
-    readonly harnessVersion: string;
-    readonly model: string;
-    readonly provider: ProviderName;
-    readonly runInternalId: string;
-    readonly taskInternalId: string;
-  }) => Effect.Effect<CellRow, EvalStoreError>;
+  readonly insertCell: (
+    input: InsertCell
+  ) => Effect.Effect<CellRow, EvalStoreError>;
+  /** Every cell of a grid in one statement. A run is cases by tasks, so a
+   * per-cell round trip grows with the product of both axes. */
+  readonly insertCells: (
+    input: readonly InsertCell[]
+  ) => Effect.Effect<readonly CellRow[], EvalStoreError>;
 }
 
 export class RunRepository extends Context.Tag("@anpord/eval/RunRepository")<
@@ -99,6 +108,33 @@ export const RunRepositoryLive = Layer.effect(
           );
 
           return rows[0] as RunRow;
+        }),
+
+      insertCells: (input) =>
+        Effect.gen(function* () {
+          if (input.length === 0) {
+            return [];
+          }
+
+          const values = yield* Effect.forEach(input, (cell) =>
+            ids.generate("evalCell").pipe(
+              Effect.map((internalId) => ({
+                cellKey: cell.cellKey,
+                harness: cell.harness,
+                harnessVersion: cell.harnessVersion,
+                internalId,
+                model: cell.model,
+                provider: cell.provider,
+                runInternalId: cell.runInternalId,
+                status: "running",
+                taskInternalId: cell.taskInternalId,
+              }))
+            )
+          );
+
+          return yield* tryStore("run.insertCells", () =>
+            db.insert(evalCell).values(values).returning()
+          );
         }),
 
       insertCell: (input) =>
