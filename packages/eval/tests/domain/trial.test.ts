@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { outcomeOf } from "../../src/domain/trial";
+import { checkVoid, outcomeOf } from "../../src/domain/trial";
 
 const base = {
   commandCount: 9,
@@ -138,5 +138,24 @@ describe("a verifier that tested nothing", () => {
     });
 
     expect(outcome.status).toBe("passed");
+  });
+});
+
+describe("configured void patterns", () => {
+  it("voids on a signature supplied per deployment", () => {
+    const fingerprint = { stdout: "Sandbox pool exhausted, nothing ran" };
+
+    expect(checkVoid(fingerprint).voided).toBe(false);
+    expect(checkVoid(fingerprint, ["sandbox pool exhausted"]).voided).toBe(
+      true
+    );
+  });
+
+  /** A typo in configuration must narrow the gate, never stop trials being
+   * scored at all. */
+  it("ignores a pattern that will not compile", () => {
+    const fingerprint = { stdout: "ordinary output" };
+
+    expect(checkVoid(fingerprint, ["(unclosed"]).voided).toBe(false);
   });
 });

@@ -44,8 +44,28 @@ const VOID_PATTERNS: readonly RegExp[] = [
   /permission denied/i,
 ];
 
-export const isVoidValue = (value: string) =>
-  VOID_PATTERNS.some((pattern) => pattern.test(value));
+/** Extra signatures, supplied per deployment.
+ *
+ * A new provider returns its own wording for a command that never ran, and
+ * without this the only way to teach the gate is a release. An unreadable
+ * pattern is dropped rather than thrown: a typo in configuration should
+ * narrow the gate, never stop trials being scored at all. */
+const configuredPatterns = (extra: readonly string[]): readonly RegExp[] =>
+  extra.flatMap((source) => {
+    try {
+      return [new RegExp(source, "i")];
+    } catch {
+      return [];
+    }
+  });
+
+export const isVoidValue = (
+  value: string,
+  extra: readonly string[] = []
+): boolean =>
+  [...VOID_PATTERNS, ...configuredPatterns(extra)].some((pattern) =>
+    pattern.test(value)
+  );
 
 export interface VoidCheck {
   readonly fields: readonly string[];
@@ -53,10 +73,11 @@ export interface VoidCheck {
 }
 
 export const checkVoid = (
-  fingerprint: Readonly<Record<string, string>>
+  fingerprint: Readonly<Record<string, string>>,
+  extra: readonly string[] = []
 ): VoidCheck => {
   const fields = Object.entries(fingerprint)
-    .filter(([, value]) => isVoidValue(String(value)))
+    .filter(([, value]) => isVoidValue(String(value), extra))
     .map(([key]) => key);
 
   return { fields, voided: fields.length > 0 };
@@ -84,12 +105,14 @@ export interface ScoreInput {
   readonly fingerprint: Readonly<Record<string, string>>;
   readonly modelMs: number;
   readonly sandboxMs: number;
+  /** Extra void signatures for this deployment, from configuration. */
+  readonly voidPatterns?: readonly string[];
 }
 
 /** The gate runs before the verdict, never after. A voided trial carries no
  * pass or fail, because it has no evidence to carry one. */
 export const outcomeOf = (input: ScoreInput): TrialOutcome => {
-  const check = checkVoid(input.fingerprint);
+  const check = checkVoid(input.fingerprint, input.voidPatterns ?? []);
 
   if (check.voided) {
     return {
