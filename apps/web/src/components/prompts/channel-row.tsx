@@ -55,29 +55,23 @@ export function ChannelRow({
         </span>
       </DropdownMenuTrigger>
 
-      {/* Rows of the same shape read as one block without a rule between them,
-          the way the version list in the rail is separated. */}
-      <DropdownMenuContent
-        align="start"
-        /* Parted by the faintest edge rather than the card's border: inside a
-           lifted surface that weight reads as a rule instead of a seam. */
-        className="w-(--anchor-width) max-w-(--anchor-width) p-0 [&>*:not(:first-child)]:border-t [&>*:not(:first-child)]:border-t-alpha-6 [&>*]:rounded-none"
-      >
+      {/* No rules between the rows: they are the same shape repeated, and the
+          highlight that follows the pointer is what separates one from the
+          next. The check sits at the end, where the eye lands last. */}
+      <DropdownMenuContent align="start" className="min-w-(--anchor-width)">
         {versions.map((row) => (
           <DropdownMenuItem
             className="gap-2"
             key={row.versionId}
             onClick={() => onPoint(row.version)}
           >
-            <span className="w-4 shrink-0">
-              {row.version === version ? (
-                <CheckIcon className="size-3.5" />
-              ) : null}
-            </span>
             <span className="font-medium tabular-nums">v{row.version}</span>
             <span className="min-w-0 flex-1 truncate text-muted-foreground">
               {row.commitMessage ?? "No message"}
             </span>
+            {row.version === version ? (
+              <CheckIcon className="size-3.5 shrink-0" weight="bold" />
+            ) : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
