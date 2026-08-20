@@ -125,10 +125,42 @@ export const EvalDistribution = Schema.Struct({
 });
 export type EvalDistribution = typeof EvalDistribution.Type;
 
+/** Whether a cell moved against the reading its organization accepted.
+ *
+ * `incomparable` is a first-class verdict rather than a missing number. A
+ * provider outage leaves a cell with nothing scored, and reporting that as a
+ * pass rate of zero would announce a collapse that never happened. */
+export const EvalVerdict = Schema.Literal(
+  "improved",
+  "incomparable",
+  "regressed",
+  "unchanged"
+);
+export type EvalVerdict = typeof EvalVerdict.Type;
+
+export const EvalComparison = Schema.Struct({
+  baselinePassRate: Schema.Number,
+  candidatePassRate: Schema.Number,
+  delta: Schema.Number,
+  /** True when the pass rate held but the cell stopped agreeing with itself.
+   * An agent that became unreliable without becoming wrong is a regression no
+   * single score can express. */
+  determinismLost: Schema.Boolean,
+  reason: Schema.NullOr(Schema.String),
+  verdict: EvalVerdict,
+});
+export type EvalComparison = typeof EvalComparison.Type;
+
 /** One square of the grid: what one task did on one case. */
 export const EvalCell = Schema.Struct({
   caseName: Schema.String,
+  /** The identity a baseline is keyed by: task, harness, harness version,
+   * model and provider hashed together. A client needs it to promote this
+   * reading or to ask for its history. */
+  cellKey: Schema.NullOr(Schema.String),
+  comparison: Schema.NullOr(EvalComparison),
   distribution: Schema.NullOr(EvalDistribution),
+  internalId: Schema.NullOr(Schema.String),
   status: EvalRunStatus,
   taskIndex: Schema.Int,
   trials: Schema.Array(EvalTrial),
@@ -155,6 +187,18 @@ export const EvalRunSummary = Schema.Struct({
   taskCount: Schema.Int,
 });
 export type EvalRunSummary = typeof EvalRunSummary.Type;
+
+export const PromoteBaselineRequest = Schema.Struct({
+  cellInternalId: Schema.String,
+});
+export type PromoteBaselineRequest = typeof PromoteBaselineRequest.Type;
+
+export const PromotedBaseline = Schema.Struct({
+  cellKey: Schema.String,
+  passRate: Schema.Number,
+  promotedAt: Schema.DateTimeUtc,
+});
+export type PromotedBaseline = typeof PromotedBaseline.Type;
 
 export const StartedEval = Schema.Struct({ id: Schema.String });
 export type StartedEval = typeof StartedEval.Type;

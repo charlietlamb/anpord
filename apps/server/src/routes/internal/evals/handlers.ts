@@ -1,105 +1,21 @@
-import {
-  Playground,
-  type PlaygroundCell,
-  type PlaygroundRun,
-} from "@anpord/eval/services/playground";
-import { NotFound } from "@anpord/schema/domain/errors";
-import type {
-  EvalCell,
-  EvalRun,
-  EvalRunSummary,
-  EvalTrial,
-} from "@anpord/schema/domain/evals";
+import { Baselines } from "@anpord/eval/services/baselines";
+import { GridRun } from "@anpord/eval/services/grid-run";
+import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
-import { DateTime, Effect, Option, Redacted } from "effect";
+import { Config, DateTime, Effect, Option, Redacted } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { EvalCredentials } from "./credentials";
+import { detail, summarise } from "./to-api";
 
 /** Pinned, because the cell key carries it: an unpinned install silently
- * compares two different harnesses a month apart. */
-const HARNESS_VERSION = "0.144.4";
-
-const summarise = (run: PlaygroundRun): EvalRunSummary => ({
-  caseCount: run.cases.length,
-  id: run.id,
-  startedAt: DateTime.unsafeMake(run.startedAt),
-  status: run.status,
-  taskCount: run.tasks.length,
-});
-
-const waiting = (ordinal: number): EvalTrial => ({
-  commands: 0,
-  failedCommands: 0,
-  filesChanged: [],
-  journal: [],
-  modelMs: 0,
-  ordinal,
-  passed: false,
-  sandboxId: null,
-  sandboxMs: 0,
-  status: "running",
-  voidFields: [],
-});
-
-/** The journal travels with the trial rather than behind another request. An
- * exit code the caller cannot see is the thing this system exists to stop
- * being invisible. */
-const asTrials = (cell: PlaygroundCell): readonly EvalTrial[] =>
-  cell.trials.map((trial, index) =>
-    Option.match(trial, {
-      onNone: () => waiting(index + 1),
-      onSome: (result) => ({
-        commands: result.commands,
-        failedCommands: result.failedCommands,
-        filesChanged: [...result.filesChanged],
-        journal: result.events
-          .filter((event) => event._tag === "Command")
-          .map((event) => ({
-            command: event.command,
-            exitCode: event.exitCode,
-            output: event.output.slice(0, 4000),
-          })),
-        modelMs: result.outcome.modelMs,
-        ordinal: index + 1,
-        passed: result.outcome.passed,
-        sandboxId: result.sandboxId,
-        sandboxMs: result.outcome.sandboxMs,
-        status: result.outcome.status,
-        voidFields: [...result.outcome.voidFields],
-      }),
-    })
-  );
-
-const asCell = (cell: PlaygroundCell): EvalCell => ({
-  caseName: cell.caseName,
-  distribution: Option.getOrNull(cell.distribution),
-  status: cell.status,
-  taskIndex: cell.taskIndex,
-  trials: asTrials(cell),
-});
-
-const detail = (run: PlaygroundRun): EvalRun => ({
-  cases: [...run.cases],
-  cells: run.cells.map(asCell),
-  failure: Option.getOrNull(run.failure),
-  finishedAt: Option.map(run.finishedAt, DateTime.unsafeMake).pipe(
-    Option.getOrNull
-  ),
-  id: run.id,
-  startedAt: DateTime.unsafeMake(run.startedAt),
-  status: run.status,
-  /* The domain knows three harnesses and the API exposes the one that works,
-     so the boundary narrows rather than leaking a name a client cannot act
-     on. Adding Claude Code widens both, in that order. */
-  tasks: run.tasks.map((task) => ({
-    harness: "codex" as const,
-    model: task.model,
-    provider: task.provider,
-  })),
-});
+ * compares two different harnesses a month apart. Configured rather than
+ * literal, so upgrading it is a deployment decision and not a code change. */
+const harnessVersion = Config.string("EVAL_HARNESS_VERSION").pipe(
+  Config.withDefault("0.144.4")
+);
 
 export const EvalsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -109,8 +25,8 @@ export const EvalsHandlers = HttpApiBuilder.group(
       .handle("list", { permission: Permissions.Evals.Read }, () =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
-          const playground = yield* Playground;
-          const runs = yield* playground.list(actor.organizationId);
+          const grid = yield* GridRun;
+          const runs = yield* grid.list(actor.organizationId);
 
           return runs.map(summarise);
         })
@@ -120,37 +36,41 @@ export const EvalsHandlers = HttpApiBuilder.group(
       .handle("start", { permission: Permissions.Evals.Write }, ({ payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
-          const playground = yield* Playground;
+          const grid = yield* GridRun;
           const credentials = yield* EvalCredentials;
+          const version = yield* harnessVersion;
 
-          const id = yield* playground.start({
-            cases: payload.cases.map((subject) => ({
-              goal: subject.goal,
-              name: subject.name,
-              setup: subject.setup,
-              source: subject.source,
-              verify: subject.verify,
-            })),
-            credentials: Redacted.make(credentials.codexAuth),
-            organizationId: actor.organizationId,
-            prompt: payload.prompt,
-            tasks: payload.tasks.map((task) => ({
-              harness: task.harness,
-              harnessVersion: HARNESS_VERSION,
-              model: task.model,
-              provider: task.provider,
-            })),
-            trials: payload.trials,
-          });
-
-          return { id };
-        })
+          return {
+            id: yield* grid.start({
+              cases: payload.cases.map((subject) => ({
+                goal: subject.goal,
+                name: subject.name,
+                setup: subject.setup,
+                source: subject.source,
+                verify: subject.verify,
+              })),
+              credentials: Redacted.make(credentials.codexAuth),
+              organizationId: actor.organizationId,
+              prompt: payload.prompt,
+              startedBy: null,
+              tasks: payload.tasks.map((task) => ({
+                harness: task.harness,
+                harnessVersion: version,
+                model: task.model,
+                provider: task.provider,
+              })),
+              trials: payload.trials,
+            }),
+          };
+        }).pipe(Effect.orDie)
       )
       .handle("get", { permission: Permissions.Evals.Read }, ({ path }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
-          const playground = yield* Playground;
-          const found = yield* playground.get(actor.organizationId, path.id);
+          const baselines = yield* Baselines;
+          const grid = yield* GridRun;
+
+          const found = yield* grid.get(actor.organizationId, path.id);
 
           if (Option.isNone(found)) {
             return yield* Effect.fail(
@@ -158,7 +78,49 @@ export const EvalsHandlers = HttpApiBuilder.group(
             );
           }
 
-          return detail(found.value);
+          /* Compared here rather than by the client. A grid without its
+             verdicts is a table of numbers, and deciding whether one differs
+             from an accepted reading is the product. */
+          const comparisons = yield* baselines
+            .compareRun(actor.organizationId, path.id)
+            .pipe(Effect.orElseSucceed(() => []));
+
+          return detail(found.value, comparisons);
         })
+      )
+      .handle(
+        "promote",
+        { permission: Permissions.Evals.Write },
+        ({ payload }) =>
+          Effect.gen(function* () {
+            const actor = yield* CurrentActor;
+            const baselines = yield* Baselines;
+
+            const promoted = yield* baselines
+              .promote({
+                actorId: actor.id,
+                cellInternalId: payload.cellInternalId,
+                organizationId: actor.organizationId,
+              })
+              /* A cell that scored nothing cannot become a reference: every
+                 later comparison would read it as a measured zero. That is a
+                 conflict with the state of the cell, not a missing route. */
+              .pipe(
+                Effect.catchTag("VoidBaseline", (error) =>
+                  Effect.fail(new Conflict({ message: error.reason }))
+                )
+              );
+
+            return {
+              cellKey: promoted.cellKey,
+              passRate: promoted.distribution.passRate,
+              promotedAt: DateTime.unsafeMake(promoted.promotedAt.getTime()),
+            };
+          }).pipe(
+            /* A store failure is ours, not the caller's: nothing they could
+               send would fix it, so it belongs in the 500 rather than in the
+               contract. */
+            Effect.catchTag("EvalStoreError", Effect.die)
+          )
       ).done
 );

@@ -45,5 +45,10 @@ const named = (source: string) =>
 
 export const brokenSource = named(BROKEN_SOURCE);
 
+/** The same fixture already passing. Used where the test measures the
+ * machinery around a trial rather than an agent, so the verdict is decided by
+ * the verifier and no model tokens are spent. */
+export const fixedSource = named(FIXED_SOURCE);
+
 export const AGENT_PROMPT =
   "the test fails, fix total.mjs so it passes. do not edit the test.";

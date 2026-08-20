@@ -5,11 +5,7 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
-import { CodexRunnerLive } from "@anpord/eval/harness/codex";
-import { EvalSandboxLive } from "@anpord/eval/layer";
-import { ScorerGroundTruthLive } from "@anpord/eval/scoring/ground-truth";
-import { AgentTrialLive } from "@anpord/eval/services/agent-trial";
-import { PlaygroundLive } from "@anpord/eval/services/playground";
+import { EvalGridLive, EvalSandboxLive } from "@anpord/eval/layer";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
@@ -47,16 +43,12 @@ const VerifiedKeysLayer = VerifiedKeysLive.pipe(Layer.provide(AuthLayer));
 
 /** Runs execute in this process rather than through a worker: a trial is
  * already scoped, so it cleans up after itself, and one fewer moving part is
- * worth more right now than surviving a restart mid-run. */
+ * worth more right now. A run in flight when the process dies is lost, but
+ * every cell it had already finished is on disk and still comparable. */
 const EvalLayer = Layer.mergeAll(
-  PlaygroundLive.pipe(
-    Layer.provide(
-      AgentTrialLive.pipe(
-        Layer.provide(Layer.mergeAll(CodexRunnerLive, ScorerGroundTruthLive)),
-        Layer.provideMerge(EvalSandboxLive)
-      )
-    ),
-    Layer.provide(IdGeneratorLive)
+  EvalGridLive.pipe(
+    Layer.provide(EvalSandboxLive),
+    Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
   ),
   EvalCredentialsLive.pipe(Layer.provide(BunContext.layer))
 );

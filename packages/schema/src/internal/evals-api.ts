@@ -1,9 +1,11 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
-import { Forbidden, NotFound } from "../domain/errors";
+import { Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
   EvalRun,
   EvalRunSummary,
+  PromoteBaselineRequest,
+  PromotedBaseline,
   StartEvalRequest,
   StartedEval,
 } from "../domain/evals";
@@ -30,6 +32,16 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
       .setPath(RunPath)
       .addSuccess(EvalRun)
   )
+  /** Accepting a reading as the reference to measure later runs against.
+   * Explicit rather than inferred from the most recent run: if the latest
+   * reading silently became the reference, a bad day would be adopted as the
+   * new normal and the drift would be absorbed one run at a time. */
+  .add(
+    HttpApiEndpoint.post("promote", "/evals/baselines")
+      .setPayload(PromoteBaselineRequest)
+      .addSuccess(PromotedBaseline)
+  )
+  .addError(Conflict)
   .addError(Forbidden)
   .addError(NotFound)
   .middleware(Authentication) {}

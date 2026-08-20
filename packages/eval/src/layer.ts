@@ -12,6 +12,7 @@ import { ScorerGroundTruthLive } from "./scoring/ground-truth";
 import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { CellRunLive } from "./services/cell-run";
+import { GridRunLive } from "./services/grid-run";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 
 export const EvalRepositoriesLive = Layer.mergeAll(
@@ -45,6 +46,13 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
  * caller. Those two are what a composition root chooses: one because a test
  * points at a different server, the other because a trial needs credentials
  * the domain has no business holding. */
+/** The grid, wanting a Database and a SandboxProvider. Baselines come with
+ * it because a caller reading a run almost always compares it. */
+export const EvalGridLive = Layer.mergeAll(GridRunLive, BaselinesLive).pipe(
+  Layer.provide(AgentLive),
+  Layer.provideMerge(EvalRepositoriesLive)
+);
+
 export const EvalLayer = CellRunLive.pipe(
   Layer.provide(AgentLive),
   /* provideMerge rather than provide: the repositories are part of what this
