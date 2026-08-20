@@ -6,7 +6,7 @@ export interface CaseDefinition {
   readonly prompt: string;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
-  readonly verifyCommand: string;
+  readonly verifyCommand: string | null;
   readonly workspace: string;
 }
 
@@ -46,7 +46,7 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
         input.name,
         input.prompt,
         input.setupCommand ?? "",
-        input.verifyCommand,
+        input.verifyCommand ?? "",
         input.workspace,
         sourceOf(input.source),
       ].join(" ")

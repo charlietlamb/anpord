@@ -14,6 +14,7 @@ import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { CellRunLive } from "./services/cell-run";
 import { GridRunLive } from "./services/grid-run";
+import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconcile";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { WorkbenchesLive } from "./services/workbench";
 
@@ -54,6 +55,11 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
 export const EvalGridLive = Layer.mergeAll(
   GridRunLive,
   BaselinesLive,
+  ReconcilerLive,
+  /* Sweeps abandoned work for the life of the process. Without it a run whose
+     process was killed stays running forever, because the only witness to its
+     death was the process itself. */
+  ReconcilerScheduleLive.pipe(Layer.provide(ReconcilerLive)),
   WorkbenchesLive.pipe(Layer.provide(GridRunLive))
 ).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
 

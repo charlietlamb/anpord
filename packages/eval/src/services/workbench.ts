@@ -184,16 +184,15 @@ export const WorkbenchesLive = Layer.effect(
         }
 
         const runId = yield* grid.start({
-          /* An ungated case runs with a verifier that always succeeds, so the
-             journal is produced and the verdict is meaningless by
-             construction rather than by accident. The API reports which cases
-             those are, so nobody reads the pass as evidence. */
+          /* The absent verifier travels as absent. Substituting one that
+             always succeeds made an ungated cell report a perfect,
+             deterministic, promotable pass rate from no evidence at all. */
           cases: config.cases.map((subject) => ({
             goal: subject.goal,
             name: subject.name,
             setup: subject.setup,
             source: subject.source,
-            verify: subject.verify ?? "true",
+            verify: subject.verify,
           })),
           credentials: input.credentials,
           organizationId: input.organizationId,

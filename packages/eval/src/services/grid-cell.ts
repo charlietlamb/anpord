@@ -17,7 +17,9 @@ export interface GridCase {
   readonly name: string;
   readonly setup: string | null;
   readonly source: WorkspaceSource;
-  readonly verify: string;
+  /** Null for an imported case, whose format carries no verifier. It runs and
+   * produces a journal, and its trials are void rather than passed. */
+  readonly verify: string | null;
 }
 
 export interface RunGridCell {
@@ -79,6 +81,19 @@ export const runGridCell = (
       taskInternalId: input.taskInternalId,
     });
 
+    /* Settled however this ends, including on interrupt. Settling only on
+       the success path left cells running forever inside runs already marked
+       finished, because an interrupt between recording the trials and the
+       final write skipped it and the outer loop carried on. */
+    yield* Effect.addFinalizer((exit) =>
+      input.runs
+        .settleCell({
+          internalId: cell.internalId,
+          status: exit._tag === "Success" ? "finished" : "failed",
+        })
+        .pipe(Effect.ignore)
+    );
+
     const results = yield* Effect.all(
       Array.from({ length: input.trials }, (_, index) =>
         input.agent
@@ -126,15 +141,11 @@ export const runGridCell = (
       { discard: true }
     );
 
-    /* Settled in the record, not only in the live view. A cell left running
-       forever makes every completed historical run read as still in flight. */
-    yield* input.runs.settleCell({
-      internalId: cell.internalId,
-      status: "finished",
-    });
-
     return { cellKey, internalId: cell.internalId };
   }).pipe(
+    /* Scoped to this cell, so the settle finalizer runs when the cell ends
+       rather than whenever the caller's scope happens to close. */
+    Effect.scoped,
     Effect.withSpan("GridCell.run", {
       attributes: {
         harness: input.task.harness,

@@ -59,7 +59,9 @@ export const EvalCase = Schema.Struct({
   name: Schema.String,
   setup: Schema.NullOr(Schema.String),
   source: EvalSource,
-  verify: Schema.String,
+  /** Null for a case whose format carries no verifier. Its trials are void,
+   * never passed: a case nothing decides has produced no evidence. */
+  verify: Schema.NullOr(Schema.String),
 });
 export type EvalCase = typeof EvalCase.Type;
 

@@ -19,7 +19,7 @@ export interface TaskRepositoryShape {
     readonly organizationId: string;
     readonly prompt: string;
     readonly setupCommand: string | null;
-    readonly verifyCommand: string;
+    readonly verifyCommand: string | null;
     readonly workspace: string;
   }) => Effect.Effect<TaskRow, EvalStoreError>;
   readonly list: (
@@ -42,7 +42,7 @@ export interface TaskRepositoryShape {
     readonly organizationId: string;
     readonly prompt: string;
     readonly setupCommand: string | null;
-    readonly verifyCommand: string;
+    readonly verifyCommand: string | null;
     readonly workspace: string;
   }) => Effect.Effect<TaskRow, EvalStoreError>;
 }

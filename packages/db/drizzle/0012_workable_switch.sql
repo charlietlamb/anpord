@@ -1,0 +1,1 @@
+ALTER TABLE "eval_task" ALTER COLUMN "verify_command" DROP NOT NULL;

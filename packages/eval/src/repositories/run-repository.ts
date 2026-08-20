@@ -182,6 +182,14 @@ export const RunRepositoryLive = Layer.effect(
                 status: "running",
                 taskInternalId: input.taskInternalId,
               })
+              /* Idempotent, because the cell key has no positional component:
+                 two identical columns in one grid hash to the same key, and a
+                 constraint violation here killed a run that had already
+                 opened sandboxes and spent money on earlier cells. */
+              .onConflictDoUpdate({
+                set: { status: "running" },
+                target: [evalCell.runInternalId, evalCell.cellKey],
+              })
               .returning()
           );
 

@@ -25,7 +25,10 @@ export const evalTask = pgTable(
     repoUrl: text("repo_url"),
     repoRef: text("repo_ref"),
     setupCommand: text("setup_command"),
-    verifyCommand: text("verify_command").notNull(),
+    /* Null for a case whose format carries no verifier. Stored as absent
+       rather than as a command that always succeeds, so a run read back knows
+       its trials were void by design and not by failure. */
+    verifyCommand: text("verify_command"),
     workspace: text("workspace").notNull(),
     bracketedAt: timestamp("bracketed_at"),
     createdBy: text("created_by").references(() => user.id, {

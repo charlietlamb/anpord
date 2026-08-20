@@ -48,6 +48,7 @@
     "./services/baselines": "./src/services/baselines.ts",
     "./services/cell-run": "./src/services/cell-run.ts",
     "./services/grid-run": "./src/services/grid-run.ts",
+    "./services/reconcile": "./src/services/reconcile.ts",
     "./services/workbench": "./src/services/workbench.ts",
     "./services/grid-state": "./src/services/grid-state.ts",
     "./services/trial-runner": "./src/services/trial-runner.ts",

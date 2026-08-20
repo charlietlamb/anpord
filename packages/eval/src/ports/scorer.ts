@@ -6,7 +6,12 @@ export interface ScoreRequest {
   readonly commandCount: number;
   readonly modelMs: number;
   readonly sandbox: SandboxHandle;
-  readonly verifyCommand: string;
+  /** Null when the case carries no verifier.
+   *
+   * An imported evals.json has none: its expected output is prose and its
+   * assertions are prose, and neither decides a run. A case like that has no
+   * evidence, which is what void means, so it is never scored as a pass. */
+  readonly verifyCommand: string | null;
   readonly workspace: string;
 }
 

@@ -37,7 +37,8 @@ export interface AgentTrialRequest {
   readonly provider: ProviderName;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
-  readonly verifyCommand: string;
+  /** Null for a case with no verifier, which is voided rather than passed. */
+  readonly verifyCommand: string | null;
   readonly workspace: string;
 }
 

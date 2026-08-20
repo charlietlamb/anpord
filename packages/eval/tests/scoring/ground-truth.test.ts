@@ -1,5 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Stream } from "effect";
+import { distributionOf } from "../../src/domain/distribution";
+import { outcomeOf } from "../../src/domain/trial";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
 import { Scorer } from "../../src/ports/scorer";
 import {
@@ -14,7 +16,7 @@ const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   writeFile: () => Effect.void,
 });
 
-const score = (sandbox: SandboxHandle, verifyCommand: string) =>
+const score = (sandbox: SandboxHandle, verifyCommand: string | null) =>
   Effect.runPromise(
     Effect.gen(function* () {
       const scorer = yield* Scorer;
@@ -123,5 +125,38 @@ describe("isUnguardedPipeline and ordinary commands", () => {
     ]) {
       expect(isUnguardedPipeline(command)).toBe(true);
     }
+  });
+});
+
+describe("a case with no verifier", () => {
+  /** The bug this prevents: substituting a verifier that always succeeds made
+   * an imported case report a perfect, deterministic, promotable pass rate
+   * from no evidence at all. That is the void gate's own failure wearing a
+   * feature's clothes. */
+  it("is void rather than passed", async () => {
+    const outcome = await score(sandboxYielding([]), null);
+
+    expect(outcome.status).toBe("void");
+    expect(outcome.passed).toBe(false);
+  });
+
+  it("never counts toward a pass rate", () => {
+    const voided = [1, 2, 3].map(() =>
+      outcomeOf({
+        commandCount: 0,
+        exitCode: -1,
+        fingerprint: { verify: "" },
+        modelMs: 100,
+        sandboxMs: 0,
+      })
+    );
+
+    const distribution = distributionOf(voided);
+
+    expect(distribution.scored).toBe(0);
+    expect(distribution.voided).toBe(3);
+    /* And so it cannot be promoted: promote refuses a cell with nothing
+       scored, which is what makes the fix hold end to end. */
+    expect(distribution.deterministic).toBe(false);
   });
 });

@@ -79,6 +79,20 @@ export const ScorerGroundTruthLive = Layer.succeed(
   Scorer.of({
     score: (request: ScoreRequest) =>
       Effect.gen(function* () {
+        /* Nothing decides this case, so there is nothing to report but the
+           absence. Returning a pass here would be the void gate's own bug in
+           a new place: maximum confidence from zero evidence, deterministic
+           and promotable as a baseline that can never move. */
+        if (request.verifyCommand === null) {
+          return outcomeOf({
+            commandCount: request.commandCount,
+            exitCode: -1,
+            fingerprint: { verify: "" },
+            modelMs: request.modelMs,
+            sandboxMs: 0,
+          });
+        }
+
         if (isUnguardedPipeline(request.verifyCommand)) {
           return outcomeOf({
             commandCount: request.commandCount,
