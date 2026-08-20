@@ -33,16 +33,18 @@ const AgentLive = AgentTrialLive.pipe(
   Layer.provide(Layer.mergeAll(CodexRunnerLive, ScorerGroundTruthLive))
 );
 
+/** Baselines read through RunQuery, so they compose after the repositories
+ * rather than beside them. provideMerge because a caller comparing a run
+ * usually writes one too, and hiding the repositories here would make it
+ * build them a second time. */
+export const EvalBaselinesLive = BaselinesLive.pipe(
+  Layer.provideMerge(EvalRepositoriesLive)
+);
+
 /** The whole domain, wanting only a Database and a SandboxProvider from its
  * caller. Those two are what a composition root chooses: one because a test
  * points at a different server, the other because a trial needs credentials
  * the domain has no business holding. */
-/** Baselines read through RunQuery, so they compose after the repositories
- * rather than beside them. */
-export const EvalBaselinesLive = BaselinesLive.pipe(
-  Layer.provide(EvalRepositoriesLive)
-);
-
 export const EvalLayer = CellRunLive.pipe(
   Layer.provide(AgentLive),
   /* provideMerge rather than provide: the repositories are part of what this
