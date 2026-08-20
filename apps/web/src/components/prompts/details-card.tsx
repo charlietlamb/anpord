@@ -5,10 +5,10 @@ import {
   ClockCounterClockwiseIcon,
   FloppyDiskIcon,
   HashIcon,
-  UserIcon,
 } from "@phosphor-icons/react";
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { DetailRow } from "@/components/prompts/detail-row";
+import { DetailRowFrame } from "@/components/prompts/detail-row-frame";
 import { RailSection } from "@/components/rail/rail-section";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
@@ -45,19 +45,23 @@ export function DetailsCard({ created, viewed }: DetailsCardProps) {
         </time>
       </DetailRow>
 
+      {/* The face is the icon: a person's row does not need a glyph of a
+          person beside their own picture. */}
       {viewed.author ? (
-        <DetailRow icon={UserIcon} label="Author">
-          <span className="flex items-center gap-1.5">
+        <DetailRowFrame
+          label="Author"
+          marker={
             <IdentityAvatar
-              className="size-4"
+              className="size-4 shrink-0"
               fallbackClassName="text-[0.5rem]"
               image={viewed.author.image}
               label={viewed.author.name}
               text={initials(viewed.author.name)}
             />
-            <span className="truncate">{viewed.author.name}</span>
-          </span>
-        </DetailRow>
+          }
+        >
+          {viewed.author.name}
+        </DetailRowFrame>
       ) : null}
     </RailSection>
   );
