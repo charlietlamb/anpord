@@ -50,7 +50,6 @@
     "./services/grid-run": "./src/services/grid-run.ts",
     "./services/workbench": "./src/services/workbench.ts",
     "./services/grid-state": "./src/services/grid-state.ts",
-    "./services/playground": "./src/services/playground.ts",
     "./services/trial-runner": "./src/services/trial-runner.ts",
     "./services/workspace": "./src/services/workspace.ts",
     "./workflow/trial": "./src/workflow/trial.ts"

@@ -1,4 +1,11 @@
-import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
 import { user } from "../auth/users";
 
@@ -37,10 +44,16 @@ export const evalPlayground = pgTable(
     archivedAt: timestamp("archived_at"),
   },
   (table) => [
-    index("eval_playground_organization_id_id_idx").on(
+    /* Unique, matching every sibling table. A save updates by (org, id) and
+       returns one row; with duplicates it would update several and report
+       one, so somebody's work would vanish without an error. */
+    uniqueIndex("eval_playground_organization_id_id_idx").on(
       table.organizationId,
       table.id
     ),
-    index("eval_playground_organization_id_idx").on(table.organizationId),
+    index("eval_playground_organization_id_updated_at_idx").on(
+      table.organizationId,
+      table.updatedAt
+    ),
   ]
 );

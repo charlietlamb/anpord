@@ -5,8 +5,13 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { evalTrial } from "./eval-trials";
+
+/** The stored shape of a journal entry. Structural rather than imported from
+ * the eval package, because the schema package must not depend on it. */
+type HarnessEventRow = { readonly _tag: string } & Record<string, unknown>;
 
 /** The journal: every command with its exit code, every file event, every
  * harness message, as one ordered sequence per trial.
@@ -23,13 +28,19 @@ export const evalEvent = pgTable(
       .references(() => evalTrial.internalId, { onDelete: "cascade" }),
     seq: integer("seq").notNull(),
     kind: text("kind").notNull(),
-    payload: jsonb("payload").notNull(),
+    payload: jsonb("payload").$type<HarnessEventRow>().notNull(),
     at: timestamp("at").notNull().defaultNow(),
   },
   (table) => [
-    index("eval_event_trial_internal_id_seq_idx").on(
+    /* Unique, not merely indexed: seq is assigned from an array index per
+       call, so two appends for one trial would both start at zero and the
+       journal's order would be unrecoverable. */
+    uniqueIndex("eval_event_trial_internal_id_seq_idx").on(
       table.trialInternalId,
       table.seq
     ),
+    /* The retention sweep filters on age. Without this it scans the largest
+       table in the system. */
+    index("eval_event_at_idx").on(table.at),
   ]
 );

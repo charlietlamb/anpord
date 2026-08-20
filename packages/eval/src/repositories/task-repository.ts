@@ -71,7 +71,7 @@ export const TaskRepositoryLive = Layer.effect(
                 isNull(evalTask.archivedAt)
               )
             )
-        ).pipe(Effect.map(head)),
+        ).pipe(Effect.map(head), Effect.withSpan("TaskRepository.findById")),
 
       insert: (input) =>
         Effect.gen(function* () {
@@ -116,17 +116,38 @@ export const TaskRepositoryLive = Layer.effect(
                 verifyCommand: input.verifyCommand,
                 workspace: input.workspace,
               })
-              /* Nothing to update: the identity is the content, so a row that
-                 already exists is already correct. The clause exists to make
-                 the insert return the existing row rather than conflict. */
-              .onConflictDoUpdate({
-                set: { name: input.name },
+              /* Nothing is updated, because the identity is the content: a
+                 row that already exists is already correct. Setting any
+                 column here would retroactively rewrite the task that a
+                 promoted baseline's cell key was hashed over, and every
+                 historical comparison would silently change meaning. */
+              .onConflictDoNothing({
                 target: [evalTask.organizationId, evalTask.id],
               })
               .returning()
           );
 
-          return rows[0] as TaskRow;
+          const inserted = rows.at(0);
+
+          if (inserted !== undefined) {
+            return inserted;
+          }
+
+          /* The row already existed, so the insert returned nothing. Reading
+             it back is the price of never mutating it. */
+          const existing = yield* tryStore("task.findByIdentity", () =>
+            db
+              .select()
+              .from(evalTask)
+              .where(
+                and(
+                  eq(evalTask.organizationId, input.organizationId),
+                  eq(evalTask.id, input.identity)
+                )
+              )
+          );
+
+          return existing[0] as TaskRow;
         }),
 
       list: (organizationId) =>

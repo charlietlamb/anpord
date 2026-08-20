@@ -5,7 +5,7 @@ import { IdGenerator } from "@anpord/ids/id";
 import { Context, Effect, Layer } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
-import type { HarnessEvent } from "../domain/harness-event";
+import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
 import { tryStore } from "./query";
 
@@ -18,6 +18,10 @@ export interface RecordTrial {
   readonly provider: ProviderName;
   readonly sandboxId: string | null;
   readonly startedAt: Date;
+  /** Tokens the model spent. Captured by every harness adapter and, until
+     this was written, thrown away: the column existed and was always null,
+     so nothing could answer what a run cost. */
+  readonly usage: HarnessUsage | null;
 }
 
 export interface TrialRecorderShape {
@@ -78,6 +82,7 @@ export const TrialRecorderLive = Layer.effect(
               sandboxMs: input.outcome.sandboxMs,
               startedAt: input.startedAt,
               status: input.outcome.status,
+              usage: input.usage === null ? null : { ...input.usage },
               voidFields: [...input.outcome.voidFields],
             });
 

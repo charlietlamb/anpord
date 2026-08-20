@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -47,9 +48,10 @@ export const evalTrial = pgTable(
       table.cellInternalId,
       table.ordinal
     ),
-    index("eval_trial_cell_internal_id_idx").on(table.cellInternalId),
-    /* Reaping asks for live sandboxes by status, and a partial index keeps
-       that cheap as finished trials accumulate. */
-    index("eval_trial_status_idx").on(table.status),
+    /* Partial, and only over trials that may still hold a sandbox. The
+       previous index covered every status and supported no query at all. */
+    index("eval_trial_live_sandbox_idx")
+      .on(table.status)
+      .where(sql`status in ('queued', 'running') and sandbox_id is not null`),
   ]
 );

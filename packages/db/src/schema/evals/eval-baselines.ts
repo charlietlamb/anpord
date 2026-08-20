@@ -40,6 +40,7 @@ export const evalBaseline = pgTable(
       table.organizationId,
       table.cellKey
     ),
-    index("eval_baseline_organization_id_idx").on(table.organizationId),
+    /* The sweep asks which cells a baseline protects. */
+    index("eval_baseline_cell_internal_id_idx").on(table.cellInternalId),
   ]
 );

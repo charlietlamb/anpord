@@ -26,10 +26,17 @@ export interface RunRepositoryShape {
     organizationId: string,
     id: string
   ) => Effect.Effect<Option.Option<RunRow>, EvalStoreError>;
-  readonly finish: (
-    internalId: string,
-    finishedAt: Date
-  ) => Effect.Effect<void, EvalStoreError>;
+  /** Ends a run, recording how it ended.
+   *
+   * The status is a parameter rather than always "finished": a run that died
+   * inside its own daemon used to be written as finished, so after a restart
+   * a crash was indistinguishable from a clean run. */
+  readonly finish: (input: {
+    readonly failure: string | null;
+    readonly finishedAt: Date;
+    readonly internalId: string;
+    readonly status: "failed" | "finished";
+  }) => Effect.Effect<void, EvalStoreError>;
   readonly insert: (input: {
     readonly cellCount: number;
     readonly organizationId: string;
@@ -39,11 +46,19 @@ export interface RunRepositoryShape {
   readonly insertCell: (
     input: InsertCell
   ) => Effect.Effect<CellRow, EvalStoreError>;
-  /** Every cell of a grid in one statement. A run is cases by tasks, so a
-   * per-cell round trip grows with the product of both axes. */
   readonly insertCells: (
     input: readonly InsertCell[]
   ) => Effect.Effect<readonly CellRow[], EvalStoreError>;
+  /** Every cell of a grid in one statement. A run is cases by tasks, so a
+   * per-cell round trip grows with the product of both axes. */
+  /** Records how a cell ended.
+   *
+   * Without this a cell stays "running" in the record forever, so every
+   * completed historical run reads as still in flight. */
+  readonly settleCell: (input: {
+    readonly internalId: string;
+    readonly status: "failed" | "finished";
+  }) => Effect.Effect<void, EvalStoreError>;
 }
 
 export class RunRepository extends Context.Tag("@anpord/eval/RunRepository")<
@@ -74,15 +89,19 @@ export const RunRepositoryLive = Layer.effect(
                 eq(evalRun.id, id)
               )
             )
-        ).pipe(Effect.map(head)),
+        ).pipe(Effect.map(head), Effect.withSpan("RunRepository.findById")),
 
-      finish: (internalId, finishedAt) =>
+      finish: (input) =>
         tryStore("run.finish", () =>
           db
             .update(evalRun)
-            .set({ finishedAt, status: "finished" })
-            .where(eq(evalRun.internalId, internalId))
-        ).pipe(Effect.asVoid),
+            .set({
+              failure: input.failure,
+              finishedAt: input.finishedAt,
+              status: input.status,
+            })
+            .where(eq(evalRun.internalId, input.internalId))
+        ).pipe(Effect.asVoid, Effect.withSpan("RunRepository.finish")),
 
       insert: (input) =>
         Effect.gen(function* () {
@@ -109,6 +128,14 @@ export const RunRepositoryLive = Layer.effect(
 
           return rows[0] as RunRow;
         }),
+
+      settleCell: (input) =>
+        tryStore("run.settleCell", () =>
+          db
+            .update(evalCell)
+            .set({ status: input.status })
+            .where(eq(evalCell.internalId, input.internalId))
+        ).pipe(Effect.asVoid, Effect.withSpan("RunRepository.settleCell")),
 
       insertCells: (input) =>
         Effect.gen(function* () {

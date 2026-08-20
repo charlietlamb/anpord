@@ -84,7 +84,7 @@ export const runToState = (detail: RunDetail): GridRunState => {
       entry.cell.provider,
     ].join(" ");
 
-    const caseName = entry.cell.taskInternalId;
+    const caseName = entry.caseName;
 
     if (!caseNames.includes(caseName)) {
       caseNames.push(caseName);

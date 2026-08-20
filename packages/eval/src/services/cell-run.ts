@@ -138,12 +138,23 @@ export const CellRunLive = Layer.effect(
               provider: request.agent.provider,
               sandboxId: result.sandboxId,
               startedAt: new Date(settledAt - took),
+              usage: Option.getOrNull(result.usage),
             });
           },
           { discard: true }
         );
 
-        yield* runs.finish(created.internalId, finishedAt);
+        yield* runs.settleCell({
+          internalId: cell.internalId,
+          status: "finished",
+        });
+
+        yield* runs.finish({
+          failure: null,
+          finishedAt,
+          internalId: created.internalId,
+          status: "finished",
+        });
 
         return {
           cellKey,

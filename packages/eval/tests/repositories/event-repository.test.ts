@@ -131,9 +131,9 @@ describe.if(Boolean(URL))("the journal against a real database", () => {
     /* The exit codes are the point. A tool-call string cannot carry them, and
        recovering them after the fact is what the journal exists for. */
     const commands = stored.filter((row) => row.kind === "Command");
-    expect(
-      commands.map((row) => (row.payload as { exitCode: number }).exitCode)
-    ).toEqual([1, 0]);
+    expect(commands.map((row) => row.payload.exitCode as number)).toEqual([
+      1, 0,
+    ]);
   });
 
   it("writes nothing when there is nothing to write", async () => {

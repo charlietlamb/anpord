@@ -126,6 +126,7 @@ describe.skipIf(!URL)("TrialRecorder", () => {
           provider: "daytona",
           sandboxId: "sbx_1",
           startedAt: new Date(),
+          usage: { inputTokens: 120, outputTokens: 40, totalTokens: 160 },
         });
       })
     );
@@ -150,6 +151,13 @@ describe.skipIf(!URL)("TrialRecorder", () => {
     expect(written.trials).toHaveLength(1);
     expect(written.events).toHaveLength(2);
     expect(written.trials[0]?.passed).toBe(true);
+    /* Cost travelled with the trial. This column was always null before,
+       so nothing could answer what a run had spent. */
+    expect(written.trials[0]?.usage).toEqual({
+      inputTokens: 120,
+      outputTokens: 40,
+      totalTokens: 160,
+    });
   });
 
   /** The reason this module exists. A failure while writing the journal must
@@ -190,6 +198,7 @@ describe.skipIf(!URL)("TrialRecorder", () => {
           provider: "daytona",
           sandboxId: "sbx_2",
           startedAt: new Date(),
+          usage: null,
         });
       }).pipe(
         Effect.provide(TestLayer),

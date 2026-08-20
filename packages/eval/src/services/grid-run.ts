@@ -82,6 +82,16 @@ export const GridRunLive = Layer.scoped(
         Effect.zipRight(PubSub.publish(changes, state))
       );
 
+    /* Dropped once the run is terminal. Each entry holds every trial's full
+       journal, untruncated, so keeping finished runs here grows without bound
+       for the life of the process. The record answers for them afterwards. */
+    const forget = (id: string) =>
+      Ref.update(live, (all) => {
+        const next = new Map(all);
+        next.delete(id);
+        return next;
+      });
+
     const update = (
       id: string,
       change: (state: GridRunState) => GridRunState
@@ -168,13 +178,20 @@ export const GridRunLive = Layer.scoped(
 
         const finishedAt = yield* Clock.currentTimeMillis;
 
-        yield* runs.finish(created.internalId, new Date(finishedAt));
+        yield* runs.finish({
+          failure: null,
+          finishedAt: new Date(finishedAt),
+          internalId: created.internalId,
+          status: "finished",
+        });
 
         yield* update(created.id, (state) => ({
           ...state,
           finishedAt: Option.some(finishedAt),
           status: "finished",
         }));
+
+        yield* forget(created.id);
       });
 
     const start = (input: StartGrid) =>
@@ -238,17 +255,24 @@ export const GridRunLive = Layer.scoped(
             Effect.catchAllCause((cause) =>
               Clock.currentTimeMillis.pipe(
                 Effect.flatMap((finishedAt) =>
-                  runs.finish(created.internalId, new Date(finishedAt)).pipe(
-                    Effect.ignore,
-                    Effect.zipRight(
-                      update(created.id, (state) => ({
-                        ...state,
-                        failure: Option.some(String(cause)),
-                        finishedAt: Option.some(finishedAt),
-                        status: "failed",
-                      }))
+                  runs
+                    .finish({
+                      failure: String(cause),
+                      finishedAt: new Date(finishedAt),
+                      internalId: created.internalId,
+                      status: "failed",
+                    })
+                    .pipe(
+                      Effect.ignore,
+                      Effect.zipRight(
+                        update(created.id, (state) => ({
+                          ...state,
+                          failure: Option.some(String(cause)),
+                          finishedAt: Option.some(finishedAt),
+                          status: "failed",
+                        }))
+                      )
                     )
-                  )
                 )
               )
             )
@@ -285,7 +309,8 @@ export const GridRunLive = Layer.scoped(
           return query
             .findRun(organizationId, id)
             .pipe(Effect.map(Option.map(runToState)), Effect.orDie);
-        })
+        }),
+        Effect.withSpan("GridRun.get")
       );
 
     return GridRun.of({
@@ -301,7 +326,8 @@ export const GridRunLive = Layer.scoped(
           Effect.map((states) =>
             states.filter((state): state is GridRunState => state !== null)
           ),
-          Effect.orDie
+          Effect.orDie,
+          Effect.withSpan("GridRun.list")
         ),
       start,
     });

@@ -1,4 +1,4 @@
-import { Clock, Effect, type Redacted } from "effect";
+import { Clock, Effect, Option, type Redacted } from "effect";
 import { cellKeyOf } from "../domain/cell";
 import type {
   EvalStoreError,
@@ -120,10 +120,18 @@ export const runGridCell = (
           provider: input.task.provider,
           sandboxId: result.sandboxId,
           startedAt: new Date(settledAt - took),
+          usage: Option.getOrNull(result.usage),
         });
       },
       { discard: true }
     );
+
+    /* Settled in the record, not only in the live view. A cell left running
+       forever makes every completed historical run read as still in flight. */
+    yield* input.runs.settleCell({
+      internalId: cell.internalId,
+      status: "finished",
+    });
 
     return { cellKey, internalId: cell.internalId };
   }).pipe(

@@ -35,7 +35,13 @@ export const evalCell = pgTable(
       table.runInternalId,
       table.cellKey
     ),
-    index("eval_cell_run_internal_id_idx").on(table.runInternalId),
-    index("eval_cell_cell_key_idx").on(table.cellKey),
+    /* Ordered, because cell history is the newest N readings of one key and
+       an unordered index leaves a heapsort over every cell sharing it. This
+       supersedes a bare cell_key index, and the run_internal_id index is a
+       prefix of the composite above. */
+    index("eval_cell_cell_key_created_at_idx").on(
+      table.cellKey,
+      table.createdAt.desc()
+    ),
   ]
 );

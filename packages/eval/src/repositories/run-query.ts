@@ -1,6 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
+import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
@@ -15,6 +16,9 @@ type RunRow = typeof evalRun.$inferSelect;
 type TrialRow = typeof evalTrial.$inferSelect;
 
 interface CellWithTrials {
+  /** The case's own name, which lives on the task rather than the cell.
+   * Without the join a stored run labels every row with an internal id. */
+  readonly caseName: string;
   readonly cell: CellRow;
   readonly distribution: Distribution;
   readonly trials: readonly TrialRow[];
@@ -95,25 +99,30 @@ export const RunQueryLive = Layer.effect(
 
         const cells = yield* tryStore("runQuery.cells", () =>
           db
-            .select()
+            .select({ caseName: evalTask.name, cell: evalCell })
             .from(evalCell)
+            .innerJoin(
+              evalTask,
+              eq(evalCell.taskInternalId, evalTask.internalId)
+            )
             .where(eq(evalCell.runInternalId, run.internalId))
         );
 
         const trials = yield* trialsForCells(
-          cells.map((cell) => cell.internalId)
+          cells.map((row) => row.cell.internalId)
         );
 
         const byCell = groupByCell(trials);
 
         return Option.some({
-          cells: cells.map((cell) => {
-            const own = (byCell.get(cell.internalId) ?? []).sort(
+          cells: cells.map((row) => {
+            const own = (byCell.get(row.cell.internalId) ?? []).sort(
               (left, right) => left.ordinal - right.ordinal
             );
 
             return {
-              cell,
+              caseName: row.caseName,
+              cell: row.cell,
               distribution: distributionFor(own),
               trials: own,
             };

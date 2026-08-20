@@ -103,12 +103,18 @@ const recordCell = (input: {
           provider: "daytona",
           sandboxId: `sbx_${index}`,
           startedAt: new Date(),
+          usage: null,
         });
       },
       { discard: true }
     );
 
-    yield* runs.finish(created.internalId, new Date());
+    yield* runs.finish({
+      failure: null,
+      finishedAt: new Date(),
+      internalId: created.internalId,
+      status: "finished",
+    });
 
     return { cellInternalId: cell.internalId, runId: created.id };
   });

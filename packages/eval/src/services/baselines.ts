@@ -5,7 +5,7 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
 import { and, eq } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
+import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { CellKey } from "../domain/cell";
 import { type Comparison, compare } from "../domain/comparison";
 import type { Distribution } from "../domain/distribution";
@@ -144,6 +144,9 @@ export const BaselinesLive = Layer.effect(
 
         const internalId = yield* ids.generate("evalBaseline");
         const cellKey = cell.cellKey as CellKey;
+        /* One reading of the clock for both the write and the reply, so the
+           value returned cannot disagree with the value stored. */
+        const promotedAt = new Date(yield* Clock.currentTimeMillis);
 
         const rows = yield* tryStore("baseline.promote", () =>
           db
@@ -153,12 +156,13 @@ export const BaselinesLive = Layer.effect(
               cellKey,
               internalId,
               organizationId: input.organizationId,
+              promotedAt,
               promotedBy: input.actorId,
             })
             .onConflictDoUpdate({
               set: {
                 cellInternalId: input.cellInternalId,
-                promotedAt: new Date(),
+                promotedAt,
                 promotedBy: input.actorId,
               },
               target: [evalBaseline.organizationId, evalBaseline.cellKey],
@@ -170,7 +174,7 @@ export const BaselinesLive = Layer.effect(
           cellInternalId: input.cellInternalId,
           cellKey,
           distribution,
-          promotedAt: rows[0]?.promotedAt ?? new Date(),
+          promotedAt: rows[0]?.promotedAt ?? promotedAt,
         } satisfies Baseline;
       }).pipe(
         Effect.withSpan("Baselines.promote"),

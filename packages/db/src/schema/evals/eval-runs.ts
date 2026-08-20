@@ -23,6 +23,10 @@ export const evalRun = pgTable(
     startedBy: text("started_by").references(() => user.id, {
       onDelete: "set null",
     }),
+    /* Why a run ended badly, kept because the in-memory copy is evicted on
+       restart and a crashed grid would otherwise be indistinguishable from a
+       clean one: evidence of failure read as evidence of success. */
+    failure: text("failure"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),
