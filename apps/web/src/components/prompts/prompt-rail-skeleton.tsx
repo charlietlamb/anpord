@@ -24,7 +24,7 @@ const DETAIL_ROWS = [
  */
 export function PromptRailSkeleton() {
   return (
-    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:h-svh lg:overflow-y-auto lg:overflow-x-clip lg:overscroll-contain lg:pt-5 lg:pb-8">
+    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:-mx-2 lg:h-svh lg:overflow-y-auto lg:overscroll-contain lg:px-2 lg:pt-5 lg:pb-8">
       <div className="flex justify-end">
         <PromptEditorActions
           correctingVersion={null}
