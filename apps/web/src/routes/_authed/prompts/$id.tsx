@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PromptActivityFeed } from "@/components/prompts/prompt-activity-feed";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
 import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
@@ -14,6 +15,7 @@ import { PromptEditorTitle } from "@/components/prompts/prompt-editor-title";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
 import { useDialog } from "@/lib/dialog/dialogs";
+import { channelQueries } from "@/lib/query/channel-queries";
 import { promptQueries } from "@/lib/query/prompt-queries";
 import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";
 import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";
@@ -60,6 +62,9 @@ function PromptDetailPage() {
 
   const versions = useQuery(promptQueries.versions(id));
   const channels = useQuery(promptQueries.channels(id));
+  /** Every channel the organisation defines, so a version can be sent to one
+   * that this prompt has never published to. */
+  const definedChannels = useQuery(channelQueries.list());
   const addVersion = useAddPromptVersion(id);
 
   const [draft, setDraft] = useState<string | null>(null);
@@ -212,12 +217,6 @@ function PromptDetailPage() {
     });
   };
 
-  const onAddChannel = () =>
-    openDialog("newChannel", {
-      onSubmit: (channel: string) => pointChannel(channel, viewed.version),
-      version: viewed.version,
-    });
-
   const onEditRequest = () => {
     if (editing) {
       return;
@@ -252,6 +251,8 @@ function PromptDetailPage() {
           submitIcon={ArrowUpIcon}
           submitLabel="Save version"
         />
+
+        <PromptActivityFeed promptId={id} versions={rows} />
       </main>
 
       <PromptRail
@@ -267,17 +268,13 @@ function PromptDetailPage() {
             saving={addVersion.isPending || correctVersion.isPending}
           />
         }
-        channels={channels.data ?? []}
-        channelsPending={channels.isPending}
-        editing={editing}
-        onAddChannel={onAddChannel}
-        onEditFrom={() => editFrom(viewed)}
-        onPoint={onPoint}
-        onPromote={() => onPoint(PRODUCTION, viewed.version)}
+        channels={definedChannels.data ?? []}
+        onEditFrom={editFrom}
+        onPromote={onPoint}
         onSelect={(version: ResolvedPrompt) =>
           setSelection({ kind: "history", version: version.version })
         }
-        pointing={promote.isPending}
+        placements={channels.data ?? []}
         variables={extractVariables(content)}
         versions={rows}
         viewed={viewed}

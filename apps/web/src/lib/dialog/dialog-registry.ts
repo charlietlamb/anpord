@@ -42,8 +42,4 @@ export const dialogRegistry: DialogRegistry<DialogMap> = {
     () => import("@/components/dialog/invite-member-dialog"),
     "InviteMemberDialog"
   ),
-  newChannel: named(
-    () => import("@/components/dialog/new-channel-dialog"),
-    "NewChannelDialog"
-  ),
 };

@@ -1,3 +1,4 @@
+import type { Channel } from "@anpord/schema/domain/channels";
 import type {
   ChannelPlacement,
   ResolvedPrompt,
@@ -41,9 +42,23 @@ const version = (number: number): ResolvedPrompt =>
   }) as unknown as ResolvedPrompt;
 
 const VERSIONS = [8, 7, 6, 5, 4, 3, 2, 1].map(version);
-const CHANNELS = [
+const PLACEMENTS = [
   { channel: "production", version: 3 },
 ] as unknown as ChannelPlacement[];
+const CHANNELS = [
+  {
+    color: "slate",
+    createdAt: new Date(EPOCH),
+    name: "production",
+    promptCount: 1,
+  },
+  {
+    color: "blue",
+    createdAt: new Date(EPOCH),
+    name: "staging",
+    promptCount: 0,
+  },
+] as unknown as Channel[];
 
 function EditorPreview() {
   const [content, setContent] = useState(BODY);
@@ -94,14 +109,10 @@ function EditorPreview() {
             />
           }
           channels={CHANNELS}
-          channelsPending={false}
-          editing={editing}
-          onAddChannel={() => undefined}
           onEditFrom={() => undefined}
-          onPoint={() => undefined}
           onPromote={() => undefined}
           onSelect={() => undefined}
-          pointing={false}
+          placements={PLACEMENTS}
           variables={extractVariables(content)}
           versions={VERSIONS}
           viewed={VERSIONS[0] as ResolvedPrompt}

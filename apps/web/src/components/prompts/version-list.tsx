@@ -1,9 +1,18 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import type { Channel } from "@anpord/schema/domain/channels";
+import type {
+  ChannelPlacement,
+  ResolvedPrompt,
+} from "@anpord/schema/domain/prompts";
 import type { KeyboardEvent } from "react";
 import { VersionRow } from "@/components/prompts/version-row";
 
 interface VersionListProps {
+  readonly channels: readonly Channel[];
+  readonly onEditFrom: (version: ResolvedPrompt) => void;
+  readonly onPromote: (channel: string, version: number) => void;
   readonly onSelect: (version: ResolvedPrompt) => void;
+  /** Where each channel points, so a row can say what it serves. */
+  readonly placements: readonly ChannelPlacement[];
   readonly versions: readonly ResolvedPrompt[];
   readonly viewedVersion: number;
 }
@@ -11,8 +20,22 @@ interface VersionListProps {
 const NEXT_KEYS = new Set(["ArrowDown", "ArrowRight"]);
 const PREVIOUS_KEYS = new Set(["ArrowUp", "ArrowLeft"]);
 
+/** The channels a version serves, which is what makes its row say it is live
+ * rather than merely saved. */
+const servedBy = (
+  placements: readonly ChannelPlacement[],
+  version: number
+): readonly string[] =>
+  placements
+    .filter((placement) => placement.version === version)
+    .map((placement) => placement.channel);
+
 export function VersionList({
+  channels,
+  onEditFrom,
+  onPromote,
   onSelect,
+  placements,
   versions,
   viewedVersion,
 }: VersionListProps) {
@@ -60,8 +83,12 @@ export function VersionList({
     >
       {versions.map((version) => (
         <VersionRow
+          channels={channels}
           key={version.versionId}
+          onEditFrom={() => onEditFrom(version)}
+          onPromote={(channel) => onPromote(channel, version.version)}
           onSelect={() => onSelect(version)}
+          servedBy={servedBy(placements, version.version)}
           version={version}
           viewing={version.version === viewedVersion}
         />

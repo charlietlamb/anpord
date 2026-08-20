@@ -1,12 +1,9 @@
-import { Button } from "@anpord/ui/components/button";
 import { Skeleton } from "@anpord/ui/components/skeleton";
-import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import {
   ClockCounterClockwiseIcon,
   FloppyDiskIcon,
   HashIcon,
-  PlusIcon,
 } from "@phosphor-icons/react";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
@@ -20,7 +17,6 @@ const DETAIL_ROWS = [
   { icon: ClockCounterClockwiseIcon, label: "Created", width: "w-20" },
   { icon: FloppyDiskIcon, label: "Last saved", width: "w-24" },
 ];
-const CHANNEL_ROWS = ["production", "staging"];
 
 /**
  * The rail's labels and spacing are known before the fetch, so only the values
@@ -49,29 +45,6 @@ export function PromptRailSkeleton() {
 
       <RailSection action={<Skeleton className="h-3.5 w-4" />} title="Versions">
         <VersionListSkeleton />
-      </RailSection>
-
-      <RailSection className="flex flex-col" title="Channels">
-        {CHANNEL_ROWS.map((channel) => (
-          <div
-            className="flex h-7 items-center justify-between gap-2"
-            key={channel}
-          >
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-3 w-6" />
-          </div>
-        ))}
-        <Button
-          className={cn(
-            BLEED_ROW,
-            "h-7 justify-start gap-2 rounded-md font-normal text-label text-muted-foreground"
-          )}
-          disabled
-          variant="ghost"
-        >
-          <PlusIcon className="size-3.5 opacity-60" />
-          New channel
-        </Button>
       </RailSection>
     </aside>
   );

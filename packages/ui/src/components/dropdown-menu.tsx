@@ -1,4 +1,5 @@
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { CaretRightIcon } from "@phosphor-icons/react";
 import type * as React from "react";
 import { cn } from "../lib/utils";
 
@@ -96,5 +97,29 @@ export function DropdownMenuShortcut({
       data-slot="dropdown-menu-shortcut"
       {...props}
     />
+  );
+}
+
+export function DropdownMenuSub({ ...props }: MenuPrimitive.SubmenuRoot.Props) {
+  return <MenuPrimitive.SubmenuRoot {...props} />;
+}
+
+/** Carries the caret that says the row opens rather than acts. */
+export function DropdownMenuSubTrigger({
+  children,
+  className,
+  ...props
+}: MenuPrimitive.SubmenuTrigger.Props) {
+  return (
+    <MenuPrimitive.SubmenuTrigger
+      className={cn(
+        "group/dropdown-menu-item relative flex min-h-7 cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-muted-foreground text-xs/relaxed outline-hidden focus:bg-accent focus:text-foreground data-disabled:pointer-events-none data-popup-open:bg-accent data-popup-open:text-foreground data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-3.5 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <CaretRightIcon className="ml-auto size-3 opacity-50" />
+    </MenuPrimitive.SubmenuTrigger>
   );
 }

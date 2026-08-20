@@ -19,7 +19,6 @@ export interface DialogMap {
   };
   inviteMember: Record<never, never>;
   newApiKey: { onSubmit: (name: string) => Promise<void> };
-  newChannel: { onSubmit: (channel: string) => void; version: number };
 }
 
 export const { DialogProvider, useDialog, useDialogOpen } =

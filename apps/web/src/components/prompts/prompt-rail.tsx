@@ -1,13 +1,9 @@
+import type { Channel } from "@anpord/schema/domain/channels";
 import type {
   ChannelPlacement,
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
-import { Button } from "@anpord/ui/components/button";
-import { ArrowCounterClockwiseIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { ChannelsCard } from "@/components/prompts/channels-card";
-import { DeploymentsCard } from "@/components/prompts/deployments-card";
 import { DetailsCard } from "@/components/prompts/details-card";
 import { VariablesCard } from "@/components/prompts/variables-card";
 import { VersionList } from "@/components/prompts/version-list";
@@ -16,15 +12,13 @@ import { RailSection } from "@/components/rail/rail-section";
 interface PromptRailProps {
   /** What acts on the prompt, carried at the head of the rail. */
   readonly actions: ReactNode;
-  readonly channels: readonly ChannelPlacement[];
-  readonly channelsPending: boolean;
-  readonly editing: boolean;
-  readonly onAddChannel: () => void;
-  readonly onEditFrom: () => void;
-  readonly onPoint: (channel: string, version: number) => void;
-  readonly onPromote: () => void;
+  /** Every channel the organisation defines, so any version can be sent to one. */
+  readonly channels: readonly Channel[];
+  readonly onEditFrom: (version: ResolvedPrompt) => void;
+  readonly onPromote: (channel: string, version: number) => void;
   readonly onSelect: (version: ResolvedPrompt) => void;
-  readonly pointing: boolean;
+  /** Where each channel points today. */
+  readonly placements: readonly ChannelPlacement[];
   readonly variables: readonly string[];
   readonly versions: readonly ResolvedPrompt[];
   readonly viewed: ResolvedPrompt;
@@ -33,14 +27,10 @@ interface PromptRailProps {
 export function PromptRail({
   actions,
   channels,
-  channelsPending,
-  editing,
-  onAddChannel,
-  onPoint,
   onEditFrom,
   onPromote,
   onSelect,
-  pointing,
+  placements,
   variables,
   versions,
   viewed,
@@ -65,47 +55,15 @@ export function PromptRail({
         title="Versions"
       >
         <VersionList
+          channels={channels}
+          onEditFrom={onEditFrom}
+          onPromote={onPromote}
           onSelect={onSelect}
+          placements={placements}
           versions={versions}
           viewedVersion={viewed.version}
         />
-        {editing ? null : (
-          <div className="mt-2 flex gap-1.5">
-            <Button
-              className="flex-1"
-              onClick={onEditFrom}
-              size="sm"
-              variant="outline"
-            >
-              <ArrowCounterClockwiseIcon size={15} />
-              Edit from v{viewed.version}
-            </Button>
-            {viewed.channel === PRODUCTION ? null : (
-              <Button
-                className="shrink-0"
-                disabled={pointing}
-                onClick={onPromote}
-                size="sm"
-                variant="outline"
-              >
-                <ArrowUpIcon size={15} weight="bold" />
-                Promote
-              </Button>
-            )}
-          </div>
-        )}
       </RailSection>
-
-      <ChannelsCard
-        channels={channels}
-        onAddChannel={onAddChannel}
-        onPoint={onPoint}
-        pending={channelsPending}
-        pointing={pointing}
-        versions={versions}
-      />
-
-      <DeploymentsCard promptId={viewed.id} />
 
       <VariablesCard variables={variables} />
     </aside>
