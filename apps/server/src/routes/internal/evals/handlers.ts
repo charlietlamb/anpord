@@ -5,17 +5,18 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
-import { Config, DateTime, Effect, Option, Redacted } from "effect";
+import { DateTime, Effect, Option, Redacted } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { EvalCredentials } from "./credentials";
+import { harnessVersion } from "./harness-version";
+import {
+  createPlayground,
+  getPlayground,
+  listPlaygrounds,
+  runPlayground,
+  savePlayground,
+} from "./playground-handlers";
 import { detail, summarise } from "./to-api";
-
-/** Pinned, because the cell key carries it: an unpinned install silently
- * compares two different harnesses a month apart. Configured rather than
- * literal, so upgrading it is a deployment decision and not a code change. */
-const harnessVersion = Config.string("EVAL_HARNESS_VERSION").pipe(
-  Config.withDefault("0.144.4")
-);
 
 export const EvalsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -122,5 +123,29 @@ export const EvalsHandlers = HttpApiBuilder.group(
                contract. */
             Effect.catchTag("EvalStoreError", Effect.die)
           )
+      )
+      .handle("listPlaygrounds", { permission: Permissions.Evals.Read }, () =>
+        listPlaygrounds()
+      )
+      .handle(
+        "createPlayground",
+        { permission: Permissions.Evals.Write },
+        ({ payload }) => createPlayground(payload)
+      )
+      .handle(
+        "getPlayground",
+        { permission: Permissions.Evals.Read },
+        ({ path }) => getPlayground(path.id)
+      )
+      .handle(
+        "savePlayground",
+        { permission: Permissions.Evals.Write },
+        ({ path, payload }) => savePlayground(path.id, payload)
+      )
+      /* Write, because a run spends real money on sandboxes and tokens. */
+      .handle(
+        "runPlayground",
+        { permission: Permissions.Evals.Write },
+        ({ path }) => runPlayground(path.id)
       ).done
 );

@@ -71,6 +71,13 @@
       "when": 1787227123873,
       "tag": "0009_perfect_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1787238294975,
+      "tag": "0010_closed_zeigeist",
+      "breakpoints": true
     }
   ]
 }

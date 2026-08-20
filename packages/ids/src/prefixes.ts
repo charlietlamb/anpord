@@ -3,6 +3,8 @@ export const ID_PREFIXES = {
   evalBaseline: "bas",
   evalCell: "cel",
   evalEvent: "evt",
+  evalPlayground: "pgd",
+  evalPlaygroundInternal: "pgdx",
   evalRun: "run",
   evalRunInternal: "runx",
   evalTask: "tsk",

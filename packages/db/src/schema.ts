@@ -15,6 +15,7 @@ import { verification } from "./schema/auth/verifications";
 import { evalBaseline } from "./schema/evals/eval-baselines";
 import { evalCell } from "./schema/evals/eval-cells";
 import { evalEvent } from "./schema/evals/eval-events";
+import { evalPlayground } from "./schema/evals/eval-playgrounds";
 import { evalRun } from "./schema/evals/eval-runs";
 import { evalTask } from "./schema/evals/eval-tasks";
 import { evalTrial } from "./schema/evals/eval-trials";
@@ -39,6 +40,7 @@ export const schema = {
   evalBaseline,
   evalCell,
   evalEvent,
+  evalPlayground,
   evalRun,
   evalTask,
   evalTrial,

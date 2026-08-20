@@ -200,5 +200,56 @@ export const PromotedBaseline = Schema.Struct({
 });
 export type PromotedBaseline = typeof PromotedBaseline.Type;
 
+/** A saved workbench: the cases, columns and prompt somebody is working on,
+ * kept between visits. Distinct from a run, which is a fact about one moment
+ * and never moves. */
+export const PlaygroundCaseView = Schema.Struct({
+  goal: Schema.String,
+  name: Schema.String,
+  setup: Schema.NullOr(Schema.String),
+  source: EvalSource,
+  /** Null for an imported case. It runs and reports and never claims a pass,
+   * rather than having a verifier invented for it. */
+  verify: Schema.NullOr(Schema.String),
+});
+
+export const PlaygroundColumnView = Schema.Struct({
+  harness: EvalHarness,
+  model: Schema.String,
+  provider: EvalProvider,
+});
+
+export const PlaygroundConfigView = Schema.Struct({
+  cases: Schema.Array(PlaygroundCaseView),
+  columns: Schema.Array(PlaygroundColumnView),
+  prompt: Schema.String,
+  trials: Schema.Int.pipe(Schema.between(1, 10)),
+});
+
+export const PlaygroundView = Schema.Struct({
+  config: PlaygroundConfigView,
+  id: Schema.String,
+  lastRunId: Schema.NullOr(Schema.String),
+  name: Schema.String,
+  /** Why this playground cannot run yet, empty when it can. The same answer
+   * disables a control and rejects a request, so it travels with the object
+   * rather than being rediscovered by the client. */
+  problems: Schema.Array(Schema.String),
+  /** Cases that will run but cannot pass. Reported so nobody reads their
+   * verdict as evidence. */
+  ungated: Schema.Array(Schema.String),
+  updatedAt: Schema.DateTimeUtc,
+});
+export type PlaygroundView = typeof PlaygroundView.Type;
+
+export const CreatePlaygroundRequest = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1)),
+});
+
+export const SavePlaygroundRequest = Schema.Struct({
+  config: PlaygroundConfigView,
+  name: Schema.String.pipe(Schema.minLength(1)),
+});
+
 export const StartedEval = Schema.Struct({ id: Schema.String });
 export type StartedEval = typeof StartedEval.Type;

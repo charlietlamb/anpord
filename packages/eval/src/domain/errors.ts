@@ -63,8 +63,17 @@ export class VoidBaseline extends Data.TaggedError("VoidBaseline")<{
   readonly reason: string;
 }> {}
 
+/** A playground asked to run before it can. Carries every reason at once,
+ * because fixing one and being told about the next is a worse experience
+ * than being told all of them now. */
+export class NotRunnable extends Data.TaggedError("NotRunnable")<{
+  readonly id: string;
+  readonly problems: readonly string[];
+}> {}
+
 export type EvalError =
   | EvalStoreError
   | RunNotFound
+  | NotRunnable
   | TaskNotFound
   | VoidBaseline;

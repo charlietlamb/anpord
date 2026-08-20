@@ -27,6 +27,7 @@
   "exports": {
     "./domain/case-file": "./src/domain/case-file.ts",
     "./domain/cell": "./src/domain/cell.ts",
+    "./domain/playground-config": "./src/domain/playground-config.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/errors": "./src/domain/errors.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
@@ -47,6 +48,7 @@
     "./services/baselines": "./src/services/baselines.ts",
     "./services/cell-run": "./src/services/cell-run.ts",
     "./services/grid-run": "./src/services/grid-run.ts",
+    "./services/workbench": "./src/services/workbench.ts",
     "./services/grid-state": "./src/services/grid-state.ts",
     "./services/playground": "./src/services/playground.ts",
     "./services/trial-runner": "./src/services/trial-runner.ts",

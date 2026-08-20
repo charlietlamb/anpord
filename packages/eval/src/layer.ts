@@ -15,6 +15,7 @@ import { BaselinesLive } from "./services/baselines";
 import { CellRunLive } from "./services/cell-run";
 import { GridRunLive } from "./services/grid-run";
 import { SandboxProviderLive } from "./services/sandbox-provider";
+import { WorkbenchesLive } from "./services/workbench";
 
 export const EvalRepositoriesLive = Layer.mergeAll(
   EventRepositoryLive,
@@ -50,10 +51,11 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
  * the domain has no business holding. */
 /** The grid, wanting a Database and a SandboxProvider. Baselines come with
  * it because a caller reading a run almost always compares it. */
-export const EvalGridLive = Layer.mergeAll(GridRunLive, BaselinesLive).pipe(
-  Layer.provide(AgentLive),
-  Layer.provideMerge(EvalRepositoriesLive)
-);
+export const EvalGridLive = Layer.mergeAll(
+  GridRunLive,
+  BaselinesLive,
+  WorkbenchesLive.pipe(Layer.provide(GridRunLive))
+).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
 
 export const EvalLayer = CellRunLive.pipe(
   Layer.provide(AgentLive),
