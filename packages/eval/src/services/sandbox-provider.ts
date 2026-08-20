@@ -14,6 +14,10 @@ const concurrencyConfig = Config.all({
     Config.withDefault(5)
   ),
   e2b: Config.integer("EVAL_E2B_CONCURRENCY").pipe(Config.withDefault(5)),
+  /* Lower, because a local sandbox spends this machine's cores rather than a
+     provider's: running ten at once starves the process that is watching
+     them. */
+  local: Config.integer("EVAL_LOCAL_CONCURRENCY").pipe(Config.withDefault(4)),
 });
 
 export const SandboxProviderLive = Layer.effect(
@@ -27,6 +31,7 @@ export const SandboxProviderLive = Layer.effect(
     const permits: Record<ProviderName, Effect.Semaphore> = {
       daytona: yield* Effect.makeSemaphore(concurrency.daytona),
       e2b: yield* Effect.makeSemaphore(concurrency.e2b),
+      local: yield* Effect.makeSemaphore(concurrency.local),
     };
 
     const open = (request: OpenSandbox) =>

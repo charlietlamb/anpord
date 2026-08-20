@@ -22,6 +22,7 @@ const score = (sandbox: SandboxHandle, verifyCommand: string | null) =>
       const scorer = yield* Scorer;
       return yield* scorer.score({
         commandCount: 4,
+        events: [],
         modelMs: 1000,
         sandbox,
         verifyCommand,

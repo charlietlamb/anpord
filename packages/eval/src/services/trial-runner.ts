@@ -126,6 +126,9 @@ export const TrialRunnerLive = Layer.effect(
            unguarded pipeline, and this is the durable path, so a divergence
            here is a false pass rate in the place that persists. */
         const scored = yield* scorer.score({
+          /* The durable path runs no harness, so there is no trajectory to
+             score: the verifier is the whole verdict here. */
+          events: [],
           commandCount: journal.length,
           modelMs: 0,
           sandbox,

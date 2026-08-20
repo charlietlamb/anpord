@@ -1,9 +1,17 @@
 import { Context, type Effect } from "effect";
+import type { HarnessEvent } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
 import type { SandboxHandle } from "./sandbox";
 
 export interface ScoreRequest {
   readonly commandCount: number;
+  /** What the agent actually did, in order.
+   *
+   * A scorer that sees only the workspace can ask whether the end state is
+   * right; the trajectory is how a customer asks whether it got there the
+   * right way. Every company in the research scores this, and none of their
+   * assertions can be written against the workspace alone. */
+  readonly events: readonly HarnessEvent[];
   readonly modelMs: number;
   readonly sandbox: SandboxHandle;
   /** Null when the case carries no verifier.

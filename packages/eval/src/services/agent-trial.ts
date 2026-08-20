@@ -115,6 +115,7 @@ export const AgentTrialLive = Layer.effect(
            failed. */
         const scored = yield* scorer.score({
           commandCount: commandsIn(events),
+          events,
           modelMs: modelFinished - modelStarted,
           sandbox,
           verifyCommand: request.verifyCommand,

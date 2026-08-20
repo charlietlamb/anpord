@@ -1,6 +1,9 @@
 import { Schema } from "effect";
 
-export const EvalProvider = Schema.Literal("daytona", "e2b");
+/** `local` runs on the server itself: a real shell in a temporary
+ * directory, so somebody can try the product before handing over cloud
+ * credentials. It offers no isolation and is not for untrusted code. */
+export const EvalProvider = Schema.Literal("daytona", "e2b", "local");
 export type EvalProvider = typeof EvalProvider.Type;
 
 export const EvalHarness = Schema.Literal("codex");

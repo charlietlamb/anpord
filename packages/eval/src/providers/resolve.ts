@@ -3,6 +3,7 @@ import type { ProviderName } from "../domain/cell";
 import { type SandboxAdapterShape, SandboxAdapters } from "../ports/sandbox";
 import { makeDaytonaAdapter } from "./daytona";
 import { makeE2BAdapter } from "./e2b";
+import { makeLocalAdapter } from "./local";
 
 /**
  * The only place a provider name becomes an implementation. Adding Modal is a
@@ -21,6 +22,7 @@ export const SandboxAdaptersLive = Layer.effect(
     const builders: Record<ProviderName, Effect.Effect<SandboxAdapterShape>> = {
       daytona: yield* Effect.cached(makeDaytonaAdapter),
       e2b: yield* Effect.cached(makeE2BAdapter),
+      local: yield* Effect.cached(makeLocalAdapter),
     };
 
     return SandboxAdapters.of({ resolve: (provider) => builders[provider] });
