@@ -1,8 +1,6 @@
-import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import { VersionMove } from "@/components/deployments/version-move";
-import { SaveMarker } from "@/components/prompts/save-marker";
+import { ActivityMarker } from "@/components/prompts/activity-marker";
 import type { ActivityEntry } from "@/lib/prompt-activity";
-import { useChannelColor } from "@/lib/query/use-channel-colors";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface ActivityRowProps {
@@ -10,32 +8,26 @@ interface ActivityRowProps {
 }
 
 /**
- * One thing that happened, on one line. The marker sits in the timeline's
- * column so the rail behind it reads as a continuous thread rather than a
- * series of unrelated rows.
+ * One thing that happened, on one line, in one grammar: who, then what they
+ * did. Both kinds of entry take the same shape, so the feed reads down its
+ * left edge rather than asking which sentence pattern this row uses.
  */
 export function ActivityRow({ entry }: ActivityRowProps) {
   const when = useRelativeTime(entry.at);
-  const channelColor = useChannelColor();
 
   return (
-    <li className="relative flex items-start gap-3 py-1.5">
-      <span className="z-10 flex size-5 shrink-0 items-center justify-center rounded-full bg-background">
-        {entry.kind === "saved" ? (
-          <SaveMarker author={entry.author} />
-        ) : (
-          <ChannelDot color={channelColor(entry.channel)} />
-        )}
-      </span>
+    <li className="relative flex items-center gap-3 py-1">
+      <ActivityMarker entry={entry} />
 
-      <span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5 text-label text-muted-foreground">
+      <span className="flex min-w-0 flex-1 items-center gap-x-1.5 text-label text-muted-foreground">
+        <span className="shrink-0 text-foreground">
+          {entry.actor?.name ?? "Someone"}
+        </span>
+
         {entry.kind === "saved" ? (
           <>
-            <span className="text-foreground">
-              {entry.author?.name ?? "Someone"}
-            </span>
-            <span>saved</span>
-            <span className="text-foreground tabular-nums">
+            <span className="shrink-0">saved</span>
+            <span className="shrink-0 text-foreground tabular-nums">
               v{entry.version}
             </span>
             {entry.message ? (
@@ -44,10 +36,11 @@ export function ActivityRow({ entry }: ActivityRowProps) {
           </>
         ) : (
           <>
-            <span className="text-foreground">{entry.channel}</span>
-            <span>now serves</span>
+            <span className="shrink-0">pointed</span>
+            <span className="shrink-0 text-foreground">{entry.channel}</span>
+            <span className="shrink-0">at</span>
             <VersionMove
-              className="gap-1 text-label"
+              className="shrink-0 gap-1 text-label"
               from={entry.from}
               to={entry.to}
             />

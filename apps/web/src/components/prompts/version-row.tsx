@@ -49,11 +49,11 @@ export function VersionRow({
   const label = version.commitMessage ?? preview(version.content);
 
   return (
-    <div className="group/version relative flex items-center">
+    <div className="group/version flex items-center">
       <Button
         aria-selected={viewing}
         className={cn(
-          "h-7 w-full justify-start gap-2 rounded-md px-2 pr-7",
+          "h-7 min-w-0 flex-1 justify-start gap-2 rounded-md px-2",
           viewing ? "font-medium text-foreground" : "font-normal"
         )}
         onClick={onSelect}
@@ -73,14 +73,16 @@ export function VersionRow({
         </span>
 
         <time
-          className="shrink-0 text-xs tabular-nums opacity-60 group-hover/version:opacity-0"
+          className="shrink-0 text-xs tabular-nums opacity-60"
           dateTime={new Date(version.createdAt).toISOString()}
         >
           {when}
         </time>
       </Button>
 
-      <div className="absolute right-1.5">
+      {/* Beside the row rather than over it, so the menu has its own column
+          and the date it used to cover can stay. */}
+      <div className="-mr-1 shrink-0">
         <VersionActions
           channels={channels}
           onEditFrom={onEditFrom}

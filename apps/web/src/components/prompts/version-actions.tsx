@@ -56,7 +56,10 @@ export function VersionActions({
       <DropdownMenuContent align="end">
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Promote to</DropdownMenuSubTrigger>
-          <DropdownMenuContent>
+          {/* Opens to the left because the rail it lives in is already at the
+              right edge of the screen: asked to open right, it finds no room
+              and flips back over the row that opened it. */}
+          <DropdownMenuContent align="start" side="left" sideOffset={4}>
             {channels.map((channel) => (
               <DropdownMenuItem
                 key={channel.name}

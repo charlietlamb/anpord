@@ -1,29 +1,32 @@
 import type { Deployment } from "@anpord/schema/domain/deployments";
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 
-/** An author is only known for a version; a deployment records the move. */
 interface Actor {
   readonly image?: string | null;
   readonly name: string;
 }
 
+/** Both kinds of entry are something a person did, so both name one. Sharing
+ * the field is what lets the feed read as one sequence rather than two lists
+ * with different subjects. */
+interface Acted {
+  readonly actor: Actor | null;
+  readonly at: Date;
+  readonly id: string;
+}
+
 export type ActivityEntry =
-  | {
-      readonly at: Date;
-      readonly author: Actor | null;
-      readonly id: string;
+  | (Acted & {
       readonly kind: "saved";
       readonly message: string | null;
       readonly version: number;
-    }
-  | {
-      readonly at: Date;
+    })
+  | (Acted & {
       readonly channel: string;
       readonly from: number | null;
-      readonly id: string;
       readonly kind: "deployed";
       readonly to: number;
-    };
+    });
 
 /**
  * Everything that has happened to a prompt, newest first. Saving a version and
@@ -36,8 +39,8 @@ export const promptActivity = (
 ): readonly ActivityEntry[] => {
   const saves = versions.map(
     (version): ActivityEntry => ({
+      actor: version.author ?? null,
       at: new Date(version.createdAt),
-      author: version.author ?? null,
       id: `saved-${version.versionId}`,
       kind: "saved",
       message: version.commitMessage ?? null,
@@ -47,6 +50,7 @@ export const promptActivity = (
 
   const moves = deployments.map(
     (deployment): ActivityEntry => ({
+      actor: deployment.deployedBy ?? null,
       at: new Date(deployment.deployedAt),
       channel: deployment.channel,
       from: deployment.fromVersion,
