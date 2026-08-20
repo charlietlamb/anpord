@@ -53,6 +53,7 @@
         "src/report.ts",
         "src/runtime.ts",
         "src/scoring/ground-truth.ts",
+        "src/scoring/journal-assertions.ts",
         "src/services/agent-trial-set.ts",
         "src/services/agent-trial.ts",
         "src/services/cell-run.ts",

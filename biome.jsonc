@@ -12,8 +12,6 @@
       "!apps/mcp/mcp-env.d.ts",
       "!packages/ui/src/components/ui",
       "!context",
-      // Vendored from the repositories that ship them. Reformatting would
-      // stop them being evidence of the real format.
       "!packages/eval/tests/fixtures/case-files"
     ]
   },
