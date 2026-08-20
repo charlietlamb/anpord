@@ -25,6 +25,7 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./domain/case-file": "./src/domain/case-file.ts",
     "./domain/cell": "./src/domain/cell.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/errors": "./src/domain/errors.ts",
