@@ -22,7 +22,7 @@ export function DetailRow({
       marker={
         <PropertyIcon
           aria-hidden="true"
-          className="size-4 shrink-0 text-muted-foreground"
+          className="size-4 shrink-0"
           weight="bold"
         />
       }

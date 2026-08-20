@@ -21,18 +21,20 @@ export function CopyableId({ className, value }: CopyableIdProps) {
   return (
     <Button
       aria-label={copied ? `Copied ${value}` : `Copy ${value}`}
+      /* Takes the colour of the row it sits in rather than setting its own, so
+         a property and its value cannot light up at different moments. */
       className={cn(
-        "group/id -mx-1 h-6 max-w-full justify-start gap-1.5 rounded px-1 font-mono font-normal",
+        "group/id -mx-1 h-6 max-w-full justify-start gap-1.5 rounded px-1 font-mono font-normal text-inherit hover:text-inherit",
         className
       )}
       onClick={() => copy(value)}
       variant="bare"
     >
-      <span className="truncate text-foreground">{value}</span>
+      <span className="truncate">{value}</span>
       {/* The icon holds its place whether or not it is shown, so the value
           beside it cannot shift as the pointer arrives. */}
       {copied ? (
-        <CheckIcon className="size-3 shrink-0 text-foreground" />
+        <CheckIcon className="size-3 shrink-0" />
       ) : (
         <CopyIcon className="size-3 shrink-0 opacity-0 transition-opacity group-hover/id:opacity-60 group-focus-visible/id:opacity-60" />
       )}

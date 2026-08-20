@@ -26,8 +26,10 @@ export function DetailRowFrame({
   label,
   marker,
 }: DetailRowFrameProps) {
+  /* Muted until pointed at, like every other row in the rail: the column
+     describes the prompt rather than competing with it. */
   return (
-    <div className="flex h-7 items-center gap-2 text-label">
+    <div className="group/detail flex h-7 items-center gap-2 text-label text-muted-foreground transition-colors hover:text-foreground">
       {/* Only the marker triggers the tooltip: the value beside it may be a
           control of its own, and wrapping that in a trigger would put one
           interactive element inside another. */}
