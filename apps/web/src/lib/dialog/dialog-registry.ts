@@ -34,10 +34,6 @@ export const dialogRegistry: DialogRegistry<DialogMap> = {
     () => import("@/components/dialog/create-organization-dialog"),
     "CreateOrganizationDialog"
   ),
-  editPrompt: named(
-    () => import("@/components/dialog/edit-prompt-dialog"),
-    "EditPromptDialog"
-  ),
   editVersion: named(
     () => import("@/components/dialog/edit-version-dialog"),
     "EditVersionDialog"

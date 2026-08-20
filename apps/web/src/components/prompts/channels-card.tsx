@@ -94,11 +94,11 @@ export function ChannelsCard({
       <Button
         className={cn(
           BLEED_ROW,
-          "h-7 justify-start gap-2 rounded-md font-normal text-label text-muted-foreground"
+          "h-7 justify-start gap-2 rounded-md font-normal text-label"
         )}
         disabled={pointing}
         onClick={onAddChannel}
-        variant="ghost"
+        variant="bare"
       >
         <PlusIcon className="size-3.5 opacity-60" />
         New channel

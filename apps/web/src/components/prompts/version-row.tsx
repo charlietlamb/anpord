@@ -34,24 +34,22 @@ export function VersionRow({ onSelect, version, viewing }: VersionRowProps) {
   return (
     <Button
       aria-selected={viewing}
+      /* Selection is carried by weight and contrast rather than a filled bar:
+         a block of grey behind one row is the loudest thing in a column that
+         is meant to sit quietly beside the prompt. */
       className={cn(
-        "h-7 w-full justify-start gap-2 rounded-md px-2 font-normal",
-        viewing ? "bg-muted text-foreground" : "text-muted-foreground"
+        "h-7 w-full justify-start gap-2 rounded-md px-2",
+        viewing ? "font-medium text-foreground" : "font-normal"
       )}
       onClick={onSelect}
       role="option"
-      variant="ghost"
+      variant="bare"
     >
       <ChannelDot
         color={version.channel ? channelColor(version.channel) : undefined}
       />
 
-      <span
-        className={cn(
-          "shrink-0 text-label tabular-nums",
-          viewing && "font-medium"
-        )}
-      >
+      <span className="shrink-0 text-label tabular-nums">
         v{version.version}
       </span>
 

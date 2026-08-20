@@ -11,11 +11,6 @@ export interface DialogMap {
   };
   confirm: Omit<ConfirmDialogProps, "open" | "onClose">;
   createOrganization: Record<never, never>;
-  editPrompt: {
-    id: string;
-    name: string;
-    onSubmit: (details: { id: string; name: string }) => void;
-  };
   editVersion: {
     onCorrect: () => void;
     onEditFrom: () => void;

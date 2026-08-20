@@ -53,19 +53,8 @@ function EditorPreview() {
   return (
     <DashboardShell sidebarOpen>
       {/* The real layout, so the preview cannot drift from what ships. */}
-      <PromptEditorLayout
-        actions={
-          <PromptEditorActions
-            correctingVersion={null}
-            dirty={content !== BODY}
-            onCancelCorrection={() => undefined}
-            onEditDetails={() => undefined}
-            onSave={() => undefined}
-            saving={false}
-          />
-        }
-      >
-        <main className="relative flex min-w-0 flex-col">
+      <PromptEditorLayout>
+        <main className="relative flex min-w-0 flex-col pt-5 pb-24">
           <PromptEditorTitle
             correctingVersion={null}
             dirty={content !== BODY}
@@ -95,6 +84,15 @@ function EditorPreview() {
         </main>
 
         <PromptRail
+          actions={
+            <PromptEditorActions
+              correctingVersion={null}
+              dirty={content !== BODY}
+              onCancelCorrection={() => undefined}
+              onSave={() => undefined}
+              saving={false}
+            />
+          }
           channels={CHANNELS}
           channelsPending={false}
           editing={editing}

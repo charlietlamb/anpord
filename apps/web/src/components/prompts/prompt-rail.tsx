@@ -5,6 +5,7 @@ import type {
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
 import { ArrowCounterClockwiseIcon, ArrowUpIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import { ChannelsCard } from "@/components/prompts/channels-card";
 import { DeploymentsCard } from "@/components/prompts/deployments-card";
 import { DetailsCard } from "@/components/prompts/details-card";
@@ -14,6 +15,8 @@ import { VersionList } from "@/components/prompts/version-list";
 import { RailSection } from "@/components/rail/rail-section";
 
 interface PromptRailProps {
+  /** What acts on the prompt, carried at the head of the rail. */
+  readonly actions: ReactNode;
   readonly channels: readonly ChannelPlacement[];
   readonly channelsPending: boolean;
   readonly editing: boolean;
@@ -29,6 +32,7 @@ interface PromptRailProps {
 }
 
 export function PromptRail({
+  actions,
   channels,
   channelsPending,
   editing,
@@ -48,7 +52,9 @@ export function PromptRail({
      rail longer than the viewport can still reach its end, and its own
      scrollbar hidden so the page keeps the only one on screen. */
   return (
-    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100svh-5rem)] lg:overflow-y-auto lg:pb-4">
+    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:h-svh lg:overflow-y-auto lg:overflow-x-clip lg:overscroll-contain lg:pt-5 lg:pb-8">
+      <div className="flex justify-end">{actions}</div>
+
       <RailSection
         action={
           <span className="text-muted-foreground text-xs tabular-nums">

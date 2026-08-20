@@ -17,7 +17,6 @@ import { useDialog } from "@/lib/dialog/dialogs";
 import { promptQueries } from "@/lib/query/prompt-queries";
 import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";
 import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";
-import { useUpdatePrompt } from "@/lib/query/use-update-prompt";
 import { useUpdatePromptVersion } from "@/lib/query/use-update-prompt-version";
 
 export const Route = createFileRoute("/_authed/prompts/$id")({
@@ -67,7 +66,6 @@ function PromptDetailPage() {
   const [selection, setSelection] = useState<Selection>({ kind: "draft" });
 
   const promote = useSetPromptChannel(id);
-  const updateDetails = useUpdatePrompt(id);
   const correctVersion = useUpdatePromptVersion(id);
 
   const rows = versions.data;
@@ -214,20 +212,6 @@ function PromptDetailPage() {
     });
   };
 
-  const onEditDetails = () =>
-    openDialog("editPrompt", {
-      id: latest.id,
-      name: latest.name,
-      onSubmit: (details) =>
-        updateDetails.mutate(details, {
-          onError: (error) =>
-            toast.error("Couldn't save the details", {
-              description: error instanceof Error ? error.message : undefined,
-            }),
-          onSuccess: () => toast.success("Details saved"),
-        }),
-    });
-
   const onAddChannel = () =>
     openDialog("newChannel", {
       onSubmit: (channel: string) => pointChannel(channel, viewed.version),
@@ -248,22 +232,8 @@ function PromptDetailPage() {
   };
 
   return (
-    <PromptEditorLayout
-      actions={
-        <PromptEditorActions
-          correctingVersion={correcting ? viewed.version : null}
-          dirty={dirty}
-          onCancelCorrection={() => {
-            setDraft(null);
-            setSelection({ kind: "history", version: viewed.version });
-          }}
-          onEditDetails={onEditDetails}
-          onSave={onSave}
-          saving={addVersion.isPending || correctVersion.isPending}
-        />
-      }
-    >
-      <main className="relative flex min-w-0 flex-col">
+    <PromptEditorLayout>
+      <main className="relative flex min-w-0 flex-col pt-5 pb-24">
         <PromptEditorTitle
           correctingVersion={correcting ? viewed.version : null}
           dirty={dirty}
@@ -285,6 +255,18 @@ function PromptDetailPage() {
       </main>
 
       <PromptRail
+        actions={
+          <PromptEditorActions
+            correctingVersion={correcting ? viewed.version : null}
+            dirty={dirty}
+            onCancelCorrection={() => {
+              setDraft(null);
+              setSelection({ kind: "history", version: viewed.version });
+            }}
+            onSave={onSave}
+            saving={addVersion.isPending || correctVersion.isPending}
+          />
+        }
         channels={channels.data ?? []}
         channelsPending={channels.isPending}
         editing={editing}

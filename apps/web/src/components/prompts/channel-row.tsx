@@ -36,10 +36,10 @@ export function ChannelRow({
           <Button
             className={cn(
               BLEED_ROW,
-              "h-7 justify-between gap-2 rounded-md font-normal text-muted-foreground data-[popup-open]:bg-muted"
+              "h-7 justify-between gap-2 rounded-md font-normal"
             )}
             disabled={disabled}
-            variant="ghost"
+            variant="bare"
           />
         }
       >

@@ -13,10 +13,15 @@ export const buttonVariants = cva(
           "input-bevel-shadow border-border bg-secondary text-secondary-foreground hover:bg-muted",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted dark:hover:bg-muted/50",
-        /* An edge at rest and a fill on approach: enough to read as a control
-           on an empty page without weighing as much as an outline button. */
+        /* No fill in any state. For rows in a quiet column, where a block of
+           grey behind one of them would outweigh everything around it — the
+           text brightens instead. */
+        bare: "text-muted-foreground hover:text-foreground aria-expanded:text-foreground",
+        /* A faint ground and an edge at rest, lifting on approach: enough to
+           read as a control on an empty page without weighing as much as an
+           outline button. */
         subtle:
-          "border-border-faint text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
+          "border-border-faint bg-alpha-4 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
       },
