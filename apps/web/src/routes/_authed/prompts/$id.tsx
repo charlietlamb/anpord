@@ -7,9 +7,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
-import { PromptEditorHeader } from "@/components/prompts/prompt-editor-header";
+import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
 import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
 import { PromptEditorSkeleton } from "@/components/prompts/prompt-editor-skeleton";
+import { PromptEditorTitle } from "@/components/prompts/prompt-editor-title";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
 import { useDialog } from "@/lib/dialog/dialogs";
@@ -248,24 +249,29 @@ function PromptDetailPage() {
 
   return (
     <PromptEditorLayout
-      header={
-        <PromptEditorHeader
+      actions={
+        <PromptEditorActions
           correctingVersion={correcting ? viewed.version : null}
           dirty={dirty}
-          name={latest.name}
           onCancelCorrection={() => {
             setDraft(null);
             setSelection({ kind: "history", version: viewed.version });
           }}
           onEditDetails={onEditDetails}
           onSave={onSave}
-          promptId={latest.id}
           saving={addVersion.isPending || correctVersion.isPending}
-          viewingVersion={editing ? null : viewed.version}
         />
       }
     >
-      <main className="relative flex min-w-0 flex-col">
+      <main className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto pb-24">
+        <PromptEditorTitle
+          correctingVersion={correcting ? viewed.version : null}
+          dirty={dirty}
+          name={latest.name}
+          promptId={latest.id}
+          viewingVersion={editing ? null : viewed.version}
+        />
+
         <PromptComposer
           content={content}
           onContentChange={setDraft}

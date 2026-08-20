@@ -15,12 +15,14 @@ import type { ReactNode } from "react";
 import { ComposerContextRow } from "@/components/prompts/composer-context-row";
 
 interface PromptComposerProps {
+  /** Caps the editor's height and carries the submit control in its own
+   * toolbar, for the pages where the composer is one element among several
+   * rather than the pane's whole subject. */
+  readonly bounded?: boolean;
   readonly children?: ReactNode;
   readonly content: string;
   /** Names the prompt on the surface, the way a file names its buffer. */
   readonly filename?: string;
-  /** Grows into the page instead of sitting at its own height. */
-  readonly fill?: boolean;
   readonly onContentChange: (value: string) => void;
   /** Called when someone tries to write into content that is read-only. */
   readonly onEditRequest?: () => void;
@@ -39,10 +41,10 @@ interface PromptComposerProps {
  * controls that act on it inside the same ring so it reads as one object.
  */
 export function PromptComposer({
+  bounded,
   children,
   content,
   filename,
-  fill,
   onContentChange,
   onEditRequest,
   onSubmit,
@@ -71,12 +73,12 @@ export function PromptComposer({
           />
         ) : null}
 
-        {/* Grows with what is written. The page owns the scroll, so a long
+        {/* Grows with what is written. Where the pane around it scrolls, the
             prompt reads as one document rather than a window onto one. */}
         <MarkdownEditor
           className={cn(
             "prompt-prose-wide text-[0.9375rem] leading-7",
-            fill ? "" : "max-h-[min(24rem,50vh)] overflow-y-auto"
+            bounded && "max-h-[min(24rem,50vh)] overflow-y-auto"
           )}
           onChange={onContentChange}
           placeholder="Write your prompt… use {{variables}} for values filled in at runtime."
@@ -84,7 +86,7 @@ export function PromptComposer({
           value={content}
         />
 
-        {fill ? null : (
+        {bounded ? (
           <ComposerToolbar>
             <ComposerToolbarGroup>
               {variables.length > 0 ? (
@@ -112,7 +114,7 @@ export function PromptComposer({
               </ShortcutButton>
             </ComposerToolbarGroup>
           </ComposerToolbar>
-        )}
+        ) : null}
       </ComposerSurface>
     </div>
   );

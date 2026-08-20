@@ -1,9 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
 import { ComposerSurface } from "@anpord/ui/components/composer";
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
-import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { ArrowUpIcon } from "@phosphor-icons/react";
+import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
 import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
 import { PromptRailSkeleton } from "@/components/prompts/prompt-rail-skeleton";
 import { SkeletonLines } from "@/components/prompts/skeleton-lines";
@@ -15,6 +13,8 @@ interface PromptEditorSkeletonProps {
   readonly promptId: string;
 }
 
+const NOTHING_YET = () => undefined;
+
 /**
  * The page's chrome is known before the fetch, so it renders in place and only
  * the values arriving from the server are placeheld.
@@ -22,30 +22,23 @@ interface PromptEditorSkeletonProps {
 export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
   return (
     <PromptEditorLayout
-      header={
-        <header className="flex w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
-          <div className="flex min-w-0 items-center gap-3">
-            <Skeleton className="h-6 w-44" />
-            <CopyableId className="shrink-0" value={promptId} />
-          </div>
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <Button disabled size="sm" variant="outline">
-              Edit details
-            </Button>
-            <ShortcutButton
-              className="h-[1.875rem]"
-              disabled
-              metaShortcut="enter"
-              size="sm"
-            >
-              <ArrowUpIcon size={15} weight="bold" />
-              Save version
-            </ShortcutButton>
-          </div>
-        </header>
+      actions={
+        <PromptEditorActions
+          correctingVersion={null}
+          dirty={false}
+          onCancelCorrection={NOTHING_YET}
+          onEditDetails={NOTHING_YET}
+          onSave={NOTHING_YET}
+          saving={false}
+        />
       }
     >
-      <main className="relative flex min-w-0 flex-col">
+      <main className="relative flex min-h-0 min-w-0 flex-col overflow-y-auto pb-24">
+        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <Skeleton className="h-7 w-44" />
+          <CopyableId className="shrink-0" value={promptId} />
+        </div>
+
         <ComposerSurface>
           <SkeletonLines className="gap-3.5 py-1" widths={BODY_LINES} />
         </ComposerSurface>

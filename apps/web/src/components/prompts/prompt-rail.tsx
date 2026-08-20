@@ -45,7 +45,7 @@ export function PromptRail({
   const oldest = versions.at(-1) ?? viewed;
 
   return (
-    <aside className="order-2 flex flex-col gap-6">
+    <aside className="order-2 flex min-h-0 flex-col gap-6 overflow-y-auto pb-24">
       <RailSection
         action={
           <span className="text-muted-foreground text-xs tabular-nums">

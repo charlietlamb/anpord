@@ -52,6 +52,7 @@ function NewPromptPage() {
       <ComposerHeading />
 
       <PromptComposer
+        bounded
         content={content}
         onContentChange={setContent}
         onSubmit={onSubmit}

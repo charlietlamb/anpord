@@ -52,9 +52,9 @@ export function VersionList({
     <div
       aria-label="Versions"
       /* Pulled out to either side so a row's hover reaches past the text while
-         the list itself still measures the rail. Rows of one line need no rule
-         between them: the gap already tells them apart. */
-      className="-mx-2 flex max-h-[17rem] flex-col overflow-y-auto overscroll-contain"
+         the list itself still measures the rail. The rail owns the scroll, so
+         the list runs to its full length rather than nesting a second one. */
+      className="-mx-2 flex flex-col"
       onKeyDown={move}
       role="listbox"
     >
