@@ -21,6 +21,17 @@ const MessageItem = Schema.Struct({
   type: Schema.Literal("agent_message"),
 });
 
+/* Two spellings of the same thing. Codex emits `function_call` for a
+   declared tool and `custom_tool_call` for a freeform one, and a scorer
+   asking whether a tool ran should not have to know which. */
+const ToolCallItem = Schema.Struct({
+  call_id: Schema.optional(Schema.NullOr(Schema.String)),
+  input: Schema.optional(Schema.String),
+  name: Schema.String,
+  status: Schema.optional(Schema.NullOr(Schema.String)),
+  type: Schema.Literal("function_call", "custom_tool_call"),
+});
+
 const FileChangeItem = Schema.Struct({
   changes: Schema.Array(Schema.Struct({ path: Schema.String })),
   type: Schema.Literal("file_change"),
@@ -37,7 +48,7 @@ const Line = Schema.Union(
     type: Schema.Literal("thread.started"),
   }),
   Schema.Struct({
-    item: Schema.Union(CommandItem, MessageItem, FileChangeItem),
+    item: Schema.Union(CommandItem, MessageItem, FileChangeItem, ToolCallItem),
     type: Schema.Literal("item.completed"),
   }),
   Schema.Struct({
@@ -117,6 +128,19 @@ export const decodeCodexLine = (line: string): DecodedLine => {
     };
   }
 
+  if (item.type === "function_call" || item.type === "custom_tool_call") {
+    return {
+      event: Option.some({
+        _tag: "ToolCall",
+        callId: item.call_id ?? null,
+        input: item.input ?? "",
+        name: item.name,
+        status: item.status ?? null,
+      }),
+      usage: Option.none(),
+    };
+  }
+
   if (item.type === "file_change") {
     return {
       event: Option.some({
@@ -127,8 +151,19 @@ export const decodeCodexLine = (line: string): DecodedLine => {
     };
   }
 
-  return {
-    event: Option.some({ _tag: "Message", role: "assistant", text: item.text }),
-    usage: Option.none(),
-  };
+  if (item.type === "agent_message") {
+    return {
+      event: Option.some({
+        _tag: "Message",
+        role: "assistant",
+        text: item.text,
+      }),
+      usage: Option.none(),
+    };
+  }
+
+  /* Matched explicitly rather than falling through. A catch-all here would
+     turn any item type added by a later Codex into a message and read a field
+     it does not have. */
+  return none;
 };

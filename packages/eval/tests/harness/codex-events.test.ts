@@ -60,3 +60,70 @@ describe("decodeCodexLine", () => {
     expect(Option.isNone(decodeCodexLine("").event)).toBe(true);
   });
 });
+
+describe("tool calls", () => {
+  /* The payload shape taken from a real Codex session transcript, where
+     function calls outnumbered shell executions sixteen to one. */
+  it("decodes a custom tool call", () => {
+    const decoded = decodeCodexLine(
+      JSON.stringify({
+        item: {
+          call_id: "call_TGMfN3Hvd3b2OUEWMvEw6KAv",
+          input: '{"cmd":"sed -n 1,240p SKILL.md"}',
+          name: "exec",
+          status: "completed",
+          type: "custom_tool_call",
+        },
+        type: "item.completed",
+      })
+    );
+
+    expect(Option.isSome(decoded.event)).toBe(true);
+
+    if (Option.isNone(decoded.event)) {
+      return;
+    }
+
+    expect(decoded.event.value).toEqual({
+      _tag: "ToolCall",
+      callId: "call_TGMfN3Hvd3b2OUEWMvEw6KAv",
+      input: '{"cmd":"sed -n 1,240p SKILL.md"}',
+      name: "exec",
+      status: "completed",
+    });
+  });
+
+  it("decodes a declared function call the same way", () => {
+    const decoded = decodeCodexLine(
+      JSON.stringify({
+        item: { name: "read_file", type: "function_call" },
+        type: "item.completed",
+      })
+    );
+
+    expect(Option.isSome(decoded.event)).toBe(true);
+
+    if (Option.isNone(decoded.event)) {
+      return;
+    }
+
+    expect(decoded.event.value).toMatchObject({
+      _tag: "ToolCall",
+      callId: null,
+      name: "read_file",
+    });
+  });
+
+  /* A later Codex adding an item type must be ignored, never coerced into a
+     message with a field it does not have. */
+  it("drops an unknown item type rather than guessing", () => {
+    const decoded = decodeCodexLine(
+      JSON.stringify({
+        item: { type: "something_new_in_a_later_version" },
+        type: "item.completed",
+      })
+    );
+
+    expect(Option.isNone(decoded.event)).toBe(true);
+  });
+});

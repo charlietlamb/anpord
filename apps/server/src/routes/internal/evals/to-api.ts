@@ -22,6 +22,7 @@ const waiting = (ordinal: number): EvalTrial => ({
   sandboxId: null,
   sandboxMs: 0,
   status: "running",
+  toolCalls: [],
   voidFields: [],
 });
 
@@ -49,6 +50,9 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
         sandboxId: result.sandboxId,
         sandboxMs: result.outcome.sandboxMs,
         status: result.outcome.status,
+        toolCalls: result.events
+          .filter((event) => event._tag === "ToolCall")
+          .map((event) => ({ name: event.name, status: event.status })),
         voidFields: [...result.outcome.voidFields],
       }),
     })

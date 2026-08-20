@@ -34,6 +34,22 @@ export const HarnessEvent = Schema.Union(
     _tag: Schema.Literal("FileChange"),
     paths: Schema.Array(Schema.String),
   }),
+  /* A tool the agent invoked by name, separate from a shell command.
+     A real Codex session is mostly these: forty-eight function calls against
+     three shell executions in one sampled transcript. Three companies in the
+     customer research independently wrote scorers over tool calls, and none
+     of them could be expressed against commands alone: PostHog has
+     RequiredToolCall and NoToolCall, Onyx has ToolAssertion, DeerFlow has
+     forbidden_tool_actions. */
+  Schema.Struct({
+    _tag: Schema.Literal("ToolCall"),
+    /* The harness's own id for the call, so a result can be matched to its
+       invocation when they arrive as separate events. */
+    callId: Schema.NullOr(Schema.String),
+    input: Schema.String,
+    name: Schema.String,
+    status: Schema.NullOr(Schema.String),
+  }),
   Schema.Struct({
     _tag: Schema.Literal("Finished"),
     reason: Schema.String,

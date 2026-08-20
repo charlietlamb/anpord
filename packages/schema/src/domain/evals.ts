@@ -93,6 +93,15 @@ export const EvalCommand = Schema.Struct({
 });
 export type EvalCommand = typeof EvalCommand.Type;
 
+/** A tool the agent invoked by name. Separate from a command, because three
+ * of the companies this was built for score tool calls and none of their
+ * assertions can be expressed against shell alone. */
+export const EvalToolCall = Schema.Struct({
+  name: Schema.String,
+  status: Schema.NullOr(Schema.String),
+});
+export type EvalToolCall = typeof EvalToolCall.Type;
+
 export const EvalTrial = Schema.Struct({
   commands: Schema.Int,
   failedCommands: Schema.Int,
@@ -104,6 +113,9 @@ export const EvalTrial = Schema.Struct({
   sandboxId: Schema.NullOr(Schema.String),
   sandboxMs: Schema.Int,
   status: EvalTrialStatus,
+  /** The trajectory, in order. What "did it call the right tool" is answered
+   * from, and what no score alone can carry. */
+  toolCalls: Schema.Array(EvalToolCall),
   voidFields: Schema.Array(Schema.String),
 });
 export type EvalTrial = typeof EvalTrial.Type;
