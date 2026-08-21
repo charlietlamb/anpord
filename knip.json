@@ -45,20 +45,13 @@
     },
     "packages/eval": {
       "entry": [
-        "src/bin/eval-run.ts",
-        "src/domain/harness-spec.ts",
-        "src/domain/matrix.ts",
-        "src/harness/codex.ts",
+        "src/domain/case-file.ts",
         "src/layer.ts",
-        "src/ports/harness.ts",
-        "src/report.ts",
-        "src/runtime.ts",
-        "src/scoring/ground-truth.ts",
+        "src/providers/local.ts",
         "src/scoring/journal-assertions.ts",
-        "src/services/agent-trial-set.ts",
-        "src/services/agent-trial.ts",
-        "src/services/cell-run.ts",
-        "src/workflow/trial.ts",
+        "src/sdk/define.ts",
+        "src/sdk/run.ts",
+        "src/sdk/scorers.ts",
         "tests/**/*.test.ts"
       ],
       "project": ["src/**", "tests/**"]

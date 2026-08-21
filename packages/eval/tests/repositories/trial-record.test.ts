@@ -1,4 +1,3 @@
-import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -17,6 +16,7 @@ import {
   TrialRecorder,
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
+import { skipWithoutDatabase } from "../fixtures/database";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 

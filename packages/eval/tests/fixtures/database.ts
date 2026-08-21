@@ -13,7 +13,7 @@
  */
 const REQUIRED = process.env.EVAL_REQUIRE_DATABASE === "1";
 
-export const databaseUrl = process.env.EVAL_TEST_DATABASE_URL;
+const databaseUrl = process.env.EVAL_TEST_DATABASE_URL;
 
 export const skipWithoutDatabase = () => {
   if (databaseUrl === undefined && REQUIRED) {

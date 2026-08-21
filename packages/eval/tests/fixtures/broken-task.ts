@@ -15,7 +15,7 @@
 export const BROKEN_SOURCE =
   "export const total = (items) => items.reduce((sum, item) => sum + item, 0) - 1;\n";
 
-export const FIXED_SOURCE =
+const FIXED_SOURCE =
   "export const total = (items) => items.reduce((sum, item) => sum + item, 0);\n";
 
 export const TEST_SOURCE = [

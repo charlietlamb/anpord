@@ -82,9 +82,12 @@ export const EvalsHandlers = HttpApiBuilder.group(
           /* Compared here rather than by the client. A grid without its
              verdicts is a table of numbers, and deciding whether one differs
              from an accepted reading is the product. */
+          /* A store failure is not "no regressions". Succeeding with an
+             empty list rendered the product's core signal as absent and
+             indistinguishable from a clean run. */
           const comparisons = yield* baselines
             .compareRun(actor.organizationId, path.id)
-            .pipe(Effect.orElseSucceed(() => []));
+            .pipe(Effect.catchTag("EvalStoreError", Effect.die));
 
           return detail(found.value, comparisons);
         })

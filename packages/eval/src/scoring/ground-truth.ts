@@ -108,12 +108,11 @@ export const ScorerGroundTruthLive = Layer.succeed(
           });
         }
 
-        const chunks = yield* verify(
-          request.sandbox,
-          request.verifyCommand
-        ).pipe(
-          Effect.catchAll(() => Effect.succeed([] as readonly ExecChunk[]))
-        );
+        /* Allowed to fail. Catching here turned a dead sandbox into an
+           empty result, which the exit-code default then read as a failing
+           test: infrastructure reported as product, which is the failure the
+           void gate exists to prevent. */
+        const chunks = yield* verify(request.sandbox, request.verifyCommand);
 
         const exit = exitOf(chunks);
         const output = outputOf(chunks);

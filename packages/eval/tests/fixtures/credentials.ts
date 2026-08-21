@@ -40,6 +40,5 @@ export const codexCredentials = (() => {
 })();
 
 export const hasDaytona = Boolean(process.env.DAYTONA_API_KEY);
-export const hasE2B = Boolean(process.env.E2B_API_KEY);
 export const hasCodex = Boolean(codexCredentials);
 export const hasDatabase = Boolean(process.env.EVAL_TEST_DATABASE_URL);

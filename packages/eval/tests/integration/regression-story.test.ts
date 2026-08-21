@@ -1,4 +1,3 @@
-import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -10,6 +9,7 @@ import { EvalBaselinesLive } from "../../src/layer";
 import { RunRepository } from "../../src/repositories/run-repository";
 import { TrialRecorder } from "../../src/repositories/trial-record";
 import { Baselines } from "../../src/services/baselines";
+import { skipWithoutDatabase } from "../fixtures/database";
 import { statusOf, taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;

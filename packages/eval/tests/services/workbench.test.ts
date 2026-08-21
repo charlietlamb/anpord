@@ -1,4 +1,3 @@
-import { skipWithoutDatabase } from "../fixtures/database";
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -15,6 +14,7 @@ import {
 } from "effect";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
 import { Workbenches } from "../../src/services/workbench";
+import { skipWithoutDatabase } from "../fixtures/database";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 

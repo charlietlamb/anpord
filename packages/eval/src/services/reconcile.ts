@@ -6,7 +6,7 @@ import { Clock, Context, Duration, Effect, Layer, Schedule } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "../repositories/query";
 
-export interface Reconciled {
+interface Reconciled {
   readonly cells: number;
   readonly runs: number;
 }

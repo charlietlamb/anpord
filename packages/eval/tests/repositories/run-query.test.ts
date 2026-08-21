@@ -1,4 +1,3 @@
-import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -11,6 +10,7 @@ import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Duration, Effect, Layer, Option, Redacted } from "effect";
 import { CellKey } from "../../src/domain/cell";
 import { RunQuery, RunQueryLive } from "../../src/repositories/run-query";
+import { skipWithoutDatabase } from "../fixtures/database";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 

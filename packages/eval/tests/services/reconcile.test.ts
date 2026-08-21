@@ -1,4 +1,3 @@
-import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -10,6 +9,7 @@ import { IdGeneratorLive } from "@anpord/ids/layer";
 import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer, Redacted } from "effect";
 import { Reconciler, ReconcilerLive } from "../../src/services/reconcile";
+import { skipWithoutDatabase } from "../fixtures/database";
 import { taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;

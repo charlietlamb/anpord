@@ -5,7 +5,11 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
-import { EvalGridLive, EvalSandboxLive } from "@anpord/eval/layer";
+import {
+  EvalGridLive,
+  EvalSandboxLive,
+  ReconcilerSweepLive,
+} from "@anpord/eval/layer";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
@@ -50,6 +54,9 @@ const EvalLayer = Layer.mergeAll(
     Layer.provide(EvalSandboxLive),
     Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
   ),
+  /* Opted into here, because sweeping abandoned work is a decision about
+     this process's lifetime rather than a property of the domain. */
+  ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
   EvalCredentialsLive.pipe(Layer.provide(BunContext.layer))
 );
 

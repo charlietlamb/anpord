@@ -27,11 +27,31 @@ const execute = (
   Stream.async<ExecChunk, SandboxUnavailable>((emit) => {
     const child = spawn(command, {
       cwd: root,
+      /* Its own process group, so a kill reaches the whole tree. A shell
+         spawned without one leaves its children behind: killing bash left
+         the sleep it had started still running. */
+      detached: true,
       env: { ...process.env, HOME: root },
       shell: "/bin/bash",
     });
 
-    const timer = setTimeout(() => child.kill("SIGKILL"), timeoutMs);
+    /* Negative pid addresses the group rather than the leader. */
+    const killTree = () => {
+      const pid = child.pid;
+
+      try {
+        if (pid === undefined) {
+          child.kill("SIGKILL");
+          return;
+        }
+
+        process.kill(-pid, "SIGKILL");
+      } catch {
+        child.kill("SIGKILL");
+      }
+    };
+
+    const timer = setTimeout(killTree, timeoutMs);
 
     child.stdout.on("data", (data: Buffer) => {
       emit.single({ data: data.toString(), stream: "stdout" });
@@ -55,6 +75,14 @@ const execute = (
          vacuous pass this product exists to catch. */
       emit.single({ exitCode: code ?? 137, stream: "exit" });
       emit.end();
+    });
+
+    /* Returned so an interrupted trial takes its process with it. Without
+       this the fiber goes away and the command keeps running: measured, two
+       orphans survived a single interrupt. */
+    return Effect.sync(() => {
+      clearTimeout(timer);
+      killTree();
     });
   });
 

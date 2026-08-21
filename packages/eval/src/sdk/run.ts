@@ -1,8 +1,8 @@
 import { Chunk, Effect, Stream } from "effect";
 import type { Distribution } from "../domain/distribution";
 import { distributionOf } from "../domain/distribution";
-import type { HarnessEvent } from "../domain/harness-event";
 import { UnreadableHarness } from "../domain/errors";
+import type { HarnessEvent } from "../domain/harness-event";
 import { parseHarness } from "../domain/harness-spec";
 import type { TrialOutcome } from "../domain/trial";
 import type { SandboxHandle } from "../ports/sandbox";

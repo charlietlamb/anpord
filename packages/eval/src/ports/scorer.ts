@@ -1,4 +1,5 @@
 import { Context, type Effect } from "effect";
+import type { SandboxUnavailable } from "../domain/errors";
 import type { HarnessEvent } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
 import type { SandboxHandle } from "./sandbox";
@@ -28,7 +29,16 @@ export interface ScoreRequest {
  * is deliberately unwritten, because a judge as a gate drifts and the
  * regression signal is the one thing that has to stay stable. */
 export interface ScorerShape {
-  readonly score: (request: ScoreRequest) => Effect.Effect<TrialOutcome>;
+  /** Fails rather than swallowing.
+   *
+   * A never in this channel forced the implementation to catch a dead
+   * sandbox and return an empty result, which read as a measured test
+   * failure: an outage became a regression that never happened, promotable
+   * as a baseline. Both callers already fail this way, so the error
+   * propagates to the boundary that owns retry. */
+  readonly score: (
+    request: ScoreRequest
+  ) => Effect.Effect<TrialOutcome, SandboxUnavailable>;
 }
 
 export class Scorer extends Context.Tag("@anpord/eval/Scorer")<

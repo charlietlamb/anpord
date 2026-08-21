@@ -1,4 +1,3 @@
-import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -12,6 +11,7 @@ import { Duration, Effect, Layer, Option, Redacted } from "effect";
 import { CellKey } from "../../src/domain/cell";
 import { EvalBaselinesLive } from "../../src/layer";
 import { Baselines } from "../../src/services/baselines";
+import { skipWithoutDatabase } from "../fixtures/database";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
