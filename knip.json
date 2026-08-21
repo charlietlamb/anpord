@@ -50,8 +50,11 @@
         "src/providers/local.ts",
         "src/scoring/journal-assertions.ts",
         "src/sdk/define.ts",
-        "src/sdk/run.ts",
+        "src/sdk/evidence.ts",
+        "src/sdk/outcome.ts",
+        "src/sdk/report.ts",
         "src/sdk/scorers.ts",
+        "src/sdk/variant.ts",
         "tests/**/*.test.ts"
       ],
       "project": ["src/**", "tests/**"]

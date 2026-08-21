@@ -35,8 +35,11 @@
     "./scorers/ground-truth": "./src/scorers/ground-truth.ts",
     "./scoring/journal-assertions": "./src/scoring/journal-assertions.ts",
     "./sdk/define": "./src/sdk/define.ts",
-    "./sdk/run": "./src/sdk/run.ts",
+    "./sdk/evidence": "./src/sdk/evidence.ts",
+    "./sdk/outcome": "./src/sdk/outcome.ts",
+    "./sdk/report": "./src/sdk/report.ts",
     "./sdk/scorers": "./src/sdk/scorers.ts",
+    "./sdk/variant": "./src/sdk/variant.ts",
     "./services/baselines": "./src/services/baselines.ts",
     "./services/workbench": "./src/services/workbench.ts"
   }
