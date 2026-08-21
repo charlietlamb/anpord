@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Chunk, Effect, Stream } from "effect";
-import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
-import { makeLocalAdapter } from "../../src/providers/local";
+import { makeLocalAdapter } from "../../../src/adapters/sandbox/local";
+import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
 
 const withSandbox = <A>(
   use: (sandbox: SandboxHandle) => Effect.Effect<A, unknown>

@@ -3,14 +3,14 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Effect, Stream } from "effect";
-import type { ProviderName } from "../domain/cell";
-import { SandboxUnavailable } from "../domain/errors";
+import type { ProviderName } from "../../domain/cell";
+import { SandboxUnavailable } from "../../domain/errors";
 import type {
   ExecChunk,
   OpenSandbox,
   SandboxAdapterShape,
   SandboxHandle,
-} from "../ports/sandbox";
+} from "../../ports/sandbox";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 

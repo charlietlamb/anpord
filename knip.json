@@ -45,10 +45,10 @@
     },
     "packages/eval": {
       "entry": [
+        "src/adapters/sandbox/local.ts",
+        "src/adapters/scorers/journal-assertions.ts",
         "src/domain/case-file.ts",
         "src/layer.ts",
-        "src/providers/local.ts",
-        "src/scoring/journal-assertions.ts",
         "src/sdk/define.ts",
         "src/sdk/evidence.ts",
         "src/sdk/outcome.ts",

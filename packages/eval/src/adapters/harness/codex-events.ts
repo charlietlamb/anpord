@@ -1,5 +1,5 @@
 import { Option, Schema } from "effect";
-import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 
 /** The shape `codex exec --json` actually emits, captured from a real run
  * rather than taken from documentation. */

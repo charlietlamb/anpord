@@ -1,13 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Stream } from "effect";
-import { distributionOf } from "../../src/domain/distribution";
-import { outcomeOf } from "../../src/domain/trial";
-import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
-import { Scorer } from "../../src/ports/scorer";
 import {
   isUnguardedPipeline,
   ScorerGroundTruthLive,
-} from "../../src/scorers/ground-truth";
+} from "../../../src/adapters/scorers/ground-truth";
+import { distributionOf } from "../../../src/domain/distribution";
+import { outcomeOf } from "../../../src/domain/trial";
+import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
+import { Scorer } from "../../../src/ports/scorer";
 
 const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),

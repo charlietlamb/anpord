@@ -1,12 +1,12 @@
 import { Daytona, type Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
 import { Effect, Stream } from "effect";
-import { SandboxUnavailable } from "../domain/errors";
+import { SandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
   SandboxAdapterShape,
   SandboxHandle,
-} from "../ports/sandbox";
+} from "../../ports/sandbox";
 
 const HOME = "/home/daytona";
 const DEFAULT_TIMEOUT_MS = 120_000;

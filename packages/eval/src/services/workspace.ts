@@ -1,7 +1,10 @@
 import { Effect, type Redacted, Stream } from "effect";
+import {
+  authenticateCodex,
+  installCodex,
+} from "../adapters/harness/codex-install";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
-import { authenticateCodex, installCodex } from "../harness/codex-install";
 import type { SandboxHandle } from "../ports/sandbox";
 
 export interface PrepareWorkspace {

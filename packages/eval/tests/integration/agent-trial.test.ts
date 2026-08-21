@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Layer, Option, Redacted } from "effect";
-import { CodexRunnerLive } from "../../src/harness/codex";
+import { CodexRunnerLive } from "../../src/adapters/harness/codex";
+import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { EvalSandboxLive } from "../../src/layer";
-import { ScorerGroundTruthLive } from "../../src/scorers/ground-truth";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
 import {
   AGENT_PROMPT,

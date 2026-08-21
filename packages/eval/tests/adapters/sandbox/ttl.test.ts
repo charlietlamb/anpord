@@ -5,8 +5,8 @@ import {
   SandboxAdapters,
   type SandboxHandle,
   SandboxProvider,
-} from "../../src/ports/sandbox";
-import { SandboxProviderLive } from "../../src/services/sandbox-provider";
+} from "../../../src/ports/sandbox";
+import { SandboxProviderLive } from "../../../src/services/sandbox-provider";
 
 /**
  * Measured against Daytona: killing the process with `process.exit` bypasses

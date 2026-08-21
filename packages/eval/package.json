@@ -20,6 +20,9 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./adapters/sandbox/local": "./src/adapters/sandbox/local.ts",
+    "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
+    "./adapters/scorers/journal-assertions": "./src/adapters/scorers/journal-assertions.ts",
     "./domain/case-file": "./src/domain/case-file.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
@@ -31,9 +34,6 @@
     "./grid/state": "./src/grid/state.ts",
     "./layer": "./src/layer.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
-    "./providers/local": "./src/providers/local.ts",
-    "./scorers/ground-truth": "./src/scorers/ground-truth.ts",
-    "./scoring/journal-assertions": "./src/scoring/journal-assertions.ts",
     "./sdk/define": "./src/sdk/define.ts",
     "./sdk/evidence": "./src/sdk/evidence.ts",
     "./sdk/outcome": "./src/sdk/outcome.ts",

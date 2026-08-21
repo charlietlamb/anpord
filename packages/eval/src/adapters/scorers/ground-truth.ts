@@ -1,7 +1,7 @@
 import { Chunk, Effect, Layer, Stream } from "effect";
-import { outcomeOf } from "../domain/trial";
-import type { ExecChunk, SandboxHandle } from "../ports/sandbox";
-import { type ScoreRequest, Scorer } from "../ports/scorer";
+import { outcomeOf } from "../../domain/trial";
+import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
+import { type ScoreRequest, Scorer } from "../../ports/scorer";
 
 /** A single `|` that is not `||`, outside single or double quotes. */
 export const isUnguardedPipeline = (command: string) => {

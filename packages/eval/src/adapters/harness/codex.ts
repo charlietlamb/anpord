@@ -1,11 +1,11 @@
 import { Effect, Layer, Option, Ref, Stream } from "effect";
-import { HarnessUnavailable } from "../domain/errors";
-import type { HarnessUsage } from "../domain/harness-event";
+import { HarnessUnavailable } from "../../domain/errors";
+import type { HarnessUsage } from "../../domain/harness-event";
 import {
   HarnessRunner,
   type HarnessSessionShape,
   type RunHarness,
-} from "../ports/harness";
+} from "../../ports/harness";
 import { decodeCodexLine } from "./codex-events";
 import { CODEX_BIN } from "./codex-install";
 

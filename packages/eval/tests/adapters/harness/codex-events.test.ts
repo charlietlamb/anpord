@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Option } from "effect";
-import { decodeCodexLine } from "../../src/harness/codex-events";
+import { decodeCodexLine } from "../../../src/adapters/harness/codex-events";
 
 /* Verbatim lines from a real `codex exec --json` run, so a change in the
    harness's output shape breaks this test rather than silently emptying a

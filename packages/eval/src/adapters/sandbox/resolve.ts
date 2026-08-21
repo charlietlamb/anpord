@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
-import type { ProviderName } from "../domain/cell";
-import { type SandboxAdapterShape, SandboxAdapters } from "../ports/sandbox";
+import type { ProviderName } from "../../domain/cell";
+import { type SandboxAdapterShape, SandboxAdapters } from "../../ports/sandbox";
 import { makeDaytonaAdapter } from "./daytona";
 import { makeE2BAdapter } from "./e2b";
 import { makeLocalAdapter } from "./local";

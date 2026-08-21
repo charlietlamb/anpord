@@ -1,6 +1,6 @@
 import { Effect, Redacted, Stream } from "effect";
-import { HarnessUnavailable } from "../domain/errors";
-import type { SandboxHandle } from "../ports/sandbox";
+import { HarnessUnavailable } from "../../domain/errors";
+import type { SandboxHandle } from "../../ports/sandbox";
 
 /** A user prefix, because the Daytona image manages node through nvm: a
  * global install hits permissions and `sudo npm` loses the nvm PATH. */

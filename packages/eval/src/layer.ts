@@ -1,15 +1,15 @@
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Layer } from "effect";
+import { CodexRunnerLive } from "./adapters/harness/codex";
+import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
+import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { GridRunLive } from "./grid/run";
-import { CodexRunnerLive } from "./harness/codex";
-import { SandboxAdaptersLive } from "./providers/resolve";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
 import { TrialRecorderLive } from "./repositories/trial-record";
 import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
-import { ScorerGroundTruthLive } from "./scorers/ground-truth";
 import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
