@@ -1,0 +1,83 @@
+import { extractVariables } from "@anpord/template/extract";
+import {
+  ComposerContext,
+  ComposerToolbar,
+  ComposerToolbarGroup,
+} from "@anpord/ui/components/composer";
+import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
+import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
+import type { Icon } from "@phosphor-icons/react";
+import { BracketsCurlyIcon, SpinnerGapIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
+import { PromptComposer } from "@/components/prompts/prompt-composer";
+
+interface PromptComposerFormProps {
+  /** Names what is being written, above the surface. */
+  readonly children?: ReactNode;
+  readonly content: string;
+  readonly onContentChange: (value: string) => void;
+  readonly onSubmit: () => void;
+  readonly saving: boolean;
+  /** Paired with the label, since creating and versioning are different acts. */
+  readonly submitIcon: Icon;
+  /** Names the write, which differs between creating and versioning. */
+  readonly submitLabel: string;
+}
+
+/**
+ * A composer that carries its own submit, for the pages where writing the
+ * prompt is one step of a form rather than the whole of what the page does.
+ * Where the page owns the write, `PromptComposer` is the surface on its own.
+ */
+export function PromptComposerForm({
+  children,
+  content,
+  onContentChange,
+  onSubmit,
+  saving,
+  submitIcon: SubmitIcon,
+  submitLabel,
+}: PromptComposerFormProps) {
+  const variables = extractVariables(content);
+  const canSubmit = content.trim().length > 0 && !saving;
+
+  return (
+    <div className="flex w-full flex-col">
+      {children ? <ComposerContext>{children}</ComposerContext> : null}
+
+      <PromptComposer
+        bounded
+        content={content}
+        onContentChange={onContentChange}
+      />
+
+      <ComposerToolbar>
+        <ComposerToolbarGroup>
+          {variables.length > 0 ? (
+            <ToolbarButton>
+              <BracketsCurlyIcon />
+              {variables.length} variable{variables.length > 1 ? "s" : ""}
+            </ToolbarButton>
+          ) : null}
+        </ComposerToolbarGroup>
+
+        <ComposerToolbarGroup className="ml-auto">
+          <ShortcutButton
+            className="ml-1 h-8"
+            disabled={!canSubmit}
+            metaShortcut="enter"
+            onClick={onSubmit}
+            size="sm"
+          >
+            {saving ? (
+              <SpinnerGapIcon className="animate-spin" size={15} />
+            ) : (
+              <SubmitIcon size={15} weight="bold" />
+            )}
+            {submitLabel}
+          </ShortcutButton>
+        </ComposerToolbarGroup>
+      </ComposerToolbar>
+    </div>
+  );
+}

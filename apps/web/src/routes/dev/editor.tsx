@@ -4,7 +4,6 @@ import type {
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
 import { extractVariables } from "@anpord/template/extract";
-import { ArrowUpIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -90,11 +89,7 @@ function EditorPreview() {
                 title: "Edit from v8?",
               })
             }
-            onSubmit={() => undefined}
             readOnly={!editing}
-            saving={false}
-            submitIcon={ArrowUpIcon}
-            submitLabel="Save version"
           />
         </main>
 

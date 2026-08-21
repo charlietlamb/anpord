@@ -1,4 +1,5 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
+import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { cn } from "@anpord/ui/lib/utils";
 import {
   ClockCounterClockwiseIcon,
@@ -29,7 +30,7 @@ interface PromptRailSkeletonProps {
 
 export function PromptRailSkeleton({ promptId }: PromptRailSkeletonProps) {
   return (
-    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:-mx-2 lg:h-svh lg:overflow-y-auto lg:overscroll-contain lg:px-2 lg:pt-5 lg:pb-8">
+    <aside className={RAIL_FRAME}>
       <div className="flex justify-end">
         <PromptEditorActions
           correctingVersion={null}

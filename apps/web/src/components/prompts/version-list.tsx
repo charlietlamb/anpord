@@ -26,9 +26,12 @@ const servedBy = (
   placements: readonly ChannelPlacement[],
   version: number
 ): readonly string[] =>
-  placements
-    .filter((placement) => placement.version === version)
-    .map((placement) => placement.channel);
+  placements.reduce<string[]>((names, placement) => {
+    if (placement.version === version) {
+      names.push(placement.channel);
+    }
+    return names;
+  }, []);
 
 export function VersionList({
   channels,

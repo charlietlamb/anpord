@@ -1,7 +1,6 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { extractVariables } from "@anpord/template/extract";
-import { ArrowUpIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
@@ -245,11 +244,7 @@ function PromptDetailPage() {
           content={content}
           onContentChange={setDraft}
           onEditRequest={onEditRequest}
-          onSubmit={onSave}
           readOnly={!editing}
-          saving={addVersion.isPending}
-          submitIcon={ArrowUpIcon}
-          submitLabel="Save version"
         />
 
         <PromptActivityFeed promptId={id} />

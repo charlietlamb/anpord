@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ComposerHeading } from "@/components/prompts/composer-heading";
-import { PromptComposer } from "@/components/prompts/prompt-composer";
+import { PromptComposerForm } from "@/components/prompts/prompt-composer-form";
 import { createPrompt } from "@/lib/prompts-client";
 
 export const Route = createFileRoute("/_authed/prompts/new")({
@@ -51,8 +51,7 @@ function NewPromptPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center overflow-y-auto px-6 py-10">
       <ComposerHeading />
 
-      <PromptComposer
-        bounded
+      <PromptComposerForm
         content={content}
         onContentChange={setContent}
         onSubmit={onSubmit}
@@ -77,7 +76,7 @@ function NewPromptPage() {
             {id}
           </span>
         ) : null}
-      </PromptComposer>
+      </PromptComposerForm>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { RailSection } from "@/components/rail/rail-section";
 
-interface VariablesCardProps {
+interface PromptVariablesProps {
   readonly variables: readonly string[];
 }
 
-export function VariablesCard({ variables }: VariablesCardProps) {
+export function PromptVariables({ variables }: PromptVariablesProps) {
   if (variables.length === 0) {
     return null;
   }

@@ -3,9 +3,10 @@ import type {
   ChannelPlacement,
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
+import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import type { ReactNode } from "react";
-import { DetailsCard } from "@/components/prompts/details-card";
-import { VariablesCard } from "@/components/prompts/variables-card";
+import { PromptDetails } from "@/components/prompts/prompt-details";
+import { PromptVariables } from "@/components/prompts/prompt-variables";
 import { VersionList } from "@/components/prompts/version-list";
 import { RailSection } from "@/components/rail/rail-section";
 
@@ -41,10 +42,10 @@ export function PromptRail({
      rail longer than the viewport can still reach its end, and its own
      scrollbar hidden so the page keeps the only one on screen. */
   return (
-    <aside className="no-scrollbar order-2 flex flex-col gap-6 lg:sticky lg:top-0 lg:-mx-2 lg:h-svh lg:overflow-y-auto lg:overscroll-contain lg:px-2 lg:pt-5 lg:pb-8">
+    <aside className={RAIL_FRAME}>
       <div className="flex justify-end">{actions}</div>
 
-      <DetailsCard created={oldest.createdAt} viewed={viewed} />
+      <PromptDetails created={oldest.createdAt} viewed={viewed} />
 
       <RailSection
         action={
@@ -65,7 +66,7 @@ export function PromptRail({
         />
       </RailSection>
 
-      <VariablesCard variables={variables} />
+      <PromptVariables variables={variables} />
     </aside>
   );
 }

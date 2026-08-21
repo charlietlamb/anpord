@@ -3,7 +3,7 @@ import { PlusIcon, TextTIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { PromptComposer } from "@/components/prompts/prompt-composer";
+import { PromptComposerForm } from "@/components/prompts/prompt-composer-form";
 
 export const Route = createFileRoute("/dev/composer")({
   component: ComposerPreview,
@@ -12,24 +12,23 @@ export const Route = createFileRoute("/dev/composer")({
 const SAMPLE =
   "You are a concise support agent for {{company}}.\n\nAnswer {{customer_name}}'s question using only the context provided. If you are unsure, say so.";
 
-function Preview({ initial, version }: { initial: string; version?: number }) {
+function Preview({ initial }: { initial: string }) {
   const [content, setContent] = useState(initial);
 
   return (
-    <PromptComposer
+    <PromptComposerForm
       content={content}
       onContentChange={setContent}
       onSubmit={() => undefined}
       saving={false}
       submitIcon={PlusIcon}
       submitLabel="Create prompt"
-      version={version}
     >
       <ToolbarButton menu>
         <TextTIcon />
         checkout-greeting
       </ToolbarButton>
-    </PromptComposer>
+    </PromptComposerForm>
   );
 }
 
@@ -50,7 +49,7 @@ function ComposerPreview() {
         <p className="mb-3 font-heading text-muted-foreground text-sm">
           With variables and a version
         </p>
-        <Preview initial={SAMPLE} version={3} />
+        <Preview initial={SAMPLE} />
 
         <p className="mt-10 mb-3 font-heading text-muted-foreground text-sm">
           Empty state
@@ -61,7 +60,7 @@ function ComposerPreview() {
           On a muted background
         </p>
         <div className="rounded-2xl bg-muted/40 p-6">
-          <Preview initial={SAMPLE} version={3} />
+          <Preview initial={SAMPLE} />
         </div>
       </div>
     </main>

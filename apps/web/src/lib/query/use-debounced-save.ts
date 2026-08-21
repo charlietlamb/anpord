@@ -1,5 +1,5 @@
 import type { UseMutationResult } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /** Long enough that a typed word is one request rather than five, short enough
  * that the value is saved by the time attention moves on. */
@@ -40,6 +40,14 @@ export function useDebouncedSave<TValue, TInput>({
   const [draft, setDraft] = useState<TValue | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /** Read at commit time rather than captured when the keystroke landed: the
+   * server value can change during the wait, and comparing against a stale one
+   * either skips a write that was needed or repeats one that was not. */
+  const latest = useRef(saved);
+  useEffect(() => {
+    latest.current = saved;
+  }, [saved]);
+
   const clear = () => {
     if (timer.current) {
       clearTimeout(timer.current);
@@ -47,9 +55,20 @@ export function useDebouncedSave<TValue, TInput>({
     }
   };
 
+  /** A pending write outlives the field it was typed into, so the timer is
+   * cleared on the way out rather than firing into a component that is gone. */
+  useEffect(
+    () => () => {
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
+    },
+    []
+  );
+
   const commit = (next: TValue) => {
     clear();
-    if (next === saved) {
+    if (next === latest.current) {
       setDraft(null);
       return;
     }
@@ -69,8 +88,10 @@ export function useDebouncedSave<TValue, TInput>({
       clear();
       timer.current = setTimeout(() => commit(next), SAVE_DELAY_MS);
     },
+    /** Only where a write is still owed: once the timer has fired the value is
+     * already on its way, and committing again would send it twice. */
     flush: () => {
-      if (draft !== null) {
+      if (timer.current !== null && draft !== null) {
         commit(draft);
       }
     },

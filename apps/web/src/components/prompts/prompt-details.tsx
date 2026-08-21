@@ -12,12 +12,12 @@ import { DetailRowFrame } from "@/components/prompts/detail-row-frame";
 import { RailSection } from "@/components/rail/rail-section";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
-interface DetailsCardProps {
+interface PromptDetailsProps {
   readonly created: Date;
   readonly viewed: ResolvedPrompt;
 }
 
-export function DetailsCard({ created, viewed }: DetailsCardProps) {
+export function PromptDetails({ created, viewed }: PromptDetailsProps) {
   const createdLabel = useRelativeTime(created);
   const savedLabel = useRelativeTime(viewed.createdAt);
 

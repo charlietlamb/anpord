@@ -16,10 +16,6 @@
   [data-state="checked"],
   [data-checked]:not([data-checked="false"])
 ));
-@custom-variant data-unchecked (&:where(
-  [data-state="unchecked"],
-  [data-unchecked]:not([data-unchecked="false"])
-));
 @custom-variant data-selected (&:where([data-selected="true"]));
 @custom-variant data-disabled (&:where(
   [data-disabled="true"],
@@ -98,10 +94,7 @@
   --text-label--line-height: 1.25rem;
   --color-success: var(--success);
   --color-warning: var(--warning);
-  --color-alpha-2: var(--alpha-2);
   --color-alpha-4: var(--alpha-4);
-  --color-alpha-6: var(--alpha-6);
-  --color-alpha-8: var(--alpha-8);
   --default-transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
   --default-transition-duration: 200ms;
   --ease-emphasised: cubic-bezier(0.2, 0, 0, 1);
@@ -142,19 +135,11 @@
   /* Outer edge of a raised surface. A shade past --border, enough for the
      inner highlight to sit against without the edge drawing attention. */
   --border-surface: oklch(0.895 0 0);
-  --alpha-2: oklch(0 0 0 / 2%);
   --alpha-4: oklch(0 0 0 / 4%);
-  --alpha-6: oklch(0 0 0 / 6%);
-  --alpha-8: oklch(0 0 0 / 8%);
   /* Named for what they report, not the hue they happen to use, so a status
      that changes colour does not have to change every call site. */
   --success: oklch(0.6 0.14 155);
   --warning: oklch(0.72 0.15 75);
-  /* Muted against the surface: a snippet is read, not scanned like an editor. */
-  --code-keyword: oklch(0.52 0.14 305);
-  --code-call: oklch(0.52 0.11 250);
-  --code-key: oklch(0.48 0.09 200);
-  --code-string: oklch(0.48 0.11 150);
   --shadow-popover:
     0 0 0 1px var(--border-surface), 0 16px 32px oklch(0 0 0 / 10%),
     0 4px 10px oklch(0 0 0 / 8%);
@@ -197,16 +182,9 @@
   /* Inverted here: the edge lifts off a dark page rather than cutting into a
      light one, so it sits above --border rather than below it. */
   --border-surface: oklch(1 0 0 / 21%);
-  --alpha-2: oklch(1 0 0 / 2%);
   --alpha-4: oklch(1 0 0 / 4%);
-  --alpha-6: oklch(1 0 0 / 6%);
-  --alpha-8: oklch(1 0 0 / 8%);
   --success: oklch(0.72 0.15 155);
   --warning: oklch(0.8 0.15 78);
-  --code-keyword: oklch(0.76 0.11 305);
-  --code-call: oklch(0.78 0.09 250);
-  --code-key: oklch(0.76 0.08 200);
-  --code-string: oklch(0.76 0.1 150);
   /* A menu opens over the cards rather than beside them, so its edge has to
      read against a raised surface, not the page. The ring matches the border
      those cards carry and the shadow is deepened to seat it above them. */
@@ -322,24 +300,6 @@
 
   .input-bevel-shadow:active:not(:disabled) {
     box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.1);
-  }
-
-  /* The buttons' bevel and lift at panel scale. Tailwind's shadow scale has
-     no step this soft and cannot express an inset bevel, so the drop is a
-     token while the hairline stays a ring utility in the markup. */
-  .shadow-elevated {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.7),
-      inset 0 1px 0 oklch(1 0 0),
-      0 1px 2px oklch(0 0 0 / 0.06),
-      0 16px 32px -20px oklch(0 0 0 / 0.22);
-  }
-  .dark .shadow-elevated {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.06),
-      inset 0 1px 0 oklch(1 0 0 / 0.1),
-      0 1px 2px oklch(0 0 0 / 0.3),
-      0 16px 32px -20px oklch(0 0 0 / 0.6);
   }
 
   /* Same bevel, closer to the page, so secondary surfaces stay subordinate. */

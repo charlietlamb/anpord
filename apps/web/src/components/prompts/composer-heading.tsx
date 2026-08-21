@@ -6,12 +6,7 @@ const WHITESPACE = /\s+/;
 /** Only the given name; a full name reads as a form field rather than a greeting. */
 const firstName = (name: string) => name.trim().split(WHITESPACE)[0];
 
-interface ComposerHeadingProps {
-  /** Absent when creating, so the heading greets instead of naming the prompt. */
-  readonly promptName?: string;
-}
-
-export function ComposerHeading({ promptName }: ComposerHeadingProps) {
+export function ComposerHeading() {
   const user = useCurrentUser();
   const isClient = useIsClient();
 
@@ -22,7 +17,7 @@ export function ComposerHeading({ promptName }: ComposerHeadingProps) {
 
   return (
     <h1 className="fade-in-0 slide-in-from-bottom-1 mb-5 animate-in text-balance font-heading text-2xl tracking-tight ease-out [animation-duration:400ms]">
-      {promptName ? `Editing ${promptName}` : greeting}
+      {greeting}
     </h1>
   );
 }
