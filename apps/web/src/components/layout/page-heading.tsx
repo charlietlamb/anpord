@@ -22,11 +22,11 @@ export function PageHeading({
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center gap-2 font-semibold text-muted-foreground text-sm",
+        "flex shrink-0 items-center gap-2 font-normal text-[0.9375rem] text-muted-foreground",
         className
       )}
     >
-      <Icon className="size-4 shrink-0 text-muted-foreground/70" weight="fill" />
+      <Icon className="size-4 shrink-0" weight="fill" />
       {title}
     </span>
   );
