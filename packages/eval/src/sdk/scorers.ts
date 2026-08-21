@@ -115,3 +115,45 @@ export const withinCommands =
       score: used <= limit ? 1 : 0,
     };
   };
+
+/**
+ * Everything a trajectory says, from one walk over it.
+ *
+ * A journal is read once and answers several questions, which is why a
+ * scorer may return more than one score. Reported rather than gated: these
+ * are facts about how the agent worked, and turning them into a pass or a
+ * failure is the caller's decision, not this function's.
+ */
+export const trajectory = (): Scorer =>
+  (evidence: Evidence): readonly Score[] => {
+    const commands = evidence.events.filter(
+      (event) => event._tag === "Command"
+    );
+
+    const failed = commands.filter(
+      (event) =>
+        event._tag === "Command" &&
+        event.exitCode !== null &&
+        event.exitCode !== 0
+    );
+
+    return [
+      {
+        evidence: `${commands.length} commands`,
+        name: "commands",
+        score: null,
+      },
+      {
+        /* The number that showed the agent stumbling and recovering on every
+           one of three trials, which no pass rate reports. */
+        evidence: `${failed.length} of ${commands.length} failed`,
+        name: "failed commands",
+        score: null,
+      },
+      {
+        evidence: toolCallsIn(evidence.events).join(", ") || "none",
+        name: "tools",
+        score: null,
+      },
+    ];
+  };

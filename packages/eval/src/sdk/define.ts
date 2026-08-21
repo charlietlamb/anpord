@@ -29,7 +29,21 @@ export interface Score {
   readonly score: number | null;
 }
 
-export type Scorer = (evidence: Evidence) => Promise<Score> | Score;
+/** One score, or several from one pass.
+ *
+ * Several, because reading a journal is the expensive part and a trajectory
+ * usually answers more than one question: how many tools were called, which
+ * ones, and what it finished on all come from a single walk. Braintrust
+ * allows the same for the same reason. */
+export type ScoreResult = Score | readonly Score[];
+
+export type Scorer = (
+  evidence: Evidence
+) => Promise<ScoreResult> | ScoreResult;
+
+/** Flattens whatever a scorer returned into the list a report reads. */
+export const scoresOf = (result: ScoreResult): readonly Score[] =>
+  Array.isArray(result) ? result : [result as Score];
 
 export interface Case {
   readonly goal: string;
