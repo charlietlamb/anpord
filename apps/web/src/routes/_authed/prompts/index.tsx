@@ -96,16 +96,6 @@ function PromptsPage() {
       actions={
         <>
           <PromptSearch onChange={setSearch} value={search} />
-          <PromptFilterButton
-            active={filtered}
-            onClear={clearFilters}
-            onSortChange={setSort}
-            onStatusChange={setStatus}
-            sort={sort}
-            sortOptions={SORT_OPTIONS}
-            status={status}
-            statusOptions={STATUS_OPTIONS}
-          />
           <Link
             className={cn(buttonVariants({ size: "sm" }))}
             to="/prompts/new"
@@ -115,7 +105,18 @@ function PromptsPage() {
           </Link>
         </>
       }
-      width="prose"
+      filters={
+        <PromptFilterButton
+          active={filtered}
+          onClear={clearFilters}
+          onSortChange={setSort}
+          onStatusChange={setStatus}
+          sort={sort}
+          sortOptions={SORT_OPTIONS}
+          status={status}
+          statusOptions={STATUS_OPTIONS}
+        />
+      }
     >
       <ListState
         action={
@@ -131,7 +132,7 @@ function PromptsPage() {
         }
         description={
           search
-            ? `Nothing matches “${search}”.`
+            ? `Nothing matches \u201C${search}\u201D.`
             : "Create one to start versioning what your application sends."
         }
         empty={(prompts?.length ?? 0) === 0}

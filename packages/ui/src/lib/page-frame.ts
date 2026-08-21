@@ -7,10 +7,12 @@ export const PAGE_FRAME = "flex min-h-0 flex-1 flex-col overflow-y-auto";
 
 /** How wide the content inside that frame runs.
  *
- * A list is read down its left edge and does not need the room a prompt does,
- * but both are the same page to someone moving between them, so the wider of
- * the two is the default and `prose` is the exception a form asks for. */
+ * A list runs the full pane: its rows are scanned down one edge and read across
+ * to the other, and centring them in a column would strand the two ends of each
+ * row on opposite sides of a gap. Prose is measured instead, because a
+ * paragraph read at the width of a screen is a paragraph nobody finishes. */
 export const PAGE_WIDTHS = {
+  full: "w-full px-4 xl:px-5",
   prose: "mx-auto w-full max-w-3xl px-5 xl:px-6",
   wide: "mx-auto w-full max-w-5xl px-5 xl:px-6",
 } as const;

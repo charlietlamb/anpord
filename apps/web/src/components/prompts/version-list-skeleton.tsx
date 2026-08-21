@@ -12,7 +12,7 @@ export function VersionListSkeleton() {
   return (
     <div className="-mx-2 flex flex-col">
       {ROWS.map((row) => (
-        <div className="flex h-7 items-center gap-2 px-2" key={row.message}>
+        <div className="flex h-9 items-center gap-2.5 px-2" key={row.message}>
           <Skeleton className="size-1.5 rounded-full" />
           <Skeleton className="h-3 w-5" />
           <Skeleton className={cn("h-3", row.message)} />

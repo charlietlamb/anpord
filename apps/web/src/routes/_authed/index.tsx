@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authed/")({
 
 function Overview() {
   return (
-    <PageShell>
+    <PageShell width="prose">
       <p className="text-muted-foreground text-sm">Your workspace is ready.</p>
     </PageShell>
   );

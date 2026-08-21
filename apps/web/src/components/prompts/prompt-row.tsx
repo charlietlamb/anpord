@@ -16,23 +16,32 @@ export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
   return (
     <ListRow
       leading={
-        <ChannelDot color={live ? channelColor(PRODUCTION) : undefined} />
+        <>
+          <ChannelDot color={live ? channelColor(PRODUCTION) : undefined} />
+          {/* Fixed width so the names beside them start on one line rather
+              than stepping in and out with the length of each handle. */}
+          <span className="w-40 shrink-0 truncate font-mono text-muted-foreground/70 text-xs">
+            {prompt.id}
+          </span>
+        </>
       }
       meta={
-        <span className="flex items-center gap-3">
-          {live ? <span>v{prompt.productionVersion}</span> : null}
-          <span className="w-20 text-right">{updated}</span>
-        </span>
+        <>
+          <span className="w-8 text-right">
+            {live ? `v${prompt.productionVersion}` : null}
+          </span>
+          <span className="w-24 text-right">{updated}</span>
+        </>
       }
       params={{ id: prompt.id }}
       to="/prompts/$id"
     >
-      {/* The name carries the row and the identifier trails it: one is what a
-          person calls the prompt, the other is what their code does. */}
       <span className="text-foreground">{prompt.name}</span>
-      <span className="ml-2 font-mono text-muted-foreground/70 text-xs">
-        {prompt.id}
-      </span>
+      {prompt.description ? (
+        <span className="ml-2 text-muted-foreground/70">
+          {prompt.description}
+        </span>
+      ) : null}
     </ListRow>
   );
 }

@@ -42,7 +42,6 @@ export function ChannelsScreen({
           whatever it points at, so you can ship a new version without a deploy.
         </>
       }
-      width="prose"
     >
       <ListState
         action={newChannel}

@@ -27,7 +27,7 @@ interface ListRowProps {
 /** One line, whatever it names. Shared so a list of prompts and a list of
  * versions are the same object at different scales rather than two designs
  * that happen to sit in one app. */
-const ROW = "flex h-7 items-center gap-2 rounded-md text-label";
+const ROW = "flex h-9 items-center gap-2.5 rounded-md text-label";
 
 export function ListRow({
   actions,
@@ -45,7 +45,9 @@ export function ListRow({
       {leading}
       <span className="min-w-0 flex-1 truncate text-left">{children}</span>
       {meta ? (
-        <span className="shrink-0 text-xs tabular-nums opacity-60">{meta}</span>
+        <span className="flex shrink-0 items-center gap-3 text-muted-foreground text-xs tabular-nums">
+          {meta}
+        </span>
       ) : null}
     </>
   );
