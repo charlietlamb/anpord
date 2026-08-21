@@ -36,7 +36,19 @@ export function ChannelsScreen({
   );
 
   return (
-    <PageShell actions={newChannel}>
+    <PageShell
+      actions={newChannel}
+      filters={
+        rows.length === 0 ? null : (
+          /* The bar holds one button and would otherwise be a long empty run
+             with a control pinned to the end of it. The count is the one true
+             thing there is to say about a list this short. */
+          <span className="text-muted-foreground text-xs">
+            {rows.length} {rows.length === 1 ? "channel" : "channels"}
+          </span>
+        )
+      }
+    >
       <ListState
         action={newChannel}
         description="A channel points at one version, so you can ship a new one without a deploy."
