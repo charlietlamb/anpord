@@ -13,7 +13,7 @@ export function GeneralSettings() {
     <SettingsPanel description="Update your organization's name and slug.">
       {activeOrganization ? (
         <form
-          className="flex max-w-md flex-col gap-5"
+          className="flex max-w-sm flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault();
             form.handleSubmit();

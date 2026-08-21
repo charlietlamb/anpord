@@ -16,15 +16,17 @@ export function SettingsSidebar() {
             {section.items.map((item) => (
               <Link
                 activeOptions={{ exact: item.to === "/settings" }}
-                activeProps={{ className: "bg-muted text-foreground" }}
+                activeProps={{
+                  className: "bg-muted font-medium text-foreground",
+                }}
                 className={cn(
                   BLEED_ROW_FULL,
-                  "flex items-center gap-2 rounded-md py-1.5 text-label text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  "flex h-8 items-center gap-2 rounded-md text-label text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                 )}
                 key={item.to}
                 to={item.to}
               >
-                <item.icon className="size-4 shrink-0" weight="fill" />
+                <item.icon className="size-4 shrink-0" />
                 {item.label}
               </Link>
             ))}
