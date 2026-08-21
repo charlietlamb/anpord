@@ -30,6 +30,7 @@ const row = (
     productionVersion?: number | null;
   } = {}
 ): PromptListRow => ({
+  author: null,
   description: extra.description ?? null,
   id,
   internalId: `pr_${id}`,

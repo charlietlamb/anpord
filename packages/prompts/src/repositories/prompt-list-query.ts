@@ -1,4 +1,5 @@
 import type { Database } from "@anpord/db/client";
+import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
@@ -9,6 +10,7 @@ import type {
   PromptStatusFilter,
 } from "@anpord/schema/domain/prompts";
 import {
+  aliasedTable,
   and,
   asc,
   desc,
@@ -22,6 +24,12 @@ import {
 import type { PromptCursorPayload } from "../domain/prompt-cursor";
 
 export interface PromptListRow {
+  /** Whoever wrote the newest version, read through a left join so a deleted
+   * account arrives as a row of nulls rather than as no prompt. */
+  readonly author: {
+    readonly image: string | null;
+    readonly name: string | null;
+  } | null;
   readonly description: string | null;
   readonly id: string;
   readonly internalId: string;
@@ -87,6 +95,11 @@ export const selectPromptList = (
     .groupBy(promptVersion.promptInternalId)
     .as("latest");
 
+  /* The newest version carries who last touched the prompt. Joined by number
+     against the aggregate above rather than by a second aggregate, so the row
+     is the one the count already named. */
+  const newest = aliasedTable(promptVersion, "newest_version");
+
   return db
     .select({
       internalId: prompt.internalId,
@@ -96,9 +109,18 @@ export const selectPromptList = (
       updatedAt: prompt.updatedAt,
       latestVersion: latest.latestVersion,
       productionVersion: promptVersion.version,
+      author: { image: user.image, name: user.name },
     })
     .from(prompt)
     .leftJoin(latest, eq(latest.promptInternalId, prompt.internalId))
+    .leftJoin(
+      newest,
+      and(
+        eq(newest.promptInternalId, prompt.internalId),
+        eq(newest.version, latest.latestVersion)
+      )
+    )
+    .leftJoin(user, eq(user.id, newest.createdBy))
     .leftJoin(
       channel,
       /* The channel the organisation answers a bare request from, so the

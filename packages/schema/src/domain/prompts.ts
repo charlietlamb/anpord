@@ -114,6 +114,7 @@ export const ChannelPlacement = Schema.Struct({
 export type ChannelPlacement = typeof ChannelPlacement.Type;
 
 export const PromptSummary = Schema.Struct({
+  author: Schema.NullOr(Author),
   description: Schema.NullOr(Schema.String),
   id: PromptId,
   latestVersion: Schema.NullOr(VersionNumber),

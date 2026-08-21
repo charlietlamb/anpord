@@ -127,6 +127,7 @@ export const toSummary = (
   row: PromptListRow
 ): Effect.Effect<PromptSummary, PromptStoreError> =>
   decodeSummary({
+    author: authorOf(row.author),
     description: row.description,
     id: row.id,
     latestVersion: row.latestVersion,
