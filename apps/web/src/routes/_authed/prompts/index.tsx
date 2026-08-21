@@ -115,6 +115,7 @@ function PromptsPage() {
           </Link>
         </>
       }
+      width="prose"
     >
       <ListState
         action={

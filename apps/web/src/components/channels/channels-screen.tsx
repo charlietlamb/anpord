@@ -33,16 +33,17 @@ export function ChannelsScreen({
   );
 
   return (
-    <PageShell actions={newChannel} width="prose">
-      {/* Kept where a page title was dropped: this says what a channel is,
-          which the breadcrumb naming the page cannot. */}
-      <p className="mb-5 max-w-prose text-muted-foreground text-sm">
-        A channel points at one version. Your code asks for{" "}
-        <span className="font-mono text-foreground/80">production</span> and
-        gets whatever it points at, so you can ship a new version without a
-        deploy.
-      </p>
-
+    <PageShell
+      actions={newChannel}
+      description={
+        <>
+          A channel points at one version. Your code asks for{" "}
+          <span className="font-mono text-foreground">production</span> and gets
+          whatever it points at, so you can ship a new version without a deploy.
+        </>
+      }
+      width="prose"
+    >
       <ListState
         action={newChannel}
         description="Create one to publish a version under a name."

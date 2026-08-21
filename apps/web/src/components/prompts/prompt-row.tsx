@@ -18,17 +18,21 @@ export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
       leading={
         <ChannelDot color={live ? channelColor(PRODUCTION) : undefined} />
       }
-      meta={updated}
+      meta={
+        <span className="flex items-center gap-3">
+          {live ? <span>v{prompt.productionVersion}</span> : null}
+          <span className="w-20 text-right">{updated}</span>
+        </span>
+      }
       params={{ id: prompt.id }}
       to="/prompts/$id"
     >
+      {/* The name carries the row and the identifier trails it: one is what a
+          person calls the prompt, the other is what their code does. */}
       <span className="text-foreground">{prompt.name}</span>
-      <span className="ml-2 font-mono text-xs opacity-60">{prompt.id}</span>
-      {live ? (
-        <span className="ml-2 text-xs tabular-nums opacity-60">
-          v{prompt.productionVersion}
-        </span>
-      ) : null}
+      <span className="ml-2 font-mono text-muted-foreground/70 text-xs">
+        {prompt.id}
+      </span>
     </ListRow>
   );
 }
