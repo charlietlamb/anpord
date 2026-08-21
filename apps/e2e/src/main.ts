@@ -13,9 +13,9 @@ import { connection, database, server } from "./harness/resources";
 import { type Outcome, runScenarios } from "./harness/run";
 import { seedTenant } from "./harness/seed";
 import { AUTH_SECRET, SERVER_PORT } from "./harness/settings";
+import { activityScenarios } from "./scenarios/activity";
 import { apiScenarios } from "./scenarios/api";
 import { cliScenarios } from "./scenarios/cli";
-import { deploymentScenarios } from "./scenarios/deployments";
 import { lifecycleScenarios } from "./scenarios/lifecycle";
 import { resolutionScenarios } from "./scenarios/resolution";
 import { sdkScenarios } from "./scenarios/sdk";
@@ -53,7 +53,7 @@ const SURFACES = [
   { name: "resolution", scenarios: resolutionScenarios },
   { name: "lifecycle", scenarios: lifecycleScenarios },
   { name: "validation", scenarios: validationScenarios },
-  { name: "deployments", scenarios: deploymentScenarios },
+  { name: "activity", scenarios: activityScenarios },
   { name: "sdk", scenarios: sdkScenarios },
   { name: "cli", scenarios: cliScenarios },
 ] as const;
