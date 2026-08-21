@@ -27,7 +27,7 @@ interface ListRowProps {
 /** One line, whatever it names. Shared so a list of prompts and a list of
  * versions are the same object at different scales rather than two designs
  * that happen to sit in one app. */
-const ROW = "flex h-9 items-center gap-2.5 rounded-md text-label";
+const ROW = "flex h-10 items-center gap-2.5 rounded-md px-2 text-label";
 
 export function ListRow({
   actions,

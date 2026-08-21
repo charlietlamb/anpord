@@ -28,7 +28,10 @@ export function RowBody({
   if (to) {
     return (
       <Link
-        className={cn(className, "transition-colors hover:text-foreground")}
+        className={cn(
+          className,
+          "transition-colors hover:bg-muted/50 hover:text-foreground"
+        )}
         params={params}
         to={to}
       >

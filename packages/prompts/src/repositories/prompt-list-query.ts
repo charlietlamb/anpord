@@ -10,7 +10,6 @@ import type {
   PromptStatusFilter,
 } from "@anpord/schema/domain/prompts";
 import {
-  aliasedTable,
   and,
   asc,
   desc,
@@ -24,8 +23,9 @@ import {
 import type { PromptCursorPayload } from "../domain/prompt-cursor";
 
 export interface PromptListRow {
-  /** Whoever wrote the newest version, read through a left join so a deleted
-   * account arrives as a row of nulls rather than as no prompt. */
+  /** Whoever last wrote a version that records an author, read through a left
+   * join so a deleted account arrives as a row of nulls rather than as no
+   * prompt. */
   readonly author: {
     readonly image: string | null;
     readonly name: string | null;
@@ -95,10 +95,22 @@ export const selectPromptList = (
     .groupBy(promptVersion.promptInternalId)
     .as("latest");
 
-  /* The newest version carries who last touched the prompt. Joined by number
-     against the aggregate above rather than by a second aggregate, so the row
-     is the one the count already named. */
-  const newest = aliasedTable(promptVersion, "newest_version");
+  /* Who last touched the prompt: the newest version that records an author,
+     not simply the newest. A version written through the API carries no user,
+     and binding to the highest number would blank the face on a prompt a
+     person did edit merely because a machine wrote after them. */
+  const edited = db
+    .select({
+      promptInternalId: promptVersion.promptInternalId,
+      editorId:
+        sql<string>`(array_agg(${promptVersion.createdBy} order by ${promptVersion.version} desc))[1]`.as(
+          "editor_id"
+        ),
+    })
+    .from(promptVersion)
+    .where(isNotNull(promptVersion.createdBy))
+    .groupBy(promptVersion.promptInternalId)
+    .as("edited");
 
   return db
     .select({
@@ -113,14 +125,8 @@ export const selectPromptList = (
     })
     .from(prompt)
     .leftJoin(latest, eq(latest.promptInternalId, prompt.internalId))
-    .leftJoin(
-      newest,
-      and(
-        eq(newest.promptInternalId, prompt.internalId),
-        eq(newest.version, latest.latestVersion)
-      )
-    )
-    .leftJoin(user, eq(user.id, newest.createdBy))
+    .leftJoin(edited, eq(edited.promptInternalId, prompt.internalId))
+    .leftJoin(user, eq(user.id, edited.editorId))
     .leftJoin(
       channel,
       /* The channel the organisation answers a bare request from, so the
