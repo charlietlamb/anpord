@@ -1,15 +1,5 @@
 import { Schema } from "effect";
 
-/**
- * `void` is a status of its own and never a flavour of `failed`.
- *
- * A trial whose commands never executed says nothing about the harness. Scoring
- * it as a failure lets a broken provider report a clean pass rate, which is the
- * failure this whole product exists to correct.
- *
- * `exceeded` is likewise distinct: a task the agent might have solved with more
- * budget is a different finding from one it got wrong.
- */
 export const TrialStatus = Schema.Literal(
   "queued",
   "running",
@@ -31,11 +21,6 @@ export const TrialOutcome = Schema.Struct({
 });
 export type TrialOutcome = typeof TrialOutcome.Type;
 
-/** Signatures of a command that never ran, as opposed to one that ran and
- * failed. `fork/exec ...: no such file or directory` is the exact string a
- * Daytona sandbox returns when the working directory does not exist yet, and
- * reading two of those as agreement is how a replication once reported a
- * perfect score against a provider where nothing had executed. */
 const VOID_PATTERNS: readonly RegExp[] = [
   /fork\/exec .*: no such file or directory/i,
   /^\s*$/,
@@ -59,10 +44,7 @@ const configuredPatterns = (extra: readonly string[]): readonly RegExp[] =>
     }
   });
 
-export const isVoidValue = (
-  value: string,
-  extra: readonly string[] = []
-): boolean =>
+const isVoidValue = (value: string, extra: readonly string[] = []): boolean =>
   [...VOID_PATTERNS, ...configuredPatterns(extra)].some((pattern) =>
     pattern.test(value)
   );
@@ -96,7 +78,7 @@ const VACUOUS_PATTERNS: readonly RegExp[] = [
   /\bno tests? (?:found|ran|to run|were found)\b/i,
 ];
 
-export const isVacuous = (output: string) =>
+const isVacuous = (output: string) =>
   VACUOUS_PATTERNS.some((pattern) => pattern.test(output));
 
 export interface ScoreInput {

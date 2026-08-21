@@ -1,8 +1,8 @@
 import { Option } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type { RunDetail } from "../repositories/run-query";
-import type { AgentTrialResult } from "./agent-trial";
-import type { GridCell, GridRunState, GridTask } from "./grid-state";
+import type { AgentTrialResult } from "../services/agent-trial";
+import type { GridCell, GridRunState, GridTask } from "./state";
 
 /** A persisted trial, seen through the shape a live one has.
  *

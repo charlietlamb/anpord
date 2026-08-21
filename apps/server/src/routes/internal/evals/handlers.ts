@@ -1,5 +1,5 @@
+import { GridRun } from "@anpord/eval/grid/run";
 import { Baselines } from "@anpord/eval/services/baselines";
-import { GridRun } from "@anpord/eval/services/grid-run";
 import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";

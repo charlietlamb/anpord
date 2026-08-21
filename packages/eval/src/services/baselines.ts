@@ -10,9 +10,9 @@ import type { CellKey } from "../domain/cell";
 import { type Comparison, compare } from "../domain/comparison";
 import type { Distribution } from "../domain/distribution";
 import { type EvalStoreError, VoidBaseline } from "../domain/errors";
-import { distributionFor } from "../repositories/cell-trials";
 import { tryStore } from "../repositories/query";
 import { RunQuery } from "../repositories/run-query";
+import { distributionFor } from "../repositories/trial-distribution";
 
 export interface Baseline {
   readonly cellInternalId: string;

@@ -30,14 +30,6 @@ export class EvalStoreError extends Data.TaggedError("EvalStoreError")<{
   readonly operation: string;
 }> {}
 
-export class TaskNotFound extends Data.TaggedError("TaskNotFound")<{
-  readonly id: string;
-}> {}
-
-export class RunNotFound extends Data.TaggedError("RunNotFound")<{
-  readonly id: string;
-}> {}
-
 /** A cell that cannot serve as a reference. Refusing at promotion is the last
  * cheap moment: a promoted void is read as a measured zero by every later
  * comparison and reports a collapse that never happened. */
@@ -59,11 +51,3 @@ export class NotRunnable extends Data.TaggedError("NotRunnable")<{
 export class UnreadableHarness extends Data.TaggedError("UnreadableHarness")<{
   readonly spec: string;
 }> {}
-
-export type EvalError =
-  | EvalStoreError
-  | RunNotFound
-  | NotRunnable
-  | TaskNotFound
-  | UnreadableHarness
-  | VoidBaseline;

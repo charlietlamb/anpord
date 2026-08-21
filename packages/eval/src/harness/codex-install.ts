@@ -2,24 +2,13 @@ import { Effect, Redacted, Stream } from "effect";
 import { HarnessUnavailable } from "../domain/errors";
 import type { SandboxHandle } from "../ports/sandbox";
 
-/**
- * Installed under the user's own prefix rather than globally.
- *
- * The Daytona image manages node through nvm, so a global install writes to a
- * root-owned directory and fails on permissions, while `sudo npm` cannot find
- * npm at all because sudo drops the nvm PATH. A user prefix avoids both.
- */
+/** A user prefix, because the Daytona image manages node through nvm: a
+ * global install hits permissions and `sudo npm` loses the nvm PATH. */
 const PREFIX = "~/.local";
 export const CODEX_BIN = `${PREFIX}/bin/codex`;
 
-/**
- * Pinning the version is not tidiness, it is the comparison.
- *
- * A cell key carries the harness version, so an unpinned install silently
- * compares two different harnesses. It also breaks outright: the image ships
- * an older Codex that cannot parse the current models response and dies with
- * `unknown variant`, having authenticated perfectly well first.
- */
+/** Pinned because the cell key carries the version: an unpinned install
+ * silently compares two different harnesses. */
 export const installCodex = (sandbox: SandboxHandle, version: string) =>
   Stream.runDrain(
     sandbox.exec(

@@ -1,5 +1,5 @@
 import { Effect, Option, PubSub, Ref, Stream } from "effect";
-import type { GridRunState } from "./grid-state";
+import type { GridRunState } from "./state";
 
 interface LiveRuns {
   readonly changes: Stream.Stream<GridRunState>;

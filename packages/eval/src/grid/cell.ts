@@ -6,11 +6,14 @@ import type {
   SandboxUnavailable,
 } from "../domain/errors";
 import { renderPrompt } from "../domain/prompt";
+import type { WorkspaceSource } from "../domain/workspace-source";
 import type { RunRepositoryShape } from "../repositories/run-repository";
 import type { TrialRecorderShape } from "../repositories/trial-record";
-import type { AgentTrialResult, AgentTrialShape } from "./agent-trial";
-import type { GridTask } from "./grid-state";
-import type { WorkspaceSource } from "./workspace";
+import type {
+  AgentTrialResult,
+  AgentTrialShape,
+} from "../services/agent-trial";
+import type { GridTask } from "./state";
 
 export interface GridCase {
   readonly goal: string;

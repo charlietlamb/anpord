@@ -11,9 +11,9 @@ import {
   Option,
   Redacted,
 } from "effect";
+import { GridRun } from "../../src/grid/run";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
 import { RunQuery } from "../../src/repositories/run-query";
-import { GridRun } from "../../src/services/grid-run";
 import { fixedSource, VERIFY_COMMAND } from "../fixtures/broken-task";
 import {
   codexCredentials,

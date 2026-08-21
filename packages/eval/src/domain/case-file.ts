@@ -49,16 +49,6 @@ export type CaseFile = typeof CaseFile.Type;
 const entriesOf = (file: CaseFile): readonly (typeof CaseFileEntry.Type)[] =>
   "evals" in file ? file.evals : file.cases;
 
-/**
- * A case as this system runs it.
- *
- * `verify` is nullable because the imported format has no verifier. Its
- * `expected_output` is prose and its `assertions` are prose, and neither can
- * decide a run. Synthesising a command from them would manufacture exactly
- * the false confidence the void gate exists to prevent, so an imported case
- * is explicitly ungated instead: it runs, it produces a journal, and it never
- * claims a pass.
- */
 export interface ImportedCase {
   readonly assertions: readonly string[];
   readonly expectation: string;

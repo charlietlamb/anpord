@@ -24,13 +24,6 @@ const SETTLED: readonly TrialStatus[] = [
   "exceeded",
 ];
 
-/**
- * A distribution over the trials that finished.
- *
- * Queued and running rows are excluded rather than counted as failures. A
- * trial still in flight is not evidence, and folding it in would report a
- * grid mid-run as though half its work had already lost.
- */
 export const distributionFor = (trials: readonly TrialRow[]): Distribution =>
   distributionOf(
     trials

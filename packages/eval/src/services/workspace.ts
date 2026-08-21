@@ -1,24 +1,8 @@
 import { Effect, type Redacted, Stream } from "effect";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
+import type { WorkspaceSource } from "../domain/workspace-source";
 import { authenticateCodex, installCodex } from "../harness/codex-install";
 import type { SandboxHandle } from "../ports/sandbox";
-
-/**
- * Where the code the agent works on comes from.
- *
- * `empty` is a sandbox with nothing in it, for a case that asks the agent to
- * build rather than to fix. `repo` is what a customer actually evaluates
- * against. `files` is how a fixture is written, and it is the one a UI should
- * offer last rather than first.
- */
-export type WorkspaceSource =
-  | { readonly kind: "empty" }
-  | { readonly kind: "files"; readonly files: Readonly<Record<string, string>> }
-  | {
-      readonly kind: "repo";
-      readonly ref: string | null;
-      readonly url: string;
-    };
 
 export interface PrepareWorkspace {
   readonly credentials: Redacted.Redacted<string>;

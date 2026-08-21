@@ -18,10 +18,11 @@ import {
   sessionIdOf,
 } from "../domain/journal";
 import type { TrialOutcome } from "../domain/trial";
+import type { WorkspaceSource } from "../domain/workspace-source";
 import { HarnessRunner } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
-import { prepareWorkspace, type WorkspaceSource } from "./workspace";
+import { prepareWorkspace } from "./workspace";
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;

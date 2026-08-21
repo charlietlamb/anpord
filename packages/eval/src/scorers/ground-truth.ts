@@ -97,21 +97,12 @@ export const ScorerGroundTruthLive = Layer.succeed(
           return outcomeOf({
             commandCount: request.commandCount,
             exitCode: 1,
-            /* Named rather than empty. An empty fingerprint is a void
-               pattern, so this used to report a misconfigured verifier
-               through the same channel as a broken provider and the two were
-               indistinguishable in the data. A verifier we refuse to trust is
-               a failure of the case, not an absence of evidence. */
             fingerprint: { verify: "refused: the verifier is a pipeline" },
             modelMs: request.modelMs,
             sandboxMs: 0,
           });
         }
 
-        /* Allowed to fail. Catching here turned a dead sandbox into an
-           empty result, which the exit-code default then read as a failing
-           test: infrastructure reported as product, which is the failure the
-           void gate exists to prevent. */
         const chunks = yield* verify(request.sandbox, request.verifyCommand);
 
         const exit = exitOf(chunks);

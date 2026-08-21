@@ -7,7 +7,7 @@ import { Scorer } from "../../src/ports/scorer";
 import {
   isUnguardedPipeline,
   ScorerGroundTruthLive,
-} from "../../src/scoring/ground-truth";
+} from "../../src/scorers/ground-truth";
 
 const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),

@@ -26,11 +26,6 @@ export interface RunRepositoryShape {
     organizationId: string,
     id: string
   ) => Effect.Effect<Option.Option<RunRow>, EvalStoreError>;
-  /** Ends a run, recording how it ended.
-   *
-   * The status is a parameter rather than always "finished": a run that died
-   * inside its own daemon used to be written as finished, so after a restart
-   * a crash was indistinguishable from a clean run. */
   readonly finish: (input: {
     readonly failure: string | null;
     readonly finishedAt: Date;
@@ -182,10 +177,6 @@ export const RunRepositoryLive = Layer.effect(
                 status: "running",
                 taskInternalId: input.taskInternalId,
               })
-              /* Idempotent, because the cell key has no positional component:
-                 two identical columns in one grid hash to the same key, and a
-                 constraint violation here killed a run that had already
-                 opened sandboxes and spent money on earlier cells. */
               .onConflictDoUpdate({
                 set: { status: "running" },
                 target: [evalCell.runInternalId, evalCell.cellKey],

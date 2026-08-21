@@ -13,17 +13,17 @@ import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
 import { TaskRepository } from "../repositories/task-repository";
 import { TrialRecorder } from "../repositories/trial-record";
-import { AgentTrial } from "./agent-trial";
-import { type GridCase, runGridCell, WORKSPACE } from "./grid-cell";
-import { makeLiveRuns } from "./grid-live";
+import { AgentTrial } from "../services/agent-trial";
+import { type GridCase, runGridCell, WORKSPACE } from "./cell";
+import { makeLiveRuns } from "./live-runs";
 import {
   completeCell,
   type GridCell,
   type GridRunState,
   type GridTask,
   settleTrial,
-} from "./grid-state";
-import { runToState } from "./grid-view";
+} from "./state";
+import { runToState } from "./stored-run-state";
 
 export interface StartGrid {
   readonly cases: readonly GridCase[];

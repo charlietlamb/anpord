@@ -20,31 +20,11 @@
     "typescript": "catalog:"
   },
   "exports": {
-    "./domain/case-file": "./src/domain/case-file.ts",
-    "./domain/cell": "./src/domain/cell.ts",
-    "./domain/comparison": "./src/domain/comparison.ts",
-    "./domain/distribution": "./src/domain/distribution.ts",
-    "./domain/errors": "./src/domain/errors.ts",
-    "./domain/harness-event": "./src/domain/harness-event.ts",
-    "./domain/harness-spec": "./src/domain/harness-spec.ts",
-    "./domain/journal": "./src/domain/journal.ts",
     "./domain/playground-config": "./src/domain/playground-config.ts",
-    "./domain/trial": "./src/domain/trial.ts",
+    "./grid/run": "./src/grid/run.ts",
+    "./grid/state": "./src/grid/state.ts",
     "./layer": "./src/layer.ts",
-    "./ports/sandbox": "./src/ports/sandbox.ts",
-    "./ports/scorer": "./src/ports/scorer.ts",
-    "./providers/local": "./src/providers/local.ts",
-    "./repositories/run-query": "./src/repositories/run-query.ts",
-    "./scoring/ground-truth": "./src/scoring/ground-truth.ts",
-    "./scoring/journal-assertions": "./src/scoring/journal-assertions.ts",
-    "./sdk/define": "./src/sdk/define.ts",
-    "./sdk/run": "./src/sdk/run.ts",
-    "./sdk/scorers": "./src/sdk/scorers.ts",
-    "./services/agent-trial": "./src/services/agent-trial.ts",
     "./services/baselines": "./src/services/baselines.ts",
-    "./services/grid-run": "./src/services/grid-run.ts",
-    "./services/grid-state": "./src/services/grid-state.ts",
-    "./services/workbench": "./src/services/workbench.ts",
-    "./services/workspace": "./src/services/workspace.ts"
+    "./services/workbench": "./src/services/workbench.ts"
   }
 }

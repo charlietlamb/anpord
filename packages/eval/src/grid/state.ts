@@ -1,7 +1,7 @@
 import { Option } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
-import type { AgentTrialResult } from "./agent-trial";
+import type { AgentTrialResult } from "../services/agent-trial";
 
 export interface GridTask {
   readonly harness: HarnessName;

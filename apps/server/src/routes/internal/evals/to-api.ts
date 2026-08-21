@@ -1,5 +1,5 @@
+import type { GridCell, GridRunState } from "@anpord/eval/grid/state";
 import type { CellComparison } from "@anpord/eval/services/baselines";
-import type { GridCell, GridRunState } from "@anpord/eval/services/grid-state";
 import type {
   EvalCell,
   EvalComparison,

@@ -8,8 +8,8 @@ import {
   type PlaygroundConfig,
   readinessOf,
 } from "../domain/playground-config";
+import { GridRun } from "../grid/run";
 import { WorkbenchRepository } from "../repositories/workbench-repository";
-import { GridRun } from "./grid-run";
 
 export interface Workbench {
   readonly config: PlaygroundConfig;

@@ -8,8 +8,8 @@ import { Context, Effect, Layer, Option } from "effect";
 import type { CellKey } from "../domain/cell";
 import type { Distribution } from "../domain/distribution";
 import type { EvalStoreError } from "../domain/errors";
-import { distributionFor, groupByCell } from "./cell-trials";
 import { head, tryStore } from "./query";
+import { distributionFor, groupByCell } from "./trial-distribution";
 
 type CellRow = typeof evalCell.$inferSelect;
 type RunRow = typeof evalRun.$inferSelect;
