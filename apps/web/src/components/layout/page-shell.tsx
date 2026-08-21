@@ -1,4 +1,4 @@
-{actions || leading ? (import {
+import {
   PAGE_FRAME,
   PAGE_WIDTHS,
   type PageWidth,
@@ -33,7 +33,7 @@ export function PageShell({
 }: PageShellProps) {
   return (
     <div className={PAGE_FRAME}>
-      {actions || filters ? (
+      {actions || leading ? (
         <div className="sticky top-0 z-10 shrink-0 bg-background">
           <div
             className={cn(PAGE_WIDTHS[width], "flex h-11 items-center gap-2")}
