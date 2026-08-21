@@ -24,6 +24,9 @@ export function useUpdatePromptVersion(id: string) {
           )
       );
       queryClient.invalidateQueries({ queryKey: promptKeys.channels(id) });
+      /** The overwrite is recorded server-side, so the activity below the
+       * prompt is stale until it is read again. */
+      queryClient.invalidateQueries({ queryKey: promptKeys.events(id) });
       queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
     },
   });

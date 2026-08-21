@@ -14,6 +14,7 @@ export const ID_PREFIXES = {
   organization: "org",
   prompt: "pmt",
   promptChannel: "chn",
+  promptEvent: "pev",
   promptRelease: "rel",
   promptVersion: "ver",
 } as const;

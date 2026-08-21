@@ -1,4 +1,5 @@
 import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
+import type { PromptEvent } from "@anpord/schema/domain/prompt-events";
 import type {
   AddVersionRequest,
   PromptId,
@@ -10,9 +11,10 @@ import { Clock, Context, Effect, Layer, Option } from "effect";
 import { answeringChannels } from "../domain/answering-channels";
 import type { PromptError } from "../domain/errors";
 import { VersionNotFound } from "../domain/errors";
-import { toResolved } from "../domain/views";
+import { toPromptEvent, toResolved } from "../domain/views";
 import { ChannelRepository } from "../repositories/channel-repository";
 import { PromptChannelRepository } from "../repositories/prompt-channel-repository";
+import { PromptEventRepository } from "../repositories/prompt-event-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
 import { PromptVersionRepository } from "../repositories/prompt-version-repository";
 import { PromptCache } from "./prompt-cache";
@@ -25,6 +27,10 @@ export interface PromptAuthoringShape {
     id: PromptId,
     request: AddVersionRequest
   ) => Effect.Effect<ResolvedPrompt, PromptError>;
+  readonly listEvents: (
+    actor: Actor,
+    id: PromptId
+  ) => Effect.Effect<readonly PromptEvent[], PromptError>;
   readonly listVersions: (
     actor: Actor,
     id: PromptId
@@ -45,6 +51,7 @@ export const PromptAuthoringLive = Layer.effect(
   PromptAuthoring,
   Effect.gen(function* () {
     const prompts = yield* PromptRepository;
+    const events = yield* PromptEventRepository;
     const versions = yield* PromptVersionRepository;
     const channels = yield* PromptChannelRepository;
     const channelCatalog = yield* ChannelRepository;
@@ -115,6 +122,17 @@ export const PromptAuthoringLive = Layer.effect(
             onSome: Effect.succeed,
           });
 
+          /* Overwriting is the one act here that destroys something, and the
+             version row it rewrites carries no trace of having been rewritten.
+             Recorded after the write, so a failed update leaves no event
+             claiming it happened. */
+          yield* events.record({
+            actorId: authorIdOf(actor),
+            kind: "overwrote",
+            promptInternalId: row.internalId,
+            versionInternalId: target.internalId,
+          });
+
           const placements = yield* channels.list(row.internalId);
           const channelOf = yield* answeringChannels(placements);
 
@@ -149,6 +167,19 @@ export const PromptAuthoringLive = Layer.effect(
           );
         }).pipe(
           Effect.withSpan("PromptAuthoring.listVersions"),
+          Effect.annotateLogs({ orgId: actor.organizationId, promptId: id })
+        ),
+
+      listEvents: (actor, id) =>
+        Effect.gen(function* () {
+          const row = yield* requirePrompt(prompts, actor, id);
+          const rows = yield* events.forPrompt(row.internalId);
+
+          return yield* Effect.all(
+            rows.map((event) => toPromptEvent(id, event))
+          );
+        }).pipe(
+          Effect.withSpan("PromptAuthoring.listEvents"),
           Effect.annotateLogs({ orgId: actor.organizationId, promptId: id })
         ),
     } satisfies PromptAuthoringShape;

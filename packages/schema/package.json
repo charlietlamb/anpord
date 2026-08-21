@@ -10,6 +10,7 @@
     "./domain/errors": "./src/domain/errors.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/permissions": "./src/domain/permissions.ts",
+    "./domain/prompt-events": "./src/domain/prompt-events.ts",
     "./domain/prompts": "./src/domain/prompts.ts",
     "./domain/releases": "./src/domain/releases.ts",
     "./domain/scopes": "./src/domain/scopes.ts",

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ActivityRow } from "@/components/prompts/activity-row";
 import { promptActivity } from "@/lib/prompt-activity";
 import { deploymentQueries } from "@/lib/query/deployment-queries";
+import { promptQueries } from "@/lib/query/prompt-queries";
 
 interface PromptActivityFeedProps {
   readonly promptId: string;
@@ -19,7 +20,12 @@ export function PromptActivityFeed({
   versions,
 }: PromptActivityFeedProps) {
   const deployments = useQuery(deploymentQueries.forPrompt(promptId));
-  const entries = promptActivity(versions, deployments.data?.items ?? []);
+  const events = useQuery(promptQueries.events(promptId));
+  const entries = promptActivity(
+    versions,
+    deployments.data?.items ?? [],
+    events.data ?? []
+  );
 
   return (
     <section className="mt-10 border-border-faint border-t pt-6">

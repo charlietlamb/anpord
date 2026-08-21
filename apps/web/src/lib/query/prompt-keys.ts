@@ -13,4 +13,5 @@ export const promptKeys = {
   detail: (id: string) => [...promptKeys.details(), id] as const,
   versions: (id: string) => [...promptKeys.detail(id), "versions"] as const,
   channels: (id: string) => [...promptKeys.detail(id), "channels"] as const,
+  events: (id: string) => [...promptKeys.detail(id), "events"] as const,
 } as const;

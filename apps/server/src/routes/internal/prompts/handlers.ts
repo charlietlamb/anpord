@@ -102,6 +102,16 @@ export const PromptsHandlers = HttpApiBuilder.group(
           }).pipe(withPromptErrors)
       )
       .handle(
+        "listEvents",
+        { permission: Permissions.Prompts.Read },
+        ({ path }) =>
+          Effect.gen(function* () {
+            const actor = yield* CurrentActor;
+            const authoring = yield* PromptAuthoring;
+            return yield* authoring.listEvents(actor, path.id);
+          }).pipe(withPromptErrors)
+      )
+      .handle(
         "update",
         { permission: Permissions.Prompts.Write },
         ({ path, payload }) =>

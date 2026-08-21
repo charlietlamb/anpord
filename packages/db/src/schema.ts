@@ -22,6 +22,7 @@ import { evalTrial } from "./schema/evals/eval-trials";
 import { channel } from "./schema/prompts/channels";
 import { promptChannelEvent } from "./schema/prompts/prompt-channel-events";
 import { promptChannel } from "./schema/prompts/prompt-channels";
+import { promptEvent } from "./schema/prompts/prompt-events";
 import { promptReleaseVersion } from "./schema/prompts/prompt-release-versions";
 import { promptRelease } from "./schema/prompts/prompt-releases";
 import { promptVersion } from "./schema/prompts/prompt-versions";
@@ -48,6 +49,7 @@ export const schema = {
   channel,
   promptChannel,
   promptChannelEvent,
+  promptEvent,
   promptRelease,
   promptReleaseVersion,
   promptVersion,

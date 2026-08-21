@@ -1,5 +1,10 @@
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
-import { listChannels, listPrompts, listVersions } from "@/lib/prompts-client";
+import {
+  listChannels,
+  listEvents,
+  listPrompts,
+  listVersions,
+} from "@/lib/prompts-client";
 import { promptKeys } from "@/lib/query/prompt-keys";
 import type { PromptListFilters } from "@/lib/query/prompt-list-filters";
 
@@ -28,5 +33,11 @@ export const promptQueries = {
     queryOptions({
       queryKey: promptKeys.channels(id),
       queryFn: () => listChannels(id),
+    }),
+
+  events: (id: string) =>
+    queryOptions({
+      queryKey: promptKeys.events(id),
+      queryFn: () => listEvents(id),
     }),
 } as const;

@@ -3,6 +3,7 @@ import { Layer } from "effect";
 import { ChannelRepositoryLive } from "./repositories/channel-repository";
 import { DeploymentRepositoryLive } from "./repositories/deployment-repository";
 import { PromptChannelRepositoryLive } from "./repositories/prompt-channel-repository";
+import { PromptEventRepositoryLive } from "./repositories/prompt-event-repository";
 import { PromptRepositoryLive } from "./repositories/prompt-repository";
 import { PromptVersionRepositoryLive } from "./repositories/prompt-version-repository";
 import { ChannelCatalogLive } from "./services/channel-catalog";
@@ -18,7 +19,8 @@ const RepositoriesLive = Layer.mergeAll(
   PromptVersionRepositoryLive,
   PromptChannelRepositoryLive,
   ChannelRepositoryLive,
-  DeploymentRepositoryLive
+  DeploymentRepositoryLive,
+  PromptEventRepositoryLive
 ).pipe(Layer.provide(IdGeneratorLive));
 
 const PublishingLive = PromptPublishingLive.pipe(

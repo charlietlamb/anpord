@@ -1,5 +1,6 @@
 import { Channel } from "@anpord/schema/domain/channels";
 import { Deployment } from "@anpord/schema/domain/deployments";
+import { PromptEvent } from "@anpord/schema/domain/prompt-events";
 import {
   type ChannelName,
   ChannelPlacement,
@@ -10,12 +11,14 @@ import { Effect, ParseResult, Schema } from "effect";
 import type { ChannelCountRow } from "../repositories/channel-repository";
 import type { DeploymentRow } from "../repositories/deployment-repository";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";
+import type { PromptEventRow } from "../repositories/prompt-event-repository";
 import type { PromptListRow } from "../repositories/prompt-list-query";
 import type { VersionRow } from "../repositories/prompt-version-repository";
 import { PromptStoreError } from "./errors";
 
 const decodeChannel = Schema.decodeUnknown(Channel);
 const decodeDeployment = Schema.decodeUnknown(Deployment);
+const decodePromptEvent = Schema.decodeUnknown(PromptEvent);
 const decodePlacement = Schema.decodeUnknown(ChannelPlacement);
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
@@ -112,6 +115,22 @@ export const toDeployment = (
     promptName: row.promptName,
     toVersion: row.toVersion,
   }).pipe(Effect.mapError(asStoreError("views.toDeployment")));
+
+/** The kind is stored as text, so it is decoded rather than asserted: a row
+ * written by an older build carrying a kind this one does not know is a store
+ * failure, not a value to pass through as valid. */
+export const toPromptEvent = (
+  promptId: string,
+  row: PromptEventRow
+): Effect.Effect<PromptEvent, PromptStoreError> =>
+  decodePromptEvent({
+    actor: authorOf(row.actor),
+    createdAt: row.createdAt,
+    id: row.internalId,
+    kind: row.kind,
+    promptId,
+    version: row.version,
+  }).pipe(Effect.mapError(asStoreError("views.toPromptEvent")));
 
 export const toSummary = (
   row: PromptListRow

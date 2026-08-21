@@ -1,4 +1,5 @@
 import type { Deployment } from "@anpord/schema/domain/deployments";
+import type { PromptEvent } from "@anpord/schema/domain/prompt-events";
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 
 interface Actor {
@@ -26,6 +27,10 @@ export type ActivityEntry =
       readonly from: number | null;
       readonly kind: "deployed";
       readonly to: number;
+    })
+  | (Acted & {
+      readonly kind: "overwrote";
+      readonly version: number | null;
     });
 
 /**
@@ -35,7 +40,8 @@ export type ActivityEntry =
  */
 export const promptActivity = (
   versions: readonly ResolvedPrompt[],
-  deployments: readonly Deployment[]
+  deployments: readonly Deployment[],
+  events: readonly PromptEvent[]
 ): readonly ActivityEntry[] => {
   const saves = versions.map(
     (version): ActivityEntry => ({
@@ -60,7 +66,17 @@ export const promptActivity = (
     })
   );
 
-  return [...saves, ...moves].sort(
+  const recorded = events.map(
+    (event): ActivityEntry => ({
+      actor: event.actor,
+      at: new Date(event.createdAt),
+      id: event.id,
+      kind: event.kind,
+      version: event.version,
+    })
+  );
+
+  return [...saves, ...moves, ...recorded].sort(
     (left, right) => right.at.getTime() - left.at.getTime()
   );
 };

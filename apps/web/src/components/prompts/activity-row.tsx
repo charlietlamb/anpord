@@ -1,5 +1,5 @@
-import { VersionMove } from "@/components/deployments/version-move";
 import { ActivityMarker } from "@/components/prompts/activity-marker";
+import { ActivitySentence } from "@/components/prompts/activity-sentence";
 import type { ActivityEntry } from "@/lib/prompt-activity";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
@@ -24,28 +24,7 @@ export function ActivityRow({ entry }: ActivityRowProps) {
           {entry.actor?.name ?? "Someone"}
         </span>
 
-        {entry.kind === "saved" ? (
-          <>
-            <span className="shrink-0">saved</span>
-            <span className="shrink-0 text-foreground tabular-nums">
-              v{entry.version}
-            </span>
-            {entry.message ? (
-              <span className="min-w-0 truncate">— {entry.message}</span>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <span className="shrink-0">pointed</span>
-            <span className="shrink-0 text-foreground">{entry.channel}</span>
-            <span className="shrink-0">at</span>
-            <VersionMove
-              className="shrink-0 gap-1 text-label"
-              from={entry.from}
-              to={entry.to}
-            />
-          </>
-        )}
+        <ActivitySentence entry={entry} />
 
         <time
           className="ml-auto shrink-0 whitespace-nowrap text-xs tabular-nums opacity-60"
