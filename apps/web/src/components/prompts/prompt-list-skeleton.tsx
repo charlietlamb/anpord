@@ -12,7 +12,7 @@ export function PromptListSkeleton() {
           <Skeleton className="size-5 shrink-0 rounded-full" />
           <Skeleton className={cn("h-3", name)} />
           <Skeleton className="h-3 w-24" />
-          <Skeleton className="ml-auto h-4 w-8 rounded-md" />
+          <Skeleton className="ml-auto h-3 w-8" />
           <Skeleton className="h-3 w-24" />
         </div>
       ))}
