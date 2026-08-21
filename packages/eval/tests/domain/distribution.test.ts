@@ -88,3 +88,49 @@ describe("what a distribution refuses to claim", () => {
     expect(steady.deterministic).toBe(true);
   });
 });
+
+describe("determinism needs both halves", () => {
+  const at = (commandCount: number, passed: boolean): TrialOutcome => ({
+    commandCount,
+    exitCode: passed ? 0 : 1,
+    modelMs: 1,
+    passed,
+    sandboxMs: 1,
+    status: passed ? "passed" : "failed",
+    voidFields: [],
+  });
+
+  /**
+   * Agreement and a tight command spread are separate conditions, and the
+   * existing erratic case varies both at once, so either one alone would
+   * satisfy it. These pin them apart.
+   *
+   * Deterministic is the strongest claim this system makes, and half of the
+   * conjunction was unverified.
+   */
+  it("refuses when the trials disagree, however tight the spread", () => {
+    const split = distributionOf([
+      at(10, true),
+      at(10, true),
+      at(10, false),
+      at(10, false),
+    ]);
+
+    expect(split.commandMin).toBe(split.commandMax);
+    expect(split.passRate).toBe(0.5);
+    expect(split.deterministic).toBe(false);
+  });
+
+  it("refuses when the spread is wide, however complete the agreement", () => {
+    const spread = distributionOf([at(4, true), at(9, true), at(31, true)]);
+
+    expect(spread.passRate).toBe(1);
+    expect(spread.deterministic).toBe(false);
+  });
+
+  it("claims it only when both hold", () => {
+    expect(
+      distributionOf([at(9, true), at(10, true), at(11, true)]).deterministic
+    ).toBe(true);
+  });
+});

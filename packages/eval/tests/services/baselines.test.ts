@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -109,7 +110,7 @@ const seedCell = async (input: {
   );
 };
 
-describe.skipIf(!URL)("Baselines", () => {
+describe.skipIf(skipWithoutDatabase())("Baselines", () => {
   beforeAll(async () => {
     await run(
       Effect.gen(function* () {
@@ -253,7 +254,14 @@ describe.skipIf(!URL)("Baselines", () => {
       ) as Effect.Effect<{ _tag: string }>
     );
 
+    /* The tag, not merely a failure. Without it this passed whether the
+       ownership join was there or not: with the join the cell is not found,
+       and without it promotion proceeds and dies further down on a foreign
+       key. Both are Left, and only one of them is tenant isolation. */
     expect(outcome._tag).toBe("Left");
+    expect((outcome as { left?: { _tag: string } }).left?._tag).toBe(
+      "VoidBaseline"
+    );
   });
 
   it("yields no verdict for a cell with no baseline", async () => {

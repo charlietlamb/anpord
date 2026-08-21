@@ -99,8 +99,44 @@ describe("ScorerGroundTruthLive", () => {
       "bun test | tail -1"
     );
 
-    expect(outcome.status).toBe("void");
+    /* Failed, not void. A pipeline exits with its last command, so the
+       verifier cannot be trusted and the case is wrong. Reporting that as
+       void would put a misconfigured verifier through the same channel as a
+       broken provider, and nothing downstream could tell them apart: one is
+       a mistake somebody can fix, the other is an outage to wait out. */
+    expect(outcome.status).toBe("failed");
     expect(outcome.passed).toBe(false);
+  });
+
+  /**
+   * A verifier killed part-way through: output arrived, the exit code never
+   * did, which is what a timeout actually looks like.
+   *
+   * The absent exit must never read as zero. Nothing else in the suite
+   * distinguishes a truncated stream from a clean pass, and reading it as a
+   * pass is this product's own headline failure happening inside the scorer
+   * that exists to prevent it.
+   */
+  it("never reads a missing exit code as success", async () => {
+    const outcome = await score(
+      sandboxYielding([{ data: "FAIL 3 tests failed", stream: "stdout" }]),
+      "node --test"
+    );
+
+    expect(outcome.passed).toBe(false);
+    expect(outcome.exitCode).not.toBe(0);
+  });
+
+  it("keeps a refused verifier out of the void count", async () => {
+    const outcome = await score(
+      sandboxYielding([{ exitCode: 0, stream: "exit" }]),
+      "bun test | tail -1"
+    );
+
+    /* The distinction the void gate exists to protect: a cell whose verifier
+       was refused still has a denominator, so it reports a real failure
+       rather than an absence of evidence. */
+    expect(outcome.voidFields).toEqual([]);
   });
 });
 

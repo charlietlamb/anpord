@@ -19,10 +19,10 @@ export interface Evidence {
 
 /** One named judgement.
  *
- * A score is a number rather than a boolean so a partial result can be
- * expressed, and `null` means the scorer declined: no evidence, rather than
- * a zero. That distinction is the void gate in miniature and the reason a
- * missing key never reads as a failure. */
+ * A score is a number so a partial result can be reported, though a gate
+ * still requires one: anything less is not a pass. `null` means the scorer
+ * declined, which is no evidence rather than a zero, and that distinction is
+ * the void gate in miniature. */
 export interface Score {
   readonly evidence?: string;
   readonly name: string;

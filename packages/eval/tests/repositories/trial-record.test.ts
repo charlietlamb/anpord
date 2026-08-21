@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -60,7 +61,7 @@ const run = <A, E>(effect: Effect.Effect<A, E, TrialRecorder | Database>) =>
     effect.pipe(Effect.provide(TestLayer), Effect.scoped) as Effect.Effect<A, E>
   );
 
-describe.skipIf(!URL)("TrialRecorder", () => {
+describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
   beforeAll(async () => {
     await run(
       Effect.gen(function* () {

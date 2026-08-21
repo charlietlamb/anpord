@@ -2,6 +2,7 @@ import { Chunk, Effect, Stream } from "effect";
 import type { Distribution } from "../domain/distribution";
 import { distributionOf } from "../domain/distribution";
 import type { HarnessEvent } from "../domain/harness-event";
+import { UnreadableHarness } from "../domain/errors";
 import { parseHarness } from "../domain/harness-spec";
 import type { TrialOutcome } from "../domain/trial";
 import type { SandboxHandle } from "../ports/sandbox";
@@ -113,9 +114,7 @@ export const resolveVariants = (
     const harness = parseHarness(variant.harness);
 
     if (harness === null) {
-      throw new Error(
-        `${variant.harness} is not a harness and a version, like codex@0.144.4`
-      );
+      throw new UnreadableHarness({ spec: variant.harness });
     }
 
     return { ...variant, harness, label: variantName(variant) };

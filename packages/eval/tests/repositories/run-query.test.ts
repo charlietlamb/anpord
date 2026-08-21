@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -108,7 +109,7 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
   );
 };
 
-describe.skipIf(!URL)("RunQuery", () => {
+describe.skipIf(skipWithoutDatabase())("RunQuery", () => {
   beforeAll(async () => {
     await seed(mine, `qmine${suffix}`, true);
     await seed(theirs, `qtheirs${suffix}`, false);

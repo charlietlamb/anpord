@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -67,7 +68,7 @@ const seedRun = async (tag: string, createdAt: Date) => {
   );
 };
 
-describe.skipIf(!URL)("Reconciler", () => {
+describe.skipIf(skipWithoutDatabase())("Reconciler", () => {
   beforeAll(async () => {
     await run(
       Effect.gen(function* () {

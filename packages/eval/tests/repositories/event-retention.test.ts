@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -100,7 +101,7 @@ const seed = async (tag: string, promoted: boolean) => {
   );
 };
 
-describe.skipIf(!URL)("EventRetention", () => {
+describe.skipIf(skipWithoutDatabase())("EventRetention", () => {
   beforeAll(async () => {
     await run(
       Effect.gen(function* () {

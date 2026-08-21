@@ -97,7 +97,12 @@ export const ScorerGroundTruthLive = Layer.succeed(
           return outcomeOf({
             commandCount: request.commandCount,
             exitCode: 1,
-            fingerprint: { verify: "" },
+            /* Named rather than empty. An empty fingerprint is a void
+               pattern, so this used to report a misconfigured verifier
+               through the same channel as a broken provider and the two were
+               indistinguishable in the data. A verifier we refuse to trust is
+               a failure of the case, not an absence of evidence. */
+            fingerprint: { verify: "refused: the verifier is a pipeline" },
             modelMs: request.modelMs,
             sandboxMs: 0,
           });

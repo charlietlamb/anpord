@@ -270,7 +270,7 @@ export const GridRunLive = Layer.scoped(
                           failure: Option.some(String(cause)),
                           finishedAt: Option.some(finishedAt),
                           status: "failed",
-                        }))
+                        })).pipe(Effect.zipRight(forget(created.id)))
                       )
                     )
                 )

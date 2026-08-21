@@ -35,9 +35,11 @@ const sourceOf = (source: WorkspaceSource) => {
  * ever match the next. Comparison across time was impossible, which is the
  * one thing every company in the research lacks and the reason this exists.
  *
- * Content addressed rather than named, because a name is a label a person
- * edits. Change the goal or the verifier and it is a different case, which
- * earns a new identity and keeps the old one comparable to its own past.
+ * Content addressed rather than named. A name is a label somebody edits,
+ * and hashing it severed a case from every baseline promoted against it the
+ * moment it was renamed. Change the goal or the verifier and it is a
+ * different case, which earns a new identity and keeps the old one
+ * comparable to its own past.
  *
  * The prompt is deliberately absent. It is the thing under test, like the
  * model and the harness, not part of what is being asked: hashing it made
@@ -48,7 +50,6 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
   createHash("sha256")
     .update(
       [
-        input.name,
         input.goal,
         input.setupCommand ?? "",
         input.verifyCommand ?? "",

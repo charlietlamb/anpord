@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -119,7 +120,7 @@ const recordCell = (input: {
     return { cellInternalId: cell.internalId, runId: created.id };
   });
 
-describe.skipIf(!URL)("the regression story", () => {
+describe.skipIf(skipWithoutDatabase())("the regression story", () => {
   beforeAll(async () => {
     await run(
       Effect.gen(function* () {

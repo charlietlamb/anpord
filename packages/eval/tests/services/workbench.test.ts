@@ -1,3 +1,4 @@
+import { skipWithoutDatabase } from "../fixtures/database";
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
@@ -37,7 +38,7 @@ const organizationId = `org_wb_${suffix}`;
 const run = <A, E>(effect: Effect.Effect<A, E, Database | Workbenches>) =>
   runtime.runPromise(effect as Effect.Effect<A, E, never>);
 
-describe.skipIf(!URL)("Workbenches", () => {
+describe.skipIf(skipWithoutDatabase())("Workbenches", () => {
   afterAll(async () => {
     await runtime.dispose();
   });

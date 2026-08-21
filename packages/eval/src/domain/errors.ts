@@ -71,9 +71,16 @@ export class NotRunnable extends Data.TaggedError("NotRunnable")<{
   readonly problems: readonly string[];
 }> {}
 
+/** A harness spec that names no version, or no harness. Refused before a
+ * sandbox opens: a typo should cost an error, not a run. */
+export class UnreadableHarness extends Data.TaggedError("UnreadableHarness")<{
+  readonly spec: string;
+}> {}
+
 export type EvalError =
   | EvalStoreError
   | RunNotFound
   | NotRunnable
   | TaskNotFound
+  | UnreadableHarness
   | VoidBaseline;
