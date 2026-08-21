@@ -46,7 +46,7 @@ export function VersionActions({
         render={
           <Button
             aria-label={`Actions for v${version}`}
-            className="size-5 shrink-0 rounded opacity-0 focus-visible:opacity-100 group-hover/version:opacity-100 data-[popup-open]:opacity-100"
+            className="size-5 shrink-0 rounded opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-[popup-open]:opacity-100"
             onClick={(event) => event.stopPropagation()}
             size="icon-sm"
             variant="bare"

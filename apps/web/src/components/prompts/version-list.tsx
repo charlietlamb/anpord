@@ -77,10 +77,7 @@ export function VersionList({
   return (
     <div
       aria-label="Versions"
-      /* Pulled out to either side so a row's hover reaches past the text while
-         the list itself still measures the rail. The rail owns the scroll, so
-         the list runs to its full length rather than nesting a second one. */
-      className="-mx-2 flex flex-col"
+      className="flex flex-col"
       onKeyDown={move}
       role="listbox"
     >

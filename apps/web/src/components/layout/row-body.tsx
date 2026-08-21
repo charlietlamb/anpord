@@ -8,6 +8,8 @@ interface RowBodyProps {
   readonly className: string;
   readonly onSelect?: () => void;
   readonly params?: LinkProps["params"];
+  readonly role?: "option";
+  readonly selected?: boolean;
   readonly to?: LinkProps["to"];
 }
 
@@ -19,6 +21,8 @@ export function RowBody({
   className,
   onSelect,
   params,
+  role,
+  selected,
   to,
 }: RowBodyProps) {
   if (to) {
@@ -35,7 +39,13 @@ export function RowBody({
 
   if (onSelect) {
     return (
-      <Button className={className} onClick={onSelect} variant="bare">
+      <Button
+        aria-selected={role === "option" ? selected : undefined}
+        className={className}
+        onClick={onSelect}
+        role={role}
+        variant="bare"
+      >
         {children}
       </Button>
     );

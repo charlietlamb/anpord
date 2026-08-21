@@ -114,7 +114,7 @@
       "project": ["src/**", "tests/**"]
     },
     "packages/ui": {
-      "entry": ["src/**/*.{ts,tsx}"],
+      "entry": ["src/components/**/*.tsx"],
       "project": "src/**"
     }
   },

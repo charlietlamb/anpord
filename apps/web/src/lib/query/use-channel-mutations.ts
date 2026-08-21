@@ -4,8 +4,8 @@ import {
   deleteChannel,
   updateChannel,
 } from "@/lib/channels-client";
-import { channelKeys } from "@/lib/query/channel-keys";
 import { activityKeys } from "@/lib/query/activity-keys";
+import { channelKeys } from "@/lib/query/channel-keys";
 import { promptKeys } from "@/lib/query/prompt-keys";
 
 /** A channel's name and colour appear on every prompt that publishes to it, so

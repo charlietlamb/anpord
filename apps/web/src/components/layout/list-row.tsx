@@ -17,6 +17,9 @@ interface ListRowProps {
   readonly meta?: ReactNode;
   readonly onSelect?: () => void;
   readonly params?: LinkProps["params"];
+  /** Set where the row is one option among several, so the list it sits in can
+   * announce itself as a set rather than as a run of unrelated controls. */
+  readonly role?: "option";
   readonly selected?: boolean;
   readonly to?: LinkProps["to"];
 }
@@ -24,7 +27,7 @@ interface ListRowProps {
 /** One line, whatever it names. Shared so a list of prompts and a list of
  * versions are the same object at different scales rather than two designs
  * that happen to sit in one app. */
-const ROW = "flex h-7 w-full items-center gap-2 rounded-md text-label";
+const ROW = "flex h-7 items-center gap-2 rounded-md text-label";
 
 export function ListRow({
   actions,
@@ -33,6 +36,7 @@ export function ListRow({
   meta,
   onSelect,
   params,
+  role,
   selected,
   to,
 }: ListRowProps) {
@@ -51,20 +55,27 @@ export function ListRow({
     : "font-normal text-muted-foreground";
 
   return (
-    <div className="group/row flex items-center">
-      {/* `flex-1 min-w-0` rather than the width the bleed sets on its own: with
-          a control beside it the body has to share the line, and a fixed width
-          would push that control off the end of it. */}
+    <div
+      className={cn(BLEED_ROW, "group/row flex items-center")}
+      /* Stripped from the accessibility tree so the option inside it stays a
+         direct child of the listbox: a generic wrapper between the two breaks
+         the set, and a screen reader stops announcing "3 of 12". */
+      role={role ? "presentation" : undefined}
+    >
+      {/* The bleed belongs to the row, not the body: with a control beside it
+          the body shares the line, and the highlight has to reach past both. */}
       <RowBody
-        className={cn(ROW, BLEED_ROW, "min-w-0 flex-1", tone)}
+        className={cn(ROW, "min-w-0 flex-1", tone)}
         onSelect={onSelect}
         params={params}
+        role={role}
+        selected={selected}
         to={to}
       >
         {body}
       </RowBody>
 
-      {actions ? <div className="-mr-1 shrink-0">{actions}</div> : null}
+      {actions ? <div className="shrink-0">{actions}</div> : null}
     </div>
   );
 }

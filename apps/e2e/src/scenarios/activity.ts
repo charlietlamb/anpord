@@ -7,11 +7,11 @@ import type { World } from "../world";
 
 interface Deployment {
   readonly channel: string;
-  readonly fromVersion: number | null;
+  readonly from: number | null;
   readonly id: string;
-  readonly kind: string;
+  readonly move: string;
   readonly promptId: string;
-  readonly toVersion: number;
+  readonly to: number | null;
 }
 
 interface DeploymentPage {
@@ -31,7 +31,7 @@ const deployments = (world: World, query = "") =>
     world.baseUrl,
     world.sessionToken,
     "GET",
-    `/deployments${query}`
+    `/activity?kind=deployed${query.replace("?", "&")}`
   );
 
 /**
@@ -39,7 +39,7 @@ const deployments = (world: World, query = "") =>
  * moved, when, or what it moved from, so a classification that quietly calls a
  * rollback a promotion is worse than no log at all.
  */
-export const deploymentScenarios: readonly Scenario<World>[] = [
+export const activityScenarios: readonly Scenario<World>[] = [
   {
     name: "deployments: the log says what moved and which way it went",
     run: async (world) => {
@@ -55,9 +55,9 @@ export const deploymentScenarios: readonly Scenario<World>[] = [
       const page = await deployments(world, `?prompt=${id}`);
       equals("status", page.status, 200);
 
-      const kinds = page.body.items.map((item) => item.kind);
+      const kinds = page.body.items.map((item) => item.move);
       const moves = page.body.items.map(
-        (item) => `${item.fromVersion ?? "-"}->${item.toVersion}`
+        (item) => `${item.from ?? "-"}->${item.to}`
       );
 
       equals("one entry per move", kinds.length, 4);
@@ -125,7 +125,7 @@ export const deploymentScenarios: readonly Scenario<World>[] = [
         world.baseUrl,
         world.otherSessionToken,
         "GET",
-        "/deployments?limit=100"
+        "/activity?kind=deployed&limit=100"
       );
 
       equals("the other tenant is answered", foreign.status, 200);
@@ -139,7 +139,7 @@ export const deploymentScenarios: readonly Scenario<World>[] = [
   {
     name: "deployments: a session is required, a key is not enough",
     run: async (world) => {
-      const withoutSession = await fetch(`${world.baseUrl}/api/deployments`, {
+      const withoutSession = await fetch(`${world.baseUrl}/api/activity`, {
         headers: { authorization: `Bearer ${world.writeKey.key}` },
       });
 
