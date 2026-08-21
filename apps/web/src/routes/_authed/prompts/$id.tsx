@@ -1,9 +1,7 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { extractVariables } from "@anpord/template/extract";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { toast } from "sonner";
 import { PromptActivityFeed } from "@/components/prompts/prompt-activity-feed";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
@@ -16,9 +14,9 @@ import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { channelQueries } from "@/lib/query/channel-queries";
 import { promptQueries } from "@/lib/query/prompt-queries";
-import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";
-import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";
-import { useUpdatePromptVersion } from "@/lib/query/use-update-prompt-version";
+import { usePointChannel } from "@/lib/use-point-channel";
+import { usePromptSelection } from "@/lib/use-prompt-selection";
+import { useSaveVersion } from "@/lib/use-save-version";
 
 export const Route = createFileRoute("/_authed/prompts/$id")({
   /** The client fetches these: the API is addressed relatively, which has no
@@ -37,41 +35,9 @@ export const Route = createFileRoute("/_authed/prompts/$id")({
   staticData: { crumb: (params) => params.id },
 });
 
-/**
- * Editing the working copy, reading a past version, and correcting one in place
- * are three different acts, so a selection names which one rather than
- * overloading a nullable version number.
- */
-type Selection =
-  | { readonly kind: "draft" }
-  | { readonly kind: "history"; readonly version: number }
-  | { readonly kind: "correcting"; readonly version: number };
-
-/** Naming the channels is what tells an author whether a correction is a
- * private tidy-up or an immediate change to what callers receive. */
-const listChannels = (names: readonly string[]): string =>
-  names.length === 1
-    ? names[0]
-    : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
-
 function PromptDetailPage() {
   const { id } = Route.useParams();
-
-  const { open: openDialog } = useDialog();
-
   const versions = useQuery(promptQueries.versions(id));
-  const channels = useQuery(promptQueries.channels(id));
-  /** Every channel the organisation defines, so a version can be sent to one
-   * that this prompt has never published to. */
-  const definedChannels = useQuery(channelQueries.list());
-  const addVersion = useAddPromptVersion(id);
-
-  const [draft, setDraft] = useState<string | null>(null);
-  const [selection, setSelection] = useState<Selection>({ kind: "draft" });
-
-  const promote = useSetPromptChannel(id);
-  const correctVersion = useUpdatePromptVersion(id);
-
   const rows = versions.data;
   const latest = rows?.at(0) ?? null;
 
@@ -82,169 +48,76 @@ function PromptDetailPage() {
     return <PromptUnavailable failed={versions.error !== null} />;
   }
 
-  const correcting = selection.kind === "correcting";
-  const editing = selection.kind === "draft" || correcting;
-  const viewed =
-    selection.kind === "draft"
-      ? latest
-      : (rows.find((row) => row.version === selection.version) ?? latest);
+  return <PromptEditor id={id} latest={latest} versions={rows} />;
+}
 
-  const base = correcting ? viewed : latest;
-  const content = editing ? (draft ?? base.content) : viewed.content;
-  const submitted = content.trim();
-  const dirty = editing && submitted !== base.content.trim();
+interface PromptEditorProps {
+  readonly id: string;
+  readonly latest: ResolvedPrompt;
+  readonly versions: readonly ResolvedPrompt[];
+}
 
-  const servedChannels = (version: number): readonly string[] =>
-    (channels.data ?? []).reduce<string[]>((names, placement) => {
-      if (placement.version === version) {
-        names.push(placement.channel);
-      }
-      return names;
-    }, []);
+/** Split from the route so these hooks run against a prompt that exists rather
+ * than behind the early returns deciding whether one does. */
+function PromptEditor({ id, latest, versions }: PromptEditorProps) {
+  const { open: openDialog } = useDialog();
+  const channels = useQuery(promptQueries.channels(id));
+  /** Every channel the organisation defines, so a version can be sent to one
+   * that this prompt has never published to. */
+  const definedChannels = useQuery(channelQueries.list());
+  const placements = channels.data ?? [];
 
-  const appendVersion = () =>
-    addVersion.mutate(
-      { content: submitted },
-      {
-        onError: (error) =>
-          toast.error("Couldn't save the version", {
-            description: error instanceof Error ? error.message : undefined,
-          }),
-        onSuccess: (created) => {
-          setDraft(null);
-          setSelection({ kind: "draft" });
-          toast.success(`Saved v${created.version}`, {
-            description: "Point a channel at it to publish.",
-          });
-        },
-      }
-    );
+  const selection = usePromptSelection(versions, latest);
+  const onPoint = usePointChannel(id, placements);
 
-  const overwriteVersion = (version: number) =>
-    correctVersion.mutate(
-      { content: submitted, version },
-      {
-        onError: (error) =>
-          toast.error(`Couldn't overwrite v${version}`, {
-            description: error instanceof Error ? error.message : undefined,
-          }),
-        onSuccess: () => {
-          setDraft(null);
-          setSelection({ kind: "history", version });
-          toast.success(`Overwrote v${version}`);
-        },
-      }
-    );
-
-  const onSave = () => {
-    if (selection.kind !== "correcting") {
-      appendVersion();
-      return;
-    }
-    const { version } = selection;
-    openDialog("confirm", {
-      confirmLabel: `Overwrite v${version}`,
-      description: servedChannels(version).length
-        ? `v${version} is served by ${listChannels(servedChannels(version))}, so callers will receive these changes immediately. The original content cannot be recovered.`
-        : `The original content of v${version} cannot be recovered.`,
-      onConfirm: () => overwriteVersion(version),
-      title: `Overwrite v${version}?`,
-      destructive: true,
-    });
-  };
+  const { save, saving, servedBy } = useSaveVersion({
+    onOverwritten: selection.onView,
+    onSaved: selection.reset,
+    placements,
+    promptId: id,
+  });
 
   const editFrom = (from: ResolvedPrompt) => {
-    setDraft(from.content);
-    setSelection({ kind: "draft" });
+    selection.onEditFrom(from);
     toast.success(`Editing from v${from.version}`, {
       description: "Save to add it as a new version.",
     });
   };
 
-  /** Where a channel sits now, which both the confirmation and the undo need
-   * and neither should recompute. */
-  const versionOn = (channel: string): number | null =>
-    (channels.data ?? []).find((placement) => placement.channel === channel)
-      ?.version ?? null;
-
-  const pointChannel = (channel: string, version: number) => {
-    const servedBefore = versionOn(channel);
-
-    return promote.mutate(
-      { channel, version },
-      {
-        onError: (error) =>
-          toast.error("Couldn't move the channel", {
-            description: error instanceof Error ? error.message : undefined,
-          }),
-        onSuccess: () =>
-          toast.success(`${channel} now serves v${version}`, {
-            action:
-              servedBefore === null
-                ? undefined
-                : {
-                    label: `Undo to v${servedBefore}`,
-                    onClick: () => pointChannel(channel, servedBefore),
-                  },
-          }),
-      }
-    );
-  };
-
-  /** Naming both ends is what makes this a decision rather than a restatement:
-   * a caller cannot tell a routine step forward from a rollback nine versions
-   * back without being told where the channel is now. */
-  const onPoint = (channel: string, version: number) => {
-    const current = versionOn(channel);
-
-    if (channel !== PRODUCTION) {
-      pointChannel(channel, version);
-      return;
-    }
-
-    openDialog("confirm", {
-      confirmLabel: `Promote v${version}`,
-      description:
-        current === null
-          ? `Every caller asking for production will receive v${version}, immediately. You can point it elsewhere at any time. Versions are never overwritten.`
-          : `Production serves v${current}. Every caller will receive v${version} instead, immediately. You can point it back to v${current} at any time. Versions are never overwritten.`,
-      onConfirm: () => pointChannel(channel, version),
-      title:
-        current !== null && version < current
-          ? `Roll production back to v${version}?`
-          : `Promote v${version} to production?`,
-    });
-  };
-
+  /** Writing into a version being read is a choice between two different acts,
+   * so it asks which rather than picking one. */
   const onEditRequest = () => {
-    if (editing) {
+    if (selection.editing) {
       return;
     }
     openDialog("editVersion", {
-      onCorrect: () =>
-        setSelection({ kind: "correcting", version: viewed.version }),
-      onEditFrom: () => editFrom(viewed),
-      servedBy: servedChannels(viewed.version),
-      version: viewed.version,
+      onCorrect: () => selection.onCorrect(selection.viewed.version),
+      onEditFrom: () => editFrom(selection.viewed),
+      servedBy: servedBy(selection.viewed.version),
+      version: selection.viewed.version,
     });
   };
+
+  const correctingVersion = selection.correcting
+    ? selection.viewed.version
+    : null;
 
   return (
     <PromptEditorLayout>
       <main className="relative flex min-w-0 flex-col pt-5 pb-24">
         <PromptEditorTitle
-          correctingVersion={correcting ? viewed.version : null}
-          dirty={dirty}
+          correctingVersion={correctingVersion}
+          dirty={selection.dirty}
           name={latest.name}
           promptId={latest.id}
-          viewingVersion={editing ? null : viewed.version}
+          viewingVersion={selection.editing ? null : selection.viewed.version}
         />
 
         <PromptComposer
-          content={content}
-          onContentChange={setDraft}
+          content={selection.content}
+          onContentChange={selection.onType}
           onEditRequest={onEditRequest}
-          readOnly={!editing}
+          readOnly={!selection.editing}
         />
 
         <PromptActivityFeed promptId={id} />
@@ -253,27 +126,22 @@ function PromptDetailPage() {
       <PromptRail
         actions={
           <PromptEditorActions
-            correctingVersion={correcting ? viewed.version : null}
-            dirty={dirty}
-            onCancelCorrection={() => {
-              setDraft(null);
-              setSelection({ kind: "history", version: viewed.version });
-            }}
-            onSave={onSave}
+            correctingVersion={correctingVersion}
+            dirty={selection.dirty}
+            onCancelCorrection={selection.onCancelCorrection}
+            onSave={() => save(selection.submitted, correctingVersion)}
             promptId={latest.id}
-            saving={addVersion.isPending || correctVersion.isPending}
+            saving={saving}
           />
         }
         channels={definedChannels.data ?? []}
         onEditFrom={editFrom}
         onPromote={onPoint}
-        onSelect={(version: ResolvedPrompt) =>
-          setSelection({ kind: "history", version: version.version })
-        }
-        placements={channels.data ?? []}
-        variables={extractVariables(content)}
-        versions={rows}
-        viewed={viewed}
+        onSelect={(version) => selection.onView(version.version)}
+        placements={placements}
+        variables={extractVariables(selection.content)}
+        versions={versions}
+        viewed={selection.viewed}
       />
     </PromptEditorLayout>
   );
