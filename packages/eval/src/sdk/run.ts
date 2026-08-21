@@ -89,10 +89,13 @@ export const outcomeFrom = (input: {
 };
 
 export const variantName = (variant: {
+  readonly harness: string;
   readonly model: string;
   readonly name?: string;
   readonly provider: string;
-}) => variant.name ?? `${variant.model} on ${variant.provider}`;
+}) =>
+  variant.name ??
+  `${variant.harness} ${variant.model} on ${variant.provider}`;
 
 /** The grid a definition expands to, before anything runs. Separated so a
  * caller can count what a run will cost without starting it. */

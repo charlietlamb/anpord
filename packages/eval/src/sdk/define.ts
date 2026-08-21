@@ -41,9 +41,17 @@ export type Scorer = (
   evidence: Evidence
 ) => Promise<ScoreResult> | ScoreResult;
 
-/** Flattens whatever a scorer returned into the list a report reads. */
-export const scoresOf = (result: ScoreResult): readonly Score[] =>
-  Array.isArray(result) ? result : [result as Score];
+/** Flattens whatever a scorer returned into the list a report reads.
+ *
+ * Awaits, because whether a scorer is asynchronous is its own business and a
+ * caller that had to know would have to branch on it everywhere. */
+export const scoresOf = async (
+  result: ScoreResult | Promise<ScoreResult>
+): Promise<readonly Score[]> => {
+  const settled = await result;
+
+  return Array.isArray(settled) ? settled : [settled as Score];
+};
 
 export interface Case {
   readonly goal: string;
@@ -53,10 +61,23 @@ export interface Case {
   readonly source: WorkspaceSource;
 }
 
-/** A column of the grid: one harness, one model, one sandbox. */
+/**
+ * A column of the grid: one harness, one model, one sandbox.
+ *
+ * All three are named, none defaulted. The cell key is hashed over the
+ * harness and its version, so a column that left it implicit would compare
+ * against a baseline recorded under a different identity, and the comparison
+ * would silently be measuring two different things.
+ *
+ * The version is pinned for the same reason: an unpinned install compares
+ * two different harnesses a month apart and nothing in the data shows it.
+ */
 export interface Variant {
-  readonly harness?: HarnessName;
+  readonly harness: HarnessName;
+  readonly harnessVersion: string;
   readonly model: string;
+  /** How this column is labelled in a report. Defaults to the three values
+   * that define it, which is what a person needs to read a grid. */
   readonly name?: string;
   readonly provider: ProviderName;
 }
