@@ -36,7 +36,7 @@ export function PageShell({
   return (
     <div className={PAGE_FRAME}>
       {actions || filters ? (
-        <div className="sticky top-0 z-10 shrink-0 border-border-faint border-b bg-background">
+        <div className="sticky top-0 z-10 shrink-0 bg-background">
           <div
             className={cn(PAGE_WIDTHS[width], "flex h-11 items-center gap-2")}
           >
@@ -48,7 +48,7 @@ export function PageShell({
         </div>
       ) : null}
 
-      <div className={cn(PAGE_WIDTHS[width], "pt-4 pb-24")}>
+      <div className={cn(PAGE_WIDTHS[width], "pb-24")}>
         {description ? (
           <p className="mb-5 max-w-prose text-muted-foreground text-sm">
             {description}

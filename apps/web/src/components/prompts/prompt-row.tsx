@@ -1,9 +1,23 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
+import type { Ref } from "react";
 import { ListRow } from "@/components/layout/list-row";
 import { PromptEditorAvatar } from "@/components/prompts/prompt-editor-avatar";
+import { PromptRowActions } from "@/components/prompts/prompt-row-actions";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
-export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
+interface PromptRowProps {
+  readonly onMouseEnter?: () => void;
+  readonly prompt: PromptSummary;
+  readonly ref?: Ref<HTMLElement>;
+  readonly tabIndex?: number;
+}
+
+export function PromptRow({
+  onMouseEnter,
+  prompt,
+  ref,
+  tabIndex,
+}: PromptRowProps) {
   const updated = useRelativeTime(prompt.updatedAt);
 
   /** The serving version is what a caller of this prompt actually receives, so
@@ -13,6 +27,7 @@ export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
 
   return (
     <ListRow
+      actions={<PromptRowActions id={prompt.id} />}
       leading={<PromptEditorAvatar author={prompt.author} />}
       meta={
         <>
@@ -26,7 +41,10 @@ export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
           <span className="w-24 whitespace-nowrap text-right">{updated}</span>
         </>
       }
+      onMouseEnter={onMouseEnter}
       params={{ id: prompt.id }}
+      ref={ref}
+      tabIndex={tabIndex}
       to="/prompts/$id"
     >
       {/* The name leads and the handle trails it, both flush left: the name is

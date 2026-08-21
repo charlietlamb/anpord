@@ -1,7 +1,7 @@
 import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import type { LinkProps } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { RowBody } from "@/components/layout/row-body";
 
 interface ListRowProps {
@@ -15,12 +15,16 @@ interface ListRowProps {
   /** Right-aligned and quiet: a timestamp or a count is read after the thing
    * it describes, not with it. */
   readonly meta?: ReactNode;
+  readonly onMouseEnter?: () => void;
   readonly onSelect?: () => void;
   readonly params?: LinkProps["params"];
+  readonly ref?: Ref<HTMLElement>;
   /** Set where the row is one option among several, so the list it sits in can
    * announce itself as a set rather than as a run of unrelated controls. */
   readonly role?: "option";
   readonly selected?: boolean;
+  /** Only the row the keyboard is on is reachable by Tab. */
+  readonly tabIndex?: number;
   readonly to?: LinkProps["to"];
 }
 
@@ -34,10 +38,13 @@ export function ListRow({
   children,
   leading,
   meta,
+  onMouseEnter,
   onSelect,
   params,
+  ref,
   role,
   selected,
+  tabIndex,
   to,
 }: ListRowProps) {
   const body = (
@@ -68,10 +75,13 @@ export function ListRow({
           the body shares the line, and the highlight has to reach past both. */}
       <RowBody
         className={cn(ROW, "min-w-0 flex-1", tone)}
+        onMouseEnter={onMouseEnter}
         onSelect={onSelect}
         params={params}
+        ref={ref}
         role={role}
         selected={selected}
+        tabIndex={tabIndex}
         to={to}
       >
         {body}

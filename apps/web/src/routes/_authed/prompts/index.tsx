@@ -6,10 +6,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
-import { PromptFilterButton } from "@/components/prompts/prompt-filter-button";
 import { PromptList } from "@/components/prompts/prompt-list";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { PromptSearch } from "@/components/prompts/prompt-search";
+import { PromptSortMenu } from "@/components/prompts/prompt-sort-menu";
+import { PromptStatusTabs } from "@/components/prompts/prompt-status-tabs";
 import type { PromptListFilters } from "@/lib/query/prompt-list-filters";
 import { promptQueries } from "@/lib/query/prompt-queries";
 
@@ -84,18 +85,16 @@ function PromptsPage() {
   const query = useInfiniteQuery(promptQueries.list({ search, sort, status }));
   const prompts = query.data?.pages.flatMap((page) => page.items);
 
-  const filtered = status !== DEFAULT_STATUS || sort !== DEFAULT_SORT;
-
-  const clearFilters = () => {
-    setStatus(DEFAULT_STATUS);
-    setSort(DEFAULT_SORT);
-  };
-
   return (
     <PageShell
       actions={
         <>
           <PromptSearch onChange={setSearch} value={search} />
+          <PromptSortMenu
+            onChange={setSort}
+            options={SORT_OPTIONS}
+            value={sort}
+          />
           <Link
             className={cn(buttonVariants({ size: "sm" }))}
             to="/prompts/new"
@@ -106,15 +105,10 @@ function PromptsPage() {
         </>
       }
       filters={
-        <PromptFilterButton
-          active={filtered}
-          onClear={clearFilters}
-          onSortChange={setSort}
-          onStatusChange={setStatus}
-          sort={sort}
-          sortOptions={SORT_OPTIONS}
-          status={status}
-          statusOptions={STATUS_OPTIONS}
+        <PromptStatusTabs
+          onChange={setStatus}
+          options={STATUS_OPTIONS}
+          value={status}
         />
       }
     >
