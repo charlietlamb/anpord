@@ -14,13 +14,16 @@ import type { Evidence, Score, Scorer } from "./define";
  * Braintrust has no concept of an exit code.
  */
 export const exitCodeZero =
-  (command: string): Scorer =>
+  (command: string, name?: string): Scorer =>
   async (evidence: Evidence): Promise<Score> => {
     const result = await evidence.exec(command);
 
     return {
       evidence: `exit ${result.exitCode}`,
-      name: "exit code zero",
+      /* Named, because a report listing six failures all called "exit code
+         zero" tells nobody which rule broke, and finding out means reading
+         the eval file to count which one it was. */
+      name: name ?? `shell: ${command}`,
       score: result.exitCode === 0 ? 1 : 0,
     };
   };
