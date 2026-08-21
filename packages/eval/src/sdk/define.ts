@@ -1,6 +1,13 @@
+import type { Effect } from "effect";
 import type { ProviderName } from "../domain/cell";
+import type { SandboxUnavailable } from "../domain/errors";
 import type { HarnessEvent } from "../domain/harness-event";
 import type { WorkspaceSource } from "../services/workspace";
+
+export interface CommandResult {
+  readonly exitCode: number;
+  readonly output: string;
+}
 
 /** What a scorer is handed after the agent has finished.
  *
@@ -14,7 +21,7 @@ export interface Evidence {
    * having to have asked in advance. */
   readonly exec: (
     command: string
-  ) => Promise<{ readonly exitCode: number; readonly output: string }>;
+  ) => Effect.Effect<CommandResult, SandboxUnavailable>;
 }
 
 /** One named judgement.
@@ -37,19 +44,25 @@ export interface Score {
  * allows the same for the same reason. */
 export type ScoreResult = Score | readonly Score[];
 
-export type Scorer = (evidence: Evidence) => Promise<ScoreResult> | ScoreResult;
-
-/** Flattens whatever a scorer returned into the list a report reads.
+/**
+ * A judgement over the evidence.
  *
- * Awaits, because whether a scorer is asynchronous is its own business and a
- * caller that had to know would have to branch on it everywhere. */
-export const scoresOf = async (
-  result: ScoreResult | Promise<ScoreResult>
-): Promise<readonly Score[]> => {
-  const settled = await result;
+ * An Effect rather than a Promise, and failing rather than swallowing. A
+ * promise has no error channel, so a scorer that ran against a dead sandbox
+ * had nowhere to put the outage and reported it as a failing assertion:
+ * infrastructure recorded as product, which is the one thing this whole
+ * system exists to keep apart.
+ *
+ * Most scorers never need to write one of these by hand. `fromEvents` and
+ * `fromShell` below cover everything the built-ins do.
+ */
+export type Scorer = (
+  evidence: Evidence
+) => Effect.Effect<ScoreResult, SandboxUnavailable>;
 
-  return Array.isArray(settled) ? settled : [settled as Score];
-};
+/** Flattens whatever a scorer returned into the list a report reads. */
+export const scoresOf = (result: ScoreResult): readonly Score[] =>
+  "name" in result ? [result] : result;
 
 export interface Case {
   readonly goal: string;

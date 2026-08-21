@@ -10,6 +10,7 @@ import {
   type Case,
   casesOf,
   type EvalDefinition,
+  type Evidence,
   type Score,
   trialsOf,
 } from "./define";
@@ -26,30 +27,33 @@ export interface EvalReport {
   readonly name: string;
 }
 
-/** Scoring needs a live sandbox, so the evidence is built where the trial
- * ran rather than reconstructed afterwards from what happened to be kept. */
+/**
+ * What a scorer is given, built where the trial ran.
+ *
+ * `exec` returns an Effect rather than a Promise so a dead sandbox fails
+ * instead of being folded into an exit code: escaping the runtime here also
+ * severed interruption, so a cancelled trial left its scorer running against
+ * a workspace the scope was already deleting.
+ */
 export const evidenceFrom = (input: {
   readonly events: readonly HarnessEvent[];
   readonly sandbox: SandboxHandle;
-}) => ({
+}): Evidence => ({
   events: input.events,
   exec: (command: string) =>
-    Effect.runPromise(
-      Stream.runCollect(input.sandbox.exec(command)).pipe(
-        Effect.map((collected) => {
-          const chunks = Chunk.toReadonlyArray(collected);
-
-          const exit = chunks.find((chunk) => chunk.stream === "exit");
-
-          return {
-            exitCode: exit === undefined ? 1 : exit.exitCode,
-            output: chunks
-              .flatMap((chunk) => (chunk.stream === "exit" ? [] : [chunk.data]))
-              .join(""),
-          };
-        }),
-        Effect.catchAll(() => Effect.succeed({ exitCode: 1, output: "" }))
-      )
+    Stream.runCollect(input.sandbox.exec(command)).pipe(
+      Effect.map(Chunk.toReadonlyArray),
+      Effect.map((chunks) => ({
+        /* A stream that ended without an exit chunk never told us how it
+           went, and reading that as success is the vacuous pass this
+           product exists to catch. */
+        exitCode:
+          chunks.find((chunk) => chunk.stream === "exit")?.exitCode ?? 1,
+        output: chunks
+          .flatMap((chunk) => (chunk.stream === "exit" ? [] : [chunk.data]))
+          .join(""),
+      })),
+      Effect.withSpan("Evidence.exec", { attributes: { command } })
     ),
 });
 
@@ -98,10 +102,15 @@ export const variantName = (variant: {
 }) =>
   variant.name ?? `${variant.harness} ${variant.model} on ${variant.provider}`;
 
-/** Every variant, with its harness read.
+/**
+ * Every variant, with its harness read.
  *
- * Rejected here rather than at the moment a sandbox opens: a typo in a
- * version should cost a type error before it costs a run. */
+ * Fails rather than throwing. UnreadableHarness is a tagged error built to
+ * travel in an error channel, and throwing it made it a defect: a caller
+ * could not catch it by tag, and it killed the whole run past any per-cell
+ * recovery. Validated rather than short-circuited, so a file with three
+ * typos reports three rather than one at a time.
+ */
 export const resolveVariants = (
   variants: readonly {
     readonly harness: string;
@@ -110,15 +119,13 @@ export const resolveVariants = (
     readonly provider: string;
   }[]
 ) =>
-  variants.map((variant) => {
+  Effect.validateAll(variants, (variant) => {
     const harness = parseHarness(variant.harness);
 
-    if (harness === null) {
-      throw new UnreadableHarness({ spec: variant.harness });
-    }
-
-    return { ...variant, harness, label: variantName(variant) };
-  });
+    return harness === null
+      ? Effect.fail(new UnreadableHarness({ spec: variant.harness }))
+      : Effect.succeed({ ...variant, harness, label: variantName(variant) });
+  }).pipe(Effect.withSpan("Eval.resolveVariants"));
 
 /** The grid a definition expands to, before anything runs. Separated so a
  * caller can count what a run will cost without starting it. */
