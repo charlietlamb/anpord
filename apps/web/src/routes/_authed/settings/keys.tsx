@@ -84,7 +84,7 @@ function ApiKeysPage() {
     >
       <ApiKeyList
         error={keys.error}
-        isPending={keys.isPending}
+        isPending={keys.isLoading}
         onNew={onNew}
         onRevoke={onRevoke}
         rows={rows.map((row) => ({

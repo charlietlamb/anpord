@@ -52,8 +52,11 @@ export function ListRow({
 
   return (
     <div className="group/row flex items-center">
+      {/* `flex-1 min-w-0` rather than the width the bleed sets on its own: with
+          a control beside it the body has to share the line, and a fixed width
+          would push that control off the end of it. */}
       <RowBody
-        className={cn(ROW, BLEED_ROW, tone)}
+        className={cn(ROW, BLEED_ROW, "min-w-0 flex-1", tone)}
         onSelect={onSelect}
         params={params}
         to={to}

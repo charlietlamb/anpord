@@ -1,4 +1,4 @@
-import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
+import { BLEED_ROW_FULL } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { RailSection } from "@/components/rail/rail-section";
@@ -18,7 +18,7 @@ export function SettingsSidebar() {
                 activeOptions={{ exact: item.to === "/settings" }}
                 activeProps={{ className: "bg-muted text-foreground" }}
                 className={cn(
-                  BLEED_ROW,
+                  BLEED_ROW_FULL,
                   "flex items-center gap-2 rounded-md py-1.5 text-label text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 )}
                 key={item.to}

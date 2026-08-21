@@ -1,8 +1,5 @@
-import { Database } from "@anpord/db/client";
-import { evalPlayground } from "@anpord/db/schema/evals/eval-playgrounds";
-import { IdGenerator } from "@anpord/ids/id";
-import { and, desc, eq, isNull } from "drizzle-orm";
-import { Clock, Context, Effect, Layer, Option, type Redacted } from "effect";
+import type { evalPlayground } from "@anpord/db/schema/evals/eval-playgrounds";
+import { Context, Effect, Layer, Option, type Redacted } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { NotRunnable } from "../domain/errors";
 import {
@@ -11,7 +8,7 @@ import {
   type PlaygroundConfig,
   readinessOf,
 } from "../domain/playground-config";
-import { tryStore } from "../repositories/query";
+import { WorkbenchRepository } from "../repositories/workbench-repository";
 import { GridRun } from "./grid-run";
 
 export interface Workbench {
@@ -73,9 +70,8 @@ const asWorkbench = (row: Row, config: PlaygroundConfig): Workbench => ({
 export const WorkbenchesLive = Layer.effect(
   Workbenches,
   Effect.gen(function* () {
-    const db = yield* Database;
     const grid = yield* GridRun;
-    const ids = yield* IdGenerator;
+    const store = yield* WorkbenchRepository;
 
     /* A config that no longer decodes is replaced by an empty one rather than
        failing the read. A playground is a draft, and a shape change should
@@ -89,75 +85,6 @@ export const WorkbenchesLive = Layer.effect(
     const hydrate = (row: Row) =>
       configOf(row).pipe(Effect.map((config) => asWorkbench(row, config)));
 
-    const findRow = (organizationId: string, id: string) =>
-      tryStore("workbench.find", () =>
-        db
-          .select()
-          .from(evalPlayground)
-          .where(
-            and(
-              eq(evalPlayground.organizationId, organizationId),
-              eq(evalPlayground.id, id),
-              isNull(evalPlayground.archivedAt)
-            )
-          )
-      ).pipe(Effect.map((rows) => Option.fromNullable(rows.at(0))));
-
-    const create = (input: {
-      readonly actorId: string | null;
-      readonly name: string;
-      readonly organizationId: string;
-    }) =>
-      Effect.gen(function* () {
-        const internalId = yield* ids.generate("evalPlaygroundInternal");
-        const id = yield* ids.generate("evalPlayground");
-
-        const rows = yield* tryStore("workbench.create", () =>
-          db
-            .insert(evalPlayground)
-            .values({
-              config: emptyPlaygroundConfig,
-              createdBy: input.actorId,
-              id,
-              internalId,
-              name: input.name,
-              organizationId: input.organizationId,
-            })
-            .returning()
-        );
-
-        return asWorkbench(rows[0] as Row, emptyPlaygroundConfig);
-      }).pipe(Effect.withSpan("Workbenches.create"));
-
-    const save = (input: {
-      readonly config: PlaygroundConfig;
-      readonly id: string;
-      readonly name: string;
-      readonly organizationId: string;
-    }) =>
-      Effect.gen(function* () {
-        const now = yield* Clock.currentTimeMillis;
-
-        const rows = yield* tryStore("workbench.save", () =>
-          db
-            .update(evalPlayground)
-            .set({
-              config: input.config,
-              name: input.name,
-              updatedAt: new Date(now),
-            })
-            .where(
-              and(
-                eq(evalPlayground.organizationId, input.organizationId),
-                eq(evalPlayground.id, input.id)
-              )
-            )
-            .returning()
-        );
-
-        return asWorkbench(rows[0] as Row, input.config);
-      }).pipe(Effect.withSpan("Workbenches.save"));
-
     const run = (input: {
       readonly credentials: Redacted.Redacted<string>;
       readonly harnessVersion: string;
@@ -166,7 +93,7 @@ export const WorkbenchesLive = Layer.effect(
       readonly startedBy: string | null;
     }) =>
       Effect.gen(function* () {
-        const found = yield* findRow(input.organizationId, input.id);
+        const found = yield* store.find(input.organizationId, input.id);
 
         if (Option.isNone(found)) {
           return yield* Effect.fail(
@@ -207,12 +134,7 @@ export const WorkbenchesLive = Layer.effect(
           trials: config.trials,
         });
 
-        yield* tryStore("workbench.markRun", () =>
-          db
-            .update(evalPlayground)
-            .set({ lastRunId: runId })
-            .where(eq(evalPlayground.internalId, found.value.internalId))
-        );
+        yield* store.markRun(found.value.internalId, runId);
 
         return runId;
       }).pipe(
@@ -224,9 +146,13 @@ export const WorkbenchesLive = Layer.effect(
       );
 
     return Workbenches.of({
-      create,
+      create: (input) =>
+        store.insert(input).pipe(
+          Effect.map((row) => asWorkbench(row, emptyPlaygroundConfig)),
+          Effect.withSpan("Workbenches.create")
+        ),
       find: (organizationId, id) =>
-        findRow(organizationId, id).pipe(
+        store.find(organizationId, id).pipe(
           Effect.flatMap((found) =>
             Option.match(found, {
               onNone: () => Effect.succeed(Option.none<Workbench>()),
@@ -236,23 +162,16 @@ export const WorkbenchesLive = Layer.effect(
           Effect.withSpan("Workbenches.find")
         ),
       list: (organizationId) =>
-        tryStore("workbench.list", () =>
-          db
-            .select()
-            .from(evalPlayground)
-            .where(
-              and(
-                eq(evalPlayground.organizationId, organizationId),
-                isNull(evalPlayground.archivedAt)
-              )
-            )
-            .orderBy(desc(evalPlayground.updatedAt))
-        ).pipe(
+        store.list(organizationId).pipe(
           Effect.flatMap((rows) => Effect.forEach(rows, hydrate)),
           Effect.withSpan("Workbenches.list")
         ),
       run,
-      save,
+      save: (input) =>
+        store.update(input).pipe(
+          Effect.map((row) => asWorkbench(row, input.config)),
+          Effect.withSpan("Workbenches.save")
+        ),
     });
   })
 );

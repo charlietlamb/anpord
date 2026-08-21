@@ -28,7 +28,7 @@ export function ApiKeyRow({
         <ActionTooltip label={`Revoke ${name}`}>
           <Button
             aria-label={`Revoke ${name}`}
-            className="size-5 shrink-0 rounded opacity-0 hover:text-destructive group-hover/row:opacity-100"
+            className="size-5 shrink-0 rounded opacity-0 hover:text-destructive focus-visible:opacity-100 group-hover/row:opacity-100"
             onClick={onRevoke}
             size="icon-sm"
             variant="bare"

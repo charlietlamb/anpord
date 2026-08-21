@@ -4,10 +4,8 @@ import {
   Effect,
   Layer,
   Option,
-  PubSub,
   type Redacted,
-  Ref,
-  Stream,
+  type Stream,
 } from "effect";
 import { caseIdentityOf } from "../domain/case-identity";
 import { renderPrompt } from "../domain/prompt";
@@ -17,6 +15,7 @@ import { TaskRepository } from "../repositories/task-repository";
 import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "./agent-trial";
 import { type GridCase, runGridCell, WORKSPACE } from "./grid-cell";
+import { makeLiveRuns } from "./grid-live";
 import {
   completeCell,
   type GridCell,
@@ -70,44 +69,12 @@ export const GridRunLive = Layer.scoped(
 
     /* In-flight runs only. The database is the record; this exists so a
        subscriber can watch a cell settle before the run has finished. */
-    const live = yield* Ref.make(new Map<string, GridRunState>());
+    const live = yield* makeLiveRuns;
 
-    /* Bounded and dropping: a slow reader must never stall a run that is
-       spending money, and a missed frame costs nothing because every message
-       carries the whole run. */
-    const changes = yield* PubSub.dropping<GridRunState>(64);
+    const publish = live.publish;
+    const update = live.update;
+    const forget = live.forget;
 
-    const publish = (state: GridRunState) =>
-      Ref.update(live, (all) => new Map(all).set(state.id, state)).pipe(
-        Effect.zipRight(PubSub.publish(changes, state))
-      );
-
-    /* Dropped once the run is terminal. Each entry holds every trial's full
-       journal, untruncated, so keeping finished runs here grows without bound
-       for the life of the process. The record answers for them afterwards. */
-    const forget = (id: string) =>
-      Ref.update(live, (all) => {
-        const next = new Map(all);
-        next.delete(id);
-        return next;
-      });
-
-    const update = (
-      id: string,
-      change: (state: GridRunState) => GridRunState
-    ) =>
-      Ref.get(live).pipe(
-        Effect.flatMap((all) => {
-          const current = all.get(id);
-
-          return current === undefined ? Effect.void : publish(change(current));
-        })
-      );
-
-    /* Resolved by content, never inserted fresh. The cell key is hashed over
-       the task, so a new row per run gave every run its own key and a
-       promoted baseline could never match a later run: comparison across
-       time, the one thing this exists for, was impossible. */
     const registerCases = (input: StartGrid) =>
       Effect.forEach(input.cases, (subject) => {
         const prompt = renderPrompt(input.prompt, { goal: subject.goal });
@@ -295,15 +262,13 @@ export const GridRunLive = Layer.scoped(
        trials that have landed so far and their journals. Once it is gone the
        record answers, which is what survives a restart. */
     const get = (organizationId: string, id: string) =>
-      Ref.get(live).pipe(
-        Effect.flatMap((all) => {
-          const current = all.get(id);
-
+      live.get(id).pipe(
+        Effect.flatMap((current) => {
           if (
-            current !== undefined &&
-            current.organizationId === organizationId
+            Option.isSome(current) &&
+            current.value.organizationId === organizationId
           ) {
-            return Effect.succeed(Option.some(current));
+            return Effect.succeed(current);
           }
 
           return query
@@ -314,7 +279,7 @@ export const GridRunLive = Layer.scoped(
       );
 
     return GridRun.of({
-      changes: Stream.fromPubSub(changes),
+      changes: live.changes,
       get,
       list: (organizationId) =>
         query.listRuns({ limit: LIST_LIMIT, organizationId }).pipe(

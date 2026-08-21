@@ -7,6 +7,7 @@ import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
 import { TrialRecorderLive } from "./repositories/trial-record";
+import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
 import { ScorerGroundTruthLive } from "./scoring/ground-truth";
 import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
@@ -20,7 +21,8 @@ export const EvalRepositoriesLive = Layer.mergeAll(
   RunQueryLive,
   RunRepositoryLive,
   TaskRepositoryLive,
-  TrialRecorderLive
+  TrialRecorderLive,
+  WorkbenchRepositoryLive
 ).pipe(Layer.provide(IdGeneratorLive));
 
 /** The sandbox seam on its own, so a caller that only runs trials does not

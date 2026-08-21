@@ -133,7 +133,7 @@ function PromptsPage() {
             ? `Nothing matches “${search}”.`
             : "Create one to start versioning what your application sends."
         }
-        empty={prompts?.length === 0}
+        empty={(prompts?.length ?? 0) === 0}
         error={query.error}
         isPending={query.isPending}
         skeleton={<PromptListSkeleton />}

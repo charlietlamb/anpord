@@ -5,6 +5,7 @@ import {
   updateChannel,
 } from "@/lib/channels-client";
 import { channelKeys } from "@/lib/query/channel-keys";
+import { activityKeys } from "@/lib/query/activity-keys";
 import { promptKeys } from "@/lib/query/prompt-keys";
 
 /** A channel's name and colour appear on every prompt that publishes to it, so
@@ -19,6 +20,9 @@ const useChannelMutation = <TInput>(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: channelKeys.all });
       queryClient.invalidateQueries({ queryKey: promptKeys.all });
+      /** Channel names are written into each activity row, so renaming one
+       * leaves the history naming a channel that no longer exists. */
+      queryClient.invalidateQueries({ queryKey: activityKeys.all });
     },
   });
 };
