@@ -1,11 +1,13 @@
-import { DeploymentPage } from "@anpord/schema/domain/deployments";
+import { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
+import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
 import { Effect, Schema } from "effect";
 
-const BASE = "/api/deployments";
+const BASE = "/api/activity";
 
-export interface DeploymentFilters {
+export interface ActivityFilters {
   readonly channel?: string;
   readonly cursor?: string;
+  readonly kind?: PromptEventKind;
   readonly limit?: number;
   readonly prompt?: string;
 }
@@ -29,9 +31,9 @@ async function send(path: string): Promise<Response> {
   return response;
 }
 
-export const listDeployments = async (
-  filters: DeploymentFilters = {}
-): Promise<DeploymentPage> => {
+export const listActivity = async (
+  filters: ActivityFilters = {}
+): Promise<PromptActivityPage> => {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (value !== undefined && value !== "") {
@@ -42,5 +44,5 @@ export const listDeployments = async (
   const response = await send(query.size > 0 ? `?${query}` : "");
   const payload = await response.json();
 
-  return Effect.runPromise(Schema.decodeUnknown(DeploymentPage)(payload));
+  return Effect.runPromise(Schema.decodeUnknown(PromptActivityPage)(payload));
 };

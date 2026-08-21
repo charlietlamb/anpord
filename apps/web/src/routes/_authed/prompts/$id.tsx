@@ -252,7 +252,7 @@ function PromptDetailPage() {
           submitLabel="Save version"
         />
 
-        <PromptActivityFeed promptId={id} versions={rows} />
+        <PromptActivityFeed promptId={id} />
       </main>
 
       <PromptRail

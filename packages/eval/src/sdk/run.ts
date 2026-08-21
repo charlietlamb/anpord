@@ -1,8 +1,8 @@
 import { Chunk, Effect, Stream } from "effect";
 import type { Distribution } from "../domain/distribution";
 import { distributionOf } from "../domain/distribution";
-import { parseHarness } from "../domain/harness-spec";
 import type { HarnessEvent } from "../domain/harness-event";
+import { parseHarness } from "../domain/harness-spec";
 import type { TrialOutcome } from "../domain/trial";
 import type { SandboxHandle } from "../ports/sandbox";
 import {
@@ -95,8 +95,7 @@ export const variantName = (variant: {
   readonly name?: string;
   readonly provider: string;
 }) =>
-  variant.name ??
-  `${variant.harness} ${variant.model} on ${variant.provider}`;
+  variant.name ?? `${variant.harness} ${variant.model} on ${variant.provider}`;
 
 /** Every variant, with its harness read.
  *

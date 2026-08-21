@@ -2,7 +2,7 @@ import { SetChannelRequest } from "@anpord/schema/domain/prompts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Schema } from "effect";
 import { setChannel } from "@/lib/prompts-client";
-import { deploymentKeys } from "@/lib/query/deployment-keys";
+import { activityKeys } from "@/lib/query/activity-keys";
 import { promptKeys } from "@/lib/query/prompt-keys";
 
 interface SetChannelInput {
@@ -29,7 +29,7 @@ export function useSetPromptChannel(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: promptKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: deploymentKeys.all });
+      queryClient.invalidateQueries({ queryKey: activityKeys.all });
     },
   });
 }

@@ -7,7 +7,7 @@
     "./authoring": "./src/services/prompt-authoring.ts",
     "./catalog": "./src/services/prompt-catalog.ts",
     "./channels": "./src/services/channel-catalog.ts",
-    "./deployments": "./src/services/deployments.ts",
+    "./activity": "./src/services/prompt-activity.ts",
     "./errors": "./src/domain/errors.ts",
     "./layer": "./src/layer.ts",
     "./publishing": "./src/services/prompt-publishing.ts",

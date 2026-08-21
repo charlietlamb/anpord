@@ -1,27 +1,27 @@
 import { Effect, ParseResult, Schema } from "effect";
-import type { DeploymentRow } from "../repositories/deployment-repository";
+import type { PromptEventRow } from "../repositories/prompt-event-repository";
 import { InvalidCursor } from "./errors";
 
 /**
  * Where the last page stopped: a timestamp and the row that carried it.
  *
- * The id is not decoration. Two channels moved in the same millisecond share a
- * `deployedAt` — the clock behind it reads milliseconds while the column keeps
+ * The id is not decoration. Two events written in the same millisecond share an
+ * `at` — the clock behind it reads milliseconds while the column keeps
  * microseconds — and a cursor that carries only the timestamp cannot say which
  * of them was already read. Paging on the pair leaves no room for that
  * ambiguity.
  */
-export const DeploymentCursorPayload = Schema.Struct({
+export const ActivityCursorPayload = Schema.Struct({
   /** Carried as the wall-clock string the column holds rather than as epoch
    * millis. `created_at` is a timestamp without a zone, so turning it into an
    * instant and back shifts it by the offset and the cursor stops landing on
    * the row it came from. */
-  deployedAt: Schema.String,
+  at: Schema.String,
   id: Schema.String,
 });
-export type DeploymentCursorPayload = typeof DeploymentCursorPayload.Type;
+export type ActivityCursorPayload = typeof ActivityCursorPayload.Type;
 
-const decodePayload = Schema.decodeUnknown(DeploymentCursorPayload);
+const decodePayload = Schema.decodeUnknown(ActivityCursorPayload);
 
 const toBase64Url = (value: string) =>
   btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
@@ -29,9 +29,8 @@ const toBase64Url = (value: string) =>
 const fromBase64Url = (value: string) =>
   atob(value.replaceAll("-", "+").replaceAll("_", "/"));
 
-export const encodeDeploymentCursor = (
-  cursor: DeploymentCursorPayload
-): string => toBase64Url(JSON.stringify(cursor));
+export const encodeActivityCursor = (cursor: ActivityCursorPayload): string =>
+  toBase64Url(JSON.stringify(cursor));
 
 /** `created_at` has no zone, and the driver parses it as if it were local, so
  * the Date it hands back is offset from the value the column actually holds.
@@ -40,18 +39,18 @@ export const encodeDeploymentCursor = (
 const wallClock = (value: Date) =>
   value.toISOString().replace("T", " ").replace("Z", "");
 
-export const deploymentCursorFor = (
-  row: DeploymentRow
-): DeploymentCursorPayload => ({
-  deployedAt: wallClock(row.deployedAt),
+export const activityCursorFor = (
+  row: PromptEventRow
+): ActivityCursorPayload => ({
+  at: wallClock(row.at),
   id: row.internalId,
 });
 
 /** Decoded through the schema rather than cast, so a tampered cursor is
  * rejected here instead of reaching the query as an arbitrary id. */
-export const decodeDeploymentCursor = (
+export const decodeActivityCursor = (
   encoded: string
-): Effect.Effect<DeploymentCursorPayload, InvalidCursor> =>
+): Effect.Effect<ActivityCursorPayload, InvalidCursor> =>
   Effect.suspend(() =>
     Effect.try({
       try: () => JSON.parse(fromBase64Url(encoded)) as unknown,

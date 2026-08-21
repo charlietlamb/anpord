@@ -1,7 +1,6 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
 import { Conflict, Forbidden, NotFound } from "../domain/errors";
-import { PromptEventList } from "../domain/prompt-events";
 import {
   AddVersionRequest,
   ChannelName,
@@ -73,11 +72,6 @@ export class PromptsGroup extends HttpApiGroup.make("prompts")
       .setPath(VersionPath)
       .setPayload(UpdateVersionRequest)
       .addSuccess(ResolvedPrompt)
-  )
-  .add(
-    HttpApiEndpoint.get("listEvents", "/prompts/:id/events")
-      .setPath(PromptPath)
-      .addSuccess(PromptEventList)
   )
   .add(
     HttpApiEndpoint.get("listChannels", "/prompts/:id/channels")

@@ -1,4 +1,3 @@
-import { PromptEventList } from "@anpord/schema/domain/prompt-events";
 import {
   ChannelPlacement,
   type CreatePromptRequest,
@@ -66,9 +65,6 @@ export const listPrompts = (params: {
 
 export const listVersions = (id: string) =>
   request(ResolvedPromptList, `/${encodeURIComponent(id)}/versions`);
-
-export const listEvents = (id: string) =>
-  request(PromptEventList, `/${encodeURIComponent(id)}/events`);
 
 export const createPrompt = (body: CreatePromptRequest) =>
   request(ResolvedPrompt, "", {

@@ -8,10 +8,6 @@ import {
   type PromptChannelRepositoryShape,
 } from "../../src/repositories/prompt-channel-repository";
 import {
-  PromptEventRepository,
-  type PromptEventRepositoryShape,
-} from "../../src/repositories/prompt-event-repository";
-import {
   PromptRepository,
   type PromptRepositoryShape,
 } from "../../src/repositories/prompt-repository";
@@ -105,11 +101,7 @@ const listVersions = (
                 list: () => Effect.succeed(placements),
                 move: unreachable("move"),
                 resolve: unreachable("resolve"),
-              } satisfies PromptChannelRepositoryShape),
-              Layer.succeed(PromptEventRepository, {
-                forPrompt: unreachable("forPrompt"),
-                record: unreachable("record"),
-              } satisfies PromptEventRepositoryShape)
+              } satisfies PromptChannelRepositoryShape)
             )
           )
         )

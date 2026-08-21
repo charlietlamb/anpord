@@ -6,7 +6,7 @@
   "exports": {
     "./domain/actor": "./src/domain/actor.ts",
     "./domain/channels": "./src/domain/channels.ts",
-    "./domain/deployments": "./src/domain/deployments.ts",
+    "./domain/prompt-activity": "./src/domain/prompt-activity.ts",
     "./domain/errors": "./src/domain/errors.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/permissions": "./src/domain/permissions.ts",
@@ -16,7 +16,7 @@
     "./domain/scopes": "./src/domain/scopes.ts",
     "./internal/api": "./src/internal/api.ts",
     "./internal/authentication": "./src/internal/authentication.ts",
-    "./internal/deployments-api": "./src/internal/deployments-api.ts",
+    "./internal/activity-api": "./src/internal/activity-api.ts",
     "./internal/evals-api": "./src/internal/evals-api.ts",
     "./internal/health-api": "./src/internal/health-api.ts",
     "./internal/oauth-api": "./src/internal/oauth-api.ts",

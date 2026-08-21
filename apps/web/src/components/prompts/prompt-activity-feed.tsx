@@ -1,13 +1,12 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@anpord/ui/components/button";
+import { SpinnerGapIcon } from "@phosphor-icons/react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ActivityRow } from "@/components/prompts/activity-row";
-import { promptActivity } from "@/lib/prompt-activity";
-import { deploymentQueries } from "@/lib/query/deployment-queries";
-import { promptQueries } from "@/lib/query/prompt-queries";
+import { SectionLabel } from "@/components/rail/section-label";
+import { activityQueries } from "@/lib/query/activity-queries";
 
 interface PromptActivityFeedProps {
   readonly promptId: string;
-  readonly versions: readonly ResolvedPrompt[];
 }
 
 /**
@@ -15,23 +14,13 @@ interface PromptActivityFeedProps {
  * text rather than beside it because it is read after the thing it describes,
  * and because a record of changes grows without bound while a rail cannot.
  */
-export function PromptActivityFeed({
-  promptId,
-  versions,
-}: PromptActivityFeedProps) {
-  const deployments = useQuery(deploymentQueries.forPrompt(promptId));
-  const events = useQuery(promptQueries.events(promptId));
-  const entries = promptActivity(
-    versions,
-    deployments.data?.items ?? [],
-    events.data ?? []
-  );
+export function PromptActivityFeed({ promptId }: PromptActivityFeedProps) {
+  const activity = useInfiniteQuery(activityQueries.forPrompt(promptId));
+  const entries = activity.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
     <section className="mt-10 border-border-faint border-t pt-6">
-      <h2 className="mb-3 font-medium text-muted-foreground text-xs">
-        Activity
-      </h2>
+      <SectionLabel className="mb-3">Activity</SectionLabel>
 
       {/* One rule behind the markers, so the entries read as a thread rather
           than a stack of rows that happen to be adjacent. */}
@@ -41,10 +30,25 @@ export function PromptActivityFeed({
         ))}
       </ul>
 
-      {deployments.isError ? (
+      {activity.isError ? (
         <p className="mt-2 text-muted-foreground text-xs">
-          Couldn't load the deployment history.
+          Couldn't load the history.
         </p>
+      ) : null}
+
+      {activity.hasNextPage ? (
+        <Button
+          className="mt-3"
+          disabled={activity.isFetchingNextPage}
+          onClick={() => activity.fetchNextPage()}
+          size="sm"
+          variant="bare"
+        >
+          {activity.isFetchingNextPage ? (
+            <SpinnerGapIcon className="animate-spin" size={15} />
+          ) : null}
+          {activity.isFetchingNextPage ? "Loading…" : "Show earlier"}
+        </Button>
       ) : null}
     </section>
   );

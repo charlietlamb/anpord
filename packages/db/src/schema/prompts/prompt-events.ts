@@ -4,12 +4,16 @@ import { promptVersion } from "./prompt-versions";
 import { prompt } from "./prompts";
 
 /**
- * Things that happen to a prompt but move no channel.
+ * Everything that has happened to a prompt, in one log.
  *
- * A channel event is shaped around a move: it requires a channel and a version
- * to arrive at. Overwriting a version has neither, so widening that table would
- * make three of its columns optional and stop its name describing what it
- * holds. This one takes the rest.
+ * Saving a version, pointing a channel at one, and rewriting one in place are
+ * the same kind of fact to anyone catching up, and splitting them across tables
+ * only moves the work of ordering them somewhere less able to do it: a reader
+ * merging two paged sources cannot know what falls between their pages.
+ *
+ * Columns that only some kinds use are null for the rest. Three nullable
+ * columns on one log is a smaller cost than a second table, a second endpoint,
+ * and a merge in the browser.
  */
 export const promptEvent = pgTable(
   "prompt_event",
@@ -19,10 +23,17 @@ export const promptEvent = pgTable(
       .notNull()
       .references(() => prompt.internalId, { onDelete: "cascade" }),
     kind: text("kind").notNull(),
-    /** The version the event concerns, where it concerns one. */
+    /** The version the event concerns: saved, overwritten, or moved to. */
     versionInternalId: text("version_internal_id").references(
       () => promptVersion.internalId,
-      { onDelete: "cascade" }
+      { onDelete: "set null" }
+    ),
+    /** Set by a channel move, which is the only kind that names one. */
+    channel: text("channel"),
+    /** Where the channel pointed before, absent on its first move. */
+    fromVersionInternalId: text("from_version_internal_id").references(
+      () => promptVersion.internalId,
+      { onDelete: "set null" }
     ),
     actorId: text("actor_id").references(() => user.id, {
       onDelete: "set null",
@@ -31,6 +42,11 @@ export const promptEvent = pgTable(
   },
   (table) => [
     index("prompt_event_prompt_internal_id_idx").on(table.promptInternalId),
-    index("prompt_event_created_at_idx").on(table.createdAt),
+    /* Paged newest first by the pair, so two events sharing a millisecond
+       cannot be skipped across a page boundary. */
+    index("prompt_event_created_at_internal_id_idx").on(
+      table.createdAt,
+      table.internalId
+    ),
   ]
 );

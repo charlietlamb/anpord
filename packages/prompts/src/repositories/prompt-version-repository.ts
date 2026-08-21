@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { user } from "@anpord/db/schema/auth/users";
+import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { PromptId } from "@anpord/schema/domain/prompts";
@@ -36,6 +37,7 @@ interface AppendVersionInput {
 }
 
 interface UpdateVersionInput {
+  readonly actorId: string | null;
   readonly commitMessage: string | undefined;
   readonly config: unknown;
   readonly content: string;
@@ -113,47 +115,67 @@ export const PromptVersionRepositoryLive = Layer.effect(
       latest,
 
       append: (input) =>
-        Effect.flatMap(ids.generate("promptVersion"), (internalId) =>
-          tryStore("promptVersion.append", async () => {
-            const [previous] = await db
-              .select({ version: promptVersion.version })
-              .from(promptVersion)
-              .where(eq(promptVersion.promptInternalId, input.promptInternalId))
-              .orderBy(desc(promptVersion.version))
-              .limit(1);
+        Effect.flatMap(
+          Effect.all([
+            ids.generate("promptVersion"),
+            ids.generate("promptEvent"),
+          ]),
+          ([internalId, eventId]) =>
+            tryStore("promptVersion.append", () =>
+              /* The version and the record of it being written go in together:
+               a version nobody can see the writing of is the gap this log
+               exists to close. */
+              db.transaction(async (tx) => {
+                const [previous] = await tx
+                  .select({ version: promptVersion.version })
+                  .from(promptVersion)
+                  .where(
+                    eq(promptVersion.promptInternalId, input.promptInternalId)
+                  )
+                  .orderBy(desc(promptVersion.version))
+                  .limit(1);
 
-            const [row] = await db
-              .insert(promptVersion)
-              .values({
-                internalId,
-                promptInternalId: input.promptInternalId,
-                version: (previous?.version ?? 0) + 1,
-                content: input.content,
-                config: input.config ?? {},
-                commitMessage: input.commitMessage,
-                createdBy: input.authorId,
+                const [row] = await tx
+                  .insert(promptVersion)
+                  .values({
+                    internalId,
+                    promptInternalId: input.promptInternalId,
+                    version: (previous?.version ?? 0) + 1,
+                    content: input.content,
+                    config: input.config ?? {},
+                    commitMessage: input.commitMessage,
+                    createdBy: input.authorId,
+                  })
+                  .returning();
+
+                await tx.insert(promptEvent).values({
+                  actorId: input.authorId,
+                  internalId: eventId,
+                  kind: "saved",
+                  promptInternalId: input.promptInternalId,
+                  versionInternalId: internalId,
+                });
+
+                const [author] = input.authorId
+                  ? await tx
+                      .select({ image: user.image, name: user.name })
+                      .from(user)
+                      .where(eq(user.id, input.authorId))
+                      .limit(1)
+                  : [];
+
+                return { ...row, author: author ?? null };
               })
-              .returning();
-
-            const [author] = input.authorId
-              ? await db
-                  .select({ image: user.image, name: user.name })
-                  .from(user)
-                  .where(eq(user.id, input.authorId))
-                  .limit(1)
-              : [];
-
-            return { ...row, author: author ?? null };
-          }).pipe(
-            Effect.catchIf(
-              (error) => isUniqueViolation(error.cause),
-              () => new VersionConflict({ promptId: input.promptId })
-            ),
-            Effect.retry({
-              schedule: APPEND_RETRY,
-              while: (error) => error._tag === "VersionConflict",
-            })
-          )
+            ).pipe(
+              Effect.catchIf(
+                (error) => isUniqueViolation(error.cause),
+                () => new VersionConflict({ promptId: input.promptId })
+              ),
+              Effect.retry({
+                schedule: APPEND_RETRY,
+                while: (error) => error._tag === "VersionConflict",
+              })
+            )
         ),
 
       list: (promptInternalId) =>
@@ -164,23 +186,45 @@ export const PromptVersionRepositoryLive = Layer.effect(
         ),
 
       update: (input) =>
-        tryStore("promptVersion.update", () =>
-          db
-            .update(promptVersion)
-            .set({
-              content: input.content,
-              ...(input.commitMessage === undefined
-                ? {}
-                : { commitMessage: input.commitMessage }),
-              ...(input.config === undefined ? {} : { config: input.config }),
+        Effect.flatMap(ids.generate("promptEvent"), (eventId) =>
+          tryStore("promptVersion.update", () =>
+            /* Overwriting destroys what the version held, and the row it
+               rewrites keeps no sign of having been rewritten. The record goes
+               in with the write, so neither can exist without the other. */
+            db.transaction(async (tx) => {
+              const rows = await tx
+                .update(promptVersion)
+                .set({
+                  content: input.content,
+                  ...(input.commitMessage === undefined
+                    ? {}
+                    : { commitMessage: input.commitMessage }),
+                  ...(input.config === undefined
+                    ? {}
+                    : { config: input.config }),
+                })
+                .where(
+                  and(
+                    eq(promptVersion.promptInternalId, input.promptInternalId),
+                    eq(promptVersion.version, input.version)
+                  )
+                )
+                .returning({ internalId: promptVersion.internalId });
+
+              const updated = rows.at(0);
+              if (updated !== undefined) {
+                await tx.insert(promptEvent).values({
+                  actorId: input.actorId,
+                  internalId: eventId,
+                  kind: "overwrote",
+                  promptInternalId: input.promptInternalId,
+                  versionInternalId: updated.internalId,
+                });
+              }
+
+              return rows;
             })
-            .where(
-              and(
-                eq(promptVersion.promptInternalId, input.promptInternalId),
-                eq(promptVersion.version, input.version)
-              )
-            )
-            .returning({ internalId: promptVersion.internalId })
+          )
         ).pipe(
           Effect.flatMap((rows) =>
             Option.isNone(head(rows))

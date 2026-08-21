@@ -5,7 +5,7 @@ interface VersionMoveProps {
   readonly className?: string;
   /** Absent on a first deployment, where there is no version to move from. */
   readonly from: number | null;
-  readonly to: number;
+  readonly to: number | null;
 }
 
 /**
@@ -16,7 +16,7 @@ interface VersionMoveProps {
  * in the card.
  */
 export function VersionMove({ className, from, to }: VersionMoveProps) {
-  const back = from !== null && to < from;
+  const back = from !== null && to !== null && to < from;
 
   return (
     <span
@@ -37,7 +37,9 @@ export function VersionMove({ className, from, to }: VersionMoveProps) {
           />
         </>
       )}
-      <span className="text-foreground/80">v{to}</span>
+      <span className="text-foreground/80">
+        {to === null ? "a deleted version" : `v${to}`}
+      </span>
     </span>
   );
 }

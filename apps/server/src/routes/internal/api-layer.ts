@@ -2,8 +2,8 @@ import { AnpordApi } from "@anpord/schema/internal/api";
 import { Layer } from "effect";
 import { AuthenticationLive } from "../../http/authentication/session-authentication";
 import { apiSurface } from "../api-surface";
+import { ActivityHandlers } from "./activity/handlers";
 import { ChannelsHandlers } from "./channels/handlers";
-import { DeploymentsHandlers } from "./deployments/handlers";
 import { EvalsHandlers } from "./evals/handlers";
 import { HealthHandlers } from "./health/handlers";
 import { OAuthHandlers } from "./oauth/handlers";
@@ -14,7 +14,7 @@ const GroupsLive = Layer.mergeAll(
   OAuthHandlers,
   PromptsHandlers,
   ChannelsHandlers,
-  DeploymentsHandlers,
+  ActivityHandlers,
   EvalsHandlers
 );
 

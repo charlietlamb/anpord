@@ -1,8 +1,8 @@
 import { Database } from "@anpord/db/client";
 import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
-import { promptChannelEvent } from "@anpord/db/schema/prompts/prompt-channel-events";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
+import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
 import { promptReleaseVersion } from "@anpord/db/schema/prompts/prompt-release-versions";
 import { promptRelease } from "@anpord/db/schema/prompts/prompt-releases";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
@@ -159,7 +159,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
       move: (input) =>
         Effect.all([
           ids.generate("promptChannel"),
-          ids.generate("channelEvent"),
+          ids.generate("promptEvent"),
           ids.generate("channel"),
           ids.generate("promptRelease"),
         ]).pipe(
@@ -258,14 +258,15 @@ export const PromptChannelRepositoryLive = Layer.effect(
                     });
                   }
 
-                  await tx.insert(promptChannelEvent).values({
-                    internalId: eventInternalId,
-                    promptInternalId: input.promptInternalId,
-                    channel: input.channel,
-                    fromVersionInternalId: existing?.versionInternalId ?? null,
-                    toVersionInternalId: input.versionInternalId,
+                  await tx.insert(promptEvent).values({
                     actorId: input.authorId,
+                    channel: input.channel,
                     createdAt: input.movedAt,
+                    fromVersionInternalId: existing?.versionInternalId ?? null,
+                    internalId: eventInternalId,
+                    kind: "deployed",
+                    promptInternalId: input.promptInternalId,
+                    versionInternalId: input.versionInternalId,
                   });
                 })
               ).pipe(Effect.asVoid)

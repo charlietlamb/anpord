@@ -1,11 +1,12 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
-import { DeploymentPage } from "../domain/deployments";
 import { Conflict, Forbidden, NotFound } from "../domain/errors";
+import { PromptActivityPage } from "../domain/prompt-activity";
+import { PromptEventKind } from "../domain/prompt-events";
 import { ChannelName, LimitFromString, PromptId } from "../domain/prompts";
 import { Authentication } from "./authentication";
 
-const DeploymentQuery = Schema.Struct({
+const ActivityQuery = Schema.Struct({
   channel: Schema.optional(ChannelName),
   cursor: Schema.optional(
     Schema.String.annotations({
@@ -14,15 +15,18 @@ const DeploymentQuery = Schema.Struct({
         "returned by this endpoint.",
     })
   ),
+  /** Narrows to one kind, which is how a deployment log is read out of the
+   * history the whole organisation shares. */
+  kind: Schema.optional(PromptEventKind),
   limit: Schema.optional(LimitFromString),
   prompt: Schema.optional(PromptId),
 });
 
-export class DeploymentsGroup extends HttpApiGroup.make("deployments")
+export class ActivityGroup extends HttpApiGroup.make("activity")
   .add(
-    HttpApiEndpoint.get("list", "/deployments")
-      .setUrlParams(DeploymentQuery)
-      .addSuccess(DeploymentPage)
+    HttpApiEndpoint.get("list", "/activity")
+      .setUrlParams(ActivityQuery)
+      .addSuccess(PromptActivityPage)
   )
   .addError(Conflict)
   .addError(Forbidden)

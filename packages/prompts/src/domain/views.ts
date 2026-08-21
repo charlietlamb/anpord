@@ -1,6 +1,8 @@
 import { Channel } from "@anpord/schema/domain/channels";
-import { Deployment } from "@anpord/schema/domain/deployments";
-import { PromptEvent } from "@anpord/schema/domain/prompt-events";
+import {
+  type DeploymentKind,
+  PromptActivityEntry,
+} from "@anpord/schema/domain/prompt-activity";
 import {
   type ChannelName,
   ChannelPlacement,
@@ -9,7 +11,6 @@ import {
 } from "@anpord/schema/domain/prompts";
 import { Effect, ParseResult, Schema } from "effect";
 import type { ChannelCountRow } from "../repositories/channel-repository";
-import type { DeploymentRow } from "../repositories/deployment-repository";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";
 import type { PromptEventRow } from "../repositories/prompt-event-repository";
 import type { PromptListRow } from "../repositories/prompt-list-query";
@@ -17,8 +18,7 @@ import type { VersionRow } from "../repositories/prompt-version-repository";
 import { PromptStoreError } from "./errors";
 
 const decodeChannel = Schema.decodeUnknown(Channel);
-const decodeDeployment = Schema.decodeUnknown(Deployment);
-const decodePromptEvent = Schema.decodeUnknown(PromptEvent);
+const decodeActivityEntry = Schema.decodeUnknown(PromptActivityEntry);
 const decodePlacement = Schema.decodeUnknown(ChannelPlacement);
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
@@ -87,50 +87,41 @@ export const toChannel = (
 ): Effect.Effect<Channel, PromptStoreError> =>
   decodeChannel(row).pipe(Effect.mapError(asStoreError("views.toChannel")));
 
-/** A move that lowers the version is a rollback, and one that repeats the
- * serving version moved nothing. Both read differently from a move forward, so
- * they are named here rather than left to the reader to work out by comparing
- * two numbers. */
-const kindOf = (row: DeploymentRow): Deployment["kind"] => {
-  if (row.fromVersion === null) {
+/** Which way a channel moved, read off the two versions rather than stored, so
+ * it cannot disagree with them. A move that repeats the serving version
+ * changed nothing for callers, which reads differently from a move forward. */
+const moveOf = (row: PromptEventRow): DeploymentKind => {
+  if (row.from === null) {
     return "first";
   }
-  if (row.toVersion === row.fromVersion) {
+  if (row.version === null || row.version === row.from) {
     return "repeat";
   }
-  return row.toVersion < row.fromVersion ? "rollback" : "promotion";
+  return row.version < row.from ? "rollback" : "promotion";
 };
 
-export const toDeployment = (
-  row: DeploymentRow
-): Effect.Effect<Deployment, PromptStoreError> =>
-  decodeDeployment({
-    channel: row.channel,
-    deployedAt: row.deployedAt,
-    deployedBy: authorOf(row.deployedBy),
-    fromVersion: row.fromVersion,
-    id: row.internalId,
-    kind: kindOf(row),
-    promptId: row.promptId,
-    promptName: row.promptName,
-    toVersion: row.toVersion,
-  }).pipe(Effect.mapError(asStoreError("views.toDeployment")));
-
 /** The kind is stored as text, so it is decoded rather than asserted: a row
- * written by an older build carrying a kind this one does not know is a store
- * failure, not a value to pass through as valid. */
-export const toPromptEvent = (
-  promptId: string,
+ * written by a later build carrying a kind this one does not know is a store
+ * failure, not a value to hand to the page as valid. The union it decodes into
+ * gives each kind only the fields it uses. */
+export const toActivityEntry = (
   row: PromptEventRow
-): Effect.Effect<PromptEvent, PromptStoreError> =>
-  decodePromptEvent({
+): Effect.Effect<PromptActivityEntry, PromptStoreError> =>
+  decodeActivityEntry({
+    _tag: row.kind,
     actor: authorOf(row.actor),
-    createdAt: row.createdAt,
+    at: row.at,
+    ...(row.kind === "deployed"
+      ? {
+          channel: row.channel,
+          from: row.from,
+          move: moveOf(row),
+          to: row.version,
+        }
+      : { version: row.version }),
+    ...(row.kind === "saved" ? { message: row.message } : {}),
     id: row.internalId,
-    kind: row.kind,
-    promptId,
-    version: row.version,
-  }).pipe(Effect.mapError(asStoreError("views.toPromptEvent")));
+  }).pipe(Effect.mapError(asStoreError("views.toActivityEntry")));
 
 export const toSummary = (
   row: PromptListRow

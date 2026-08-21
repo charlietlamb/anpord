@@ -37,9 +37,7 @@ export interface Score {
  * allows the same for the same reason. */
 export type ScoreResult = Score | readonly Score[];
 
-export type Scorer = (
-  evidence: Evidence
-) => Promise<ScoreResult> | ScoreResult;
+export type Scorer = (evidence: Evidence) => Promise<ScoreResult> | ScoreResult;
 
 /** Flattens whatever a scorer returned into the list a report reads.
  *

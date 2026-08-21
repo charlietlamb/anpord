@@ -5,15 +5,15 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { PgDialect } from "drizzle-orm/pg-core";
 import {
   afterCursor,
-  selectDeploymentList,
-} from "../../src/repositories/deployment-list-query";
+  selectPromptEventList,
+} from "../../src/repositories/prompt-event-list-query";
 
 const dialect = new PgDialect();
 const db = drizzle.mock() as unknown as Database["Type"];
 const organizationId = OrganizationId.make("org_1");
 
-const sqlFor = (params: Parameters<typeof selectDeploymentList>[2]) =>
-  selectDeploymentList(db, organizationId, params).toSQL().sql;
+const sqlFor = (params: Parameters<typeof selectPromptEventList>[2]) =>
+  selectPromptEventList(db, organizationId, params).toSQL().sql;
 
 /** The service tests page against an in-memory store, so only these assertions
  * can catch a keyset predicate that stops matching the order it pages under. */
@@ -23,16 +23,16 @@ describe("afterCursor", () => {
    * the offset shifts the boundary and rows repeat across pages. */
   test("compares the timestamp and the id as one tuple", () => {
     const predicate = dialect.sqlToQuery(
-      afterCursor({ deployedAt: "2026-08-16 22:49:34.754", id: "chev_1" })
+      afterCursor({ at: "2026-08-16 22:49:34.754", id: "pev_1" })
     ).sql;
 
     expect(predicate).toBe(
-      '("prompt_channel_event"."created_at", "prompt_channel_event"."internal_id") < ($1::timestamp, $2)'
+      '("prompt_event"."created_at", "prompt_event"."internal_id") < ($1::timestamp, $2)'
     );
   });
 });
 
-describe("selectDeploymentList", () => {
+describe("selectPromptEventList", () => {
   /** Two channels moved in the same millisecond share a timestamp, so the id
    * has to break the tie in the ordering as well as in the predicate. Order by
    * the timestamp alone and the pair can be read in either order, which is
@@ -41,7 +41,7 @@ describe("selectDeploymentList", () => {
     const sql = sqlFor({ limit: 25 });
 
     expect(sql).toContain(
-      'order by "prompt_channel_event"."created_at" desc, "prompt_channel_event"."internal_id" desc'
+      'order by "prompt_event"."created_at" desc, "prompt_event"."internal_id" desc'
     );
   });
 
@@ -52,7 +52,7 @@ describe("selectDeploymentList", () => {
   test("filters on the channel recorded at the time of the move", () => {
     const sql = sqlFor({ channel: "production", limit: 25 });
 
-    expect(sql).toContain('"prompt_channel_event"."channel" = ');
+    expect(sql).toContain('"prompt_event"."channel" = ');
   });
 
   test("filters by prompt without dropping the organization", () => {
@@ -63,13 +63,13 @@ describe("selectDeploymentList", () => {
   });
 
   /** A version can be deleted and an actor can be removed, and neither should
-   * take the deployment with it: the joins that may be absent are left joins,
-   * and only the destination version is required. */
-  test("keeps a row whose author or previous version is gone", () => {
+   * take the event with it — the record of an overwrite matters most exactly
+   * when what it describes is gone. Every joined row is optional. */
+  test("keeps a row whose author or version is gone", () => {
     const sql = sqlFor({ limit: 25 });
 
     expect(sql).toContain('left join "prompt_version" "from_version"');
     expect(sql).toContain('left join "user"');
-    expect(sql).toContain('inner join "prompt_version" "to_version"');
+    expect(sql).toContain('left join "prompt_version" "at_version"');
   });
 });

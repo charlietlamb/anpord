@@ -124,7 +124,8 @@ export const withinCommands =
  * are facts about how the agent worked, and turning them into a pass or a
  * failure is the caller's decision, not this function's.
  */
-export const trajectory = (): Scorer =>
+export const trajectory =
+  (): Scorer =>
   (evidence: Evidence): readonly Score[] => {
     const commands = evidence.events.filter(
       (event) => event._tag === "Command"

@@ -1,10 +1,10 @@
+import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
 import { ActivityMarker } from "@/components/prompts/activity-marker";
 import { ActivitySentence } from "@/components/prompts/activity-sentence";
-import type { ActivityEntry } from "@/lib/prompt-activity";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface ActivityRowProps {
-  readonly entry: ActivityEntry;
+  readonly entry: PromptActivityEntry;
 }
 
 /**

@@ -9,7 +9,6 @@ export const ID_PREFIXES = {
   evalRunInternal: "runx",
   evalTask: "tsk",
   evalTrial: "trl",
-  channelEvent: "chev",
   member: "mem",
   organization: "org",
   prompt: "pmt",

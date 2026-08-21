@@ -1,4 +1,4 @@
-import { Deployments } from "@anpord/prompts/deployments";
+import { PromptActivity } from "@anpord/prompts/activity";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { PAGE_LIMIT_DEFAULT } from "@anpord/schema/domain/prompts";
 import { AnpordApi } from "@anpord/schema/internal/api";
@@ -8,23 +8,24 @@ import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withPromptErrors } from "../../../http/prompt-errors";
 
-export const DeploymentsHandlers = HttpApiBuilder.group(
+export const ActivityHandlers = HttpApiBuilder.group(
   AnpordApi,
-  "deployments",
+  "activity",
   (handlers) =>
     authorized(handlers).handle(
       "list",
-      /** A deployment is a channel event, so reading one is reading a channel
-       * rather than reading a prompt. */
+      /** The log carries channel moves alongside everything else, so reading it
+       * asks for the rights a channel move would. */
       { permission: Permissions.Channels.Read },
       ({ urlParams }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
-          const deployments = yield* Deployments;
+          const activity = yield* PromptActivity;
 
-          return yield* deployments.list(actor, {
+          return yield* activity.list(actor, {
             channel: urlParams.channel,
             cursor: urlParams.cursor,
+            kind: urlParams.kind,
             limit: urlParams.limit ?? PAGE_LIMIT_DEFAULT,
             promptId: urlParams.prompt,
           });

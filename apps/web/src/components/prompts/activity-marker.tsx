@@ -1,12 +1,12 @@
+import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
 import { CHANNEL_SWATCHES } from "@anpord/ui/lib/channel-colors";
 import { initials } from "@anpord/ui/lib/initials";
 import { cn } from "@anpord/ui/lib/utils";
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
-import type { ActivityEntry } from "@/lib/prompt-activity";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 
 interface ActivityMarkerProps {
-  readonly entry: ActivityEntry;
+  readonly entry: PromptActivityEntry;
 }
 
 /**
@@ -39,7 +39,7 @@ export function ActivityMarker({ entry }: ActivityMarkerProps) {
         aria-hidden="true"
         className={cn(
           "size-2 rounded-full",
-          entry.kind === "deployed"
+          entry._tag === "deployed"
             ? CHANNEL_SWATCHES[channelColor(entry.channel)]
             : "bg-muted-foreground/40"
         )}
