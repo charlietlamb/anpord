@@ -2,35 +2,18 @@ import { Data, Schema } from "effect";
 import { ProviderName } from "./cell";
 
 /**
- * The retry boundary, expressed as types rather than as a flag.
+ * The retry boundary, expressed as a type rather than as a flag.
  *
- * `SandboxUnavailable` is infrastructure and is retried. `TrialVoided` and
- * `CeilingExceeded` are results and are never retried, because retrying a
- * trial that already told us something turns a pass rate into fiction. A
- * single shared error would have erased that distinction at the one place it
- * has to hold.
- *
- * These are `Schema.TaggedError` rather than `Data.TaggedError` because the
- * workflow engine encodes an activity's error to durable storage, and a `Data`
- * error does not typecheck where a Schema is required.
+ * `SandboxUnavailable` is infrastructure, so it is retried. A result is not:
+ * retrying a trial that already told us something turns a pass rate into
+ * fiction. Voiding is carried as data on the outcome rather than as an error,
+ * because a trial that produced no evidence still produced a row.
  */
 export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
   "SandboxUnavailable"
 )("SandboxUnavailable", {
   provider: ProviderName,
   reason: Schema.String,
-}) {}
-
-export class TrialVoided extends Schema.TaggedError<TrialVoided>("TrialVoided")(
-  "TrialVoided",
-  { fields: Schema.Array(Schema.String) }
-) {}
-
-export class CeilingExceeded extends Schema.TaggedError<CeilingExceeded>(
-  "CeilingExceeded"
-)("CeilingExceeded", {
-  ceilingCents: Schema.Int,
-  spentCents: Schema.Int,
 }) {}
 
 export class HarnessUnavailable extends Schema.TaggedError<HarnessUnavailable>(

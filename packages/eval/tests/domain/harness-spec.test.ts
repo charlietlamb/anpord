@@ -10,7 +10,7 @@ describe("a harness spec", () => {
   });
 
   it("round trips", () => {
-    const spec = parseHarness("claude-code@1.0.0");
+    const spec = parseHarness("codex@1.0.0");
 
     expect(spec).not.toBeNull();
 
@@ -18,7 +18,7 @@ describe("a harness spec", () => {
       return;
     }
 
-    expect(formatHarness(spec)).toBe("claude-code@1.0.0");
+    expect(formatHarness(spec)).toBe("codex@1.0.0");
   });
 
   /** A version that is not a number is still a version: a branch, a digest
@@ -34,6 +34,14 @@ describe("a harness spec", () => {
   it("refuses a name with no version", () => {
     expect(parseHarness("codex")).toBeNull();
     expect(parseHarness("codex@")).toBeNull();
+  });
+
+  /** A name with no runner behind it used to parse, so a run asking for it
+   * installed Codex, ran that, and recorded the result under the name asked
+   * for: two identities for byte-identical work. */
+  it("refuses a harness with no runner", () => {
+    expect(parseHarness("none@1")).toBeNull();
+    expect(parseHarness("claude-code@1.0.0")).toBeNull();
   });
 
   it("refuses a harness that does not exist", () => {
