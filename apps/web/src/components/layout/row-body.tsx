@@ -38,7 +38,7 @@ export function RowBody({
       <Link
         className={cn(
           className,
-          "transition-colors hover:bg-muted/50 hover:text-foreground"
+          "transition-colors group-hover/row:text-foreground"
         )}
         onMouseEnter={onMouseEnter}
         params={params}

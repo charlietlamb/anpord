@@ -59,20 +59,27 @@ export function ListRow({
     </>
   );
 
+  /* The surface is the row wrapper's now, so what is left here is only how
+     the text reads inside it. */
   const tone = selected
-    ? "bg-muted font-medium text-foreground"
+    ? "font-medium text-foreground"
     : "font-normal text-muted-foreground";
 
   return (
     <div
-      className={cn(BLEED_ROW, "group/row flex items-center")}
+      /* The highlight belongs to the row rather than to the body inside it:
+         the menu beside the body cannot live within a link, and a surface
+         drawn on the body alone stops just short of it. */
+      className={cn(
+        BLEED_ROW,
+        "group/row flex items-center rounded-md transition-colors",
+        selected ? "bg-muted" : "hover:bg-muted/50"
+      )}
       /* Stripped from the accessibility tree so the option inside it stays a
          direct child of the listbox: a generic wrapper between the two breaks
          the set, and a screen reader stops announcing "3 of 12". */
       role={role ? "presentation" : undefined}
     >
-      {/* The bleed belongs to the row, not the body: with a control beside it
-          the body shares the line, and the highlight has to reach past both. */}
       <RowBody
         className={cn(ROW, "min-w-0 flex-1", tone)}
         onMouseEnter={onMouseEnter}
