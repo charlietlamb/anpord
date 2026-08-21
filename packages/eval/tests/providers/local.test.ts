@@ -91,6 +91,37 @@ describe("the local sandbox", () => {
     expect(exitOf(chunks)).not.toBe(0);
   });
 
+  /**
+   * The parent environment carries this process's provider keys, and the
+   * commands running here were written by a model. AgentTrial keeps
+   * credentials Redacted precisely so they never reach a sandbox, and
+   * spreading process.env would have undone that at the last hop.
+   */
+  it("does not hand the parent environment to the sandbox", async () => {
+    process.env.ANPORD_LEAK_PROBE = "should-not-be-visible";
+
+    const output = await withSandbox((sandbox) =>
+      collect(sandbox, 'echo "[$ANPORD_LEAK_PROBE]"').pipe(Effect.map(outputOf))
+    );
+
+    process.env.ANPORD_LEAK_PROBE = undefined;
+
+    expect(output).toContain("[]");
+    expect(output).not.toContain("should-not-be-visible");
+  });
+
+  it("passes the environment a caller asked for", async () => {
+    const output = await withSandbox((sandbox) =>
+      Stream.runCollect(
+        sandbox.exec('echo "[$ANPORD_WANTED]"', {
+          env: { ANPORD_WANTED: "visible" },
+        })
+      ).pipe(Effect.map(Chunk.toReadonlyArray), Effect.map(outputOf))
+    );
+
+    expect(output).toContain("visible");
+  });
+
   it("cannot reattach, and says so rather than pretending", async () => {
     const outcome = await Effect.runPromise(
       Effect.gen(function* () {

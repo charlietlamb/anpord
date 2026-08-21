@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Effect, Stream } from "effect";
@@ -14,6 +14,14 @@ import type {
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
+/** One constructor, matching the remote adapters: an Error rendered by
+ * String keeps its class name and loses its message. */
+const unavailable = (reason: unknown) =>
+  new SandboxUnavailable({
+    provider: "local",
+    reason: reason instanceof Error ? reason.message : String(reason),
+  });
+
 /** Runs a command for real, in a real shell, in a real directory.
  *
  * The exit code arrives in the stream rather than after it, matching the
@@ -22,7 +30,8 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 const execute = (
   root: string,
   command: string,
-  timeoutMs: number
+  timeoutMs: number,
+  options: Readonly<Record<string, string>>
 ): Stream.Stream<ExecChunk, SandboxUnavailable> =>
   Stream.async<ExecChunk, SandboxUnavailable>((emit) => {
     const child = spawn(command, {
@@ -31,7 +40,11 @@ const execute = (
          spawned without one leaves its children behind: killing bash left
          the sleep it had started still running. */
       detached: true,
-      env: { ...process.env, HOME: root },
+      /* Not the parent environment. It carries the provider keys this
+         process was given, and the commands running here were written by a
+         model: agent-trial keeps credentials Redacted precisely so they do
+         not reach a sandbox, and spreading process.env would undo that. */
+      env: { HOME: root, PATH: process.env.PATH ?? "", ...options },
       shell: "/bin/bash",
     });
 
@@ -63,9 +76,7 @@ const execute = (
 
     child.on("error", (cause) => {
       clearTimeout(timer);
-      emit.fail(
-        new SandboxUnavailable({ provider: "local", reason: String(cause) })
-      );
+      emit.fail(unavailable(cause));
     });
 
     child.on("close", (code) => {
@@ -106,15 +117,14 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> =
         })
       ),
     destroy: (handle: SandboxHandle) =>
-      Effect.promise(() => rm(handle.id, { force: true, recursive: true })),
+      Effect.tryPromise({
+        catch: unavailable,
+        try: () => rm(handle.id, { force: true, recursive: true }),
+      }).pipe(Effect.asVoid),
     open: (_request: OpenSandbox) =>
       Effect.gen(function* () {
         const root = yield* Effect.tryPromise({
-          catch: (cause) =>
-            new SandboxUnavailable({
-              provider: "local",
-              reason: String(cause),
-            }),
+          catch: unavailable,
           try: () => mkdtemp(join(tmpdir(), "anpord-local-")),
         });
 
@@ -123,19 +133,18 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> =
             execute(
               options?.cwd ?? root,
               command,
-              options?.timeoutMs ?? DEFAULT_TIMEOUT_MS
+              options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+              /* Honoured, because the port declares it and both remote
+                 providers pass it through: a local run that quietly ignored
+                 it would diverge from what it exists to stand in for. */
+              options?.env ?? {}
             ),
           id: root,
           provider: "local" as ProviderName,
           writeFile: (path, content) =>
             Effect.tryPromise({
-              catch: (cause) =>
-                new SandboxUnavailable({
-                  provider: "local",
-                  reason: String(cause),
-                }),
+              catch: unavailable,
               try: async () => {
-                const { mkdir, writeFile } = await import("node:fs/promises");
                 const target = path.startsWith("/") ? path : join(root, path);
 
                 await mkdir(join(target, ".."), { recursive: true });
