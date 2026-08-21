@@ -46,6 +46,7 @@
     "packages/eval": {
       "entry": [
         "src/bin/eval-run.ts",
+        "src/domain/harness-spec.ts",
         "src/domain/matrix.ts",
         "src/harness/codex.ts",
         "src/layer.ts",

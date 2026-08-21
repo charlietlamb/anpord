@@ -26,6 +26,7 @@
   },
   "exports": {
     "./domain/case-file": "./src/domain/case-file.ts",
+    "./domain/harness-spec": "./src/domain/harness-spec.ts",
     "./domain/cell": "./src/domain/cell.ts",
     "./domain/playground-config": "./src/domain/playground-config.ts",
     "./domain/distribution": "./src/domain/distribution.ts",

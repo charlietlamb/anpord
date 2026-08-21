@@ -1,4 +1,4 @@
-import type { HarnessName, ProviderName } from "../domain/cell";
+import type { ProviderName } from "../domain/cell";
 import type { HarnessEvent } from "../domain/harness-event";
 import type { WorkspaceSource } from "../services/workspace";
 
@@ -73,8 +73,9 @@ export interface Case {
  * two different harnesses a month apart and nothing in the data shows it.
  */
 export interface Variant {
-  readonly harness: HarnessName;
-  readonly harnessVersion: string;
+  /** `codex@0.144.4`. One field, because the name and the version are never
+   * meaningfully apart: the cell key is hashed over both. */
+  readonly harness: string;
   readonly model: string;
   /** How this column is labelled in a report. Defaults to the three values
    * that define it, which is what a person needs to read a grid. */

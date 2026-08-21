@@ -1,6 +1,7 @@
 import { Chunk, Effect, Stream } from "effect";
 import type { Distribution } from "../domain/distribution";
 import { distributionOf } from "../domain/distribution";
+import { parseHarness } from "../domain/harness-spec";
 import type { HarnessEvent } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
 import type { SandboxHandle } from "../ports/sandbox";
@@ -96,6 +97,30 @@ export const variantName = (variant: {
 }) =>
   variant.name ??
   `${variant.harness} ${variant.model} on ${variant.provider}`;
+
+/** Every variant, with its harness read.
+ *
+ * Rejected here rather than at the moment a sandbox opens: a typo in a
+ * version should cost a type error before it costs a run. */
+export const resolveVariants = (
+  variants: readonly {
+    readonly harness: string;
+    readonly model: string;
+    readonly name?: string;
+    readonly provider: string;
+  }[]
+) =>
+  variants.map((variant) => {
+    const harness = parseHarness(variant.harness);
+
+    if (harness === null) {
+      throw new Error(
+        `${variant.harness} is not a harness and a version, like codex@0.144.4`
+      );
+    }
+
+    return { ...variant, harness, label: variantName(variant) };
+  });
 
 /** The grid a definition expands to, before anything runs. Separated so a
  * caller can count what a run will cost without starting it. */
