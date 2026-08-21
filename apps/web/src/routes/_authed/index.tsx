@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageShell } from "@/components/layout/page-shell";
 
 export const Route = createFileRoute("/_authed/")({
   component: Overview,
@@ -7,9 +8,8 @@ export const Route = createFileRoute("/_authed/")({
 
 function Overview() {
   return (
-    <div className="flex flex-1 flex-col gap-2 p-6">
-      <h1 className="font-heading text-2xl tracking-tight">Overview</h1>
+    <PageShell>
       <p className="text-muted-foreground text-sm">Your workspace is ready.</p>
-    </div>
+    </PageShell>
   );
 }

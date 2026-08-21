@@ -10,12 +10,7 @@ export function DataTableContainer({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "relative overflow-auto rounded-lg border bg-card",
-        className
-      )}
-    >
+    <div className={cn("relative overflow-auto", className)}>
       <Table>{children}</Table>
     </div>
   );

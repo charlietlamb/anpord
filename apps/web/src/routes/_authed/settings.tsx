@@ -1,3 +1,5 @@
+import { PAGE_FRAME, PAGE_WIDTHS } from "@anpord/ui/lib/page-frame";
+import { cn } from "@anpord/ui/lib/utils";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { SettingsSidebar } from "@/components/settings/settings-sidebar";
 
@@ -8,8 +10,13 @@ export const Route = createFileRoute("/_authed/settings")({
 
 function SettingsLayout() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-5 pb-6">
-      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 px-5 lg:grid-cols-[13rem_minmax(0,1fr)] xl:gap-5 xl:px-6">
+    <div className={PAGE_FRAME}>
+      <div
+        className={cn(
+          PAGE_WIDTHS.wide,
+          "grid grid-cols-1 items-start gap-8 pt-5 pb-24 lg:grid-cols-[13rem_minmax(0,1fr)] xl:gap-10"
+        )}
+      >
         <SettingsSidebar />
         <Outlet />
       </div>

@@ -55,7 +55,7 @@ export function DataTableHeader() {
   const { table } = useDataTableContext();
 
   return (
-    <ShadcnTableHeader className="sticky top-0 z-10 [&_tr]:border-b [&_tr]:bg-muted/40">
+    <ShadcnTableHeader className="sticky top-0 z-10 bg-background [&_tr]:border-border-faint [&_tr]:border-b">
       {table.getHeaderGroups().map((headerGroup) => (
         <TableRow key={headerGroup.id}>
           {headerGroup.headers.map((header, index) => (

@@ -1,5 +1,7 @@
 import { Button } from "@anpord/ui/components/button";
+import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
 import { TrashIcon } from "@phosphor-icons/react";
+import { ListRow } from "@/components/layout/list-row";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface ApiKeyRowProps {
@@ -18,29 +20,29 @@ export function ApiKeyRow({
   const created = useRelativeTime(new Date(createdAt));
 
   return (
-    <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate font-medium text-sm">{name}</span>
-        <span className="font-mono text-muted-foreground text-xs">
-          {start ? `${start}…` : "—"}
-        </span>
-      </div>
-
-      {created ? (
-        <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-          created {created}
-        </span>
-      ) : null}
-
-      <Button
-        aria-label={`Revoke ${name}`}
-        className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
-        onClick={onRevoke}
-        size="icon"
-        variant="ghost"
-      >
-        <TrashIcon size={15} />
-      </Button>
-    </div>
+    <ListRow
+      /* Revoking is destructive and the control carries no label of its own,
+         so it says what it does on approach rather than only to a reader
+         using assistive technology. */
+      actions={
+        <ActionTooltip label={`Revoke ${name}`}>
+          <Button
+            aria-label={`Revoke ${name}`}
+            className="size-5 shrink-0 rounded opacity-0 hover:text-destructive group-hover/row:opacity-100"
+            onClick={onRevoke}
+            size="icon-sm"
+            variant="bare"
+          >
+            <TrashIcon />
+          </Button>
+        </ActionTooltip>
+      }
+      meta={created}
+    >
+      <span className="text-foreground">{name}</span>
+      <span className="ml-2 font-mono text-xs opacity-60">
+        {start ? `${start}…` : "—"}
+      </span>
+    </ListRow>
   );
 }

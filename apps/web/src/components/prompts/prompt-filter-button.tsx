@@ -76,7 +76,7 @@ export function PromptFilterButton<S extends string, O extends string>({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button className="relative h-9 shrink-0" size="sm" variant="outline">
+          <Button className="relative h-8 shrink-0" size="sm" variant="subtle">
             <FunnelSimpleIcon size={15} />
             Filter
             {active ? (

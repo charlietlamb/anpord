@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_authed/channels/")({
     return context.queryClient.ensureQueryData(queries.list());
   },
   component: ChannelsPage,
+  staticData: { title: "Channels" },
 });
 
 const failed = (message: string) => (error: unknown) =>

@@ -10,10 +10,7 @@ export function GeneralSettings() {
   });
 
   return (
-    <SettingsPanel
-      description="Update your organization's name and slug."
-      title="General"
-    >
+    <SettingsPanel description="Update your organization's name and slug.">
       {activeOrganization ? (
         <form
           className="flex max-w-md flex-col gap-5"

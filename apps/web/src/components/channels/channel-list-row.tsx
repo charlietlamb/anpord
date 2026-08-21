@@ -7,8 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
-import { ChannelBadge } from "@anpord/ui/components/ui/channel-badge";
+import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import { DotsThreeIcon } from "@phosphor-icons/react";
+import { ListRow } from "@/components/layout/list-row";
 
 interface ChannelListRowProps {
   readonly channel: Channel;
@@ -24,37 +25,38 @@ export function ChannelListRow({
   const reserved = channel.name === PRODUCTION;
 
   return (
-    <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
-      <ChannelBadge color={channel.color} name={channel.name} />
-
-      <span className="ml-auto text-muted-foreground text-xs tabular-nums">
-        {channel.promptCount} {channel.promptCount === 1 ? "prompt" : "prompts"}
-      </span>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              aria-label={`Actions for ${channel.name}`}
-              className="size-7 shrink-0"
-              size="icon"
-              variant="ghost"
-            >
-              <DotsThreeIcon size={16} weight="bold" />
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEdit}>Edit channel</DropdownMenuItem>
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            disabled={reserved || channel.promptCount > 0}
-            onClick={onDelete}
+    <ListRow
+      actions={
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                aria-label={`Actions for ${channel.name}`}
+                className="size-5 shrink-0 rounded opacity-0 group-hover/row:opacity-100 data-[popup-open]:opacity-100"
+                size="icon-sm"
+                variant="bare"
+              />
+            }
           >
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+            <DotsThreeIcon weight="bold" />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>Edit channel</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              disabled={reserved || channel.promptCount > 0}
+              onClick={onDelete}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      }
+      leading={<ChannelDot color={channel.color} />}
+      meta={`${channel.promptCount} ${channel.promptCount === 1 ? "prompt" : "prompts"}`}
+    >
+      <span className="text-foreground">{channel.name}</span>
+    </ListRow>
   );
 }

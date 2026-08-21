@@ -1,10 +1,6 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import { ROW_DIVIDERS } from "@anpord/ui/lib/row-dividers";
-import { cn } from "@anpord/ui/lib/utils";
-import { PlusIcon, SpinnerGapIcon } from "@phosphor-icons/react";
-import { Link } from "@tanstack/react-router";
+import { SpinnerGapIcon } from "@phosphor-icons/react";
 import { PromptRow } from "@/components/prompts/prompt-row";
 
 interface PromptListProps {
@@ -12,33 +8,6 @@ interface PromptListProps {
   readonly loadingMore: boolean;
   readonly onLoadMore: () => void;
   readonly prompts: readonly PromptSummary[];
-  readonly search: string;
-}
-
-/** An account with no prompts and a search that matched nothing look the same
- * on screen but mean opposite things, so they are never phrased alike. */
-function NoPrompts({ search }: { readonly search: string }) {
-  return (
-    <div className="py-14 text-center">
-      <p className="font-heading text-base tracking-tight">
-        {search ? "No matching prompts" : "No prompts yet"}
-      </p>
-      <p className="mt-1 text-muted-foreground text-sm">
-        {search
-          ? `Nothing matches “${search}”.`
-          : "Create one to start versioning what your application sends."}
-      </p>
-      {search ? null : (
-        <Link
-          className={cn(buttonVariants({ size: "sm" }), "mt-4")}
-          to="/prompts/new"
-        >
-          <PlusIcon weight="bold" />
-          New prompt
-        </Link>
-      )}
-    </div>
-  );
 }
 
 export function PromptList({
@@ -46,15 +15,13 @@ export function PromptList({
   loadingMore,
   onLoadMore,
   prompts,
-  search,
 }: PromptListProps) {
-  if (prompts.length === 0) {
-    return <NoPrompts search={search} />;
-  }
-
   return (
     <div className="flex flex-col gap-3">
-      <div className={cn("-mx-3 flex flex-col", ROW_DIVIDERS)}>
+      {/* No rules between the rows: they are the same shape repeated, and the
+          highlight that follows the pointer is what separates one from the
+          next. */}
+      <div className="flex flex-col">
         {prompts.map((prompt) => (
           <PromptRow key={prompt.id} prompt={prompt} />
         ))}
@@ -62,16 +29,16 @@ export function PromptList({
 
       {hasMore ? (
         <Button
-          className="self-center"
+          className="self-start"
           disabled={loadingMore}
           onClick={onLoadMore}
           size="sm"
-          variant="outline"
+          variant="bare"
         >
           {loadingMore ? (
             <SpinnerGapIcon className="animate-spin" size={15} />
           ) : null}
-          {loadingMore ? "Loading…" : "Load more"}
+          {loadingMore ? "Loading…" : "Show more"}
         </Button>
       ) : null}
     </div>

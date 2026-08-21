@@ -46,7 +46,7 @@ export function AppSidebar() {
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton
-                      className="border border-transparent data-active:border-sidebar-border group-data-[collapsible=icon]:justify-center"
+                      className="group-data-[collapsible=icon]:justify-center"
                       isActive={isNavItemActive(item, pathname)}
                       render={<Link to={item.to} />}
                       tooltip={item.label}

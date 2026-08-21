@@ -4,9 +4,12 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
+import { ListState } from "@/components/layout/list-state";
+import { PageShell } from "@/components/layout/page-shell";
 import { PromptFilterButton } from "@/components/prompts/prompt-filter-button";
+import { PromptList } from "@/components/prompts/prompt-list";
+import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { PromptSearch } from "@/components/prompts/prompt-search";
-import { PromptsBody } from "@/components/prompts/prompts-body";
 import type { PromptListFilters } from "@/lib/query/prompt-list-filters";
 import { promptQueries } from "@/lib/query/prompt-queries";
 
@@ -88,31 +91,11 @@ function PromptsPage() {
     setSort(DEFAULT_SORT);
   };
 
-  /* The page scrolls, not the column: a scrollbar on the centred column would
-     sit in the middle of the screen rather than at its edge. */
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-3xl flex-col px-5 pt-5 pb-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="font-heading text-2xl tracking-tight">Prompts</h1>
-            <p className="mt-1 text-muted-foreground text-sm">
-              Version and deploy the prompts your application runs on.
-            </p>
-          </div>
-          <Link
-            className={cn(buttonVariants({ size: "sm" }), "shrink-0")}
-            to="/prompts/new"
-          >
-            <PlusIcon weight="bold" />
-            New prompt
-          </Link>
-        </div>
-
-        <div className="mt-5 flex items-center gap-2">
-          <div className="min-w-0 flex-1">
-            <PromptSearch onChange={setSearch} value={search} />
-          </div>
+    <PageShell
+      actions={
+        <>
+          <PromptSearch onChange={setSearch} value={search} />
           <PromptFilterButton
             active={filtered}
             onClear={clearFilters}
@@ -123,18 +106,46 @@ function PromptsPage() {
             status={status}
             statusOptions={STATUS_OPTIONS}
           />
-        </div>
-
-        <PromptsBody
-          error={query.error}
+          <Link
+            className={cn(buttonVariants({ size: "sm" }))}
+            to="/prompts/new"
+          >
+            <PlusIcon weight="bold" />
+            New prompt
+          </Link>
+        </>
+      }
+    >
+      <ListState
+        action={
+          search ? null : (
+            <Link
+              className={cn(buttonVariants({ size: "sm" }))}
+              to="/prompts/new"
+            >
+              <PlusIcon weight="bold" />
+              New prompt
+            </Link>
+          )
+        }
+        description={
+          search
+            ? `Nothing matches “${search}”.`
+            : "Create one to start versioning what your application sends."
+        }
+        empty={prompts?.length === 0}
+        error={query.error}
+        isPending={query.isPending}
+        skeleton={<PromptListSkeleton />}
+        title={search ? "No matching prompts" : "No prompts yet"}
+      >
+        <PromptList
           hasMore={query.hasNextPage}
-          isPending={query.isPending}
           loadingMore={query.isFetchingNextPage}
           onLoadMore={() => query.fetchNextPage()}
-          prompts={prompts}
-          search={search}
+          prompts={prompts ?? []}
         />
-      </div>
-    </div>
+      </ListState>
+    </PageShell>
   );
 }
