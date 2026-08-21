@@ -26,13 +26,8 @@ const sourceOf = (source: WorkspaceSource) => {
     .join("")}`;
 };
 
-/**
- * Content addressed, so the same case resolves to the same row and a baseline
- * survives across runs.
- *
- * The name and the prompt are deliberately absent: both are edited freely,
- * and hashing either severed a case from every baseline promoted against it.
- */
+/** Content addressed, so the same case resolves to the same row and a
+ * baseline survives across runs. */
 export const caseIdentityOf = (input: CaseDefinition): string =>
   createHash("sha256")
     .update(

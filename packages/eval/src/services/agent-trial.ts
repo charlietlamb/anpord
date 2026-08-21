@@ -109,11 +109,9 @@ export const AgentTrialLive = Layer.effect(
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
-        /* Scored through the port rather than inline, so the verdict comes
-           from running the verifier ourselves and inherits the refusal to
-           score through an unguarded pipeline. A harness that fooled itself
-           with `| tail` would otherwise report success while the tests
-           failed. */
+        /** Scored through the port rather than inline, so the verdict comes
+         * from running the verifier ourselves and inherits the refusal to
+         * score through an unguarded pipeline. */
         const scored = yield* scorer.score({
           commandCount: commandsIn(events),
           events,

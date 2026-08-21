@@ -43,13 +43,7 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
   Layer.provideMerge(EvalRepositoriesLive)
 );
 
-/** The grid, wanting a Database and a SandboxProvider. Baselines come with
- * it because a caller reading a run almost always compares it.
- *
- * No background work. Sweeping writes on construction and is unscoped by
- * organization, so a layer that merely wants the services would fail every
- * run older than the cutoff: six test files build this, and each was
- * marking its siblings' in-flight rows as abandoned. */
+/** The grid, wanting a Database and a SandboxProvider. */
 export const EvalGridLive = Layer.mergeAll(
   GridRunLive,
   BaselinesLive,

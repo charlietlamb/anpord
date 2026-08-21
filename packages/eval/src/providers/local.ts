@@ -22,11 +22,7 @@ const unavailable = (reason: unknown) =>
     reason: reason instanceof Error ? reason.message : String(reason),
   });
 
-/** Runs a command for real, in a real shell, in a real directory.
- *
- * The exit code arrives in the stream rather than after it, matching the
- * remote providers: a mock that returned it another way would let a bug in
- * how we read exit codes pass here and fail in production. */
+/** Runs a command for real, in a real shell, in a real directory. */
 const execute = (
   root: string,
   command: string,
@@ -97,16 +93,8 @@ const execute = (
     });
   });
 
-/**
- * A sandbox on this machine, for tests and for a customer trying the product
- * before handing over cloud credentials.
- *
- * Deliberately a real shell in a real temporary directory rather than a fake
- * that returns canned output. A fixture that cannot fail teaches nothing, and
- * the whole argument of this product is that a run which never executed must
- * not be scored as a pass. This provider is not isolation: it runs as the
- * current user and is unsafe for untrusted code.
- */
+/** A sandbox on this machine, for tests and for a customer trying the
+ * product before handing over cloud credentials. */
 export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> =
   Effect.succeed({
     attach: (id: string) =>

@@ -27,14 +27,7 @@ export interface EvalReport {
   readonly name: string;
 }
 
-/**
- * What a scorer is given, built where the trial ran.
- *
- * `exec` returns an Effect rather than a Promise so a dead sandbox fails
- * instead of being folded into an exit code: escaping the runtime here also
- * severed interruption, so a cancelled trial left its scorer running against
- * a workspace the scope was already deleting.
- */
+/** What a scorer is given, built where the trial ran. */
 export const evidenceFrom = (input: {
   readonly events: readonly HarnessEvent[];
   readonly sandbox: SandboxHandle;
@@ -57,14 +50,7 @@ export const evidenceFrom = (input: {
     ),
 });
 
-/**
- * A trial's verdict from its scores.
- *
- * Every score has to hold, matching how WebArena composes its evaluators: a
- * task is not three quarters done. A scorer that declined is not counted
- * against the agent, and a trial where every scorer declined has no evidence
- * at all, which is what void means.
- */
+/** A trial's verdict from its scores. */
 export const outcomeFrom = (input: {
   readonly commandCount: number;
   readonly modelMs: number;
@@ -102,15 +88,7 @@ export const variantName = (variant: {
 }) =>
   variant.name ?? `${variant.harness} ${variant.model} on ${variant.provider}`;
 
-/**
- * Every variant, with its harness read.
- *
- * Fails rather than throwing. UnreadableHarness is a tagged error built to
- * travel in an error channel, and throwing it made it a defect: a caller
- * could not catch it by tag, and it killed the whole run past any per-cell
- * recovery. Validated rather than short-circuited, so a file with three
- * typos reports three rather than one at a time.
- */
+/** Every variant, with its harness read. */
 export const resolveVariants = (
   variants: readonly {
     readonly harness: string;

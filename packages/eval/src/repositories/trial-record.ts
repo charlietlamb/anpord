@@ -25,14 +25,7 @@ export interface RecordTrial {
 }
 
 export interface TrialRecorderShape {
-  /** Writes a finished trial and its journal indivisibly.
-   *
-   * Separate from `TrialRepository`, which exists for the durable path where a
-   * trial is inserted before it runs and settled after. A trial that already
-   * has its outcome is one write, and splitting it across four statements is
-   * what allows a crash to leave a settled trial with no events. That state is
-   * indistinguishable from a trial that ran and produced nothing, which is the
-   * exact signature the void gate reads as a broken provider. */
+  /** Writes a finished trial and its journal indivisibly. */
   readonly record: (
     input: RecordTrial
   ) => Effect.Effect<string, EvalStoreError>;

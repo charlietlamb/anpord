@@ -1,11 +1,6 @@
 import type { HarnessEvent } from "../domain/harness-event";
 
-/**
- * What a journal of harness events says about a run.
- *
- * Calculations over a list, not a service: no I/O to reach for and no
- * production-versus-test variation, so a test needs no layer.
- */
+/** What a journal of harness events says about a run. */
 export const commandsIn = (events: readonly HarnessEvent[]) =>
   events.filter((event) => event._tag === "Command").length;
 
@@ -26,14 +21,7 @@ export const failedCommandsIn = (events: readonly HarnessEvent[]) =>
       event.exitCode !== 0
   ).length;
 
-/**
- * Tools the agent invoked, in order, by name.
- *
- * The three questions every customer in the research asks of a trajectory are
- * "did it call this", "did it avoid that", and "what did it end on", and all
- * three are answered from this list. PostHog, Onyx and DeerFlow each wrote
- * their own version of it over their own harness's log format.
- */
+/** Tools the agent invoked, in order, by name. */
 export const toolCallsIn = (events: readonly HarnessEvent[]) =>
   events.flatMap((event) => (event._tag === "ToolCall" ? [event.name] : []));
 

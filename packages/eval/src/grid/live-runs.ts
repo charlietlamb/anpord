@@ -15,15 +15,8 @@ interface LiveRuns {
   ) => Effect.Effect<void>;
 }
 
-/**
- * The in-flight view of runs, kept apart from the service that schedules
- * them.
- *
- * A read model and a decision-maker change for different reasons: this exists
- * so a subscriber can watch a cell settle before the run has finished, and
- * the database is the record either way. Separating them is what the effect
- * guidance asks for, and it keeps the unbounded-growth question in one file.
- */
+/** The in-flight view of runs, kept apart from the service that schedules
+ * them. */
 export const makeLiveRuns = Effect.gen(function* () {
   const runs = yield* Ref.make(new Map<string, GridRunState>());
 

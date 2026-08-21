@@ -22,14 +22,7 @@ const command = (request: RunHarness) =>
     quoted(request.prompt),
   ].join(" ");
 
-/**
- * Runs Codex inside the sandbox and normalises its output.
- *
- * The exit code of each command the agent ran is read from the harness stream
- * here, but it is not what scores the trial. The verifier is run afterwards by
- * the scorer, from our own journal, because a harness reporting its own
- * success is the instrument this product exists to replace.
- */
+/** Runs Codex inside the sandbox and normalises its output. */
 export const CodexRunnerLive = Layer.succeed(
   HarnessRunner,
   HarnessRunner.of({

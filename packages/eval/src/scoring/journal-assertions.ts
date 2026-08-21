@@ -15,15 +15,8 @@ const describe = (request: RequestRecord) =>
 const matches = (record: RequestRecord, wanted: RequestRecord) =>
   record.method === wanted.method && record.path === wanted.path;
 
-/**
- * Assertions over what an agent did to a server, rather than over what it
- * left behind.
- *
- * A final state answers whether the right thing happened. These answer
- * whether it happened the right way, which is the half no screenshot and no
- * end-state check can see. Every company in the research writes some version
- * of these by hand over their own log format.
- */
+/** Assertions over what an agent did to a server, rather than over what it
+ * left behind. */
 export const didRequest = (
   journal: readonly RequestRecord[],
   wanted: RequestRecord
@@ -61,14 +54,7 @@ export const didNotRequest = (
   };
 };
 
-/**
- * How many times a request was made, when once is the answer.
- *
- * An agent that does not notice its click landed will click again. If the
- * application deduplicates, the final state is correct and nothing but the
- * journal records that it happened twice. This is the assertion that catches
- * a class of flakiness a pass rate never will.
- */
+/** How many times a request was made, when once is the answer. */
 export const requestedExactly = (
   journal: readonly RequestRecord[],
   wanted: RequestRecord,

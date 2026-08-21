@@ -7,16 +7,7 @@ export interface HarnessSpec {
 
 const NAMES = new Set<string>(HarnessName.literals);
 
-/**
- * Reads `codex@0.144.4` into a harness and its version.
- *
- * One field rather than two, because they are never meaningfully apart: the
- * cell key is hashed over both, so a column that named one without the other
- * would compare against a baseline recorded under a different identity.
- *
- * The version is required. An unpinned install compares two different
- * harnesses a month apart, and nothing in the data shows it happened.
- */
+/** Reads `codex@0.144.4` into a harness and its version. */
 export const parseHarness = (spec: string): HarnessSpec | null => {
   const at = spec.lastIndexOf("@");
 

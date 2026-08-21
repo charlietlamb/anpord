@@ -14,11 +14,7 @@ const SourceSchema = Schema.Union(
   })
 );
 
-/** A row of the grid.
- *
- * `verify` is nullable so an imported case can exist here honestly. A case
- * with no verifier runs and reports and never claims a pass, rather than
- * having a verifier invented for it. */
+/** A row of the grid. */
 export const PlaygroundCase = Schema.Struct({
   goal: Schema.String,
   name: Schema.String,
@@ -34,13 +30,7 @@ export const PlaygroundColumn = Schema.Struct({
   provider: ProviderName,
 });
 
-/**
- * Everything a person is working on, saved between visits.
- *
- * Held as one document because it is read and written whole. Decoding it at
- * the boundary is what stops a column added next month from silently reading
- * as absent on every playground written before it.
- */
+/** Everything a person is working on, saved between visits. */
 export const PlaygroundConfig = Schema.Struct({
   cases: Schema.Array(PlaygroundCase),
   columns: Schema.Array(PlaygroundColumn),
@@ -61,11 +51,7 @@ export const emptyPlaygroundConfig: PlaygroundConfig = {
   trials: 3,
 };
 
-/** Whether this playground can be run, and why not.
- *
- * A calculation rather than a check inside the service: the same answer is
- * needed to disable a control and to reject a request, and two copies of it
- * would eventually disagree. */
+/** Whether this playground can be run, and why not. */
 export const readinessOf = (config: PlaygroundConfig): readonly string[] => {
   const problems: string[] = [];
 

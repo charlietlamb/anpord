@@ -23,17 +23,7 @@ export const installCodex = (sandbox: SandboxHandle, version: string) =>
     Effect.withSpan("Codex.install", { attributes: { version } })
   );
 
-/**
- * Credentials arrive as the file the CLI writes for itself.
- *
- * A ChatGPT subscription authenticates over OAuth rather than with an API key,
- * and `--with-access-token` is not in every build, so the auth file is the one
- * path that works across versions. It is written to the sandbox and it is the
- * caller's business to decide whether that is acceptable: the credential is
- * not scoped to a trial and cannot be revoked without ending every session it
- * belongs to. The proxy replaces this, and until then a run is as trusted as
- * the code it runs.
- */
+/** Credentials arrive as the file the CLI writes for itself. */
 export const authenticateCodex = (
   sandbox: SandboxHandle,
   auth: Redacted.Redacted<string>,

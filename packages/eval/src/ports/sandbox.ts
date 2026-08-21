@@ -2,12 +2,8 @@ import { Context, type Effect, type Scope, type Stream } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { SandboxUnavailable } from "../domain/errors";
 
-/**
- * A chunk of a running command, following the shape a docs tool uses in
- * production. The exit code arrives *in* the stream rather than after it,
- * which is what lets a live view show a command finishing and what keeps the
- * journal's exit codes captured at the call site where they still exist.
- */
+/** A chunk of a running command, following the shape a docs tool uses in
+ * production. */
 export type ExecChunk =
   | { readonly stream: "stdout"; readonly data: string }
   | { readonly stream: "stderr"; readonly data: string }

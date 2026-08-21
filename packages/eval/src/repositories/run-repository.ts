@@ -68,11 +68,7 @@ export const RunRepositoryLive = Layer.effect(
     const ids = yield* IdGenerator;
 
     return RunRepository.of({
-      /* Scoped in SQL, not in memory. A run id is unique per organization
-         rather than globally, so a bare id predicate reads every tenant's
-         matching row into this process and leaves correctness resting on a
-         filter that a later refactor can drop while still compiling. It also
-         cannot use the composite index, so it scans. */
+      /** Scoped in SQL, not in memory. */
       findById: (organizationId, id) =>
         tryStore("run.findById", () =>
           db

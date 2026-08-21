@@ -1,14 +1,7 @@
 import { Data, Schema } from "effect";
 import { ProviderName } from "./cell";
 
-/**
- * The retry boundary, expressed as a type rather than as a flag.
- *
- * `SandboxUnavailable` is infrastructure, so it is retried. A result is not:
- * retrying a trial that already told us something turns a pass rate into
- * fiction. Voiding is carried as data on the outcome rather than as an error,
- * because a trial that produced no evidence still produced a row.
- */
+/** The retry boundary, expressed as a type rather than as a flag. */
 export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
   "SandboxUnavailable"
 )("SandboxUnavailable", {

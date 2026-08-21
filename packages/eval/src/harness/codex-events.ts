@@ -1,14 +1,8 @@
 import { Option, Schema } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 
-/**
- * The shape `codex exec --json` actually emits, captured from a real run
- * rather than taken from documentation.
- *
- * Only the fields we normalise are declared. Codex adds fields between
- * versions, and a schema that insists on knowing all of them would fail on an
- * upgrade rather than ignore what it does not need.
- */
+/** The shape `codex exec --json` actually emits, captured from a real run
+ * rather than taken from documentation. */
 const CommandItem = Schema.Struct({
   aggregated_output: Schema.optional(Schema.String),
   command: Schema.String,
@@ -66,13 +60,7 @@ export interface DecodedLine {
 
 const none: DecodedLine = { event: Option.none(), usage: Option.none() };
 
-/**
- * One NDJSON line to at most one normalised event.
- *
- * Lines we do not model are dropped rather than failing the stream: `item.started`
- * repeats what `item.completed` says with no exit code yet, and a harness that
- * adds a line type should not end a trial that is otherwise running fine.
- */
+/** One NDJSON line to at most one normalised event. */
 export const decodeCodexLine = (line: string): DecodedLine => {
   if (line.trim() === "") {
     return none;

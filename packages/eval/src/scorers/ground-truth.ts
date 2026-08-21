@@ -3,12 +3,7 @@ import { outcomeOf } from "../domain/trial";
 import type { ExecChunk, SandboxHandle } from "../ports/sandbox";
 import { type ScoreRequest, Scorer } from "../ports/scorer";
 
-/** A single `|` that is not `||`, outside single or double quotes.
- *
- * A bare substring test refuses far too much: `node --test || exit 1` is a
- * defensive verifier, and `grep -E 'a|b'` is an ordinary one. Both were
- * rejected before, which voided every trial in the cell before the sandbox was
- * even touched and reported a pass rate of zero with no diagnostic. */
+/** A single `|` that is not `||`, outside single or double quotes. */
 export const isUnguardedPipeline = (command: string) => {
   let quote: string | null = null;
 
@@ -66,14 +61,7 @@ const verify = (sandbox: SandboxHandle, command: string) =>
     Effect.map(Chunk.toReadonlyArray)
   );
 
-/**
- * The verdict comes from running the tests, not from judging the diff.
- *
- * This is the only scorer the MVP ships. A model-graded scorer would be
- * another Layer behind the same tag, and it is deliberately absent: a judge
- * drifts between versions, and the regression signal is the one thing that has
- * to stay stable across months.
- */
+/** The verdict comes from running the tests, not from judging the diff. */
 export const ScorerGroundTruthLive = Layer.succeed(
   Scorer,
   Scorer.of({

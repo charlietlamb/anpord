@@ -14,13 +14,7 @@ export interface Comparison {
   readonly verdict: Verdict;
 }
 
-/**
- * How far two pass rates must differ before the difference is a finding.
- *
- * Deliberately coarse, and the same judgement as the axis separation
- * threshold. At ten trials one passing run is 10 points, so anything tighter
- * would report noise as a regression and train people to ignore the alert.
- */
+/** How far two pass rates must differ before the difference is a finding. */
 const MATERIAL_DELTA = 0.2;
 
 const incomparable = (reason: string): Comparison => ({
@@ -32,15 +26,7 @@ const incomparable = (reason: string): Comparison => ({
   verdict: "incomparable",
 });
 
-/**
- * Whether a cell got worse than its baseline.
- *
- * A voided side is never read as a measured zero. A provider outage produces a
- * cell with nothing scored, and treating that as a pass rate of zero reports a
- * total collapse that never happened. Refusing to answer is the correct
- * answer, and it is the difference between a tool that is trusted and one
- * that cries wolf.
- */
+/** Whether a cell got worse than its baseline. */
 export const compare = (
   baseline: Distribution,
   candidate: Distribution

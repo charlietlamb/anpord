@@ -1,14 +1,6 @@
 import { Schema } from "effect";
 
-/**
- * The normalised event every harness decodes into.
- *
- * A domain shape rather than part of the port, because the journal, the
- * repository and the report all read it and none of them should depend on how
- * a harness is invoked. Neither harness's own vocabulary escapes its adapter:
- * scoring each by its own instrument would measure two different things, since
- * Codex records exit codes and Claude Code does not.
- */
+/** The normalised event every harness decodes into. */
 export const HarnessEvent = Schema.Union(
   Schema.Struct({
     _tag: Schema.Literal("Started"),
@@ -34,13 +26,7 @@ export const HarnessEvent = Schema.Union(
     _tag: Schema.Literal("FileChange"),
     paths: Schema.Array(Schema.String),
   }),
-  /* A tool the agent invoked by name, separate from a shell command.
-     A real Codex session is mostly these: forty-eight function calls against
-     three shell executions in one sampled transcript. Three companies in the
-     customer research independently wrote scorers over tool calls, and none
-     of them could be expressed against commands alone: PostHog has
-     RequiredToolCall and NoToolCall, Onyx has ToolAssertion, DeerFlow has
-     forbidden_tool_actions. */
+  /** A tool the agent invoked by name, separate from a shell command. */
   Schema.Struct({
     _tag: Schema.Literal("ToolCall"),
     /* The harness's own id for the call, so a result can be matched to its

@@ -51,14 +51,8 @@ const materialise = (input: PrepareWorkspace) => {
   );
 };
 
-/**
- * Everything that has to be true before an agent starts, in the order it has
- * to be true in.
- *
- * Separated from running the trial because it changes for a different reason:
- * a new harness alters what gets installed here and nothing about how a run is
- * scored.
- */
+/** Everything that has to be true before an agent starts, in the order it
+ * has to be true in. */
 export const prepareWorkspace = (
   input: PrepareWorkspace
 ): Effect.Effect<void, HarnessUnavailable | SandboxUnavailable> =>

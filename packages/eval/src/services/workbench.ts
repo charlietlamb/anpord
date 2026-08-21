@@ -32,11 +32,7 @@ export interface WorkbenchShape {
   readonly list: (
     organizationId: string
   ) => Effect.Effect<readonly Workbench[], EvalStoreError>;
-  /** Starts the saved configuration and records which run it produced.
-   *
-   * Returns as soon as the run is recorded. The work continues behind the
-   * response, so closing the tab does not stop it and coming back reads the
-   * run from the record rather than from a session that ended. */
+  /** Starts the saved configuration and records which run it produced. */
   readonly run: (input: {
     readonly credentials: Redacted.Redacted<string>;
     readonly harnessVersion: string;

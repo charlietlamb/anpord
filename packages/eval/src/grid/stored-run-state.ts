@@ -4,11 +4,7 @@ import type { RunDetail } from "../repositories/run-query";
 import type { AgentTrialResult } from "../services/agent-trial";
 import type { GridCell, GridRunState, GridTask } from "./state";
 
-/** A persisted trial, seen through the shape a live one has.
- *
- * The journal is not rebuilt here. A stored run is read to compare it, and
- * hydrating every event of every trial to answer a list request would read
- * the largest table in the system to render a summary. */
+/** A persisted trial, seen through the shape a live one has. */
 const asResult = (input: {
   readonly commandCount: number;
   readonly exitCode: number;
@@ -45,13 +41,7 @@ const statusOf = (value: string): GridRunState["status"] => {
   return "running";
 };
 
-/**
- * A stored run in the shape the live view uses.
- *
- * One shape for both, so a caller never has to ask whether a run is still in
- * flight. Cases and tasks are recovered from the cells, since the grid is
- * their product and the axes are what the cells were built from.
- */
+/** A stored run in the shape the live view uses. */
 export const runToState = (detail: RunDetail): GridRunState => {
   const caseNames: string[] = [];
   const taskKeys: string[] = [];

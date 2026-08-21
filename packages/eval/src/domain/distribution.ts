@@ -31,14 +31,7 @@ const median = (values: readonly number[]) => {
     : (sorted[middle] ?? 0);
 };
 
-/**
- * What gets reported for a cell.
- *
- * The denominator is scored trials, not all trials: a voided trial produced no
- * evidence, so counting it as a failure would invent one. It is reported
- * separately instead, because a cell with four voids is a finding about the
- * provider rather than about the agent.
- */
+/** What gets reported for a cell. */
 export const distributionOf = (
   outcomes: readonly TrialOutcome[]
 ): Distribution => {
@@ -50,15 +43,8 @@ export const distributionOf = (
   const commandMin = commands.length === 0 ? 0 : Math.min(...commands);
   const commandMax = commands.length === 0 ? 0 : Math.max(...commands);
 
-  /* A cell is deterministic when every scored trial agreed and they took
-     roughly the same number of commands. Passing 7 of 10 in 9 to 41 commands
-     is a different animal from passing 10 of 10 in 9 to 11, and reporting
-     only a rate would call them the same.
-
-     One trial can never show this. A single run trivially agrees with itself
-     and its spread is zero, so calling it deterministic would make the
-     strongest claim the system offers from the one sample size that cannot
-     support it. */
+  /** A cell is deterministic when every scored trial agreed and they took
+   * roughly the same number of commands. */
   const agreed = passed.length === scored.length || passed.length === 0;
 
   /* An absolute window rather than a ratio. A ratio is scale-dependent: at

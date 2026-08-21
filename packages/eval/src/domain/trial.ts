@@ -1,5 +1,7 @@
 import { Schema } from "effect";
 
+/** `void` is a status of its own, never a flavour of `failed`: a trial whose
+ * commands never executed is not evidence about the harness. */
 export const TrialStatus = Schema.Literal(
   "queued",
   "running",
@@ -21,6 +23,8 @@ export const TrialOutcome = Schema.Struct({
 });
 export type TrialOutcome = typeof TrialOutcome.Type;
 
+/** What a command that never ran looks like. `fork/exec` is the exact string
+ * a Daytona sandbox returns when the working directory does not exist. */
 const VOID_PATTERNS: readonly RegExp[] = [
   /fork\/exec .*: no such file or directory/i,
   /^\s*$/,
@@ -29,12 +33,7 @@ const VOID_PATTERNS: readonly RegExp[] = [
   /permission denied/i,
 ];
 
-/** Extra signatures, supplied per deployment.
- *
- * A new provider returns its own wording for a command that never ran, and
- * without this the only way to teach the gate is a release. An unreadable
- * pattern is dropped rather than thrown: a typo in configuration should
- * narrow the gate, never stop trials being scored at all. */
+/** Extra signatures, supplied per deployment. */
 const configuredPatterns = (extra: readonly string[]): readonly RegExp[] =>
   extra.flatMap((source) => {
     try {
@@ -65,13 +64,7 @@ export const checkVoid = (
   return { fields, voided: fields.length > 0 };
 };
 
-/** A runner that found nothing to run exits zero and says so.
- *
- * Scoring that as a pass is the worst failure this system can have: a cell
- * where the workspace was empty, or the files landed somewhere else, reports
- * every trial as passing and reports the cell deterministic, because all the
- * trials agree and none of them did anything. Maximum confidence, no evidence.
- */
+/** A runner that found nothing to run exits zero and says so. */
 const VACUOUS_PATTERNS: readonly RegExp[] = [
   /^\s*(?:ℹ\s*)?tests\s+0\s*$/m,
   /\b0\s+(?:tests?|specs?|examples?)\b/i,

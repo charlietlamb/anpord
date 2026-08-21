@@ -52,12 +52,7 @@ export const WORKSPACE = "/tmp/anpord-task";
 const HOME = "/home/daytona";
 const AUTO_STOP_MINUTES = 15;
 
-/**
- * One square of the grid: N trials of one task against one case, recorded.
- *
- * Separated from the service because it changes for a different reason: how a
- * cell is executed and persisted is not how a run is scheduled or streamed.
- */
+/** One square of the grid: N trials of one task against one case, recorded. */
 export const runGridCell = (
   input: RunGridCell
 ): Effect.Effect<

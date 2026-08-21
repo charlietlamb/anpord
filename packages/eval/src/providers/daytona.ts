@@ -93,11 +93,8 @@ export const makeDaytonaAdapter = Effect.sync((): SandboxAdapterShape => {
         catch: unavailable,
         try: () =>
           daytona.create({
-            /* Two TTLs, because compensation does not run when a workflow is
-               interrupted rather than failed. Measured against Daytona: a
-               killed process bypasses the scope finalizer and the sandbox
-               stays started. autoStop bounds the compute and autoDelete the
-               storage, whatever happens to our process. */
+            /** Two TTLs, because compensation does not run when a workflow
+             * is interrupted rather than failed. */
             autoDeleteInterval: request.autoStopMinutes * AUTO_DELETE_FACTOR,
             autoStopInterval: request.autoStopMinutes,
           }),

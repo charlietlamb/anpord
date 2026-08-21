@@ -48,12 +48,8 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
     Stream.fromEffect(
       Effect.tryPromise({
         catch: unavailable,
-        /* The fold happens inside `try`, before the rejection is turned into a
-           SandboxUnavailable. Catching afterwards reads `result` off an error
-           that never carries it, which silently yields an empty output: the
-           exit code survives but the failing test's own words do not, and the
-           journal exists to keep exactly those. Anything still thrown here is
-           a real provider failure and reaches `catch`. */
+        /** The fold happens inside `try`, before the rejection is turned
+         * into a SandboxUnavailable. */
         try: () =>
           sandbox.commands
             .run(command, {

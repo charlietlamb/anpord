@@ -12,12 +12,7 @@ interface Reconciled {
 }
 
 export interface ReconcilerShape {
-  /** Closes runs whose process died.
-   *
-   * A run executes in a forked daemon, and a daemon does not survive SIGKILL:
-   * its catch-all never fires, so the row stays running forever and every
-   * later read reports work that stopped hours ago as still in flight.
-   * Nothing else in the system can notice, because the only witness died. */
+  /** Closes runs whose process died. */
   readonly sweep: (input: {
     readonly olderThan: Duration.Duration;
   }) => Effect.Effect<Reconciled, EvalStoreError>;
@@ -87,13 +82,8 @@ export const ReconcilerLive = Layer.effect(
 const ABANDONED_AFTER = Duration.hours(6);
 const SWEEP_EVERY = Duration.minutes(30);
 
-/**
- * Runs the sweep for the life of the process, once at startup and then on a
- * schedule.
- *
- * Forked as a daemon and scoped to the layer, so it stops when the layer
- * closes rather than outliving it.
- */
+/** Runs the sweep for the life of the process, once at startup and then on
+ * a schedule. */
 export const ReconcilerScheduleLive = Layer.scopedDiscard(
   Effect.gen(function* () {
     const reconciler = yield* Reconciler;

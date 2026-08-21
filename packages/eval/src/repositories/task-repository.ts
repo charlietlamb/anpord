@@ -31,11 +31,7 @@ export interface TaskRepositoryShape {
     internalId: string,
     bracketedAt: Date
   ) => Effect.Effect<void, EvalStoreError>;
-  /** Finds the task for a case definition, or writes it.
-   *
-   * The same case must resolve to the same row on every run: the cell key
-   * is hashed over the task, so a fresh row each time gives every run its
-   * own key and no baseline can ever match a later run. */
+  /** Finds the task for a case definition, or writes it. */
   readonly upsertByIdentity: (input: {
     readonly identity: string;
     readonly name: string;
@@ -116,11 +112,8 @@ export const TaskRepositoryLive = Layer.effect(
                 verifyCommand: input.verifyCommand,
                 workspace: input.workspace,
               })
-              /* Nothing is updated, because the identity is the content: a
-                 row that already exists is already correct. Setting any
-                 column here would retroactively rewrite the task that a
-                 promoted baseline's cell key was hashed over, and every
-                 historical comparison would silently change meaning. */
+              /** Nothing is updated, because the identity is the content: a
+               * row that already exists is already correct. */
               .onConflictDoNothing({
                 target: [evalTask.organizationId, evalTask.id],
               })

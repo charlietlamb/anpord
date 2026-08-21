@@ -39,13 +39,7 @@ export class WorkbenchRepository extends Context.Tag(
   "@anpord/eval/WorkbenchRepository"
 )<WorkbenchRepository, WorkbenchRepositoryShape>() {}
 
-/**
- * Where a saved playground lives.
- *
- * Separated from the service because a service wires dependencies and
- * exposes behaviour; it does not also own SQL. Readiness and the decision to
- * launch a run change for different reasons than a column does.
- */
+/** Where a saved playground lives. */
 export const WorkbenchRepositoryLive = Layer.effect(
   WorkbenchRepository,
   Effect.gen(function* () {
