@@ -48,7 +48,11 @@ export function PageShell({
         </div>
       ) : null}
 
-      <div className={cn(PAGE_WIDTHS[width], "pb-24")}>
+      {/* Grown rather than sized: a list runs past the fold and scrolls, while
+          a page with nothing on it has an emptiness to centre in. */}
+      <div
+        className={cn(PAGE_WIDTHS[width], "flex min-h-0 flex-1 flex-col pb-24")}
+      >
         {description ? (
           <p className="mb-5 max-w-prose text-muted-foreground text-sm">
             {description}

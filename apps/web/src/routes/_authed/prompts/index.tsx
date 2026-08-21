@@ -1,6 +1,10 @@
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
-import { PlusIcon } from "@phosphor-icons/react";
+import {
+  ChatTextIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
@@ -131,6 +135,7 @@ function PromptsPage() {
         }
         empty={(prompts?.length ?? 0) === 0}
         error={query.error}
+        icon={search ? <MagnifyingGlassIcon /> : <ChatTextIcon />}
         isPending={query.isPending}
         skeleton={<PromptListSkeleton />}
         title={search ? "No matching prompts" : "No prompts yet"}

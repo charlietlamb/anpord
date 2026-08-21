@@ -11,6 +11,9 @@ interface ListStateProps {
   /** Distinct from empty, which would otherwise claim there is nothing here
    * when the request simply failed. */
   readonly error: Error | null;
+  /** Shown above the title where a list has nothing to show, so an empty page
+   * reads as a place that is empty rather than as one still loading. */
+  readonly icon?: ReactNode;
   readonly isPending: boolean;
   /** What to hold the layout with while the rows are on their way. */
   readonly skeleton: ReactNode;
@@ -28,6 +31,7 @@ export function ListState({
   children,
   description,
   empty,
+  icon,
   error,
   isPending,
   skeleton,
@@ -53,6 +57,7 @@ export function ListState({
         action={action}
         bordered={false}
         description={description}
+        icon={icon}
         title={title}
       />
     );
