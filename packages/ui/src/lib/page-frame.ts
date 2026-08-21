@@ -10,8 +10,8 @@ export const PAGE_FRAME = "flex min-h-0 flex-1 flex-col overflow-y-auto";
  * Measured rather than full: a row stretched across a wide display puts its
  * name at one edge and its meta at the other, with a stretch of nothing
  * between them that the eye has to cross to connect the two. Holding the
- * column keeps both ends of a row in one glance. Prose is narrower still,
- * because a paragraph read at the width of a screen is one nobody finishes. */
+ * column keeps both ends of a row in one glance, and is why every page takes
+ * `prose` — a list reads like a document, not like a table. */
 export const PAGE_WIDTHS = {
   prose: "mx-auto w-full max-w-3xl px-5 xl:px-6",
   wide: "mx-auto w-full max-w-5xl px-5 xl:px-6",

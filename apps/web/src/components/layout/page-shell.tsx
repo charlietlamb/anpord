@@ -31,7 +31,7 @@ export function PageShell({
   children,
   description,
   filters,
-  width = "wide",
+  width = "prose",
 }: PageShellProps) {
   return (
     <div className={PAGE_FRAME}>
