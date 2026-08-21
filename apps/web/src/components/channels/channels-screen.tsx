@@ -4,6 +4,7 @@ import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
 import { ChannelListRow } from "@/components/channels/channel-list-row";
 import { ChannelListSkeleton } from "@/components/channels/channel-list-skeleton";
 import { ListState } from "@/components/layout/list-state";
+import { PageHeading } from "@/components/layout/page-heading";
 import { PageShell } from "@/components/layout/page-shell";
 import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
 
@@ -38,16 +39,7 @@ export function ChannelsScreen({
   return (
     <PageShell
       actions={newChannel}
-      filters={
-        rows.length === 0 ? null : (
-          /* The bar holds one button and would otherwise be a long empty run
-             with a control pinned to the end of it. The count is the one true
-             thing there is to say about a list this short. */
-          <span className="text-muted-foreground text-xs">
-            {rows.length} {rows.length === 1 ? "channel" : "channels"}
-          </span>
-        )
-      }
+      leading={<PageHeading icon={BroadcastIcon} title="Channels" />}
     >
       <ListState
         action={newChannel}

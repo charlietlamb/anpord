@@ -9,12 +9,12 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { ListState } from "@/components/layout/list-state";
+import { PageHeading } from "@/components/layout/page-heading";
 import { PageShell } from "@/components/layout/page-shell";
 import { PromptList } from "@/components/prompts/prompt-list";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { PromptSearch } from "@/components/prompts/prompt-search";
 import { PromptSortMenu } from "@/components/prompts/prompt-sort-menu";
-import { PromptStatusTabs } from "@/components/prompts/prompt-status-tabs";
 import type { PromptListFilters } from "@/lib/query/prompt-list-filters";
 import { promptQueries } from "@/lib/query/prompt-queries";
 
@@ -72,7 +72,10 @@ function PromptsPage() {
       .withOptions({ clearOnDefault: true, throttleMs: SEARCH_THROTTLE_MS })
   );
 
-  const [status, setStatus] = useQueryState(
+  /* Read but not written here: the list still answers to ?status= in the URL,
+     and the tabs that used to set it were chrome on a page that never had
+     enough prompts to need narrowing. */
+  const [status] = useQueryState(
     "status",
     parseAsStringLiteral(STATUS_OPTIONS.map((option) => option.value))
       .withDefault(DEFAULT_STATUS)
@@ -108,13 +111,7 @@ function PromptsPage() {
           </Link>
         </>
       }
-      filters={
-        <PromptStatusTabs
-          onChange={setStatus}
-          options={STATUS_OPTIONS}
-          value={status}
-        />
-      }
+      leading={<PageHeading icon={ChatTextIcon} title="Prompts" />}
     >
       <ListState
         action={

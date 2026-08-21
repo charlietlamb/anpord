@@ -1,4 +1,4 @@
-import {
+{actions || leading ? (import {
   PAGE_FRAME,
   PAGE_WIDTHS,
   type PageWidth,
@@ -12,10 +12,8 @@ interface PageShellProps {
   readonly children: ReactNode;
   /** Said once, above the content, where a page needs explaining. */
   readonly description?: ReactNode;
-  /** What narrows the page, at the left of its bar. Filters read as a
-   * statement about what you are looking at, so they sit where reading starts
-   * rather than beside the controls that change it. */
-  readonly filters?: ReactNode;
+  /** What names the page, at the left of its bar, where reading starts. */
+  readonly leading?: ReactNode;
   readonly width?: PageWidth;
 }
 
@@ -30,7 +28,7 @@ export function PageShell({
   actions,
   children,
   description,
-  filters,
+  leading,
   width = "prose",
 }: PageShellProps) {
   return (
@@ -40,7 +38,7 @@ export function PageShell({
           <div
             className={cn(PAGE_WIDTHS[width], "flex h-11 items-center gap-2")}
           >
-            {filters}
+            {leading}
             <div className="ml-auto flex shrink-0 items-center gap-2">
               {actions}
             </div>
