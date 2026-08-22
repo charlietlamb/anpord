@@ -30,6 +30,18 @@ export const evalEvent = pgTable(
     kind: text("kind").notNull(),
     payload: jsonb("payload").$type<HarnessEventRow>().notNull(),
     at: timestamp("at").notNull().defaultNow(),
+    /* When the event happened, as against `at`, which is when the row was
+       written. The journal is inserted in one transaction after a trial ends,
+       so `at` is identical across every event in a trial and says nothing
+       about how the time was spent.
+
+       Nullable because it cannot be backfilled: the trials recorded before
+       this existed never captured it, and null means unknown rather than
+       1970. */
+    occurredAt: timestamp("occurred_at"),
+    /** When a command began. Only commands have a measured span; every other
+     * kind is an instant and leaves this null. */
+    startedAt: timestamp("started_at"),
   },
   (table) => [
     /* Unique, not merely indexed: seq is assigned from an array index per
