@@ -1,4 +1,5 @@
 import type { EvalRun } from "@anpord/schema/domain/evals";
+import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
@@ -77,9 +78,7 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
       )}
 
       <RailSection title="Id">
-        <p className="break-all font-mono text-muted-foreground text-xs">
-          {run.id}
-        </p>
+        <CopyableId className="text-muted-foreground text-xs" value={run.id} />
       </RailSection>
     </aside>
   );

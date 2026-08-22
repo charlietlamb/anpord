@@ -26,33 +26,25 @@ export function CellHistory({ cellKey }: { readonly cellKey: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      <h2 className="font-medium text-muted-foreground text-xs">History</h2>
+    <ul className="flex flex-col">
+      {entries.map((entry) => (
+        <li
+          className="flex h-6 items-center gap-3 text-xs"
+          key={entry.internalId}
+        >
+          <span className="shrink-0 text-muted-foreground/80 tabular-nums">
+            {entry.finishedAt === null
+              ? "running"
+              : dayOf(entry.finishedAt.epochMillis)}
+          </span>
 
-      <ul className="flex flex-col">
-        {entries.map((entry) => (
-          <li
-            className="flex items-center gap-4 border-border-faint border-b py-1.5 text-xs last:border-0"
-            key={entry.internalId}
-          >
-            <span className="w-14 text-muted-foreground tabular-nums">
-              {entry.finishedAt === null
-                ? "running"
-                : dayOf(entry.finishedAt.epochMillis)}
-            </span>
-
-            <OutcomeSummary
-              passed={entry.distribution.passed}
-              scored={entry.distribution.scored}
-              voided={entry.distribution.voided}
-            />
-
-            <span className="ml-auto font-mono text-muted-foreground/60">
-              {entry.runId}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+          <OutcomeSummary
+            passed={entry.distribution.passed}
+            scored={entry.distribution.scored}
+            voided={entry.distribution.voided}
+          />
+        </li>
+      ))}
+    </ul>
   );
 }

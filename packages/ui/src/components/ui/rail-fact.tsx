@@ -74,13 +74,13 @@ export function RailFact({
         <Icon
           className={cn(
             "size-3.5 shrink-0",
-            tone === "warning" ? "text-warning" : "text-muted-foreground"
+            tone === "warning" ? "text-warning" : "text-muted-foreground/80"
           )}
         />
       )}
 
       {stated ? null : (
-        <span className="shrink-0 text-muted-foreground">{label}</span>
+        <span className="shrink-0 text-muted-foreground/80">{label}</span>
       )}
 
       {detail}
