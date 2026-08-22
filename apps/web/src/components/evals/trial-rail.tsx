@@ -7,6 +7,7 @@ import {
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { ShareBar } from "@anpord/ui/components/ui/share-bar";
+import { StatusDot } from "@anpord/ui/components/ui/status-badge";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
   BrainIcon,
@@ -15,7 +16,8 @@ import {
   TerminalWindowIcon,
   TimerIcon,
 } from "@phosphor-icons/react";
-import { TrialStatusBadge } from "@/components/evals/eval-status-badge";
+import { CommandsHint } from "@/components/evals/commands-hint";
+import { trialTone } from "@/components/evals/eval-status-badge";
 import { TrialCost } from "@/components/evals/trial-cost";
 import { VoidReason } from "@/components/evals/void-reason";
 import { seconds } from "@/lib/evals/duration";
@@ -57,52 +59,26 @@ function FileRow({ path }: { readonly path: string }) {
   );
 }
 
-/**
- * What the trial cost, beside the trajectory that spent it.
- *
- * Grouped by what the numbers are, not listed flat. Time is a hierarchy:
- * agent and sandbox sum to the trial, and thinking and commands break down the
- * agent phase. Eight peer rows made `sandbox 7.6s` and `working 7.6s` look
- * like one measurement printed twice.
- *
- * The breakdown is drawn from the same journal the chart draws, so the rail
- * and the trajectory beside it cannot disagree about what the trial spent. It
- * does not add up to the agent row and is not presented as if it does: the
- * journal records fewer milliseconds than the phase took.
- *
- * Outcome first, then duration, then cost, because a reader arrives asking
- * whether it passed.
- */
 /* Named so the row can carry both facts: how many ran, and how many of them
    the shell rejected. */
+const verdictDot = (status: EvalTrial["status"]) => () => (
+  <StatusDot tone={trialTone(status)} />
+);
+
 const commandsValue = (trial: EvalTrial) =>
   trial.failedCommands === 0
     ? `${trial.commands} commands`
     : `${trial.commands} commands, ${trial.failedCommands} failed`;
 
-/* Which commands failed, not just how many. A count says a trial hit a
-   non-zero exit; the commands themselves say whether that was `git status` on
-   a fresh checkout or the verify script giving up. */
-const commandsHint = (trial: EvalTrial) => {
-  const failed = trial.trajectory.filter(
-    (entry) => entry._tag === "command" && (entry.exitCode ?? 0) !== 0
-  );
-
-  if (failed.length === 0) {
-    return "Shell commands the agent ran in the sandbox.";
-  }
-
-  const named = failed
-    .map((entry) =>
-      entry._tag === "command"
-        ? `${entry.command} (exit ${entry.exitCode})`
-        : ""
-    )
-    .join("\n");
-
-  return `An agent probing a repository hits a non-zero exit and recovers, so a passed trial can still have them.\n\n${named}`;
-};
-
+/**
+ * What the trial did, how long it took and what it cost, beside the
+ * trajectory that spent it.
+ *
+ * Three sections because it answers three questions. The time breakdown is
+ * drawn from the same journal the chart draws, so the rail and the trajectory
+ * cannot disagree; it does not add up to the total and is not presented as if
+ * it does, because the journal records fewer milliseconds than the phase took.
+ */
 export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;
@@ -112,9 +88,13 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
     <aside className={RAIL_FRAME}>
       <RailSection title="Outcome">
         <div className="flex flex-col gap-2">
-          <TrialStatusBadge status={trial.status} />
-
           <div className="flex flex-col">
+            <RailFact
+              Icon={verdictDot(trial.status)}
+              label="verdict"
+              layout="stated"
+              value={trial.status}
+            />
             <RailFact
               hint="What the verify script returned. Zero is a pass; anything else is the check saying no."
               Icon={SignOutIcon}
@@ -127,7 +107,7 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
               }
             />
             <RailFact
-              hint={commandsHint(trial)}
+              hint={<CommandsHint trial={trial} />}
               Icon={TerminalWindowIcon}
               label="commands"
               layout="stated"

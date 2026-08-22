@@ -13,8 +13,9 @@ export type RailIcon = ComponentType<{ readonly className?: string }>;
 interface RailFactProps {
   /** Drawn between the label and the value, for a share bar or a badge. */
   readonly detail?: ReactNode;
-  /** What the number means, for a label too short to say it. */
-  readonly hint?: string;
+  /** What the number means, for a label too short to say it. Takes a node so
+   * a hint can hold a command in a code block rather than as a sentence. */
+  readonly hint?: ReactNode;
   readonly Icon?: RailIcon;
   readonly label: string;
   /**
@@ -107,7 +108,7 @@ export function RailFact({
   return (
     <Tooltip>
       <TooltipTrigger render={row} />
-      <TooltipContent className="max-w-72 whitespace-pre-line" side="left">
+      <TooltipContent className="max-w-72" side="left">
         {hint}
       </TooltipContent>
     </Tooltip>

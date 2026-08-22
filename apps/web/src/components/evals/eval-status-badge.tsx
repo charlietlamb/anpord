@@ -13,6 +13,8 @@ const RUN_TONES: Record<EvalRunStatus, Tone> = {
   running: "pending",
 };
 
+export const trialTone = (status: EvalTrialStatus) => TRIAL_TONES[status];
+
 const TRIAL_TONES: Record<EvalTrialStatus, Tone> = {
   exceeded: "critical",
   failed: "critical",

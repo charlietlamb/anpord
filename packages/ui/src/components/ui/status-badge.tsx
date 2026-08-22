@@ -17,6 +17,25 @@ const dotVariants = cva("size-1.5 shrink-0 rounded-full", {
   },
 });
 
+export type StatusTone = NonNullable<
+  VariantProps<typeof dotVariants>["tone"]
+>;
+
+/** The state as a mark rather than a pill, for a column of icon-led rows where
+ * a filled badge is the only thing with an edge and reads as a foreign
+ * object. */
+export function StatusDot({
+  className,
+  tone,
+}: {
+  readonly className?: string;
+  readonly tone?: StatusTone;
+}) {
+  return (
+    <span aria-hidden="true" className={cn(dotVariants({ tone }), className)} />
+  );
+}
+
 interface StatusBadgeProps extends VariantProps<typeof dotVariants> {
   readonly children: ReactNode;
   readonly className?: string;
