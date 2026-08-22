@@ -17,16 +17,14 @@ const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 /**
  * The line Codex is run with.
  *
- * No `--model`, deliberately. Codex here authenticates as a ChatGPT account,
- * and that path refuses every model passed explicitly -- `gpt-5-codex`,
- * `gpt-5`, `codex-mini-latest` and `o3` each return
- * `400 ... not supported when using Codex with a ChatGPT account`, including
- * the model Codex itself picks when the flag is absent. Sending the column's
- * model would fail every trial rather than compare anything.
+ * The model is passed, which is what makes a column mean what its header
+ * says: without it every cell of a grid ran whatever Codex defaults to, and a
+ * comparison of two models was one model run twice.
  *
- * The cell key still hashes the model, so a grid can record which one a
- * column meant. Making that true rather than aspirational needs an API-key
- * credential, not a change here.
+ * A name the account cannot serve fails the trial with a 400 rather than
+ * quietly running something else, which is the behaviour to want: a wrong
+ * model is a wrong reading, and a reading that never happened is easier to
+ * see than one taken against the wrong thing.
  */
 export const codexCommand = (request: RunHarness) =>
   [
@@ -34,6 +32,9 @@ export const codexCommand = (request: RunHarness) =>
     "&&",
     `${CODEX_BIN} exec --json --skip-git-repo-check`,
     "--dangerously-bypass-approvals-and-sandbox",
+    /* Quoted like the prompt: a model reaches this from a form, and a shell
+       cannot tell a model name from the rest of a command line. */
+    `--model ${quoted(request.model)}`,
     quoted(request.prompt),
     /* Closed, because Codex prints "Reading additional input from stdin..."
        and blocks forever when it has a terminal it can read. A local shell

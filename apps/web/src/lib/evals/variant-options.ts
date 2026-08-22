@@ -16,21 +16,29 @@ export interface VariantOption<TValue extends string = string> {
 }
 
 /**
- * One model, because one is what can currently run.
+ * What this credential can actually run.
  *
- * Codex authenticates as a ChatGPT account, and that path refuses every model
- * passed explicitly, including the one it picks itself when asked for none.
- * A list of three would let somebody build a grid whose columns are the same
- * run under different headings, and report a difference of zero as if it
- * meant something.
+ * Verified against the pinned binary rather than assumed: model names move,
+ * and the ones a search would suggest -- `gpt-5-codex`, `gpt-5`,
+ * `codex-mini-latest` -- are all refused now with
+ * `400 ... not supported when using Codex with a ChatGPT account`. Codex's own
+ * config even carries a migration table rewriting one name to another.
  *
- * The second model arrives with an API-key credential, not with an edit here.
+ * So this list is a snapshot with a short life, and a model missing from it
+ * is a gap in the list rather than a value the system refuses: `model` is a
+ * free string on the wire, and a wrong one fails its trial loudly instead of
+ * running something else quietly.
  */
 export const MODEL_OPTIONS: readonly VariantOption[] = [
   {
-    description: "What Codex runs on this account",
-    label: "gpt-5-codex",
-    value: "gpt-5-codex",
+    description: "The default this account runs",
+    label: "gpt-5.6-sol",
+    value: "gpt-5.6-sol",
+  },
+  {
+    description: "The previous generation, for a baseline",
+    label: "gpt-5.5",
+    value: "gpt-5.5",
   },
 ];
 
@@ -52,5 +60,5 @@ export const PROVIDER_OPTIONS: readonly VariantOption<EvalProvider>[] = [
   },
 ];
 
-export const DEFAULT_MODEL = "gpt-5-codex";
+export const DEFAULT_MODEL = "gpt-5.6-sol";
 export const DEFAULT_PROVIDER: EvalProvider = "daytona";
