@@ -8,27 +8,13 @@ import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
  *
  * Measured between recorded events, so harness overhead sits inside it. Named
  * for the part that dominates rather than claimed to be only that. */
-export interface WaterfallLead {
+interface WaterfallLead {
   readonly durationMs: number;
   readonly fromPercent: number;
   readonly widthPercent: number;
 }
 
-/** The wait before a step, drawn on the same row as the step it leads to.
- *
- * Not its own row: thinking and the command it produced are one decision, and
- * splitting them doubled the height of every trajectory to say a thing the eye
- * already reads as a pair.
- *
- * Measured between recorded events, so harness overhead sits inside it. Named
- * for the part that dominates rather than claimed to be only that. */
-export interface WaterfallLead {
-  readonly durationMs: number;
-  readonly fromPercent: number;
-  readonly widthPercent: number;
-}
-
-export interface WaterfallBar {
+interface WaterfallBar {
   readonly _tag: "bar";
   readonly durationMs: number;
   readonly entry: Extract<EvalJournalEntry, { _tag: "command" }>;
@@ -37,7 +23,7 @@ export interface WaterfallBar {
   readonly widthPercent: number;
 }
 
-export interface WaterfallMarker {
+interface WaterfallMarker {
   readonly _tag: "marker";
   readonly entry: EvalJournalEntry;
   readonly lead: WaterfallLead | null;
@@ -57,6 +43,10 @@ export interface WaterfallLayout {
 }
 
 const momentOf = (entry: EvalJournalEntry) => entry.finishedAtMillis;
+
+/** Below this a gap is the cost of recording two events, not a decision worth
+ * drawing. */
+const LEAD_FLOOR_MS = 1;
 
 interface Span {
   readonly entry: Extract<EvalJournalEntry, { _tag: "command" }>;
@@ -83,6 +73,12 @@ const spanOf = (entry: EvalJournalEntry): Span | null => {
  * Derived rather than stored: subtractions over recorded moments, so there is
  * nothing to keep in sync and nothing to migrate when the drawing changes.
  *
+ * The cursor only ever moves forward. A journal is usually chronological but
+ * nothing guarantees it, and an entry landing behind the one before it used to
+ * drag the cursor back and bill the overlap twice, reporting more thinking
+ * than the trial had time for. `spanMs` is never zero, so a trial that
+ * finished inside a millisecond divides by one rather than by nothing.
+ *
  * An entry the harness reported only once becomes a marker rather than a bar
  * of guessed width. Drawing an invented duration the same way as a measured
  * one is the same lie as a pass rate with no denominator.
@@ -106,20 +102,13 @@ export const waterfallLayout = (
 
   const start = Math.min(...moments);
   const end = Math.max(...moments);
-  /* Never zero, so a run that finished inside one millisecond divides by one
-     rather than producing infinities. */
   const spanMs = Math.max(end - start, 1);
 
   const percentOf = (moment: number) => ((moment - start) / spanMs) * 100;
 
-  /* Carried between entries rather than looked up, so the gap is measured
-     against what actually preceded this one. */
   let previousEnd = start;
   let thinkingMs = 0;
   let workingMs = 0;
-
-  /* Below this a gap is the cost of recording two events, not a decision. */
-  const LEAD_FLOOR_MS = 1;
 
   const leadUpTo = (beginsAt: number): WaterfallLead | null => {
     const durationMs = beginsAt - previousEnd;
@@ -144,7 +133,7 @@ export const waterfallLayout = (
       const durationMs = span.finishedAt - span.startedAt;
       const lead = leadUpTo(span.startedAt);
 
-      previousEnd = span.finishedAt;
+      previousEnd = Math.max(previousEnd, span.finishedAt);
       workingMs += durationMs;
 
       return [
@@ -161,18 +150,13 @@ export const waterfallLayout = (
 
     const moment = momentOf(entry);
 
-    /* Nothing recorded a time for this at all, so there is nowhere on the
-       axis to honestly put it. */
     if (moment === null) {
       return [];
     }
 
-    /* A command whose start was dropped still appears, as a marker rather
-       than a bar: it happened, and hiding it would lose work the agent
-       actually did. */
     const lead = leadUpTo(moment);
 
-    previousEnd = moment;
+    previousEnd = Math.max(previousEnd, moment);
 
     return [{ _tag: "marker", entry, lead, leftPercent: percentOf(moment) }];
   });

@@ -1,6 +1,6 @@
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
-import { SectionLabel } from "@/components/rail/section-label";
+import { SectionLabel } from "@anpord/ui/components/ui/section-label";
 
 interface RailSectionProps {
   readonly action?: ReactNode;

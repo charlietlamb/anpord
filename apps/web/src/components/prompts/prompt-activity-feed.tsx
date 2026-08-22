@@ -1,8 +1,8 @@
 import { Button } from "@anpord/ui/components/button";
+import { SectionLabel } from "@anpord/ui/components/ui/section-label";
 import { SpinnerGapIcon } from "@phosphor-icons/react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ActivityRow } from "@/components/prompts/activity-row";
-import { SectionLabel } from "@/components/rail/section-label";
 import { activityQueries } from "@/lib/query/activity-queries";
 
 interface PromptActivityFeedProps {

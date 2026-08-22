@@ -13,6 +13,10 @@ import type { ReactNode } from "react";
  * content can hand over coloured spans and one that has not can pass text.
  * `copyValue` is separate for the same reason: the text to copy is the source,
  * not whatever the children happen to render.
+ *
+ * The copy button stays mounted and is revealed on hover rather than rendered
+ * on it, because a button that only exists while the pointer is over the block
+ * is a button no keyboard can reach.
  */
 export function CodeBlock({
   children,
@@ -36,11 +40,7 @@ export function CodeBlock({
       className={cn(
         "max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md px-3 py-2.5 font-mono text-xs leading-relaxed",
         tone === "muted" && "bg-muted/50",
-        /* Drawn from the text colour rather than a theme token, so the block
-           sits on whatever ground its container painted. */
         tone === "inverted" && "bg-current/10",
-        /* Room for the button, so a long first line runs under it rather than
-           behind it. */
         copyValue !== undefined && "pr-11",
         className
       )}
@@ -54,10 +54,6 @@ export function CodeBlock({
   }
 
   return (
-    /* `group` so the button is revealed by hovering the block rather than by
-       finding the button, which is a smaller target than the thing it acts
-       on. Kept in the tree at all times: rendering it on hover would mean it
-       cannot be reached by keyboard at all. */
     <div className="group relative">
       {block}
       <CopyButton

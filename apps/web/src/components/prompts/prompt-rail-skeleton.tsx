@@ -1,4 +1,5 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { cn } from "@anpord/ui/lib/utils";
 import {
@@ -9,7 +10,6 @@ import {
 import { DetailRow } from "@/components/prompts/detail-row";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
 import { VersionListSkeleton } from "@/components/prompts/version-list-skeleton";
-import { RailSection } from "@/components/rail/rail-section";
 
 const NOTHING_YET = () => undefined;
 

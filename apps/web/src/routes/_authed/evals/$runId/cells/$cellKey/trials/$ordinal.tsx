@@ -1,10 +1,10 @@
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { PulseIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { Waterfall } from "@/components/evals/waterfall";
-import { PageHeading } from "@/components/layout/page-heading";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute(

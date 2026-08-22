@@ -1,5 +1,5 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
-import { RailSection } from "@/components/rail/rail-section";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 
 interface PromptVariablesProps {
   readonly variables: readonly string[];

@@ -1,12 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { OutcomeSummary } from "@/components/evals/outcome-summary";
+import { dayOf } from "@/lib/evals/duration";
 import { evalQueries } from "@/lib/evals/eval-queries";
-
-const dayOf = (millis: number) =>
-  new Date(millis).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-  });
 
 /**
  * How this cell has read over time, newest first.

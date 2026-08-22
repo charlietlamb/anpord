@@ -93,6 +93,11 @@
   --text-label: 0.8125rem;
   --text-label--line-height: 1.25rem;
   --color-success: var(--success);
+  --color-trace-command: var(--trace-command);
+  --color-trace-file: var(--trace-file);
+  --color-trace-message: var(--trace-message);
+  --color-trace-thinking: var(--trace-thinking);
+  --color-trace-tool: var(--trace-tool);
   --color-warning: var(--warning);
   --color-alpha-4: var(--alpha-4);
   --default-transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -140,6 +145,17 @@
      that changes colour does not have to change every call site. */
   --success: oklch(0.6 0.14 155);
   --warning: oklch(0.72 0.15 75);
+
+  /* One trajectory reads as a sequence of kinds, which is the only place this
+     theme uses hue for category rather than for meaning. Held away from the
+     semantic hues on purpose: a file change drawn at the success green read
+     as a passing trial. */
+  --trace-command: oklch(0.52 0.12 250);
+  --trace-file: oklch(0.5 0.1 195);
+  --trace-message: oklch(0.55 0.02 250);
+  --trace-thinking: oklch(0.62 0.04 280);
+  --trace-tool: oklch(0.52 0.1 330);
+
   --shadow-popover:
     0 0 0 1px var(--border-surface), 0 16px 32px oklch(0 0 0 / 10%),
     0 4px 10px oklch(0 0 0 / 8%);
@@ -185,6 +201,13 @@
   --alpha-4: oklch(1 0 0 / 4%);
   --success: oklch(0.72 0.15 155);
   --warning: oklch(0.8 0.15 78);
+
+  --trace-command: oklch(0.72 0.13 250);
+  --trace-file: oklch(0.74 0.11 195);
+  --trace-message: oklch(0.62 0.02 250);
+  --trace-thinking: oklch(0.7 0.04 280);
+  --trace-tool: oklch(0.74 0.11 330);
+
   /* A menu opens over the cards rather than beside them, so its edge has to
      read against a raised surface, not the page. The ring matches the border
      those cards carry and the shadow is deepened to seat it above them. */

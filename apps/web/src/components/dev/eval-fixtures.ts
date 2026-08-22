@@ -28,7 +28,7 @@ const command = (input: {
   startedAtMillis: START + input.started,
 });
 
-export const TRAJECTORY = [
+const TRAJECTORY = [
   {
     _tag: "message" as const,
     finishedAtMillis: START + 6924,

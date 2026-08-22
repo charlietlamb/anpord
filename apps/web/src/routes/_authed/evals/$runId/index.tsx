@@ -1,11 +1,12 @@
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { SquaresFourIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CellRow, CellVerdictNote } from "@/components/evals/cell-row";
+import { CellRow } from "@/components/evals/cell-row";
+import { CellVerdictNote } from "@/components/evals/cell-verdict-note";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { RunRail } from "@/components/evals/run-rail";
 import { ErrorCard } from "@/components/layout/error-card";
-import { PageHeading } from "@/components/layout/page-heading";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute("/_authed/evals/$runId/")({

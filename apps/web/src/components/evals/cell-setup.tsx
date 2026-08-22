@@ -69,12 +69,21 @@ const lines = (value: string) => {
   return `${count} line${count === 1 ? "" : "s"}`;
 };
 
+/**
+ * What the agent was asked and what decided whether it succeeded.
+ *
+ * Collapsed by default: a reader arrives to see how a cell scored, and the
+ * rubric is what they open when the score surprises them. Present rather than
+ * absent, because a verdict whose rubric lives only in the database is a claim
+ * the screen is asking to be trusted on.
+ *
+ * The prompt is set as prose and the commands as code, because that is what
+ * each of them is: a prompt in mono would claim the agent was handed a script.
+ */
 export function CellSetup({ setup }: { readonly setup: EvalSetup }) {
   return (
     <div className="flex flex-col">
       <Block Icon={TextAlignLeftIcon} meta={lines(setup.prompt)} title="Prompt">
-        {/* Prose, not code: the prompt is what a person wrote, and setting
-            it in mono would claim the agent was handed a script. */}
         <div className="group relative">
           <p className="whitespace-pre-wrap text-pretty rounded-md bg-muted/50 px-3 py-2.5 pr-11 text-xs leading-relaxed">
             {setup.prompt}
@@ -97,8 +106,6 @@ export function CellSetup({ setup }: { readonly setup: EvalSetup }) {
         </Block>
       )}
 
-      {/* Absent means nothing checked the work, which is worth saying rather
-          than leaving the reader to assume a check they cannot see. */}
       {setup.verifyCommand === null ? (
         <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
           <CheckSquareIcon aria-hidden="true" className="shrink-0" size={13} />

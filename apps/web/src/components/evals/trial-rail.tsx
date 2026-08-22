@@ -4,8 +4,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@anpord/ui/components/tooltip";
+import { RailFact } from "@anpord/ui/components/ui/rail-fact";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
-import { cn } from "@anpord/ui/lib/utils";
 import {
   SignOutIcon,
   StackIcon,
@@ -15,12 +16,9 @@ import {
 } from "@phosphor-icons/react";
 import { TrialStatusBadge } from "@/components/evals/eval-status-badge";
 import { VoidReason } from "@/components/evals/void-reason";
-import { RailFact } from "@/components/rail/rail-fact";
-import { RailSection } from "@/components/rail/rail-section";
+import { count, seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
-
-const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
 /** A share of the row above it, drawn rather than stated: reading 34.5 against
  * 52.6 is arithmetic, and a bar is the same fact without the sum. */
@@ -52,7 +50,10 @@ function FileRow({ path }: { readonly path: string }) {
       <Tooltip>
         <TooltipTrigger
           render={
-            <span className="flex min-w-0 cursor-help items-center gap-2">
+            <button
+              className="flex min-w-0 cursor-help items-center gap-2 rounded-sm text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              type="button"
+            >
               <Glyph
                 aria-hidden="true"
                 className="shrink-0 text-muted-foreground"
@@ -61,7 +62,7 @@ function FileRow({ path }: { readonly path: string }) {
               <span className="min-w-0 flex-1 truncate font-mono text-xs">
                 {name}
               </span>
-            </span>
+            </button>
           }
         />
         <TooltipContent className="max-w-sm" side="left">
@@ -79,24 +80,26 @@ function FileRow({ path }: { readonly path: string }) {
  * agent and sandbox sum to the trial, and thinking and commands break down the
  * agent phase. Eight peer rows made `sandbox 7.6s` and `working 7.6s` look
  * like one measurement printed twice.
+ *
+ * The breakdown is drawn from the same journal the chart draws, so the rail
+ * and the trajectory beside it cannot disagree about what the trial spent. It
+ * does not add up to the agent row and is not presented as if it does: the
+ * journal records fewer milliseconds than the phase took.
+ *
+ * Outcome first, then duration, then cost, because a reader arrives asking
+ * whether it passed.
  */
 export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
-  /* Derived from the same journal the chart draws, so the two cannot disagree
-     about what the trial spent. */
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;
-  /* Every share is drawn against the trial, not against its own parent, so a
-     bar means the same thing on every row. */
-  const totalMs = trial.modelMs + trial.sandboxMs;
+  const trialTotalMs = trial.modelMs + trial.sandboxMs;
 
   return (
-    <aside className={cn(RAIL_FRAME, "gap-4")}>
+    <aside className={RAIL_FRAME}>
       <RailSection title="Trial">
         <div className="flex flex-col gap-2">
           <TrialStatusBadge status={trial.status} />
 
-          {/* Outcome first: what happened, then how long it took, then what
-              it cost. A reader arrives asking whether it passed. */}
           <div className="flex flex-col">
             <RailFact
               hint="What the verify script returned. Zero is a pass; anything else is the check saying no."
@@ -114,10 +117,6 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
             />
             {trial.failedCommands > 0 ? (
               <RailFact
-                /* A trial can pass with failed commands in it, and usually
-                   does: an agent probing a repo hits a non-zero exit and
-                   recovers. The count is a fact about the trajectory, not a
-                   verdict on the trial. */
                 hint="Commands that exited non-zero. An agent probing a repository hits these and recovers, so a passed trial can still have them."
                 Icon={WarningIcon}
                 label="failed"
@@ -127,11 +126,6 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
             ) : null}
           </div>
 
-          {/* Nested rather than flat, because these numbers are not peers:
-              model and sandbox sum to the trial, and thinking and working are
-              a breakdown of the model phase. Drawn level, sandbox 7.6s and
-              working 7.6s read as one measurement repeated when they share
-              nothing but a coincidence. */}
           <div className="flex flex-col">
             <RailFact
               Icon={TimerIcon}
@@ -140,27 +134,24 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
             />
 
             <RailFact
-              detail={<Share of={totalMs} value={trial.modelMs} />}
+              detail={<Share of={trialTotalMs} value={trial.modelMs} />}
               hint="The harness running, start to finish. Contains the thinking and commands below it."
               label="agent"
               tone="muted"
               value={seconds(trial.modelMs)}
             />
 
-            {/* Only under the agent row it decomposes. The journal records
-                fewer milliseconds than the phase took, so these do not sum to
-                it and are not presented as if they do. */}
             {measured ? (
               <>
                 <RailFact
-                  detail={<Share of={totalMs} value={thinkingMs} />}
+                  detail={<Share of={trialTotalMs} value={thinkingMs} />}
                   hint="Between one recorded event and the next, so harness overhead is inside it as well as the model."
                   label="thinking"
                   tone="muted"
                   value={seconds(thinkingMs)}
                 />
                 <RailFact
-                  detail={<Share of={totalMs} value={workingMs} />}
+                  detail={<Share of={trialTotalMs} value={workingMs} />}
                   hint="Commands running in the sandbox, measured end to end."
                   label="commands"
                   tone="muted"
@@ -170,7 +161,7 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
             ) : null}
 
             <RailFact
-              detail={<Share of={totalMs} value={trial.sandboxMs} />}
+              detail={<Share of={trialTotalMs} value={trial.sandboxMs} />}
               hint="Creating and tearing down the sandbox, outside the agent run."
               label="sandbox"
               tone="muted"
@@ -184,17 +175,17 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
                 hint="Everything the model read and wrote across the trial."
                 Icon={StackIcon}
                 label="tokens"
-                value={trial.usage.totalTokens.toLocaleString()}
+                value={count(trial.usage.totalTokens)}
               />
               <RailFact
                 label="in"
                 tone="muted"
-                value={trial.usage.inputTokens.toLocaleString()}
+                value={count(trial.usage.inputTokens)}
               />
               <RailFact
                 label="out"
                 tone="muted"
-                value={trial.usage.outputTokens.toLocaleString()}
+                value={count(trial.usage.outputTokens)}
               />
             </div>
           )}

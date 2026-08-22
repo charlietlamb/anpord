@@ -1,12 +1,7 @@
 import type { EvalCell, EvalTask } from "@anpord/schema/domain/evals";
+import { RailFact } from "@anpord/ui/components/ui/rail-fact";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
-import { cn } from "@anpord/ui/lib/utils";
-
-/* Tighter than the prompt rail: these sections are three facts each rather
-   than lists, so the space between them can close without them running
-   together. */
-const RAIL_GAP = "gap-5";
-
 import {
   ArrowsLeftRightIcon,
   CheckCircleIcon,
@@ -17,8 +12,6 @@ import { CellHistory } from "@/components/evals/cell-history";
 import { VariantFacts } from "@/components/evals/variant-facts";
 import { VerdictLine } from "@/components/evals/verdict-line";
 import { VoidReason } from "@/components/evals/void-reason";
-import { RailFact } from "@/components/rail/rail-fact";
-import { RailSection } from "@/components/rail/rail-section";
 
 /* Three states rather than two: a cell that never agreed reads differently
    from one that stopped, and only the second is a finding. */
@@ -46,14 +39,12 @@ export function CellRail({
   const distribution = cell.distribution;
   const lostAgreement = cell.comparison?.determinismLost === true;
 
-  /* Every void trial in a cell says the same thing, so the reason is stated
-     once rather than repeated down the table. */
   const voidFields = [
     ...new Set(cell.trials.flatMap((trial) => trial.voidFields)),
   ];
 
   return (
-    <aside className={cn(RAIL_FRAME, RAIL_GAP)}>
+    <aside className={RAIL_FRAME}>
       <RailSection title="Reading">
         <div className="flex flex-col gap-2">
           {distribution === null ? (
@@ -79,10 +70,6 @@ export function CellRail({
                 />
               ) : null}
 
-              {/* A cell that still passes as often but no longer agrees
-                  with itself has regressed, and no single score can express
-                  that. Said on the row it is about rather than beside the
-                  verdict, where it restated this one. */}
               <RailFact
                 hint={
                   lostAgreement

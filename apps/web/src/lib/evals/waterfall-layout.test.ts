@@ -80,9 +80,6 @@ describe("laying out a trajectory", () => {
       command(9000, 12_000),
     ]);
 
-    /* Every millisecond is either work or waiting, so the two must account
-       for the whole span. A lead measured from the wrong moment would
-       double-count and push a bar past the axis. */
     expect(thinkingMs + workingMs).toBe(spanMs);
 
     const bars = rows.filter((row) => row._tag === "bar");
@@ -116,5 +113,25 @@ describe("laying out a trajectory", () => {
     const { spanMs } = waterfallLayout([command(100, 100)]);
 
     expect(spanMs).toBe(1);
+  });
+  /** A journal is usually chronological but nothing guarantees it. An entry
+   * landing behind the one before it used to drag the cursor back, so the
+   * overlap was billed twice and the trial reported more thinking than it had
+   * time for. The conservation test above passed throughout, because every
+   * fixture it used was already sorted. */
+  it("bills no time twice when an entry lands out of order", () => {
+    const { spanMs, thinkingMs, workingMs } = waterfallLayout([
+      command(0, 1000),
+      command(null, 500),
+      command(2000, 3000),
+    ]);
+
+    expect(thinkingMs + workingMs).toBeLessThanOrEqual(spanMs);
+  });
+
+  it("draws no lead for an entry that finished before the one before it", () => {
+    const { rows } = waterfallLayout([command(5000, 6000), command(0, 1000)]);
+
+    expect(rows[1]?.lead).toBe(null);
   });
 });

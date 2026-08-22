@@ -18,6 +18,11 @@ import type { ReactNode } from "react";
  * An indented row (no icon) is part of the row above it, which is how the
  * time breakdown says that thinking sits inside the agent phase rather than
  * beside it.
+ *
+ * A hint opens to the left: a rail sits at the right edge of the screen, and a
+ * tooltip opening upward covers the rows a reader is comparing against. A
+ * hinted row is focusable, because an explanation only a pointer can reach is
+ * one a keyboard never gets.
  */
 export function RailFact({
   detail,
@@ -39,10 +44,13 @@ export function RailFact({
   const row = (
     <div
       className={cn(
-        "flex h-6 items-center gap-2 text-xs",
+        "flex h-6 items-center gap-2 rounded-sm text-xs",
         Icon === undefined && "pl-[1.375rem]",
-        hint !== undefined && "cursor-help"
+        hint !== undefined &&
+          "cursor-help focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       )}
+      role={hint === undefined ? undefined : "note"}
+      tabIndex={hint === undefined ? undefined : 0}
     >
       {Icon === undefined ? null : (
         <Icon
@@ -75,8 +83,6 @@ export function RailFact({
   return (
     <Tooltip>
       <TooltipTrigger render={row} />
-      {/* Left, because a rail sits at the right edge and a tooltip opening
-          upward covers the rows a reader is comparing against. */}
       <TooltipContent className="max-w-56" side="left">
         {hint}
       </TooltipContent>

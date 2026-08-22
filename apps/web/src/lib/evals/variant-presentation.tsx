@@ -1,11 +1,11 @@
 import type { EvalHarness, EvalProvider } from "@anpord/schema/domain/evals";
-import { CpuIcon, LaptopIcon } from "@phosphor-icons/react";
-import type { ComponentType } from "react";
 import {
   DaytonaMark,
   E2bMark,
   OpenAiMark,
-} from "@/components/brand/provider-marks";
+} from "@anpord/ui/components/brand/provider-marks";
+import { CpuIcon, LaptopIcon } from "@phosphor-icons/react";
+import type { ComponentType } from "react";
 
 /** A vendor mark and a Phosphor icon are both just components taking a class,
  * so the badge can render either without knowing which it has. */

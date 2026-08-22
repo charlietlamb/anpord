@@ -25,7 +25,6 @@ export function VerdictLine({
     <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
       <VerdictBadge delta={comparison.delta} verdict={comparison.verdict} />
 
-      {/* Why there is no verdict, rather than a number standing in for one. */}
       {comparison.verdict === "incomparable" && comparison.reason !== null ? (
         <span className="text-pretty">{comparison.reason}</span>
       ) : null}

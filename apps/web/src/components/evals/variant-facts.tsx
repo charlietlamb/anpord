@@ -1,4 +1,4 @@
-import { RailFact } from "@/components/rail/rail-fact";
+import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import type { VariantIcon } from "@/lib/evals/variant-presentation";
 import {
   harnessLabel,

@@ -1,5 +1,6 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { initials } from "@anpord/ui/lib/initials";
 import {
   ClockCounterClockwiseIcon,
@@ -9,7 +10,6 @@ import {
 import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { DetailRowFrame } from "@/components/prompts/detail-row-frame";
-import { RailSection } from "@/components/rail/rail-section";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface PromptDetailsProps {

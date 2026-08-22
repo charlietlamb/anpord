@@ -38,14 +38,16 @@ const PATTERNS: readonly (readonly [ShellTokenKind, RegExp])[] = [
 const WORD_BOUNDARY = /[\s|&;()<>]/;
 
 /** Splits a command into runs of one kind, in order, losing nothing: the
- * concatenated values equal the input. */
+ * concatenated values equal the input.
+ *
+ * The scan position is tracked separately from the plain-text run, because a
+ * flag has to know what preceded it and the run cannot say: the previous token
+ * may have been a string, leaving it empty. */
 export const shellTokens = (source: string): readonly ShellToken[] => {
   const tokens: ShellToken[] = [];
   let rest = source;
   let plain = "";
-  /* Where the scanner is, so a flag can ask what preceded it. `plain` cannot
-     answer: the previous token may have been a string, leaving it empty. */
-  let index = 0;
+  let scanPosition = 0;
 
   const flush = () => {
     if (plain !== "") {
@@ -67,10 +69,8 @@ export const shellTokens = (source: string): readonly ShellToken[] => {
           return null;
         }
 
-        /* A flag begins a word: a mid-word hyphen belongs to a filename, and
-           colouring one paints half a path. */
-        if (kind === "flag" && index > 0) {
-          const previous = source[index - 1];
+        if (kind === "flag" && scanPosition > 0) {
+          const previous = source[scanPosition - 1];
 
           if (previous !== undefined && !WORD_BOUNDARY.test(previous)) {
             return null;
@@ -85,14 +85,14 @@ export const shellTokens = (source: string): readonly ShellToken[] => {
     if (found === null || found.value === "") {
       plain += rest[0];
       rest = rest.slice(1);
-      index += 1;
+      scanPosition += 1;
       continue;
     }
 
     flush();
     tokens.push(found);
     rest = rest.slice(found.value.length);
-    index += found.value.length;
+    scanPosition += found.value.length;
   }
 
   flush();

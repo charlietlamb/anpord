@@ -1,10 +1,10 @@
 import type { Channel } from "@anpord/schema/domain/channels";
 import { Button } from "@anpord/ui/components/button";
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
 import { ChannelListRow } from "@/components/channels/channel-list-row";
 import { ChannelListSkeleton } from "@/components/channels/channel-list-skeleton";
 import { ListState } from "@/components/layout/list-state";
-import { PageHeading } from "@/components/layout/page-heading";
 import { PageShell } from "@/components/layout/page-shell";
 import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
 

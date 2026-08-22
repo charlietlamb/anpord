@@ -1,3 +1,4 @@
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import {
@@ -9,7 +10,6 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { ListState } from "@/components/layout/list-state";
-import { PageHeading } from "@/components/layout/page-heading";
 import { PageShell } from "@/components/layout/page-shell";
 import { PromptList } from "@/components/prompts/prompt-list";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";

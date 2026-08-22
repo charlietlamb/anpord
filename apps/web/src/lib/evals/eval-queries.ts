@@ -9,6 +9,8 @@ import { getRun, listCellHistory, listRuns } from "@/lib/evals/evals-client";
    a connection. */
 const RUNNING_POLL_MS = 2000;
 
+/** Polling derived from the data rather than driven by an effect, so nothing
+ * keeps asking once every run has settled. */
 const pollWhileRunning = (runs: readonly EvalRunSummary[] | undefined) =>
   runs?.some((run) => run.status === "running") ? RUNNING_POLL_MS : false;
 
@@ -17,8 +19,6 @@ export const evalQueries = {
     queryOptions({
       queryKey: evalKeys.lists(),
       queryFn: () => listRuns(),
-      /* Derived from the data rather than from an effect: nothing polls once
-         every run has settled. */
       refetchInterval: (query) => pollWhileRunning(query.state.data),
     }),
 

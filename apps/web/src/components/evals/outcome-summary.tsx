@@ -1,6 +1,5 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
-
-const NOTHING = "·";
+import { NOTHING } from "@/lib/evals/duration";
 
 interface OutcomeSummaryProps {
   readonly passed: number;

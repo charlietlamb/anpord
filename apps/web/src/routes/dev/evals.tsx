@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import {
   FlaskIcon,
   PulseIcon,
@@ -13,15 +14,15 @@ import {
   TRIALS,
 } from "@/components/dev/eval-fixtures";
 import { CellRail } from "@/components/evals/cell-rail";
-import { CellRow, CellVerdictNote } from "@/components/evals/cell-row";
+import { CellRow } from "@/components/evals/cell-row";
 import { CellSetup } from "@/components/evals/cell-setup";
+import { CellVerdictNote } from "@/components/evals/cell-verdict-note";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { EvalRow } from "@/components/evals/eval-row";
 import { RunRail } from "@/components/evals/run-rail";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialTable } from "@/components/evals/trial-table";
 import { Waterfall } from "@/components/evals/waterfall";
-import { PageHeading } from "@/components/layout/page-heading";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export const Route = createFileRoute("/dev/evals")({

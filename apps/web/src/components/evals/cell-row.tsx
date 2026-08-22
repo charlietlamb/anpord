@@ -1,5 +1,4 @@
 import type { EvalCell, EvalTask } from "@anpord/schema/domain/evals";
-import { Link } from "@tanstack/react-router";
 import { VerdictBadge } from "@/components/evals/eval-status-badge";
 import {
   CommandSpread,
@@ -37,8 +36,6 @@ export function CellRow({
             scored={distribution.scored}
             voided={distribution.voided}
           />
-          {/* Absent rather than negated: "not deterministic" is noise on the
-              majority of cells that are not. */}
           {distribution.deterministic ? <span>det</span> : null}
           <CommandSpread
             max={distribution.commandMax}
@@ -81,50 +78,5 @@ export function CellRow({
     >
       {body}
     </ListRow>
-  );
-}
-
-/** What a cell is measured against, when anything is. Kept off the row: a
- * verdict is a badge, and the reason it holds is a sentence. */
-export function CellVerdictNote({ cell }: { readonly cell: EvalCell }) {
-  const comparison = cell.comparison;
-
-  if (comparison === null) {
-    return null;
-  }
-
-  const notes = [
-    comparison.verdict === "incomparable" ? comparison.reason : null,
-    comparison.determinismLost ? "no longer deterministic" : null,
-  ].filter((note): note is string => note !== null);
-
-  if (notes.length === 0) {
-    return null;
-  }
-
-  return (
-    <p className="pl-2 text-muted-foreground text-xs">{notes.join(" · ")}</p>
-  );
-}
-
-export function CellLink({
-  cell,
-  runId,
-}: {
-  readonly cell: EvalCell;
-  readonly runId: string;
-}) {
-  if (cell.cellKey === null) {
-    return null;
-  }
-
-  return (
-    <Link
-      className="text-muted-foreground text-xs underline-offset-2 hover:text-foreground hover:underline"
-      params={{ cellKey: cell.cellKey, runId }}
-      to="/evals/$runId/cells/$cellKey"
-    >
-      View trials
-    </Link>
   );
 }

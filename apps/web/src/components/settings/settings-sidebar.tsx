@@ -1,7 +1,7 @@
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { BLEED_ROW_FULL } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { RailSection } from "@/components/rail/rail-section";
 import { SETTINGS_NAV } from "@/components/settings/settings-nav";
 
 /** No heading: the breadcrumb above names the page and the highlighted item

@@ -16,11 +16,8 @@ import { type ShellTokenKind, shellTokens } from "@anpord/ui/lib/shell-tokens";
  */
 const CLASSES: Record<ShellTokenKind, string> = {
   comment: "text-muted-foreground/70 italic",
-  /* Dimmed rather than coloured: a flag modifies the command it follows, and
-     at full strength every `-g` competes with the command name. */
   flag: "text-muted-foreground",
   operator: "text-primary",
-  /* The arguments, which is usually the answer to "what did it touch". */
   string: "text-foreground",
   text: "text-foreground/80",
 };

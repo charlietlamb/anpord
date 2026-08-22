@@ -1,37 +1,11 @@
 import type { EvalRun } from "@anpord/schema/domain/evals";
+import { RailFact } from "@anpord/ui/components/ui/rail-fact";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
-import { cn } from "@anpord/ui/lib/utils";
-
-/* Tighter than the prompt rail: these sections are three facts each rather
-   than lists, so the space between them can close without them running
-   together. */
-const RAIL_GAP = "gap-5";
-
 import { ClockIcon, GridFourIcon, TimerIcon } from "@phosphor-icons/react";
 import { RunStatusBadge } from "@/components/evals/eval-status-badge";
 import { VariantFacts } from "@/components/evals/variant-facts";
-import { RailFact } from "@/components/rail/rail-fact";
-import { RailSection } from "@/components/rail/rail-section";
-
-const clock = (millis: number) =>
-  new Date(millis).toLocaleString(undefined, {
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-  });
-
-const durationOf = (run: EvalRun) => {
-  if (run.finishedAt === null) {
-    return null;
-  }
-
-  const seconds = Math.round(
-    (run.finishedAt.epochMillis - run.startedAt.epochMillis) / 1000
-  );
-
-  return seconds < 60 ? `${seconds}s` : `${Math.round(seconds / 60)}m`;
-};
+import { clock, elapsed } from "@/lib/evals/duration";
 
 /**
  * What the run is, held in view while its cells scroll past.
@@ -41,10 +15,13 @@ const durationOf = (run: EvalRun) => {
  * for as long as the list is long.
  */
 export function RunRail({ run }: { readonly run: EvalRun }) {
-  const took = durationOf(run);
+  const took = elapsed(
+    run.startedAt.epochMillis,
+    run.finishedAt?.epochMillis ?? null
+  );
 
   return (
-    <aside className={cn(RAIL_FRAME, RAIL_GAP)}>
+    <aside className={RAIL_FRAME}>
       <RailSection title="Run">
         <div className="flex flex-col gap-1">
           <div className="flex h-6 items-center gap-2">

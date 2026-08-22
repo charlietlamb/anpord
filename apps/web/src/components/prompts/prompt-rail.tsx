@@ -3,12 +3,12 @@ import type {
   ChannelPlacement,
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
+import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import type { ReactNode } from "react";
 import { PromptDetails } from "@/components/prompts/prompt-details";
 import { PromptVariables } from "@/components/prompts/prompt-variables";
 import { VersionList } from "@/components/prompts/version-list";
-import { RailSection } from "@/components/rail/rail-section";
 
 interface PromptRailProps {
   /** What acts on the prompt, carried at the head of the rail. */

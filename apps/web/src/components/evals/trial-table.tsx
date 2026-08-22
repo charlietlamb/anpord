@@ -2,15 +2,12 @@ import type { EvalTrial } from "@anpord/schema/domain/evals";
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { useNavigate } from "@tanstack/react-router";
 import { TrialStatusBadge } from "@/components/evals/eval-status-badge";
-
-const NOTHING = "·";
+import { count, NOTHING, seconds } from "@/lib/evals/duration";
 
 /** -1 is the sentinel a trial nothing decided carries. Shown as a word,
  * because a reader seeing "-1" would take it for an exit code. */
 const exitOf = (trial: EvalTrial) =>
   trial.exitCode === -1 ? "undecided" : String(trial.exitCode);
-
-const seconds = (ms: number) => `${(ms / 1000).toFixed(1)}s`;
 
 const HEAD = "h-8 px-3 font-medium text-xs text-muted-foreground";
 const CELL = "h-8 px-3 text-xs tabular-nums";
@@ -53,8 +50,6 @@ export function TrialTable({
               className="cursor-pointer hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
               key={trial.ordinal}
               onClick={() => open(trial.ordinal)}
-              /* Reachable by keyboard as well as pointer: a row that only
-                 answers a click is a row a keyboard cannot open. */
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
@@ -74,9 +69,6 @@ export function TrialTable({
               <td className={`${CELL} text-right`}>
                 <span className="inline-flex items-center gap-1.5">
                   {trial.commands}
-                  {/* The column nobody else has. An agent that stumbled twice
-                      and recovered worked differently from one that went
-                      straight through, and a pass rate cannot say so. */}
                   {trial.failedCommands > 0 ? (
                     <Badge
                       className="border-warning/25 bg-warning/10 font-medium text-warning"
@@ -89,16 +81,15 @@ export function TrialTable({
                 </span>
               </td>
 
-              {/* Two columns rather than one duration: 89s of model against
-                  6s of sandbox says the agent is thinking, and the reverse
-                  says the provider is slow. */}
               <td className={`${CELL} text-right`}>{seconds(trial.modelMs)}</td>
               <td className={`${CELL} text-right`}>
                 {seconds(trial.sandboxMs)}
               </td>
 
               <td className={`${CELL} text-right`}>
-                {trial.usage === null ? NOTHING : trial.usage.totalTokens}
+                {trial.usage === null
+                  ? NOTHING
+                  : count(trial.usage.totalTokens)}
               </td>
             </tr>
           ))}
