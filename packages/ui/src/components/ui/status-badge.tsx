@@ -20,12 +20,20 @@ const dotVariants = cva("size-1.5 shrink-0 rounded-full", {
 interface StatusBadgeProps extends VariantProps<typeof dotVariants> {
   readonly children: ReactNode;
   readonly className?: string;
+  /** "xs" is 20px tall with 10px type, which is what a dense row needs: the
+   * badge is the tallest thing in it, so it decides the row height. */
+  readonly size?: "sm" | "xs";
 }
 
 /** The dot is decoration; the label carries the state for everyone else. */
-export function StatusBadge({ children, className, tone }: StatusBadgeProps) {
+export function StatusBadge({
+  children,
+  className,
+  size = "sm",
+  tone,
+}: StatusBadgeProps) {
   return (
-    <Badge className={cn(className)} size="sm" variant="secondary">
+    <Badge className={cn(className)} size={size} variant="secondary">
       <span aria-hidden="true" className={dotVariants({ tone })} />
       {children}
     </Badge>

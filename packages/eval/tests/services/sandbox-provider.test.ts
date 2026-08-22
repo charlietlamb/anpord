@@ -36,6 +36,7 @@ const scriptedAdapters = (live: Ref.Ref<Live>) =>
                   exec: () => Stream.empty,
                   id: `sbx-${state.opened}`,
                   provider,
+                  streaming: true,
                   writeFile: () => Effect.void,
                 })
               )

@@ -149,24 +149,33 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
     );
   });
 
-  it("runs the whole loop: promote, regress, then refuse to lie", async () => {
+  it("runs the whole loop: accept, regress, then refuse to lie", async () => {
     /* 1. A healthy run, every trial passing. */
     const healthy = await run(recordCell({ passing: 5, total: 5, voided: 0 }));
 
-    /* 2. Promote it as the reference. */
-    const promoted = await run(
+    /* 2. Its first scored reading becomes the reference, which the grid does
+       as the cell completes rather than anyone choosing it. */
+    const accepted = await run(
       Effect.gen(function* () {
         const baselines = yield* Baselines;
 
-        return yield* baselines.promote({
-          actorId: null,
+        yield* baselines.promoteIfAbsent({
           cellInternalId: healthy.cellInternalId,
+          cellKey,
           organizationId,
         });
+
+        return yield* baselines.find(organizationId, cellKey);
       })
     );
 
-    expect(promoted.distribution.passRate).toBe(1);
+    expect(Option.isSome(accepted)).toBe(true);
+
+    if (Option.isNone(accepted)) {
+      return;
+    }
+
+    expect(accepted.value.distribution.passRate).toBe(1);
 
     /* 3. A later run where the agent got worse. */
     const worse = await run(recordCell({ passing: 1, total: 5, voided: 0 }));

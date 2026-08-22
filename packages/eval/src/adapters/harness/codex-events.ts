@@ -7,6 +7,7 @@ const CommandItem = Schema.Struct({
   aggregated_output: Schema.optional(Schema.String),
   command: Schema.String,
   exit_code: Schema.optional(Schema.NullOr(Schema.Number)),
+  id: Schema.optional(Schema.String),
   type: Schema.Literal("command_execution"),
 });
 
@@ -36,10 +37,23 @@ const Usage = Schema.Struct({
   output_tokens: Schema.Number,
 });
 
+/* Codex emits a started line for a command and a completed line for the same
+   `id`, so the pair is a measured duration rather than a gap to whatever
+   event happened to come next. Only `command_execution` gets one: a message
+   or a file change is reported once, as an instant. */
+const StartedItem = Schema.Struct({
+  id: Schema.String,
+  type: Schema.Literal("command_execution"),
+});
+
 const Line = Schema.Union(
   Schema.Struct({
     thread_id: Schema.String,
     type: Schema.Literal("thread.started"),
+  }),
+  Schema.Struct({
+    item: StartedItem,
+    type: Schema.Literal("item.started"),
   }),
   Schema.Struct({
     item: Schema.Union(CommandItem, MessageItem, FileChangeItem, ToolCallItem),
@@ -54,11 +68,29 @@ const Line = Schema.Union(
 const decodeLine = Schema.decodeUnknownOption(Line);
 
 export interface DecodedLine {
+  /** The id of the command this line concerns, on both the started and the
+   * completed line. Reported rather than paired here so this stays a pure
+   * function of one line, with the memory pairing needs held by the caller. */
+  readonly commandId: Option.Option<string>;
   readonly event: Option.Option<HarnessEvent>;
+  /** True when the line only announces a command has begun, which carries no
+   * event of its own: the journal keeps one entry per command, stamped with
+   * both ends. */
+  readonly started: boolean;
   readonly usage: Option.Option<HarnessUsage>;
 }
 
-const none: DecodedLine = { event: Option.none(), usage: Option.none() };
+const none: DecodedLine = {
+  commandId: Option.none(),
+  event: Option.none(),
+  started: false,
+  usage: Option.none(),
+};
+
+const only = (event: HarnessEvent): DecodedLine => ({
+  ...none,
+  event: Option.some(event),
+});
 
 /** One NDJSON line to at most one normalised event. */
 export const decodeCodexLine = (line: string): DecodedLine => {
@@ -81,18 +113,20 @@ export const decodeCodexLine = (line: string): DecodedLine => {
   const value = decoded.value;
 
   if (value.type === "thread.started") {
-    return {
-      event: Option.some({
-        _tag: "Started",
-        model: "codex",
-        sessionId: value.thread_id,
-      }),
-      usage: Option.none(),
-    };
+    return only({
+      _tag: "Started",
+      model: "codex",
+      sessionId: value.thread_id,
+    });
+  }
+
+  if (value.type === "item.started") {
+    return { ...none, commandId: Option.some(value.item.id), started: true };
   }
 
   if (value.type === "turn.completed") {
     return {
+      ...none,
       event: Option.some({ _tag: "Finished", reason: "turn.completed" }),
       usage: Option.some({
         inputTokens: value.usage.input_tokens,
@@ -106,48 +140,40 @@ export const decodeCodexLine = (line: string): DecodedLine => {
 
   if (item.type === "command_execution") {
     return {
+      ...none,
+      commandId: Option.fromNullable(item.id),
       event: Option.some({
         _tag: "Command",
         command: item.command,
         exitCode: item.exit_code ?? null,
         output: item.aggregated_output ?? "",
       }),
-      usage: Option.none(),
     };
   }
 
   if (item.type === "function_call" || item.type === "custom_tool_call") {
-    return {
-      event: Option.some({
-        _tag: "ToolCall",
-        callId: item.call_id ?? null,
-        input: item.input ?? "",
-        name: item.name,
-        status: item.status ?? null,
-      }),
-      usage: Option.none(),
-    };
+    return only({
+      _tag: "ToolCall",
+      callId: item.call_id ?? null,
+      input: item.input ?? "",
+      name: item.name,
+      status: item.status ?? null,
+    });
   }
 
   if (item.type === "file_change") {
-    return {
-      event: Option.some({
-        _tag: "FileChange",
-        paths: item.changes.map((change) => change.path),
-      }),
-      usage: Option.none(),
-    };
+    return only({
+      _tag: "FileChange",
+      paths: item.changes.map((change) => change.path),
+    });
   }
 
   if (item.type === "agent_message") {
-    return {
-      event: Option.some({
-        _tag: "Message",
-        role: "assistant",
-        text: item.text,
-      }),
-      usage: Option.none(),
-    };
+    return only({
+      _tag: "Message",
+      role: "assistant",
+      text: item.text,
+    });
   }
 
   /* Matched explicitly rather than falling through. A catch-all here would

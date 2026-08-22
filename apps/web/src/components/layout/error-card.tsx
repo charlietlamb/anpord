@@ -1,5 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
-import { CopyButton } from "@anpord/ui/components/copy-button";
+import { CodeBlock } from "@anpord/ui/components/ui/code-block";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
@@ -23,16 +23,12 @@ export function ErrorCard({
     <SiteLayout center>
       <PanelCard description={description} heading="h1" title={title}>
         {detail ? (
-          <div className="relative mt-4">
-            <CopyButton
-              className="absolute top-1 right-1"
-              label="Copy error"
-              value={detail}
-            />
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md border bg-muted py-2.5 pr-10 pl-3 font-mono text-muted-foreground text-xs leading-relaxed">
-              {detail}
-            </pre>
-          </div>
+          <CodeBlock
+            className="mt-4 max-h-48 border text-muted-foreground"
+            copyValue={detail}
+          >
+            {detail}
+          </CodeBlock>
         ) : null}
         <div className="mt-6 flex items-center gap-2">
           {onRetry ? (

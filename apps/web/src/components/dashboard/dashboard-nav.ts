@@ -1,6 +1,7 @@
 import {
   BroadcastIcon,
   ChatTextIcon,
+  FlaskIcon,
   GearIcon,
   HouseIcon,
   type Icon,
@@ -23,6 +24,7 @@ export interface NavSection {
 export const DASHBOARD_NAV: NavSection[] = [
   { items: [{ label: "Overview", icon: HouseIcon, to: "/" }] },
   { items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] },
+  { items: [{ label: "Evals", icon: FlaskIcon, to: "/evals" }] },
   { items: [{ label: "Channels", icon: BroadcastIcon, to: "/channels" }] },
   { items: [{ label: "Settings", icon: GearIcon, to: "/settings" }] },
 ];

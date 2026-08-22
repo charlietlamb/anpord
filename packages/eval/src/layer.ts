@@ -43,11 +43,20 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
   Layer.provideMerge(EvalRepositoriesLive)
 );
 
-/** The grid, wanting a Database and a SandboxProvider. */
+/** The grid, wanting a Database and a SandboxProvider.
+ *
+ * Baselines is provided into the grid rather than merged beside it: a cell
+ * promotes its first scored reading as it completes, so the grid depends on
+ * the service. provideMerge keeps the tag visible to callers that compare a
+ * run after starting one. */
+const GridWithBaselines = GridRunLive.pipe(
+  Layer.provide(BaselinesLive),
+  Layer.provideMerge(BaselinesLive)
+);
+
 export const EvalGridLive = Layer.mergeAll(
-  GridRunLive,
-  BaselinesLive,
-  WorkbenchesLive.pipe(Layer.provide(GridRunLive))
+  GridWithBaselines,
+  WorkbenchesLive.pipe(Layer.provide(GridWithBaselines))
 ).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
 
 /** Sweeps abandoned work for the life of the process, opted into by the

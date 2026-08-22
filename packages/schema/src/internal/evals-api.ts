@@ -3,11 +3,10 @@ import { Schema } from "effect";
 import { Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
   CreatePlaygroundRequest,
+  EvalCellHistoryEntry,
   EvalRun,
   EvalRunSummary,
   PlaygroundView,
-  PromoteBaselineRequest,
-  PromotedBaseline,
   SavePlaygroundRequest,
   StartEvalRequest,
   StartedEval,
@@ -15,6 +14,7 @@ import {
 import { Authentication } from "./authentication";
 
 const RunPath = Schema.Struct({ id: Schema.String });
+const CellPath = Schema.Struct({ cellKey: Schema.String });
 
 export class EvalsGroup extends HttpApiGroup.make("evals")
   .add(
@@ -35,14 +35,14 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
       .setPath(RunPath)
       .addSuccess(EvalRun)
   )
-  /** Accepting a reading as the reference to measure later runs against.
-   * Explicit rather than inferred from the most recent run: if the latest
-   * reading silently became the reference, a bad day would be adopted as the
-   * new normal and the drift would be absorbed one run at a time. */
+  /** How this cell has read over time, so a verdict carries when it last
+   * moved rather than only which way. Scoped to the caller's organization
+   * inside the query: a cell key is a content hash and carries no tenant, so
+   * an identical task in another organization would otherwise match. */
   .add(
-    HttpApiEndpoint.post("promote", "/evals/baselines")
-      .setPayload(PromoteBaselineRequest)
-      .addSuccess(PromotedBaseline)
+    HttpApiEndpoint.get("cellHistory", "/evals/cells/:cellKey/history")
+      .setPath(CellPath)
+      .addSuccess(Schema.Array(EvalCellHistoryEntry))
   )
   /** The workbench: saved between visits, so a person returns to what they
    * were working on rather than rebuilding it. */

@@ -11,6 +11,7 @@ import {
   Option,
   Redacted,
 } from "effect";
+import { CellKey } from "../../src/domain/cell";
 import { GridRun } from "../../src/grid/run";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
 import { RunQuery } from "../../src/repositories/run-query";
@@ -172,19 +173,27 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
         return;
       }
 
-      const promoted = await run(
+      const accepted = await run(
         Effect.gen(function* () {
           const baselines = yield* Baselines;
 
-          return yield* baselines.promote({
-            actorId: null,
-            cellInternalId: cell.cell.internalId,
+          return yield* baselines.find(
             organizationId,
-          });
+            CellKey.make(cell.cell.cellKey)
+          );
         })
       );
 
-      expect(promoted.distribution.passRate).toBe(1);
+      /* The grid accepted this reading as the cell completed. Nothing in this
+         test promoted it, which is the point: a comparison that depended on
+         someone pressing a button was absent for seven cells in ten. */
+      expect(Option.isSome(accepted)).toBe(true);
+
+      if (Option.isNone(accepted)) {
+        return;
+      }
+
+      expect(accepted.value.distribution.passRate).toBe(1);
 
       /* Comparing the run against itself must be unchanged rather than
          improved or regressed: a baseline promoted from this very cell is

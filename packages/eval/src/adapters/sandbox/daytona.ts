@@ -1,5 +1,5 @@
 import { Daytona, type Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
-import { Effect, Stream } from "effect";
+import { Clock, Duration, Effect, Schedule } from "effect";
 import { SandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
@@ -7,6 +7,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { execStream } from "./exec-stream";
 
 const HOME = "/home/daytona";
 const DEFAULT_TIMEOUT_MS = 120_000;
@@ -31,11 +32,15 @@ const unavailable = (reason: unknown) =>
     reason: reason instanceof Error ? reason.message : String(reason),
   });
 
+/* Polled after the log stream ends, because the stream closes without saying
+   how the command exited. */
+const EXIT_POLL_MS = 250;
+
 const handleFor = (
   sandbox: DaytonaSandbox,
   workspace: string
 ): SandboxHandle => {
-  const exec = (command: string, options?: ExecOptions) =>
+  const execute = (command: string, options?: ExecOptions) =>
     Effect.tryPromise({
       catch: unavailable,
       try: () =>
@@ -47,25 +52,103 @@ const handleFor = (
         ),
     });
 
+  /* A session per command, released whatever happens. Daytona only streams
+     logs for a session command, and a session that outlives its command is a
+     resource left behind on someone else's machine. */
+  const session = (id: string) =>
+    Effect.acquireRelease(
+      Effect.tryPromise({
+        catch: unavailable,
+        try: () => sandbox.process.createSession(id),
+      }).pipe(Effect.as(id)),
+      () =>
+        Effect.promise(() => sandbox.process.deleteSession(id)).pipe(
+          Effect.ignore
+        )
+    );
+
+  const exitCodeOf = (
+    sessionId: string,
+    commandId: string,
+    deadlineMs: number
+  ) =>
+    Effect.tryPromise({
+      catch: unavailable,
+      try: () => sandbox.process.getSessionCommand(sessionId, commandId),
+    }).pipe(
+      Effect.map((command) => command.exitCode),
+      Effect.flatMap((code) =>
+        code === undefined || code === null
+          ? Effect.fail(unavailable("the command is still running"))
+          : Effect.succeed(code)
+      ),
+      /* Bounded by the caller's own deadline rather than a fixed count.
+
+         Measured: for a command running 300 seconds the log stream returned
+         at 181 with the process still going and no exit code recorded, so
+         the stream ending is not the command ending. A fixed budget gave up
+         on a live command and reported it as unavailable. */
+      Effect.retry(
+        Schedule.spaced(Duration.millis(EXIT_POLL_MS)).pipe(
+          Schedule.upTo(Duration.millis(deadlineMs))
+        )
+      )
+    );
+
   return {
     exec: (command, options) =>
-      /* Daytona returns a completed result rather than a live stream, so the
-         chunks are synthesised. The exit code still travels in the stream so
-         callers cannot tell the providers apart. */
-      Stream.fromEffect(exec(command, options)).pipe(
-        Stream.flatMap((result) =>
-          Stream.make(
-            { data: result.result ?? "", stream: "stdout" } as const,
-            { exitCode: result.exitCode ?? 0, stream: "exit" } as const
-          )
-        )
-      ),
+      execStream((sink) => {
+        const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+        return Effect.gen(function* () {
+          /* Unique per command, and taken from the clock rather than a
+             counter so two sandboxes in one process cannot collide. */
+          const sessionId = `anpord-${yield* Clock.currentTimeMillis}`;
+          yield* session(sessionId);
+
+          const started = yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () =>
+              sandbox.process.executeSessionCommand(sessionId, {
+                command: cdInto(options?.cwd ?? workspace, command),
+                /* Asynchronous, so the logs can be followed while it runs.
+                   A synchronous call returns only when it is over, which is
+                   what made every chunk arrive at the same moment. */
+                runAsync: true,
+              }),
+          });
+
+          const commandId = started.cmdId ?? "";
+
+          yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () =>
+              sandbox.process.getSessionCommandLogs(
+                sessionId,
+                commandId,
+                sink.stdout,
+                sink.stderr
+              ),
+          });
+
+          return yield* exitCodeOf(sessionId, commandId, timeoutMs);
+        }).pipe(
+          Effect.scoped,
+          Effect.timeoutFail({
+            duration: Duration.millis(timeoutMs),
+            onTimeout: () => unavailable("the command timed out"),
+          })
+        );
+      }),
     id: sandbox.id,
     provider: "daytona",
+    streaming: true,
     writeFile: (path, content) =>
       /* A heredoc rather than the files API, because it keeps content intact
-         where an echo would eat backslashes and quotes. */
-      exec(
+         where an echo would eat backslashes and quotes. Written with the
+         plain call: it produces no output worth timing, and a session per
+         file would be a session per fixture. */
+      execute(
         `mkdir -p "$(dirname ${path})" && cat > ${path} <<'ANPORD_EOF'\n${content}\nANPORD_EOF`
       ).pipe(Effect.asVoid),
   };

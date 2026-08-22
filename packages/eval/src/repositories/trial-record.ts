@@ -6,6 +6,7 @@ import { Context, Effect, Layer } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import { momentOf } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
 import { tryStore } from "./query";
 
@@ -51,8 +52,15 @@ export const TrialRecorderLive = Layer.effect(
             Effect.map((internalId) => ({
               internalId,
               kind: event._tag,
+              /* Lifted out of the payload into columns of their own so a
+                 waterfall can order and window on them without reading every
+                 journal in the table. */
+              occurredAt: momentOf(event.at),
               payload: event,
               seq: index,
+              startedAt: momentOf(
+                event._tag === "Command" ? event.startedAt : undefined
+              ),
               trialInternalId,
             }))
           )

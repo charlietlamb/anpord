@@ -2,12 +2,17 @@ import { Context, type Effect, type Scope, type Stream } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { SandboxUnavailable } from "../domain/errors";
 
-/** A chunk of a running command, following the shape a docs tool uses in
- * production. */
+/** A chunk of a running command.
+ *
+ * `at` is when the chunk was observed, in epoch millis, and it is required.
+ * Without it the type let an adapter that returns a whole run in one piece
+ * look identical to one that streams, which is how every event in a trial
+ * came to share a single timestamp: the harness read the clock when a line
+ * arrived, and the transport decided when that was. */
 export type ExecChunk =
-  | { readonly stream: "stdout"; readonly data: string }
-  | { readonly stream: "stderr"; readonly data: string }
-  | { readonly stream: "exit"; readonly exitCode: number };
+  | { readonly at: number; readonly stream: "stdout"; readonly data: string }
+  | { readonly at: number; readonly stream: "stderr"; readonly data: string }
+  | { readonly at: number; readonly stream: "exit"; readonly exitCode: number };
 
 export interface ExecOptions {
   readonly cwd?: string;
@@ -31,6 +36,13 @@ export interface SandboxHandle {
   ) => Stream.Stream<ExecChunk, SandboxUnavailable>;
   readonly id: string;
   readonly provider: ProviderName;
+  /** Whether output arrives as it is produced.
+   *
+   * Declared rather than assumed: a provider that answers in one piece gives
+   * every chunk the same `at`, and a waterfall drawn from those would show
+   * bars of zero width as though the work took no time. False means render
+   * the sequence and say the durations are unknown. */
+  readonly streaming: boolean;
   readonly writeFile: (
     path: string,
     content: string

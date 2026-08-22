@@ -1,6 +1,6 @@
 import { GridRun } from "@anpord/eval/grid/run";
 import { Baselines } from "@anpord/eval/services/baselines";
-import { Conflict, NotFound } from "@anpord/schema/domain/errors";
+import { NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
@@ -17,6 +17,10 @@ import {
   savePlayground,
 } from "./playground-handlers";
 import { detail, summarise } from "./to-api";
+
+/* Enough to see whether a cell has been steady or drifting, without turning
+   a drill-down into a scan of every run the cell ever appeared in. */
+const HISTORY_LIMIT = 20;
 
 export const EvalsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -93,39 +97,29 @@ export const EvalsHandlers = HttpApiBuilder.group(
         })
       )
       .handle(
-        "promote",
-        { permission: Permissions.Evals.Write },
-        ({ payload }) =>
+        "cellHistory",
+        { permission: Permissions.Evals.Read },
+        ({ path }) =>
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             const baselines = yield* Baselines;
 
-            const promoted = yield* baselines
-              .promote({
-                actorId: actor.id,
-                cellInternalId: payload.cellInternalId,
-                organizationId: actor.organizationId,
-              })
-              /* A cell that scored nothing cannot become a reference: every
-                 later comparison would read it as a measured zero. That is a
-                 conflict with the state of the cell, not a missing route. */
-              .pipe(
-                Effect.catchTag("VoidBaseline", (error) =>
-                  Effect.fail(new Conflict({ message: error.reason }))
-                )
-              );
+            const entries = yield* baselines.history({
+              cellKey: path.cellKey,
+              limit: HISTORY_LIMIT,
+              organizationId: actor.organizationId,
+            });
 
-            return {
-              cellKey: promoted.cellKey,
-              passRate: promoted.distribution.passRate,
-              promotedAt: DateTime.unsafeMake(promoted.promotedAt.getTime()),
-            };
-          }).pipe(
-            /* A store failure is ours, not the caller's: nothing they could
-               send would fix it, so it belongs in the 500 rather than in the
-               contract. */
-            Effect.catchTag("EvalStoreError", Effect.die)
-          )
+            return entries.map((entry) => ({
+              distribution: entry.distribution,
+              finishedAt:
+                entry.finishedAt === null
+                  ? null
+                  : DateTime.unsafeMake(entry.finishedAt.getTime()),
+              internalId: entry.internalId,
+              runId: entry.runId,
+            }));
+          }).pipe(Effect.catchTag("EvalStoreError", Effect.die))
       )
       .handle("listPlaygrounds", { permission: Permissions.Evals.Read }, () =>
         listPlaygrounds()

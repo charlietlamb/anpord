@@ -8,11 +8,13 @@ import { distributionOf } from "../../../src/domain/distribution";
 import { outcomeOf } from "../../../src/domain/trial";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
 import { Scorer } from "../../../src/ports/scorer";
+import { exit, stdout } from "../../fixtures/exec-chunk";
 
 const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),
   id: "sbx-1",
   provider: "daytona",
+  streaming: true,
   writeFile: () => Effect.void,
 });
 
@@ -49,10 +51,7 @@ describe("isUnguardedPipeline", () => {
 describe("ScorerGroundTruthLive", () => {
   it("passes on a zero exit", async () => {
     const outcome = await score(
-      sandboxYielding([
-        { data: "1 pass", stream: "stdout" },
-        { exitCode: 0, stream: "exit" },
-      ]),
+      sandboxYielding([stdout("1 pass"), exit(0)]),
       "bun test"
     );
 
@@ -61,10 +60,7 @@ describe("ScorerGroundTruthLive", () => {
 
   it("fails on a non-zero exit", async () => {
     const outcome = await score(
-      sandboxYielding([
-        { data: "1 fail", stream: "stdout" },
-        { exitCode: 1, stream: "exit" },
-      ]),
+      sandboxYielding([stdout("1 fail"), exit(1)]),
       "bun test"
     );
 
@@ -73,10 +69,7 @@ describe("ScorerGroundTruthLive", () => {
 
   it("does not void a verifier that passed quietly", async () => {
     const outcome = await score(
-      sandboxYielding([
-        { data: "", stream: "stdout" },
-        { exitCode: 0, stream: "exit" },
-      ]),
+      sandboxYielding([stdout(""), exit(0)]),
       "bun test"
     );
 
@@ -92,10 +85,7 @@ describe("ScorerGroundTruthLive", () => {
 
   it("refuses to score through an unguarded pipeline", async () => {
     const outcome = await score(
-      sandboxYielding([
-        { data: "1 pass", stream: "stdout" },
-        { exitCode: 0, stream: "exit" },
-      ]),
+      sandboxYielding([stdout("1 pass"), exit(0)]),
       "bun test | tail -1"
     );
 
@@ -119,7 +109,7 @@ describe("ScorerGroundTruthLive", () => {
    */
   it("never reads a missing exit code as success", async () => {
     const outcome = await score(
-      sandboxYielding([{ data: "FAIL 3 tests failed", stream: "stdout" }]),
+      sandboxYielding([stdout("FAIL 3 tests failed")]),
       "node --test"
     );
 
@@ -129,7 +119,7 @@ describe("ScorerGroundTruthLive", () => {
 
   it("keeps a refused verifier out of the void count", async () => {
     const outcome = await score(
-      sandboxYielding([{ exitCode: 0, stream: "exit" }]),
+      sandboxYielding([exit(0)]),
       "bun test | tail -1"
     );
 

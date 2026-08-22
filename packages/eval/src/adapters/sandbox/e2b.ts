@@ -1,5 +1,5 @@
 import { Sandbox as E2BSandbox } from "e2b";
-import { Effect, Stream } from "effect";
+import { Effect } from "effect";
 import { SandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
@@ -7,6 +7,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { execStream } from "./exec-stream";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
@@ -45,7 +46,7 @@ const unavailable = (reason: unknown) =>
 
 const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
   exec: (command, options?: ExecOptions) =>
-    Stream.fromEffect(
+    execStream((sink) =>
       Effect.tryPromise({
         catch: unavailable,
         /** The fold happens inside `try`, before the rejection is turned
@@ -55,6 +56,12 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
             .run(command, {
               cwd: options?.cwd ?? workspace,
               envs: options?.env as Record<string, string> | undefined,
+              /* Output arrives here as it is produced, which is what makes
+                 the timestamps mean anything. Reading it off the resolved
+                 result instead gave every chunk the moment the command
+                 finished, so a five second command measured as zero. */
+              onStderr: sink.stderr,
+              onStdout: sink.stdout,
               timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
             })
             .catch((rejection: unknown) => {
@@ -68,18 +75,11 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
 
               return failed;
             }),
-      })
-    ).pipe(
-      Stream.flatMap((result) =>
-        Stream.make(
-          { data: result.stdout, stream: "stdout" } as const,
-          { data: result.stderr, stream: "stderr" } as const,
-          { exitCode: result.exitCode, stream: "exit" } as const
-        )
-      )
+      }).pipe(Effect.map((result) => result.exitCode))
     ),
   id: sandbox.sandboxId,
   provider: "e2b",
+  streaming: true,
   writeFile: (path, content) =>
     Effect.tryPromise({
       catch: unavailable,

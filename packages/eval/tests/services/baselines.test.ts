@@ -161,30 +161,61 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
     });
   });
 
-  it("promotes a cell and reads it back", async () => {
-    const promoted = await run(
-      Effect.gen(function* () {
-        const baselines = yield* Baselines;
-
-        return yield* baselines.promote({
-          actorId: null,
-          cellInternalId: `cellint_base${suffix}`,
-          organizationId,
-        });
-      })
-    );
-
-    expect(promoted.distribution.passRate).toBe(1);
-
+  it("accepts a cell's first scored reading as its baseline", async () => {
     const found = await run(
       Effect.gen(function* () {
         const baselines = yield* Baselines;
+
+        yield* baselines.promoteIfAbsent({
+          cellInternalId: `cellint_base${suffix}`,
+          cellKey: key,
+          organizationId,
+        });
 
         return yield* baselines.find(organizationId, key);
       })
     );
 
     expect(Option.isSome(found)).toBe(true);
+
+    if (Option.isNone(found)) {
+      return;
+    }
+
+    expect(found.value.distribution.passRate).toBe(1);
+  });
+
+  /** The bar is what was accepted, not the best ever seen. A second call must
+   * leave the first reading in place, or a cell that climbed and fell back
+   * would compare against its peak and report a regression it already had. */
+  it("leaves an existing baseline alone", async () => {
+    const found = await run(
+      Effect.gen(function* () {
+        const baselines = yield* Baselines;
+
+        yield* baselines.promoteIfAbsent({
+          cellInternalId: `cellint_base${suffix}`,
+          cellKey: key,
+          organizationId,
+        });
+
+        yield* baselines.promoteIfAbsent({
+          cellInternalId: `cellint_worse${suffix}`,
+          cellKey: key,
+          organizationId,
+        });
+
+        return yield* baselines.find(organizationId, key);
+      })
+    );
+
+    expect(Option.isSome(found)).toBe(true);
+
+    if (Option.isNone(found)) {
+      return;
+    }
+
+    expect(found.value.cellInternalId).toBe(`cellint_base${suffix}`);
   });
 
   it("reports a later worse run as a regression", async () => {
@@ -213,55 +244,62 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
     expect(comparison.value.delta).toBeCloseTo(-0.6);
   });
 
-  /** The refusal that matters. A cell where nothing ran must never be
-   * promoted, because every later comparison would read it as a measured
-   * zero. */
-  it("refuses to promote a cell with no scored trials", async () => {
-    const outcome = await Effect.runPromise(
+  /** The rule that matters. A cell where nothing ran must never become a
+   * reference, because every later comparison would read it as a measured
+   * zero and report a collapse that never happened. Silent now rather than an
+   * error: no caller is asking, so there is nobody to tell. */
+  it("stores no baseline for a cell with no scored trials", async () => {
+    const found = await run(
       Effect.gen(function* () {
         const baselines = yield* Baselines;
 
-        return yield* baselines.promote({
-          actorId: null,
+        yield* baselines.promoteIfAbsent({
           cellInternalId: `cellint_void${suffix}`,
+          cellKey: voidKey,
           organizationId,
         });
-      }).pipe(
-        Effect.provide(TestLayer),
-        Effect.scoped,
-        Effect.either
-      ) as Effect.Effect<{ _tag: string; left?: { _tag: string } }>
+
+        return yield* baselines.find(organizationId, voidKey);
+      })
     );
 
-    expect(outcome._tag).toBe("Left");
-    expect(outcome.left?._tag).toBe("VoidBaseline");
+    expect(Option.isNone(found)).toBe(true);
   });
 
-  it("refuses to promote a cell from another organization", async () => {
-    const outcome = await Effect.runPromise(
+  /** The service takes a plain string so nothing at the HTTP edge has to
+   * reach into the domain to brand one. The branding still has to happen, or
+   * the query matches nothing and a cell silently reports no past. */
+  it("reads a cell's history from an unbranded key", async () => {
+    const history = await run(
       Effect.gen(function* () {
         const baselines = yield* Baselines;
 
-        return yield* baselines.promote({
-          actorId: null,
-          cellInternalId: `cellint_base${suffix}`,
-          organizationId: `org_other_${suffix}`,
+        return yield* baselines.history({
+          cellKey: String(key),
+          limit: 10,
+          organizationId,
         });
-      }).pipe(
-        Effect.provide(TestLayer),
-        Effect.scoped,
-        Effect.either
-      ) as Effect.Effect<{ _tag: string }>
+      })
     );
 
-    /* The tag, not merely a failure. Without it this passed whether the
-       ownership join was there or not: with the join the cell is not found,
-       and without it promotion proceeds and dies further down on a foreign
-       key. Both are Left, and only one of them is tenant isolation. */
-    expect(outcome._tag).toBe("Left");
-    expect((outcome as { left?: { _tag: string } }).left?._tag).toBe(
-      "VoidBaseline"
+    expect(history.length).toBeGreaterThan(0);
+    expect(history[0]?.distribution.scored).toBeGreaterThan(0);
+  });
+
+  it("keeps one organization's history out of another's", async () => {
+    const history = await run(
+      Effect.gen(function* () {
+        const baselines = yield* Baselines;
+
+        return yield* baselines.history({
+          cellKey: String(key),
+          limit: 10,
+          organizationId: `org_other_${suffix}`,
+        });
+      })
     );
+
+    expect(history).toEqual([]);
   });
 
   it("yields no verdict for a cell with no baseline", async () => {

@@ -22,7 +22,7 @@ export function PageHeading({
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center gap-2 font-normal text-[0.9375rem] text-muted-foreground",
+        "flex shrink-0 items-center gap-1.5 font-heading font-medium text-[0.9375rem] text-muted-foreground tracking-tight",
         className
       )}
     >

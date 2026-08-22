@@ -21,7 +21,20 @@ interface CellWithTrials {
   readonly caseName: string;
   readonly cell: CellRow;
   readonly distribution: Distribution;
+  /** What the agent was asked. Rendered per case, so this is the text the
+   * harness actually received rather than the template it came from. */
+  readonly prompt: string;
+  readonly repoRef: string | null;
+  readonly repoUrl: string | null;
+  readonly setupCommand: string | null;
   readonly trials: readonly TrialRow[];
+  /** The script that decided pass or fail. Without it a verdict is a claim
+   * with nothing behind it, which is the thing this product exists to avoid.
+   *
+   * Nullable because a task can be scored another way: absent means nothing
+   * ran a check, not that a check passed. */
+  readonly verifyCommand: string | null;
+  readonly workspace: string;
 }
 
 export interface RunDetail {
@@ -99,7 +112,16 @@ export const RunQueryLive = Layer.effect(
 
         const cells = yield* tryStore("runQuery.cells", () =>
           db
-            .select({ caseName: evalTask.name, cell: evalCell })
+            .select({
+              caseName: evalTask.name,
+              cell: evalCell,
+              prompt: evalTask.prompt,
+              repoRef: evalTask.repoRef,
+              repoUrl: evalTask.repoUrl,
+              setupCommand: evalTask.setupCommand,
+              verifyCommand: evalTask.verifyCommand,
+              workspace: evalTask.workspace,
+            })
             .from(evalCell)
             .innerJoin(
               evalTask,
@@ -124,7 +146,13 @@ export const RunQueryLive = Layer.effect(
               caseName: row.caseName,
               cell: row.cell,
               distribution: distributionFor(own),
+              prompt: row.prompt,
+              repoRef: row.repoRef,
+              repoUrl: row.repoUrl,
+              setupCommand: row.setupCommand,
               trials: own,
+              verifyCommand: row.verifyCommand,
+              workspace: row.workspace,
             };
           }),
           run,

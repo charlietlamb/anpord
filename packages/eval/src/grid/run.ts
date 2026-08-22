@@ -8,12 +8,15 @@ import {
   type Stream,
 } from "effect";
 import { caseIdentityOf } from "../domain/case-identity";
+import { CellKey } from "../domain/cell";
 import { renderPrompt } from "../domain/prompt";
+import { EventRepository } from "../repositories/event-repository";
 import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
 import { TaskRepository } from "../repositories/task-repository";
 import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
+import { Baselines } from "../services/baselines";
 import { type GridCase, runGridCell, WORKSPACE } from "./cell";
 import { makeLiveRuns } from "./live-runs";
 import {
@@ -62,7 +65,9 @@ export const GridRunLive = Layer.scoped(
   GridRun,
   Effect.gen(function* () {
     const agent = yield* AgentTrial;
+    const baselines = yield* Baselines;
     const query = yield* RunQuery;
+    const events = yield* EventRepository;
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
@@ -140,6 +145,18 @@ export const GridRunLive = Layer.scoped(
             yield* update(created.id, (state) =>
               completeCell(state, position, result)
             );
+
+            /* The first scored reading of a cell becomes its reference, so a
+               later run has something to be worse than. Ignored on failure:
+               a baseline is how the next run is read, and losing one is not
+               worth failing a grid that already produced its trials. */
+            yield* baselines
+              .promoteIfAbsent({
+                cellInternalId: result.internalId,
+                cellKey: CellKey.make(result.cellKey),
+                organizationId: input.organizationId,
+              })
+              .pipe(Effect.ignoreLogged);
           }
         }
 
@@ -185,6 +202,16 @@ export const GridRunLive = Layer.scoped(
               cellKey: null,
               distribution: Option.none(),
               internalId: null,
+              setup: Option.some({
+                prompt: renderPrompt(input.prompt, { goal: subject.goal }),
+                repoRef:
+                  subject.source.kind === "repo" ? subject.source.ref : null,
+                repoUrl:
+                  subject.source.kind === "repo" ? subject.source.url : null,
+                setupCommand: subject.setup,
+                verifyCommand: subject.verify,
+                workspace: WORKSPACE,
+              }),
               status: "running",
               taskIndex,
               trials: Array.from({ length: input.trials }, () => Option.none()),
@@ -271,9 +298,29 @@ export const GridRunLive = Layer.scoped(
             return Effect.succeed(current);
           }
 
-          return query
-            .findRun(organizationId, id)
-            .pipe(Effect.map(Option.map(runToState)), Effect.orDie);
+          return query.findRun(organizationId, id).pipe(
+            Effect.flatMap((found) => {
+              if (Option.isNone(found)) {
+                return Effect.succeedNone;
+              }
+
+              const trialIds = found.value.cells.flatMap((cell) =>
+                cell.trials.map((trial) => trial.internalId)
+              );
+
+              /* The journals come with the run: a stored trial without its
+                 events cannot draw a trajectory, and reading them per trial
+                 would open one round trip per row of the table. */
+              return events
+                .listByTrials(trialIds)
+                .pipe(
+                  Effect.map((journals) =>
+                    Option.some(runToState(found.value, journals))
+                  )
+                );
+            }),
+            Effect.orDie
+          );
         }),
         Effect.withSpan("GridRun.get")
       );

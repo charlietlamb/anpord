@@ -33,6 +33,7 @@ const recordingAdapters = (seen: Ref.Ref<OpenSandbox[]>) =>
                 exec: () => Stream.empty,
                 id: "sbx-1",
                 provider,
+                streaming: true,
                 writeFile: () => Effect.void,
               } as SandboxHandle)
             ),

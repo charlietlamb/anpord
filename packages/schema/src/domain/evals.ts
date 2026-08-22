@@ -73,6 +73,10 @@ export type EvalCase = typeof EvalCase.Type;
  * cases, and it is the reason anyone keeps using this. */
 export const EvalTask = Schema.Struct({
   harness: EvalHarness,
+  /* Pinned, and part of the column identity rather than a detail of it: the
+     cell key hashes both, so a column naming the harness without its version
+     compares against something else. */
+  harnessVersion: Schema.String,
   model: Schema.String,
   provider: EvalProvider,
 });
@@ -88,39 +92,71 @@ export const StartEvalRequest = Schema.Struct({
 });
 export type StartEvalRequest = typeof StartEvalRequest.Type;
 
-/** A command the agent ran, with the exit code captured where it still
- * exists. This is the column an eval platform reading a tool-call string
- * cannot have. */
-export const EvalCommand = Schema.Struct({
-  command: Schema.String,
-  exitCode: Schema.NullOr(Schema.Int),
-  output: Schema.String,
-});
-export type EvalCommand = typeof EvalCommand.Type;
+/* Null rather than zero: a harness reporting no timing and a provider
+   answering in one piece both leave this unknown, and 1970 is not a time
+   anything happened. */
+const OccurredAtMillis = Schema.NullOr(Schema.Number);
 
-/** A tool the agent invoked by name. Separate from a command, because three
- * of the companies this was built for score tool calls and none of their
- * assertions can be expressed against shell alone. */
-export const EvalToolCall = Schema.Struct({
-  name: Schema.String,
-  status: Schema.NullOr(Schema.String),
+/**
+ * One entry of the trajectory, in the order it happened.
+ *
+ * A tagged union rather than a list of commands: what customers ask is what
+ * the agent did between two commands. Only a command carries a span, so
+ * everything else draws as a marker rather than a guessed width.
+ */
+export const EvalJournalEntry = Schema.Union(
+  Schema.Struct({
+    _tag: Schema.Literal("command"),
+    command: Schema.String,
+    exitCode: Schema.NullOr(Schema.Int),
+    finishedAtMillis: OccurredAtMillis,
+    output: Schema.String,
+    startedAtMillis: OccurredAtMillis,
+  }),
+  Schema.Struct({
+    _tag: Schema.Literal("message"),
+    finishedAtMillis: OccurredAtMillis,
+    text: Schema.String,
+  }),
+  Schema.Struct({
+    _tag: Schema.Literal("toolCall"),
+    finishedAtMillis: OccurredAtMillis,
+    name: Schema.String,
+    status: Schema.NullOr(Schema.String),
+  }),
+  Schema.Struct({
+    _tag: Schema.Literal("fileChange"),
+    finishedAtMillis: OccurredAtMillis,
+    paths: Schema.Array(Schema.String),
+  })
+);
+export type EvalJournalEntry = typeof EvalJournalEntry.Type;
+
+/** Tokens the model spent, as the harness reported them. */
+export const EvalUsage = Schema.Struct({
+  inputTokens: Schema.Int,
+  outputTokens: Schema.Int,
+  totalTokens: Schema.Int,
 });
-export type EvalToolCall = typeof EvalToolCall.Type;
+export type EvalUsage = typeof EvalUsage.Type;
 
 export const EvalTrial = Schema.Struct({
   commands: Schema.Int,
+  /* -1 is a trial nothing decided: no evidence, rather than a failure. */
+  exitCode: Schema.Int,
   failedCommands: Schema.Int,
   filesChanged: Schema.Array(Schema.String),
-  journal: Schema.Array(EvalCommand),
   modelMs: Schema.Int,
   ordinal: Schema.Int,
   passed: Schema.Boolean,
   sandboxId: Schema.NullOr(Schema.String),
   sandboxMs: Schema.Int,
   status: EvalTrialStatus,
-  /** The trajectory, in order. What "did it call the right tool" is answered
-   * from, and what no score alone can carry. */
-  toolCalls: Schema.Array(EvalToolCall),
+  /* False when the sandbox answered in one piece, so every entry shares a
+     moment and the trajectory is an order rather than a timeline. */
+  timed: Schema.Boolean,
+  trajectory: Schema.Array(EvalJournalEntry),
+  usage: Schema.NullOr(EvalUsage),
   voidFields: Schema.Array(Schema.String),
 });
 export type EvalTrial = typeof EvalTrial.Type;
@@ -169,6 +205,23 @@ export const EvalComparison = Schema.Struct({
 export type EvalComparison = typeof EvalComparison.Type;
 
 /** One square of the grid: what one task did on one case. */
+/** How a case was set up and how it was judged.
+ *
+ * Travels with the cell rather than behind its own request: it is small, it
+ * never changes once a run has started, and a screen that has to fetch the
+ * rubric separately will render a verdict before it arrives. */
+export const EvalSetup = Schema.Struct({
+  prompt: Schema.String,
+  repoRef: Schema.NullOr(Schema.String),
+  repoUrl: Schema.NullOr(Schema.String),
+  setupCommand: Schema.NullOr(Schema.String),
+  /* Absent means nothing checked the work, which is not the same as a check
+     that passed. */
+  verifyCommand: Schema.NullOr(Schema.String),
+  workspace: Schema.String,
+});
+export type EvalSetup = typeof EvalSetup.Type;
+
 export const EvalCell = Schema.Struct({
   caseName: Schema.String,
   /** The identity a baseline is keyed by: task, harness, harness version,
@@ -178,6 +231,9 @@ export const EvalCell = Schema.Struct({
   comparison: Schema.NullOr(EvalComparison),
   distribution: Schema.NullOr(EvalDistribution),
   internalId: Schema.NullOr(Schema.String),
+  /* Null on a cell the run planned but never recorded, which has no task
+     behind it to describe. */
+  setup: Schema.NullOr(EvalSetup),
   status: EvalRunStatus,
   taskIndex: Schema.Int,
   trials: Schema.Array(EvalTrial),
@@ -196,26 +252,46 @@ export const EvalRun = Schema.Struct({
 });
 export type EvalRun = typeof EvalRun.Type;
 
+/** A run as the list screen needs it.
+ *
+ * The outcome travels with the summary rather than behind a request per row:
+ * a list that shows a pass rate had to fetch every run in full to render one
+ * column, which is a query per row on the busiest screen.
+ *
+ * `scored` and `voided` are both here because a rate without its denominator
+ * is how a provider outage reads as a perfect score. */
 export const EvalRunSummary = Schema.Struct({
   caseCount: Schema.Int,
+  commandMax: Schema.NullOr(Schema.Int),
+  commandMin: Schema.NullOr(Schema.Int),
+  failure: Schema.NullOr(Schema.String),
+  finishedAt: Schema.NullOr(Schema.DateTimeUtc),
   id: Schema.String,
+  /** The first task's name, which is what a person recognises a run by. */
+  name: Schema.NullOr(Schema.String),
+  passed: Schema.Int,
+  scored: Schema.Int,
   startedAt: Schema.DateTimeUtc,
   status: EvalRunStatus,
   taskCount: Schema.Int,
+  voided: Schema.Int,
 });
 export type EvalRunSummary = typeof EvalRunSummary.Type;
 
-export const PromoteBaselineRequest = Schema.Struct({
-  cellInternalId: Schema.String,
+/**
+ * One past reading of a cell, newest first.
+ *
+ * What makes a verdict legible: `unchanged` says less than `unchanged since
+ * 14 Aug`, and it turns promotion into a choice between readings rather than
+ * a blind accept of whatever ran last.
+ */
+export const EvalCellHistoryEntry = Schema.Struct({
+  distribution: EvalDistribution,
+  finishedAt: Schema.NullOr(Schema.DateTimeUtc),
+  internalId: Schema.String,
+  runId: Schema.String,
 });
-export type PromoteBaselineRequest = typeof PromoteBaselineRequest.Type;
-
-export const PromotedBaseline = Schema.Struct({
-  cellKey: Schema.String,
-  passRate: Schema.Number,
-  promotedAt: Schema.DateTimeUtc,
-});
-export type PromotedBaseline = typeof PromotedBaseline.Type;
+export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
 
 /** A saved workbench: the cases, columns and prompt somebody is working on,
  * kept between visits. Distinct from a run, which is a fact about one moment

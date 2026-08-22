@@ -10,11 +10,25 @@ export interface GridTask {
   readonly provider: ProviderName;
 }
 
+/** How a case was set up and how it was judged, carried beside the reading
+ * it produced. */
+export interface GridSetup {
+  readonly prompt: string;
+  readonly repoRef: string | null;
+  readonly repoUrl: string | null;
+  readonly setupCommand: string | null;
+  readonly verifyCommand: string | null;
+  readonly workspace: string;
+}
+
 export interface GridCell {
   readonly caseName: string;
   readonly cellKey: string | null;
   readonly distribution: Option.Option<Distribution>;
   readonly internalId: string | null;
+  /** Absent on a live run, whose cells are planned from the request rather
+   * than read back from a task row. */
+  readonly setup: Option.Option<GridSetup>;
   readonly status: "running" | "finished" | "failed";
   readonly taskIndex: number;
   readonly trials: readonly Option.Option<AgentTrialResult>[];

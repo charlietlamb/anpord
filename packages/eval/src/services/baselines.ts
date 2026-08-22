@@ -1,16 +1,15 @@
 import { Database } from "@anpord/db/client";
 import { evalBaseline } from "@anpord/db/schema/evals/eval-baselines";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
 import { and, eq } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, Option } from "effect";
-import type { CellKey } from "../domain/cell";
+import { CellKey } from "../domain/cell";
 import { type Comparison, compare } from "../domain/comparison";
 import type { Distribution } from "../domain/distribution";
-import { type EvalStoreError, VoidBaseline } from "../domain/errors";
+import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "../repositories/query";
+import type { CellHistoryEntry } from "../repositories/run-query";
 import { RunQuery } from "../repositories/run-query";
 import { distributionFor } from "../repositories/trial-distribution";
 
@@ -38,11 +37,30 @@ export interface BaselinesShape {
     organizationId: string,
     cellKey: CellKey
   ) => Effect.Effect<Option.Option<Baseline>, EvalStoreError>;
-  readonly promote: (input: {
-    readonly actorId: string | null;
-    readonly cellInternalId: string;
+  /** Past readings of one cell, newest first. What makes a verdict legible:
+   * `unchanged` says less than `unchanged since 14 Aug`, and a promotion is a
+   * choice between readings rather than a blind accept of the latest.
+   *
+   * Takes the key as a plain string and brands it here, so a caller at the
+   * HTTP edge never has to reach into the domain to cast one. */
+  readonly history: (input: {
+    readonly cellKey: string;
+    readonly limit: number;
     readonly organizationId: string;
-  }) => Effect.Effect<Baseline, EvalStoreError | VoidBaseline>;
+  }) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
+  /** Accepts a cell's first scored reading as its reference, and does nothing
+   * once one exists. Called as a run finishes so a comparison never depends on
+   * someone remembering to press a button: seven in ten cells never got one
+   * when this was manual, and a cell without a baseline can report no verdict
+   * at all.
+   *
+   * Improvements do not replace the reference. The bar is what was accepted,
+   * so a cell that climbs and then falls back still reports the fall. */
+  readonly promoteIfAbsent: (input: {
+    readonly cellInternalId: string;
+    readonly cellKey: CellKey;
+    readonly organizationId: string;
+  }) => Effect.Effect<void, EvalStoreError>;
 }
 
 export class Baselines extends Context.Tag("@anpord/eval/Baselines")<
@@ -95,89 +113,45 @@ export const BaselinesLive = Layer.effect(
         } satisfies Baseline);
       }).pipe(Effect.withSpan("Baselines.find"));
 
-    const promote = (input: {
-      readonly actorId: string | null;
+    /* Conditional in the insert rather than a read followed by a write: two
+       cells of the same key finishing together would both see nothing and the
+       second would overwrite the first. The unique index decides instead. */
+    const promoteIfAbsent = (input: {
       readonly cellInternalId: string;
+      readonly cellKey: CellKey;
       readonly organizationId: string;
     }) =>
       Effect.gen(function* () {
-        /* Joined to the run so a cell from another tenant cannot be promoted
-           by quoting its internal id. */
-        const owned = yield* tryStore("baseline.owner", () =>
-          db
-            .select({ cellKey: evalCell.cellKey })
-            .from(evalCell)
-            .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
-            .where(
-              and(
-                eq(evalCell.internalId, input.cellInternalId),
-                eq(evalRun.organizationId, input.organizationId)
-              )
-            )
-        );
-
-        const cell = owned.at(0);
-
-        if (cell === undefined) {
-          return yield* Effect.fail(
-            new VoidBaseline({
-              cellInternalId: input.cellInternalId,
-              reason: "no such cell in this organization",
-            })
-          );
-        }
-
         const distribution = yield* distributionOfCell(input.cellInternalId);
 
-        /* A promoted void poisons every future comparison: it would be read
-           as a measured zero and report a total collapse that never happened,
-           or refuse every comparison forever. Refusing here is the only place
-           the mistake is still cheap. */
+        /* Same rule the manual path enforced: a void reading stored as a
+           reference reads as a measured zero and reports a collapse that
+           never happened. A cell that scored nothing simply gets no baseline,
+           and the next run that scores becomes one. */
         if (distribution.scored === 0) {
-          return yield* Effect.fail(
-            new VoidBaseline({
-              cellInternalId: input.cellInternalId,
-              reason: "the cell has no scored trials",
-            })
-          );
+          return;
         }
 
         const internalId = yield* ids.generate("evalBaseline");
-        const cellKey = cell.cellKey as CellKey;
-        /* One reading of the clock for both the write and the reply, so the
-           value returned cannot disagree with the value stored. */
         const promotedAt = new Date(yield* Clock.currentTimeMillis);
 
-        const rows = yield* tryStore("baseline.promote", () =>
+        yield* tryStore("baseline.promoteIfAbsent", () =>
           db
             .insert(evalBaseline)
             .values({
               cellInternalId: input.cellInternalId,
-              cellKey,
+              cellKey: input.cellKey,
               internalId,
               organizationId: input.organizationId,
               promotedAt,
-              promotedBy: input.actorId,
+              promotedBy: null,
             })
-            .onConflictDoUpdate({
-              set: {
-                cellInternalId: input.cellInternalId,
-                promotedAt,
-                promotedBy: input.actorId,
-              },
+            .onConflictDoNothing({
               target: [evalBaseline.organizationId, evalBaseline.cellKey],
             })
-            .returning()
         );
-
-        return {
-          cellInternalId: input.cellInternalId,
-          cellKey,
-          distribution,
-          promotedAt: rows[0]?.promotedAt ?? promotedAt,
-        } satisfies Baseline;
       }).pipe(
-        Effect.withSpan("Baselines.promote"),
+        Effect.withSpan("Baselines.promoteIfAbsent"),
         Effect.annotateLogs({
           cellInternalId: input.cellInternalId,
           organizationId: input.organizationId,
@@ -206,6 +180,15 @@ export const BaselinesLive = Layer.effect(
         );
       }).pipe(Effect.withSpan("Baselines.compareRun"));
 
-    return Baselines.of({ compareRun, find, promote });
+    return Baselines.of({
+      compareRun,
+      find,
+      history: (input) =>
+        query.findCellHistory({
+          ...input,
+          cellKey: CellKey.make(input.cellKey),
+        }),
+      promoteIfAbsent,
+    });
   })
 );

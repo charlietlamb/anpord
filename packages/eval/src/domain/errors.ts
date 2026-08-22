@@ -23,14 +23,6 @@ export class EvalStoreError extends Data.TaggedError("EvalStoreError")<{
   readonly operation: string;
 }> {}
 
-/** A cell that cannot serve as a reference. Refusing at promotion is the last
- * cheap moment: a promoted void is read as a measured zero by every later
- * comparison and reports a collapse that never happened. */
-export class VoidBaseline extends Data.TaggedError("VoidBaseline")<{
-  readonly cellInternalId: string;
-  readonly reason: string;
-}> {}
-
 /** A playground asked to run before it can. Carries every reason at once,
  * because fixing one and being told about the next is a worse experience
  * than being told all of them now. */

@@ -25,3 +25,6 @@ packages/*/package.json.catalog
 
 # Captured sandbox sessions, which contain run output rather than source.
 apps/sandbox-lab/.sessions/
+
+# Screenshots pulled for design reference, not product code.
+.design-refs/
