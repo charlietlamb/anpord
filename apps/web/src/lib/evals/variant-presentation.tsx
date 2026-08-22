@@ -4,15 +4,14 @@ import {
   E2bMark,
   OpenAiMark,
 } from "@anpord/ui/components/brand/provider-marks";
+import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
 import { CpuIcon, LaptopIcon } from "@phosphor-icons/react";
-import type { ComponentType } from "react";
 
 /** A vendor mark and a Phosphor icon are both just components taking a class,
  * so the badge can render either without knowing which it has. */
-export type VariantIcon = ComponentType<{ readonly className?: string }>;
 
 interface Presentation {
-  readonly Icon: VariantIcon;
+  readonly Icon: RailIcon;
   readonly label: string;
 }
 

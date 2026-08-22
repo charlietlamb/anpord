@@ -104,24 +104,29 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
             <RailFact
               hint="What the verify script returned. Zero is a pass; anything else is the check saying no."
               Icon={SignOutIcon}
-              label="exit"
+              label="exit code"
+              layout="stated"
               value={
-                trial.exitCode === -1 ? "undecided" : String(trial.exitCode)
+                trial.exitCode === -1
+                  ? "undecided exit"
+                  : `exit ${trial.exitCode}`
               }
             />
             <RailFact
               hint="Shell commands the agent ran in the sandbox."
               Icon={TerminalWindowIcon}
               label="commands"
-              value={String(trial.commands)}
+              layout="stated"
+              value={`${trial.commands} commands`}
             />
             {trial.failedCommands > 0 ? (
               <RailFact
                 hint="Commands that exited non-zero. An agent probing a repository hits these and recovers, so a passed trial can still have them."
                 Icon={WarningIcon}
                 label="failed"
+                layout="stated"
                 tone="warning"
-                value={String(trial.failedCommands)}
+                value={`${trial.failedCommands} failed`}
               />
             ) : null}
           </div>

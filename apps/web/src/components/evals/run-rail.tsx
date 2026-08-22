@@ -31,15 +31,23 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
           <RailFact
             Icon={ClockIcon}
             label="started"
+            layout="stated"
             value={clock(run.startedAt.epochMillis)}
           />
           {took === null ? null : (
-            <RailFact Icon={TimerIcon} label="took" value={took} />
+            <RailFact
+              Icon={TimerIcon}
+              label="duration"
+              layout="stated"
+              value={`took ${took}`}
+            />
           )}
           <RailFact
+            hint="Cases across variants. Every pair is one cell, and a cell is what a baseline is kept for."
             Icon={GridFourIcon}
             label="grid"
-            value={`${run.cases.length} × ${run.tasks.length}`}
+            layout="stated"
+            value={`${run.cases.length} × ${run.tasks.length} grid`}
           />
         </div>
       </RailSection>

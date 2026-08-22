@@ -57,7 +57,8 @@ export function CellRail({
                 hint="Trials that passed, out of those that produced evidence to score."
                 Icon={CheckCircleIcon}
                 label="passed"
-                value={`${distribution.passed}/${distribution.scored}`}
+                layout="stated"
+                value={`${distribution.passed}/${distribution.scored} passed`}
               />
 
               {distribution.voided > 0 ? (
@@ -65,8 +66,9 @@ export function CellRail({
                   hint="Trials that produced no evidence, so nothing could be scored either way."
                   Icon={ProhibitIcon}
                   label="void"
+                  layout="stated"
                   tone="warning"
-                  value={String(distribution.voided)}
+                  value={`${distribution.voided} void`}
                 />
               ) : null}
 
@@ -78,7 +80,7 @@ export function CellRail({
                 }
                 Icon={ArrowsLeftRightIcon}
                 label="agreement"
-                tone={lostAgreement ? "warning" : undefined}
+                layout="stated"
                 value={agreementOf(distribution.deterministic, lostAgreement)}
               />
 
@@ -86,10 +88,11 @@ export function CellRail({
                 hint="Commands run per trial, lowest to highest."
                 Icon={TerminalWindowIcon}
                 label="commands"
+                layout="stated"
                 value={
                   distribution.commandMin === distribution.commandMax
-                    ? String(distribution.commandMin)
-                    : `${distribution.commandMin}-${distribution.commandMax}`
+                    ? `${distribution.commandMin} commands`
+                    : `${distribution.commandMin}-${distribution.commandMax} commands`
                 }
               />
             </div>
