@@ -14,7 +14,21 @@ import { noPending, timeLine } from "./codex-timing";
  * raw: a task prompt is customer text and will eventually contain a quote. */
 const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
-const command = (request: RunHarness) =>
+/**
+ * The line Codex is run with.
+ *
+ * No `--model`, deliberately. Codex here authenticates as a ChatGPT account,
+ * and that path refuses every model passed explicitly -- `gpt-5-codex`,
+ * `gpt-5`, `codex-mini-latest` and `o3` each return
+ * `400 ... not supported when using Codex with a ChatGPT account`, including
+ * the model Codex itself picks when the flag is absent. Sending the column's
+ * model would fail every trial rather than compare anything.
+ *
+ * The cell key still hashes the model, so a grid can record which one a
+ * column meant. Making that true rather than aspirational needs an API-key
+ * credential, not a change here.
+ */
+export const codexCommand = (request: RunHarness) =>
   [
     `cd ${request.workspace}`,
     "&&",
@@ -40,7 +54,7 @@ export const CodexRunnerLive = Layer.succeed(
         const pending = yield* Ref.make(noPending);
 
         const events = request.sandbox
-          .exec(command(request), {
+          .exec(codexCommand(request), {
             timeoutMs: 15 * 60 * 1000,
           })
           .pipe(
