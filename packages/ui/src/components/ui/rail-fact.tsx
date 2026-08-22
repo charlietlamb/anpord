@@ -107,7 +107,7 @@ export function RailFact({
   return (
     <Tooltip>
       <TooltipTrigger render={row} />
-      <TooltipContent className="max-w-56" side="left">
+      <TooltipContent className="max-w-72 whitespace-pre-line" side="left">
         {hint}
       </TooltipContent>
     </Tooltip>

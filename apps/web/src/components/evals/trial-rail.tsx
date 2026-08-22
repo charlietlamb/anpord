@@ -14,7 +14,6 @@ import {
   SignOutIcon,
   TerminalWindowIcon,
   TimerIcon,
-  WarningIcon,
 } from "@phosphor-icons/react";
 import { TrialStatusBadge } from "@/components/evals/eval-status-badge";
 import { TrialCost } from "@/components/evals/trial-cost";
@@ -74,6 +73,36 @@ function FileRow({ path }: { readonly path: string }) {
  * Outcome first, then duration, then cost, because a reader arrives asking
  * whether it passed.
  */
+/* Named so the row can carry both facts: how many ran, and how many of them
+   the shell rejected. */
+const commandsValue = (trial: EvalTrial) =>
+  trial.failedCommands === 0
+    ? `${trial.commands} commands`
+    : `${trial.commands} commands, ${trial.failedCommands} failed`;
+
+/* Which commands failed, not just how many. A count says a trial hit a
+   non-zero exit; the commands themselves say whether that was `git status` on
+   a fresh checkout or the verify script giving up. */
+const commandsHint = (trial: EvalTrial) => {
+  const failed = trial.trajectory.filter(
+    (entry) => entry._tag === "command" && (entry.exitCode ?? 0) !== 0
+  );
+
+  if (failed.length === 0) {
+    return "Shell commands the agent ran in the sandbox.";
+  }
+
+  const named = failed
+    .map((entry) =>
+      entry._tag === "command"
+        ? `${entry.command} (exit ${entry.exitCode})`
+        : ""
+    )
+    .join("\n");
+
+  return `An agent probing a repository hits a non-zero exit and recovers, so a passed trial can still have them.\n\n${named}`;
+};
+
 export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;
@@ -98,22 +127,12 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
               }
             />
             <RailFact
-              hint="Shell commands the agent ran in the sandbox."
+              hint={commandsHint(trial)}
               Icon={TerminalWindowIcon}
               label="commands"
               layout="stated"
-              value={`${trial.commands} commands`}
+              value={commandsValue(trial)}
             />
-            {trial.failedCommands > 0 ? (
-              <RailFact
-                hint="Commands that exited non-zero. An agent probing a repository hits these and recovers, so a passed trial can still have them."
-                Icon={WarningIcon}
-                label="failed"
-                layout="stated"
-                tone="warning"
-                value={`${trial.failedCommands} failed`}
-              />
-            ) : null}
           </div>
 
           <VoidReason fields={trial.voidFields} />
