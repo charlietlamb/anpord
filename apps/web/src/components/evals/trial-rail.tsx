@@ -7,7 +7,6 @@ import {
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { ShareBar } from "@anpord/ui/components/ui/share-bar";
-import { StatusDot } from "@anpord/ui/components/ui/status-badge";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
   BrainIcon,
@@ -16,8 +15,9 @@ import {
   TerminalWindowIcon,
   TimerIcon,
 } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import { CommandsHint } from "@/components/evals/commands-hint";
-import { trialTone } from "@/components/evals/eval-status-badge";
+import { TrialStatusIcon } from "@/components/evals/eval-status-badge";
 import { TrialCost } from "@/components/evals/trial-cost";
 import { VoidReason } from "@/components/evals/void-reason";
 import { seconds } from "@/lib/evals/duration";
@@ -61,9 +61,21 @@ function FileRow({ path }: { readonly path: string }) {
 
 /* Named so the row can carry both facts: how many ran, and how many of them
    the shell rejected. */
-const verdictDot = (status: EvalTrial["status"]) => () => (
-  <StatusDot tone={trialTone(status)} />
-);
+const VERDICT_ICONS = new Map<EvalTrial["status"], () => ReactNode>();
+
+const verdictIcon = (status: EvalTrial["status"]) => {
+  const built = VERDICT_ICONS.get(status);
+
+  if (built !== undefined) {
+    return built;
+  }
+
+  const made = () => <TrialStatusIcon status={status} />;
+
+  VERDICT_ICONS.set(status, made);
+
+  return made;
+};
 
 const commandsValue = (trial: EvalTrial) =>
   trial.failedCommands === 0
@@ -90,7 +102,7 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">
             <RailFact
-              Icon={verdictDot(trial.status)}
+              Icon={verdictIcon(trial.status)}
               label="verdict"
               layout="stated"
               value={trial.status}

@@ -4,6 +4,16 @@ import type {
   EvalVerdict,
 } from "@anpord/schema/domain/evals";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
+import { cn } from "@anpord/ui/lib/utils";
+import {
+  CheckCircleIcon,
+  CircleDashedIcon,
+  CircleHalfIcon,
+  CircleNotchIcon,
+  type Icon,
+  ProhibitInsetIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
 
 type Tone = "neutral" | "pending" | "positive" | "critical";
 
@@ -13,7 +23,42 @@ const RUN_TONES: Record<EvalRunStatus, Tone> = {
   running: "pending",
 };
 
-export const trialTone = (status: EvalTrialStatus) => TRIAL_TONES[status];
+const TRIAL_GLYPHS: Record<EvalTrialStatus, Icon> = {
+  /* Ran past its ceiling rather than answering wrongly, which is a limit hit
+     and not a verdict. */
+  exceeded: ProhibitInsetIcon,
+  failed: XCircleIcon,
+  passed: CheckCircleIcon,
+  queued: CircleDashedIcon,
+  running: CircleNotchIcon,
+  /* Nothing filled it in: no evidence either way, which is the one state a
+     tick or a cross would both misreport. */
+  void: CircleHalfIcon,
+};
+
+const TONE_CLASSES: Record<Tone, string> = {
+  critical: "text-destructive",
+  neutral: "text-muted-foreground",
+  pending: "text-warning",
+  positive: "text-success",
+};
+
+/** The verdict as a mark that means something on its own, for a rail row where
+ * the icon is the only label the state gets. */
+export function TrialStatusIcon({
+  status,
+}: {
+  readonly status: EvalTrialStatus;
+}) {
+  const Glyph = TRIAL_GLYPHS[status];
+
+  return (
+    <Glyph
+      className={cn("size-3.5 shrink-0", TONE_CLASSES[TRIAL_TONES[status]])}
+      weight="bold"
+    />
+  );
+}
 
 const TRIAL_TONES: Record<EvalTrialStatus, Tone> = {
   exceeded: "critical",

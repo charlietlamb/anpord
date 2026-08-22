@@ -58,6 +58,7 @@ export function CellRail({
                 Icon={CheckCircleIcon}
                 label="passed"
                 layout="stated"
+                tone="positive"
                 value={`${distribution.passed}/${distribution.scored} passed`}
               />
 

@@ -28,7 +28,9 @@ interface RailFactProps {
    * fact it already had. The label still reaches a screen reader.
    */
   readonly layout?: "spread" | "stated";
-  readonly tone?: "muted" | "warning";
+  /** Colour the row carries because of what it reports, not for decoration:
+   * an outcome earns it, a duration does not. */
+  readonly tone?: "muted" | "positive" | "warning";
   readonly value: ReactNode;
 }
 
@@ -75,7 +77,10 @@ export function RailFact({
         <Icon
           className={cn(
             "size-3.5 shrink-0",
-            tone === "warning" ? "text-warning" : "text-muted-foreground/80"
+            tone === "warning" && "text-warning",
+            tone === "positive" && "text-success",
+            (tone === undefined || tone === "muted") &&
+              "text-muted-foreground/80"
           )}
         />
       )}
