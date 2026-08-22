@@ -83,7 +83,7 @@ export function RailFact({
         <span className="shrink-0 text-muted-foreground/80">{label}</span>
       )}
 
-      {detail}
+      {stated ? null : detail}
 
       <span
         className={cn(
@@ -95,6 +95,8 @@ export function RailFact({
       >
         {value}
       </span>
+
+      {stated ? detail : null}
     </div>
   );
 

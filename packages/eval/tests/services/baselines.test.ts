@@ -316,4 +316,27 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
       comparisons[0]?.comparison && Option.isNone(comparisons[0].comparison)
     ).toBe(true);
   });
+  /** Every cell becomes its own reference on its first scored reading, so the
+   * run that set the baseline would otherwise report `unchanged` against
+   * itself: a verdict with no second reading behind it. */
+  it("yields no verdict for a cell that is its own baseline", async () => {
+    const comparisons = await run(
+      Effect.gen(function* () {
+        const baselines = yield* Baselines;
+
+        yield* baselines.promoteIfAbsent({
+          cellInternalId: `cellint_base${suffix}`,
+          cellKey: key,
+          organizationId,
+        });
+
+        return yield* baselines.compareRun(organizationId, `run_base${suffix}`);
+      })
+    );
+
+    expect(comparisons).toHaveLength(1);
+    expect(
+      comparisons[0]?.comparison && Option.isNone(comparisons[0].comparison)
+    ).toBe(true);
+  });
 });

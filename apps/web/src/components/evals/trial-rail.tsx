@@ -6,8 +6,11 @@ import {
 } from "@anpord/ui/components/tooltip";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
+import { ShareBar } from "@anpord/ui/components/ui/share-bar";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
+  BrainIcon,
+  CubeIcon,
   SignOutIcon,
   StackIcon,
   TerminalWindowIcon,
@@ -19,24 +22,6 @@ import { VoidReason } from "@/components/evals/void-reason";
 import { count, seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
-
-/** A share of the row above it, drawn rather than stated: reading 34.5 against
- * 52.6 is arithmetic, and a bar is the same fact without the sum. */
-function Share({ of, value }: { readonly of: number; readonly value: number }) {
-  const percent = of === 0 ? 0 : Math.min((value / of) * 100, 100);
-
-  return (
-    <span
-      aria-hidden="true"
-      className="block h-0.5 w-6 shrink-0 overflow-hidden rounded-full bg-muted-foreground/20"
-    >
-      <span
-        className="block h-full rounded-full bg-muted-foreground/60"
-        style={{ width: `${percent}%` }}
-      />
-    </span>
-  );
-}
 
 /* The name alone, with the path on hover. A rail is too narrow for a full
    path, and truncating one leaves a column of identical prefixes with the
@@ -96,7 +81,7 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
 
   return (
     <aside className={RAIL_FRAME}>
-      <RailSection title="Trial">
+      <RailSection title="Outcome">
         <div className="flex flex-col gap-2">
           <TrialStatusBadge status={trial.status} />
 
@@ -131,73 +116,64 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
             ) : null}
           </div>
 
-          <div className="flex flex-col">
-            <RailFact
-              Icon={TimerIcon}
-              label="took"
-              value={seconds(trial.modelMs + trial.sandboxMs)}
-            />
-
-            <RailFact
-              detail={<Share of={trialTotalMs} value={trial.modelMs} />}
-              hint="The harness running, start to finish. Contains the thinking and commands below it."
-              label="agent"
-              tone="muted"
-              value={seconds(trial.modelMs)}
-            />
-
-            {measured ? (
-              <>
-                <RailFact
-                  detail={<Share of={trialTotalMs} value={thinkingMs} />}
-                  hint="Between one recorded event and the next, so harness overhead is inside it as well as the model."
-                  label="thinking"
-                  tone="muted"
-                  value={seconds(thinkingMs)}
-                />
-                <RailFact
-                  detail={<Share of={trialTotalMs} value={workingMs} />}
-                  hint="Commands running in the sandbox, measured end to end."
-                  label="commands"
-                  tone="muted"
-                  value={seconds(workingMs)}
-                />
-              </>
-            ) : null}
-
-            <RailFact
-              detail={<Share of={trialTotalMs} value={trial.sandboxMs} />}
-              hint="Creating and tearing down the sandbox, outside the agent run."
-              label="sandbox"
-              tone="muted"
-              value={seconds(trial.sandboxMs)}
-            />
-          </div>
-
-          {trial.usage === null ? null : (
-            <div className="flex flex-col">
-              <RailFact
-                hint="Everything the model read and wrote across the trial."
-                Icon={StackIcon}
-                label="tokens"
-                value={count(trial.usage.totalTokens)}
-              />
-              <RailFact
-                label="in"
-                tone="muted"
-                value={count(trial.usage.inputTokens)}
-              />
-              <RailFact
-                label="out"
-                tone="muted"
-                value={count(trial.usage.outputTokens)}
-              />
-            </div>
-          )}
-
           <VoidReason fields={trial.voidFields} />
         </div>
       </RailSection>
+
+      <RailSection title="Time">
+        <div className="flex flex-col">
+          <RailFact
+            hint="The agent run plus the sandbox around it."
+            Icon={TimerIcon}
+            label="duration"
+            layout="stated"
+            value={`took ${seconds(trialTotalMs)}`}
+          />
+
+          {measured ? (
+            <RailFact
+              detail={<ShareBar of={trialTotalMs} value={thinkingMs} />}
+              hint="Between one recorded event and the next, so harness overhead is inside it as well as the model. The rest of the agent phase is the journal's own gaps."
+              Icon={BrainIcon}
+              label="thinking"
+              layout="stated"
+              value={`${seconds(thinkingMs)} thinking`}
+            />
+          ) : null}
+
+          {measured ? (
+            <RailFact
+              detail={<ShareBar of={trialTotalMs} value={workingMs} />}
+              hint="Commands running in the sandbox, measured end to end."
+              Icon={TerminalWindowIcon}
+              label="running commands"
+              layout="stated"
+              value={`${seconds(workingMs)} running`}
+            />
+          ) : null}
+
+          <RailFact
+            detail={<ShareBar of={trialTotalMs} value={trial.sandboxMs} />}
+            hint="Creating and tearing down the sandbox, outside the agent run."
+            Icon={CubeIcon}
+            label="sandbox"
+            layout="stated"
+            value={`${seconds(trial.sandboxMs)} sandbox`}
+          />
+        </div>
+      </RailSection>
+
+      {trial.usage === null ? null : (
+        <RailSection title="Cost">
+          <RailFact
+            hint={`${count(trial.usage.inputTokens)} read, ${count(trial.usage.outputTokens)} written.`}
+            Icon={StackIcon}
+            label="tokens"
+            layout="stated"
+            value={`${count(trial.usage.totalTokens)} tokens`}
+          />
+        </RailSection>
+      )}
 
       {trial.filesChanged.length === 0 ? null : (
         <RailSection title="Files changed">

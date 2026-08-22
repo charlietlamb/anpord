@@ -28,7 +28,12 @@ export interface CellComparison {
 export interface BaselinesShape {
   /** Every cell of a run against its baseline. A cell with no baseline yields
    * `none` rather than a verdict, because nothing has been accepted to compare
-   * it with and inventing one would be the drift this service prevents. */
+   * it with and inventing one would be the drift this service prevents.
+   *
+   * A cell that is its own baseline yields `none` too. Every cell becomes the
+   * reference on its first scored reading, so the run that set it would
+   * otherwise report `unchanged` against itself: a verdict with no second
+   * reading behind it, sitting above a history that says there is none. */
   readonly compareRun: (
     organizationId: string,
     runId: string
@@ -171,8 +176,14 @@ export const BaselinesLive = Layer.effect(
             Effect.map(
               (baseline): CellComparison => ({
                 cellKey: cell.cell.cellKey as CellKey,
-                comparison: Option.map(baseline, (accepted) =>
-                  compare(accepted.distribution, cell.distribution)
+                comparison: baseline.pipe(
+                  Option.filter(
+                    (accepted) =>
+                      accepted.cellInternalId !== cell.cell.internalId
+                  ),
+                  Option.map((accepted) =>
+                    compare(accepted.distribution, cell.distribution)
+                  )
                 ),
               })
             )
