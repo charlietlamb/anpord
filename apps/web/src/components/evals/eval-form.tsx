@@ -1,9 +1,9 @@
 import type { EvalDraft } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
+import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi-select";
 import { FlaskIcon, PlayIcon } from "@phosphor-icons/react";
 import { AddCaseButton, CaseRow } from "@/components/evals/case-editor";
 import { RunPreview } from "@/components/evals/run-preview";
-import { VariantPicker } from "@/components/evals/variant-picker";
 import {
   emptyCase,
   ungatedIn,
@@ -40,7 +40,7 @@ export function EvalForm({
 
   return (
     <form
-      className="flex flex-col gap-8"
+      className="flex flex-col gap-8 pb-8"
       onSubmit={(event) => {
         event.preventDefault();
         form.handleSubmit();
@@ -127,12 +127,17 @@ export function EvalForm({
             {(models) => (
               <div className="grid gap-1.5">
                 <span className="font-medium text-xs">Models</span>
-                <VariantPicker
+                <SearchableMultiSelect
                   emptyLabel="Choose a model"
-                  iconOf={(value) => modelPresentation(value).Icon}
                   label="Models"
                   onChange={(next) => models.handleChange(next)}
                   options={MODEL_OPTIONS}
+                  renderOption={(option) => {
+                    const { Icon } = modelPresentation(option.value);
+
+                    return <Icon className="size-3.5 shrink-0" />;
+                  }}
+                  searchPlaceholder="Search models…"
                   value={models.state.value}
                 />
               </div>
@@ -143,12 +148,17 @@ export function EvalForm({
             {(providers) => (
               <div className="grid gap-1.5">
                 <span className="font-medium text-xs">Sandboxes</span>
-                <VariantPicker
+                <SearchableMultiSelect
                   emptyLabel="Choose a sandbox"
-                  iconOf={(value) => providerPresentation(value).Icon}
                   label="Sandboxes"
                   onChange={(next) => providers.handleChange(next)}
                   options={PROVIDER_OPTIONS}
+                  renderOption={(option) => {
+                    const { Icon } = providerPresentation(option.value);
+
+                    return <Icon className="size-3.5 shrink-0" />;
+                  }}
+                  searchPlaceholder="Search sandboxes…"
                   value={providers.state.value}
                 />
               </div>

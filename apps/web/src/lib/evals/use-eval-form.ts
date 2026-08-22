@@ -22,7 +22,7 @@ export const emptyCase = (): EvalDraftCase => ({
 /** A new draft starts with one case open and the variant a run almost always
  * uses, because the first thing a person does is describe a task and the last
  * thing they want is to pick a model they were going to pick anyway. */
-export const emptyDraft = (): EvalDraft => ({
+const emptyDraft = (): EvalDraft => ({
   cases: [emptyCase()],
   models: [DEFAULT_MODEL],
   name: "",

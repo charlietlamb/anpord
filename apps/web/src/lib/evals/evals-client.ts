@@ -12,7 +12,6 @@ const BASE = "/api/evals";
 
 const EvalRunSummaryList = Schema.Array(EvalRunSummary);
 const EvalCellHistory = Schema.Array(EvalCellHistoryEntry);
-const PlaygroundList = Schema.Array(PlaygroundView);
 
 type PlaygroundConfig = typeof PlaygroundConfigView.Type;
 
@@ -88,8 +87,3 @@ export const savePlayground = (
 
 export const runPlayground = (id: string) =>
   post(StartedEval, `/playgrounds/${encodeURIComponent(id)}/runs`, {});
-
-export const listPlaygrounds = () => request(PlaygroundList, "/playgrounds");
-
-export const getPlayground = (id: string) =>
-  request(PlaygroundView, `/playgrounds/${encodeURIComponent(id)}`);
