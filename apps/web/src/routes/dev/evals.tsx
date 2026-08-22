@@ -17,6 +17,7 @@ import { CellRail } from "@/components/evals/cell-rail";
 import { CellRow } from "@/components/evals/cell-row";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { CellVerdictNote } from "@/components/evals/cell-verdict-note";
+import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { EvalRow } from "@/components/evals/eval-row";
 import { RunRail } from "@/components/evals/run-rail";
@@ -70,6 +71,19 @@ function EvalsPreview() {
           <h1 className="font-heading text-xl tracking-tight">Evals</h1>
           <ThemeToggle />
         </div>
+
+        <Screen name="New eval">
+          <div className="mx-auto w-full max-w-3xl px-5 py-5">
+            <EvalForm
+              onSubmit={(draft) => {
+                globalThis.console.log("draft", draft);
+
+                return Promise.resolve();
+              }}
+              submitting={false}
+            />
+          </div>
+        </Screen>
 
         <Screen name="Runs">
           <div className="mx-auto w-full max-w-3xl px-5 xl:px-6">

@@ -1,7 +1,8 @@
+import { Button } from "@anpord/ui/components/button";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { FlaskIcon } from "@phosphor-icons/react";
+import { FlaskIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { EvalListSkeleton } from "@/components/evals/eval-list-skeleton";
 import { EvalRow } from "@/components/evals/eval-row";
 import { ListState } from "@/components/layout/list-state";
@@ -18,12 +19,21 @@ function EvalsIndex() {
   const { data, error, isPending } = useQuery(evalQueries.list());
   const runs = data ?? [];
 
+  const newEval = (
+    <Button render={<Link to="/evals/new" />} size="sm">
+      <PlusIcon className="size-3.5" />
+      New eval
+    </Button>
+  );
+
   return (
     <PageShell
+      actions={newEval}
       leading={<PageHeading icon={FlaskIcon} title="Evals" />}
       width="wide"
     >
       <ListState
+        action={newEval}
         description="Run one to see how a harness behaves on a case you care about."
         empty={runs.length === 0}
         error={error}

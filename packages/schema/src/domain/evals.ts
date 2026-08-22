@@ -319,6 +319,70 @@ export const PlaygroundConfigView = Schema.Struct({
   trials: Schema.Int.pipe(Schema.between(1, 10)),
 });
 
+/**
+ * A playground as a form holds it, before it is saved.
+ *
+ * The same fields as `PlaygroundConfigView` with two differences that only a
+ * form needs: the arrays are mutable, because adding and removing a row is
+ * what a form does to them, and the messages are written for a person rather
+ * than a decoder.
+ *
+ * Effect Schema is a Standard Schema, which is the interface TanStack Form
+ * validates against, so this is the validator as well as the contract. One
+ * definition, no adapter, and nothing to keep in step.
+ */
+export const EvalDraftCase = Schema.Struct({
+  goal: Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.annotations({ message: () => "Say what the agent should do." })
+  ),
+  name: Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.annotations({ message: () => "Name this case." })
+  ),
+  setup: Schema.NullOr(Schema.String),
+  source: EvalSource,
+  verify: Schema.NullOr(Schema.String),
+});
+export type EvalDraftCase = typeof EvalDraftCase.Type;
+
+export const EvalDraft = Schema.Struct({
+  cases: Schema.mutable(Schema.Array(EvalDraftCase)).pipe(
+    Schema.minItems(1),
+    Schema.annotations({ message: () => "Add at least one case." })
+  ),
+  models: Schema.mutable(Schema.Array(Schema.String)).pipe(
+    Schema.minItems(1),
+    Schema.annotations({ message: () => "Choose at least one model." })
+  ),
+  name: Schema.String,
+  prompt: Schema.String,
+  providers: Schema.mutable(Schema.Array(EvalProvider)).pipe(
+    Schema.minItems(1),
+    Schema.annotations({ message: () => "Choose at least one sandbox." })
+  ),
+  trials: Schema.Int.pipe(
+    Schema.between(1, 10),
+    Schema.annotations({ message: () => "Run between 1 and 10 trials." })
+  ),
+});
+export type EvalDraft = typeof EvalDraft.Type;
+
+/** Models and sandboxes are chosen as two lists and crossed into columns,
+ * because a column is every pairing of them and asking for the pairs one at a
+ * time is asking a person to do multiplication by hand. */
+export const columnsOfDraft = (draft: {
+  readonly models: readonly string[];
+  readonly providers: readonly EvalProvider[];
+}): readonly { harness: "codex"; model: string; provider: EvalProvider }[] =>
+  draft.providers.flatMap((provider) =>
+    draft.models.map((model) => ({
+      harness: "codex" as const,
+      model,
+      provider,
+    }))
+  );
+
 export const PlaygroundView = Schema.Struct({
   config: PlaygroundConfigView,
   id: Schema.String,
