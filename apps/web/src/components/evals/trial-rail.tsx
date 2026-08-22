@@ -12,14 +12,14 @@ import {
   BrainIcon,
   CubeIcon,
   SignOutIcon,
-  StackIcon,
   TerminalWindowIcon,
   TimerIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
 import { TrialStatusBadge } from "@/components/evals/eval-status-badge";
+import { TrialCost } from "@/components/evals/trial-cost";
 import { VoidReason } from "@/components/evals/void-reason";
-import { count, seconds } from "@/lib/evals/duration";
+import { seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 
@@ -165,13 +165,7 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
 
       {trial.usage === null ? null : (
         <RailSection title="Cost">
-          <RailFact
-            hint={`${count(trial.usage.inputTokens)} read, ${count(trial.usage.outputTokens)} written.`}
-            Icon={StackIcon}
-            label="tokens"
-            layout="stated"
-            value={`${count(trial.usage.totalTokens)} tokens`}
-          />
+          <TrialCost usage={trial.usage} />
         </RailSection>
       )}
 
