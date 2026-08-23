@@ -12,11 +12,13 @@ COPY package.json bun.lock ./
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/e2e/package.json ./apps/e2e/
 COPY apps/mcp/package.json ./apps/mcp/
+COPY apps/sandbox-bridge/package.json ./apps/sandbox-bridge/
 COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/cache/package.json ./packages/cache/
 COPY packages/db/package.json ./packages/db/
+COPY packages/eval/package.json ./packages/eval/
 COPY packages/ids/package.json ./packages/ids/
 COPY packages/notifications/package.json ./packages/notifications/
 COPY packages/prompts/package.json ./packages/prompts/
@@ -49,6 +51,7 @@ COPY --from=install /app/apps/server/node_modules ./apps/server/node_modules
 COPY --from=install /app/packages/auth/node_modules ./packages/auth/node_modules
 COPY --from=install /app/packages/cache/node_modules ./packages/cache/node_modules
 COPY --from=install /app/packages/db/node_modules ./packages/db/node_modules
+COPY --from=install /app/packages/eval/node_modules ./packages/eval/node_modules
 COPY --from=install /app/packages/ids/node_modules ./packages/ids/node_modules
 COPY --from=install /app/packages/notifications/node_modules ./packages/notifications/node_modules
 COPY --from=install /app/packages/prompts/node_modules ./packages/prompts/node_modules
