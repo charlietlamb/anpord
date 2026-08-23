@@ -106,12 +106,16 @@ export const apiScenarios: readonly Scenario<World>[] = [
     },
   },
   {
-    name: "api: a key cannot archive, and the guard answers before the write",
+    /* Archiving is a dashboard action rather than an API one, so the public
+       surface does not carry it at all. The answer is 404 rather than 403
+       because there is no route to be forbidden from, and what matters to a
+       caller either way is that the prompt is still there afterwards. */
+    name: "api: a key cannot archive, and the prompt survives the attempt",
     run: async (world) => {
       const { id } = await givenPrompt(world, "api-guarded");
 
       const archived = await call(world, "prompts.archive", { id });
-      equals("archive is refused", archived.status, 403);
+      equals("archive is not offered", archived.status, 404);
 
       const rows = await world.query<{ archived_at: Date | null }>(
         "select archived_at from prompt where id = $1",
