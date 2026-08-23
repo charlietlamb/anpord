@@ -9,7 +9,10 @@ import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
-import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
+import {
+  PromptEditorLayout,
+  PromptEditorMain,
+} from "@/components/prompts/prompt-editor-layout";
 import { PromptEditorTitle } from "@/components/prompts/prompt-editor-title";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { useDialog } from "@/lib/dialog/dialogs";
@@ -68,7 +71,7 @@ function EditorPreview() {
     <DashboardShell sidebarOpen>
       {/* The real layout, so the preview cannot drift from what ships. */}
       <PromptEditorLayout>
-        <main className="relative flex min-w-0 flex-col pt-5 pb-24">
+        <PromptEditorMain>
           <PromptEditorTitle
             correctingVersion={null}
             dirty={content !== BODY}
@@ -91,7 +94,7 @@ function EditorPreview() {
             }
             readOnly={!editing}
           />
-        </main>
+        </PromptEditorMain>
 
         <PromptRail
           actions={

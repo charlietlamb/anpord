@@ -1,0 +1,61 @@
+---
+title: "Baselines and regressions"
+sidebarTitle: "Baselines"
+description: "Compare a cell with its first scored result"
+---
+
+The first scored result for a cell becomes its fixed baseline. No promotion is required. A cell with no scored trials cannot create one.
+
+| Verdict | Meaning |
+| --- | --- |
+| `improved` | Pass rate increased by at least `0.2`; this takes precedence over determinism loss |
+| `unchanged` | Pass rate moved by less than `0.2` and determinism was not lost |
+| `regressed` | Pass rate fell by at least `0.2`, or moved by less than `0.2` while determinism was lost |
+| `incomparable` | The baseline or candidate has no scored trials |
+
+```ts
+const comparison = run.cells[0]?.comparison;
+
+if (comparison?.verdict === "regressed") {
+  console.error(comparison);
+}
+```
+
+The baseline run has `comparison: null` because a cell is never compared with itself.
+
+## Cell identity
+
+The cell key includes the case goal, source, setup, verifier, harness, harness version, model, and sandbox provider. Changing any of them starts a new history.
+
+The shared prompt is not part of the key. This keeps prompt changes comparable against the same task and runtime.
+
+## Determinism loss
+
+A candidate can regress without moving pass rate by `0.2`. If a deterministic baseline loses outcome agreement or its four-command window across multiple scored trials, `determinismLost` is true. The verdict is `regressed` unless pass rate improved by at least `0.2`.
+
+## Read history
+
+```ts
+const cell = run.cells[0];
+
+if (!cell?.cellKey) throw new Error("Run produced no cell key");
+
+const history = await anpord.evals.cellHistory({ cellKey: cell.cellKey });
+for (const result of history) {
+  console.log(result.runId, result.distribution.passRate, result.trials);
+}
+```
+
+History returns the twenty most recent distributions and trials, newest first.
+
+## Rerun one cell
+
+```ts
+const next = await anpord.evals.rerunCell({
+  id: run.id,
+  cellKey: cell.cellKey,
+  trials: 5,
+});
+```
+
+The rerun creates a new run. The original result does not change.

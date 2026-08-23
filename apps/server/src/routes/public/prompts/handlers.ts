@@ -92,16 +92,5 @@ export const PublicPromptsHandlers = HttpApiBuilder.group(
             });
             return OK;
           }).pipe(withPromptErrors)
-      )
-      .handle(
-        "archive",
-        { permission: Permissions.Organization.Admin },
-        ({ payload }) =>
-          Effect.gen(function* () {
-            const actor = yield* CurrentActor;
-            const catalog = yield* PromptCatalog;
-            yield* catalog.archive(actor, payload.id);
-            return OK;
-          }).pipe(withPromptErrors)
       ).done
 );

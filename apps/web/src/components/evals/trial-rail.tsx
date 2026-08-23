@@ -37,7 +37,7 @@ function FileRow({ path }: { readonly path: string }) {
         <TooltipTrigger
           render={
             <button
-              className="flex min-w-0 cursor-help items-center gap-2 rounded-sm text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="flex min-w-0 items-center gap-2 rounded-sm text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               type="button"
             >
               <Glyph

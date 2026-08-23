@@ -4,6 +4,7 @@ import type {
   ResolvedPrompt,
 } from "@anpord/schema/domain/prompts";
 import type { KeyboardEvent } from "react";
+import { RowList } from "@/components/layout/row-list";
 import { VersionRow } from "@/components/prompts/version-row";
 
 interface VersionListProps {
@@ -59,7 +60,7 @@ export function VersionList({
     return key === "End" ? versions.length - 1 : null;
   };
 
-  const move = (event: KeyboardEvent<HTMLDivElement>) => {
+  const move = (event: KeyboardEvent<HTMLElement>) => {
     const next = destination(event.key);
     if (next === null) {
       return;
@@ -75,12 +76,7 @@ export function VersionList({
   };
 
   return (
-    <div
-      aria-label="Versions"
-      className="flex flex-col"
-      onKeyDown={move}
-      role="listbox"
-    >
+    <RowList label="Versions" onKeyDown={move} role="listbox">
       {versions.map((version) => (
         <VersionRow
           channels={channels}
@@ -93,6 +89,6 @@ export function VersionList({
           viewing={version.version === viewedVersion}
         />
       ))}
-    </div>
+    </RowList>
   );
 }

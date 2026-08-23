@@ -13,22 +13,15 @@ import {
 } from "@phosphor-icons/react";
 
 interface PromptEditorActionsProps {
-  /** Set while a past version is being rewritten rather than branched from. */
   readonly correctingVersion: number | null;
   readonly dirty: boolean;
   readonly onCancelCorrection: () => void;
   readonly onSave: () => void;
-  /** What callers pass to prompts.get, which is the thing worth copying into
-   * code rather than the address of the page it is edited on. */
+
   readonly promptId: string;
   readonly saving: boolean;
 }
 
-/**
- * What can be done to the prompt, at the head of the rail beside everything
- * else that acts on it. The name is edited where it is read, so only the acts
- * that have no place on the page itself appear here.
- */
 export function PromptEditorActions({
   correctingVersion,
   dirty,
@@ -45,8 +38,6 @@ export function PromptEditorActions({
 
   return (
     <ActionCluster>
-      {/* Read at click time: the server has no address, and the one worth
-          copying is whatever the reader is looking at. */}
       <CopyAction
         copiedLabel="Link copied"
         icon={LinkSimpleIcon}
@@ -73,11 +64,6 @@ export function PromptEditorActions({
         </ActionTooltip>
       ) : null}
 
-      {/* One button throughout, changing weight rather than being swapped for
-          another: with unsaved work it fills and states what it will do, and
-          without it recedes to the quietest thing in the cluster. Keeping it
-          filled and inert the rest of the time would teach a reader to stop
-          seeing it. */}
       <ShortcutButton
         className={cn(
           "h-8 shrink-0 rounded-full px-3.5 transition-surface",
@@ -87,14 +73,12 @@ export function PromptEditorActions({
         metaShortcut="enter"
         onClick={onSave}
         size="sm"
-        /* Both the fill and the caps' contrast follow from the variant, so the
-           button changes weight without changing component. */
         variant={armed ? "default" : "subtle"}
       >
         {saving ? (
           <SpinnerGapIcon className="animate-spin" size={15} />
         ) : (
-          <ArrowUpIcon size={15} weight="bold" />
+          <ArrowUpIcon size={15} />
         )}
         {saveLabel}
       </ShortcutButton>

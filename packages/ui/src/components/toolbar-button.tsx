@@ -3,14 +3,9 @@ import type * as React from "react";
 import { cn } from "../lib/utils";
 
 interface ToolbarButtonProps extends React.ComponentProps<"button"> {
-  /** Renders a caret so the control reads as opening a menu. */
   readonly menu?: boolean;
 }
 
-/**
- * Toolbar controls sit at reduced contrast so the text being written stays the
- * loudest thing in the composer; they resolve to full contrast on interaction.
- */
 export function ToolbarButton({
   children,
   className,
@@ -30,7 +25,7 @@ export function ToolbarButton({
       {...props}
     >
       {children}
-      {menu ? <CaretDownIcon className="opacity-60" weight="bold" /> : null}
+      {menu ? <CaretDownIcon className="opacity-60" /> : null}
     </button>
   );
 }

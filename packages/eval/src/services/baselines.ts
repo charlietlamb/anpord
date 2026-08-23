@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalBaseline } from "@anpord/db/schema/evals/eval-baselines";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import { CellKey } from "../domain/cell";
 import { type Comparison, compare } from "../domain/comparison";
@@ -11,7 +11,10 @@ import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "../repositories/query";
 import type { CellHistoryEntry } from "../repositories/run-query";
 import { RunQuery } from "../repositories/run-query";
-import { distributionFor } from "../repositories/trial-distribution";
+import {
+  distributionFor,
+  groupByCell,
+} from "../repositories/trial-distribution";
 
 export interface Baseline {
   readonly cellInternalId: string;
@@ -25,15 +28,17 @@ export interface CellComparison {
   readonly comparison: Option.Option<Comparison>;
 }
 
+export interface CellReading {
+  readonly cellInternalId: string;
+  readonly cellKey: string;
+  readonly distribution: Distribution;
+}
+
 export interface BaselinesShape {
-  /** Every cell of a run against its baseline. A cell with no baseline yields
-   * `none` rather than a verdict, because nothing has been accepted to compare
-   * it with and inventing one would be the drift this service prevents.
-   *
-   * A cell that is its own baseline yields `none` too. Every cell becomes the
-   * reference on its first scored reading, so the run that set it would
-   * otherwise report `unchanged` against itself: a verdict with no second
-   * reading behind it, sitting above a history that says there is none. */
+  readonly compareCells: (
+    organizationId: string,
+    cells: readonly CellReading[]
+  ) => Effect.Effect<readonly CellComparison[], EvalStoreError>;
   readonly compareRun: (
     organizationId: string,
     runId: string
@@ -42,25 +47,13 @@ export interface BaselinesShape {
     organizationId: string,
     cellKey: CellKey
   ) => Effect.Effect<Option.Option<Baseline>, EvalStoreError>;
-  /** Past readings of one cell, newest first. What makes a verdict legible:
-   * `unchanged` says less than `unchanged since 14 Aug`, and a promotion is a
-   * choice between readings rather than a blind accept of the latest.
-   *
-   * Takes the key as a plain string and brands it here, so a caller at the
-   * HTTP edge never has to reach into the domain to cast one. */
+
   readonly history: (input: {
     readonly cellKey: string;
     readonly limit: number;
     readonly organizationId: string;
   }) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
-  /** Accepts a cell's first scored reading as its reference, and does nothing
-   * once one exists. Called as a run finishes so a comparison never depends on
-   * someone remembering to press a button: seven in ten cells never got one
-   * when this was manual, and a cell without a baseline can report no verdict
-   * at all.
-   *
-   * Improvements do not replace the reference. The bar is what was accepted,
-   * so a cell that climbs and then falls back still reports the fall. */
+
   readonly promoteIfAbsent: (input: {
     readonly cellInternalId: string;
     readonly cellKey: CellKey;
@@ -118,9 +111,61 @@ export const BaselinesLive = Layer.effect(
         } satisfies Baseline);
       }).pipe(Effect.withSpan("Baselines.find"));
 
-    /* Conditional in the insert rather than a read followed by a write: two
-       cells of the same key finishing together would both see nothing and the
-       second would overwrite the first. The unique index decides instead. */
+    const compareCells = (
+      organizationId: string,
+      cells: readonly CellReading[]
+    ) =>
+      Effect.gen(function* () {
+        if (cells.length === 0) {
+          return [];
+        }
+
+        const rows = yield* tryStore("baseline.findMany", () =>
+          db
+            .select({ baseline: evalBaseline, trial: evalTrial })
+            .from(evalBaseline)
+            .innerJoin(
+              evalTrial,
+              eq(evalBaseline.cellInternalId, evalTrial.cellInternalId)
+            )
+            .where(
+              and(
+                eq(evalBaseline.organizationId, organizationId),
+                inArray(evalBaseline.cellKey, [
+                  ...new Set(cells.map((cell) => cell.cellKey)),
+                ])
+              )
+            )
+        );
+        const byTrialCell = groupByCell(rows.map((row) => row.trial));
+        const byKey = new Map(
+          rows.map((row) => [
+            row.baseline.cellKey,
+            {
+              cellInternalId: row.baseline.cellInternalId,
+              distribution: distributionFor(
+                byTrialCell.get(row.baseline.cellInternalId) ?? []
+              ),
+            },
+          ])
+        );
+
+        return cells.map((cell): CellComparison => {
+          const baseline = byKey.get(cell.cellKey);
+
+          return {
+            cellKey: CellKey.make(cell.cellKey),
+            comparison:
+              baseline === undefined ||
+              baseline.cellInternalId === cell.cellInternalId
+                ? Option.none()
+                : Option.some(
+                    compare(baseline.distribution, cell.distribution)
+                  ),
+          };
+        });
+      }).pipe(Effect.withSpan("Baselines.compareCells"));
+
     const promoteIfAbsent = (input: {
       readonly cellInternalId: string;
       readonly cellKey: CellKey;
@@ -129,10 +174,6 @@ export const BaselinesLive = Layer.effect(
       Effect.gen(function* () {
         const distribution = yield* distributionOfCell(input.cellInternalId);
 
-        /* Same rule the manual path enforced: a void reading stored as a
-           reference reads as a measured zero and reports a collapse that
-           never happened. A cell that scored nothing simply gets no baseline,
-           and the next run that scores becomes one. */
         if (distribution.scored === 0) {
           return;
         }
@@ -171,34 +212,27 @@ export const BaselinesLive = Layer.effect(
           return [];
         }
 
-        return yield* Effect.forEach(found.value.cells, (cell) =>
-          find(organizationId, cell.cell.cellKey as CellKey).pipe(
-            Effect.map(
-              (baseline): CellComparison => ({
-                cellKey: cell.cell.cellKey as CellKey,
-                comparison: baseline.pipe(
-                  Option.filter(
-                    (accepted) =>
-                      accepted.cellInternalId !== cell.cell.internalId
-                  ),
-                  Option.map((accepted) =>
-                    compare(accepted.distribution, cell.distribution)
-                  )
-                ),
-              })
-            )
-          )
+        return yield* compareCells(
+          organizationId,
+          found.value.cells.map((cell) => ({
+            cellInternalId: cell.cell.internalId,
+            cellKey: cell.cell.cellKey,
+            distribution: cell.distribution,
+          }))
         );
       }).pipe(Effect.withSpan("Baselines.compareRun"));
 
     return Baselines.of({
+      compareCells,
       compareRun,
       find,
       history: (input) =>
-        query.findCellHistory({
-          ...input,
-          cellKey: CellKey.make(input.cellKey),
-        }),
+        query
+          .findCellHistory({
+            ...input,
+            cellKey: CellKey.make(input.cellKey),
+          })
+          .pipe(Effect.withSpan("Baselines.history")),
       promoteIfAbsent,
     });
   })

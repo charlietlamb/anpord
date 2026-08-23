@@ -1,39 +1,29 @@
-import type { EvalProvider } from "@anpord/schema/domain/evals";
+import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
 import { cn } from "@anpord/ui/lib/utils";
 import { WarningIcon } from "@phosphor-icons/react";
 import {
+  harnessPresentation,
   modelPresentation,
   providerPresentation,
 } from "@/lib/evals/variant-presentation";
 
-/**
- * Everything this run is about to do, before it does any of it.
- *
- * Cost here is multiplicative in a way it is not in an ordinary form: a third
- * model and a second sandbox turn nine sandboxes into twenty-four without
- * anything on screen changing size. The count is next to the button that
- * spends it, because that is the last moment it can be reconsidered.
- *
- * Ungated cases are named rather than counted. A case that runs and cannot
- * pass is not a smaller version of a case that can; reading its verdict as
- * evidence is the mistake the whole void gate exists to prevent.
- */
 export function RunPreview({
+  agents,
   cases,
   className,
-  models,
   providers,
   trials,
   ungated,
 }: {
+  readonly agents: readonly EvalAgent[];
   readonly cases: readonly { readonly name: string }[];
   readonly className?: string;
-  readonly models: readonly string[];
   readonly providers: readonly EvalProvider[];
   readonly trials: number;
   readonly ungated: readonly string[];
 }) {
-  const columns = models.length * providers.length;
+  const columns = agents.length * providers.length;
+  const showHarness = new Set(agents.map((agent) => agent.harness)).size > 1;
   const cells = cases.length * columns;
   const runs = cells * trials;
 
@@ -53,16 +43,24 @@ export function RunPreview({
       </div>
 
       <ul className="flex flex-wrap gap-1">
-        {providers.flatMap((provider) =>
-          models.map((model) => {
+        {agents.flatMap(({ harness, model }) =>
+          providers.map((provider) => {
+            const harnessOwn = harnessPresentation(harness);
             const modelOwn = modelPresentation(model);
             const providerOwn = providerPresentation(provider);
 
             return (
               <li
                 className="inline-flex items-center gap-1.5 rounded-md border border-border-faint px-2 py-1 text-xs"
-                key={`${provider}-${model}`}
+                key={`${harness}-${provider}-${model}`}
               >
+                {showHarness ? (
+                  <>
+                    <harnessOwn.Icon className="size-3 shrink-0" />
+                    {harnessOwn.label}
+                    <span className="text-muted-foreground">·</span>
+                  </>
+                ) : null}
                 <modelOwn.Icon className="size-3 shrink-0" />
                 {modelOwn.label}
                 <span className="text-muted-foreground">on</span>

@@ -1,4 +1,5 @@
 import type { EvalSetup } from "@anpord/schema/domain/evals";
+import { stepsOf } from "@anpord/schema/domain/verify-steps";
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 import { cn } from "@anpord/ui/lib/utils";
@@ -12,6 +13,7 @@ import {
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { type ReactNode, useState } from "react";
+import { VerifySteps } from "@/components/evals/verify-steps";
 
 /**
  * What the agent was asked and what decided whether it succeeded.
@@ -69,6 +71,14 @@ const lines = (value: string) => {
   return `${count} line${count === 1 ? "" : "s"}`;
 };
 
+/* A verifier is measured in the conditions it gates on rather than the lines
+   it occupies: the longest here is one line holding fifteen checks. */
+const checks = (value: string) => {
+  const count = stepsOf(value).length;
+
+  return `${count} check${count === 1 ? "" : "s"}`;
+};
+
 /**
  * What the agent was asked and what decided whether it succeeded.
  *
@@ -114,10 +124,10 @@ export function CellSetup({ setup }: { readonly setup: EvalSetup }) {
       ) : (
         <Block
           Icon={CheckSquareIcon}
-          meta={lines(setup.verifyCommand)}
+          meta={checks(setup.verifyCommand)}
           title="Verify"
         >
-          <ShellBlock className="max-h-80" command={setup.verifyCommand} />
+          <VerifySteps command={setup.verifyCommand} />
         </Block>
       )}
 

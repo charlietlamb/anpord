@@ -69,7 +69,7 @@ export function CommandMenu() {
             <CommandItem
               onSelect={() => run(() => openDialog("inviteMember", {}))}
             >
-              <PlusIcon weight="bold" />
+              <PlusIcon />
               Invite member
             </CommandItem>
             <CommandItem

@@ -17,9 +17,9 @@ import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { SignOutIcon } from "@phosphor-icons/react";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { useIsClient } from "@/lib/use-is-client";
+import { useSignOut } from "@/lib/use-sign-out";
 
 /**
  * Renders the skeleton on the server and the first client render (session state
@@ -30,6 +30,7 @@ export function UserMenu() {
   const { data: session, isPending } = useSession();
   const navigate = useNavigate();
   const isClient = useIsClient();
+  const onSignOut = useSignOut(() => navigate({ to: "/login" }));
 
   if (!isClient || isPending) {
     return <Skeleton className="size-8 rounded-full" />;
@@ -39,21 +40,6 @@ export function UserMenu() {
   }
 
   const { user } = session;
-  const onSignOut = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        toast.error("Couldn't sign out", { description: error.message });
-        return;
-      }
-      toast.success("Signed out");
-      navigate({ to: "/login" });
-    } catch {
-      toast.error("Couldn't sign out", {
-        description: "Can't reach the server. Please try again.",
-      });
-    }
-  };
 
   return (
     <DropdownMenu>

@@ -67,6 +67,29 @@ export const HarnessUsage = Schema.Struct({
 });
 export type HarnessUsage = typeof HarnessUsage.Type;
 
+/**
+ * Tokens read back from the column they were stored in.
+ *
+ * A `jsonb` column is whatever was written to it, so the three fields are
+ * checked rather than assumed: a row written by an older build with a
+ * different shape reports no usage instead of a cost of `undefined`.
+ */
+export const usageOf = (
+  value: Record<string, number> | null
+): HarnessUsage | null => {
+  if (value === null) {
+    return null;
+  }
+
+  const { inputTokens, outputTokens, totalTokens } = value;
+
+  return typeof inputTokens === "number" &&
+    typeof outputTokens === "number" &&
+    typeof totalTokens === "number"
+    ? { inputTokens, outputTokens, totalTokens }
+    : null;
+};
+
 /* Null rather than epoch zero: unknown is not 1970. */
 export const momentOf = (at: number | undefined) =>
   at === undefined ? null : new Date(at);

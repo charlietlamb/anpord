@@ -26,3 +26,22 @@ export function PromptEditorLayout({ children }: PromptEditorLayoutProps) {
     </div>
   );
 }
+
+/**
+ * The prompt column of the editor.
+ *
+ * Its own component because the shell and the loading state and the preview
+ * each wrote the same `<main>` by hand, which is three chances for one of them
+ * to drift and swap the page's rhythm as it loads.
+ */
+export function PromptEditorMain({
+  children,
+}: {
+  readonly children: ReactNode;
+}) {
+  return (
+    <main className="relative flex min-w-0 flex-col pt-5 pb-24">
+      {children}
+    </main>
+  );
+}

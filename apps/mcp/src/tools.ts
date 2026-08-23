@@ -1,3 +1,11 @@
+import { RerunCellRequest } from "@anpord/schema/domain/evals";
+import {
+  EvalCellRequest,
+  EvalModelsRequest,
+  EvalRunRequest,
+  ListEvalsRequest,
+  PublicStartEvalRequest,
+} from "@anpord/schema/public/evals-api";
 import {
   GetPromptRequest,
   ListPromptsRequest,
@@ -5,7 +13,7 @@ import {
   PromotePromptRequest,
   UpdatePromptRequest,
 } from "@anpord/schema/public/requests";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { MCPServer } from "mcp-use";
 import { callApi } from "./runtime";
 import { toolInput } from "./tool-input";
@@ -27,12 +35,83 @@ const ResolvePrompt = GetPromptRequest.pick("channel", "id", "version");
 
 const AddVersion = UpdatePromptRequest.pick("content", "id", "message");
 
+const RerunCell = Schema.Struct({
+  ...EvalRunRequest.fields,
+  ...EvalCellRequest.fields,
+  ...RerunCellRequest.fields,
+});
+
 export const register = (server: MCPServer<AnpordUser>) => {
   server.tool(
     {
+      description: "List a page of eval runs, newest first.",
+      inputSchema: toolInput(ListEvalsRequest),
+      name: "list_eval_runs",
+    },
+    (payload, ctx) =>
+      callApi(ctx, (api) => Effect.map(api.evals.list({ payload }), asJson))
+  );
+
+  server.tool(
+    {
+      description: "List the models available to a harness.",
+      inputSchema: toolInput(EvalModelsRequest),
+      name: "list_eval_models",
+    },
+    (payload, ctx) =>
+      callApi(ctx, (api) => Effect.map(api.evals.models({ payload }), asJson))
+  );
+
+  server.tool(
+    {
       description:
-        "Read a prompt's content. Returns the production version unless a " +
-        "channel or version is given.",
+        "Start an eval run. Returns an id while trials continue in the background.",
+      inputSchema: toolInput(PublicStartEvalRequest),
+      name: "start_eval_run",
+    },
+    (payload, ctx) =>
+      callApi(ctx, (api) => Effect.map(api.evals.start({ payload }), asJson))
+  );
+
+  server.tool(
+    {
+      description: "Get an eval run, including its cells and trial results.",
+      inputSchema: toolInput(EvalRunRequest),
+      name: "get_eval_run",
+    },
+    (payload, ctx) =>
+      callApi(ctx, (api) => Effect.map(api.evals.get({ payload }), asJson))
+  );
+
+  server.tool(
+    {
+      description: "List previous results for an eval cell.",
+      inputSchema: toolInput(EvalCellRequest),
+      name: "get_eval_cell_history",
+    },
+    (payload, ctx) =>
+      callApi(ctx, (api) =>
+        Effect.map(api.evals.cellHistory({ payload }), asJson)
+      )
+  );
+
+  server.tool(
+    {
+      description: "Run one cell again with the same case and variant.",
+      inputSchema: toolInput(RerunCell),
+      name: "rerun_eval_cell",
+    },
+    (payload, ctx) =>
+      callApi(ctx, (api) =>
+        Effect.map(api.evals.rerunCell({ payload }), asJson)
+      )
+  );
+
+  server.tool(
+    {
+      description:
+        "Read a prompt's content. Uses the organization's default channel " +
+        "unless a channel or version is given.",
       inputSchema: toolInput(ResolvePrompt),
       name: "get_prompt",
     },

@@ -1,12 +1,15 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
-import { Conflict, Forbidden, NotFound } from "../domain/errors";
+import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
   CreatePlaygroundRequest,
   EvalCellHistoryEntry,
+  EvalHarness,
   EvalRun,
-  EvalRunSummary,
+  EvalRunPage,
+  ModelCatalogue,
   PlaygroundView,
+  RerunCellRequest,
   SavePlaygroundRequest,
   StartEvalRequest,
   StartedEval,
@@ -18,13 +21,20 @@ const CellPath = Schema.Struct({ cellKey: Schema.String });
 
 export class EvalsGroup extends HttpApiGroup.make("evals")
   .add(
-    HttpApiEndpoint.get("list", "/evals").addSuccess(
-      Schema.Array(EvalRunSummary)
-    )
+    /* Cursor rather than page number: an offset counts rows the database has
+       already discarded, and a run started between two fetches shifts every
+       page after it. */
+    HttpApiEndpoint.get("list", "/evals")
+      .setUrlParams(
+        Schema.Struct({
+          cursorId: Schema.optional(Schema.String),
+          cursorStartedAt: Schema.optional(Schema.NumberFromString),
+          limit: Schema.optional(Schema.NumberFromString),
+        })
+      )
+      .addSuccess(EvalRunPage)
   )
-  /** Returns as soon as the run is recorded rather than when it finishes. A
-   * trial takes tens of seconds and spends real money, so a request that held
-   * open for it would die on any proxy long before the answer arrived. */
+
   .add(
     HttpApiEndpoint.post("start", "/evals")
       .setPayload(StartEvalRequest)
@@ -35,46 +45,66 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
       .setPath(RunPath)
       .addSuccess(EvalRun)
   )
-  /** How this cell has read over time, so a verdict carries when it last
-   * moved rather than only which way. Scoped to the caller's organization
-   * inside the query: a cell key is a content hash and carries no tenant, so
-   * an identical task in another organization would otherwise match. */
+
   .add(
     HttpApiEndpoint.get("cellHistory", "/evals/cells/:cellKey/history")
       .setPath(CellPath)
       .addSuccess(Schema.Array(EvalCellHistoryEntry))
   )
-  /** The workbench: saved between visits, so a person returns to what they
-   * were working on rather than rebuilding it. */
+
   .add(
-    HttpApiEndpoint.get("listPlaygrounds", "/playgrounds").addSuccess(
+    HttpApiEndpoint.post("rerunCell", "/evals/:id/cells/:cellKey/runs")
+      .setPath(Schema.Struct({ cellKey: Schema.String, id: Schema.String }))
+      .setPayload(RerunCellRequest)
+      .addSuccess(StartedEval)
+  )
+
+  .add(
+    HttpApiEndpoint.get("modelCatalogue", "/evals/models")
+      /* The harness decides which models exist: Codex takes a bare id and
+         OpenCode takes `provider/model`, so a catalogue fetched without one
+         offers names the run cannot address. */
+      .setUrlParams(
+        Schema.Struct({
+          harness: EvalHarness,
+          /* Filtered on the server because the catalogue is seven thousand
+             models: sending them all to be filtered in a browser is the
+             1.27 MB the picker used to pay on every open. */
+          q: Schema.optional(Schema.String),
+        })
+      )
+      .addSuccess(ModelCatalogue)
+  )
+
+  .add(
+    HttpApiEndpoint.get("listPlaygrounds", "/evals/playgrounds").addSuccess(
       Schema.Array(PlaygroundView)
     )
   )
   .add(
-    HttpApiEndpoint.post("createPlayground", "/playgrounds")
+    HttpApiEndpoint.post("createPlayground", "/evals/playgrounds")
       .setPayload(CreatePlaygroundRequest)
       .addSuccess(PlaygroundView)
   )
   .add(
-    HttpApiEndpoint.get("getPlayground", "/playgrounds/:id")
+    HttpApiEndpoint.get("getPlayground", "/evals/playgrounds/:id")
       .setPath(RunPath)
       .addSuccess(PlaygroundView)
   )
   .add(
-    HttpApiEndpoint.put("savePlayground", "/playgrounds/:id")
+    HttpApiEndpoint.put("savePlayground", "/evals/playgrounds/:id")
       .setPath(RunPath)
       .setPayload(SavePlaygroundRequest)
       .addSuccess(PlaygroundView)
   )
-  /** Starts the saved configuration and returns the run id at once. The work
-   * continues behind the response, so closing the tab does not stop it. */
+
   .add(
-    HttpApiEndpoint.post("runPlayground", "/playgrounds/:id/runs")
+    HttpApiEndpoint.post("runPlayground", "/evals/playgrounds/:id/runs")
       .setPath(RunPath)
       .addSuccess(StartedEval)
   )
   .addError(Conflict)
+  .addError(BadRequest)
   .addError(Forbidden)
   .addError(NotFound)
   .middleware(Authentication) {}

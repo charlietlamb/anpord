@@ -1,12 +1,17 @@
+import { CredentialResolver } from "@anpord/eval/credentials/connections";
+import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { GridRun } from "@anpord/eval/grid/run";
 import { Baselines } from "@anpord/eval/services/baselines";
+import { CellReruns } from "@anpord/eval/services/cell-rerun";
+import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import { NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
-import { DateTime, Effect, Option, Redacted } from "effect";
+import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
+import { getEvalRun, listEvalRuns } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
 import { harnessVersion } from "./harness-version";
 import {
@@ -16,10 +21,8 @@ import {
   runPlayground,
   savePlayground,
 } from "./playground-handlers";
-import { detail, summarise } from "./to-api";
+import { asReading } from "./to-api";
 
-/* Enough to see whether a cell has been steady or drifting, without turning
-   a drill-down into a scan of every run the cell ever appeared in. */
 const HISTORY_LIMIT = 20;
 
 export const EvalsHandlers = HttpApiBuilder.group(
@@ -27,23 +30,27 @@ export const EvalsHandlers = HttpApiBuilder.group(
   "evals",
   (handlers) =>
     authorized(handlers)
-      .handle("list", { permission: Permissions.Evals.Read }, () =>
-        Effect.gen(function* () {
-          const actor = yield* CurrentActor;
-          const grid = yield* GridRun;
-          const runs = yield* grid.list(actor.organizationId);
-
-          return runs.map(summarise);
-        })
+      .handle("list", { permission: Permissions.Evals.Read }, ({ urlParams }) =>
+        listEvalRuns(urlParams)
       )
-      /* Running an eval spends real money on sandboxes and model tokens, so it
-         needs the write permission rather than the read one. */
+
       .handle("start", { permission: Permissions.Evals.Write }, ({ payload }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
+          const credentialResolver = yield* CredentialResolver;
           const grid = yield* GridRun;
           const credentials = yield* EvalCredentials;
-          const version = yield* harnessVersion;
+          const requested = yield* Effect.forEach(payload.tasks, (task) =>
+            harnessVersion(task.harness).pipe(
+              Effect.map((harnessVersion) => ({ ...task, harnessVersion }))
+            )
+          );
+          const tasks = yield* resolveTaskCredentials(
+            credentialResolver,
+            actor,
+            requested,
+            credentials.codexAuth
+          );
 
           return {
             id: yield* grid.start({
@@ -54,47 +61,17 @@ export const EvalsHandlers = HttpApiBuilder.group(
                 source: subject.source,
                 verify: subject.verify,
               })),
-              credentials: Redacted.make(credentials.codexAuth),
               organizationId: actor.organizationId,
               prompt: payload.prompt,
               startedBy: null,
-              tasks: payload.tasks.map((task) => ({
-                harness: task.harness,
-                harnessVersion: version,
-                model: task.model,
-                provider: task.provider,
-              })),
+              tasks,
               trials: payload.trials,
             }),
           };
         }).pipe(Effect.orDie)
       )
       .handle("get", { permission: Permissions.Evals.Read }, ({ path }) =>
-        Effect.gen(function* () {
-          const actor = yield* CurrentActor;
-          const baselines = yield* Baselines;
-          const grid = yield* GridRun;
-
-          const found = yield* grid.get(actor.organizationId, path.id);
-
-          if (Option.isNone(found)) {
-            return yield* Effect.fail(
-              new NotFound({ message: `No eval run with id "${path.id}"` })
-            );
-          }
-
-          /* Compared here rather than by the client. A grid without its
-             verdicts is a table of numbers, and deciding whether one differs
-             from an accepted reading is the product. */
-          /* A store failure is not "no regressions". Succeeding with an
-             empty list rendered the product's core signal as absent and
-             indistinguishable from a clean run. */
-          const comparisons = yield* baselines
-            .compareRun(actor.organizationId, path.id)
-            .pipe(Effect.catchTag("EvalStoreError", Effect.die));
-
-          return detail(found.value, comparisons);
-        })
+        getEvalRun(path.id)
       )
       .handle(
         "cellHistory",
@@ -110,16 +87,58 @@ export const EvalsHandlers = HttpApiBuilder.group(
               organizationId: actor.organizationId,
             });
 
-            return entries.map((entry) => ({
-              distribution: entry.distribution,
-              finishedAt:
-                entry.finishedAt === null
-                  ? null
-                  : DateTime.unsafeMake(entry.finishedAt.getTime()),
-              internalId: entry.internalId,
-              runId: entry.runId,
-            }));
+            return entries.map(asReading);
           }).pipe(Effect.catchTag("EvalStoreError", Effect.die))
+      )
+
+      .handle(
+        "rerunCell",
+        { permission: Permissions.Evals.Write },
+        ({ path, payload }) =>
+          Effect.gen(function* () {
+            const actor = yield* CurrentActor;
+            const reruns = yield* CellReruns;
+            const credentials = yield* EvalCredentials;
+
+            const id = yield* reruns
+              .again({
+                actor,
+                cellKey: path.cellKey,
+                legacyHarnessAuth: credentials.codexAuth,
+                organizationId: actor.organizationId,
+                runId: path.id,
+                startedBy: null,
+                trials: payload.trials,
+              })
+              .pipe(
+                Effect.mapError((problem) =>
+                  problem._tag === "CredentialError"
+                    ? new NotFound({ message: problem.message })
+                    : problem
+                ),
+                Effect.catchTag("EvalStoreError", Effect.die),
+                Effect.catchTag("NotRunnable", (problem) =>
+                  Effect.fail(
+                    new NotFound({ message: problem.problems.join(", ") })
+                  )
+                )
+              );
+
+            return { id };
+          })
+      )
+      .handle(
+        "modelCatalogue",
+        { permission: Permissions.Evals.Read },
+        ({ urlParams }) =>
+          Effect.gen(function* () {
+            const catalogues = yield* ModelCatalogues;
+
+            return yield* catalogues.forHarness({
+              harness: urlParams.harness,
+              query: urlParams.q,
+            });
+          })
       )
       .handle("listPlaygrounds", { permission: Permissions.Evals.Read }, () =>
         listPlaygrounds()
@@ -139,7 +158,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
         { permission: Permissions.Evals.Write },
         ({ path, payload }) => savePlayground(path.id, payload)
       )
-      /* Write, because a run spends real money on sandboxes and tokens. */
+
       .handle(
         "runPlayground",
         { permission: Permissions.Evals.Write },

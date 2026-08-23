@@ -1,17 +1,21 @@
 import type {
   EvalCell,
   EvalRunSummary,
+  EvalTask,
   EvalTrial,
 } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 
-/* Copied from real rows. The `git status` exit 128 that every a customer trial hit
-   and recovered from is kept, because it is the case the design has to get
-   right. */
-
 const START = 1_787_000_000_000;
 
 const at = (offset: number) => DateTime.unsafeMake(START + offset);
+
+export const TASK: EvalTask = {
+  harness: "codex",
+  harnessVersion: "0.144.4",
+  model: "gpt-5-codex",
+  provider: "daytona",
+};
 
 const command = (input: {
   readonly command: string;
@@ -90,7 +94,6 @@ const TRAJECTORY = [
   }),
 ] as const;
 
-/* -1 is the sentinel a trial nothing decided carries. */
 const EXIT_CODES: Partial<Record<EvalTrial["status"], number>> = {
   passed: 0,
   void: -1,
@@ -188,7 +191,7 @@ export const CELL: EvalCell = {
     repoUrl: null,
     setupCommand: null,
     verifyCommand:
-      'set -e\n\n# 1. saved under the existing assets folder, not a new directory\ntest -d public/logos\n\n# 2. both a light and a dark variant\ntest -f public/logos/github-light.svg\ntest -f public/logos/github-dark.svg\n\n# 4. the convention was inferred: no logo landed anywhere else\ntest -z "$(find . -name \'github*.svg\' -not -path \'./public/logos/*\')"\n\n# the files are real svg, not empty placeholders\ngrep -q "<svg" public/logos/github-light.svg\ngrep -q "<svg" public/logos/github-dark.svg',
+      'set -e\ntest -d public/logos\ntest -f public/logos/github-light.svg\ntest -f public/logos/github-dark.svg\ntest -z "$(find . -name \'github*.svg\' -not -path \'./public/logos/*\')"\ngrep -q "<svg" public/logos/github-light.svg\ngrep -q "<svg" public/logos/github-dark.svg',
     workspace: "/tmp/anpord-task",
   },
   status: "finished",
@@ -218,12 +221,20 @@ export const CELL_NO_BASELINE: EvalCell = {
 export const RUNS: readonly EvalRunSummary[] = [
   {
     caseCount: 1,
+    columns: [
+      {
+        harness: "codex",
+        harnessVersion: "0.144.4",
+        model: "gpt-5.6-sol",
+        provider: "daytona",
+      },
+    ],
     commandMax: 8,
     commandMin: 6,
     failure: null,
     finishedAt: at(108_000),
     id: "run_MCGA1APRP7ZETMRJ66W40FCE",
-    name: "notra/brand-logos",
+    name: "assets/brand-logos",
     passed: 3,
     scored: 3,
     startedAt: at(0),
@@ -233,12 +244,26 @@ export const RUNS: readonly EvalRunSummary[] = [
   },
   {
     caseCount: 1,
+    columns: [
+      {
+        harness: "codex",
+        harnessVersion: "0.144.4",
+        model: "gpt-5.6-sol",
+        provider: "daytona",
+      },
+      {
+        harness: "codex",
+        harnessVersion: "0.144.4",
+        model: "gpt-5.5",
+        provider: "e2b",
+      },
+    ],
     commandMax: 2,
     commandMin: 1,
     failure: "abandoned: the process running this did not finish it",
     finishedAt: at(44_000),
     id: "run_540CDY1NPF4DWF22AM389CQZ",
-    name: "onyx/craft",
+    name: "docs/craft",
     passed: 0,
     scored: 0,
     startedAt: at(-3_600_000),
@@ -248,12 +273,13 @@ export const RUNS: readonly EvalRunSummary[] = [
   },
   {
     caseCount: 3,
+    columns: [],
     commandMax: 13,
     commandMin: 11,
     failure: null,
     finishedAt: null,
     id: "run_ECQCAZCX7CM57CK1MARQREF7",
-    name: "notra/react-doctor",
+    name: "lint/react-doctor",
     passed: 0,
     scored: 0,
     startedAt: at(-120_000),
@@ -263,12 +289,20 @@ export const RUNS: readonly EvalRunSummary[] = [
   },
   {
     caseCount: 1,
+    columns: [
+      {
+        harness: "codex",
+        harnessVersion: "0.144.4",
+        model: "gpt-5.6-sol",
+        provider: "daytona",
+      },
+    ],
     commandMax: 9,
     commandMin: 6,
     failure: null,
     finishedAt: at(-86_300_000),
     id: "run_YMBJ190C0Q0T2H8VMYDMYPFQ",
-    name: "notra/brand-logos",
+    name: "assets/brand-logos",
     passed: 2,
     scored: 3,
     startedAt: at(-86_400_000),

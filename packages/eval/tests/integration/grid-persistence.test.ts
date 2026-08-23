@@ -11,14 +11,16 @@ import {
   Option,
   Redacted,
 } from "effect";
+import { layerTestResolver } from "../../src/credentials/connections";
 import { CellKey } from "../../src/domain/cell";
 import { GridRun } from "../../src/grid/run";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
 import { RunQuery } from "../../src/repositories/run-query";
 import { Baselines } from "../../src/services/baselines";
+import { HarnessVersionsLive } from "../../src/services/harness-versions";
 import { fixedSource, VERIFY_COMMAND } from "../fixtures/broken-task";
 import {
-  codexCredentials,
+  codexCredential,
   hasCodex,
   hasDatabase,
 } from "../fixtures/credentials";
@@ -28,6 +30,8 @@ const READY = hasCodex && hasDatabase && Boolean(process.env.DAYTONA_API_KEY);
 
 const TestLayer = EvalGridLive.pipe(
   Layer.provide(EvalSandboxLive),
+  Layer.provide(layerTestResolver()),
+  Layer.provide(HarnessVersionsLive),
   Layer.provide(IdGeneratorLive),
   Layer.provideMerge(DatabaseLive),
   Layer.provide(
@@ -99,7 +103,6 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
                 verify: VERIFY_COMMAND,
               },
             ],
-            credentials: codexCredentials ?? Redacted.make(""),
             organizationId,
             prompt: "{{goal}}",
             startedBy: null,
@@ -108,6 +111,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
                around a trial rather than whether a model can fix a bug. */
             tasks: [
               {
+                credentials: { harness: codexCredential },
                 harness: "codex",
                 harnessVersion: "0.144.4",
                 model: "gpt-5-codex",

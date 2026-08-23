@@ -14,10 +14,15 @@ type CellRow = typeof evalCell.$inferSelect;
 interface InsertCell {
   readonly cellKey: CellKey;
   readonly harness: HarnessName;
+  readonly harnessCredentialConnectionId?: string;
+  readonly harnessCredentialRevision?: number;
   readonly harnessVersion: string;
   readonly model: string;
+  readonly prompt: string;
   readonly provider: ProviderName;
   readonly runInternalId: string;
+  readonly sandboxCredentialConnectionId?: string;
+  readonly sandboxCredentialRevision?: number;
   readonly taskInternalId: string;
 }
 
@@ -44,12 +49,7 @@ export interface RunRepositoryShape {
   readonly insertCells: (
     input: readonly InsertCell[]
   ) => Effect.Effect<readonly CellRow[], EvalStoreError>;
-  /** Every cell of a grid in one statement. A run is cases by tasks, so a
-   * per-cell round trip grows with the product of both axes. */
-  /** Records how a cell ended.
-   *
-   * Without this a cell stays "running" in the record forever, so every
-   * completed historical run reads as still in flight. */
+
   readonly settleCell: (input: {
     readonly internalId: string;
     readonly status: "failed" | "finished";
@@ -68,7 +68,6 @@ export const RunRepositoryLive = Layer.effect(
     const ids = yield* IdGenerator;
 
     return RunRepository.of({
-      /** Scoped in SQL, not in memory. */
       findById: (organizationId, id) =>
         tryStore("run.findById", () =>
           db
@@ -96,9 +95,6 @@ export const RunRepositoryLive = Layer.effect(
 
       insert: (input) =>
         Effect.gen(function* () {
-          /* Two prefixes, not two draws from one. The public id is what a
-             caller quotes back and the internal id is what rows reference, so
-             a call site that swaps them should not typecheck as plausible. */
           const internalId = yield* ids.generate("evalRunInternal");
           const id = yield* ids.generate("evalRun");
 
@@ -118,7 +114,7 @@ export const RunRepositoryLive = Layer.effect(
           );
 
           return rows[0] as RunRow;
-        }),
+        }).pipe(Effect.withSpan("RunRepository.insert")),
 
       settleCell: (input) =>
         tryStore("run.settleCell", () =>
@@ -139,11 +135,18 @@ export const RunRepositoryLive = Layer.effect(
               Effect.map((internalId) => ({
                 cellKey: cell.cellKey,
                 harness: cell.harness,
+                harnessCredentialConnectionId:
+                  cell.harnessCredentialConnectionId,
+                harnessCredentialRevision: cell.harnessCredentialRevision,
                 harnessVersion: cell.harnessVersion,
                 internalId,
                 model: cell.model,
+                prompt: cell.prompt,
                 provider: cell.provider,
                 runInternalId: cell.runInternalId,
+                sandboxCredentialConnectionId:
+                  cell.sandboxCredentialConnectionId,
+                sandboxCredentialRevision: cell.sandboxCredentialRevision,
                 status: "running",
                 taskInternalId: cell.taskInternalId,
               }))
@@ -153,7 +156,7 @@ export const RunRepositoryLive = Layer.effect(
           return yield* tryStore("run.insertCells", () =>
             db.insert(evalCell).values(values).returning()
           );
-        }),
+        }).pipe(Effect.withSpan("RunRepository.insertCells")),
 
       insertCell: (input) =>
         Effect.gen(function* () {
@@ -165,11 +168,18 @@ export const RunRepositoryLive = Layer.effect(
               .values({
                 cellKey: input.cellKey,
                 harness: input.harness,
+                harnessCredentialConnectionId:
+                  input.harnessCredentialConnectionId,
+                harnessCredentialRevision: input.harnessCredentialRevision,
                 harnessVersion: input.harnessVersion,
                 internalId,
                 model: input.model,
+                prompt: input.prompt,
                 provider: input.provider,
                 runInternalId: input.runInternalId,
+                sandboxCredentialConnectionId:
+                  input.sandboxCredentialConnectionId,
+                sandboxCredentialRevision: input.sandboxCredentialRevision,
                 status: "running",
                 taskInternalId: input.taskInternalId,
               })
@@ -181,7 +191,7 @@ export const RunRepositoryLive = Layer.effect(
           );
 
           return rows[0] as CellRow;
-        }),
+        }).pipe(Effect.withSpan("RunRepository.insertCell")),
     });
   })
 );

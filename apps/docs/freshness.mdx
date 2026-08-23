@@ -1,36 +1,29 @@
 ---
-title: "Freshness and caching"
-description: "What the SDK serves when the network is slow or gone"
+title: "Prompt caching"
+sidebarTitle: "Caching"
+description: "Control prompt freshness and fallbacks"
 ---
 
-`get` reads from memory. The first call for a prompt fetches it, and calls inside the next fifteen seconds are answered without touching the network.
-
-## Why every answer says where it came from
-
-A cached answer and a fresh one look identical, so the SDK labels each one:
+The SDK caches resolved prompts in memory for fifteen seconds by default.
 
 ```ts
 const prompt = await anpord.prompts.get({ id: "support-reply" });
 
-prompt.anpord.freshness; // "fresh" | "cached" | "stale" | "fallback"
-prompt.anpord.ageMs;     // how old the content is
-prompt.anpord.reason;    // why, when it is stale or a fallback
+console.log(
+  prompt.anpord.freshness,
+  prompt.anpord.ageMs,
+  prompt.anpord.reason
+);
 ```
 
-| Freshness | What happened |
+| Freshness | Meaning |
 | --- | --- |
-| `fresh` | Fetched from the API on this call. |
-| `cached` | Served from memory, inside the fifteen second window. |
-| `stale` | The window passed, the fetch failed, and the last good answer was served instead. `reason` names the failure. |
-| `fallback` | Nothing had been cached and the API could not be reached, so the text you supplied was served. |
+| `fresh` | The API returned the value on this call |
+| `cached` | Memory returned the value, including during background refresh |
+| `stale` | An awaited refresh failed, so the SDK returned the last good value |
+| `fallback` | No cached value existed, so the SDK returned caller-supplied content |
 
-Log `freshness` and you can tell a degraded application from a healthy one before anyone reports it.
-
-## Fifteen seconds
-
-The default window is short because a prompt change should reach production quickly. Once it passes, the next call fetches again, so a busy service makes one request every fifteen seconds per prompt rather than one per call.
-
-Raise it if you would rather trade propagation speed for fewer requests.
+## Configure the cache
 
 ```ts
 const anpord = new Anpord({
@@ -38,26 +31,28 @@ const anpord = new Anpord({
 });
 ```
 
-Disable it entirely with `cache: false`, and every call goes to the API.
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `ttlMs` | `15_000` | Age that starts a background refresh |
+| `maxStaleMs` | `86_400_000` | Age that makes the next caller wait for refresh |
+| `capacity` | `1000` | Maximum cached selectors |
+| `maxConcurrentRefresh` | `8` | Maximum refreshes in flight |
 
-## When the API is unreachable
+Set `cache: false` to disable caching. Pinned versions have no TTL, but capacity eviction and same-client writes can remove them.
 
-A stale answer is served for up to twenty four hours, so an outage does not reach your users. Past that, or before anything has been cached, `get` needs somewhere to fall back to:
+Channel and default selectors use stale-while-revalidate. After `ttlMs`, the next call returns the cached value while a refresh runs. After `maxStaleMs`, the next call waits for refresh. If that request fails, the SDK may still return the cached value and mark it `stale`.
+
+Writes through the same client clear its cached selectors for that prompt.
+
+## Add a fallback
 
 ```ts
 const prompt = await anpord.prompts.get({
   id: "support-reply",
-  fallback: "You are a support agent. Be brief and warm.",
+  fallback: "You are a support agent. Answer briefly.",
 });
 ```
 
-Without a fallback the call throws, and your model call fails with it. Supply one for any prompt on a request path.
+Fallbacks apply only when the API is unavailable and no cached value exists. They may be a content string or an object with `content` and `config`. Missing prompts, invalid keys, forbidden requests, and malformed selectors still throw.
 
-## Tuning
-
-| Option | Default | What it does |
-| --- | --- | --- |
-| `ttlMs` | `15_000` | How long an answer is fresh. |
-| `maxStaleMs` | `86_400_000` | How long a stale answer may still be served. |
-| `capacity` | `1000` | How many answers are held before the least used is dropped. |
-| `maxConcurrentRefresh` | `8` | How many refreshes may run at once. |
+Keep a short fallback for prompts on a request path. Pin a version and fail the job for reproducible evals.

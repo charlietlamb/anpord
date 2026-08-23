@@ -33,7 +33,7 @@ describe("tool calls in a journal", () => {
     ]);
   });
 
-  /** PostHog's RequiredToolCall, Onyx's ToolAssertion with require_all. */
+  /** A required tool call, and an assertion that every one of a set ran. */
   it("answers whether every required tool was called", () => {
     expect(calledAll(journal, ["read_file", "apply_patch"])).toBe(true);
     expect(calledAll(journal, ["read_file", "web_search"])).toBe(false);

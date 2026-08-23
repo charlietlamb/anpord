@@ -103,6 +103,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
             harnessVersion: "0.144.4",
             internalId: cellInternalId,
             model: "gpt-5",
+            prompt: "do the thing",
             provider: "daytona",
             runInternalId: `runint_${suffix}`,
             status: "running",
@@ -113,115 +114,121 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     );
   });
 
-  it("writes the trial and its journal together", async () => {
-    const trialInternalId = await run(
+  it("shows the journal before the trial settles", async () => {
+    const seen = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
-
-        return yield* recorder.record({
-          cellInternalId,
-          events,
-          finishedAt: new Date(),
-          ordinal: 1,
-          outcome,
-          provider: "daytona",
-          sandboxId: "sbx_1",
-          startedAt: new Date(),
-          usage: { inputTokens: 120, outputTokens: 40, totalTokens: 160 },
-        });
-      })
-    );
-
-    const written = await run(
-      Effect.gen(function* () {
         const db = yield* Database;
 
-        return yield* Effect.promise(async () => ({
+        const trialInternalId = yield* recorder.open({
+          cellInternalId,
+          ordinal: 1,
+          provider: "daytona",
+          startedAt: new Date(),
+        });
+
+        yield* recorder.append({ events, from: 0, trialInternalId });
+
+        const midFlight = yield* Effect.promise(async () => ({
           events: await db
             .select()
             .from(evalEvent)
             .where(eq(evalEvent.trialInternalId, trialInternalId)),
-          trials: await db
+          trial: await db
             .select()
             .from(evalTrial)
             .where(eq(evalTrial.internalId, trialInternalId)),
         }));
+
+        yield* recorder.settle({
+          finishedAt: new Date(),
+          outcome,
+          sandboxId: "sbx_1",
+          trialInternalId,
+          usage: { inputTokens: 120, outputTokens: 40, totalTokens: 160 },
+        });
+
+        const settled = yield* Effect.promise(() =>
+          db
+            .select()
+            .from(evalTrial)
+            .where(eq(evalTrial.internalId, trialInternalId))
+        );
+
+        return { midFlight, settled };
       })
     );
 
-    expect(written.trials).toHaveLength(1);
-    expect(written.events).toHaveLength(2);
-    expect(written.trials[0]?.passed).toBe(true);
-    /* Cost travelled with the trial. This column was always null before,
-       so nothing could answer what a run had spent. */
-    expect(written.trials[0]?.usage).toEqual({
+    expect(seen.midFlight.events).toHaveLength(2);
+    expect(seen.midFlight.trial[0]?.status).toBe("running");
+
+    expect(seen.midFlight.trial[0]?.passed).toBeNull();
+
+    expect(seen.settled[0]?.status).toBe("passed");
+    expect(seen.settled[0]?.passed).toBe(true);
+
+    expect(seen.settled[0]?.usage).toEqual({
       inputTokens: 120,
       outputTokens: 40,
       totalTokens: 160,
     });
   });
 
-  /** The reason this module exists. A failure while writing the journal must
-   * take the trial row with it, because a settled trial with no events is
-   * indistinguishable from one that ran and produced nothing, which is the
-   * signature the void gate reads as a broken provider. */
-  it("leaves nothing behind when the journal write fails", async () => {
-    const before = await run(
-      Effect.gen(function* () {
-        const db = yield* Database;
-
-        return yield* Effect.promise(() =>
-          db
-            .select()
-            .from(evalTrial)
-            .where(eq(evalTrial.cellInternalId, cellInternalId))
-        );
-      })
-    );
-
-    /* An event whose payload cannot be serialised fails inside the
-       transaction, after the trial row has already been inserted. */
-    const poison = { _tag: "Command" } as unknown as HarnessEvent;
-    const circular: Record<string, unknown> = {};
-    circular.self = circular;
-    (poison as unknown as Record<string, unknown>).payload = circular;
-
-    const outcomeOfWrite = await Effect.runPromise(
+  it("ignores a batch it has already written", async () => {
+    const written = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
+        const db = yield* Database;
 
-        return yield* recorder.record({
+        const trialInternalId = yield* recorder.open({
           cellInternalId,
-          events: [poison],
-          finishedAt: new Date(),
           ordinal: 2,
-          outcome,
           provider: "daytona",
-          sandboxId: "sbx_2",
           startedAt: new Date(),
-          usage: null,
         });
-      }).pipe(
-        Effect.provide(TestLayer),
-        Effect.scoped,
-        Effect.either
-      ) as Effect.Effect<unknown>
+
+        yield* recorder.append({ events, from: 0, trialInternalId });
+        yield* recorder.append({ events, from: 0, trialInternalId });
+
+        return yield* Effect.promise(() =>
+          db
+            .select()
+            .from(evalEvent)
+            .where(eq(evalEvent.trialInternalId, trialInternalId))
+        );
+      })
     );
 
-    const after = await run(
+    expect(written).toHaveLength(2);
+  });
+
+  it("closes a trial that never reached a verdict", async () => {
+    const closed = await run(
       Effect.gen(function* () {
+        const recorder = yield* TrialRecorder;
         const db = yield* Database;
+
+        const trialInternalId = yield* recorder.open({
+          cellInternalId,
+          ordinal: 3,
+          provider: "daytona",
+          startedAt: new Date(),
+        });
+
+        yield* recorder.abandon({ finishedAt: new Date(), trialInternalId });
 
         return yield* Effect.promise(() =>
           db
             .select()
             .from(evalTrial)
-            .where(eq(evalTrial.cellInternalId, cellInternalId))
+            .where(eq(evalTrial.internalId, trialInternalId))
         );
       })
     );
 
-    expect((outcomeOfWrite as { _tag: string })._tag).toBe("Left");
-    expect(after).toHaveLength(before.length);
+    expect(closed[0]?.status).toBe("void");
+
+    expect(closed[0]?.passed).toBeNull();
+    expect(closed[0]?.finishedAt).not.toBeNull();
   });
 });

@@ -11,6 +11,10 @@ describe("naming a variant", () => {
     expect(harnessPresentation("codex").label).toBe("Codex");
     expect(providerPresentation("daytona").label).toBe("Daytona");
     expect(providerPresentation("e2b").label).toBe("E2B");
+    expect(providerPresentation("upstash").label).toBe("Upstash Box");
+    expect(providerPresentation("modal").label).toBe("Modal");
+    expect(providerPresentation("cloudflare").label).toBe("Cloudflare");
+    expect(providerPresentation("vercel").label).toBe("Vercel");
     expect(providerPresentation("local").label).toBe("Local");
   });
 
@@ -19,7 +23,7 @@ describe("naming a variant", () => {
    * that makes a verdict legible. */
   it("falls back rather than throwing on a value it does not know", () => {
     expect(harnessPresentation("none").label).toBe("none");
-    expect(providerPresentation("modal").label).toBe("modal");
+    expect(providerPresentation("future").label).toBe("future");
     expect(modelPresentation("none").label).toBe("none");
   });
 

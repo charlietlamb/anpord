@@ -1,5 +1,7 @@
 export const ID_PREFIXES = {
   channel: "chl",
+  credentialAuthAttempt: "caa",
+  credentialConnection: "con",
   evalBaseline: "bas",
   evalCell: "cel",
   evalEvent: "evt",

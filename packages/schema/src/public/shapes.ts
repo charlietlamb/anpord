@@ -11,6 +11,7 @@ import {
 const Instant = Schema.DateTimeUtc.annotations({
   description: "An ISO-8601 timestamp in UTC.",
   identifier: "Instant",
+  jsonSchema: { format: "date-time" },
 });
 
 export const PublicPrompt = Schema.Struct({

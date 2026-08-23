@@ -7,8 +7,10 @@ import { commands } from "./commands";
 export const apiOperations = () => {
   const names: string[] = [];
   HttpApi.reflect(PublicApi as never, {
-    onEndpoint: ({ endpoint }) => {
-      names.push((endpoint as { readonly name: string }).name);
+    onEndpoint: ({ endpoint, group }) => {
+      names.push(
+        `${(group as { readonly identifier: string }).identifier}.${(endpoint as { readonly name: string }).name}`
+      );
     },
     onGroup: () => undefined,
   });

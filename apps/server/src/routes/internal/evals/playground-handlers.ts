@@ -7,26 +7,11 @@ import { Workbenches } from "@anpord/eval/services/workbench";
 import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import type { PlaygroundView } from "@anpord/schema/domain/evals";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
-import { DateTime, Effect, Option, Redacted } from "effect";
+import { DateTime, Effect, Option } from "effect";
 import { EvalCredentials } from "./credentials";
-import { harnessVersion } from "./harness-version";
-
-/* The domain knows three harnesses and the API exposes the one that works.
-   The boundary narrows rather than leaking a name a client cannot act on;
-   adding Claude Code widens both, in that order. A column naming an
-   unsupported harness is dropped rather than rejected, so a config saved
-   before a harness was withdrawn still opens. */
-const columnsFor = (config: Workbench["config"]) =>
-  config.columns
-    .filter((column) => column.harness === "codex")
-    .map((column) => ({
-      harness: "codex" as const,
-      model: column.model,
-      provider: column.provider,
-    }));
 
 const view = (workbench: Workbench): PlaygroundView => ({
-  config: { ...workbench.config, columns: columnsFor(workbench.config) },
+  config: workbench.config,
   id: workbench.id,
   lastRunId: workbench.lastRunId,
   name: workbench.name,
@@ -110,16 +95,15 @@ export const runPlayground = (id: string) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
     const credentials = yield* EvalCredentials;
-    const version = yield* harnessVersion;
     const workbenches = yield* Workbenches;
 
     return {
       id: yield* workbenches.run({
-        credentials: Redacted.make(credentials.codexAuth),
-        harnessVersion: version,
+        actor,
         id,
         organizationId: actor.organizationId,
         startedBy: actor.id,
+        legacyHarnessAuth: credentials.codexAuth,
       }),
     };
   }).pipe(

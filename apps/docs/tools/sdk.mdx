@@ -1,0 +1,87 @@
+---
+title: "TypeScript SDK"
+description: "Run evals and manage prompts from TypeScript"
+---
+
+## Install
+
+<CodeGroup>
+
+```bash npm
+npm install anpord
+```
+
+```bash bun
+bun add anpord
+```
+
+</CodeGroup>
+
+## Create a client
+
+```ts
+import { Anpord } from "anpord";
+
+const anpord = new Anpord();
+```
+
+The client reads `ANPORD_API_KEY`. Pass `apiKey` or `baseUrl` when needed:
+
+```ts
+const anpord = new Anpord({
+  apiKey: process.env.MY_ANPORD_KEY,
+  baseUrl: "http://127.0.0.1:3003",
+});
+```
+
+## Evals
+
+| Method | Returns |
+| --- | --- |
+| `evals.start(request)` | A run id while trials continue on the server |
+| `evals.get({ id })` | One run with cells and trials |
+| `evals.list({ cursor?, limit? })` | A page of runs and its next cursor |
+| `evals.models({ harness })` | Models available to a harness |
+| `evals.cellHistory({ cellKey })` | The twenty latest results for a cell |
+| `evals.rerunCell({ id, cellKey, trials })` | A new run containing one repeated cell |
+
+```ts
+const { id } = await anpord.evals.start({
+  cases,
+  prompt: "{{goal}}",
+  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  trials: 3,
+});
+```
+
+## Prompts
+
+| Method | Purpose |
+| --- | --- |
+| `prompts.create(request)` | Create a prompt and its first version |
+| `prompts.list()` | List up to 100 prompts without content |
+| `prompts.get({ id, ...selector })` | Resolve a channel or version |
+| `prompts.update(request)` | Append a version |
+| `prompts.promote(request)` | Point a channel at a version |
+
+`prompts.get` uses the SDK cache. Other prompt methods and all eval methods call the API.
+
+## Errors and cleanup
+
+```ts
+import { AnpordError } from "anpord";
+
+try {
+  await anpord.evals.get({ id: "missing" });
+} catch (error) {
+  if (error instanceof AnpordError) {
+    console.error(error.status, error.message);
+  }
+}
+
+await anpord.dispose();
+```
+
+Invalid request fields fail before a network call. API failures include an HTTP status when available.
+
+The package also exports `make`, `layer`, and `AnpordApi` for Effect applications. SDK date fields are Effect `DateTime.Utc` values. Read `epochMillis` when you need a number.

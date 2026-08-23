@@ -9,6 +9,7 @@
     "./describe": "./src/describe.ts",
     "./health": "./src/health.ts",
     "./schema": "./src/schema.ts",
+    "./schema/credentials/*": "./src/schema/credentials/*.ts",
     "./schema/*": "./src/schema/*.ts"
   },
   "scripts": {

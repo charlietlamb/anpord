@@ -21,9 +21,6 @@ import {
 } from "@/lib/evals/journal-presentation";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
-/** A non-zero exit, reported as a fact rather than an error. Every real trial
- * hit `git status` exit 128 and recovered; that it recovers consistently is
- * the finding, not a fault to colour red. */
 function ExitCode({ code }: { readonly code: number | null }) {
   if (code === null || code === 0) {
     return null;
@@ -36,40 +33,38 @@ function ExitCode({ code }: { readonly code: number | null }) {
   );
 }
 
-/** The wait that led to a step and the step itself, on one line so the pair
- * reads as one decision. The wait is thinner and quieter: it is most of the
- * width on a real trial, and at equal weight it would read as the subject
- * rather than the gap between the work. A moment the harness reported once is
- * a dot, because a guessed width drawn like a measured one is a lie. */
 function Track({ row }: { readonly row: WaterfallRow }) {
   const background = KIND_COLOURS[kindOf(row)];
+  const from = row.lead === null ? row.leftPercent : row.lead.fromPercent;
 
   return (
     <>
-      {row.lead === null ? null : (
-        <span
-          className="absolute top-1/2 block h-px -translate-y-1/2 rounded-full opacity-55"
-          style={{
-            background: KIND_COLOURS.thinking,
-            left: `${row.lead.fromPercent}%`,
-            width: `${row.lead.widthPercent}%`,
-          }}
-        />
-      )}
-
       {row._tag === "marker" ? (
-        <span
-          className="absolute top-1/2 block size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ background, left: `${row.leftPercent}%` }}
-        />
+        <>
+          {row.lead === null ? null : (
+            <span
+              className="absolute top-1/2 block h-1.5 -translate-y-1/2 rounded-full opacity-50"
+              style={{
+                background,
+                left: `${from}%`,
+                width: `${row.leftPercent - from}%`,
+              }}
+            />
+          )}
+
+          <span
+            className="absolute top-1/2 block size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ background, left: `${row.leftPercent}%` }}
+          />
+        </>
       ) : (
         <span
           className="absolute top-1/2 block h-1.5 -translate-y-1/2 rounded-full"
           style={{
             background,
-            left: `${row.leftPercent}%`,
+            left: `${from}%`,
             minWidth: 3,
-            width: `${row.widthPercent}%`,
+            width: `${row.leftPercent + row.widthPercent - from}%`,
           }}
         />
       )}
@@ -80,13 +75,15 @@ function Track({ row }: { readonly row: WaterfallRow }) {
 function RowTooltip({ row }: { readonly row: WaterfallRow }) {
   const kind = kindOf(row);
   const Glyph = KIND_ICONS[kind];
+  const ThinkingGlyph = KIND_ICONS.thinking;
   const isCommand = row.entry._tag === "command";
+  const { expandable } = useJournalOutput(row.entry);
 
   return (
     <TooltipContent className="max-w-md">
       <span className="flex flex-col gap-1.5">
         <span className="flex items-center gap-1.5 text-xs opacity-70">
-          <Glyph aria-hidden="true" size={13} weight="regular" />
+          <Glyph aria-hidden="true" size={13} />
           {KIND_NAMES[kind]}
           {row._tag === "bar" ? ` · ${seconds(row.durationMs)}` : ""}
         </span>
@@ -106,26 +103,25 @@ function RowTooltip({ row }: { readonly row: WaterfallRow }) {
 
         {row.lead === null ? null : (
           <span className="flex items-center gap-1.5 text-xs opacity-70">
-            <Glyph aria-hidden="true" size={13} weight="regular" />
-            {seconds(row.lead.durationMs)} thinking first
+            <ThinkingGlyph aria-hidden="true" size={13} />
+            {seconds(row.lead.durationMs)} thinking before this
           </span>
         )}
 
         {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
+
+        {expandable ? (
+          <span className="text-xs opacity-70">
+            {isCommand ? "Click to read what it printed" : "Click to read it"}
+          </span>
+        ) : null}
       </span>
     </TooltipContent>
   );
 }
 
-/**
- * One step of the trajectory, against the clock.
- *
- * The row carries hover and focus feedback because it is mostly empty ground:
- * without it a pointer lands on nothing and the chart feels inert, and a
- * keyboard has no way to tell where it is.
- */
 export function TimedRow({ row }: { readonly row: WaterfallRow }) {
-  const { open, output, toggle } = useJournalOutput(row.entry);
+  const { expandable, open, output, toggle } = useJournalOutput(row.entry);
 
   return (
     <li>
@@ -133,8 +129,15 @@ export function TimedRow({ row }: { readonly row: WaterfallRow }) {
         <TooltipTrigger
           render={
             <button
+              aria-expanded={expandable ? open : undefined}
               aria-label={describeRow(row)}
-              className="relative block h-5 w-full rounded-sm text-left transition-colors duration-150 ease-out hover:bg-alpha-4 focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className={cn(
+                "relative block h-5 w-full rounded-sm text-left transition-colors duration-150 ease-out focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+
+                expandable
+                  ? "cursor-pointer hover:bg-alpha-6"
+                  : "cursor-default hover:bg-alpha-4"
+              )}
               onClick={toggle}
               type="button"
             />
@@ -151,8 +154,6 @@ export function TimedRow({ row }: { readonly row: WaterfallRow }) {
   );
 }
 
-/** One step of a trajectory nothing timed, so it reads as a list rather than
- * a chart. */
 export function OrderedRow({ entry }: { readonly entry: EvalJournalEntry }) {
   const { open, output, toggle } = useJournalOutput(entry);
   const isCommand = entry._tag === "command";

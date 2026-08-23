@@ -1,0 +1,64 @@
+---
+title: "Harnesses, models, and sandboxes"
+sidebarTitle: "Variants"
+description: "Choose what runs a case and where it runs"
+---
+
+Each entry in `tasks` defines one variant:
+
+```ts
+{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }
+```
+
+| Field | Purpose |
+| --- | --- |
+| `harness` | Runs the agent and its tools |
+| `model` | Selects the model used by the harness |
+| `provider` | Supplies the sandbox |
+
+Today, `harness` must be `codex`; Claude Code is not supported yet. The field stays explicit so future harnesses can use the same case format.
+
+## Choose a model
+
+Keep the model id in application or CI configuration. Use the catalogue when choosing or changing it:
+
+```ts
+const { models } = await anpord.evals.models({ harness: "codex" });
+
+for (const model of models) {
+  console.log(model.id, model.displayName);
+}
+```
+
+Model discovery is not required before `evals.start`. Available ids depend on the account configured on the server.
+
+## Choose a sandbox
+
+| Provider | Availability |
+| --- | --- |
+| `daytona` | Public API and dashboard |
+| `e2b` | Public API and dashboard |
+| `upstash` | Public API and dashboard |
+| `modal` | Public API and dashboard |
+| `cloudflare` | Public API and dashboard |
+| `vercel` | Public API and dashboard |
+| `local` | Trusted dashboard development on a self-hosted server |
+
+Each trial gets a separate workspace. Setup, agent work, and verification run in that workspace.
+
+<Warning>
+`local` is not isolated from the server process. The public API and SDK do not accept it.
+</Warning>
+
+## Compare variants
+
+Change one field at a time when you want to explain the difference:
+
+```ts
+tasks: [
+  { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },
+  { harness: "codex", model: "gpt-5.6-terra", provider: "daytona" },
+]
+```
+
+Changing the harness, harness version, model, or provider creates a new cell history and baseline.

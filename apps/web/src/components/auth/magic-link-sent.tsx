@@ -1,25 +1,27 @@
 import { Button } from "@anpord/ui/components/button";
 import { Logo } from "@anpord/ui/components/logo";
+import { PanelCard } from "@/components/layout/panel-card";
 
-interface MagicLinkSentProps {
-  email: string;
-  onBack: () => void;
-}
-
-export function MagicLinkSent({ email, onBack }: MagicLinkSentProps) {
+export function MagicLinkSent({
+  email,
+  onBack,
+}: {
+  readonly email: string;
+  readonly onBack: () => void;
+}) {
   return (
-    <div className="w-full max-w-sm rounded-lg border bg-background p-8">
-      <div className="flex items-center gap-2">
-        <Logo className="size-[26px]" />
-        <h1 className="font-heading text-xl tracking-tight">
-          Check your email
-        </h1>
-      </div>
-      <p className="mt-3 text-muted-foreground text-sm">
-        We sent a sign-in link to{" "}
-        <span className="text-foreground">{email}</span>. It expires in five
-        minutes.
-      </p>
+    <PanelCard
+      description={
+        <>
+          We sent a sign-in link to{" "}
+          <span className="text-foreground">{email}</span>. It expires in five
+          minutes.
+        </>
+      }
+      heading="h1"
+      mark={<Logo className="size-[26px]" />}
+      title="Check your email"
+    >
       <Button
         className="mt-6 w-full"
         onClick={onBack}
@@ -28,6 +30,6 @@ export function MagicLinkSent({ email, onBack }: MagicLinkSentProps) {
       >
         Use a different email
       </Button>
-    </div>
+    </PanelCard>
   );
 }

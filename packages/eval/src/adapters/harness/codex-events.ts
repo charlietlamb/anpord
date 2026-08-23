@@ -1,8 +1,6 @@
 import { Option, Schema } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 
-/** The shape `codex exec --json` actually emits, captured from a real run
- * rather than taken from documentation. */
 const CommandItem = Schema.Struct({
   aggregated_output: Schema.optional(Schema.String),
   command: Schema.String,
@@ -16,9 +14,6 @@ const MessageItem = Schema.Struct({
   type: Schema.Literal("agent_message"),
 });
 
-/* Two spellings of the same thing. Codex emits `function_call` for a
-   declared tool and `custom_tool_call` for a freeform one, and a scorer
-   asking whether a tool ran should not have to know which. */
 const ToolCallItem = Schema.Struct({
   call_id: Schema.optional(Schema.NullOr(Schema.String)),
   input: Schema.optional(Schema.String),
@@ -37,10 +32,6 @@ const Usage = Schema.Struct({
   output_tokens: Schema.Number,
 });
 
-/* Codex emits a started line for a command and a completed line for the same
-   `id`, so the pair is a measured duration rather than a gap to whatever
-   event happened to come next. Only `command_execution` gets one: a message
-   or a file change is reported once, as an instant. */
 const StartedItem = Schema.Struct({
   id: Schema.String,
   type: Schema.Literal("command_execution"),
@@ -68,14 +59,8 @@ const Line = Schema.Union(
 const decodeLine = Schema.decodeUnknownOption(Line);
 
 export interface DecodedLine {
-  /** The id of the command this line concerns, on both the started and the
-   * completed line. Reported rather than paired here so this stays a pure
-   * function of one line, with the memory pairing needs held by the caller. */
   readonly commandId: Option.Option<string>;
   readonly event: Option.Option<HarnessEvent>;
-  /** True when the line only announces a command has begun, which carries no
-   * event of its own: the journal keeps one entry per command, stamped with
-   * both ends. */
   readonly started: boolean;
   readonly usage: Option.Option<HarnessUsage>;
 }
@@ -92,7 +77,6 @@ const only = (event: HarnessEvent): DecodedLine => ({
   event: Option.some(event),
 });
 
-/** One NDJSON line to at most one normalised event. */
 export const decodeCodexLine = (line: string): DecodedLine => {
   if (line.trim() === "") {
     return none;
@@ -176,8 +160,5 @@ export const decodeCodexLine = (line: string): DecodedLine => {
     });
   }
 
-  /* Matched explicitly rather than falling through. A catch-all here would
-     turn any item type added by a later Codex into a message and read a field
-     it does not have. */
   return none;
 };

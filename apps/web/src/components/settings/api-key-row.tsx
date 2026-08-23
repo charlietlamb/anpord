@@ -1,7 +1,9 @@
 import { Button } from "@anpord/ui/components/button";
 import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
+import { cn } from "@anpord/ui/lib/utils";
 import { TrashIcon } from "@phosphor-icons/react";
-import { ListRow } from "@/components/layout/list-row";
+import { ListRow, RowTitle } from "@/components/layout/list-row";
+import { ROW_ACTION } from "@/components/layout/row-action";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface ApiKeyRowProps {
@@ -28,7 +30,7 @@ export function ApiKeyRow({
         <ActionTooltip label={`Revoke ${name}`}>
           <Button
             aria-label={`Revoke ${name}`}
-            className="size-5 shrink-0 rounded opacity-0 hover:text-destructive focus-visible:opacity-100 group-hover/row:opacity-100"
+            className={cn(ROW_ACTION, "hover:text-destructive")}
             onClick={onRevoke}
             size="icon-sm"
             variant="bare"
@@ -39,7 +41,7 @@ export function ApiKeyRow({
       }
       meta={created}
     >
-      <span className="text-foreground">{name}</span>
+      <RowTitle>{name}</RowTitle>
       <span className="ml-2 font-mono text-xs opacity-60">
         {start ? `${start}…` : "—"}
       </span>

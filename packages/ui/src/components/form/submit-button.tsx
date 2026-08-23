@@ -6,6 +6,7 @@ import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
 interface SubmitButtonProps {
+  disabled?: boolean;
   fullWidth?: boolean;
   icon?: ReactNode;
   label: string;
@@ -14,6 +15,7 @@ interface SubmitButtonProps {
 }
 
 export function SubmitButton({
+  disabled = false,
   fullWidth = true,
   icon,
   label,
@@ -32,7 +34,7 @@ export function SubmitButton({
       {({ isSubmitting, canSubmit }) => (
         <ShortcutButton
           className={cn("h-10 text-sm", fullWidth && "w-full")}
-          disabled={isSubmitting || !canSubmit}
+          disabled={disabled || isSubmitting || !canSubmit}
           metaShortcut={shortcut ? "enter" : undefined}
           onClick={() => form.handleSubmit()}
           size="lg"

@@ -6,17 +6,19 @@ import {
   SandboxProvider,
 } from "../ports/sandbox";
 
-/** Measured rather than guessed: five concurrent Daytona sandboxes boot without
- * rate limiting. Fifty is untested, so the default stays where the evidence
- * stops and the ceiling is configurable for when that changes. */
 const concurrencyConfig = Config.all({
+  cloudflare: Config.integer("EVAL_CLOUDFLARE_CONCURRENCY").pipe(
+    Config.withDefault(5)
+  ),
   daytona: Config.integer("EVAL_DAYTONA_CONCURRENCY").pipe(
     Config.withDefault(5)
   ),
   e2b: Config.integer("EVAL_E2B_CONCURRENCY").pipe(Config.withDefault(5)),
-  /* Lower, because a local sandbox spends this machine's cores rather than a
-     provider's: running ten at once starves the process that is watching
-     them. */
+  upstash: Config.integer("EVAL_UPSTASH_CONCURRENCY").pipe(
+    Config.withDefault(5)
+  ),
+  modal: Config.integer("EVAL_MODAL_CONCURRENCY").pipe(Config.withDefault(5)),
+  vercel: Config.integer("EVAL_VERCEL_CONCURRENCY").pipe(Config.withDefault(5)),
   local: Config.integer("EVAL_LOCAL_CONCURRENCY").pipe(Config.withDefault(4)),
 });
 
@@ -26,11 +28,13 @@ export const SandboxProviderLive = Layer.effect(
     const adapters = yield* SandboxAdapters;
     const concurrency = yield* concurrencyConfig;
 
-    /* Held in the layer because it is process-wide state about how many
-       sandboxes may exist at once, not a property of any one call. */
     const permits: Record<ProviderName, Effect.Semaphore> = {
+      cloudflare: yield* Effect.makeSemaphore(concurrency.cloudflare),
       daytona: yield* Effect.makeSemaphore(concurrency.daytona),
       e2b: yield* Effect.makeSemaphore(concurrency.e2b),
+      upstash: yield* Effect.makeSemaphore(concurrency.upstash),
+      modal: yield* Effect.makeSemaphore(concurrency.modal),
+      vercel: yield* Effect.makeSemaphore(concurrency.vercel),
       local: yield* Effect.makeSemaphore(concurrency.local),
     };
 
@@ -38,14 +42,13 @@ export const SandboxProviderLive = Layer.effect(
       Effect.gen(function* () {
         const limit = permits[request.provider];
 
-        /* The permit is itself a scoped resource. Wrapping acquireRelease with
-           withPermits returns the permit the moment the sandbox is acquired,
-           which admits an unbounded number of live sandboxes: measured, two
-           through a one-permit semaphore. */
         yield* limit.take(1);
         yield* Effect.addFinalizer(() => limit.release(1));
 
-        const adapter = yield* adapters.resolve(request.provider);
+        const adapter = yield* adapters.resolve(
+          request.provider,
+          request.credentials
+        );
 
         return yield* Effect.acquireRelease(adapter.open(request), (handle) =>
           Effect.orDie(adapter.destroy(handle))
@@ -64,7 +67,8 @@ export const SandboxProviderLive = Layer.effect(
       }).pipe(
         Effect.withSpan("SandboxProvider.attach", {
           attributes: { provider, sandboxId: id },
-        })
+        }),
+        Effect.annotateLogs({ provider, sandboxId: id })
       );
 
     return SandboxProvider.of({ attach, open });

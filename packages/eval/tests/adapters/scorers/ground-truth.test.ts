@@ -12,6 +12,7 @@ import { exit, stdout } from "../../fixtures/exec-chunk";
 
 const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),
+  home: "/tmp",
   id: "sbx-1",
   provider: "daytona",
   streaming: true,

@@ -3,9 +3,636 @@
   "info": {
     "title": "Anpord API",
     "version": "1.0.0",
-    "description": "Prompt management. Every endpoint takes a JSON body over POST and authenticates with a bearer API key."
+    "description": "Run agent evals and manage prompts. Every endpoint takes a JSON body over POST and authenticates with a bearer API key."
   },
   "paths": {
+    "/v1/evals.list": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "next",
+                    "runs"
+                  ],
+                  "properties": {
+                    "next": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "id",
+                            "startedAtMillis"
+                          ],
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "startedAtMillis": {
+                              "$ref": "#/components/schemas/Int"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "runs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EvalRunSummary"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Newest first. Pass the `next` cursor from a response to read the page after it; a null `next` means there are no more.",
+        "summary": "List eval runs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListEvalsRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.start": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.start",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The id of an eval run accepted for background execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartedEval"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Starts the grid and returns its id while trials continue in the background.",
+        "summary": "Start an eval run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartEvalRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.get": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.get",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A complete eval run with its cells and trials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get an eval run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalRunRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.cellHistory": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.cellHistory",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EvalCellHistoryEntry"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Returns the 20 most recent results.",
+        "summary": "List a cell's history",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalCellRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.rerunCell": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.rerunCell",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The id of an eval run accepted for background execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartedEval"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Rerun one cell",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "cellKey",
+                  "trials"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "cellKey": {
+                    "type": "string"
+                  },
+                  "trials": {
+                    "$ref": "#/components/schemas/Int",
+                    "description": "a number between 1 and 10",
+                    "title": "between(1, 10)",
+                    "minimum": 1,
+                    "maximum": 10
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.models": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.models",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Models available to the installed harness.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelCatalogue"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List models available to the harness",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalModelsRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/v1/prompts.get": {
       "post": {
         "tags": [
@@ -87,7 +714,7 @@
             }
           }
         },
-        "description": "Returns the content a caller should send to a model. With no selector this is the production version.",
+        "description": "Returns the content a caller should send to a model. With no selector this follows the organization's default channel.",
         "summary": "Resolve a prompt",
         "requestBody": {
           "content": {
@@ -182,7 +809,7 @@
             }
           }
         },
-        "description": "Every prompt in the organization, without content.",
+        "description": "Up to 100 prompts in the organization, without content.",
         "summary": "List prompts",
         "requestBody": {
           "content": {
@@ -480,269 +1107,199 @@
           "required": true
         }
       }
-    },
-    "/v1/prompts.archive": {
-      "post": {
-        "tags": [
-          "Prompts"
-        ],
-        "operationId": "prompts.archive",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The operation succeeded.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Ok"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "description": "Hides the prompt from listings. Pinned versions keep resolving.",
-        "summary": "Archive a prompt",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ArchivePromptRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
     }
   },
   "components": {
     "schemas": {
-      "GetPromptRequest": {
+      "ListEvalsRequest": {
         "type": "object",
-        "required": [
-          "id"
-        ],
+        "required": [],
         "properties": {
-          "channel": {
-            "type": "string",
-            "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
-            "title": "maxLength(36)",
-            "minLength": 1,
-            "maxLength": 36,
-            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
-          "id": {
-            "type": "string",
-            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
-            "title": "maxLength(255)",
-            "minLength": 1,
-            "maxLength": 255,
-            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
-          },
-          "includeVersions": {
-            "type": "boolean"
-          },
-          "version": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a positive number",
-            "title": "positive",
-            "exclusiveMinimum": 0
+          "limit": {
+            "$ref": "#/components/schemas/Int"
           }
         },
         "additionalProperties": false,
-        "description": "Resolve a prompt. Give a version to pin one, a channel to follow one, or neither for production."
+        "description": "Where to read from, and how much."
       },
       "Int": {
         "type": "integer",
         "description": "an integer",
         "title": "int"
       },
-      "Prompt": {
+      "EvalRunSummary": {
         "type": "object",
         "required": [
-          "channel",
-          "config",
-          "content",
-          "createdAt",
+          "caseCount",
+          "columns",
+          "commandMax",
+          "commandMin",
+          "failure",
+          "finishedAt",
           "id",
-          "message",
           "name",
-          "version"
+          "passed",
+          "scored",
+          "startedAt",
+          "status",
+          "taskCount",
+          "voided"
         ],
         "properties": {
-          "channel": {
-            "anyOf": [
-              {
-                "type": "string",
-                "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
-                "title": "maxLength(36)",
-                "minLength": 1,
-                "maxLength": 36,
-                "pattern": "^[a-z0-9][a-z0-9_-]*$"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "caseCount": {
+            "$ref": "#/components/schemas/Int"
           },
-          "config": {
-            "type": "object",
-            "required": [],
-            "properties": {},
-            "additionalProperties": {
-              "$id": "/schemas/unknown",
-              "title": "unknown"
-            }
-          },
-          "content": {
-            "type": "string"
-          },
-          "createdAt": {
-            "$ref": "#/components/schemas/Instant"
-          },
-          "id": {
-            "type": "string",
-            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
-            "title": "maxLength(255)",
-            "minLength": 1,
-            "maxLength": 255,
-            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
-          },
-          "message": {
-            "anyOf": [
-              {
-                "type": "string",
-                "description": "a string at most 500 character(s) long",
-                "title": "maxLength(500)",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "name": {
-            "type": "string",
-            "description": "a string at most 255 character(s) long",
-            "title": "maxLength(255)",
-            "minLength": 1,
-            "maxLength": 255
-          },
-          "version": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a positive number",
-            "title": "positive",
-            "exclusiveMinimum": 0
-          },
-          "versions": {
+          "columns": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Version"
+              "$ref": "#/components/schemas/EvalTask"
             }
-          }
-        },
-        "additionalProperties": false,
-        "description": "A prompt, with its version history when `includeVersions` is set."
-      },
-      "Instant": {
-        "type": "string",
-        "description": "An ISO-8601 timestamp in UTC."
-      },
-      "Version": {
-        "type": "object",
-        "required": [
-          "createdAt",
-          "message",
-          "version"
-        ],
-        "properties": {
-          "createdAt": {
-            "$ref": "#/components/schemas/Instant"
           },
-          "message": {
+          "commandMax": {
             "anyOf": [
               {
-                "type": "string",
-                "description": "a string at most 500 character(s) long",
-                "title": "maxLength(500)",
-                "maxLength": 500
+                "$ref": "#/components/schemas/Int"
               },
               {
                 "type": "null"
               }
             ]
           },
-          "version": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a positive number",
-            "title": "positive",
-            "exclusiveMinimum": 0
+          "commandMin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Int"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "passed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "scored": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "startedAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "taskCount": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "voided": {
+            "$ref": "#/components/schemas/Int"
           }
         },
         "additionalProperties": false,
-        "description": "One entry in a prompt's history."
+        "description": "A compact eval run returned by the run list."
+      },
+      "EvalTask": {
+        "type": "object",
+        "required": [
+          "harness",
+          "harnessVersion",
+          "model",
+          "provider"
+        ],
+        "properties": {
+          "harness": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "opencode"
+            ]
+          },
+          "harnessVersion": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "daytona",
+              "e2b",
+              "upstash",
+              "modal",
+              "cloudflare",
+              "vercel",
+              "local"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The harness, installed version, model, and sandbox for a cell."
+      },
+      "EvalTimestamp": {
+        "type": "string",
+        "description": "An ISO-8601 timestamp in UTC.",
+        "format": "date-time"
       },
       "HttpApiDecodeError": {
         "type": "object",
@@ -857,25 +1414,6 @@
         },
         "additionalProperties": false
       },
-      "Forbidden": {
-        "type": "object",
-        "required": [
-          "message",
-          "_tag"
-        ],
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "_tag": {
-            "type": "string",
-            "enum": [
-              "Forbidden"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
       "Conflict": {
         "type": "object",
         "required": [
@@ -890,6 +1428,25 @@
             "type": "string",
             "enum": [
               "Conflict"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Forbidden": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Forbidden"
             ]
           }
         },
@@ -933,17 +1490,1133 @@
         },
         "additionalProperties": false
       },
-      "ListPromptsRequest": {
-        "$id": "/schemas/%7B%7D",
+      "StartEvalRequest": {
+        "type": "object",
+        "required": [
+          "cases",
+          "prompt",
+          "tasks",
+          "trials"
+        ],
+        "properties": {
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StartEvalCase"
+            },
+            "description": "an array of at least 1 item(s)",
+            "title": "minItems(1)",
+            "minItems": 1
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StartEvalTask"
+            },
+            "description": "an array of at least 1 item(s)",
+            "title": "minItems(1)",
+            "minItems": 1
+          },
+          "trials": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a number between 1 and 10",
+            "title": "between(1, 10)",
+            "minimum": 1,
+            "maximum": 10
+          }
+        },
+        "additionalProperties": false,
+        "description": "Start a grid with at most 100 total case, task, and trial combinations."
+      },
+      "StartEvalCase": {
+        "type": "object",
+        "required": [
+          "goal",
+          "name",
+          "verify"
+        ],
+        "properties": {
+          "goal": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "setup": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/EvalSource"
+          },
+          "verify": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "A task, workspace source, setup command, and verifier."
+      },
+      "EvalSource": {
         "anyOf": [
           {
-            "type": "object"
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "empty"
+                ]
+              }
+            },
+            "additionalProperties": false
           },
           {
-            "type": "array"
+            "type": "object",
+            "required": [
+              "kind",
+              "ref",
+              "url"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "repo"
+                ]
+              },
+              "ref": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "files",
+              "kind"
+            ],
+            "properties": {
+              "files": {
+                "type": "object",
+                "required": [],
+                "properties": {},
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "files"
+                ]
+              }
+            },
+            "additionalProperties": false
           }
         ],
-        "description": "No parameters; returns every prompt in the organization."
+        "description": "The workspace available to the harness before setup runs."
+      },
+      "StartEvalTask": {
+        "type": "object",
+        "required": [
+          "harness",
+          "model",
+          "provider"
+        ],
+        "properties": {
+          "harness": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "opencode"
+            ]
+          },
+          "model": {
+            "type": "string",
+            "description": "a string at least 1 character(s) long",
+            "title": "minLength(1)",
+            "minLength": 1
+          },
+          "provider": {
+            "$ref": "#/components/schemas/PublicEvalProvider"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A harness, model, and hosted sandbox combination."
+      },
+      "PublicEvalProvider": {
+        "type": "string",
+        "enum": [
+          "daytona",
+          "e2b",
+          "upstash",
+          "modal",
+          "cloudflare",
+          "vercel"
+        ],
+        "description": "A hosted sandbox provider."
+      },
+      "StartedEval": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The id of an eval run accepted for background execution."
+      },
+      "EvalRunRequest": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Select an eval run by id."
+      },
+      "EvalRun": {
+        "type": "object",
+        "required": [
+          "cases",
+          "cells",
+          "failure",
+          "finishedAt",
+          "id",
+          "startedAt",
+          "status",
+          "tasks"
+        ],
+        "properties": {
+          "cases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalCell"
+            }
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "startedAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalTask"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A complete eval run with its cells and trials."
+      },
+      "EvalCell": {
+        "type": "object",
+        "required": [
+          "caseName",
+          "cellKey",
+          "comparison",
+          "distribution",
+          "internalId",
+          "setup",
+          "status",
+          "taskIndex",
+          "trials"
+        ],
+        "properties": {
+          "caseName": {
+            "type": "string"
+          },
+          "cellKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalComparison"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "distribution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalDistribution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "internalId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "setup": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalSetup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "taskIndex": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "trials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalTrial"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "One case and task combination in an eval grid."
+      },
+      "EvalComparison": {
+        "type": "object",
+        "required": [
+          "baselinePassRate",
+          "candidatePassRate",
+          "delta",
+          "determinismLost",
+          "reason",
+          "verdict"
+        ],
+        "properties": {
+          "baselinePassRate": {
+            "type": "number"
+          },
+          "candidatePassRate": {
+            "type": "number"
+          },
+          "delta": {
+            "type": "number"
+          },
+          "determinismLost": {
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "improved",
+              "incomparable",
+              "regressed",
+              "unchanged"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The cell result compared with its most recent baseline."
+      },
+      "EvalDistribution": {
+        "type": "object",
+        "required": [
+          "commandMax",
+          "commandMedian",
+          "commandMin",
+          "deterministic",
+          "failed",
+          "passRate",
+          "passed",
+          "scored",
+          "trials",
+          "voided"
+        ],
+        "properties": {
+          "commandMax": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "commandMedian": {
+            "type": "number"
+          },
+          "commandMin": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "deterministic": {
+            "type": "boolean"
+          },
+          "failed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "passRate": {
+            "type": "number"
+          },
+          "passed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "scored": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "trials": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "voided": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The scored outcome across all trials in a cell."
+      },
+      "EvalSetup": {
+        "type": "object",
+        "required": [
+          "prompt",
+          "repoRef",
+          "repoUrl",
+          "setupCommand",
+          "verifyCommand",
+          "workspace"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "repoRef": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "repoUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "setupCommand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verifyCommand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workspace": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The prompt, workspace, setup, and verifier used by a cell."
+      },
+      "EvalTrial": {
+        "type": "object",
+        "required": [
+          "commands",
+          "exitCode",
+          "failedCommands",
+          "filesChanged",
+          "modelMs",
+          "ordinal",
+          "passed",
+          "sandboxId",
+          "sandboxMs",
+          "status",
+          "timed",
+          "trajectory",
+          "usage",
+          "voidFields"
+        ],
+        "properties": {
+          "commands": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "exitCode": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "failedCommands": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "filesChanged": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "modelMs": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "ordinal": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "sandboxId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sandboxMs": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "passed",
+              "failed",
+              "void",
+              "exceeded"
+            ]
+          },
+          "timed": {
+            "type": "boolean"
+          },
+          "trajectory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalJournalEntry"
+            }
+          },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "voidFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "One sandbox attempt for a grid cell."
+      },
+      "EvalJournalEntry": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "command",
+              "exitCode",
+              "finishedAtMillis",
+              "output",
+              "startedAtMillis"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "command"
+                ]
+              },
+              "command": {
+                "type": "string"
+              },
+              "exitCode": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "output": {
+                "type": "string"
+              },
+              "startedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "finishedAtMillis",
+              "text"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "message"
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "finishedAtMillis",
+              "name",
+              "status"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "toolCall"
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "finishedAtMillis",
+              "paths"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "fileChange"
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ],
+        "description": "A normalized event recorded from the harness trajectory."
+      },
+      "EvalUsage": {
+        "type": "object",
+        "required": [
+          "inputTokens",
+          "outputTokens",
+          "totalTokens"
+        ],
+        "properties": {
+          "inputTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "outputTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "totalTokens": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Token usage reported by the harness."
+      },
+      "EvalCellRequest": {
+        "type": "object",
+        "required": [
+          "cellKey"
+        ],
+        "properties": {
+          "cellKey": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Select an eval cell by its stable key."
+      },
+      "EvalCellHistoryEntry": {
+        "type": "object",
+        "required": [
+          "distribution",
+          "finishedAt",
+          "internalId",
+          "runId",
+          "trials"
+        ],
+        "properties": {
+          "distribution": {
+            "$ref": "#/components/schemas/EvalDistribution"
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "internalId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "trials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalTrial"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A previous scored result for the same cell identity."
+      },
+      "EvalModelsRequest": {
+        "type": "object",
+        "required": [
+          "harness"
+        ],
+        "properties": {
+          "harness": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "opencode"
+            ]
+          },
+          "q": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Select a harness whose available models should be listed."
+      },
+      "ModelCatalogue": {
+        "type": "object",
+        "required": [
+          "harness",
+          "models",
+          "total"
+        ],
+        "properties": {
+          "harness": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "opencode"
+            ]
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogueModel"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Models available to the installed harness."
+      },
+      "CatalogueModel": {
+        "type": "object",
+        "required": [
+          "displayName",
+          "id",
+          "summary",
+          "vendor"
+        ],
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "vendor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "A model available to the installed harness."
+      },
+      "GetPromptRequest": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
+            "title": "maxLength(36)",
+            "minLength": 1,
+            "maxLength": 36,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "includeVersions": {
+            "type": "boolean"
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "Resolve a prompt. Give a version to pin one, a channel to follow one, or neither for the organization's default channel."
+      },
+      "Prompt": {
+        "type": "object",
+        "required": [
+          "channel",
+          "config",
+          "content",
+          "createdAt",
+          "id",
+          "message",
+          "name",
+          "version"
+        ],
+        "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "Addresses a version. `latest` is derived from the highest version rather than stored, so it cannot drift from the version table.",
+                "title": "maxLength(36)",
+                "minLength": 1,
+                "maxLength": 36,
+                "pattern": "^[a-z0-9][a-z0-9_-]*$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "config": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "additionalProperties": {
+              "$id": "/schemas/unknown",
+              "title": "unknown"
+            }
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "id": {
+            "type": "string",
+            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "a string at most 500 character(s) long",
+                "title": "maxLength(500)",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "a string at most 255 character(s) long",
+            "title": "maxLength(255)",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Version"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A prompt, with its version history when `includeVersions` is set."
+      },
+      "Instant": {
+        "type": "string",
+        "description": "An ISO-8601 timestamp in UTC.",
+        "format": "date-time"
+      },
+      "Version": {
+        "type": "object",
+        "required": [
+          "createdAt",
+          "message",
+          "version"
+        ],
+        "properties": {
+          "createdAt": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "a string at most 500 character(s) long",
+                "title": "maxLength(500)",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "description": "One entry in a prompt's history."
+      },
+      "ListPromptsRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {},
+        "additionalProperties": {
+          "$id": "/schemas/never",
+          "not": {},
+          "title": "never"
+        },
+        "description": "No parameters; returns up to 100 prompts in the organization."
       },
       "PromptList": {
         "type": "object",
@@ -1069,7 +2742,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Create a prompt and its first version."
+        "description": "Create a prompt and publish its first version to the default channel."
       },
       "UpdatePromptRequest": {
         "type": "object",
@@ -1110,7 +2783,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Add a version to a prompt. The new version becomes the latest."
+        "description": "Add a version to a prompt. The new version becomes latest, and omitted config is stored as an empty object."
       },
       "PromotePromptRequest": {
         "type": "object",
@@ -1161,24 +2834,6 @@
         },
         "additionalProperties": false,
         "description": "The operation succeeded."
-      },
-      "ArchivePromptRequest": {
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "a string matching the pattern ^[a-z0-9][a-z0-9/_-]*$",
-            "title": "maxLength(255)",
-            "minLength": 1,
-            "maxLength": 255,
-            "pattern": "^[a-z0-9][a-z0-9/_-]*$"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Archive a prompt. Existing versions stay readable by number."
       }
     },
     "securitySchemes": {
@@ -1190,6 +2845,10 @@
   },
   "security": [],
   "tags": [
+    {
+      "name": "Evals",
+      "description": "Run cases across harness, model, and sandbox combinations and compare the results with their baselines."
+    },
     {
       "name": "Prompts",
       "description": "Read and write prompts. Content is versioned, so writes append rather than overwrite, and channels decide which version callers receive."

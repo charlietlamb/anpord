@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ListState } from "@/components/layout/list-state";
+import { RowList } from "@/components/layout/row-list";
 import { ApiKeyListSkeleton } from "@/components/settings/api-key-list-skeleton";
 import { ApiKeyRow } from "@/components/settings/api-key-row";
 import { SettingsPanel } from "@/components/settings/settings-panel";
@@ -76,7 +77,7 @@ function ApiKeysPage() {
     <SettingsPanel
       actions={
         <Button onClick={onNew} size="sm">
-          <PlusIcon weight="bold" />
+          <PlusIcon />
           New key
         </Button>
       }
@@ -122,7 +123,7 @@ function ApiKeyList({
     <ListState
       action={
         <Button onClick={onNew} size="sm">
-          <PlusIcon weight="bold" />
+          <PlusIcon />
           New key
         </Button>
       }
@@ -133,7 +134,7 @@ function ApiKeyList({
       skeleton={<ApiKeyListSkeleton />}
       title="No keys yet"
     >
-      <div className="flex flex-col">
+      <RowList>
         {rows.map((row) => (
           <ApiKeyRow
             createdAt={row.createdAt}
@@ -143,7 +144,7 @@ function ApiKeyList({
             start={row.start}
           />
         ))}
-      </div>
+      </RowList>
     </ListState>
   );
 }

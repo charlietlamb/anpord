@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Anpord",
-  "description": "Prompt management for AI products",
+  "description": "Evals for coding agents",
   "colors": {
     "primary": "#008aaf",
     "light": "#0097bc",
@@ -10,9 +10,6 @@
   },
   "appearance": {
     "default": "dark"
-  },
-  "styling": {
-    "codeblocks": "dark"
   },
   "contextual": {
     "options": ["copy", "view", "chatgpt", "claude"]
@@ -39,15 +36,39 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["quickstart", "concepts"]
+            "pages": ["quickstart", "getting-started"]
           },
           {
-            "group": "Using prompts",
-            "pages": ["guides/resolving-prompts", "guides/publishing"]
+            "group": "Evals",
+            "pages": [
+              "concepts",
+              "evals/cases",
+              "evals/variants",
+              "evals/results",
+              "evals/baselines"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": ["guides/run-from-code", "guides/ci"]
+          },
+          {
+            "group": "Prompts",
+            "pages": [
+              "prompts/overview",
+              "guides/resolving-prompts",
+              "variables",
+              "freshness",
+              "guides/publishing"
+            ]
           },
           {
             "group": "Tools",
-            "pages": ["tools/cli", "tools/mcp"]
+            "pages": ["tools/sdk", "tools/cli", "tools/mcp"]
+          },
+          {
+            "group": "Help",
+            "pages": ["troubleshooting"]
           }
         ]
       },
@@ -55,11 +76,11 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "Reference",
+            "group": "Overview",
             "pages": ["api-reference/introduction"]
           },
           {
-            "group": "Prompts",
+            "group": "Endpoints",
             "openapi": {
               "source": "openapi.json",
               "directory": "api-reference"

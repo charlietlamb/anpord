@@ -2,7 +2,6 @@ import { Option } from "effect";
 import type { HarnessEvent } from "../../domain/harness-event";
 import type { DecodedLine } from "./codex-events";
 
-/** Commands begun and not yet finished, keyed by the id the harness gave them. */
 export type Pending = ReadonlyMap<string, number>;
 
 export const noPending: Pending = new Map();
@@ -15,14 +14,6 @@ export interface Timed {
 const withStart = (event: HarnessEvent, startedAt: number): HarnessEvent =>
   event._tag === "Command" ? { ...event, startedAt } : event;
 
-/**
- * Stamps a decoded line, pairing a command completion with its start.
- *
- * Pure and total, so pairing is testable without a sandbox or a clock. A
- * started line records the moment and emits nothing: the journal keeps one
- * entry per command carrying both ends. A completion whose start was never
- * seen emits without one, because absent means unknown.
- */
 export const timeLine = (
   decoded: DecodedLine,
   at: number,

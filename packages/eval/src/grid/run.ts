@@ -1,14 +1,9 @@
-import {
-  Clock,
-  Context,
-  Effect,
-  Layer,
-  Option,
-  type Redacted,
-  type Stream,
-} from "effect";
+import { Clock, Context, Effect, Layer, Option, type Stream } from "effect";
 import { caseIdentityOf } from "../domain/case-identity";
 import { CellKey } from "../domain/cell";
+import { failureOf } from "../domain/failure";
+import type { PageCursor } from "../domain/page";
+import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
 import { EventRepository } from "../repositories/event-repository";
 import { RunQuery } from "../repositories/run-query";
@@ -17,40 +12,48 @@ import { TaskRepository } from "../repositories/task-repository";
 import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
 import { Baselines } from "../services/baselines";
-import { type GridCase, runGridCell, WORKSPACE } from "./cell";
+import { type GridCase, runGridCell } from "./cell";
 import { makeLiveRuns } from "./live-runs";
 import {
+  advanceTrial,
   completeCell,
   type GridCell,
+  type GridExecutionTask,
   type GridRunState,
-  type GridTask,
   settleTrial,
 } from "./state";
 import { runToState } from "./stored-run-state";
+import { WORKSPACE } from "./trial";
 
 export interface StartGrid {
   readonly cases: readonly GridCase[];
-  readonly credentials: Redacted.Redacted<string>;
   readonly organizationId: string;
   readonly prompt: string;
   readonly startedBy: string | null;
-  readonly tasks: readonly GridTask[];
+  readonly tasks: readonly GridExecutionTask[];
   readonly trials: number;
+}
+
+/** A page of runs, and where the next one starts. */
+export interface GridRunPage {
+  readonly next: PageCursor | null;
+  readonly runs: readonly GridRunState[];
 }
 
 export interface GridRunShape {
   readonly changes: Stream.Stream<GridRunState>;
-  /** Reads the record rather than a cache. A run started before the last
-   * restart is still here, which is what makes a baseline possible at all. */
+
   readonly get: (
     organizationId: string,
     id: string
   ) => Effect.Effect<Option.Option<GridRunState>>;
-  readonly list: (
-    organizationId: string
-  ) => Effect.Effect<readonly GridRunState[]>;
-  /** Returns an id immediately. A grid takes minutes and spends real money, so
-   * a request that held open for the answer would die on any proxy. */
+  readonly list: (input: {
+    /** Null on the first page. */
+    readonly cursor: PageCursor | null;
+    readonly limit: number | undefined;
+    readonly organizationId: string;
+  }) => Effect.Effect<GridRunPage>;
+
   readonly start: (input: StartGrid) => Effect.Effect<string>;
 }
 
@@ -58,8 +61,6 @@ export class GridRun extends Context.Tag("@anpord/eval/GridRun")<
   GridRun,
   GridRunShape
 >() {}
-
-const LIST_LIMIT = 100;
 
 export const GridRunLive = Layer.scoped(
   GridRun,
@@ -72,8 +73,6 @@ export const GridRunLive = Layer.scoped(
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
 
-    /* In-flight runs only. The database is the record; this exists so a
-       subscriber can watch a cell settle before the run has finished. */
     const live = yield* makeLiveRuns;
 
     const publish = live.publish;
@@ -81,26 +80,33 @@ export const GridRunLive = Layer.scoped(
     const forget = live.forget;
 
     const registerCases = (input: StartGrid) =>
-      Effect.forEach(input.cases, (subject) => {
-        const prompt = renderPrompt(input.prompt, { goal: subject.goal });
+      Effect.forEach(
+        input.cases,
+        (subject) => {
+          const prompt = renderPrompt(input.prompt, { goal: subject.goal });
 
-        return tasks.upsertByIdentity({
-          identity: caseIdentityOf({
-            goal: subject.goal,
+          return tasks.upsertByIdentity({
+            identity:
+              subject.identity ??
+              caseIdentityOf({
+                goal: subject.goal,
+                name: subject.name,
+                setupCommand: subject.setup,
+                source: subject.source,
+                verifyCommand: subject.verify,
+                workspace: WORKSPACE,
+              }),
             name: subject.name,
+            organizationId: input.organizationId,
+            prompt,
             setupCommand: subject.setup,
             source: subject.source,
             verifyCommand: subject.verify,
             workspace: WORKSPACE,
-          }),
-          name: subject.name,
-          organizationId: input.organizationId,
-          prompt,
-          setupCommand: subject.setup,
-          verifyCommand: subject.verify,
-          workspace: WORKSPACE,
-        });
-      });
+          });
+        },
+        { concurrency: 4 }
+      );
 
     const execute = (
       input: StartGrid,
@@ -111,9 +117,6 @@ export const GridRunLive = Layer.scoped(
       }[]
     ) =>
       Effect.gen(function* () {
-        /* Cells run one after another while trials inside a cell run
-           together: the per-provider semaphore is the real ceiling, and
-           starting every cell at once would only queue against it. */
         for (const [taskIndex, task] of input.tasks.entries()) {
           for (const [caseIndex, subject] of input.cases.entries()) {
             const row = registered[caseIndex];
@@ -126,7 +129,10 @@ export const GridRunLive = Layer.scoped(
 
             const result = yield* runGridCell({
               agent,
-              credentials: input.credentials,
+              onProgress: (ordinal, journal) =>
+                update(created.id, (state) =>
+                  advanceTrial(state, position, ordinal, journal)
+                ),
               onTrial: (ordinal, trial) =>
                 update(created.id, (state) =>
                   settleTrial(state, position, ordinal, trial)
@@ -146,10 +152,6 @@ export const GridRunLive = Layer.scoped(
               completeCell(state, position, result)
             );
 
-            /* The first scored reading of a cell becomes its reference, so a
-               later run has something to be worse than. Ignored on failure:
-               a baseline is how the next run is read, and losing one is not
-               worth failing a grid that already produced its trials. */
             yield* baselines
               .promoteIfAbsent({
                 cellInternalId: result.internalId,
@@ -190,9 +192,6 @@ export const GridRunLive = Layer.scoped(
           trialCount: cellCount * input.trials,
         });
 
-        /* Each case becomes a task row, because the cell key is hashed over
-           the task's identity and version. Without a persisted task there is
-           nothing stable for a later run to be compared against. */
         const registered = yield* registerCases(input);
 
         const cells = input.tasks.flatMap((_, taskIndex) =>
@@ -202,6 +201,7 @@ export const GridRunLive = Layer.scoped(
               cellKey: null,
               distribution: Option.none(),
               internalId: null,
+              live: new Map(),
               setup: Option.some({
                 prompt: renderPrompt(input.prompt, { goal: subject.goal }),
                 repoRef:
@@ -228,22 +228,16 @@ export const GridRunLive = Layer.scoped(
           organizationId: input.organizationId,
           startedAt,
           status: "running",
-          tasks: input.tasks,
+          tasks: input.tasks.map(
+            ({ bindings: _, credentials: __, ...task }) => task
+          ),
         });
 
-        /* Forked so the caller gets an id now, daemonised because the request
-           scope closes as soon as the response is written. */
         yield* Effect.forkDaemon(
           execute(input, created, registered).pipe(
-            /* Logged as well as recorded. A grid that dies inside its own
-               daemon leaves a run stuck at running, and without this the only
-               evidence is a field nobody reads. */
             Effect.tapErrorCause((cause) =>
-              Effect.logError("grid run failed").pipe(
-                Effect.annotateLogs({
-                  cause: String(cause),
-                  runId: created.id,
-                })
+              Effect.logError("grid run failed", cause).pipe(
+                Effect.annotateLogs({ runId: created.id })
               )
             ),
             Effect.catchAllCause((cause) =>
@@ -251,7 +245,7 @@ export const GridRunLive = Layer.scoped(
                 Effect.flatMap((finishedAt) =>
                   runs
                     .finish({
-                      failure: String(cause),
+                      failure: failureOf(cause),
                       finishedAt: new Date(finishedAt),
                       internalId: created.internalId,
                       status: "failed",
@@ -261,7 +255,7 @@ export const GridRunLive = Layer.scoped(
                       Effect.zipRight(
                         update(created.id, (state) => ({
                           ...state,
-                          failure: Option.some(String(cause)),
+                          failure: Option.some(failureOf(cause)),
                           finishedAt: Option.some(finishedAt),
                           status: "failed",
                         })).pipe(Effect.zipRight(forget(created.id)))
@@ -275,6 +269,12 @@ export const GridRunLive = Layer.scoped(
 
         return created.id;
       }).pipe(
+        /* Logged before it is turned into a defect: a start that fails takes
+           its tag with it through orDie, and a run row saying only "failed"
+           is the whole of what anybody could see. */
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("grid run could not start", cause)
+        ),
         Effect.orDie,
         Effect.withSpan("GridRun.start", {
           attributes: {
@@ -285,9 +285,6 @@ export const GridRunLive = Layer.scoped(
         })
       );
 
-    /* The live copy wins while a run is in flight, because it carries the
-       trials that have landed so far and their journals. Once it is gone the
-       record answers, which is what survives a restart. */
     const get = (organizationId: string, id: string) =>
       live.get(id).pipe(
         Effect.flatMap((current) => {
@@ -308,9 +305,6 @@ export const GridRunLive = Layer.scoped(
                 cell.trials.map((trial) => trial.internalId)
               );
 
-              /* The journals come with the run: a stored trial without its
-                 events cannot draw a trajectory, and reading them per trial
-                 would open one round trip per row of the table. */
               return events
                 .listByTrials(trialIds)
                 .pipe(
@@ -328,19 +322,51 @@ export const GridRunLive = Layer.scoped(
     return GridRun.of({
       changes: live.changes,
       get,
-      list: (organizationId) =>
-        query.listRuns({ limit: LIST_LIMIT, organizationId }).pipe(
-          Effect.flatMap((rows) =>
-            Effect.forEach(rows, (row) =>
-              get(organizationId, row.id).pipe(Effect.map(Option.getOrNull))
-            )
-          ),
-          Effect.map((states) =>
-            states.filter((state): state is GridRunState => state !== null)
-          ),
-          Effect.orDie,
-          Effect.withSpan("GridRun.list")
-        ),
+      list: (input) =>
+        Effect.gen(function* () {
+          const size = pageSizeOf(input.limit);
+
+          const rows = yield* query.listRuns({
+            cursor: input.cursor,
+            limit: size,
+            organizationId: input.organizationId,
+          });
+
+          const page = pageOf(rows, size);
+
+          const current = yield* Effect.forEach(
+            page.items,
+            (row) => live.get(row.id),
+            { concurrency: "unbounded" }
+          );
+          const storedRows = page.items.filter((_, index) =>
+            Option.isNone(current[index] ?? Option.none())
+          );
+          const stored = yield* query.hydrateRuns(storedRows);
+          const storedById = new Map(
+            stored.map((detail) => [detail.run.id, runToState(detail)])
+          );
+          const states = page.items.flatMap((row, index) =>
+            Option.match(current[index] ?? Option.none(), {
+              onNone: () => {
+                const state = storedById.get(row.id);
+                return state === undefined ? [] : [state];
+              },
+              onSome: (state) =>
+                state.organizationId === input.organizationId ? [state] : [],
+            })
+          );
+
+          const last = page.items.at(-1);
+
+          return {
+            next:
+              page.hasMore && last !== undefined
+                ? { id: last.id, startedAtMillis: last.createdAt.getTime() }
+                : null,
+            runs: states,
+          };
+        }).pipe(Effect.orDie, Effect.withSpan("GridRun.list")),
       start,
     });
   })

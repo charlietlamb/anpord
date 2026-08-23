@@ -3,6 +3,7 @@ import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { IdGeneratorLive } from "@anpord/ids/layer";
+import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import {
   Duration,
   Effect,
@@ -12,7 +13,9 @@ import {
   Option,
   Redacted,
 } from "effect";
+import { layerTestResolver } from "../../src/credentials/connections";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
+import { HarnessVersionsLive } from "../../src/services/harness-versions";
 import { Workbenches } from "../../src/services/workbench";
 import { skipWithoutDatabase } from "../fixtures/database";
 
@@ -20,6 +23,8 @@ const URL = process.env.EVAL_TEST_DATABASE_URL;
 
 const TestLayer = EvalGridLive.pipe(
   Layer.provide(EvalSandboxLive),
+  Layer.provide(layerTestResolver()),
+  Layer.provide(HarnessVersionsLive),
   Layer.provide(IdGeneratorLive),
   Layer.provideMerge(DatabaseLive),
   Layer.provide(
@@ -34,6 +39,12 @@ const TestLayer = EvalGridLive.pipe(
 const runtime = ManagedRuntime.make(TestLayer);
 const suffix = Date.now();
 const organizationId = `org_wb_${suffix}`;
+const actor = Actor.make({
+  id: UserId.make("user_workbench"),
+  isUser: true,
+  organizationId: OrganizationId.make(organizationId),
+  permissions: [],
+});
 
 const run = <A, E>(effect: Effect.Effect<A, E, Database | Workbenches>) =>
   runtime.runPromise(effect as Effect.Effect<A, E, never>);
@@ -107,6 +118,7 @@ describe.skipIf(skipWithoutDatabase())("Workbenches", () => {
             columns: [
               { harness: "codex", model: "gpt-5-codex", provider: "daytona" },
             ],
+            connections: {},
             prompt: "{{goal}}",
             trials: 2,
           },
@@ -143,9 +155,9 @@ describe.skipIf(skipWithoutDatabase())("Workbenches", () => {
         });
 
         return yield* workbenches.run({
-          credentials: Redacted.make(""),
-          harnessVersion: "0.144.4",
+          actor,
           id: created.id,
+          legacyHarnessAuth: "",
           organizationId,
           startedBy: null,
         });

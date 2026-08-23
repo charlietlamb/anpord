@@ -1,6 +1,6 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
-import { Button } from "@anpord/ui/components/button";
-import { SpinnerGapIcon } from "@phosphor-icons/react";
+import { RowList } from "@/components/layout/row-list";
+import { ShowMore } from "@/components/layout/show-more";
 import { PromptRow } from "@/components/prompts/prompt-row";
 import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
 
@@ -24,13 +24,7 @@ export function PromptList({
       {/* No rules between the rows: they are the same shape repeated, and the
           highlight that follows the pointer is what separates one from the
           next. */}
-      <div
-        aria-label="Prompts"
-        className="flex flex-col"
-        onKeyDown={nav.onKeyDown}
-        role="listbox"
-        tabIndex={-1}
-      >
+      <RowList label="Prompts" onKeyDown={nav.onKeyDown} role="listbox">
         {prompts.map((prompt, index) => (
           <PromptRow
             key={prompt.id}
@@ -40,22 +34,15 @@ export function PromptList({
             tabIndex={index === nav.activeIndex ? 0 : -1}
           />
         ))}
-      </div>
+      </RowList>
 
-      {hasMore ? (
-        <Button
-          className="self-start"
-          disabled={loadingMore}
-          onClick={onLoadMore}
-          size="sm"
-          variant="bare"
-        >
-          {loadingMore ? (
-            <SpinnerGapIcon className="animate-spin" size={15} />
-          ) : null}
-          {loadingMore ? "Loading…" : "Show more"}
-        </Button>
-      ) : null}
+      <ShowMore
+        className="self-start"
+        hasMore={hasMore}
+        label="Show more"
+        loading={loadingMore}
+        onMore={onLoadMore}
+      />
     </div>
   );
 }

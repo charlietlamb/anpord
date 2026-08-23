@@ -1,3 +1,7 @@
+import type {
+  CredentialValues,
+  ResolvedCredential,
+} from "@anpord/schema/domain/credentials";
 import {
   Chunk,
   Clock,
@@ -6,6 +10,8 @@ import {
   Layer,
   type Option,
   type Redacted,
+  Ref,
+  Schedule,
   Stream,
 } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
@@ -19,26 +25,37 @@ import {
 } from "../domain/journal";
 import type { TrialOutcome } from "../domain/trial";
 import type { WorkspaceSource } from "../domain/workspace-source";
-import { HarnessRunner } from "../ports/harness";
+import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
+import type { TrialProgressShape } from "../ports/trial-progress";
+
+const noReport = () => Effect.void;
+
 import { prepareWorkspace } from "./workspace";
+
+const PROGRESS_BATCH = 32;
+const PROGRESS_WINDOW = "400 millis";
+
+const PROGRESS_RETRY = Schedule.exponential("100 millis").pipe(
+  Schedule.compose(Schedule.recurs(1))
+);
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;
-  /** Redacted, so an accidental log or span attribute renders as <redacted>
-   * rather than a live OAuth token. Unwrapped once, at the line that writes it
-   * into the sandbox. */
-  readonly credentials: Redacted.Redacted<string>;
+
   readonly harness: HarnessName;
+  readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly harnessVersion: string;
-  readonly home: string;
   readonly model: string;
+
+  readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
+  readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
-  /** Null for a case with no verifier, which is voided rather than passed. */
+
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -68,7 +85,7 @@ export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<
 export const AgentTrialLive = Layer.effect(
   AgentTrial,
   Effect.gen(function* () {
-    const harnesses = yield* HarnessRunner;
+    const harnesses = yield* Harnesses;
     const sandboxes = yield* SandboxProvider;
     const scorer = yield* Scorer;
 
@@ -78,23 +95,29 @@ export const AgentTrialLive = Layer.effect(
 
         const sandbox = yield* sandboxes.open({
           autoStopMinutes: request.autoStopMinutes,
+          credentials: request.sandboxCredentials,
           provider: request.provider,
           workspace: request.workspace,
         });
 
-        yield* prepareWorkspace({
-          credentials: request.credentials,
-          source: request.source,
+        const driver = yield* harnesses.resolve(request.harness);
+
+        const env = yield* prepareWorkspace({
+          credential: request.harnessCredential,
+          driver,
+          harness: request.harness,
           harnessVersion: request.harnessVersion,
-          home: request.home,
+          home: sandbox.home,
           sandbox,
           setupCommand: request.setupCommand,
+          source: request.source,
           workspace: request.workspace,
         });
 
         const modelStarted = yield* Clock.currentTimeMillis;
 
-        const session = yield* harnesses.run({
+        const session = yield* driver.run({
+          env,
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           model: request.model,
@@ -103,15 +126,40 @@ export const AgentTrialLive = Layer.effect(
           workspace: request.workspace,
         });
 
+        const reported = yield* Ref.make(0);
+
         const events = Chunk.toReadonlyArray(
-          yield* Stream.runCollect(session.events)
+          yield* session.events.pipe(
+            Stream.groupedWithin(PROGRESS_BATCH, PROGRESS_WINDOW),
+            Stream.tap((batch) =>
+              Ref.get(reported).pipe(
+                Effect.flatMap((from) =>
+                  (request.progress?.append ?? noReport)(
+                    Chunk.toReadonlyArray(batch),
+                    from
+                  ).pipe(
+                    Effect.retry(PROGRESS_RETRY),
+                    Effect.zipRight(Ref.set(reported, from + batch.length))
+                  )
+                ),
+                Effect.catchAllCause((cause) =>
+                  Effect.logWarning("trial progress not recorded", cause).pipe(
+                    Effect.annotateLogs({
+                      harness: request.harness,
+                      model: request.model,
+                      provider: request.provider,
+                    })
+                  )
+                )
+              )
+            ),
+            Stream.flattenChunks,
+            Stream.runCollect
+          )
         );
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
-        /** Scored through the port rather than inline, so the verdict comes
-         * from running the verifier ourselves and inherits the refusal to
-         * score through an unguarded pipeline. */
         const scored = yield* scorer.score({
           commandCount: commandsIn(events),
           events,
@@ -130,9 +178,7 @@ export const AgentTrialLive = Layer.effect(
           filesChanged: filesIn(events),
           outcome: {
             ...scored,
-            /* Model time and sandbox time are separated here because the
-               scorer only sees the verifier, and a slow provider would
-               otherwise read as a slow model. */
+
             sandboxMs: finishedAt - startedAt - (modelFinished - modelStarted),
           },
           sandboxId: sandbox.id,

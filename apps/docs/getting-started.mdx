@@ -1,15 +1,18 @@
 ---
 title: "Quickstart"
-description: "Fetch your first prompt"
+description: "Run your first coding-agent eval"
 ---
 
-## Get a key
+## Prerequisites
 
-Create a key in the dashboard under **Settings → API keys**. Keys are scoped to one organization, so a key only ever reads that organization's prompts.
+Create a key under **Settings > API keys**, then set the key and a model id:
 
 ```bash
 export ANPORD_API_KEY="anp_..."
+export EVAL_MODEL="gpt-5.6-sol"
 ```
+
+The key needs `evals:write` and `evals:read`. Use a model id from your configuration, or find one with `anpord.evals.models({ harness: "codex" })`.
 
 ## Install
 
@@ -25,44 +28,62 @@ bun add anpord
 
 </CodeGroup>
 
-## Create a prompt
+## Run an eval
 
-Write it in the dashboard, or from code:
+Create `eval.ts`:
 
 ```ts
 import { Anpord } from "anpord";
 
 const anpord = new Anpord();
+const model = process.env.EVAL_MODEL;
 
-await anpord.prompts.create({
-  id: "support-reply",
-  name: "Support reply",
-  content: "You are a support agent. Be brief and warm.",
+if (!model) throw new Error("Set EVAL_MODEL");
+
+const { id } = await anpord.evals.start({
+  cases: [
+    {
+      name: "writes the requested file",
+      goal: "Create hello.txt containing exactly hello",
+      verify: "test \"$(cat hello.txt)\" = hello",
+    },
+  ],
+  prompt: "Work in the current repository. {{goal}}",
+  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  trials: 3,
 });
+
+let run = await anpord.evals.get({ id });
+
+while (run.status === "running") {
+  await new Promise((resolve) => setTimeout(resolve, 2_000));
+  run = await anpord.evals.get({ id });
+}
+
+if (run.status === "failed") {
+  throw new Error(run.failure ?? "Eval run failed");
+}
+
+const result = run.cells[0]?.distribution;
+if (!result) throw new Error("Run produced no result");
+
+console.log({ id, passRate: result.passRate, scored: result.scored });
+await anpord.dispose();
 ```
 
-The id is how every caller addresses this prompt. It stays fixed while the content behind it changes.
+Run it:
 
-## Read it back
-
-```ts
-const prompt = await anpord.prompts.get({ id: "support-reply" });
-
-const completion = await openai.chat.completions.create({
-  model: "gpt-4o",
-  messages: [{ role: "system", content: prompt.content }],
-});
+```bash
+bun eval.ts
 ```
 
-That is the whole integration. Editing `support-reply` in the dashboard changes what this code sends, with no deploy.
-
-## Next
+Each trial runs in its own sandbox. The first scored result becomes the baseline for this case, harness, harness version, model, and sandbox provider.
 
 <CardGroup cols={2}>
-  <Card title="Prompts, versions and channels" icon="book-open" href="/concepts">
-    What happens between the id and the content.
+  <Card title="Write cases" icon="list-check" href="/evals/cases">
+    Set the source, task, setup, and verifier.
   </Card>
-  <Card title="Variables" icon="code" href="/variables">
-    Values filled in at runtime, checked at build time.
+  <Card title="Run in CI" icon="code-branch" href="/guides/ci">
+    Fail a build on regressions or missing evidence.
   </Card>
 </CardGroup>

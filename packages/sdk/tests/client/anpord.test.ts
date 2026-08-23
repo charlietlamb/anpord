@@ -36,8 +36,15 @@ describe("credentials", () => {
 describe("surface", () => {
   test("every endpoint in the group is reachable", () => {
     const anpord = new Anpord({ apiKey: "k" });
+    expect(Object.keys(anpord.evals).toSorted()).toEqual([
+      "cellHistory",
+      "get",
+      "list",
+      "models",
+      "rerunCell",
+      "start",
+    ]);
     expect(Object.keys(anpord.prompts).toSorted()).toEqual([
-      "archive",
       "create",
       "get",
       "list",
@@ -66,16 +73,12 @@ describe("surface", () => {
         id: "greeting",
         version: 1,
       });
-      const archived = await anpord.prompts.archive({
-        id: "greeting",
-      });
       return [
         prompt.content,
         listed.data.length,
         created.version,
         updated.version,
         promoted.ok,
-        archived.ok,
       ] as const;
     };
 
@@ -85,6 +88,8 @@ describe("surface", () => {
 
 const NAMES_THE_FIELD = /^id: /;
 const EXPLAINS_THE_RULE = /^id: Prompt id must be lowercase/;
+const PROVIDER_ERROR = /provider/;
+const MODEL_ERROR = /model/;
 
 describe("validation", () => {
   test("an id the api would refuse is named, not dumped as a schema", async () => {
@@ -102,6 +107,48 @@ describe("validation", () => {
       NAMES_THE_FIELD
     );
   });
+
+  test("public evals reject a local sandbox before the network", async () => {
+    const anpord = new Anpord({
+      apiKey: "unused",
+      baseUrl: "http://127.0.0.1:1",
+    });
+    await expect(
+      anpord.evals.start({
+        cases: [
+          {
+            goal: "Write hello.txt",
+            name: "writes a file",
+            verify: "test -f hello.txt",
+          },
+        ],
+        prompt: "{{goal}}",
+        tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "local" }],
+        trials: 1,
+      } as never)
+    ).rejects.toThrow(PROVIDER_ERROR);
+  });
+
+  test("public evals reject an empty model before the network", async () => {
+    const anpord = new Anpord({
+      apiKey: "unused",
+      baseUrl: "http://127.0.0.1:1",
+    });
+    await expect(
+      anpord.evals.start({
+        cases: [
+          {
+            goal: "Write hello.txt",
+            name: "writes a file",
+            verify: "test -f hello.txt",
+          },
+        ],
+        prompt: "{{goal}}",
+        tasks: [{ harness: "codex", model: "", provider: "daytona" }],
+        trials: 1,
+      })
+    ).rejects.toThrow(MODEL_ERROR);
+  });
 });
 
 describe("errors", () => {
@@ -113,6 +160,12 @@ describe("errors", () => {
     expect(error).toBeInstanceOf(AnpordError);
     expect(error.status).toBe(404);
     expect(error.message).toBe('No prompt with id "missing"');
+  });
+
+  test("a refused permission keeps its forbidden status", () => {
+    expect(
+      asAnpordError({ _tag: "Forbidden", message: "no grant" }).status
+    ).toBe(403);
   });
 
   test("an unrecognised failure still becomes a usable error", () => {

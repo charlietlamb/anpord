@@ -4,36 +4,53 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "seed:companies": "bun --env-file=../../.env run scripts/seed-company-evals.ts",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
+    "@anpord/schema": "workspace:*",
     "@daytonaio/sdk": "^0.205.0",
+    "@effect/platform": "catalog:",
+    "@upstash/box": "^0.7.0",
+    "@vercel/sandbox": "3.1.0",
     "drizzle-orm": "catalog:",
     "e2b": "^2.9.0",
-    "effect": "catalog:"
+    "effect": "catalog:",
+    "modal": "^0.9.0"
   },
   "devDependencies": {
     "@types/bun": "catalog:",
     "typescript": "catalog:"
   },
   "exports": {
+    "./adapters/models/codex-available": "./src/adapters/models/codex-available.ts",
     "./adapters/sandbox/local": "./src/adapters/sandbox/local.ts",
     "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
     "./adapters/scorers/journal-assertions": "./src/adapters/scorers/journal-assertions.ts",
+    "./credentials/cipher": "./src/credentials/cipher.ts",
+    "./credentials/connections": "./src/credentials/connections.ts",
+    "./credentials/device-auth": "./src/credentials/device-auth.ts",
+    "./credentials/errors": "./src/credentials/errors.ts",
+    "./credentials/integrations": "./src/credentials/integrations.ts",
+    "./credentials/tasks": "./src/credentials/tasks.ts",
     "./domain/case-file": "./src/domain/case-file.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
     "./domain/harness-spec": "./src/domain/harness-spec.ts",
+    "./domain/journal": "./src/domain/journal.ts",
+    "./domain/page": "./src/domain/page.ts",
     "./domain/playground-config": "./src/domain/playground-config.ts",
     "./domain/trial": "./src/domain/trial.ts",
     "./domain/workspace-source": "./src/domain/workspace-source.ts",
     "./grid/run": "./src/grid/run.ts",
     "./grid/state": "./src/grid/state.ts",
     "./layer": "./src/layer.ts",
+    "./ports/model-source": "./src/ports/model-source.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
+    "./repositories/run-query": "./src/repositories/run-query.ts",
     "./sdk/define": "./src/sdk/define.ts",
     "./sdk/evidence": "./src/sdk/evidence.ts",
     "./sdk/outcome": "./src/sdk/outcome.ts",
@@ -41,6 +58,10 @@
     "./sdk/scorers": "./src/sdk/scorers.ts",
     "./sdk/variant": "./src/sdk/variant.ts",
     "./services/baselines": "./src/services/baselines.ts",
+    "./services/cell-rerun": "./src/services/cell-rerun.ts",
+    "./services/harness-versions": "./src/services/harness-versions.ts",
+    "./services/model-catalogue": "./src/services/model-catalogue.ts",
+    "./services/reconciler": "./src/services/reconciler.ts",
     "./services/workbench": "./src/services/workbench.ts"
   }
 }

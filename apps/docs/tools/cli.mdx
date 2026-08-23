@@ -1,128 +1,56 @@
 ---
 title: "CLI"
-description: "Read and publish prompts from your terminal"
+description: "Read and release prompts from a terminal"
 ---
 
-The CLI ships in the same package as the SDK.
+The CLI reads prompts, adds versions, moves channels, and generates variable types. Use the dashboard, SDK, or API to create prompts and run evals.
+
+## Install
 
 <CodeGroup>
 
 ```bash npx
-npx anpord list
+npx anpord --help
 ```
 
 ```bash global
 npm install -g anpord
-anpord list
+anpord --help
 ```
 
 </CodeGroup>
 
-Authentication comes from the environment:
-
-```bash
-export ANPORD_API_KEY="anp_..."
-```
+Set `ANPORD_API_KEY` before running a command.
 
 ## Commands
 
-### get
+| Command | Purpose |
+| --- | --- |
+| `anpord list [--json]` | List up to 100 prompts |
+| `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
+| `anpord versions <id>` | Print version history as JSON |
+| `anpord push <id> <content> [-m <message>]` | Append a version |
+| `anpord promote <id> --to <channel> --at <version>` | Move a channel |
+| `anpord generate [--out <path>]` | Generate variable types for up to 100 prompts; `gen` is an alias |
+| `anpord --completions <shell>` | Print completions for zsh, bash, or fish |
 
-```bash
-anpord get <id> [--json] [--channel <name>] [--at <version>]
-```
-
-Prints the prompt's content to stdout, which makes it pipeable:
+Prompt content goes to stdout:
 
 ```bash
 anpord get support-reply > prompt.txt
-anpord get support-reply | pbcopy
+anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
+anpord promote support-reply --to production --at 7
 ```
 
-`--json` prints the whole prompt instead, including its version and channel. `--channel` and `--at` select which version to resolve, following the same rules as the API.
+`push` does not promote or accept config. Use the SDK or API for prompts with versioned config.
 
 <Note>
-The flag to pin a version is `--at`. `--version` prints the CLI's own version.
+`--at` selects a prompt version. `--version` prints the CLI version.
 </Note>
 
-### list
-
-```bash
-anpord list [--json]
-```
-
-One prompt per line as `id`, latest version, and name. Returns up to 100 prompts.
-
-### versions
-
-```bash
-anpord versions <id>
-```
-
-The prompt's history as JSON. Takes no flags.
-
-### push
-
-```bash
-anpord push <id> <content> [-m <message>]
-```
-
-Appends a version. Pass `-` to read the content from stdin:
-
-```bash
-cat prompts/support-reply.md | anpord push support-reply - -m "Rewrite"
-```
-
-Pushing does not change what production serves. Promote when you are ready.
-
-### promote
-
-```bash
-anpord promote <id> --to <channel> --at <version>
-```
-
-Points a channel at a version. Both flags are required.
-
-```bash
-anpord promote support-reply --to production --at 5
-```
-
-### generate
-
-```bash
-anpord generate [--out <path>]
-```
-
-Writes TypeScript declarations describing which variables each prompt takes, so a misspelled or missing variable fails the build. Defaults to `anpord-env.d.ts`. `gen` is an alias.
-
-Run it again whenever a prompt gains or loses a variable, and commit the result. See [Variables](/variables).
-
-## Scripting
-
-Content goes to stdout and everything else to stderr, so redirecting a prompt to a file captures the prompt and nothing else. A failure exits non-zero with a single line and no stack trace:
-
-```bash
-if ! anpord get support-reply > prompt.txt; then
-  echo "could not resolve the prompt" >&2
-  exit 1
-fi
-```
-
-## Completions
-
-```bash
-anpord --completions zsh
-```
-
-Also available for `bash` and `fish`.
-
-## Configuration
+Failures exit nonzero without a stack trace. Status messages go to stderr.
 
 | Variable | Purpose |
 | --- | --- |
-| `ANPORD_API_KEY` | Required. The key the CLI authenticates with. |
-| `ANPORD_BASE_URL` | Optional. Defaults to `https://api.anpord.com`. |
-
-<Note>
-`ANPORD_BASE_URL` is read by the CLI and the MCP server. The SDK constructor does not read it, so pass `{ baseUrl }` to point the client elsewhere.
-</Note>
+| `ANPORD_API_KEY` | API key |
+| `ANPORD_BASE_URL` | API origin, defaulting to `https://api.anpord.com` |

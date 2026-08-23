@@ -1,17 +1,15 @@
 import {
   index,
+  integer,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { credentialConnection } from "../credentials/connections";
 import { evalRun } from "./eval-runs";
 import { evalTask } from "./eval-tasks";
 
-/** The cell key is a content hash over task, harness, harness version, model
- * and provider. It is what makes two runs comparable a month apart, and it is
- * why harness version is a column rather than metadata: a comparison that
- * cannot see a harness upgrade decays silently. */
 export const evalCell = pgTable(
   "eval_cell",
   {
@@ -24,9 +22,18 @@ export const evalCell = pgTable(
       .references(() => evalTask.internalId, { onDelete: "restrict" }),
     cellKey: text("cell_key").notNull(),
     harness: text("harness").notNull(),
+    harnessCredentialConnectionId: text(
+      "harness_credential_connection_id"
+    ).references(() => credentialConnection.id, { onDelete: "set null" }),
+    harnessCredentialRevision: integer("harness_credential_revision"),
     harnessVersion: text("harness_version").notNull(),
     model: text("model").notNull(),
+    prompt: text("prompt").notNull(),
     provider: text("provider").notNull(),
+    sandboxCredentialConnectionId: text(
+      "sandbox_credential_connection_id"
+    ).references(() => credentialConnection.id, { onDelete: "set null" }),
+    sandboxCredentialRevision: integer("sandbox_credential_revision"),
     status: text("status").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
@@ -35,10 +42,7 @@ export const evalCell = pgTable(
       table.runInternalId,
       table.cellKey
     ),
-    /* Ordered, because cell history is the newest N readings of one key and
-       an unordered index leaves a heapsort over every cell sharing it. This
-       supersedes a bare cell_key index, and the run_internal_id index is a
-       prefix of the composite above. */
+
     index("eval_cell_cell_key_created_at_idx").on(
       table.cellKey,
       table.createdAt.desc()

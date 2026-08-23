@@ -1,0 +1,79 @@
+---
+title: "Prompt management"
+sidebarTitle: "Overview"
+description: "Version, test, and release prompts"
+---
+
+Anpord stores prompts outside your application. Each edit creates a version, and channels decide which version callers receive.
+
+```ts
+const prompt = await anpord.prompts.get({ id: "coding-agent" });
+```
+
+## Create a prompt
+
+```ts
+await anpord.prompts.create({
+  id: "coding-agent",
+  name: "Coding agent",
+  content: "Complete this task:\n\n{{goal}}",
+  config: { temperature: 0 },
+});
+```
+
+The id stays fixed while content and configuration change. It may contain lowercase letters, numbers, `/`, `_`, and `-`, up to 255 characters. `config` is versioned JSON for model or application settings.
+
+If the organization has a default channel, the first version is published to it. New organizations use `production`.
+
+## Add a version
+
+```ts
+const candidate = await anpord.prompts.update({
+  id: "coding-agent",
+  content: "Read the repository first. {{goal}}",
+  config: { temperature: 0 },
+  message: "Ask the agent to inspect before editing",
+});
+```
+
+Updates append versions. Earlier versions remain readable. Content and `config` are both versioned.
+
+## Release through a channel
+
+A channel points to one version. Applications can follow `production`, `staging`, or another named channel without changing code.
+
+```ts
+await anpord.prompts.promote({
+  id: "coding-agent",
+  channel: "production",
+  version: candidate.version,
+});
+```
+
+`latest` is a reserved read-only selector for the highest version number. It cannot be promoted.
+
+## Test prompt content with evals
+
+Resolve the exact candidate before starting a run:
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "coding-agent",
+  version: candidate.version,
+});
+
+await anpord.evals.start({ cases, prompt: prompt.content, tasks, trials: 3 });
+```
+
+The eval uses `prompt.content`; it does not apply `prompt.config`. Resolve the exact version so the run receives the intended content, then promote that version after review.
+
+Owners can archive prompts from the dashboard. Archived prompts disappear from listings but remain readable by existing selectors. The public API does not expose archiving.
+
+<CardGroup cols={2}>
+  <Card title="Resolve prompts" icon="download" href="/guides/resolving-prompts">
+    Follow a channel or pin a version.
+  </Card>
+  <Card title="Publish changes" icon="upload" href="/guides/publishing">
+    Add, test, and promote a version.
+  </Card>
+</CardGroup>

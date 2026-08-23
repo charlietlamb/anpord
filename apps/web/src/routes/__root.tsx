@@ -12,13 +12,12 @@ import { RootErrorComponent } from "@/components/layout/root-error";
 import { RootNotFound } from "@/components/layout/root-not-found";
 import "../styles/globals.css";
 
-/** Orange while developing, so a local tab is never mistaken for production. */
 const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
 
 const TITLE = "Anpord";
-const DESCRIPTION = "Write, version, and ship the prompts behind your product.";
+const DESCRIPTION =
+  "Evals for harnesses running in sandboxes. Hand a coding agent a repo and a real shell, then score what it built.";
 
-/** A crawler resolves nothing, so the card image has to be absolute. */
 const SITE_URL = "https://www.anpord.com";
 const OG_IMAGE = `${SITE_URL}/og.png`;
 

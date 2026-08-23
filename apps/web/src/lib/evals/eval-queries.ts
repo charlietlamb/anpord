@@ -1,25 +1,40 @@
-import type { EvalRunSummary } from "@anpord/schema/domain/evals";
+import type {
+  EvalHarness,
+  EvalPageCursor,
+  EvalRunPage,
+} from "@anpord/schema/domain/evals";
 import { queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
-import { getRun, listCellHistory, listRuns } from "@/lib/evals/evals-client";
+import {
+  getModelCatalogue,
+  getPlayground,
+  getRun,
+  listCellHistory,
+  listRuns,
+} from "@/lib/evals/evals-client";
 
-/* Long enough that a run in flight is not a request every second, short
-   enough that a finished trial appears while somebody is still looking. A
-   trial takes tens of seconds, so a socket would buy nothing for the cost of
-   a connection. */
-const RUNNING_POLL_MS = 2000;
+const DETAIL_POLL_MS = 2000;
+const LIST_POLL_MS = 5000;
 
-/** Polling derived from the data rather than driven by an effect, so nothing
- * keeps asking once every run has settled. */
-const pollWhileRunning = (runs: readonly EvalRunSummary[] | undefined) =>
-  runs?.some((run) => run.status === "running") ? RUNNING_POLL_MS : false;
+const LIVE = {
+  refetchIntervalInBackground: false,
+  refetchOnMount: false,
+  refetchOnWindowFocus: false,
+  staleTime: 0,
+} as const;
+
+/* Polls only while something on the page is still moving. A run that finishes
+   on the page a reader is looking at stops the polling it started. */
+const pollWhileRunning = (page: EvalRunPage | undefined) =>
+  page?.runs.some((run) => run.status === "running") ? LIST_POLL_MS : false;
 
 export const evalQueries = {
-  list: () =>
+  list: (cursor: EvalPageCursor | null) =>
     queryOptions({
-      queryKey: evalKeys.lists(),
-      queryFn: () => listRuns(),
+      queryKey: evalKeys.list(cursor),
+      queryFn: () => listRuns(cursor),
       refetchInterval: (query) => pollWhileRunning(query.state.data),
+      ...LIVE,
     }),
 
   detail: (id: string) =>
@@ -27,12 +42,26 @@ export const evalQueries = {
       queryKey: evalKeys.detail(id),
       queryFn: () => getRun(id),
       refetchInterval: (query) =>
-        query.state.data?.status === "running" ? RUNNING_POLL_MS : false,
+        query.state.data?.status === "running" ? DETAIL_POLL_MS : false,
+      ...LIVE,
     }),
 
   history: (cellKey: string) =>
     queryOptions({
       queryKey: evalKeys.history(cellKey),
       queryFn: () => listCellHistory(cellKey),
+    }),
+
+  playground: (id: string) =>
+    queryOptions({
+      queryKey: evalKeys.playground(id),
+      queryFn: () => getPlayground(id),
+    }),
+
+  models: (harness: EvalHarness, query = "") =>
+    queryOptions({
+      queryKey: evalKeys.models(harness, query),
+      queryFn: () => getModelCatalogue(harness, query),
+      staleTime: 5 * 60 * 1000,
     }),
 } as const;

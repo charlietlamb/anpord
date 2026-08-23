@@ -1,7 +1,10 @@
+import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { HarnessCapabilities } from "@anpord/schema/domain/evals";
 import {
   Context,
   type Effect,
   type Option,
+  type Redacted,
   type Scope,
   type Stream,
 } from "effect";
@@ -11,14 +14,20 @@ import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { SandboxHandle } from "./sandbox";
 
 export interface RunHarness {
+  readonly env: Readonly<Record<string, string>>;
   readonly harness: HarnessName;
-  /** Pinned, because the cell key carries it: an unpinned install silently
-   * compares two different harnesses a month apart. */
   readonly harnessVersion: string;
   readonly model: string;
   readonly prompt: string;
   readonly sandbox: SandboxHandle;
   readonly workspace: string;
+}
+
+export interface PrepareHarness {
+  readonly credential: Redacted.Redacted<ResolvedCredential>;
+  readonly home: string;
+  readonly sandbox: SandboxHandle;
+  readonly version: string;
 }
 
 export interface HarnessSessionShape {
@@ -28,13 +37,22 @@ export interface HarnessSessionShape {
   readonly version: string;
 }
 
-export interface HarnessRunnerShape {
+export interface HarnessDriverShape {
+  readonly capabilities: HarnessCapabilities;
+  readonly harness: HarnessName;
+  readonly prepare: (
+    input: PrepareHarness
+  ) => Effect.Effect<Readonly<Record<string, string>>, HarnessUnavailable>;
   readonly run: (
     request: RunHarness
   ) => Effect.Effect<HarnessSessionShape, HarnessUnavailable, Scope.Scope>;
 }
 
-export class HarnessRunner extends Context.Tag("@anpord/eval/HarnessRunner")<
-  HarnessRunner,
-  HarnessRunnerShape
+export class Harnesses extends Context.Tag("@anpord/eval/Harnesses")<
+  Harnesses,
+  {
+    readonly resolve: (
+      harness: HarnessName
+    ) => Effect.Effect<HarnessDriverShape, HarnessUnavailable>;
+  }
 >() {}

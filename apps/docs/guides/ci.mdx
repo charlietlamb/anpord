@@ -1,0 +1,46 @@
+---
+title: "Run evals in CI"
+description: "Catch regressions before release"
+---
+
+Put the script from [Run evals from code](/guides/run-from-code) in `scripts/eval.ts`. Exit nonzero when the run fails, a scored cell regresses, or a required cell has no scored trials.
+
+```yaml
+name: Agent evals
+
+on:
+  pull_request:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun scripts/eval.ts
+        env:
+          ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
+          EVAL_MODEL: gpt-5.6-sol
+```
+
+Use a dedicated key with `evals:read` and `evals:write`.
+
+## Keep comparisons stable
+
+When testing a prompt change, keep the goal, source, setup, verifier, harness, harness version, model, and provider unchanged. Those fields form the cell identity. Pin fixture repositories to a commit.
+
+Use at least three trials for a gating check. One trial measures an outcome, not repeatability.
+
+## Control the run size
+
+```text
+total trials = cases x tasks x trials per cell
+```
+
+Five cases, two tasks, and three trials open thirty sandbox sessions. Keep pull request grids small and run larger comparisons on a schedule.
+
+One request can contain at most 100 total trials. Starting a run is not idempotent. If the response is lost, check recent runs before retrying.
+
+Print the run id before polling. The run continues on the server if the CI job times out.

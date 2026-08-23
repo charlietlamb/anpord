@@ -1,7 +1,8 @@
 import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { and, eq, lt, sql } from "drizzle-orm";
+import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { and, eq, lt, notExists, sql } from "drizzle-orm";
 import { Clock, Context, Duration, Effect, Layer, Schedule } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "../repositories/query";
@@ -12,7 +13,6 @@ interface Reconciled {
 }
 
 export interface ReconcilerShape {
-  /** Closes runs whose process died. */
   readonly sweep: (input: {
     readonly olderThan: Duration.Duration;
   }) => Effect.Effect<Reconciled, EvalStoreError>;
@@ -32,10 +32,28 @@ export const ReconcilerLive = Layer.effect(
       Effect.gen(function* () {
         const now = yield* Clock.currentTimeMillis;
         const cutoff = new Date(now - Duration.toMillis(input.olderThan));
+        const emptyCutoff = new Date(now - Duration.toMillis(EMPTY_AFTER));
 
-        /* Cells first, so a run is never closed while its cells still claim
-           to be running: a reader between the two statements would see a
-           finished run full of in-flight work. */
+        /* Trials first, for the same reason cells come before runs: a reader
+           between two statements should never find a closed cell holding a
+           trial that still claims to be running.
+
+           `void` rather than `failed`, because nothing decided these. The
+           database agrees -- a status of `failed` requires a verdict to agree
+           with, and an abandoned trial has none. */
+        const abandoned = yield* tryStore("reconcile.trials", () =>
+          db
+            .update(evalTrial)
+            .set({ finishedAt: sql`now()`, status: "void" })
+            .where(
+              and(
+                eq(evalTrial.status, "running"),
+                lt(evalTrial.createdAt, cutoff)
+              )
+            )
+            .returning({ internalId: evalTrial.internalId })
+        );
+
         const cells = yield* tryStore("reconcile.cells", () =>
           db
             .update(evalCell)
@@ -47,6 +65,29 @@ export const ReconcilerLive = Layer.effect(
               )
             )
             .returning({ internalId: evalCell.internalId })
+        );
+
+        const stillborn = yield* tryStore("reconcile.stillborn", () =>
+          db
+            .update(evalRun)
+            .set({
+              failure: "abandoned: the process running this did not start it",
+              finishedAt: sql`now()`,
+              status: "failed",
+            })
+            .where(
+              and(
+                eq(evalRun.status, "running"),
+                lt(evalRun.createdAt, emptyCutoff),
+                notExists(
+                  db
+                    .select({ one: sql`1` })
+                    .from(evalCell)
+                    .where(eq(evalCell.runInternalId, evalRun.internalId))
+                )
+              )
+            )
+            .returning({ internalId: evalRun.internalId })
         );
 
         const runs = yield* tryStore("reconcile.runs", () =>
@@ -63,27 +104,37 @@ export const ReconcilerLive = Layer.effect(
             .returning({ internalId: evalRun.internalId })
         );
 
-        if (runs.length > 0 || cells.length > 0) {
+        if (
+          runs.length > 0 ||
+          cells.length > 0 ||
+          stillborn.length > 0 ||
+          abandoned.length > 0
+        ) {
           yield* Effect.logWarning("closed abandoned eval work").pipe(
-            Effect.annotateLogs({ cells: cells.length, runs: runs.length })
+            Effect.annotateLogs({
+              cells: cells.length,
+              trials: abandoned.length,
+              runs: runs.length,
+              stillborn: stillborn.length,
+            })
           );
         }
 
-        return { cells: cells.length, runs: runs.length };
+        return {
+          cells: cells.length,
+          runs: runs.length + stillborn.length,
+        };
       }).pipe(Effect.withSpan("Reconciler.sweep"));
 
     return Reconciler.of({ sweep });
   })
 );
 
-/** How long a run may be silent before it is presumed dead. Generous, because
- * a grid of many cells legitimately takes a long time and closing a live run
- * would be worse than leaving a dead one open a while longer. */
+const EMPTY_AFTER = Duration.minutes(5);
+
 const ABANDONED_AFTER = Duration.hours(6);
 const SWEEP_EVERY = Duration.minutes(30);
 
-/** Runs the sweep for the life of the process, once at startup and then on
- * a schedule. */
 export const ReconcilerScheduleLive = Layer.scopedDiscard(
   Effect.gen(function* () {
     const reconciler = yield* Reconciler;

@@ -1,14 +1,12 @@
+import { IconContext } from "@phosphor-icons/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { createQueryClient } from "@/lib/query/query-client";
 import { routeTree } from "./routeTree.gen";
 
-/**
- * TanStack Start calls this once per request, so the client built here is never
- * shared between users — the cache cannot leak one session's prompts into
- * another's render.
- */
+const ICONS = { weight: "bold" } as const;
+
 export function getRouter() {
   const queryClient = createQueryClient();
 
@@ -19,7 +17,11 @@ export function getRouter() {
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     Wrap: ({ children }) => (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <IconContext.Provider value={ICONS}>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </IconContext.Provider>
     ),
   });
 

@@ -1,8 +1,9 @@
-import { Config } from "effect";
+import { HarnessVersions } from "@anpord/eval/services/harness-versions";
+import type { EvalHarness } from "@anpord/schema/domain/evals";
+import { Effect } from "effect";
 
-/** Pinned, because the cell key carries it: an unpinned install silently
- * compares two different harnesses a month apart. Configured rather than
- * literal, so upgrading it is a deployment decision and not a code change. */
-export const harnessVersion = Config.string("EVAL_HARNESS_VERSION").pipe(
-  Config.withDefault("0.144.4")
-);
+export const harnessVersion = (harness: EvalHarness) =>
+  HarnessVersions.pipe(
+    Effect.flatMap((versions) => versions.version(harness)),
+    Effect.withSpan("EvalHarness.version", { attributes: { harness } })
+  );

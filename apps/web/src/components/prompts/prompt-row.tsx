@@ -1,6 +1,6 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
 import type { Ref } from "react";
-import { ListRow } from "@/components/layout/list-row";
+import { ListRow, RowTitle } from "@/components/layout/list-row";
 import { PromptEditorAvatar } from "@/components/prompts/prompt-editor-avatar";
 import { PromptRowActions } from "@/components/prompts/prompt-row-actions";
 import { useRelativeTime } from "@/lib/use-relative-time";
@@ -50,7 +50,7 @@ export function PromptRow({
       {/* The name leads and the handle trails it, both flush left: the name is
           what a reader is looking for, and the handle is how they address it
           once found. */}
-      <span className="font-medium text-foreground">{prompt.name}</span>
+      <RowTitle>{prompt.name}</RowTitle>
       <span className="ml-2.5 font-mono text-muted-foreground/60 text-xs">
         {prompt.id}
       </span>

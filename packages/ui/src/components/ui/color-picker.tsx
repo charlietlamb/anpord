@@ -49,7 +49,7 @@ export function ColorPicker({ onChange, value }: ColorPickerProps) {
                 )}
               >
                 {color === value ? (
-                  <CheckIcon className="text-white" size={12} weight="bold" />
+                  <CheckIcon className="text-white" size={12} />
                 ) : null}
               </span>
             </button>

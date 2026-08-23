@@ -4,10 +4,10 @@ import type { AnpordUser } from "./tools";
 import { register } from "./tools";
 
 const server = new MCPServer<AnpordUser>({
-  description: "Read and version the prompts behind your product.",
+  description: "Run coding agent evals and manage versioned prompts.",
   name: "anpord",
   oauth: anpordOAuth,
-  version: "0.1.0",
+  version: "0.2.0",
 });
 
 register(server);

@@ -1,76 +1,60 @@
 ---
 title: "Troubleshooting"
-description: "Common failures and what they mean"
+description: "Common eval and prompt failures"
 ---
 
-## `freshness` says `fallback`
+## A run stays `running`
 
-Nothing was cached and the API could not be reached, so the text you passed as `fallback` was served. `reason` names the failure.
+Coding trials can take several minutes. Poll every two seconds and check for new trajectory events. If no cell advances, inspect server logs and provider status.
 
-Expect this on a cold start during an outage. If it happens steadily, the process is probably short lived and never keeps a cache long enough to fill it. Check that the client is created once rather than per request:
+A server restart does not resume active work. The reconciler marks abandoned runs failed after six hours by default.
 
-```ts
-// once, at module scope
-const anpord = new Anpord();
-```
+## A trial is `void`
 
-## `freshness` says `stale`
+The trial lacks evidence for a verdict. Check `voidFields` and the trial trajectory. Common causes are a missing verifier, a verifier that could not execute, or a test runner that found zero tests.
 
-The cached answer passed its window, the refetch failed, and the last good answer was served rather than an error. Your application is running on content that may be out of date but is still correct.
+Void trials do not affect pass rate. Fix the evidence before interpreting the cell.
 
-`reason` names the failure. Editing a prompt during this window will not reach callers until the API is reachable again.
+## A cell is `incomparable`
 
-## `get` throws instead of falling back
+The baseline or candidate has no scored trials. `comparison.reason` identifies the missing side. Check provider failures, verifier output, and `voidFields`.
 
-A fallback is only reached when the failure is an availability failure. A prompt that does not exist, a key without access, or a malformed request are answered rather than retried, so they surface as errors:
+## A cell cannot be rerun
 
-| Error | Meaning |
-| --- | --- |
-| `NotFound` | No prompt with that id in this organization. |
-| `Unauthorized` | The key is missing or not valid. |
-| `Forbidden` | The key is valid but not for this organization. |
-| `BadRequest` | The id, channel, or version did not pass validation. |
-| `Conflict` | The write collided with another, such as creating an id that exists. |
-| `422` | The request was understood but the values were not acceptable. |
+`evals.rerunCell` needs a run id and cell key from the same `evals.get` response. Older cells without a workspace snapshot cannot be rerun. Start a new run from the original case instead.
+
+## No models are returned
+
+`evals.models({ harness: "codex" })` reads the server's Codex model cache. Open the Codex model picker on the server to populate it, then check the configured account's model access.
+
+## `MissingApiKey`
+
+Set `ANPORD_API_KEY` before creating the client, or pass `apiKey` to `new Anpord()`.
+
+## A prompt returns `fallback` or `stale`
+
+`fallback` means the API was unavailable, no cached value existed, and the caller supplied a fallback. Without one, the SDK throws. `stale` means an awaited refresh failed and the SDK returned the last good value. `prompt.anpord.reason` contains the original failure.
+
+Create one client at module scope so requests share its memory cache.
+
+## A prompt change is not visible
+
+Updating adds a version but does not move a channel. Promote the version. Cached readers may receive the old version while a refresh runs after the TTL.
+
+## Prompt variable types are wrong
+
+Run `anpord generate` after adding, removing, or renaming a variable. Commit the updated `anpord-env.d.ts` with the calling code.
+
+## Catch API errors
 
 ```ts
 import { AnpordError } from "anpord";
 
 try {
-  await anpord.prompts.get({ id: "support-reply" });
+  await anpord.evals.get({ id: "missing" });
 } catch (error) {
   if (error instanceof AnpordError) {
-    error.status; // 404, 401, 403, 400, 409
+    console.error(error.status, error.message);
   }
 }
 ```
-
-## `MissingApiKey`
-
-The constructor found no key. Either set `ANPORD_API_KEY` in the environment or pass one:
-
-```ts
-const anpord = new Anpord({ apiKey: process.env.MY_KEY });
-```
-
-## A variable that does not exist
-
-`tsc` rejects a name the prompt does not use, and a name it does use that you did not pass. Both come from `anpord-env.d.ts`.
-
-If the error names a variable you just added in the dashboard, the declarations are behind. Run `anpord generate` again.
-
-If the error names a prompt id that no longer exists, the declarations are ahead of a deleted prompt. Regenerate.
-
-## An edit that has not reached production
-
-Writing a version does not publish it. A channel has to point at it:
-
-```ts
-await anpord.prompts.promote({
-  id: "support-reply",
-  channel: "production",
-  version: 5,
-});
-```
-
-After promoting, callers still hold cached content for up to fifteen seconds by default. See [Freshness and caching](/freshness).

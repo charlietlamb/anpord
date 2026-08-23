@@ -1,14 +1,16 @@
-import { Effect, type Redacted, Stream } from "effect";
-import {
-  authenticateCodex,
-  installCodex,
-} from "../adapters/harness/codex-install";
+import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import { Effect, type Redacted } from "effect";
+import { runCommand } from "../adapters/sandbox/run-command";
+import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
+import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 
 export interface PrepareWorkspace {
-  readonly credentials: Redacted.Redacted<string>;
+  readonly credential: Redacted.Redacted<ResolvedCredential>;
+  readonly driver: HarnessDriverShape;
+  readonly harness: HarnessName;
   readonly harnessVersion: string;
   readonly home: string;
   readonly sandbox: SandboxHandle;
@@ -17,21 +19,18 @@ export interface PrepareWorkspace {
   readonly workspace: string;
 }
 
-/** Quoted rather than interpolated raw: a repository url is customer text and
- * a ref is whatever they typed. */
 const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
 const clone = (input: PrepareWorkspace, url: string, ref: string | null) => {
-  const checkout = ref === null ? "" : ` && git checkout ${quoted(ref)}`;
+  const checkout =
+    ref === null
+      ? ""
+      : ` && git -C ${quoted(input.workspace)} fetch --depth 1 origin ${quoted(ref)} && git -C ${quoted(input.workspace)} checkout --detach FETCH_HEAD`;
 
-  /* Shallow by default, because an eval needs the tree at one commit and not
-     the history that led to it. A failure here is the provider's, not the
-     agent's, so it stays in the error channel rather than becoming a score. */
-  return Stream.runDrain(
-    input.sandbox.exec(
-      `git clone --depth 1 ${quoted(url)} ${input.workspace}${checkout}`,
-      { timeoutMs: 300_000 }
-    )
+  return runCommand(
+    input.sandbox,
+    `git clone --depth 1 ${quoted(url)} ${quoted(input.workspace)}${checkout}`,
+    { timeoutMs: 300_000 }
   );
 };
 
@@ -54,24 +53,32 @@ const materialise = (input: PrepareWorkspace) => {
   );
 };
 
-/** Everything that has to be true before an agent starts, in the order it
- * has to be true in. */
 export const prepareWorkspace = (
   input: PrepareWorkspace
-): Effect.Effect<void, HarnessUnavailable | SandboxUnavailable> =>
+): Effect.Effect<
+  Readonly<Record<string, string>>,
+  HarnessUnavailable | SandboxUnavailable
+> =>
   Effect.gen(function* () {
-    yield* installCodex(input.sandbox, input.harnessVersion);
-    yield* authenticateCodex(input.sandbox, input.credentials, input.home);
+    const env = yield* input.driver.prepare({
+      credential: input.credential,
+      home: input.home,
+      sandbox: input.sandbox,
+      version: input.harnessVersion,
+    });
 
-    yield* Stream.runDrain(
-      input.sandbox.exec(`mkdir -p ${input.workspace}`, { timeoutMs: 60_000 })
-    );
+    yield* runCommand(input.sandbox, `mkdir -p ${input.workspace}`, {
+      timeoutMs: 60_000,
+    });
 
     yield* materialise(input);
 
     if (input.setupCommand !== null) {
-      yield* Stream.runDrain(
-        input.sandbox.exec(input.setupCommand, { timeoutMs: 300_000 })
-      );
+      yield* runCommand(input.sandbox, input.setupCommand, {
+        cwd: input.workspace,
+        timeoutMs: 300_000,
+      });
     }
+
+    return env;
   }).pipe(Effect.withSpan("Workspace.prepare"));

@@ -11,16 +11,13 @@ const PERMISSION_SCOPES: readonly Permission[] = [
   "prompts:write",
   "channels:read",
   "channels:write",
+  "evals:read",
+  "evals:write",
 ];
 
 const isPermission = (scope: string): scope is Permission =>
   PERMISSION_SCOPES.includes(scope as Permission);
 
-/**
- * A token carries only what the person approved on the consent screen. An
- * absent scope claim grants nothing rather than everything, so a token issued
- * before scopes were recorded cannot write.
- */
 const permissionsForScopes = (
   scopes: readonly string[] | string | undefined
 ): readonly Permission[] => {

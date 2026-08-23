@@ -8,14 +8,9 @@ const DOT = 3;
 const SECONDS_PER_FRAME = 1 / 8;
 const DRIFT_RATE = 0.22;
 
-/* The dot holds its size at every window. Growing it on a large display to
-   save work changes the thing people actually see: a coarsened grid reads as a
-   different texture rather than as the same one drawn cheaper. Cost is already
-   bounded by SECONDS_PER_FRAME, which redraws eight times a second. */
-
 interface DitherProps {
   readonly className?: string;
-  /** Multiplies the drift, where 0 holds the field still. */
+  readonly dot?: number;
   readonly speed?: number;
 }
 
@@ -23,11 +18,6 @@ const stillField = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/**
- * Resolved by painting a pixel rather than by parsing. The colour arrives in
- * whatever space the stylesheet used, and reading the numbers out of an
- * `oklab()` as if they were rgb turns a near-white into black.
- */
 const channels = (colour: string) => {
   const probe = document.createElement("canvas");
   probe.width = 1;
@@ -45,16 +35,7 @@ const channels = (colour: string) => {
   return { alpha, blue, green, red };
 };
 
-/**
- * A Bayer-dithered field of slow waves, drawn to a canvas because the pattern
- * is thousands of dots and each one would otherwise be a node the browser has
- * to lay out.
- *
- * The field is written as pixels and blitted in one call rather than stroked a
- * rectangle at a time: at a dot per three device pixels a full screen is tens
- * of thousands of draws, which cost more than computing the field did.
- */
-export function Dither({ className, speed = 1 }: DitherProps) {
+export function Dither({ className, dot = DOT, speed = 1 }: DitherProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -81,12 +62,8 @@ export function Dither({ className, speed = 1 }: DitherProps) {
       const width = Math.max(1, Math.floor(bounds.width));
       const height = Math.max(1, Math.floor(bounds.height));
 
-      /* The canvas is the full device surface and a dot is one of its pixels,
-         so the texture stays as fine as the display can draw. Only the lit
-         cells are written, and the grid steps `DOT` at a time, so the cost is
-         the number of dots rather than the number of pixels. */
       ratio = window.devicePixelRatio ?? 1;
-      const step = Math.max(1, Math.round(DOT * ratio));
+      const step = Math.max(1, Math.round(dot * ratio));
 
       surfaceWidth = Math.max(1, Math.round(width * ratio));
       surfaceHeight = Math.max(1, Math.round(height * ratio));
@@ -172,7 +149,7 @@ export function Dither({ className, speed = 1 }: DitherProps) {
       window.clearTimeout(frame);
       observer.disconnect();
     };
-  }, [speed]);
+  }, [dot, speed]);
 
   return (
     <canvas

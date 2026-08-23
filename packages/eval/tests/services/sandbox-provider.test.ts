@@ -34,6 +34,7 @@ const scriptedAdapters = (live: Ref.Ref<Live>) =>
               Effect.map(
                 (state): SandboxHandle => ({
                   exec: () => Stream.empty,
+                  home: "/tmp",
                   id: `sbx-${state.opened}`,
                   provider,
                   streaming: true,

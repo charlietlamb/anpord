@@ -6,17 +6,13 @@ import { Effect, Option, Schema } from "effect";
 
 const unauthorized = (message: string) => new Unauthorized({ message });
 
-/**
- * A key reads and publishes prompts, which is what an application needs, and
- * nothing else. Managing keys or members is an act of administration that
- * belongs to a person in the dashboard, so a leaked key cannot be used to mint
- * more keys or change who has access.
- */
 const API_KEY_PERMISSIONS: readonly Permission[] = [
   "prompts:read",
   "prompts:write",
   "channels:read",
   "channels:write",
+  "evals:read",
+  "evals:write",
 ];
 
 export const resolveApiKey = (auth: AuthInstance, token: string) =>

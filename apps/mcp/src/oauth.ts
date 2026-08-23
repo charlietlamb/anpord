@@ -1,12 +1,13 @@
-import { SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
+import { MCP_SCOPES, SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
 import { Clock, Duration, Effect } from "effect";
 import { OAuthError, OAuthErrorCode, oauthCustomProvider } from "mcp-use/oauth";
 import { authUrl, resource } from "./config";
 import type { AnpordUser } from "./tools";
 
 const endpoint = (name: string) => `${authUrl}/mcp/${name}`;
+export const issuerOf = (url: string) => new URL(url).origin;
+const issuer = issuerOf(authUrl);
 
-/** Bearer verification refuses a token whose expiry is unset. */
 const FALLBACK_TTL_SECONDS = 60 * 60;
 
 interface McpSession {
@@ -19,8 +20,6 @@ interface McpSession {
 const invalid = (message: string) =>
   new OAuthError(OAuthErrorCode.InvalidToken, message);
 
-/** OAuth counts expiry in whole seconds, so a millisecond instant is floored
- * rather than rounded: a token is never reported as living longer than it does. */
 const epochSeconds = (millis: number) =>
   Math.floor(Duration.toSeconds(Duration.millis(millis)));
 
@@ -43,11 +42,6 @@ const scopesOf = (scopes: McpSession["scopes"]) => {
   return typeof scopes === "string" ? scopes.split(" ") : [...scopes];
 };
 
-/**
- * Better Auth issues opaque access tokens, so they carry no claims to verify a
- * signature against. The session behind one is resolved at the authorization
- * server instead, which is the same introspection the API performs.
- */
 const verifyAccessToken = (verifiedResource: URL) => async (token: string) => {
   const response = await fetch(endpoint("get-session"), {
     headers: { authorization: `Bearer ${token}` },
@@ -90,11 +84,13 @@ export const anpordOAuth = oauthCustomProvider<AnpordUser>({
     authorization_endpoint: endpoint("authorize"),
     code_challenge_methods_supported: ["S256"],
     grant_types_supported: ["authorization_code", "refresh_token"],
-    issuer: authUrl,
+    issuer,
     registration_endpoint: endpoint("register"),
     response_types_supported: ["code"],
     scopes_supported: [...SUPPORTED_SCOPES],
     token_endpoint: endpoint("token"),
   },
+  requiredScopes: [...MCP_SCOPES],
   resource,
+  scopesSupported: [...MCP_SCOPES],
 });

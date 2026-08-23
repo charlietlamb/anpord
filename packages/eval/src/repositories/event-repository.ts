@@ -10,11 +10,6 @@ import { tryStore } from "./query";
 
 type EventRow = typeof evalEvent.$inferSelect;
 
-/* The rows arrive ordered by seq, and grouping preserves that order, so a
-   journal comes back in the sequence it happened rather than the sequence the
-   database chose to return it. */
-/* The moments are stored as columns rather than inside the payload, so a
-   journal read straight out of the table has no timing on it at all. */
 const withTiming = (row: EventRow): HarnessEvent => {
   const payload = row.payload as HarnessEvent;
 
@@ -50,18 +45,13 @@ export interface AppendEvents {
 }
 
 export interface EventRepositoryShape {
-  /** Append-only, and written in one statement rather than one per event: a
-   * single agent run produces hundreds, and this is the highest-volume table
-   * in the system by a wide margin. */
   readonly append: (
     input: AppendEvents
   ) => Effect.Effect<number, EvalStoreError>;
   readonly listByTrial: (
     trialInternalId: string
   ) => Effect.Effect<readonly EventRow[], EvalStoreError>;
-  /** Every journal in one query rather than one per trial: a cell holds
-   * three trials and a fan-out would open three round trips to render one
-   * screen. */
+
   readonly listByTrials: (
     trialInternalIds: readonly string[]
   ) => Effect.Effect<
@@ -93,9 +83,7 @@ export const EventRepositoryLive = Layer.effect(
               kind: event._tag,
               occurredAt: momentOf(event.at),
               payload: event,
-              /* The sequence is the journal's order, and it is assigned here
-                 rather than taken from a timestamp: two events inside one
-                 millisecond would otherwise be unorderable. */
+
               seq: index,
               startedAt: momentOf(
                 event._tag === "Command" ? event.startedAt : undefined
@@ -130,7 +118,10 @@ export const EventRepositoryLive = Layer.effect(
               .from(evalEvent)
               .where(inArray(evalEvent.trialInternalId, [...trialInternalIds]))
               .orderBy(asc(evalEvent.seq))
-          ).pipe(Effect.map(groupByTrial));
+          ).pipe(
+            Effect.map(groupByTrial),
+            Effect.withSpan("EventRepository.listByTrials")
+          );
 
     return EventRepository.of({
       append,
@@ -142,7 +133,7 @@ export const EventRepositoryLive = Layer.effect(
             .from(evalEvent)
             .where(eq(evalEvent.trialInternalId, trialInternalId))
             .orderBy(asc(evalEvent.seq))
-        ),
+        ).pipe(Effect.withSpan("EventRepository.listByTrial")),
     });
   })
 );

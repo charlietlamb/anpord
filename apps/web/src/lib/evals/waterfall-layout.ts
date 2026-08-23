@@ -1,13 +1,5 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 
-/** The wait before a step, drawn on the same row as the step it leads to.
- *
- * Not its own row: thinking and the command it produced are one decision, and
- * splitting them doubled the height of every trajectory to say a thing the eye
- * already reads as a pair.
- *
- * Measured between recorded events, so harness overhead sits inside it. Named
- * for the part that dominates rather than claimed to be only that. */
 interface WaterfallLead {
   readonly durationMs: number;
   readonly fromPercent: number;
@@ -35,17 +27,13 @@ export type WaterfallRow = WaterfallBar | WaterfallMarker;
 export interface WaterfallLayout {
   readonly rows: readonly WaterfallRow[];
   readonly spanMs: number;
-  /** What the trial spent waiting against what it spent working, which is the
-   * finding on a real trajectory: tens of seconds of thinking against a few
-   * of commands. */
+
   readonly thinkingMs: number;
   readonly workingMs: number;
 }
 
 const momentOf = (entry: EvalJournalEntry) => entry.finishedAtMillis;
 
-/** Below this a gap is the cost of recording two events, not a decision worth
- * drawing. */
 const LEAD_FLOOR_MS = 1;
 
 interface Span {
@@ -54,7 +42,6 @@ interface Span {
   readonly startedAt: number;
 }
 
-/** A command with both ends is the only thing that can be drawn as a span. */
 const spanOf = (entry: EvalJournalEntry): Span | null => {
   if (entry._tag !== "command") {
     return null;
@@ -67,34 +54,23 @@ const spanOf = (entry: EvalJournalEntry): Span | null => {
     : { entry, finishedAt: finishedAtMillis, startedAt: startedAtMillis };
 };
 
-/**
- * Where each entry sits on the timeline, as percentages of the whole run.
- *
- * Derived rather than stored: subtractions over recorded moments, so there is
- * nothing to keep in sync and nothing to migrate when the drawing changes.
- *
- * The cursor only ever moves forward. A journal is usually chronological but
- * nothing guarantees it, and an entry landing behind the one before it used to
- * drag the cursor back and bill the overlap twice, reporting more thinking
- * than the trial had time for. `spanMs` is never zero, so a trial that
- * finished inside a millisecond divides by one rather than by nothing.
- *
- * An entry the harness reported only once becomes a marker rather than a bar
- * of guessed width. Drawing an invented duration the same way as a measured
- * one is the same lie as a pass rate with no denominator.
- */
 export const waterfallLayout = (
   trajectory: readonly EvalJournalEntry[]
 ): WaterfallLayout => {
-  const moments = trajectory
-    .flatMap((entry) => {
-      const span = spanOf(entry);
-      const started = span === null ? [] : [span.startedAt];
-      const finished = momentOf(entry);
+  const moments: number[] = [];
 
-      return [...started, ...(finished === null ? [] : [finished])];
-    })
-    .filter((moment): moment is number => moment !== null);
+  for (const entry of trajectory) {
+    const span = spanOf(entry);
+    const finished = momentOf(entry);
+
+    if (span !== null) {
+      moments.push(span.startedAt);
+    }
+
+    if (finished !== null) {
+      moments.push(finished);
+    }
+  }
 
   if (moments.length === 0) {
     return { rows: [], spanMs: 0, thinkingMs: 0, workingMs: 0 };

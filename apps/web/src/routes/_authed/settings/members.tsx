@@ -21,7 +21,7 @@ function MembersSettings() {
           size="sm"
           variant="outline"
         >
-          <PlusIcon className="size-4" weight="bold" />
+          <PlusIcon className="size-4" />
           Invite member
         </Button>
       }

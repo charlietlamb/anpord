@@ -1,5 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
+  check,
   index,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -8,9 +11,6 @@ import {
 import { organization } from "../auth/organizations";
 import { user } from "../auth/users";
 
-/** A task carries its own verifier, and the bracket that proved the verifier
- * can tell a solved task from an untouched one. A task without a recorded
- * bracket has not been registered, only written. */
 export const evalTask = pgTable(
   "eval_task",
   {
@@ -22,12 +22,11 @@ export const evalTask = pgTable(
     suiteId: text("suite_id"),
     name: text("name").notNull(),
     prompt: text("prompt").notNull(),
+    sourceKind: text("source_kind").$type<"empty" | "files" | "repo">(),
+    sourceFiles: jsonb("source_files").$type<Record<string, string>>(),
     repoUrl: text("repo_url"),
     repoRef: text("repo_ref"),
     setupCommand: text("setup_command"),
-    /* Null for a case whose format carries no verifier. Stored as absent
-       rather than as a command that always succeeds, so a run read back knows
-       its trials were void by design and not by failure. */
     verifyCommand: text("verify_command"),
     workspace: text("workspace").notNull(),
     bracketedAt: timestamp("bracketed_at"),
@@ -43,5 +42,9 @@ export const evalTask = pgTable(
       table.id
     ),
     index("eval_task_organization_id_idx").on(table.organizationId),
+    check(
+      "eval_task_source_kind_check",
+      sql`${table.sourceKind} in ('empty', 'files', 'repo')`
+    ),
   ]
 );

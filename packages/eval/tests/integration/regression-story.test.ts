@@ -46,8 +46,6 @@ const cellKey = cellKeyOf({
   taskVersion: taskInternalId,
 });
 
-/** Records one cell of trials through the real write path, so the comparison
- * reads rows that were persisted the way production persists them. */
 const recordCell = (input: {
   readonly passing: number;
   readonly total: number;
@@ -69,6 +67,7 @@ const recordCell = (input: {
       harness: "codex",
       harnessVersion: "0.144.4",
       model: "gpt-5",
+      prompt: "do the thing",
       provider: "daytona",
       runInternalId: created.internalId,
       taskInternalId,
@@ -80,34 +79,46 @@ const recordCell = (input: {
         const isVoid = index < input.voided;
         const passed = !isVoid && index - input.voided < input.passing;
 
-        return recorder.record({
-          cellInternalId: cell.internalId,
-          events: [
-            {
-              _tag: "Command",
-              command: "node --test",
+        return Effect.gen(function* () {
+          const trialInternalId = yield* recorder.open({
+            cellInternalId: cell.internalId,
+            ordinal: index + 1,
+            provider: "daytona",
+            startedAt: new Date(),
+          });
+
+          yield* recorder.append({
+            events: [
+              {
+                _tag: "Command",
+                command: "node --test",
+                exitCode: passed ? 0 : 1,
+                output: isVoid ? "" : "ran",
+              },
+            ],
+            from: 0,
+            trialInternalId,
+          });
+
+          yield* recorder.settle({
+            finishedAt: new Date(),
+            outcome: {
+              commandCount: isVoid ? 0 : 10,
               exitCode: passed ? 0 : 1,
-              output: isVoid ? "" : "ran",
+              modelMs: 100,
+              passed,
+              sandboxMs: 50,
+              status: statusOf({ passed, voided: isVoid }),
+              voidFields: isVoid ? ["stdout"] : [],
             },
-          ],
-          finishedAt: new Date(),
-          ordinal: index + 1,
-          outcome: {
-            commandCount: isVoid ? 0 : 10,
-            exitCode: passed ? 0 : 1,
-            modelMs: 100,
-            passed,
-            sandboxMs: 50,
-            status: statusOf({ passed, voided: isVoid }),
-            voidFields: isVoid ? ["stdout"] : [],
-          },
-          provider: "daytona",
-          sandboxId: `sbx_${index}`,
-          startedAt: new Date(),
-          usage: null,
+            sandboxId: `sbx_${index}`,
+            trialInternalId,
+            usage: null,
+          });
         });
       },
-      { discard: true }
+
+      { concurrency: input.total, discard: true }
     );
 
     yield* runs.finish({
@@ -150,11 +161,8 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
   });
 
   it("runs the whole loop: accept, regress, then refuse to lie", async () => {
-    /* 1. A healthy run, every trial passing. */
     const healthy = await run(recordCell({ passing: 5, total: 5, voided: 0 }));
 
-    /* 2. Its first scored reading becomes the reference, which the grid does
-       as the cell completes rather than anyone choosing it. */
     const accepted = await run(
       Effect.gen(function* () {
         const baselines = yield* Baselines;
@@ -177,7 +185,6 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
 
     expect(accepted.value.distribution.passRate).toBe(1);
 
-    /* 3. A later run where the agent got worse. */
     const worse = await run(recordCell({ passing: 1, total: 5, voided: 0 }));
 
     const regression = await run(
@@ -199,8 +206,6 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
     expect(regressed.value.verdict).toBe("regressed");
     expect(regressed.value.delta).toBeCloseTo(-0.8);
 
-    /* 4. The step that matters. A provider outage voids every trial, and the
-       comparison must refuse rather than report a total collapse. */
     const outage = await run(recordCell({ passing: 0, total: 5, voided: 5 }));
 
     const refused = await run(
@@ -222,5 +227,5 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
     expect(verdict.value.verdict).toBe("incomparable");
     expect(verdict.value.delta).toBe(0);
     expect(verdict.value.reason).toBe("this run has no scored trials");
-  });
+  }, 30_000);
 });

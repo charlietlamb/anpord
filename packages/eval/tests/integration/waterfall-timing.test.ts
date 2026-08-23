@@ -1,14 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { Effect, Layer, Redacted } from "effect";
-import { CodexRunnerLive } from "../../src/adapters/harness/codex";
+import { Effect, Layer } from "effect";
+import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
-import {
-  codexCredentials,
-  hasCodex,
-  hasDaytona,
-} from "../fixtures/credentials";
+import { codexCredential, hasCodex, hasDaytona } from "../fixtures/credentials";
 
 const READY = hasDaytona && hasCodex;
 
@@ -17,7 +13,7 @@ const READY = hasDaytona && hasCodex;
 const SLEEP_SECONDS = 5;
 
 const TestLayer = AgentTrialLive.pipe(
-  Layer.provide(CodexRunnerLive),
+  Layer.provide(HarnessesLive),
   Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
 );
@@ -27,10 +23,9 @@ const trial = Effect.gen(function* () {
 
   return yield* agent.run({
     autoStopMinutes: 15,
-    credentials: codexCredentials ?? Redacted.make(""),
     harness: "codex",
+    harnessCredential: codexCredential,
     harnessVersion: "0.144.4",
-    home: "/home/daytona",
     model: "gpt-5.2",
     prompt: `Run exactly one shell command: \`sleep ${SLEEP_SECONDS} && echo done\`. Then stop without running anything else.`,
     provider: "daytona",

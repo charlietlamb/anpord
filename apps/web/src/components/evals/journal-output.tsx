@@ -5,17 +5,22 @@ import { useState } from "react";
 
 const TRUNCATED_AT = 4000;
 
-/**
- * Whether an entry has output worth opening, and whether it is open.
- *
- * Shared because the timed and untimed rows are the same disclosure with
- * different triggers: both held the same state, the same handler and the same
- * truncation block, and only their markup differed.
- */
+/* A command is read for what it printed and a message for what it said, but a
+   row opens the same way for both. The closing summary an agent writes is the
+   most readable thing a trial produces -- it names what was built and shows
+   the output -- and it was reachable only by hovering a dot. */
+const readableOf = (entry: EvalJournalEntry) => {
+  if (entry._tag === "command") {
+    return entry.output;
+  }
+
+  return entry._tag === "message" ? entry.text : "";
+};
+
 export function useJournalOutput(entry: EvalJournalEntry) {
-  const [open, setOpen] = useState(false);
-  const output = entry._tag === "command" ? entry.output : "";
+  const output = readableOf(entry);
   const expandable = output !== "";
+  const [open, setOpen] = useState(false);
 
   return {
     expandable,
@@ -25,7 +30,6 @@ export function useJournalOutput(entry: EvalJournalEntry) {
   };
 }
 
-/** What a command wrote, and whether the sandbox stopped recording it. */
 export function JournalOutput({
   className,
   output,

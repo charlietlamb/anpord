@@ -1,6 +1,3 @@
-/** The authorization server grants these and the resource server advertises
- * them, so they are declared once rather than kept in step by hand. The OIDC
- * scopes come with the identity token every client receives. */
 export const OIDC_SCOPES = [
   "openid",
   "profile",
@@ -9,5 +6,9 @@ export const OIDC_SCOPES = [
 ] as const;
 
 export const PROMPT_SCOPES = ["prompts:read", "prompts:write"] as const;
+export const CHANNEL_SCOPES = ["channels:read", "channels:write"] as const;
+export const EVAL_SCOPES = ["evals:read", "evals:write"] as const;
+export const MCP_SCOPES = [...PROMPT_SCOPES, ...CHANNEL_SCOPES, ...EVAL_SCOPES];
+export const API_SCOPES = [...MCP_SCOPES];
 
-export const SUPPORTED_SCOPES = [...OIDC_SCOPES, ...PROMPT_SCOPES];
+export const SUPPORTED_SCOPES = [...OIDC_SCOPES, ...API_SCOPES];

@@ -1,20 +1,16 @@
 ---
 title: "MCP server"
-description: "Give an assistant access to your prompts"
+description: "Use evals and prompts from an MCP client"
 ---
 
-Anpord runs a hosted MCP server, so an assistant such as Claude can read and publish your prompts directly.
-
-## Connect
+Connect to the hosted server:
 
 <CodeGroup>
 
 ```json Claude Desktop
 {
   "mcpServers": {
-    "anpord": {
-      "url": "https://mcp.anpord.com/mcp"
-    }
+    "anpord": { "url": "https://mcp.anpord.com/mcp" }
   }
 }
 ```
@@ -25,30 +21,33 @@ claude mcp add --transport http anpord https://mcp.anpord.com/mcp
 
 </CodeGroup>
 
-## Authentication
+The server uses OAuth 2.1. Your browser opens for sign-in and approval, so the MCP configuration does not contain an API key. Eval reads need `evals:read`; starts and reruns need `evals:write`. Prompt reads need `prompts:read`, updates need `prompts:write`, and promotions need `channels:write`.
 
-The server implements OAuth 2.1, so you never paste an API key into a client. Connecting opens a browser, you sign in and approve access, and the client stores the token it receives.
-
-The assistant then acts as you: it reaches the prompts your account can reach and nothing else. An anonymous request is refused.
-
-## Tools
+## Eval tools
 
 | Tool | Purpose |
 | --- | --- |
-| `list_prompts` | Every prompt in the organization |
-| `get_prompt` | Resolve a prompt, optionally by channel or version |
-| `list_versions` | A prompt's history |
+| `list_eval_runs` | List a page of runs, newest first |
+| `list_eval_models` | List models available to a harness |
+| `start_eval_run` | Start cases across variants |
+| `get_eval_run` | Read cells, trials, and comparisons |
+| `get_eval_cell_history` | Read previous results for a cell |
+| `rerun_eval_cell` | Repeat one cell in a new run |
+
+`start_eval_run` returns an id immediately. Poll `get_eval_run` until its status is no longer `running`.
+
+`list_eval_runs` returns `runs` and `next`. Pass `next` as `cursor` for the following page.
+
+## Prompt tools
+
+| Tool | Purpose |
+| --- | --- |
+| `list_prompts` | List up to 100 prompts |
+| `get_prompt` | Resolve prompt content by channel or version |
+| `list_versions` | Read version history |
 | `update_prompt` | Append a version |
 | `promote_prompt` | Point a channel at a version |
 
-`get_prompt` returns the content on its own, so the assistant reads the prompt as text rather than a JSON envelope.
+Creating and archiving prompts are not exposed. `update_prompt` stores an empty config object, so use the SDK or API for prompts with versioned config.
 
-<Note>
-Creating and archiving prompts are deliberately absent. An assistant can write a new version and promote one, but the set of prompts stays under your control.
-</Note>
-
-## What it is for
-
-The server is most useful when the assistant is already editing the code that sends the prompt. It can read the live version, see how it has changed, propose a rewrite, and publish it without leaving the conversation.
-
-Because publishing appends a version rather than overwriting one, a change an assistant makes is reviewable and reversible. It does not reach your users until someone promotes it.
+Adding a version does not change a channel. Test the candidate with an eval, then call `promote_prompt` after review.

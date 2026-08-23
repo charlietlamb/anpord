@@ -1,17 +1,12 @@
 import { Option } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
 import type { RunDetail } from "../repositories/run-query";
 import type { AgentTrialResult } from "../services/agent-trial";
 import type { GridCell, GridRunState, GridTask } from "./state";
 
-/** A persisted trial, seen through the shape a live one has.
- *
- * The journal is not carried: a run is read to be listed and compared, and
- * loading every event of every trial to answer that would read the largest
- * table in the system to render a row of numbers. The trial screen fetches
- * its own. */
 const asResult = (input: {
   readonly commandCount: number;
   readonly events: readonly HarnessEvent[];
@@ -39,28 +34,9 @@ const asResult = (input: {
   },
   sandboxId: input.sandboxId ?? "",
   sessionId: sessionIdOf(input.events),
-  /* Recorded on the trial and, until this was written, dropped on the way
-     back out: the column held a number and every stored trial reported
-     none. */
+
   usage: Option.fromNullable(input.usage),
 });
-
-/* The column is a loose record, so the three fields are read rather than
-   asserted: a row written by an older build may carry none of them, and a
-   partial object presented as usage would report a token count of NaN. */
-const usageOf = (value: Record<string, number> | null): HarnessUsage | null => {
-  if (value === null) {
-    return null;
-  }
-
-  const { inputTokens, outputTokens, totalTokens } = value;
-
-  return typeof inputTokens === "number" &&
-    typeof outputTokens === "number" &&
-    typeof totalTokens === "number"
-    ? { inputTokens, outputTokens, totalTokens }
-    : null;
-};
 
 const statusOf = (value: string): GridRunState["status"] => {
   if (value === "finished" || value === "failed") {
@@ -70,11 +46,9 @@ const statusOf = (value: string): GridRunState["status"] => {
   return "running";
 };
 
-/** A stored run in the shape the live view uses. */
 export const runToState = (
   detail: RunDetail,
-  /* Empty for the list, which needs numbers rather than journals. The trial
-     screen passes the events for the one trial it is showing. */
+
   eventsByTrial: ReadonlyMap<string, readonly HarnessEvent[]> = new Map()
 ): GridRunState => {
   const caseNames: string[] = [];
@@ -117,6 +91,7 @@ export const runToState = (
     return {
       caseName,
       cellKey: entry.cell.cellKey,
+      live: new Map(),
       distribution: Option.some(entry.distribution),
       internalId: entry.cell.internalId,
       setup: Option.some({
@@ -151,7 +126,7 @@ export const runToState = (
   return {
     cases: caseNames,
     cells,
-    failure: Option.none(),
+    failure: Option.fromNullable(detail.run.failure),
     finishedAt: Option.fromNullable(detail.run.finishedAt).pipe(
       Option.map((date) => date.getTime())
     ),

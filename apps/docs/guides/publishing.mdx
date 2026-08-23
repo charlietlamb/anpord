@@ -1,74 +1,60 @@
 ---
-title: "Publishing changes"
-description: "Adding versions and putting one live"
+title: "Publish prompt changes"
+description: "Add, test, and promote a version"
 ---
+
+Saving content creates a version. Promoting it changes what a channel returns.
 
 ## Add a version
 
 ```ts
-await anpord.prompts.update({
-  id: "support-reply",
-  content: "You are a support agent for {{product}}. Be brief and warm.",
-  message: "Warmer tone",
+const candidate = await anpord.prompts.update({
+  id: "coding-agent",
+  content: "Read the repository first. {{goal}}",
+  config: { temperature: 0 },
+  message: "Inspect before editing",
 });
 ```
 
-The response carries the number the new version was given. Nothing is live yet: callers asking for production still receive whatever that channel points at.
+No channel moves. Pass `config` when the prompt uses it, since an omitted value is stored as an empty object.
 
-## Put it live
+## Test the content
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "coding-agent",
+  version: candidate.version,
+});
+
+await anpord.evals.start({
+  cases,
+  prompt: prompt.content,
+  tasks,
+  trials: 3,
+});
+```
+
+The version number selects the exact candidate before `evals.start`. The run receives its content by value. Prompt `config` is not passed to the coding harness.
+
+## Promote it
 
 ```ts
 await anpord.prompts.promote({
-  id: "support-reply",
+  id: "coding-agent",
   channel: "production",
-  version: 5,
+  version: candidate.version,
 });
 ```
 
-Promoting to a channel that does not exist yet creates it, so a move never fails on a missing channel. It fails only if the prompt or the version is missing.
+Promoting to a new channel creates it. Channel readers update through the SDK cache refresh, not synchronously with promotion.
 
-## Roll back
+To roll back, promote an earlier version to the same channel. Updates through the public SDK and API append versions instead of changing earlier content.
 
-A rollback is a promotion at an earlier number:
-
-```ts
-await anpord.prompts.promote({
-  id: "support-reply",
-  channel: "production",
-  version: 4,
-});
-```
-
-Because versions are appended and never overwritten, the version you are going back to is still exactly as it was.
-
-## From the terminal
+## Use the CLI
 
 ```bash
-anpord push support-reply "You are a support agent. Be brief." -m "Tighter"
-anpord promote support-reply --to production --at 5
+anpord push coding-agent - -m "Inspect before editing" < prompts/coding-agent.md
+anpord promote coding-agent --to production --at 7
 ```
 
-Content can come from a file, which suits prompts long enough to deserve one:
-
-```bash
-cat prompts/support-reply.md | anpord push support-reply - -m "Rewrite"
-```
-
-## From CI
-
-Publishing on merge keeps the prompts in your repository and the live version in sync:
-
-```yaml
-- name: Publish prompts
-  env:
-    ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
-  run: |
-    for file in prompts/*.md; do
-      id="$(basename "$file" .md)"
-      anpord push "$id" - -m "${{ github.event.head_commit.message }}" < "$file"
-    done
-```
-
-<Note>
-This adds a version without promoting one, so a merge never changes what production serves on its own. Promote deliberately, by hand or in a separate job.
-</Note>
+`push` never promotes and stores an empty config object. Use the SDK or API when the prompt has versioned config.

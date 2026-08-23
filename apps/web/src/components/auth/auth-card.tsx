@@ -1,50 +1,56 @@
 import { Button } from "@anpord/ui/components/button";
-import { Input } from "@anpord/ui/components/input";
 import { Logo } from "@anpord/ui/components/logo";
-import { type SyntheticEvent, useState } from "react";
+import { useAppForm } from "@anpord/ui/hooks/use-app-form";
+import { useState } from "react";
+import { z } from "zod";
 import { MagicLinkSent } from "@/components/auth/magic-link-sent";
 import { sendMagicLink, signInWithGithub } from "@/components/auth/sign-in";
 import { GithubIcon } from "@/components/icons/github-icon";
+import { PanelCard } from "@/components/layout/panel-card";
 
-interface AuthCardProps {
-  redirect: string;
-}
+const emailSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Enter your email address.")
+    .email("That does not look like an email address."),
+});
 
-export function AuthCard({ redirect }: AuthCardProps) {
-  const [email, setEmail] = useState("");
-  const [sending, setSending] = useState(false);
+/**
+ * Signing in, by GitHub or by link.
+ *
+ * `sentTo` is the only state here: which address the link went to, which is
+ * what the confirmation reads back and what a reader corrects if they mistyped
+ * it. Everything else the form owns -- the value, whether it is valid, whether
+ * it is in flight -- because a form that tracked those by hand is a form that
+ * disagrees with itself about whether the button should be disabled.
+ */
+export function AuthCard({ redirect }: { readonly redirect: string }) {
   const [sentTo, setSentTo] = useState<string | null>(null);
 
-  if (sentTo) {
+  const form = useAppForm({
+    defaultValues: { email: "" },
+    onSubmit: async ({ value }) => {
+      const email = value.email.trim();
+
+      if (await sendMagicLink(email, redirect)) {
+        setSentTo(email);
+      }
+    },
+    validators: { onSubmit: emailSchema },
+  });
+
+  if (sentTo !== null) {
     return <MagicLinkSent email={sentTo} onBack={() => setSentTo(null)} />;
   }
 
-  const onSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmed = email.trim();
-    if (!trimmed || sending) {
-      return;
-    }
-    setSending(true);
-    try {
-      if (await sendMagicLink(trimmed, redirect)) {
-        setSentTo(trimmed);
-      }
-    } finally {
-      setSending(false);
-    }
-  };
-
   return (
-    <div className="w-full max-w-sm rounded-lg border bg-background p-8">
-      <div className="flex items-center gap-2">
-        <Logo className="size-[26px]" />
-        <h1 className="font-heading text-xl tracking-tight">Sign in</h1>
-      </div>
-      <p className="mt-3 text-muted-foreground text-sm">
-        Pick up where you left off.
-      </p>
-
+    <PanelCard
+      description="Pick up where you left off."
+      heading="h1"
+      mark={<Logo className="size-[26px]" />}
+      title="Sign in"
+    >
       <Button
         className="mt-6 w-full"
         onClick={() => signInWithGithub(redirect)}
@@ -61,23 +67,29 @@ export function AuthCard({ redirect }: AuthCardProps) {
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <form className="flex flex-col gap-2" onSubmit={onSubmit}>
-        <label className="sr-only" htmlFor="email">
-          Email address
-        </label>
-        <Input
-          autoComplete="email"
-          id="email"
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@example.com"
-          required
-          type="email"
-          value={email}
-        />
-        <Button disabled={sending} type="submit">
-          {sending ? "Sending…" : "Send magic link"}
-        </Button>
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          form.handleSubmit();
+        }}
+      >
+        <form.AppField name="email">
+          {(field) => (
+            <field.TextField
+              autoComplete="email"
+              hideLabel
+              label="Email address"
+              placeholder="you@example.com"
+              type="email"
+            />
+          )}
+        </form.AppField>
+
+        <form.AppForm>
+          <form.SubmitButton label="Send magic link" loadingLabel="Sending…" />
+        </form.AppForm>
       </form>
-    </div>
+    </PanelCard>
   );
 }

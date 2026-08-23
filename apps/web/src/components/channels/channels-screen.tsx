@@ -6,6 +6,7 @@ import { ChannelListRow } from "@/components/channels/channel-list-row";
 import { ChannelListSkeleton } from "@/components/channels/channel-list-skeleton";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
+import { RowList } from "@/components/layout/row-list";
 import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
 
 interface ChannelsScreenProps {
@@ -17,8 +18,6 @@ interface ChannelsScreenProps {
   readonly rows: readonly Channel[];
 }
 
-/** Presentation only, so the dev harness renders the same screen the route
- * does rather than a copy that can drift from it. */
 export function ChannelsScreen({
   error,
   isPending,
@@ -31,7 +30,7 @@ export function ChannelsScreen({
 
   const newChannel = (
     <Button onClick={onNew} size="sm">
-      <PlusIcon weight="bold" />
+      <PlusIcon />
       New channel
     </Button>
   );
@@ -51,13 +50,7 @@ export function ChannelsScreen({
         skeleton={<ChannelListSkeleton />}
         title="No channels yet"
       >
-        <div
-          aria-label="Channels"
-          className="flex flex-col"
-          onKeyDown={nav.onKeyDown}
-          role="listbox"
-          tabIndex={-1}
-        >
+        <RowList label="Channels" onKeyDown={nav.onKeyDown} role="listbox">
           {rows.map((channel, index) => (
             <ChannelListRow
               channel={channel}
@@ -69,7 +62,7 @@ export function ChannelsScreen({
               tabIndex={index === nav.activeIndex ? 0 : -1}
             />
           ))}
-        </div>
+        </RowList>
       </ListState>
     </PageShell>
   );

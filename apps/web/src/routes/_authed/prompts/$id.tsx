@@ -6,12 +6,16 @@ import { toast } from "sonner";
 import { PromptActivityFeed } from "@/components/prompts/prompt-activity-feed";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
-import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
+import {
+  PromptEditorLayout,
+  PromptEditorMain,
+} from "@/components/prompts/prompt-editor-layout";
 import { PromptEditorSkeleton } from "@/components/prompts/prompt-editor-skeleton";
 import { PromptEditorTitle } from "@/components/prompts/prompt-editor-title";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
 import { useDialog } from "@/lib/dialog/dialogs";
+import { activityQueries } from "@/lib/query/activity-queries";
 import { channelQueries } from "@/lib/query/channel-queries";
 import { promptQueries } from "@/lib/query/prompt-queries";
 import { usePointChannel } from "@/lib/use-point-channel";
@@ -22,15 +26,15 @@ export const Route = createFileRoute("/_authed/prompts/$id")({
   /** The client fetches these: the API is addressed relatively, which has no
    * base on the server, and the session cookie is the browser's to send. */
   ssr: false,
-  loader: async ({ context, params }) => {
-    const { promptQueries: queries } = await import(
-      "@/lib/query/prompt-queries"
-    );
-    return Promise.all([
-      context.queryClient.ensureQueryData(queries.versions(params.id)),
-      context.queryClient.ensureQueryData(queries.channels(params.id)),
-    ]);
-  },
+  loader: ({ context, params }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(promptQueries.versions(params.id)),
+      context.queryClient.ensureQueryData(promptQueries.channels(params.id)),
+      context.queryClient.ensureQueryData(channelQueries.list()),
+      context.queryClient.ensureInfiniteQueryData(
+        activityQueries.forPrompt(params.id)
+      ),
+    ]),
   component: PromptDetailPage,
   staticData: { crumb: (params) => params.id },
 });
@@ -104,7 +108,7 @@ function PromptEditor({ id, latest, versions }: PromptEditorProps) {
 
   return (
     <PromptEditorLayout>
-      <main className="relative flex min-w-0 flex-col pt-5 pb-24">
+      <PromptEditorMain>
         <PromptEditorTitle
           correctingVersion={correctingVersion}
           dirty={selection.dirty}
@@ -121,7 +125,7 @@ function PromptEditor({ id, latest, versions }: PromptEditorProps) {
         />
 
         <PromptActivityFeed promptId={id} />
-      </main>
+      </PromptEditorMain>
 
       <PromptRail
         actions={

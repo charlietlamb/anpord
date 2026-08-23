@@ -1,7 +1,7 @@
 {
   "name": "anpord",
   "version": "0.1.3",
-  "description": "TypeScript SDK and CLI for Anpord — prompt management for AI products.",
+  "description": "TypeScript SDK and CLI for coding agent evals and prompt management.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -34,6 +34,9 @@
   },
   "keywords": [
     "anpord",
+    "evals",
+    "agents",
+    "sandboxes",
     "prompts",
     "prompt-management",
     "versioning",

@@ -11,9 +11,14 @@ import {
   useRunPlayground,
   useSavePlayground,
 } from "@/lib/evals/eval-mutations";
+import { evalQueries } from "@/lib/evals/eval-queries";
+import { DEFAULT_HARNESS } from "@/lib/evals/variant-options";
 
 export const Route = createFileRoute("/_authed/evals/new")({
   component: NewEvalScreen,
+
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(evalQueries.models(DEFAULT_HARNESS)),
   staticData: { title: "New eval" },
 });
 
@@ -25,9 +30,6 @@ function NewEvalScreen() {
 
   const submitting = create.isPending || save.isPending || run.isPending;
 
-  /* Created, saved, then run. The playground is the record of what was asked
-     for and outlives the run it produced, so a person who wants the same grid
-     again edits it rather than retyping it. */
   const start = async (draft: EvalDraft) => {
     try {
       const playground = await create.mutateAsync(
@@ -38,6 +40,7 @@ function NewEvalScreen() {
         config: {
           cases: draft.cases,
           columns: columnsOfDraft(draft),
+          connections: draft.connections,
           prompt: draft.prompt,
           trials: draft.trials,
         },

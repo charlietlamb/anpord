@@ -1,27 +1,32 @@
 ---
 title: "Introduction"
-description: "Prompt management for AI products"
+description: "Evaluate coding agents and manage versioned prompts"
 ---
 
-Anpord serves your prompts the way a feature flag service serves your flags. Your application asks for a prompt by id, and you change what it receives without deploying.
-
-A prompt in your codebase is a string in a release. Rewording it means a pull request, a review, and a deploy, so the person who knows what the prompt should say waits on the person who can ship it. Anpord keeps the text outside the binary: editing a prompt writes a version, and pointing a channel at that version is what puts it live.
+Anpord runs coding tasks across harnesses, models, and sandboxes, then keeps the verifier result and agent trajectory for each attempt.
 
 ```ts
-const prompt = await anpord.prompts.get({ id: "support-reply" });
+const { id } = await anpord.evals.start({
+  cases,
+  prompt: "Work in the current repository. {{goal}}",
+  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  trials: 3,
+});
+```
+
+Repeat the same cell to compare it with its first scored result. Anpord marks the change as `improved`, `unchanged`, `regressed`, or `incomparable`.
+
+Anpord also stores prompts outside your application. Every edit creates a version, and channels decide which version callers receive.
+
+```ts
+const prompt = await anpord.prompts.get({ id: "coding-agent" });
 ```
 
 <CardGroup cols={2}>
-  <Card title="Quickstart" icon="play" href="/getting-started">
-    Fetch your first prompt.
+  <Card title="Run your first eval" icon="play" href="/getting-started">
+    Start a coding task and read its result.
   </Card>
-  <Card title="Concepts" icon="book" href="/concepts">
-    How a prompt id turns into content.
-  </Card>
-  <Card title="Variables" icon="code" href="/variables">
-    Values filled in at runtime, checked at build time.
-  </Card>
-  <Card title="Freshness" icon="bolt" href="/freshness">
-    What the SDK serves when the network is gone.
+  <Card title="Manage prompts" icon="message" href="/prompts/overview">
+    Version, test, and release prompt changes.
   </Card>
 </CardGroup>

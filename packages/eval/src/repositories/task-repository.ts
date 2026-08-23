@@ -4,49 +4,66 @@ import { IdGenerator } from "@anpord/ids/id";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
+import type { WorkspaceSource } from "../domain/workspace-source";
 import { head, tryStore } from "./query";
 
 type TaskRow = typeof evalTask.$inferSelect;
+
+interface TaskDefinition {
+  readonly name: string;
+  readonly organizationId: string;
+  readonly prompt: string;
+  readonly setupCommand: string | null;
+  readonly source: WorkspaceSource;
+  readonly verifyCommand: string | null;
+  readonly workspace: string;
+}
 
 export interface TaskRepositoryShape {
   readonly findById: (
     organizationId: string,
     id: string
   ) => Effect.Effect<Option.Option<TaskRow>, EvalStoreError>;
-  readonly insert: (input: {
-    readonly id: string;
-    readonly name: string;
-    readonly organizationId: string;
-    readonly prompt: string;
-    readonly setupCommand: string | null;
-    readonly verifyCommand: string | null;
-    readonly workspace: string;
-  }) => Effect.Effect<TaskRow, EvalStoreError>;
+  readonly insert: (
+    input: TaskDefinition & {
+      readonly id: string;
+    }
+  ) => Effect.Effect<TaskRow, EvalStoreError>;
   readonly list: (
     organizationId: string
   ) => Effect.Effect<readonly TaskRow[], EvalStoreError>;
-  /** A task is registered only once the bracket has run: once with a correct
-   * solution, once with nothing. Until then it is written but not trusted. */
+
   readonly markBracketed: (
     internalId: string,
     bracketedAt: Date
   ) => Effect.Effect<void, EvalStoreError>;
-  /** Finds the task for a case definition, or writes it. */
-  readonly upsertByIdentity: (input: {
-    readonly identity: string;
-    readonly name: string;
-    readonly organizationId: string;
-    readonly prompt: string;
-    readonly setupCommand: string | null;
-    readonly verifyCommand: string | null;
-    readonly workspace: string;
-  }) => Effect.Effect<TaskRow, EvalStoreError>;
+
+  readonly upsertByIdentity: (
+    input: TaskDefinition & {
+      readonly identity: string;
+    }
+  ) => Effect.Effect<TaskRow, EvalStoreError>;
 }
 
 export class TaskRepository extends Context.Tag("@anpord/eval/TaskRepository")<
   TaskRepository,
   TaskRepositoryShape
 >() {}
+
+const valuesOf = (input: TaskDefinition, id: string, internalId: string) => ({
+  id,
+  internalId,
+  name: input.name,
+  organizationId: input.organizationId,
+  prompt: input.prompt,
+  repoRef: input.source.kind === "repo" ? input.source.ref : null,
+  repoUrl: input.source.kind === "repo" ? input.source.url : null,
+  setupCommand: input.setupCommand,
+  sourceFiles: input.source.kind === "files" ? input.source.files : null,
+  sourceKind: input.source.kind,
+  verifyCommand: input.verifyCommand,
+  workspace: input.workspace,
+});
 
 export const TaskRepositoryLive = Layer.effect(
   TaskRepository,
@@ -76,25 +93,13 @@ export const TaskRepositoryLive = Layer.effect(
           const rows = yield* tryStore("task.insert", () =>
             db
               .insert(evalTask)
-              .values({
-                id: input.id,
-                internalId,
-                name: input.name,
-                organizationId: input.organizationId,
-                prompt: input.prompt,
-                setupCommand: input.setupCommand,
-                verifyCommand: input.verifyCommand,
-                workspace: input.workspace,
-              })
+              .values(valuesOf(input, input.id, internalId))
               .returning()
           );
 
           return rows[0] as TaskRow;
-        }),
+        }).pipe(Effect.withSpan("TaskRepository.insert")),
 
-      /* The identity is the public id, so the existing unique index on
-         (organizationId, id) does the deduplication and two runs racing the
-         same new case cannot create two rows. */
       upsertByIdentity: (input) =>
         Effect.gen(function* () {
           const internalId = yield* ids.generate("evalTask");
@@ -102,18 +107,8 @@ export const TaskRepositoryLive = Layer.effect(
           const rows = yield* tryStore("task.upsertByIdentity", () =>
             db
               .insert(evalTask)
-              .values({
-                id: input.identity,
-                internalId,
-                name: input.name,
-                organizationId: input.organizationId,
-                prompt: input.prompt,
-                setupCommand: input.setupCommand,
-                verifyCommand: input.verifyCommand,
-                workspace: input.workspace,
-              })
-              /** Nothing is updated, because the identity is the content: a
-               * row that already exists is already correct. */
+              .values(valuesOf(input, input.identity, internalId))
+
               .onConflictDoNothing({
                 target: [evalTask.organizationId, evalTask.id],
               })
@@ -126,8 +121,6 @@ export const TaskRepositoryLive = Layer.effect(
             return inserted;
           }
 
-          /* The row already existed, so the insert returned nothing. Reading
-             it back is the price of never mutating it. */
           const existing = yield* tryStore("task.findByIdentity", () =>
             db
               .select()
@@ -141,7 +134,7 @@ export const TaskRepositoryLive = Layer.effect(
           );
 
           return existing[0] as TaskRow;
-        }),
+        }).pipe(Effect.withSpan("TaskRepository.upsertByIdentity")),
 
       list: (organizationId) =>
         tryStore("task.list", () =>
@@ -154,7 +147,7 @@ export const TaskRepositoryLive = Layer.effect(
                 isNull(evalTask.archivedAt)
               )
             )
-        ),
+        ).pipe(Effect.withSpan("TaskRepository.list")),
 
       markBracketed: (internalId, bracketedAt) =>
         tryStore("task.markBracketed", () =>
@@ -162,7 +155,7 @@ export const TaskRepositoryLive = Layer.effect(
             .update(evalTask)
             .set({ bracketedAt })
             .where(eq(evalTask.internalId, internalId))
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("TaskRepository.markBracketed")),
     });
   })
 );

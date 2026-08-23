@@ -22,6 +22,7 @@ const validate = (value: unknown) => {
 };
 
 const draft = {
+  agents: [{ harness: "codex" as const, model: "gpt-5-codex" }],
   cases: [
     {
       goal: "Put the GitHub logo in the footer.",
@@ -31,7 +32,7 @@ const draft = {
       verify: "test -f public/logos/github-light.svg",
     },
   ],
-  models: ["gpt-5-codex"],
+  connections: {},
   name: "brand logos",
   prompt: "{{goal}}",
   providers: ["daytona" as const],
@@ -39,23 +40,19 @@ const draft = {
 };
 
 describe("the eval draft", () => {
-  /** The form validates against the same schema the server decodes, so a
-   * message written here is the message a person reads. */
   it("names what is missing in words a person can act on", () => {
     const messages = validate({
       ...draft,
+      agents: [],
       cases: [],
-      models: [],
       providers: [],
     }).map((issue) => issue.message);
 
     expect(messages).toContain("Add at least one case.");
-    expect(messages).toContain("Choose at least one model.");
+    expect(messages).toContain("Choose at least one agent.");
     expect(messages).toContain("Choose at least one sandbox.");
   });
 
-  /** A row's error has to land on the row, or a person with six cases is told
-   * something is wrong and not which one. */
   it("points at the row that is wrong", () => {
     const paths = validate({
       ...draft,
@@ -73,28 +70,29 @@ describe("the eval draft", () => {
     expect(messages).toContain("Run between 1 and 10 trials.");
   });
 
-  /** Two axes crossed, because a column is every pairing and a person picking
-   * three models against two sandboxes means six. */
   it("crosses the axes into every pairing", () => {
     const columns = columnsOfDraft({
-      models: ["gpt-5-codex", "gpt-5", "gpt-5-mini"],
-      providers: ["daytona", "e2b"],
+      agents: [
+        { harness: "codex", model: "gpt-5-codex" },
+        { harness: "opencode", model: "openai/gpt-5" },
+        { harness: "gemini", model: "gemini-2.5-pro" },
+      ],
+      providers: ["daytona", "e2b", "upstash", "modal", "cloudflare", "vercel"],
     });
 
-    expect(columns).toHaveLength(6);
+    expect(columns).toHaveLength(18);
     expect(new Set(columns.map((column) => column.provider))).toEqual(
-      new Set(["daytona", "e2b"])
+      new Set(["daytona", "e2b", "upstash", "modal", "cloudflare", "vercel"])
     );
   });
 
-  /** What the form holds has to be what the server accepts, or the drift a
-   * shared schema exists to prevent is back. */
   it("encodes into the request the server decodes", async () => {
     const encoded = await Effect.runPromise(
       Schema.encode(SavePlaygroundRequest)({
         config: {
           cases: draft.cases,
           columns: columnsOfDraft(draft),
+          connections: draft.connections,
           prompt: draft.prompt,
           trials: draft.trials,
         },

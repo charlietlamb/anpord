@@ -2,7 +2,6 @@ import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { ApiKeyAuthentication } from "./authentication";
 import {
-  ArchivePromptRequest,
   CreatePromptRequest,
   GetPromptRequest,
   ListPromptsRequest,
@@ -21,7 +20,7 @@ export class PublicPromptsGroup extends HttpApiGroup.make("prompts")
       .annotate(
         OpenApi.Description,
         "Returns the content a caller should send to a model. With no " +
-          "selector this is the production version."
+          "selector this follows the organization's default channel."
       )
   )
   .add(
@@ -31,7 +30,7 @@ export class PublicPromptsGroup extends HttpApiGroup.make("prompts")
       .annotate(OpenApi.Summary, "List prompts")
       .annotate(
         OpenApi.Description,
-        "Every prompt in the organization, without content."
+        "Up to 100 prompts in the organization, without content."
       )
   )
   .add(
@@ -64,16 +63,6 @@ export class PublicPromptsGroup extends HttpApiGroup.make("prompts")
         OpenApi.Description,
         "Points a channel, such as production, at a version. This is how a " +
           "version goes live without callers changing anything."
-      )
-  )
-  .add(
-    HttpApiEndpoint.post("archive", "/prompts.archive")
-      .setPayload(ArchivePromptRequest)
-      .addSuccess(Ok)
-      .annotate(OpenApi.Summary, "Archive a prompt")
-      .annotate(
-        OpenApi.Description,
-        "Hides the prompt from listings. Pinned versions keep resolving."
       )
   )
   .addError(BadRequest)

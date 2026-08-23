@@ -56,10 +56,10 @@ const outputOf = (chunks: readonly ExecChunk[]) =>
 const exitOf = (chunks: readonly ExecChunk[]) =>
   chunks.find((chunk) => chunk.stream === "exit");
 
-const verify = (sandbox: SandboxHandle, command: string) =>
-  Stream.runCollect(sandbox.exec(command, { timeoutMs: 300_000 })).pipe(
-    Effect.map(Chunk.toReadonlyArray)
-  );
+const verify = (sandbox: SandboxHandle, command: string, workspace: string) =>
+  Stream.runCollect(
+    sandbox.exec(command, { cwd: workspace, timeoutMs: 300_000 })
+  ).pipe(Effect.map(Chunk.toReadonlyArray));
 
 /** The verdict comes from running the tests, not from judging the diff. */
 export const ScorerGroundTruthLive = Layer.succeed(
@@ -91,7 +91,11 @@ export const ScorerGroundTruthLive = Layer.succeed(
           });
         }
 
-        const chunks = yield* verify(request.sandbox, request.verifyCommand);
+        const chunks = yield* verify(
+          request.sandbox,
+          request.verifyCommand,
+          request.workspace
+        );
 
         const exit = exitOf(chunks);
         const output = outputOf(chunks);

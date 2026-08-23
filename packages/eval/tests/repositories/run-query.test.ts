@@ -36,9 +36,6 @@ const run = <A, E>(effect: Effect.Effect<A, E, RunQuery | Database>) =>
     effect.pipe(Effect.provide(TestLayer), Effect.scoped) as Effect.Effect<A, E>
   );
 
-/** Two organizations with the same cell key, because a key is a content hash
- * and carries no tenant. If history were read by key alone both would share a
- * baseline. */
 const seed = async (organizationId: string, tag: string, passed: boolean) => {
   await run(
     Effect.gen(function* () {
@@ -81,6 +78,7 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
           harnessVersion: "0.144.4",
           internalId: `cellint_${tag}`,
           model: "gpt-5",
+          prompt: "do the thing",
           provider: "daytona",
           runInternalId: `runint_${tag}`,
           status: "finished",
@@ -133,6 +131,7 @@ describe.skipIf(skipWithoutDatabase())("RunQuery", () => {
     expect(found.value.cells).toHaveLength(1);
     expect(found.value.cells[0]?.distribution.passRate).toBe(1);
     expect(found.value.cells[0]?.distribution.scored).toBe(2);
+    expect(found.value.cells[0]?.prompt).toBe("do the thing");
   });
 
   it("refuses a run belonging to another organization", async () => {
@@ -147,8 +146,6 @@ describe.skipIf(skipWithoutDatabase())("RunQuery", () => {
     expect(Option.isNone(found)).toBe(true);
   });
 
-  /** The property that matters most here. Both organizations have a cell with
-   * an identical key, and one must never see the other's readings. */
   it("scopes cell history to the organization", async () => {
     const history = await run(
       Effect.gen(function* () {
@@ -172,11 +169,38 @@ describe.skipIf(skipWithoutDatabase())("RunQuery", () => {
       Effect.gen(function* () {
         const query = yield* RunQuery;
 
-        return yield* query.listRuns({ limit: 50, organizationId: mine });
+        return yield* query.listRuns({
+          cursor: null,
+          limit: 50,
+          organizationId: mine,
+        });
       })
     );
 
     expect(runs.every((row) => row.organizationId === mine)).toBe(true);
     expect(runs.some((row) => row.id === `run_qmine${suffix}`)).toBe(true);
+  });
+
+  it("hydrates a page of runs in one batch", async () => {
+    const details = await run(
+      Effect.gen(function* () {
+        const query = yield* RunQuery;
+        const rows = yield* query.listRuns({
+          cursor: null,
+          limit: 50,
+          organizationId: mine,
+        });
+
+        return yield* query.hydrateRuns(rows);
+      })
+    );
+
+    const detail = details.find(
+      (entry) => entry.run.id === `run_qmine${suffix}`
+    );
+
+    expect(detail?.cells).toHaveLength(1);
+    expect(detail?.cells[0]?.distribution.passRate).toBe(1);
+    expect(detail?.cells[0]?.trials).toHaveLength(2);
   });
 });

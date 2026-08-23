@@ -6,16 +6,17 @@ import { SiteHeader } from "@/components/layout/site-header";
 interface SiteLayoutProps {
   center?: boolean;
   children: ReactNode;
+
+  dot?: number;
 }
 
-/**
- * The shell every signed-out page shares, so the logo and the content below it
- * hang off the same margin from the landing page through sign-in.
- */
-export function SiteLayout({ children, center }: SiteLayoutProps) {
+export function SiteLayout({ children, center, dot }: SiteLayoutProps) {
   return (
     <main className="relative isolate bg-background text-foreground">
-      <Dither className="fixed inset-0 -z-10 h-svh w-full text-foreground/[0.16] dark:text-foreground/[0.14]" />
+      <Dither
+        className="fixed inset-0 -z-10 h-svh w-full text-foreground/[0.16] dark:text-foreground/[0.14]"
+        dot={dot}
+      />
       <div className="mx-auto flex min-h-svh w-full max-w-3xl flex-col px-6">
         <SiteHeader />
         <div

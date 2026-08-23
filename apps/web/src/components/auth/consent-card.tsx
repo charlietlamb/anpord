@@ -1,11 +1,15 @@
 import { Button } from "@anpord/ui/components/button";
 import { Logo } from "@anpord/ui/components/logo";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { authClient, useSession } from "@/lib/auth-client";
 
 const SCOPE_LABELS: Record<string, string> = {
+  "channels:read": "Read your prompt channels",
+  "channels:write": "Move prompt channels",
   email: "See your email address",
+  "evals:read": "Read your eval runs and results",
+  "evals:write": "Start and rerun evals",
   offline_access: "Stay signed in when you are away",
   openid: "Confirm who you are",
   profile: "See your name and picture",
@@ -25,25 +29,23 @@ export function ConsentCard({
   scopes,
 }: ConsentCardProps) {
   const { data: session } = useSession();
-  const [submitting, setSubmitting] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const decide = async (accept: boolean) => {
-    setSubmitting(true);
-    setFailed(false);
-    try {
+  /* No success handler: consent ends by leaving for the client that asked
+     for it, so the mutation stays pending until the page is gone. */
+  const decision = useMutation({
+    mutationFn: async (accept: boolean) => {
       const { data, error } = await authClient.oauth2.consent({ accept });
+
       if (error || !data?.redirectURI) {
-        setFailed(true);
-        setSubmitting(false);
-        return;
+        throw new Error("Consent was not recorded.");
       }
+
       window.location.href = data.redirectURI;
-    } catch {
-      setFailed(true);
-      setSubmitting(false);
-    }
-  };
+    },
+  });
+
+  const decide = (accept: boolean) => decision.mutate(accept);
+  const submitting = decision.isPending;
+  const failed = decision.isError;
 
   return (
     <div className="w-full max-w-[420px] space-y-6">

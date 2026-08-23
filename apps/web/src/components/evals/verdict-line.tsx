@@ -1,13 +1,11 @@
 import type { EvalComparison } from "@anpord/schema/domain/evals";
-import { VerdictBadge } from "@/components/evals/eval-status-badge";
+import { RailFact } from "@anpord/ui/components/ui/rail-fact";
+import { verdictMark } from "@/lib/evals/eval-status";
 
-/**
- * Whether this cell moved, and what a rate alone cannot say.
- *
- * The empty branch is now the first run of a cell rather than a cell nobody
- * promoted: a reading becomes the reference as the grid records it, so there
- * is nothing here for a person to do.
- */
+const MOVED = new Set(["improved", "regressed"]);
+
+const signed = (delta: number) => `${delta > 0 ? "+" : ""}${delta.toFixed(2)}`;
+
 export function VerdictLine({
   comparison,
 }: {
@@ -21,13 +19,20 @@ export function VerdictLine({
     );
   }
 
-  return (
-    <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-      <VerdictBadge delta={comparison.delta} verdict={comparison.verdict} />
+  const mark = verdictMark(comparison.verdict);
 
-      {comparison.verdict === "incomparable" && comparison.reason !== null ? (
-        <span className="text-pretty">{comparison.reason}</span>
-      ) : null}
-    </div>
+  return (
+    <RailFact
+      hint={comparison.reason}
+      Icon={mark.Icon}
+      label="verdict"
+      layout="stated"
+      tone={mark.tone}
+      value={
+        MOVED.has(comparison.verdict)
+          ? `${comparison.verdict} ${signed(comparison.delta)}`
+          : comparison.verdict
+      }
+    />
   );
 }

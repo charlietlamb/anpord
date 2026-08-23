@@ -12,6 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@anpord/ui/components/ui/popover";
+import { useFittedCount } from "@anpord/ui/hooks/use-fitted-count";
 import { cn } from "@anpord/ui/lib/utils";
 import { CaretDownIcon, CheckIcon, XIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
@@ -40,23 +41,32 @@ export function SearchableMultiSelect<TValue extends string>({
   onChange,
   options,
   renderOption,
+  search,
   searchPlaceholder = "Search…",
+  truncatedBy,
   value,
 }: {
   readonly emptyLabel: string;
   readonly label: string;
   readonly onChange: (next: TValue[]) => void;
   readonly options: readonly SearchableOption<TValue>[];
-  /** Draws the mark beside an option and its chip, for a list whose items are
-   * things rather than words. */
   readonly renderOption?: (option: SearchableOption<TValue>) => ReactNode;
+  readonly search?: {
+    readonly onChange: (next: string) => void;
+    readonly value: string;
+  };
   readonly searchPlaceholder?: string;
+  readonly truncatedBy?: number;
   readonly value: readonly TValue[];
 }) {
   const [open, setOpen] = useState(false);
+  const { fitted, overflowRef, rowRef } = useFittedCount(value.length);
+  const hidden = value.slice(fitted);
 
   const optionFor = (item: TValue) =>
     options.find((option) => option.value === item);
+
+  const labelOf = (item: TValue) => optionFor(item)?.label ?? item;
 
   const toggle = (item: TValue) =>
     onChange(
@@ -67,33 +77,44 @@ export function SearchableMultiSelect<TValue extends string>({
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger
-        render={
-          <button
-            aria-expanded={open}
-            aria-label={label}
-            className="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-input/20 px-2 py-1.5 text-left text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
-            type="button"
-          />
-        }
-      >
+      <div className="relative flex min-h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-input/20 px-2 py-1.5 text-left text-sm transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30">
+        <PopoverTrigger
+          render={
+            <button
+              aria-expanded={open}
+              aria-label={label}
+              className="absolute inset-0 size-full rounded-md outline-none"
+              type="button"
+            />
+          }
+        />
+
         {value.length === 0 ? (
-          <span className="text-muted-foreground">{emptyLabel}</span>
+          <span className="pointer-events-none text-muted-foreground">
+            {emptyLabel}
+          </span>
         ) : (
-          <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-            {value.map((item) => {
+          <span
+            className="pointer-events-none relative flex min-w-0 flex-1 items-center gap-1 overflow-hidden"
+            ref={rowRef}
+          >
+            {value.map((item, index) => {
               const option = optionFor(item);
+              const chip = labelOf(item);
 
               return (
                 <span
-                  className="inline-flex items-center gap-1.5 rounded-md bg-muted py-0.5 pr-1 pl-2 text-xs"
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-md bg-muted py-0.5 pr-1 pl-2 text-xs",
+                    index < fitted ? null : "pointer-events-none invisible"
+                  )}
                   key={item}
                 >
                   {option === undefined ? null : renderOption?.(option)}
-                  {option?.label ?? item}
+                  {chip}
                   <button
-                    aria-label={`Remove ${option?.label ?? item}`}
-                    className="rounded-sm text-muted-foreground/70 hover:text-foreground"
+                    aria-label={`Remove ${chip}`}
+                    className="pointer-events-auto rounded-sm text-muted-foreground/70 hover:text-foreground"
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
@@ -106,15 +127,33 @@ export function SearchableMultiSelect<TValue extends string>({
                 </span>
               );
             })}
+
+            <span
+              className={cn(
+                "shrink-0 text-muted-foreground text-xs tabular-nums",
+                hidden.length === 0 ? "invisible" : null
+              )}
+              ref={overflowRef}
+              title={hidden.map((item) => labelOf(item)).join("\n")}
+            >
+              +{hidden.length}
+            </span>
           </span>
         )}
 
-        <CaretDownIcon className="size-4 shrink-0 text-muted-foreground" />
-      </PopoverTrigger>
+        <CaretDownIcon className="pointer-events-none relative size-4 shrink-0 text-muted-foreground" />
+      </div>
 
-      <PopoverContent align="start" className="w-(--anchor-width) p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+      <PopoverContent
+        align="start"
+        className="max-h-80 w-(--anchor-width) min-w-64 overflow-y-auto p-0"
+      >
+        <Command shouldFilter={search === undefined}>
+          <CommandInput
+            onValueChange={search?.onChange}
+            placeholder={searchPlaceholder}
+            value={search?.value}
+          />
 
           <CommandList>
             <CommandEmpty>Nothing matches that.</CommandEmpty>
@@ -149,6 +188,11 @@ export function SearchableMultiSelect<TValue extends string>({
                 </CommandItem>
               );
             })}
+            {truncatedBy === undefined || truncatedBy <= 0 ? null : (
+              <p className="px-2 py-1.5 text-muted-foreground text-xs">
+                {truncatedBy} more match. Keep typing to narrow.
+              </p>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

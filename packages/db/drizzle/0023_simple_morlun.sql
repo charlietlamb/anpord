@@ -1,0 +1,7 @@
+DROP INDEX "credential_connection_organization_integration_name_idx";--> statement-breakpoint
+DROP INDEX "credential_connection_organization_integration_status_idx";--> statement-breakpoint
+CREATE UNIQUE INDEX "credential_connection_organization_name_idx" ON "credential_connection" USING btree ("organization_id","integration_id","name") WHERE "credential_connection"."scope" = 'organization';--> statement-breakpoint
+CREATE UNIQUE INDEX "credential_connection_personal_name_idx" ON "credential_connection" USING btree ("organization_id","owner_user_id","integration_id","name") WHERE "credential_connection"."scope" = 'personal';--> statement-breakpoint
+CREATE UNIQUE INDEX "credential_connection_organization_default_idx" ON "credential_connection" USING btree ("organization_id","integration_id") WHERE "credential_connection"."scope" = 'organization' and "credential_connection"."is_default";--> statement-breakpoint
+CREATE UNIQUE INDEX "credential_connection_personal_default_idx" ON "credential_connection" USING btree ("organization_id","owner_user_id","integration_id") WHERE "credential_connection"."scope" = 'personal' and "credential_connection"."is_default";--> statement-breakpoint
+CREATE INDEX "credential_connection_resolve_idx" ON "credential_connection" USING btree ("organization_id","integration_id","status","is_default");

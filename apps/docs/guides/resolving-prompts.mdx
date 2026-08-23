@@ -1,0 +1,53 @@
+---
+title: "Resolve prompts"
+description: "Follow a channel or pin a version"
+---
+
+`prompts.get` takes an id and one optional selector.
+
+## Default channel
+
+```ts
+const prompt = await anpord.prompts.get({ id: "support-reply" });
+```
+
+A bare read follows the organization's default channel. New organizations use `production`. If no default is set, it returns the latest version with `channel: null`.
+
+## Named channel
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "support-reply",
+  channel: "staging",
+});
+```
+
+Use channels for environments or release groups. The SDK caches channel reads and refreshes them in the background after the cache TTL.
+
+## Exact version
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "support-reply",
+  version: 7,
+});
+```
+
+Pin versions for evals and reproducible jobs. If `version` and `channel` are both present, `version` wins and the response has `channel: null`.
+
+Use `channel: "latest"` to read the highest version number. Every update changes that result, so do not use it for production. `latest` cannot be promoted.
+
+## Resolved fields
+
+The response includes `id`, `name`, `content`, `config`, `version`, `channel`, `createdAt`, and `message`. Log the id, version, and channel with each model call.
+
+Set `includeVersions: true` to include history:
+
+```ts
+const prompt = await anpord.prompts.get({
+  id: "support-reply",
+  includeVersions: true,
+});
+```
+
+History entries contain metadata, not content. Fetch a version by number to read it.

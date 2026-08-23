@@ -1,7 +1,6 @@
-import { Button } from "@anpord/ui/components/button";
 import { SectionLabel } from "@anpord/ui/components/ui/section-label";
-import { SpinnerGapIcon } from "@phosphor-icons/react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { ShowMore } from "@/components/layout/show-more";
 import { ActivityRow } from "@/components/prompts/activity-row";
 import { activityQueries } from "@/lib/query/activity-queries";
 
@@ -36,20 +35,13 @@ export function PromptActivityFeed({ promptId }: PromptActivityFeedProps) {
         </p>
       ) : null}
 
-      {activity.hasNextPage ? (
-        <Button
-          className="mt-3"
-          disabled={activity.isFetchingNextPage}
-          onClick={() => activity.fetchNextPage()}
-          size="sm"
-          variant="bare"
-        >
-          {activity.isFetchingNextPage ? (
-            <SpinnerGapIcon className="animate-spin" size={15} />
-          ) : null}
-          {activity.isFetchingNextPage ? "Loading…" : "Show earlier"}
-        </Button>
-      ) : null}
+      <ShowMore
+        className="mt-3"
+        hasMore={activity.hasNextPage}
+        label="Show earlier"
+        loading={activity.isFetchingNextPage}
+        onMore={() => activity.fetchNextPage()}
+      />
     </section>
   );
 }

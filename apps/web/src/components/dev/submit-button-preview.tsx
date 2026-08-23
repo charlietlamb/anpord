@@ -27,7 +27,7 @@ export function SubmitButton({
       )}
       type="button"
     >
-      <PlusIcon size={15} weight="bold" />
+      <PlusIcon size={15} />
       Create prompt
       <span className="flex items-center gap-0.5">
         <Kbd className={caps}>⌘</Kbd>
@@ -37,7 +37,6 @@ export function SubmitButton({
   );
 }
 
-/** Shown on the real surface, since that is the only context that matters. */
 export function OnSurface({ option }: { option: ButtonOption }) {
   return (
     <div className="rounded-[18px] bg-card p-3 shadow-[inset_0_0_0_1px_oklch(0_0_0/4%),0_2px_6px_oklch(0_0_0/5%),0_12px_32px_-16px_oklch(0_0_0/14%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%),0_2px_6px_oklch(0_0_0/25%),0_12px_32px_-16px_oklch(0_0_0/50%)]">

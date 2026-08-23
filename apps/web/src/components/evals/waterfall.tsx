@@ -1,44 +1,55 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import { Axis, Gridlines } from "@/components/evals/waterfall-axis";
 import { OrderedRow, TimedRow } from "@/components/evals/waterfall-row";
+import { EmptyNote } from "@/components/layout/empty-note";
+import { RowList } from "@/components/layout/row-list";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 
-/* A journal is append-only and ordered, so an entry is identified by where it
-   sits and when it happened. */
 const keyOf = (entry: EvalJournalEntry, index: number) =>
   [index, entry._tag, entry.finishedAtMillis ?? "unknown"].join("-");
 
-/**
- * The trajectory against a clock.
- *
- * Bars are commands, measured end to end. Markers are the events a harness
- * reports once. The faint line before each is the model thinking, which on a
- * real trial is most of the elapsed time and the view no platform reading a
- * tool-call string can draw.
- *
- * No label column: a command is long enough to push the timeline off the
- * screen, and the tooltip carries it whole rather than truncated.
- *
- * Two branches below the chart, both common. 1552 of 2240 stored trials
- * recorded no journal at all, so the empty state is the ordinary case rather
- * than an edge. A provider that answered in one piece leaves every entry
- * sharing a moment, and bars of no width would claim the work took no time,
- * so that reading falls back to the order it was recorded in.
- */
+const WAITING_ROWS = [
+  { delay: "0ms", width: "38%" },
+  { delay: "150ms", width: "62%" },
+  { delay: "300ms", width: "47%" },
+];
+
+function Waiting() {
+  return (
+    <div className="flex flex-col gap-3 py-4">
+      <div aria-hidden="true" className="flex flex-col gap-2">
+        {WAITING_ROWS.map((row) => (
+          <div
+            className="h-4 animate-pulse rounded-sm bg-border-faint motion-reduce:animate-none"
+            key={row.width}
+            style={{ animationDelay: row.delay, width: row.width }}
+          />
+        ))}
+      </div>
+
+      <p className="text-muted-foreground text-xs">
+        Waiting for the first step. The agent reads before it acts.
+      </p>
+    </div>
+  );
+}
+
 export function Waterfall({
+  running,
   timed,
   trajectory,
 }: {
+  readonly running: boolean;
   readonly timed: boolean;
   readonly trajectory: readonly EvalJournalEntry[];
 }) {
   const { rows, spanMs } = waterfallLayout(trajectory);
 
   if (trajectory.length === 0) {
-    return (
-      <p className="py-6 text-center text-muted-foreground text-xs">
-        This trial recorded no journal.
-      </p>
+    return running ? (
+      <Waiting />
+    ) : (
+      <EmptyNote>This trial recorded no journal.</EmptyNote>
     );
   }
 
@@ -50,11 +61,11 @@ export function Waterfall({
           recorded rather than a timeline.
         </p>
 
-        <ol className="-mx-2 flex flex-col">
+        <RowList as="ol">
           {trajectory.map((entry, index) => (
             <OrderedRow entry={entry} key={keyOf(entry, index)} />
           ))}
-        </ol>
+        </RowList>
       </div>
     );
   }

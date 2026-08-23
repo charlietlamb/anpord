@@ -12,23 +12,17 @@ import type { ReactNode } from "react";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 
 interface PromptComposerFormProps {
-  /** Names what is being written, above the surface. */
   readonly children?: ReactNode;
   readonly content: string;
   readonly onContentChange: (value: string) => void;
   readonly onSubmit: () => void;
   readonly saving: boolean;
-  /** Paired with the label, since creating and versioning are different acts. */
+
   readonly submitIcon: Icon;
-  /** Names the write, which differs between creating and versioning. */
+
   readonly submitLabel: string;
 }
 
-/**
- * A composer that carries its own submit, for the pages where writing the
- * prompt is one step of a form rather than the whole of what the page does.
- * Where the page owns the write, `PromptComposer` is the surface on its own.
- */
 export function PromptComposerForm({
   children,
   content,
@@ -72,7 +66,7 @@ export function PromptComposerForm({
             {saving ? (
               <SpinnerGapIcon className="animate-spin" size={15} />
             ) : (
-              <SubmitIcon size={15} weight="bold" />
+              <SubmitIcon size={15} />
             )}
             {submitLabel}
           </ShortcutButton>

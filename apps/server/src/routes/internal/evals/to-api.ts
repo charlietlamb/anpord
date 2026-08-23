@@ -1,8 +1,16 @@
 import type { HarnessEvent } from "@anpord/eval/domain/harness-event";
+import { usageOf } from "@anpord/eval/domain/harness-event";
+import {
+  commandsIn,
+  failedCommandsIn,
+  filesIn,
+} from "@anpord/eval/domain/journal";
 import type { GridCell, GridRunState } from "@anpord/eval/grid/state";
+import type { CellHistoryEntry } from "@anpord/eval/repositories/run-query";
 import type { CellComparison } from "@anpord/eval/services/baselines";
 import type {
   EvalCell,
+  EvalCellHistoryEntry,
   EvalComparison,
   EvalJournalEntry,
   EvalRun,
@@ -13,27 +21,28 @@ import { DateTime, Option } from "effect";
 
 const JOURNAL_OUTPUT_LIMIT = 4000;
 
-const waiting = (ordinal: number): EvalTrial => ({
-  commands: 0,
+const waiting = (
+  ordinal: number,
+  journal: readonly HarnessEvent[]
+): EvalTrial => ({
+  commands: commandsIn(journal),
   exitCode: -1,
-  failedCommands: 0,
-  filesChanged: [],
+  failedCommands: failedCommandsIn(journal),
+  filesChanged: [...filesIn(journal)],
   modelMs: 0,
   ordinal,
   passed: false,
   sandboxId: null,
   sandboxMs: 0,
   status: "running",
-  timed: false,
-  trajectory: [],
+  timed: new Set(journal.map((event) => event.at)).size > 1,
+  trajectory: asTrajectory(journal),
   usage: null,
   voidFields: [],
 });
 
 const millisOrNull = (at: number | undefined) => at ?? null;
 
-/* Every kind of event kept, in order: a trace of commands alone is a trace
-   with the context removed. */
 const asTrajectory = (
   events: readonly HarnessEvent[]
 ): readonly EvalJournalEntry[] =>
@@ -82,18 +91,13 @@ const asTrajectory = (
       ];
     }
 
-    /* Started and Finished bracket the run rather than describing work, and a
-       waterfall takes its extent from the trial's own times. */
     return [];
   });
 
-/** The journal travels with the trial rather than behind another request. An
- * exit code the caller cannot see is the thing this system exists to stop
- * being invisible. */
 const asTrials = (cell: GridCell): readonly EvalTrial[] =>
   cell.trials.map((trial, index) =>
     Option.match(trial, {
-      onNone: () => waiting(index + 1),
+      onNone: () => waiting(index + 1, cell.live.get(index + 1) ?? []),
       onSome: (result) => ({
         commands: result.commands,
         exitCode: result.outcome.exitCode,
@@ -105,10 +109,7 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
         sandboxId: result.sandboxId,
         sandboxMs: result.outcome.sandboxMs,
         status: result.outcome.status,
-        /* Two distinct moments is the evidence that output arrived as it was
-           produced. A provider answering in one piece stamps every event the
-           same, and a timeline drawn from that would show work taking no
-           time at all. */
+
         timed: new Set(result.events.map((event) => event.at)).size > 1,
         trajectory: asTrajectory(result.events),
         usage: Option.getOrNull(result.usage),
@@ -116,6 +117,59 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
       }),
     })
   );
+
+/**
+ * A stored trial row as the wire sees it.
+ *
+ * No trajectory: the journal is fetched per trial, and a history of twenty
+ * readings would pull twenty journals to draw a table that shows none of them.
+ * The trial's own page is where a trajectory is read.
+ */
+const asStoredTrial = (trial: {
+  readonly commandCount: number | null;
+  readonly exitCode: number | null;
+  readonly modelMs: number | null;
+  readonly ordinal: number;
+  readonly passed: boolean | null;
+  readonly sandboxId: string | null;
+  readonly sandboxMs: number | null;
+  readonly status: string;
+  readonly usage: Record<string, number> | null;
+  readonly voidFields: string[] | null;
+}): EvalTrial => ({
+  commands: trial.commandCount ?? 0,
+  exitCode: trial.exitCode ?? -1,
+  failedCommands: 0,
+  filesChanged: [],
+  modelMs: trial.modelMs ?? 0,
+  ordinal: trial.ordinal,
+  passed: trial.passed ?? false,
+  sandboxId: trial.sandboxId,
+  sandboxMs: trial.sandboxMs ?? 0,
+  status: trial.status as EvalTrial["status"],
+  timed: false,
+  trajectory: [],
+  usage: usageOf(trial.usage),
+  voidFields: trial.voidFields ?? [],
+});
+
+/**
+ * One past reading of a cell, with the trials it was computed from.
+ *
+ * Every reading holds the same case, setup and variant, because the cell key
+ * hashes all three. Only the trials differ, which is why they travel together
+ * rather than a page apart.
+ */
+export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
+  distribution: entry.distribution,
+  finishedAt:
+    entry.finishedAt === null
+      ? null
+      : DateTime.unsafeMake(entry.finishedAt.getTime()),
+  internalId: entry.internalId,
+  runId: entry.runId,
+  trials: entry.trials.map(asStoredTrial),
+});
 
 const asComparison = (
   comparisons: readonly CellComparison[],
@@ -149,12 +203,6 @@ const asCell = (
   trials: asTrials(cell),
 });
 
-/** The run's outcome, folded across its cells.
- *
- * Summed here rather than fetched per row: a list screen that showed a pass
- * rate had to read every run in full to render one column. `scored` travels
- * with `passed` because a rate without its denominator is how a provider
- * outage reads as a perfect score. */
 const outcomeOf = (state: GridRunState) => {
   const distributions = state.cells.flatMap((cell) =>
     Option.match(cell.distribution, {
@@ -183,14 +231,14 @@ const outcomeOf = (state: GridRunState) => {
 
 export const summarise = (state: GridRunState): EvalRunSummary => ({
   caseCount: state.cases.length,
+  columns: [...state.tasks],
   ...outcomeOf(state),
   failure: Option.getOrNull(state.failure),
   finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
     Option.getOrNull
   ),
   id: state.id,
-  /* The first case names the run, because that is what a person recognises it
-     by in a list of five hundred. */
+
   name: state.cases[0] ?? null,
   startedAt: DateTime.unsafeMake(state.startedAt),
   status: state.status,
@@ -210,11 +258,9 @@ export const detail = (
   id: state.id,
   startedAt: DateTime.unsafeMake(state.startedAt),
   status: state.status,
-  /* The domain knows three harnesses and the API exposes the one that works,
-     so the boundary narrows rather than leaking a name a client cannot act
-     on. Adding Claude Code widens both, in that order. */
+
   tasks: state.tasks.map((task) => ({
-    harness: "codex" as const,
+    harness: task.harness,
     harnessVersion: task.harnessVersion,
     model: task.model,
     provider: task.provider,

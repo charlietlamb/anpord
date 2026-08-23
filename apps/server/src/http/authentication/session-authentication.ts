@@ -1,19 +1,50 @@
 import { Auth } from "@anpord/auth";
-import { OrganizationStore } from "@anpord/auth/organization";
+import {
+  OrganizationStore,
+  type OrganizationStoreShape,
+} from "@anpord/auth/organization";
 import { Actor } from "@anpord/schema/domain/actor";
 import { Unauthorized } from "@anpord/schema/domain/errors";
 import { permissionsForRole } from "@anpord/schema/domain/permissions";
 import { Authentication } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder, HttpServerRequest } from "@effect/platform";
-import { Effect, Layer, Option, Schema } from "effect";
+import {
+  Cache,
+  Data,
+  Duration,
+  Effect,
+  Exit,
+  Layer,
+  Option,
+  Schema,
+} from "effect";
 
 const unauthorized = (message: string) => new Unauthorized({ message });
+const ROLE_CACHE_CAPACITY = 4096;
+const ROLE_CACHE_TTL = Duration.seconds(5);
+
+interface RoleKey {
+  readonly organizationId: string;
+  readonly userId: string;
+}
+
+export const makeRoleCache = (
+  organizations: Pick<OrganizationStoreShape, "roleOf">
+) =>
+  Cache.makeWith({
+    capacity: ROLE_CACHE_CAPACITY,
+    lookup: (key: RoleKey) =>
+      organizations.roleOf(key.organizationId, key.userId),
+    timeToLive: (exit) =>
+      Exit.isSuccess(exit) ? ROLE_CACHE_TTL : Duration.zero,
+  });
 
 export const AuthenticationLive = Layer.effect(
   Authentication,
   Effect.gen(function* () {
     const auth = yield* Auth;
     const organizations = yield* OrganizationStore;
+    const roles = yield* makeRoleCache(organizations);
 
     return Authentication.of({
       session: () =>
@@ -41,8 +72,13 @@ export const AuthenticationLive = Layer.effect(
             );
           }
 
-          const role = yield* organizations
-            .roleOf(organizationId.value, user.value.id)
+          const role = yield* roles
+            .get(
+              Data.struct({
+                organizationId: organizationId.value,
+                userId: user.value.id,
+              })
+            )
             .pipe(Effect.orElseSucceed(() => Option.none<string>()));
 
           return yield* Schema.decodeUnknown(Actor)({

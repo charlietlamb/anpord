@@ -64,7 +64,16 @@ describe("the codex command", () => {
 
   it("runs in the workspace the trial prepared", () => {
     expect(codexCommand(request({ workspace: "/tmp/other" }))).toStartWith(
-      "cd /tmp/other &&"
+      "cd '/tmp/other' &&"
+    );
+  });
+
+  /* Quoted rather than interpolated, because a workspace is a path and a path
+     may hold a space: unquoted, `cd /tmp/my run` changes to `/tmp/my` and the
+     agent works in the wrong directory rather than failing. */
+  it("survives a workspace whose path holds a space", () => {
+    expect(codexCommand(request({ workspace: "/tmp/my run" }))).toStartWith(
+      "cd '/tmp/my run' &&"
     );
   });
 });

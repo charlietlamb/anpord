@@ -1,45 +1,70 @@
 ---
-title: "Introduction"
-description: "How the API is shaped"
+title: "API overview"
+description: "Call the Anpord API over HTTP"
 ---
 
-The API lives at `https://api.anpord.com`. Every endpoint is a `POST` taking a JSON body, named after the operation rather than a resource path:
+The public API is available at `https://api.anpord.com/v1`.
 
-```
+Every operation is a `POST` with a JSON body, including reads:
+
+```text
+POST /v1/evals.start
+POST /v1/evals.get
 POST /v1/prompts.get
 POST /v1/prompts.promote
 ```
 
-There are no path or query parameters. Everything travels in the body, so a call looks the same whatever it does.
-
-Six endpoints make up the surface: `prompts.get`, `prompts.list`, `prompts.create`, `prompts.update`, `prompts.promote`, and `prompts.archive`. Version history comes from `prompts.get` with `includeVersions`, not a separate call.
+There are no path or query parameters.
 
 ## Authentication
 
 Pass an API key as a bearer token:
 
 ```bash
-curl https://api.anpord.com/v1/prompts.get \
+curl https://api.anpord.com/v1/evals.list \
   -H "authorization: Bearer $ANPORD_API_KEY" \
   -H "content-type: application/json" \
-  -d '{"id":"support-reply"}'
+  -d '{"limit":20}'
 ```
 
-Keys are scoped to one organization. A request without a usable key is answered with `401` and a `WWW-Authenticate` header naming where to authenticate.
+Keys belong to one organization. OAuth access tokens are also accepted. Eval reads use `evals:read`; starts and reruns use `evals:write`. Prompt reads use `prompts:read`, prompt writes use `prompts:write`, and promotion uses `channels:write`.
+
+## Asynchronous evals
+
+`evals.start` returns an id while work continues on the server:
+
+```bash
+curl https://api.anpord.com/v1/evals.start \
+  -H "authorization: Bearer $ANPORD_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{
+    "cases": [{
+      "name": "writes the requested file",
+      "goal": "Create hello.txt containing exactly hello",
+      "verify": "test \"$(cat hello.txt)\" = hello"
+    }],
+    "prompt": "{{goal}}",
+    "tasks": [{
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "provider": "daytona"
+    }],
+    "trials": 3
+  }'
+```
+
+Poll `evals.get` with the returned id until `status` is `finished` or `failed`.
+
+One request may contain at most 100 total trials. Starting a run is not idempotent. If its response is lost, list recent runs before retrying.
 
 ## Errors
 
-Failures carry a JSON body with a `message` explaining what went wrong.
-
 | Status | Meaning |
 | --- | --- |
-| `400` | The body did not match what the endpoint accepts |
-| `401` | The key was missing, unknown, or no longer active |
-| `404` | The prompt, version, or channel does not exist |
-| `409` | The change conflicts with one already made |
+| `400` | Invalid request body |
+| `401` | Missing or invalid bearer token |
+| `403` | Missing permission |
+| `404` | Resource not found |
+| `409` | Request conflicts with current state |
 
-## Clients
-
-The [TypeScript SDK](/quickstart) wraps these endpoints and turns failures into an `AnpordError` carrying the status. The [CLI](/tools/cli) covers the same operations from a terminal.
-
-The OpenAPI description is generated from the same definitions that serve the requests, so it cannot drift from the running API.
+Declared errors return JSON with a `message`. The [TypeScript SDK](/tools/sdk) decodes responses and throws `AnpordError` for failures.

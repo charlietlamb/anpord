@@ -1,3 +1,4 @@
+import { CredentialSelections } from "@anpord/schema/domain/credentials";
 import { Schema } from "effect";
 import { HarnessName, ProviderName } from "./cell";
 
@@ -14,7 +15,6 @@ const SourceSchema = Schema.Union(
   })
 );
 
-/** A row of the grid. */
 export const PlaygroundCase = Schema.Struct({
   goal: Schema.String,
   name: Schema.String,
@@ -23,17 +23,18 @@ export const PlaygroundCase = Schema.Struct({
   verify: Schema.NullOr(Schema.String),
 });
 
-/** A column of the grid: one harness, one model, one sandbox. */
 export const PlaygroundColumn = Schema.Struct({
   harness: HarnessName,
   model: Schema.String,
   provider: ProviderName,
 });
 
-/** Everything a person is working on, saved between visits. */
 export const PlaygroundConfig = Schema.Struct({
   cases: Schema.Array(PlaygroundCase),
   columns: Schema.Array(PlaygroundColumn),
+  connections: Schema.optionalWith(CredentialSelections, {
+    default: () => ({}),
+  }),
   prompt: Schema.String,
   trials: Schema.Int.pipe(Schema.between(1, 10)),
 });
@@ -41,17 +42,14 @@ export type PlaygroundConfig = typeof PlaygroundConfig.Type;
 
 export const decodePlaygroundConfig = Schema.decodeUnknown(PlaygroundConfig);
 
-/** A new playground has a prompt that resolves the case goal and nothing
- * else. Starting empty rather than with a fixture is deliberate: the first
- * thing a person does is describe a task, not edit code. */
 export const emptyPlaygroundConfig: PlaygroundConfig = {
   cases: [],
   columns: [],
+  connections: {},
   prompt: "{{goal}}",
   trials: 3,
 };
 
-/** Whether this playground can be run, and why not. */
 export const readinessOf = (config: PlaygroundConfig): readonly string[] => {
   const problems: string[] = [];
 
@@ -70,9 +68,6 @@ export const readinessOf = (config: PlaygroundConfig): readonly string[] => {
   return problems;
 };
 
-/** Cases that will run but cannot pass, because nothing decides them. Not an
- * error: an imported case is legitimately ungated, and the caller is told so
- * rather than having the fact hidden. */
 export const ungatedCasesIn = (config: PlaygroundConfig): readonly string[] =>
   config.cases
     .filter((subject) => subject.verify === null)

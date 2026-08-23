@@ -1,14 +1,22 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@anpord/ui/components/tooltip";
+import { cn } from "@anpord/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { OutcomeSummary } from "@/components/evals/outcome-summary";
-import { dayOf } from "@/lib/evals/duration";
+import { Link } from "@tanstack/react-router";
+import type { ReadingTone } from "@/lib/evals/cell-history";
+import { readingsOf, summaryOf } from "@/lib/evals/cell-history";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
-/**
- * How this cell has read over time, newest first.
- *
- * What turns `unchanged` into `unchanged since 14 Aug`: a verdict says which
- * way a cell moved, and only its history says when it last did.
- */
+const TONE_CLASSES: Record<ReadingTone, string> = {
+  critical: "bg-destructive/70 hover:bg-destructive",
+  pending: "bg-muted-foreground/25 hover:bg-muted-foreground/40",
+  positive: "bg-success/70 hover:bg-success",
+  running: "border border-warning/50 border-dashed bg-transparent",
+};
+
 export function CellHistory({ cellKey }: { readonly cellKey: string }) {
   const { data, isPending } = useQuery(evalQueries.history(cellKey));
   const entries = data ?? [];
@@ -25,26 +33,36 @@ export function CellHistory({ cellKey }: { readonly cellKey: string }) {
     );
   }
 
-  return (
-    <ul className="flex flex-col">
-      {entries.map((entry) => (
-        <li
-          className="flex h-6 items-center gap-3 text-xs"
-          key={entry.internalId}
-        >
-          <span className="shrink-0 text-muted-foreground/80 tabular-nums">
-            {entry.finishedAt === null
-              ? "running"
-              : dayOf(entry.finishedAt.epochMillis)}
-          </span>
+  const readings = readingsOf(entries);
 
-          <OutcomeSummary
-            passed={entry.distribution.passed}
-            scored={entry.distribution.scored}
-            voided={entry.distribution.voided}
-          />
-        </li>
-      ))}
-    </ul>
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-[3px]">
+        {readings.map((reading) => (
+          <Tooltip key={reading.entry.internalId}>
+            <TooltipTrigger
+              render={
+                <Link
+                  className={cn(
+                    "h-4 min-w-[3px] flex-1 rounded-[2px] transition-colors duration-150 ease-out",
+                    TONE_CLASSES[reading.tone]
+                  )}
+                  params={{ cellKey, runId: reading.entry.runId }}
+                  to="/evals/$runId/cells/$cellKey"
+                >
+                  <span className="sr-only">{reading.title}</span>
+                </Link>
+              }
+            />
+
+            <TooltipContent side="left">{reading.title}</TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+
+      <p className="text-pretty text-muted-foreground text-xs">
+        {summaryOf(readings)}
+      </p>
+    </div>
   );
 }

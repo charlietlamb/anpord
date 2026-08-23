@@ -1,7 +1,8 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { PulseIcon } from "@phosphor-icons/react";
+import { PulseIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { Waterfall } from "@/components/evals/waterfall";
@@ -34,8 +35,23 @@ function TrialScreen() {
       <EvalMain>
         <section className="flex flex-col gap-1.5">
           <PageHeading icon={PulseIcon} title="Trajectory" />
-          <Waterfall timed={trial.timed} trajectory={trial.trajectory} />
+          <Waterfall
+            running={trial.status === "running"}
+            timed={trial.timed}
+            trajectory={trial.trajectory}
+          />
         </section>
+
+        {/* The instruction that produced the trajectory above it. A reader
+            looking at what an agent did could not see what it was asked
+            without leaving the page, and the verify script is the companion to
+            the exit code the rail states. */}
+        {cell?.setup == null ? null : (
+          <section className="flex flex-col gap-1.5">
+            <PageHeading icon={SlidersHorizontalIcon} title="Setup" />
+            <CellSetup setup={cell.setup} />
+          </section>
+        )}
       </EvalMain>
 
       <TrialRail trial={trial} />

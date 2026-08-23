@@ -1,0 +1,54 @@
+import type {
+  CredentialConnection,
+  CredentialSelections,
+} from "@anpord/schema/domain/credentials";
+import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
+
+export const requiredCredentialIntegrations = (
+  agents: readonly EvalAgent[],
+  providers: readonly EvalProvider[]
+) => [
+  ...new Set([
+    ...agents.map((agent) => agent.harness),
+    ...providers.filter((provider) => provider !== "local"),
+  ]),
+];
+
+const optionsFor = (
+  connections: readonly CredentialConnection[],
+  integrationId: string
+) =>
+  connections.filter(
+    (connection) =>
+      connection.integrationId === integrationId &&
+      connection.status === "active"
+  );
+
+export const normalizeCredentialSelections = (
+  integrationIds: readonly string[],
+  connections: readonly CredentialConnection[],
+  selected: CredentialSelections
+): CredentialSelections =>
+  Object.fromEntries(
+    integrationIds.flatMap((integrationId) => {
+      const options = optionsFor(connections, integrationId);
+      const connection =
+        options.find((item) => item.id === selected[integrationId]) ??
+        options.find((item) => item.isDefault && item.scope === "personal") ??
+        options.find((item) => item.isDefault) ??
+        options[0];
+      return connection === undefined ? [] : [[integrationId, connection.id]];
+    })
+  );
+
+export const missingCredentialIntegrations = (
+  integrationIds: readonly string[],
+  connections: readonly CredentialConnection[],
+  selected: CredentialSelections
+) =>
+  integrationIds.filter(
+    (integrationId) =>
+      !optionsFor(connections, integrationId).some(
+        (connection) => connection.id === selected[integrationId]
+      )
+  );

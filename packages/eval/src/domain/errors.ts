@@ -1,7 +1,38 @@
 import { Data, Schema } from "effect";
 import { ProviderName } from "./cell";
 
-/** The retry boundary, expressed as a type rather than as a flag. */
+/** How deep to follow `cause` before giving up, so a cycle cannot hang the
+ * thing that is meant to explain a failure. */
+const CAUSE_DEPTH = 5;
+
+/**
+ * The innermost reason an error carries.
+ *
+ * Drivers wrap: the message worth reading sits under two or three layers of
+ * `cause`, and the outermost one says only that a query failed. Following the
+ * chain is what turns "Failed query: insert into eval_trial" into "cannot use
+ * a pool after calling end on the pool".
+ */
+export const reasonOf = (cause: unknown): string => {
+  let found = cause;
+
+  for (let depth = 0; depth < CAUSE_DEPTH; depth += 1) {
+    if (!(found instanceof Error)) {
+      return String(found);
+    }
+
+    const inner: unknown = found.cause;
+
+    if (inner === undefined || inner === null) {
+      return found.message;
+    }
+
+    found = inner;
+  }
+
+  return found instanceof Error ? found.message : String(found);
+};
+
 export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
   "SandboxUnavailable"
 )("SandboxUnavailable", {
@@ -16,23 +47,34 @@ export class HarnessUnavailable extends Schema.TaggedError<HarnessUnavailable>(
   reason: Schema.String,
 }) {}
 
-/** Failures that never cross the workflow boundary stay `Data.TaggedError`,
- * matching the domain convention in `packages/prompts`. */
+/**
+ * A store operation that did not complete.
+ *
+ * `message` is overridden because the default renders every one of these as
+ * "An error has occurred": the operation and the driver's own reason are both
+ * carried and neither was ever printed, so a failed run said only that it had
+ * failed. Finding that a pool had been closed under a running trial took four
+ * runs and a script written to squash the cause by hand.
+ */
 export class EvalStoreError extends Data.TaggedError("EvalStoreError")<{
   readonly cause: unknown;
   readonly operation: string;
-}> {}
+}> {
+  override get message() {
+    return `${this.operation} failed: ${reasonOf(this.cause)}`;
+  }
+}
 
-/** A playground asked to run before it can. Carries every reason at once,
- * because fixing one and being told about the next is a worse experience
- * than being told all of them now. */
 export class NotRunnable extends Data.TaggedError("NotRunnable")<{
   readonly id: string;
   readonly problems: readonly string[];
 }> {}
 
-/** A harness spec that names no version, or no harness. Refused before a
- * sandbox opens: a typo should cost an error, not a run. */
 export class UnreadableHarness extends Data.TaggedError("UnreadableHarness")<{
   readonly spec: string;
+}> {}
+
+export class ModelsUnreadable extends Data.TaggedError("ModelsUnreadable")<{
+  readonly cause: unknown;
+  readonly source: string;
 }> {}

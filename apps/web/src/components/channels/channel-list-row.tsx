@@ -10,7 +10,8 @@ import {
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import { DotsThreeIcon } from "@phosphor-icons/react";
 import type { Ref } from "react";
-import { ListRow } from "@/components/layout/list-row";
+import { ListRow, RowTitle } from "@/components/layout/list-row";
+import { ROW_ACTION } from "@/components/layout/row-action";
 
 interface ChannelListRowProps {
   readonly channel: Channel;
@@ -40,14 +41,14 @@ export function ChannelListRow({
             render={
               <Button
                 aria-label={`Actions for ${channel.name}`}
-                className="size-6 shrink-0 rounded opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-[popup-open]:opacity-100"
+                className={ROW_ACTION}
                 onClick={(event) => event.stopPropagation()}
                 size="icon-sm"
                 variant="bare"
               />
             }
           >
-            <DotsThreeIcon weight="bold" />
+            <DotsThreeIcon />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end">
@@ -69,10 +70,8 @@ export function ChannelListRow({
       ref={ref}
       tabIndex={tabIndex}
     >
-      <span className="font-medium text-foreground">{channel.name}</span>
+      <RowTitle>{channel.name}</RowTitle>
       {reserved ? (
-        /* The one channel that cannot be removed, said here rather than only
-           discovered by opening the menu that refuses to do it. */
         <span className="ml-2.5 text-muted-foreground/60 text-xs">Default</span>
       ) : null}
     </ListRow>

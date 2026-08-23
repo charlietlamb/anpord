@@ -1,100 +1,41 @@
-import type { EvalTrial } from "@anpord/schema/domain/evals";
-import { Badge } from "@anpord/ui/components/ui/badge";
-import { useNavigate } from "@tanstack/react-router";
-import { TrialStatusBadge } from "@/components/evals/eval-status-badge";
-import { count, NOTHING, seconds } from "@/lib/evals/duration";
+import { TrialRow } from "@/components/evals/trial-row";
+import { EmptyNote } from "@/components/layout/empty-note";
+import { RowList } from "@/components/layout/row-list";
+import type { Reading } from "@/lib/evals/trial-rows";
+import { trialRowsOf } from "@/lib/evals/trial-rows";
 
-/** -1 is the sentinel a trial nothing decided carries. Shown as a word,
- * because a reader seeing "-1" would take it for an exit code. */
-const exitOf = (trial: EvalTrial) =>
-  trial.exitCode === -1 ? "undecided" : String(trial.exitCode);
-
-const HEAD = "h-8 px-3 font-medium text-xs text-muted-foreground";
-const CELL = "h-8 px-3 text-xs tabular-nums";
-
+/**
+ * Every trial this cell has ever recorded, newest reading first.
+ *
+ * One list rather than one page per reading. A cell holds the same case, setup
+ * and variant on every repeat, because the cell key hashes all three, so the
+ * trials are the only thing that differs between readings -- and reading nine
+ * of them meant opening nine pages that differed in their numbers alone.
+ */
 export function TrialTable({
   cellKey,
-  runId,
-  trials,
+  readings,
 }: {
   readonly cellKey: string;
-  readonly runId: string;
-  readonly trials: readonly EvalTrial[];
+  readonly readings: readonly Reading[];
 }) {
-  const navigate = useNavigate();
+  const rows = trialRowsOf(readings);
 
-  const open = (ordinal: number) =>
-    navigate({
-      params: { cellKey, ordinal: String(ordinal), runId },
-      to: "/evals/$runId/cells/$cellKey/trials/$ordinal",
-    });
+  if (rows.length === 0) {
+    return <EmptyNote>This cell has recorded no trials.</EmptyNote>;
+  }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-border-faint border-b">
-            <th className={`${HEAD} text-left`}>#</th>
-            <th className={`${HEAD} text-left`}>verdict</th>
-            <th className={`${HEAD} text-right`}>exit</th>
-            <th className={`${HEAD} text-right`}>commands</th>
-            <th className={`${HEAD} text-right`}>model</th>
-            <th className={`${HEAD} text-right`}>sandbox</th>
-            <th className={`${HEAD} text-right`}>tokens</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {trials.map((trial) => (
-            <tr
-              className="cursor-pointer hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none"
-              key={trial.ordinal}
-              onClick={() => open(trial.ordinal)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  open(trial.ordinal);
-                }
-              }}
-              tabIndex={0}
-            >
-              <td className={CELL}>{trial.ordinal}</td>
-
-              <td className="px-3 py-2">
-                <TrialStatusBadge status={trial.status} />
-              </td>
-
-              <td className={`${CELL} text-right`}>{exitOf(trial)}</td>
-
-              <td className={`${CELL} text-right`}>
-                <span className="inline-flex items-center gap-1.5">
-                  {trial.commands}
-                  {trial.failedCommands > 0 ? (
-                    <Badge
-                      className="border-warning/25 bg-warning/10 font-medium text-warning"
-                      size="xs"
-                      variant="outline"
-                    >
-                      {trial.failedCommands} failed
-                    </Badge>
-                  ) : null}
-                </span>
-              </td>
-
-              <td className={`${CELL} text-right`}>{seconds(trial.modelMs)}</td>
-              <td className={`${CELL} text-right`}>
-                {seconds(trial.sandboxMs)}
-              </td>
-
-              <td className={`${CELL} text-right`}>
-                {trial.usage === null
-                  ? NOTHING
-                  : count(trial.usage.totalTokens)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <RowList>
+      {rows.map((row) => (
+        <TrialRow
+          cellKey={cellKey}
+          key={row.key}
+          runId={row.runIdFull}
+          showRun={row.runId !== null}
+          trial={row.trial}
+        />
+      ))}
+    </RowList>
   );
 }

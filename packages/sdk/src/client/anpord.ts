@@ -26,8 +26,7 @@ import type { VariablesFor } from "./variables";
 export interface AnpordOptions {
   readonly apiKey?: string;
   readonly baseUrl?: string;
-  /** False disables it, an object tunes it. Answers are held for fifteen
-   * seconds and served while a refresh runs behind them. */
+
   readonly cache?: boolean | CacheOptions;
 }
 
@@ -41,12 +40,11 @@ const resolveApiKey = (provided: string | undefined) => {
 
 type Prompts = Promised<AnpordClient["prompts"]>;
 type Prompt = Awaited<ReturnType<Prompts["get"]>>;
+export type EvalsSurface = Promised<AnpordClient["evals"]>;
 
 export type PromptResult = Prompt & { readonly anpord: PromptMetadata };
 
 export interface PromptsSurface extends Omit<Prompts, "get"> {
-  /** The id binds the variables: generate declarations and a name the template
-   * does not use, or one it does and the caller forgot, is a compile error. */
   readonly get: <const Id extends string, const Given extends Variables>(
     options: GetPromptOptions & {
       readonly id: Id;
@@ -56,6 +54,7 @@ export interface PromptsSurface extends Omit<Prompts, "get"> {
 }
 
 export class Anpord {
+  readonly evals: EvalsSurface;
   readonly prompts: PromptsSurface;
 
   private readonly runtime: ManagedRuntime.ManagedRuntime<PromptCache, never>;
@@ -77,6 +76,7 @@ export class Anpord {
     );
 
     const group = promised(client.prompts);
+    this.evals = promised(client.evals);
 
     const forget = (id: string) =>
       this.runtime
@@ -87,15 +87,12 @@ export class Anpord {
 
     this.prompts = {
       ...group,
-      archive: invalidating(group.archive, forget),
       get: (request) => this.resolve(request),
       promote: invalidating(group.promote, forget),
       update: invalidating(group.update, forget),
     };
   }
 
-  /** Background refreshes belong to this runtime, so a caller who is finished
-   * with the client can take them with it. */
   dispose() {
     return this.runtime.dispose();
   }
@@ -116,10 +113,6 @@ export class Anpord {
 
     const prompt = exit.value.value;
 
-    /** A copy every time. The cache hands back the same object on every hit,
-     * so annotating the original would both stamp one caller's metadata onto
-     * the next caller's answer and fail outright the second time, since the
-     * property is not configurable. */
     const value =
       options.variables === undefined
         ? { ...prompt }
@@ -128,8 +121,6 @@ export class Anpord {
             content: render(prompt.content, options.variables).content,
           };
 
-    /** Not enumerable, so a caller who serialises a prompt or compares it
-     * against a fixture sees exactly what they saw before. */
     return Object.defineProperty(value, "anpord", {
       enumerable: false,
       value: exit.value.metadata,
@@ -137,8 +128,6 @@ export class Anpord {
   }
 }
 
-/** A write this process made is a write this process knows about, so the
- * answer it holds is knowably wrong the moment the write succeeds. */
 const invalidating =
   <Request extends { readonly id: string }, Value>(
     write: (request: Request) => Promise<Value>,

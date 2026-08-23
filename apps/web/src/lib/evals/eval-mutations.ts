@@ -3,12 +3,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {
   createPlayground,
+  rerunCell,
   runPlayground,
   savePlayground,
 } from "@/lib/evals/evals-client";
 
-/** Every write to a playground changes what its screen reports, so they all
- * invalidate the same root rather than each hook choosing for itself. */
 type PlaygroundConfig = typeof PlaygroundConfigView.Type;
 
 const usePlaygroundMutation = <TInput, TResult>(
@@ -36,8 +35,6 @@ export const useSavePlayground = () =>
     }) => savePlayground(input.id, { config: input.config, name: input.name })
   );
 
-/** Starting a run adds one to the list a reader is about to look at, so the
- * run list is invalidated as well as the playground that produced it. */
 export const useRunPlayground = () => {
   const queryClient = useQueryClient();
 
@@ -46,6 +43,19 @@ export const useRunPlayground = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: evalKeys.playgrounds() });
       queryClient.invalidateQueries({ queryKey: evalKeys.lists() });
+    },
+  });
+};
+
+export const useRerunCell = (cellKey: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: { readonly runId: string; readonly trials: number }) =>
+      rerunCell(input.runId, cellKey, input.trials),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: evalKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: evalKeys.history(cellKey) });
     },
   });
 };

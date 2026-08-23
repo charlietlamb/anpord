@@ -1,35 +1,30 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { shortId } from "@/lib/evals/short-id";
 
-const RUN_PREFIX = /^run_/;
-
-/* Enough of the id to tell two runs apart without pasting 26 characters of
-   entropy into the bar. The whole id is on the run screen. */
-const shortId = (id: string) => id.replace(RUN_PREFIX, "").slice(0, 6);
-
-/** A layout rather than a page: the run screen is the index beneath it, so a
- * cell and a trial can render in its place rather than under it. */
 export const Route = createFileRoute("/_authed/evals/$runId")({
+  ssr: false,
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(evalQueries.detail(params.runId)),
   component: RunLayout,
   staticData: {
-    /* Named as a run, not as what it ran. A one-case run and its cell would
-       otherwise carry the same label, and the trail dedupes neighbours, so
-       the run silently vanished from its own breadcrumb. */
     crumb: (params, queryClient) => {
       const run = queryClient.getQueryData(
         evalQueries.detail(params.runId).queryKey
       );
 
       if (run === undefined) {
-        return `Run ${shortId(params.runId)}`;
+        return shortId(params.runId);
       }
 
-      const grid =
-        run.cases.length * run.tasks.length > 1
-          ? ` · ${run.cases.length}×${run.tasks.length}`
-          : "";
+      /* Named by what it tested rather than by its id: a person recognises
+         `fib` and reads a ULID twice. The id stays as the tiebreak, because a
+         case run nine times gives nine crumbs that are otherwise identical. */
+      const name = run.cases[0] ?? shortId(run.id);
 
-      return `Run ${shortId(run.id)}${grid}`;
+      return run.cases.length > 1
+        ? `${name} +${run.cases.length - 1}`
+        : `${name} ${shortId(run.id)}`;
     },
     title: "Run",
   },

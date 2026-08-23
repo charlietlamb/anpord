@@ -10,26 +10,18 @@ import {
 } from "@anpord/ui/components/dropdown-menu";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import { CheckIcon, DotsThreeIcon } from "@phosphor-icons/react";
+import { ROW_ACTION } from "@/components/layout/row-action";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 
 interface VersionActionsProps {
-  /** Every channel the organisation defines, so a version can be pointed at
-   * one whether or not it already serves something. */
   readonly channels: readonly Channel[];
   readonly onEditFrom: () => void;
   readonly onPromote: (channel: string) => void;
-  /** Which channels this version already serves, so the menu can say so. */
+
   readonly servedBy: readonly string[];
   readonly version: number;
 }
 
-/**
- * What can be done to one version, from the row that names it.
- *
- * The channels sit in the menu under a heading rather than behind a submenu:
- * there are only ever a handful, and a submenu asks for a second aim of the
- * pointer to reach what the first one already had room to show.
- */
 export function VersionActions({
   channels,
   onEditFrom,
@@ -46,14 +38,14 @@ export function VersionActions({
         render={
           <Button
             aria-label={`Actions for v${version}`}
-            className="size-5 shrink-0 rounded opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-[popup-open]:opacity-100"
+            className={ROW_ACTION}
             onClick={(event) => event.stopPropagation()}
             size="icon-sm"
             variant="bare"
           />
         }
       >
-        <DotsThreeIcon weight="bold" />
+        <DotsThreeIcon />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-44">
@@ -63,8 +55,7 @@ export function VersionActions({
 
         <DropdownMenuGroup>
           <DropdownMenuLabel>Promote to</DropdownMenuLabel>
-          {/* Stays open: pointing several channels at one version is one
-              decision made in a few clicks, not a few trips to the menu. */}
+
           {channels.map((channel) => (
             <DropdownMenuItem
               closeOnClick={false}
@@ -74,7 +65,7 @@ export function VersionActions({
               <ChannelDot color={channelColor(channel.name)} />
               <span className="flex-1 truncate">{channel.name}</span>
               {serves.has(channel.name) ? (
-                <CheckIcon className="size-3.5 shrink-0" weight="bold" />
+                <CheckIcon className="size-3.5 shrink-0" />
               ) : null}
             </DropdownMenuItem>
           ))}

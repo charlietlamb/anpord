@@ -1,6 +1,11 @@
-import { Option } from "effect";
+import type {
+  CredentialBindings,
+  ResolvedCredential,
+} from "@anpord/schema/domain/credentials";
+import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
+import type { HarnessEvent } from "../domain/harness-event";
 import type { AgentTrialResult } from "../services/agent-trial";
 
 export interface GridTask {
@@ -10,8 +15,14 @@ export interface GridTask {
   readonly provider: ProviderName;
 }
 
-/** How a case was set up and how it was judged, carried beside the reading
- * it produced. */
+export interface GridExecutionTask extends GridTask {
+  readonly bindings?: CredentialBindings;
+  readonly credentials: {
+    readonly harness: Redacted.Redacted<ResolvedCredential>;
+    readonly sandbox?: Redacted.Redacted<ResolvedCredential>;
+  };
+}
+
 export interface GridSetup {
   readonly prompt: string;
   readonly repoRef: string | null;
@@ -26,8 +37,9 @@ export interface GridCell {
   readonly cellKey: string | null;
   readonly distribution: Option.Option<Distribution>;
   readonly internalId: string | null;
-  /** Absent on a live run, whose cells are planned from the request rather
-   * than read back from a task row. */
+
+  readonly live: ReadonlyMap<number, readonly HarnessEvent[]>;
+
   readonly setup: Option.Option<GridSetup>;
   readonly status: "running" | "finished" | "failed";
   readonly taskIndex: number;
@@ -53,9 +65,6 @@ const at = (cell: GridCell, taskIndex: number, caseName: string) =>
   cellKeyOfPosition(cell.taskIndex, cell.caseName) ===
   cellKeyOfPosition(taskIndex, caseName);
 
-/** Transitions over the live view, kept as calculations so the service holds
- * only the effects. Each returns a whole run because every subscriber is sent
- * the whole run: a dropped frame then costs nothing. */
 export const settleTrial = (
   run: GridRunState,
   position: { readonly caseName: string; readonly taskIndex: number },
@@ -71,6 +80,20 @@ export const settleTrial = (
             index === ordinal - 1 ? Option.some(result) : trial
           ),
         }
+      : cell
+  ),
+});
+
+export const advanceTrial = (
+  run: GridRunState,
+  position: { readonly caseName: string; readonly taskIndex: number },
+  ordinal: number,
+  events: readonly HarnessEvent[]
+): GridRunState => ({
+  ...run,
+  cells: run.cells.map((cell) =>
+    at(cell, position.taskIndex, position.caseName)
+      ? { ...cell, live: new Map(cell.live).set(ordinal, events) }
       : cell
   ),
 });

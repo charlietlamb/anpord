@@ -1,7 +1,10 @@
 import { ComposerSurface } from "@anpord/ui/components/composer";
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
-import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
+import {
+  PromptEditorLayout,
+  PromptEditorMain,
+} from "@/components/prompts/prompt-editor-layout";
 import { PromptRailSkeleton } from "@/components/prompts/prompt-rail-skeleton";
 import { SkeletonLines } from "@/components/prompts/skeleton-lines";
 
@@ -19,7 +22,7 @@ interface PromptEditorSkeletonProps {
 export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
   return (
     <PromptEditorLayout>
-      <main className="relative flex min-w-0 flex-col pt-5 pb-24">
+      <PromptEditorMain>
         <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
           <Skeleton className="h-7 w-44" />
           <CopyableId className="shrink-0" value={promptId} />
@@ -28,7 +31,7 @@ export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
         <ComposerSurface>
           <SkeletonLines className="gap-3.5 py-1" widths={BODY_LINES} />
         </ComposerSurface>
-      </main>
+      </PromptEditorMain>
 
       <PromptRailSkeleton promptId={promptId} />
     </PromptEditorLayout>

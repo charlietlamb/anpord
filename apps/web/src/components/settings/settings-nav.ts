@@ -2,6 +2,7 @@ import {
   GearIcon,
   type Icon,
   KeyIcon,
+  PlugsConnectedIcon,
   UsersThreeIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
@@ -28,6 +29,13 @@ export const SETTINGS_NAV: SettingsNavSection[] = [
   },
   {
     label: "Developer",
-    items: [{ label: "API keys", to: "/settings/keys", icon: KeyIcon }],
+    items: [
+      {
+        label: "Connections",
+        to: "/settings/connections",
+        icon: PlugsConnectedIcon,
+      },
+      { label: "API keys", to: "/settings/keys", icon: KeyIcon },
+    ],
   },
 ];

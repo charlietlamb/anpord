@@ -1,0 +1,70 @@
+---
+title: "Results and trajectories"
+sidebarTitle: "Results"
+description: "Read outcomes and inspect each attempt"
+---
+
+`evals.start` returns a run id while trials continue on the server. Poll `evals.get` until the run stops:
+
+```ts
+let run = await anpord.evals.get({ id });
+
+while (run.status === "running") {
+  await new Promise((resolve) => setTimeout(resolve, 2_000));
+  run = await anpord.evals.get({ id });
+}
+```
+
+| Run status | Meaning |
+| --- | --- |
+| `running` | At least one cell has not finished |
+| `finished` | The grid completed, including any void trials |
+| `failed` | The grid stopped early; `failure` explains why |
+
+## Cell distribution
+
+```ts
+const result = run.cells[0]?.distribution;
+
+console.log({
+  passRate: result?.passRate,
+  passed: result?.passed,
+  failed: result?.failed,
+  voided: result?.voided,
+  scored: result?.scored,
+  deterministic: result?.deterministic,
+});
+```
+
+Pass rate uses scored trials as its denominator. If `scored` is zero, the serialized pass rate is zero, but there is no scored result. A later unscored candidate with a baseline is `incomparable`.
+
+`deterministic` is true when multiple scored trials agree on pass or fail and their command counts stay within four. One scored trial cannot establish determinism.
+
+## Trial status
+
+| Status | Meaning |
+| --- | --- |
+| `queued` | Reserved for work that has not started |
+| `running` | The harness is working |
+| `passed` | The verifier passed |
+| `failed` | The verifier ran and did not pass |
+| `void` | Required evidence is missing |
+| `exceeded` | Reserved for a runtime or resource limit |
+
+`voidFields` lists missing evidence when scoring can identify it. Keep void trials separate from failures in reports and CI.
+
+## Trajectory
+
+Each trial includes an ordered `trajectory` of commands, messages, tool calls, and file changes:
+
+```ts
+for (const event of run.cells[0]?.trials[0]?.trajectory ?? []) {
+  if (event._tag === "command") {
+    console.log(event.command, event.exitCode, event.output);
+  }
+}
+```
+
+Trial metadata also includes command counts, changed files, model and sandbox time, sandbox id, and token counts when the harness reports them. Command output is capped at 4,000 characters. Tool inputs are not stored.
+
+Read the distribution first, then compare passing and failing trajectories from the same cell. Pass rate summarizes outcomes. Command counts show how attempts differed.

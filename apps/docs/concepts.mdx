@@ -1,124 +1,52 @@
 ---
-title: "Versions and channels"
-sidebarTitle: "Versions and channels"
-description: "How a prompt id turns into the content your caller receives"
+title: "The evaluation grid"
+sidebarTitle: "The evaluation grid"
+description: "How cases and variants become results"
 ---
 
-## Prompts
+An eval run is a grid. Cases are rows, variants are columns, and each cell contains repeated trials.
 
-A prompt has an id you choose, such as `support-reply`. The id is how every caller addresses it, so it stays fixed while the content behind it changes.
+| Part | Meaning |
+| --- | --- |
+| Case | The goal, starting source, setup, and verifier |
+| Variant | The harness, model, and sandbox provider |
+| Cell | One case run with one variant |
+| Trial | One isolated attempt inside a cell |
 
-Ids are lowercase alphanumeric and may contain `/`, `_`, or `-`, up to 255 characters. That lets you group them by path: `checkout/upsell`, `email/welcome`.
+Two cases, three variants, and three trials produce six cells and eighteen sandbox sessions.
 
-## Versions
+## Cases
 
-Content is versioned. `update` appends a version rather than replacing one, so every earlier version stays readable and a bad change is one promotion away from being undone.
-
-Versions are numbered from 1 and carry an optional message describing why the content changed. The message is worth writing. It is what someone reading the history months later has to work from.
-
-## Channels
-
-A channel is a named pointer at a version. Callers ask for a channel rather than a number, so the number can change without them.
-
-Every prompt gets `production`, and a `get` with no selector resolves it. Promoting to a name that does not exist yet creates it:
+The goal tells the agent what to do. The verifier decides whether the result passed.
 
 ```ts
-await anpord.prompts.promote({
-  id: "support-reply",
-  channel: "staging",
-  version: 6,
-});
-```
-
-Now the same prompt answers differently depending on who asks:
-
-```ts
-await anpord.prompts.get({ id: "support-reply" });                      // production
-await anpord.prompts.get({ id: "support-reply", channel: "staging" });  // version 6
-```
-
-Which suits running a new prompt against internal traffic while customers keep receiving the version you trust:
-
-```ts
-const channel = process.env.NODE_ENV === "production" ? "production" : "staging";
-
-const prompt = await anpord.prompts.get({ id: "support-reply", channel });
-```
-
-Channel names are lowercase alphanumeric and may contain `_` or `-`, up to 36 characters. Name them after the audience, not the version: `production`, `staging`, `beta`.
-
-## Resolution
-
-`get` takes at most one selector, and they are checked in this order:
-
-<Steps>
-  <Step title="A version, if you gave one">
-    `{ id, version: 3 }` returns exactly version 3. The response reports no channel, because you addressed the version directly.
-  </Step>
-  <Step title="A channel, if you gave one">
-    `{ id, channel: "staging" }` returns whichever version that channel points at.
-  </Step>
-  <Step title="Production otherwise">
-    `{ id }` resolves the `production` channel.
-  </Step>
-</Steps>
-
-A version wins over a channel when both are given.
-
-The response names the channel that answered, so you can log which version a caller actually received:
-
-```ts
-const prompt = await anpord.prompts.get({ id: "support-reply" });
-
-prompt.version; // 4
-prompt.channel; // "production"
-```
-
-## The latest channel
-
-`latest` always resolves the highest version:
-
-```ts
-await anpord.prompts.get({ id: "support-reply", channel: "latest" });
-```
-
-It is derived from the version table rather than stored, so it cannot fall out of step with it. Useful in development, and a poor choice in production.
-
-<Warning>
-Do not point production traffic at `latest`. Every edit ships the moment it is written, with no review and nothing to roll back to.
-</Warning>
-
-## Archiving
-
-Archiving hides a prompt from listings. Callers pinned to a version keep resolving it, so archiving never breaks something already running.
-
-## Pinning a version
-
-Pass a version to address one exactly:
-
-```ts
-const prompt = await anpord.prompts.get({ id: "support-reply", version: 3 });
-```
-
-Useful for reproducing a past run, or for an evaluation that has to compare versions against each other rather than follow whatever is live.
-
-<Note>
-`version` wins when you pass both `version` and `channel`. The channel is ignored rather than rejected.
-</Note>
-
-## Reading history
-
-There is no separate versions call. Ask `get` to include the history:
-
-```ts
-const prompt = await anpord.prompts.get({
-  id: "support-reply",
-  includeVersions: true,
-});
-
-for (const version of prompt.versions ?? []) {
-  console.log(version.version, version.message, version.createdAt);
+{
+  name: "health route",
+  goal: "Add a /health route that returns 200",
+  source: { kind: "repo", url: "https://github.com/acme/api", ref: "8f31c4a" },
+  setup: "bun install",
+  verify: "bun test test/health.test.ts",
 }
 ```
 
-History is omitted unless you ask for it, so the common read stays small. Each entry carries `version`, `message`, and `createdAt`, not the content. Fetch a specific version to read its text.
+A case without a verifier still records the trajectory, but its trials are void and do not affect pass rate.
+
+## Variants
+
+The API calls variants `tasks`:
+
+```ts
+{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }
+```
+
+Anpord records the installed harness version when the run starts. The harness, harness version, model, and sandbox provider are part of the cell identity.
+
+## Trials and cells
+
+Repeated trials show how often a cell passes and whether its outcome and command count stay consistent. Each cell reports pass, fail, and void counts, pass rate, command spread, and determinism.
+
+The first scored result for a cell becomes its [baseline](/evals/baselines). Changing the shared prompt or case name keeps the same history. Changing the goal, source, setup, verifier, or variant starts a new one.
+
+## Runs
+
+A run is `running`, `finished`, or `failed`. Rerunning a cell creates a new run, so earlier results never change.

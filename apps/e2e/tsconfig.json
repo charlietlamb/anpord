@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "paths": { "anpord": ["../../packages/sdk/src/index.ts"] },
     "types": ["bun"]
   },
   "include": ["src"]

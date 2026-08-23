@@ -18,8 +18,6 @@ import { PromptSortMenu } from "@/components/prompts/prompt-sort-menu";
 import type { PromptListFilters } from "@/lib/query/prompt-list-filters";
 import { promptQueries } from "@/lib/query/prompt-queries";
 
-/** Long enough that typing a word is one request rather than five, short
- * enough that the list still feels like it is following along. */
 const SEARCH_THROTTLE_MS = 250;
 
 const STATUS_OPTIONS = [
@@ -51,8 +49,7 @@ const filtersFrom = (search: Record<string, unknown>): PromptListFilters => ({
 
 export const Route = createFileRoute("/_authed/prompts/")({
   loaderDeps: ({ search }) => filtersFrom(search),
-  /** The client fetches these: the API is addressed relatively, which has no
-   * base on the server, and the session cookie is the browser's to send. */
+
   ssr: false,
   loader: async ({ context, deps }) => {
     const { promptQueries: queries } = await import(
@@ -63,7 +60,6 @@ export const Route = createFileRoute("/_authed/prompts/")({
   component: PromptsPage,
 });
 
-/** Fetched on the client: the list is session-scoped and needs the cookie. */
 function PromptsPage() {
   const [search, setSearch] = useQueryState(
     "q",
@@ -72,9 +68,6 @@ function PromptsPage() {
       .withOptions({ clearOnDefault: true, throttleMs: SEARCH_THROTTLE_MS })
   );
 
-  /* Read but not written here: the list still answers to ?status= in the URL,
-     and the tabs that used to set it were chrome on a page that never had
-     enough prompts to need narrowing. */
   const [status] = useQueryState(
     "status",
     parseAsStringLiteral(STATUS_OPTIONS.map((option) => option.value))
@@ -106,7 +99,7 @@ function PromptsPage() {
             className={cn(buttonVariants({ size: "sm" }))}
             to="/prompts/new"
           >
-            <PlusIcon weight="bold" />
+            <PlusIcon />
             New prompt
           </Link>
         </>
@@ -120,7 +113,7 @@ function PromptsPage() {
               className={cn(buttonVariants({ size: "sm" }))}
               to="/prompts/new"
             >
-              <PlusIcon weight="bold" />
+              <PlusIcon />
               New prompt
             </Link>
           )

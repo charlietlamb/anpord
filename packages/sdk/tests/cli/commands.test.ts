@@ -2,12 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { apiOperations, commandNames } from "../../src/cli/coverage";
 
 const OPERATION_COMMANDS: Record<string, readonly string[]> = {
-  archive: [],
-  create: [],
-  get: ["gen", "generate", "get", "versions"],
-  list: ["list"],
-  promote: ["promote"],
-  update: ["push"],
+  "evals.cellHistory": [],
+  "evals.get": [],
+  "evals.list": [],
+  "evals.models": [],
+  "evals.rerunCell": [],
+  "evals.start": [],
+  "prompts.create": [],
+  "prompts.get": ["gen", "generate", "get", "versions"],
+  "prompts.list": ["list"],
+  "prompts.promote": ["promote"],
+  "prompts.update": ["push"],
 };
 
 describe("coverage", () => {
@@ -21,7 +26,12 @@ describe("coverage", () => {
   });
 
   test("reading and publishing are reachable from the terminal", () => {
-    for (const operation of ["get", "list", "update", "promote"]) {
+    for (const operation of [
+      "prompts.get",
+      "prompts.list",
+      "prompts.update",
+      "prompts.promote",
+    ]) {
       expect(OPERATION_COMMANDS[operation]).not.toBeEmpty();
     }
   });

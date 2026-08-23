@@ -1,16 +1,20 @@
-import type { PlaygroundConfigView } from "@anpord/schema/domain/evals";
+import type {
+  EvalHarness,
+  EvalPageCursor,
+  PlaygroundConfigView,
+} from "@anpord/schema/domain/evals";
 import {
   EvalCellHistoryEntry,
   EvalRun,
-  EvalRunSummary,
+  EvalRunPage,
+  ModelCatalogue,
   PlaygroundView,
   StartedEval,
 } from "@anpord/schema/domain/evals";
 import { Effect, Schema } from "effect";
 
-const BASE = "/api/evals";
+const BASE = "/api";
 
-const EvalRunSummaryList = Schema.Array(EvalRunSummary);
 const EvalCellHistory = Schema.Array(EvalCellHistoryEntry);
 
 type PlaygroundConfig = typeof PlaygroundConfigView.Type;
@@ -33,11 +37,6 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   return response;
 }
 
-/**
- * Responses arrive as JSON, so dates are strings and every number is loose.
- * Decoding rather than casting is what keeps `startedAt` an actual Date and
- * `startedAtMillis` an actual number by the time a waterfall subtracts them.
- */
 async function request<A, I>(
   schema: Schema.Schema<A, I>,
   path: string,
@@ -49,19 +48,28 @@ async function request<A, I>(
   return Effect.runPromise(Schema.decodeUnknown(schema)(payload));
 }
 
-export const listRuns = () => request(EvalRunSummaryList, "");
+export const listRuns = (cursor: EvalPageCursor | null) => {
+  const params = new URLSearchParams();
+
+  if (cursor !== null) {
+    params.set("cursorId", cursor.id);
+    params.set("cursorStartedAt", String(cursor.startedAtMillis));
+  }
+
+  const query = params.toString();
+
+  return request(EvalRunPage, query === "" ? "/evals" : `/evals?${query}`);
+};
 
 export const getRun = (id: string) =>
-  request(EvalRun, `/${encodeURIComponent(id)}`);
+  request(EvalRun, `/evals/${encodeURIComponent(id)}`);
 
-/** Past readings of one cell, which is what turns `unchanged` into
- * `unchanged since 14 Aug`. */
 export const listCellHistory = (cellKey: string) =>
-  request(EvalCellHistory, `/cells/${encodeURIComponent(cellKey)}/history`);
+  request(
+    EvalCellHistory,
+    `/evals/cells/${encodeURIComponent(cellKey)}/history`
+  );
 
-/** Encoded rather than posted raw: the wire wants `{"kind":"files",…}` shapes
- * and DateTime strings, and letting the schema write them is what keeps a
- * request the server will accept from being a request it merely might. */
 function post<A, I>(
   schema: Schema.Schema<A, I>,
   path: string,
@@ -74,16 +82,36 @@ function post<A, I>(
 }
 
 export const createPlayground = (name: string) =>
-  post(PlaygroundView, "/playgrounds", { name });
+  post(PlaygroundView, "/evals/playgrounds", { name });
+
+export const getPlayground = (id: string) =>
+  request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`);
 
 export const savePlayground = (
   id: string,
   input: { readonly config: PlaygroundConfig; readonly name: string }
 ) =>
-  request(PlaygroundView, `/playgrounds/${encodeURIComponent(id)}`, {
+  request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`, {
     body: JSON.stringify(input),
     method: "PUT",
   });
 
+export const getModelCatalogue = (harness: EvalHarness, query: string) => {
+  const params = new URLSearchParams({ harness });
+
+  if (query.trim() !== "") {
+    params.set("q", query.trim());
+  }
+
+  return request(ModelCatalogue, `/evals/models?${params}`);
+};
+
+export const rerunCell = (runId: string, cellKey: string, trials: number) =>
+  post(
+    StartedEval,
+    `/evals/${encodeURIComponent(runId)}/cells/${encodeURIComponent(cellKey)}/runs`,
+    { trials }
+  );
+
 export const runPlayground = (id: string) =>
-  post(StartedEval, `/playgrounds/${encodeURIComponent(id)}/runs`, {});
+  post(StartedEval, `/evals/playgrounds/${encodeURIComponent(id)}/runs`, {});

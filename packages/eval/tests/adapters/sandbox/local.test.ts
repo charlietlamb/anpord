@@ -47,8 +47,6 @@ describe("the local sandbox", () => {
     expect(exitOf(chunks)).toBe(0);
   });
 
-  /** The exit code is the verdict, so a failing command must not read as a
-   * pass. This is the single assumption every scorer rests on. */
   it("reports a non-zero exit rather than swallowing it", async () => {
     const chunks = await withSandbox((sandbox) => collect(sandbox, "exit 3"));
 
@@ -67,9 +65,6 @@ describe("the local sandbox", () => {
     expect(output).toContain("total = 6");
   });
 
-  /** A missing binary is the signature of a command that never ran, and the
-   * void gate reads it from stderr. If the shell's message never reached us,
-   * a broken workspace would score as a clean failure. */
   it("surfaces a missing command on stderr", async () => {
     const chunks = await withSandbox((sandbox) =>
       collect(sandbox, "definitely-not-a-real-binary")
@@ -86,17 +81,9 @@ describe("the local sandbox", () => {
       )
     );
 
-    /* Never zero: a timeout reported as success is the vacuous pass this
-       product exists to catch. */
     expect(exitOf(chunks)).not.toBe(0);
   });
 
-  /**
-   * The parent environment carries this process's provider keys, and the
-   * commands running here were written by a model. AgentTrial keeps
-   * credentials Redacted precisely so they never reach a sandbox, and
-   * spreading process.env would have undone that at the last hop.
-   */
   it("does not hand the parent environment to the sandbox", async () => {
     process.env.ANPORD_LEAK_PROBE = "should-not-be-visible";
 

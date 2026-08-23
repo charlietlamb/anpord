@@ -2,40 +2,53 @@ import type { EvalDraft } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi-select";
 import { FlaskIcon, PlayIcon } from "@phosphor-icons/react";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { AgentField } from "@/components/evals/agent-field";
 import { AddCaseButton, CaseRow } from "@/components/evals/case-editor";
+import { CredentialField } from "@/components/evals/credential-field";
 import { RunPreview } from "@/components/evals/run-preview";
+import { credentialQueries } from "@/lib/credential-queries";
+import {
+  missingCredentialIntegrations,
+  normalizeCredentialSelections,
+  requiredCredentialIntegrations,
+} from "@/lib/evals/credential-selection";
+import { evalQueries } from "@/lib/evals/eval-queries";
 import {
   emptyCase,
   ungatedIn,
   useCaseKeys,
   useEvalForm,
 } from "@/lib/evals/use-eval-form";
-import { MODEL_OPTIONS, PROVIDER_OPTIONS } from "@/lib/evals/variant-options";
-import {
-  modelPresentation,
-  providerPresentation,
-} from "@/lib/evals/variant-presentation";
+import { DEFAULT_HARNESS, PROVIDER_OPTIONS } from "@/lib/evals/variant-options";
+import { providerPresentation } from "@/lib/evals/variant-presentation";
 
-/**
- * A new eval, on one page.
- *
- * Ordered by what a person actually decides: the cases are the eval, the
- * variants are what it is run against, and the trial count is how many times.
- * The name comes last and defaults to nothing, because a run is recognised by
- * what it tested and naming it first is ceremony before substance.
- *
- * One page rather than a wizard. A reader running many evals needs the whole
- * configuration visible at once to reason about coverage and cost, and a
- * wizard hides exactly the thing that multiplies.
- */
 export function EvalForm({
+  initial,
   onSubmit,
+  submitLabel = "Run eval",
   submitting,
 }: {
+  readonly initial?: EvalDraft;
   readonly onSubmit: (draft: EvalDraft) => Promise<void>;
+  readonly submitLabel?: string;
   readonly submitting: boolean;
 }) {
-  const form = useEvalForm({ onSubmit });
+  const catalogue = useSuspenseQuery(evalQueries.models(DEFAULT_HARNESS));
+  const connections = useQuery(credentialQueries.connections());
+  const form = useEvalForm({
+    defaultModel: catalogue.data.models.at(0)?.id ?? null,
+    initial,
+    onSubmit: (draft) =>
+      onSubmit({
+        ...draft,
+        connections: normalizeCredentialSelections(
+          requiredCredentialIntegrations(draft.agents, draft.providers),
+          connections.data ?? [],
+          draft.connections
+        ),
+      }),
+  });
   const keys = useCaseKeys(form.state.values.cases.length);
 
   return (
@@ -112,7 +125,10 @@ export function EvalForm({
               </ul>
 
               <AddCaseButton
-                onAdd={() => form.pushFieldValue("cases", emptyCase())}
+                onAdd={() => {
+                  keys.add();
+                  form.pushFieldValue("cases", emptyCase());
+                }}
               />
             </div>
           )}
@@ -122,25 +138,13 @@ export function EvalForm({
       <section className="flex flex-col gap-3">
         <PageHeading icon={PlayIcon} title="Variants" />
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <form.Field name="models">
-            {(models) => (
-              <div className="grid gap-1.5">
-                <span className="font-medium text-xs">Models</span>
-                <SearchableMultiSelect
-                  emptyLabel="Choose a model"
-                  label="Models"
-                  onChange={(next) => models.handleChange(next)}
-                  options={MODEL_OPTIONS}
-                  renderOption={(option) => {
-                    const { Icon } = modelPresentation(option.value);
-
-                    return <Icon className="size-3.5 shrink-0" />;
-                  }}
-                  searchPlaceholder="Search models…"
-                  value={models.state.value}
-                />
-              </div>
+        <div className="grid gap-3 sm:grid-cols-3 [&>*]:min-w-0">
+          <form.Field name="agents">
+            {(field) => (
+              <AgentField
+                onChange={(next) => field.handleChange(next)}
+                value={field.state.value}
+              />
             )}
           </form.Field>
 
@@ -165,6 +169,30 @@ export function EvalForm({
             )}
           </form.Field>
         </div>
+
+        <form.Subscribe
+          selector={(state) => ({
+            agents: state.values.agents,
+            providers: state.values.providers,
+          })}
+        >
+          {({ agents, providers }) => (
+            <form.Field name="connections">
+              {(field) => (
+                <CredentialField
+                  connections={connections.data ?? []}
+                  integrationIds={requiredCredentialIntegrations(
+                    agents,
+                    providers
+                  )}
+                  loading={connections.isPending}
+                  onChange={field.handleChange}
+                  value={field.state.value}
+                />
+              )}
+            </form.Field>
+          )}
+        </form.Subscribe>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -181,24 +209,42 @@ export function EvalForm({
       </section>
 
       <form.Subscribe selector={(state) => state.values}>
-        {(values) => (
-          <div className="flex flex-col gap-4 border-border-faint border-t pt-5">
-            <RunPreview
-              cases={values.cases}
-              models={values.models}
-              providers={values.providers}
-              trials={values.trials}
-              ungated={ungatedIn(values.cases)}
-            />
+        {(values) => {
+          const integrationIds = requiredCredentialIntegrations(
+            values.agents,
+            values.providers
+          );
+          const selected = normalizeCredentialSelections(
+            integrationIds,
+            connections.data ?? [],
+            values.connections
+          );
+          const missing = missingCredentialIntegrations(
+            integrationIds,
+            connections.data ?? [],
+            selected
+          );
 
-            <form.AppForm>
-              <form.SubmitButton
-                fullWidth={false}
-                label={submitting ? "Starting…" : "Run eval"}
+          return (
+            <div className="flex flex-col gap-4 border-border-faint border-t pt-5">
+              <RunPreview
+                agents={values.agents}
+                cases={values.cases}
+                providers={values.providers}
+                trials={values.trials}
+                ungated={ungatedIn(values.cases)}
               />
-            </form.AppForm>
-          </div>
-        )}
+
+              <form.AppForm>
+                <form.SubmitButton
+                  disabled={connections.isError || missing.length > 0}
+                  fullWidth={false}
+                  label={submitting ? "Starting…" : submitLabel}
+                />
+              </form.AppForm>
+            </div>
+          );
+        }}
       </form.Subscribe>
     </form>
   );

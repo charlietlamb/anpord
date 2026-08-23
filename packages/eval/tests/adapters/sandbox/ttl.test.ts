@@ -8,17 +8,6 @@ import {
 } from "../../../src/ports/sandbox";
 import { SandboxProviderLive } from "../../../src/services/sandbox-provider";
 
-/**
- * Measured against Daytona: killing the process with `process.exit` bypasses
- * the scope finalizer and the sandbox stays started. Compensation does not
- * cover it either, because the workflow engine treats an interrupt as a
- * suspension rather than a failure.
- *
- * The provider-side stop is therefore the only cleanup guarantee that survives
- * losing our process, so every open has to carry one. This asserts against the
- * real provider layer rather than a local stub, because the risk is a caller
- * forgetting to pass it, and only production code can forget.
- */
 const recordingAdapters = (seen: Ref.Ref<OpenSandbox[]>) =>
   Layer.succeed(
     SandboxAdapters,
@@ -31,6 +20,7 @@ const recordingAdapters = (seen: Ref.Ref<OpenSandbox[]>) =>
             Ref.update(seen, (all) => [...all, request]).pipe(
               Effect.as({
                 exec: () => Stream.empty,
+                home: "/tmp",
                 id: "sbx-1",
                 provider,
                 streaming: true,
@@ -71,8 +61,6 @@ describe("every sandbox carries a provider-side stop", () => {
     expect(opened[0]?.autoStopMinutes).toBe(15);
   });
 
-  /* A zero or missing stop is the leak: the sandbox outlives every process
-     that knows about it and bills until the provider's own default. */
   it("never opens a sandbox without a stop", async () => {
     const opened = await Effect.runPromise(
       Effect.gen(function* () {

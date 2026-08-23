@@ -1,5 +1,9 @@
 import type { evalPlayground } from "@anpord/db/schema/evals/eval-playgrounds";
-import { Context, Effect, Layer, Option, type Redacted } from "effect";
+import type { Actor } from "@anpord/schema/domain/actor";
+import { Context, Effect, Layer, Option } from "effect";
+import { CredentialResolver } from "../credentials/connections";
+import type { CredentialError } from "../credentials/errors";
+import { resolveTaskCredentials } from "../credentials/tasks";
 import type { EvalStoreError } from "../domain/errors";
 import { NotRunnable } from "../domain/errors";
 import {
@@ -10,6 +14,7 @@ import {
 } from "../domain/playground-config";
 import { GridRun } from "../grid/run";
 import { WorkbenchRepository } from "../repositories/workbench-repository";
+import { HarnessVersions } from "./harness-versions";
 
 export interface Workbench {
   readonly config: PlaygroundConfig;
@@ -32,14 +37,13 @@ export interface WorkbenchShape {
   readonly list: (
     organizationId: string
   ) => Effect.Effect<readonly Workbench[], EvalStoreError>;
-  /** Starts the saved configuration and records which run it produced. */
   readonly run: (input: {
-    readonly credentials: Redacted.Redacted<string>;
-    readonly harnessVersion: string;
+    readonly actor: Actor;
     readonly id: string;
     readonly organizationId: string;
     readonly startedBy: string | null;
-  }) => Effect.Effect<string, EvalStoreError | NotRunnable>;
+    readonly legacyHarnessAuth: string;
+  }) => Effect.Effect<string, CredentialError | EvalStoreError | NotRunnable>;
   readonly save: (input: {
     readonly config: PlaygroundConfig;
     readonly id: string;
@@ -55,6 +59,14 @@ export class Workbenches extends Context.Tag("@anpord/eval/Workbenches")<
 
 type Row = typeof evalPlayground.$inferSelect;
 
+const credentialsOf = (
+  connections: PlaygroundConfig["connections"],
+  column: PlaygroundConfig["columns"][number]
+) => ({
+  harnessConnectionId: connections[column.harness],
+  sandboxConnectionId: connections[column.provider],
+});
+
 const asWorkbench = (row: Row, config: PlaygroundConfig): Workbench => ({
   config,
   id: row.id,
@@ -66,13 +78,11 @@ const asWorkbench = (row: Row, config: PlaygroundConfig): Workbench => ({
 export const WorkbenchesLive = Layer.effect(
   Workbenches,
   Effect.gen(function* () {
+    const credentials = yield* CredentialResolver;
     const grid = yield* GridRun;
     const store = yield* WorkbenchRepository;
+    const versions = yield* HarnessVersions;
 
-    /* A config that no longer decodes is replaced by an empty one rather than
-       failing the read. A playground is a draft, and a shape change should
-       cost somebody their unsaved columns at worst, never their access to the
-       page. */
     const configOf = (row: Row) =>
       decodePlaygroundConfig(row.config).pipe(
         Effect.orElseSucceed(() => emptyPlaygroundConfig)
@@ -82,11 +92,11 @@ export const WorkbenchesLive = Layer.effect(
       configOf(row).pipe(Effect.map((config) => asWorkbench(row, config)));
 
     const run = (input: {
-      readonly credentials: Redacted.Redacted<string>;
-      readonly harnessVersion: string;
+      readonly actor: Actor;
       readonly id: string;
       readonly organizationId: string;
       readonly startedBy: string | null;
+      readonly legacyHarnessAuth: string;
     }) =>
       Effect.gen(function* () {
         const found = yield* store.find(input.organizationId, input.id);
@@ -106,10 +116,23 @@ export const WorkbenchesLive = Layer.effect(
           );
         }
 
+        const requested = yield* Effect.forEach(config.columns, (column) =>
+          versions.version(column.harness).pipe(
+            Effect.map((harnessVersion) => ({
+              ...column,
+              credentials: credentialsOf(config.connections, column),
+              harnessVersion,
+            }))
+          )
+        );
+        const tasks = yield* resolveTaskCredentials(
+          credentials,
+          input.actor,
+          requested,
+          input.legacyHarnessAuth
+        );
+
         const runId = yield* grid.start({
-          /* The absent verifier travels as absent. Substituting one that
-             always succeeds made an ungated cell report a perfect,
-             deterministic, promotable pass rate from no evidence at all. */
           cases: config.cases.map((subject) => ({
             goal: subject.goal,
             name: subject.name,
@@ -117,16 +140,10 @@ export const WorkbenchesLive = Layer.effect(
             source: subject.source,
             verify: subject.verify,
           })),
-          credentials: input.credentials,
           organizationId: input.organizationId,
           prompt: config.prompt,
           startedBy: input.startedBy,
-          tasks: config.columns.map((column) => ({
-            harness: column.harness,
-            harnessVersion: input.harnessVersion,
-            model: column.model,
-            provider: column.provider,
-          })),
+          tasks,
           trials: config.trials,
         });
 

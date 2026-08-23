@@ -1,0 +1,73 @@
+---
+title: "Run evals from code"
+description: "Start a grid and fail on regressions"
+---
+
+Use the SDK when cases live in your repository or a release job needs a machine-readable result.
+
+```ts
+import { Anpord, type StartEvalRequest } from "anpord";
+
+const anpord = new Anpord();
+const model = process.env.EVAL_MODEL;
+
+if (!model) throw new Error("Set EVAL_MODEL");
+
+const cases: StartEvalRequest["cases"] = [
+  {
+    name: "repairs add",
+    goal: "Fix the failing add function without changing its public API",
+    source: {
+      kind: "repo",
+      url: "https://github.com/acme/agent-fixtures",
+      ref: "b17b2ac",
+    },
+    setup: "bun install",
+    verify: "bun test src/add.test.ts",
+  },
+];
+
+const { id } = await anpord.evals.start({
+  cases,
+  prompt: "Read the repository. Make the smallest correct change. {{goal}}",
+  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  trials: 3,
+});
+
+console.log(`Anpord run: ${id}`);
+
+let run = await anpord.evals.get({ id });
+
+while (run.status === "running") {
+  await new Promise((resolve) => setTimeout(resolve, 2_000));
+  run = await anpord.evals.get({ id });
+}
+
+if (run.status === "failed") {
+  throw new Error(run.failure ?? "Eval run failed");
+}
+
+const regressions = run.cells.filter(
+  (cell) => cell.comparison?.verdict === "regressed"
+);
+const missingEvidence = run.cells.filter(
+  (cell) => (cell.distribution?.scored ?? 0) === 0
+);
+
+for (const cell of regressions) {
+  console.error(cell.caseName, cell.comparison);
+}
+for (const cell of missingEvidence) {
+  console.error(cell.caseName, "produced no scored trials");
+}
+
+if (regressions.length || missingEvidence.length) process.exitCode = 1;
+
+await anpord.dispose();
+```
+
+Choose the model once with `evals.models({ harness: "codex" })`, then keep its id in configuration. Starting a run does not require a catalogue request.
+
+Pin repository sources to a commit for reproducible runs. Put the job timeout around the script, since `evals.start` returns before the server finishes the grid.
+
+Report missing evidence separately. It is not a failed verifier.

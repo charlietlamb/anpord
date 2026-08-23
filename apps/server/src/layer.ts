@@ -5,14 +5,23 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
+import {
+  CredentialConnectionsLive,
+  CredentialResolverLive,
+} from "@anpord/eval/credentials/connections";
+import { DeviceAuthLive } from "@anpord/eval/credentials/device-auth";
 import {
   EvalGridLive,
+  EvalHarnessVersionsLive,
+  EvalModelCatalogueLive,
   EvalSandboxLive,
   ReconcilerSweepLive,
 } from "@anpord/eval/layer";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
+import { FetchHttpClient } from "@effect/platform";
 import { BunContext } from "@effect/platform-bun";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
@@ -45,24 +54,41 @@ const PromptsServiceLayer = PromptsLayer.pipe(
 
 const VerifiedKeysLayer = VerifiedKeysLive.pipe(Layer.provide(AuthLayer));
 
-/** Runs execute in this process rather than through a worker: a trial is
- * already scoped, so it cleans up after itself, and one fewer moving part is
- * worth more right now. A run in flight when the process dies is lost, but
- * every cell it had already finished is on disk and still comparable. */
+const CredentialDependencies = Layer.mergeAll(
+  CredentialCipherLive,
+  DatabaseLayer,
+  IdGeneratorLive
+);
+const CredentialConnectionsLayer = CredentialConnectionsLive.pipe(
+  Layer.provide(CredentialDependencies)
+);
+const CredentialLayer = Layer.mergeAll(
+  CredentialConnectionsLayer,
+  CredentialResolverLive.pipe(Layer.provide(CredentialDependencies)),
+  DeviceAuthLive.pipe(
+    Layer.provide(CredentialConnectionsLayer),
+    Layer.provide(CredentialDependencies)
+  )
+);
+
 const EvalLayer = Layer.mergeAll(
   EvalGridLive.pipe(
     Layer.provide(EvalSandboxLive),
+    Layer.provide(CredentialLayer),
+    Layer.provide(EvalHarnessVersionsLive),
     Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
   ),
-  /* Opted into here, because sweeping abandoned work is a decision about
-     this process's lifetime rather than a property of the domain. */
+
   ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
-  EvalCredentialsLive.pipe(Layer.provide(BunContext.layer))
+  EvalCredentialsLive.pipe(Layer.provide(BunContext.layer)),
+  EvalHarnessVersionsLive,
+
+  EvalModelCatalogueLive.pipe(
+    Layer.provide(Layer.merge(BunContext.layer, FetchHttpClient.layer))
+  )
 );
 
 export const AppLayer = Layer.mergeAll(
-  /** The router reads the trusted origins to tell our own dashboard from
-   * another site driving a signed-in session. */
   AuthConfigLive,
   ServerConfigLive,
   TelemetryLive,
@@ -71,5 +97,6 @@ export const AppLayer = Layer.mergeAll(
   OrganizationLayer,
   DatabaseLayer,
   PromptsServiceLayer,
+  CredentialLayer,
   EvalLayer
 );

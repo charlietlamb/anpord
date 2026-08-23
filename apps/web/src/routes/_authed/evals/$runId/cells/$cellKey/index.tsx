@@ -5,16 +5,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CellRail } from "@/components/evals/cell-rail";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { RerunCellButton } from "@/components/evals/rerun-cell-button";
 import { TrialTable } from "@/components/evals/trial-table";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute("/_authed/evals/$runId/cells/$cellKey/")({
   component: CellScreen,
+  loader: ({ context, params }) =>
+    context.queryClient.ensureQueryData(evalQueries.history(params.cellKey)),
 });
 
 function CellScreen() {
   const { cellKey, runId } = Route.useParams();
   const { data: run } = useQuery(evalQueries.detail(runId));
+  const { data: readings } = useQuery(evalQueries.history(cellKey));
 
   const cell = run?.cells.find((candidate) => candidate.cellKey === cellKey);
 
@@ -26,8 +30,16 @@ function CellScreen() {
     <EvalLayout>
       <EvalMain>
         <section className="flex flex-col gap-1.5">
-          <PageHeading icon={FlaskIcon} title={cell.caseName} />
-          <TrialTable cellKey={cellKey} runId={runId} trials={cell.trials} />
+          <div className="flex items-center justify-between gap-3">
+            <PageHeading icon={FlaskIcon} title={cell.caseName} />
+            <RerunCellButton
+              cellKey={cellKey}
+              runId={runId}
+              trials={cell.trials.length}
+            />
+          </div>
+
+          <TrialTable cellKey={cellKey} readings={readings ?? []} />
         </section>
 
         {cell.setup === null ? null : (

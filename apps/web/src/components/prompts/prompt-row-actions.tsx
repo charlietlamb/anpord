@@ -14,13 +14,8 @@ import {
   LinkIcon,
 } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
+import { ROW_ACTION } from "@/components/layout/row-action";
 
-/**
- * What can be done to a prompt without opening it.
- *
- * Held to what the API actually offers: there is no delete, and a menu that
- * lists one would be a promise the page cannot keep.
- */
 export function PromptRowActions({ id }: { readonly id: string }) {
   const { copied: copiedId, copy: copyId } = useCopy(1000);
   const { copied: copiedUrl, copy: copyUrl } = useCopy(1000);
@@ -31,13 +26,13 @@ export function PromptRowActions({ id }: { readonly id: string }) {
         render={
           <Button
             aria-label={`Actions for ${id}`}
-            className="size-6 shrink-0 rounded opacity-0 focus-visible:opacity-100 group-hover/row:opacity-100 data-[popup-open]:opacity-100"
+            className={ROW_ACTION}
             size="icon-sm"
             variant="bare"
           />
         }
       >
-        <DotsThreeIcon weight="bold" />
+        <DotsThreeIcon />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-44">

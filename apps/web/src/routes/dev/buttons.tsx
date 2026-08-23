@@ -13,11 +13,6 @@ export const Route = createFileRoute("/dev/buttons")({
   component: ButtonOptions,
 });
 
-/**
- * Candidates for the composer's submit control. The surface is quiet, so the
- * question is how much weight this can carry without becoming the loudest
- * thing on the page.
- */
 const CAP = "border-white/20 bg-white/16 text-white/80";
 
 const OPTIONS: ButtonOption[] = [
@@ -90,8 +85,6 @@ const OPTIONS: ButtonOption[] = [
 
 const RADII = ["rounded-md", "rounded-lg", "rounded-xl"];
 
-/** Edge treatments compared on the chosen fill. A ring proved wrong here: a
- * dark one reads as a gap, a light one glows. Insets define the edge instead. */
 const RINGS: ButtonOption[] = [
   {
     title: "none",
@@ -169,7 +162,7 @@ function ButtonOptions() {
         </h2>
         <div className="mb-10 flex flex-wrap items-center gap-3 rounded-[18px] bg-card p-5 shadow-[inset_0_0_0_1px_oklch(0_0_0/4%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
           <ShortcutButton metaShortcut="enter" size="sm">
-            <PlusIcon size={15} weight="bold" />
+            <PlusIcon size={15} />
             Create prompt
           </ShortcutButton>
           <Button size="sm">Default</Button>

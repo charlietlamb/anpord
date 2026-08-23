@@ -37,8 +37,6 @@ const run = <A, E>(effect: Effect.Effect<A, E, Baselines | Database>) =>
     effect.pipe(Effect.provide(TestLayer), Effect.scoped) as Effect.Effect<A, E>
   );
 
-/** One cell of N trials with a chosen number passing, plus an optional void
- * count for the trials that never produced evidence. */
 const seedCell = async (input: {
   readonly cellKey: string;
   readonly passing: number;
@@ -67,6 +65,7 @@ const seedCell = async (input: {
           harnessVersion: "0.144.4",
           internalId: `cellint_${input.tag}`,
           model: "gpt-5",
+          prompt: "do the thing",
           provider: "daytona",
           runInternalId: `runint_${input.tag}`,
           status: "finished",
@@ -185,9 +184,6 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
     expect(found.value.distribution.passRate).toBe(1);
   });
 
-  /** The bar is what was accepted, not the best ever seen. A second call must
-   * leave the first reading in place, or a cell that climbed and fell back
-   * would compare against its peak and report a regression it already had. */
   it("leaves an existing baseline alone", async () => {
     const found = await run(
       Effect.gen(function* () {
@@ -244,10 +240,6 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
     expect(comparison.value.delta).toBeCloseTo(-0.6);
   });
 
-  /** The rule that matters. A cell where nothing ran must never become a
-   * reference, because every later comparison would read it as a measured
-   * zero and report a collapse that never happened. Silent now rather than an
-   * error: no caller is asking, so there is nobody to tell. */
   it("stores no baseline for a cell with no scored trials", async () => {
     const found = await run(
       Effect.gen(function* () {
@@ -266,9 +258,6 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
     expect(Option.isNone(found)).toBe(true);
   });
 
-  /** The service takes a plain string so nothing at the HTTP edge has to
-   * reach into the domain to brand one. The branding still has to happen, or
-   * the query matches nothing and a cell silently reports no past. */
   it("reads a cell's history from an unbranded key", async () => {
     const history = await run(
       Effect.gen(function* () {
@@ -316,9 +305,7 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
       comparisons[0]?.comparison && Option.isNone(comparisons[0].comparison)
     ).toBe(true);
   });
-  /** Every cell becomes its own reference on its first scored reading, so the
-   * run that set the baseline would otherwise report `unchanged` against
-   * itself: a verdict with no second reading behind it. */
+
   it("yields no verdict for a cell that is its own baseline", async () => {
     const comparisons = await run(
       Effect.gen(function* () {
