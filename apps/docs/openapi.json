@@ -1271,7 +1271,13 @@
             "type": "string",
             "enum": [
               "codex",
-              "opencode"
+              "opencode",
+              "pi",
+              "fx",
+              "claude",
+              "gemini",
+              "qwen",
+              "cursor"
             ]
           },
           "harnessVersion": {
@@ -1658,7 +1664,13 @@
             "type": "string",
             "enum": [
               "codex",
-              "opencode"
+              "opencode",
+              "pi",
+              "fx",
+              "claude",
+              "gemini",
+              "qwen",
+              "cursor"
             ]
           },
           "model": {
@@ -2369,7 +2381,13 @@
             "type": "string",
             "enum": [
               "codex",
-              "opencode"
+              "opencode",
+              "pi",
+              "fx",
+              "claude",
+              "gemini",
+              "qwen",
+              "cursor"
             ]
           },
           "q": {
@@ -2391,7 +2409,13 @@
             "type": "string",
             "enum": [
               "codex",
-              "opencode"
+              "opencode",
+              "pi",
+              "fx",
+              "claude",
+              "gemini",
+              "qwen",
+              "cursor"
             ]
           },
           "models": {
