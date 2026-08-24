@@ -42,12 +42,12 @@ const MASK_SUM = MASK_WAVES.reduce((total, wave) => total + wave.amplitude, 0);
 /** Raising the field to a power isolates its peaks: the mid-range collapses
  * toward nothing, so pockets stay separate instead of merging into one mass
  * whenever the waves happen to align. */
-const MASK_FALLOFF = 2;
+const MASK_FALLOFF = 2.5;
 
 /** Above this the pocket is solid, below it nothing draws. The gap between the
  * two is the pocket's edge, which frays rather than cutting. */
-const MASK_FLOOR = 0.16;
-const MASK_CEILING = 0.55;
+const MASK_FLOOR = 0.33;
+const MASK_CEILING = 0.6;
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
@@ -212,8 +212,17 @@ export const ditherField = (
     writeRowTerms(WAVES, y + driftY, time, toneRow);
 
     for (let column = 0; column < columns; column++) {
-      const pocket = pocketOf(
-        combine(MASK_WAVES, maskRow, maskColumns, column * MASK_WAVES.length)
+      const x = column / columns;
+      const corner = clamp(
+        1 - 1.8 * Math.min(x * x + y * y, (1 - x) ** 2 + (1 - y) ** 2)
+      );
+      const pocket = clamp(
+        pocketOf(
+          combine(MASK_WAVES, maskRow, maskColumns, column * MASK_WAVES.length)
+        ) *
+          0.45 +
+          corner -
+          0.55
       );
       if (pocket === 0) {
         continue;
@@ -221,9 +230,10 @@ export const ditherField = (
 
       /* The pocket scales the tone rather than clipping it, so a dot thins out
          toward the edge instead of the pocket ending on a hard line. */
-      const value =
-        toneOf(combine(WAVES, toneRow, toneColumns, column * WAVES.length)) *
-        pocket;
+      const tone = toneOf(
+        combine(WAVES, toneRow, toneColumns, column * WAVES.length)
+      );
+      const value = (0.25 + tone * 0.75) * pocket;
 
       if (flat[thresholdRow + (column % size)] < value * levels) {
         mask[rowOffset + column] = 1;

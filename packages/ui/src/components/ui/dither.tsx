@@ -1,164 +1,25 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-import { ditherField } from "../../lib/dither-field";
+import type { CSSProperties } from "react";
 import { cn } from "../../lib/utils";
 
-const DOT = 3;
-const SECONDS_PER_FRAME = 1 / 8;
-const DRIFT_RATE = 0.22;
+const DITHER_MASK = "data:image/png;base64,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";
+const mask = `url(${DITHER_MASK}) center / cover no-repeat`;
+const DITHER_STYLE = {
+  backgroundColor: "currentColor",
+  imageRendering: "pixelated",
+  mask,
+  WebkitMask: mask,
+} satisfies CSSProperties;
 
 interface DitherProps {
   readonly className?: string;
-  readonly dot?: number;
-  readonly speed?: number;
 }
 
-const stillField = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const channels = (colour: string) => {
-  const probe = document.createElement("canvas");
-  probe.width = 1;
-  probe.height = 1;
-
-  const context = probe.getContext("2d", { willReadFrequently: true });
-  if (!context) {
-    return { alpha: 255, blue: 0, green: 0, red: 0 };
-  }
-
-  context.fillStyle = colour;
-  context.fillRect(0, 0, 1, 1);
-
-  const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
-  return { alpha, blue, green, red };
-};
-
-export function Dither({ className, dot = DOT, speed = 1 }: DitherProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d", { alpha: true });
-    if (!(canvas && context)) {
-      return;
-    }
-
-    const still = stillField();
-    let frame = 0;
-    let columns = 0;
-    let rows = 0;
-    let ratio = 1;
-    let spacing = DOT;
-    let surfaceWidth = 0;
-    let surfaceHeight = 0;
-    let time = 0;
-    let mask = new Uint8Array(0);
-    let image: ImageData | undefined;
-
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      const width = Math.max(1, Math.floor(bounds.width));
-      const height = Math.max(1, Math.floor(bounds.height));
-
-      ratio = window.devicePixelRatio ?? 1;
-      const step = Math.max(1, Math.round(dot * ratio));
-
-      surfaceWidth = Math.max(1, Math.round(width * ratio));
-      surfaceHeight = Math.max(1, Math.round(height * ratio));
-      columns = Math.ceil(surfaceWidth / step);
-      rows = Math.ceil(surfaceHeight / step);
-      spacing = step;
-
-      if (canvas.width !== surfaceWidth || canvas.height !== surfaceHeight) {
-        canvas.width = surfaceWidth;
-        canvas.height = surfaceHeight;
-        mask = new Uint8Array(columns * rows);
-        image = context.createImageData(surfaceWidth, surfaceHeight);
-      }
-    };
-
-    const paint = () => {
-      if (!image || columns === 0 || rows === 0) {
-        return;
-      }
-
-      const { alpha, blue, green, red } = channels(
-        getComputedStyle(canvas).color
-      );
-
-      ditherField(mask, columns, rows, time);
-
-      const pixels = image.data;
-      pixels.fill(0);
-
-      for (let row = 0; row < rows; row++) {
-        const y = row * spacing;
-        if (y >= surfaceHeight) {
-          break;
-        }
-
-        const maskRow = row * columns;
-        const pixelRow = y * surfaceWidth;
-
-        for (let column = 0; column < columns; column++) {
-          if (mask[maskRow + column] !== 1) {
-            continue;
-          }
-
-          const x = column * spacing;
-          if (x >= surfaceWidth) {
-            break;
-          }
-
-          const at = (pixelRow + x) * 4;
-          pixels[at] = red;
-          pixels[at + 1] = green;
-          pixels[at + 2] = blue;
-          pixels[at + 3] = alpha;
-        }
-      }
-
-      context.putImageData(image, 0, 0);
-    };
-
-    const tick = () => {
-      time += SECONDS_PER_FRAME * DRIFT_RATE * speed;
-      paint();
-      frame = window.setTimeout(
-        () => requestAnimationFrame(tick),
-        SECONDS_PER_FRAME * 1000
-      );
-    };
-
-    resize();
-    paint();
-
-    if (!still) {
-      tick();
-    }
-
-    const observer = new ResizeObserver(() => {
-      resize();
-      paint();
-    });
-    observer.observe(canvas);
-
-    return () => {
-      window.clearTimeout(frame);
-      observer.disconnect();
-    };
-  }, [dot, speed]);
-
+export function Dither({ className }: DitherProps) {
   return (
-    <canvas
+    <div
       aria-hidden
-      className={cn(
-        "pointer-events-none absolute inset-0 h-full w-full",
-        className
-      )}
-      ref={canvasRef}
+      className={cn("pointer-events-none absolute inset-0", className)}
+      style={DITHER_STYLE}
     />
   );
 }

@@ -6,16 +6,21 @@ import { SiteHeader } from "@/components/layout/site-header";
 interface SiteLayoutProps {
   center?: boolean;
   children: ReactNode;
-
-  dot?: number;
+  ditherClassName?: string;
 }
 
-export function SiteLayout({ children, center, dot }: SiteLayoutProps) {
+export function SiteLayout({
+  children,
+  center,
+  ditherClassName,
+}: SiteLayoutProps) {
   return (
     <main className="relative isolate bg-background text-foreground">
       <Dither
-        className="fixed inset-0 -z-10 h-svh w-full text-foreground/[0.16] dark:text-foreground/[0.14]"
-        dot={dot}
+        className={cn(
+          "fixed inset-0 -z-10 h-svh w-full text-foreground/[0.14] dark:text-foreground/[0.12]",
+          ditherClassName
+        )}
       />
       <div className="mx-auto flex min-h-svh w-full max-w-3xl flex-col px-6">
         <SiteHeader />

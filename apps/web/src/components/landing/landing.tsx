@@ -123,7 +123,7 @@ export function Landing() {
   const isClient = useIsClient();
 
   return (
-    <SiteLayout dot={4}>
+    <SiteLayout ditherClassName="opacity-50">
       <section className="flex flex-1 flex-col justify-center pb-24">
         <h1 className="fade-in-0 slide-in-from-bottom-2 animate-in text-balance fill-mode-both font-heading text-5xl tracking-tight ease-out [animation-duration:500ms] sm:text-6xl">
           Evals for harnesses running in sandboxes.
