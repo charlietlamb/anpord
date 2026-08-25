@@ -5,7 +5,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialRail } from "@/components/evals/trial-rail";
+import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { Waterfall } from "@/components/evals/waterfall";
+import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute(
@@ -26,8 +28,19 @@ function TrialScreen() {
     (candidate) => String(candidate.ordinal) === ordinal
   );
 
+  if (run === undefined) {
+    return <TrialSkeleton />;
+  }
+
+  /* Loaded, and no such trial in it. Waiting on something the run does not
+     hold would leave the reader watching an empty page forever. */
   if (trial === undefined) {
-    return null;
+    return (
+      <ErrorCard
+        description="This cell has no trial with that number."
+        title="Could not find this trial"
+      />
+    );
   }
 
   return (
@@ -49,7 +62,7 @@ function TrialScreen() {
         {cell?.setup == null ? null : (
           <section className="flex flex-col gap-1.5">
             <PageHeading icon={SlidersHorizontalIcon} title="Setup" />
-            <CellSetup setup={cell.setup} />
+            <CellSetup setup={cell.setup} trials={[trial]} />
           </section>
         )}
       </EvalMain>

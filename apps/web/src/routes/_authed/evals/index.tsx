@@ -1,11 +1,12 @@
 import type { EvalPageCursor } from "@anpord/schema/domain/evals";
+import { EVAL_PAGE_SIZE } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { FlaskIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { EvalListSkeleton } from "@/components/evals/eval-list-skeleton";
 import { EvalRow } from "@/components/evals/eval-row";
+import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
@@ -16,7 +17,7 @@ import { useCursorStack } from "@/lib/use-cursor-stack";
 export const Route = createFileRoute("/_authed/evals/")({
   ssr: false,
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(evalQueries.list(null)),
+    context.queryClient.prefetchQuery(evalQueries.list(null)),
   component: EvalsIndex,
 });
 
@@ -30,6 +31,7 @@ function EvalsIndex() {
 
   const runs = data?.runs ?? [];
   const next = data?.next ?? null;
+  const total = data?.total ?? 0;
 
   const pagination = (
     <CursorPagination
@@ -39,6 +41,7 @@ function EvalsIndex() {
       onNext={() => next !== null && push(next)}
       onPrev={pop}
       page={page}
+      pages={Math.max(1, Math.ceil(total / EVAL_PAGE_SIZE))}
     />
   );
 

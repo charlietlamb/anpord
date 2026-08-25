@@ -5,7 +5,7 @@ import { shortId } from "@/lib/evals/short-id";
 export const Route = createFileRoute("/_authed/evals/$runId")({
   ssr: false,
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(evalQueries.detail(params.runId)),
+    context.queryClient.prefetchQuery(evalQueries.detail(params.runId)),
   component: RunLayout,
   staticData: {
     crumb: (params, queryClient) => {

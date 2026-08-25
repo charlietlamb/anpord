@@ -4,10 +4,10 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 /**
  * Pages a cursor listing, one step at a time.
  *
- * Numbered pages would need a count, and counting rows a listing has not read
- * costs a second query over the whole table for a number nobody acts on. What
- * a reader needs is where they are and whether there is more, and a cursor
- * answers both.
+ * The position is always shown. The count beside it only where the listing
+ * knows one: a keyset page reads no further than it shows, so the total is a
+ * second query and a caller that has not paid for it says where the reader is
+ * and nothing more.
  *
  * Hidden on a listing that fits one page: a control that can never move is
  * furniture.
@@ -19,6 +19,7 @@ export function CursorPagination({
   onNext,
   onPrev,
   page,
+  pages,
 }: {
   readonly canGoNext: boolean;
   readonly canGoPrev: boolean;
@@ -26,6 +27,8 @@ export function CursorPagination({
   readonly onNext: () => void;
   readonly onPrev: () => void;
   readonly page: number;
+  /** How many pages there are, where the listing counted them. */
+  readonly pages?: number;
 }) {
   if (!(canGoNext || canGoPrev)) {
     return null;
@@ -44,7 +47,7 @@ export function CursorPagination({
       </Button>
 
       <span className="min-w-5 text-center text-muted-foreground/70 text-xs tabular-nums">
-        {page}
+        {pages === undefined ? page : `${page}/${pages}`}
       </span>
 
       <Button

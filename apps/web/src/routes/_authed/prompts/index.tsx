@@ -105,6 +105,7 @@ function PromptsPage() {
         </>
       }
       leading={<PageHeading icon={ChatTextIcon} title="Prompts" />}
+      width="wide"
     >
       <ListState
         action={

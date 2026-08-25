@@ -28,9 +28,9 @@ export const Route = createFileRoute("/_authed/prompts/$id")({
   ssr: false,
   loader: ({ context, params }) =>
     Promise.all([
-      context.queryClient.ensureQueryData(promptQueries.versions(params.id)),
-      context.queryClient.ensureQueryData(promptQueries.channels(params.id)),
-      context.queryClient.ensureQueryData(channelQueries.list()),
+      context.queryClient.prefetchQuery(promptQueries.versions(params.id)),
+      context.queryClient.prefetchQuery(promptQueries.channels(params.id)),
+      context.queryClient.prefetchQuery(channelQueries.list()),
       context.queryClient.ensureInfiniteQueryData(
         activityQueries.forPrompt(params.id)
       ),

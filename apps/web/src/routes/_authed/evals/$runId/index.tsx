@@ -2,14 +2,12 @@ import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { SquaresFourIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { CellRow } from "@/components/evals/cell-row";
-import { CellVerdictNote } from "@/components/evals/cell-verdict-note";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { RunGrid } from "@/components/evals/run-grid";
 import { RunRail } from "@/components/evals/run-rail";
-import { VariantComparison } from "@/components/evals/variant-comparison";
+import { RunSkeleton } from "@/components/evals/run-skeleton";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ErrorCard } from "@/components/layout/error-card";
-import { RowList } from "@/components/layout/row-list";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute("/_authed/evals/$runId/")({
@@ -27,16 +25,14 @@ function EvalRunScreen() {
   }
 
   if (run === undefined) {
-    return null;
+    return <RunSkeleton runId={runId} />;
   }
 
   return (
     <EvalLayout>
       <EvalMain>
-        <VariantComparison cells={run.cells} tasks={run.tasks} />
-
         <section className="flex flex-col gap-1.5">
-          <PageHeading icon={SquaresFourIcon} title="Cases" />
+          <PageHeading icon={SquaresFourIcon} title="Results" />
 
           {run.cells.length === 0 ? (
             <EmptyNote>
@@ -45,18 +41,7 @@ function EvalRunScreen() {
                 : "This run recorded no cells."}
             </EmptyNote>
           ) : (
-            <RowList>
-              {run.cells.map((cell) => (
-                <div key={cell.cellKey ?? `${cell.caseName}-${cell.taskIndex}`}>
-                  <CellRow
-                    cell={cell}
-                    runId={run.id}
-                    task={run.tasks[cell.taskIndex]}
-                  />
-                  <CellVerdictNote cell={cell} />
-                </div>
-              ))}
-            </RowList>
+            <RunGrid run={run} />
           )}
         </section>
       </EvalMain>

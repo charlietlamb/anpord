@@ -35,6 +35,11 @@ export const ROW_SHAPE = "flex h-10 items-center gap-2.5 px-2";
  * has to lift itself out of that. Five lists had each decided how: two wrote
  * `font-medium text-foreground`, one added a size the row already sets, and
  * one left the name at the same weight as the metadata beside it.
+ *
+ * Set in the display face the headings use, a step smaller than the row's own
+ * size and tracked in. A name is the one thing on a row that is read rather
+ * than scanned, and the face that carries the page title carries it here at a
+ * size that stops it shouting down the numbers beside it.
  */
 export function RowTitle({
   children,
@@ -44,7 +49,12 @@ export function RowTitle({
   readonly className?: string;
 }) {
   return (
-    <span className={cn("truncate font-medium text-foreground", className)}>
+    <span
+      className={cn(
+        "truncate font-heading font-medium text-foreground text-label tracking-[-0.01em]",
+        className
+      )}
+    >
       {children}
     </span>
   );
