@@ -3,7 +3,7 @@ import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, desc, eq, inArray, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, inArray, lt, or } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { CellKey } from "../domain/cell";
 import type { Distribution } from "../domain/distribution";
@@ -115,6 +115,12 @@ const cursorBefore = (cursor: PageCursor | null) =>
       );
 
 export interface RunQueryShape {
+  /** How many runs the organization has, for a reader who wants to know how
+   * far the listing goes. Separate from the page itself because a page is
+   * read on every step and this only when the count is shown. */
+  readonly countRuns: (
+    organizationId: string
+  ) => Effect.Effect<number, EvalStoreError>;
   readonly findCellHistory: (input: {
     readonly cellKey: CellKey;
     readonly limit: number;
@@ -373,6 +379,16 @@ export const RunQueryLive = Layer.effect(
       }).pipe(Effect.withSpan("RunQuery.findCellHistory"));
 
     return RunQuery.of({
+      countRuns: (organizationId) =>
+        tryStore("runQuery.countRuns", () =>
+          db
+            .select({ total: count() })
+            .from(evalRun)
+            .where(eq(evalRun.organizationId, organizationId))
+        ).pipe(
+          Effect.map((rows) => rows[0]?.total ?? 0),
+          Effect.withSpan("RunQuery.countRuns")
+        ),
       findCellHistory,
       findCellTask,
       findRun,

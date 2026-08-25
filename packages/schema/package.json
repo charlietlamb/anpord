@@ -12,6 +12,7 @@
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/variant-comparison": "./src/domain/variant-comparison.ts",
     "./domain/verify-steps": "./src/domain/verify-steps.ts",
+    "./domain/verify-verdicts": "./src/domain/verify-verdicts.ts",
     "./domain/permissions": "./src/domain/permissions.ts",
     "./domain/prompt-events": "./src/domain/prompt-events.ts",
     "./domain/prompts": "./src/domain/prompts.ts",

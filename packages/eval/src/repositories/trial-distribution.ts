@@ -14,6 +14,7 @@ const outcomeOf = (row: TrialRow): TrialOutcome => ({
   passed: row.passed ?? false,
   sandboxMs: row.sandboxMs ?? 0,
   status: row.status as TrialStatus,
+  verifySteps: row.verifySteps ?? [],
   voidFields: row.voidFields ?? [],
 });
 

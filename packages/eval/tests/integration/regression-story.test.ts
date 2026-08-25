@@ -109,6 +109,7 @@ const recordCell = (input: {
               passed,
               sandboxMs: 50,
               status: statusOf({ passed, voided: isVoid }),
+              verifySteps: [],
               voidFields: isVoid ? ["stdout"] : [],
             },
             sandboxId: `sbx_${index}`,

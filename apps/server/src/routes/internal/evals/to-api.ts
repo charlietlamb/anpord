@@ -38,6 +38,7 @@ const waiting = (
   timed: new Set(journal.map((event) => event.at)).size > 1,
   trajectory: asTrajectory(journal),
   usage: null,
+  verifySteps: [],
   voidFields: [],
 });
 
@@ -113,6 +114,7 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
         timed: new Set(result.events.map((event) => event.at)).size > 1,
         trajectory: asTrajectory(result.events),
         usage: Option.getOrNull(result.usage),
+        verifySteps: [...result.outcome.verifySteps],
         voidFields: [...result.outcome.voidFields],
       }),
     })
@@ -135,6 +137,7 @@ const asStoredTrial = (trial: {
   readonly sandboxMs: number | null;
   readonly status: string;
   readonly usage: Record<string, number> | null;
+  readonly verifySteps: { command: string; exitCode: number }[] | null;
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
   commands: trial.commandCount ?? 0,
@@ -150,6 +153,7 @@ const asStoredTrial = (trial: {
   timed: false,
   trajectory: [],
   usage: usageOf(trial.usage),
+  verifySteps: trial.verifySteps ?? [],
   voidFields: trial.voidFields ?? [],
 });
 

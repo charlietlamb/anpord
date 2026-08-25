@@ -1,9 +1,14 @@
+import { EVAL_PAGE_SIZE } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 
 /* Ten rows, which is a page a reader takes in at once rather than one they
    scan. A failed row carries a reason and a run carries its variants, so a
-   longer page stops fitting on a screen and starts needing one. */
-export const DEFAULT_PAGE_SIZE = 10;
+   longer page stops fitting on a screen and starts needing one.
+
+   Taken from the schema rather than written twice: a reader turns a total
+   into a number of pages by dividing by this, and two copies that disagree
+   would report a page count the listing does not have. */
+export const DEFAULT_PAGE_SIZE = EVAL_PAGE_SIZE;
 export const MAX_PAGE_SIZE = 100;
 
 /**

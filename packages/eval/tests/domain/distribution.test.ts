@@ -12,6 +12,7 @@ const outcome = (
   passed: status === "passed",
   sandboxMs: 0,
   status,
+  verifySteps: [],
   voidFields: status === "void" ? ["tests"] : [],
 });
 
@@ -97,6 +98,7 @@ describe("determinism needs both halves", () => {
     passed,
     sandboxMs: 1,
     status: passed ? "passed" : "failed",
+    verifySteps: [],
     voidFields: [],
   });
 

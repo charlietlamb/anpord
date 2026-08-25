@@ -157,6 +157,16 @@ export const EvalUsage = Schema.Struct({
 });
 export type EvalUsage = typeof EvalUsage.Type;
 
+export const EvalVerifyStep = Schema.Struct({
+  command: Schema.String,
+  exitCode: Schema.Int,
+}).annotations({
+  description:
+    "One condition of the verifier, and how it exited. Only the steps that ran are listed: the script stops at the first failure.",
+  identifier: "EvalVerifyStep",
+});
+export type EvalVerifyStep = typeof EvalVerifyStep.Type;
+
 export const EvalTrial = Schema.Struct({
   commands: Schema.Int,
 
@@ -173,6 +183,7 @@ export const EvalTrial = Schema.Struct({
   timed: Schema.Boolean,
   trajectory: Schema.Array(EvalJournalEntry),
   usage: Schema.NullOr(EvalUsage),
+  verifySteps: Schema.Array(EvalVerifyStep),
   voidFields: Schema.Array(Schema.String),
 }).annotations({
   description: "One sandbox attempt for a grid cell.",
@@ -301,6 +312,13 @@ export type EvalRunSummary = typeof EvalRunSummary.Type;
  * A timestamp alone is not a position -- two runs started in the same
  * millisecond share one -- so the id travels with it and breaks the tie.
  */
+/** How many runs a page holds.
+ *
+ * Shared so a caller can turn a total into a number of pages, and so a list
+ * waiting to load can stand exactly as tall as the one that replaces it,
+ * without either guessing what the server chose. */
+export const EVAL_PAGE_SIZE = 20;
+
 export const EvalPageCursor = Schema.Struct({
   id: Schema.String,
   startedAtMillis: Schema.Int,
@@ -313,6 +331,9 @@ export type EvalPageCursor = typeof EvalPageCursor.Type;
 export const EvalRunPage = Schema.Struct({
   next: Schema.NullOr(EvalPageCursor),
   runs: Schema.Array(EvalRunSummary),
+  /** Every run the organization has, so a listing can say how far it goes
+   * rather than only whether there is more. */
+  total: Schema.Int,
 });
 export type EvalRunPage = typeof EvalRunPage.Type;
 

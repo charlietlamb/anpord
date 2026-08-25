@@ -40,7 +40,11 @@ export const listEvalRuns = (params: {
       organizationId: actor.organizationId,
     });
 
-    return { next: page.next, runs: page.runs.map(summarise) };
+    return {
+      next: page.next,
+      runs: page.runs.map(summarise),
+      total: page.total,
+    };
   });
 
 const MAX_PUBLIC_TRIALS = 100;

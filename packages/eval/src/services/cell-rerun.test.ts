@@ -34,7 +34,7 @@ const layer = (
       GridRun.of({
         changes: Stream.empty,
         get: () => Effect.succeed(Option.none()),
-        list: () => Effect.succeed({ next: null, runs: [] }),
+        list: () => Effect.succeed({ next: null, runs: [], total: 0 }),
         start: (input) =>
           Effect.sync(() => {
             onStart(input);
@@ -45,6 +45,7 @@ const layer = (
     Layer.succeed(
       RunQuery,
       RunQuery.of({
+        countRuns: () => Effect.succeed(0),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
         findRun: () => Effect.succeed(Option.none()),

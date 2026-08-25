@@ -3,6 +3,7 @@ import type { HarnessName, ProviderName } from "../domain/cell";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
+import type { VerifyStepResult } from "../domain/trial";
 import type { RunDetail } from "../repositories/run-query";
 import type { AgentTrialResult } from "../services/agent-trial";
 import type { GridCell, GridRunState, GridTask } from "./state";
@@ -17,6 +18,7 @@ const asResult = (input: {
   readonly sandboxMs: number;
   readonly status: string;
   readonly usage: HarnessUsage | null;
+  readonly verifySteps: readonly VerifyStepResult[];
   readonly voidFields: readonly string[];
 }): AgentTrialResult => ({
   commands: input.commandCount,
@@ -30,6 +32,7 @@ const asResult = (input: {
     passed: input.passed,
     sandboxMs: input.sandboxMs,
     status: input.status as AgentTrialResult["outcome"]["status"],
+    verifySteps: [...input.verifySteps],
     voidFields: [...input.voidFields],
   },
   sandboxId: input.sandboxId ?? "",
@@ -116,6 +119,7 @@ export const runToState = (
             sandboxMs: trial.sandboxMs ?? 0,
             status: trial.status,
             usage: usageOf(trial.usage),
+            verifySteps: trial.verifySteps ?? [],
             voidFields: trial.voidFields ?? [],
           })
         )

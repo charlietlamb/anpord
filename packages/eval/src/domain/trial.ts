@@ -12,6 +12,12 @@ export const TrialStatus = Schema.Literal(
 );
 export type TrialStatus = typeof TrialStatus.Type;
 
+export const VerifyStepResult = Schema.Struct({
+  command: Schema.String,
+  exitCode: Schema.Int,
+});
+export type VerifyStepResult = typeof VerifyStepResult.Type;
+
 export const TrialOutcome = Schema.Struct({
   commandCount: Schema.Int,
   exitCode: Schema.Int,
@@ -19,6 +25,10 @@ export const TrialOutcome = Schema.Struct({
   passed: Schema.Boolean,
   sandboxMs: Schema.Int,
   status: TrialStatus,
+  /** The verifier's conditions in the order they ran, up to and including the
+   * one that failed. Empty when the verifier was one command, refused, or
+   * never ran. */
+  verifySteps: Schema.Array(VerifyStepResult),
   voidFields: Schema.Array(Schema.String),
 });
 export type TrialOutcome = typeof TrialOutcome.Type;
@@ -80,6 +90,7 @@ export interface ScoreInput {
   readonly fingerprint: Readonly<Record<string, string>>;
   readonly modelMs: number;
   readonly sandboxMs: number;
+  readonly verifySteps?: readonly VerifyStepResult[];
   /** Extra void signatures for this deployment, from configuration. */
   readonly voidPatterns?: readonly string[];
 }
@@ -88,6 +99,7 @@ export interface ScoreInput {
  * pass or fail, because it has no evidence to carry one. */
 export const outcomeOf = (input: ScoreInput): TrialOutcome => {
   const check = checkVoid(input.fingerprint, input.voidPatterns ?? []);
+  const verifySteps = input.verifySteps ?? [];
 
   if (check.voided) {
     return {
@@ -97,6 +109,7 @@ export const outcomeOf = (input: ScoreInput): TrialOutcome => {
       passed: false,
       sandboxMs: input.sandboxMs,
       status: "void",
+      verifySteps,
       voidFields: check.fields,
     };
   }
@@ -115,6 +128,7 @@ export const outcomeOf = (input: ScoreInput): TrialOutcome => {
       passed: false,
       sandboxMs: input.sandboxMs,
       status: "void",
+      verifySteps,
       voidFields: vacuous,
     };
   }
@@ -128,6 +142,7 @@ export const outcomeOf = (input: ScoreInput): TrialOutcome => {
     passed,
     sandboxMs: input.sandboxMs,
     status: passed ? "passed" : "failed",
+    verifySteps,
     voidFields: [],
   };
 };

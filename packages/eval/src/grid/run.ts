@@ -34,10 +34,13 @@ export interface StartGrid {
   readonly trials: number;
 }
 
-/** A page of runs, and where the next one starts. */
+/** A page of runs, where the next one starts, and how many there are in all. */
 export interface GridRunPage {
   readonly next: PageCursor | null;
   readonly runs: readonly GridRunState[];
+  /** Every run the organization has, so a reader can be told how far the
+   * listing goes rather than only whether another page exists. */
+  readonly total: number;
 }
 
 export interface GridRunShape {
@@ -326,11 +329,19 @@ export const GridRunLive = Layer.scoped(
         Effect.gen(function* () {
           const size = pageSizeOf(input.limit);
 
-          const rows = yield* query.listRuns({
-            cursor: input.cursor,
-            limit: size,
-            organizationId: input.organizationId,
-          });
+          /* Together: the count is a second query and waiting for it after
+             the page would add its latency to every step. */
+          const { rows, total } = yield* Effect.all(
+            {
+              rows: query.listRuns({
+                cursor: input.cursor,
+                limit: size,
+                organizationId: input.organizationId,
+              }),
+              total: query.countRuns(input.organizationId),
+            },
+            { concurrency: 2 }
+          );
 
           const page = pageOf(rows, size);
 
@@ -365,6 +376,7 @@ export const GridRunLive = Layer.scoped(
                 ? { id: last.id, startedAtMillis: last.createdAt.getTime() }
                 : null,
             runs: states,
+            total,
           };
         }).pipe(Effect.orDie, Effect.withSpan("GridRun.list")),
       start,

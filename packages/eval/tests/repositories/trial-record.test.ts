@@ -43,6 +43,7 @@ const outcome: TrialOutcome = {
   passed: true,
   sandboxMs: 500,
   status: "passed",
+  verifySteps: [],
   voidFields: [],
 };
 

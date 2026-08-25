@@ -27,7 +27,8 @@
                   "type": "object",
                   "required": [
                     "next",
-                    "runs"
+                    "runs",
+                    "total"
                   ],
                   "properties": {
                     "next": {
@@ -58,6 +59,9 @@
                       "items": {
                         "$ref": "#/components/schemas/EvalRunSummary"
                       }
+                    },
+                    "total": {
+                      "$ref": "#/components/schemas/Int"
                     }
                   },
                   "additionalProperties": false
@@ -2053,6 +2057,7 @@
           "timed",
           "trajectory",
           "usage",
+          "verifySteps",
           "voidFields"
         ],
         "properties": {
@@ -2122,6 +2127,12 @@
                 "type": "null"
               }
             ]
+          },
+          "verifySteps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalVerifyStep"
+            }
           },
           "voidFields": {
             "type": "array",
@@ -2318,6 +2329,23 @@
         },
         "additionalProperties": false,
         "description": "Token usage reported by the harness."
+      },
+      "EvalVerifyStep": {
+        "type": "object",
+        "required": [
+          "command",
+          "exitCode"
+        ],
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "exitCode": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "One condition of the verifier, and how it exited. Only the steps that ran are listed: the script stops at the first failure."
       },
       "EvalCellRequest": {
         "type": "object",

@@ -146,6 +146,7 @@ export const TrialRecorderLive = Layer.effect(
             sandboxMs: input.outcome.sandboxMs,
             status: input.outcome.status,
             usage: input.usage === null ? null : { ...input.usage },
+            verifySteps: input.outcome.verifySteps.map((step) => ({ ...step })),
             voidFields: [...input.outcome.voidFields],
           })
           .where(eq(evalTrial.internalId, input.trialInternalId))
