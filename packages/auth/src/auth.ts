@@ -56,12 +56,12 @@ const makeAuth = Effect.gen(function* () {
     plugins: [
       organization({
         organizationHooks: {
-          afterCreateOrganization: ({ organization: created }) =>
+          afterCreateOrganization: ({ organization: created, user }) =>
             Effect.runPromise(
               Effect.all(
                 [
                   seedDefaultChannel(db, ids, created.id),
-                  registerBillingCustomer(autumn, created),
+                  registerBillingCustomer(autumn, created, user.email),
                 ],
                 { concurrency: 2, discard: true }
               )

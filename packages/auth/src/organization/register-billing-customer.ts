@@ -9,12 +9,16 @@ import { Effect } from "effect";
  */
 export const registerBillingCustomer = (
   autumn: AutumnShape,
-  organization: { readonly id: string; readonly name: string | null }
+  organization: { readonly id: string; readonly name: string | null },
+  /* The person who created it, so an account is reachable in the billing
+     console without joining back to our own tables. */
+  email: string | null
 ) =>
   autumn
     .call("Autumn.register", (client) =>
       client.customers.getOrCreate({
         customerId: organization.id,
+        email,
         name: organization.name,
       })
     )
