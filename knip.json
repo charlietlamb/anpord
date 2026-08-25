@@ -14,7 +14,12 @@
       "project": ["src/**", "tests/**"]
     },
     "apps/web": {
-      "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "vite.config.ts"],
+      "entry": [
+        "src/router.tsx",
+        "src/routes/**/*.{ts,tsx}",
+        "src/components/dev/eval-fixtures.ts",
+        "vite.config.ts"
+      ],
       "project": "src/**",
       "ignore": ["src/routeTree.gen.ts"]
     },

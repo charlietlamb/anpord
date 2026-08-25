@@ -176,6 +176,13 @@
       "when": 1787498677786,
       "tag": "0024_futuristic_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1787608270575,
+      "tag": "0025_quiet_makkari",
+      "breakpoints": true
     }
   ]
 }

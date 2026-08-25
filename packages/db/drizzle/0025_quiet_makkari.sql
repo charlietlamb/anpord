@@ -1,0 +1,1 @@
+ALTER TABLE "eval_trial" ADD COLUMN "verify_steps" jsonb;
