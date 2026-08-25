@@ -93,8 +93,10 @@
   --text-label: 0.8125rem;
   --text-label--line-height: 1.25rem;
   --color-success: var(--success);
+  --color-trace-cached: var(--trace-cached);
   --color-trace-command: var(--trace-command);
   --color-trace-file: var(--trace-file);
+  --color-trace-fresh: var(--trace-fresh);
   --color-trace-message: var(--trace-message);
   --color-trace-thinking: var(--trace-thinking);
   --color-trace-tool: var(--trace-tool);
@@ -156,6 +158,13 @@
   --trace-thinking: oklch(0.62 0.04 280);
   --trace-tool: oklch(0.52 0.1 330);
 
+  /* Tokens the model was given, split by where they came from. One hue at two
+     strengths rather than two hues: cached and fresh are the same quantity
+     measured twice, and a second hue would read as a second thing. Fresh is
+     the stronger of the pair because it is what a run actually pays for. */
+  --trace-fresh: oklch(0.55 0.13 285);
+  --trace-cached: oklch(0.78 0.06 285);
+
   --shadow-popover:
     0 0 0 1px var(--border-surface), 0 16px 32px oklch(0 0 0 / 10%),
     0 4px 10px oklch(0 0 0 / 8%);
@@ -207,6 +216,11 @@
   --trace-message: oklch(0.62 0.02 250);
   --trace-thinking: oklch(0.7 0.04 280);
   --trace-tool: oklch(0.74 0.11 330);
+
+  /* Inverted against the dark ground: fresh stays the brighter of the pair,
+     so the same reading holds in either theme. */
+  --trace-fresh: oklch(0.72 0.15 285);
+  --trace-cached: oklch(0.45 0.06 285);
 
   /* A menu opens over the cards rather than beside them, so its edge has to
      read against a raised surface, not the page. The ring matches the border

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { TokenBand } from "@/components/evals/token-band";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { Waterfall } from "@/components/evals/waterfall";
@@ -48,6 +49,11 @@ function TrialScreen() {
       <EvalMain>
         <section className="flex flex-col gap-1.5">
           <PageHeading icon={PulseIcon} title="Trajectory" />
+
+          {/* Above the waterfall and on its width, so the run's spend and its
+              latency are read in one pass rather than one after the other. */}
+          {trial.usage === null ? null : <TokenBand usage={trial.usage} />}
+
           <Waterfall
             running={trial.status === "running"}
             timed={trial.timed}

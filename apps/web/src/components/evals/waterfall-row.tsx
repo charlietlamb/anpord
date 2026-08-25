@@ -6,6 +6,7 @@ import {
 } from "@anpord/ui/components/tooltip";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 import { cn } from "@anpord/ui/lib/utils";
+import { StackIcon } from "@phosphor-icons/react";
 import {
   JournalOutput,
   useJournalOutput,
@@ -19,6 +20,7 @@ import {
   kindOf,
   labelOf,
 } from "@/lib/evals/journal-presentation";
+import { dollars, percent, tokens } from "@/lib/evals/tokens";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
 function ExitCode({ code }: { readonly code: number | null }) {
@@ -72,6 +74,46 @@ function Track({ row }: { readonly row: WaterfallRow }) {
   );
 }
 
+/**
+ * What one turn of the run spent, where the harness reported it per turn.
+ *
+ * Only a message carries usage, and only from a harness that reports each
+ * turn rather than a closing total, so this is absent far more often than it
+ * is present. Silent in that case rather than showing a zero, which would
+ * claim a turn was free.
+ */
+function TurnUsage({ entry }: { readonly entry: EvalJournalEntry }) {
+  if (entry._tag !== "message") {
+    return null;
+  }
+
+  const usage = entry.usage;
+
+  if (usage === null || usage === undefined) {
+    return null;
+  }
+
+  const served =
+    usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
+
+  return (
+    <span className="flex items-center gap-2 text-xs tabular-nums opacity-70">
+      <span className="flex items-center gap-1.5">
+        <StackIcon aria-hidden="true" size={13} />
+        {tokens(usage.totalTokens)}
+      </span>
+
+      {served === 0 || usage.cacheReadTokens === 0 ? null : (
+        <span>{percent(usage.cacheReadTokens / served)} cached</span>
+      )}
+
+      {usage.costUsd === null || usage.costUsd === undefined ? null : (
+        <span>{dollars(usage.costUsd)}</span>
+      )}
+    </span>
+  );
+}
+
 function RowTooltip({ row }: { readonly row: WaterfallRow }) {
   const kind = kindOf(row);
   const Glyph = KIND_ICONS[kind];
@@ -107,6 +149,8 @@ function RowTooltip({ row }: { readonly row: WaterfallRow }) {
             {seconds(row.lead.durationMs)} thinking before this
           </span>
         )}
+
+        <TurnUsage entry={row.entry} />
 
         {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
 
