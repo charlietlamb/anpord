@@ -35,38 +35,59 @@ function ExitCode({ code }: { readonly code: number | null }) {
   );
 }
 
+/* Waiting is drawn hatched and working is drawn solid, so the two read apart
+   at a glance without spending a second hue on the distinction. The stripes
+   run at 45 degrees over the kind's own colour, which keeps a hatched bar
+   recognisably the same thing as the solid one it leads into. */
+const hatched = (colour: string) =>
+  `repeating-linear-gradient(45deg, ${colour} 0 3px, transparent 3px 6px)`;
+
+/** The lead-in: time the agent spent deciding before this step began. */
+function Lead({ row }: { readonly row: WaterfallRow }) {
+  if (row.lead === null) {
+    return null;
+  }
+
+  const colour = KIND_COLOURS.thinking;
+
+  return (
+    <span
+      className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px]"
+      style={{
+        backgroundColor:
+          "color-mix(in oklch, var(--trace-thinking) 18%, transparent)",
+        backgroundImage: hatched(colour),
+        left: `${row.lead.fromPercent}%`,
+        width: `${row.lead.widthPercent}%`,
+      }}
+    />
+  );
+}
+
 function Track({ row }: { readonly row: WaterfallRow }) {
   const background = KIND_COLOURS[kindOf(row)];
-  const from = row.lead === null ? row.leftPercent : row.lead.fromPercent;
 
   return (
     <>
-      {row._tag === "marker" ? (
-        <>
-          {row.lead === null ? null : (
-            <span
-              className="absolute top-1/2 block h-1.5 -translate-y-1/2 rounded-full opacity-50"
-              style={{
-                background,
-                left: `${from}%`,
-                width: `${row.leftPercent - from}%`,
-              }}
-            />
-          )}
+      <Lead row={row} />
 
-          <span
-            className="absolute top-1/2 block size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{ background, left: `${row.leftPercent}%` }}
-          />
-        </>
+      {row._tag === "marker" ? (
+        /* An instant, not a span: a harness that says only when a step
+           finished gives it no width, and a guessed one would be a drawn
+           lie. Squared off rather than round so it reads as a tick on the
+           timeline instead of a very short bar. */
+        <span
+          className="absolute top-1/2 block h-3 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-[2px]"
+          style={{ background, left: `${row.leftPercent}%` }}
+        />
       ) : (
         <span
-          className="absolute top-1/2 block h-1.5 -translate-y-1/2 rounded-full"
+          className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px]"
           style={{
             background,
-            left: `${from}%`,
+            left: `${row.leftPercent}%`,
             minWidth: 3,
-            width: `${row.leftPercent + row.widthPercent - from}%`,
+            width: `${row.widthPercent}%`,
           }}
         />
       )}
@@ -176,7 +197,7 @@ export function TimedRow({ row }: { readonly row: WaterfallRow }) {
               aria-expanded={expandable ? open : undefined}
               aria-label={describeRow(row)}
               className={cn(
-                "relative block h-5 w-full rounded-sm text-left transition-colors duration-150 ease-out focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "relative block h-6 w-full rounded-sm text-left transition-colors duration-150 ease-out focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
 
                 expandable
                   ? "cursor-pointer hover:bg-alpha-6"

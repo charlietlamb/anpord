@@ -19,13 +19,21 @@ const widthOf = (part: number, whole: number) => {
   return Math.max((part / whole) * 100, FLOOR);
 };
 
+/* Cached context is hatched and fresh is solid, the same device the bars
+   below use for waiting against working: what was paid for in full reads as
+   filled, and what was re-used reads as ruled. */
+const HATCH =
+  "repeating-linear-gradient(45deg, var(--trace-cached) 0 3px, transparent 3px 6px)";
+
 function Segment({
+  hatch,
   hint,
   label,
   tone,
   tokens,
   whole,
 }: {
+  readonly hatch?: boolean;
   readonly hint: string;
   readonly label: string;
   readonly tone: string;
@@ -43,8 +51,15 @@ function Segment({
       <TooltipTrigger
         render={
           <span
-            className="block h-full first:rounded-l-full last:rounded-r-full"
-            style={{ background: tone, width: `${width}%` }}
+            className="block h-full first:rounded-l-[3px] last:rounded-r-[3px]"
+            style={{
+              backgroundColor:
+                hatch === true
+                  ? "color-mix(in oklch, var(--trace-cached) 22%, transparent)"
+                  : tone,
+              backgroundImage: hatch === true ? HATCH : undefined,
+              width: `${width}%`,
+            }}
           />
         }
       />
@@ -97,8 +112,9 @@ export function TokenBand({ usage }: { readonly usage: EvalUsage }) {
         </span>
       </div>
 
-      <div className="flex h-1.5 w-full gap-px overflow-hidden rounded-full bg-border-faint">
+      <div className="flex h-3 w-full gap-px overflow-hidden rounded-[3px] bg-border-faint">
         <Segment
+          hatch
           hint="Served from the provider's cache, billed at a fraction of fresh input."
           label="cached"
           tokens={usage.cacheReadTokens}
