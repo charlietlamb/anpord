@@ -73,7 +73,13 @@ describe("harness event decoders", () => {
         }),
         30
       ).usage
-    ).toEqual({ inputTokens: 3, outputTokens: 5, totalTokens: 8 });
+    ).toEqual({
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      inputTokens: 3,
+      outputTokens: 5,
+      totalTokens: 8,
+    });
   });
 
   it("decodes Pi session, commands, files, and usage", () => {

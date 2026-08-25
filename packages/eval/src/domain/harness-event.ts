@@ -4,6 +4,25 @@ import { Schema } from "effect";
    decode. Absent means unknown, which is why it is never zero. */
 const OccurredAtMillis = Schema.optional(Schema.Number);
 
+/** Token counts a harness reports about itself. Kept optional because a
+ * harness may report none, and stored as harness-reported rather than
+ * measured: it is an estimate produced by the code under test. */
+export const HarnessUsage = Schema.Struct({
+  /* Tokens served from the provider's cache, and tokens written to it. Both
+     are a share of the input rather than an addition to it, and both are
+     priced differently from fresh input -- a cache read is an order of
+     magnitude cheaper -- so they are the difference between a run that looks
+     expensive and one that is. Zero where a harness reports no cache at all,
+     which is not the same as a harness that reported a cache it did not
+     use. */
+  cacheReadTokens: Schema.Int,
+  cacheWriteTokens: Schema.Int,
+  inputTokens: Schema.Int,
+  outputTokens: Schema.Int,
+  totalTokens: Schema.Int,
+});
+export type HarnessUsage = typeof HarnessUsage.Type;
+
 /** The normalised event every harness decodes into. */
 export const HarnessEvent = Schema.Union(
   Schema.Struct({
@@ -17,6 +36,10 @@ export const HarnessEvent = Schema.Union(
     at: OccurredAtMillis,
     role: Schema.Literal("assistant", "user"),
     text: Schema.String,
+    /* What this turn alone spent, where the harness said. Absent for a
+       harness that reports only a running total, and absent on the user's
+       side of the exchange. */
+    usage: Schema.optional(HarnessUsage),
   }),
   /* A command the agent ran, with the exit code captured where it still
      exists. This is the column an eval platform reading a tool-call string
@@ -57,15 +80,11 @@ export const HarnessEvent = Schema.Union(
 );
 export type HarnessEvent = typeof HarnessEvent.Type;
 
-/** Token counts a harness reports about itself. Kept optional because a
- * harness may report none, and stored as harness-reported rather than
- * measured: it is an estimate produced by the code under test. */
-export const HarnessUsage = Schema.Struct({
-  inputTokens: Schema.Int,
-  outputTokens: Schema.Int,
-  totalTokens: Schema.Int,
-});
-export type HarnessUsage = typeof HarnessUsage.Type;
+/* A count that may not have been written, read as none rather than as zero
+   of something. Guards against a `jsonb` value of the wrong shape as well as
+   an absent one. */
+const countOf = (value: number | undefined) =>
+  typeof value === "number" && Number.isFinite(value) ? value : 0;
 
 /**
  * Tokens read back from the column they were stored in.
@@ -73,6 +92,11 @@ export type HarnessUsage = typeof HarnessUsage.Type;
  * A `jsonb` column is whatever was written to it, so the three fields are
  * checked rather than assumed: a row written by an older build with a
  * different shape reports no usage instead of a cost of `undefined`.
+ *
+ * The cache counts are read the other way round, defaulted rather than
+ * required. Every row written before they existed lacks them, and demanding
+ * them would report those trials as having no usage at all rather than as
+ * having usage whose cache share is unknown.
  */
 export const usageOf = (
   value: Record<string, number> | null
@@ -86,7 +110,13 @@ export const usageOf = (
   return typeof inputTokens === "number" &&
     typeof outputTokens === "number" &&
     typeof totalTokens === "number"
-    ? { inputTokens, outputTokens, totalTokens }
+    ? {
+        cacheReadTokens: countOf(value.cacheReadTokens),
+        cacheWriteTokens: countOf(value.cacheWriteTokens),
+        inputTokens,
+        outputTokens,
+        totalTokens,
+      }
     : null;
 };
 

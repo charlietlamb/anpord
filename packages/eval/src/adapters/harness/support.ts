@@ -1,7 +1,8 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import { Effect, Option, Redacted, Ref, Stream } from "effect";
+import { Effect, Redacted, Ref, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
+import { EMPTY_TALLY, tallied, totalOf } from "../../domain/usage-tally";
 import type {
   HarnessSessionShape,
   PrepareHarness,
@@ -17,6 +18,16 @@ export interface DecodedOutput {
   readonly model?: string;
   readonly sessionId?: string;
   readonly usage?: HarnessUsage;
+  /**
+   * Whether `usage` restates the run's total rather than one turn's share.
+   *
+   * The two cannot be told apart by looking at the numbers, and adding a
+   * cumulative report to the turns it already contains counts every token
+   * twice. Only the decoder knows which its harness emits -- Claude sends
+   * per-turn usage on each message and a cumulative total at the end -- so
+   * the decoder is what says so.
+   */
+  readonly usageIsCumulative?: boolean;
 }
 
 export const installNpmHarness = (
@@ -92,7 +103,7 @@ export const jsonSession = (
   verifyModel = false
 ) =>
   Effect.gen(function* () {
-    const usage = yield* Ref.make(Option.none<HarnessUsage>());
+    const usage = yield* Ref.make(EMPTY_TALLY);
     const started = yield* Ref.make(false);
 
     const events = harnessLines(
@@ -119,7 +130,12 @@ export const jsonSession = (
           }
 
           if (decoded.usage !== undefined) {
-            yield* Ref.set(usage, Option.some(decoded.usage));
+            const reported = decoded.usage;
+            const cumulative = decoded.usageIsCumulative ?? false;
+
+            yield* Ref.update(usage, (tally) =>
+              tallied(tally, reported, cumulative)
+            );
           }
 
           const opening: HarnessEvent[] = [];
@@ -142,7 +158,7 @@ export const jsonSession = (
     return {
       events,
       harness: request.harness,
-      usage: Ref.get(usage),
+      usage: Ref.get(usage).pipe(Effect.map(totalOf)),
       version: request.harnessVersion,
     } satisfies HarnessSessionShape;
   });

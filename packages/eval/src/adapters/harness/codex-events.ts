@@ -28,7 +28,12 @@ const FileChangeItem = Schema.Struct({
 });
 
 const Usage = Schema.Struct({
+  /* The Responses shape reports cache reads as a detail of the input, which
+     already counts them. There is no cache-write count to read. */
   input_tokens: Schema.Number,
+  input_tokens_details: Schema.optional(
+    Schema.Struct({ cached_tokens: Schema.optional(Schema.Number) })
+  ),
   output_tokens: Schema.Number,
 });
 
@@ -113,6 +118,8 @@ export const decodeCodexLine = (line: string): DecodedLine => {
       ...none,
       event: Option.some({ _tag: "Finished", reason: "turn.completed" }),
       usage: Option.some({
+        cacheReadTokens: value.usage.input_tokens_details?.cached_tokens ?? 0,
+        cacheWriteTokens: 0,
         inputTokens: value.usage.input_tokens,
         outputTokens: value.usage.output_tokens,
         totalTokens: value.usage.input_tokens + value.usage.output_tokens,

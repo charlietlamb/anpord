@@ -2228,6 +2228,16 @@
               },
               "text": {
                 "type": "string"
+              },
+              "usage": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EvalUsage"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -2312,11 +2322,19 @@
       "EvalUsage": {
         "type": "object",
         "required": [
+          "cacheReadTokens",
+          "cacheWriteTokens",
           "inputTokens",
           "outputTokens",
           "totalTokens"
         ],
         "properties": {
+          "cacheReadTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "cacheWriteTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
           "inputTokens": {
             "$ref": "#/components/schemas/Int"
           },

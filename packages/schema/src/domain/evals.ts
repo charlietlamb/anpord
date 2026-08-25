@@ -116,6 +116,21 @@ export type StartEvalRequest = typeof StartEvalRequest.Type;
 
 const OccurredAtMillis = Schema.NullOr(Schema.Number);
 
+export const EvalUsage = Schema.Struct({
+  /* A share of the input rather than an addition to it, and priced far
+     cheaper, so these are what separate an expensive run from a repeat of
+     one. Zero where the harness reports no cache: unreported, not unused. */
+  cacheReadTokens: Schema.Int,
+  cacheWriteTokens: Schema.Int,
+  inputTokens: Schema.Int,
+  outputTokens: Schema.Int,
+  totalTokens: Schema.Int,
+}).annotations({
+  description: "Token usage reported by the harness.",
+  identifier: "EvalUsage",
+});
+export type EvalUsage = typeof EvalUsage.Type;
+
 export const EvalJournalEntry = Schema.Union(
   Schema.Struct({
     _tag: Schema.Literal("command"),
@@ -129,6 +144,9 @@ export const EvalJournalEntry = Schema.Union(
     _tag: Schema.Literal("message"),
     finishedAtMillis: OccurredAtMillis,
     text: Schema.String,
+    /* What this turn spent, where the harness reported it per turn rather
+       than only as a running total. Null is unknown, not free. */
+    usage: Schema.optional(Schema.NullOr(EvalUsage)),
   }),
   Schema.Struct({
     _tag: Schema.Literal("toolCall"),
@@ -146,16 +164,6 @@ export const EvalJournalEntry = Schema.Union(
   identifier: "EvalJournalEntry",
 });
 export type EvalJournalEntry = typeof EvalJournalEntry.Type;
-
-export const EvalUsage = Schema.Struct({
-  inputTokens: Schema.Int,
-  outputTokens: Schema.Int,
-  totalTokens: Schema.Int,
-}).annotations({
-  description: "Token usage reported by the harness.",
-  identifier: "EvalUsage",
-});
-export type EvalUsage = typeof EvalUsage.Type;
 
 export const EvalVerifyStep = Schema.Struct({
   command: Schema.String,

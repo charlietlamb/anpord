@@ -141,6 +141,8 @@ describe("decoding an OpenCode line", () => {
     );
 
     expect(Option.getOrThrow(decoded.usage)).toEqual({
+      cacheReadTokens: 20_986,
+      cacheWriteTokens: 355,
       inputTokens: 2,
       outputTokens: 160,
       totalTokens: 21_503,

@@ -15,6 +15,15 @@ const ToolState = Schema.Struct({
 });
 
 const Tokens = Schema.Struct({
+  /* OpenCode nests the cache counts under the tokens it reports, and unlike
+     Anthropic it treats them as a share of the input rather than as figures
+     beside it. */
+  cache: Schema.optional(
+    Schema.Struct({
+      read: Schema.optional(Schema.Number),
+      write: Schema.optional(Schema.Number),
+    })
+  ),
   input: Schema.Number,
   output: Schema.Number,
   total: Schema.optional(Schema.Number),
@@ -217,6 +226,8 @@ export const decodeOpencodeLine = (line: string): DecodedLine => {
         tokens === undefined
           ? Option.none()
           : Option.some({
+              cacheReadTokens: tokens.cache?.read ?? 0,
+              cacheWriteTokens: tokens.cache?.write ?? 0,
               inputTokens: tokens.input,
               outputTokens: tokens.output,
               totalTokens: tokens.total ?? tokens.input + tokens.output,

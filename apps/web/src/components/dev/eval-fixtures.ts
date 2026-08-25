@@ -155,6 +155,8 @@ const trial = (input: {
     input.tokens === null
       ? null
       : {
+          cacheReadTokens: 231_400,
+          cacheWriteTokens: 4820,
           inputTokens: 260_000,
           outputTokens: 12_717,
           totalTokens: input.tokens,

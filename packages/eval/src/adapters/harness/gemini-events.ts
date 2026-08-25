@@ -80,7 +80,12 @@ const toolOf = (
   };
 };
 
+/* Gemini's stats carry no cache counts, so these are zero: the run may well
+   have hit a cache, and this harness does not say. Read them as unreported
+   rather than as a cache that was never used. */
 const usageOf = (stats: typeof Stats.Type): HarnessUsage => ({
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
   inputTokens: stats.input_tokens ?? 0,
   outputTokens: stats.output_tokens ?? 0,
   totalTokens:

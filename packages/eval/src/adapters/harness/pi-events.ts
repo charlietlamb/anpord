@@ -49,7 +49,10 @@ const decodeBash = Schema.decodeUnknownOption(BashInput);
 const decodeFile = Schema.decodeUnknownOption(FileInput);
 const writes = new Set(["edit", "write"]);
 
+/* No cache counts in this stream: zero here means unreported, not unused. */
 const usageOf = (usage: typeof Usage.Type): HarnessUsage => ({
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
   inputTokens: usage.input ?? 0,
   outputTokens: usage.output ?? 0,
   totalTokens: usage.totalTokens ?? (usage.input ?? 0) + (usage.output ?? 0),

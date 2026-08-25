@@ -67,6 +67,7 @@ const asTrajectory = (
           _tag: "message" as const,
           finishedAtMillis: millisOrNull(event.at),
           text: event.text,
+          usage: event.usage ?? null,
         },
       ];
     }

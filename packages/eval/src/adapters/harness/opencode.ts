@@ -29,6 +29,8 @@ const added = (
   Option.match(current, {
     onNone: () => next,
     onSome: (found) => ({
+      cacheReadTokens: found.cacheReadTokens + next.cacheReadTokens,
+      cacheWriteTokens: found.cacheWriteTokens + next.cacheWriteTokens,
       inputTokens: found.inputTokens + next.inputTokens,
       outputTokens: found.outputTokens + next.outputTokens,
       totalTokens: found.totalTokens + next.totalTokens,

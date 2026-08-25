@@ -146,7 +146,13 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           outcome,
           sandboxId: "sbx_1",
           trialInternalId,
-          usage: { inputTokens: 120, outputTokens: 40, totalTokens: 160 },
+          usage: {
+            cacheReadTokens: 0,
+            cacheWriteTokens: 0,
+            inputTokens: 120,
+            outputTokens: 40,
+            totalTokens: 160,
+          },
         });
 
         const settled = yield* Effect.promise(() =>

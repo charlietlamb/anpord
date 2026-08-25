@@ -3,6 +3,8 @@ import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 import type { DecodedOutput } from "./support";
 
 const Usage = Schema.Struct({
+  cache_creation_input_tokens: Schema.optional(Schema.Number),
+  cache_read_input_tokens: Schema.optional(Schema.Number),
   input_tokens: Schema.optional(Schema.Number),
   output_tokens: Schema.optional(Schema.Number),
 });
@@ -48,11 +50,26 @@ const ToolInput = Schema.Struct({
 });
 const decodeToolInput = Schema.decodeUnknownOption(ToolInput);
 
-const usageOf = (usage: typeof Usage.Type): HarnessUsage => ({
-  inputTokens: usage.input_tokens ?? 0,
-  outputTokens: usage.output_tokens ?? 0,
-  totalTokens: (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0),
-});
+/* Anthropic reports the cache counts beside the input rather than inside it,
+   so a cached turn reads as a small `input_tokens` and a large
+   `cache_read_input_tokens`. Both are tokens the model was given, and the
+   total counts them: without it a well-cached run reports a fraction of the
+   context it actually ran on. */
+const usageOf = (usage: typeof Usage.Type): HarnessUsage => {
+  const cacheReadTokens = usage.cache_read_input_tokens ?? 0;
+  const cacheWriteTokens = usage.cache_creation_input_tokens ?? 0;
+  const inputTokens = usage.input_tokens ?? 0;
+  const outputTokens = usage.output_tokens ?? 0;
+
+  return {
+    cacheReadTokens,
+    cacheWriteTokens,
+    inputTokens,
+    outputTokens,
+    totalTokens:
+      inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens,
+  };
+};
 
 const toolOf = (part: typeof Content.Type, at: number): HarnessEvent => {
   const name = part.name ?? "unknown";
@@ -127,25 +144,41 @@ export const decodeClaudeLine = (line: string, at: number): DecodedOutput => {
       reason: value.subtype ?? (value.is_error ? "error" : "success"),
     });
 
+    /* The closing result restates the whole run, so it replaces the turns
+       rather than joining them. */
     return {
       events,
       sessionId: value.session_id,
       usage: value.usage === undefined ? undefined : usageOf(value.usage),
+      usageIsCumulative: true,
     };
   }
+
+  const turn =
+    value.message.usage === undefined
+      ? undefined
+      : usageOf(value.message.usage);
+
+  /* The turn's cost rides on its first message, so a reader can see which
+     step of a run was the expensive one. Attaching it to every message of a
+     multi-part turn would report the same spend once per part. */
+  let unspent = turn;
 
   return {
     events: value.message.content.flatMap((part): readonly HarnessEvent[] => {
       if (part.type === "text" && part.text) {
-        return [{ _tag: "Message", at, role: "assistant", text: part.text }];
+        const usage = unspent;
+
+        unspent = undefined;
+
+        return [
+          { _tag: "Message", at, role: "assistant", text: part.text, usage },
+        ];
       }
 
       return part.type === "tool_use" ? [toolOf(part, at)] : [];
     }),
     sessionId: value.session_id,
-    usage:
-      value.message.usage === undefined
-        ? undefined
-        : usageOf(value.message.usage),
+    usage: turn,
   };
 };
