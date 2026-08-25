@@ -74,6 +74,10 @@ export const HarnessEvent = Schema.Union(
     callId: Schema.NullOr(Schema.String),
     input: Schema.String,
     name: Schema.String,
+    /* When the call began, for a harness that reports both ends of it. A tool
+       that ran for a third of a second is a different fact from one that
+       returned instantly, and without this both are drawn as the same dot. */
+    startedAt: Schema.optional(Schema.Number),
     status: Schema.NullOr(Schema.String),
   }),
   Schema.Struct({

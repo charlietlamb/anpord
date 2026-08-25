@@ -135,3 +135,51 @@ describe("laying out a trajectory", () => {
     expect(rows[1]?.lead).toBe(null);
   });
 });
+
+const toolCall = (
+  startedAtMillis: number | null,
+  finishedAtMillis: number | null
+): EvalJournalEntry => ({
+  _tag: "toolCall",
+  finishedAtMillis,
+  name: "getPlan",
+  startedAtMillis,
+  status: "ok",
+});
+
+describe("timing a tool call", () => {
+  /* A harness that reports both ends of a call gives it a real width, the
+     same as it would a command. Drawn as a dot, a call that ran a third of a
+     second was indistinguishable from one that returned instantly. */
+  it("draws a bar for a call reported at both ends", () => {
+    const { rows } = waterfallLayout([toolCall(1000, 1303)]);
+
+    expect(rows[0]?._tag).toBe("bar");
+    expect(rows[0]?._tag === "bar" ? rows[0].durationMs : null).toBe(303);
+  });
+
+  it("leaves a call with no start as a marker", () => {
+    const { rows } = waterfallLayout([toolCall(null, 1303)]);
+
+    expect(rows[0]?._tag).toBe("marker");
+  });
+
+  /* A zero-width bar renders as nothing at all, which reads as a dropped row
+     rather than as a fast call. */
+  it("leaves a call that reports no elapsed time as a marker", () => {
+    const { rows } = waterfallLayout([toolCall(1000, 1000)]);
+
+    expect(rows[0]?._tag).toBe("marker");
+  });
+
+  /* The rail reads workingMs as time spent running commands in the sandbox,
+     and a tool call the harness answered itself never went near one. */
+  it("keeps a tool call out of the time spent running commands", () => {
+    const { workingMs } = waterfallLayout([
+      command(0, 1000),
+      toolCall(1000, 1500),
+    ]);
+
+    expect(workingMs).toBe(1000);
+  });
+});

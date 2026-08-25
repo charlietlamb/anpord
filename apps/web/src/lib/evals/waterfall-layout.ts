@@ -6,10 +6,13 @@ interface WaterfallLead {
   readonly widthPercent: number;
 }
 
+/** An entry a harness reported both ends of, so it has a real width. */
+type TimedEntry = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
+
 interface WaterfallBar {
   readonly _tag: "bar";
   readonly durationMs: number;
-  readonly entry: Extract<EvalJournalEntry, { _tag: "command" }>;
+  readonly entry: TimedEntry;
   readonly lead: WaterfallLead | null;
   readonly leftPercent: number;
   readonly widthPercent: number;
@@ -37,19 +40,30 @@ const momentOf = (entry: EvalJournalEntry) => entry.finishedAtMillis;
 const LEAD_FLOOR_MS = 1;
 
 interface Span {
-  readonly entry: Extract<EvalJournalEntry, { _tag: "command" }>;
+  readonly entry: TimedEntry;
   readonly finishedAt: number;
   readonly startedAt: number;
 }
 
+/**
+ * The entry as a measured span, or none where it is only an instant.
+ *
+ * A tool call qualifies on the same terms as a command: both ends reported,
+ * or nothing. A harness that says only when a call returned leaves it a
+ * marker, because a guessed width drawn like a measured one is the same lie
+ * as a rate with no denominator.
+ */
 const spanOf = (entry: EvalJournalEntry): Span | null => {
-  if (entry._tag !== "command") {
+  if (entry._tag !== "command" && entry._tag !== "toolCall") {
     return null;
   }
 
-  const { finishedAtMillis, startedAtMillis } = entry;
+  const { finishedAtMillis } = entry;
+  const startedAtMillis = entry.startedAtMillis ?? null;
 
-  return startedAtMillis === null || finishedAtMillis === null
+  return startedAtMillis === null ||
+    finishedAtMillis === null ||
+    finishedAtMillis <= startedAtMillis
     ? null
     : { entry, finishedAt: finishedAtMillis, startedAt: startedAtMillis };
 };
@@ -110,7 +124,13 @@ export const waterfallLayout = (
       const lead = leadUpTo(span.startedAt);
 
       previousEnd = Math.max(previousEnd, span.finishedAt);
-      workingMs += durationMs;
+
+      /* Commands only. The rail reads this as time spent running commands in
+         the sandbox, and a tool call the harness handled itself never went
+         near one. */
+      if (span.entry._tag === "command") {
+        workingMs += durationMs;
+      }
 
       return [
         {

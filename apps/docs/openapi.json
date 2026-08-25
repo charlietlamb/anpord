@@ -2270,6 +2270,16 @@
               "name": {
                 "type": "string"
               },
+              "startedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "status": {
                 "anyOf": [
                   {

@@ -78,6 +78,7 @@ const asTrajectory = (
           _tag: "toolCall" as const,
           finishedAtMillis: millisOrNull(event.at),
           name: event.name,
+          startedAtMillis: millisOrNull(event.startedAt),
           status: event.status,
         },
       ];

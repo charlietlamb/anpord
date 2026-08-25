@@ -119,6 +119,7 @@ const commandOf = (
       callId,
       input: JSON.stringify(state.input ?? null),
       name: "bash",
+      ...startedAtOf(state),
       status: state.status,
     };
   }
@@ -148,6 +149,7 @@ const fileChangeOf = (
       callId,
       input: JSON.stringify(state.input ?? null),
       name: tool,
+      ...startedAtOf(state),
       status: state.status,
     };
   }
@@ -173,6 +175,7 @@ const toolEventOf = (
     callId,
     input: JSON.stringify(state.input ?? null),
     name: tool,
+    ...startedAtOf(state),
     status: state.status,
   };
 };

@@ -156,6 +156,10 @@ export const EvalJournalEntry = Schema.Union(
     _tag: Schema.Literal("toolCall"),
     finishedAtMillis: OccurredAtMillis,
     name: Schema.String,
+    /* Null for a harness that reports only when a call returned, which is
+       most of them: such a call is drawn as the instant it is known to be
+       rather than as a guessed width. */
+    startedAtMillis: Schema.optional(OccurredAtMillis),
     status: Schema.NullOr(Schema.String),
   }),
   Schema.Struct({
