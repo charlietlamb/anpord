@@ -3,14 +3,30 @@ import type {
   CredentialIntegration,
 } from "@anpord/schema/domain/credentials";
 import { Button } from "@anpord/ui/components/button";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { DateTime } from "effect";
 import {
-  harnessPresentation,
-  providerPresentation,
-} from "@/lib/evals/variant-presentation";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@anpord/ui/components/dropdown-menu";
+import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
+import { DotsThreeIcon } from "@phosphor-icons/react";
+import { DateTime } from "effect";
+import { ListRow, RowTitle } from "@/components/layout/list-row";
+import { ROW_ACTION } from "@/components/layout/row-action";
+import { integrationPresentation } from "@/lib/settings/integration-presentation";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
+/**
+ * One stored credential, as a row.
+ *
+ * The same shape as every other list on the site: a mark, a name, a few
+ * muted facts, the numbers on the right, and a menu that appears on approach.
+ * The previous row stated seven facts in a sentence joined by dots, and said
+ * "Active" on every healthy row -- the normal case is not news, so only an
+ * invalid credential and a default one are badged.
+ */
 export function ConnectionRow({
   connection,
   integration,
@@ -29,66 +45,81 @@ export function ConnectionRow({
   const method = integration.authMethods.find(
     (candidate) => candidate.id === connection.authMethodId
   );
-  const { Icon } =
-    integration.category === "harness"
-      ? harnessPresentation(integration.id)
-      : providerPresentation(integration.id);
+  const own = integrationPresentation(integration);
   const used = useRelativeTime(
     DateTime.toDateUtc(connection.lastUsedAt ?? connection.createdAt)
   );
-  const checked = useRelativeTime(
-    DateTime.toDateUtc(connection.lastVerifiedAt ?? connection.createdAt)
-  );
 
   return (
-    <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50">
-          <Icon className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-medium text-sm">
-              {connection.name}
-            </span>
-            <StatusBadge
-              size="xs"
-              tone={connection.status === "active" ? "positive" : "critical"}
-            >
-              {connection.status === "active" ? "Active" : "Invalid"}
-            </StatusBadge>
-            {connection.isDefault ? (
-              <StatusBadge size="xs">Default</StatusBadge>
+    <ListRow
+      actions={
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                aria-label={`Actions for ${connection.name}`}
+                className={ROW_ACTION}
+                size="icon-sm"
+                variant="bare"
+              />
+            }
+          >
+            <DotsThreeIcon />
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onVerify}>
+              Check it works
+            </DropdownMenuItem>
+            {onRotate ? (
+              <DropdownMenuItem onClick={onRotate}>
+                Rotate secret
+              </DropdownMenuItem>
             ) : null}
-          </div>
-          <div className="truncate text-muted-foreground text-xs">
-            {integration.label} · {method?.label ?? connection.authMethodId} ·{" "}
-            {connection.scope === "organization" ? "Organization" : "Personal"}{" "}
-            · {connection.lastUsedAt === null ? "Never used" : `Used ${used}`} ·{" "}
-            {connection.lastVerifiedAt === null
-              ? "Not checked"
-              : `Checked ${checked}`}
-          </div>
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center justify-end gap-1">
-        <Button onClick={onVerify} size="sm" variant="ghost">
-          Check
-        </Button>
-        {onRotate ? (
-          <Button onClick={onRotate} size="sm" variant="ghost">
-            Rotate
-          </Button>
+            {connection.isDefault ? null : (
+              <DropdownMenuItem onClick={onDefault}>
+                Make default
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={onRemove}
+            >
+              Remove
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      }
+      leading={<own.Icon className="size-3.5 shrink-0 text-muted-foreground" />}
+      meta={
+        <span className="whitespace-nowrap">
+          {connection.lastUsedAt === null ? "Never used" : `Used ${used}`}
+        </span>
+      }
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <RowTitle>{connection.name}</RowTitle>
+
+        <span className="truncate text-muted-foreground/70 text-xs">
+          {[
+            connection.name === own.label ? null : own.label,
+            method?.label ?? null,
+            connection.scope === "personal" ? "Only you" : null,
+          ]
+            .filter((part) => part !== null)
+            .join(" · ")}
+        </span>
+
+        {connection.isDefault ? (
+          <StatusBadge size="xs">Default</StatusBadge>
         ) : null}
-        {connection.isDefault ? null : (
-          <Button onClick={onDefault} size="sm" variant="outline">
-            Make default
-          </Button>
-        )}
-        <Button onClick={onRemove} size="sm" variant="ghost">
-          Remove
-        </Button>
-      </div>
-    </div>
+        {connection.status === "invalid" ? (
+          <StatusBadge size="xs" tone="critical">
+            Invalid
+          </StatusBadge>
+        ) : null}
+      </span>
+    </ListRow>
   );
 }

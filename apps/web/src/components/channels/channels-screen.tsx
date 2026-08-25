@@ -1,12 +1,11 @@
 import type { Channel } from "@anpord/schema/domain/channels";
 import { Button } from "@anpord/ui/components/button";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
 import { ChannelListRow } from "@/components/channels/channel-list-row";
 import { ChannelListSkeleton } from "@/components/channels/channel-list-skeleton";
 import { ListState } from "@/components/layout/list-state";
-import { PageShell } from "@/components/layout/page-shell";
 import { RowList } from "@/components/layout/row-list";
+import { SettingsPanel } from "@/components/settings/settings-panel";
 import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
 
 interface ChannelsScreenProps {
@@ -36,9 +35,9 @@ export function ChannelsScreen({
   );
 
   return (
-    <PageShell
+    <SettingsPanel
       actions={newChannel}
-      leading={<PageHeading icon={BroadcastIcon} title="Channels" />}
+      description="A channel points at one version, so you can ship a new one without a deploy."
     >
       <ListState
         action={newChannel}
@@ -64,6 +63,6 @@ export function ChannelsScreen({
           ))}
         </RowList>
       </ListState>
-    </PageShell>
+    </SettingsPanel>
   );
 }

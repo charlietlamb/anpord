@@ -1,4 +1,5 @@
 import {
+  BroadcastIcon,
   GearIcon,
   type Icon,
   KeyIcon,
@@ -30,6 +31,7 @@ export const SETTINGS_NAV: SettingsNavSection[] = [
   {
     label: "Developer",
     items: [
+      { label: "Channels", to: "/settings/channels", icon: BroadcastIcon },
       {
         label: "Connections",
         to: "/settings/connections",

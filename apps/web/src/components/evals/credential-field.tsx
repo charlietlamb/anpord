@@ -11,6 +11,7 @@ import {
 } from "@anpord/ui/components/ui/select";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { Link } from "@tanstack/react-router";
+import { VariantLabel } from "@/components/evals/variant-label";
 import {
   missingCredentialIntegrations,
   normalizeCredentialSelections,
@@ -94,17 +95,13 @@ export function CredentialField({
               connection.integrationId === integrationId &&
               connection.status === "active"
           );
-          const { Icon, label } = presentationOf(integrationId);
+          const own = presentationOf(integrationId);
           const labelId = `credential-${integrationId}`;
 
           return (
             <div className="grid gap-1.5" key={integrationId}>
-              <span
-                className="flex items-center gap-1.5 font-medium text-xs"
-                id={labelId}
-              >
-                <Icon className="size-3.5" />
-                {label}
+              <span className="font-medium text-xs" id={labelId}>
+                <VariantLabel Icon={own.Icon}>{own.label}</VariantLabel>
               </span>
               <Select
                 items={options.map((connection) => ({

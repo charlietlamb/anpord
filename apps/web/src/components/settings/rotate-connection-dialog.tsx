@@ -6,7 +6,7 @@ import { Button } from "@anpord/ui/components/button";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CredentialFields } from "@/components/settings/connection-form";
+import { CredentialFields } from "@/components/settings/credential-fields";
 import { credentialsClient } from "@/lib/credentials-client";
 
 export function RotateConnectionDialog({
