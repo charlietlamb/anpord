@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Chunk, Effect, Stream } from "effect";
-import { makeLocalAdapter } from "../../../src/adapters/sandbox/local";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
+import { makeLocalAdapter } from "../../support/local-sandbox";
 
 const withSandbox = <A>(
   use: (sandbox: SandboxHandle) => Effect.Effect<A, unknown>
@@ -12,7 +12,7 @@ const withSandbox = <A>(
 
       const sandbox = yield* adapter.open({
         autoStopMinutes: 1,
-        provider: "local",
+        provider: "daytona",
         workspace: "/tmp/anpord-task",
       });
 
@@ -115,7 +115,7 @@ describe("the local sandbox", () => {
         const adapter = yield* makeLocalAdapter;
 
         return yield* adapter.attach("/tmp/gone");
-      }).pipe(Effect.either) as Effect.Effect<{ _tag: string }>
+      }).pipe(Effect.either)
     );
 
     expect(outcome._tag).toBe("Left");

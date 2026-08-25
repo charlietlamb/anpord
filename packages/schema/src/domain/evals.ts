@@ -1,29 +1,22 @@
 import { Schema } from "effect";
 import { CredentialBindings, CredentialSelections } from "./credentials";
 
+/* Sandboxes an eval can run in. There is no local option: it ran a shell on
+   whatever machine the server was on, which is fine on a laptop and an open
+   shell on a shared deployment, and a provider nobody can name is a provider
+   nobody can reach. The adapter survives as a conformance target for the
+   sandbox contract in tests, where the machine is the one running them. */
 export const EvalProvider = Schema.Literal(
   "daytona",
   "e2b",
   "upstash",
   "modal",
   "cloudflare",
-  "vercel",
-  "local"
+  "vercel"
 );
 export type EvalProvider = typeof EvalProvider.Type;
 
-export const HostedEvalProvider = EvalProvider.pipe(
-  Schema.pickLiteral(
-    "daytona",
-    "e2b",
-    "upstash",
-    "modal",
-    "cloudflare",
-    "vercel"
-  )
-);
-export type HostedEvalProvider = typeof HostedEvalProvider.Type;
-export const HOSTED_EVAL_PROVIDERS = HostedEvalProvider.literals;
+export const EVAL_PROVIDERS = EvalProvider.literals;
 
 export const EvalHarness = Schema.Literal(
   "codex",
@@ -63,7 +56,13 @@ export const EvalSource = Schema.Union(
   Schema.Struct({
     kind: Schema.Literal("repo"),
     ref: Schema.NullOr(Schema.String),
-    url: Schema.String,
+    /* Checked here rather than at the clone: an empty url reached the sandbox,
+       failed there, and reported a broken run instead of a form that was not
+       finished. */
+    url: Schema.String.pipe(
+      Schema.minLength(1),
+      Schema.annotations({ message: () => "Give the repository a URL." })
+    ),
   }),
   Schema.Struct({
     files: Schema.Record({ key: Schema.String, value: Schema.String }),

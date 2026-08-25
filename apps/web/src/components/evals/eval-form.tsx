@@ -4,9 +4,11 @@ import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi
 import { FlaskIcon, PlayIcon } from "@phosphor-icons/react";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { AgentField } from "@/components/evals/agent-field";
+import { BlockedNote } from "@/components/evals/blocked-note";
 import { AddCaseButton, CaseRow } from "@/components/evals/case-editor";
 import { CredentialField } from "@/components/evals/credential-field";
 import { RunPreview } from "@/components/evals/run-preview";
+import { WorkspaceField } from "@/components/evals/workspace-field";
 import { credentialQueries } from "@/lib/credential-queries";
 import {
   missingCredentialIntegrations,
@@ -102,6 +104,29 @@ export function EvalForm({
                                 label="Goal"
                                 placeholder="I'm building a Next.js marketing site and I want to show the GitHub logo in the footer…"
                                 rows={4}
+                              />
+                            )}
+                          </form.AppField>
+
+                          {/* Workspace and setup sit between the goal and the
+                              verifier because that is the order the run takes:
+                              the code arrives, it is prepared, the agent works,
+                              and the verifier decides. */}
+                          <form.Field name={`cases[${index}].source`}>
+                            {(field) => (
+                              <WorkspaceField
+                                onChange={field.handleChange}
+                                value={field.state.value}
+                              />
+                            )}
+                          </form.Field>
+
+                          <form.AppField name={`cases[${index}].setup`}>
+                            {(field) => (
+                              <field.ShellField
+                                description="Runs before the agent starts, for installing dependencies or building. Its output is not scored."
+                                label="Setup"
+                                placeholder="bun install"
                               />
                             )}
                           </form.AppField>
@@ -237,13 +262,20 @@ export function EvalForm({
                 ungated={ungatedIn(values.cases)}
               />
 
-              <form.AppForm>
-                <form.SubmitButton
-                  disabled={connections.isError || missing.length > 0}
-                  fullWidth={false}
-                  label={submitting ? "Starting…" : submitLabel}
-                />
-              </form.AppForm>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <form.AppForm>
+                  <form.SubmitButton
+                    disabled={connections.isError || missing.length > 0}
+                    fullWidth={false}
+                    label={submitting ? "Starting…" : submitLabel}
+                  />
+                </form.AppForm>
+
+                {/* Said beside the control rather than on hover: a disabled
+                    button with no reason is a dead end, and the reader who
+                    needs this is the one who has not thought to hover it. */}
+                <BlockedNote failed={connections.isError} missing={missing} />
+              </div>
             </div>
           );
         }}

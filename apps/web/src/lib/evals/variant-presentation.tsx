@@ -23,7 +23,7 @@ import {
   ZaiMark,
 } from "@anpord/ui/components/brand/provider-marks";
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { CpuIcon, LaptopIcon } from "@phosphor-icons/react";
+import { CpuIcon } from "@phosphor-icons/react";
 
 interface Presentation {
   readonly Icon: RailIcon;
@@ -48,7 +48,6 @@ const PROVIDERS: Record<EvalProvider, Presentation> = {
   upstash: { Icon: UpstashMark, label: "Upstash Box" },
   modal: { Icon: ModalMark, label: "Modal" },
   vercel: { Icon: VercelMark, label: "Vercel" },
-  local: { Icon: LaptopIcon, label: "Local" },
 };
 
 const unknown = (value: string): Presentation => ({
@@ -61,6 +60,16 @@ export const harnessPresentation = (harness: string): Presentation =>
 
 export const providerPresentation = (provider: string): Presentation =>
   PROVIDERS[provider as EvalProvider] ?? unknown(provider);
+
+/* An integration id names either side of a run, and a caller holding one from
+   a credential does not know which. Harnesses are checked first because the
+   two sets do not overlap and either order is correct. */
+export const integrationLabel = (integrationId: string): string =>
+  (
+    HARNESSES[integrationId as EvalHarness] ??
+    PROVIDERS[integrationId as EvalProvider] ??
+    unknown(integrationId)
+  ).label;
 
 const VENDOR_MARKS: Record<string, RailIcon> = {
   alibaba: AlibabaMark,

@@ -63,17 +63,14 @@ export const resolveTaskCredentials = (
         }),
         task.credentials?.harnessConnectionId
       );
-      const sandbox =
-        task.provider === "local"
-          ? Option.none<Redacted.Redacted<ResolvedCredential>>()
-          : yield* optional(
-              resolver.resolve({
-                actor,
-                connectionId: task.credentials?.sandboxConnectionId,
-                integrationId: task.provider,
-              }),
-              task.credentials?.sandboxConnectionId
-            );
+      const sandbox = yield* optional(
+        resolver.resolve({
+          actor,
+          connectionId: task.credentials?.sandboxConnectionId,
+          integrationId: task.provider,
+        }),
+        task.credentials?.sandboxConnectionId
+      );
       const resolvedHarness = yield* Option.match(harness, {
         onNone: () =>
           task.harness === "codex" && legacyHarnessAuth

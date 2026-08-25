@@ -15,7 +15,6 @@ describe("naming a variant", () => {
     expect(providerPresentation("modal").label).toBe("Modal");
     expect(providerPresentation("cloudflare").label).toBe("Cloudflare");
     expect(providerPresentation("vercel").label).toBe("Vercel");
-    expect(providerPresentation("local").label).toBe("Local");
   });
 
   /** 523 stored cells name a harness this build no longer defines, and one

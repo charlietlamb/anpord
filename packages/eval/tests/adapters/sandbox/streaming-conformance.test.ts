@@ -3,7 +3,6 @@ import { Chunk, Effect, Stream } from "effect";
 import { makeCloudflareAdapter } from "../../../src/adapters/sandbox/cloudflare";
 import { makeDaytonaAdapter } from "../../../src/adapters/sandbox/daytona";
 import { makeE2BAdapter } from "../../../src/adapters/sandbox/e2b";
-import { makeLocalAdapter } from "../../../src/adapters/sandbox/local";
 import { makeModalAdapter } from "../../../src/adapters/sandbox/modal";
 import { makeUpstashAdapter } from "../../../src/adapters/sandbox/upstash";
 import { makeVercelAdapter } from "../../../src/adapters/sandbox/vercel";
@@ -18,6 +17,7 @@ import {
   hasUpstash,
   hasVercel,
 } from "../../fixtures/credentials";
+import { makeLocalAdapter } from "../../support/local-sandbox";
 
 const GAP_SECONDS = 3;
 const TOLERANCE_MS = 500;

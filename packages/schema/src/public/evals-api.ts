@@ -5,10 +5,10 @@ import {
   EvalCellHistoryEntry,
   EvalHarness,
   EvalPageCursor,
+  EvalProvider,
   EvalRun,
   EvalRunPage,
   EvalSource,
-  HostedEvalProvider,
   ModelCatalogue,
   RerunCellRequest,
   StartedEval,
@@ -33,7 +33,7 @@ export const EvalModelsRequest = Schema.Struct({
   description: "Select a harness whose available models should be listed.",
   identifier: "EvalModelsRequest",
 });
-const PublicEvalProvider = HostedEvalProvider.annotations({
+const PublicEvalProvider = EvalProvider.annotations({
   description: "A hosted sandbox provider.",
   identifier: "PublicEvalProvider",
 });

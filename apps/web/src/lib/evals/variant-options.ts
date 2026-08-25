@@ -82,11 +82,6 @@ export const PROVIDER_OPTIONS: readonly VariantOption<EvalProvider>[] = [
     label: "Vercel",
     value: "vercel",
   },
-  {
-    description: "A real shell on this machine, for trying it out",
-    label: "Local",
-    value: "local",
-  },
 ];
 
 export const DEFAULT_PROVIDER: EvalProvider = "daytona";

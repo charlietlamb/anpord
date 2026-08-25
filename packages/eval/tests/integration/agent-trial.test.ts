@@ -25,9 +25,7 @@ const TestLayer = AgentTrialLive.pipe(
   Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
 );
-
 for (const [provider, ready] of [
-  ["local", hasCodex],
   ["daytona", hasDaytona && hasCodex],
   ["upstash", hasUpstash && hasCodex],
   ["modal", hasModal && hasCodex],
@@ -57,16 +55,13 @@ for (const [provider, ready] of [
           });
         }).pipe(Effect.provide(TestLayer))
       );
-
       expect(result.outcome.status).toBe("passed");
       expect(result.outcome.passed).toBe(true);
       expect(result.outcome.voidFields).toEqual([]);
-
       /* The columns an eval platform reading a tool-call string cannot have. */
       expect(result.commands).toBeGreaterThan(0);
       expect(result.filesChanged.length).toBeGreaterThan(0);
       expect(Option.isSome(result.usage)).toBe(true);
-
       /* Model time is separated from sandbox time, or a slow provider reads as
          a slow model and the third axis becomes unreadable. */
       expect(result.outcome.modelMs).toBeGreaterThan(0);

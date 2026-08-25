@@ -7,8 +7,8 @@ import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import { authorIdOf } from "@anpord/schema/domain/actor";
 import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
 import {
+  EVAL_PROVIDERS,
   type EvalHarness,
-  HOSTED_EVAL_PROVIDERS,
   type RerunCellRequest,
 } from "@anpord/schema/domain/evals";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
@@ -165,7 +165,7 @@ export const rerunEvalCell = (
     const reruns = yield* CellReruns;
     const credentials = yield* EvalCredentials;
     const id = yield* reruns.again({
-      allowedProviders: HOSTED_EVAL_PROVIDERS,
+      allowedProviders: EVAL_PROVIDERS,
       actor,
       cellKey: input.cellKey,
       legacyHarnessAuth: credentials.codexAuth,

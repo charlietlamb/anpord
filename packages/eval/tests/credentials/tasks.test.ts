@@ -23,7 +23,7 @@ const task = {
   harness: "codex" as const,
   harnessVersion: "1",
   model: "gpt-5.6-sol",
-  provider: "local" as const,
+  provider: "daytona" as const,
 };
 
 describe("task credentials", () => {

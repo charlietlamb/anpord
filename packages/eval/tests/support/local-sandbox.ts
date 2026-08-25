@@ -3,21 +3,29 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Config, Effect, type Stream } from "effect";
-import type { ProviderName } from "../../domain/cell";
-import { SandboxUnavailable } from "../../domain/errors";
+import { execStream } from "../../src/adapters/sandbox/exec-stream";
+import { SandboxUnavailable } from "../../src/domain/errors";
 import type {
   ExecChunk,
   OpenSandbox,
   SandboxAdapterShape,
   SandboxHandle,
-} from "../../ports/sandbox";
-import { execStream } from "./exec-stream";
+} from "../../src/ports/sandbox";
+
+/* A real shell on the machine running the tests, used to prove the sandbox
+   streaming contract without holding a cloud credential. It is not a provider
+   the product offers: an eval that ran on the server itself would be an open
+   shell for anyone with an account.
+
+   It reports under a real provider name because the error type names one, and
+   nothing reads it here beyond the assertions below. */
+const STANDS_IN_FOR = "daytona" as const;
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
 const unavailable = (reason: unknown) =>
   new SandboxUnavailable({
-    provider: "local",
+    provider: STANDS_IN_FOR,
     reason: reason instanceof Error ? reason.message : String(reason),
   });
 
@@ -93,7 +101,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
       attach: (id: string) =>
         Effect.fail(
           new SandboxUnavailable({
-            provider: "local",
+            provider: STANDS_IN_FOR,
             reason: `a local sandbox does not outlive its process, so ${id} cannot be reattached`,
           })
         ),
@@ -121,7 +129,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
               ),
             id: root,
             home: root,
-            provider: "local" as ProviderName,
+            provider: STANDS_IN_FOR,
             streaming: true,
             writeFile: (path, content) =>
               Effect.tryPromise({
@@ -135,7 +143,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
               }),
           } satisfies SandboxHandle;
         }),
-      provider: "local" as ProviderName,
+      provider: STANDS_IN_FOR,
     };
   }
 );

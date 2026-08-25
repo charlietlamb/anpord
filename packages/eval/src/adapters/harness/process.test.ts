@@ -7,7 +7,7 @@ const sandbox = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),
   home: "/home/test",
   id: "sandbox",
-  provider: "local",
+  provider: "daytona",
   streaming: true,
   writeFile: () => Effect.void,
 });

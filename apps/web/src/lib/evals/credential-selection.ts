@@ -7,12 +7,7 @@ import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
 export const requiredCredentialIntegrations = (
   agents: readonly EvalAgent[],
   providers: readonly EvalProvider[]
-) => [
-  ...new Set([
-    ...agents.map((agent) => agent.harness),
-    ...providers.filter((provider) => provider !== "local"),
-  ]),
-];
+) => [...new Set([...agents.map((agent) => agent.harness), ...providers])];
 
 const optionsFor = (
   connections: readonly CredentialConnection[],

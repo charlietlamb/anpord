@@ -34,9 +34,9 @@ describe("eval credential selections", () => {
           { harness: "codex", model: "b" },
           { harness: "claude", model: "c" },
         ],
-        ["daytona", "local"]
+        ["daytona", "e2b"]
       )
-    ).toEqual(["codex", "claude", "daytona"]);
+    ).toEqual(["codex", "claude", "daytona", "e2b"]);
   });
 
   it("keeps valid choices and fills defaults", () => {

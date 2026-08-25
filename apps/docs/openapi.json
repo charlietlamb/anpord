@@ -1298,8 +1298,7 @@
               "upstash",
               "modal",
               "cloudflare",
-              "vercel",
-              "local"
+              "vercel"
             ]
           }
         },
@@ -1624,7 +1623,10 @@
                 ]
               },
               "url": {
-                "type": "string"
+                "type": "string",
+                "description": "a string at least 1 character(s) long",
+                "title": "minLength(1)",
+                "minLength": 1
               }
             },
             "additionalProperties": false

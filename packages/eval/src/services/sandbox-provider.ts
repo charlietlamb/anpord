@@ -19,7 +19,6 @@ const concurrencyConfig = Config.all({
   ),
   modal: Config.integer("EVAL_MODAL_CONCURRENCY").pipe(Config.withDefault(5)),
   vercel: Config.integer("EVAL_VERCEL_CONCURRENCY").pipe(Config.withDefault(5)),
-  local: Config.integer("EVAL_LOCAL_CONCURRENCY").pipe(Config.withDefault(4)),
 });
 
 export const SandboxProviderLive = Layer.effect(
@@ -35,7 +34,6 @@ export const SandboxProviderLive = Layer.effect(
       upstash: yield* Effect.makeSemaphore(concurrency.upstash),
       modal: yield* Effect.makeSemaphore(concurrency.modal),
       vercel: yield* Effect.makeSemaphore(concurrency.vercel),
-      local: yield* Effect.makeSemaphore(concurrency.local),
     };
 
     const open = (request: OpenSandbox) =>
