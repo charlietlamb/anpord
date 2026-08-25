@@ -102,6 +102,7 @@
   --color-trace-tool: var(--trace-tool);
   --color-warning: var(--warning);
   --color-alpha-4: var(--alpha-4);
+  --color-alpha-8: var(--alpha-8);
   --default-transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
   --default-transition-duration: 200ms;
   --ease-emphasised: cubic-bezier(0.2, 0, 0, 1);
@@ -143,6 +144,10 @@
      inner highlight to sit against without the edge drawing attention. */
   --border-surface: oklch(0.895 0 0);
   --alpha-4: oklch(0 0 0 / 4%);
+  /* The step above --alpha-4, for a row that responds to the pointer rather
+     than merely accepting it: a trace row is hovered to read one bar out of
+     a dense stack, and 4% does not separate it from its neighbours. */
+  --alpha-8: oklch(0 0 0 / 8%);
   /* Named for what they report, not the hue they happen to use, so a status
      that changes colour does not have to change every call site. */
   --success: oklch(0.6 0.14 155);
@@ -208,6 +213,7 @@
      light one, so it sits above --border rather than below it. */
   --border-surface: oklch(1 0 0 / 21%);
   --alpha-4: oklch(1 0 0 / 4%);
+  --alpha-8: oklch(1 0 0 / 9%);
   --success: oklch(0.72 0.15 155);
   --warning: oklch(0.8 0.15 78);
 

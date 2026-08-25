@@ -35,6 +35,21 @@ function ExitCode({ code }: { readonly code: number | null }) {
   );
 }
 
+/**
+ * The narrowest a measured span is drawn.
+ *
+ * A step that really ran is worth seeing and worth clicking, and on a span of
+ * forty seconds a forty-millisecond command comes out around a pixel: too
+ * thin to hit, and indistinguishable from the ticks that mean "no duration
+ * known". Widening it overstates that one step by a few pixels, which is the
+ * cheaper error -- the alternative hides a step that happened.
+ *
+ * Three pixels was the old floor and still read as a tick. Six is the point
+ * at which a bar reads as a bar, and stays inside the eight-pixel gap the
+ * axis keeps between its own ticks.
+ */
+const MIN_BAR = 6;
+
 /* Waiting is drawn hatched and working is drawn solid, so the two read apart
    at a glance without spending a second hue on the distinction. The stripes
    run at 45 degrees over the kind's own colour, which keeps a hatched bar
@@ -52,7 +67,7 @@ function Lead({ row }: { readonly row: WaterfallRow }) {
 
   return (
     <span
-      className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px]"
+      className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px] opacity-70 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
       style={{
         backgroundColor:
           "color-mix(in oklch, var(--trace-thinking) 18%, transparent)",
@@ -77,16 +92,16 @@ function Track({ row }: { readonly row: WaterfallRow }) {
            lie. Squared off rather than round so it reads as a tick on the
            timeline instead of a very short bar. */
         <span
-          className="absolute top-1/2 block h-3 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-[2px]"
+          className="absolute top-1/2 block h-3 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-[2px] transition-[filter,width] duration-150 ease-out group-hover:w-[5px] group-hover:brightness-125 group-focus-visible:w-[5px] group-focus-visible:brightness-125 motion-reduce:transition-none"
           style={{ background, left: `${row.leftPercent}%` }}
         />
       ) : (
         <span
-          className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px]"
+          className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px] transition-[filter,transform] duration-150 ease-out group-hover:brightness-125 group-focus-visible:brightness-125 motion-reduce:transition-none"
           style={{
             background,
             left: `${row.leftPercent}%`,
-            minWidth: 3,
+            minWidth: MIN_BAR,
             width: `${row.widthPercent}%`,
           }}
         />
@@ -197,10 +212,10 @@ export function TimedRow({ row }: { readonly row: WaterfallRow }) {
               aria-expanded={expandable ? open : undefined}
               aria-label={describeRow(row)}
               className={cn(
-                "relative block h-6 w-full rounded-sm text-left transition-colors duration-150 ease-out focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "group relative block h-6 w-full rounded-sm text-left transition-colors duration-150 ease-out focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
 
                 expandable
-                  ? "cursor-pointer hover:bg-alpha-6"
+                  ? "cursor-pointer hover:bg-alpha-8"
                   : "cursor-default hover:bg-alpha-4"
               )}
               onClick={toggle}
