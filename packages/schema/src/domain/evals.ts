@@ -122,6 +122,10 @@ export const EvalUsage = Schema.Struct({
      one. Zero where the harness reports no cache: unreported, not unused. */
   cacheReadTokens: Schema.Int,
   cacheWriteTokens: Schema.Int,
+  /* An estimate in dollars, priced at the rates published when the run
+     happened, not a bill: it knows nothing of the discounts or tiers an
+     account is actually on. Absent where the model publishes no rate. */
+  costUsd: Schema.optional(Schema.NullOr(Schema.Number)),
   inputTokens: Schema.Int,
   outputTokens: Schema.Int,
   totalTokens: Schema.Int,

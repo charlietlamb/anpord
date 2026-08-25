@@ -1,6 +1,8 @@
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
-import type { HarnessEvent } from "../domain/harness-event";
+import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import { costOf } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
+import { ModelPrices } from "../ports/model-source";
 import type { TrialRecorderShape } from "../repositories/trial-record";
 import type {
   AgentTrialResult,
@@ -8,6 +10,41 @@ import type {
 } from "../services/agent-trial";
 import type { GridCase } from "./cell";
 import type { GridExecutionTask } from "./state";
+
+/**
+ * The usage a trial reported, with what it cost at the time it ran.
+ *
+ * Priced here rather than when the trial is read, because a published rate
+ * changes and a finished run does not: recomputing later would silently
+ * restate what a past run cost, and two readings of the same trial would
+ * disagree. An unpriced model records its tokens and no cost, which reads as
+ * unknown rather than as free.
+ *
+ * A catalogue that cannot be reached costs the trial nothing: the run has
+ * already happened, and losing the tokens it reported over a missing price
+ * would be the more expensive failure.
+ */
+const priced = (
+  usage: Option.Option<HarnessUsage>,
+  model: string
+): Effect.Effect<HarnessUsage | null, never, ModelPrices> =>
+  Effect.gen(function* () {
+    const reported = Option.getOrNull(usage);
+
+    if (reported === null) {
+      return null;
+    }
+
+    const price = yield* ModelPrices.pipe(
+      Effect.flatMap((prices) => prices.forModel(model)),
+      Effect.catchAll(() => Effect.succeed(Option.none()))
+    );
+
+    return Option.match(price, {
+      onNone: () => reported,
+      onSome: (found) => ({ ...reported, costUsd: costOf(reported, found) }),
+    });
+  }).pipe(Effect.orElseSucceed(() => Option.getOrNull(usage)));
 
 export interface TrialInputs {
   readonly agent: AgentTrialShape;
@@ -98,7 +135,7 @@ export const runTrial = (input: RunOneTrial) =>
       outcome: result.outcome,
       sandboxId: result.sandboxId,
       trialInternalId,
-      usage: Option.getOrNull(result.usage),
+      usage: yield* priced(result.usage, input.task.model),
     });
 
     yield* input.onTrial(input.ordinal, result);

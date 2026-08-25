@@ -17,6 +17,10 @@ export const HarnessUsage = Schema.Struct({
      use. */
   cacheReadTokens: Schema.Int,
   cacheWriteTokens: Schema.Int,
+  /* What this cost at the rates published when it ran, in dollars. Recorded
+     rather than derived on read, so a later price change cannot restate what
+     a finished run cost. Absent where the model publishes no rate. */
+  costUsd: Schema.optional(Schema.Number),
   inputTokens: Schema.Int,
   outputTokens: Schema.Int,
   totalTokens: Schema.Int,
@@ -113,6 +117,13 @@ export const usageOf = (
     ? {
         cacheReadTokens: countOf(value.cacheReadTokens),
         cacheWriteTokens: countOf(value.cacheWriteTokens),
+        /* Absent for a trial whose model had no published rate, and for
+           every trial recorded before this was stored. Undefined rather than
+           zero: unknown is not free. */
+        costUsd:
+          typeof value.costUsd === "number" && Number.isFinite(value.costUsd)
+            ? value.costUsd
+            : undefined,
         inputTokens,
         outputTokens,
         totalTokens,

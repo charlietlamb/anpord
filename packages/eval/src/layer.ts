@@ -1,6 +1,8 @@
 import { IdGeneratorLive } from "@anpord/ids/layer";
+import { FetchHttpClient } from "@effect/platform";
 import { Layer } from "effect";
 import { HarnessesLive } from "./adapters/harness/resolve";
+import { ModelPricesLive } from "./adapters/models/prices";
 import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { GridRunLive } from "./grid/run";
@@ -40,7 +42,11 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
   Layer.provideMerge(EvalRepositoriesLive)
 );
 
+/* Prices are provided here rather than deeper, because this is the first
+   place that knows a run is being executed for real: a trial is priced as it
+   settles, and nothing below chooses where a rate comes from. */
 const GridWithBaselines = GridRunLive.pipe(
+  Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
   Layer.provide(BaselinesLive),
   Layer.provideMerge(BaselinesLive)
 );

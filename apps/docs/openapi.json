@@ -2335,6 +2335,16 @@
           "cacheWriteTokens": {
             "$ref": "#/components/schemas/Int"
           },
+          "costUsd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "inputTokens": {
             "$ref": "#/components/schemas/Int"
           },

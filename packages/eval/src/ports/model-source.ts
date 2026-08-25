@@ -1,6 +1,7 @@
-import { Context, type Effect } from "effect";
+import { Context, type Effect, type Option } from "effect";
 import type { HarnessName } from "../domain/cell";
 import type { ModelsUnreadable } from "../domain/errors";
+import type { ModelPrice } from "../domain/model-price";
 
 export interface AvailableModelsShape {
   readonly forHarness: (
@@ -34,3 +35,22 @@ export interface ModelDescriptionsShape {
 export class ModelDescriptions extends Context.Tag(
   "@anpord/eval/ModelDescriptions"
 )<ModelDescriptions, ModelDescriptionsShape>() {}
+
+export interface ModelPricesShape {
+  /**
+   * What a model charges, or none where the catalogue does not price it.
+   *
+   * Separate from the descriptions because it answers a different question:
+   * a picker asks what to offer, and a finished trial asks what it spent. A
+   * model can be offered without a published price, and a price can be read
+   * for a model no longer offered.
+   */
+  readonly forModel: (
+    model: string
+  ) => Effect.Effect<Option.Option<ModelPrice>, ModelsUnreadable>;
+}
+
+export class ModelPrices extends Context.Tag("@anpord/eval/ModelPrices")<
+  ModelPrices,
+  ModelPricesShape
+>() {}

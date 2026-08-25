@@ -7,6 +7,7 @@ import type {
 } from "../domain/errors";
 import { renderPrompt } from "../domain/prompt";
 import type { WorkspaceSource } from "../domain/workspace-source";
+import type { ModelPrices } from "../ports/model-source";
 import type { RunRepositoryShape } from "../repositories/run-repository";
 import { runTrial, type TrialInputs } from "./trial";
 
@@ -37,7 +38,8 @@ export const runGridCell = (
   input: RunGridCell
 ): Effect.Effect<
   GridCellResult,
-  EvalStoreError | HarnessUnavailable | SandboxUnavailable
+  EvalStoreError | HarnessUnavailable | SandboxUnavailable,
+  ModelPrices
 > =>
   Effect.gen(function* () {
     const harnessCredential = Redacted.value(input.task.credentials.harness);

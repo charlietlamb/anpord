@@ -5,6 +5,7 @@ import { failureOf } from "../domain/failure";
 import type { PageCursor } from "../domain/page";
 import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
+import { ModelPrices } from "../ports/model-source";
 import { EventRepository } from "../repositories/event-repository";
 import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
@@ -70,6 +71,10 @@ export const GridRunLive = Layer.scoped(
   Effect.gen(function* () {
     const agent = yield* AgentTrial;
     const baselines = yield* Baselines;
+    /* Taken once and provided to the forked run below, so pricing stays a
+       detail of executing a grid rather than something every caller of
+       `start` has to hold. */
+    const prices = yield* ModelPrices;
     const query = yield* RunQuery;
     const events = yield* EventRepository;
     const recorder = yield* TrialRecorder;
@@ -238,6 +243,7 @@ export const GridRunLive = Layer.scoped(
 
         yield* Effect.forkDaemon(
           execute(input, created, registered).pipe(
+            Effect.provideService(ModelPrices, prices),
             Effect.tapErrorCause((cause) =>
               Effect.logError("grid run failed", cause).pipe(
                 Effect.annotateLogs({ runId: created.id })
