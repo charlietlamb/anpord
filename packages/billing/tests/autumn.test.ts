@@ -98,7 +98,7 @@ describe("reaching Autumn", () => {
       autumn.call("track", (client) =>
         client.track({
           customerId: "org_1",
-          featureId: "eval_trials",
+          featureId: "evals",
           value: 12,
         })
       )
@@ -107,7 +107,7 @@ describe("reaching Autumn", () => {
     expect(seen[0]?.path).toBe(TRACK_PATH);
     expect(seen[0]?.body).toEqual({
       customer_id: "org_1",
-      feature_id: "eval_trials",
+      feature_id: "evals",
       value: 12,
     });
   });

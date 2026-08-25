@@ -1,11 +1,11 @@
 import { feature, item, plan } from "atmn";
 
-/* A trial is one sandbox and one agent run, which is what a run actually
-   costs us. A run is any number of them, so it is the wrong unit to count. */
-export const evalTrials = feature({
+/* Counted per trial: one sandbox and one agent run, which is what a run
+   actually costs. A run is any number of them. */
+export const evals = feature({
   consumable: true,
-  id: "eval_trials",
-  name: "Eval trials",
+  id: "evals",
+  name: "Evals",
   type: "metered",
 });
 
@@ -14,7 +14,7 @@ export const free = plan({
   id: "free",
   items: [
     item({
-      featureId: evalTrials.id,
+      featureId: evals.id,
       included: 1000,
       reset: { interval: "month" },
     }),

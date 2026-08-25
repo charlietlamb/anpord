@@ -112,7 +112,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
         .call("Autumn.track", (client) =>
           client.track({
             customerId: actor.organizationId,
-            featureId: "eval_trials",
+            featureId: "evals",
             value: totalTrials,
           })
         )
