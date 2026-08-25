@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@anpord/auth": "workspace:*",
+    "@anpord/billing": "workspace:*",
     "@anpord/cache": "workspace:*",
     "@anpord/db": "workspace:*",
     "@anpord/eval": "workspace:*",

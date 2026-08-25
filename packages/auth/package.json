@@ -17,6 +17,7 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
+    "@anpord/billing": "workspace:*",
     "@anpord/db": "workspace:*",
     "@anpord/ids": "workspace:*",
     "@anpord/notifications": "workspace:*",

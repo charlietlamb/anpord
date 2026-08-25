@@ -126,14 +126,19 @@
       "project": "src/**"
     }
   },
-  "ignore": ["context/**", "scripts/server-workspace-deps.mjs"],
+  "ignore": [
+    "context/**",
+    "scripts/server-workspace-deps.mjs",
+    "autumn.config.ts"
+  ],
   "ignoreBinaries": ["lsof"],
   "ignoreDependencies": [
     "@base-ui/react",
     "@biomejs/biome",
     "@phosphor-icons/react",
     "@tanstack/start-server-core",
-    "class-variance-authority"
+    "class-variance-authority",
+    "atmn"
   ],
   "rules": {
     "catalog": "off"

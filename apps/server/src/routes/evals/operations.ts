@@ -1,3 +1,4 @@
+import { AutumnService } from "@anpord/billing/autumn";
 import { CredentialResolver } from "@anpord/eval/credentials/connections";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { GridRun } from "@anpord/eval/grid/run";
@@ -75,6 +76,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     }
 
     const grid = yield* GridRun;
+    const autumn = yield* AutumnService;
     const credentials = yield* EvalCredentials;
     const requested = yield* Effect.forEach(payload.tasks, (task) =>
       harnessVersion(task.harness).pipe(
@@ -90,20 +92,40 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
       Effect.mapError((error) => new BadRequest({ message: error.message }))
     );
 
-    return {
-      id: yield* grid.start({
-        cases: payload.cases.map((evalCase) => ({
-          ...evalCase,
-          setup: evalCase.setup ?? null,
-          source: evalCase.source ?? { kind: "empty" as const },
-        })),
-        organizationId: actor.organizationId,
-        prompt: payload.prompt,
-        startedBy: authorIdOf(actor),
-        tasks,
-        trials: payload.trials,
-      }),
-    };
+    const id = yield* grid.start({
+      cases: payload.cases.map((evalCase) => ({
+        ...evalCase,
+        setup: evalCase.setup ?? null,
+        source: evalCase.source ?? { kind: "empty" as const },
+      })),
+      organizationId: actor.organizationId,
+      prompt: payload.prompt,
+      startedBy: authorIdOf(actor),
+      tasks,
+      trials: payload.trials,
+    });
+
+    /* Counted after the run is accepted, so a refused request is not billed,
+       and forked so a slow meter does not hold up the response. */
+    yield* Effect.forkDaemon(
+      autumn
+        .call("Autumn.track", (client) =>
+          client.track({
+            customerId: actor.organizationId,
+            featureId: "eval_trials",
+            value: totalTrials,
+          })
+        )
+        .pipe(
+          Effect.catchAll((error) =>
+            Effect.logError("could not record eval usage", error).pipe(
+              Effect.annotateLogs({ orgId: actor.organizationId, runId: id })
+            )
+          )
+        )
+    );
+
+    return { id };
   });
 
 export const getEvalRun = (id: string) =>

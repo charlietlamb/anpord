@@ -1,3 +1,4 @@
+import { AutumnService } from "@anpord/billing/autumn";
 import { Database } from "@anpord/db/client";
 import { schema } from "@anpord/db/schema";
 import { IdGenerator } from "@anpord/ids/id";
@@ -11,6 +12,7 @@ import { apiKeyPlugin } from "./credentials/api-key-plugin";
 import { mcpPlugin } from "./oauth/mcp-plugin";
 import { attachOrganizationBeforeWrite } from "./organization/attach-organization-before-write";
 import { OrganizationStore } from "./organization/organization-store";
+import { registerBillingCustomer } from "./organization/register-billing-customer";
 import { seedDefaultChannel } from "./organization/seed-default-channel";
 import { COOKIE_PREFIX } from "./session/cookies";
 import {
@@ -26,6 +28,7 @@ const makeAuth = Effect.gen(function* () {
   const organizations = yield* OrganizationStore;
   const emails = yield* EmailSender;
   const ids = yield* IdGenerator;
+  const autumn = yield* AutumnService;
 
   const socialProviders = config.github
     ? {
@@ -54,7 +57,15 @@ const makeAuth = Effect.gen(function* () {
       organization({
         organizationHooks: {
           afterCreateOrganization: ({ organization: created }) =>
-            Effect.runPromise(seedDefaultChannel(db, ids, created.id)),
+            Effect.runPromise(
+              Effect.all(
+                [
+                  seedDefaultChannel(db, ids, created.id),
+                  registerBillingCustomer(autumn, created),
+                ],
+                { concurrency: 2, discard: true }
+              )
+            ),
         },
       }),
       magicLink({

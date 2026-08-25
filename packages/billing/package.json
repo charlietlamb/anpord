@@ -1,0 +1,21 @@
+{
+  "name": "@anpord/billing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./autumn": "./src/autumn.ts",
+    "./config": "./src/config.ts",
+    "./domain/errors": "./src/domain/errors.ts",
+    "./layer": "./src/layer.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "autumn-js": "^1.2.53",
+    "effect": "catalog:"
+  }
+}

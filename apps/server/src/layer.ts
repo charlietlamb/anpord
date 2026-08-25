@@ -1,6 +1,7 @@
 import { AuthLive } from "@anpord/auth";
 import { AuthConfigLive } from "@anpord/auth/config";
 import { OrganizationStoreLive } from "@anpord/auth/organization";
+import { BillingLive } from "@anpord/billing/layer";
 import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
@@ -43,7 +44,8 @@ const AuthLayer = AuthLive.pipe(
       DatabaseLayer,
       IdGeneratorLive,
       OrganizationLayer,
-      EmailSenderLive
+      EmailSenderLive,
+      BillingLive
     )
   )
 );
@@ -98,5 +100,9 @@ export const AppLayer = Layer.mergeAll(
   DatabaseLayer,
   PromptsServiceLayer,
   CredentialLayer,
-  EvalLayer
+  EvalLayer,
+  /* Merged rather than provided to one branch: the auth hook registers a
+     customer at signup and the eval routes count against it, so both sides
+     read the same meter. */
+  BillingLive
 );
