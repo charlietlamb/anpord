@@ -9,6 +9,7 @@ export function VersionListSkeleton() {
     <SkeletonRows
       leading="size-1.5 rounded-full"
       meta={META}
+      ordinal="mr-2 w-5"
       widths={MESSAGES}
     />
   );

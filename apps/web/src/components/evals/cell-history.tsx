@@ -1,3 +1,4 @@
+import { Skeleton } from "@anpord/ui/components/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -21,8 +22,16 @@ export function CellHistory({ cellKey }: { readonly cellKey: string }) {
   const { data, isPending } = useQuery(evalQueries.history(cellKey));
   const entries = data ?? [];
 
+  /* Its own query, so the section is still empty after the screen around it
+     has drawn: returning nothing collapsed the rail and expanded it again a
+     moment later. */
   if (isPending) {
-    return null;
+    return (
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-3 w-40" />
+      </div>
+    );
   }
 
   if (entries.length <= 1) {
