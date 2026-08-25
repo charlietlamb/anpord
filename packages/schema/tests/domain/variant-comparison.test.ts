@@ -1,6 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import type { EvalCell, EvalTask, EvalTrial } from "../../src/domain/evals";
-import { leadersOn, variantsOf } from "../../src/domain/variant-comparison";
+import {
+  casesOf,
+  leadersOn,
+  variantsOf,
+} from "../../src/domain/variant-comparison";
 
 const task = (model: string): EvalTask => ({
   harness: "codex",
@@ -24,14 +28,19 @@ const trial = (over: Partial<EvalTrial>): EvalTrial =>
     timed: true,
     trajectory: [],
     usage: null,
+    verifySteps: [],
     voidFields: [],
     ...over,
   }) as EvalTrial;
 
-const cell = (taskIndex: number, trials: readonly EvalTrial[]): EvalCell =>
+const cell = (
+  taskIndex: number,
+  trials: readonly EvalTrial[],
+  caseName = "c"
+): EvalCell =>
   ({
-    caseName: "c",
-    cellKey: `k${taskIndex}`,
+    caseName,
+    cellKey: `${caseName}-k${taskIndex}`,
     comparison: null,
     distribution: {
       commandMax: 0,
@@ -135,5 +144,55 @@ describe("naming the leader", () => {
     });
 
     expect(leadersOn(alone, "passRate").size).toBe(0);
+  });
+});
+
+describe("reading a run as cases", () => {
+  it("groups each case's cells by variant in declared order", () => {
+    const cases = casesOf({
+      cases: ["first", "second"],
+      cells: [
+        cell(1, [trial({})], "second"),
+        cell(0, [trial({})], "first"),
+        cell(1, [trial({})], "first"),
+      ],
+      tasks: [task("a"), task("b")],
+    });
+
+    expect(cases.map((entry) => entry.name)).toEqual(["first", "second"]);
+    expect(cases[0]?.results.map((r) => r.taskIndex)).toEqual([0, 1]);
+    expect(cases[1]?.results.map((r) => r.taskIndex)).toEqual([1]);
+  });
+
+  it("reads each cell as a result of one case", () => {
+    const [entry] = casesOf({
+      cases: ["c"],
+      cells: [cell(0, [trial({ modelMs: 300 }), trial({ modelMs: 100 })])],
+      tasks: [task("a")],
+    });
+
+    expect(entry?.results[0]?.cases).toBe(1);
+    expect(entry?.results[0]?.modelMs).toBe(200);
+    expect(entry?.results[0]?.cell.cellKey).toBe("c-k0");
+  });
+
+  it("keeps a case the run forgot to list", () => {
+    const cases = casesOf({
+      cases: [],
+      cells: [cell(0, [trial({})], "stray")],
+      tasks: [task("a")],
+    });
+
+    expect(cases.map((entry) => entry.name)).toEqual(["stray"]);
+  });
+
+  it("leaves out a listed case with no cells", () => {
+    const cases = casesOf({
+      cases: ["pending"],
+      cells: [],
+      tasks: [task("a")],
+    });
+
+    expect(cases).toEqual([]);
   });
 });

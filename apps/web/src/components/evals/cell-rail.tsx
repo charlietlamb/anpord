@@ -9,7 +9,7 @@ import {
   TerminalWindowIcon,
 } from "@phosphor-icons/react";
 import { CellHistory } from "@/components/evals/cell-history";
-import { VariantFacts } from "@/components/evals/variant-facts";
+import { RunVariants } from "@/components/evals/run-variants";
 import { VerdictLine } from "@/components/evals/verdict-line";
 import { VoidReason } from "@/components/evals/void-reason";
 
@@ -106,12 +106,7 @@ export function CellRail({
 
       {task ? (
         <RailSection title="Variant">
-          <VariantFacts
-            harness={task.harness}
-            harnessVersion={task.harnessVersion}
-            model={task.model}
-            provider={task.provider}
-          />
+          <RunVariants tasks={[task]} />
         </RailSection>
       ) : null}
 

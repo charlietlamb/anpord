@@ -1,11 +1,11 @@
 import type { EvalCell, EvalTask, EvalTrial } from "./evals";
 
 /**
- * What a run says about one variant, across every case it was given.
+ * What a set of cells says about one variant.
  *
- * A run is a grid: cases down, variants across. Read as the flat list of cells
- * it is stored as, the reader has to group it by eye to answer the question
- * the grid exists for, which is which setup did better.
+ * A run is a grid: cases down, variants across. The same reading serves two
+ * questions -- how a variant did on one case, and how it did across all of
+ * them -- so the shape is shared and only the cells fed in differ.
  */
 export interface VariantResult {
   readonly cases: number;
@@ -20,6 +20,18 @@ export interface VariantResult {
   readonly task: EvalTask;
   readonly taskIndex: number;
   readonly tokens: number | null;
+}
+
+/** One variant's attempt at one case: the cell, read as a result. */
+export interface CellResult extends VariantResult {
+  readonly cell: EvalCell;
+}
+
+/** One row of the grid: a case and how every variant fared on it. Variants
+ * that never registered a cell for this case are absent rather than blank. */
+export interface CaseResult {
+  readonly name: string;
+  readonly results: readonly CellResult[];
 }
 
 /** The metrics a variant can win on. Better is not the same direction for all
@@ -88,7 +100,14 @@ const variantOf = (
   };
 };
 
-/** One row per variant, in the order the run declared them. */
+interface Grid {
+  readonly cases: readonly string[];
+  readonly cells: readonly EvalCell[];
+  readonly tasks: readonly EvalTask[];
+}
+
+/** One row per variant, across every case, in the order the run declared
+ * them. */
 export const variantsOf = (run: {
   readonly cells: readonly EvalCell[];
   readonly tasks: readonly EvalTask[];
@@ -98,6 +117,32 @@ export const variantsOf = (run: {
 
     return cells.length === 0 ? [] : [variantOf(cells, task, taskIndex)];
   });
+
+/**
+ * The grid, case by case, each holding its variants in declared order.
+ *
+ * Ordered by the run's own case list so the rows sit where the author put
+ * them; a cell for a case the run did not list -- which should not happen,
+ * but a grid is only as tidy as what was stored -- is appended rather than
+ * dropped, because a result that ran deserves to be seen.
+ */
+export const casesOf = (run: Grid): readonly CaseResult[] => {
+  const names = [
+    ...new Set([...run.cases, ...run.cells.map((cell) => cell.caseName)]),
+  ];
+
+  return names.flatMap((name) => {
+    const results = run.tasks.flatMap((task, taskIndex) =>
+      run.cells
+        .filter(
+          (cell) => cell.caseName === name && cell.taskIndex === taskIndex
+        )
+        .map((cell) => ({ ...variantOf([cell], task, taskIndex), cell }))
+    );
+
+    return results.length === 0 ? [] : [{ name, results }];
+  });
+};
 
 /**
  * The variants that lead on a metric.

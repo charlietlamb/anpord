@@ -1,5 +1,6 @@
 import type { EvalTrial } from "@anpord/schema/domain/evals";
 import { TrialStatusMark } from "@/components/evals/eval-status-badge";
+import { Metric } from "@/components/evals/metric";
 import { ListRow } from "@/components/layout/list-row";
 import { count, NOTHING, seconds } from "@/lib/evals/duration";
 import { shortId } from "@/lib/evals/short-id";
@@ -36,25 +37,29 @@ export function TrialRow({
       leading={<TrialStatusMark status={trial.status} />}
       meta={
         <>
-          <span className="w-16 text-right">{exitOf(trial)}</span>
+          <Metric className="w-20" name="exit">
+            {exitOf(trial)}
+          </Metric>
 
-          <span className="w-20 text-right">
-            <span className="inline-flex items-center gap-1.5">
-              {trial.commands}
-              {trial.failedCommands > 0 ? (
-                <span className="text-warning">
-                  {trial.failedCommands} failed
-                </span>
-              ) : null}
-            </span>
-          </span>
+          <Metric className="w-24" name="commands">
+            {trial.commands}
+            {trial.failedCommands > 0 ? (
+              <span className="text-warning">
+                {trial.failedCommands} failed
+              </span>
+            ) : null}
+          </Metric>
 
-          <span className="w-12 text-right">{seconds(trial.modelMs)}</span>
-          <span className="w-12 text-right">{seconds(trial.sandboxMs)}</span>
+          <Metric className="w-16" name="model">
+            {seconds(trial.modelMs)}
+          </Metric>
+          <Metric className="w-16" name="sandbox">
+            {seconds(trial.sandboxMs)}
+          </Metric>
 
-          <span className="w-16 text-right">
+          <Metric className="w-20" name="tokens">
             {trial.usage === null ? NOTHING : count(trial.usage.totalTokens)}
-          </span>
+          </Metric>
         </>
       }
       params={{ cellKey, ordinal: String(trial.ordinal), runId }}

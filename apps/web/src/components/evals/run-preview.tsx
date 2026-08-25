@@ -2,10 +2,10 @@ import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
 import { cn } from "@anpord/ui/lib/utils";
 import { WarningIcon } from "@phosphor-icons/react";
 import {
-  harnessPresentation,
-  modelPresentation,
-  providerPresentation,
-} from "@/lib/evals/variant-presentation";
+  HarnessLabel,
+  ModelLabel,
+  SandboxLabel,
+} from "@/components/evals/variant-label";
 
 export function RunPreview({
   agents,
@@ -44,31 +44,22 @@ export function RunPreview({
 
       <ul className="flex flex-wrap gap-1">
         {agents.flatMap(({ harness, model }) =>
-          providers.map((provider) => {
-            const harnessOwn = harnessPresentation(harness);
-            const modelOwn = modelPresentation(model);
-            const providerOwn = providerPresentation(provider);
-
-            return (
-              <li
-                className="inline-flex items-center gap-1.5 rounded-md border border-border-faint px-2 py-1 text-xs"
-                key={`${harness}-${provider}-${model}`}
-              >
-                {showHarness ? (
-                  <>
-                    <harnessOwn.Icon className="size-3 shrink-0" />
-                    {harnessOwn.label}
-                    <span className="text-muted-foreground">·</span>
-                  </>
-                ) : null}
-                <modelOwn.Icon className="size-3 shrink-0" />
-                {modelOwn.label}
-                <span className="text-muted-foreground">on</span>
-                <providerOwn.Icon className="size-3 shrink-0" />
-                {providerOwn.label}
-              </li>
-            );
-          })
+          providers.map((provider) => (
+            <li
+              className="inline-flex items-center gap-1.5 rounded-md border border-border-faint px-2 py-1 text-xs"
+              key={`${harness}-${provider}-${model}`}
+            >
+              {showHarness ? (
+                <>
+                  <HarnessLabel harness={harness} size="compact" />
+                  <span className="text-muted-foreground">·</span>
+                </>
+              ) : null}
+              <ModelLabel model={model} size="compact" />
+              <span className="text-muted-foreground">on</span>
+              <SandboxLabel provider={provider} size="compact" />
+            </li>
+          ))
         )}
       </ul>
 

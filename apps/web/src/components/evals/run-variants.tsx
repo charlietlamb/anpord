@@ -1,24 +1,17 @@
 import type { EvalTask } from "@anpord/schema/domain/evals";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
-import type { ComponentType, ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
-  harnessLabel,
-  harnessPresentation,
-  modelPresentation,
-  providerPresentation,
-} from "@/lib/evals/variant-presentation";
+  HarnessLabel,
+  ModelLabel,
+  SandboxLabel,
+} from "@/components/evals/variant-label";
 
-interface Named {
-  readonly Icon: ComponentType<{ readonly className?: string }>;
-  readonly key: string;
-  readonly label: string;
-}
-
-const distinct = (values: readonly Named[]) => {
-  const seen = new Map<string, Named>();
+const distinct = <T,>(values: readonly T[], keyOf: (value: T) => string) => {
+  const seen = new Map<string, T>();
 
   for (const value of values) {
-    seen.set(value.key, value);
+    seen.set(keyOf(value), value);
   }
 
   return [...seen.values()];
@@ -31,12 +24,12 @@ const distinct = (values: readonly Named[]) => {
  * OpenAI model against an Anthropic one has two logos on one line, and a
  * single leading icon would claim they came from the same place.
  */
-const Listed = ({ values }: { readonly values: readonly Named[] }): ReactNode =>
-  values.map((value, index) => (
-    <span className="inline-flex items-center gap-1.5" key={value.key}>
+const Listed = ({ items }: { readonly items: readonly ReactNode[] }) =>
+  items.map((item, index) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: the list is static per render and its items carry no identity of their own
+    <span className="inline-flex items-center gap-1.5" key={index}>
       {index === 0 ? null : <span className="text-muted-foreground/50">,</span>}
-      <value.Icon className="size-3.5 shrink-0" />
-      {value.label}
+      {item}
     </span>
   ));
 
@@ -53,50 +46,55 @@ export function RunVariants({
 }: {
   readonly tasks: readonly EvalTask[];
 }) {
-  const harnesses = distinct(
-    tasks.map((task) => ({
-      Icon: harnessPresentation(task.harness).Icon,
-      key: harnessLabel(task.harness, task.harnessVersion),
-      label: harnessLabel(task.harness, task.harnessVersion),
-    }))
-  );
-
-  const models = distinct(
-    tasks.map((task) => ({
-      Icon: modelPresentation(task.model).Icon,
-      key: task.model,
-      label: modelPresentation(task.model).label,
-    }))
-  );
-
-  const providers = distinct(
-    tasks.map((task) => ({
-      Icon: providerPresentation(task.provider).Icon,
-      key: task.provider,
-      label: providerPresentation(task.provider).label,
-    }))
-  );
-
   if (tasks.length === 0) {
     return null;
   }
+
+  const harnesses = distinct(
+    tasks,
+    (task) => `${task.harness} ${task.harnessVersion}`
+  );
+  const models = distinct(tasks, (task) => task.model);
+  const providers = distinct(tasks, (task) => task.provider);
 
   return (
     <div className="flex flex-col">
       <RailFact
         label="harness"
         layout="stated"
-        value={<Listed values={harnesses} />}
+        value={
+          <Listed
+            items={harnesses.map((task) => (
+              <HarnessLabel
+                harness={task.harness}
+                key={`${task.harness} ${task.harnessVersion}`}
+                version={task.harnessVersion}
+              />
+            ))}
+          />
+        }
       />
       <RailFact
         label="model"
         layout="stated"
-        value={<Listed values={models} />}
+        value={
+          <Listed
+            items={models.map((task) => (
+              <ModelLabel key={task.model} model={task.model} />
+            ))}
+          />
+        }
       />
       <RailFact
         label="sandbox"
         layout="stated"
-        value={<Listed values={providers} />}
+        value={
+          <Listed
+            items={providers.map((task) => (
+              <SandboxLabel key={task.provider} provider={task.provider} />
+            ))}
+          />
+        }
       />
     </div>
   );
