@@ -1,5 +1,10 @@
 import { Chunk, Effect, Layer, Stream } from "effect";
 import { outcomeOf } from "../../domain/trial";
+import {
+  stepResultsOf,
+  verifyScriptOf,
+  withoutMarks,
+} from "../../domain/verify-script";
 import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
 import { type ScoreRequest, Scorer } from "../../ports/scorer";
 
@@ -91,14 +96,16 @@ export const ScorerGroundTruthLive = Layer.succeed(
           });
         }
 
+        const script = verifyScriptOf(request.verifyCommand);
         const chunks = yield* verify(
           request.sandbox,
-          request.verifyCommand,
+          script.command,
           request.workspace
         );
 
         const exit = exitOf(chunks);
-        const output = outputOf(chunks);
+        const raw = outputOf(chunks);
+        const output = withoutMarks(raw);
         const exitCode = exit === undefined ? 1 : exit.exitCode;
 
         return outcomeOf({
@@ -115,6 +122,7 @@ export const ScorerGroundTruthLive = Layer.succeed(
           },
           modelMs: request.modelMs,
           sandboxMs: 0,
+          verifySteps: stepResultsOf(script, raw),
         });
       }).pipe(Effect.withSpan("Scorer.score")),
   })

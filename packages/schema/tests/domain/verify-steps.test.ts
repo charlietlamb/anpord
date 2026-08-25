@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { stepsOf, summaryOf } from "../../src/domain/verify-steps";
+import { readingOf, stepsOf, summaryOf } from "../../src/domain/verify-steps";
 
 describe("reading a verifier as steps", () => {
   it.each([
@@ -43,11 +43,44 @@ describe("naming a step", () => {
     ).toBe("too many tabs");
   });
 
+  it.each([
+    ["test -f docs/docs.json", "docs/docs.json exists"],
+    ["test -d docs", "docs is a directory"],
+    ["test ! -f  stray.md", "stray.md is absent"],
+    ["test -s out.txt", "out.txt is not empty"],
+    ['grep -q "<svg" public/logo.svg', "public/logo.svg contains <svg"],
+    ["! grep -q TODO README.md", "README.md does not contain TODO"],
+  ])("reads %s as a condition", (step, expected) => {
+    expect(summaryOf(step)).toBe(expected);
+  });
+
   it("falls back to the command when nothing is thrown", () => {
-    expect(summaryOf("test -f docs/docs.json")).toBe("test -f docs/docs.json");
+    expect(summaryOf("node --test")).toBe("node --test");
   });
 
   it("keeps a long command to one line", () => {
     expect(summaryOf("x".repeat(200))).toHaveLength(73);
+  });
+});
+
+describe("reading a step by kind", () => {
+  it("knows a thrown message from what it checks", () => {
+    expect(readingOf("node -e \"throw new Error('too many tabs')\"")).toEqual({
+      kind: "message",
+      text: "too many tabs",
+    });
+  });
+
+  it("knows a condition from an idiom", () => {
+    expect(readingOf("test -f a.json")).toEqual({
+      kind: "condition",
+      text: "a.json exists",
+    });
+  });
+
+  it("keeps a command whole", () => {
+    const long = `grep -rq '${"x".repeat(100)}' docs`;
+
+    expect(readingOf(long)).toEqual({ kind: "command", text: long });
   });
 });

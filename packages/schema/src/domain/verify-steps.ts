@@ -68,21 +68,79 @@ const TRAILING_JOIN = /[:,\s]+$/;
 /** Any run of whitespace, so a script folded over lines reads as one. */
 const WHITESPACE = /\s+/g;
 
+/** A shell idiom whose meaning is plainer in words than in flags. Only the
+ * common file and text checks: anything else is its own best description. */
+const IDIOMS: readonly (readonly [RegExp, (m: RegExpMatchArray) => string])[] =
+  [
+    [/^test -f (\S+)$/, (m) => `${m[1]} exists`],
+    [/^test -d (\S+)$/, (m) => `${m[1]} is a directory`],
+    [/^test ! -f (\S+)$/, (m) => `${m[1]} is absent`],
+    [/^test ! -d (\S+)$/, (m) => `no ${m[1]} directory`],
+    [/^test -s (\S+)$/, (m) => `${m[1]} is not empty`],
+    [/^test -x (\S+)$/, (m) => `${m[1]} is executable`],
+    [/^grep -q[a-zA-Z]* (\S+) (\S+)$/, (m) => `${m[2]} contains ${m[1]}`],
+    [
+      /^! grep -q[a-zA-Z]* (\S+) (\S+)$/,
+      (m) => `${m[2]} does not contain ${m[1]}`,
+    ],
+  ];
+
+const QUOTED = /^(["'])(.*)\1$/;
+
+const unquoted = (text: string) => text.replace(QUOTED, "$2");
+
+const idiomOf = (step: string): string | undefined => {
+  for (const [pattern, read] of IDIOMS) {
+    const match = step.match(pattern);
+
+    if (match !== null) {
+      return read(match.map(unquoted) as unknown as RegExpMatchArray);
+    }
+  }
+
+  return;
+};
+
 /**
  * What a step checks, in a few words.
  *
  * Taken from the message the step throws where it has one, because that is
  * already a sentence written for a person: `throw new Error('navigation must
  * be an object')` names the check far better than the script around it does.
- * Otherwise the command is its own best description and is shown plainly.
+ * A bare file or text check is read as the condition it states, because
+ * `test -f docs/docs.json` is a flag a reader has to decode and "docs/docs.json
+ * exists" is not. Otherwise the command is its own best description and is
+ * shown plainly.
  */
-export const summaryOf = (step: string): string => {
+/**
+ * A step read for a person, and how it was read.
+ *
+ * `message` is the sentence the step throws when it fails, so it names what
+ * went wrong rather than what was checked. `condition` is a shell idiom read
+ * as the state it asserts. `command` is the shell itself, whole rather than
+ * cut, because a screen that sets it as code can wrap it and a screen that
+ * cannot should shorten it on its own terms.
+ */
+export interface StepReading {
+  readonly kind: "command" | "condition" | "message";
+  readonly text: string;
+}
+
+export const readingOf = (step: string): StepReading => {
+  const flat = step.replace(WHITESPACE, " ").trim();
   const thrown = step.match(THROWN);
   const found = thrown?.[1]?.trim().replace(TRAILING_JOIN, "");
 
-  return shortened(
-    found === undefined || found === ""
-      ? step.replace(WHITESPACE, " ").trim()
-      : found
-  );
+  if (found !== undefined && found !== "") {
+    return { kind: "message", text: found };
+  }
+
+  const condition = idiomOf(flat);
+
+  return condition === undefined
+    ? { kind: "command", text: flat }
+    : { kind: "condition", text: condition };
 };
+
+export const summaryOf = (step: string): string =>
+  shortened(readingOf(step).text);

@@ -131,6 +131,53 @@ describe("ScorerGroundTruthLive", () => {
   });
 });
 
+describe("a verifier of several conditions", () => {
+  it("records which conditions held", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        stdout("\n@@anpord-verify 1 0\n\n@@anpord-verify 2 1\n"),
+        exit(1),
+      ]),
+      "test -f a && test -f b && test -f c"
+    );
+
+    expect(outcome.status).toBe("failed");
+    expect(outcome.verifySteps).toEqual([
+      { command: "test -f a", exitCode: 0 },
+      { command: "test -f b", exitCode: 1 },
+    ]);
+  });
+
+  it("does not let the trail count as the verifier having printed", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        stdout("\n@@anpord-verify 1 0\n\n@@anpord-verify 2 0\n"),
+        exit(0),
+      ]),
+      "test -f a && test -f b"
+    );
+
+    expect(outcome.status).toBe("passed");
+    expect(outcome.voidFields).toEqual([]);
+  });
+
+  it("hands the sandbox the rewritten script", async () => {
+    const seen: string[] = [];
+    const sandbox: SandboxHandle = {
+      ...sandboxYielding([exit(0)]),
+      exec: (command) => {
+        seen.push(command);
+        return Stream.fromIterable([exit(0)]);
+      },
+    };
+
+    await score(sandbox, "test -f a && test -f b");
+
+    expect(seen[0]).toContain("@@anpord-verify");
+    expect(seen[0]).toContain("{ test -f a ; }");
+  });
+});
+
 describe("isUnguardedPipeline and ordinary commands", () => {
   /* Every one of these was refused by a bare substring test, which voided the
      whole cell before the sandbox was touched and reported a pass rate of
