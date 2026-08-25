@@ -160,7 +160,9 @@ export function EvalForm({
                   renderOption={(option) => {
                     const { Icon } = providerPresentation(option.value);
 
-                    return <Icon className="size-3.5 shrink-0" />;
+                    return (
+                      <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                    );
                   }}
                   searchPlaceholder="Search sandboxes…"
                   value={providers.state.value}

@@ -89,7 +89,7 @@ export function AgentField({
           options={HARNESS_OPTIONS}
           renderOption={(option) => {
             const { Icon } = harnessPresentation(option.value);
-            return <Icon className="size-3.5 shrink-0" />;
+            return <Icon className="size-3.5 shrink-0 text-muted-foreground" />;
           }}
           searchPlaceholder="Search harnesses…"
           value={harnesses}
@@ -116,7 +116,7 @@ export function AgentField({
             const split = option.value.indexOf("\0");
             const { Icon } = modelPresentation(option.value.slice(split + 1));
 
-            return <Icon className="size-3.5 shrink-0" />;
+            return <Icon className="size-3.5 shrink-0 text-muted-foreground" />;
           }}
           search={{ onChange: setSearch, value: search }}
           searchPlaceholder="Search agents…"

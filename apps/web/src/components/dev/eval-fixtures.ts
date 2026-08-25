@@ -1,5 +1,6 @@
 import type {
   EvalCell,
+  EvalRun,
   EvalRunSummary,
   EvalTask,
   EvalTrial,
@@ -99,6 +100,34 @@ const EXIT_CODES: Partial<Record<EvalTrial["status"], number>> = {
   void: -1,
 };
 
+const VERIFY_STEPS = [
+  "test -d public/logos",
+  "test -f public/logos/github-light.svg",
+  "test -f public/logos/github-dark.svg",
+  "node -e \"if (require('fs').readdirSync('.').some((f) => f.startsWith('github'))) throw new Error('logo left outside public/logos')\"",
+  'grep -q "<svg" public/logos/github-light.svg',
+  'grep -q "<svg" public/logos/github-dark.svg',
+];
+
+const VERIFY = VERIFY_STEPS.join(" && ");
+
+/** The trail a passing trial leaves, and the one that stopped at the third
+ * step, so a preview shows every mark the rail can carry. */
+const trailOf = (status: EvalTrial["status"]): EvalTrial["verifySteps"] => {
+  if (status === "passed") {
+    return VERIFY_STEPS.map((command) => ({ command, exitCode: 0 }));
+  }
+
+  if (status === "failed") {
+    return VERIFY_STEPS.slice(0, 3).map((command, index) => ({
+      command,
+      exitCode: index === 2 ? 1 : 0,
+    }));
+  }
+
+  return [];
+};
+
 const trial = (input: {
   readonly commands: number;
   readonly failedCommands: number;
@@ -130,6 +159,7 @@ const trial = (input: {
           outputTokens: 12_717,
           totalTokens: input.tokens,
         },
+  verifySteps: trailOf(input.status),
   voidFields: input.status === "void" ? ["stdout"] : [],
 });
 
@@ -159,6 +189,16 @@ export const TRIALS: readonly EvalTrial[] = [
     tokens: null,
   }),
 ];
+
+/** A trial that stopped at the third check, so a rail can show a cross and
+ * the steps it never reached. */
+export const FAILED_TRIAL: EvalTrial = trial({
+  commands: 5,
+  failedCommands: 1,
+  ordinal: 4,
+  status: "failed",
+  tokens: 41_200,
+});
 
 export const CELL: EvalCell = {
   caseName: "github-logo-in-footer",
@@ -190,8 +230,7 @@ export const CELL: EvalCell = {
     repoRef: null,
     repoUrl: null,
     setupCommand: null,
-    verifyCommand:
-      'set -e\ntest -d public/logos\ntest -f public/logos/github-light.svg\ntest -f public/logos/github-dark.svg\ntest -z "$(find . -name \'github*.svg\' -not -path \'./public/logos/*\')"\ngrep -q "<svg" public/logos/github-light.svg\ngrep -q "<svg" public/logos/github-dark.svg',
+    verifyCommand: VERIFY,
     workspace: "/tmp/anpord-task",
   },
   status: "finished",
@@ -216,6 +255,44 @@ export const CELL_NO_BASELINE: EvalCell = {
     trials: 3,
     voided: 0,
   },
+};
+
+const RIVAL_TASK: EvalTask = { ...TASK, model: "gpt-5.6-sol" };
+
+const rivalOf = (cell: EvalCell, key: string): EvalCell => ({
+  ...cell,
+  cellKey: key,
+  comparison: null,
+  distribution: {
+    commandMax: 3,
+    commandMedian: 2,
+    commandMin: 2,
+    deterministic: true,
+    failed: 0,
+    passRate: 1,
+    passed: 3,
+    scored: 3,
+    trials: 3,
+    voided: 0,
+  },
+  taskIndex: 1,
+});
+
+/** Two cases against two variants, so the grid has something to lead on. */
+export const RUN: EvalRun = {
+  cases: [CELL.caseName, CELL_NO_BASELINE.caseName],
+  cells: [
+    CELL,
+    rivalOf(CELL, "1b7d2c4e6f8a9b0c1d2e3f4a5b6c7d8e"),
+    CELL_NO_BASELINE,
+    rivalOf(CELL_NO_BASELINE, "2c8e3d5f7a9b0c1d2e3f4a5b6c7d8e9f"),
+  ],
+  failure: null,
+  finishedAt: at(108_000),
+  id: "run_MCGA1APRP7ZETMRJ66W40FCE",
+  startedAt: at(0),
+  status: "finished",
+  tasks: [TASK, RIVAL_TASK],
 };
 
 export const RUNS: readonly EvalRunSummary[] = [

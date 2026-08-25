@@ -6,35 +6,34 @@ import {
   SlidersHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { CatchBoundary, createFileRoute } from "@tanstack/react-router";
 import {
   CELL,
-  CELL_NO_BASELINE,
+  FAILED_TRIAL,
+  RUN,
   RUNS,
-  TASK,
   TRIALS,
 } from "@/components/dev/eval-fixtures";
 import { PreviewCellRail } from "@/components/dev/preview-cell-rail";
 import { PreviewRunRail } from "@/components/dev/preview-run-rail";
 import { PreviewScreen } from "@/components/dev/preview-screen";
-import { CellRow } from "@/components/evals/cell-row";
 import { CellSetup } from "@/components/evals/cell-setup";
-import { CellVerdictNote } from "@/components/evals/cell-verdict-note";
 import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { EvalRow } from "@/components/evals/eval-row";
+import { RunGrid } from "@/components/evals/run-grid";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialTable } from "@/components/evals/trial-table";
 import { Waterfall } from "@/components/evals/waterfall";
+import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export const Route = createFileRoute("/dev/evals")({
   component: EvalsPreview,
+  ssr: false,
 });
 
-const RUN_ID = RUNS[0]?.id ?? "";
-const CELLS = [CELL, CELL_NO_BASELINE];
 const TRIAL = TRIALS[0];
 
 function EvalsPreview() {
@@ -48,14 +47,23 @@ function EvalsPreview() {
 
         <PreviewScreen name="New eval">
           <div className="mx-auto w-full max-w-3xl px-5 py-5">
-            <EvalForm
-              onSubmit={(draft) => {
-                globalThis.console.log("draft", draft);
+            {/* The form asks the server for models and throws when nobody is
+                signed in, which must not take the other previews with it. */}
+            <CatchBoundary
+              errorComponent={() => (
+                <EmptyNote>Sign in to preview the form.</EmptyNote>
+              )}
+              getResetKey={() => "eval-form"}
+            >
+              <EvalForm
+                onSubmit={(draft) => {
+                  globalThis.console.log("draft", draft);
 
-                return Promise.resolve();
-              }}
-              submitting={false}
-            />
+                  return Promise.resolve();
+                }}
+                submitting={false}
+              />
+            </CatchBoundary>
           </div>
         </PreviewScreen>
 
@@ -73,15 +81,8 @@ function EvalsPreview() {
           <EvalLayout>
             <EvalMain>
               <section className="flex flex-col gap-1.5">
-                <PageHeading icon={SquaresFourIcon} title="Cases" />
-                <RowList>
-                  {CELLS.map((cell) => (
-                    <div key={cell.cellKey}>
-                      <CellRow cell={cell} runId={RUN_ID} task={TASK} />
-                      <CellVerdictNote cell={cell} />
-                    </div>
-                  ))}
-                </RowList>
+                <PageHeading icon={SquaresFourIcon} title="Results" />
+                <RunGrid run={RUN} />
               </section>
             </EvalMain>
 
@@ -99,7 +100,7 @@ function EvalsPreview() {
                   readings={[
                     {
                       internalId: "cell_preview",
-                      runId: RUN_ID,
+                      runId: RUN.id,
                       trials: TRIALS,
                     },
                   ]}
@@ -109,7 +110,10 @@ function EvalsPreview() {
               {CELL.setup === null ? null : (
                 <section className="flex flex-col gap-1.5">
                   <PageHeading icon={SlidersHorizontalIcon} title="Setup" />
-                  <CellSetup setup={CELL.setup} />
+                  <CellSetup
+                    setup={CELL.setup}
+                    trials={[...CELL.trials, FAILED_TRIAL]}
+                  />
                 </section>
               )}
             </EvalMain>
