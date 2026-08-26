@@ -26,6 +26,7 @@ function MembersSettings() {
         </Button>
       }
       description="Manage who has access to this organization."
+      title="Members"
     >
       <OrganizationMembers />
     </SettingsPanel>

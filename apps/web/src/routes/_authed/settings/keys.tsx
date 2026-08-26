@@ -82,6 +82,7 @@ function ApiKeysPage() {
         </Button>
       }
       description="Authenticate the SDK and the CLI. A key acts for this organization."
+      title="API keys"
     >
       <ApiKeyList
         error={keys.error}

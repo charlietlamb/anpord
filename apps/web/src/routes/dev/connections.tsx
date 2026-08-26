@@ -147,7 +147,7 @@ function ConnectionsPreview() {
 
         <PreviewScreen name="Connections">
           <div className="mx-auto w-full max-w-3xl px-5 py-5">
-            <SettingsPanel>
+            <SettingsPanel title="Connections">
               <div className="flex flex-col gap-7">
                 {CONNECTION_SECTIONS.map((section) => {
                   const own = CONNECTIONS.filter(
@@ -161,7 +161,6 @@ function ConnectionsPreview() {
                       emptyNote={own.length === 0 ? section.empty : null}
                       Icon={section.Icon}
                       key={section.category}
-                      note={section.note}
                       onAdd={() => setOpen(section.category)}
                       title={section.title}
                     >

@@ -38,6 +38,7 @@ export function ChannelsScreen({
     <SettingsPanel
       actions={newChannel}
       description="A channel points at one version, so you can ship a new one without a deploy."
+      title="Channels"
     >
       <ListState
         action={newChannel}

@@ -29,7 +29,10 @@ export function DangerZoneSettings() {
   }
 
   return (
-    <SettingsPanel description="Irreversible actions for this organization.">
+    <SettingsPanel
+      description="Irreversible actions for this organization."
+      title="Danger zone"
+    >
       {/* The one border left in the authed app. It is not drawing a card: it
           says this row is different from the settings above it, which is what
           a border is for. */}
