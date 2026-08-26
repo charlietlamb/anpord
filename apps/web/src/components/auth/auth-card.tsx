@@ -1,5 +1,4 @@
 import { Button } from "@anpord/ui/components/button";
-import { Logo } from "@anpord/ui/components/logo";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { useState } from "react";
 import { z } from "zod";
@@ -48,7 +47,6 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
     <PanelCard
       description="Pick up where you left off."
       heading="h1"
-      mark={<Logo className="size-[26px]" />}
       title="Sign in"
     >
       <Button

@@ -1,5 +1,4 @@
 import { Button } from "@anpord/ui/components/button";
-import { Logo } from "@anpord/ui/components/logo";
 import { PanelCard } from "@/components/layout/panel-card";
 
 export function MagicLinkSent({
@@ -19,7 +18,6 @@ export function MagicLinkSent({
         </>
       }
       heading="h1"
-      mark={<Logo className="size-[26px]" />}
       title="Check your email"
     >
       <Button

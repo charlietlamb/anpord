@@ -28,7 +28,7 @@ export function PanelCard({
   const Heading = heading;
 
   return (
-    <div className="w-full max-w-sm rounded-lg border bg-background p-8 text-left">
+    <div className="panel-card-shadow w-full max-w-sm rounded-[3px] border border-border bg-card p-8 text-left">
       <div className={cn("flex items-center", mark === undefined || "gap-2")}>
         {mark}
         <Heading className="font-heading text-xl tracking-tight">
