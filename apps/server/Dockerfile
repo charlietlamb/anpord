@@ -16,6 +16,7 @@ COPY apps/sandbox-bridge/package.json ./apps/sandbox-bridge/
 COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
 COPY packages/auth/package.json ./packages/auth/
+COPY packages/billing/package.json ./packages/billing/
 COPY packages/cache/package.json ./packages/cache/
 COPY packages/db/package.json ./packages/db/
 COPY packages/eval/package.json ./packages/eval/
@@ -49,6 +50,7 @@ COPY packages ./packages
 COPY --from=install /app/node_modules ./node_modules
 COPY --from=install /app/apps/server/node_modules ./apps/server/node_modules
 COPY --from=install /app/packages/auth/node_modules ./packages/auth/node_modules
+COPY --from=install /app/packages/billing/node_modules ./packages/billing/node_modules
 COPY --from=install /app/packages/cache/node_modules ./packages/cache/node_modules
 COPY --from=install /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=install /app/packages/eval/node_modules ./packages/eval/node_modules
