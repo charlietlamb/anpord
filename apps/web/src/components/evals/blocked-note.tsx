@@ -15,11 +15,12 @@ const listed = (names: readonly string[]) => {
 /**
  * Why the run button will not start anything.
  *
- * A run needs a credential for every harness and sandbox it names, and the
- * form picks them by default once they exist, so this appears only when an
- * integration has none at all. It names which ones and links to where they
- * are added, because "disabled" on its own is a dead end for the reader who
- * has just signed up and has nothing configured yet.
+ * A run needs a credential for every harness it names -- sandboxes fall back
+ * to Anpord's own account -- and the form picks one by default once it
+ * exists, so this appears only when a harness has none at all. It names which
+ * ones and links to where they are added, because "disabled" on its own is a
+ * dead end for the reader who has just signed up and has nothing configured
+ * yet.
  */
 export function BlockedNote({
   failed,

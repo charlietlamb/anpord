@@ -14,6 +14,7 @@ import {
   missingCredentialIntegrations,
   normalizeCredentialSelections,
   requiredCredentialIntegrations,
+  selectableCredentialIntegrations,
 } from "@/lib/evals/credential-selection";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import {
@@ -45,7 +46,7 @@ export function EvalForm({
       onSubmit({
         ...draft,
         connections: normalizeCredentialSelections(
-          requiredCredentialIntegrations(draft.agents, draft.providers),
+          selectableCredentialIntegrations(draft.agents, draft.providers),
           connections.data ?? [],
           draft.connections
         ),
@@ -208,7 +209,7 @@ export function EvalForm({
               {(field) => (
                 <CredentialField
                   connections={connections.data ?? []}
-                  integrationIds={requiredCredentialIntegrations(
+                  integrationIds={selectableCredentialIntegrations(
                     agents,
                     providers
                   )}
@@ -237,17 +238,13 @@ export function EvalForm({
 
       <form.Subscribe selector={(state) => state.values}>
         {(values) => {
-          const integrationIds = requiredCredentialIntegrations(
-            values.agents,
-            values.providers
-          );
           const selected = normalizeCredentialSelections(
-            integrationIds,
+            selectableCredentialIntegrations(values.agents, values.providers),
             connections.data ?? [],
             values.connections
           );
           const missing = missingCredentialIntegrations(
-            integrationIds,
+            requiredCredentialIntegrations(values.agents),
             connections.data ?? [],
             selected
           );

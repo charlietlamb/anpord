@@ -5,6 +5,7 @@ import {
   missingCredentialIntegrations,
   normalizeCredentialSelections,
   requiredCredentialIntegrations,
+  selectableCredentialIntegrations,
 } from "./credential-selection";
 
 const connection = (
@@ -26,17 +27,23 @@ const connection = (
 });
 
 describe("eval credential selections", () => {
-  it("requires each distinct harness and hosted sandbox", () => {
+  const agents = [
+    { harness: "codex", model: "a" },
+    { harness: "codex", model: "b" },
+    { harness: "claude", model: "c" },
+  ] as const;
+
+  it("offers a choice for each distinct harness and sandbox", () => {
     expect(
-      requiredCredentialIntegrations(
-        [
-          { harness: "codex", model: "a" },
-          { harness: "codex", model: "b" },
-          { harness: "claude", model: "c" },
-        ],
-        ["daytona", "e2b"]
-      )
+      selectableCredentialIntegrations([...agents], ["daytona", "e2b"])
     ).toEqual(["codex", "claude", "daytona", "e2b"]);
+  });
+
+  it("requires harnesses only, since sandboxes fall back to Anpord", () => {
+    expect(requiredCredentialIntegrations([...agents])).toEqual([
+      "codex",
+      "claude",
+    ]);
   });
 
   it("keeps valid choices and fills defaults", () => {

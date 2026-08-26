@@ -33,6 +33,13 @@ const SANDBOXES = new Set([
 const presentationOf = (id: string) =>
   SANDBOXES.has(id) ? providerPresentation(id) : harnessPresentation(id);
 
+const placeholderFor = (loading: boolean, optional: boolean) => {
+  if (loading) {
+    return "Checking connections…";
+  }
+  return optional ? "Anpord's account" : "No connection";
+};
+
 const readinessLabel = (loading: boolean, missing: number) => {
   if (loading) {
     return "Checking";
@@ -68,8 +75,10 @@ export function CredentialField({
     connections,
     value
   );
+  /* Sandboxes fall back to Anpord's own account, so one without a
+     connection is a default rather than a gap. */
   const missing = missingCredentialIntegrations(
-    integrationIds,
+    integrationIds.filter((id) => !SANDBOXES.has(id)),
     connections,
     normalized
   );
@@ -80,7 +89,8 @@ export function CredentialField({
         <div>
           <div className="font-medium text-sm">Credentials</div>
           <p className="text-muted-foreground text-xs">
-            Choose the account each selected harness and sandbox will use.
+            Choose the account each harness runs on. Sandboxes use Anpord's
+            unless you pick your own.
           </p>
         </div>
         <StatusBadge tone={readinessTone(loading, missing.length)}>
@@ -96,6 +106,7 @@ export function CredentialField({
               connection.status === "active"
           );
           const own = presentationOf(integrationId);
+          const optional = SANDBOXES.has(integrationId);
           const labelId = `credential-${integrationId}`;
 
           return (
@@ -116,15 +127,13 @@ export function CredentialField({
                 value={normalized[integrationId] ?? null}
               >
                 <SelectTrigger
-                  aria-invalid={options.length === 0}
+                  aria-invalid={options.length === 0 && !optional}
                   aria-labelledby={labelId}
                   className="w-full"
                   disabled={options.length === 0}
                 >
                   <SelectValue
-                    placeholder={
-                      loading ? "Checking connections…" : "No connection"
-                    }
+                    placeholder={placeholderFor(loading, optional)}
                   />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,7 +152,7 @@ export function CredentialField({
 
       {missing.length > 0 && !loading ? (
         <p className="text-destructive text-xs">
-          Add the missing connections in{" "}
+          Add the missing harness connections in{" "}
           <Link
             className="underline underline-offset-3"
             to="/settings/connections"

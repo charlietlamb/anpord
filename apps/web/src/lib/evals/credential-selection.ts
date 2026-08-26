@@ -4,10 +4,24 @@ import type {
 } from "@anpord/schema/domain/credentials";
 import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
 
-export const requiredCredentialIntegrations = (
+/** Everything a run can be pointed at a credential for. */
+export const selectableCredentialIntegrations = (
   agents: readonly EvalAgent[],
   providers: readonly EvalProvider[]
 ) => [...new Set([...agents.map((agent) => agent.harness), ...providers])];
+
+/**
+ * The ones a run cannot start without.
+ *
+ * Only harnesses. Model usage is charged to the account behind the
+ * credential, so there is nobody to bill without one and the server refuses
+ * the run. A sandbox without a connection falls back to Anpord's own account
+ * for that provider, so requiring one here disabled the button over something
+ * that would have run.
+ */
+export const requiredCredentialIntegrations = (
+  agents: readonly EvalAgent[]
+) => [...new Set(agents.map((agent) => agent.harness))];
 
 const optionsFor = (
   connections: readonly CredentialConnection[],

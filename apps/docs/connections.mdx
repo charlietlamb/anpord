@@ -3,15 +3,15 @@ title: "Connections"
 description: "The credentials your evals run with"
 ---
 
-An eval needs two credentials: one for the harness that does the work, one for the sandbox it works in. Anpord supplies neither — you bring your own accounts, and model and sandbox usage is charged to them.
+A run needs a credential for its [harness](/evals/harnesses) — the model usage is charged to your own account, so Anpord cannot supply one. Add it under **Settings > Connections** before the first run. This applies to the SDK, CLI, and MCP too; there is no way to pass a raw key through the API.
 
-Add both under **Settings > Connections** before the first run. This applies to the SDK, CLI, and MCP too; there is no way to pass a raw key through the API.
+Sandboxes run on Anpord's accounts by default. Add a sandbox connection only to run somewhere you control.
 
 ## Add one
 
 Choose **Add connection**, pick the integration, paste the key. Secrets are encrypted on arrival and never shown again.
 
-You need one [harness](/evals/harnesses) and one sandbox — `daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, or `vercel`. Only the ones your run names.
+Harnesses are listed [here](/evals/harnesses). Sandboxes are `daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`.
 
 The first connection for an integration becomes its default, and runs use defaults unless you pick otherwise. **Verify** checks a stored credential against the provider without revealing it.
 
@@ -19,13 +19,15 @@ The first connection for an integration becomes its default, and runs use defaul
 
 Organization connections are usable by everyone. Personal ones are yours alone and take precedence for the same integration, which is how you run against your own account without changing what your team uses.
 
-## When one is missing
+## When the harness credential is missing
 
 ```text
 No credential configured for codex
 ```
 
 Nothing is charged and no sandbox opens. In the dashboard the run button stays disabled and names what is missing.
+
+A missing sandbox connection is not an error — the run uses Anpord's account for that provider.
 
 ## Rotating and removing
 
