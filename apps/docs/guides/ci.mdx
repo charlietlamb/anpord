@@ -41,6 +41,6 @@ total trials = cases x tasks x trials per cell
 
 Five cases, two tasks, and three trials open thirty sandbox sessions. Keep pull request grids small and run larger comparisons on a schedule.
 
-One request can contain at most 100 total trials. Starting a run is not idempotent. If the response is lost, check recent runs before retrying.
+A cell runs between 1 and 10 trials, and one request can contain at most 100 in total. Starting a run is not idempotent. If the response is lost, check recent runs before retrying.
 
 Print the run id before polling. The run continues on the server if the CI job times out.

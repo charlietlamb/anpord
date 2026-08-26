@@ -16,7 +16,7 @@ Each entry in `tasks` defines one variant:
 | `model` | Selects the model used by the harness |
 | `provider` | Supplies the sandbox |
 
-Today, `harness` must be `codex`; Claude Code is not supported yet. The field stays explicit so future harnesses can use the same case format.
+See [Harnesses](/evals/harnesses) for the full list and what each one reports.
 
 ## Choose a model
 
@@ -30,25 +30,13 @@ for (const model of models) {
 }
 ```
 
-Model discovery is not required before `evals.start`. Available ids depend on the account configured on the server.
+Model discovery is not required before `evals.start`. Available ids depend on the harness and the credential it runs with.
 
 ## Choose a sandbox
 
-| Provider | Availability |
-| --- | --- |
-| `daytona` | Public API and dashboard |
-| `e2b` | Public API and dashboard |
-| `upstash` | Public API and dashboard |
-| `modal` | Public API and dashboard |
-| `cloudflare` | Public API and dashboard |
-| `vercel` | Public API and dashboard |
-| `local` | Trusted dashboard development on a self-hosted server |
+`daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`.
 
 Each trial gets a separate workspace. Setup, agent work, and verification run in that workspace.
-
-<Warning>
-`local` is not isolated from the server process. The public API and SDK do not accept it.
-</Warning>
 
 ## Compare variants
 

@@ -1,0 +1,40 @@
+---
+title: "Harnesses"
+description: "The agents that can run a case"
+---
+
+A harness is the coding agent itself. Every harness runs the same cases, so switching one is a variant change rather than a rewrite.
+
+| Harness | `harness` | Credential | Reports |
+| --- | --- | --- | --- |
+| Codex | `codex` | API key, or ChatGPT | Commands, files, tokens |
+| Claude Code | `claude` | API key | Commands, files, tokens |
+| OpenCode | `opencode` | Auth file | Commands, files, tokens |
+| Pi | `pi` | Auth file | Commands, files, tokens |
+| Gemini CLI | `gemini` | API key | Commands, files, tokens |
+| Qwen Code | `qwen` | API key | Commands, files, tokens |
+| Cursor Agent | `cursor` | API key | Commands, files |
+| FX | `fx` | AI Gateway key, or ChatGPT auth file | Verdict only |
+
+Each needs a [connection](/connections) before it can run. A harness that reports less still passes or fails on its verifier; it just leaves a thinner trajectory, and no cost.
+
+## Models
+
+Model ids are per harness — `opus` for Claude Code, `provider/model` for OpenCode, a bare id for Codex. `codex` and `opencode` list theirs live, the rest come from a fixed set.
+
+```ts
+const { models } = await anpord.evals.models({ harness: "claude" });
+```
+
+## Compare two
+
+Same case, same sandbox, one field apart:
+
+```ts
+tasks: [
+  { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },
+  { harness: "claude", model: "opus", provider: "daytona" },
+]
+```
+
+Each is its own cell with its own baseline, so their histories never mix.

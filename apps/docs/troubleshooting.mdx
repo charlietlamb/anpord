@@ -25,7 +25,11 @@ The baseline or candidate has no scored trials. `comparison.reason` identifies t
 
 ## No models are returned
 
-`evals.models({ harness: "codex" })` reads the server's Codex model cache. Open the Codex model picker on the server to populate it, then check the configured account's model access.
+Model ids are per harness, and `codex` and `opencode` read theirs from the harness itself. An empty list usually means the credential for that harness cannot list models. Verify the connection, then check what the account has access to.
+
+## `No credential configured for ...`
+
+The run named a harness or sandbox with no [connection](/connections). Add one and start again — nothing was charged.
 
 ## `MissingApiKey`
 

@@ -36,7 +36,7 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["quickstart", "getting-started"]
+            "pages": ["quickstart", "getting-started", "connections"]
           },
           {
             "group": "Evals",
@@ -44,6 +44,7 @@
               "concepts",
               "evals/cases",
               "evals/variants",
+              "evals/harnesses",
               "evals/results",
               "evals/baselines"
             ]
