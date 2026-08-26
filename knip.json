@@ -16,6 +16,7 @@
     "apps/web": {
       "entry": [
         "src/router.tsx",
+        "src/server.ts",
         "src/routes/**/*.{ts,tsx}",
         "src/components/dev/eval-fixtures.ts",
         "vite.config.ts"
