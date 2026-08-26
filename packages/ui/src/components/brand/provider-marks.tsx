@@ -132,9 +132,9 @@ export function VercelMark({ className }: MarkProps) {
   );
 }
 
-/* Pi publishes a wordmark rather than a glyph, so the letter set in the
-   interface's own heading face is closer to the brand than a borrowed shape
-   would be, and reads at 14px where a traced logo would not. */
+/* pi.dev/logo-auto.svg, whose blocky P and separate i-dot are the mark. It
+   is not the Greek letter, which is what the name suggests and what a guess
+   would reach for. */
 export function PiMark({ className }: MarkProps) {
   return (
     <svg
@@ -142,19 +142,15 @@ export function PiMark({ className }: MarkProps) {
       className={className}
       fill="currentColor"
       role="presentation"
-      viewBox="0 0 24 24"
+      viewBox="0 0 800 800"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <text
-        dominantBaseline="central"
-        fontFamily="ui-serif, Georgia, serif"
-        fontSize="20"
-        textAnchor="middle"
-        x="12"
-        y="12.5"
-      >
-        π
-      </text>
+      <path
+        clipRule="evenodd"
+        d="M165.29 165.29H517.36V400H400V517.36H282.65V634.72H165.29ZM282.65 282.65V400H400V282.65Z"
+        fillRule="evenodd"
+      />
+      <path d="M517.36 400H634.72V634.72H517.36Z" />
     </svg>
   );
 }

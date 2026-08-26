@@ -25,7 +25,7 @@ import {
   ZaiMark,
 } from "@anpord/ui/components/brand/provider-marks";
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { CpuIcon, TerminalWindowIcon } from "@phosphor-icons/react";
+import { CpuIcon } from "@phosphor-icons/react";
 
 interface Presentation {
   readonly Icon: RailIcon;
@@ -36,7 +36,9 @@ const HARNESSES: Record<EvalHarness, Presentation> = {
   claude: { Icon: AnthropicMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
   cursor: { Icon: CursorMark, label: "Cursor" },
-  fx: { Icon: TerminalWindowIcon, label: "FX" },
+  /* Vercel Labs ships it, and fx.sh credits them; the gateway key it takes
+     is a Vercel key too. */
+  fx: { Icon: VercelMark, label: "FX" },
   gemini: { Icon: GoogleMark, label: "Gemini CLI" },
   opencode: { Icon: OpencodeMark, label: "OpenCode" },
   pi: { Icon: PiMark, label: "Pi" },
