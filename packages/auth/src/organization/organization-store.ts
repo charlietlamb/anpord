@@ -1,3 +1,4 @@
+import { AutumnService } from "@anpord/billing/autumn";
 import { Database } from "@anpord/db/client";
 import { IdGenerator } from "@anpord/ids/id";
 import { Context, Effect, Layer, Option } from "effect";
@@ -26,6 +27,7 @@ export class OrganizationStore extends Context.Tag(
 const make = Effect.gen(function* () {
   const db = yield* Database;
   const ids = yield* IdGenerator;
+  const autumn = yield* AutumnService;
 
   const resolveActive = (userId: string) =>
     Effect.gen(function* () {
@@ -40,7 +42,7 @@ const make = Effect.gen(function* () {
       return yield* Option.match(profile, {
         onNone: () => Effect.succeedNone,
         onSome: (owner) =>
-          provisionPersonalOrganization(db, ids, userId, owner).pipe(
+          provisionPersonalOrganization(db, ids, autumn, userId, owner).pipe(
             Effect.map(Option.some)
           ),
       });

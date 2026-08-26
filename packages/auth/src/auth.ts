@@ -12,8 +12,7 @@ import { apiKeyPlugin } from "./credentials/api-key-plugin";
 import { mcpPlugin } from "./oauth/mcp-plugin";
 import { attachOrganizationBeforeWrite } from "./organization/attach-organization-before-write";
 import { OrganizationStore } from "./organization/organization-store";
-import { registerBillingCustomer } from "./organization/register-billing-customer";
-import { seedDefaultChannel } from "./organization/seed-default-channel";
+import { setUpOrganization } from "./organization/set-up-organization";
 import { COOKIE_PREFIX } from "./session/cookies";
 import {
   MAGIC_LINK_EXPIRY_SECONDS,
@@ -58,13 +57,11 @@ const makeAuth = Effect.gen(function* () {
         organizationHooks: {
           afterCreateOrganization: ({ organization: created, user }) =>
             Effect.runPromise(
-              Effect.all(
-                [
-                  seedDefaultChannel(db, ids, created.id),
-                  registerBillingCustomer(autumn, created, user.email),
-                ],
-                { concurrency: 2, discard: true }
-              )
+              setUpOrganization(db, ids, autumn, {
+                email: user.email,
+                id: created.id,
+                name: created.name,
+              })
             ),
         },
       }),

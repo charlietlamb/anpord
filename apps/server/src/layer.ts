@@ -34,7 +34,7 @@ const DatabaseLayer = DatabaseLive.pipe(Layer.provide(DatabaseConfigLive));
 const CacheLayer = CacheLive.pipe(Layer.provide(CacheConfigLive));
 
 const OrganizationLayer = OrganizationStoreLive.pipe(
-  Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
+  Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive, BillingLive))
 );
 
 const AuthLayer = AuthLive.pipe(
