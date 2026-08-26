@@ -1,6 +1,7 @@
 import type { Database } from "@anpord/db/client";
 import type { IdGeneratorShape } from "@anpord/ids/id";
 import { Clock, Effect, Random } from "effect";
+import { authId } from "./auth-id";
 import { displayName, slugify } from "./organization-naming";
 import type { OwnerProfile } from "./organization-queries";
 import {
@@ -19,8 +20,10 @@ export const provisionPersonalOrganization = (
 ) =>
   Effect.gen(function* () {
     const name = displayName(profile.name, profile.email);
-    const organizationId = yield* ids.generate("organization");
-    const memberId = yield* ids.generate("member");
+    /* Better Auth writes these two tables as well, so its generator defines
+       their shape. The channel is ours alone and keeps its prefix. */
+    const organizationId = yield* authId;
+    const memberId = yield* authId;
     const channelId = yield* ids.generate("channel");
     const disambiguator = yield* Random.nextIntBetween(
       0,
