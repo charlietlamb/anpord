@@ -132,6 +132,33 @@ export function VercelMark({ className }: MarkProps) {
   );
 }
 
+/* Pi publishes a wordmark rather than a glyph, so the letter set in the
+   interface's own heading face is closer to the brand than a borrowed shape
+   would be, and reads at 14px where a traced logo would not. */
+export function PiMark({ className }: MarkProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+      role="presentation"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <text
+        dominantBaseline="central"
+        fontFamily="ui-serif, Georgia, serif"
+        fontSize="20"
+        textAnchor="middle"
+        x="12"
+        y="12.5"
+      >
+        π
+      </text>
+    </svg>
+  );
+}
+
 export function CursorMark({ className }: MarkProps) {
   return (
     <svg

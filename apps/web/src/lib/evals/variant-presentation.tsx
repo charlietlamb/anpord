@@ -4,6 +4,7 @@ import {
   AnthropicMark,
   CerebrasMark,
   CloudflareMark,
+  CursorMark,
   DaytonaMark,
   DeepseekMark,
   E2bMark,
@@ -17,13 +18,14 @@ import {
   MoonshotMark,
   OpenAiMark,
   OpencodeMark,
+  PiMark,
   UpstashMark,
   VercelMark,
   XaiMark,
   ZaiMark,
 } from "@anpord/ui/components/brand/provider-marks";
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { CpuIcon } from "@phosphor-icons/react";
+import { CpuIcon, TerminalWindowIcon } from "@phosphor-icons/react";
 
 interface Presentation {
   readonly Icon: RailIcon;
@@ -33,11 +35,11 @@ interface Presentation {
 const HARNESSES: Record<EvalHarness, Presentation> = {
   claude: { Icon: AnthropicMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
-  cursor: { Icon: CpuIcon, label: "Cursor" },
-  fx: { Icon: VercelMark, label: "FX" },
+  cursor: { Icon: CursorMark, label: "Cursor" },
+  fx: { Icon: TerminalWindowIcon, label: "FX" },
   gemini: { Icon: GoogleMark, label: "Gemini CLI" },
   opencode: { Icon: OpencodeMark, label: "OpenCode" },
-  pi: { Icon: CpuIcon, label: "Pi" },
+  pi: { Icon: PiMark, label: "Pi" },
   qwen: { Icon: AlibabaMark, label: "Qwen Code" },
 };
 

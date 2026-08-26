@@ -1,25 +1,14 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
 import { EmptyState } from "@anpord/ui/components/empty-state";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import {
-  DotsThreeIcon,
-  GitBranchIcon,
-  LockSimpleIcon,
-} from "@phosphor-icons/react";
+import { GitBranchIcon, LockSimpleIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { ListRow, RowTitle } from "@/components/layout/list-row";
-import { ROW_ACTION } from "@/components/layout/row-action";
 import { RowList } from "@/components/layout/row-list";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import { SettingsPanel } from "@/components/settings/settings-panel";
@@ -99,16 +88,19 @@ function CodebasePage() {
     );
   }
 
+  /* The same trip either way: GitHub's consent screen is where an
+     organization is granted or revoked, and coming back reloads the page, so
+     a repository added since is picked up without a refresh of its own. */
   const connectButton = (
     <Button disabled={connecting} onClick={start} size="sm" variant="outline">
       <GithubIcon />
-      {account.data ? "Grant repository access" : "Connect GitHub"}
+      {account.data === null ? "Connect GitHub" : "Update access"}
     </Button>
   );
 
   return (
     <SettingsPanel
-      actions={account.data?.canReadPrivate ? undefined : connectButton}
+      actions={account.data === null ? undefined : connectButton}
       description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
       title="Codebase"
     >
@@ -123,38 +115,6 @@ function CodebasePage() {
       ) : (
         <RowList label="Source control">
           <ListRow
-            actions={
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      aria-label="Actions for this GitHub account"
-                      className={ROW_ACTION}
-                      size="icon-sm"
-                      variant="bare"
-                    />
-                  }
-                >
-                  <DotsThreeIcon />
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    disabled={repositories.isFetching}
-                    onClick={() => repositories.refetch()}
-                  >
-                    Refresh repositories
-                  </DropdownMenuItem>
-                  {/* Sends them back through consent, which is where an
-                      organization is granted or revoked. Named for what it
-                      does there rather than "reconnect", which sounds like
-                      something is broken. */}
-                  <DropdownMenuItem disabled={connecting} onClick={start}>
-                    Change repository access
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            }
             leading={<GithubIcon className="size-3.5 shrink-0" />}
             meta={
               <span className="whitespace-nowrap">
