@@ -131,16 +131,25 @@ function DeviceChallenge({
  * in is not a question.
  */
 export function ConnectionDialog({
-  integrations,
+  category,
+  integrations: all,
   onClose,
   onCreated,
   open,
 }: {
+  /** Which section asked. Null only while the dialog is closed. */
+  readonly category: CredentialIntegration["category"] | null;
   readonly integrations: readonly CredentialIntegration[];
   readonly onClose: () => void;
   readonly onCreated: () => void;
   readonly open: boolean;
 }) {
+  /* Scoped to the section that opened it, so "Add sandbox" cannot offer a
+     harness. The dialog is keyed on the category by its caller, so this list
+     and the state below are rebuilt rather than left pointing at the other
+     section's first vendor. */
+  const integrations = all.filter((item) => item.category === category);
+
   const [integrationId, setIntegrationId] = useState(integrations[0]?.id ?? "");
   const integration = integrations.find((item) => item.id === integrationId);
 
@@ -255,15 +264,19 @@ export function ConnectionDialog({
 
   return (
     <FormDialog
-      description="A credential the evals can run with. Secret values are encrypted and never shown again."
+      description={
+        category === "sandbox"
+          ? "Run sandboxes on your own account instead of Anpord's. Secret values are encrypted and never shown again."
+          : "The account the agent runs on. Secret values are encrypted and never shown again."
+      }
       onClose={close}
       onSubmit={submit}
       open={open}
-      title="Add connection"
+      title={category === "sandbox" ? "Add sandbox" : "Add harness"}
     >
       <Choice
         id="connection-integration"
-        label="Provider"
+        label={category === "sandbox" ? "Sandbox" : "Harness"}
         onChange={chooseIntegration}
         options={integrations.map((item) => {
           const own = integrationPresentation(item);
@@ -328,11 +341,7 @@ export function ConnectionDialog({
 
       {challenge ? <DeviceChallenge challenge={challenge} /> : null}
 
-      <div className="flex items-center justify-between gap-4 pt-1">
-        <p className="text-muted-foreground text-xs">
-          {isDevice ? "A ChatGPT login is personal to you." : null}
-        </p>
-
+      <div className="flex items-center justify-end gap-4 pt-1">
         <Button
           disabled={
             pending || challenge !== null || name.trim() === "" || missing

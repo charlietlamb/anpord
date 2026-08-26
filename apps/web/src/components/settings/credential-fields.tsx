@@ -8,8 +8,10 @@ import { cn } from "@anpord/ui/lib/utils";
  *
  * Labelled above rather than by placeholder: a placeholder is the only name a
  * field has until it is filled, and then it is gone, so a half-filled form
- * stops saying what its own boxes are. Shared with the rotate dialog, which
- * asks for exactly the same values.
+ * stops saying what its own boxes are. The placeholder shows the shape of the
+ * value instead, which the label cannot -- a team id and a project id are
+ * both "an id" until you see one. Shared with the rotate dialog, which asks
+ * for exactly the same values.
  */
 export function CredentialFields({
   method,
@@ -30,6 +32,7 @@ export function CredentialFields({
           <Input
             id={`credential-${field.name}`}
             onChange={(event) => onChange(field.name, event.target.value)}
+            placeholder={field.hint}
             required={field.required}
             type={field.secret ? "password" : "text"}
             value={values[field.name] ?? ""}

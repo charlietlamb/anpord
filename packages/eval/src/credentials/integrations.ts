@@ -8,8 +8,13 @@ import { CredentialError } from "./errors";
 const field = (
   name: string,
   label: string,
-  options: { readonly required?: boolean; readonly secret?: boolean } = {}
+  options: {
+    readonly hint?: string;
+    readonly required?: boolean;
+    readonly secret?: boolean;
+  } = {}
 ) => ({
+  ...(options.hint === undefined ? {} : { hint: options.hint }),
   label,
   name,
   required: options.required ?? true,
@@ -34,7 +39,9 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
   },
   {
     authMethods: [
-      secret("auth-json", "Auth file", [field("authJson", "Auth JSON")]),
+      secret("auth-json", "Auth file", [
+        field("authJson", "Auth JSON", { hint: "Contents of auth.json" }),
+      ]),
     ],
     category: "harness",
     id: "opencode",
@@ -42,7 +49,9 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
   },
   {
     authMethods: [
-      secret("auth-json", "Auth file", [field("authJson", "Auth JSON")]),
+      secret("auth-json", "Auth file", [
+        field("authJson", "Auth JSON", { hint: "Contents of auth.json" }),
+      ]),
     ],
     category: "harness",
     id: "pi",
@@ -52,7 +61,7 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     authMethods: [
       secret("api-key", "AI Gateway key", [field("apiKey", "API key")]),
       secret("chatgpt-auth", "ChatGPT auth file", [
-        field("authJson", "Auth JSON"),
+        field("authJson", "Auth JSON", { hint: "Contents of auth.json" }),
       ]),
     ],
     category: "harness",
@@ -75,7 +84,11 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     authMethods: [
       secret("api-key", "API key", [
         field("apiKey", "API key"),
-        field("baseUrl", "Base URL", { required: false, secret: false }),
+        field("baseUrl", "Base URL", {
+          hint: "https://api.example.com/v1",
+          required: false,
+          secret: false,
+        }),
       ]),
     ],
     category: "harness",
@@ -109,7 +122,7 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
   {
     authMethods: [
       secret("token", "Token", [
-        field("tokenId", "Token ID"),
+        field("tokenId", "Token ID", { hint: "ak-…" }),
         field("tokenSecret", "Token secret"),
       ]),
     ],
@@ -121,9 +134,14 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     authMethods: [
       secret("api-token", "API token", [
         field("apiToken", "API token"),
-        field("accountId", "Account ID", { required: false, secret: false }),
+        field("accountId", "Account ID", {
+          hint: "32-character hex id",
+          required: false,
+          secret: false,
+        }),
         field("sandboxApiKey", "Sandbox API key", { required: false }),
         field("sandboxUrl", "Sandbox URL", {
+          hint: "https://sandbox.example.workers.dev",
           required: false,
           secret: false,
         }),
@@ -137,8 +155,8 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     authMethods: [
       secret("token", "Token", [
         field("token", "Token"),
-        field("teamId", "Team ID", { secret: false }),
-        field("projectId", "Project ID", { secret: false }),
+        field("teamId", "Team ID", { hint: "team_…", secret: false }),
+        field("projectId", "Project ID", { hint: "prj_…", secret: false }),
       ]),
     ],
     category: "sandbox",

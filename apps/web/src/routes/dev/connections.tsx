@@ -2,19 +2,17 @@ import type {
   CredentialConnection,
   CredentialIntegration,
 } from "@anpord/schema/domain/credentials";
-import { Button } from "@anpord/ui/components/button";
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { SectionLabel } from "@anpord/ui/components/ui/section-label";
-import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { useState } from "react";
 import { PreviewScreen } from "@/components/dev/preview-screen";
-import { RowList } from "@/components/layout/row-list";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ConnectionDialog } from "@/components/settings/connection-dialog";
 import { ConnectionRow } from "@/components/settings/connection-row";
+import { ConnectionSection } from "@/components/settings/connection-section";
 import { SettingsPanel } from "@/components/settings/settings-panel";
+import { CONNECTION_SECTIONS } from "@/lib/settings/connection-sections";
 
 export const Route = createFileRoute("/dev/connections")({
   component: ConnectionsPreview,
@@ -135,7 +133,7 @@ const CONNECTIONS: readonly CredentialConnection[] = [
 const noop = () => undefined;
 
 function ConnectionsPreview() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<"harness" | "sandbox" | null>(null);
   const integrationOf = (connection: CredentialConnection) =>
     INTEGRATIONS.find((item) => item.id === connection.integrationId);
 
@@ -149,26 +147,25 @@ function ConnectionsPreview() {
 
         <PreviewScreen name="Connections">
           <div className="mx-auto w-full max-w-3xl px-5 py-5">
-            <SettingsPanel
-              actions={
-                <Button onClick={() => setOpen(true)} size="sm">
-                  <PlusIcon />
-                  Add connection
-                </Button>
-              }
-              description="Credentials the evals run with. Secrets are encrypted and never shown again."
-            >
-              <div className="flex flex-col gap-5">
-                {(["harness", "sandbox"] as const).map((category) => (
-                  <section className="flex flex-col gap-1" key={category}>
-                    <SectionLabel>
-                      {category === "harness" ? "Harnesses" : "Sandboxes"}
-                    </SectionLabel>
-                    <RowList>
-                      {CONNECTIONS.filter(
-                        (connection) =>
-                          integrationOf(connection)?.category === category
-                      ).map((connection) => {
+            <SettingsPanel>
+              <div className="flex flex-col gap-7">
+                {CONNECTION_SECTIONS.map((section) => {
+                  const own = CONNECTIONS.filter(
+                    (connection) =>
+                      integrationOf(connection)?.category === section.category
+                  );
+
+                  return (
+                    <ConnectionSection
+                      addLabel={section.addLabel}
+                      emptyNote={own.length === 0 ? section.empty : null}
+                      Icon={section.Icon}
+                      key={section.category}
+                      note={section.note}
+                      onAdd={() => setOpen(section.category)}
+                      title={section.title}
+                    >
+                      {own.map((connection) => {
                         const integration = integrationOf(connection);
 
                         return integration ? (
@@ -183,19 +180,21 @@ function ConnectionsPreview() {
                           />
                         ) : null;
                       })}
-                    </RowList>
-                  </section>
-                ))}
+                    </ConnectionSection>
+                  );
+                })}
               </div>
             </SettingsPanel>
           </div>
         </PreviewScreen>
 
         <ConnectionDialog
+          category={open}
           integrations={INTEGRATIONS}
-          onClose={() => setOpen(false)}
+          key={open ?? "closed"}
+          onClose={() => setOpen(null)}
           onCreated={noop}
-          open={open}
+          open={open !== null}
         />
       </div>
     </TooltipProvider>

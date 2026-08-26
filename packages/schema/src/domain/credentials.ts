@@ -7,6 +7,9 @@ export const CredentialStatus = Schema.Literal("active", "invalid");
 export type CredentialStatus = typeof CredentialStatus.Type;
 
 export const CredentialField = Schema.Struct({
+  /** The shape of the value, shown as a placeholder beside the label. Absent
+   * where the label already says it, as a bare API key does. */
+  hint: Schema.optional(Schema.String),
   label: Schema.String,
   name: Schema.String,
   required: Schema.Boolean,
