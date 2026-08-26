@@ -1,4 +1,7 @@
-import type { Repository } from "@anpord/schema/domain/codebase";
+import {
+  REPOSITORY_PAGE_SIZE,
+  type Repository,
+} from "@anpord/schema/domain/codebase";
 import { HttpClient, HttpClientRequest } from "@effect/platform";
 import { Context, Effect, Layer, Redacted, Schema } from "effect";
 import { CodebaseError } from "./errors";
@@ -20,11 +23,6 @@ const GithubUser = Schema.Struct({ login: Schema.String });
 
 const decodeRepos = Schema.decodeUnknown(Schema.Array(GithubRepo));
 const decodeUser = Schema.decodeUnknown(GithubUser);
-
-/** One page is enough to choose from without being a list to scroll, and
- * GitHub sorts by recent activity, so the repository someone wants is near
- * the top. */
-const PER_PAGE = 100;
 
 export interface GithubRepositoriesShape {
   readonly list: (
@@ -79,7 +77,7 @@ export const GithubRepositoriesLive = Layer.effect(
       list: (token) =>
         get(
           token,
-          `/user/repos?per_page=${PER_PAGE}&sort=pushed&affiliation=owner,collaborator,organization_member`
+          `/user/repos?per_page=${REPOSITORY_PAGE_SIZE}&sort=pushed&affiliation=owner,collaborator,organization_member`
         ).pipe(
           Effect.flatMap((body) =>
             decodeRepos(body).pipe(
