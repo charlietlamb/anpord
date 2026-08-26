@@ -4,6 +4,7 @@ import { AuthenticationLive } from "../../http/authentication/session-authentica
 import { apiSurface } from "../api-surface";
 import { ActivityHandlers } from "./activity/handlers";
 import { ChannelsHandlers } from "./channels/handlers";
+import { CodebaseHandlers } from "./codebase/handlers";
 import { CredentialsHandlers } from "./credentials/handlers";
 import { EvalsHandlers } from "./evals/handlers";
 import { HealthHandlers } from "./health/handlers";
@@ -17,6 +18,7 @@ const GroupsLive = Layer.mergeAll(
   ChannelsHandlers,
   ActivityHandlers,
   CredentialsHandlers,
+  CodebaseHandlers,
   EvalsHandlers
 );
 

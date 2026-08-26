@@ -6,6 +6,7 @@
   "exports": {
     "./domain/actor": "./src/domain/actor.ts",
     "./domain/channels": "./src/domain/channels.ts",
+    "./domain/codebase": "./src/domain/codebase.ts",
     "./domain/credentials": "./src/domain/credentials.ts",
     "./domain/prompt-activity": "./src/domain/prompt-activity.ts",
     "./domain/errors": "./src/domain/errors.ts",
@@ -20,6 +21,7 @@
     "./domain/scopes": "./src/domain/scopes.ts",
     "./internal/api": "./src/internal/api.ts",
     "./internal/authentication": "./src/internal/authentication.ts",
+    "./internal/codebase-api": "./src/internal/codebase-api.ts",
     "./internal/credentials-api": "./src/internal/credentials-api.ts",
     "./internal/activity-api": "./src/internal/activity-api.ts",
     "./internal/evals-api": "./src/internal/evals-api.ts",

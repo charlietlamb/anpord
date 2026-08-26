@@ -155,7 +155,7 @@ export function CredentialField({
           Add the missing harness connections in{" "}
           <Link
             className="underline underline-offset-3"
-            to="/settings/connections"
+            to="/settings/harnesses"
           >
             Settings
           </Link>

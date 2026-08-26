@@ -53,7 +53,7 @@ export function BlockedNote({
         Needs a credential for {listed(missing.map(integrationLabel))}.{" "}
         <Link
           className="text-foreground underline underline-offset-2 hover:no-underline"
-          to="/settings/connections"
+          to="/settings/harnesses"
         >
           Add one
         </Link>

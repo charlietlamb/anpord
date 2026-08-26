@@ -3,13 +3,13 @@ title: "Connections"
 description: "The credentials your evals run with"
 ---
 
-A run needs a credential for its [harness](/evals/harnesses) — the model usage is charged to your own account, so Anpord cannot supply one. Add it under **Settings > Connections** before the first run. This applies to the SDK, CLI, and MCP too; there is no way to pass a raw key through the API.
+A run needs a credential for its [harness](/evals/harnesses) — the model usage is charged to your own account, so Anpord cannot supply one. Add it under **Settings > Harnesses** before the first run. This applies to the SDK, CLI, and MCP too; there is no way to pass a raw key through the API.
 
 Sandboxes run on Anpord's accounts by default. Add a sandbox connection only to run somewhere you control.
 
 ## Add one
 
-Choose **Add connection**, pick the integration, paste the key. Secrets are encrypted on arrival and never shown again.
+Choose **Add harness** or **Add sandbox**, pick the provider, paste the key. Secrets are encrypted on arrival and never shown again.
 
 Harnesses are listed [here](/evals/harnesses). Sandboxes are `daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`.
 

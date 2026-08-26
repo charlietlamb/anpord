@@ -1,9 +1,11 @@
 import {
   BroadcastIcon,
+  CubeIcon,
   GearIcon,
+  GitBranchIcon,
   type Icon,
   KeyIcon,
-  PlugsConnectedIcon,
+  RobotIcon,
   UsersThreeIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
@@ -29,14 +31,17 @@ export const SETTINGS_NAV: SettingsNavSection[] = [
     ],
   },
   {
+    label: "Connections",
+    items: [
+      { label: "Harnesses", to: "/settings/harnesses", icon: RobotIcon },
+      { label: "Sandboxes", to: "/settings/sandboxes", icon: CubeIcon },
+      { label: "Codebase", to: "/settings/codebase", icon: GitBranchIcon },
+    ],
+  },
+  {
     label: "Developer",
     items: [
       { label: "Channels", to: "/settings/channels", icon: BroadcastIcon },
-      {
-        label: "Connections",
-        to: "/settings/connections",
-        icon: PlugsConnectedIcon,
-      },
       { label: "API keys", to: "/settings/keys", icon: KeyIcon },
     ],
   },

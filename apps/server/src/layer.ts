@@ -6,6 +6,8 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
+import { GithubTokensLive } from "@anpord/eval/codebase/github-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import {
   CredentialConnectionsLive,
@@ -73,6 +75,13 @@ const CredentialLayer = Layer.mergeAll(
   )
 );
 
+/* The token comes from the database and the listing from GitHub, so neither
+   depends on the other and both are provided beside the credential layer. */
+const CodebaseLayer = Layer.mergeAll(
+  GithubTokensLive.pipe(Layer.provide(DatabaseLayer)),
+  GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer))
+);
+
 const EvalLayer = Layer.mergeAll(
   EvalGridLive.pipe(
     Layer.provide(EvalSandboxLive),
@@ -100,6 +109,7 @@ export const AppLayer = Layer.mergeAll(
   DatabaseLayer,
   PromptsServiceLayer,
   CredentialLayer,
+  CodebaseLayer,
   EvalLayer,
   /* Merged rather than provided to one branch: the auth hook registers a
      customer at signup and the eval routes count against it, so both sides
