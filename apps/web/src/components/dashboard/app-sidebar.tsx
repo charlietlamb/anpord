@@ -19,6 +19,7 @@ import {
 } from "@/components/dashboard/dashboard-nav";
 import { NavUser } from "@/components/dashboard/nav-user";
 import { OrgSwitcher } from "@/components/dashboard/org-switcher";
+import { SetupCard } from "@/components/dashboard/setup-card";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
@@ -65,6 +66,13 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
+        {/* Client-only, like everything else here that reads the session: it
+            asks what this organization has connected, which the server render
+            has no answer for. */}
+        <ClientOnly>
+          <SetupCard />
+        </ClientOnly>
+
         <ClientOnly fallback={<Skeleton className="h-12 w-full rounded-md" />}>
           <NavUser />
         </ClientOnly>
