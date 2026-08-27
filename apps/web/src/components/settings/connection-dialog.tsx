@@ -130,6 +130,20 @@ function DeviceChallenge({
  * method is asked about only where there is a choice: a vendor with one way
  * in is not a question.
  */
+/* A device login keeps waiting after the request returns -- the code is on
+   screen and the answer comes from the browser the reader is about to open --
+   so it says so rather than sitting on "Connect ChatGPT" as though nothing
+   had happened. */
+const submitLabel = (device: boolean, pending: boolean, waiting: boolean) => {
+  if (waiting) {
+    return "Waiting for ChatGPT…";
+  }
+  if (pending) {
+    return device ? "Starting…" : "Adding…";
+  }
+  return device ? "Connect ChatGPT" : "Add connection";
+};
+
 export function ConnectionDialog({
   category,
   integrations: all,
@@ -349,7 +363,7 @@ export function ConnectionDialog({
         size="lg"
         type="button"
       >
-        {isDevice ? "Connect ChatGPT" : "Add connection"}
+        {submitLabel(isDevice, pending, challenge !== null)}
       </ShortcutButton>
     </FormDialog>
   );

@@ -98,22 +98,23 @@ export function ConnectionRow({
         </span>
       }
     >
-      <span className="flex min-w-0 items-center gap-2.5">
+      <span className="flex min-w-0 items-center gap-2">
         <RowTitle>{connection.name}</RowTitle>
 
-        <span className="truncate text-muted-foreground/70 text-xs">
+        {/* The mark already says which vendor this is, so naming it again in
+            the same breath as the method reads as two facts where there is
+            one. Default is the common case and says so quietly; only invalid
+            is worth a badge, because only invalid needs acting on. */}
+        <span className="truncate text-muted-foreground/60 text-xs">
           {[
-            connection.name === own.label ? null : own.label,
             method?.label ?? null,
             connection.scope === "personal" ? "Only you" : null,
+            connection.isDefault ? "Default" : null,
           ]
             .filter((part) => part !== null)
             .join(" · ")}
         </span>
 
-        {connection.isDefault ? (
-          <StatusBadge size="xs">Default</StatusBadge>
-        ) : null}
         {connection.status === "invalid" ? (
           <StatusBadge size="xs" tone="critical">
             Invalid

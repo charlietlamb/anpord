@@ -1,8 +1,7 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
 import { EmptyState } from "@anpord/ui/components/empty-state";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { GitBranchIcon, LockSimpleIcon } from "@phosphor-icons/react";
+import { GitBranchIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
@@ -28,14 +27,20 @@ export const Route = createFileRoute("/_authed/settings/codebase")({
  * re-runs the same provider with the scope added, which GitHub treats as an
  * upgrade to the existing grant rather than a second account.
  *
- * It answers with the URL rather than going there, so the navigation is done
- * here. GitHub's own consent screen is what grants access, and it is where
- * someone chooses which organizations to include -- an org that requires
- * approval shows a Request button beside its name.
+ * `disableRedirect` because the server otherwise answers with a Location
+ * header, which `fetch` follows on our behalf: the consent page is fetched
+ * and discarded, the browser never leaves, and the reader is left on a page
+ * that looks like the click missed. With it, the URL comes back as data and
+ * the navigation happens below.
+ *
+ * GitHub's own consent screen is what grants access, and it is where someone
+ * chooses which organizations to include -- one that requires approval shows
+ * a Request button beside its name.
  */
 const connect = async () => {
   const result = await authClient.linkSocial({
     callbackURL: `${window.location.origin}/settings/codebase`,
+    disableRedirect: true,
     provider: "github",
     scopes: ["repo"],
   });
@@ -66,6 +71,15 @@ const repositoryCount = (
     : `${REPOSITORY_PAGE_SIZE}+ repositories`;
 };
 
+/* The browser is on its way to GitHub, which takes a moment on a slow
+   connection; a button that only greys out reads as a click that missed. */
+const connectLabel = (connecting: boolean, fresh: boolean) => {
+  if (connecting) {
+    return "Opening GitHub…";
+  }
+  return fresh ? "Connect GitHub" : "Update access";
+};
+
 function CodebasePage() {
   const [connecting, setConnecting] = useState(false);
   const account = useQuery(codebaseQueries.account());
@@ -94,7 +108,7 @@ function CodebasePage() {
   const connectButton = (
     <Button disabled={connecting} onClick={start} size="sm" variant="outline">
       <GithubIcon />
-      {account.data === null ? "Connect GitHub" : "Update access"}
+      {connectLabel(connecting, account.data === null)}
     </Button>
   );
 
@@ -122,17 +136,17 @@ function CodebasePage() {
               </span>
             }
           >
-            <span className="flex min-w-0 items-center gap-2.5">
+            <span className="flex min-w-0 items-center gap-2">
               <RowTitle>{account.data?.login}</RowTitle>
 
-              {account.data?.canReadPrivate ? (
-                <StatusBadge size="xs">Private repos</StatusBadge>
-              ) : (
-                <span className="flex items-center gap-1 text-muted-foreground/70 text-xs">
-                  <LockSimpleIcon className="size-3" />
-                  Public repositories only
-                </span>
-              )}
+              {/* Said the same way the harness rows say their method: one
+                  muted line beside the name, rather than a badge for the
+                  ordinary case and an icon-and-text fragment for the other. */}
+              <span className="truncate text-muted-foreground/60 text-xs">
+                {account.data?.canReadPrivate
+                  ? "Public and private"
+                  : "Public repositories only"}
+              </span>
             </span>
           </ListRow>
         </RowList>
