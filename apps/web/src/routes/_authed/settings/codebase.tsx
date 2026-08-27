@@ -27,26 +27,29 @@ export const Route = createFileRoute("/_authed/settings/codebase")({
  * re-runs the same provider with the scope added, which GitHub treats as an
  * upgrade to the existing grant rather than a second account.
  *
- * The client navigates on its own: its redirect plugin acts on a response
- * carrying both a url and `redirect: true`, which is what this endpoint
- * returns by default. Asking for `disableRedirect` turns that flag off and
- * so switches off the navigation, which is why doing it "properly" by hand
- * left the browser sitting where it was.
+ * The client's own redirect plugin navigates on a response carrying a url
+ * and `redirect: true`, which is what this endpoint returns. It is not relied
+ * on: the url is followed here too, because a hook that quietly does not run
+ * leaves a button that looks broken and says nothing, and navigating twice to
+ * the same place costs nothing.
  *
  * GitHub's own consent screen is what grants access, and it is where someone
  * chooses which organizations to include -- one that requires approval shows
  * a Request button beside its name.
  */
 const connect = async () => {
-  const { error } = await authClient.linkSocial({
+  const { data, error } = await authClient.linkSocial({
     callbackURL: `${window.location.origin}/settings/codebase`,
     provider: "github",
     scopes: ["repo"],
   });
 
-  if (error) {
-    toast.error(error.message ?? "Couldn't connect GitHub");
+  if (error || !data?.url) {
+    toast.error(error?.message ?? "Couldn't reach GitHub");
+    return;
   }
+
+  window.location.assign(data.url);
 };
 
 /* The browser is on its way to GitHub, which takes a moment on a slow
@@ -93,7 +96,7 @@ function CodebasePage() {
   if (account.isPending) {
     return (
       <SettingsPanel title="Codebase">
-        <ConnectionListSkeleton />
+        <ConnectionListSkeleton rows={1} />
       </SettingsPanel>
     );
   }
