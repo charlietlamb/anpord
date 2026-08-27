@@ -2,7 +2,6 @@ import type {
   CredentialIntegration,
   DeviceAuthChallenge,
 } from "@anpord/schema/domain/credentials";
-import { Button } from "@anpord/ui/components/button";
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
 import { Input } from "@anpord/ui/components/input";
@@ -14,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anpord/ui/components/ui/select";
+import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -339,17 +339,18 @@ export function ConnectionDialog({
 
       {challenge ? <DeviceChallenge challenge={challenge} /> : null}
 
-      <div className="flex items-center justify-end gap-4 pt-1">
-        <Button
-          disabled={
-            pending || challenge !== null || name.trim() === "" || missing
-          }
-          size="sm"
-          type="submit"
-        >
-          {isDevice ? "Connect ChatGPT" : "Add connection"}
-        </Button>
-      </div>
+      <ShortcutButton
+        className="h-10 w-full text-sm"
+        disabled={
+          pending || challenge !== null || name.trim() === "" || missing
+        }
+        metaShortcut="enter"
+        onClick={submit}
+        size="lg"
+        type="button"
+      >
+        {isDevice ? "Connect ChatGPT" : "Add connection"}
+      </ShortcutButton>
     </FormDialog>
   );
 }

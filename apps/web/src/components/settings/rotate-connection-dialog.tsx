@@ -2,8 +2,8 @@ import type {
   CredentialAuthMethod,
   CredentialConnection,
 } from "@anpord/schema/domain/credentials";
-import { Button } from "@anpord/ui/components/button";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
+import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CredentialFields } from "@/components/settings/credential-fields";
@@ -64,7 +64,8 @@ export function RotateConnectionDialog({
           values={values}
         />
       ) : null}
-      <Button
+      <ShortcutButton
+        className="h-10 w-full text-sm"
         disabled={
           pending ||
           method === null ||
@@ -72,10 +73,13 @@ export function RotateConnectionDialog({
             (field) => field.required && !values[field.name]?.trim()
           )
         }
-        type="submit"
+        metaShortcut="enter"
+        onClick={submit}
+        size="lg"
+        type="button"
       >
         {pending ? "Rotating…" : "Rotate credential"}
-      </Button>
+      </ShortcutButton>
     </FormDialog>
   );
 }
