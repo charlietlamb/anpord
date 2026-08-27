@@ -27,30 +27,35 @@ export const Route = createFileRoute("/_authed/settings/codebase")({
  * re-runs the same provider with the scope added, which GitHub treats as an
  * upgrade to the existing grant rather than a second account.
  *
- * `disableRedirect` because the server otherwise answers with a Location
- * header, which `fetch` follows on our behalf: the consent page is fetched
- * and discarded, the browser never leaves, and the reader is left on a page
- * that looks like the click missed. With it, the URL comes back as data and
- * the navigation happens below.
+ * The client navigates on its own: its redirect plugin acts on a response
+ * carrying both a url and `redirect: true`, which is what this endpoint
+ * returns by default. Asking for `disableRedirect` turns that flag off and
+ * so switches off the navigation, which is why doing it "properly" by hand
+ * left the browser sitting where it was.
  *
  * GitHub's own consent screen is what grants access, and it is where someone
  * chooses which organizations to include -- one that requires approval shows
  * a Request button beside its name.
  */
 const connect = async () => {
-  const result = await authClient.linkSocial({
+  const { error } = await authClient.linkSocial({
     callbackURL: `${window.location.origin}/settings/codebase`,
-    disableRedirect: true,
     provider: "github",
     scopes: ["repo"],
   });
 
-  if (result.error || !result.data?.url) {
-    toast.error(result.error?.message ?? "Couldn't connect GitHub");
-    return;
+  if (error) {
+    toast.error(error.message ?? "Couldn't connect GitHub");
   }
+};
 
-  window.location.href = result.data.url;
+/* The browser is on its way to GitHub, which takes a moment on a slow
+   connection; a button that only greys out reads as a click that missed. */
+const connectLabel = (connecting: boolean, fresh: boolean) => {
+  if (connecting) {
+    return "Opening GitHub…";
+  }
+  return fresh ? "Connect GitHub" : "Update access";
 };
 
 /* The listing is one page of the most recently pushed, so a full page is a
@@ -69,15 +74,6 @@ const repositoryCount = (
   return repositories.length < REPOSITORY_PAGE_SIZE
     ? `${repositories.length} repositories`
     : `${REPOSITORY_PAGE_SIZE}+ repositories`;
-};
-
-/* The browser is on its way to GitHub, which takes a moment on a slow
-   connection; a button that only greys out reads as a click that missed. */
-const connectLabel = (connecting: boolean, fresh: boolean) => {
-  if (connecting) {
-    return "Opening GitHub…";
-  }
-  return fresh ? "Connect GitHub" : "Update access";
 };
 
 function CodebasePage() {
