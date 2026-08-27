@@ -109,10 +109,14 @@ export const DeviceAuthLive = Layer.effect(
     return DeviceAuth.of({
       start: (actor, input) =>
         Effect.gen(function* () {
-          if (!actor.isUser || input.scope !== "personal") {
+          /* A key acts for an organization and has no person to sign in as,
+             so there is nobody for the browser on the other end to be. The
+             scope itself is the caller's: a team sharing one subscription
+             says so by choosing organization. */
+          if (!actor.isUser) {
             return yield* Effect.fail(
               new CredentialError({
-                message: "ChatGPT connections must be personal",
+                message: "A ChatGPT login needs a signed-in member",
               })
             );
           }
@@ -236,7 +240,7 @@ export const DeviceAuthLive = Layer.effect(
                     integrationId: "codex",
                     isDefault: false,
                     name: input.name,
-                    scope: "personal",
+                    scope: input.scope,
                     values: { authJson },
                   })
                 ),

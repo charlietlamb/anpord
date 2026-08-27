@@ -237,7 +237,7 @@ export function ConnectionDialog({
                codex offers it, so only codex can start one. */
             integrationId: "codex",
             name: name.trim(),
-            scope: "personal",
+            scope: scope === "personal" ? "personal" : "organization",
           })
         );
       } else {
@@ -326,18 +326,16 @@ export function ConnectionDialog({
         />
       ) : null}
 
-      {isDevice ? null : (
-        <Choice
-          id="connection-scope"
-          label="Available to"
-          onChange={setScope}
-          options={[
-            { label: "Everyone in the organization", value: "organization" },
-            { label: "Only me", value: "personal" },
-          ]}
-          value={scope}
-        />
-      )}
+      <Choice
+        id="connection-scope"
+        label="Available to"
+        onChange={setScope}
+        options={[
+          { label: "Everyone in the organization", value: "organization" },
+          { label: "Only me", value: "personal" },
+        ]}
+        value={scope}
+      />
 
       {challenge ? <DeviceChallenge challenge={challenge} /> : null}
 

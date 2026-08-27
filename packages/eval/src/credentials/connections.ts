@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { user } from "@anpord/db/schema/auth/users";
 import { credentialConnection } from "@anpord/db/schema/credentials/connections";
 import { IdGenerator } from "@anpord/ids/id";
 import type { Actor } from "@anpord/schema/domain/actor";
@@ -6,9 +7,10 @@ import {
   type CreateCredentialConnection,
   CredentialConnection,
   CredentialValues,
+  type IntegrationAwareness,
   type ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, ne, or } from "drizzle-orm";
 import {
   Clock,
   Context,
@@ -79,6 +81,28 @@ const summaryOf = (row: ConnectionRow): CredentialConnection =>
     status: row.status,
   });
 
+/** Rows arrive sorted by integration then name, so one pass groups them. */
+const groupOwners = (
+  rows: readonly { integrationId: string; owner: string }[]
+): readonly IntegrationAwareness[] => {
+  const byIntegration = new Map<string, string[]>();
+
+  for (const row of rows) {
+    const owners = byIntegration.get(row.integrationId);
+
+    if (owners === undefined) {
+      byIntegration.set(row.integrationId, [row.owner]);
+    } else {
+      owners.push(row.owner);
+    }
+  }
+
+  return [...byIntegration].map(([integrationId, owners]) => ({
+    integrationId,
+    owners,
+  }));
+};
+
 const notFound = () =>
   new CredentialError({
     code: "not-found",
@@ -102,6 +126,9 @@ const decodeValues = (payload: Redacted.Redacted<string>) =>
   );
 
 export interface CredentialConnectionsShape {
+  readonly awareness: (
+    actor: Actor
+  ) => Effect.Effect<readonly IntegrationAwareness[], CredentialError>;
   readonly create: (
     actor: Actor,
     input: CreateCredentialConnection
@@ -265,6 +292,35 @@ export const CredentialConnectionsLive = Layer.effect(
             scope: input.scope,
           })
         ),
+      /* Only what `visibleTo` withholds: somebody else's personal rows. An
+         organization row is already in the reader's own list, and repeating
+         it here would have the page say a teammate has what the reader can
+         see they have themselves. */
+      awareness: (actor) =>
+        tryStore("credential.awareness", () =>
+          db
+            .selectDistinct({
+              integrationId: credentialConnection.integrationId,
+              owner: user.name,
+            })
+            .from(credentialConnection)
+            .innerJoin(user, eq(user.id, credentialConnection.ownerUserId))
+            .where(
+              and(
+                eq(credentialConnection.organizationId, actor.organizationId),
+                eq(credentialConnection.scope, "personal"),
+                eq(credentialConnection.status, "active"),
+                ne(credentialConnection.ownerUserId, actor.id)
+              )
+            )
+            .orderBy(credentialConnection.integrationId, user.name)
+        ).pipe(
+          Effect.map(groupOwners),
+          Effect.mapError(storeUnavailable),
+          Effect.withSpan("CredentialConnections.awareness"),
+          Effect.annotateLogs({ organizationId: actor.organizationId })
+        ),
+
       list: (actor) =>
         tryStore("credential.list", () =>
           db

@@ -7,6 +7,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { ConnectedElsewhere } from "@/components/settings/connected-elsewhere";
 import { ConnectionDialog } from "@/components/settings/connection-dialog";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import { ConnectionRow } from "@/components/settings/connection-row";
@@ -45,6 +46,7 @@ export function CredentialPage({
   const [rotating, setRotating] = useState<CredentialConnection | null>(null);
   const integrations = useQuery(credentialQueries.integrations());
   const connections = useQuery(credentialQueries.connections());
+  const awareness = useQuery(credentialQueries.awareness());
   const refresh = useCallback(
     () =>
       queryClient.invalidateQueries({ queryKey: credentialKeys.connections() }),
@@ -92,6 +94,16 @@ export function CredentialPage({
   const rows = (connections.data ?? []).filter(
     (connection) => integrationOf(connection)?.category === spec.category
   );
+  /* Only for an integration the reader has none of: once they have their own,
+     whose else is beside the point. */
+  const connected = new Set(rows.map((row) => row.integrationId));
+  const elsewhere = (awareness.data ?? []).filter(
+    (entry) =>
+      !connected.has(entry.integrationId) &&
+      integrations.data?.find(
+        (integration) => integration.id === entry.integrationId
+      )?.category === spec.category
+  );
 
   return (
     <SettingsPanel
@@ -135,6 +147,14 @@ export function CredentialPage({
           ) : null;
         })}
       </ConnectionSection>
+
+      {elsewhere.map((entry) => (
+        <ConnectedElsewhere
+          integrationId={entry.integrationId}
+          key={entry.integrationId}
+          owners={entry.owners}
+        />
+      ))}
 
       {integrations.data ? (
         <ConnectionDialog

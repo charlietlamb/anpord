@@ -6,6 +6,7 @@ import {
   CredentialIntegration,
   DeviceAuthChallenge,
   DeviceAuthStatus,
+  IntegrationAwareness,
   RotateCredentialConnection,
   StartDeviceAuth,
 } from "../domain/credentials";
@@ -30,6 +31,11 @@ export class CredentialsGroup extends HttpApiGroup.make("credentials")
   .add(
     HttpApiEndpoint.get("list", "/evals/credentials/connections").addSuccess(
       Schema.Array(CredentialConnection)
+    )
+  )
+  .add(
+    HttpApiEndpoint.get("awareness", "/evals/credentials/awareness").addSuccess(
+      Schema.Array(IntegrationAwareness)
     )
   )
   .add(

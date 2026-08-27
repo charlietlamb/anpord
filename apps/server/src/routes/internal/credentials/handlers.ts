@@ -37,6 +37,12 @@ export const CredentialsHandlers = HttpApiBuilder.group(
         { permission: Permissions.Credentials.Read },
         () => Effect.succeed(credentialIntegrations)
       )
+      .handle("awareness", { permission: Permissions.Credentials.Read }, () =>
+        Effect.gen(function* () {
+          const actor = yield* CurrentActor;
+          return yield* (yield* CredentialConnections).awareness(actor);
+        }).pipe(handled)
+      )
       .handle("list", { permission: Permissions.Credentials.Read }, () =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;

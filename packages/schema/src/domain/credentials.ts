@@ -33,6 +33,25 @@ export const CredentialIntegration = Schema.Struct({
 });
 export type CredentialIntegration = typeof CredentialIntegration.Type;
 
+/**
+ * That somebody else in the organization has this integration connected.
+ *
+ * Carries who, and nothing else. A personal connection is invisible to the
+ * rest of the organization by design, which left a member staring at an empty
+ * Codex section while a teammate two desks away had one -- so the fact is
+ * published without the credential ever being.
+ */
+export const IntegrationAwareness = Schema.Struct({
+  integrationId: Schema.String,
+  /** Display names of the members holding one, so the reader knows who to
+   * ask. Never ids: this is read by everyone in the organization. */
+  owners: Schema.Array(Schema.String),
+}).annotations({
+  description: "Who else in the organization has an integration connected.",
+  identifier: "IntegrationAwareness",
+});
+export type IntegrationAwareness = typeof IntegrationAwareness.Type;
+
 export const CredentialConnection = Schema.Struct({
   authMethodId: Schema.String,
   createdAt: Schema.DateTimeUtc,

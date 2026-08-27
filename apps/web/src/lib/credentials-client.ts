@@ -8,6 +8,7 @@ import {
   CredentialIntegration,
   DeviceAuthChallenge,
   DeviceAuthStatus,
+  IntegrationAwareness,
 } from "@anpord/schema/domain/credentials";
 import { Effect, Schema } from "effect";
 
@@ -15,6 +16,7 @@ const BASE = "/api/evals/credentials";
 
 const Connections = Schema.Array(CredentialConnection);
 const Integrations = Schema.Array(CredentialIntegration);
+const Awareness = Schema.Array(IntegrationAwareness);
 
 const request = async <A, I>(
   schema: Schema.Schema<A, I>,
@@ -36,6 +38,7 @@ const request = async <A, I>(
 };
 
 export const credentialsClient = {
+  awareness: () => request(Awareness, "/awareness"),
   create: (input: CreateCredentialConnection) =>
     request(CredentialConnection, "/connections", {
       body: JSON.stringify(input),
