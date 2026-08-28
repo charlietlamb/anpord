@@ -28,3 +28,7 @@ apps/sandbox-lab/.sessions/
 
 # Screenshots pulled for design reference, not product code.
 .design-refs/
+
+# Private keys, never committed.
+.secrets/
+*.pem

@@ -32,6 +32,8 @@
     "./adapters/scorers/journal-assertions": "./src/adapters/scorers/journal-assertions.ts",
     "./credentials/cipher": "./src/credentials/cipher.ts",
     "./codebase/errors": "./src/codebase/errors.ts",
+    "./codebase/github-app": "./src/codebase/github-app.ts",
+    "./codebase/installations": "./src/codebase/installations.ts",
     "./codebase/github-repositories": "./src/codebase/github-repositories.ts",
     "./codebase/github-token": "./src/codebase/github-token.ts",
     "./credentials/connections": "./src/credentials/connections.ts",
