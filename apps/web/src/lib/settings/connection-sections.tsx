@@ -6,6 +6,9 @@ export interface ConnectionSectionSpec {
   readonly addLabel: string;
   readonly category: CredentialIntegration["category"];
   readonly empty: string;
+  /** What the empty state is titled, which is a sentence rather than the
+   * section name repeated. */
+  readonly emptyTitle: string;
   readonly Icon: Icon;
   readonly note: string;
   readonly title: string;
@@ -24,6 +27,7 @@ export const CONNECTION_SECTIONS: readonly ConnectionSectionSpec[] = [
     addLabel: "Add harness",
     category: "harness",
     empty: "Connect one and your evals can run.",
+    emptyTitle: "No harnesses connected",
     Icon: RobotIcon,
     note: "Required. The agent runs on your account, and the model usage is charged there.",
     title: "Harnesses",
@@ -32,6 +36,7 @@ export const CONNECTION_SECTIONS: readonly ConnectionSectionSpec[] = [
     addLabel: "Add sandbox",
     category: "sandbox",
     empty: "Runs use Anpord's account until you connect your own.",
+    emptyTitle: "No sandboxes connected",
     Icon: CubeIcon,
     note: "Optional. Runs use Anpord's account unless you connect your own.",
     title: "Sandboxes",

@@ -1,12 +1,11 @@
 import { Button } from "@anpord/ui/components/button";
-import { PlusIcon } from "@phosphor-icons/react";
+import { KeyIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ListState } from "@/components/layout/list-state";
-import { RowList } from "@/components/layout/row-list";
 import { ApiKeyListSkeleton } from "@/components/settings/api-key-list-skeleton";
 import { ApiKeyRow } from "@/components/settings/api-key-row";
+import { SettingsList } from "@/components/settings/settings-list";
 import { SettingsPanel } from "@/components/settings/settings-panel";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { apiKeyQueries } from "@/lib/query/api-key-queries";
@@ -120,32 +119,35 @@ function ApiKeyList({
   readonly onRevoke: (id: string, name: string) => void;
   readonly rows: readonly ApiKeyListRow[];
 }) {
+  if (isPending) {
+    return <ApiKeyListSkeleton />;
+  }
+
+  if (error) {
+    return <p className="text-muted-foreground text-sm">{error.message}</p>;
+  }
+
+  /* The same list every other settings screen draws: a mark, a sentence and
+     the action, rather than a bare title with the page's own button repeated
+     underneath it. */
   return (
-    <ListState
-      action={
-        <Button onClick={onNew} size="sm">
-          <PlusIcon />
-          New key
-        </Button>
-      }
-      description="Create one to use the SDK or the CLI."
-      empty={rows.length === 0}
-      error={error}
-      isPending={isPending}
-      skeleton={<ApiKeyListSkeleton />}
-      title="No keys yet"
+    <SettingsList
+      addLabel="New key"
+      empty={rows.length === 0 ? "Create one to use the SDK or the CLI." : null}
+      emptyTitle="No keys yet"
+      Icon={KeyIcon}
+      onAdd={onNew}
+      title="API keys"
     >
-      <RowList>
-        {rows.map((row) => (
-          <ApiKeyRow
-            createdAt={row.createdAt}
-            key={row.id}
-            name={row.name}
-            onRevoke={() => onRevoke(row.id, row.name)}
-            start={row.start}
-          />
-        ))}
-      </RowList>
-    </ListState>
+      {rows.map((row) => (
+        <ApiKeyRow
+          createdAt={row.createdAt}
+          key={row.id}
+          name={row.name}
+          onRevoke={() => onRevoke(row.id, row.name)}
+          start={row.start}
+        />
+      ))}
+    </SettingsList>
   );
 }

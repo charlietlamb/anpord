@@ -10,7 +10,7 @@ import { PreviewScreen } from "@/components/dev/preview-screen";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ConnectionDialog } from "@/components/settings/connection-dialog";
 import { ConnectionRow } from "@/components/settings/connection-row";
-import { ConnectionSection } from "@/components/settings/connection-section";
+import { SettingsList } from "@/components/settings/settings-list";
 import { SettingsPanel } from "@/components/settings/settings-panel";
 import { CONNECTION_SECTIONS } from "@/lib/settings/connection-sections";
 
@@ -156,9 +156,10 @@ function ConnectionsPreview() {
                   );
 
                   return (
-                    <ConnectionSection
+                    <SettingsList
                       addLabel={section.addLabel}
-                      emptyNote={own.length === 0 ? section.empty : null}
+                      empty={own.length === 0 ? section.empty : null}
+                      emptyTitle={section.emptyTitle}
                       Icon={section.Icon}
                       key={section.category}
                       onAdd={() => setOpen(section.category)}
@@ -179,7 +180,7 @@ function ConnectionsPreview() {
                           />
                         ) : null;
                       })}
-                    </ConnectionSection>
+                    </SettingsList>
                   );
                 })}
               </div>

@@ -11,8 +11,8 @@ import { ConnectedElsewhere } from "@/components/settings/connected-elsewhere";
 import { ConnectionDialog } from "@/components/settings/connection-dialog";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import { ConnectionRow } from "@/components/settings/connection-row";
-import { ConnectionSection } from "@/components/settings/connection-section";
 import { RotateConnectionDialog } from "@/components/settings/rotate-connection-dialog";
+import { SettingsList } from "@/components/settings/settings-list";
 import { SettingsPanel } from "@/components/settings/settings-panel";
 import { credentialKeys, credentialQueries } from "@/lib/credential-queries";
 import { credentialsClient } from "@/lib/credentials-client";
@@ -120,9 +120,10 @@ export function CredentialPage({
       description={spec.note}
       title={spec.title}
     >
-      <ConnectionSection
+      <SettingsList
         addLabel={spec.addLabel}
-        emptyNote={rows.length === 0 ? spec.empty : null}
+        empty={rows.length === 0 ? spec.empty : null}
+        emptyTitle={spec.emptyTitle}
         Icon={spec.Icon}
         onAdd={() => setAdding(true)}
         title={spec.title}
@@ -146,7 +147,7 @@ export function CredentialPage({
             />
           ) : null;
         })}
-      </ConnectionSection>
+      </SettingsList>
 
       {elsewhere.map((entry) => (
         <ConnectedElsewhere
