@@ -6,8 +6,12 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import {
+  GithubAppConfigLive,
+  GithubAppLive,
+} from "@anpord/eval/codebase/github-app";
 import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
-import { GithubTokensLive } from "@anpord/eval/codebase/github-token";
+import { InstallationsLive } from "@anpord/eval/codebase/installations";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import {
   CredentialConnectionsLive,
@@ -78,7 +82,8 @@ const CredentialLayer = Layer.mergeAll(
 /* The token comes from the database and the listing from GitHub, so neither
    depends on the other and both are provided beside the credential layer. */
 const CodebaseLayer = Layer.mergeAll(
-  GithubTokensLive.pipe(Layer.provide(DatabaseLayer)),
+  InstallationsLive.pipe(Layer.provide(DatabaseLayer)),
+  GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)),
   GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer))
 );
 

@@ -5,7 +5,6 @@ import {
 import { HttpClient, HttpClientRequest } from "@effect/platform";
 import { Context, Effect, Layer, Redacted, Schema } from "effect";
 import { CodebaseError } from "./errors";
-import type { GithubToken } from "./github-token";
 
 const API = "https://api.github.com";
 
@@ -19,32 +18,55 @@ const GithubRepo = Schema.Struct({
   private: Schema.Boolean,
 });
 
-const GithubUser = Schema.Struct({ login: Schema.String });
+/* An installation lists its repositories under a key rather than as a bare
+   array, which is the one shape difference from listing a user's own. */
+const InstallationRepos = Schema.Struct({
+  repositories: Schema.Array(GithubRepo),
+});
 
-const decodeRepos = Schema.decodeUnknown(Schema.Array(GithubRepo));
-const decodeUser = Schema.decodeUnknown(GithubUser);
+const Installation = Schema.Struct({
+  account: Schema.Struct({ login: Schema.String }),
+  id: Schema.Number,
+  repository_selection: Schema.Literal("all", "selected"),
+});
+
+const decodeRepos = Schema.decodeUnknown(InstallationRepos);
+const decodeInstallation = Schema.decodeUnknown(Installation);
+
+export interface InstallationAccount {
+  readonly id: number;
+  readonly login: string;
+  readonly repositorySelection: "all" | "selected";
+}
 
 export interface GithubRepositoriesShape {
+  /** The account the app is installed on, read with the app's own JWT. */
+  readonly installation: (
+    jwt: Redacted.Redacted<string>,
+    installationId: number
+  ) => Effect.Effect<InstallationAccount, CodebaseError>;
   readonly list: (
-    token: GithubToken
+    token: Redacted.Redacted<string>
   ) => Effect.Effect<readonly Repository[], CodebaseError>;
-  readonly login: (token: GithubToken) => Effect.Effect<string, CodebaseError>;
 }
 
 export class GithubRepositories extends Context.Tag(
   "@anpord/eval/GithubRepositories"
 )<GithubRepositories, GithubRepositoriesShape>() {}
 
+const unreadable = (what: string) => (cause: unknown) =>
+  new CodebaseError({ cause, message: `GitHub sent an unreadable ${what}` });
+
 export const GithubRepositoriesLive = Layer.effect(
   GithubRepositories,
   Effect.gen(function* () {
     const client = yield* HttpClient.HttpClient;
 
-    const get = (token: GithubToken, path: string) =>
+    const get = (token: Redacted.Redacted<string>, path: string) =>
       HttpClientRequest.get(`${API}${path}`).pipe(
         HttpClientRequest.setHeaders({
           accept: "application/vnd.github+json",
-          authorization: `Bearer ${Redacted.value(token.value)}`,
+          authorization: `Bearer ${Redacted.value(token)}`,
           "x-github-api-version": "2022-11-28",
         }),
         client.execute,
@@ -57,41 +79,34 @@ export const GithubRepositoriesLive = Layer.effect(
       );
 
     return GithubRepositories.of({
-      login: (token) =>
-        get(token, "/user").pipe(
+      installation: (jwt, installationId) =>
+        get(jwt, `/app/installations/${installationId}`).pipe(
           Effect.flatMap((body) =>
-            decodeUser(body).pipe(
-              Effect.mapError(
-                (cause) =>
-                  new CodebaseError({
-                    cause,
-                    message: "GitHub returned an unreadable account",
-                  })
-              )
+            decodeInstallation(body).pipe(
+              Effect.mapError(unreadable("installation"))
             )
           ),
-          Effect.map((user) => user.login),
-          Effect.withSpan("GithubRepositories.login")
+          Effect.map((found) => ({
+            id: found.id,
+            login: found.account.login,
+            repositorySelection: found.repository_selection,
+          })),
+          Effect.withSpan("GithubRepositories.installation"),
+          Effect.annotateLogs({ installationId })
         ),
 
       list: (token) =>
         get(
           token,
-          `/user/repos?per_page=${REPOSITORY_PAGE_SIZE}&sort=pushed&affiliation=owner,collaborator,organization_member`
+          `/installation/repositories?per_page=${REPOSITORY_PAGE_SIZE}&sort=pushed`
         ).pipe(
           Effect.flatMap((body) =>
             decodeRepos(body).pipe(
-              Effect.mapError(
-                (cause) =>
-                  new CodebaseError({
-                    cause,
-                    message: "GitHub returned an unreadable repository list",
-                  })
-              )
+              Effect.mapError(unreadable("repository list"))
             )
           ),
-          Effect.map((repos) =>
-            repos.map(
+          Effect.map(({ repositories }) =>
+            repositories.map(
               (repo): Repository => ({
                 defaultBranch: repo.default_branch,
                 fullName: repo.full_name,

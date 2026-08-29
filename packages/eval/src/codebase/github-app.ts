@@ -56,6 +56,9 @@ export interface GithubAppShape {
   /** Where a reader goes to install, or to change which repositories are
    * shared. GitHub owns both screens; this is the address of them. */
   readonly installUrl: (state: string) => string;
+  /** The app's own credential, for the few calls that are about the app
+   * rather than about one installation. */
+  readonly jwt: Effect.Effect<Redacted.Redacted<string>, CodebaseError>;
   readonly manageUrl: (installationId: number) => string;
   /** An hour-long token scoped to one installation, which is what clones. */
   readonly tokenFor: (
@@ -102,6 +105,11 @@ export const GithubAppLive = Layer.effect(
     return {
       installUrl: (state) =>
         `https://github.com/apps/${config.slug}/installations/new?state=${encodeURIComponent(state)}`,
+
+      jwt: Effect.clockWith((clock) => clock.currentTimeMillis).pipe(
+        Effect.flatMap((now) => appJwt(config, now)),
+        Effect.map(Redacted.make)
+      ),
 
       manageUrl: (installationId) =>
         `https://github.com/settings/installations/${installationId}`,

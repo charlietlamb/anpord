@@ -1,65 +1,39 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@anpord/ui/components/dropdown-menu";
 import { EmptyState } from "@anpord/ui/components/empty-state";
-import { GitBranchIcon } from "@phosphor-icons/react";
+import {
+  ArrowSquareOutIcon,
+  DotsThreeIcon,
+  GitBranchIcon,
+} from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { ListRow, RowTitle } from "@/components/layout/list-row";
+import { ROW_ACTION } from "@/components/layout/row-action";
 import { RowList } from "@/components/layout/row-list";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import { SettingsPanel } from "@/components/settings/settings-panel";
-import { authClient } from "@/lib/auth-client";
 import { codebaseQueries } from "@/lib/codebase-queries";
+import { useCodebaseInstall } from "@/lib/use-codebase-install";
 
 export const Route = createFileRoute("/_authed/settings/codebase")({
   component: CodebasePage,
   staticData: { title: "Codebase" },
+  /* GitHub returns here with the installation it just created. Validated so
+     the value reaching the component is a number or nothing at all. */
+  validateSearch: (search): { installation_id?: number } => {
+    const raw = Number(search.installation_id);
+
+    return Number.isSafeInteger(raw) && raw > 0 ? { installation_id: raw } : {};
+  },
 });
-
-/**
- * Asks GitHub for repository access, now rather than at sign-in.
- *
- * Signing in requests no scopes, so someone who only ever runs public repos
- * is never shown a consent screen asking for their private ones. `linkSocial`
- * re-runs the same provider with the scope added, which GitHub treats as an
- * upgrade to the existing grant rather than a second account.
- *
- * The client's own redirect plugin navigates on a response carrying a url
- * and `redirect: true`, which is what this endpoint returns. It is not relied
- * on: the url is followed here too, because a hook that quietly does not run
- * leaves a button that looks broken and says nothing, and navigating twice to
- * the same place costs nothing.
- *
- * GitHub's own consent screen is what grants access, and it is where someone
- * chooses which organizations to include -- one that requires approval shows
- * a Request button beside its name.
- */
-const connect = async () => {
-  const { data, error } = await authClient.linkSocial({
-    callbackURL: `${window.location.origin}/settings/codebase`,
-    provider: "github",
-    scopes: ["repo"],
-  });
-
-  if (error || !data?.url) {
-    toast.error(error?.message ?? "Couldn't reach GitHub");
-    return;
-  }
-
-  window.location.assign(data.url);
-};
-
-/* The browser is on its way to GitHub, which takes a moment on a slow
-   connection; a button that only greys out reads as a click that missed. */
-const connectLabel = (connecting: boolean, fresh: boolean) => {
-  if (connecting) {
-    return "Opening GitHub…";
-  }
-  return fresh ? "Connect GitHub" : "Update access";
-};
 
 /* The listing is one page of the most recently pushed, so a full page is a
    floor rather than a total: saying "100 repositories" to someone with four
@@ -80,20 +54,17 @@ const repositoryCount = (
 };
 
 function CodebasePage() {
-  const [connecting, setConnecting] = useState(false);
   const account = useQuery(codebaseQueries.account());
+  /* Undefined while the query is failing, which reads the same as none: the
+     page offers the install and says nothing it cannot stand behind. */
+  const installed = account.data ?? null;
   const repositories = useQuery(
-    codebaseQueries.repositories(account.data != null)
+    codebaseQueries.repositories(installed !== null)
   );
+  const { installation_id: returned } = Route.useSearch();
+  const { connecting, install, installing } = useCodebaseInstall(returned);
 
-  /* Left true on the way out: the browser is leaving for GitHub, and a button
-     that springs back to life first reads as a click that did nothing. */
-  const start = async () => {
-    setConnecting(true);
-    await connect();
-  };
-
-  if (account.isPending) {
+  if (account.isPending || connecting) {
     return (
       <SettingsPanel title="Codebase">
         <ConnectionListSkeleton rows={1} />
@@ -101,33 +72,69 @@ function CodebasePage() {
     );
   }
 
-  /* The same trip either way: GitHub's consent screen is where an
-     organization is granted or revoked, and coming back reloads the page, so
-     a repository added since is picked up without a refresh of its own. */
-  const connectButton = (
-    <Button disabled={connecting} onClick={start} size="sm" variant="outline">
+  const installButton = (
+    <Button disabled={installing} onClick={install} size="sm" variant="outline">
       <GithubIcon />
-      {connectLabel(connecting, account.data === null)}
+      {installing ? "Opening GitHub…" : "Install GitHub app"}
     </Button>
   );
 
   return (
     <SettingsPanel
-      actions={account.data === null ? undefined : connectButton}
-      description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
+      actions={installed === null ? undefined : installButton}
+      description="Optional. Install the GitHub app to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
       title="Codebase"
     >
-      {account.data === null ? (
+      {installed === null ? (
         <EmptyState
-          action={connectButton}
+          action={installButton}
           className="gap-3 py-10"
-          description="Public repositories clone without one."
+          description="Public repositories clone without one. Installing lets you choose exactly which of your own it can read."
           icon={<GitBranchIcon />}
-          title="No account connected"
+          title="No GitHub app installed"
         />
       ) : (
         <RowList label="Source control">
           <ListRow
+            actions={
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      aria-label="Actions for this GitHub installation"
+                      className={ROW_ACTION}
+                      size="icon-sm"
+                      variant="bare"
+                    />
+                  }
+                >
+                  <DotsThreeIcon />
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    disabled={repositories.isFetching}
+                    onClick={() => repositories.refetch()}
+                  >
+                    Refresh repositories
+                  </DropdownMenuItem>
+                  {/* GitHub owns the picker. This is its address, which is
+                      the one screen where repositories are added or removed. */}
+                  <DropdownMenuItem
+                    render={
+                      <a
+                        href={installed.manageUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        Choose repositories
+                        <ArrowSquareOutIcon className="ml-auto size-3.5" />
+                      </a>
+                    }
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            }
             leading={<GithubIcon className="size-3.5 shrink-0" />}
             meta={
               <span className="whitespace-nowrap">
@@ -136,15 +143,12 @@ function CodebasePage() {
             }
           >
             <span className="flex min-w-0 items-center gap-2">
-              <RowTitle>{account.data?.login}</RowTitle>
+              <RowTitle>{installed.login}</RowTitle>
 
-              {/* Said the same way the harness rows say their method: one
-                  muted line beside the name, rather than a badge for the
-                  ordinary case and an icon-and-text fragment for the other. */}
               <span className="truncate text-muted-foreground/60 text-xs">
-                {account.data?.canReadPrivate
-                  ? "Public and private"
-                  : "Public repositories only"}
+                {installed.repositorySelection === "all"
+                  ? "All repositories"
+                  : "Selected repositories"}
               </span>
             </span>
           </ListRow>

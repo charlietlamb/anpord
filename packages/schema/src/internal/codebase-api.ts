@@ -1,7 +1,7 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
 import { Repository, SourceControlAccount } from "../domain/codebase";
-import { InternalError } from "../domain/errors";
+import { BadRequest, InternalError } from "../domain/errors";
 import { Authentication } from "./authentication";
 
 export class CodebaseGroup extends HttpApiGroup.make("codebase")
@@ -18,5 +18,23 @@ export class CodebaseGroup extends HttpApiGroup.make("codebase")
       "/evals/codebase/repositories"
     ).addSuccess(Schema.Array(Repository))
   )
+  .add(
+    /* The address of GitHub's own install screen, minted here because it
+       carries state the server has to recognise on the way back. */
+    HttpApiEndpoint.get("installUrl", "/evals/codebase/install").addSuccess(
+      Schema.Struct({ url: Schema.String })
+    )
+  )
+  .add(
+    HttpApiEndpoint.post("connect", "/evals/codebase/connect")
+      .setPayload(Schema.Struct({ installationId: Schema.Number }))
+      .addSuccess(SourceControlAccount)
+  )
+  .add(
+    HttpApiEndpoint.del("disconnect", "/evals/codebase/connect").addSuccess(
+      Schema.Void
+    )
+  )
+  .addError(BadRequest)
   .addError(InternalError)
   .middleware(Authentication) {}

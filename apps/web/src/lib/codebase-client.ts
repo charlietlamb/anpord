@@ -8,13 +8,16 @@ const BASE = "/api/evals/codebase";
 
 const Account = Schema.NullOr(SourceControlAccount);
 const Repositories = Schema.Array(Repository);
+const InstallUrl = Schema.Struct({ url: Schema.String });
 
 const request = async <A, I>(
   schema: Schema.Schema<A, I>,
-  path: string
+  path: string,
+  init?: RequestInit
 ): Promise<A> => {
   const response = await fetch(`${BASE}${path}`, {
-    headers: { "content-type": "application/json" },
+    ...init,
+    headers: { "content-type": "application/json", ...init?.headers },
   });
 
   if (!response.ok) {
@@ -24,10 +27,19 @@ const request = async <A, I>(
     throw new Error(body?.message ?? "Codebase request failed");
   }
 
-  return Effect.runPromise(Schema.decodeUnknown(schema)(await response.json()));
+  const payload = response.status === 204 ? undefined : await response.json();
+
+  return Effect.runPromise(Schema.decodeUnknown(schema)(payload));
 };
 
 export const codebaseClient = {
   account: () => request(Account, "/account"),
+  connect: (installationId: number) =>
+    request(SourceControlAccount, "/connect", {
+      body: JSON.stringify({ installationId }),
+      method: "POST",
+    }),
+  disconnect: () => request(Schema.Void, "/connect", { method: "DELETE" }),
+  installUrl: () => request(InstallUrl, "/install"),
   repositories: () => request(Repositories, "/repositories"),
 };
