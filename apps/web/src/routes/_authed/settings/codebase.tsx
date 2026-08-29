@@ -62,7 +62,8 @@ function CodebasePage() {
     codebaseQueries.repositories(installed !== null)
   );
   const { installation_id: returned } = Route.useSearch();
-  const { connecting, install, installing } = useCodebaseInstall(returned);
+  const { claim, connecting, install, installing } =
+    useCodebaseInstall(returned);
 
   if (account.isPending || connecting) {
     return (
@@ -79,6 +80,17 @@ function CodebasePage() {
     </Button>
   );
 
+  /* Installed on GitHub but not recorded here: the install redirect goes to
+     the app's callback, which is the sign-in route, so nothing came back to
+     say so. Offered rather than hidden, because the alternative is a reader
+     installing a second time and still seeing nothing. */
+  const claimButton = (
+    <Button disabled={connecting} onClick={claim} size="sm" variant="outline">
+      <GithubIcon />
+      {connecting ? "Checking…" : "Already installed? Finish connecting"}
+    </Button>
+  );
+
   return (
     <SettingsPanel
       actions={installed === null ? undefined : installButton}
@@ -87,7 +99,12 @@ function CodebasePage() {
     >
       {installed === null ? (
         <EmptyState
-          action={installButton}
+          action={
+            <span className="flex flex-wrap items-center justify-center gap-2">
+              {installButton}
+              {claimButton}
+            </span>
+          }
           className="gap-3 py-10"
           description="Public repositories clone without one. Installing lets you choose exactly which of your own it can read."
           icon={<GitBranchIcon />}

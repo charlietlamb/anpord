@@ -27,7 +27,13 @@ export class CodebaseGroup extends HttpApiGroup.make("codebase")
   )
   .add(
     HttpApiEndpoint.post("connect", "/evals/codebase/connect")
-      .setPayload(Schema.Struct({ installationId: Schema.Number }))
+      /* Optional: GitHub redirects an install to the app's callback, which
+         is the sign-in route and keeps no query string of ours, so the page
+         usually arrives back with nothing to report and the server finds the
+         installation itself. */
+      .setPayload(
+        Schema.Struct({ installationId: Schema.optional(Schema.Number) })
+      )
       .addSuccess(SourceControlAccount)
   )
   .add(

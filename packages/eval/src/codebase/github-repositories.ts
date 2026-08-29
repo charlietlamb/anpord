@@ -32,6 +32,7 @@ const Installation = Schema.Struct({
 
 const decodeRepos = Schema.decodeUnknown(InstallationRepos);
 const decodeInstallation = Schema.decodeUnknown(Installation);
+const decodeInstallations = Schema.decodeUnknown(Schema.Array(Installation));
 
 export interface InstallationAccount {
   readonly id: number;
@@ -45,6 +46,13 @@ export interface GithubRepositoriesShape {
     jwt: Redacted.Redacted<string>,
     installationId: number
   ) => Effect.Effect<InstallationAccount, CodebaseError>;
+  /** Every account the app is installed on, read with the app's own JWT.
+   * Asked for by the page rather than waiting to be told: GitHub redirects
+   * an install to the app's configured callback, which is the sign-in route
+   * and drops `installation_id` on the floor. */
+  readonly installations: (
+    jwt: Redacted.Redacted<string>
+  ) => Effect.Effect<readonly InstallationAccount[], CodebaseError>;
   readonly list: (
     token: Redacted.Redacted<string>
   ) => Effect.Effect<readonly Repository[], CodebaseError>;
@@ -79,6 +87,23 @@ export const GithubRepositoriesLive = Layer.effect(
       );
 
     return GithubRepositories.of({
+      installations: (jwt) =>
+        get(jwt, "/app/installations?per_page=100").pipe(
+          Effect.flatMap((body) =>
+            decodeInstallations(body).pipe(
+              Effect.mapError(unreadable("installation list"))
+            )
+          ),
+          Effect.map((found) =>
+            found.map((one) => ({
+              id: one.id,
+              login: one.account.login,
+              repositorySelection: one.repository_selection,
+            }))
+          ),
+          Effect.withSpan("GithubRepositories.installations")
+        ),
+
       installation: (jwt, installationId) =>
         get(jwt, `/app/installations/${installationId}`).pipe(
           Effect.flatMap((body) =>

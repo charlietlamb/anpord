@@ -34,9 +34,11 @@ const request = async <A, I>(
 
 export const codebaseClient = {
   account: () => request(Account, "/account"),
-  connect: (installationId: number) =>
+  connect: (installationId?: number) =>
     request(SourceControlAccount, "/connect", {
-      body: JSON.stringify({ installationId }),
+      body: JSON.stringify(
+        installationId === undefined ? {} : { installationId }
+      ),
       method: "POST",
     }),
   disconnect: () => request(Schema.Void, "/connect", { method: "DELETE" }),

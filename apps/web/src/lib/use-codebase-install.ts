@@ -50,6 +50,11 @@ export function useCodebaseInstall(returnedId: number | undefined) {
   }, [mutate, navigate, returnedId]);
 
   return {
+    /* Offered when the app is installed on GitHub but not recorded here,
+       which is the ordinary outcome: GitHub sends an install to the app's
+       callback -- the sign-in route -- and no id survives the trip. Called
+       with nothing, the server asks GitHub which installation is ours. */
+    claim: () => connect.mutate(undefined),
     connecting: connect.isPending,
     install: () => install.mutate(),
     installing: install.isPending,

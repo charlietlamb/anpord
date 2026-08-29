@@ -1,4 +1,4 @@
-import type { CodebaseError } from "@anpord/eval/codebase/errors";
+import { CodebaseError } from "@anpord/eval/codebase/errors";
 import { GithubApp } from "@anpord/eval/codebase/github-app";
 import { GithubRepositories } from "@anpord/eval/codebase/github-repositories";
 import { Installations } from "@anpord/eval/codebase/installations";
@@ -103,15 +103,29 @@ export const CodebaseHandlers = HttpApiBuilder.group(
               return yield* Effect.fail(unconfigured);
             }
 
-            /* Read back from GitHub rather than trusted from the query string:
-             an installation id in a URL is a number anyone can type, and this
-             is what proves the app is really installed on that account. */
+            /* Read from GitHub rather than trusted from the request: an
+               installation id is a number anyone can type, and asking is also
+               the only way to learn one when GitHub's redirect carried it to
+               the sign-in route and dropped it. */
             const jwt = yield* handled(app.jwt);
+            const repositories = yield* GithubRepositories;
             const found = yield* handled(
-              (yield* GithubRepositories).installation(
-                jwt,
-                payload.installationId
-              )
+              payload.installationId === undefined
+                ? repositories.installations(jwt).pipe(
+                    Effect.flatMap((all) =>
+                      all.length === 1 && all[0] !== undefined
+                        ? Effect.succeed(all[0])
+                        : Effect.fail(
+                            new CodebaseError({
+                              message:
+                                all.length === 0
+                                  ? "The app is not installed on any account yet"
+                                  : "Several installations exist; open the app's page and pick one",
+                            })
+                          )
+                    )
+                  )
+                : repositories.installation(jwt, payload.installationId)
             );
 
             yield* handled(
