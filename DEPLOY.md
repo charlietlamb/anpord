@@ -55,6 +55,9 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `AXIOM_TOKEN` | *secret*. Optional: without it the server runs without telemetry. Needs ingest permission on the dataset |
 | `AXIOM_DATASET` | Defaults to `anpord`. The dataset must already exist; ingest does not create one |
 | `EMAIL_FROM` | |
+| `GITHUB_APP_ID` | The app's numeric id. Without it, and the two below, the codebase settings answer "No GitHub app is registered for this deployment" and evals clone public repositories only |
+| `GITHUB_APP_SLUG` | `anpord`, which addresses its install page |
+| `GITHUB_APP_PRIVATE_KEY` | *secret*. The `.pem` GitHub issued, whole. `./scripts/configure-github-app.sh` puts all three on the service |
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
 

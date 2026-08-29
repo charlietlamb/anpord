@@ -1,5 +1,4 @@
-import { Button } from "@anpord/ui/components/button";
-import { KeyIcon, PlusIcon } from "@phosphor-icons/react";
+import { KeyIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -74,13 +73,9 @@ function ApiKeysPage() {
 
   return (
     <SettingsPanel
-      actions={
-        <Button onClick={onNew} size="sm">
-          <PlusIcon />
-          New key
-        </Button>
-      }
+      add={{ label: "New key", onAdd: onNew }}
       description="Authenticate the SDK and the CLI. A key acts for this organization."
+      empty={rows.length === 0}
       title="API keys"
     >
       <ApiKeyList

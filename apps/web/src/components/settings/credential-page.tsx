@@ -2,8 +2,6 @@ import type {
   CredentialConnection,
   CredentialIntegration,
 } from "@anpord/schema/domain/credentials";
-import { Button } from "@anpord/ui/components/button";
-import { PlusIcon } from "@phosphor-icons/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -109,15 +107,9 @@ export function CredentialPage({
     <SettingsPanel
       /* Offered in the header once there is a list, and in the middle of the
          empty state before that, where it is the obvious next thing. */
-      actions={
-        rows.length === 0 ? undefined : (
-          <Button onClick={() => setAdding(true)} size="sm">
-            <PlusIcon className="size-3.5" />
-            {spec.addLabel}
-          </Button>
-        )
-      }
+      add={{ label: spec.addLabel, onAdd: () => setAdding(true) }}
       description={spec.note}
+      empty={rows.length === 0}
       title={spec.title}
     >
       <SettingsList
