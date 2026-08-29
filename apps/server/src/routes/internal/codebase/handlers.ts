@@ -1,4 +1,4 @@
-import { CodebaseError } from "@anpord/eval/codebase/errors";
+import type { CodebaseError } from "@anpord/eval/codebase/errors";
 import { GithubApp } from "@anpord/eval/codebase/github-app";
 import { GithubRepositories } from "@anpord/eval/codebase/github-repositories";
 import { Installations } from "@anpord/eval/codebase/installations";
@@ -109,24 +109,21 @@ export const CodebaseHandlers = HttpApiBuilder.group(
                the sign-in route and dropped it. */
             const jwt = yield* handled(app.jwt);
             const repositories = yield* GithubRepositories;
+            /* The newest wins where there are several: an account installs
+               once, so a second is another account the reader has just
+               added. Undefined where the app is installed nowhere, which is
+               an answer rather than a failure. */
             const found = yield* handled(
               payload.installationId === undefined
-                ? repositories.installations(jwt).pipe(
-                    Effect.flatMap((all) =>
-                      all.length === 1 && all[0] !== undefined
-                        ? Effect.succeed(all[0])
-                        : Effect.fail(
-                            new CodebaseError({
-                              message:
-                                all.length === 0
-                                  ? "The app is not installed on any account yet"
-                                  : "Several installations exist; open the app's page and pick one",
-                            })
-                          )
-                    )
-                  )
+                ? repositories
+                    .installations(jwt)
+                    .pipe(Effect.map((all) => all.at(-1)))
                 : repositories.installation(jwt, payload.installationId)
             );
+
+            if (found === undefined) {
+              return null;
+            }
 
             yield* handled(
               (yield* Installations).record(actor, {

@@ -62,8 +62,7 @@ function CodebasePage() {
     codebaseQueries.repositories(installed !== null)
   );
   const { installation_id: returned } = Route.useSearch();
-  const { claim, connecting, install, installing } =
-    useCodebaseInstall(returned);
+  const { connect, connecting } = useCodebaseInstall(returned);
 
   if (account.isPending || connecting) {
     return (
@@ -73,42 +72,29 @@ function CodebasePage() {
     );
   }
 
-  const installButton = (
-    <Button disabled={installing} onClick={install} size="sm" variant="outline">
+  /* One button for both cases. It claims an installation that already exists
+     and only leaves for GitHub when there is none, so the reader is never
+     asked to know which of those they are in. */
+  const connectButton = (
+    <Button disabled={connecting} onClick={connect} size="sm" variant="outline">
       <GithubIcon />
-      {installing ? "Opening GitHub…" : "Install GitHub app"}
-    </Button>
-  );
-
-  /* Installed on GitHub but not recorded here: the install redirect goes to
-     the app's callback, which is the sign-in route, so nothing came back to
-     say so. Offered rather than hidden, because the alternative is a reader
-     installing a second time and still seeing nothing. */
-  const claimButton = (
-    <Button disabled={connecting} onClick={claim} size="sm" variant="outline">
-      <GithubIcon />
-      {connecting ? "Checking…" : "Already installed? Finish connecting"}
+      {connecting ? "Connecting…" : "Connect GitHub"}
     </Button>
   );
 
   return (
     <SettingsPanel
-      actions={installed === null ? undefined : installButton}
-      description="Optional. Install the GitHub app to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
+      actions={installed === null ? undefined : connectButton}
+      description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
       title="Codebase"
     >
       {installed === null ? (
         <EmptyState
-          action={
-            <span className="flex flex-wrap items-center justify-center gap-2">
-              {installButton}
-              {claimButton}
-            </span>
-          }
+          action={connectButton}
           className="gap-3 py-10"
-          description="Public repositories clone without one. Installing lets you choose exactly which of your own it can read."
+          description="Public repositories clone without it. Connecting lets you choose exactly which of your own it can read."
           icon={<GitBranchIcon />}
-          title="No GitHub app installed"
+          title="GitHub not connected"
         />
       ) : (
         <RowList label="Source control">

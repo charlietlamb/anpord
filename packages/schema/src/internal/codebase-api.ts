@@ -34,7 +34,9 @@ export class CodebaseGroup extends HttpApiGroup.make("codebase")
       .setPayload(
         Schema.Struct({ installationId: Schema.optional(Schema.Number) })
       )
-      .addSuccess(SourceControlAccount)
+      /* Null where the app is installed nowhere: the caller then sends the
+         reader to GitHub, which is a step rather than a failure. */
+      .addSuccess(Schema.NullOr(SourceControlAccount))
   )
   .add(
     HttpApiEndpoint.del("disconnect", "/evals/codebase/connect").addSuccess(
