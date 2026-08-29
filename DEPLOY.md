@@ -57,6 +57,12 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `EMAIL_FROM` | |
 | `GITHUB_APP_ID` | The app's numeric id. Without it, and the two below, the codebase settings answer "No GitHub app is registered for this deployment" and evals clone public repositories only |
 | `GITHUB_APP_SLUG` | `anpord`, which addresses its install page |
+| `DAYTONA_API_KEY` | *secret*. The sandbox an organisation gets when it has connected none of its own. Without it such a run fails, because the fallback adapter has no account to build itself from |
+| `E2B_API_KEY` | *secret*. Same, for E2B |
+| `VERCEL_TOKEN` | *secret*. Same, for Vercel Sandbox, which also needs the two below |
+| `VERCEL_TEAM_ID` | Identifier rather than a secret |
+| `VERCEL_PROJECT_ID` | Identifier rather than a secret |
+| `AUTUMN_API_KEY` | *secret*. Without it usage goes uncounted, since the meter fails open |
 | `GITHUB_APP_PRIVATE_KEY` | *secret*. The `.pem` GitHub issued, whole. `./scripts/configure-github-app.sh` puts all three on the service |
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
