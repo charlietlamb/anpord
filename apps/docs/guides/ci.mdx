@@ -19,11 +19,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bun scripts/eval.ts
+      - run: bunx anpord eval eval.ts
         env:
           ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
-          EVAL_MODEL: gpt-5.6-sol
 ```
+
+A definition that names no source is evaluated against the repository it sits
+in. On a pull request that is the branch the request came from, so the run
+measures the change rather than the base branch.
 
 Use a dedicated key with `evals:read` and `evals:write`.
 
