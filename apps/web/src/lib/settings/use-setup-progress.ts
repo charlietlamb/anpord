@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { codebaseQueries } from "@/lib/codebase-queries";
 import { credentialQueries } from "@/lib/credential-queries";
+import { evalQueries } from "@/lib/evals/eval-queries";
 
 interface SetupStep {
   readonly done: boolean;
   readonly label: string;
   /** Optional steps are shown but never hold the card open. */
   readonly required: boolean;
-  readonly to: "/settings/harnesses" | "/settings/codebase";
+  readonly to: "/settings/harnesses" | "/settings/codebase" | "/evals/new";
 }
 
 export interface SetupProgress {
@@ -29,6 +30,7 @@ export function useSetupProgress(): SetupProgress {
   const connections = useQuery(credentialQueries.connections());
   const integrations = useQuery(credentialQueries.integrations());
   const account = useQuery(codebaseQueries.account());
+  const evals = useQuery(evalQueries.list(null));
 
   const harnesses = new Set(
     (integrations.data ?? [])
@@ -38,7 +40,12 @@ export function useSetupProgress(): SetupProgress {
 
   return {
     known:
-      !(connections.isPending || integrations.isPending || account.isPending) &&
+      !(
+        connections.isPending ||
+        integrations.isPending ||
+        account.isPending ||
+        evals.isPending
+      ) &&
       connections.error === null &&
       integrations.error === null,
     steps: [
@@ -55,6 +62,14 @@ export function useSetupProgress(): SetupProgress {
         label: "Connect GitHub",
         required: false,
         to: "/settings/codebase",
+      },
+      {
+        /* The point of the other two. Required, so the card stays until
+           something has actually run. */
+        done: (evals.data?.total ?? 0) > 0,
+        label: "Write your first eval",
+        required: true,
+        to: "/evals/new",
       },
     ],
   };

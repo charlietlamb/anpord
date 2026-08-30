@@ -1,6 +1,5 @@
 import type { EvalSource } from "@anpord/schema/domain/evals";
-import { Button } from "@anpord/ui/components/button";
-import { cn } from "@anpord/ui/lib/utils";
+import { Segmented } from "@anpord/ui/components/ui/segmented";
 import { useQuery } from "@tanstack/react-query";
 import { RepositoryField } from "@/components/evals/repository-field";
 import { codebaseQueries } from "@/lib/codebase-queries";
@@ -20,6 +19,14 @@ const REPO_HINT =
    and only overwrites the source when someone picks a different one. */
 const isRepo = (source: EvalSource) => source.kind === "repo";
 
+const SOURCES: readonly {
+  readonly label: string;
+  readonly value: "empty" | "repo";
+}[] = [
+  { label: "Empty", value: "empty" },
+  { label: "Git repository", value: "repo" },
+];
+
 export function WorkspaceField({
   onChange,
   value,
@@ -37,32 +44,17 @@ export function WorkspaceField({
     <div className="grid gap-1.5">
       <span className="font-medium text-xs">Workspace</span>
 
-      <div className="flex w-fit gap-1 rounded-md border border-border-faint p-0.5">
-        {[
-          { label: "Empty", selected: !repo },
-          { label: "Git repository", selected: repo },
-        ].map((option) => (
-          <Button
-            className={cn(
-              "h-7 px-2.5 text-xs",
-              option.selected && "bg-alpha-8 text-foreground"
-            )}
-            key={option.label}
-            onClick={() =>
-              onChange(
-                option.label === "Empty"
-                  ? { kind: "empty" }
-                  : { kind: "repo", ref: null, url: "" }
-              )
-            }
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            {option.label}
-          </Button>
-        ))}
-      </div>
+      <Segmented
+        onChange={(kind) =>
+          onChange(
+            kind === "empty"
+              ? { kind: "empty" }
+              : { kind: "repo", ref: null, url: "" }
+          )
+        }
+        options={SOURCES}
+        value={repo ? "repo" : "empty"}
+      />
 
       {value.kind === "repo" ? (
         <RepositoryField
