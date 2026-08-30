@@ -16,7 +16,7 @@ const ClientLayer = Layer.unwrapEffect(Effect.map(clientOptionsConfig, layer));
 
 Command.run(anpord, {
   name: "Anpord",
-  version: "0.1.0",
+  version: "0.1.3",
 })(process.argv).pipe(
   Effect.provide(Layer.mergeAll(ClientLayer, NodeContext.layer)),
   Effect.catchAllCause((cause) =>
