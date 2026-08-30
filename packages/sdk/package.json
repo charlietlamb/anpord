@@ -1,6 +1,6 @@
 {
   "name": "anpord",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "TypeScript SDK and CLI for coding agent evals and prompt management.",
   "license": "MIT",
   "type": "module",
@@ -71,12 +71,12 @@
   },
   "devDependencies": {
     "@anpord/schema": "workspace:*",
+    "@anpord/template": "workspace:*",
     "publint": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {
-    "@anpord/template": "workspace:*",
     "@effect/cli": "^0.75.2",
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.107.0",
