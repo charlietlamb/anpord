@@ -47,7 +47,7 @@ export function SettingsList({
           {addLabel}
         </Button>
       }
-      className="mx-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
+      className="m-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
       description={empty}
       icon={<Icon />}
       title={emptyTitle}

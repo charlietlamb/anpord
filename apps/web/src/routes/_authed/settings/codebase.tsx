@@ -79,7 +79,7 @@ function CodebasePage() {
       return (
         <EmptyState
           action={connectButton}
-          className="mx-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
+          className="m-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
           description="Public repositories clone without it. Connecting lets you choose exactly which of your own it can read."
           icon={<GitBranchIcon />}
           title="GitHub not connected"
