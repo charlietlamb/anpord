@@ -64,7 +64,12 @@ function EvalsIndex() {
       width="wide"
     >
       <ListState
-        action={newEval}
+        action={
+          <Button render={<Link to="/evals/new" />} size="sm" variant="outline">
+            <PlusIcon className="size-3.5" />
+            New eval
+          </Button>
+        }
         description="Run one to see how a harness behaves on a case you care about."
         empty={runs.length === 0}
         error={error}

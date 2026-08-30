@@ -44,7 +44,7 @@ export function ListState({
   if (error) {
     return (
       <EmptyState
-        className="gap-3 py-10"
+        className="mx-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
         description={error.message}
         title="Couldn't load this"
       />
@@ -55,7 +55,7 @@ export function ListState({
     return (
       <EmptyState
         action={action}
-        className="gap-3 py-10"
+        className="mx-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
         description={description}
         icon={icon}
         title={title}

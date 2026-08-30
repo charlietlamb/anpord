@@ -111,7 +111,7 @@ function PromptsPage() {
         action={
           search ? null : (
             <Link
-              className={cn(buttonVariants({ size: "sm" }))}
+              className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
               to="/prompts/new"
             >
               <PlusIcon />
