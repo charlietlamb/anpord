@@ -42,7 +42,7 @@ export const hasGreeting: Validator = async ({ readText }) =>
   (await readText("hello.txt")) === "hello";
 ```
 
-Reference it directly from `anpord.eval.ts`:
+Reference it directly from `greeting.eval.ts`:
 
 ```ts
 import { defineEval } from "anpord";
@@ -66,6 +66,9 @@ export default defineEval({
 ```sh
 npx anpord eval
 ```
+
+With no paths, the CLI discovers every `**/*.eval.ts` file and starts the
+suites concurrently. Pass files or directories to run a smaller set.
 
 ## Resolve a prompt
 

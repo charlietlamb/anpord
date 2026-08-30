@@ -83,7 +83,7 @@ export const hasHealthRoute: Validator = async ({ readText }) => ({
 
 Import and reference it directly in the case. It does not need another wrapper:
 
-```ts anpord.eval.ts
+```ts health-route.eval.ts
 import { defineEval } from "anpord";
 import { hasHealthRoute } from "./validator";
 
@@ -96,4 +96,4 @@ export default defineEval({
 });
 ```
 
-Run it with `anpord eval`. Anpord bundles the validator and its imports, runs it after the agent, and shows the function name with the result. Use either `validate` or `verify` on a case, not both.
+Run every `*.eval.ts` suite with `anpord eval`, or select this one with `anpord eval ./health-route.eval.ts`. Anpord bundles the validator and its imports, runs it after the agent, and shows the function name with the result. Use either `validate` or `verify` on a case, not both.

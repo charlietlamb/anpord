@@ -1,3 +1,4 @@
+import { relative } from "node:path";
 import {
   ChannelName,
   PromptId,
@@ -9,6 +10,7 @@ import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { compileEvalEffect } from "../evals/compiler";
+import { discoverEvalFiles } from "../evals/discover";
 import { declarationFile } from "./declarations";
 import { json, note, promptContent, row } from "./render";
 
@@ -197,20 +199,42 @@ const gen = Command.make("gen", { out }, writeDeclarations).pipe(
   Command.withDescription(DESCRIPTION)
 );
 
-const evalFile = Args.text({ name: "file" }).pipe(
-  Args.withDefault("anpord.eval.ts"),
+const evalPaths = Args.text({ name: "path" }).pipe(
+  Args.repeated,
   Args.withDescription(
-    "A TypeScript file that default exports defineEval(...) (default: anpord.eval.ts)"
+    "Eval files or directories (default: discover **/*.eval.ts)"
   )
 );
 
-const runEval = Command.make("eval", { evalFile }, ({ evalFile: file }) =>
+const runEval = Command.make("eval", { evalPaths }, ({ evalPaths: paths }) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
-    const payload = yield* compileEvalEffect(file);
-    return yield* api.evals.start({ payload });
-  }).pipe(Effect.flatMap(json))
-).pipe(Command.withDescription("Compile and start an eval from TypeScript"));
+    const files = yield* discoverEvalFiles(paths);
+    const compiled = yield* Effect.forEach(
+      files,
+      (file) =>
+        compileEvalEffect(file).pipe(
+          Effect.map((payload) => ({ file, payload }))
+        ),
+      { concurrency: "unbounded" }
+    );
+    const runs = yield* Effect.forEach(
+      compiled,
+      ({ file, payload }) =>
+        api.evals.start({ payload }).pipe(
+          Effect.map(({ id }) => ({
+            file: relative(process.cwd(), file),
+            id,
+          }))
+        ),
+      { concurrency: "unbounded" }
+    );
+
+    return yield* json(runs);
+  })
+).pipe(
+  Command.withDescription("Discover, compile, and start TypeScript evals")
+);
 
 export const commands = [
   runEval,

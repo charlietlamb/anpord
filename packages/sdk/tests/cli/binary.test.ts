@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -46,7 +46,7 @@ describe.if(built)("the published binary", () => {
       ]) {
         expect(stdout).toContain(command);
       }
-      expect(stdout).toContain("eval [<file>]");
+      expect(stdout).toContain("eval <path>...");
       expect(code).toBe(0);
     },
     CLI_TIMEOUT
@@ -58,33 +58,53 @@ describe.if(built)("the published binary", () => {
     expect(code).toBe(0);
   });
 
-  test("eval starts anpord.eval.ts by default", async () => {
+  test("eval discovers and starts every eval file", async () => {
     const directory = await mkdtemp(join(tmpdir(), "anpord-cli-"));
-    let request: { pathname: string; payload: unknown } | undefined;
+    const requests: { pathname: string; payload: unknown }[] = [];
+    const { promise: bothStarted, resolve: release } =
+      Promise.withResolvers<void>();
     const server = Bun.serve({
       port: 0,
       fetch: async (incoming) => {
-        request = {
+        requests.push({
           pathname: new URL(incoming.url).pathname,
           payload: await incoming.json(),
-        };
+        });
+        if (requests.length === 2) {
+          release();
+        }
+        await bothStarted;
         return Response.json({ id: "run_cli" });
       },
     });
 
     try {
-      await writeFile(
-        join(directory, "anpord.eval.ts"),
-        `import { defineEval } from "anpord";
+      const nested = join(directory, "evals");
+      const dependencies = join(directory, "node_modules", "fixture");
+      const definition = `import { defineEval } from "anpord";
 export default defineEval({
-  name: "cli",
+  name: "NAME",
   source: { kind: "empty" },
   prompt: "{{task}}",
   cases: [{ name: "case", variables: { task: "Do nothing" }, verify: "true" }],
   tasks: [{ harness: "codex", model: "test", provider: "daytona" }],
   trials: 1,
-});`
-      );
+});`;
+      await Promise.all([
+        mkdir(nested, { recursive: true }),
+        mkdir(dependencies, { recursive: true }),
+      ]);
+      await Promise.all([
+        writeFile(
+          join(directory, "root.eval.ts"),
+          definition.replace("NAME", "root")
+        ),
+        writeFile(
+          join(nested, "nested.eval.ts"),
+          definition.replace("NAME", "nested")
+        ),
+        writeFile(join(dependencies, "ignored.eval.ts"), definition),
+      ]);
 
       const { code, stdout } = await run(
         ["eval"],
@@ -96,9 +116,18 @@ export default defineEval({
       );
 
       expect(code).toBe(0);
-      expect(JSON.parse(stdout)).toEqual({ id: "run_cli" });
-      expect(request?.pathname).toBe("/v1/evals.start");
-      expect(request?.payload).toMatchObject({ trials: 1 });
+      expect(JSON.parse(stdout)).toEqual([
+        { file: "evals/nested.eval.ts", id: "run_cli" },
+        { file: "root.eval.ts", id: "run_cli" },
+      ]);
+      expect(requests).toHaveLength(2);
+      expect(
+        requests.every(({ pathname }) => pathname === "/v1/evals.start")
+      ).toBe(true);
+      expect(requests.map(({ payload }) => payload)).toEqual([
+        expect.objectContaining({ trials: 1 }),
+        expect.objectContaining({ trials: 1 }),
+      ]);
     } finally {
       server.stop(true);
       await rm(directory, { force: true, recursive: true });
