@@ -31,38 +31,41 @@ export function Snippet({
 
   return (
     <div className={cn("relative", className)}>
-      <Tabs.Root
-        onValueChange={(next) => setValue(String(next))}
-        value={value}
-      >
-        <Tabs.List className="relative flex h-9 items-center gap-1">
-          {commands.map((command) => (
-            <Tabs.Tab
-              className={cn(
-                "h-7 rounded-md px-2 font-mono text-muted-foreground text-xs",
-                /* 120ms: a tab is pressed and read in the same moment, so the
-                   colour has to have arrived by the time the eye does. */
-                "transition-colors duration-[120ms] ease-out",
-                "hover:text-foreground data-[selected]:text-foreground"
-              )}
-              key={command.label}
-              value={command.label}
-            >
-              {command.label}
-            </Tabs.Tab>
-          ))}
+      <Tabs.Root onValueChange={(next) => setValue(String(next))} value={value}>
+        <div className="px-3">
+          <Tabs.List className="relative flex h-10 items-center">
+            {commands.map((command) => (
+              <Tabs.Tab
+                className={cn(
+                  "h-7 rounded-md px-2 font-mono text-muted-foreground text-sm",
+                  /* 120ms: a tab is pressed and read in the same moment, so
+                     the colour has to arrive by the time the eye does. */
+                  "transition-colors duration-[120ms] ease-out",
+                  "hover:text-foreground data-[selected]:text-foreground"
+                )}
+                key={command.label}
+                value={command.label}
+              >
+                {command.label}
+              </Tabs.Tab>
+            ))}
 
-          {/* Slides between tabs rather than cutting, which is the one place
-              movement helps: it says the two are the same control. */}
-          <Tabs.Indicator
-            renderBeforeHydration
-            className="absolute bottom-0 left-0 h-0.5 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] rounded-full bg-foreground transition-[transform,width] duration-[120ms] ease-out" />
-        </Tabs.List>
+            {/* An underline that slides between tabs rather than cutting,
+                which is the one place movement helps: it says the two are the
+                same control. */}
+            <Tabs.Indicator
+              className="absolute bottom-0 left-0 h-0.5 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] bg-foreground transition-[translate,width] duration-[120ms] ease-out"
+              renderBeforeHydration
+            />
+          </Tabs.List>
+        </div>
 
         {commands.map((command) => (
           <Tabs.Panel key={command.label} value={command.label}>
-            <div className="rounded-lg border border-border-faint bg-background">
-              <pre className="overflow-x-auto overscroll-x-contain px-3 py-2.5 font-mono text-muted-foreground text-xs leading-relaxed">
+            <div className="rounded-[9px] border border-border-faint bg-background">
+              {/* The prompt is drawn rather than written, so it cannot end up
+                  on the clipboard. */}
+              <pre className="overflow-x-auto overscroll-x-contain px-3 py-3 font-mono text-muted-foreground text-sm leading-none before:mr-2 before:select-none before:text-muted-foreground/50 before:content-['$']">
                 {command.command}
               </pre>
             </div>
@@ -74,7 +77,7 @@ export function Snippet({
           and a row of identical buttons would only ever have one visible. */}
       {active ? (
         <CopyButton
-          className="absolute top-0.5 right-0.5 size-7"
+          className="absolute top-1.5 right-0.5 z-10 size-7"
           label={`Copy ${active.label} command`}
           value={active.command}
         />
