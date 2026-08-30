@@ -48,6 +48,21 @@ export class HarnessUnavailable extends Schema.TaggedError<HarnessUnavailable>(
 }) {}
 
 /**
+ * The workspace a case named could not be read.
+ *
+ * Distinct from SandboxUnavailable: the sandbox started and did as it was
+ * asked. Reporting a repository nobody can clone as a provider outage sends
+ * the reader to a status page over what is usually a URL, a ref, or an
+ * installation that does not cover the repository.
+ */
+export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>(
+  "SourceUnavailable"
+)("SourceUnavailable", {
+  reason: Schema.String,
+  url: Schema.String,
+}) {}
+
+/**
  * A store operation that did not complete.
  *
  * `message` is overridden because the default renders every one of these as

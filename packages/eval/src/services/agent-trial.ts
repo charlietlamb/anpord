@@ -15,7 +15,11 @@ import {
   Stream,
 } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
-import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
+import type {
+  HarnessUnavailable,
+  SandboxUnavailable,
+  SourceUnavailable,
+} from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import {
   commandsIn,
@@ -74,7 +78,10 @@ export interface AgentTrialResult {
 export interface AgentTrialShape {
   readonly run: (
     request: AgentTrialRequest
-  ) => Effect.Effect<AgentTrialResult, HarnessUnavailable | SandboxUnavailable>;
+  ) => Effect.Effect<
+    AgentTrialResult,
+    HarnessUnavailable | SandboxUnavailable | SourceUnavailable
+  >;
 }
 
 export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<

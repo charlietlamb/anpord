@@ -4,6 +4,7 @@ import type {
   EvalStoreError,
   HarnessUnavailable,
   SandboxUnavailable,
+  SourceUnavailable,
 } from "../domain/errors";
 import { renderPrompt } from "../domain/prompt";
 import type { WorkspaceSource } from "../domain/workspace-source";
@@ -38,7 +39,7 @@ export const runGridCell = (
   input: RunGridCell
 ): Effect.Effect<
   GridCellResult,
-  EvalStoreError | HarnessUnavailable | SandboxUnavailable,
+  EvalStoreError | HarnessUnavailable | SandboxUnavailable | SourceUnavailable,
   ModelPrices
 > =>
   Effect.gen(function* () {

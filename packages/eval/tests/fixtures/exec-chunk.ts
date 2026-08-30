@@ -8,6 +8,12 @@ export const stdout = (data: string): ExecChunk => ({
   stream: "stdout",
 });
 
+export const stderr = (data: string): ExecChunk => ({
+  at: AT,
+  data,
+  stream: "stderr",
+});
+
 export const exit = (exitCode: number): ExecChunk => ({
   at: AT,
   exitCode,

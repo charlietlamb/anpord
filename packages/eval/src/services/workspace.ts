@@ -1,11 +1,16 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import { Effect, type Redacted } from "effect";
-import { runCommand } from "../adapters/sandbox/run-command";
+import {
+  runCommand,
+  runCommandForOutcome,
+} from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
+import { SourceUnavailable } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
+import { cloneFailureReason } from "./clone-failure";
 
 export interface PrepareWorkspace {
   readonly credential: Redacted.Redacted<ResolvedCredential>;
@@ -27,10 +32,26 @@ const clone = (input: PrepareWorkspace, url: string, ref: string | null) => {
       ? ""
       : ` && git -C ${quoted(input.workspace)} fetch --depth 1 origin ${quoted(ref)} && git -C ${quoted(input.workspace)} checkout --detach FETCH_HEAD`;
 
-  return runCommand(
+  return runCommandForOutcome(
     input.sandbox,
     `git clone --depth 1 ${quoted(url)} ${quoted(input.workspace)}${checkout}`,
     { timeoutMs: 300_000 }
+  ).pipe(
+    Effect.flatMap((outcome) =>
+      outcome.exitCode === 0
+        ? Effect.void
+        : Effect.fail(
+            new SourceUnavailable({
+              reason: cloneFailureReason(
+                url,
+                ref,
+                outcome.stderr,
+                outcome.exitCode
+              ),
+              url,
+            })
+          )
+    )
   );
 };
 
@@ -57,7 +78,7 @@ export const prepareWorkspace = (
   input: PrepareWorkspace
 ): Effect.Effect<
   Readonly<Record<string, string>>,
-  HarnessUnavailable | SandboxUnavailable
+  HarnessUnavailable | SandboxUnavailable | SourceUnavailable
 > =>
   Effect.gen(function* () {
     const env = yield* input.driver.prepare({
