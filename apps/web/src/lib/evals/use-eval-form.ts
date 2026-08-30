@@ -8,10 +8,10 @@ import { DEFAULT_HARNESS, DEFAULT_PROVIDER } from "@/lib/evals/variant-options";
 const draftValidator = Schema.standardSchemaV1(EvalDraftSchema);
 
 export const emptyCase = (): EvalDraftCase => ({
-  goal: "",
   name: "",
   setup: null,
   source: { kind: "empty" },
+  variables: { task: "" },
   verify: null,
 });
 
@@ -23,7 +23,7 @@ const emptyDraft = (defaultModel: string | null): EvalDraft => ({
   cases: [emptyCase()],
   connections: {},
   name: "",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   providers: [DEFAULT_PROVIDER],
   trials: 3,
 });

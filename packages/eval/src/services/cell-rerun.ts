@@ -115,11 +115,11 @@ export const make = Effect.gen(function* () {
     return yield* grid.start({
       cases: [
         {
-          goal: subject.prompt,
           identity: subject.identity,
           name: subject.name,
           setup: subject.setupCommand,
           source: subject.source,
+          variables: {},
           validator:
             subject.validatorName == null || subject.validatorSource == null
               ? null

@@ -115,7 +115,7 @@ export const runTrial = (input: RunOneTrial) =>
             yield* input.onProgress(input.ordinal, journal);
           }),
       },
-      prompt: renderPrompt(input.prompt, { goal: input.subject.goal }),
+      prompt: renderPrompt(input.prompt, input.subject.variables),
       provider: input.task.provider,
       sandboxCredentials:
         input.task.credentials.sandbox === undefined

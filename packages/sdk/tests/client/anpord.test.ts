@@ -119,12 +119,12 @@ describe("validation", () => {
       anpord.evals.start({
         cases: [
           {
-            goal: "Write hello.txt",
+            variables: { task: "Write hello.txt" },
             name: "writes a file",
             verify: "test -f hello.txt",
           },
         ],
-        prompt: "{{goal}}",
+        prompt: "{{task}}",
         tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "local" }],
         trials: 1,
       } as never)
@@ -140,12 +140,12 @@ describe("validation", () => {
       anpord.evals.start({
         cases: [
           {
-            goal: "Write hello.txt",
+            variables: { task: "Write hello.txt" },
             name: "writes a file",
             verify: "test -f hello.txt",
           },
         ],
-        prompt: "{{goal}}",
+        prompt: "{{task}}",
         tasks: [{ harness: "codex", model: "", provider: "daytona" }],
         trials: 1,
       })

@@ -32,7 +32,7 @@ Use a dedicated key with `evals:read` and `evals:write`.
 
 ## Keep comparisons stable
 
-When testing a prompt change, keep the goal, source, setup, verifier, harness, harness version, model, and provider unchanged. Those fields form the cell identity. Pin fixture repositories to a commit.
+When testing a prompt change, keep the task, source, setup, verifier, harness, harness version, model, and provider unchanged. Those fields form the cell identity. Pin fixture repositories to a commit.
 
 Use at least three trials for a gating check. One trial measures an outcome, not repeatability.
 

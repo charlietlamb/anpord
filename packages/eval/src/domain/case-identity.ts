@@ -3,14 +3,20 @@ import type { EvalValidator } from "@anpord/schema/domain/evals";
 import type { WorkspaceSource } from "./workspace-source";
 
 export interface CaseDefinition {
-  readonly goal: string;
   readonly name: string;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
   readonly validator?: EvalValidator | null;
+  readonly variables: Readonly<Record<string, string>>;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
+
+const variablesOf = (variables: Readonly<Record<string, string>>) =>
+  Object.keys(variables)
+    .sort()
+    .map((key) => `${key}=${variables[key]}`)
+    .join("\u0000");
 
 const sourceOf = (source: WorkspaceSource) => {
   if (source.kind === "empty") {
@@ -34,7 +40,7 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
   createHash("sha256")
     .update(
       [
-        input.goal,
+        variablesOf(input.variables),
         input.setupCommand ?? "",
         input.validator?.source ?? "",
         input.verifyCommand ?? "",

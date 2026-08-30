@@ -98,7 +98,9 @@ export function EvalForm({
                             )}
                           </form.AppField>
 
-                          <form.AppField name={`cases[${index}].goal`}>
+                          <form.AppField
+                            name={`cases[${index}].variables.task`}
+                          >
                             {(field) => (
                               <field.TextareaField
                                 description="What the agent is asked to do, in the words a person would use."
@@ -109,7 +111,7 @@ export function EvalForm({
                             )}
                           </form.AppField>
 
-                          {/* Workspace and setup sit between the goal and the
+                          {/* Workspace and setup sit between the task and the
                               verifier because that is the order the run takes:
                               the code arrives, it is prepared, the agent works,
                               and the verifier decides. */}

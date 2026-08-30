@@ -27,10 +27,10 @@ export type Validator = (
 type DeclaredSource = EvalSource | string;
 
 interface EvalCaseBase {
-  readonly goal: string;
   readonly name: string;
   readonly setup?: string | null;
   readonly source?: DeclaredSource;
+  readonly variables?: Readonly<Record<string, string>>;
 }
 
 export type EvalCaseDefinition = EvalCaseBase &

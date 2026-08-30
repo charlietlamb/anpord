@@ -8,7 +8,7 @@ An eval run is a grid. Cases are rows, variants are columns, and each cell conta
 
 | Part | Meaning |
 | --- | --- |
-| Case | The goal, starting source, setup, and verifier |
+| Case | The task, starting source, setup, and verifier |
 | Variant | The harness, model, and sandbox provider |
 | Cell | One case run with one variant |
 | Trial | One isolated attempt inside a cell |
@@ -17,12 +17,12 @@ Two cases, three variants, and three trials produce six cells and eighteen sandb
 
 ## Cases
 
-The goal tells the agent what to do. The verifier decides whether the result passed.
+The task tells the agent what to do. The verifier decides whether the result passed.
 
 ```ts
 {
   name: "health route",
-  goal: "Add a /health route that returns 200",
+  variables: { task: "Add a /health route that returns 200" },
   source: { kind: "repo", url: "https://github.com/acme/api", ref: "8f31c4a" },
   setup: "bun install",
   verify: "bun test test/health.test.ts",
@@ -45,7 +45,7 @@ Anpord records the installed harness version when the run starts. The harness, h
 
 Repeated trials show how often a cell passes and whether its outcome and command count stay consistent. Each cell reports pass, fail, and void counts, pass rate, command spread, and determinism.
 
-The first scored result for a cell becomes its [baseline](/evals/baselines). Changing the shared prompt or case name keeps the same history. Changing the goal, source, setup, verifier, or variant starts a new one.
+The first scored result for a cell becomes its [baseline](/evals/baselines). Changing the shared prompt or case name keeps the same history. Changing the task, source, setup, verifier, or variant starts a new one.
 
 ## Runs
 

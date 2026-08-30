@@ -32,17 +32,17 @@ const run = await anpord.evals.startAndWait({
   cases: [
     {
       name: "<short name for the task>",
-      goal: "<what the agent must do, one sentence>",
+      variables: { task: "<what the agent must do, one sentence>" },
       source: {
         kind: "repo",
         url: "<this repository's clone url>",
         ref: "<a commit>",
       },
       setup: "<command that installs dependencies>",
-      verify: "<command that exits 0 only when the goal is met>",
+      verify: "<command that exits 0 only when the task is met>",
     },
   ],
-  prompt: "Read the repository. Make the smallest correct change. {{goal}}",
+  prompt: "Read the repository. Make the smallest correct change. {{task}}",
   tasks: [
     { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },
     { harness: "claude", model: "opus", provider: "daytona" },

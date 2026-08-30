@@ -59,7 +59,7 @@ const startOne = () =>
       return yield* grid.start({
         cases: [
           {
-            goal: "the tests already pass, change nothing",
+            variables: { task: "the tests already pass, change nothing" },
             name: "stable-case",
             setup: null,
             source: fixedSource,
@@ -67,7 +67,7 @@ const startOne = () =>
           },
         ],
         organizationId,
-        prompt: "{{goal}}",
+        prompt: "{{task}}",
         startedBy: null,
         tasks: [
           {

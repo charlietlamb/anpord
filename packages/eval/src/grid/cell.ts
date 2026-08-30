@@ -14,13 +14,13 @@ import type { RunRepositoryShape } from "../repositories/run-repository";
 import { runTrial, type TrialInputs } from "./trial";
 
 export interface GridCase {
-  readonly goal: string;
   readonly identity?: string;
   readonly name: string;
   readonly setup: string | null;
   readonly source: WorkspaceSource;
 
   readonly validator?: EvalValidator | null;
+  readonly variables: Readonly<Record<string, string>>;
   readonly verify: string | null;
 }
 
@@ -68,7 +68,7 @@ export const runGridCell = (
           : harnessCredential.revision,
       harnessVersion: input.task.harnessVersion,
       model: input.task.model,
-      prompt: renderPrompt(input.prompt, { goal: input.subject.goal }),
+      prompt: renderPrompt(input.prompt, input.subject.variables),
       provider: input.task.provider,
       runInternalId: input.runInternalId,
       sandboxCredentialConnectionId: sandboxConnectionId,

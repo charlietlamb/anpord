@@ -15,7 +15,7 @@ const config = (
   ({
     cases: [
       {
-        goal: "do the thing",
+        variables: { task: "do the thing" },
         name: "a case",
         setup: null,
         source: { kind: "empty" },
@@ -27,7 +27,7 @@ const config = (
       codex: "credential-codex",
       daytona: "credential-daytona",
     },
-    prompt: "{{goal}}",
+    prompt: "{{task}}",
     trials: 3,
   }) as typeof PlaygroundConfigView.Type;
 
@@ -39,13 +39,13 @@ describe("reading a saved eval back as a draft", () => {
     );
 
     expect(draft.name).toBe("My eval");
-    expect(draft.prompt).toBe("{{goal}}");
+    expect(draft.prompt).toBe("{{task}}");
     expect(draft.trials).toBe(3);
     expect(draft.connections).toEqual({
       codex: "credential-codex",
       daytona: "credential-daytona",
     });
-    expect(draft.cases[0]?.goal).toBe("do the thing");
+    expect(draft.cases[0]?.variables.task).toBe("do the thing");
   });
 
   it("reads each agent and provider once", () => {

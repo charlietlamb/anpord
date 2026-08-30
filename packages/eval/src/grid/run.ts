@@ -93,17 +93,17 @@ export const GridRunLive = Layer.scoped(
       Effect.forEach(
         input.cases,
         (subject) => {
-          const prompt = renderPrompt(input.prompt, { goal: subject.goal });
+          const prompt = renderPrompt(input.prompt, subject.variables);
 
           return tasks.upsertByIdentity({
             identity:
               subject.identity ??
               caseIdentityOf({
-                goal: subject.goal,
                 name: subject.name,
                 setupCommand: subject.setup,
                 source: subject.source,
                 validator: subject.validator,
+                variables: subject.variables,
                 verifyCommand: subject.verify,
                 workspace: WORKSPACE,
               }),
@@ -220,7 +220,7 @@ export const GridRunLive = Layer.scoped(
               internalId: null,
               live: new Map(),
               setup: Option.some({
-                prompt: renderPrompt(input.prompt, { goal: subject.goal }),
+                prompt: renderPrompt(input.prompt, subject.variables),
                 repoRef:
                   subject.source.kind === "repo" ? subject.source.ref : null,
                 repoUrl:

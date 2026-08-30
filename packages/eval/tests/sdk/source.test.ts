@@ -12,14 +12,14 @@ import {
 const definition = defineEval({
   cases: [],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   scorers: [],
   source: repo("acme/widgets@a1b2c3d"),
   variants: [],
 });
 
 const subject = (source?: ReturnType<typeof repo>) => ({
-  goal: "do the thing",
+  variables: { task: "do the thing" },
   name: "a case",
   ...(source === undefined ? {} : { source }),
 });

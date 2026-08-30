@@ -16,10 +16,13 @@ const SourceSchema = Schema.Union(
 );
 
 export const PlaygroundCase = Schema.Struct({
-  goal: Schema.String,
   name: Schema.String,
   setup: Schema.NullOr(Schema.String),
   source: SourceSchema,
+  variables: Schema.optionalWith(
+    Schema.Record({ key: Schema.String, value: Schema.String }),
+    { default: () => ({}) }
+  ),
   verify: Schema.NullOr(Schema.String),
 });
 
@@ -46,7 +49,7 @@ export const emptyPlaygroundConfig: PlaygroundConfig = {
   cases: [],
   columns: [],
   connections: {},
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   trials: 3,
 };
 

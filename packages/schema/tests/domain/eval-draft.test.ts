@@ -25,7 +25,7 @@ const draft = {
   agents: [{ harness: "codex" as const, model: "gpt-5-codex" }],
   cases: [
     {
-      goal: "Put the GitHub logo in the footer.",
+      variables: { task: "Put the GitHub logo in the footer." },
       name: "github-logo-in-footer",
       setup: null,
       source: { kind: "empty" as const },
@@ -34,7 +34,7 @@ const draft = {
   ],
   connections: {},
   name: "brand logos",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   providers: ["daytona" as const],
   trials: 3,
 };
@@ -56,10 +56,10 @@ describe("the eval draft", () => {
   it("points at the row that is wrong", () => {
     const paths = validate({
       ...draft,
-      cases: [{ ...draft.cases[0], goal: "" }],
+      cases: [{ ...draft.cases[0], variables: { task: "" } }],
     }).map((issue) => issue.path);
 
-    expect(paths).toContain("cases.0.goal");
+    expect(paths).toContain("cases.0.variables");
   });
 
   it("refuses a trial count outside the range that can run", () => {

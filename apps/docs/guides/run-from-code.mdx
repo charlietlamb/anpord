@@ -16,7 +16,7 @@ if (!model) throw new Error("Set EVAL_MODEL");
 const cases: StartEvalRequest["cases"] = [
   {
     name: "repairs add",
-    goal: "Fix the failing add function without changing its public API",
+    variables: { task: "Fix the failing add function without changing its public API" },
     source: {
       kind: "repo",
       url: "https://github.com/acme/agent-fixtures",
@@ -29,7 +29,7 @@ const cases: StartEvalRequest["cases"] = [
 
 const run = await anpord.evals.startAndWait({
   cases,
-  prompt: "Read the repository. Make the smallest correct change. {{goal}}",
+  prompt: "Read the repository. Make the smallest correct change. {{task}}",
   tasks: [{ harness: "codex", model, provider: "daytona" }],
   trials: 3,
   onProgress: (current) => console.log(current.status),

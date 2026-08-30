@@ -8,7 +8,7 @@ Anpord runs coding tasks across harnesses, models, and sandboxes, then keeps the
 ```ts
 const { id } = await anpord.evals.start({
   cases,
-  prompt: "Work in the current repository. {{goal}}",
+  prompt: "Work in the current repository. {{task}}",
   tasks: [{ harness: "codex", model, provider: "daytona" }],
   trials: 3,
 });

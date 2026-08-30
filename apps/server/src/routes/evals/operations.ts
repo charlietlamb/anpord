@@ -98,6 +98,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
         setup: evalCase.setup ?? null,
         source: evalCase.source ?? { kind: "empty" as const },
         validator: evalCase.validator ?? null,
+        variables: evalCase.variables ?? {},
       })),
       organizationId: actor.organizationId,
       prompt: payload.prompt,

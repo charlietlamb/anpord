@@ -28,9 +28,9 @@ export const hasGreeting: Validator = async ({ readText }) => ({
       `import { defineEval } from "anpord";
 import { hasGreeting } from "./validator";
 export default defineEval({
-  cases: [{ goal: "Write a greeting", name: "greeting", validate: hasGreeting }],
+  cases: [{ variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
   name: "direct-validator",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5", provider: "daytona" }],
   trials: 1,
 });`
@@ -63,11 +63,11 @@ export default defineEval({
       `import { defineEval, empty, repo } from "anpord";
 export default defineEval({
   cases: [
-    { goal: "add a test", name: "inherits", verify: "true" },
-    { goal: "from scratch", name: "overrides", source: empty, verify: "true" },
+    { variables: { task: "add a test" }, name: "inherits", verify: "true" },
+    { variables: { task: "from scratch" }, name: "overrides", source: empty, verify: "true" },
   ],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   source: repo("acme/widgets@a1b2c3d"),
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 1,
@@ -90,9 +90,9 @@ export default defineEval({
       join(workspace, "eval.ts"),
       `import { defineEval, repo } from "anpord";
 export default defineEval({
-  cases: [{ goal: "g", name: "c", verify: "true" }],
+  cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   source: repo("acme"),
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 1,
@@ -109,11 +109,11 @@ export default defineEval({
       `import { defineEval } from "anpord";
 export default defineEval({
   cases: [
-    { goal: "add a test", name: "inherits", verify: "true" },
-    { goal: "fix it", name: "own", source: "acme/widgets", verify: "true" },
+    { variables: { task: "add a test" }, name: "inherits", verify: "true" },
+    { variables: { task: "fix it" }, name: "own", source: "acme/widgets", verify: "true" },
   ],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   source: "charlietlamb/strudel@main",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 1,
@@ -140,9 +140,9 @@ export default defineEval({
       join(workspace, "eval.ts"),
       `import { defineEval } from "anpord";
 export default defineEval({
-  cases: [{ goal: "g", name: "c", verify: "true" }],
+  cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   source: "nonsense",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 1,
@@ -158,9 +158,9 @@ export default defineEval({
       join(workspace, "eval.ts"),
       `import { defineEval } from "anpord";
 export default defineEval({
-  cases: [{ goal: "add a test", name: "c", verify: "true" }],
+  cases: [{ variables: { task: "add a test" }, name: "c", verify: "true" }],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 1,
 });`
@@ -177,9 +177,9 @@ export default defineEval({
       join(workspace, "eval.ts"),
       `import { defineEval } from "anpord";
 export default defineEval({
-  cases: [{ goal: "g", name: "c", verify: "true" }],
+  cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   source: "acme/widgets",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 1,

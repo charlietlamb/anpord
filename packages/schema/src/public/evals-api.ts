@@ -10,6 +10,7 @@ import {
   EvalRunPage,
   EvalSource,
   EvalValidator,
+  EvalVariables,
   ModelCatalogue,
   RerunCellRequest,
   StartedEval,
@@ -47,11 +48,11 @@ export const ListEvalsRequest = Schema.Struct({
 });
 
 const PublicEvalCase = Schema.Struct({
-  goal: Schema.String,
   name: Schema.String,
   setup: Schema.optional(Schema.NullOr(Schema.String)),
   source: Schema.optional(EvalSource),
   validator: Schema.optional(Schema.NullOr(EvalValidator)),
+  variables: Schema.optional(EvalVariables),
   verify: Schema.NullOr(Schema.String),
 })
   .pipe(

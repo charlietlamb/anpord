@@ -8,7 +8,7 @@ A case describes one coding task:
 ```ts
 {
   name: "health route",
-  goal: "Add a /health route that returns 200",
+  variables: { task: "Add a /health route that returns 200" },
   source: {
     kind: "repo",
     url: "https://github.com/acme/api",
@@ -22,13 +22,13 @@ A case describes one coding task:
 | Field | Purpose |
 | --- | --- |
 | `name` | Labels the row in a run |
-| `goal` | Replaces `{{goal}}` in the shared prompt |
+| `task` | Replaces `{{task}}` in the shared prompt |
 | `source` | Supplies the starting workspace |
 | `setup` | Runs before the agent starts |
 | `verify` | Runs a shell check after the agent finishes |
 | `validate` | References a TypeScript validator in file-based evals |
 
-Keep `name` short. Write `goal` as the task, not the full agent instruction. Put shared instructions in the run prompt.
+Keep `name` short. Write `task` as the task, not the full agent instruction. Put shared instructions in the run prompt.
 
 ## Source
 
@@ -89,8 +89,8 @@ import { hasHealthRoute } from "./validator";
 
 export default defineEval({
   name: "health-route",
-  prompt: "{{goal}}",
-  cases: [{ name: "health route", goal: "Add a /health route", validate: hasHealthRoute }],
+  prompt: "{{task}}",
+  cases: [{ name: "health route", variables: { task: "Add a /health route" }, validate: hasHealthRoute }],
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 3,
 });

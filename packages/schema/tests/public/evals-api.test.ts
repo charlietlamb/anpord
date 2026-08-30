@@ -3,8 +3,8 @@ import { Schema } from "effect";
 import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
 const request = {
-  cases: [{ goal: "Fix it", name: "case", verify: "true" }],
-  prompt: "{{goal}}",
+  cases: [{ variables: { task: "Fix it" }, name: "case", verify: "true" }],
+  prompt: "{{task}}",
   tasks: [
     { harness: "codex" as const, model: "gpt-5.6-sol", provider: "upstash" },
   ],
@@ -45,7 +45,7 @@ describe("TypeScript validators", () => {
       ...request,
       cases: [
         {
-          goal: "Fix it",
+          variables: { task: "Fix it" },
           name: "case",
           validator: { name: "validateFix", source: "bundled JavaScript" },
           verify: null,
@@ -64,7 +64,7 @@ describe("TypeScript validators", () => {
         ...request,
         cases: [
           {
-            goal: "Fix it",
+            variables: { task: "Fix it" },
             name: "case",
             validator: { name: "validateFix", source: "bundled JavaScript" },
             verify: "true",

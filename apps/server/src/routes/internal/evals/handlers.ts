@@ -55,11 +55,11 @@ export const EvalsHandlers = HttpApiBuilder.group(
           return {
             id: yield* grid.start({
               cases: payload.cases.map((subject) => ({
-                goal: subject.goal,
                 name: subject.name,
                 setup: subject.setup,
                 source: subject.source,
                 validator: subject.validator,
+                variables: subject.variables,
                 verify: subject.verify,
               })),
               organizationId: actor.organizationId,

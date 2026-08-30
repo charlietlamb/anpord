@@ -205,11 +205,11 @@ export const compileEvalEffect = (path: string) =>
             : null;
 
           return {
-            goal: subject.goal,
             name: subject.name,
             setup: subject.setup ?? null,
             ...sourceFor(definition, subject, fallback),
             validator,
+            variables: subject.variables ?? {},
             verify: subject.verify ?? null,
           };
         }),

@@ -83,11 +83,21 @@ export const EvalValidator = Schema.Struct({
 });
 export type EvalValidator = typeof EvalValidator.Type;
 
+export const EvalVariables = Schema.Record({
+  key: Schema.String,
+  value: Schema.String,
+}).annotations({
+  description:
+    "Values for the placeholders the run prompt names, such as {{task}}.",
+  identifier: "EvalVariables",
+});
+export type EvalVariables = typeof EvalVariables.Type;
+
 export const EvalCase = Schema.Struct({
-  goal: Schema.String,
   name: Schema.String,
   setup: Schema.NullOr(Schema.String),
   source: EvalSource,
+  variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
 
   validator: Schema.optionalWith(Schema.NullOr(EvalValidator), {
     default: () => null,
@@ -381,10 +391,10 @@ export const EvalCellHistoryEntry = Schema.Struct({
 export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
 
 export const PlaygroundCaseView = Schema.Struct({
-  goal: Schema.String,
   name: Schema.String,
   setup: Schema.NullOr(Schema.String),
   source: EvalSource,
+  variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
 
   verify: Schema.NullOr(Schema.String),
 });
@@ -406,16 +416,18 @@ export const PlaygroundConfigView = Schema.Struct({
 });
 
 export const EvalDraftCase = Schema.Struct({
-  goal: Schema.String.pipe(
-    Schema.minLength(1),
-    Schema.annotations({ message: () => "Say what the agent should do." })
-  ),
   name: Schema.String.pipe(
     Schema.minLength(1),
     Schema.annotations({ message: () => "Name this case." })
   ),
   setup: Schema.NullOr(Schema.String),
   source: EvalSource,
+  variables: EvalVariables.pipe(
+    Schema.filter(
+      (values) => Object.values(values).some((value) => value.trim() !== ""),
+      { message: () => "Say what the agent should do." }
+    )
+  ),
   verify: Schema.NullOr(Schema.String),
 });
 export type EvalDraftCase = typeof EvalDraftCase.Type;
@@ -474,10 +486,10 @@ export const draftOfConfig = (
     ).values(),
   ],
   cases: config.cases.map((subject) => ({
-    goal: subject.goal,
     name: subject.name,
     setup: subject.setup,
     source: subject.source,
+    variables: subject.variables,
     verify: subject.verify,
   })),
   connections: config.connections,

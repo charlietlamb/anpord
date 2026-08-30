@@ -40,10 +40,10 @@ curl https://api.anpord.com/v1/evals.start \
   -d '{
     "cases": [{
       "name": "writes the requested file",
-      "goal": "Create hello.txt containing exactly hello",
+      "task": "Create hello.txt containing exactly hello",
       "verify": "test \"$(cat hello.txt)\" = hello"
     }],
-    "prompt": "{{goal}}",
+    "prompt": "{{task}}",
     "tasks": [{
       "harness": "codex",
       "model": "gpt-5.6-sol",

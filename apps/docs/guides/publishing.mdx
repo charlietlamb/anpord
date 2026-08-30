@@ -10,7 +10,7 @@ Saving content creates a version. Promoting it changes what a channel returns.
 ```ts
 const candidate = await anpord.prompts.update({
   id: "coding-agent",
-  content: "Read the repository first. {{goal}}",
+  content: "Read the repository first. {{task}}",
   config: { temperature: 0 },
   message: "Inspect before editing",
 });

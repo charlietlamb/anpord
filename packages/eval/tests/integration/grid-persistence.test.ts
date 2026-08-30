@@ -98,7 +98,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
           return yield* grid.start({
             cases: [
               {
-                goal: "the tests already pass, change nothing",
+                variables: { task: "the tests already pass, change nothing" },
                 name: "already-passing",
                 setup: null,
                 source: fixedSource,
@@ -106,7 +106,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
               },
             ],
             organizationId,
-            prompt: "{{goal}}",
+            prompt: "{{task}}",
             startedBy: null,
             /* A case that already passes, so the agent has nothing to do and
                the cell is deterministic. The test measures the machinery

@@ -33,7 +33,6 @@ export const scoresOf = (result: ScoreResult): readonly Score[] =>
   "name" in result ? [result] : result;
 
 export interface Case {
-  readonly goal: string;
   readonly metadata?: Readonly<Record<string, string>>;
   readonly name: string;
   readonly setup?: string;
@@ -41,6 +40,7 @@ export interface Case {
    * every case in a suite tends to be a different task against one
    * repository, not one task against many. */
   readonly source?: SourceSpec;
+  readonly variables?: Readonly<Record<string, string>>;
 }
 
 export interface Variant {
@@ -56,8 +56,6 @@ export interface Variant {
 export interface EvalDefinition {
   readonly cases: readonly Case[] | (() => Promise<readonly Case[]>);
   readonly name: string;
-  /** `{{goal}}` is replaced per case. Deliberately not part of a case's
-   * identity, so editing it compares against the same baseline. */
   readonly prompt: string;
   readonly scorers: readonly Scorer[];
   /** What every case works on unless it names its own. */

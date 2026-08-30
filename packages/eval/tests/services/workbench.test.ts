@@ -110,7 +110,7 @@ describe.skipIf(skipWithoutDatabase())("Workbenches", () => {
           config: {
             cases: [
               {
-                goal: "fix the failing test",
+                variables: { task: "fix the failing test" },
                 name: "a-case",
                 setup: null,
                 source: { kind: "empty" },
@@ -121,7 +121,7 @@ describe.skipIf(skipWithoutDatabase())("Workbenches", () => {
               { harness: "codex", model: "gpt-5-codex", provider: "daytona" },
             ],
             connections: {},
-            prompt: "{{goal}}",
+            prompt: "{{task}}",
             trials: 2,
           },
           id: created.id,
@@ -141,7 +141,9 @@ describe.skipIf(skipWithoutDatabase())("Workbenches", () => {
 
     expect(saved.value.name).toBe("second, edited");
     expect(saved.value.config.cases).toHaveLength(1);
-    expect(saved.value.config.cases[0]?.goal).toBe("fix the failing test");
+    expect(saved.value.config.cases[0]?.variables.task).toBe(
+      "fix the failing test"
+    );
     expect(saved.value.config.trials).toBe(2);
   });
 

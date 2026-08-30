@@ -5,10 +5,10 @@ import {
 } from "../../src/domain/case-identity";
 
 const base: CaseDefinition = {
-  goal: "add the GitHub logo to the footer",
   name: "brand-logos",
   setupCommand: null,
   source: { files: { "a.txt": "one" }, kind: "files" },
+  variables: { task: "add the GitHub logo to the footer" },
   verifyCommand: "test -f public/logos/github-light.svg",
   workspace: "/tmp/anpord-task",
 };
@@ -33,9 +33,9 @@ describe("case identity", () => {
   });
 
   it("changes when the goal changes", () => {
-    expect(caseIdentityOf({ ...base, goal: "something else" })).not.toBe(
-      caseIdentityOf(base)
-    );
+    expect(
+      caseIdentityOf({ ...base, variables: { task: "something else" } })
+    ).not.toBe(caseIdentityOf(base));
   });
 
   /** Editing a verifier means measuring a different thing, so the old

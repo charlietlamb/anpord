@@ -1543,14 +1543,10 @@
       "StartEvalCase": {
         "type": "object",
         "required": [
-          "goal",
           "name",
           "verify"
         ],
         "properties": {
-          "goal": {
-            "type": "string"
-          },
           "name": {
             "type": "string"
           },
@@ -1567,6 +1563,19 @@
           "source": {
             "$ref": "#/components/schemas/EvalSource"
           },
+          "validator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalValidator"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "variables": {
+            "$ref": "#/components/schemas/EvalVariables"
+          },
           "verify": {
             "anyOf": [
               {
@@ -1578,8 +1587,7 @@
             ]
           }
         },
-        "additionalProperties": false,
-        "description": "A task, workspace source, setup command, and verifier."
+        "additionalProperties": false
       },
       "EvalSource": {
         "anyOf": [
@@ -1657,6 +1665,40 @@
           }
         ],
         "description": "The workspace available to the harness before setup runs."
+      },
+      "EvalValidator": {
+        "type": "object",
+        "required": [
+          "name",
+          "source"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "a string at most 100 character(s) long",
+            "title": "maxLength(100)",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "source": {
+            "type": "string",
+            "description": "a string at most 1000000 character(s) long",
+            "title": "maxLength(1000000)",
+            "minLength": 1,
+            "maxLength": 1000000
+          }
+        },
+        "additionalProperties": false,
+        "description": "A bundled TypeScript validator and its exported function name."
+      },
+      "EvalVariables": {
+        "type": "object",
+        "required": [],
+        "properties": {},
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Values for the placeholders the run prompt names, such as {{task}}."
       },
       "StartEvalTask": {
         "type": "object",
@@ -1989,6 +2031,7 @@
           "repoRef",
           "repoUrl",
           "setupCommand",
+          "validatorName",
           "verifyCommand",
           "workspace"
         ],
@@ -2017,6 +2060,16 @@
             ]
           },
           "setupCommand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "validatorName": {
             "anyOf": [
               {
                 "type": "string"
