@@ -102,6 +102,14 @@ export class UnreadableHarness extends Data.TaggedError("UnreadableHarness")<{
   readonly spec: string;
 }> {}
 
+export class UnreadableSource extends Data.TaggedError("UnreadableSource")<{
+  readonly spec: string;
+}> {
+  override get message() {
+    return `Could not read "${this.spec}" as a repository. Write it as owner/repo, owner/repo@ref, or a clone url.`;
+  }
+}
+
 export class ModelsUnreadable extends Data.TaggedError("ModelsUnreadable")<{
   readonly cause: unknown;
   readonly source: string;

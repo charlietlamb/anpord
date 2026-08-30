@@ -2,7 +2,7 @@ import type { Effect } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { SandboxUnavailable } from "../domain/errors";
 import type { HarnessEvent } from "../domain/harness-event";
-import type { WorkspaceSource } from "../domain/workspace-source";
+import { empty, type SourceSpec } from "./source";
 
 export interface CommandResult {
   readonly exitCode: number;
@@ -37,7 +37,10 @@ export interface Case {
   readonly metadata?: Readonly<Record<string, string>>;
   readonly name: string;
   readonly setup?: string;
-  readonly source: WorkspaceSource;
+  /** Omitted to use the definition's own source, which is the usual shape:
+   * every case in a suite tends to be a different task against one
+   * repository, not one task against many. */
+  readonly source?: SourceSpec;
 }
 
 export interface Variant {
@@ -57,9 +60,15 @@ export interface EvalDefinition {
    * identity, so editing it compares against the same baseline. */
   readonly prompt: string;
   readonly scorers: readonly Scorer[];
+  /** What every case works on unless it names its own. */
+  readonly source?: SourceSpec;
   readonly trials?: number;
   readonly variants: readonly Variant[];
 }
+
+/** What a case works on: its own source, the suite's, or nothing. */
+export const sourceOf = (definition: EvalDefinition, subject: Case) =>
+  subject.source ?? definition.source ?? empty;
 
 /** Returns the definition rather than running it, so a file that declares one
  * can be imported without executing anything. */
