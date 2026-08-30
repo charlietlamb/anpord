@@ -13,6 +13,7 @@ import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute("/_authed/evals/$runId/cells/$cellKey/")({
   component: CellScreen,
+  ssr: false,
   loader: ({ context, params }) =>
     context.queryClient.prefetchQuery(evalQueries.history(params.cellKey)),
 });

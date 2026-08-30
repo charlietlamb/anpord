@@ -27,6 +27,8 @@ const TABS: readonly { readonly label: string; readonly value: Tab }[] = [
 export const Route = createFileRoute("/_authed/evals/new")({
   component: NewEvalScreen,
 
+  ssr: false,
+
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(evalQueries.models(DEFAULT_HARNESS)),
   staticData: { title: "New eval" },

@@ -17,6 +17,8 @@ import { DEFAULT_HARNESS } from "@/lib/evals/variant-options";
 export const Route = createFileRoute("/_authed/evals/$playgroundId/edit")({
   component: EditEvalScreen,
 
+  ssr: false,
+
   loader: ({ context, params }) =>
     Promise.all([
       context.queryClient.ensureQueryData(evalQueries.models(DEFAULT_HARNESS)),
