@@ -45,6 +45,7 @@ const bundle = (contents: string, entry: string) =>
         format: "esm",
         metafile: true,
         platform: "node",
+        resolveExtensions: [".ts", ".mjs", ".js", ".cjs", ".json"],
         plugins: [authoringModule],
         stdin: {
           contents,
