@@ -47,6 +47,15 @@ describe("case identity", () => {
     ).not.toBe(caseIdentityOf(base));
   });
 
+  it("changes when the validator changes", () => {
+    expect(
+      caseIdentityOf({
+        ...base,
+        validator: { name: "validate", source: "new source" },
+      })
+    ).not.toBe(caseIdentityOf(base));
+  });
+
   it("changes when the source changes", () => {
     expect(
       caseIdentityOf({

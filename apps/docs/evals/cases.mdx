@@ -25,7 +25,8 @@ A case describes one coding task:
 | `goal` | Replaces `{{goal}}` in the shared prompt |
 | `source` | Supplies the starting workspace |
 | `setup` | Runs before the agent starts |
-| `verify` | Runs after the agent finishes |
+| `verify` | Runs a shell check after the agent finishes |
+| `validate` | References a TypeScript validator in file-based evals |
 
 Keep `name` short. Write `goal` as the task, not the full agent instruction. Put shared instructions in the run prompt.
 
@@ -66,3 +67,33 @@ source: {
 `verify` runs after the harness finishes. Exit code `0` passes. A nonzero exit fails when the command produced usable evidence. A verifier that cannot execute, or a test runner that reports no tests, produces a void trial. Use `set -o pipefail` in shell pipelines.
 
 Set `verify: null` to record the trajectory without scoring the trial. Void trials do not affect pass rate or create a baseline.
+
+### TypeScript validators
+
+For checks that are clearer in code, export a typed function:
+
+```ts validator.ts
+import type { Validator } from "anpord";
+
+export const hasHealthRoute: Validator = async ({ readText }) => ({
+  message: "the health route exists",
+  passed: (await readText("src/routes.ts")).includes("/health"),
+});
+```
+
+Import and reference it directly in the case. It does not need another wrapper:
+
+```ts eval.ts
+import { defineEval } from "anpord";
+import { hasHealthRoute } from "./validator";
+
+export default defineEval({
+  name: "health-route",
+  prompt: "{{goal}}",
+  cases: [{ name: "health route", goal: "Add a /health route", validate: hasHealthRoute }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 3,
+});
+```
+
+Run it with `anpord eval ./eval.ts`. Anpord bundles the validator and its imports, runs it after the agent, and shows the function name with the result. Use either `validate` or `verify` on a case, not both.

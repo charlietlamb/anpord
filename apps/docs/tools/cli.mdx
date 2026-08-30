@@ -1,9 +1,9 @@
 ---
 title: "CLI"
-description: "Read and release prompts from a terminal"
+description: "Run eval files and manage prompts from a terminal"
 ---
 
-The CLI reads prompts, adds versions, moves channels, and generates variable types. Use the dashboard, SDK, or API to create prompts and run evals.
+The CLI runs TypeScript eval files, reads prompts, adds versions, moves channels, and generates variable types.
 
 ## Install
 
@@ -26,6 +26,7 @@ Set `ANPORD_API_KEY` before running a command.
 
 | Command | Purpose |
 | --- | --- |
+| `anpord eval <file>` | Compile and start a TypeScript eval file |
 | `anpord list [--json]` | List up to 100 prompts |
 | `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
 | `anpord versions <id>` | Print version history as JSON |
@@ -40,6 +41,12 @@ Prompt content goes to stdout:
 anpord get support-reply > prompt.txt
 anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
 anpord promote support-reply --to production --at 7
+```
+
+Start a file-based eval with direct TypeScript validators:
+
+```bash
+anpord eval ./eval.ts
 ```
 
 `push` does not promote or accept config. Use the SDK or API for prompts with versioned config.

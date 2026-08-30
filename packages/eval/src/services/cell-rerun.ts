@@ -120,6 +120,13 @@ export const make = Effect.gen(function* () {
           name: subject.name,
           setup: subject.setupCommand,
           source: subject.source,
+          validator:
+            subject.validatorName == null || subject.validatorSource == null
+              ? null
+              : {
+                  name: subject.validatorName,
+                  source: subject.validatorSource,
+                },
           verify: subject.verifyCommand,
         },
       ],

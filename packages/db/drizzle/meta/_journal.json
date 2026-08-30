@@ -190,6 +190,13 @@
       "when": 1787912222216,
       "tag": "0026_flaky_senator_kelly",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788116440782,
+      "tag": "0027_right_machine_man",
+      "breakpoints": true
     }
   ]
 }

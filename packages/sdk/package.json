@@ -25,6 +25,16 @@
       }
     },
     "./package.json": "./package.json",
+    "./eval": {
+      "import": {
+        "types": "./dist/eval.d.mts",
+        "default": "./dist/eval.mjs"
+      },
+      "require": {
+        "types": "./dist/eval.d.cts",
+        "default": "./dist/eval.cjs"
+      }
+    },
     "./config": {
       "import": {
         "types": "./dist/config.d.mts",
@@ -70,6 +80,7 @@
     "@effect/cli": "^0.75.2",
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.107.0",
+    "esbuild": "^0.25.12",
     "effect": "^3.21.2"
   },
   "bin": {

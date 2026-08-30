@@ -101,6 +101,7 @@ export const GridRunLive = Layer.scoped(
                 name: subject.name,
                 setupCommand: subject.setup,
                 source: subject.source,
+                validator: subject.validator,
                 verifyCommand: subject.verify,
                 workspace: WORKSPACE,
               }),
@@ -109,6 +110,7 @@ export const GridRunLive = Layer.scoped(
             prompt,
             setupCommand: subject.setup,
             source: subject.source,
+            validator: subject.validator ?? null,
             verifyCommand: subject.verify,
             workspace: WORKSPACE,
           });
@@ -217,6 +219,7 @@ export const GridRunLive = Layer.scoped(
                 repoUrl:
                   subject.source.kind === "repo" ? subject.source.url : null,
                 setupCommand: subject.setup,
+                validatorName: subject.validator?.name ?? null,
                 verifyCommand: subject.verify,
                 workspace: WORKSPACE,
               }),

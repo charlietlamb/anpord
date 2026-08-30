@@ -138,6 +138,7 @@ export const WorkbenchesLive = Layer.effect(
             name: subject.name,
             setup: subject.setup,
             source: subject.source,
+            validator: null,
             verify: subject.verify,
           })),
           organizationId: input.organizationId,

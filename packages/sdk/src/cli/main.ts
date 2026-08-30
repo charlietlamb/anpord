@@ -8,7 +8,7 @@ import { commands } from "./commands";
 import { reportFailure } from "./failure";
 
 const anpord = Command.make("anpord").pipe(
-  Command.withDescription("Read and publish prompts from the terminal"),
+  Command.withDescription("Run evals and manage prompts from the terminal"),
   Command.withSubcommands(commands)
 );
 

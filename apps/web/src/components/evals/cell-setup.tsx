@@ -126,6 +126,34 @@ function Verify({
   );
 }
 
+function Validation({
+  setup,
+  trials,
+}: {
+  readonly setup: EvalSetup;
+  readonly trials: readonly EvalTrial[];
+}) {
+  if (setup.validatorName !== null) {
+    return (
+      <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
+        <CheckSquareIcon aria-hidden="true" className="shrink-0" size={13} />
+        Validated by <code>{setup.validatorName}</code>
+      </p>
+    );
+  }
+
+  if (setup.verifyCommand !== null) {
+    return <Verify command={setup.verifyCommand} trials={trials} />;
+  }
+
+  return (
+    <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
+      <CheckSquareIcon aria-hidden="true" className="shrink-0" size={13} />
+      No verifier, so trials are void rather than passed.
+    </p>
+  );
+}
+
 /**
  * What the agent was asked and what decided whether it succeeded.
  *
@@ -186,14 +214,7 @@ export function CellSetup({
         </SetupSurface>
       )}
 
-      {setup.verifyCommand === null ? (
-        <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
-          <CheckSquareIcon aria-hidden="true" className="shrink-0" size={13} />
-          No verify script, so trials are void rather than passed.
-        </p>
-      ) : (
-        <Verify command={setup.verifyCommand} trials={trials} />
-      )}
+      <Validation setup={setup} trials={trials} />
     </div>
   );
 }

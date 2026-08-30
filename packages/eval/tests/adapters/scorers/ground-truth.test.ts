@@ -19,7 +19,11 @@ const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   writeFile: () => Effect.void,
 });
 
-const score = (sandbox: SandboxHandle, verifyCommand: string | null) =>
+const score = (
+  sandbox: SandboxHandle,
+  verifyCommand: string | null,
+  validator?: { readonly name: string; readonly source: string }
+) =>
   Effect.runPromise(
     Effect.gen(function* () {
       const scorer = yield* Scorer;
@@ -28,6 +32,7 @@ const score = (sandbox: SandboxHandle, verifyCommand: string | null) =>
         events: [],
         modelMs: 1000,
         sandbox,
+        validator,
         verifyCommand,
         workspace: "/tmp/w",
       });
@@ -50,6 +55,30 @@ describe("isUnguardedPipeline", () => {
 });
 
 describe("ScorerGroundTruthLive", () => {
+  it("scores a bundled TypeScript validator", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        stdout(
+          'ANPORD_VALIDATOR_RESULT={"passed":true,"message":"image is valid"}\n'
+        ),
+        exit(0),
+      ]),
+      null,
+      { name: "imageQuality", source: "bundled source" }
+    );
+
+    expect(outcome.status).toBe("passed");
+  });
+
+  it("voids a validator that crashes before returning a result", async () => {
+    const outcome = await score(sandboxYielding([exit(1)]), null, {
+      name: "imageQuality",
+      source: "bundled source",
+    });
+
+    expect(outcome.status).toBe("void");
+  });
+
   it("passes on a zero exit", async () => {
     const outcome = await score(
       sandboxYielding([stdout("1 pass"), exit(0)]),

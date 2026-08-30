@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { EvalValidator } from "@anpord/schema/domain/evals";
 import type { WorkspaceSource } from "./workspace-source";
 
 export interface CaseDefinition {
@@ -6,6 +7,7 @@ export interface CaseDefinition {
   readonly name: string;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
+  readonly validator?: EvalValidator | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -34,6 +36,7 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
       [
         input.goal,
         input.setupCommand ?? "",
+        input.validator?.source ?? "",
         input.verifyCommand ?? "",
         input.workspace,
         sourceOf(input.source),

@@ -124,6 +124,7 @@ export const runTrial = (input: RunOneTrial) =>
             ),
       setupCommand: input.subject.setup,
       source: input.subject.source,
+      validator: input.subject.validator,
       verifyCommand: input.subject.verify,
       workspace: WORKSPACE,
     });

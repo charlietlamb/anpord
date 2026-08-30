@@ -1,6 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { IdGenerator } from "@anpord/ids/id";
+import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -15,6 +16,7 @@ interface TaskDefinition {
   readonly prompt: string;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
+  readonly validator: EvalValidator | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -61,6 +63,8 @@ const valuesOf = (input: TaskDefinition, id: string, internalId: string) => ({
   setupCommand: input.setupCommand,
   sourceFiles: input.source.kind === "files" ? input.source.files : null,
   sourceKind: input.source.kind,
+  validatorName: input.validator?.name ?? null,
+  validatorSource: input.validator?.source ?? null,
   verifyCommand: input.verifyCommand,
   workspace: input.workspace,
 });

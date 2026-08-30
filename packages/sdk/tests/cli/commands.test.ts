@@ -7,7 +7,7 @@ const OPERATION_COMMANDS: Record<string, readonly string[]> = {
   "evals.list": [],
   "evals.models": [],
   "evals.rerunCell": [],
-  "evals.start": [],
+  "evals.start": ["eval"],
   "prompts.create": [],
   "prompts.get": ["gen", "generate", "get", "versions"],
   "prompts.list": ["list"],
