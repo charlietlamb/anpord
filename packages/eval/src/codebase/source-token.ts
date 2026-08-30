@@ -1,4 +1,3 @@
-import type { OrganizationId } from "@anpord/schema/domain/actor";
 import { Context, Effect, Layer, Option, type Redacted } from "effect";
 import { GithubApp } from "./github-app";
 import { Installations } from "./installations";
@@ -14,6 +13,13 @@ export class SourceTokens extends Context.Tag("@anpord/eval/SourceTokens")<
   SourceTokensShape
 >() {}
 
+/** No installation, so every clone is unauthenticated -- which is what a test
+ * against a public repository, or none at all, actually wants. */
+export const SourceTokensNone = Layer.succeed(
+  SourceTokens,
+  SourceTokens.of({ forOrganization: () => Effect.succeed(Option.none()) })
+);
+
 /**
  * The credential a run clones with.
  *
@@ -23,13 +29,6 @@ export class SourceTokens extends Context.Tag("@anpord/eval/SourceTokens")<
  * still fails at the clone, where the error already says the app is not
  * installed on it.
  */
-/** No installation, so every clone is unauthenticated -- which is what a test
- * against a public repository, or none at all, actually wants. */
-export const SourceTokensNone = Layer.succeed(
-  SourceTokens,
-  SourceTokens.of({ forOrganization: () => Effect.succeed(Option.none()) })
-);
-
 export const SourceTokensLive = Layer.effect(
   SourceTokens,
   Effect.gen(function* () {
@@ -43,9 +42,8 @@ export const SourceTokensLive = Layer.effect(
             return Option.none();
           }
 
-          const installation = yield* installations.forOrganization({
-            organizationId: organizationId as OrganizationId,
-          });
+          const installation =
+            yield* installations.forOrganization(organizationId);
 
           if (Option.isNone(installation)) {
             return Option.none();
@@ -59,7 +57,7 @@ export const SourceTokensLive = Layer.effect(
             Effect.logWarning(
               "could not mint an installation token; private repositories will not clone",
               error
-            ).pipe(Effect.as(Option.none()))
+            ).pipe(Effect.as(Option.none<Redacted.Redacted<string>>()))
           )
         ),
     });

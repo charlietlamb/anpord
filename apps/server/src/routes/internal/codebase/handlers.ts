@@ -32,7 +32,7 @@ export const CodebaseHandlers = HttpApiBuilder.group(
           const actor = yield* CurrentActor;
           const app = yield* GithubApp;
           const installed = yield* (yield* Installations).forOrganization(
-            actor
+            actor.organizationId
           );
 
           if (Option.isNone(installed) || app === undefined) {
@@ -63,7 +63,7 @@ export const CodebaseHandlers = HttpApiBuilder.group(
             const actor = yield* CurrentActor;
             const app = yield* GithubApp;
             const installed = yield* (yield* Installations).forOrganization(
-              actor
+              actor.organizationId
             );
 
             /* Nothing installed is an empty list rather than an error: the

@@ -1,6 +1,6 @@
+import { cloneUrlOf, parseRepo } from "@anpord/schema/domain/repo-spec";
 import { Effect } from "effect";
 import { UnreadableSource } from "../domain/errors";
-import { cloneUrlOf, parseRepo } from "../domain/repo-spec";
 import type { WorkspaceSource } from "../domain/workspace-source";
 
 /**

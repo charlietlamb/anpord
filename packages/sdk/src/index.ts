@@ -55,6 +55,7 @@ export { AnpordError, MissingApiKey } from "./client/errors";
 export type { AnpordPromptVariables } from "./client/variables";
 export { EvalAborted, EvalTimeout, type WaitOptions } from "./client/wait";
 export { defineEval } from "./evals/define";
+export { empty, files, repo } from "./evals/source";
 export type {
   EvalCaseDefinition,
   EvalDefinition,

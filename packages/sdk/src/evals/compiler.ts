@@ -1,12 +1,27 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve, sep } from "node:path";
-import { pathToFileURL } from "node:url";
+import { dirname, join, resolve, sep } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect } from "effect";
 import { build, type Plugin } from "esbuild";
 import { definitionEntry, validatorEntry } from "./runner-source";
-import type { EvalDefinition } from "./types";
+import type { EvalCaseDefinition, EvalDefinition } from "./types";
+
+/* A definition file imports from "anpord", which is replaced rather than
+   resolved: the real package builds a client, and loading a definition must
+   not need an API key. The source helpers are re-exported from their own
+   module rather than copied, because a copy drifts -- an earlier one
+   stringified them and silently lost the regexes they close over. */
+const authoringExports = [
+  "export const defineEval = value => value;",
+  `export { empty, files, repo } from "./source";`,
+].join("\n");
+
+/* Resolved from this module rather than the caller's directory, because the
+   re-export below is relative to where this file sits, not to the definition
+   file being compiled. */
+const authoringDir = dirname(fileURLToPath(import.meta.url));
 
 const ANPORD_MODULE = /^anpord$/;
 const ANY_MODULE = /.*/;
@@ -21,8 +36,9 @@ const authoringModule: Plugin = {
     compiler.onLoad(
       { filter: ANY_MODULE, namespace: "anpord-authoring" },
       () => ({
-        contents: "export const defineEval = value => value;",
+        contents: authoringExports,
         loader: "js",
+        resolveDir: authoringDir,
       })
     );
   },
@@ -123,6 +139,14 @@ const isDefinition = (value: unknown): value is EvalDefinition =>
   Array.isArray((value as EvalDefinition).tasks) &&
   Number.isInteger((value as EvalDefinition).trials);
 
+/* Spread rather than assigned, so a definition that names no source at all
+   still sends no source field and the server keeps deciding what that means. */
+const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
+  const source = subject.source ?? definition.source;
+
+  return source === undefined ? {} : { source };
+};
+
 export const compileEvalEffect = (path: string) =>
   Effect.gen(function* () {
     const entry = resolve(path);
@@ -171,7 +195,7 @@ export const compileEvalEffect = (path: string) =>
             goal: subject.goal,
             name: subject.name,
             setup: subject.setup ?? null,
-            ...(subject.source === undefined ? {} : { source: subject.source }),
+            ...sourceFor(definition, subject),
             validator,
             verify: subject.verify ?? null,
           };

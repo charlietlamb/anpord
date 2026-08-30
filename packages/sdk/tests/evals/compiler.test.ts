@@ -55,4 +55,54 @@ export default defineEval({
       'ANPORD_VALIDATOR_RESULT={"message":"result.txt contains hello","passed":true}'
     );
   });
+
+  /* The authoring stub replaces the whole "anpord" module while bundling a
+     definition. It once exported only defineEval, so importing repo failed at
+     bundle time, and a later version stringified the helpers and silently lost
+     the regexes they close over. Both compiled; neither worked. */
+  test("resolves the source helpers a definition imports", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-source-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval, empty, repo } from "anpord";
+export default defineEval({
+  cases: [
+    { goal: "add a test", name: "inherits", verify: "true" },
+    { goal: "from scratch", name: "overrides", source: empty, verify: "true" },
+  ],
+  name: "suite",
+  prompt: "{{goal}}",
+  source: repo("acme/widgets@a1b2c3d"),
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+
+    expect(payload.cases[0]?.source).toEqual({
+      kind: "repo",
+      ref: "a1b2c3d",
+      url: "https://github.com/acme/widgets.git",
+    });
+    expect(payload.cases[1]?.source).toEqual({ kind: "empty" });
+  });
+
+  test("refuses a repository nobody could read, at the definition", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-bad-source-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval, repo } from "anpord";
+export default defineEval({
+  cases: [{ goal: "g", name: "c", verify: "true" }],
+  name: "suite",
+  prompt: "{{goal}}",
+  source: repo("acme"),
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    expect(compileEval(join(workspace, "eval.ts"))).rejects.toThrow();
+  });
 });
