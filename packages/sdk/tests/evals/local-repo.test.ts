@@ -47,6 +47,7 @@ const resolved = (cwd: string) =>
 describe("the repository an eval was written in", () => {
   test("is not guessed at outside a checkout", async () => {
     process.env.GITHUB_REPOSITORY = "";
+    process.env.GIT_CEILING_DIRECTORIES = tmpdir();
     workspace = await mkdtemp(join(tmpdir(), "anpord-bare-dir-"));
 
     expect(await resolved(workspace)).toBeNull();
@@ -73,6 +74,7 @@ describe("the repository an eval was written in", () => {
   test("falls back to the repository CI names when there is no checkout", async () => {
     process.env.GITHUB_REPOSITORY = "acme/widgets";
     process.env.GITHUB_HEAD_REF = "topic";
+    process.env.GIT_CEILING_DIRECTORIES = tmpdir();
     workspace = await mkdtemp(join(tmpdir(), "anpord-ci-only-"));
 
     expect(await resolved(workspace)).toEqual({

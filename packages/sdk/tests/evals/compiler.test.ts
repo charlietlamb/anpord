@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -154,6 +155,12 @@ export default defineEval({
 
   test("falls back to the repository the definition sits in", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-local-"));
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: workspace, stdio: "pipe" });
+
+    git("init", "--quiet");
+    git("remote", "add", "origin", "https://github.com/acme/widgets.git");
+
     await writeFile(
       join(workspace, "eval.ts"),
       `import { defineEval } from "anpord";
@@ -168,7 +175,11 @@ export default defineEval({
 
     const payload = await compileEval(join(workspace, "eval.ts"));
 
-    expect(payload.cases[0]?.source).toBeUndefined();
+    expect(payload.cases[0]?.source).toEqual({
+      kind: "repo",
+      ref: null,
+      url: "https://github.com/acme/widgets.git",
+    });
   });
 
   test("a named source is not replaced by the surrounding repository", async () => {
