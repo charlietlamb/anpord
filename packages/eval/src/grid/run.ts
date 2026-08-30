@@ -1,4 +1,5 @@
 import { Clock, Context, Effect, Layer, Option, type Stream } from "effect";
+import { SourceTokens } from "../codebase/source-token";
 import { caseIdentityOf } from "../domain/case-identity";
 import { CellKey } from "../domain/cell";
 import { failureOf } from "../domain/failure";
@@ -80,6 +81,7 @@ export const GridRunLive = Layer.scoped(
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
+    const sourceTokens = yield* SourceTokens;
 
     const live = yield* makeLiveRuns;
 
@@ -127,6 +129,12 @@ export const GridRunLive = Layer.scoped(
       }[]
     ) =>
       Effect.gen(function* () {
+        /* Once per run, not once per trial: every cell clones the same
+           repositories with the same installation. */
+        const sourceToken = Option.getOrUndefined(
+          yield* sourceTokens.forOrganization(input.organizationId)
+        );
+
         for (const [taskIndex, task] of input.tasks.entries()) {
           for (const [caseIndex, subject] of input.cases.entries()) {
             const row = registered[caseIndex];
@@ -151,6 +159,7 @@ export const GridRunLive = Layer.scoped(
               recorder,
               runInternalId: created.internalId,
               runs,
+              sourceToken,
               subject,
               task,
               taskInternalId: row.internalId,

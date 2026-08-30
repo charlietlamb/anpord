@@ -13,6 +13,7 @@ import {
   Option,
   Redacted,
 } from "effect";
+import { SourceTokensNone } from "../../src/codebase/source-token";
 import { layerTestResolver } from "../../src/credentials/connections";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
 import { HarnessVersionsLive } from "../../src/services/harness-versions";
@@ -23,6 +24,7 @@ const URL = process.env.EVAL_TEST_DATABASE_URL;
 
 const TestLayer = EvalGridLive.pipe(
   Layer.provide(EvalSandboxLive),
+  Layer.provide(SourceTokensNone),
   Layer.provide(layerTestResolver()),
   Layer.provide(HarnessVersionsLive),
   Layer.provide(IdGeneratorLive),

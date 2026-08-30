@@ -12,6 +12,7 @@ import {
 } from "@anpord/eval/codebase/github-app";
 import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
 import { InstallationsLive } from "@anpord/eval/codebase/installations";
+import { SourceTokensLive } from "@anpord/eval/codebase/source-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import {
   CredentialConnectionsLive,
@@ -84,7 +85,11 @@ const CredentialLayer = Layer.mergeAll(
 const CodebaseLayer = Layer.mergeAll(
   InstallationsLive.pipe(Layer.provide(DatabaseLayer)),
   GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)),
-  GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer))
+  GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer)),
+  SourceTokensLive.pipe(
+    Layer.provide(InstallationsLive.pipe(Layer.provide(DatabaseLayer))),
+    Layer.provide(GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)))
+  )
 );
 
 const EvalLayer = Layer.mergeAll(
@@ -92,6 +97,7 @@ const EvalLayer = Layer.mergeAll(
     Layer.provide(EvalSandboxLive),
     Layer.provide(CredentialLayer),
     Layer.provide(EvalHarnessVersionsLive),
+    Layer.provide(CodebaseLayer),
     Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
   ),
 

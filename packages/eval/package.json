@@ -34,6 +34,7 @@
     "./codebase/errors": "./src/codebase/errors.ts",
     "./codebase/github-app": "./src/codebase/github-app.ts",
     "./codebase/installations": "./src/codebase/installations.ts",
+    "./codebase/source-token": "./src/codebase/source-token.ts",
     "./codebase/github-repositories": "./src/codebase/github-repositories.ts",
     "./credentials/connections": "./src/credentials/connections.ts",
     "./credentials/device-auth": "./src/credentials/device-auth.ts",

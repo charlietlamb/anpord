@@ -60,6 +60,7 @@ export interface AgentTrialRequest {
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
+  readonly sourceToken?: Redacted.Redacted<string> | undefined;
 
   readonly validator?: EvalValidator | null;
   readonly verifyCommand: string | null;
@@ -120,6 +121,7 @@ export const AgentTrialLive = Layer.effect(
           sandbox,
           setupCommand: request.setupCommand,
           source: request.source,
+          sourceToken: request.sourceToken,
           workspace: request.workspace,
         });
 

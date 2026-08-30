@@ -19,8 +19,10 @@ export interface RecordInstallation {
 }
 
 export interface InstallationsShape {
+  /* Narrower than an Actor because that is all it reads, so a caller with an
+     organization but no user -- a run resolving its clone token -- can ask. */
   readonly forOrganization: (
-    actor: Actor
+    scope: Pick<Actor, "organizationId">
   ) => Effect.Effect<Option.Option<Installation>, CodebaseError>;
   readonly record: (
     actor: Actor,
@@ -43,7 +45,7 @@ export const InstallationsLive = Layer.effect(
     const db = yield* Database;
 
     return Installations.of({
-      forOrganization: (actor) =>
+      forOrganization: (scope) =>
         tryStore("codebase.installation", () =>
           db
             .select({
@@ -52,13 +54,13 @@ export const InstallationsLive = Layer.effect(
               repositorySelection: githubInstallation.repositorySelection,
             })
             .from(githubInstallation)
-            .where(eq(githubInstallation.organizationId, actor.organizationId))
+            .where(eq(githubInstallation.organizationId, scope.organizationId))
             .limit(1)
         ).pipe(
           Effect.mapError(unavailable),
           Effect.map((rows) => Option.fromNullable(rows[0])),
           Effect.withSpan("Installations.forOrganization"),
-          Effect.annotateLogs({ organizationId: actor.organizationId })
+          Effect.annotateLogs({ organizationId: scope.organizationId })
         ),
 
       record: (actor, input) =>

@@ -58,6 +58,9 @@ export interface TrialInputs {
   ) => Effect.Effect<void>;
   readonly prompt: string;
   readonly recorder: TrialRecorderShape;
+  /* Run-scoped rather than part of the case: the case is stored and hashed
+     into the cell key, and an hourly token there would rewrite both. */
+  readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly subject: GridCase;
   readonly task: GridExecutionTask;
 }
@@ -123,6 +126,7 @@ export const runTrial = (input: RunOneTrial) =>
               Redacted.value(input.task.credentials.sandbox).values
             ),
       setupCommand: input.subject.setup,
+      sourceToken: input.sourceToken,
       source: input.subject.source,
       validator: input.subject.validator,
       verifyCommand: input.subject.verify,

@@ -11,6 +11,7 @@ import {
   Option,
   Redacted,
 } from "effect";
+import { SourceTokensNone } from "../../src/codebase/source-token";
 import { layerTestResolver } from "../../src/credentials/connections";
 import { GridRun } from "../../src/grid/run";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";
@@ -28,6 +29,7 @@ const READY = hasCodex && hasDatabase && Boolean(process.env.DAYTONA_API_KEY);
 
 const TestLayer = EvalGridLive.pipe(
   Layer.provide(EvalSandboxLive),
+  Layer.provide(SourceTokensNone),
   Layer.provide(layerTestResolver()),
   Layer.provide(HarnessVersionsLive),
   Layer.provide(IdGeneratorLive),
