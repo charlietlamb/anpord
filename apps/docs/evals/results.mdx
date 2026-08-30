@@ -4,16 +4,29 @@ sidebarTitle: "Results"
 description: "Read outcomes and inspect each attempt"
 ---
 
-`evals.start` returns a run id while trials continue on the server. Poll `evals.get` until the run stops:
+`evals.start` returns a run id while trials continue on the server. `startAndWait` starts a run and resolves once it stops:
 
 ```ts
-let run = await anpord.evals.get({ id });
-
-while (run.status === "running") {
-  await new Promise((resolve) => setTimeout(resolve, 2_000));
-  run = await anpord.evals.get({ id });
-}
+const run = await anpord.evals.startAndWait({ cases, prompt, tasks, trials: 3 });
 ```
+
+To wait on a run you started earlier, pass its id:
+
+```ts
+const run = await anpord.evals.wait({ id });
+```
+
+Both poll `evals.get`, widening the gap between requests as the run goes on. Both accept:
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `onProgress` | — | Called with the run after every poll |
+| `signal` | — | Stop waiting when an `AbortSignal` fires |
+| `timeoutMs` | 1 hour | Give up waiting and throw `EvalTimeout` |
+| `pollIntervalMs` | 2000 | Gap before the first re-check |
+| `maxIntervalMs` | 10000 | Ceiling the gap grows to |
+
+Neither cancels the run. On timeout or abort the grid keeps going on the server, and `evals.get` still reads it.
 
 | Run status | Meaning |
 | --- | --- |

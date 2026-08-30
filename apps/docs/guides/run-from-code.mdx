@@ -27,21 +27,13 @@ const cases: StartEvalRequest["cases"] = [
   },
 ];
 
-const { id } = await anpord.evals.start({
+const run = await anpord.evals.startAndWait({
   cases,
   prompt: "Read the repository. Make the smallest correct change. {{goal}}",
   tasks: [{ harness: "codex", model, provider: "daytona" }],
   trials: 3,
+  onProgress: (current) => console.log(current.status),
 });
-
-console.log(`Anpord run: ${id}`);
-
-let run = await anpord.evals.get({ id });
-
-while (run.status === "running") {
-  await new Promise((resolve) => setTimeout(resolve, 2_000));
-  run = await anpord.evals.get({ id });
-}
 
 if (run.status === "failed") {
   throw new Error(run.failure ?? "Eval run failed");
@@ -68,6 +60,6 @@ await anpord.dispose();
 
 Choose the model once with `evals.models({ harness: "codex" })`, then keep its id in configuration. Starting a run does not require a catalogue request.
 
-Pin repository sources to a commit for reproducible runs. Put the job timeout around the script, since `evals.start` returns before the server finishes the grid.
+Pin repository sources to a commit for reproducible runs. `startAndWait` polls until the grid finishes; pass `timeoutMs` to bound it, or `signal` to stop waiting on the job's own abort.
 
 Report missing evidence separately. It is not a failed verifier.

@@ -53,3 +53,4 @@ export type {
 } from "./client/cache/types";
 export { AnpordError, MissingApiKey } from "./client/errors";
 export type { AnpordPromptVariables } from "./client/variables";
+export { EvalAborted, EvalTimeout, type WaitOptions } from "./client/wait";

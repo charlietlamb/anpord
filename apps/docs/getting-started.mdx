@@ -7,14 +7,13 @@ description: "Run your first coding-agent eval"
 
 Model usage is charged to your own account, so add a [connection](/connections) for the harness first — this example uses Codex. Sandboxes run on Anpord's accounts unless you add one of your own.
 
-Then create a key under **Settings > API keys** and set it alongside a model id:
+Then create a key under **Settings > API keys**:
 
 ```bash
 export ANPORD_API_KEY="anp_..."
-export EVAL_MODEL="gpt-5.6-sol"
 ```
 
-The key needs `evals:write` and `evals:read`. Use a model id from your configuration, or find one with `anpord.evals.models({ harness: "codex" })`.
+The key needs `evals:write` and `evals:read`. The example below pins a model id; find the ones your connection can reach with `anpord.evals.models({ harness: "codex" })`.
 
 ## Install
 
@@ -38,11 +37,8 @@ Create `eval.ts`:
 import { Anpord } from "anpord";
 
 const anpord = new Anpord();
-const model = process.env.EVAL_MODEL;
 
-if (!model) throw new Error("Set EVAL_MODEL");
-
-const { id } = await anpord.evals.start({
+const run = await anpord.evals.startAndWait({
   cases: [
     {
       name: "writes the requested file",
@@ -51,16 +47,9 @@ const { id } = await anpord.evals.start({
     },
   ],
   prompt: "Work in the current repository. {{goal}}",
-  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 3,
 });
-
-let run = await anpord.evals.get({ id });
-
-while (run.status === "running") {
-  await new Promise((resolve) => setTimeout(resolve, 2_000));
-  run = await anpord.evals.get({ id });
-}
 
 if (run.status === "failed") {
   throw new Error(run.failure ?? "Eval run failed");
@@ -69,7 +58,7 @@ if (run.status === "failed") {
 const result = run.cells[0]?.distribution;
 if (!result) throw new Error("Run produced no result");
 
-console.log({ id, passRate: result.passRate, scored: result.scored });
+console.log({ passRate: result.passRate, scored: result.scored });
 await anpord.dispose();
 ```
 

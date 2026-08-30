@@ -5,7 +5,7 @@ description: "Common eval and prompt failures"
 
 ## A run stays `running`
 
-Coding trials can take several minutes. Poll every two seconds and check for new trajectory events. If no cell advances, inspect server logs and provider status.
+Coding trials can take several minutes. `startAndWait` and `wait` poll for you; pass `onProgress` to watch cells advance. If no cell advances, inspect server logs and provider status.
 
 A server restart does not resume active work. The reconciler marks abandoned runs failed after six hours by default.
 

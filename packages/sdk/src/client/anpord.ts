@@ -22,6 +22,7 @@ import type {
 import { asAnpordError, MissingApiKey } from "./errors";
 import { type Promised, promised } from "./promised";
 import type { VariablesFor } from "./variables";
+import { type WaitOptions, waitForRun } from "./wait";
 
 export interface AnpordOptions {
   readonly apiKey?: string;
@@ -40,7 +41,19 @@ const resolveApiKey = (provided: string | undefined) => {
 
 type Prompts = Promised<AnpordClient["prompts"]>;
 type Prompt = Awaited<ReturnType<Prompts["get"]>>;
-export type EvalsSurface = Promised<AnpordClient["evals"]>;
+
+type Evals = Promised<AnpordClient["evals"]>;
+type StartOptions = Parameters<Evals["start"]>[0];
+type Run = Awaited<ReturnType<Evals["get"]>>;
+
+export interface EvalsSurface extends Evals {
+  /** Starts a run and resolves once it finishes. */
+  readonly startAndWait: (options: StartOptions & WaitOptions) => Promise<Run>;
+  /** Polls an already-started run until it finishes. */
+  readonly wait: (
+    options: { readonly id: string } & WaitOptions
+  ) => Promise<Run>;
+}
 
 export type PromptResult = Prompt & { readonly anpord: PromptMetadata };
 
@@ -76,7 +89,30 @@ export class Anpord {
     );
 
     const group = promised(client.prompts);
-    this.evals = promised(client.evals);
+    const evals = promised(client.evals);
+
+    this.evals = {
+      ...evals,
+      startAndWait: async (options) => {
+        const {
+          maxIntervalMs,
+          onProgress,
+          pollIntervalMs,
+          signal,
+          timeoutMs,
+          ...request
+        } = options;
+        const { id } = await evals.start(request as StartOptions);
+        return await waitForRun(evals.get, id, {
+          maxIntervalMs,
+          onProgress,
+          pollIntervalMs,
+          signal,
+          timeoutMs,
+        });
+      },
+      wait: ({ id, ...options }) => waitForRun(evals.get, id, options),
+    };
 
     const forget = (id: string) =>
       this.runtime
