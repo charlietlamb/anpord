@@ -1,8 +1,6 @@
 import type { EvalDraft } from "@anpord/schema/domain/evals";
 import { columnsOfDraft } from "@anpord/schema/domain/evals";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { Segmented } from "@anpord/ui/components/ui/segmented";
-import { FlaskIcon } from "@phosphor-icons/react";
+import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -20,8 +18,8 @@ import { DEFAULT_HARNESS } from "@/lib/evals/variant-options";
 type Tab = "agent" | "dashboard";
 
 const TABS: readonly { readonly label: string; readonly value: Tab }[] = [
-  { label: "Dashboard", value: "dashboard" },
   { label: "Agent", value: "agent" },
+  { label: "Dashboard", value: "dashboard" },
 ];
 
 export const Route = createFileRoute("/_authed/evals/new")({
@@ -35,7 +33,7 @@ export const Route = createFileRoute("/_authed/evals/new")({
 });
 
 function NewEvalScreen() {
-  const [tab, setTab] = useState<Tab>("dashboard");
+  const [tab, setTab] = useState<Tab>("agent");
   const navigate = useNavigate();
   const create = useCreatePlayground();
   const save = useSavePlayground();
@@ -73,17 +71,28 @@ function NewEvalScreen() {
 
   return (
     <PageShell
-      /* The two ways to write one, rather than the dashboard form presented
-         as the only way: an eval that lives in the repository is versioned
-         and runs in CI, which the form can never be. */
-      actions={<Segmented onChange={setTab} options={TABS} value={tab} />}
-      leading={<PageHeading icon={FlaskIcon} title="New eval" />}
+      /* The tabs stand where the title would. The breadcrumb above already
+         says New eval, and each panel names itself, so a heading here would
+         be the third statement of the same thing. */
+      leading={<PageTabs onChange={setTab} options={TABS} value={tab} />}
       width="wide"
     >
-      {tab === "dashboard" ? (
-        <EvalForm onSubmit={start} submitting={submitting} />
-      ) : (
+      {tab === "agent" ? (
         <AgentSetup />
+      ) : (
+        <div className="flex flex-col gap-8">
+          <header className="flex flex-col gap-1">
+            <h2 className="font-heading text-base tracking-tight">
+              Write an eval here
+            </h2>
+            <p className="max-w-prose text-muted-foreground text-xs">
+              One case, run now. Good for trying a goal out; an eval you mean to
+              keep belongs in the repository.
+            </p>
+          </header>
+
+          <EvalForm onSubmit={start} submitting={submitting} />
+        </div>
       )}
     </PageShell>
   );

@@ -30,6 +30,7 @@
     "cmdk": "catalog:",
     "date-fns": "catalog:",
     "next-themes": "catalog:",
+    "shiki": "^4.4.3",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:"
   },
