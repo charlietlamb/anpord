@@ -26,7 +26,7 @@ Set `ANPORD_API_KEY` before running a command.
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval <file>` | Compile and start a TypeScript eval file |
+| `anpord eval [file] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval file and wait for it |
 | `anpord list [--json]` | List up to 100 prompts |
 | `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
 | `anpord versions <id>` | Print version history as JSON |
@@ -43,11 +43,23 @@ anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
 anpord promote support-reply --to production --at 7
 ```
 
-Start a file-based eval with direct TypeScript validators:
+Run a file-based eval with direct TypeScript validators:
 
 ```bash
-anpord eval ./eval.ts
+anpord eval
 ```
+
+The file defaults to `eval.ts`. The command waits for the run, draws the grid
+as cells settle, and exits nonzero when a cell regresses against its baseline.
+
+| Option | Purpose |
+| --- | --- |
+| `--fail-on` | `regressed` by default; `unscored` also fails a cell with no scored trials, `never` reports without gating |
+| `--no-wait` | Start the run and print its id |
+| `--json` | Print the finished run instead of the grid |
+
+A run that fails outright is reported whatever the gate, because that is the
+sandbox rather than the result.
 
 `push` does not promote or accept config. Use the SDK or API for prompts with versioned config.
 

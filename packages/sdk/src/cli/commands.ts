@@ -10,7 +10,10 @@ import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { compileEvalEffect } from "../evals/compiler";
 import { declarationFile } from "./declarations";
-import { json, note, promptContent, row } from "./render";
+import { failWhen, problemsWith } from "./eval-gate";
+import { liveGrid, summaryOf } from "./eval-grid";
+import { waitForRun } from "./eval-run";
+import { attended, json, note, promptContent, row } from "./render";
 
 const promptId = Args.text({ name: "id" }).pipe(
   Args.withDescription("The prompt's id, such as support-reply"),
@@ -198,16 +201,52 @@ const gen = Command.make("gen", { out }, writeDeclarations).pipe(
 );
 
 const evalFile = Args.text({ name: "file" }).pipe(
-  Args.withDescription("A TypeScript file that default exports defineEval(...)")
+  Args.withDescription(
+    "A TypeScript file that default exports defineEval(...)"
+  ),
+  Args.withDefault("eval.ts")
 );
 
-const runEval = Command.make("eval", { evalFile }, ({ evalFile: file }) =>
-  Effect.gen(function* () {
-    const api = yield* AnpordApi;
-    const payload = yield* compileEvalEffect(file);
-    return yield* api.evals.start({ payload });
-  }).pipe(Effect.flatMap(json))
-).pipe(Command.withDescription("Compile and start an eval from TypeScript"));
+const noWait = Options.boolean("no-wait").pipe(
+  Options.withDescription("Start the run and print its id, without waiting")
+);
+
+const failOn = Options.choice("fail-on", [
+  "never",
+  "regressed",
+  "unscored",
+]).pipe(
+  Options.withDescription("What makes the command exit nonzero"),
+  Options.withDefault("regressed" as const)
+);
+
+const runEval = Command.make(
+  "eval",
+  { asJson, evalFile, failOn, noWait },
+  ({ asJson: wantsJson, evalFile: file, failOn: gate, noWait: skipWait }) =>
+    Effect.gen(function* () {
+      const api = yield* AnpordApi;
+      const payload = yield* compileEvalEffect(file);
+      const started = yield* api.evals.start({ payload });
+
+      if (skipWait) {
+        return yield* json(started);
+      }
+
+      const live = !wantsJson && (yield* attended);
+
+      if (live) {
+        yield* note(`${file} · run ${started.id}\n`);
+      }
+
+      const draw = yield* liveGrid(payload.trials, live);
+      const run = yield* waitForRun(started.id, draw);
+
+      yield* wantsJson ? json(run) : note(summaryOf(run, payload.trials, live));
+
+      return yield* failWhen(problemsWith(run, gate));
+    })
+).pipe(Command.withDescription("Compile and run an eval from TypeScript"));
 
 export const commands = [
   runEval,

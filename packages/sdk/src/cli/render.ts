@@ -23,3 +23,7 @@ export const note = (message: string) =>
   Effect.sync(() => {
     process.stderr.write(`${message}\n`);
   });
+
+export const attended = Effect.sync(
+  () => globalThis.process?.stdout?.isTTY === true
+);
