@@ -1,22 +1,13 @@
 import { CodeBlock } from "@anpord/ui/components/ui/code-block";
-import { Segmented } from "@anpord/ui/components/ui/segmented";
-import { useState } from "react";
+import type { SnippetCommand } from "@anpord/ui/components/ui/snippet";
+import { Snippet } from "@anpord/ui/components/ui/snippet";
 import { DOCS_URL } from "@/lib/urls";
 
-type Manager = "bun" | "npm" | "pnpm";
-
-const INSTALL: Record<Manager, string> = {
-  bun: "bun add anpord",
-  npm: "npm install anpord",
-  pnpm: "pnpm add anpord",
-};
-
-const MANAGERS: readonly { readonly label: string; readonly value: Manager }[] =
-  [
-    { label: "bun", value: "bun" },
-    { label: "npm", value: "npm" },
-    { label: "pnpm", value: "pnpm" },
-  ];
+const INSTALL: readonly SnippetCommand[] = [
+  { command: "bun add anpord", label: "bun" },
+  { command: "npm install anpord", label: "npm" },
+  { command: "pnpm add anpord", label: "pnpm" },
+];
 
 /* Written to be pasted into a coding agent rather than read: it names the
    package, the two environment variables, the shape of a case and where the
@@ -80,8 +71,6 @@ Harnesses and models: ${DOCS_URL}/evals/harnesses`;
  * the API twice.
  */
 export function AgentSetup() {
-  const [manager, setManager] = useState<Manager>("bun");
-
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-2">
@@ -93,9 +82,7 @@ export function AgentSetup() {
           </p>
         </div>
 
-        <Segmented onChange={setManager} options={MANAGERS} value={manager} />
-
-        <CodeBlock copyValue={INSTALL[manager]}>{INSTALL[manager]}</CodeBlock>
+        <Snippet commands={INSTALL} />
       </section>
 
       <section className="flex flex-col gap-2">
