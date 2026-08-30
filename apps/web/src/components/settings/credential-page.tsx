@@ -12,6 +12,7 @@ import { ConnectionRow } from "@/components/settings/connection-row";
 import { RotateConnectionDialog } from "@/components/settings/rotate-connection-dialog";
 import { SettingsList } from "@/components/settings/settings-list";
 import { SettingsPanel } from "@/components/settings/settings-panel";
+import { SettingsState } from "@/components/settings/settings-state";
 import { credentialKeys, credentialQueries } from "@/lib/credential-queries";
 import { credentialsClient } from "@/lib/credentials-client";
 import type { ConnectionSectionSpec } from "@/lib/settings/connection-sections";
@@ -67,23 +68,8 @@ export function CredentialPage({
     onSuccess: () => toast.success("Stored credential is valid"),
   });
 
-  if (connections.isPending || integrations.isPending) {
-    return (
-      <SettingsPanel title={spec.title}>
-        <ConnectionListSkeleton />
-      </SettingsPanel>
-    );
-  }
-
+  const loading = connections.isPending || integrations.isPending;
   const error = connections.error ?? integrations.error;
-
-  if (error) {
-    return (
-      <SettingsPanel title={spec.title}>
-        <p className="text-muted-foreground text-sm">{error.message}</p>
-      </SettingsPanel>
-    );
-  }
 
   const integrationOf = (connection: CredentialConnection) =>
     integrations.data?.find(
@@ -109,37 +95,43 @@ export function CredentialPage({
          empty state before that, where it is the obvious next thing. */
       add={{ label: spec.addLabel, onAdd: () => setAdding(true) }}
       description={spec.note}
-      empty={rows.length === 0}
+      /* Held back while loading too: the empty state carries the same action,
+         and offering it twice for a list that may not be empty is a guess. */
+      empty={loading || rows.length === 0}
       title={spec.title}
     >
-      <SettingsList
-        addLabel={spec.addLabel}
-        empty={rows.length === 0 ? spec.empty : null}
-        emptyTitle={spec.emptyTitle}
-        Icon={spec.Icon}
-        onAdd={() => setAdding(true)}
-        title={spec.title}
-      >
-        {rows.map((connection) => {
-          const integration = integrationOf(connection);
+      {loading || error ? (
+        <SettingsState error={error} skeleton={<ConnectionListSkeleton />} />
+      ) : (
+        <SettingsList
+          addLabel={spec.addLabel}
+          empty={rows.length === 0 ? spec.empty : null}
+          emptyTitle={spec.emptyTitle}
+          Icon={spec.Icon}
+          onAdd={() => setAdding(true)}
+          title={spec.title}
+        >
+          {rows.map((connection) => {
+            const integration = integrationOf(connection);
 
-          return integration ? (
-            <ConnectionRow
-              connection={connection}
-              integration={integration}
-              key={connection.id}
-              onDefault={() => setDefault.mutate(connection.id)}
-              onRemove={() => remove.mutate(connection.id)}
-              onRotate={
-                secretMethodOf(integration, connection) === null
-                  ? undefined
-                  : () => setRotating(connection)
-              }
-              onVerify={() => verify.mutate(connection.id)}
-            />
-          ) : null;
-        })}
-      </SettingsList>
+            return integration ? (
+              <ConnectionRow
+                connection={connection}
+                integration={integration}
+                key={connection.id}
+                onDefault={() => setDefault.mutate(connection.id)}
+                onRemove={() => remove.mutate(connection.id)}
+                onRotate={
+                  secretMethodOf(integration, connection) === null
+                    ? undefined
+                    : () => setRotating(connection)
+                }
+                onVerify={() => verify.mutate(connection.id)}
+              />
+            ) : null;
+          })}
+        </SettingsList>
+      )}
 
       {elsewhere.map((entry) => (
         <ConnectedElsewhere

@@ -1,25 +1,14 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
 import { EmptyState } from "@anpord/ui/components/empty-state";
-import {
-  ArrowSquareOutIcon,
-  DotsThreeIcon,
-  GitBranchIcon,
-} from "@phosphor-icons/react";
+import { GitBranchIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
-import { ListRow, RowTitle } from "@/components/layout/list-row";
-import { ROW_ACTION } from "@/components/layout/row-action";
-import { RowList } from "@/components/layout/row-list";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
+import { InstalledAccountRow } from "@/components/settings/installed-account-row";
 import { SettingsPanel } from "@/components/settings/settings-panel";
+import { SettingsState } from "@/components/settings/settings-state";
 import { codebaseQueries } from "@/lib/codebase-queries";
 import { useCodebaseInstall } from "@/lib/use-codebase-install";
 
@@ -64,13 +53,7 @@ function CodebasePage() {
   const { installation_id: returned } = Route.useSearch();
   const { connect, connecting } = useCodebaseInstall(returned);
 
-  if (account.isPending || connecting) {
-    return (
-      <SettingsPanel title="Codebase">
-        <ConnectionListSkeleton rows={1} />
-      </SettingsPanel>
-    );
-  }
+  const loading = account.isPending || connecting;
 
   /* One button for both cases. It claims an installation that already exists
      and only leaves for GitHub when there is none, so the reader is never
@@ -82,13 +65,18 @@ function CodebasePage() {
     </Button>
   );
 
-  return (
-    <SettingsPanel
-      actions={installed === null ? undefined : connectButton}
-      description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
-      title="Codebase"
-    >
-      {installed === null ? (
+  const panelBody = () => {
+    if (loading || account.error) {
+      return (
+        <SettingsState
+          error={account.error}
+          skeleton={<ConnectionListSkeleton rows={1} />}
+        />
+      );
+    }
+
+    if (installed === null) {
+      return (
         <EmptyState
           action={connectButton}
           className="gap-3 py-10"
@@ -96,67 +84,28 @@ function CodebasePage() {
           icon={<GitBranchIcon />}
           title="GitHub not connected"
         />
-      ) : (
-        <RowList label="Source control">
-          <ListRow
-            actions={
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      aria-label="Actions for this GitHub installation"
-                      className={ROW_ACTION}
-                      size="icon-sm"
-                      variant="bare"
-                    />
-                  }
-                >
-                  <DotsThreeIcon />
-                </DropdownMenuTrigger>
+      );
+    }
 
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    disabled={repositories.isFetching}
-                    onClick={() => repositories.refetch()}
-                  >
-                    Refresh repositories
-                  </DropdownMenuItem>
-                  {/* GitHub owns the picker. This is its address, which is
-                      the one screen where repositories are added or removed. */}
-                  <DropdownMenuItem
-                    render={
-                      <a
-                        href={installed.manageUrl}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        Choose repositories
-                        <ArrowSquareOutIcon className="ml-auto size-3.5" />
-                      </a>
-                    }
-                  />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            }
-            leading={<GithubIcon className="size-3.5 shrink-0" />}
-            meta={
-              <span className="whitespace-nowrap">
-                {repositoryCount(repositories.isFetching, repositories.data)}
-              </span>
-            }
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <RowTitle>{installed.login}</RowTitle>
+    return (
+      <InstalledAccountRow
+        account={installed}
+        onRefresh={() => repositories.refetch()}
+        refreshing={repositories.isFetching}
+        summary={repositoryCount(repositories.isFetching, repositories.data)}
+      />
+    );
+  };
 
-              <span className="truncate text-muted-foreground/60 text-xs">
-                {installed.repositorySelection === "all"
-                  ? "All repositories"
-                  : "Selected repositories"}
-              </span>
-            </span>
-          </ListRow>
-        </RowList>
-      )}
+  return (
+    <SettingsPanel
+      /* Withheld while loading: the empty state offers the same button, and
+         which of the two is right is not known until the answer arrives. */
+      actions={loading || installed === null ? undefined : connectButton}
+      description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
+      title="Codebase"
+    >
+      {panelBody()}
     </SettingsPanel>
   );
 }
