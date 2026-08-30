@@ -151,4 +151,47 @@ export default defineEval({
 
     expect(compileEval(join(workspace, "eval.ts"))).rejects.toThrow();
   });
+
+  test("falls back to the repository the definition sits in", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-local-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+export default defineEval({
+  cases: [{ goal: "add a test", name: "c", verify: "true" }],
+  name: "suite",
+  prompt: "{{goal}}",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+
+    expect(payload.cases[0]?.source).toBeUndefined();
+  });
+
+  test("a named source is not replaced by the surrounding repository", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-named-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+export default defineEval({
+  cases: [{ goal: "g", name: "c", verify: "true" }],
+  name: "suite",
+  prompt: "{{goal}}",
+  source: "acme/widgets",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+
+    expect(payload.cases[0]?.source).toEqual({
+      kind: "repo",
+      ref: null,
+      url: "https://github.com/acme/widgets.git",
+    });
+  });
 });

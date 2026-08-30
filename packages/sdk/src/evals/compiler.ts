@@ -2,9 +2,11 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import type { EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { build, type Plugin } from "esbuild";
+import { localRepo } from "./local-repo";
 import { definitionEntry, validatorEntry } from "./runner-source";
 import { repo } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
@@ -133,14 +135,21 @@ const isDefinition = (value: unknown): value is EvalDefinition =>
   Array.isArray((value as EvalDefinition).tasks) &&
   Number.isInteger((value as EvalDefinition).trials);
 
-const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
+const sourceFor = (
+  definition: EvalDefinition,
+  subject: EvalCaseDefinition,
+  fallback: Option.Option<EvalSource>
+) => {
   const source = subject.source ?? definition.source;
 
-  if (source === undefined) {
-    return {};
+  if (source !== undefined) {
+    return { source: typeof source === "string" ? repo(source) : source };
   }
 
-  return { source: typeof source === "string" ? repo(source) : source };
+  return Option.match(fallback, {
+    onNone: () => ({}),
+    onSome: (source) => ({ source }),
+  });
 };
 
 export const compileEvalEffect = (path: string) =>
@@ -154,6 +163,14 @@ export const compileEvalEffect = (path: string) =>
         new Error(`${entry} must default export defineEval({ ... })`)
       );
     }
+
+    const needsFallback =
+      definition.source === undefined &&
+      definition.cases.some((subject) => subject.source === undefined);
+
+    const fallback = needsFallback
+      ? yield* localRepo(dirname(entry))
+      : Option.none<EvalSource>();
 
     const cases = yield* Effect.forEach(
       definition.cases,
@@ -191,7 +208,7 @@ export const compileEvalEffect = (path: string) =>
             goal: subject.goal,
             name: subject.name,
             setup: subject.setup ?? null,
-            ...sourceFor(definition, subject),
+            ...sourceFor(definition, subject, fallback),
             validator,
             verify: subject.verify ?? null,
           };
