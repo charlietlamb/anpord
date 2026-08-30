@@ -10,7 +10,8 @@ import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { compileEvalEffect } from "../evals/compiler";
 import { declarationFile } from "./declarations";
-import { failWhen, problemsWith } from "./eval-gate";
+import { evalFilesIn } from "./eval-files";
+import { failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
 import { liveGrid, summaryOf } from "./eval-grid";
 import { waitForRun } from "./eval-run";
 import { attended, json, note, promptContent, row } from "./render";
@@ -202,9 +203,9 @@ const gen = Command.make("gen", { out }, writeDeclarations).pipe(
 
 const evalFile = Args.text({ name: "file" }).pipe(
   Args.withDescription(
-    "A TypeScript file that default exports defineEval(...)"
+    "A TypeScript file that default exports defineEval(...); every *.eval.ts is run when omitted"
   ),
-  Args.withDefault("eval.ts")
+  Args.optional
 );
 
 const noWait = Options.boolean("no-wait").pipe(
@@ -220,31 +221,65 @@ const failOn = Options.choice("fail-on", [
   Options.withDefault("regressed" as const)
 );
 
+const runOneEval = (
+  file: string,
+  options: {
+    readonly gate: "never" | "regressed" | "unscored";
+    readonly label: boolean;
+    readonly skipWait: boolean;
+    readonly wantsJson: boolean;
+  }
+) =>
+  Effect.gen(function* () {
+    const api = yield* AnpordApi;
+    const payload = yield* compileEvalEffect(file);
+    const started = yield* api.evals.start({ payload });
+
+    if (options.skipWait) {
+      yield* json(started);
+      return [] as readonly string[];
+    }
+
+    const live = !options.wantsJson && (yield* attended);
+
+    if (live || options.label) {
+      yield* note(`${file} · run ${started.id}`);
+    }
+
+    const draw = yield* liveGrid(payload.trials, live);
+    const run = yield* waitForRun(started.id, draw);
+
+    yield* options.wantsJson
+      ? json(run)
+      : note(summaryOf(run, payload.trials, live));
+
+    return problemsWith(run, options.gate);
+  });
+
 const runEval = Command.make(
   "eval",
   { asJson, evalFile, failOn, noWait },
   ({ asJson: wantsJson, evalFile: file, failOn: gate, noWait: skipWait }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
-      const payload = yield* compileEvalEffect(file);
-      const started = yield* api.evals.start({ payload });
+      const files = yield* Option.match(file, {
+        onNone: () => evalFilesIn("."),
+        onSome: (one) => Effect.succeed([one] as readonly string[]),
+      });
 
-      if (skipWait) {
-        return yield* json(started);
+      if (files.length === 0) {
+        return yield* Effect.fail(new NoEvalFiles({ directory: "." }));
       }
 
-      const live = !wantsJson && (yield* attended);
+      const found = yield* Effect.forEach(files, (one) =>
+        runOneEval(one, {
+          gate,
+          label: files.length > 1,
+          skipWait,
+          wantsJson,
+        })
+      );
 
-      if (live) {
-        yield* note(`${file} · run ${started.id}\n`);
-      }
-
-      const draw = yield* liveGrid(payload.trials, live);
-      const run = yield* waitForRun(started.id, draw);
-
-      yield* wantsJson ? json(run) : note(summaryOf(run, payload.trials, live));
-
-      return yield* failWhen(problemsWith(run, gate));
+      return yield* failWhen(found.flat());
     })
 ).pipe(Command.withDescription("Compile and run an eval from TypeScript"));
 

@@ -45,3 +45,11 @@ class EvalGateFailed extends Data.TaggedError("EvalGateFailed")<{
     return this.problems.join("\n");
   }
 }
+
+export class NoEvalFiles extends Data.TaggedError("NoEvalFiles")<{
+  readonly directory: string;
+}> {
+  override get message() {
+    return `No *.eval.ts file under ${this.directory}. Name one, or pass a file to run.`;
+  }
+}

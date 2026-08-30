@@ -3,6 +3,7 @@ import { layer } from "@anpord/schema/public/client";
 import { Command } from "@effect/cli";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
 import { Cause, Effect, Layer, Option } from "effect";
+import { version } from "../../package.json";
 import { clientOptionsConfig } from "../client/config";
 import { commands } from "./commands";
 import { reportFailure } from "./failure";
@@ -16,7 +17,7 @@ const ClientLayer = Layer.unwrapEffect(Effect.map(clientOptionsConfig, layer));
 
 Command.run(anpord, {
   name: "Anpord",
-  version: "0.1.3",
+  version,
 })(process.argv).pipe(
   Effect.provide(Layer.mergeAll(ClientLayer, NodeContext.layer)),
   Effect.catchAllCause((cause) =>

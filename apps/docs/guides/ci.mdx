@@ -3,7 +3,7 @@ title: "Run evals in CI"
 description: "Catch regressions before release"
 ---
 
-Put the script from [Run evals from code](/guides/run-from-code) in `scripts/eval.ts`. Exit nonzero when the run fails, a scored cell regresses, or a required cell has no scored trials.
+Put the suite in `anpord.eval.ts` so the same command works locally and in CI.
 
 ```yaml
 name: Agent evals

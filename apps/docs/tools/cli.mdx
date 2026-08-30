@@ -26,7 +26,7 @@ Set `ANPORD_API_KEY` before running a command.
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval [file] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval file and wait for it |
+| `anpord eval [file] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval suite and wait for it |
 | `anpord list [--json]` | List up to 100 prompts |
 | `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
 | `anpord versions <id>` | Print version history as JSON |
@@ -43,14 +43,18 @@ anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
 anpord promote support-reply --to production --at 7
 ```
 
-Run a file-based eval with direct TypeScript validators:
+Run every eval suite in the repository:
 
 ```bash
 anpord eval
 ```
 
-The file defaults to `eval.ts`. The command waits for the run, draws the grid
-as cells settle, and exits nonzero when a cell regresses against its baseline.
+Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Every case,
+task, and trial in a suite is scheduled concurrently, with each sandbox
+provider enforcing its configured concurrency limit.
+
+The command waits for the run, draws the grid as cells settle, and exits
+nonzero when a cell regresses against its baseline.
 
 | Option | Purpose |
 | --- | --- |
