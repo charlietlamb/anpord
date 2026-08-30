@@ -46,10 +46,10 @@ class EvalGateFailed extends Data.TaggedError("EvalGateFailed")<{
   }
 }
 
-export class NoEvalFiles extends Data.TaggedError("NoEvalFiles")<{
-  readonly directory: string;
-}> {
+export class NoEvalFiles extends Data.TaggedError("NoEvalFiles")<
+  Readonly<Record<never, never>>
+> {
   override get message() {
-    return `No *.eval.ts file under ${this.directory}. Name one, or pass a file to run.`;
+    return "No *.eval.ts file here. Name one, or pass a file to run.";
   }
 }

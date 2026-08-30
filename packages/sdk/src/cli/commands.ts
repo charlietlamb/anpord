@@ -267,7 +267,7 @@ const runEval = Command.make(
       });
 
       if (files.length === 0) {
-        return yield* Effect.fail(new NoEvalFiles({ directory: "." }));
+        return yield* Effect.fail(new NoEvalFiles());
       }
 
       const found = yield* Effect.forEach(files, (one) =>
