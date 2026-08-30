@@ -24,11 +24,13 @@ export type Validator = (
   context: ValidatorContext
 ) => boolean | ValidatorResult | Promise<boolean | ValidatorResult>;
 
+type DeclaredSource = EvalSource | string;
+
 interface EvalCaseBase {
   readonly goal: string;
   readonly name: string;
   readonly setup?: string | null;
-  readonly source?: EvalSource;
+  readonly source?: DeclaredSource;
 }
 
 export type EvalCaseDefinition = EvalCaseBase &
@@ -41,7 +43,7 @@ export interface EvalDefinition {
   readonly cases: readonly EvalCaseDefinition[];
   readonly name: string;
   readonly prompt: string;
-  readonly source?: EvalSource;
+  readonly source?: DeclaredSource;
   readonly tasks: readonly EvalTaskRequest[];
   readonly trials: number;
 }

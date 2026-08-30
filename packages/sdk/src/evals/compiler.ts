@@ -6,6 +6,7 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect } from "effect";
 import { build, type Plugin } from "esbuild";
 import { definitionEntry, validatorEntry } from "./runner-source";
+import { repo } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
 
 const authoringExports = [
@@ -135,7 +136,11 @@ const isDefinition = (value: unknown): value is EvalDefinition =>
 const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
   const source = subject.source ?? definition.source;
 
-  return source === undefined ? {} : { source };
+  if (source === undefined) {
+    return {};
+  }
+
+  return { source: typeof source === "string" ? repo(source) : source };
 };
 
 export const compileEvalEffect = (path: string) =>

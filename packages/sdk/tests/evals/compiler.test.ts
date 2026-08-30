@@ -101,4 +101,54 @@ export default defineEval({
 
     expect(compileEval(join(workspace, "eval.ts"))).rejects.toThrow();
   });
+
+  test("reads a repository named as a plain string", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-bare-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+export default defineEval({
+  cases: [
+    { goal: "add a test", name: "inherits", verify: "true" },
+    { goal: "fix it", name: "own", source: "acme/widgets", verify: "true" },
+  ],
+  name: "suite",
+  prompt: "{{goal}}",
+  source: "charlietlamb/strudel@main",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+
+    expect(payload.cases[0]?.source).toEqual({
+      kind: "repo",
+      ref: "main",
+      url: "https://github.com/charlietlamb/strudel.git",
+    });
+    expect(payload.cases[1]?.source).toEqual({
+      kind: "repo",
+      ref: null,
+      url: "https://github.com/acme/widgets.git",
+    });
+  });
+
+  test("refuses a plain string that is not a repository", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-bare-bad-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+export default defineEval({
+  cases: [{ goal: "g", name: "c", verify: "true" }],
+  name: "suite",
+  prompt: "{{goal}}",
+  source: "nonsense",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    expect(compileEval(join(workspace, "eval.ts"))).rejects.toThrow();
+  });
 });
