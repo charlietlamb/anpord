@@ -58,8 +58,6 @@ export interface TrialInputs {
   ) => Effect.Effect<void>;
   readonly prompt: string;
   readonly recorder: TrialRecorderShape;
-  /* Run-scoped rather than part of the case: the case is stored and hashed
-     into the cell key, and an hourly token there would rewrite both. */
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly subject: GridCase;
   readonly task: GridExecutionTask;

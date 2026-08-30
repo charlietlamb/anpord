@@ -5,7 +5,6 @@ import { EvalAborted, EvalTimeout, waitForRun } from "../../src/client/wait";
 const run = (status: EvalRun["status"]) =>
   ({ cells: [], status }) as unknown as EvalRun;
 
-/** Reports `running` for the first `times` polls, then `finished`. */
 const runningFor = (times: number) => {
   let polls = 0;
   return {

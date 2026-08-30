@@ -19,8 +19,6 @@ export interface RecordInstallation {
 }
 
 export interface InstallationsShape {
-  /* Takes the organisation rather than an Actor because that is all it reads,
-     so a run resolving its clone token -- which has no user -- can ask. */
   readonly forOrganization: (
     organizationId: string
   ) => Effect.Effect<Option.Option<Installation>, CodebaseError>;

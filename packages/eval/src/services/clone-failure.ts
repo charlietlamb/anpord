@@ -1,20 +1,10 @@
 import { Array as Arr, Option, pipe } from "effect";
 
-/**
- * What a failed `git clone` actually means, for someone who has to fix it.
- *
- * The phrases are what git wrote when each failure was run against
- * github.com, not what it seems like it should write: two of these matched
- * nothing until they were checked against real output.
- */
 interface Diagnosis {
   readonly kind: "access" | "network" | "ref";
   readonly saying: readonly string[];
 }
 
-/* Ordered. A ref is diagnosed first because git reports an unreachable commit
-   with "not found" as well, and answering that with "install the app" sends
-   the reader to fix a connection that already works. */
 const DIAGNOSES: readonly Diagnosis[] = [
   {
     kind: "ref",
@@ -34,8 +24,6 @@ const DIAGNOSES: readonly Diagnosis[] = [
       "terminal prompts disabled",
       "permission denied",
       "access denied",
-      /* git writes the url between the word and "not found" -- "repository
-         'https://...' not found" -- so the phrase is never contiguous. */
       "not found",
       "does not appear to be a git repository",
     ],
@@ -60,7 +48,6 @@ const diagnose = (said: string, ref: string | null) =>
         saying.some((phrase) => said.includes(phrase))
     ),
     Option.map(({ kind }) => kind),
-    /* A failure naming the ref is about the ref, whatever words surround it. */
     Option.orElse(() =>
       ref !== null && said.includes(ref.toLowerCase())
         ? Option.some("ref" as const)
@@ -98,8 +85,6 @@ const unrecognised = (url: string, stderr: string, exitCode: number) =>
     })
   );
 
-/* git narrates progress on stderr, so the line that explains the failure is
-   the last one, not the first. */
 const lastMeaningfulLine = (stderr: string) =>
   pipe(
     stderr.split("\n"),

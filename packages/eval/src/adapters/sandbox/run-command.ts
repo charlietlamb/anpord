@@ -7,17 +7,8 @@ export interface CommandOutcome {
   readonly stderr: string;
 }
 
-/* Kept small because it exists to be read: a clone that fails says why in its
-   last line or two, and the rest is progress output nobody reads. */
 const STDERR_LIMIT = 2000;
 
-/**
- * Runs a command and reports how it went, rather than failing on a bad status.
- *
- * The caller decides what a non-zero status means. A clone that cannot reach a
- * repository is not the same failure as a sandbox that died, and only the
- * caller knows which of the two it asked for.
- */
 export const runCommandForOutcome = (
   sandbox: SandboxHandle,
   command: string,
@@ -40,13 +31,6 @@ export const runCommandForOutcome = (
     })
   );
 
-/**
- * Runs a command, failing with whatever the caller says a bad status means.
- *
- * The status check is here rather than at each call site so that adding a
- * command cannot accidentally add a third opinion about what a non-zero exit
- * is; the caller supplies only the part that differs, which is the error.
- */
 export const runCommandOrFail = <E>(
   sandbox: SandboxHandle,
   command: string,

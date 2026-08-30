@@ -6,9 +6,6 @@ import { prepareWorkspace } from "../../src/services/workspace";
 const HOME = "/home/agent";
 const CREDENTIALS = `${HOME}/.anpord-git-credentials`;
 
-/* Records what actually happened in order, because the bug this guards
-   against was a correct set of steps in the wrong sequence: the credential
-   was written after the clone that needed it. */
 const recording = (exitCode: number) => {
   const steps: string[] = [];
 

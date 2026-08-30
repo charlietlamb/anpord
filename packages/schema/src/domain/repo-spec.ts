@@ -1,6 +1,4 @@
 export interface RepoSpec {
-  /** Where it is hosted. Kept so a repository that is not on GitHub survives
-   * the round trip; shorthand has no host to keep, and defaults to GitHub. */
   readonly host: string;
   readonly owner: string;
   readonly ref: string | null;
@@ -14,18 +12,6 @@ const SHORTHAND = /^([\w.-]+)\/([\w.-]+?)(?:\.git)?(?:@(.+))?$/;
 const HOSTED =
   /^(?:https?:\/\/|git@)([^/:]+)[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/;
 
-/**
- * Reads `owner/repo`, `owner/repo@ref`, or a clone url into its parts.
- *
- * The shorthand exists so a case names a repository the way a person says it
- * out loud, and so the ref travels with the name it belongs to rather than as
- * a second field that can drift from it.
- *
- * A clone url is still accepted, because a repository that is not on GitHub
- * has no shorthand and should not be locked out of an eval. Its host is kept
- * rather than assumed: rewriting a GitLab url to github.com would clone a
- * different repository, or none, and say neither.
- */
 export const parseRepo = (spec: string): RepoSpec | null => {
   const trimmed = spec.trim();
 

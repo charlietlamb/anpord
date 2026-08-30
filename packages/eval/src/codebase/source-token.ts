@@ -13,22 +13,11 @@ export class SourceTokens extends Context.Tag("@anpord/eval/SourceTokens")<
   SourceTokensShape
 >() {}
 
-/** No installation, so every clone is unauthenticated -- which is what a test
- * against a public repository, or none at all, actually wants. */
 export const SourceTokensNone = Layer.succeed(
   SourceTokens,
   SourceTokens.of({ forOrganization: () => Effect.succeed(Option.none()) })
 );
 
-/**
- * The credential a run clones with.
- *
- * Absent rather than failing when there is no app, no installation, or GitHub
- * will not issue a token: a public repository clones without one, and refusing
- * the run would stop work that was going to succeed. A private repository
- * still fails at the clone, where the error already says the app is not
- * installed on it.
- */
 export const SourceTokensLive = Layer.effect(
   SourceTokens,
   Effect.gen(function* () {

@@ -8,19 +8,11 @@ import { build, type Plugin } from "esbuild";
 import { definitionEntry, validatorEntry } from "./runner-source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
 
-/* A definition file imports from "anpord", which is replaced rather than
-   resolved: the real package builds a client, and loading a definition must
-   not need an API key. The source helpers are re-exported from their own
-   module rather than copied, because a copy drifts -- an earlier one
-   stringified them and silently lost the regexes they close over. */
 const authoringExports = [
   "export const defineEval = value => value;",
   `export { empty, files, repo } from "./source";`,
 ].join("\n");
 
-/* Resolved from this module rather than the caller's directory, because the
-   re-export below is relative to where this file sits, not to the definition
-   file being compiled. */
 const authoringDir = dirname(fileURLToPath(import.meta.url));
 
 const ANPORD_MODULE = /^anpord$/;
@@ -139,8 +131,6 @@ const isDefinition = (value: unknown): value is EvalDefinition =>
   Array.isArray((value as EvalDefinition).tasks) &&
   Number.isInteger((value as EvalDefinition).trials);
 
-/* Spread rather than assigned, so a definition that names no source at all
-   still sends no source field and the server keeps deciding what that means. */
 const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
   const source = subject.source ?? definition.source;
 

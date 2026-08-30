@@ -56,10 +56,6 @@ export default defineEval({
     );
   });
 
-  /* The authoring stub replaces the whole "anpord" module while bundling a
-     definition. It once exported only defineEval, so importing repo failed at
-     bundle time, and a later version stringified the helpers and silently lost
-     the regexes they close over. Both compiled; neither worked. */
   test("resolves the source helpers a definition imports", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-source-"));
     await writeFile(

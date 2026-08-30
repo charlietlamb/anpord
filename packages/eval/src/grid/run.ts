@@ -129,8 +129,6 @@ export const GridRunLive = Layer.scoped(
       }[]
     ) =>
       Effect.gen(function* () {
-        /* Once per run, not once per trial: every cell clones the same
-           repositories with the same installation. */
         const sourceToken = Option.getOrUndefined(
           yield* sourceTokens.forOrganization(input.organizationId)
         );

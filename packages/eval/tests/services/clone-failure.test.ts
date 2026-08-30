@@ -3,9 +3,6 @@ import { cloneFailureReason } from "../../src/services/clone-failure";
 
 const URL = "https://github.com/acme/repo.git";
 
-/* The stderr in these tests is what git actually wrote, captured by running
-   each failure against github.com, rather than what it seems like it should
-   write. Two of these classified wrongly against invented text. */
 describe("cloneFailureReason", () => {
   test("a repository the sandbox cannot read names both reasons it might not", () => {
     const reason = cloneFailureReason(

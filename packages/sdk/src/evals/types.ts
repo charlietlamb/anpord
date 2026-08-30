@@ -28,9 +28,6 @@ interface EvalCaseBase {
   readonly goal: string;
   readonly name: string;
   readonly setup?: string | null;
-  /** Omitted to use the definition's own source, which is the usual shape: a
-   * suite tends to be many tasks against one repository, not one task against
-   * many. */
   readonly source?: EvalSource;
 }
 
@@ -44,7 +41,6 @@ export interface EvalDefinition {
   readonly cases: readonly EvalCaseDefinition[];
   readonly name: string;
   readonly prompt: string;
-  /** What every case works on unless it names its own. */
   readonly source?: EvalSource;
   readonly tasks: readonly EvalTaskRequest[];
   readonly trials: number;

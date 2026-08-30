@@ -18,11 +18,6 @@ export interface PrepareWorkspace {
   readonly sandbox: SandboxHandle;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
-  /** Reads a private repository, when the organisation's installation covers
-   * it. Kept beside the source rather than inside it: the source's url is
-   * hashed into the cell key and stored, and a token that rotates hourly would
-   * both write a secret to the database and compare against a new baseline
-   * every hour. */
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly workspace: string;
 }
@@ -33,10 +28,6 @@ const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
 const CREDENTIAL_FILE = ".anpord-git-credentials";
 
-/* The token is written to a file rather than put in the url or the command:
-   a url writes it into .git/config, and a command line is readable with `ps`
-   inside the sandbox the agent has a shell on. Acquired as a resource so the
-   file is removed whether the clone succeeds, fails, or is interrupted. */
 const credentialFile = (
   input: PrepareWorkspace,
   url: string,
