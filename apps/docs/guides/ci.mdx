@@ -3,7 +3,7 @@ title: "Run evals in CI"
 description: "Catch regressions before release"
 ---
 
-Put the script from [Run evals from code](/guides/run-from-code) in `scripts/eval.ts`. Exit nonzero when the run fails, a scored cell regresses, or a required cell has no scored trials.
+Put the suite in `anpord.eval.ts` so the same command works locally and in CI.
 
 ```yaml
 name: Agent evals
@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bunx anpord eval eval.ts
+      - run: bunx anpord eval
         env:
           ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
 ```

@@ -198,7 +198,10 @@ const gen = Command.make("gen", { out }, writeDeclarations).pipe(
 );
 
 const evalFile = Args.text({ name: "file" }).pipe(
-  Args.withDescription("A TypeScript file that default exports defineEval(...)")
+  Args.withDefault("anpord.eval.ts"),
+  Args.withDescription(
+    "A TypeScript file that default exports defineEval(...) (default: anpord.eval.ts)"
+  )
 );
 
 const runEval = Command.make("eval", { evalFile }, ({ evalFile: file }) =>

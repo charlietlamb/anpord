@@ -10,6 +10,7 @@ on:
       - "packages/auth/**"
       - "packages/cache/**"
       - "packages/db/**"
+      - "packages/eval/**"
       - "packages/ids/**"
       - "packages/prompts/**"
       - "packages/schema/**"

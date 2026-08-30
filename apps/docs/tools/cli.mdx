@@ -26,7 +26,7 @@ Set `ANPORD_API_KEY` before running a command.
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval <file>` | Compile and start a TypeScript eval file |
+| `anpord eval [file]` | Compile and start a TypeScript eval suite |
 | `anpord list [--json]` | List up to 100 prompts |
 | `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
 | `anpord versions <id>` | Print version history as JSON |
@@ -43,11 +43,15 @@ anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
 anpord promote support-reply --to production --at 7
 ```
 
-Start a file-based eval with direct TypeScript validators:
+Put the suite in `anpord.eval.ts` and run it with:
 
 ```bash
-anpord eval ./eval.ts
+anpord eval
 ```
+
+Pass a file to run a different suite: `anpord eval ./evals/smoke.eval.ts`.
+Every case, task, and trial in the suite is scheduled concurrently, with each
+sandbox provider enforcing its configured concurrency limit.
 
 `push` does not promote or accept config. Use the SDK or API for prompts with versioned config.
 

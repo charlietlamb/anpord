@@ -15,6 +15,7 @@ import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
 import { Baselines } from "../services/baselines";
 import { type GridCase, runGridCell } from "./cell";
+import { forEachGridCell } from "./for-each-cell";
 import { makeLiveRuns } from "./live-runs";
 import {
   advanceTrial,
@@ -133,51 +134,54 @@ export const GridRunLive = Layer.scoped(
           yield* sourceTokens.forOrganization(input.organizationId)
         );
 
-        for (const [taskIndex, task] of input.tasks.entries()) {
-          for (const [caseIndex, subject] of input.cases.entries()) {
-            const row = registered[caseIndex];
+        yield* forEachGridCell(
+          input.cases,
+          input.tasks,
+          (subject, task, caseIndex, taskIndex) =>
+            Effect.gen(function* () {
+              const row = registered[caseIndex];
 
-            if (row === undefined) {
-              continue;
-            }
+              if (row === undefined) {
+                return;
+              }
 
-            const position = { caseName: subject.name, taskIndex };
+              const position = { caseName: subject.name, taskIndex };
 
-            const result = yield* runGridCell({
-              agent,
-              onProgress: (ordinal, journal) =>
-                update(created.id, (state) =>
-                  advanceTrial(state, position, ordinal, journal)
-                ),
-              onTrial: (ordinal, trial) =>
-                update(created.id, (state) =>
-                  settleTrial(state, position, ordinal, trial)
-                ),
-              prompt: input.prompt,
-              recorder,
-              runInternalId: created.internalId,
-              runs,
-              sourceToken,
-              subject,
-              task,
-              taskInternalId: row.internalId,
-              taskPublicId: row.id,
-              trials: input.trials,
-            });
+              const result = yield* runGridCell({
+                agent,
+                onProgress: (ordinal, journal) =>
+                  update(created.id, (state) =>
+                    advanceTrial(state, position, ordinal, journal)
+                  ),
+                onTrial: (ordinal, trial) =>
+                  update(created.id, (state) =>
+                    settleTrial(state, position, ordinal, trial)
+                  ),
+                prompt: input.prompt,
+                recorder,
+                runInternalId: created.internalId,
+                runs,
+                sourceToken,
+                subject,
+                task,
+                taskInternalId: row.internalId,
+                taskPublicId: row.id,
+                trials: input.trials,
+              });
 
-            yield* update(created.id, (state) =>
-              completeCell(state, position, result)
-            );
+              yield* update(created.id, (state) =>
+                completeCell(state, position, result)
+              );
 
-            yield* baselines
-              .promoteIfAbsent({
-                cellInternalId: result.internalId,
-                cellKey: CellKey.make(result.cellKey),
-                organizationId: input.organizationId,
-              })
-              .pipe(Effect.ignoreLogged);
-          }
-        }
+              yield* baselines
+                .promoteIfAbsent({
+                  cellInternalId: result.internalId,
+                  cellKey: CellKey.make(result.cellKey),
+                  organizationId: input.organizationId,
+                })
+                .pipe(Effect.ignoreLogged);
+            })
+        );
 
         const finishedAt = yield* Clock.currentTimeMillis;
 
