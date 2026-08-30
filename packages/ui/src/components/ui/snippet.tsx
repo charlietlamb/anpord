@@ -14,9 +14,9 @@ export interface SnippetCommand {
  *
  * A package manager is the reader's, not ours, so the install line is shown
  * per manager rather than picking one and hoping. Built on the tabs primitive
- * already in this package: the shadcn version of this component brings Radix
- * and Lucide with it, which would put a second tabs implementation and a
- * second icon set in a repository that has one of each.
+ * already in this package: the published version of this component brings
+ * Radix and Lucide with it, which would put a second tabs implementation and
+ * a second icon set in a repository that has one of each.
  */
 export function Snippet({
   className,
@@ -30,21 +30,20 @@ export function Snippet({
     commands.find((command) => command.label === value) ?? commands[0];
 
   return (
-    <Tabs.Root
-      className={cn(
-        "overflow-hidden rounded-lg border border-border-faint",
-        className
-      )}
-      onValueChange={(next) => setValue(String(next))}
-      value={value}
-    >
-      <div className="flex items-center justify-between gap-2 border-border-faint border-b bg-muted/30 pr-1.5 pl-1">
-        <Tabs.List className="flex items-center gap-0.5">
+    <div className={cn("relative", className)}>
+      <Tabs.Root
+        onValueChange={(next) => setValue(String(next))}
+        value={value}
+      >
+        <Tabs.List className="relative flex h-9 items-center gap-1">
           {commands.map((command) => (
             <Tabs.Tab
               className={cn(
-                "rounded-md px-2.5 py-1.5 font-mono text-muted-foreground text-xs transition-colors",
-                "hover:text-foreground data-[selected]:bg-alpha-8 data-[selected]:text-foreground"
+                "h-7 rounded-md px-2 font-mono text-muted-foreground text-xs",
+                /* 120ms: a tab is pressed and read in the same moment, so the
+                   colour has to have arrived by the time the eye does. */
+                "transition-colors duration-[120ms] ease-out",
+                "hover:text-foreground data-[selected]:text-foreground"
               )}
               key={command.label}
               value={command.label}
@@ -52,27 +51,34 @@ export function Snippet({
               {command.label}
             </Tabs.Tab>
           ))}
+
+          {/* Slides between tabs rather than cutting, which is the one place
+              movement helps: it says the two are the same control. */}
+          <Tabs.Indicator
+            renderBeforeHydration
+            className="absolute bottom-0 left-0 h-0.5 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] rounded-full bg-foreground transition-[transform,width] duration-[120ms] ease-out" />
         </Tabs.List>
 
-        {/* One button rather than one per panel: it copies whatever is
-            showing, and a row of identical buttons would only ever have one
-            of them visible. */}
-        {active ? (
-          <CopyButton
-            className="size-7 shrink-0"
-            label={`Copy ${active.label} command`}
-            value={active.command}
-          />
-        ) : null}
-      </div>
+        {commands.map((command) => (
+          <Tabs.Panel key={command.label} value={command.label}>
+            <div className="rounded-lg border border-border-faint bg-background">
+              <pre className="overflow-x-auto overscroll-x-contain px-3 py-2.5 font-mono text-muted-foreground text-xs leading-relaxed">
+                {command.command}
+              </pre>
+            </div>
+          </Tabs.Panel>
+        ))}
+      </Tabs.Root>
 
-      {commands.map((command) => (
-        <Tabs.Panel key={command.label} value={command.label}>
-          <pre className="overflow-x-auto px-3 py-2.5 font-mono text-xs leading-relaxed">
-            {command.command}
-          </pre>
-        </Tabs.Panel>
-      ))}
-    </Tabs.Root>
+      {/* One button rather than one per panel: it copies whatever is showing,
+          and a row of identical buttons would only ever have one visible. */}
+      {active ? (
+        <CopyButton
+          className="absolute top-0.5 right-0.5 size-7"
+          label={`Copy ${active.label} command`}
+          value={active.command}
+        />
+      ) : null}
+    </div>
   );
 }
