@@ -1,3 +1,4 @@
+import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Redacted } from "effect";
 import { cellKeyOf } from "../domain/cell";
 import type {
@@ -19,6 +20,7 @@ export interface GridCase {
   readonly setup: string | null;
   readonly source: WorkspaceSource;
 
+  readonly validator?: EvalValidator | null;
   readonly verify: string | null;
 }
 

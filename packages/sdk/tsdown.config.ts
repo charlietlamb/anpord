@@ -7,6 +7,7 @@ export default defineConfig({
   entry: {
     cli: "src/cli/main.ts",
     config: "src/client/config.ts",
+    eval: "src/evals/compiler.ts",
     index: "src/index.ts",
   },
   format: ["esm", "cjs"],

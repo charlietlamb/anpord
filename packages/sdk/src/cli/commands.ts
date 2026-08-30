@@ -8,6 +8,7 @@ import { extractVariables } from "@anpord/template/extract";
 import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
+import { compileEvalEffect } from "../evals/compiler";
 import { declarationFile } from "./declarations";
 import { json, note, promptContent, row } from "./render";
 
@@ -196,7 +197,20 @@ const gen = Command.make("gen", { out }, writeDeclarations).pipe(
   Command.withDescription(DESCRIPTION)
 );
 
+const evalFile = Args.text({ name: "file" }).pipe(
+  Args.withDescription("A TypeScript file that default exports defineEval(...)")
+);
+
+const runEval = Command.make("eval", { evalFile }, ({ evalFile: file }) =>
+  Effect.gen(function* () {
+    const api = yield* AnpordApi;
+    const payload = yield* compileEvalEffect(file);
+    return yield* api.evals.start({ payload });
+  }).pipe(Effect.flatMap(json))
+).pipe(Command.withDescription("Compile and start an eval from TypeScript"));
+
 export const commands = [
+  runEval,
   gen,
   generate,
   get,

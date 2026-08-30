@@ -38,3 +38,39 @@ describe("the public eval provider contract", () => {
     ).toThrow();
   });
 });
+
+describe("TypeScript validators", () => {
+  it("accepts a bundled validator instead of a shell verifier", () => {
+    const value = {
+      ...request,
+      cases: [
+        {
+          goal: "Fix it",
+          name: "case",
+          validator: { name: "validateFix", source: "bundled JavaScript" },
+          verify: null,
+        },
+      ],
+    };
+
+    expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(value)).toEqual(
+      value
+    );
+  });
+
+  it("rejects a case with both a validator and verifier", () => {
+    expect(() =>
+      Schema.decodeUnknownSync(PublicStartEvalRequest)({
+        ...request,
+        cases: [
+          {
+            goal: "Fix it",
+            name: "case",
+            validator: { name: "validateFix", source: "bundled JavaScript" },
+            verify: "true",
+          },
+        ],
+      })
+    ).toThrow("Use either validator or verify, not both");
+  });
+});

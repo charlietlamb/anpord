@@ -74,12 +74,24 @@ export const EvalSource = Schema.Union(
 });
 export type EvalSource = typeof EvalSource.Type;
 
+export const EvalValidator = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
+  source: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(1_000_000)),
+}).annotations({
+  description: "A bundled TypeScript validator and its exported function name.",
+  identifier: "EvalValidator",
+});
+export type EvalValidator = typeof EvalValidator.Type;
+
 export const EvalCase = Schema.Struct({
   goal: Schema.String,
   name: Schema.String,
   setup: Schema.NullOr(Schema.String),
   source: EvalSource,
 
+  validator: Schema.optionalWith(Schema.NullOr(EvalValidator), {
+    default: () => null,
+  }),
   verify: Schema.NullOr(Schema.String),
 });
 export type EvalCase = typeof EvalCase.Type;
@@ -251,6 +263,7 @@ export const EvalSetup = Schema.Struct({
   repoUrl: Schema.NullOr(Schema.String),
   setupCommand: Schema.NullOr(Schema.String),
 
+  validatorName: Schema.NullOr(Schema.String),
   verifyCommand: Schema.NullOr(Schema.String),
   workspace: Schema.String,
 }).annotations({

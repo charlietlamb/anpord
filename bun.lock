@@ -260,6 +260,7 @@
         "@effect/platform": "^0.96.1",
         "@effect/platform-node": "^0.107.0",
         "effect": "^3.21.2",
+        "esbuild": "^0.25.12",
       },
       "devDependencies": {
         "@anpord/schema": "workspace:*",

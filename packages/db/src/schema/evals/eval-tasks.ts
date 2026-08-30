@@ -27,6 +27,8 @@ export const evalTask = pgTable(
     repoUrl: text("repo_url"),
     repoRef: text("repo_ref"),
     setupCommand: text("setup_command"),
+    validatorName: text("validator_name"),
+    validatorSource: text("validator_source"),
     verifyCommand: text("verify_command"),
     workspace: text("workspace").notNull(),
     bracketedAt: timestamp("bracketed_at"),

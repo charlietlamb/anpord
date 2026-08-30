@@ -1,3 +1,4 @@
+import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { Context, type Effect } from "effect";
 import type { SandboxUnavailable } from "../domain/errors";
 import type { HarnessEvent } from "../domain/harness-event";
@@ -9,6 +10,7 @@ export interface ScoreRequest {
   readonly events: readonly HarnessEvent[];
   readonly modelMs: number;
   readonly sandbox: SandboxHandle;
+  readonly validator?: EvalValidator | null;
   /** Null for a case with no verifier, whose trials are void rather than
    * passed: nothing decided them. */
   readonly verifyCommand: string | null;

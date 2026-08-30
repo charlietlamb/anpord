@@ -232,6 +232,7 @@ export const CELL: EvalCell = {
     repoRef: null,
     repoUrl: null,
     setupCommand: null,
+    validatorName: null,
     verifyCommand: VERIFY,
     workspace: "/tmp/anpord-task",
   },

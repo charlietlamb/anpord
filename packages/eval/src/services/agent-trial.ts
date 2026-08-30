@@ -2,6 +2,7 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+import type { EvalValidator } from "@anpord/schema/domain/evals";
 import {
   Chunk,
   Clock,
@@ -60,6 +61,7 @@ export interface AgentTrialRequest {
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
 
+  readonly validator?: EvalValidator | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -172,6 +174,7 @@ export const AgentTrialLive = Layer.effect(
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,
+          validator: request.validator,
           verifyCommand: request.verifyCommand,
           workspace: request.workspace,
         });

@@ -44,6 +44,8 @@ export interface CellTask {
   readonly repoUrl: string | null;
   readonly setupCommand: string | null;
   readonly source: WorkspaceSource | null;
+  readonly validatorName?: string | null;
+  readonly validatorSource?: string | null;
   readonly verifyCommand: string | null;
 }
 type RunRow = typeof evalRun.$inferSelect;
@@ -55,6 +57,7 @@ interface CellTaskRow {
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
   readonly setupCommand: string | null;
+  readonly validatorName: string | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -70,6 +73,7 @@ interface CellWithTrials {
   readonly setupCommand: string | null;
   readonly trials: readonly TrialRow[];
 
+  readonly validatorName: string | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
@@ -188,6 +192,7 @@ export const RunQueryLive = Layer.effect(
           repoUrl: row.repoUrl,
           setupCommand: row.setupCommand,
           trials: own,
+          validatorName: row.validatorName,
           verifyCommand: row.verifyCommand,
           workspace: row.workspace,
         };
@@ -210,6 +215,7 @@ export const RunQueryLive = Layer.effect(
               repoRef: evalTask.repoRef,
               repoUrl: evalTask.repoUrl,
               setupCommand: evalTask.setupCommand,
+              validatorName: evalTask.validatorName,
               verifyCommand: evalTask.verifyCommand,
               workspace: evalTask.workspace,
             })
@@ -250,6 +256,7 @@ export const RunQueryLive = Layer.effect(
                   repoRef: evalTask.repoRef,
                   repoUrl: evalTask.repoUrl,
                   setupCommand: evalTask.setupCommand,
+                  validatorName: evalTask.validatorName,
                   verifyCommand: evalTask.verifyCommand,
                   workspace: evalTask.workspace,
                 })
@@ -312,6 +319,8 @@ export const RunQueryLive = Layer.effect(
             setupCommand: evalTask.setupCommand,
             sourceFiles: evalTask.sourceFiles,
             sourceKind: evalTask.sourceKind,
+            validatorName: evalTask.validatorName,
+            validatorSource: evalTask.validatorSource,
             verifyCommand: evalTask.verifyCommand,
           })
           .from(evalCell)

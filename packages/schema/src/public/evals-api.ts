@@ -9,6 +9,7 @@ import {
   EvalRun,
   EvalRunPage,
   EvalSource,
+  EvalValidator,
   ModelCatalogue,
   RerunCellRequest,
   StartedEval,
@@ -50,11 +51,20 @@ const PublicEvalCase = Schema.Struct({
   name: Schema.String,
   setup: Schema.optional(Schema.NullOr(Schema.String)),
   source: Schema.optional(EvalSource),
+  validator: Schema.optional(Schema.NullOr(EvalValidator)),
   verify: Schema.NullOr(Schema.String),
-}).annotations({
-  description: "A task, workspace source, setup command, and verifier.",
-  identifier: "StartEvalCase",
-});
+})
+  .pipe(
+    Schema.filter(
+      ({ validator, verify }) =>
+        !(validator !== undefined && validator !== null && verify !== null),
+      { message: () => "Use either validator or verify, not both." }
+    )
+  )
+  .annotations({
+    description: "A task, workspace source, setup command, and verifier.",
+    identifier: "StartEvalCase",
+  });
 const PublicEvalTask = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String.pipe(Schema.minLength(1)),

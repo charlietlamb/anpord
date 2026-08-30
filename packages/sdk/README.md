@@ -33,6 +33,27 @@ const { id } = await anpord.evals.start({
 console.log(id);
 ```
 
+For a TypeScript validator, reference the imported function directly:
+
+```ts
+import { defineEval, type Validator } from "anpord";
+
+const hasGreeting: Validator = async ({ readText }) =>
+  (await readText("hello.txt")) === "hello";
+
+export default defineEval({
+  name: "greeting",
+  cases: [{ name: "greeting", goal: "Write hello.txt", validate: hasGreeting }],
+  prompt: "{{goal}}",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 3,
+});
+```
+
+```sh
+npx anpord eval ./eval.ts
+```
+
 ## Resolve a prompt
 
 ```ts
