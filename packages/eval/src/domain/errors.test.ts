@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Cause } from "effect";
-import { EvalStoreError, reasonOf } from "./errors";
+import { EvalStoreError, reasonOf, sandboxUnavailable } from "./errors";
 import { failureOf } from "./failure";
 
 const wrapped = (...messages: readonly string[]) =>
@@ -59,5 +59,21 @@ describe("reading why a store operation failed", () => {
     (looping as { cause?: unknown }).cause = looping;
 
     expect(reasonOf(looping)).toBe("round");
+  });
+});
+
+describe("reporting a provider failure", () => {
+  it("carries the innermost reason, not the wrapper the driver threw", () => {
+    const error = sandboxUnavailable(
+      "daytona",
+      wrapped("Failed to create sandbox", "connect ECONNREFUSED")
+    );
+
+    expect(error.provider).toBe("daytona");
+    expect(error.reason).toBe("connect ECONNREFUSED");
+  });
+
+  it("reads a thrown value that is not an Error", () => {
+    expect(sandboxUnavailable("e2b", "boom").reason).toBe("boom");
   });
 });

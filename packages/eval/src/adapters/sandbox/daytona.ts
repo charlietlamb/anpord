@@ -1,6 +1,6 @@
 import { Daytona, type Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
 import { Clock, Duration, Effect, Schedule } from "effect";
-import { SandboxUnavailable } from "../../domain/errors";
+import { sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
@@ -28,11 +28,7 @@ const cdInto = (
   env?: Readonly<Record<string, string>>
 ) => `${exporting(env)}cd ${workspace} && ${command}`;
 
-const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: "daytona",
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+const unavailable = (reason: unknown) => sandboxUnavailable("daytona", reason);
 
 const EXIT_POLL_MS = 250;
 

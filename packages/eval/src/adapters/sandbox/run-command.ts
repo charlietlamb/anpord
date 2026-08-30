@@ -40,20 +40,37 @@ export const runCommandForOutcome = (
     })
   );
 
+/**
+ * Runs a command, failing with whatever the caller says a bad status means.
+ *
+ * The status check is here rather than at each call site so that adding a
+ * command cannot accidentally add a third opinion about what a non-zero exit
+ * is; the caller supplies only the part that differs, which is the error.
+ */
+export const runCommandOrFail = <E>(
+  sandbox: SandboxHandle,
+  command: string,
+  onFailure: (outcome: CommandOutcome) => E,
+  options?: ExecOptions
+): Effect.Effect<void, E | SandboxUnavailable> =>
+  runCommandForOutcome(sandbox, command, options).pipe(
+    Effect.flatMap((outcome) =>
+      outcome.exitCode === 0 ? Effect.void : Effect.fail(onFailure(outcome))
+    )
+  );
+
 export const runCommand = (
   sandbox: SandboxHandle,
   command: string,
   options?: ExecOptions
 ) =>
-  runCommandForOutcome(sandbox, command, options).pipe(
-    Effect.flatMap((outcome) =>
-      outcome.exitCode === 0
-        ? Effect.void
-        : Effect.fail(
-            new SandboxUnavailable({
-              provider: sandbox.provider,
-              reason: `Command exited with status ${outcome.exitCode}`,
-            })
-          )
-    )
+  runCommandOrFail(
+    sandbox,
+    command,
+    (outcome) =>
+      new SandboxUnavailable({
+        provider: sandbox.provider,
+        reason: `Command exited with status ${outcome.exitCode}`,
+      }),
+    options
   );

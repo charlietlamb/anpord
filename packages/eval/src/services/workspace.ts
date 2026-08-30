@@ -1,9 +1,6 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import { Effect, type Redacted } from "effect";
-import {
-  runCommand,
-  runCommandForOutcome,
-} from "../adapters/sandbox/run-command";
+import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import { SourceUnavailable } from "../domain/errors";
@@ -32,26 +29,15 @@ const clone = (input: PrepareWorkspace, url: string, ref: string | null) => {
       ? ""
       : ` && git -C ${quoted(input.workspace)} fetch --depth 1 origin ${quoted(ref)} && git -C ${quoted(input.workspace)} checkout --detach FETCH_HEAD`;
 
-  return runCommandForOutcome(
+  return runCommandOrFail(
     input.sandbox,
     `git clone --depth 1 ${quoted(url)} ${quoted(input.workspace)}${checkout}`,
+    (outcome) =>
+      new SourceUnavailable({
+        reason: cloneFailureReason(url, ref, outcome.stderr, outcome.exitCode),
+        url,
+      }),
     { timeoutMs: 300_000 }
-  ).pipe(
-    Effect.flatMap((outcome) =>
-      outcome.exitCode === 0
-        ? Effect.void
-        : Effect.fail(
-            new SourceUnavailable({
-              reason: cloneFailureReason(
-                url,
-                ref,
-                outcome.stderr,
-                outcome.exitCode
-              ),
-              url,
-            })
-          )
-    )
   );
 };
 

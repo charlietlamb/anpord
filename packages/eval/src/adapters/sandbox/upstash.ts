@@ -1,6 +1,6 @@
 import { Box, EphemeralBox } from "@upstash/box";
 import { Duration, Effect } from "effect";
-import { SandboxUnavailable } from "../../domain/errors";
+import { sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
@@ -29,11 +29,7 @@ const commandFor = (
   return `cd ${quoted(options?.cwd ?? workspace)} && ${env}timeout --signal=TERM --kill-after=1s ${timeout}s sh -lc ${quoted(command)}`;
 };
 
-const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: "upstash",
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+const unavailable = (reason: unknown) => sandboxUnavailable("upstash", reason);
 
 const handleFor = (box: UpstashBox, workspace: string): SandboxHandle => ({
   exec: (command, options) =>

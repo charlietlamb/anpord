@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { dirname } from "node:path";
 import { Config, Effect, Schema } from "effect";
-import { SandboxUnavailable } from "../../domain/errors";
+import { sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
@@ -56,10 +56,7 @@ interface ExecSink {
 }
 
 const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: "cloudflare",
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+  sandboxUnavailable("cloudflare", reason);
 
 const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 

@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 import { ModalClient, type ModalReadStream, type Sandbox } from "modal";
-import { SandboxUnavailable } from "../../domain/errors";
+import { sandboxUnavailable } from "../../domain/errors";
 import type {
   OpenSandbox,
   SandboxAdapterShape,
@@ -14,11 +14,7 @@ const IMAGE = "node:22-bookworm";
 const WORKSPACE = "/tmp/anpord";
 const DEFAULT_TIMEOUT_MS = 120_000;
 
-const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: "modal",
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+const unavailable = (reason: unknown) => sandboxUnavailable("modal", reason);
 
 const drain = async (
   stream: ModalReadStream<string>,

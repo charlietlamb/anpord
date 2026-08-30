@@ -1,6 +1,6 @@
 import { Sandbox as E2BSandbox } from "e2b";
 import { Effect } from "effect";
-import { SandboxUnavailable } from "../../domain/errors";
+import { sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
@@ -35,11 +35,7 @@ const asCommandResult = (rejection: unknown): CommandResult | null => {
     : null;
 };
 
-const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: "e2b",
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+const unavailable = (reason: unknown) => sandboxUnavailable("e2b", reason);
 
 const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
   exec: (command, options?: ExecOptions) =>

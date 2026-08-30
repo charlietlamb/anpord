@@ -40,6 +40,19 @@ export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
   reason: Schema.String,
 }) {}
 
+/**
+ * A provider failure, explained by the innermost error it carries.
+ *
+ * Every sandbox adapter reported one of these, each with its own copy that
+ * read `reason.message` and stopped there. Drivers wrap, so that copy recorded
+ * "Failed to create sandbox" for a run whose real problem was
+ * "connect ECONNREFUSED" one layer down.
+ */
+export const sandboxUnavailable = (
+  provider: typeof ProviderName.Type,
+  reason: unknown
+) => new SandboxUnavailable({ provider, reason: reasonOf(reason) });
+
 export class HarnessUnavailable extends Schema.TaggedError<HarnessUnavailable>(
   "HarnessUnavailable"
 )("HarnessUnavailable", {

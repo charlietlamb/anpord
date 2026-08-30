@@ -2,7 +2,7 @@ import { dirname } from "node:path";
 import { Writable } from "node:stream";
 import { Sandbox } from "@vercel/sandbox";
 import { Config, Effect } from "effect";
-import { SandboxUnavailable } from "../../domain/errors";
+import { sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
@@ -29,11 +29,7 @@ const environment = Config.all({
   token: Config.string("VERCEL_TOKEN").pipe(Config.withDefault("")),
 });
 
-const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: "vercel",
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+const unavailable = (reason: unknown) => sandboxUnavailable("vercel", reason);
 
 const credentials = (
   values: Readonly<Record<string, string>> | undefined,
