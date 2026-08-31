@@ -6,7 +6,7 @@ import { ModelPricesLive } from "./adapters/models/prices";
 import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { GridRunLive } from "./grid/run";
-import type { TrialRunner } from "./ports/trial-runner";
+import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
@@ -16,13 +16,10 @@ import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
 import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { CellRerunsLive } from "./services/cell-rerun";
-import { ContinueRunsLive } from "./services/continue-run";
 import { HarnessVersionsLive } from "./services/harness-versions";
-import { TrialRunnerInProcess } from "./services/in-process-runner";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
 import { SuspenderSleeping } from "./services/resumable-command";
-import { ResumeRunsLive } from "./services/resume-run";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { WorkbenchesLive } from "./services/workbench";
 
@@ -71,15 +68,7 @@ export const evalGridWith = (runner: Layer.Layer<TrialRunner>) => {
     grid,
     WorkbenchesLive.pipe(Layer.provide(grid)),
 
-    CellRerunsLive.pipe(Layer.provide(grid)),
-
-    /* Beside the reruns rather than alone: a resume continues an existing run
-       through the same grid, so it needs the grid those two already build. */
-    ResumeRunsLive.pipe(Layer.provide(grid)),
-
-    /* The same rebuild without an actor, for a worker that was handed a run id
-       and has no session to check anything against. */
-    ContinueRunsLive.pipe(Layer.provide(grid))
+    CellRerunsLive.pipe(Layer.provide(grid))
   ).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
 };
 

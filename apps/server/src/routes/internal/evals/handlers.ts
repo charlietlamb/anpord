@@ -1,10 +1,11 @@
 import { CredentialResolver } from "@anpord/eval/credentials/connections";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { rebuildRun } from "@anpord/eval/grid/from-stored";
 import { GridRun } from "@anpord/eval/grid/run";
+import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import { ResumeRuns } from "@anpord/eval/services/resume-run";
 import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
@@ -132,28 +133,34 @@ export const EvalsHandlers = HttpApiBuilder.group(
       .handle("resume", { permission: Permissions.Evals.Write }, ({ path }) =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
-          const runs = yield* ResumeRuns;
           const credentials = yield* EvalCredentials;
+          const grid = yield* GridRun;
 
-          yield* runs
-            .resume({
-              actor,
-              legacyHarnessAuth: credentials.codexAuth,
+          yield* rebuildRun(
+            {
+              credentials: yield* CredentialResolver,
+              grid,
+              query: yield* RunQuery,
+            },
+            {
+              organizationId: actor.organizationId,
               runId: path.id,
-            })
-            .pipe(
-              Effect.mapError((problem) =>
-                problem._tag === "CredentialError"
-                  ? new NotFound({ message: problem.message })
-                  : problem
-              ),
-              Effect.catchTag("EvalStoreError", Effect.die),
-              Effect.catchTag("NotRunnable", (problem) =>
-                Effect.fail(
-                  new Conflict({ message: problem.problems.join(", ") })
-                )
+              source: { actor, legacyHarnessAuth: credentials.codexAuth },
+            }
+          ).pipe(
+            Effect.flatMap(grid.resume),
+            Effect.mapError((problem) =>
+              problem._tag === "CredentialError"
+                ? new NotFound({ message: problem.message })
+                : problem
+            ),
+            Effect.catchTag("EvalStoreError", Effect.die),
+            Effect.catchTag("NotRunnable", (problem) =>
+              Effect.fail(
+                new Conflict({ message: problem.problems.join(", ") })
               )
-            );
+            )
+          );
 
           return { id: path.id };
         })

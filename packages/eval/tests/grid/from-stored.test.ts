@@ -1,59 +1,167 @@
 import { describe, expect, test } from "bun:test";
-import { caseFrom, taskFrom } from "../../src/grid/from-stored";
-import type { CellTask } from "../../src/repositories/run-query";
+import { Effect, Option, Redacted } from "effect";
+import type { CredentialResolverShape } from "../../src/credentials/connections";
+import { caseFrom, rebuildRun, taskFrom } from "../../src/grid/from-stored";
+import type { GridRunShape, ResumeGrid } from "../../src/grid/run";
+import type { CellTask, RunQueryShape } from "../../src/repositories/run-query";
 
-const stored = (overrides: Partial<CellTask> = {}) =>
+const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
   ({
     cell: {
       harness: "codex",
-      harnessCredentialConnectionId: "conn-harness",
-      harnessVersion: "0.144.4",
+      harnessCredentialConnectionId: "conn",
+      harnessVersion: "1",
       model: "gpt-5.6-sol",
       provider: "daytona",
-      sandboxCredentialConnectionId: "conn-sandbox",
+      runInternalId: "run-internal",
+      sandboxCredentialConnectionId: null,
+      taskInternalId: `internal-${name}`,
+      ...over,
     },
-    identity: "identity",
-    name: "adds a test",
-    prepareName: "prepareRepoImage",
-    prepareSource: "export {}",
+    identity: `id-${name}`,
+    name,
+    prepareName: null,
+    prepareSource: null,
     prompt: "{{task}}",
     source: { kind: "empty" },
-    validatorName: "validateRepoImage",
-    validatorSource: "export {}",
-    verifyCommand: null,
-    ...overrides,
+    validatorName: null,
+    validatorSource: null,
+    verifyCommand: "true",
   }) as unknown as CellTask;
 
-describe("rebuilding a case from what was stored", () => {
-  test("carries the bundled prepare and validator, not just their names", () => {
-    const subject = caseFrom(stored());
+const asked: string[] = [];
 
-    expect(subject.prepare).toEqual({
-      name: "prepareRepoImage",
-      source: "export {}",
-    });
-    expect(subject.validator).toEqual({
-      name: "validateRepoImage",
-      source: "export {}",
-    });
+const services = (
+  cells: readonly CellTask[],
+  status: "running" | "failed" = "failed"
+) => ({
+  credentials: {
+    resolve: () =>
+      Effect.succeed(Redacted.make({ revision: 1, values: {} }) as never),
+    resolveBound: ({ connectionId }: { connectionId: string }) =>
+      Effect.sync(() => {
+        asked.push(connectionId);
+
+        return Redacted.make({ revision: 1, values: {} }) as never;
+      }),
+  } as unknown as CredentialResolverShape,
+  grid: {
+    get: () => Effect.succeed(Option.some({ status })),
+  } as unknown as GridRunShape,
+  query: {
+    findRunTasks: () => Effect.succeed(cells),
+  } as unknown as RunQueryShape,
+});
+
+const BOUND = { bound: true } as const;
+const AS_ACTOR = {
+  actor: { organizationId: "org" },
+  legacyHarnessAuth: "legacy",
+} as never;
+
+const rebuilding = (
+  cells: readonly CellTask[],
+  source: Parameters<typeof rebuildRun>[1]["source"] = BOUND,
+  status: "running" | "failed" = "failed"
+) =>
+  Effect.runPromise(
+    rebuildRun(services(cells, status), {
+      organizationId: "org",
+      runId: "run_1",
+      source,
+    }).pipe(Effect.either) as never
+  ) as Promise<{ _tag: string; right?: ResumeGrid }>;
+
+describe("reading a case back from what was stored", () => {
+  test("pairs a prepare only when it has both halves", () => {
+    expect(caseFrom(cell()).prepare).toBeNull();
   });
 
-  test("a case stored without a prepare rebuilds without one", () => {
-    const subject = caseFrom(
-      stored({ prepareName: null, prepareSource: null })
-    );
-
-    expect(subject.prepare).toBeNull();
+  test("keeps the identity the cell was registered under", () => {
+    expect(caseFrom(cell()).identity).toBe("id-a");
   });
 
-  test("keeps the identity, so a rebuilt case scores against its baseline", () => {
-    expect(caseFrom(stored()).identity).toBe("identity");
-  });
-
-  test("a task names the connections its credentials came from", () => {
-    expect(taskFrom(stored()).credentials).toEqual({
-      harnessConnectionId: "conn-harness",
-      sandboxConnectionId: "conn-sandbox",
+  test("carries the connections a caller will resolve for itself", () => {
+    expect(taskFrom(cell()).credentials).toEqual({
+      harnessConnectionId: "conn",
+      sandboxConnectionId: undefined,
     });
+  });
+});
+
+describe("rebuilding the grid a run was", () => {
+  const square = [
+    cell({ model: "gpt-5" }, "a"),
+    cell({ model: "gpt-5" }, "b"),
+    cell({ model: "claude" }, "a"),
+    cell({ model: "claude" }, "b"),
+  ];
+
+  test("runs the cells it stored, rather than their square", async () => {
+    const outcome = await rebuilding(square);
+
+    expect(outcome.right?.input.cases).toHaveLength(2);
+    expect(outcome.right?.input.tasks).toHaveLength(2);
+  });
+
+  test("names each case once, so the grid can index them", async () => {
+    const outcome = await rebuilding(square);
+
+    expect(outcome.right?.registered.map((row) => row.id)).toEqual([
+      "id-a",
+      "id-b",
+    ]);
+  });
+
+  test("continues the run it was given rather than starting another", async () => {
+    const outcome = await rebuilding([cell()]);
+
+    expect(outcome.right?.created).toEqual({
+      id: "run_1",
+      internalId: "run-internal",
+    });
+  });
+});
+
+describe("where the credentials come from", () => {
+  /* The whole reason the source is a parameter: a worker has nobody to check
+     against, so it reads the connection the run already recorded. */
+  test("a worker asks for the connection the cell recorded", async () => {
+    asked.length = 0;
+
+    await rebuilding([cell({ harnessCredentialConnectionId: "conn-7" })]);
+
+    expect(asked).toContain("conn-7");
+  });
+
+  test("a worker refuses a cell that recorded none, rather than guessing", async () => {
+    const outcome = await rebuilding([
+      cell({ harnessCredentialConnectionId: null }),
+    ]);
+
+    expect(outcome._tag).toBe("Left");
+  });
+
+  test("a person resolves against themselves instead", async () => {
+    asked.length = 0;
+
+    const outcome = await rebuilding([cell()], AS_ACTOR);
+
+    expect(outcome._tag).toBe("Right");
+    expect(asked).toHaveLength(0);
+  });
+});
+
+describe("a run that should not be continued", () => {
+  test("is refused while it is still running", async () => {
+    const outcome = await rebuilding([cell()], BOUND, "running");
+
+    expect(outcome._tag).toBe("Left");
+  });
+
+  test("is refused when it has no cells", async () => {
+    const outcome = await rebuilding([]);
+
+    expect(outcome._tag).toBe("Left");
   });
 });

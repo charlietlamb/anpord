@@ -38,7 +38,9 @@ const CodebaseLayer = Layer.mergeAll(
    nothing that serves a request. */
 export const WorkerLayer = EvalGridLive.pipe(
   Layer.provide(EvalSandboxLive),
-  Layer.provide(
+  /* Merged rather than provided: the task resolves the credentials a stored
+     run recorded, so it yields the resolver itself. */
+  Layer.provideMerge(
     CredentialResolverLive.pipe(Layer.provide(CredentialDependencies))
   ),
   Layer.provide(EvalHarnessVersionsLive),

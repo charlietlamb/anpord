@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Ref } from "effect";
-import { TrialRunner } from "../../src/ports/trial-runner";
-import { TrialRunnerInProcess } from "../../src/services/in-process-runner";
+import {
+  TrialRunner,
+  TrialRunnerInProcess,
+} from "../../src/ports/trial-runner";
 
 describe("dispatching a grid in this process", () => {
   test("returns before the grid finishes, so starting a run does not block", async () => {

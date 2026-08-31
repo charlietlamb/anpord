@@ -1,5 +1,7 @@
+import { CredentialResolver } from "@anpord/eval/credentials/connections";
+import { rebuildRun } from "@anpord/eval/grid/from-stored";
 import { GridRun } from "@anpord/eval/grid/run";
-import { ContinueRuns } from "@anpord/eval/services/continue-run";
+import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { schemaTask } from "@trigger.dev/sdk";
 import { Effect, ManagedRuntime, Schema } from "effect";
 import { WorkerLayer } from "../layer";
@@ -28,13 +30,23 @@ export const evalRun = schemaTask({
   run: async (payload: EvalRunPayload) => {
     const cells = await runtime.runPromise(
       Effect.gen(function* () {
-        const runs = yield* ContinueRuns;
         const grid = yield* GridRun;
 
-        const rebuilt = yield* runs.build({
-          organizationId: payload.organizationId,
-          runId: payload.runId,
-        });
+        /* Bound rather than resolved against an actor: this process has no
+           session, and a person already chose these credentials when they
+           started the run. */
+        const rebuilt = yield* rebuildRun(
+          {
+            credentials: yield* CredentialResolver,
+            grid,
+            query: yield* RunQuery,
+          },
+          {
+            organizationId: payload.organizationId,
+            runId: payload.runId,
+            source: { bound: true },
+          }
+        );
 
         yield* grid.execute(rebuilt);
 
