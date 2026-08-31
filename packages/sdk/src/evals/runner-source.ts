@@ -34,7 +34,7 @@ export const validatorEntry = (module: string, name: string) =>
   `import { ${name} as validate } from ${JSON.stringify(module)};\n${runtime}`;
 
 const prepareRuntime = `
-import { access, readFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 
 const exec = (file, args = [], options = {}) => new Promise((resolve, reject) => {
@@ -60,8 +60,37 @@ const exec = (file, args = [], options = {}) => new Promise((resolve, reject) =>
   });
 });
 
+const cacheDir = process.env.ANPORD_CACHE_DIR || null;
+
+// Whole archives in and out. What backs cacheDir does not support the renames
+// or hard links an install performs, so nothing works inside it directly.
+const archiveFor = key => cacheDir + "/" + encodeURIComponent(key) + ".tar.gz";
+
+const cache = cacheDir === null ? null : {
+  has: async key => await access(archiveFor(key)).then(() => true, () => false),
+  restore: async (key, path) => {
+    const archive = archiveFor(key);
+    if (!await access(archive).then(() => true, () => false)) return false;
+    await rm(path, { force: true, recursive: true });
+    await mkdir(path, { recursive: true });
+    const { exitCode } = await exec("tar", ["xzf", archive, "-C", path]);
+    if (exitCode !== 0) { await rm(path, { force: true, recursive: true }); return false; }
+    return true;
+  },
+  save: async (key, path) => {
+    // Written beside the target and moved into place would be the usual care,
+    // but the store cannot rename. A partial archive is dropped instead.
+    const archive = archiveFor(key);
+    const { exitCode, stderr } = await exec("tar", ["czf", archive, "-C", path, "."]);
+    if (exitCode !== 0) {
+      await rm(archive, { force: true });
+      throw new Error("could not save to the cache: " + stderr.trim());
+    }
+  },
+};
+
 const context = {
-  cache: process.env.ANPORD_CACHE_DIR || null,
+  cache,
   exec,
   exists: path => access(path).then(() => true, () => false),
   readText: path => readFile(path, "utf8"),

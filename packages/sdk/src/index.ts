@@ -62,6 +62,7 @@ export type {
   EvalDefinition,
   ExecOptions,
   Prepare,
+  PrepareCache,
   PrepareContext,
   PrepareValue,
   Validator,

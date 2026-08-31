@@ -15,10 +15,28 @@ export interface ExecOptions {
   readonly timeoutMs?: number;
 }
 
+/**
+ * Somewhere to keep what a prepare built, so the next run preparing the same
+ * way does not build it again.
+ *
+ * Whole directories in and out, not a directory to work in. What backs this is
+ * object storage: it takes and returns files, and does not support the renames
+ * and hard links a package manager performs constantly. Pointing npm or bun at
+ * it directly fails partway through an install, one package at a time.
+ */
+export interface PrepareCache {
+  /** Whether anything was stored under this key by an earlier run. */
+  readonly has: (key: string) => Promise<boolean>;
+  /** Unpacks what was stored under this key into `path`, replacing it.
+   * Resolves false when nothing was stored. */
+  readonly restore: (key: string, path: string) => Promise<boolean>;
+  /** Stores `path` under this key for the next run to restore. */
+  readonly save: (key: string, path: string) => Promise<void>;
+}
+
 export interface PrepareContext {
-  /** A directory that outlives this sandbox, shared by every run preparing
-   * the same way. Null when the provider has nowhere to put one. */
-  readonly cache: string | null;
+  /** Null when the provider has nowhere to keep one. */
+  readonly cache: PrepareCache | null;
   readonly exec: (
     file: string,
     args?: readonly string[],
