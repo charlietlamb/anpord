@@ -49,6 +49,11 @@ export interface RunRepositoryShape {
   readonly insertCells: (
     input: readonly InsertCell[]
   ) => Effect.Effect<readonly CellRow[], EvalStoreError>;
+  /** Puts a finished run back to running, so a resume is not executing work
+   * against a row that still says it failed. */
+  readonly reopen: (input: {
+    readonly internalId: string;
+  }) => Effect.Effect<void, EvalStoreError>;
 
   readonly settleCell: (input: {
     readonly internalId: string;
@@ -92,6 +97,14 @@ export const RunRepositoryLive = Layer.effect(
             })
             .where(eq(evalRun.internalId, input.internalId))
         ).pipe(Effect.asVoid, Effect.withSpan("RunRepository.finish")),
+
+      reopen: (input) =>
+        tryStore("run.reopen", () =>
+          db
+            .update(evalRun)
+            .set({ failure: null, finishedAt: null, status: "running" })
+            .where(eq(evalRun.internalId, input.internalId))
+        ).pipe(Effect.asVoid, Effect.withSpan("RunRepository.reopen")),
 
       insert: (input) =>
         Effect.gen(function* () {

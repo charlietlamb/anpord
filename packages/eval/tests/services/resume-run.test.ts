@@ -122,3 +122,41 @@ describe("resuming a run that should not be resumed", () => {
     expect(outcome._tag).toBe("Left");
   });
 });
+
+const cellFor = (caseName: string, model: string) => ({
+  ...CELL,
+  cell: { ...CELL.cell, model, taskInternalId: `internal-${caseName}` },
+  identity: `id-${caseName}`,
+  name: caseName,
+});
+
+/* Two cases across two models: four stored cells, and a grid that is their
+   product rather than their count. */
+const SQUARE = [
+  cellFor("a", "gpt-5"),
+  cellFor("b", "gpt-5"),
+  cellFor("a", "claude"),
+  cellFor("b", "claude"),
+];
+
+describe("rebuilding the grid a run was", () => {
+  test("runs the cells it stored, rather than their square", async () => {
+    const { resumed } = await attempt("failed", SQUARE);
+    const grid = resumed as ResumeGrid;
+
+    expect(grid.input.cases).toHaveLength(2);
+    expect(grid.input.tasks).toHaveLength(2);
+    expect(grid.input.cases.length * grid.input.tasks.length).toBe(
+      SQUARE.length
+    );
+  });
+
+  test("names each case once, so the grid can index them", async () => {
+    const { resumed } = await attempt("failed", SQUARE);
+
+    expect((resumed as ResumeGrid).registered.map((row) => row.id)).toEqual([
+      "id-a",
+      "id-b",
+    ]);
+  });
+});

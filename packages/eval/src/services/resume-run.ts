@@ -4,7 +4,7 @@ import { CredentialResolver } from "../credentials/connections";
 import type { CredentialError } from "../credentials/errors";
 import { resolveTaskCredentials } from "../credentials/tasks";
 import { type EvalStoreError, NotRunnable } from "../domain/errors";
-import { caseFrom, taskFrom } from "../grid/from-stored";
+import { caseFrom, gridOf, taskFrom } from "../grid/from-stored";
 import { GridRun, type ResumeGrid } from "../grid/run";
 import { RunQuery } from "../repositories/run-query";
 
@@ -61,10 +61,12 @@ export const ResumeRunsLive = Layer.effect(
         });
       }
 
+      const rebuilt = gridOf(cells);
+
       const tasks = yield* resolveTaskCredentials(
         credentials,
         input.actor,
-        cells.map(taskFrom),
+        rebuilt.tasks.map(taskFrom),
         input.legacyHarnessAuth
       );
 
@@ -74,14 +76,16 @@ export const ResumeRunsLive = Layer.effect(
           internalId: first.cell.runInternalId,
         },
         input: {
-          cases: cells.map(caseFrom),
+          cases: rebuilt.cases.map(caseFrom),
           organizationId: input.actor.organizationId,
           prompt: first.prompt,
           startedBy: null,
           tasks,
           trials: 1,
         },
-        registered: cells.map((subject) => ({
+        /* Indexed by case, because that is how the grid reads it: one entry
+           per case, not per cell. */
+        registered: rebuilt.cases.map((subject) => ({
           id: subject.identity,
           internalId: subject.cell.taskInternalId,
         })),

@@ -270,7 +270,7 @@ export const GridRunLive = Layer.scoped(
         yield* runner.dispatch({
           organizationId: input.organizationId,
           runId: created.id,
-          work: resume({ created, input, registered }),
+          work: work({ created, input, registered }),
         });
 
         return created.id;
@@ -325,11 +325,59 @@ export const GridRunLive = Layer.scoped(
         Effect.withSpan("GridRun.get")
       );
 
-    const resume = (grid: ResumeGrid) =>
+    const work = (grid: ResumeGrid) =>
       execute(grid.input, grid.created, grid.registered).pipe(
         Effect.provideService(ModelPrices, prices),
         Effect.annotateLogs({ runId: grid.created.id }),
+        /* Logged before it becomes a defect, for the reason start gives: the
+           tag is lost through orDie, and this runs detached, where nothing is
+           left to report what went wrong. */
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("grid run could not resume", cause)
+        ),
         Effect.orDie
+      );
+
+    const resume = (grid: ResumeGrid) =>
+      Effect.gen(function* () {
+        const startedAt = yield* Clock.currentTimeMillis;
+
+        /* The row says failed, because the sweep that closed it is why anybody
+           is resuming. Executing against it would leave a run in flight that
+           every reader sees as finished. */
+        yield* runs.reopen({ internalId: grid.created.internalId });
+
+        /* Seeded before dispatch for the same reason start seeds it: live
+           updates are dropped for an id the map does not hold, so without this
+           every trial's progress goes nowhere and the guard against resuming a
+           running run never sees it running. */
+        yield* publish({
+          cases: grid.input.cases.map((subject) => subject.name),
+          cells: [],
+          failure: Option.none(),
+          finishedAt: Option.none(),
+          id: grid.created.id,
+          organizationId: grid.input.organizationId,
+          startedAt,
+          status: "running",
+          tasks: grid.input.tasks.map(
+            ({ bindings: _, credentials: __, ...task }) => task
+          ),
+        });
+
+        yield* runner.dispatch({
+          organizationId: grid.input.organizationId,
+          runId: grid.created.id,
+          work: work(grid),
+        });
+      }).pipe(
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("grid run could not be resumed", cause)
+        ),
+        Effect.orDie,
+        Effect.withSpan("GridRun.resume", {
+          attributes: { runId: grid.created.id },
+        })
       );
 
     return GridRun.of({
