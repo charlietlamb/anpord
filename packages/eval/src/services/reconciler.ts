@@ -90,11 +90,16 @@ export const ReconcilerLive = Layer.effect(
             .returning({ internalId: evalRun.internalId })
         );
 
+        /* Named as resumable rather than merely abandoned, because the cells
+           are still on the run and a resume continues them. The sweep cannot
+           do it itself: resolving a credential needs the actor whose it is,
+           and a background pass acts for nobody. */
         const runs = yield* tryStore("reconcile.runs", () =>
           db
             .update(evalRun)
             .set({
-              failure: "abandoned: the process running this did not finish it",
+              failure:
+                "abandoned: the process running this did not finish it. It can be resumed.",
               finishedAt: sql`now()`,
               status: "failed",
             })
@@ -113,9 +118,12 @@ export const ReconcilerLive = Layer.effect(
           yield* Effect.logWarning("closed abandoned eval work").pipe(
             Effect.annotateLogs({
               cells: cells.length,
-              trials: abandoned.length,
-              runs: runs.length,
+              /* Named for what can be done about it rather than what was
+                 done to it, and kept apart from the stillborn count, which
+                 registered no cell and so has nothing to continue. */
+              resumable: runs.length,
               stillborn: stillborn.length,
+              trials: abandoned.length,
             })
           );
         }

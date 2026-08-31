@@ -4,7 +4,8 @@ import { GridRun } from "@anpord/eval/grid/run";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import { NotFound } from "@anpord/schema/domain/errors";
+import { ResumeRuns } from "@anpord/eval/services/resume-run";
+import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
@@ -127,6 +128,35 @@ export const EvalsHandlers = HttpApiBuilder.group(
 
             return { id };
           })
+      )
+      .handle("resume", { permission: Permissions.Evals.Write }, ({ path }) =>
+        Effect.gen(function* () {
+          const actor = yield* CurrentActor;
+          const runs = yield* ResumeRuns;
+          const credentials = yield* EvalCredentials;
+
+          yield* runs
+            .resume({
+              actor,
+              legacyHarnessAuth: credentials.codexAuth,
+              runId: path.id,
+            })
+            .pipe(
+              Effect.mapError((problem) =>
+                problem._tag === "CredentialError"
+                  ? new NotFound({ message: problem.message })
+                  : problem
+              ),
+              Effect.catchTag("EvalStoreError", Effect.die),
+              Effect.catchTag("NotRunnable", (problem) =>
+                Effect.fail(
+                  new Conflict({ message: problem.problems.join(", ") })
+                )
+              )
+            );
+
+          return { id: path.id };
+        })
       )
       .handle(
         "modelCatalogue",

@@ -67,6 +67,7 @@
     "./services/harness-versions": "./src/services/harness-versions.ts",
     "./services/model-catalogue": "./src/services/model-catalogue.ts",
     "./services/reconciler": "./src/services/reconciler.ts",
+    "./services/resume-run": "./src/services/resume-run.ts",
     "./services/workbench": "./src/services/workbench.ts"
   }
 }

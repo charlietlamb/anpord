@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Effect, Layer, Redacted, Ref } from "effect";
+import { Effect, Layer, Option, Redacted, Ref } from "effect";
 import { CredentialResolver } from "../../src/credentials/connections";
 import { GridRun, type ResumeGrid } from "../../src/grid/run";
 import { RunQuery } from "../../src/repositories/run-query";
@@ -27,14 +27,19 @@ const CELL = {
   verifyCommand: "true",
 };
 
-const resumedGrid = Effect.gen(function* () {
-  const seen = yield* Ref.make<ResumeGrid | null>(null);
+type RunStatus = "running" | "finished" | "failed";
 
-  const stubs = Layer.mergeAll(
+const stubsFor = (
+  status: RunStatus,
+  seen: Ref.Ref<ResumeGrid | null>,
+  cells: readonly unknown[]
+) =>
+  Layer.mergeAll(
     Layer.succeed(RunQuery, {
-      findRunTasks: () => Effect.succeed([CELL]),
+      findRunTasks: () => Effect.succeed(cells),
     } as never),
     Layer.succeed(GridRun, {
+      get: () => Effect.succeed(Option.some({ status })),
       resume: (grid: ResumeGrid) => Ref.set(seen, grid),
     } as never),
     Layer.succeed(CredentialResolver, {
@@ -43,18 +48,40 @@ const resumedGrid = Effect.gen(function* () {
     } as never)
   );
 
-  yield* Effect.gen(function* () {
-    const runs = yield* ResumeRuns;
+const resuming = (
+  status: RunStatus = "failed",
+  cells: readonly unknown[] = [CELL]
+) =>
+  Effect.gen(function* () {
+    const seen = yield* Ref.make<ResumeGrid | null>(null);
 
-    yield* runs.resume({
-      actor: { organizationId: "org" } as never,
-      legacyHarnessAuth: "legacy",
-      runId: "run_1",
-    });
-  }).pipe(Effect.provide(ResumeRunsLive.pipe(Layer.provide(stubs))));
+    const outcome = yield* Effect.gen(function* () {
+      const runs = yield* ResumeRuns;
 
-  return yield* Ref.get(seen);
-});
+      return yield* runs.resume({
+        actor: { organizationId: "org" } as never,
+        legacyHarnessAuth: "legacy",
+        runId: "run_1",
+      });
+    }).pipe(
+      Effect.provide(
+        ResumeRunsLive.pipe(Layer.provide(stubsFor(status, seen, cells)))
+      ),
+      Effect.either
+    );
+
+    return { outcome, resumed: yield* Ref.get(seen) };
+  });
+
+const resumedGrid = resuming().pipe(
+  Effect.map(({ resumed }) => resumed as ResumeGrid)
+);
+
+const attempt = (status: RunStatus, cells: readonly unknown[] = [CELL]) =>
+  Effect.runPromise(resuming(status, cells) as never) as Promise<{
+    outcome: { readonly _tag: string };
+    resumed: ResumeGrid | null;
+  }>;
 
 describe("resuming a run that is already registered", () => {
   test("continues the run it was given rather than starting another", async () => {
@@ -78,5 +105,20 @@ describe("resuming a run that is already registered", () => {
     const grid = await Effect.runPromise(resumedGrid as never);
 
     expect((grid as ResumeGrid).input.cases[0]?.name).toBe("adds a test");
+  });
+});
+
+describe("resuming a run that should not be resumed", () => {
+  test("refuses one that is still running, rather than doubling its cells", async () => {
+    const { outcome, resumed } = await attempt("running");
+
+    expect(outcome._tag).toBe("Left");
+    expect(resumed).toBeNull();
+  });
+
+  test("refuses a run with no cells to continue", async () => {
+    const { outcome } = await attempt("failed", []);
+
+    expect(outcome._tag).toBe("Left");
   });
 });

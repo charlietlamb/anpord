@@ -61,10 +61,12 @@ export const EvalGridLive = Layer.mergeAll(
   GridWithBaselines,
   WorkbenchesLive.pipe(Layer.provide(GridWithBaselines)),
 
-  CellRerunsLive.pipe(Layer.provide(GridWithBaselines))
-).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
+  CellRerunsLive.pipe(Layer.provide(GridWithBaselines)),
 
-export const EvalResumeLive = ResumeRunsLive;
+  /* Beside the reruns rather than alone: a resume continues an existing run
+     through the same grid, so it needs the grid those two already build. */
+  ResumeRunsLive.pipe(Layer.provide(GridWithBaselines))
+).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
 
 export const EvalModelCatalogueLive = ModelCatalogueLive;
 export const EvalHarnessVersionsLive = HarnessVersionsLive;

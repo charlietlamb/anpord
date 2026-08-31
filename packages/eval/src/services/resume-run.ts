@@ -1,5 +1,5 @@
 import type { Actor } from "@anpord/schema/domain/actor";
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, Option } from "effect";
 import { CredentialResolver } from "../credentials/connections";
 import type { CredentialError } from "../credentials/errors";
 import { resolveTaskCredentials } from "../credentials/tasks";
@@ -35,6 +35,18 @@ export const ResumeRunsLive = Layer.effect(
     const rebuild = Effect.fn("ResumeRuns.rebuild")(function* (
       input: ResumeRun
     ) {
+      const live = yield* grid.get(input.actor.organizationId, input.runId);
+
+      /* A run already executing has a fiber per cell. Resuming it would start a
+         second set against the same rows, so both write trials to one cell and
+         whichever finishes last decides what the run says. */
+      if (Option.isSome(live) && live.value.status === "running") {
+        return yield* new NotRunnable({
+          id: input.runId,
+          problems: ["that run is already running"],
+        });
+      }
+
       const cells = yield* query.findRunTasks({
         organizationId: input.actor.organizationId,
         runId: input.runId,
@@ -77,7 +89,14 @@ export const ResumeRunsLive = Layer.effect(
     });
 
     return ResumeRuns.of({
-      resume: (input) => rebuild(input).pipe(Effect.flatMap(grid.resume)),
+      resume: (input) =>
+        rebuild(input).pipe(
+          Effect.flatMap(grid.resume),
+          Effect.annotateLogs({
+            organizationId: input.actor.organizationId,
+            runId: input.runId,
+          })
+        ),
     });
   })
 );
