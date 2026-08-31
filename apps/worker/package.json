@@ -1,0 +1,23 @@
+{
+  "name": "@anpord/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "trigger.dev dev",
+    "deploy": "trigger.dev deploy",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/db": "workspace:*",
+    "@anpord/eval": "workspace:*",
+    "@anpord/ids": "workspace:*",
+    "@trigger.dev/sdk": "4.5.15",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "trigger.dev": "4.5.15",
+    "typescript": "catalog:"
+  }
+}

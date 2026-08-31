@@ -58,6 +58,12 @@ export interface GridRunPage {
 export interface GridRunShape {
   readonly changes: Stream.Stream<GridRunState>;
 
+  /** Runs the grid here, to completion.
+   *
+   * What a runner is handed, rather than what asks a runner to take it: a
+   * worker calling resume would dispatch the run to itself forever. */
+  readonly execute: (grid: ResumeGrid) => Effect.Effect<void>;
+
   readonly get: (
     organizationId: string,
     id: string
@@ -68,7 +74,6 @@ export interface GridRunShape {
     readonly limit: number | undefined;
     readonly organizationId: string;
   }) => Effect.Effect<GridRunPage>;
-
   readonly resume: (grid: ResumeGrid) => Effect.Effect<void>;
   readonly start: (input: StartGrid) => Effect.Effect<string>;
 }
@@ -325,32 +330,22 @@ export const GridRunLive = Layer.scoped(
         Effect.withSpan("GridRun.get")
       );
 
-    const work = (grid: ResumeGrid) =>
-      execute(grid.input, grid.created, grid.registered).pipe(
-        Effect.provideService(ModelPrices, prices),
-        Effect.annotateLogs({ runId: grid.created.id }),
-        /* Logged before it becomes a defect, for the reason start gives: the
-           tag is lost through orDie, and this runs detached, where nothing is
-           left to report what went wrong. */
-        Effect.tapErrorCause((cause) =>
-          Effect.logError("grid run could not resume", cause)
-        ),
-        Effect.orDie
-      );
-
-    const resume = (grid: ResumeGrid) =>
+    /* Reopening and publishing belong here rather than beside the dispatch:
+       whoever executes the grid is the process that must claim the run, and
+       when a worker executes it the dispatcher is a different machine that has
+       already returned. */
+    const claimed = (grid: ResumeGrid) =>
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
 
         /* The row says failed, because the sweep that closed it is why anybody
-           is resuming. Executing against it would leave a run in flight that
+           is continuing it. Executing against that leaves a run in flight that
            every reader sees as finished. */
         yield* runs.reopen({ internalId: grid.created.internalId });
 
-        /* Seeded before dispatch for the same reason start seeds it: live
-           updates are dropped for an id the map does not hold, so without this
-           every trial's progress goes nowhere and the guard against resuming a
-           running run never sees it running. */
+        /* Live updates are dropped for an id the map does not hold, so without
+           this every trial's progress goes nowhere, and the guard against
+           continuing a running run never sees one running. */
         yield* publish({
           cases: grid.input.cases.map((subject) => subject.name),
           cells: [],
@@ -365,6 +360,24 @@ export const GridRunLive = Layer.scoped(
           ),
         });
 
+        yield* execute(grid.input, grid.created, grid.registered);
+      });
+
+    const work = (grid: ResumeGrid) =>
+      claimed(grid).pipe(
+        Effect.provideService(ModelPrices, prices),
+        Effect.annotateLogs({ runId: grid.created.id }),
+        /* Logged before it becomes a defect, for the reason start gives: the
+           tag is lost through orDie, and this runs detached, where nothing is
+           left to report what went wrong. */
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("grid run could not resume", cause)
+        ),
+        Effect.orDie
+      );
+
+    const resume = (grid: ResumeGrid) =>
+      Effect.gen(function* () {
         yield* runner.dispatch({
           organizationId: grid.input.organizationId,
           runId: grid.created.id,
@@ -382,6 +395,7 @@ export const GridRunLive = Layer.scoped(
 
     return GridRun.of({
       changes: live.changes,
+      execute: work,
       get,
       resume,
       list: (input) =>

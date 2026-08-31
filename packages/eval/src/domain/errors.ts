@@ -97,10 +97,22 @@ export class EvalStoreError extends Data.TaggedError("EvalStoreError")<{
   }
 }
 
+/**
+ * Something was asked to run that cannot be.
+ *
+ * The message is overridden for the reason EvalStoreError's is: the default
+ * renders every one of these as "An error has occurred", and the problems it
+ * carries are the whole of what a reader needs. A worker refusing a run
+ * printed that default and said nothing about why.
+ */
 export class NotRunnable extends Data.TaggedError("NotRunnable")<{
   readonly id: string;
   readonly problems: readonly string[];
-}> {}
+}> {
+  override get message() {
+    return `${this.id} cannot run: ${this.problems.join(", ")}`;
+  }
+}
 
 export class UnreadableHarness extends Data.TaggedError("UnreadableHarness")<{
   readonly spec: string;

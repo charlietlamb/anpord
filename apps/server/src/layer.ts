@@ -6,6 +6,7 @@ import { CacheConfigLive } from "@anpord/cache/config";
 import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
 import {
   GithubAppConfigLive,
   GithubAppLive,
@@ -20,10 +21,10 @@ import {
 } from "@anpord/eval/credentials/connections";
 import { DeviceAuthLive } from "@anpord/eval/credentials/device-auth";
 import {
-  EvalGridLive,
   EvalHarnessVersionsLive,
   EvalModelCatalogueLive,
   EvalSandboxLive,
+  evalGridWith,
   ReconcilerSweepLive,
 } from "@anpord/eval/layer";
 import { IdGeneratorLive } from "@anpord/ids/layer";
@@ -92,8 +93,10 @@ const CodebaseLayer = Layer.mergeAll(
   )
 );
 
+/* Trials run in a worker, not here: this process records a run and hands its
+   id over, so a deploy or a crash mid-run no longer takes the run with it. */
 const EvalLayer = Layer.mergeAll(
-  EvalGridLive.pipe(
+  evalGridWith(TrialRunnerTrigger).pipe(
     Layer.provide(EvalSandboxLive),
     Layer.provide(CredentialLayer),
     Layer.provide(EvalHarnessVersionsLive),

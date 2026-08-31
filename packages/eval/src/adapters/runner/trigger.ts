@@ -1,0 +1,41 @@
+import { tasks } from "@trigger.dev/sdk";
+import { Effect, Layer } from "effect";
+import { TrialRunner } from "../../ports/trial-runner";
+
+/** The task id the worker registers. A string rather than an import, because
+ * this package cannot see the worker that defines it. */
+const EVAL_RUN = "eval-run";
+
+/**
+ * Hands a run to a worker rather than to a fiber in this process.
+ *
+ * The work the port carries is deliberately dropped: it closes over this
+ * process's services, and the point of dispatching is that another process
+ * picks the run up. The worker rebuilds it from the ids, which is also why
+ * nothing secret is sent -- payloads are recorded and shown in a dashboard.
+ */
+export const TrialRunnerTrigger = Layer.succeed(
+  TrialRunner,
+  TrialRunner.of({
+    dispatch: ({ organizationId, runId }) =>
+      Effect.tryPromise(() =>
+        tasks.trigger(
+          EVAL_RUN,
+          { organizationId, runId },
+          { tags: [`org_${organizationId}`, `run_${runId}`] }
+        )
+      ).pipe(
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("could not hand the run to a worker", cause)
+        ),
+        /* Dies rather than propagates: dispatch returns void to a caller that
+           has already recorded the run, so there is nothing it could do with
+           the failure. The run stays running and the sweep marks it
+           resumable, which is the state a resume is for. */
+        Effect.orDie,
+        Effect.asVoid,
+        Effect.withSpan("TrialRunner.dispatch", { attributes: { runId } }),
+        Effect.annotateLogs({ organizationId, runId })
+      ),
+  })
+);
