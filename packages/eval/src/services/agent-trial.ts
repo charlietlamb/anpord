@@ -38,6 +38,7 @@ import type { TrialProgressShape } from "../ports/trial-progress";
 
 const noReport = () => Effect.void;
 
+import { cacheKeyOf } from "../domain/cache-key";
 import { Suspender } from "./resumable-command";
 import { prepareWorkspace } from "./workspace";
 
@@ -110,6 +111,7 @@ export const AgentTrialLive = Layer.effect(
 
         const sandbox = yield* sandboxes.open({
           autoStopMinutes: request.autoStopMinutes,
+          cache: cacheKeyOf(request.prepare),
           credentials: request.sandboxCredentials,
           provider: request.provider,
           workspace: request.workspace,
