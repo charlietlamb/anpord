@@ -111,3 +111,37 @@ describe("a command that never exits", () => {
     expect(outcome.stdout).toContain("working");
   });
 });
+
+/* Every poll returns the whole log from byte zero, so what a long install
+   printed accumulates rather than streams past. */
+const sandboxPrinting = (output: string) =>
+  ({
+    id: "sandbox-1",
+    progress: () =>
+      Effect.succeed({ exitCode: 0, stderr: output, stdout: output }),
+    start: () => Effect.succeed({ id: "cmd", session: "session" }),
+  }) as unknown as SandboxHandle;
+
+describe("what a resumable command reports", () => {
+  test("keeps the tail rather than the whole log", async () => {
+    const outcome = await Effect.runPromise(
+      runResumable(sandboxPrinting("x".repeat(50_000)), "npm ci").pipe(
+        Effect.provide(Immediate)
+      )
+    );
+
+    expect(outcome.stdout.length).toBeLessThan(50_000);
+    expect(outcome.stderr.length).toBeLessThan(50_000);
+  });
+
+  test("keeps the end, which is where a command says what went wrong", async () => {
+    const outcome = await Effect.runPromise(
+      runResumable(
+        sandboxPrinting(`${"x".repeat(50_000)}ENOENT missing lockfile`),
+        "npm ci"
+      ).pipe(Effect.provide(Immediate))
+    );
+
+    expect(outcome.stdout).toContain("ENOENT missing lockfile");
+  });
+});

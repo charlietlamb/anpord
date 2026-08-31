@@ -17,6 +17,10 @@ export type CommandWatcher = (
 ) => Effect.Effect<void, never, never>;
 
 const OUTPUT_LIMIT = 8000;
+
+/** The tail, because a command explains itself at the end: the error it
+ * stopped on, not the banner it started with. */
+export const lastOf = (output: string) => output.slice(-OUTPUT_LIMIT);
 const WATCH_BATCH = 64;
 const WATCH_WINDOW = Duration.seconds(2);
 
@@ -50,9 +54,7 @@ export const runCommandForOutcome = (
           return { ...outcome, exitCode: chunk.exitCode };
         }
 
-        const appended = `${outcome[chunk.stream]}${chunk.data}`.slice(
-          -OUTPUT_LIMIT
-        );
+        const appended = lastOf(`${outcome[chunk.stream]}${chunk.data}`);
 
         return { ...outcome, [chunk.stream]: appended };
       }

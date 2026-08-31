@@ -1,5 +1,5 @@
 import { Clock, Context, Duration, Effect, Layer, Ref } from "effect";
-import type { CommandOutcome } from "../adapters/sandbox/run-command";
+import { type CommandOutcome, lastOf } from "../adapters/sandbox/run-command";
 import type { SandboxHandle } from "../ports/sandbox";
 
 export interface SuspenderShape {
@@ -68,16 +68,21 @@ export const runResumable = (
     /* Reported as a failed command rather than a defect: a prepare that runs
        long is the case's own problem, and the output it produced before the
        deadline is what says why. */
+    /* Truncated to the same tail a streamed command keeps: every poll returns
+       the whole log from the beginning, so a chatty install would otherwise
+       carry tens of megabytes into a stored prepare value or an error. */
     return settled.timedOut && settled.progress.exitCode === null
       ? ({
           exitCode: 1,
-          stderr: `${settled.progress.stderr}\ntimed out after ${options?.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms`,
-          stdout: settled.progress.stdout,
+          stderr: lastOf(
+            `${settled.progress.stderr}\ntimed out after ${options?.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms`
+          ),
+          stdout: lastOf(settled.progress.stdout),
         } satisfies CommandOutcome)
       : ({
           exitCode: settled.progress.exitCode ?? 1,
-          stderr: settled.progress.stderr,
-          stdout: settled.progress.stdout,
+          stderr: lastOf(settled.progress.stderr),
+          stdout: lastOf(settled.progress.stdout),
         } satisfies CommandOutcome);
   }).pipe(
     Effect.withSpan("Sandbox.runResumable", {
