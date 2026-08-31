@@ -210,9 +210,9 @@ export default defineEval({
     workspace = await mkdtemp(join(tmpdir(), "anpord-setup-"));
     await writeFile(
       join(workspace, "prepare.ts"),
-      `import type { Validator, WorkspaceSetup } from "anpord";
+      `import type { Validator, Prepare } from "anpord";
 
-export const prepareRepoImage: WorkspaceSetup = async ({ exec }) => {
+export const prepareRepoImage: Prepare = async ({ exec }) => {
   await exec("npm", ["ci", "--workspace", "renderer"]);
   return { rendererPort: 4173 };
 };
@@ -229,7 +229,7 @@ export default defineEval({
   cases: [
     {
       name: "renders",
-      setup: prepareRepoImage,
+      prepare: prepareRepoImage,
       validate: validateRepoImage,
       variables: { task: "Render" },
     },
@@ -244,8 +244,8 @@ export default defineEval({
     const payload = await compileEval(join(workspace, "eval.ts"));
     const subject = payload.cases[0];
 
-    expect(subject?.setup?.name).toBe("prepareRepoImage");
-    expect(subject?.setup?.source).toContain("--workspace");
+    expect(subject?.prepare?.name).toBe("prepareRepoImage");
+    expect(subject?.prepare?.source).toContain("--workspace");
     expect(subject?.validator?.name).toBe("validateRepoImage");
   });
 });

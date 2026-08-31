@@ -123,7 +123,7 @@ export const runTrial = (input: RunOneTrial) =>
           : Redacted.make(
               Redacted.value(input.task.credentials.sandbox).values
             ),
-      setup: input.subject.setup,
+      prepare: input.subject.prepare,
       sourceToken: input.sourceToken,
       source: input.subject.source,
       validator: input.subject.validator,

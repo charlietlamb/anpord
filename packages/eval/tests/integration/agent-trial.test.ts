@@ -47,7 +47,7 @@ for (const [provider, ready] of [
             model: "gpt-5.6-sol",
             prompt: AGENT_PROMPT,
             provider,
-            setup: null,
+            prepare: null,
             source: brokenSource,
             verifyCommand: VERIFY_COMMAND,
             workspace: "/tmp/anpord-task",

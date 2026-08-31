@@ -100,13 +100,13 @@ const runValidator = (
   sandbox: SandboxHandle,
   source: string,
   workspace: string,
-  setupValue: Readonly<Record<string, unknown>>
+  prepared: Readonly<Record<string, unknown>>
 ) =>
   Effect.gen(function* () {
     const path = `${sandbox.home}/.anpord-validator-${randomUUID()}.mjs`;
     yield* sandbox.writeFile(path, source);
     return yield* verify(sandbox, `node ${quoted(path)}`, workspace, {
-      ANPORD_SETUP_VALUE: JSON.stringify(setupValue),
+      ANPORD_PREPARE_VALUE: JSON.stringify(prepared),
     });
   });
 
@@ -120,7 +120,7 @@ const scoreValidator = (
       request.sandbox,
       request.validator.source,
       request.workspace,
-      request.setupValue ?? {}
+      request.prepared ?? {}
     );
     const result = validatorResultOf(outputOf(chunks));
 

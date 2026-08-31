@@ -26,7 +26,7 @@ const waiting = (
   journal: readonly HarnessEvent[]
 ): EvalTrial => ({
   commands: commandsIn(journal),
-  setupValue: null,
+  prepared: null,
   exitCode: -1,
   failedCommands: failedCommandsIn(journal),
   filesChanged: [...filesIn(journal)],
@@ -104,7 +104,7 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
       onNone: () => waiting(index + 1, cell.live.get(index + 1) ?? []),
       onSome: (result) => ({
         commands: result.commands,
-        setupValue: null,
+        prepared: null,
         exitCode: result.outcome.exitCode,
         failedCommands: result.failedCommands,
         filesChanged: [...result.filesChanged],
@@ -145,7 +145,7 @@ const asStoredTrial = (trial: {
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
   commands: trial.commandCount ?? 0,
-  setupValue: null,
+  prepared: null,
   exitCode: trial.exitCode ?? -1,
   failedCommands: 0,
   filesChanged: [],

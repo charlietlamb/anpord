@@ -6,7 +6,7 @@ import {
 
 const base: CaseDefinition = {
   name: "brand-logos",
-  setup: null,
+  prepare: null,
   source: { files: { "a.txt": "one" }, kind: "files" },
   variables: { task: "add the GitHub logo to the footer" },
   verifyCommand: "test -f public/logos/github-light.svg",

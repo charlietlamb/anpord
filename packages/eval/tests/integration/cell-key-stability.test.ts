@@ -61,7 +61,7 @@ const startOne = () =>
           {
             variables: { task: "the tests already pass, change nothing" },
             name: "stable-case",
-            setup: null,
+            prepare: null,
             source: fixedSource,
             verify: VERIFY_COMMAND,
           },

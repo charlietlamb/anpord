@@ -95,7 +95,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     const id = yield* grid.start({
       cases: payload.cases.map((evalCase) => ({
         ...evalCase,
-        setup: evalCase.setup ?? null,
+        prepare: evalCase.prepare ?? null,
         source: evalCase.source ?? { kind: "empty" as const },
         validator: evalCase.validator ?? null,
         variables: evalCase.variables ?? {},

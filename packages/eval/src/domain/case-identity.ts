@@ -4,7 +4,7 @@ import type { WorkspaceSource } from "./workspace-source";
 
 export interface CaseDefinition {
   readonly name: string;
-  readonly setup: { readonly source: string } | null;
+  readonly prepare: { readonly source: string } | null;
   readonly source: WorkspaceSource;
   readonly validator?: EvalValidator | null;
   readonly variables: Readonly<Record<string, string>>;
@@ -41,7 +41,7 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
     .update(
       [
         variablesOf(input.variables),
-        input.setup?.source ?? "",
+        input.prepare?.source ?? "",
         input.validator?.source ?? "",
         input.verifyCommand ?? "",
         input.workspace,

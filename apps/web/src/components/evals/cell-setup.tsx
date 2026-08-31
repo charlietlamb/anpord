@@ -191,14 +191,14 @@ export function CellSetup({
         </p>
       </SetupSurface>
 
-      {setup.setupName === null ? null : (
+      {setup.prepareName === null ? null : (
         <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
           <TerminalWindowIcon
             aria-hidden="true"
             className="shrink-0"
             size={13}
           />
-          Prepared by <code>{setup.setupName}</code>
+          Prepared by <code>{setup.prepareName}</code>
         </p>
       )}
 

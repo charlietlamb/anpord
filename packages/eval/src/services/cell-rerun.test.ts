@@ -19,8 +19,8 @@ const cellTask = (source: WorkspaceSource | null): CellTask => ({
   prompt: "Fix the browser task",
   repoRef: null,
   repoUrl: null,
-  setupName: null,
-  setupSource: null,
+  prepareName: null,
+  prepareSource: null,
   source,
   verifyCommand: "bun test",
 });

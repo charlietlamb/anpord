@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Exit, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
-import { runWorkspaceSetup } from "../../src/services/workspace-setup";
+import { runPrepare } from "../../src/services/workspace-setup";
 
 const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
   const commands: string[] = [];
@@ -35,9 +35,9 @@ const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
 };
 
 const run = (sandbox: SandboxHandle) =>
-  runWorkspaceSetup({
+  runPrepare({
     sandbox,
-    setup: { name: "prepareRepoImage", source: "export {}" },
+    prepare: { name: "prepareRepoImage", source: "export {}" },
     workspace: "/tmp/ws",
   });
 
@@ -45,7 +45,7 @@ describe("running a workspace setup", () => {
   test("reads back what the setup returned", async () => {
     const { sandbox } = sandboxSaying(
       0,
-      'ANPORD_SETUP_RESULT={"rendererPort":4173}\n'
+      'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n'
     );
 
     expect(await Effect.runPromise(run(sandbox))).toEqual({

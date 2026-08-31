@@ -1,14 +1,11 @@
-import type {
-  EvalValidator,
-  EvalWorkspaceSetup,
-} from "@anpord/schema/domain/evals";
+import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Redacted } from "effect";
 import { cellKeyOf } from "../domain/cell";
 import type {
   EvalStoreError,
   HarnessUnavailable,
+  PrepareFailed,
   SandboxUnavailable,
-  SetupFailed,
   SourceUnavailable,
 } from "../domain/errors";
 import { renderPrompt } from "../domain/prompt";
@@ -20,7 +17,7 @@ import { runTrial, type TrialInputs } from "./trial";
 export interface GridCase {
   readonly identity?: string;
   readonly name: string;
-  readonly setup: EvalWorkspaceSetup | null;
+  readonly prepare: EvalPrepare | null;
   readonly source: WorkspaceSource;
 
   readonly validator?: EvalValidator | null;
@@ -48,7 +45,7 @@ export const runGridCell = (
   | EvalStoreError
   | HarnessUnavailable
   | SandboxUnavailable
-  | SetupFailed
+  | PrepareFailed
   | SourceUnavailable,
   ModelPrices
 > =>

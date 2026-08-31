@@ -7,7 +7,7 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { build, type Plugin } from "esbuild";
 import { localRepo } from "./local-repo";
-import { definitionEntry, setupEntry, validatorEntry } from "./runner-source";
+import { definitionEntry, prepareEntry, validatorEntry } from "./runner-source";
 import { repo } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
 
@@ -209,19 +209,19 @@ export const compileEvalEffect = (path: string) =>
               )
             : null;
 
-          const setup =
-            typeof subject.setup === "function"
+          const prepare =
+            typeof subject.prepare === "function"
               ? yield* bundled(
                   entry,
                   loaded.inputs,
-                  subject.setup.name || `${subject.name}-setup`,
-                  setupEntry
+                  subject.prepare.name || `${subject.name}-prepare`,
+                  prepareEntry
                 )
               : null;
 
           return {
             name: subject.name,
-            setup,
+            prepare,
             ...sourceFor(definition, subject, fallback),
             validator,
             variables: subject.variables ?? {},

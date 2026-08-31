@@ -2,10 +2,7 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
-import type {
-  EvalValidator,
-  EvalWorkspaceSetup,
-} from "@anpord/schema/domain/evals";
+import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import {
   Chunk,
   Clock,
@@ -21,8 +18,8 @@ import {
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type {
   HarnessUnavailable,
+  PrepareFailed,
   SandboxUnavailable,
-  SetupFailed,
   SourceUnavailable,
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
@@ -57,12 +54,12 @@ export interface AgentTrialRequest {
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly harnessVersion: string;
   readonly model: string;
+  readonly prepare: EvalPrepare | null;
 
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
-  readonly setup: EvalWorkspaceSetup | null;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
 
@@ -87,7 +84,7 @@ export interface AgentTrialShape {
     request: AgentTrialRequest
   ) => Effect.Effect<
     AgentTrialResult,
-    HarnessUnavailable | SandboxUnavailable | SetupFailed | SourceUnavailable
+    HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable
   >;
 }
 
@@ -116,14 +113,14 @@ export const AgentTrialLive = Layer.effect(
 
         const driver = yield* harnesses.resolve(request.harness);
 
-        const { env, setupValue } = yield* prepareWorkspace({
+        const { env, prepared } = yield* prepareWorkspace({
           credential: request.harnessCredential,
           driver,
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,
           sandbox,
-          setup: request.setup,
+          prepare: request.prepare,
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
@@ -180,7 +177,7 @@ export const AgentTrialLive = Layer.effect(
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,
-          setupValue,
+          prepared,
           validator: request.validator,
           verifyCommand: request.verifyCommand,
           workspace: request.workspace,

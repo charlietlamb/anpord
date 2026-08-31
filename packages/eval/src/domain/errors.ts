@@ -75,10 +75,9 @@ export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>(
   url: Schema.String,
 }) {}
 
-export class SetupFailed extends Schema.TaggedError<SetupFailed>("SetupFailed")(
-  "SetupFailed",
-  { name: Schema.String, reason: Schema.String }
-) {}
+export class PrepareFailed extends Schema.TaggedError<PrepareFailed>(
+  "PrepareFailed"
+)("PrepareFailed", { name: Schema.String, reason: Schema.String }) {}
 
 /**
  * A store operation that did not complete.

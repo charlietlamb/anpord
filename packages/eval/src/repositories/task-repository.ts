@@ -1,10 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { IdGenerator } from "@anpord/ids/id";
-import type {
-  EvalValidator,
-  EvalWorkspaceSetup,
-} from "@anpord/schema/domain/evals";
+import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import { and, eq, isNull } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -16,8 +13,8 @@ type TaskRow = typeof evalTask.$inferSelect;
 interface TaskDefinition {
   readonly name: string;
   readonly organizationId: string;
+  readonly prepare: EvalPrepare | null;
   readonly prompt: string;
-  readonly setup: EvalWorkspaceSetup | null;
   readonly source: WorkspaceSource;
   readonly validator: EvalValidator | null;
   readonly verifyCommand: string | null;
@@ -63,8 +60,8 @@ const valuesOf = (input: TaskDefinition, id: string, internalId: string) => ({
   prompt: input.prompt,
   repoRef: input.source.kind === "repo" ? input.source.ref : null,
   repoUrl: input.source.kind === "repo" ? input.source.url : null,
-  setupName: input.setup?.name ?? null,
-  setupSource: input.setup?.source ?? null,
+  prepareName: input.prepare?.name ?? null,
+  prepareSource: input.prepare?.source ?? null,
   sourceFiles: input.source.kind === "files" ? input.source.files : null,
   sourceKind: input.source.kind,
   validatorName: input.validator?.name ?? null,

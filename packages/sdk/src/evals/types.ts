@@ -3,7 +3,7 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 
 type EvalTaskRequest = PublicStartEvalRequest["tasks"][number];
 
-export interface ValidatorCommandResult {
+export interface CommandResult {
   readonly exitCode: number;
   readonly stderr: string;
   readonly stdout: string;
@@ -15,28 +15,28 @@ export interface ExecOptions {
   readonly timeoutMs?: number;
 }
 
-export interface SetupContext {
+export interface PrepareContext {
   readonly exec: (
     file: string,
     args?: readonly string[],
     options?: ExecOptions
-  ) => Promise<ValidatorCommandResult>;
+  ) => Promise<CommandResult>;
   readonly exists: (path: string) => Promise<boolean>;
   readonly readText: (path: string) => Promise<string>;
   readonly workspace: string;
 }
 
-export type SetupValue = Readonly<Record<string, unknown>>;
+export type PrepareValue = Readonly<Record<string, unknown>>;
 
-export type WorkspaceSetup = (
-  context: SetupContext
-) => Promise<SetupValue | undefined> | SetupValue | undefined;
+export type Prepare = (
+  context: PrepareContext
+) => Promise<PrepareValue | undefined> | PrepareValue | undefined;
 
 export interface ValidatorContext {
-  readonly exec: (command: string) => Promise<ValidatorCommandResult>;
+  readonly exec: (command: string) => Promise<CommandResult>;
   readonly exists: (path: string) => Promise<boolean>;
+  readonly prepared: Readonly<Record<string, unknown>>;
   readonly readText: (path: string) => Promise<string>;
-  readonly setup: Readonly<Record<string, unknown>>;
 }
 
 export interface ValidatorResult {
@@ -52,7 +52,7 @@ type DeclaredSource = EvalSource | string;
 
 interface EvalCaseBase {
   readonly name: string;
-  readonly setup?: WorkspaceSetup | null;
+  readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;
   readonly variables?: Readonly<Record<string, string>>;
 }
