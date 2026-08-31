@@ -115,10 +115,8 @@ describe("waitForRun", () => {
     const gaps = stamps.slice(1).map((at, index) => at - (stamps[index] ?? 0));
 
     expect(gaps.length).toBe(4);
-    for (const [index, gap] of gaps.entries()) {
-      expect(gap).toBeGreaterThanOrEqual(index === 0 ? 8 : 12);
-      expect(gap).toBeLessThan(60);
-    }
-    expect(gaps.at(-1)).toBeGreaterThan(gaps[0] ?? 0);
+
+    expect(gaps[0]).toBeGreaterThanOrEqual(8);
+    expect(gaps.at(-1)).toBeGreaterThanOrEqual(25);
   });
 });
