@@ -16,6 +16,7 @@ import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { CellRerunsLive } from "./services/cell-rerun";
 import { HarnessVersionsLive } from "./services/harness-versions";
+import { TrialRunnerInProcess } from "./services/in-process-runner";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
 import { SuspenderSleeping } from "./services/resumable-command";
@@ -49,6 +50,7 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
    place that knows a run is being executed for real: a trial is priced as it
    settles, and nothing below chooses where a rate comes from. */
 const GridWithBaselines = GridRunLive.pipe(
+  Layer.provide(TrialRunnerInProcess),
   Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
   Layer.provide(BaselinesLive),
   Layer.provideMerge(BaselinesLive)

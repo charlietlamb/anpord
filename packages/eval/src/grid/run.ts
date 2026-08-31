@@ -7,6 +7,7 @@ import type { PageCursor } from "../domain/page";
 import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
 import { ModelPrices } from "../ports/model-source";
+import { TrialRunner } from "../ports/trial-runner";
 import { EventRepository } from "../repositories/event-repository";
 import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
@@ -82,6 +83,7 @@ export const GridRunLive = Layer.scoped(
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
+    const runner = yield* TrialRunner;
     const sourceTokens = yield* SourceTokens;
 
     const live = yield* makeLiveRuns;
@@ -255,8 +257,10 @@ export const GridRunLive = Layer.scoped(
           ),
         });
 
-        yield* Effect.forkDaemon(
-          execute(input, created, registered).pipe(
+        yield* runner.dispatch({
+          organizationId: input.organizationId,
+          runId: created.id,
+          run: execute(input, created, registered).pipe(
             Effect.provideService(ModelPrices, prices),
             Effect.tapErrorCause((cause) =>
               Effect.logError("grid run failed", cause).pipe(
@@ -287,8 +291,8 @@ export const GridRunLive = Layer.scoped(
                 )
               )
             )
-          )
-        );
+          ),
+        });
 
         return created.id;
       }).pipe(
