@@ -1,4 +1,4 @@
-import { Clock, Context, Duration, Effect, Layer, Ref } from "effect";
+import { Clock, Context, Duration, Effect, Layer, Ref, Schedule } from "effect";
 import { type CommandOutcome, lastOf } from "../adapters/sandbox/run-command";
 import type { SandboxHandle } from "../ports/sandbox";
 
@@ -21,6 +21,13 @@ const SLOWEST_CHECK_MS = 30_000;
 const WIDENING = 1.5;
 const DEFAULT_TIMEOUT_MS = 120_000;
 
+/* A check that fails is not a command that failed: the command runs in the
+   sandbox, and one bad response says nothing about it. Without this a single
+   provider blip discards work that may be half an hour old. */
+const CHECK_RETRY = Schedule.exponential("200 millis").pipe(
+  Schedule.compose(Schedule.recurs(3))
+);
+
 export const runResumable = (
   sandbox: SandboxHandle,
   command: string,
@@ -36,6 +43,8 @@ export const runResumable = (
 
     const gap = yield* Ref.make(FIRST_CHECK_MS);
 
+    const check = sandbox.progress(started).pipe(Effect.retry(CHECK_RETRY));
+
     /* Held here rather than handed to the provider, because the point of
        starting a command detached is that no call is left waiting on it: there
        is nothing for a provider-side timeout to interrupt. Without a deadline
@@ -45,7 +54,7 @@ export const runResumable = (
       (options?.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 
     const settled = yield* Effect.iterate(
-      { progress: yield* sandbox.progress(started), timedOut: false },
+      { progress: yield* check, timedOut: false },
       {
         body: () =>
           Effect.gen(function* () {
@@ -56,7 +65,7 @@ export const runResumable = (
             yield* suspender.waitFor(Duration.millis(millis));
 
             return {
-              progress: yield* sandbox.progress(started),
+              progress: yield* check,
               timedOut: (yield* Clock.currentTimeMillis) >= giveUpAt,
             };
           }),

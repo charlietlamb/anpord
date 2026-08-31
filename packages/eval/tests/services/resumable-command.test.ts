@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Duration, Effect, Layer, TestClock, TestContext } from "effect";
+import { SandboxUnavailable } from "../../src/domain/errors";
 import type { SandboxHandle } from "../../src/ports/sandbox";
 import { runResumable, Suspender } from "../../src/services/resumable-command";
 
@@ -143,5 +144,56 @@ describe("what a resumable command reports", () => {
     );
 
     expect(outcome.stdout).toContain("ENOENT missing lockfile");
+  });
+});
+
+/* Fails the given number of checks before reporting, the way a provider does
+   when it is briefly unavailable. */
+const sandboxFailingChecks = (failures: number) => {
+  const seen = { checks: 0 };
+
+  const sandbox = {
+    id: "sandbox-1",
+    progress: () =>
+      Effect.suspend(() => {
+        seen.checks += 1;
+
+        return seen.checks <= failures
+          ? Effect.fail(
+              new SandboxUnavailable({ provider: "daytona", reason: "503" })
+            )
+          : Effect.succeed({ exitCode: 0, stderr: "", stdout: "done\n" });
+      }),
+    start: () => Effect.succeed({ id: "cmd", session: "session" }),
+  } as unknown as SandboxHandle;
+
+  return { sandbox, seen };
+};
+
+/* The retry schedule sleeps on the real clock rather than through the
+   suspender, so these run against a shortened one. */
+const quickly = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  effect.pipe(Effect.provide(Immediate), Effect.timeout(Duration.seconds(30)));
+
+describe("a check that fails on the way", () => {
+  test("does not discard the command over one bad response", async () => {
+    const { sandbox, seen } = sandboxFailingChecks(2);
+
+    const outcome = await Effect.runPromise(
+      quickly(runResumable(sandbox, "npm ci"))
+    );
+
+    expect(outcome.exitCode).toBe(0);
+    expect(seen.checks).toBeGreaterThan(2);
+  });
+
+  test("gives up once the provider is not briefly unavailable", async () => {
+    const { sandbox } = sandboxFailingChecks(99);
+
+    const outcome = await Effect.runPromise(
+      quickly(runResumable(sandbox, "npm ci")).pipe(Effect.either)
+    );
+
+    expect((outcome as { _tag: string })._tag).toBe("Left");
   });
 });
