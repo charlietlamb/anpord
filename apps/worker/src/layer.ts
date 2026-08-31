@@ -1,5 +1,6 @@
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import { SuspenderTrigger } from "@anpord/eval/adapters/runner/trigger-suspender";
 import {
   GithubAppConfigLive,
   GithubAppLive,
@@ -9,10 +10,11 @@ import { SourceTokensLive } from "@anpord/eval/codebase/source-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import { CredentialResolverLive } from "@anpord/eval/credentials/connections";
 import {
-  EvalGridLive,
   EvalHarnessVersionsLive,
   EvalSandboxLive,
+  evalGridWith,
 } from "@anpord/eval/layer";
+import { TrialRunnerInProcess } from "@anpord/eval/ports/trial-runner";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Layer } from "effect";
 
@@ -36,7 +38,14 @@ const CodebaseLayer = Layer.mergeAll(
 /* The eval stack without the http and auth around it: a worker is handed a run
    id and executes it, so it needs the grid and what the grid reaches, and
    nothing that serves a request. */
-export const WorkerLayer = EvalGridLive.pipe(
+/* The runner is in-process because this is where a dispatched run arrives:
+   handing it on again would be a task dispatching to itself. The suspender is
+   Trigger's, because a wait held here is a wait billed here, and a prepare
+   waits for most of its life. */
+export const WorkerLayer = evalGridWith(
+  TrialRunnerInProcess,
+  SuspenderTrigger
+).pipe(
   Layer.provide(EvalSandboxLive),
   /* Merged rather than provided: the task resolves the credentials a stored
      run recorded, so it yields the resolver itself. */

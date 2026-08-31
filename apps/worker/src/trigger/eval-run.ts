@@ -2,14 +2,19 @@ import { CredentialResolver } from "@anpord/eval/credentials/connections";
 import { rebuildRun } from "@anpord/eval/grid/from-stored";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
+import { telemetryFor } from "@anpord/eval/telemetry";
 import { schemaTask } from "@trigger.dev/sdk";
-import { Effect, ManagedRuntime, Schema } from "effect";
+import { Effect, Layer, ManagedRuntime, Schema } from "effect";
 import { WorkerLayer } from "../layer";
 
 /* Built once per worker process rather than per run: a layer holds a database
    pool and a sandbox registry, and rebuilding those for every task would open
    a pool per trial. */
-const runtime = ManagedRuntime.make(WorkerLayer);
+/* Named apart from the server so a trace shows which side of the dispatch a
+   span came from, into the same dataset. */
+const runtime = ManagedRuntime.make(
+  Layer.merge(WorkerLayer, telemetryFor("anpord-worker"))
+);
 
 /* Identifiers only. Payloads are recorded and shown in the dashboard, so the
    worker resolves credentials itself from what the run already recorded. */

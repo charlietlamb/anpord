@@ -19,7 +19,10 @@ import { CellRerunsLive } from "./services/cell-rerun";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
-import { SuspenderSleeping } from "./services/resumable-command";
+import {
+  type Suspender,
+  SuspenderSleeping,
+} from "./services/resumable-command";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { WorkbenchesLive } from "./services/workbench";
 
@@ -36,11 +39,12 @@ export const EvalSandboxLive = SandboxProviderLive.pipe(
   Layer.provide(SandboxAdaptersLive)
 );
 
-const AgentLive = AgentTrialLive.pipe(
-  Layer.provide(
-    Layer.mergeAll(HarnessesLive, ScorerGroundTruthLive, SuspenderSleeping)
-  )
-);
+const agentWith = (suspender: Layer.Layer<Suspender>) =>
+  AgentTrialLive.pipe(
+    Layer.provide(
+      Layer.mergeAll(HarnessesLive, ScorerGroundTruthLive, suspender)
+    )
+  );
 
 export const EvalBaselinesLive = BaselinesLive.pipe(
   Layer.provideMerge(EvalRepositoriesLive)
@@ -61,7 +65,16 @@ const gridWith = (runner: Layer.Layer<TrialRunner>) =>
     Layer.provideMerge(BaselinesLive)
   );
 
-export const evalGridWith = (runner: Layer.Layer<TrialRunner>) => {
+/**
+ * @param runner where a dispatched run executes.
+ * @param suspender how a wait is served. Sleeping holds the process, which is
+ * what a server does; a durable runner passes one that suspends instead, and
+ * stops paying for the wait.
+ */
+export const evalGridWith = (
+  runner: Layer.Layer<TrialRunner>,
+  suspender: Layer.Layer<Suspender> = SuspenderSleeping
+) => {
   const grid = gridWith(runner);
 
   return Layer.mergeAll(
@@ -69,7 +82,10 @@ export const evalGridWith = (runner: Layer.Layer<TrialRunner>) => {
     WorkbenchesLive.pipe(Layer.provide(grid)),
 
     CellRerunsLive.pipe(Layer.provide(grid))
-  ).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
+  ).pipe(
+    Layer.provide(agentWith(suspender)),
+    Layer.provideMerge(EvalRepositoriesLive)
+  );
 };
 
 /** The grid running trials in this process, which is what a worker itself

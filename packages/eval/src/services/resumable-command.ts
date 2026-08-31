@@ -20,6 +20,7 @@ const FIRST_CHECK_MS = 5000;
 const SLOWEST_CHECK_MS = 30_000;
 const WIDENING = 1.5;
 const DEFAULT_TIMEOUT_MS = 120_000;
+const WATCHED_TAIL = 400;
 
 /* A check that fails is not a command that failed: the command runs in the
    sandbox, and one bad response says nothing about it. Without this a single
@@ -35,6 +36,10 @@ export const runResumable = (
     readonly cwd?: string;
     readonly env?: Readonly<Record<string, string>>;
     readonly timeoutMs?: number;
+    /** Called with what a command has printed since the last check, when it
+     * printed anything. A command that runs for half an hour says nothing at
+     * all otherwise. */
+    readonly watch?: (text: string) => Effect.Effect<void>;
   }
 ) =>
   Effect.gen(function* () {
@@ -42,6 +47,21 @@ export const runResumable = (
     const started = yield* sandbox.start(command, options);
 
     const gap = yield* Ref.make(FIRST_CHECK_MS);
+    const reported = yield* Ref.make(0);
+
+    /* Only what is new, and only the tail of that: a poll returns the whole log
+       from the beginning, so reporting it whole would repeat everything already
+       said, every time. */
+    const report = (progress: { readonly stdout: string }) =>
+      Ref.getAndSet(reported, progress.stdout.length).pipe(
+        Effect.flatMap((seen) =>
+          progress.stdout.length > seen && options?.watch !== undefined
+            ? options.watch(
+                progress.stdout.slice(seen).slice(-WATCHED_TAIL).trim()
+              )
+            : Effect.void
+        )
+      );
 
     const check = sandbox.progress(started).pipe(Effect.retry(CHECK_RETRY));
 
@@ -64,8 +84,12 @@ export const runResumable = (
 
             yield* suspender.waitFor(Duration.millis(millis));
 
+            const progress = yield* check;
+
+            yield* report(progress);
+
             return {
-              progress: yield* check,
+              progress,
               timedOut: (yield* Clock.currentTimeMillis) >= giveUpAt,
             };
           }),

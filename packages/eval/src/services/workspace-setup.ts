@@ -117,6 +117,12 @@ export const runPrepare = (input: {
           cwd: input.workspace,
           env: restored ? { ANPORD_CACHE_RESTORED: "1" } : undefined,
           timeoutMs: SETUP_TIMEOUT_MS,
+          /* A prepare can run for half an hour and said nothing until it
+             finished, which is how a failing install read as a hang. */
+          watch: (text) =>
+            Effect.logInfo("preparing").pipe(
+              Effect.annotateLogs({ output: text, prepare: input.prepare.name })
+            ),
         }
       );
 

@@ -20,6 +20,12 @@ const logsOf = (logs: unknown, stream: "stdout" | "stderr") => {
 };
 
 const CACHE_PATH = "/anpord-cache";
+
+/* The default snapshot gives three gigabytes, which a dependency tree fills
+   before an install finishes, and resources cannot be asked for alongside it.
+   This one is built once by scripts/daytona-snapshot.ts and starts in about a
+   second, so naming it is both larger and faster than not. */
+const SNAPSHOT = "anpord-eval:1";
 const CACHE_SECONDS = 900;
 const VOLUME_CHECK_MS = 1000;
 const VOLUME_CHECKS = 60;
@@ -400,6 +406,7 @@ export const makeConfiguredDaytonaAdapter = (
                 autoDeleteInterval:
                   request.autoStopMinutes * AUTO_DELETE_FACTOR,
                 autoStopInterval: request.autoStopMinutes,
+                snapshot: SNAPSHOT,
                 volumes,
               }),
           });
