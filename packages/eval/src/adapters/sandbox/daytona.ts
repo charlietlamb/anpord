@@ -1,5 +1,5 @@
 import { Daytona, type Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
-import { Clock, Duration, Effect, Schedule } from "effect";
+import { Clock, Duration, Effect, Random, Schedule } from "effect";
 import { sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
@@ -89,6 +89,16 @@ const handleFor = (
         ),
     });
 
+  /* The clock alone is not enough: trials run concurrently and two commands
+     starting in the same millisecond would name one session, where the second
+     createSession either fails or attaches to the first and polls its logs. */
+  const sessionName = Effect.gen(function* () {
+    const at = yield* Clock.currentTimeMillis;
+    const salt = yield* Random.nextIntBetween(0, 1_000_000);
+
+    return `anpord-${at}-${salt}`;
+  });
+
   const session = (id: string) =>
     Effect.acquireRelease(
       Effect.tryPromise({
@@ -129,7 +139,7 @@ const handleFor = (
         const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
         return Effect.gen(function* () {
-          const sessionId = `anpord-${yield* Clock.currentTimeMillis}`;
+          const sessionId = yield* sessionName;
           yield* session(sessionId);
 
           const started = yield* Effect.tryPromise({
@@ -187,9 +197,13 @@ const handleFor = (
         }))
       ),
 
+    /* The session is deliberately not released with the calling scope, unlike
+       exec's: the point of starting detached is that the command outlives the
+       process that asked for it, and a released session takes the command with
+       it. Deleting the sandbox takes its sessions, which bounds them. */
     start: (command, options) =>
       Effect.gen(function* () {
-        const id = `anpord-${yield* Clock.currentTimeMillis}`;
+        const id = yield* sessionName;
 
         yield* Effect.tryPromise({
           catch: unavailable,
