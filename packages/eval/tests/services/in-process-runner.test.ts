@@ -12,7 +12,6 @@ describe("dispatching a grid in this process", () => {
 
         yield* runner.dispatch({
           organizationId: "org",
-          grid: {} as never,
           work: Effect.sleep("50 millis").pipe(
             Effect.zipRight(Ref.set(started, true))
           ),
@@ -34,7 +33,6 @@ describe("dispatching a grid in this process", () => {
 
         yield* runner.dispatch({
           organizationId: "org",
-          grid: {} as never,
           work: Ref.set(started, true),
           runId: "run_1",
         });

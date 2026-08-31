@@ -267,7 +267,6 @@ export const GridRunLive = Layer.scoped(
         });
 
         yield* runner.dispatch({
-          grid: { created, input, registered },
           organizationId: input.organizationId,
           runId: created.id,
           work: resume({ created, input, registered }),
