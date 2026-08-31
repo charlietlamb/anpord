@@ -33,5 +33,3 @@ apps/sandbox-lab/.sessions/
 .secrets/
 *.pem
 
-spike/**/.trigger
-spike/**/node_modules
