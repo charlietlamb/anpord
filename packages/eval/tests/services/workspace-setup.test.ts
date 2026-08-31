@@ -58,7 +58,7 @@ describe("running a workspace setup", () => {
   test("reads back what the setup returned", async () => {
     const { sandbox } = sandboxSaying(
       0,
-      'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n'
+      'ANPORD_PREPARE_RESULT={"cache":null,"value":{"rendererPort":4173}}\n'
     );
 
     expect(await Effect.runPromise(run(sandbox))).toEqual({
@@ -89,18 +89,83 @@ describe("running a workspace setup", () => {
     expect(JSON.stringify(exit)).toContain("npm ci failed");
   });
 
-  test("tells a prepare where its cache is, when there is one", async () => {
+  test("restores before the prepare runs, and tells it so", async () => {
     const { environments, sandbox } = sandboxSaying(0, "");
+    const asked: string[] = [];
 
     await Effect.runPromise(
       runPrepare({
+        cacheKey: "deps-abc",
         prepare: { name: "prepareRepoImage", source: "export {}" },
-        sandbox: { ...sandbox, cache: "/anpord-cache" },
+        sandbox: {
+          ...sandbox,
+          cache: {
+            has: () => Effect.succeed(true),
+            restore: (key: string) =>
+              Effect.sync(() => {
+                asked.push(key);
+                return true;
+              }),
+            save: () => Effect.void,
+          },
+        },
         workspace: "/tmp/ws",
       }).pipe(Effect.provide(SuspenderSleeping))
     );
 
-    expect(environments[0]?.ANPORD_CACHE_DIR).toBe("/anpord-cache");
+    expect(asked).toEqual(["deps-abc"]);
+    expect(environments[0]?.ANPORD_CACHE_RESTORED).toBe("1");
+  });
+
+  test("does not claim a restore that did not happen", async () => {
+    const { environments, sandbox } = sandboxSaying(0, "");
+
+    await Effect.runPromise(
+      runPrepare({
+        cacheKey: "deps-abc",
+        prepare: { name: "prepareRepoImage", source: "export {}" },
+        sandbox: {
+          ...sandbox,
+          cache: {
+            has: () => Effect.succeed(false),
+            restore: () => Effect.succeed(false),
+            save: () => Effect.void,
+          },
+        },
+        workspace: "/tmp/ws",
+      }).pipe(Effect.provide(SuspenderSleeping))
+    );
+
+    expect(environments[0]?.ANPORD_CACHE_RESTORED).toBeUndefined();
+  });
+
+  /* Caching what a failed install left behind is how a broken cache outlives
+     the run that made it. */
+  test("saves nothing when the prepare failed", async () => {
+    const saved: string[] = [];
+    const { sandbox } = sandboxSaying(1, "npm ci failed");
+
+    await Effect.runPromise(
+      Effect.exit(
+        runPrepare({
+          prepare: { name: "prepareRepoImage", source: "export {}" },
+          sandbox: {
+            ...sandbox,
+            cache: {
+              has: () => Effect.succeed(false),
+              restore: () => Effect.succeed(false),
+              save: (key: string) =>
+                Effect.sync(() => {
+                  saved.push(key);
+                }),
+            },
+          },
+          workspace: "/tmp/ws",
+        }).pipe(Effect.provide(SuspenderSleeping))
+      )
+    );
+
+    expect(saved).toEqual([]);
   });
 
   test("says nothing about a cache when the provider has none", async () => {

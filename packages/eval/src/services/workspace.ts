@@ -13,6 +13,10 @@ import type { Suspender } from "./resumable-command";
 import { runPrepare } from "./workspace-setup";
 
 export interface PrepareWorkspace {
+  /** What a restore should look under before the prepare runs. A prepare may
+   * save under a narrower one of its own; this is what the runner can know
+   * without having run it. */
+  readonly cacheKey?: string;
   readonly credential: Redacted.Redacted<ResolvedCredential>;
   readonly driver: HarnessDriverShape;
   readonly harness: HarnessName;
@@ -136,6 +140,7 @@ export const prepareWorkspace = (
       input.prepare === null
         ? {}
         : yield* runPrepare({
+            cacheKey: input.cacheKey,
             sandbox: input.sandbox,
             prepare: input.prepare,
             workspace: input.workspace,

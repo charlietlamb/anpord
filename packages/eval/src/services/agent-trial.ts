@@ -123,6 +123,9 @@ export const AgentTrialLive = Layer.effect(
         const driver = yield* harnesses.resolve(request.harness);
 
         const { env, prepared } = yield* prepareWorkspace({
+          /* The same name the volume has: what a prepare left last time it ran
+             this way, before it has told us anything narrower. */
+          cacheKey: cacheKeyOf(request.organizationId, request.prepare),
           credential: request.harnessCredential,
           driver,
           harness: request.harness,

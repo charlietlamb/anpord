@@ -38,79 +38,74 @@ export default defineEval({
   return { script, workspace };
 };
 
-const runWith = async (script: string, cwd: string, cacheDir: string) => {
+const runWith = async (script: string, cwd: string, restored = false) => {
   const process = Bun.spawn(["node", script], {
     cwd,
-    env: { ...Bun.env, ANPORD_CACHE_DIR: cacheDir },
+    env: { ...Bun.env, ANPORD_CACHE_RESTORED: restored ? "1" : "" },
   });
-  const output = await new Response(process.stdout).text();
 
-  return { exitCode: await process.exited, output };
+  return {
+    exitCode: await process.exited,
+    output: await new Response(process.stdout).text(),
+  };
 };
 
-describe("the cache a prepare is handed", () => {
-  test("is absent when the provider mounted none", async () => {
+describe("what a prepare reports", () => {
+  test("carries a plain return as its value", async () => {
     const { script, workspace: cwd } = await compiled(
-      "({ cache }) => ({ absent: cache === null })"
+      "() => ({ rendererPort: 4173 })"
     );
 
-    const { output } = await runWith(script, cwd, "");
+    const { output } = await runWith(script, cwd);
 
-    expect(output).toContain('{"absent":true}');
+    expect(output).toContain('"value":{"rendererPort":4173}');
+    expect(output).toContain('"cache":null');
   });
 
-  test("reports nothing stored before anything is saved", async () => {
+  /* Named, not written: the store belongs to the provider, and providers
+     differ in what theirs can do. */
+  test("names a directory worth keeping without touching a store", async () => {
     const { script, workspace: cwd } = await compiled(
-      "async ({ cache }) => ({ had: await cache.has('deps') })"
+      `() => ({
+         cache: { key: "deps-abc", path: "node_modules" },
+         value: { ready: true },
+       })`
     );
-    const store = await mkdtemp(join(tmpdir(), "anpord-store-"));
 
-    const { output } = await runWith(script, cwd, store);
-    await rm(store, { force: true, recursive: true });
+    const { output } = await runWith(script, cwd);
 
-    expect(output).toContain('{"had":false}');
+    expect(output).toContain(
+      '"cache":{"key":"deps-abc","path":"node_modules"}'
+    );
+    expect(output).toContain('"value":{"ready":true}');
   });
 
-  /* The behaviour the whole thing exists for, and the one that a directory
-     shared through object storage could never provide: what one run built,
-     the next run gets back. */
-  test("gives back what an earlier run saved", async () => {
-    const store = await mkdtemp(join(tmpdir(), "anpord-store-"));
-
-    const first = await compiled(
-      `async ({ cache, exec }) => {
-         await exec("sh", ["-c", "mkdir -p built && echo compiled > built/out.txt"]);
-         await cache.save("deps", "built");
-         return { saved: true };
-       }`
+  test("is told when the runner restored one, so it can skip the work", async () => {
+    const { script, workspace: cwd } = await compiled(
+      "({ cached }) => ({ skipped: cached })"
     );
-    await runWith(first.script, first.workspace, store);
 
-    const second = await compiled(
-      `async ({ cache, exec, readText }) => {
-         const restored = await cache.restore("deps", "built");
-         const { stdout } = await exec("cat", ["built/out.txt"]);
-         return { restored, contents: stdout.trim() };
-       }`
-    );
-    const { output } = await runWith(second.script, second.workspace, store);
+    const { output } = await runWith(script, cwd, true);
 
-    await rm(store, { force: true, recursive: true });
-
-    expect(output).toContain('"restored":true');
-    expect(output).toContain('"contents":"compiled"');
+    expect(output).toContain('"value":{"skipped":true}');
   });
 
-  test("says so rather than throwing when nothing was stored", async () => {
+  test("is told when it was not restored", async () => {
     const { script, workspace: cwd } = await compiled(
-      "async ({ cache }) => ({ restored: await cache.restore('absent', 'target') })"
+      "({ cached }) => ({ skipped: cached })"
     );
-    const store = await mkdtemp(join(tmpdir(), "anpord-store-"));
 
-    const { exitCode, output } = await runWith(script, cwd, store);
-    await rm(store, { force: true, recursive: true });
+    const { output } = await runWith(script, cwd);
+
+    expect(output).toContain('"value":{"skipped":false}');
+  });
+
+  test("still reports when a prepare returns nothing", async () => {
+    const { script, workspace: cwd } = await compiled("() => undefined");
+
+    const { exitCode, output } = await runWith(script, cwd);
 
     expect(exitCode).toBe(0);
-    expect(output).toContain('{"restored":false}');
+    expect(output).toContain('"cache":null');
   });
 });

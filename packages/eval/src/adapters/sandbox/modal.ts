@@ -7,7 +7,7 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
-import { notResumable } from "./not-resumable";
+import { noCache, notResumable } from "./not-resumable";
 
 const APP = "anpord-evals";
 const HOME = "/root";
@@ -54,6 +54,7 @@ const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
   home: HOME,
   id: sandbox.sandboxId,
   provider: "modal",
+  ...noCache,
   ...notResumable("modal"),
   streaming: true,
   writeFile: (path, content) =>

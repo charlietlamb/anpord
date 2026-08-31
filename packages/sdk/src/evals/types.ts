@@ -16,27 +16,27 @@ export interface ExecOptions {
 }
 
 /**
- * Somewhere to keep what a prepare built, so the next run preparing the same
- * way does not build it again.
+ * What a prepare wants kept for the next run preparing the same way.
  *
- * Whole directories in and out, not a directory to work in. What backs this is
- * object storage: it takes and returns files, and does not support the renames
- * and hard links a package manager performs constantly. Pointing npm or bun at
- * it directly fails partway through an install, one package at a time.
+ * Named rather than written: a prepare says which directory is worth keeping
+ * and under what key, and the runner restores it before the prepare runs and
+ * saves it after. The store is the provider's, and providers differ in what
+ * theirs can do, so nothing about it reaches the script.
+ *
+ * The key should name everything the contents depend on -- a lockfile hash
+ * above all -- because entries are write-once. A key that already holds an
+ * entry keeps it, which is what makes two runs preparing at once safe.
  */
-export interface PrepareCache {
-  /** Whether anything was stored under this key by an earlier run. */
-  readonly has: (key: string) => Promise<boolean>;
-  /** Unpacks what was stored under this key into `path`, replacing it.
-   * Resolves false when nothing was stored. */
-  readonly restore: (key: string, path: string) => Promise<boolean>;
-  /** Stores `path` under this key for the next run to restore. */
-  readonly save: (key: string, path: string) => Promise<void>;
+export interface PrepareCaching {
+  readonly key: string;
+  /** Relative to the workspace. */
+  readonly path: string;
 }
 
 export interface PrepareContext {
-  /** Null when the provider has nowhere to keep one. */
-  readonly cache: PrepareCache | null;
+  /** True when the runner restored a cached directory before this ran, so a
+   * prepare can skip the work that produced it. */
+  readonly cached: boolean;
   readonly exec: (
     file: string,
     args?: readonly string[],
@@ -49,9 +49,20 @@ export interface PrepareContext {
 
 export type PrepareValue = Readonly<Record<string, unknown>>;
 
+/** What a prepare returns: the value its validators read, and optionally the
+ * directory worth keeping for the next run. */
+export interface PrepareResult {
+  readonly cache?: PrepareCaching;
+  readonly value?: PrepareValue;
+}
+
 export type Prepare = (
   context: PrepareContext
-) => Promise<PrepareValue | undefined> | PrepareValue | undefined;
+) =>
+  | Promise<PrepareResult | PrepareValue | undefined>
+  | PrepareResult
+  | PrepareValue
+  | undefined;
 
 export interface ValidatorContext {
   readonly exec: (command: string) => Promise<CommandResult>;

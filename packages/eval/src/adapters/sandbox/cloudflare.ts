@@ -9,7 +9,7 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
-import { notResumable } from "./not-resumable";
+import { noCache, notResumable } from "./not-resumable";
 import { runCommand } from "./run-command";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
@@ -221,6 +221,7 @@ const handleFor = (
     home: HOME,
     id,
     provider: "cloudflare",
+    ...noCache,
     ...notResumable("cloudflare"),
     streaming: true,
     writeFile: (path, content) =>
