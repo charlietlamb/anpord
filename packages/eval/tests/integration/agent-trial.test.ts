@@ -4,6 +4,7 @@ import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
+import { SuspenderSleeping } from "../../src/services/resumable-command";
 import {
   AGENT_PROMPT,
   brokenSource,
@@ -21,6 +22,7 @@ import {
 
 const TestLayer = AgentTrialLive.pipe(
   Layer.provide(HarnessesLive),
+  Layer.provide(SuspenderSleeping),
   Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
 );

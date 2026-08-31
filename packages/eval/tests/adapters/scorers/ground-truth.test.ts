@@ -9,12 +9,14 @@ import { outcomeOf } from "../../../src/domain/trial";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
 import { Scorer } from "../../../src/ports/scorer";
 import { exit, stdout } from "../../fixtures/exec-chunk";
+import { notResumableFixture } from "../../fixtures/not-resumable";
 
 const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),
   home: "/tmp",
   id: "sbx-1",
   provider: "daytona",
+  ...notResumableFixture,
   streaming: true,
   writeFile: () => Effect.void,
 });

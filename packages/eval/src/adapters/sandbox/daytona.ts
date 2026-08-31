@@ -9,6 +9,12 @@ import type {
 } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
 
+const logsOf = (logs: unknown, stream: "stdout" | "stderr") => {
+  const value = (logs as Record<string, unknown> | null)?.[stream];
+
+  return typeof value === "string" ? value : "";
+};
+
 const HOME = "/home/daytona";
 const DEFAULT_TIMEOUT_MS = 120_000;
 const AUTO_DELETE_FACTOR = 6;
@@ -126,6 +132,47 @@ const handleFor = (
           })
         );
       }),
+    progress: (started) =>
+      Effect.all({
+        command: Effect.tryPromise({
+          catch: unavailable,
+          try: () =>
+            sandbox.process.getSessionCommand(started.session, started.id),
+        }),
+        logs: Effect.tryPromise({
+          catch: unavailable,
+          try: () =>
+            sandbox.process.getSessionCommandLogs(started.session, started.id),
+        }),
+      }).pipe(
+        Effect.map(({ command, logs }) => ({
+          exitCode: command.exitCode ?? null,
+          stderr: logsOf(logs, "stderr"),
+          stdout: logsOf(logs, "stdout"),
+        }))
+      ),
+
+    start: (command, options) =>
+      Effect.gen(function* () {
+        const id = `anpord-${yield* Clock.currentTimeMillis}`;
+
+        yield* Effect.tryPromise({
+          catch: unavailable,
+          try: () => sandbox.process.createSession(id),
+        });
+
+        const started = yield* Effect.tryPromise({
+          catch: unavailable,
+          try: () =>
+            sandbox.process.executeSessionCommand(id, {
+              command: cdInto(options?.cwd ?? workspace, command, options?.env),
+              runAsync: true,
+            }),
+        });
+
+        return { id: started.cmdId ?? "", session: id };
+      }),
+
     id: sandbox.id,
     home: HOME,
     provider: "daytona",

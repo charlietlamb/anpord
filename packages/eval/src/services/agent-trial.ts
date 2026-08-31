@@ -38,6 +38,7 @@ import type { TrialProgressShape } from "../ports/trial-progress";
 
 const noReport = () => Effect.void;
 
+import { Suspender } from "./resumable-command";
 import { prepareWorkspace } from "./workspace";
 
 const PROGRESS_BATCH = 32;
@@ -101,6 +102,7 @@ export const AgentTrialLive = Layer.effect(
     const harnesses = yield* Harnesses;
     const sandboxes = yield* SandboxProvider;
     const scorer = yield* Scorer;
+    const suspender = yield* Suspender;
 
     const run = (request: AgentTrialRequest) =>
       Effect.gen(function* () {
@@ -128,7 +130,7 @@ export const AgentTrialLive = Layer.effect(
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
-        });
+        }).pipe(Effect.provideService(Suspender, suspender));
 
         const modelStarted = yield* Clock.currentTimeMillis;
 

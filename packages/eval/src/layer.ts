@@ -18,6 +18,7 @@ import { CellRerunsLive } from "./services/cell-rerun";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
+import { SuspenderSleeping } from "./services/resumable-command";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { WorkbenchesLive } from "./services/workbench";
 
@@ -35,7 +36,9 @@ export const EvalSandboxLive = SandboxProviderLive.pipe(
 );
 
 const AgentLive = AgentTrialLive.pipe(
-  Layer.provide(Layer.mergeAll(HarnessesLive, ScorerGroundTruthLive))
+  Layer.provide(
+    Layer.mergeAll(HarnessesLive, ScorerGroundTruthLive, SuspenderSleeping)
+  )
 );
 
 export const EvalBaselinesLive = BaselinesLive.pipe(

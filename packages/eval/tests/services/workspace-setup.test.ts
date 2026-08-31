@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Exit, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
+import { SuspenderSleeping } from "../../src/services/resumable-command";
 import { runPrepare } from "../../src/services/workspace-setup";
 
 const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
@@ -27,6 +28,13 @@ const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
     home: "/home/agent",
     id: "test",
     provider: "daytona",
+    progress: () => Effect.succeed({ exitCode, stderr, stdout }),
+    start: (command: string) =>
+      Effect.sync(() => {
+        commands.push(command);
+
+        return { id: "cmd", session: "session" };
+      }),
     streaming: false,
     writeFile: () => Effect.void,
   } as unknown as SandboxHandle;
@@ -39,7 +47,7 @@ const run = (sandbox: SandboxHandle) =>
     sandbox,
     prepare: { name: "prepareRepoImage", source: "export {}" },
     workspace: "/tmp/ws",
-  });
+  }).pipe(Effect.provide(SuspenderSleeping));
 
 describe("running a workspace setup", () => {
   test("reads back what the setup returned", async () => {

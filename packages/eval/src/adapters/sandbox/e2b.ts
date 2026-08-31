@@ -8,6 +8,7 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
+import { notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/user";
@@ -65,6 +66,7 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
   id: sandbox.sandboxId,
   home: HOME,
   provider: "e2b",
+  ...notResumable("e2b"),
   streaming: true,
   writeFile: (path, content) =>
     Effect.tryPromise({

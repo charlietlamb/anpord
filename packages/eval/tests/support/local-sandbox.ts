@@ -11,6 +11,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../src/ports/sandbox";
+import { notResumableFixture } from "../fixtures/not-resumable";
 
 /* A real shell on the machine running the tests, used to prove the sandbox
    streaming contract without holding a cloud credential. It is not a provider
@@ -141,6 +142,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
                   await writeFile(target, content, "utf8");
                 },
               }),
+            ...notResumableFixture,
           } satisfies SandboxHandle;
         }),
       provider: STANDS_IN_FOR,

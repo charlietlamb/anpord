@@ -9,6 +9,7 @@ import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
+import type { Suspender } from "./resumable-command";
 import { runPrepare } from "./workspace-setup";
 
 export interface PrepareWorkspace {
@@ -114,7 +115,8 @@ export const prepareWorkspace = (
     readonly env: Readonly<Record<string, string>>;
     readonly prepared: Readonly<Record<string, unknown>>;
   },
-  HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable
+  HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable,
+  Suspender
 > =>
   Effect.gen(function* () {
     const env = yield* input.driver.prepare({

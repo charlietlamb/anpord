@@ -3,6 +3,7 @@ import { Effect } from "effect";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";
 import { PrepareFailed } from "../domain/errors";
 import type { SandboxHandle } from "../ports/sandbox";
+import { runResumable } from "./resumable-command";
 
 const MARKER = "ANPORD_PREPARE_RESULT=";
 const SETUP_TIMEOUT_MS = 1_800_000;
@@ -48,17 +49,10 @@ export const runPrepare = (input: {
     Effect.gen(function* () {
       const path = yield* scriptIn(input.sandbox, input.prepare.source);
 
-      const outcome = yield* runCommandForOutcome(
+      const outcome = yield* runResumable(
         input.sandbox,
         `node ${quoted(path)}`,
-        {
-          cwd: input.workspace,
-          timeoutMs: SETUP_TIMEOUT_MS,
-          watch: (output) =>
-            Effect.logInfo("preparing").pipe(
-              Effect.annotateLogs({ output: output.trim() })
-            ),
-        }
+        { cwd: input.workspace, timeoutMs: SETUP_TIMEOUT_MS }
       );
 
       return outcome.exitCode === 0

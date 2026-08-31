@@ -10,6 +10,7 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
+import { notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/vercel";
@@ -95,6 +96,7 @@ const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
   home: HOME,
   id: sandbox.name,
   provider: "vercel",
+  ...notResumable("vercel"),
   streaming: true,
   writeFile: (path, content) =>
     Effect.tryPromise({

@@ -27,6 +27,17 @@ export interface OpenSandbox {
   readonly workspace: string;
 }
 
+export interface StartedCommand {
+  readonly id: string;
+  readonly session: string;
+}
+
+export interface CommandProgress {
+  readonly exitCode: number | null;
+  readonly stderr: string;
+  readonly stdout: string;
+}
+
 export interface SandboxHandle {
   readonly exec: (
     command: string,
@@ -34,7 +45,14 @@ export interface SandboxHandle {
   ) => Stream.Stream<ExecChunk, SandboxUnavailable>;
   readonly home: string;
   readonly id: string;
+  readonly progress: (
+    started: StartedCommand
+  ) => Effect.Effect<CommandProgress, SandboxUnavailable>;
   readonly provider: ProviderName;
+  readonly start: (
+    command: string,
+    options?: ExecOptions
+  ) => Effect.Effect<StartedCommand, SandboxUnavailable>;
   readonly streaming: boolean;
   readonly writeFile: (
     path: string,

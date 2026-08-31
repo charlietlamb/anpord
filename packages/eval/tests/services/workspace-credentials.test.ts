@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Redacted, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
+import { SuspenderSleeping } from "../../src/services/resumable-command";
 import { prepareWorkspace } from "../../src/services/workspace";
+import { notResumableFixture } from "../fixtures/not-resumable";
 
 const HOME = "/home/agent";
 const CREDENTIALS = `${HOME}/.anpord-git-credentials`;
@@ -25,6 +27,7 @@ const recording = (exitCode: number) => {
     home: HOME,
     id: "test",
     provider: "daytona",
+    ...notResumableFixture,
     streaming: false,
     writeFile: (path) =>
       Effect.sync(() => {
@@ -36,7 +39,7 @@ const recording = (exitCode: number) => {
 };
 
 const prepare = (sandbox: SandboxHandle, token?: string) =>
-  prepareWorkspace({
+  prepareWorkspaceWith({
     credential: Redacted.make({} as never),
     driver: { prepare: () => Effect.succeed({}) } as never,
     harness: "codex" as never,
@@ -52,6 +55,9 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
     ...(token === undefined ? {} : { sourceToken: Redacted.make(token) }),
     workspace: "/tmp/ws",
   });
+
+const prepareWorkspaceWith = (input: Parameters<typeof prepareWorkspace>[0]) =>
+  prepareWorkspace(input).pipe(Effect.provide(SuspenderSleeping));
 
 describe("cloning with an installation token", () => {
   test("writes the credential before the clone that needs it", async () => {
