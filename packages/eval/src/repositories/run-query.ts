@@ -3,7 +3,7 @@ import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, count, desc, eq, inArray, lt, or } from "drizzle-orm";
+import { and, count, desc, eq, inArray, lt, or, type SQL } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { CellKey } from "../domain/cell";
 import type { Distribution } from "../domain/distribution";
@@ -131,7 +131,6 @@ export interface RunQueryShape {
     readonly limit: number;
     readonly organizationId: string;
   }) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
-
   readonly findCellTask: (input: {
     readonly cellKey: string;
     readonly organizationId: string;
@@ -141,6 +140,11 @@ export interface RunQueryShape {
     organizationId: string,
     runId: string
   ) => Effect.Effect<Option.Option<RunDetail>, EvalStoreError>;
+
+  readonly findRunTasks: (input: {
+    readonly organizationId: string;
+    readonly runId: string;
+  }) => Effect.Effect<readonly CellTask[], EvalStoreError>;
   readonly hydrateRuns: (
     runs: readonly RunRow[]
   ) => Effect.Effect<readonly RunDetail[], EvalStoreError>;
@@ -304,51 +308,59 @@ export const RunQueryLive = Layer.effect(
         return Option.some(detailOf(found.value, cells, groupByCell(trials)));
       }).pipe(Effect.withSpan("RunQuery.findRun"));
 
+    const cellTasksWhere = (condition: SQL | undefined) =>
+      tryStore("runQuery.cellTasks", () =>
+        db
+          .select(CELL_TASK_COLUMNS)
+          .from(evalCell)
+          .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
+          .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
+          .where(condition)
+      ).pipe(
+        Effect.map((rows) =>
+          rows.map((row): CellTask => ({ ...row, source: sourceOf(row) }))
+        )
+      );
+
+    const findRunTasks = (input: {
+      readonly organizationId: string;
+      readonly runId: string;
+    }) =>
+      cellTasksWhere(
+        and(
+          eq(evalRun.id, input.runId),
+          eq(evalRun.organizationId, input.organizationId)
+        )
+      ).pipe(Effect.withSpan("RunQuery.findRunTasks"));
+
     const findCellTask = (input: {
       readonly cellKey: string;
       readonly organizationId: string;
       readonly runId: string;
     }) =>
-      tryStore("runQuery.findCellTask", () =>
-        db
-          .select({
-            cell: evalCell,
-            identity: evalTask.id,
-            name: evalTask.name,
-            prompt: evalCell.prompt,
-            repoRef: evalTask.repoRef,
-            repoUrl: evalTask.repoUrl,
-            prepareName: evalTask.prepareName,
-            prepareSource: evalTask.prepareSource,
-            sourceFiles: evalTask.sourceFiles,
-            sourceKind: evalTask.sourceKind,
-            validatorName: evalTask.validatorName,
-            validatorSource: evalTask.validatorSource,
-            verifyCommand: evalTask.verifyCommand,
-          })
-          .from(evalCell)
-          .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
-          .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
-          .where(
-            and(
-              eq(evalCell.cellKey, input.cellKey),
-              eq(evalRun.id, input.runId),
-              eq(evalRun.organizationId, input.organizationId)
-            )
-          )
-          .limit(1)
-      ).pipe(
-        Effect.map(head),
-        Effect.map(
-          Option.map(
-            (row): CellTask => ({
-              ...row,
-              source: sourceOf(row),
-            })
-          )
-        ),
-        Effect.withSpan("RunQuery.findCellTask")
-      );
+      cellTasksWhere(
+        and(
+          eq(evalCell.cellKey, input.cellKey),
+          eq(evalRun.id, input.runId),
+          eq(evalRun.organizationId, input.organizationId)
+        )
+      ).pipe(Effect.map(head), Effect.withSpan("RunQuery.findCellTask"));
+
+    const CELL_TASK_COLUMNS = {
+      cell: evalCell,
+      identity: evalTask.id,
+      name: evalTask.name,
+      prepareName: evalTask.prepareName,
+      prepareSource: evalTask.prepareSource,
+      prompt: evalCell.prompt,
+      repoRef: evalTask.repoRef,
+      repoUrl: evalTask.repoUrl,
+      sourceFiles: evalTask.sourceFiles,
+      sourceKind: evalTask.sourceKind,
+      validatorName: evalTask.validatorName,
+      validatorSource: evalTask.validatorSource,
+      verifyCommand: evalTask.verifyCommand,
+    };
 
     const findCellHistory = (input: {
       readonly cellKey: CellKey;
@@ -403,6 +415,7 @@ export const RunQueryLive = Layer.effect(
         ),
       findCellHistory,
       findCellTask,
+      findRunTasks,
       findRun,
       hydrateRuns,
       listRuns: (input) =>

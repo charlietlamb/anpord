@@ -49,6 +49,7 @@ const layer = (
         countRuns: () => Effect.succeed(0),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
+        findRunTasks: () => Effect.succeed([]),
         findRun: () => Effect.succeed(Option.none()),
         hydrateRuns: () => Effect.succeed([]),
         listRuns: () => Effect.succeed([]),

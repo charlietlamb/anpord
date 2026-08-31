@@ -20,6 +20,7 @@ import { TrialRunnerInProcess } from "./services/in-process-runner";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
 import { SuspenderSleeping } from "./services/resumable-command";
+import { ResumeRunsLive } from "./services/resume-run";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { WorkbenchesLive } from "./services/workbench";
 
@@ -62,6 +63,8 @@ export const EvalGridLive = Layer.mergeAll(
 
   CellRerunsLive.pipe(Layer.provide(GridWithBaselines))
 ).pipe(Layer.provide(AgentLive), Layer.provideMerge(EvalRepositoriesLive));
+
+export const EvalResumeLive = ResumeRunsLive;
 
 export const EvalModelCatalogueLive = ModelCatalogueLive;
 export const EvalHarnessVersionsLive = HarnessVersionsLive;
