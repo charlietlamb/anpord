@@ -8,6 +8,7 @@ const refused = new SandboxUnavailable({
 });
 
 export const notResumableFixture = {
+  cache: null,
   progress: (
     _started: StartedCommand
   ): Effect.Effect<CommandProgress, SandboxUnavailable> => Effect.fail(refused),

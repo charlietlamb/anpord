@@ -22,6 +22,9 @@ export interface ExecOptions {
 
 export interface OpenSandbox {
   readonly autoStopMinutes: number;
+  /** A directory that outlives the sandbox, shared by every sandbox naming
+   * the same cache. Absent when the provider has nowhere to put one. */
+  readonly cache?: string;
   readonly credentials?: Redacted.Redacted<CredentialValues>;
   readonly provider: ProviderName;
   readonly workspace: string;
@@ -39,6 +42,9 @@ export interface CommandProgress {
 }
 
 export interface SandboxHandle {
+  /** Where the cache was mounted, when one was asked for and the provider
+   * had somewhere to put it. */
+  readonly cache: string | null;
   readonly exec: (
     command: string,
     options?: ExecOptions

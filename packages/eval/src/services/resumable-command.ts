@@ -23,7 +23,11 @@ const WIDENING = 1.5;
 export const runResumable = (
   sandbox: SandboxHandle,
   command: string,
-  options?: { readonly cwd?: string; readonly timeoutMs?: number }
+  options?: {
+    readonly cwd?: string;
+    readonly env?: Readonly<Record<string, string>>;
+    readonly timeoutMs?: number;
+  }
 ) =>
   Effect.gen(function* () {
     const suspender = yield* Suspender;

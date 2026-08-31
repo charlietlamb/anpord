@@ -6,6 +6,7 @@ import { runPrepare } from "../../src/services/workspace-setup";
 
 const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
   const commands: string[] = [];
+  const environments: (Readonly<Record<string, string>> | undefined)[] = [];
 
   const sandbox = {
     exec: (command: string) => {
@@ -29,9 +30,13 @@ const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
     id: "test",
     provider: "daytona",
     progress: () => Effect.succeed({ exitCode, stderr, stdout }),
-    start: (command: string) =>
+    start: (
+      command: string,
+      options?: { readonly env?: Readonly<Record<string, string>> }
+    ) =>
       Effect.sync(() => {
         commands.push(command);
+        environments.push(options?.env);
 
         return { id: "cmd", session: "session" };
       }),
@@ -39,7 +44,7 @@ const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
     writeFile: () => Effect.void,
   } as unknown as SandboxHandle;
 
-  return { commands, sandbox };
+  return { commands, environments, sandbox };
 };
 
 const run = (sandbox: SandboxHandle) =>
@@ -82,5 +87,27 @@ describe("running a workspace setup", () => {
 
     expect(Exit.isFailure(exit)).toBe(true);
     expect(JSON.stringify(exit)).toContain("npm ci failed");
+  });
+
+  test("tells a prepare where its cache is, when there is one", async () => {
+    const { environments, sandbox } = sandboxSaying(0, "");
+
+    await Effect.runPromise(
+      runPrepare({
+        prepare: { name: "prepareRepoImage", source: "export {}" },
+        sandbox: { ...sandbox, cache: "/anpord-cache" },
+        workspace: "/tmp/ws",
+      }).pipe(Effect.provide(SuspenderSleeping))
+    );
+
+    expect(environments[0]?.ANPORD_CACHE_DIR).toBe("/anpord-cache");
+  });
+
+  test("says nothing about a cache when the provider has none", async () => {
+    const { environments, sandbox } = sandboxSaying(0, "");
+
+    await Effect.runPromise(run(sandbox));
+
+    expect(environments[0]).toBeUndefined();
   });
 });

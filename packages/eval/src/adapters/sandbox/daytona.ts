@@ -15,6 +15,40 @@ const logsOf = (logs: unknown, stream: "stdout" | "stderr") => {
   return typeof value === "string" ? value : "";
 };
 
+const CACHE_PATH = "/anpord-cache";
+const VOLUME_CHECK_MS = 1000;
+const VOLUME_CHECKS = 60;
+
+/* A volume is created asynchronously, and mounting one that is still
+   pending_create fails the sandbox rather than waiting for it. */
+const readyVolume = (daytona: Daytona, name: string) =>
+  Effect.iterate(
+    { attempts: 0, volume: null as { id: string; state?: string } | null },
+    {
+      body: ({ attempts }) =>
+        Effect.gen(function* () {
+          if (attempts > 0) {
+            yield* Effect.sleep(Duration.millis(VOLUME_CHECK_MS));
+          }
+
+          const volume = yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () => daytona.volume.get(name, true),
+          });
+
+          return { attempts: attempts + 1, volume };
+        }),
+      while: ({ attempts, volume }) =>
+        attempts < VOLUME_CHECKS && volume?.state !== "ready",
+    }
+  ).pipe(
+    Effect.flatMap(({ volume }) =>
+      volume === null
+        ? Effect.fail(unavailable("the cache volume never became ready"))
+        : Effect.succeed(volume)
+    )
+  );
+
 const HOME = "/home/daytona";
 const DEFAULT_TIMEOUT_MS = 120_000;
 const AUTO_DELETE_FACTOR = 6;
@@ -40,7 +74,8 @@ const EXIT_POLL_MS = 250;
 
 const handleFor = (
   sandbox: DaytonaSandbox,
-  workspace: string
+  workspace: string,
+  cache: string | null = null
 ): SandboxHandle => {
   const execute = (command: string, options?: ExecOptions) =>
     Effect.tryPromise({
@@ -173,6 +208,7 @@ const handleFor = (
         return { id: started.cmdId ?? "", session: id };
       }),
 
+    cache,
     id: sandbox.id,
     home: HOME,
     provider: "daytona",
@@ -207,13 +243,27 @@ export const makeConfiguredDaytonaAdapter = (
           },
         }),
       open: (request: OpenSandbox) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () =>
-            daytona.create({
-              autoDeleteInterval: request.autoStopMinutes * AUTO_DELETE_FACTOR,
-              autoStopInterval: request.autoStopMinutes,
-            }),
+        Effect.gen(function* () {
+          const volumes =
+            request.cache === undefined
+              ? []
+              : [
+                  {
+                    mountPath: CACHE_PATH,
+                    volumeId: (yield* readyVolume(daytona, request.cache)).id,
+                  },
+                ];
+
+          return yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () =>
+              daytona.create({
+                autoDeleteInterval:
+                  request.autoStopMinutes * AUTO_DELETE_FACTOR,
+                autoStopInterval: request.autoStopMinutes,
+                volumes,
+              }),
+          });
         }).pipe(
           Effect.tap((sandbox) =>
             Effect.tryPromise({
@@ -227,7 +277,13 @@ export const makeConfiguredDaytonaAdapter = (
                 ),
             })
           ),
-          Effect.map((sandbox) => handleFor(sandbox, request.workspace))
+          Effect.map((sandbox) =>
+            handleFor(
+              sandbox,
+              request.workspace,
+              request.cache === undefined ? null : CACHE_PATH
+            )
+          )
         ),
       provider: "daytona",
     };

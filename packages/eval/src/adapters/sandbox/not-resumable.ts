@@ -10,6 +10,7 @@ const refuse = (provider: ProviderName) =>
   });
 
 export const notResumable = (provider: ProviderName) => ({
+  cache: null,
   progress: (
     _started: StartedCommand
   ): Effect.Effect<CommandProgress, SandboxUnavailable> =>

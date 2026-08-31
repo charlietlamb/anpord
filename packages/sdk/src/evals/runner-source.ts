@@ -13,6 +13,7 @@ const exec = (command) => new Promise((resolve, reject) => {
 });
 
 const context = {
+  cache: process.env.ANPORD_CACHE_DIR || null,
   exec,
   exists: path => access(path).then(() => true, () => false),
   readText: path => readFile(path, "utf8"),

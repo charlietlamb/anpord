@@ -16,6 +16,9 @@ export interface ExecOptions {
 }
 
 export interface PrepareContext {
+  /** A directory that outlives this sandbox, shared by every run preparing
+   * the same way. Null when the provider has nowhere to put one. */
+  readonly cache: string | null;
   readonly exec: (
     file: string,
     args?: readonly string[],

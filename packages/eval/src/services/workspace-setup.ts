@@ -52,7 +52,13 @@ export const runPrepare = (input: {
       const outcome = yield* runResumable(
         input.sandbox,
         `node ${quoted(path)}`,
-        { cwd: input.workspace, timeoutMs: SETUP_TIMEOUT_MS }
+        {
+          cwd: input.workspace,
+          env: input.sandbox.cache
+            ? { ANPORD_CACHE_DIR: input.sandbox.cache }
+            : undefined,
+          timeoutMs: SETUP_TIMEOUT_MS,
+        }
       );
 
       return outcome.exitCode === 0
