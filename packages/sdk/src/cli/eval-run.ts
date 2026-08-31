@@ -1,20 +1,12 @@
 import type { EvalRun } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
-import { Clock, Duration, Effect } from "effect";
+import { Clock, Duration, Effect, Ref } from "effect";
 
 const FIRST_POLL = 2000;
 const SLOWEST_POLL = 10_000;
 const WIDENING = 1.5;
 
-interface Poll {
-  readonly gap: number;
-  readonly run: EvalRun | null;
-}
-
-const running = ({ run }: Poll) => run === null || run.status === "running";
-
-const widen = (gap: number) =>
-  Math.min(Math.round(gap * WIDENING), SLOWEST_POLL);
+const running = (run: EvalRun) => run.status === "running";
 
 export const waitForRun = (
   id: string,
@@ -23,25 +15,29 @@ export const waitForRun = (
   Effect.gen(function* () {
     const api = yield* AnpordApi;
     const startedAt = yield* Clock.currentTimeMillis;
+    const gap = yield* Ref.make(FIRST_POLL);
 
-    const step = ({ gap, run }: Poll) =>
-      Effect.gen(function* () {
-        if (run !== null) {
-          yield* Effect.sleep(Duration.millis(gap));
-        }
+    const poll = Effect.gen(function* () {
+      const run = yield* api.evals.get({ payload: { id } });
+      const elapsed = (yield* Clock.currentTimeMillis) - startedAt;
 
-        const next = yield* api.evals.get({ payload: { id } });
-        const elapsed = (yield* Clock.currentTimeMillis) - startedAt;
+      yield* onProgress(run, elapsed);
 
-        yield* onProgress(next, elapsed);
+      return run;
+    });
 
-        return { gap: widen(gap), run: next };
-      });
+    const waitThenPoll = Effect.gen(function* () {
+      const millis = yield* Ref.getAndUpdate(gap, (current) =>
+        Math.min(Math.round(current * WIDENING), SLOWEST_POLL)
+      );
 
-    const { run } = yield* Effect.iterate(
-      { gap: FIRST_POLL, run: null } as Poll,
-      { body: step, while: running }
-    );
+      yield* Effect.sleep(Duration.millis(millis));
 
-    return run ?? (yield* api.evals.get({ payload: { id } }));
+      return yield* poll;
+    });
+
+    return yield* Effect.iterate(yield* poll, {
+      body: () => waitThenPoll,
+      while: running,
+    });
   }).pipe(Effect.withSpan("Cli.waitForRun", { attributes: { runId: id } }));
