@@ -1,0 +1,8 @@
+{
+  "name": "anpord-trigger-spike",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@trigger.dev/sdk": "^4.5.15"
+  }
+}
