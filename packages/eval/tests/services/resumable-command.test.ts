@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Effect, Layer } from "effect";
+import { Duration, Effect, Layer, TestClock, TestContext } from "effect";
 import type { SandboxHandle } from "../../src/ports/sandbox";
 import { runResumable, Suspender } from "../../src/services/resumable-command";
 
@@ -63,5 +63,51 @@ describe("running a command that outlives a suspension", () => {
     await run(sandbox);
 
     expect(seen.checks).toBe(1);
+  });
+});
+
+/* Never exits, which is the case the loop had no answer for: a wedged install
+   waiting on input polls until something else stops the sandbox. */
+const sandboxThatNeverFinishes = () =>
+  ({
+    id: "sandbox-1",
+    progress: () =>
+      Effect.succeed({ exitCode: null, stderr: "", stdout: "working\n" }),
+    start: () => Effect.succeed({ id: "cmd", session: "session" }),
+  }) as unknown as SandboxHandle;
+
+/* Advances the clock by what it was asked to wait, so the deadline is reached
+   by polling rather than by the test sleeping. */
+const Advancing = Layer.succeed(
+  Suspender,
+  Suspender.of({ waitFor: (duration) => TestClock.adjust(duration) })
+);
+
+describe("a command that never exits", () => {
+  test("gives up at its deadline rather than polling forever", async () => {
+    const outcome = await Effect.runPromise(
+      runResumable(sandboxThatNeverFinishes(), "npm ci", {
+        timeoutMs: Duration.toMillis(Duration.minutes(2)),
+      }).pipe(
+        Effect.provide(Advancing),
+        Effect.provide(TestContext.TestContext)
+      )
+    );
+
+    expect(outcome.exitCode).toBe(1);
+    expect(outcome.stderr).toContain("timed out");
+  });
+
+  test("keeps what it printed before the deadline", async () => {
+    const outcome = await Effect.runPromise(
+      runResumable(sandboxThatNeverFinishes(), "npm ci", {
+        timeoutMs: Duration.toMillis(Duration.minutes(2)),
+      }).pipe(
+        Effect.provide(Advancing),
+        Effect.provide(TestContext.TestContext)
+      )
+    );
+
+    expect(outcome.stdout).toContain("working");
   });
 });
