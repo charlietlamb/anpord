@@ -1,7 +1,7 @@
 import { Clock, Context, Effect, Layer, Option, type Stream } from "effect";
 import { SourceTokens } from "../codebase/source-token";
 import { caseIdentityOf } from "../domain/case-identity";
-import { CellKey } from "../domain/cell";
+import { CellKey, cellKeyOf } from "../domain/cell";
 import type { PageCursor } from "../domain/page";
 import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
@@ -271,6 +271,45 @@ export const GridRunLive = Layer.scoped(
             ({ bindings: _, credentials: __, ...task }) => task
           ),
         });
+
+        /* Written before the run is handed over, because a runner that is not
+           this process rebuilds the grid from these rows. They used to be
+           created by the work itself, so a run dispatched elsewhere arrived at
+           a worker that could find nothing to do. Idempotent, so the work
+           creating them again is the same rows. */
+        yield* runs.insertCells(
+          input.tasks.flatMap((task) =>
+            input.cases.flatMap((subject, caseIndex) => {
+              const row = registered[caseIndex];
+
+              return row === undefined
+                ? []
+                : [
+                    {
+                      cellKey: cellKeyOf({
+                        harness: task.harness,
+                        harnessVersion: task.harnessVersion,
+                        model: task.model,
+                        provider: task.provider,
+                        taskId: row.id,
+                        taskVersion: row.internalId,
+                      }),
+                      harness: task.harness,
+                      harnessCredentialConnectionId:
+                        task.bindings?.harnessConnectionId,
+                      harnessVersion: task.harnessVersion,
+                      model: task.model,
+                      prompt: renderPrompt(input.prompt, subject.variables),
+                      provider: task.provider,
+                      runInternalId: created.internalId,
+                      sandboxCredentialConnectionId:
+                        task.bindings?.sandboxConnectionId,
+                      taskInternalId: row.internalId,
+                    },
+                  ];
+            })
+          )
+        );
 
         yield* runner.dispatch({
           organizationId: input.organizationId,
