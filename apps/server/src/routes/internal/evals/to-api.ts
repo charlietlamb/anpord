@@ -104,7 +104,7 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
       onNone: () => waiting(index + 1, cell.live.get(index + 1) ?? []),
       onSome: (result) => ({
         commands: result.commands,
-        prepared: null,
+        prepared: result.prepared,
         exitCode: result.outcome.exitCode,
         failedCommands: result.failedCommands,
         filesChanged: [...result.filesChanged],
@@ -141,11 +141,12 @@ const asStoredTrial = (trial: {
   readonly sandboxMs: number | null;
   readonly status: string;
   readonly usage: Record<string, number> | null;
+  readonly prepared: Record<string, unknown> | null;
   readonly verifySteps: { command: string; exitCode: number }[] | null;
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
   commands: trial.commandCount ?? 0,
-  prepared: null,
+  prepared: trial.prepared,
   exitCode: trial.exitCode ?? -1,
   failedCommands: 0,
   filesChanged: [],

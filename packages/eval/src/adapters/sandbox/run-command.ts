@@ -1,6 +1,10 @@
-import { Effect, Stream } from "effect";
+import { Chunk, Duration, Effect, Stream } from "effect";
 import { SandboxUnavailable } from "../../domain/errors";
-import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
+import type {
+  ExecChunk,
+  ExecOptions,
+  SandboxHandle,
+} from "../../ports/sandbox";
 
 export interface CommandOutcome {
   readonly exitCode: number;
@@ -8,14 +12,37 @@ export interface CommandOutcome {
   readonly stdout: string;
 }
 
+export type CommandWatcher = (
+  output: string
+) => Effect.Effect<void, never, never>;
+
 const OUTPUT_LIMIT = 8000;
+const WATCH_BATCH = 64;
+const WATCH_WINDOW = Duration.seconds(2);
+
+const textOf = (chunks: Chunk.Chunk<ExecChunk>) =>
+  Chunk.toReadonlyArray(chunks)
+    .flatMap((chunk) => (chunk.stream === "exit" ? [] : [chunk.data]))
+    .join("");
+
+const watched = (
+  output: Stream.Stream<ExecChunk, SandboxUnavailable>,
+  watch: CommandWatcher | undefined
+) =>
+  watch === undefined
+    ? output
+    : output.pipe(
+        Stream.groupedWithin(WATCH_BATCH, WATCH_WINDOW),
+        Stream.tap((batch) => Effect.ignoreLogged(watch(textOf(batch)))),
+        Stream.flattenChunks
+      );
 
 export const runCommandForOutcome = (
   sandbox: SandboxHandle,
   command: string,
-  options?: ExecOptions
+  options?: ExecOptions & { readonly watch?: CommandWatcher }
 ): Effect.Effect<CommandOutcome, SandboxUnavailable> =>
-  sandbox.exec(command, options).pipe(
+  watched(sandbox.exec(command, options), options?.watch).pipe(
     Stream.runFold(
       { exitCode: 1, stderr: "", stdout: "" },
       (outcome, chunk) => {
@@ -23,17 +50,11 @@ export const runCommandForOutcome = (
           return { ...outcome, exitCode: chunk.exitCode };
         }
 
-        if (chunk.stream === "stderr") {
-          return {
-            ...outcome,
-            stderr: `${outcome.stderr}${chunk.data}`.slice(-OUTPUT_LIMIT),
-          };
-        }
+        const appended = `${outcome[chunk.stream]}${chunk.data}`.slice(
+          -OUTPUT_LIMIT
+        );
 
-        return {
-          ...outcome,
-          stdout: `${outcome.stdout}${chunk.data}`.slice(-OUTPUT_LIMIT),
-        };
+        return { ...outcome, [chunk.stream]: appended };
       }
     )
   );
@@ -42,7 +63,7 @@ export const runCommandOrFail = <E>(
   sandbox: SandboxHandle,
   command: string,
   onFailure: (outcome: CommandOutcome) => E,
-  options?: ExecOptions
+  options?: ExecOptions & { readonly watch?: CommandWatcher }
 ): Effect.Effect<void, E | SandboxUnavailable> =>
   runCommandForOutcome(sandbox, command, options).pipe(
     Effect.flatMap((outcome) =>

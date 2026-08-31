@@ -15,6 +15,7 @@ const asResult = (input: {
   readonly modelMs: number;
   readonly passed: boolean;
   readonly sandboxId: string | null;
+  readonly prepared: Readonly<Record<string, unknown>> | null;
   readonly sandboxMs: number;
   readonly status: string;
   readonly usage: HarnessUsage | null;
@@ -25,6 +26,7 @@ const asResult = (input: {
   events: input.events,
   failedCommands: failedCommandsIn(input.events),
   filesChanged: filesIn(input.events),
+  prepared: input.prepared ?? {},
   outcome: {
     commandCount: input.commandCount,
     exitCode: input.exitCode,
@@ -116,6 +118,7 @@ export const runToState = (
             exitCode: trial.exitCode ?? -1,
             modelMs: trial.modelMs ?? 0,
             passed: trial.passed ?? false,
+            prepared: trial.prepared ?? null,
             sandboxId: trial.sandboxId,
             sandboxMs: trial.sandboxMs ?? 0,
             status: trial.status,

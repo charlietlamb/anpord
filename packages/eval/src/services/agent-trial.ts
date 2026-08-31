@@ -54,8 +54,9 @@ export interface AgentTrialRequest {
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly harnessVersion: string;
   readonly model: string;
-  readonly prepare: EvalPrepare | null;
 
+  readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
+  readonly prepare: EvalPrepare | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
@@ -74,6 +75,7 @@ export interface AgentTrialResult {
   readonly failedCommands: number;
   readonly filesChanged: readonly string[];
   readonly outcome: TrialOutcome;
+  readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string;
   readonly sessionId: string | null;
   readonly usage: Option.Option<HarnessUsage>;
@@ -110,6 +112,8 @@ export const AgentTrialLive = Layer.effect(
           provider: request.provider,
           workspace: request.workspace,
         });
+
+        yield* request.onSandbox?.(sandbox.id) ?? Effect.void;
 
         const driver = yield* harnesses.resolve(request.harness);
 
@@ -195,6 +199,7 @@ export const AgentTrialLive = Layer.effect(
 
             sandboxMs: finishedAt - startedAt - (modelFinished - modelStarted),
           },
+          prepared,
           sandboxId: sandbox.id,
           sessionId: sessionIdOf(events),
           usage: yield* session.usage,

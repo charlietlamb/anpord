@@ -33,10 +33,16 @@ export interface AbandonTrial {
 export interface SettleTrial {
   readonly finishedAt: Date;
   readonly outcome: TrialOutcome;
+  readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string | null;
   readonly trialInternalId: string;
 
   readonly usage: HarnessUsage | null;
+}
+
+export interface AttachSandbox {
+  readonly sandboxId: string;
+  readonly trialInternalId: string;
 }
 
 export interface TrialRecorderShape {
@@ -46,6 +52,10 @@ export interface TrialRecorderShape {
 
   readonly append: (
     input: AppendTrialEvents
+  ) => Effect.Effect<void, EvalStoreError>;
+
+  readonly attach: (
+    input: AttachSandbox
   ) => Effect.Effect<void, EvalStoreError>;
 
   readonly open: (input: OpenTrial) => Effect.Effect<string, EvalStoreError>;
@@ -76,6 +86,21 @@ export const TrialRecorderLive = Layer.effect(
             )
           )
       ).pipe(Effect.asVoid, Effect.withSpan("TrialRecorder.abandon"));
+
+    const attach = (input: AttachSandbox) =>
+      tryStore("trial.attach", () =>
+        db
+          .update(evalTrial)
+          .set({ sandboxId: input.sandboxId })
+          .where(eq(evalTrial.internalId, input.trialInternalId))
+      ).pipe(
+        Effect.asVoid,
+        Effect.withSpan("TrialRecorder.attach"),
+        Effect.annotateLogs({
+          sandboxId: input.sandboxId,
+          trialInternalId: input.trialInternalId,
+        })
+      );
 
     const open = (input: OpenTrial) =>
       Effect.gen(function* () {
@@ -142,6 +167,7 @@ export const TrialRecorderLive = Layer.effect(
             finishedAt: input.finishedAt,
             modelMs: input.outcome.modelMs,
             passed: input.outcome.passed,
+            prepared: input.prepared,
             sandboxId: input.sandboxId,
             sandboxMs: input.outcome.sandboxMs,
             status: input.outcome.status,
@@ -157,6 +183,6 @@ export const TrialRecorderLive = Layer.effect(
         })
       );
 
-    return TrialRecorder.of({ abandon, append, open, settle });
+    return TrialRecorder.of({ abandon, attach, append, open, settle });
   })
 );

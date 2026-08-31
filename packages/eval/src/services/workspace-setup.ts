@@ -51,7 +51,14 @@ export const runPrepare = (input: {
       const outcome = yield* runCommandForOutcome(
         input.sandbox,
         `node ${quoted(path)}`,
-        { cwd: input.workspace, timeoutMs: SETUP_TIMEOUT_MS }
+        {
+          cwd: input.workspace,
+          timeoutMs: SETUP_TIMEOUT_MS,
+          watch: (output) =>
+            Effect.logInfo("preparing").pipe(
+              Effect.annotateLogs({ output: output.trim() })
+            ),
+        }
       );
 
       return outcome.exitCode === 0
@@ -64,7 +71,15 @@ export const runPrepare = (input: {
           );
     })
   ).pipe(
-    Effect.withSpan("Workspace.setup", {
-      attributes: { prepare: input.prepare.name },
+    Effect.withSpan("Workspace.prepare", {
+      attributes: {
+        prepare: input.prepare.name,
+        provider: input.sandbox.provider,
+        sandboxId: input.sandbox.id,
+      },
+    }),
+    Effect.annotateLogs({
+      prepare: input.prepare.name,
+      sandboxId: input.sandbox.id,
     })
   );

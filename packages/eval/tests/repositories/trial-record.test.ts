@@ -144,6 +144,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
         yield* recorder.settle({
           finishedAt: new Date(),
           outcome,
+          prepared: {},
           sandboxId: "sbx_1",
           trialInternalId,
           usage: {

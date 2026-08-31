@@ -99,6 +99,10 @@ export const runTrial = (input: RunOneTrial) =>
 
     const result = yield* input.agent.run({
       autoStopMinutes: AUTO_STOP_MINUTES,
+      onSandbox: (sandboxId) =>
+        Effect.ignoreLogged(
+          input.recorder.attach({ sandboxId, trialInternalId })
+        ),
       harnessCredential: input.task.credentials.harness,
       harness: input.task.harness,
       harnessVersion: input.task.harnessVersion,
@@ -136,6 +140,7 @@ export const runTrial = (input: RunOneTrial) =>
     yield* input.recorder.settle({
       finishedAt: new Date(finishedAt),
       outcome: result.outcome,
+      prepared: result.prepared,
       sandboxId: result.sandboxId,
       trialInternalId,
       usage: yield* priced(result.usage, input.task.model),

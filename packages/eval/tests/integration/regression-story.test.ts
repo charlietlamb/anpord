@@ -112,6 +112,7 @@ const recordCell = (input: {
               verifySteps: [],
               voidFields: isVoid ? ["stdout"] : [],
             },
+            prepared: {},
             sandboxId: `sbx_${index}`,
             trialInternalId,
             usage: null,

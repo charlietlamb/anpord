@@ -41,4 +41,33 @@ describe("runCommandForOutcome", () => {
 
     expect(outcome.exitCode).toBe(1);
   });
+
+  test("reports output while the command is still running", async () => {
+    const seen: string[] = [];
+
+    await Effect.runPromise(
+      runCommandForOutcome(
+        sandboxSaying(stdout("resolving\n"), stdout("linking\n"), exit(0)),
+        "npm ci",
+        { watch: (text) => Effect.sync(() => seen.push(text)) }
+      )
+    );
+
+    expect(seen.join("")).toContain("resolving");
+    expect(seen.join("")).toContain("linking");
+  });
+
+  test("watching does not change what the command reports", async () => {
+    const outcome = await Effect.runPromise(
+      runCommandForOutcome(
+        sandboxSaying(stdout("out\n"), stderr("warn\n"), exit(3)),
+        "npm ci",
+        { watch: () => Effect.void }
+      )
+    );
+
+    expect(outcome.exitCode).toBe(3);
+    expect(outcome.stdout).toContain("out");
+    expect(outcome.stderr).toContain("warn");
+  });
 });
