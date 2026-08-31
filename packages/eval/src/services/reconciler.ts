@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, eq, lt, notExists, sql } from "drizzle-orm";
+import { and, eq, exists, lt, notExists, sql } from "drizzle-orm";
 import { Clock, Context, Duration, Effect, Layer, Schedule } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "../repositories/query";
@@ -48,12 +48,31 @@ export const ReconcilerLive = Layer.effect(
             .where(
               and(
                 eq(evalTrial.status, "running"),
-                lt(evalTrial.createdAt, cutoff)
+                exists(
+                  db
+                    .select({ one: sql`1` })
+                    .from(evalCell)
+                    .innerJoin(
+                      evalRun,
+                      eq(evalRun.internalId, evalCell.runInternalId)
+                    )
+                    .where(
+                      and(
+                        eq(evalCell.internalId, evalTrial.cellInternalId),
+                        lt(evalRun.createdAt, cutoff)
+                      )
+                    )
+                )
               )
             )
             .returning({ internalId: evalTrial.internalId })
         );
 
+        /* Judged by the age of the run rather than the cell's own, because a
+           cell opened late in a long run is younger than the cutoff that
+           closes the run above it. It was then left running under a run no
+           later sweep looks at again, which is how a cell stayed running
+           forever. */
         const cells = yield* tryStore("reconcile.cells", () =>
           db
             .update(evalCell)
@@ -61,7 +80,17 @@ export const ReconcilerLive = Layer.effect(
             .where(
               and(
                 eq(evalCell.status, "running"),
-                lt(evalCell.createdAt, cutoff)
+                exists(
+                  db
+                    .select({ one: sql`1` })
+                    .from(evalRun)
+                    .where(
+                      and(
+                        eq(evalRun.internalId, evalCell.runInternalId),
+                        lt(evalRun.createdAt, cutoff)
+                      )
+                    )
+                )
               )
             )
             .returning({ internalId: evalCell.internalId })
