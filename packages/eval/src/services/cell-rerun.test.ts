@@ -36,6 +36,7 @@ const layer = (
         changes: Stream.empty,
         get: () => Effect.succeed(Option.none()),
         list: () => Effect.succeed({ next: null, runs: [], total: 0 }),
+        resume: () => Effect.void,
         start: (input) =>
           Effect.sync(() => {
             onStart(input);

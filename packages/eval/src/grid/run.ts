@@ -2,7 +2,6 @@ import { Clock, Context, Effect, Layer, Option, type Stream } from "effect";
 import { SourceTokens } from "../codebase/source-token";
 import { caseIdentityOf } from "../domain/case-identity";
 import { CellKey } from "../domain/cell";
-import { failureOf } from "../domain/failure";
 import type { PageCursor } from "../domain/page";
 import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
@@ -28,6 +27,15 @@ import {
 } from "./state";
 import { runToState } from "./stored-run-state";
 import { WORKSPACE } from "./trial";
+
+export interface ResumeGrid {
+  readonly created: { readonly id: string; readonly internalId: string };
+  readonly input: StartGrid;
+  readonly registered: readonly {
+    readonly id: string;
+    readonly internalId: string;
+  }[];
+}
 
 export interface StartGrid {
   readonly cases: readonly GridCase[];
@@ -61,6 +69,7 @@ export interface GridRunShape {
     readonly organizationId: string;
   }) => Effect.Effect<GridRunPage>;
 
+  readonly resume: (grid: ResumeGrid) => Effect.Effect<void>;
   readonly start: (input: StartGrid) => Effect.Effect<string>;
 }
 
@@ -258,40 +267,10 @@ export const GridRunLive = Layer.scoped(
         });
 
         yield* runner.dispatch({
+          grid: { created, input, registered },
           organizationId: input.organizationId,
           runId: created.id,
-          run: execute(input, created, registered).pipe(
-            Effect.provideService(ModelPrices, prices),
-            Effect.tapErrorCause((cause) =>
-              Effect.logError("grid run failed", cause).pipe(
-                Effect.annotateLogs({ runId: created.id })
-              )
-            ),
-            Effect.catchAllCause((cause) =>
-              Clock.currentTimeMillis.pipe(
-                Effect.flatMap((finishedAt) =>
-                  runs
-                    .finish({
-                      failure: failureOf(cause),
-                      finishedAt: new Date(finishedAt),
-                      internalId: created.internalId,
-                      status: "failed",
-                    })
-                    .pipe(
-                      Effect.ignore,
-                      Effect.zipRight(
-                        update(created.id, (state) => ({
-                          ...state,
-                          failure: Option.some(failureOf(cause)),
-                          finishedAt: Option.some(finishedAt),
-                          status: "failed",
-                        })).pipe(Effect.zipRight(forget(created.id)))
-                      )
-                    )
-                )
-              )
-            )
-          ),
+          work: resume({ created, input, registered }),
         });
 
         return created.id;
@@ -346,9 +325,17 @@ export const GridRunLive = Layer.scoped(
         Effect.withSpan("GridRun.get")
       );
 
+    const resume = (grid: ResumeGrid) =>
+      execute(grid.input, grid.created, grid.registered).pipe(
+        Effect.provideService(ModelPrices, prices),
+        Effect.annotateLogs({ runId: grid.created.id }),
+        Effect.orDie
+      );
+
     return GridRun.of({
       changes: live.changes,
       get,
+      resume,
       list: (input) =>
         Effect.gen(function* () {
           const size = pageSizeOf(input.limit);
