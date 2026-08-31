@@ -59,8 +59,12 @@ export { empty, files, repo } from "./evals/source";
 export type {
   EvalCaseDefinition,
   EvalDefinition,
+  ExecOptions,
+  SetupContext,
+  SetupValue,
   Validator,
   ValidatorCommandResult,
   ValidatorContext,
   ValidatorResult,
+  WorkspaceSetup,
 } from "./evals/types";

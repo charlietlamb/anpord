@@ -7,7 +7,6 @@ import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
 import {
   AGENT_PROMPT,
   brokenSource,
-  SETUP_COMMAND,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
 import {
@@ -48,7 +47,7 @@ for (const [provider, ready] of [
             model: "gpt-5.6-sol",
             prompt: AGENT_PROMPT,
             provider,
-            setupCommand: SETUP_COMMAND,
+            setup: null,
             source: brokenSource,
             verifyCommand: VERIFY_COMMAND,
             workspace: "/tmp/anpord-task",

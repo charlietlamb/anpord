@@ -117,7 +117,10 @@ export const make = Effect.gen(function* () {
         {
           identity: subject.identity,
           name: subject.name,
-          setup: subject.setupCommand,
+          setup:
+            subject.setupName === null || subject.setupSource === null
+              ? null
+              : { name: subject.setupName, source: subject.setupSource },
           source: subject.source,
           variables: {},
           validator:

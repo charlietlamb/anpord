@@ -43,7 +43,7 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
     harnessVersion: "1",
     home: HOME,
     sandbox,
-    setupCommand: null,
+    setup: null,
     source: {
       kind: "repo",
       ref: null,

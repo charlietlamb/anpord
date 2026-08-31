@@ -5,9 +5,10 @@ import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
 export interface CommandOutcome {
   readonly exitCode: number;
   readonly stderr: string;
+  readonly stdout: string;
 }
 
-const STDERR_LIMIT = 2000;
+const OUTPUT_LIMIT = 8000;
 
 export const runCommandForOutcome = (
   sandbox: SandboxHandle,
@@ -15,20 +16,26 @@ export const runCommandForOutcome = (
   options?: ExecOptions
 ): Effect.Effect<CommandOutcome, SandboxUnavailable> =>
   sandbox.exec(command, options).pipe(
-    Stream.runFold({ exitCode: 1, stderr: "" }, (outcome, chunk) => {
-      if (chunk.stream === "exit") {
-        return { ...outcome, exitCode: chunk.exitCode };
-      }
+    Stream.runFold(
+      { exitCode: 1, stderr: "", stdout: "" },
+      (outcome, chunk) => {
+        if (chunk.stream === "exit") {
+          return { ...outcome, exitCode: chunk.exitCode };
+        }
 
-      if (chunk.stream === "stderr") {
+        if (chunk.stream === "stderr") {
+          return {
+            ...outcome,
+            stderr: `${outcome.stderr}${chunk.data}`.slice(-OUTPUT_LIMIT),
+          };
+        }
+
         return {
           ...outcome,
-          stderr: `${outcome.stderr}${chunk.data}`.slice(-STDERR_LIMIT),
+          stdout: `${outcome.stdout}${chunk.data}`.slice(-OUTPUT_LIMIT),
         };
       }
-
-      return outcome;
-    })
+    )
   );
 
 export const runCommandOrFail = <E>(

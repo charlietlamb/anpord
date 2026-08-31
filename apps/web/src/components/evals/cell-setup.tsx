@@ -5,7 +5,6 @@ import {
   verdictsOf,
 } from "@anpord/schema/domain/verify-verdicts";
 import { CopyButton } from "@anpord/ui/components/copy-button";
-import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 import {
   CheckSquareIcon,
   FolderOpenIcon,
@@ -192,26 +191,15 @@ export function CellSetup({
         </p>
       </SetupSurface>
 
-      {setup.setupCommand === null ? null : (
-        <SetupSurface
-          controls={
-            <CopyButton
-              label="Copy setup script"
-              size="inline"
-              value={setup.setupCommand}
-            />
-          }
-          Icon={TerminalWindowIcon}
-          meta={lines(setup.setupCommand)}
-          title="Setup"
-        >
-          <ShellBlock
-            className="-mx-1 max-h-80"
-            command={setup.setupCommand}
-            copyable={false}
-            tone="plain"
+      {setup.setupName === null ? null : (
+        <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
+          <TerminalWindowIcon
+            aria-hidden="true"
+            className="shrink-0"
+            size={13}
           />
-        </SetupSurface>
+          Prepared by <code>{setup.setupName}</code>
+        </p>
       )}
 
       <Validation setup={setup} trials={trials} />

@@ -101,7 +101,7 @@ export const GridRunLive = Layer.scoped(
               subject.identity ??
               caseIdentityOf({
                 name: subject.name,
-                setupCommand: subject.setup,
+                setup: subject.setup,
                 source: subject.source,
                 validator: subject.validator,
                 variables: subject.variables,
@@ -111,7 +111,7 @@ export const GridRunLive = Layer.scoped(
             name: subject.name,
             organizationId: input.organizationId,
             prompt,
-            setupCommand: subject.setup,
+            setup: subject.setup ?? null,
             source: subject.source,
             validator: subject.validator ?? null,
             verifyCommand: subject.verify,
@@ -229,7 +229,7 @@ export const GridRunLive = Layer.scoped(
                   subject.source.kind === "repo" ? subject.source.ref : null,
                 repoUrl:
                   subject.source.kind === "repo" ? subject.source.url : null,
-                setupCommand: subject.setup,
+                setupName: subject.setup?.name ?? null,
                 validatorName: subject.validator?.name ?? null,
                 verifyCommand: subject.verify,
                 workspace: WORKSPACE,

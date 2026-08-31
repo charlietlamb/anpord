@@ -31,7 +31,6 @@ export const TEST_SOURCE = [
 
 /** Node is already on both images, so there is no setup step: an install that
  * takes a minute would dominate the timing of a trial that takes seconds. */
-export const SETUP_COMMAND: string | null = null;
 
 /** Unpiped on purpose. A pipeline exits with its last command, so piping this
  * through `tail` reports the success of tail while the runner exits 1. */

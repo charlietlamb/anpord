@@ -7,7 +7,7 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { build, type Plugin } from "esbuild";
 import { localRepo } from "./local-repo";
-import { definitionEntry, validatorEntry } from "./runner-source";
+import { definitionEntry, setupEntry, validatorEntry } from "./runner-source";
 import { repo } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
 
@@ -152,6 +152,19 @@ const sourceFor = (
   });
 };
 
+const bundled = (
+  entry: string,
+  inputs: readonly string[],
+  name: string,
+  wrap: (module: string, exported: string) => string
+) =>
+  Effect.gen(function* () {
+    const module = yield* validatorModule(entry, inputs, name);
+    const { source } = yield* bundle(wrap(module, name), entry);
+
+    return { name, source };
+  });
+
 export const compileEvalEffect = (path: string) =>
   Effect.gen(function* () {
     const entry = resolve(path);
@@ -188,25 +201,27 @@ export const compileEvalEffect = (path: string) =>
           }
 
           const validator = hasValidator
-            ? {
-                name: subject.validate?.name || subject.name,
-                source: (yield* bundle(
-                  validatorEntry(
-                    yield* validatorModule(
-                      entry,
-                      loaded.inputs,
-                      subject.validate?.name || subject.name
-                    ),
-                    subject.validate?.name || subject.name
-                  ),
-                  entry
-                )).source,
-              }
+            ? yield* bundled(
+                entry,
+                loaded.inputs,
+                subject.validate?.name || subject.name,
+                validatorEntry
+              )
             : null;
+
+          const setup =
+            typeof subject.setup === "function"
+              ? yield* bundled(
+                  entry,
+                  loaded.inputs,
+                  subject.setup.name || `${subject.name}-setup`,
+                  setupEntry
+                )
+              : null;
 
           return {
             name: subject.name,
-            setup: subject.setup ?? null,
+            setup,
             ...sourceFor(definition, subject, fallback),
             validator,
             variables: subject.variables ?? {},

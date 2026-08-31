@@ -11,6 +11,7 @@ import {
   EvalSource,
   EvalValidator,
   EvalVariables,
+  EvalWorkspaceSetup,
   ModelCatalogue,
   RerunCellRequest,
   StartedEval,
@@ -49,7 +50,7 @@ export const ListEvalsRequest = Schema.Struct({
 
 const PublicEvalCase = Schema.Struct({
   name: Schema.String,
-  setup: Schema.optional(Schema.NullOr(Schema.String)),
+  setup: Schema.optional(Schema.NullOr(EvalWorkspaceSetup)),
   source: Schema.optional(EvalSource),
   validator: Schema.optional(Schema.NullOr(EvalValidator)),
   variables: Schema.optional(EvalVariables),

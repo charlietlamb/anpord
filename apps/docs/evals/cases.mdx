@@ -14,7 +14,7 @@ A case describes one coding task:
     url: "https://github.com/acme/api",
     ref: "8f31c4a",
   },
-  setup: "bun install",
+  setup: installDependencies,
   verify: "bun test test/health.test.ts",
 }
 ```
@@ -24,11 +24,40 @@ A case describes one coding task:
 | `name` | Labels the row in a run |
 | `task` | Replaces `{{task}}` in the shared prompt |
 | `source` | Supplies the starting workspace |
-| `setup` | Runs before the agent starts |
+| `setup` | A TypeScript function run after the workspace is ready and before the agent starts |
 | `verify` | Runs a shell check after the agent finishes |
 | `validate` | References a TypeScript validator in file-based evals |
 
 Keep `name` short. Write `task` as the task, not the full agent instruction. Put shared instructions in the run prompt.
+
+## Setup
+
+`setup` is a function, not a shell string, so a step is a file and arguments
+rather than a line to quote:
+
+```ts
+import type { WorkspaceSetup } from "anpord";
+
+export const installDependencies: WorkspaceSetup = async ({ exec }) => {
+  await exec("npm", ["ci", "--workspace", "renderer"], { timeoutMs: 600_000 });
+
+  return { rendererPort: 4173 };
+};
+```
+
+Each `exec` takes its own `timeoutMs`, so a long install does not force the
+same ceiling on every other step.
+
+What setup returns reaches the validator as `setup`, and is recorded with the
+trial:
+
+```ts
+export const validateRender: Validator = ({ setup }) =>
+  fetch(`http://localhost:${setup.rendererPort}`).then((response) => response.ok);
+```
+
+The bundled setup is stored with the case and hashed into its identity, so a
+rerun uses the same setup and changing it starts a new baseline.
 
 ## Source
 

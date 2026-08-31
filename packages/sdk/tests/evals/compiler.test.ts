@@ -205,4 +205,47 @@ export default defineEval({
       url: "https://github.com/acme/widgets.git",
     });
   });
+
+  test("bundles a typed setup beside its validator", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-setup-"));
+    await writeFile(
+      join(workspace, "prepare.ts"),
+      `import type { Validator, WorkspaceSetup } from "anpord";
+
+export const prepareRepoImage: WorkspaceSetup = async ({ exec }) => {
+  await exec("npm", ["ci", "--workspace", "renderer"]);
+  return { rendererPort: 4173 };
+};
+
+export const validateRepoImage: Validator = ({ setup }) =>
+  setup.rendererPort === 4173;`
+    );
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+import { prepareRepoImage, validateRepoImage } from "./prepare";
+
+export default defineEval({
+  cases: [
+    {
+      name: "renders",
+      setup: prepareRepoImage,
+      validate: validateRepoImage,
+      variables: { task: "Render" },
+    },
+  ],
+  name: "suite",
+  prompt: "{{task}}",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+    const subject = payload.cases[0];
+
+    expect(subject?.setup?.name).toBe("prepareRepoImage");
+    expect(subject?.setup?.source).toContain("--workspace");
+    expect(subject?.validator?.name).toBe("validateRepoImage");
+  });
 });

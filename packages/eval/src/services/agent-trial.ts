@@ -2,7 +2,10 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
-import type { EvalValidator } from "@anpord/schema/domain/evals";
+import type {
+  EvalValidator,
+  EvalWorkspaceSetup,
+} from "@anpord/schema/domain/evals";
 import {
   Chunk,
   Clock,
@@ -19,6 +22,7 @@ import type { HarnessName, ProviderName } from "../domain/cell";
 import type {
   HarnessUnavailable,
   SandboxUnavailable,
+  SetupFailed,
   SourceUnavailable,
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
@@ -58,7 +62,7 @@ export interface AgentTrialRequest {
   readonly prompt: string;
   readonly provider: ProviderName;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
-  readonly setupCommand: string | null;
+  readonly setup: EvalWorkspaceSetup | null;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
 
@@ -83,7 +87,7 @@ export interface AgentTrialShape {
     request: AgentTrialRequest
   ) => Effect.Effect<
     AgentTrialResult,
-    HarnessUnavailable | SandboxUnavailable | SourceUnavailable
+    HarnessUnavailable | SandboxUnavailable | SetupFailed | SourceUnavailable
   >;
 }
 
@@ -112,14 +116,14 @@ export const AgentTrialLive = Layer.effect(
 
         const driver = yield* harnesses.resolve(request.harness);
 
-        const env = yield* prepareWorkspace({
+        const { env, setupValue } = yield* prepareWorkspace({
           credential: request.harnessCredential,
           driver,
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,
           sandbox,
-          setupCommand: request.setupCommand,
+          setup: request.setup,
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
@@ -176,6 +180,7 @@ export const AgentTrialLive = Layer.effect(
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,
+          setupValue,
           validator: request.validator,
           verifyCommand: request.verifyCommand,
           workspace: request.workspace,

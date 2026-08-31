@@ -42,7 +42,8 @@ export interface CellTask {
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
-  readonly setupCommand: string | null;
+  readonly setupName: string | null;
+  readonly setupSource: string | null;
   readonly source: WorkspaceSource | null;
   readonly validatorName?: string | null;
   readonly validatorSource?: string | null;
@@ -56,7 +57,7 @@ interface CellTaskRow {
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
-  readonly setupCommand: string | null;
+  readonly setupName: string | null;
   readonly validatorName: string | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
@@ -70,7 +71,7 @@ interface CellWithTrials {
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
-  readonly setupCommand: string | null;
+  readonly setupName: string | null;
   readonly trials: readonly TrialRow[];
 
   readonly validatorName: string | null;
@@ -190,7 +191,7 @@ export const RunQueryLive = Layer.effect(
           prompt: row.prompt,
           repoRef: row.repoRef,
           repoUrl: row.repoUrl,
-          setupCommand: row.setupCommand,
+          setupName: row.setupName,
           trials: own,
           validatorName: row.validatorName,
           verifyCommand: row.verifyCommand,
@@ -214,7 +215,8 @@ export const RunQueryLive = Layer.effect(
               prompt: evalCell.prompt,
               repoRef: evalTask.repoRef,
               repoUrl: evalTask.repoUrl,
-              setupCommand: evalTask.setupCommand,
+              setupName: evalTask.setupName,
+              setupSource: evalTask.setupSource,
               validatorName: evalTask.validatorName,
               verifyCommand: evalTask.verifyCommand,
               workspace: evalTask.workspace,
@@ -255,7 +257,7 @@ export const RunQueryLive = Layer.effect(
                   prompt: evalCell.prompt,
                   repoRef: evalTask.repoRef,
                   repoUrl: evalTask.repoUrl,
-                  setupCommand: evalTask.setupCommand,
+                  setupName: evalTask.setupName,
                   validatorName: evalTask.validatorName,
                   verifyCommand: evalTask.verifyCommand,
                   workspace: evalTask.workspace,
@@ -316,7 +318,8 @@ export const RunQueryLive = Layer.effect(
             prompt: evalCell.prompt,
             repoRef: evalTask.repoRef,
             repoUrl: evalTask.repoUrl,
-            setupCommand: evalTask.setupCommand,
+            setupName: evalTask.setupName,
+            setupSource: evalTask.setupSource,
             sourceFiles: evalTask.sourceFiles,
             sourceKind: evalTask.sourceKind,
             validatorName: evalTask.validatorName,

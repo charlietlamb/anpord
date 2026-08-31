@@ -9,10 +9,34 @@ export interface ValidatorCommandResult {
   readonly stdout: string;
 }
 
+export interface ExecOptions {
+  readonly cwd?: string;
+  readonly env?: Readonly<Record<string, string>>;
+  readonly timeoutMs?: number;
+}
+
+export interface SetupContext {
+  readonly exec: (
+    file: string,
+    args?: readonly string[],
+    options?: ExecOptions
+  ) => Promise<ValidatorCommandResult>;
+  readonly exists: (path: string) => Promise<boolean>;
+  readonly readText: (path: string) => Promise<string>;
+  readonly workspace: string;
+}
+
+export type SetupValue = Readonly<Record<string, unknown>>;
+
+export type WorkspaceSetup = (
+  context: SetupContext
+) => Promise<SetupValue | undefined> | SetupValue | undefined;
+
 export interface ValidatorContext {
   readonly exec: (command: string) => Promise<ValidatorCommandResult>;
   readonly exists: (path: string) => Promise<boolean>;
   readonly readText: (path: string) => Promise<string>;
+  readonly setup: Readonly<Record<string, unknown>>;
 }
 
 export interface ValidatorResult {
@@ -28,7 +52,7 @@ type DeclaredSource = EvalSource | string;
 
 interface EvalCaseBase {
   readonly name: string;
-  readonly setup?: string | null;
+  readonly setup?: WorkspaceSetup | null;
   readonly source?: DeclaredSource;
   readonly variables?: Readonly<Record<string, string>>;
 }

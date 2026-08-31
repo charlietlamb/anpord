@@ -10,6 +10,7 @@ export interface ScoreRequest {
   readonly events: readonly HarnessEvent[];
   readonly modelMs: number;
   readonly sandbox: SandboxHandle;
+  readonly setupValue?: Readonly<Record<string, unknown>>;
   readonly validator?: EvalValidator | null;
   /** Null for a case with no verifier, whose trials are void rather than
    * passed: nothing decided them. */

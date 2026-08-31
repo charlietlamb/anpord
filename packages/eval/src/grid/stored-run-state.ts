@@ -101,7 +101,7 @@ export const runToState = (
         prompt: entry.prompt,
         repoRef: entry.repoRef,
         repoUrl: entry.repoUrl,
-        setupCommand: entry.setupCommand,
+        setupName: entry.setupName,
         validatorName: entry.validatorName,
         verifyCommand: entry.verifyCommand,
         workspace: entry.workspace,

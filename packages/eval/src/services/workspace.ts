@@ -1,13 +1,15 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { EvalWorkspaceSetup } from "@anpord/schema/domain/evals";
 import { Effect, Redacted } from "effect";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
-import { SourceUnavailable } from "../domain/errors";
+import { type SetupFailed, SourceUnavailable } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
+import { runWorkspaceSetup } from "./workspace-setup";
 
 export interface PrepareWorkspace {
   readonly credential: Redacted.Redacted<ResolvedCredential>;
@@ -16,7 +18,7 @@ export interface PrepareWorkspace {
   readonly harnessVersion: string;
   readonly home: string;
   readonly sandbox: SandboxHandle;
-  readonly setupCommand: string | null;
+  readonly setup: EvalWorkspaceSetup | null;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly workspace: string;
@@ -108,8 +110,11 @@ const materialise = (input: PrepareWorkspace) => {
 export const prepareWorkspace = (
   input: PrepareWorkspace
 ): Effect.Effect<
-  Readonly<Record<string, string>>,
-  HarnessUnavailable | SandboxUnavailable | SourceUnavailable
+  {
+    readonly env: Readonly<Record<string, string>>;
+    readonly setupValue: Readonly<Record<string, unknown>>;
+  },
+  HarnessUnavailable | SandboxUnavailable | SetupFailed | SourceUnavailable
 > =>
   Effect.gen(function* () {
     const env = yield* input.driver.prepare({
@@ -125,12 +130,14 @@ export const prepareWorkspace = (
 
     yield* materialise(input);
 
-    if (input.setupCommand !== null) {
-      yield* runCommand(input.sandbox, input.setupCommand, {
-        cwd: input.workspace,
-        timeoutMs: 300_000,
-      });
-    }
+    const setupValue =
+      input.setup === null
+        ? {}
+        : yield* runWorkspaceSetup({
+            sandbox: input.sandbox,
+            setup: input.setup,
+            workspace: input.workspace,
+          });
 
-    return env;
+    return { env, setupValue };
   }).pipe(Effect.withSpan("Workspace.prepare"));

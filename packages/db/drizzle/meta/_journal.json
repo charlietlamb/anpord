@@ -197,6 +197,13 @@
       "when": 1788116440782,
       "tag": "0027_right_machine_man",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1788116441782,
+      "tag": "0028_typed_workspace_setup",
+      "breakpoints": true
     }
   ]
 }

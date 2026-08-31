@@ -27,7 +27,7 @@ export interface GridSetup {
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
-  readonly setupCommand: string | null;
+  readonly setupName: string | null;
   readonly validatorName: string | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;

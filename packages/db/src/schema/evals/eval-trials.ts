@@ -36,6 +36,7 @@ export const evalTrial = pgTable(
     commandCount: integer("command_count"),
     modelMs: integer("model_ms"),
     sandboxMs: integer("sandbox_ms"),
+    setupValue: jsonb("setup_value").$type<Record<string, unknown>>(),
     voidFields: jsonb("void_fields").$type<string[]>(),
     verifySteps:
       jsonb("verify_steps").$type<{ command: string; exitCode: number }[]>(),
