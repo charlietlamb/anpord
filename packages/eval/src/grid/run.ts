@@ -168,6 +168,7 @@ export const GridRunLive = Layer.scoped(
                   update(created.id, (state) =>
                     settleTrial(state, position, ordinal, trial)
                   ),
+                organizationId: input.organizationId,
                 prompt: input.prompt,
                 recorder,
                 runInternalId: created.internalId,

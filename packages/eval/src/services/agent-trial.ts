@@ -58,6 +58,7 @@ export interface AgentTrialRequest {
   readonly model: string;
 
   readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
+  readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
@@ -111,7 +112,7 @@ export const AgentTrialLive = Layer.effect(
 
         const sandbox = yield* sandboxes.open({
           autoStopMinutes: request.autoStopMinutes,
-          cache: cacheKeyOf(request.prepare),
+          cache: cacheKeyOf(request.organizationId, request.prepare),
           credentials: request.sandboxCredentials,
           provider: request.provider,
           workspace: request.workspace,

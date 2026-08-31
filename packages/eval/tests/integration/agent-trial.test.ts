@@ -46,6 +46,7 @@ for (const [provider, ready] of [
             harness: "codex",
             harnessCredential: codexCredential,
             harnessVersion: "0.144.4",
+            organizationId: "org_test",
             model: "gpt-5.6-sol",
             prompt: AGENT_PROMPT,
             provider,

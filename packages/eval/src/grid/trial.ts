@@ -56,6 +56,7 @@ export interface TrialInputs {
     ordinal: number,
     result: AgentTrialResult
   ) => Effect.Effect<void>;
+  readonly organizationId: string;
   readonly prompt: string;
   readonly recorder: TrialRecorderShape;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
@@ -107,6 +108,7 @@ export const runTrial = (input: RunOneTrial) =>
       harness: input.task.harness,
       harnessVersion: input.task.harnessVersion,
       model: input.task.model,
+      organizationId: input.organizationId,
       progress: {
         append: (events, from) =>
           Effect.gen(function* () {

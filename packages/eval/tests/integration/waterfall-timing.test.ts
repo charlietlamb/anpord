@@ -28,6 +28,7 @@ const trial = Effect.gen(function* () {
     harness: "codex",
     harnessCredential: codexCredential,
     harnessVersion: "0.144.4",
+    organizationId: "org_test",
     model: "gpt-5.2",
     prompt: `Run exactly one shell command: \`sleep ${SLEEP_SECONDS} && echo done\`. Then stop without running anything else.`,
     provider: "daytona",
