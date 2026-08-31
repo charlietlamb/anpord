@@ -5,7 +5,7 @@ import type { CredentialError } from "../credentials/errors";
 import { resolveTaskCredentials } from "../credentials/tasks";
 import { type EvalStoreError, NotRunnable } from "../domain/errors";
 import { caseFrom, taskFrom } from "../grid/from-stored";
-import { GridRun } from "../grid/run";
+import { GridRun, type ResumeGrid } from "../grid/run";
 import { RunQuery } from "../repositories/run-query";
 
 export interface ResumeRun {
@@ -17,7 +17,7 @@ export interface ResumeRun {
 export interface ResumeRunsShape {
   readonly resume: (
     input: ResumeRun
-  ) => Effect.Effect<string, CredentialError | EvalStoreError | NotRunnable>;
+  ) => Effect.Effect<void, CredentialError | EvalStoreError | NotRunnable>;
 }
 
 export class ResumeRuns extends Context.Tag("@anpord/eval/ResumeRuns")<
@@ -32,16 +32,20 @@ export const ResumeRunsLive = Layer.effect(
     const grid = yield* GridRun;
     const query = yield* RunQuery;
 
-    const resume = Effect.fn("ResumeRuns.resume")(function* (input: ResumeRun) {
+    const rebuild = Effect.fn("ResumeRuns.rebuild")(function* (
+      input: ResumeRun
+    ) {
       const cells = yield* query.findRunTasks({
         organizationId: input.actor.organizationId,
         runId: input.runId,
       });
 
-      if (cells.length === 0) {
+      const [first] = cells;
+
+      if (first === undefined) {
         return yield* new NotRunnable({
           id: input.runId,
-          problems: ["that run has nothing left to do"],
+          problems: ["that run has no cells to resume"],
         });
       }
 
@@ -52,18 +56,28 @@ export const ResumeRunsLive = Layer.effect(
         input.legacyHarnessAuth
       );
 
-      const [first] = cells;
-
-      return yield* grid.start({
-        cases: cells.map(caseFrom),
-        organizationId: input.actor.organizationId,
-        prompt: first?.prompt ?? "",
-        startedBy: null,
-        tasks,
-        trials: 1,
-      });
+      return {
+        created: {
+          id: input.runId,
+          internalId: first.cell.runInternalId,
+        },
+        input: {
+          cases: cells.map(caseFrom),
+          organizationId: input.actor.organizationId,
+          prompt: first.prompt,
+          startedBy: null,
+          tasks,
+          trials: 1,
+        },
+        registered: cells.map((subject) => ({
+          id: subject.identity,
+          internalId: subject.cell.taskInternalId,
+        })),
+      } satisfies ResumeGrid;
     });
 
-    return ResumeRuns.of({ resume });
+    return ResumeRuns.of({
+      resume: (input) => rebuild(input).pipe(Effect.flatMap(grid.resume)),
+    });
   })
 );
