@@ -7,18 +7,29 @@ import { runResumable } from "./resumable-command";
 
 const MARKER = "ANPORD_PREPARE_RESULT=";
 const SETUP_TIMEOUT_MS = 1_800_000;
+const PREPARED_LIMIT = 16_000;
 
 const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
-const prepareValueOf = (output: string) => {
+export const prepareValueOf = (output: string) => {
   const line = output.split("\n").findLast((entry) => entry.startsWith(MARKER));
 
   if (line === undefined) {
     return {};
   }
 
+  const encoded = line.slice(MARKER.length);
+
+  /* A prepare returns whatever it likes and every trial stores a copy, which
+     is then served to any reader of the run. Bounded here so one script cannot
+     put a log, a lockfile, or a base64 image through the database and into an
+     API response. */
+  if (encoded.length > PREPARED_LIMIT) {
+    return {};
+  }
+
   try {
-    const parsed: unknown = JSON.parse(line.slice(MARKER.length));
+    const parsed: unknown = JSON.parse(encoded);
 
     return typeof parsed === "object" && parsed !== null
       ? (parsed as Readonly<Record<string, unknown>>)
