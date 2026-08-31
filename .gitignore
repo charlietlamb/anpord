@@ -32,3 +32,6 @@ apps/sandbox-lab/.sessions/
 # Private keys, never committed.
 .secrets/
 *.pem
+
+spike/**/.trigger
+spike/**/node_modules

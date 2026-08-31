@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@daytonaio/sdk": "^0.207.0",
     "@trigger.dev/sdk": "^4.5.15"
   }
 }
