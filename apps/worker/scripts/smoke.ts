@@ -1,3 +1,6 @@
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { CredentialResolver } from "@anpord/eval/credentials/connections";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { GridRun } from "@anpord/eval/grid/run";
@@ -10,6 +13,7 @@ import {
   Option,
   Schedule,
 } from "effect";
+import { compileEval } from "../../../packages/sdk/src/evals/compiler";
 import { DispatchingLayer } from "../src/layer";
 
 /**
@@ -32,7 +36,13 @@ if (ORG === "") {
 /* Caches what it fetched, and says which of the two it did. A second run of
    this same source restores rather than fetches, which is the thing worth
    proving. */
-const PREPARE = `import type { Prepare } from "anpord";
+/* Written to disk and compiled, because that is what a user's eval does: the
+   sdk bundles the file, strips its types, and wraps each prepare in the runtime
+   that calls it and reports what it returned. Source handed over raw is a
+   function nobody calls, and the run reports an empty prepare rather than a
+   broken one. */
+const EVAL_FILE = `import { defineEval } from "anpord";
+import type { Prepare } from "anpord";
 
 export const install: Prepare = async ({ cached, exec }) => {
   if (cached) {
@@ -48,7 +58,22 @@ export const install: Prepare = async ({ cached, exec }) => {
     cache: { key: "smoke-lodash-1", path: "vendor" },
     value: { fromCache: false },
   };
-};`;
+};
+
+export default defineEval({
+  cases: [
+    {
+      name: "keeps what it fetched",
+      prepare: install,
+      variables: { task: "nothing" },
+      verify: "ls vendor/*.tgz",
+    },
+  ],
+  name: "smoke",
+  prompt: "Reply with the single word done. Change nothing.",
+  tasks: [{ harness: "codex", model: "gpt-5.1-codex", provider: "daytona" }],
+  trials: 1,
+});`;
 
 const SETTLE_EVERY = Duration.seconds(15);
 const GIVE_UP_AFTER = Duration.minutes(20);
@@ -58,9 +83,31 @@ const GIVE_UP_AFTER = Duration.minutes(20);
    in for the api, so it hands the run to Trigger the way the api does. */
 const runtime = ManagedRuntime.make(DispatchingLayer);
 
+const compiled = Effect.gen(function* () {
+  const directory = yield* Effect.promise(() =>
+    mkdtemp(join(tmpdir(), "anpord-smoke-"))
+  );
+  const file = join(directory, "smoke.eval.ts");
+
+  yield* Effect.promise(() => writeFile(file, EVAL_FILE));
+
+  return yield* Effect.promise(() => compileEval(file));
+});
+
 const started = Effect.gen(function* () {
   const grid = yield* GridRun;
   const resolver = yield* CredentialResolver;
+  const payload = yield* compiled;
+
+  /* A task is reused when its identity matches one already stored, keeping the
+     prepare and verify it was first written with. A smoke test that changes
+     either needs a name nothing has claimed. */
+  const identity = `smoke-${yield* Clock.currentTimeMillis}`;
+  const [subject] = payload.cases;
+
+  if (subject === undefined) {
+    return yield* Effect.die("the eval compiled to no cases");
+  }
 
   const tasks = yield* resolveTaskCredentials(
     resolver,
@@ -70,34 +117,32 @@ const started = Effect.gen(function* () {
       organizationId: ORG,
       permissions: [],
     } as never,
-    [
-      {
-        harness: "codex" as const,
-        harnessVersion: "latest",
-        model: "gpt-5.1-codex",
-        provider: "daytona" as const,
-      },
-    ],
+    payload.tasks.map((task) => ({
+      harness: task.harness,
+      harnessVersion: task.harnessVersion ?? "latest",
+      model: task.model,
+      provider: task.provider,
+    })),
     ""
   );
 
   return yield* grid.start({
     cases: [
       {
-        identity: "smoke",
-        name: "keeps what it fetched",
-        prepare: { name: "install", source: PREPARE },
-        source: { kind: "empty" as const },
-        validator: null,
-        variables: {},
-        verify: "ls vendor/*.tgz",
+        identity,
+        name: `${subject.name} (${identity})`,
+        prepare: subject.prepare ?? null,
+        source: subject.source ?? { kind: "empty" as const },
+        validator: subject.validator ?? null,
+        variables: subject.variables ?? {},
+        verify: subject.verify ?? null,
       },
     ],
     organizationId: ORG,
-    prompt: "Reply with the single word done. Change nothing.",
+    prompt: payload.prompt,
     startedBy: null,
     tasks,
-    trials: 1,
+    trials: payload.trials,
   });
 });
 

@@ -114,31 +114,43 @@ export const TaskRepositoryLive = Layer.effect(
               .insert(evalTask)
               .values(valuesOf(input, input.identity, internalId))
 
-              .onConflictDoNothing({
+              /* Updated rather than left alone: an identity names which case
+                 this is, not what it contained, so a case whose prepare or
+                 verify was edited must not keep running the one it was first
+                 stored with. Doing nothing here meant an edited eval passed
+                 against its old definition, silently. */
+              .onConflictDoUpdate({
+                set: {
+                  name: input.name,
+                  prepareName: input.prepare?.name ?? null,
+                  prepareSource: input.prepare?.source ?? null,
+                  prompt: input.prompt,
+                  repoRef:
+                    input.source.kind === "repo" ? input.source.ref : null,
+                  repoUrl:
+                    input.source.kind === "repo" ? input.source.url : null,
+                  sourceFiles:
+                    input.source.kind === "files" ? input.source.files : null,
+                  sourceKind: input.source.kind,
+                  validatorName: input.validator?.name ?? null,
+                  validatorSource: input.validator?.source ?? null,
+                  verifyCommand: input.verifyCommand,
+                },
                 target: [evalTask.organizationId, evalTask.id],
               })
               .returning()
           );
 
-          const inserted = rows.at(0);
+          const row = rows.at(0);
 
-          if (inserted !== undefined) {
-            return inserted;
-          }
-
-          const existing = yield* tryStore("task.findByIdentity", () =>
-            db
-              .select()
-              .from(evalTask)
-              .where(
-                and(
-                  eq(evalTask.organizationId, input.organizationId),
-                  eq(evalTask.id, input.identity)
-                )
+          /* An update always returns its row, unlike the do-nothing this
+             replaced, so a second read is no longer how the existing one is
+             found. */
+          return row === undefined
+            ? yield* Effect.dieMessage(
+                `task ${input.identity} was neither written nor found`
               )
-          );
-
-          return existing[0] as TaskRow;
+            : row;
         }).pipe(Effect.withSpan("TaskRepository.upsertByIdentity")),
 
       list: (organizationId) =>
