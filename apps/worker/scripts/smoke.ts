@@ -112,7 +112,13 @@ const settle = (id: string) =>
 
     const { status } = state.value;
 
-    process.stdout.write(`  ${status}\n`);
+    /* With a clock reading, because the interesting question while this runs
+       is whether anything is moving, and a bare status repeated cannot say. */
+    const at = yield* Clock.currentTimeMillis;
+
+    process.stdout.write(
+      `  ${new Date(at).toISOString().slice(11, 19)} ${status}\n`
+    );
 
     return status === "running"
       ? yield* Effect.fail(`${id} is still running`)

@@ -3,7 +3,7 @@ import { rebuildRun } from "@anpord/eval/grid/from-stored";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { telemetryFor } from "@anpord/eval/telemetry";
-import { schemaTask } from "@trigger.dev/sdk";
+import { AbortTaskRunError, schemaTask } from "@trigger.dev/sdk";
 import { Effect, Layer, ManagedRuntime, Schema } from "effect";
 import { WorkerLayer } from "../layer";
 
@@ -57,10 +57,15 @@ export const evalRun = schemaTask({
 
         return rebuilt.input.cases.length * rebuilt.input.tasks.length;
       }).pipe(
-        /* Dies rather than returns a failure: a run that cannot be rebuilt is
-           not something a retry fixes, and the tag is what the log carries. */
         Effect.tapErrorCause((cause) =>
           Effect.logError("worker could not run the grid", cause)
+        ),
+        /* A run nobody can rebuild is not a run a retry rebuilds. Aborting
+           says so, where dying looks transient: the first attempt claims the
+           run and opens a trial, and every retry after it finds work under way
+           and fails, which reports the run's own progress as its failure. */
+        Effect.catchTag("NotRunnable", (problem) =>
+          Effect.die(new AbortTaskRunError(problem.message))
         ),
         Effect.orDie,
         Effect.annotateLogs({
