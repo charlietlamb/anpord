@@ -175,7 +175,8 @@ const trial = (input: {
               classification: "included" as const,
               component: "platform" as const,
               detail: { evalUnits: 1 },
-              explanation: "Metered in eval units rather than priced per trial.",
+              explanation:
+                "Metered in eval units rather than priced per trial.",
               source: "platform",
               usd: null,
             },
