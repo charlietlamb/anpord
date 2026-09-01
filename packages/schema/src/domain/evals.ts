@@ -112,7 +112,29 @@ export const EvalVariables = Schema.Record({
 });
 export type EvalVariables = typeof EvalVariables.Type;
 
+/**
+ * A directory worth keeping between runs of a case.
+ *
+ * Declared on the case rather than reported by its prepare, because a restore
+ * happens before the prepare runs and so cannot be told where to look by it.
+ * The shape CI caches use, for the same reason.
+ */
+export const CaseCache = Schema.Struct({
+  key: Schema.String.pipe(Schema.minLength(1)),
+  /* Relative, and refused otherwise: it is joined onto the workspace before
+     anything is written, so one that climbs out writes somewhere else. */
+  path: Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.filter(
+      (value) => !(value.startsWith("/") || value.split("/").includes("..")),
+      { message: () => "a cache path must stay inside the workspace" }
+    )
+  ),
+}).annotations({ identifier: "CaseCache" });
+export type CaseCache = typeof CaseCache.Type;
+
 export const EvalCase = Schema.Struct({
+  cache: Schema.optional(CaseCache),
   name: Schema.String,
   prepare: Schema.NullOr(EvalPrepare),
   source: EvalSource,

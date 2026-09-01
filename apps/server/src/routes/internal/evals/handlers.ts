@@ -57,6 +57,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
           return {
             id: yield* grid.start({
               cases: payload.cases.map((subject) => ({
+                cache: subject.cache,
                 name: subject.name,
                 prepare: subject.prepare,
                 source: subject.source,

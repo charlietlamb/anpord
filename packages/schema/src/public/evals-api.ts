@@ -2,6 +2,7 @@ import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
+  CaseCache,
   EvalCellHistoryEntry,
   EvalHarness,
   EvalPageCursor,
@@ -49,6 +50,7 @@ export const ListEvalsRequest = Schema.Struct({
 });
 
 const PublicEvalCase = Schema.Struct({
+  cache: Schema.optional(CaseCache),
   name: Schema.String,
   prepare: Schema.optional(Schema.NullOr(EvalPrepare)),
   source: Schema.optional(EvalSource),

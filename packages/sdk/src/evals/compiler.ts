@@ -220,6 +220,7 @@ export const compileEvalEffect = (path: string) =>
               : null;
 
           return {
+            ...(subject.cache === undefined ? {} : { cache: subject.cache }),
             name: subject.name,
             prepare,
             ...sourceFor(definition, subject, fallback),

@@ -12,7 +12,7 @@ afterEach(async () => {
   }
 });
 
-const compiled = async (body: string) => {
+const compiled = async (caseBody: string) => {
   workspace = await mkdtemp(join(tmpdir(), "anpord-prepare-"));
 
   await writeFile(
@@ -20,10 +20,10 @@ const compiled = async (body: string) => {
     `import { defineEval } from "anpord";
 import type { Prepare } from "anpord";
 
-export const install: Prepare = ${body};
+export const install: Prepare = ({ cached }) => ({ skipped: cached });
 
 export default defineEval({
-  cases: [{ variables: { task: "x" }, name: "c", prepare: install, verify: "true" }],
+  cases: [${caseBody}],
   name: "prepare-cache",
   prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5", provider: "daytona" }],
@@ -31,81 +31,63 @@ export default defineEval({
 });`
   );
 
-  const payload = await compileEval(join(workspace, "eval.ts"));
-  const script = join(workspace, "prepare.mjs");
-  await writeFile(script, payload.cases[0]?.prepare?.source ?? "");
-
-  return { script, workspace };
+  return await compileEval(join(workspace, "eval.ts"));
 };
 
-const runWith = async (script: string, cwd: string, restored = false) => {
+const runScript = async (script: string, cwd: string, restored: boolean) => {
   const process = Bun.spawn(["node", script], {
     cwd,
     env: { ...Bun.env, ANPORD_CACHE_RESTORED: restored ? "1" : "" },
   });
 
-  return {
-    exitCode: await process.exited,
-    output: await new Response(process.stdout).text(),
-  };
+  return await new Response(process.stdout).text();
 };
 
-describe("what a prepare reports", () => {
-  test("carries a plain return as its value", async () => {
-    const { script, workspace: cwd } = await compiled(
-      "() => ({ rendererPort: 4173 })"
+describe("what a case says it keeps", () => {
+  /* Declared on the case, because a restore happens before the prepare runs
+     and so cannot be told where to look by it. */
+  test("reaches the payload the runner is given", async () => {
+    const payload = await compiled(
+      `{ cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
 
-    const { output } = await runWith(script, cwd);
-
-    expect(output).toContain('"value":{"rendererPort":4173}');
-    expect(output).toContain('"cache":null');
+    expect(payload.cases[0]?.cache).toEqual({
+      key: "deps-v1",
+      path: "node_modules",
+    });
   });
 
-  /* Named, not written: the store belongs to the provider, and providers
-     differ in what theirs can do. */
-  test("names a directory worth keeping without touching a store", async () => {
-    const { script, workspace: cwd } = await compiled(
-      `() => ({
-         cache: { key: "deps-abc", path: "node_modules" },
-         value: { ready: true },
-       })`
+  test("is absent when the case keeps nothing", async () => {
+    const payload = await compiled(
+      `{ name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
 
-    const { output } = await runWith(script, cwd);
+    expect(payload.cases[0]?.cache).toBeUndefined();
+  });
+});
 
-    expect(output).toContain(
-      '"cache":{"key":"deps-abc","path":"node_modules"}'
+describe("what a prepare is told", () => {
+  test("knows the runner restored what the case keeps", async () => {
+    const payload = await compiled(
+      `{ cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
-    expect(output).toContain('"value":{"ready":true}');
+    const script = join(workspace as string, "prepare.mjs");
+    await writeFile(script, payload.cases[0]?.prepare?.source ?? "");
+
+    expect(await runScript(script, workspace as string, true)).toContain(
+      '{"skipped":true}'
+    );
   });
 
-  test("is told when the runner restored one, so it can skip the work", async () => {
-    const { script, workspace: cwd } = await compiled(
-      "({ cached }) => ({ skipped: cached })"
+  test("knows when it did not", async () => {
+    const payload = await compiled(
+      `{ cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
+    const script = join(workspace as string, "prepare.mjs");
+    await writeFile(script, payload.cases[0]?.prepare?.source ?? "");
 
-    const { output } = await runWith(script, cwd, true);
-
-    expect(output).toContain('"value":{"skipped":true}');
-  });
-
-  test("is told when it was not restored", async () => {
-    const { script, workspace: cwd } = await compiled(
-      "({ cached }) => ({ skipped: cached })"
+    expect(await runScript(script, workspace as string, false)).toContain(
+      '{"skipped":false}'
     );
-
-    const { output } = await runWith(script, cwd);
-
-    expect(output).toContain('"value":{"skipped":false}');
-  });
-
-  test("still reports when a prepare returns nothing", async () => {
-    const { script, workspace: cwd } = await compiled("() => undefined");
-
-    const { exitCode, output } = await runWith(script, cwd);
-
-    expect(exitCode).toBe(0);
-    expect(output).toContain('"cache":null');
   });
 });

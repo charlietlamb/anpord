@@ -51,6 +51,9 @@ const PROGRESS_RETRY = Schedule.exponential("100 millis").pipe(
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;
+  /** What this case keeps between runs, restored before its prepare and
+   * saved after it succeeds. */
+  readonly caseCache?: { readonly key: string; readonly path: string };
 
   readonly harness: HarnessName;
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
@@ -125,7 +128,7 @@ export const AgentTrialLive = Layer.effect(
         const { env, prepared } = yield* prepareWorkspace({
           /* The same name the volume has: what a prepare left last time it ran
              this way, before it has told us anything narrower. */
-          cacheKey: cacheKeyOf(request.organizationId, request.prepare),
+          caseCache: request.caseCache,
           credential: request.harnessCredential,
           driver,
           harness: request.harness,

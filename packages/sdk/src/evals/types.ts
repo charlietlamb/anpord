@@ -16,18 +16,19 @@ export interface ExecOptions {
 }
 
 /**
- * What a prepare wants kept for the next run preparing the same way.
+ * A directory worth keeping between runs of the same case.
  *
- * Named rather than written: a prepare says which directory is worth keeping
- * and under what key, and the runner restores it before the prepare runs and
- * saves it after. The store is the provider's, and providers differ in what
- * theirs can do, so nothing about it reaches the script.
+ * Declared on the case rather than returned by the prepare, because a restore
+ * has to happen before the prepare runs: something that only exists once it has
+ * finished cannot say where to look. This is the shape CI caches use for the
+ * same reason -- actions/cache names its path and key before the step, not
+ * after.
  *
- * The key should name everything the contents depend on -- a lockfile hash
- * above all -- because entries are write-once. A key that already holds an
- * entry keeps it, which is what makes two runs preparing at once safe.
+ * The key should name everything the contents depend on, a lockfile hash above
+ * all, because entries are write-once: a key that already holds an entry keeps
+ * it, which is what makes two runs preparing at once safe.
  */
-export interface PrepareCaching {
+export interface CaseCache {
   readonly key: string;
   /** Relative to the workspace. */
   readonly path: string;
@@ -49,20 +50,9 @@ export interface PrepareContext {
 
 export type PrepareValue = Readonly<Record<string, unknown>>;
 
-/** What a prepare returns: the value its validators read, and optionally the
- * directory worth keeping for the next run. */
-export interface PrepareResult {
-  readonly cache?: PrepareCaching;
-  readonly value?: PrepareValue;
-}
-
 export type Prepare = (
   context: PrepareContext
-) =>
-  | Promise<PrepareResult | PrepareValue | undefined>
-  | PrepareResult
-  | PrepareValue
-  | undefined;
+) => Promise<PrepareValue | undefined> | PrepareValue | undefined;
 
 export interface ValidatorContext {
   readonly exec: (command: string) => Promise<CommandResult>;
@@ -83,6 +73,9 @@ export type Validator = (
 type DeclaredSource = EvalSource | string;
 
 interface EvalCaseBase {
+  /** What a prepare builds that is worth keeping for the next run of this
+   * case. Restored before it runs, and saved after it succeeds. */
+  readonly cache?: CaseCache;
   readonly name: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;

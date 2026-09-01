@@ -57,14 +57,13 @@ export { EvalAborted, EvalTimeout, type WaitOptions } from "./client/wait";
 export { defineEval } from "./evals/define";
 export { empty, files, repo } from "./evals/source";
 export type {
+  CaseCache,
   CommandResult,
   EvalCaseDefinition,
   EvalDefinition,
   ExecOptions,
   Prepare,
-  PrepareCaching,
   PrepareContext,
-  PrepareResult,
   PrepareValue,
   Validator,
   ValidatorContext,

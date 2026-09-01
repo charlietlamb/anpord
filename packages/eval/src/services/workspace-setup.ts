@@ -11,39 +11,13 @@ const PREPARED_LIMIT = 16_000;
 
 const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
-interface PrepareReport {
-  readonly cache: { readonly key: string; readonly path: string } | null;
-  readonly value: Readonly<Record<string, unknown>>;
-}
-
-const EMPTY: PrepareReport = { cache: null, value: {} };
-
-const namedCache = (found: unknown) => {
-  const cache = (found as { cache?: unknown }).cache;
-
-  if (typeof cache !== "object" || cache === null) {
-    return null;
-  }
-
-  const { key, path } = cache as { key?: unknown; path?: unknown };
-
-  /* A path is joined onto the workspace before it is archived, so one that
-     climbs out of it would have the runner save somewhere else entirely. */
-  return typeof key === "string" &&
-    typeof path === "string" &&
-    key !== "" &&
-    path !== "" &&
-    !path.startsWith("/") &&
-    !path.split("/").includes("..")
-    ? { key, path }
-    : null;
-};
-
-export const prepareValueOf = (output: string): PrepareReport => {
+export const prepareValueOf = (
+  output: string
+): Readonly<Record<string, unknown>> => {
   const line = output.split("\n").findLast((entry) => entry.startsWith(MARKER));
 
   if (line === undefined) {
-    return EMPTY;
+    return {};
   }
 
   const encoded = line.slice(MARKER.length);
@@ -53,27 +27,17 @@ export const prepareValueOf = (output: string): PrepareReport => {
      put a log, a lockfile, or a base64 image through the database and into an
      API response. */
   if (encoded.length > PREPARED_LIMIT) {
-    return EMPTY;
+    return {};
   }
 
   try {
     const parsed: unknown = JSON.parse(encoded);
 
-    if (typeof parsed !== "object" || parsed === null) {
-      return EMPTY;
-    }
-
-    const value = (parsed as { value?: unknown }).value;
-
-    return {
-      cache: namedCache(parsed),
-      value:
-        typeof value === "object" && value !== null
-          ? (value as Readonly<Record<string, unknown>>)
-          : {},
-    };
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as Readonly<Record<string, unknown>>)
+      : {};
   } catch {
-    return EMPTY;
+    return {};
   }
 };
 
@@ -90,8 +54,9 @@ const scriptIn = (sandbox: SandboxHandle, source: string) =>
   );
 
 export const runPrepare = (input: {
-  /** Where a restore should land, when the case named one. */
-  readonly cacheKey?: string;
+  /** What this case keeps between runs. Declared on the case rather than
+   * reported by the prepare, because a restore precedes it. */
+  readonly caseCache?: { readonly key: string; readonly path: string };
   readonly sandbox: SandboxHandle;
   readonly prepare: EvalPrepare;
   readonly workspace: string;
@@ -105,10 +70,12 @@ export const runPrepare = (input: {
       /* Restored before the prepare runs and saved after, so a prepare names
          what is worth keeping and never touches the store: providers differ in
          what theirs can do, and a script cannot know which it is on. */
+      const kept = input.caseCache;
+
       const restored =
-        cache === null || input.cacheKey === undefined
+        cache === null || kept === undefined
           ? false
-          : yield* cache.restore(input.cacheKey, input.workspace);
+          : yield* cache.restore(kept.key, `${input.workspace}/${kept.path}`);
 
       const outcome = yield* runResumable(
         input.sandbox,
@@ -137,15 +104,19 @@ export const runPrepare = (input: {
 
       const reported = prepareValueOf(outcome.stdout);
 
-      /* Only after a prepare succeeded. Caching what a failed install left
+      /* Under the key a restore will look for, which is why the case declares
+         it: something the prepare returned could name only what a later run
+         has no way to ask for.
+
+         Only after it succeeded, because caching what a failed install left
          behind is how a broken cache outlives the run that made it. */
-      if (cache !== null && reported.cache !== null) {
+      if (cache !== null && kept !== undefined && !restored) {
         yield* cache
-          .save(reported.cache.key, `${input.workspace}/${reported.cache.path}`)
+          .save(kept.key, `${input.workspace}/${kept.path}`)
           .pipe(Effect.ignoreLogged);
       }
 
-      return reported.value;
+      return reported;
     })
   ).pipe(
     Effect.withSpan("Workspace.prepare", {

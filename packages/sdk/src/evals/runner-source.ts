@@ -69,13 +69,8 @@ const context = {
 };
 
 try {
-  const returned = await setup(context) ?? {};
-  // A prepare may name a directory worth keeping alongside its value. The
-  // runner does the keeping: what backs the store is the provider's business.
-  const result = returned.cache !== undefined || returned.value !== undefined
-    ? { cache: returned.cache ?? null, value: returned.value ?? {} }
-    : { cache: null, value: returned };
-  console.log("ANPORD_PREPARE_RESULT=" + JSON.stringify(result));
+  const value = await setup(context) ?? {};
+  console.log("ANPORD_PREPARE_RESULT=" + JSON.stringify(value));
 } catch (error) {
   console.error(error instanceof Error ? error.stack : String(error));
   process.exitCode = 1;

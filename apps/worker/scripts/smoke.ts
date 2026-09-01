@@ -46,7 +46,7 @@ import type { Prepare } from "anpord";
 
 export const install: Prepare = async ({ cached, exec }) => {
   if (cached) {
-    return { value: { fromCache: true } };
+    return { fromCache: true };
   }
 
   await exec("sh", [
@@ -54,15 +54,13 @@ export const install: Prepare = async ({ cached, exec }) => {
     "mkdir -p vendor && npm pack lodash@4.17.21 --pack-destination vendor",
   ]);
 
-  return {
-    cache: { key: "smoke-lodash-1", path: "vendor" },
-    value: { fromCache: false },
-  };
+  return { fromCache: false };
 };
 
 export default defineEval({
   cases: [
     {
+      cache: { key: "smoke-lodash-1", path: "vendor" },
       name: "keeps what it fetched",
       prepare: install,
       variables: { task: "nothing" },
@@ -131,6 +129,7 @@ const started = Effect.gen(function* () {
       {
         identity,
         name: `${subject.name} (${identity})`,
+        cache: subject.cache,
         prepare: subject.prepare ?? null,
         source: subject.source ?? { kind: "empty" as const },
         validator: subject.validator ?? null,

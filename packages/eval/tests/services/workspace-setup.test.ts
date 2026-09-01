@@ -58,7 +58,7 @@ describe("running a workspace setup", () => {
   test("reads back what the setup returned", async () => {
     const { sandbox } = sandboxSaying(
       0,
-      'ANPORD_PREPARE_RESULT={"cache":null,"value":{"rendererPort":4173}}\n'
+      'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n'
     );
 
     expect(await Effect.runPromise(run(sandbox))).toEqual({
@@ -95,7 +95,7 @@ describe("running a workspace setup", () => {
 
     await Effect.runPromise(
       runPrepare({
-        cacheKey: "deps-abc",
+        caseCache: { key: "deps-abc", path: "vendor" },
         prepare: { name: "prepareRepoImage", source: "export {}" },
         sandbox: {
           ...sandbox,
@@ -122,7 +122,7 @@ describe("running a workspace setup", () => {
 
     await Effect.runPromise(
       runPrepare({
-        cacheKey: "deps-abc",
+        caseCache: { key: "deps-abc", path: "vendor" },
         prepare: { name: "prepareRepoImage", source: "export {}" },
         sandbox: {
           ...sandbox,

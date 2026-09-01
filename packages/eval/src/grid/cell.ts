@@ -15,6 +15,9 @@ import type { RunRepositoryShape } from "../repositories/run-repository";
 import { runTrial, type TrialInputs } from "./trial";
 
 export interface GridCase {
+  /** A directory worth keeping between runs of this case, restored before its
+   * prepare and saved after. */
+  readonly cache?: { readonly key: string; readonly path: string };
   readonly identity?: string;
   readonly name: string;
   readonly prepare: EvalPrepare | null;
