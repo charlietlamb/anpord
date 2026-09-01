@@ -8,6 +8,7 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
+import { noCache, notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/boxuser";
@@ -75,6 +76,8 @@ const handleFor = (box: UpstashBox, workspace: string): SandboxHandle => ({
   home: HOME,
   id: box.id,
   provider: "upstash",
+  ...noCache,
+  ...notResumable("upstash"),
   streaming: true,
   writeFile: (path, content) =>
     Effect.tryPromise({

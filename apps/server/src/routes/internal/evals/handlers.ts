@@ -1,10 +1,12 @@
 import { CredentialResolver } from "@anpord/eval/credentials/connections";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { rebuildRun } from "@anpord/eval/grid/from-stored";
 import { GridRun } from "@anpord/eval/grid/run";
+import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import { NotFound } from "@anpord/schema/domain/errors";
+import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
@@ -56,7 +58,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
             id: yield* grid.start({
               cases: payload.cases.map((subject) => ({
                 name: subject.name,
-                setup: subject.setup,
+                prepare: subject.prepare,
                 source: subject.source,
                 validator: subject.validator,
                 variables: subject.variables,
@@ -127,6 +129,41 @@ export const EvalsHandlers = HttpApiBuilder.group(
 
             return { id };
           })
+      )
+      .handle("resume", { permission: Permissions.Evals.Write }, ({ path }) =>
+        Effect.gen(function* () {
+          const actor = yield* CurrentActor;
+          const credentials = yield* EvalCredentials;
+          const grid = yield* GridRun;
+
+          yield* rebuildRun(
+            {
+              credentials: yield* CredentialResolver,
+              grid,
+              query: yield* RunQuery,
+            },
+            {
+              organizationId: actor.organizationId,
+              runId: path.id,
+              source: { actor, legacyHarnessAuth: credentials.codexAuth },
+            }
+          ).pipe(
+            Effect.flatMap(grid.resume),
+            Effect.mapError((problem) =>
+              problem._tag === "CredentialError"
+                ? new NotFound({ message: problem.message })
+                : problem
+            ),
+            Effect.catchTag("EvalStoreError", Effect.die),
+            Effect.catchTag("NotRunnable", (problem) =>
+              Effect.fail(
+                new Conflict({ message: problem.problems.join(", ") })
+              )
+            )
+          );
+
+          return { id: path.id };
+        })
       )
       .handle(
         "modelCatalogue",

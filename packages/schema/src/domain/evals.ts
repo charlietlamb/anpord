@@ -83,6 +83,25 @@ export const EvalValidator = Schema.Struct({
 });
 export type EvalValidator = typeof EvalValidator.Type;
 
+export const EvalPrepare = Schema.Struct({
+  name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
+  source: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(1_000_000)),
+}).annotations({
+  description:
+    "A bundled TypeScript workspace setup and its exported function name.",
+  identifier: "EvalPrepare",
+});
+export type EvalPrepare = typeof EvalPrepare.Type;
+
+export const EvalPrepareValue = Schema.Record({
+  key: Schema.String,
+  value: Schema.Unknown,
+}).annotations({
+  description: "What a workspace setup returned, handed to the validator.",
+  identifier: "EvalPrepareValue",
+});
+export type EvalPrepareValue = typeof EvalPrepareValue.Type;
+
 export const EvalVariables = Schema.Record({
   key: Schema.String,
   value: Schema.String,
@@ -95,7 +114,7 @@ export type EvalVariables = typeof EvalVariables.Type;
 
 export const EvalCase = Schema.Struct({
   name: Schema.String,
-  setup: Schema.NullOr(Schema.String),
+  prepare: Schema.NullOr(EvalPrepare),
   source: EvalSource,
   variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
 
@@ -206,6 +225,7 @@ export type EvalVerifyStep = typeof EvalVerifyStep.Type;
 
 export const EvalTrial = Schema.Struct({
   commands: Schema.Int,
+  prepared: Schema.NullOr(EvalPrepareValue),
 
   exitCode: Schema.Int,
   failedCommands: Schema.Int,
@@ -271,7 +291,7 @@ export const EvalSetup = Schema.Struct({
   prompt: Schema.String,
   repoRef: Schema.NullOr(Schema.String),
   repoUrl: Schema.NullOr(Schema.String),
-  setupCommand: Schema.NullOr(Schema.String),
+  prepareName: Schema.NullOr(Schema.String),
 
   validatorName: Schema.NullOr(Schema.String),
   verifyCommand: Schema.NullOr(Schema.String),

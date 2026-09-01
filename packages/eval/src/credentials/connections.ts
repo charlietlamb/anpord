@@ -165,9 +165,27 @@ export interface ResolveCredential {
   readonly integrationId: string;
 }
 
+/**
+ * A credential a run already committed to, named by the connection its cells
+ * recorded.
+ *
+ * Distinct from ResolveCredential because there is no actor to check against.
+ * A worker continuing a run is not deciding whether that run may use this
+ * credential; a person with a session decided when the run was started, and
+ * the cell stores what they chose. Scoped to the organization so a run can
+ * still only reach its own.
+ */
+export interface BoundCredential {
+  readonly connectionId: string;
+  readonly organizationId: string;
+}
+
 export interface CredentialResolverShape {
   readonly resolve: (
     input: ResolveCredential
+  ) => Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>;
+  readonly resolveBound: (
+    input: BoundCredential
   ) => Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>;
 }
 
@@ -476,6 +494,48 @@ export const CredentialResolverLive = Layer.effect(
     const cipher = yield* CredentialCipher;
     const db = yield* Database;
 
+    const openRow = (row: ConnectionRow) =>
+      cipher.open(row.sealedPayload, contextOf(row)).pipe(
+        Effect.flatMap(decodeValues),
+        Effect.map((values) =>
+          Redacted.make({
+            authMethodId: row.authMethodId,
+            connectionId: row.id,
+            integrationId: row.integrationId,
+            revision: row.revision,
+            values: Redacted.value(values),
+          })
+        )
+      );
+
+    /* No actor, by design: a run that already recorded this connection was
+       authorised when a person started it. Still bounded by the organization,
+       so a run cannot reach another's credential. */
+    const resolveBound = (input: BoundCredential) =>
+      tryStore("credential.resolveBound", () =>
+        db
+          .select()
+          .from(credentialConnection)
+          .where(
+            and(
+              eq(credentialConnection.id, input.connectionId),
+              eq(credentialConnection.organizationId, input.organizationId),
+              eq(credentialConnection.status, "active")
+            )
+          )
+          .limit(1)
+      ).pipe(
+        Effect.mapError(storeUnavailable),
+        Effect.flatMap((rows) =>
+          rows[0] === undefined ? Effect.fail(notFound()) : openRow(rows[0])
+        ),
+        Effect.withSpan("CredentialResolver.resolveBound"),
+        Effect.annotateLogs({
+          connectionId: input.connectionId,
+          organizationId: input.organizationId,
+        })
+      );
+
     const resolve = (input: ResolveCredential) =>
       tryStore("credential.resolve", () =>
         db
@@ -524,6 +584,7 @@ export const CredentialResolverLive = Layer.effect(
       );
 
     return CredentialResolver.of({
+      resolveBound,
       resolve: (input) =>
         resolve(input).pipe(
           Effect.flatMap(({ payload, row }) =>
@@ -562,6 +623,16 @@ export const layerTestResolver = (
             authMethodId: "test",
             connectionId: input.connectionId ?? "test",
             integrationId: input.integrationId,
+            revision: 1,
+            values,
+          })
+        ),
+      resolveBound: (input) =>
+        Effect.succeed(
+          Redacted.make({
+            authMethodId: "test",
+            connectionId: input.connectionId,
+            integrationId: "test",
             revision: 1,
             values,
           })

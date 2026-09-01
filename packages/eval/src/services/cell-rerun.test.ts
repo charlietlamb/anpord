@@ -19,7 +19,8 @@ const cellTask = (source: WorkspaceSource | null): CellTask => ({
   prompt: "Fix the browser task",
   repoRef: null,
   repoUrl: null,
-  setupCommand: null,
+  prepareName: null,
+  prepareSource: null,
   source,
   verifyCommand: "bun test",
 });
@@ -33,8 +34,10 @@ const layer = (
       GridRun,
       GridRun.of({
         changes: Stream.empty,
+        execute: () => Effect.void,
         get: () => Effect.succeed(Option.none()),
         list: () => Effect.succeed({ next: null, runs: [], total: 0 }),
+        resume: () => Effect.void,
         start: (input) =>
           Effect.sync(() => {
             onStart(input);
@@ -48,6 +51,7 @@ const layer = (
         countRuns: () => Effect.succeed(0),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
+        findRunTasks: () => Effect.succeed([]),
         findRun: () => Effect.succeed(Option.none()),
         hydrateRuns: () => Effect.succeed([]),
         listRuns: () => Effect.succeed([]),

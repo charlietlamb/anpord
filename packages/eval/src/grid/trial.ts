@@ -1,4 +1,4 @@
-import { Clock, Effect, Option, Redacted, Ref } from "effect";
+import { Cause, Clock, Effect, Option, Redacted, Ref } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { costOf } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
@@ -9,6 +9,11 @@ import type {
   AgentTrialShape,
 } from "../services/agent-trial";
 import type { GridCase } from "./cell";
+
+/* Enough to say what went wrong without putting a stack trace of a stack trace
+   into every abandoned row. */
+const FAILURE_LIMIT = 2000;
+
 import type { GridExecutionTask } from "./state";
 
 /**
@@ -56,6 +61,7 @@ export interface TrialInputs {
     ordinal: number,
     result: AgentTrialResult
   ) => Effect.Effect<void>;
+  readonly organizationId: string;
   readonly prompt: string;
   readonly recorder: TrialRecorderShape;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
@@ -83,12 +89,16 @@ export const runTrial = (input: RunOneTrial) =>
       startedAt: new Date(startedAt),
     });
 
+    /* The cause is carried into the row rather than dropped. A trial that
+       ended badly used to record only that it had ended, so the reason lived
+       in a sandbox that is deleted on the way out and nowhere else. */
     yield* Effect.addFinalizer((exit) =>
       exit._tag === "Success"
         ? Effect.void
         : Clock.currentTimeMillis.pipe(
             Effect.flatMap((finishedAt) =>
               input.recorder.abandon({
+                failure: Cause.pretty(exit.cause).slice(0, FAILURE_LIMIT),
                 finishedAt: new Date(finishedAt),
                 trialInternalId,
               })
@@ -99,10 +109,15 @@ export const runTrial = (input: RunOneTrial) =>
 
     const result = yield* input.agent.run({
       autoStopMinutes: AUTO_STOP_MINUTES,
+      onSandbox: (sandboxId) =>
+        Effect.ignoreLogged(
+          input.recorder.attach({ sandboxId, trialInternalId })
+        ),
       harnessCredential: input.task.credentials.harness,
       harness: input.task.harness,
       harnessVersion: input.task.harnessVersion,
       model: input.task.model,
+      organizationId: input.organizationId,
       progress: {
         append: (events, from) =>
           Effect.gen(function* () {
@@ -123,7 +138,7 @@ export const runTrial = (input: RunOneTrial) =>
           : Redacted.make(
               Redacted.value(input.task.credentials.sandbox).values
             ),
-      setupCommand: input.subject.setup,
+      prepare: input.subject.prepare,
       sourceToken: input.sourceToken,
       source: input.subject.source,
       validator: input.subject.validator,
@@ -136,6 +151,7 @@ export const runTrial = (input: RunOneTrial) =>
     yield* input.recorder.settle({
       finishedAt: new Date(finishedAt),
       outcome: result.outcome,
+      prepared: result.prepared,
       sandboxId: result.sandboxId,
       trialInternalId,
       usage: yield* priced(result.usage, input.task.model),

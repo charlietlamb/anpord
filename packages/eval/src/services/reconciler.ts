@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, eq, lt, notExists, sql } from "drizzle-orm";
+import { and, eq, exists, lt, notExists, sql } from "drizzle-orm";
 import { Clock, Context, Duration, Effect, Layer, Schedule } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "../repositories/query";
@@ -48,12 +48,31 @@ export const ReconcilerLive = Layer.effect(
             .where(
               and(
                 eq(evalTrial.status, "running"),
-                lt(evalTrial.createdAt, cutoff)
+                exists(
+                  db
+                    .select({ one: sql`1` })
+                    .from(evalCell)
+                    .innerJoin(
+                      evalRun,
+                      eq(evalRun.internalId, evalCell.runInternalId)
+                    )
+                    .where(
+                      and(
+                        eq(evalCell.internalId, evalTrial.cellInternalId),
+                        lt(evalRun.createdAt, cutoff)
+                      )
+                    )
+                )
               )
             )
             .returning({ internalId: evalTrial.internalId })
         );
 
+        /* Judged by the age of the run rather than the cell's own, because a
+           cell opened late in a long run is younger than the cutoff that
+           closes the run above it. It was then left running under a run no
+           later sweep looks at again, which is how a cell stayed running
+           forever. */
         const cells = yield* tryStore("reconcile.cells", () =>
           db
             .update(evalCell)
@@ -61,7 +80,17 @@ export const ReconcilerLive = Layer.effect(
             .where(
               and(
                 eq(evalCell.status, "running"),
-                lt(evalCell.createdAt, cutoff)
+                exists(
+                  db
+                    .select({ one: sql`1` })
+                    .from(evalRun)
+                    .where(
+                      and(
+                        eq(evalRun.internalId, evalCell.runInternalId),
+                        lt(evalRun.createdAt, cutoff)
+                      )
+                    )
+                )
               )
             )
             .returning({ internalId: evalCell.internalId })
@@ -90,11 +119,16 @@ export const ReconcilerLive = Layer.effect(
             .returning({ internalId: evalRun.internalId })
         );
 
+        /* Named as resumable rather than merely abandoned, because the cells
+           are still on the run and a resume continues them. The sweep cannot
+           do it itself: resolving a credential needs the actor whose it is,
+           and a background pass acts for nobody. */
         const runs = yield* tryStore("reconcile.runs", () =>
           db
             .update(evalRun)
             .set({
-              failure: "abandoned: the process running this did not finish it",
+              failure:
+                "abandoned: the process running this did not finish it. It can be resumed.",
               finishedAt: sql`now()`,
               status: "failed",
             })
@@ -113,9 +147,12 @@ export const ReconcilerLive = Layer.effect(
           yield* Effect.logWarning("closed abandoned eval work").pipe(
             Effect.annotateLogs({
               cells: cells.length,
-              trials: abandoned.length,
-              runs: runs.length,
+              /* Named for what can be done about it rather than what was
+                 done to it, and kept apart from the stillborn count, which
+                 registered no cell and so has nothing to continue. */
+              resumable: runs.length,
               stillborn: stillborn.length,
+              trials: abandoned.length,
             })
           );
         }

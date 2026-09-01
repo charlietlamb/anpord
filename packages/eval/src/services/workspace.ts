@@ -1,22 +1,29 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { EvalPrepare } from "@anpord/schema/domain/evals";
 import { Effect, Redacted } from "effect";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
-import { SourceUnavailable } from "../domain/errors";
+import { type PrepareFailed, SourceUnavailable } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
+import type { Suspender } from "./resumable-command";
+import { runPrepare } from "./workspace-setup";
 
 export interface PrepareWorkspace {
+  /** What a restore should look under before the prepare runs. A prepare may
+   * save under a narrower one of its own; this is what the runner can know
+   * without having run it. */
+  readonly cacheKey?: string;
   readonly credential: Redacted.Redacted<ResolvedCredential>;
   readonly driver: HarnessDriverShape;
   readonly harness: HarnessName;
   readonly harnessVersion: string;
   readonly home: string;
+  readonly prepare: EvalPrepare | null;
   readonly sandbox: SandboxHandle;
-  readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly workspace: string;
@@ -108,8 +115,12 @@ const materialise = (input: PrepareWorkspace) => {
 export const prepareWorkspace = (
   input: PrepareWorkspace
 ): Effect.Effect<
-  Readonly<Record<string, string>>,
-  HarnessUnavailable | SandboxUnavailable | SourceUnavailable
+  {
+    readonly env: Readonly<Record<string, string>>;
+    readonly prepared: Readonly<Record<string, unknown>>;
+  },
+  HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable,
+  Suspender
 > =>
   Effect.gen(function* () {
     const env = yield* input.driver.prepare({
@@ -125,12 +136,15 @@ export const prepareWorkspace = (
 
     yield* materialise(input);
 
-    if (input.setupCommand !== null) {
-      yield* runCommand(input.sandbox, input.setupCommand, {
-        cwd: input.workspace,
-        timeoutMs: 300_000,
-      });
-    }
+    const prepared =
+      input.prepare === null
+        ? {}
+        : yield* runPrepare({
+            cacheKey: input.cacheKey,
+            sandbox: input.sandbox,
+            prepare: input.prepare,
+            workspace: input.workspace,
+          });
 
-    return env;
+    return { env, prepared };
   }).pipe(Effect.withSpan("Workspace.prepare"));

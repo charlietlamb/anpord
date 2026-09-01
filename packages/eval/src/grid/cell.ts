@@ -1,9 +1,10 @@
-import type { EvalValidator } from "@anpord/schema/domain/evals";
+import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Redacted } from "effect";
 import { cellKeyOf } from "../domain/cell";
 import type {
   EvalStoreError,
   HarnessUnavailable,
+  PrepareFailed,
   SandboxUnavailable,
   SourceUnavailable,
 } from "../domain/errors";
@@ -16,7 +17,7 @@ import { runTrial, type TrialInputs } from "./trial";
 export interface GridCase {
   readonly identity?: string;
   readonly name: string;
-  readonly setup: string | null;
+  readonly prepare: EvalPrepare | null;
   readonly source: WorkspaceSource;
 
   readonly validator?: EvalValidator | null;
@@ -41,7 +42,11 @@ export const runGridCell = (
   input: RunGridCell
 ): Effect.Effect<
   GridCellResult,
-  EvalStoreError | HarnessUnavailable | SandboxUnavailable | SourceUnavailable,
+  | EvalStoreError
+  | HarnessUnavailable
+  | SandboxUnavailable
+  | PrepareFailed
+  | SourceUnavailable,
   ModelPrices
 > =>
   Effect.gen(function* () {

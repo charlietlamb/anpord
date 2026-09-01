@@ -62,9 +62,14 @@ const outputOf = (chunks: readonly ExecChunk[]) =>
 const exitOf = (chunks: readonly ExecChunk[]) =>
   chunks.find((chunk) => chunk.stream === "exit");
 
-const verify = (sandbox: SandboxHandle, command: string, workspace: string) =>
+const verify = (
+  sandbox: SandboxHandle,
+  command: string,
+  workspace: string,
+  env?: Readonly<Record<string, string>>
+) =>
   Stream.runCollect(
-    sandbox.exec(command, { cwd: workspace, timeoutMs: 300_000 })
+    sandbox.exec(command, { cwd: workspace, env, timeoutMs: 300_000 })
   ).pipe(Effect.map(Chunk.toReadonlyArray));
 
 const RESULT = "ANPORD_VALIDATOR_RESULT=";
@@ -94,12 +99,15 @@ const validatorResultOf = (output: string) => {
 const runValidator = (
   sandbox: SandboxHandle,
   source: string,
-  workspace: string
+  workspace: string,
+  prepared: Readonly<Record<string, unknown>>
 ) =>
   Effect.gen(function* () {
     const path = `${sandbox.home}/.anpord-validator-${randomUUID()}.mjs`;
     yield* sandbox.writeFile(path, source);
-    return yield* verify(sandbox, `node ${quoted(path)}`, workspace);
+    return yield* verify(sandbox, `node ${quoted(path)}`, workspace, {
+      ANPORD_PREPARE_VALUE: JSON.stringify(prepared),
+    });
   });
 
 const scoreValidator = (
@@ -111,7 +119,8 @@ const scoreValidator = (
     const chunks = yield* runValidator(
       request.sandbox,
       request.validator.source,
-      request.workspace
+      request.workspace,
+      request.prepared ?? {}
     );
     const result = validatorResultOf(outputOf(chunks));
 

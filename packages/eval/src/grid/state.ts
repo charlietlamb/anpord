@@ -24,10 +24,10 @@ export interface GridExecutionTask extends GridTask {
 }
 
 export interface GridSetup {
+  readonly prepareName: string | null;
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
-  readonly setupCommand: string | null;
   readonly validatorName: string | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;

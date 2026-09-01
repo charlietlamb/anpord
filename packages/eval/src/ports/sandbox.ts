@@ -22,19 +22,69 @@ export interface ExecOptions {
 
 export interface OpenSandbox {
   readonly autoStopMinutes: number;
+  /** Names the store this sandbox's prepare should share with the next one
+   * preparing the same way. Absent asks for none. */
+  readonly cache?: string;
   readonly credentials?: Redacted.Redacted<CredentialValues>;
   readonly provider: ProviderName;
   readonly workspace: string;
 }
 
+export interface StartedCommand {
+  readonly id: string;
+  readonly session: string;
+}
+
+export interface CommandProgress {
+  readonly exitCode: number | null;
+  readonly stderr: string;
+  readonly stdout: string;
+}
+
+/**
+ * Somewhere a prepare can leave what it built for the next run preparing the
+ * same way.
+ *
+ * Whole directories in and out rather than a path to work in, because a
+ * provider is free to back this with object storage, and object storage does
+ * not do the renames and hard links an install performs constantly. A provider
+ * that cannot offer this at all offers none, and a prepare is handed nothing.
+ *
+ * Write-once, as every CI cache is: a key that holds an entry keeps it. That
+ * is what makes two sandboxes preparing at once safe without a lock, given
+ * neither can rename a finished file into place.
+ */
+export interface SandboxCache {
+  readonly has: (key: string) => Effect.Effect<boolean, SandboxUnavailable>;
+  /** False when nothing was stored, when a save did not finish, or when what
+   * is there no longer matches what was written. Never a partial restore. */
+  readonly restore: (
+    key: string,
+    path: string
+  ) => Effect.Effect<boolean, SandboxUnavailable>;
+  readonly save: (
+    key: string,
+    path: string
+  ) => Effect.Effect<void, SandboxUnavailable>;
+}
+
 export interface SandboxHandle {
+  /** Null when the provider has nowhere to keep one, or none was asked for. */
+  readonly cache: SandboxCache | null;
   readonly exec: (
     command: string,
     options?: ExecOptions
   ) => Stream.Stream<ExecChunk, SandboxUnavailable>;
   readonly home: string;
   readonly id: string;
+  readonly progress: (
+    started: StartedCommand
+  ) => Effect.Effect<CommandProgress, SandboxUnavailable>;
   readonly provider: ProviderName;
+  readonly start: (
+    command: string,
+    options?: ExecOptions
+  ) => Effect.Effect<StartedCommand, SandboxUnavailable>;
   readonly streaming: boolean;
   readonly writeFile: (
     path: string,

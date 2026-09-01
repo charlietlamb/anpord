@@ -1,12 +1,12 @@
 import { Clock, Context, Effect, Layer, Option, type Stream } from "effect";
 import { SourceTokens } from "../codebase/source-token";
 import { caseIdentityOf } from "../domain/case-identity";
-import { CellKey } from "../domain/cell";
-import { failureOf } from "../domain/failure";
+import { CellKey, cellKeyOf } from "../domain/cell";
 import type { PageCursor } from "../domain/page";
 import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
 import { ModelPrices } from "../ports/model-source";
+import { TrialRunner } from "../ports/trial-runner";
 import { EventRepository } from "../repositories/event-repository";
 import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
@@ -27,6 +27,15 @@ import {
 } from "./state";
 import { runToState } from "./stored-run-state";
 import { WORKSPACE } from "./trial";
+
+export interface ResumeGrid {
+  readonly created: { readonly id: string; readonly internalId: string };
+  readonly input: StartGrid;
+  readonly registered: readonly {
+    readonly id: string;
+    readonly internalId: string;
+  }[];
+}
 
 export interface StartGrid {
   readonly cases: readonly GridCase[];
@@ -49,6 +58,12 @@ export interface GridRunPage {
 export interface GridRunShape {
   readonly changes: Stream.Stream<GridRunState>;
 
+  /** Runs the grid here, to completion.
+   *
+   * What a runner is handed, rather than what asks a runner to take it: a
+   * worker calling resume would dispatch the run to itself forever. */
+  readonly execute: (grid: ResumeGrid) => Effect.Effect<void>;
+
   readonly get: (
     organizationId: string,
     id: string
@@ -59,7 +74,7 @@ export interface GridRunShape {
     readonly limit: number | undefined;
     readonly organizationId: string;
   }) => Effect.Effect<GridRunPage>;
-
+  readonly resume: (grid: ResumeGrid) => Effect.Effect<void>;
   readonly start: (input: StartGrid) => Effect.Effect<string>;
 }
 
@@ -82,6 +97,7 @@ export const GridRunLive = Layer.scoped(
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
+    const runner = yield* TrialRunner;
     const sourceTokens = yield* SourceTokens;
 
     const live = yield* makeLiveRuns;
@@ -101,7 +117,7 @@ export const GridRunLive = Layer.scoped(
               subject.identity ??
               caseIdentityOf({
                 name: subject.name,
-                setupCommand: subject.setup,
+                prepare: subject.prepare,
                 source: subject.source,
                 validator: subject.validator,
                 variables: subject.variables,
@@ -111,7 +127,7 @@ export const GridRunLive = Layer.scoped(
             name: subject.name,
             organizationId: input.organizationId,
             prompt,
-            setupCommand: subject.setup,
+            prepare: subject.prepare ?? null,
             source: subject.source,
             validator: subject.validator ?? null,
             verifyCommand: subject.verify,
@@ -157,6 +173,7 @@ export const GridRunLive = Layer.scoped(
                   update(created.id, (state) =>
                     settleTrial(state, position, ordinal, trial)
                   ),
+                organizationId: input.organizationId,
                 prompt: input.prompt,
                 recorder,
                 runInternalId: created.internalId,
@@ -229,7 +246,7 @@ export const GridRunLive = Layer.scoped(
                   subject.source.kind === "repo" ? subject.source.ref : null,
                 repoUrl:
                   subject.source.kind === "repo" ? subject.source.url : null,
-                setupCommand: subject.setup,
+                prepareName: subject.prepare?.name ?? null,
                 validatorName: subject.validator?.name ?? null,
                 verifyCommand: subject.verify,
                 workspace: WORKSPACE,
@@ -255,40 +272,50 @@ export const GridRunLive = Layer.scoped(
           ),
         });
 
-        yield* Effect.forkDaemon(
-          execute(input, created, registered).pipe(
-            Effect.provideService(ModelPrices, prices),
-            Effect.tapErrorCause((cause) =>
-              Effect.logError("grid run failed", cause).pipe(
-                Effect.annotateLogs({ runId: created.id })
-              )
-            ),
-            Effect.catchAllCause((cause) =>
-              Clock.currentTimeMillis.pipe(
-                Effect.flatMap((finishedAt) =>
-                  runs
-                    .finish({
-                      failure: failureOf(cause),
-                      finishedAt: new Date(finishedAt),
-                      internalId: created.internalId,
-                      status: "failed",
-                    })
-                    .pipe(
-                      Effect.ignore,
-                      Effect.zipRight(
-                        update(created.id, (state) => ({
-                          ...state,
-                          failure: Option.some(failureOf(cause)),
-                          finishedAt: Option.some(finishedAt),
-                          status: "failed",
-                        })).pipe(Effect.zipRight(forget(created.id)))
-                      )
-                    )
-                )
-              )
-            )
+        /* Written before the run is handed over, because a runner that is not
+           this process rebuilds the grid from these rows. They used to be
+           created by the work itself, so a run dispatched elsewhere arrived at
+           a worker that could find nothing to do. Idempotent, so the work
+           creating them again is the same rows. */
+        yield* runs.insertCells(
+          input.tasks.flatMap((task) =>
+            input.cases.flatMap((subject, caseIndex) => {
+              const row = registered[caseIndex];
+
+              return row === undefined
+                ? []
+                : [
+                    {
+                      cellKey: cellKeyOf({
+                        harness: task.harness,
+                        harnessVersion: task.harnessVersion,
+                        model: task.model,
+                        provider: task.provider,
+                        taskId: row.id,
+                        taskVersion: row.internalId,
+                      }),
+                      harness: task.harness,
+                      harnessCredentialConnectionId:
+                        task.bindings?.harnessConnectionId,
+                      harnessVersion: task.harnessVersion,
+                      model: task.model,
+                      prompt: renderPrompt(input.prompt, subject.variables),
+                      provider: task.provider,
+                      runInternalId: created.internalId,
+                      sandboxCredentialConnectionId:
+                        task.bindings?.sandboxConnectionId,
+                      taskInternalId: row.internalId,
+                    },
+                  ];
+            })
           )
         );
+
+        yield* runner.dispatch({
+          organizationId: input.organizationId,
+          runId: created.id,
+          work: work({ created, input, registered }),
+        });
 
         return created.id;
       }).pipe(
@@ -342,9 +369,74 @@ export const GridRunLive = Layer.scoped(
         Effect.withSpan("GridRun.get")
       );
 
+    /* Reopening and publishing belong here rather than beside the dispatch:
+       whoever executes the grid is the process that must claim the run, and
+       when a worker executes it the dispatcher is a different machine that has
+       already returned. */
+    const claimed = (grid: ResumeGrid) =>
+      Effect.gen(function* () {
+        const startedAt = yield* Clock.currentTimeMillis;
+
+        /* The row says failed, because the sweep that closed it is why anybody
+           is continuing it. Executing against that leaves a run in flight that
+           every reader sees as finished. */
+        yield* runs.reopen({ internalId: grid.created.internalId });
+
+        /* Live updates are dropped for an id the map does not hold, so without
+           this every trial's progress goes nowhere, and the guard against
+           continuing a running run never sees one running. */
+        yield* publish({
+          cases: grid.input.cases.map((subject) => subject.name),
+          cells: [],
+          failure: Option.none(),
+          finishedAt: Option.none(),
+          id: grid.created.id,
+          organizationId: grid.input.organizationId,
+          startedAt,
+          status: "running",
+          tasks: grid.input.tasks.map(
+            ({ bindings: _, credentials: __, ...task }) => task
+          ),
+        });
+
+        yield* execute(grid.input, grid.created, grid.registered);
+      });
+
+    const work = (grid: ResumeGrid) =>
+      claimed(grid).pipe(
+        Effect.provideService(ModelPrices, prices),
+        Effect.annotateLogs({ runId: grid.created.id }),
+        /* Logged before it becomes a defect, for the reason start gives: the
+           tag is lost through orDie, and this runs detached, where nothing is
+           left to report what went wrong. */
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("grid run could not resume", cause)
+        ),
+        Effect.orDie
+      );
+
+    const resume = (grid: ResumeGrid) =>
+      Effect.gen(function* () {
+        yield* runner.dispatch({
+          organizationId: grid.input.organizationId,
+          runId: grid.created.id,
+          work: work(grid),
+        });
+      }).pipe(
+        Effect.tapErrorCause((cause) =>
+          Effect.logError("grid run could not be resumed", cause)
+        ),
+        Effect.orDie,
+        Effect.withSpan("GridRun.resume", {
+          attributes: { runId: grid.created.id },
+        })
+      );
+
     return GridRun.of({
       changes: live.changes,
+      execute: work,
       get,
+      resume,
       list: (input) =>
         Effect.gen(function* () {
           const size = pageSizeOf(input.limit);

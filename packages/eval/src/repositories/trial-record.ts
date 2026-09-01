@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
@@ -26,6 +26,9 @@ export interface AppendTrialEvents {
 }
 
 export interface AbandonTrial {
+  /** Why it did not finish. Null said nothing, which is how a failed trial
+   * looked identical to one nobody had started. */
+  readonly failure?: string;
   readonly finishedAt: Date;
   readonly trialInternalId: string;
 }
@@ -33,10 +36,16 @@ export interface AbandonTrial {
 export interface SettleTrial {
   readonly finishedAt: Date;
   readonly outcome: TrialOutcome;
+  readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string | null;
   readonly trialInternalId: string;
 
   readonly usage: HarnessUsage | null;
+}
+
+export interface AttachSandbox {
+  readonly sandboxId: string;
+  readonly trialInternalId: string;
 }
 
 export interface TrialRecorderShape {
@@ -46,6 +55,10 @@ export interface TrialRecorderShape {
 
   readonly append: (
     input: AppendTrialEvents
+  ) => Effect.Effect<void, EvalStoreError>;
+
+  readonly attach: (
+    input: AttachSandbox
   ) => Effect.Effect<void, EvalStoreError>;
 
   readonly open: (input: OpenTrial) => Effect.Effect<string, EvalStoreError>;
@@ -68,7 +81,11 @@ export const TrialRecorderLive = Layer.effect(
       tryStore("trial.abandon", () =>
         db
           .update(evalTrial)
-          .set({ finishedAt: input.finishedAt, status: "void" })
+          .set({
+            failure: input.failure ?? null,
+            finishedAt: input.finishedAt,
+            status: "void",
+          })
           .where(
             and(
               eq(evalTrial.internalId, input.trialInternalId),
@@ -77,20 +94,65 @@ export const TrialRecorderLive = Layer.effect(
           )
       ).pipe(Effect.asVoid, Effect.withSpan("TrialRecorder.abandon"));
 
+    const attach = (input: AttachSandbox) =>
+      tryStore("trial.attach", () =>
+        db
+          .update(evalTrial)
+          .set({ sandboxId: input.sandboxId })
+          .where(eq(evalTrial.internalId, input.trialInternalId))
+      ).pipe(
+        Effect.asVoid,
+        Effect.withSpan("TrialRecorder.attach"),
+        Effect.annotateLogs({
+          sandboxId: input.sandboxId,
+          trialInternalId: input.trialInternalId,
+        })
+      );
+
+    /* Reopened rather than inserted beside, because a resumed run reuses its
+       cells and a trial is unique on its cell and ordinal. The first live
+       resume died here on that constraint.
+
+       The same trial, on a later attempt: keeping the row keeps the run the
+       shape a reader already has, and the events of the attempt that did not
+       finish are replaced rather than interleaved with the new one's. */
     const open = (input: OpenTrial) =>
       Effect.gen(function* () {
-        const trialInternalId = yield* ids.generate("evalTrial");
+        const fresh = yield* ids.generate("evalTrial");
 
-        yield* tryStore("trial.open", () =>
-          db.insert(evalTrial).values({
-            attempt: 1,
-            cellInternalId: input.cellInternalId,
-            internalId: trialInternalId,
-            ordinal: input.ordinal,
-            provider: input.provider,
-            startedAt: input.startedAt,
-            status: "running",
-          })
+        const rows = yield* tryStore("trial.open", () =>
+          db
+            .insert(evalTrial)
+            .values({
+              attempt: 1,
+              cellInternalId: input.cellInternalId,
+              internalId: fresh,
+              ordinal: input.ordinal,
+              provider: input.provider,
+              startedAt: input.startedAt,
+              status: "running",
+            })
+            .onConflictDoUpdate({
+              set: {
+                attempt: sql`${evalTrial.attempt} + 1`,
+                finishedAt: null,
+                provider: input.provider,
+                startedAt: input.startedAt,
+                status: "running",
+              },
+              target: [evalTrial.cellInternalId, evalTrial.ordinal],
+            })
+            .returning({ internalId: evalTrial.internalId })
+        );
+
+        const trialInternalId = rows[0]?.internalId ?? fresh;
+
+        /* An earlier attempt's journal describes a run that did not happen.
+           Cleared here rather than left to interleave with the new one. */
+        yield* tryStore("trial.clearEvents", () =>
+          db
+            .delete(evalEvent)
+            .where(eq(evalEvent.trialInternalId, trialInternalId))
         );
 
         return trialInternalId;
@@ -142,6 +204,7 @@ export const TrialRecorderLive = Layer.effect(
             finishedAt: input.finishedAt,
             modelMs: input.outcome.modelMs,
             passed: input.outcome.passed,
+            prepared: input.prepared,
             sandboxId: input.sandboxId,
             sandboxMs: input.outcome.sandboxMs,
             status: input.outcome.status,
@@ -157,6 +220,6 @@ export const TrialRecorderLive = Layer.effect(
         })
       );
 
-    return TrialRecorder.of({ abandon, append, open, settle });
+    return TrialRecorder.of({ abandon, attach, append, open, settle });
   })
 );

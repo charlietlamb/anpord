@@ -24,6 +24,10 @@ jobs:
           ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
 ```
 
+The command waits for the run and exits nonzero when a cell regresses, so the
+job fails the request rather than reporting a run nobody reads. Pass
+`--fail-on unscored` to also fail a cell that produced no scored trials.
+
 A definition that names no source is evaluated against the repository it sits
 in. On a pull request that is the branch the request came from, so the run
 measures the change rather than the base branch.

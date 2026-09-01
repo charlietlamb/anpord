@@ -15,22 +15,22 @@ import { Anpord } from "anpord";
 
 const anpord = new Anpord({ apiKey: process.env.ANPORD_API_KEY });
 
-const { id } = await anpord.evals.start({
+const run = await anpord.evals.startAndWait({
   cases: [
     {
-      goal: "Create hello.txt containing exactly hello",
       name: "writes the requested file",
+      variables: { task: "Create hello.txt containing exactly hello" },
       verify: "test \"$(cat hello.txt)\" = hello",
     },
   ],
-  prompt: "{{goal}}",
-  tasks: [
-    { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },
-  ],
+  prompt: "{{task}}",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 3,
 });
 
-console.log(id);
+for (const cell of run.cells) {
+  console.log(cell.caseName, cell.distribution?.passRate);
+}
 ```
 
 For a TypeScript validator, export the function from its own file:
@@ -53,11 +53,11 @@ export default defineEval({
   cases: [
     {
       name: "greeting",
-      variables: { goal: "Write hello.txt" },
+      variables: { task: "Write hello.txt" },
       validate: hasGreeting,
     },
   ],
-  prompt: "{{goal}}",
+  prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
   trials: 3,
 });

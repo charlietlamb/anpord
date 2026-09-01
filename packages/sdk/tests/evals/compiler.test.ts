@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { execFileSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -154,6 +155,12 @@ export default defineEval({
 
   test("falls back to the repository the definition sits in", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-local-"));
+    const git = (...args: string[]) =>
+      execFileSync("git", args, { cwd: workspace, stdio: "pipe" });
+
+    git("init", "--quiet");
+    git("remote", "add", "origin", "https://github.com/acme/widgets.git");
+
     await writeFile(
       join(workspace, "eval.ts"),
       `import { defineEval } from "anpord";
@@ -168,7 +175,11 @@ export default defineEval({
 
     const payload = await compileEval(join(workspace, "eval.ts"));
 
-    expect(payload.cases[0]?.source).toBeUndefined();
+    expect(payload.cases[0]?.source).toEqual({
+      kind: "repo",
+      ref: null,
+      url: "https://github.com/acme/widgets.git",
+    });
   });
 
   test("a named source is not replaced by the surrounding repository", async () => {
@@ -193,5 +204,48 @@ export default defineEval({
       ref: null,
       url: "https://github.com/acme/widgets.git",
     });
+  });
+
+  test("bundles a typed setup beside its validator", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-setup-"));
+    await writeFile(
+      join(workspace, "prepare.ts"),
+      `import type { Validator, Prepare } from "anpord";
+
+export const prepareRepoImage: Prepare = async ({ exec }) => {
+  await exec("npm", ["ci", "--workspace", "renderer"]);
+  return { rendererPort: 4173 };
+};
+
+export const validateRepoImage: Validator = ({ setup }) =>
+  setup.rendererPort === 4173;`
+    );
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+import { prepareRepoImage, validateRepoImage } from "./prepare";
+
+export default defineEval({
+  cases: [
+    {
+      name: "renders",
+      prepare: prepareRepoImage,
+      validate: validateRepoImage,
+      variables: { task: "Render" },
+    },
+  ],
+  name: "suite",
+  prompt: "{{task}}",
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+    const subject = payload.cases[0];
+
+    expect(subject?.prepare?.name).toBe("prepareRepoImage");
+    expect(subject?.prepare?.source).toContain("--workspace");
+    expect(subject?.validator?.name).toBe("validateRepoImage");
   });
 });

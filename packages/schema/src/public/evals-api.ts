@@ -5,6 +5,7 @@ import {
   EvalCellHistoryEntry,
   EvalHarness,
   EvalPageCursor,
+  EvalPrepare,
   EvalProvider,
   EvalRun,
   EvalRunPage,
@@ -49,7 +50,7 @@ export const ListEvalsRequest = Schema.Struct({
 
 const PublicEvalCase = Schema.Struct({
   name: Schema.String,
-  setup: Schema.optional(Schema.NullOr(Schema.String)),
+  prepare: Schema.optional(Schema.NullOr(EvalPrepare)),
   source: Schema.optional(EvalSource),
   validator: Schema.optional(Schema.NullOr(EvalValidator)),
   variables: Schema.optional(EvalVariables),

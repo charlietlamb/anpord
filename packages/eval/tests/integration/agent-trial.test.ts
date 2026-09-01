@@ -4,10 +4,10 @@ import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
+import { SuspenderSleeping } from "../../src/services/resumable-command";
 import {
   AGENT_PROMPT,
   brokenSource,
-  SETUP_COMMAND,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
 import {
@@ -22,6 +22,7 @@ import {
 
 const TestLayer = AgentTrialLive.pipe(
   Layer.provide(HarnessesLive),
+  Layer.provide(SuspenderSleeping),
   Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
 );
@@ -45,10 +46,11 @@ for (const [provider, ready] of [
             harness: "codex",
             harnessCredential: codexCredential,
             harnessVersion: "0.144.4",
+            organizationId: "org_test",
             model: "gpt-5.6-sol",
             prompt: AGENT_PROMPT,
             provider,
-            setupCommand: SETUP_COMMAND,
+            prepare: null,
             source: brokenSource,
             verifyCommand: VERIFY_COMMAND,
             workspace: "/tmp/anpord-task",

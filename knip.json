@@ -9,6 +9,11 @@
       "entry": ["src/main.ts"],
       "project": ["src/**"]
     },
+    "apps/worker": {
+      "entry": ["trigger.config.ts", "src/trigger/**/*.ts"],
+      "ignoreDependencies": ["trigger.dev"],
+      "project": ["src/**", "trigger.config.ts"]
+    },
     "apps/server": {
       "entry": ["src/server.ts", "tests/**/*.test.ts"],
       "project": ["src/**", "tests/**"]

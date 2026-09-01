@@ -60,6 +60,14 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
   )
 
   .add(
+    /* The run keeps its own id: a resume continues the cells already recorded
+       against it rather than opening a second run beside the first. */
+    HttpApiEndpoint.post("resume", "/evals/:id/resume")
+      .setPath(RunPath)
+      .addSuccess(StartedEval)
+  )
+
+  .add(
     HttpApiEndpoint.get("modelCatalogue", "/evals/models")
       /* The harness decides which models exist: Codex takes a bare id and
          OpenCode takes `provider/model`, so a catalogue fetched without one

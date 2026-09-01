@@ -9,6 +9,7 @@
   "files": {
     "includes": [
       "!apps/docs/openapi.json",
+      "!**/.trigger",
       "!apps/mcp/mcp-env.d.ts",
       "!packages/ui/src/components/ui",
       "!context",

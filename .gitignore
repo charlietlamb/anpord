@@ -8,6 +8,7 @@ routeTree.gen.ts
 dist
 build
 .env
+.trigger/
 .env.*
 !.env.example
 .DS_Store
@@ -32,3 +33,4 @@ apps/sandbox-lab/.sessions/
 # Private keys, never committed.
 .secrets/
 *.pem
+

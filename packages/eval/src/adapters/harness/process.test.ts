@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Stream } from "effect";
+import { notResumableFixture } from "../../../tests/fixtures/not-resumable";
 import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
 import { harnessLines, shellQuote } from "./process";
 
@@ -8,6 +9,7 @@ const sandbox = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   home: "/home/test",
   id: "sandbox",
   provider: "daytona",
+  ...notResumableFixture,
   streaming: true,
   writeFile: () => Effect.void,
 });

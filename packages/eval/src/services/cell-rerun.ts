@@ -1,29 +1,13 @@
 import type { Actor } from "@anpord/schema/domain/actor";
-import type { CredentialBindings } from "@anpord/schema/domain/credentials";
 import { Context, Effect, Layer, Option } from "effect";
 import { CredentialResolver } from "../credentials/connections";
 import type { CredentialError } from "../credentials/errors";
-import {
-  type RequestedTask,
-  resolveTaskCredentials,
-} from "../credentials/tasks";
-import type { HarnessName, ProviderName } from "../domain/cell";
+import { resolveTaskCredentials } from "../credentials/tasks";
+import type { ProviderName } from "../domain/cell";
 import { type EvalStoreError, NotRunnable } from "../domain/errors";
+import { caseFrom, taskFrom } from "../grid/from-stored";
 import { GridRun } from "../grid/run";
-import { type CellTask, RunQuery } from "../repositories/run-query";
-
-const bindingsOf = (cell: CellTask["cell"]): CredentialBindings => ({
-  harnessConnectionId: cell.harnessCredentialConnectionId ?? undefined,
-  sandboxConnectionId: cell.sandboxCredentialConnectionId ?? undefined,
-});
-
-const taskOf = (subject: CellTask): RequestedTask => ({
-  credentials: bindingsOf(subject.cell),
-  harness: subject.cell.harness as HarnessName,
-  harnessVersion: subject.cell.harnessVersion,
-  model: subject.cell.model,
-  provider: subject.cell.provider as ProviderName,
-});
+import { RunQuery } from "../repositories/run-query";
 
 export interface RerunCell {
   readonly actor: Actor;
@@ -108,28 +92,12 @@ export const make = Effect.gen(function* () {
     const tasks = yield* resolveTaskCredentials(
       credentials,
       input.actor,
-      [taskOf(subject)],
+      [taskFrom(subject)],
       input.legacyHarnessAuth
     );
 
     return yield* grid.start({
-      cases: [
-        {
-          identity: subject.identity,
-          name: subject.name,
-          setup: subject.setupCommand,
-          source: subject.source,
-          variables: {},
-          validator:
-            subject.validatorName == null || subject.validatorSource == null
-              ? null
-              : {
-                  name: subject.validatorName,
-                  source: subject.validatorSource,
-                },
-          verify: subject.verifyCommand,
-        },
-      ],
+      cases: [caseFrom(subject)],
       organizationId: input.organizationId,
       prompt: subject.prompt,
       startedBy: input.startedBy,

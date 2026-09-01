@@ -135,7 +135,7 @@ export const WorkbenchesLive = Layer.effect(
         const runId = yield* grid.start({
           cases: config.cases.map((subject) => ({
             name: subject.name,
-            setup: subject.setup,
+            prepare: null,
             source: subject.source,
             variables: subject.variables,
             validator: null,

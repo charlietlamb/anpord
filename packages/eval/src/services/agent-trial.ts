@@ -2,7 +2,7 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
-import type { EvalValidator } from "@anpord/schema/domain/evals";
+import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import {
   Chunk,
   Clock,
@@ -18,6 +18,7 @@ import {
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type {
   HarnessUnavailable,
+  PrepareFailed,
   SandboxUnavailable,
   SourceUnavailable,
 } from "../domain/errors";
@@ -37,6 +38,8 @@ import type { TrialProgressShape } from "../ports/trial-progress";
 
 const noReport = () => Effect.void;
 
+import { cacheKeyOf } from "../domain/cache-key";
+import { Suspender } from "./resumable-command";
 import { prepareWorkspace } from "./workspace";
 
 const PROGRESS_BATCH = 32;
@@ -54,11 +57,13 @@ export interface AgentTrialRequest {
   readonly harnessVersion: string;
   readonly model: string;
 
+  readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
+  readonly organizationId: string;
+  readonly prepare: EvalPrepare | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
-  readonly setupCommand: string | null;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
 
@@ -73,6 +78,7 @@ export interface AgentTrialResult {
   readonly failedCommands: number;
   readonly filesChanged: readonly string[];
   readonly outcome: TrialOutcome;
+  readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string;
   readonly sessionId: string | null;
   readonly usage: Option.Option<HarnessUsage>;
@@ -83,7 +89,7 @@ export interface AgentTrialShape {
     request: AgentTrialRequest
   ) => Effect.Effect<
     AgentTrialResult,
-    HarnessUnavailable | SandboxUnavailable | SourceUnavailable
+    HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable
   >;
 }
 
@@ -98,6 +104,7 @@ export const AgentTrialLive = Layer.effect(
     const harnesses = yield* Harnesses;
     const sandboxes = yield* SandboxProvider;
     const scorer = yield* Scorer;
+    const suspender = yield* Suspender;
 
     const run = (request: AgentTrialRequest) =>
       Effect.gen(function* () {
@@ -105,25 +112,31 @@ export const AgentTrialLive = Layer.effect(
 
         const sandbox = yield* sandboxes.open({
           autoStopMinutes: request.autoStopMinutes,
+          cache: cacheKeyOf(request.organizationId, request.prepare),
           credentials: request.sandboxCredentials,
           provider: request.provider,
           workspace: request.workspace,
         });
 
+        yield* request.onSandbox?.(sandbox.id) ?? Effect.void;
+
         const driver = yield* harnesses.resolve(request.harness);
 
-        const env = yield* prepareWorkspace({
+        const { env, prepared } = yield* prepareWorkspace({
+          /* The same name the volume has: what a prepare left last time it ran
+             this way, before it has told us anything narrower. */
+          cacheKey: cacheKeyOf(request.organizationId, request.prepare),
           credential: request.harnessCredential,
           driver,
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,
           sandbox,
-          setupCommand: request.setupCommand,
+          prepare: request.prepare,
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
-        });
+        }).pipe(Effect.provideService(Suspender, suspender));
 
         const modelStarted = yield* Clock.currentTimeMillis;
 
@@ -176,6 +189,7 @@ export const AgentTrialLive = Layer.effect(
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,
+          prepared,
           validator: request.validator,
           verifyCommand: request.verifyCommand,
           workspace: request.workspace,
@@ -193,6 +207,7 @@ export const AgentTrialLive = Layer.effect(
 
             sandboxMs: finishedAt - startedAt - (modelFinished - modelStarted),
           },
+          prepared,
           sandboxId: sandbox.id,
           sessionId: sessionIdOf(events),
           usage: yield* session.usage,

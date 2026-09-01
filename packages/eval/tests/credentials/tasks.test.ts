@@ -17,6 +17,10 @@ const missing: CredentialResolverShape = {
     Effect.fail(
       new CredentialError({ code: "not-found", message: "not found" })
     ),
+  resolveBound: () =>
+    Effect.fail(
+      new CredentialError({ code: "not-found", message: "not used here" })
+    ),
 };
 
 const task = {
@@ -52,6 +56,10 @@ describe("task credentials", () => {
 
   it("preserves explicit bindings and revisions", async () => {
     const resolver: CredentialResolverShape = {
+      resolveBound: () =>
+        Effect.fail(
+          new CredentialError({ code: "not-found", message: "not used here" })
+        ),
       resolve: ({ connectionId, integrationId }) =>
         Effect.succeed(
           Redacted.make({

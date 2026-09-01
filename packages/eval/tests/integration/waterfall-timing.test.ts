@@ -4,6 +4,7 @@ import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
+import { SuspenderSleeping } from "../../src/services/resumable-command";
 import { codexCredential, hasCodex, hasDaytona } from "../fixtures/credentials";
 
 const READY = hasDaytona && hasCodex;
@@ -14,6 +15,7 @@ const SLEEP_SECONDS = 5;
 
 const TestLayer = AgentTrialLive.pipe(
   Layer.provide(HarnessesLive),
+  Layer.provide(SuspenderSleeping),
   Layer.provide(ScorerGroundTruthLive),
   Layer.provideMerge(EvalSandboxLive)
 );
@@ -26,10 +28,11 @@ const trial = Effect.gen(function* () {
     harness: "codex",
     harnessCredential: codexCredential,
     harnessVersion: "0.144.4",
+    organizationId: "org_test",
     model: "gpt-5.2",
     prompt: `Run exactly one shell command: \`sleep ${SLEEP_SECONDS} && echo done\`. Then stop without running anything else.`,
     provider: "daytona",
-    setupCommand: null,
+    prepare: null,
     source: { kind: "files", files: { "note.txt": "nothing to fix" } },
     verifyCommand: null,
     workspace: "/tmp/anpord-timing",
