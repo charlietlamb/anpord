@@ -1,3 +1,5 @@
+import { formatDuration } from "date-fns/formatDuration";
+import { intervalToDuration } from "date-fns/intervalToDuration";
 /**
  * How this app writes a length of time.
  *
@@ -20,6 +22,23 @@ export const elapsed = (startedAt: number, finishedAt: number | null) => {
   const total = Math.round((finishedAt - startedAt) / 1000);
 
   return total < 60 ? `${total}s` : `${Math.round(total / 60)}m`;
+};
+
+/** The same span written out, for a tooltip: `elapsed` rounds 363 minutes to
+ * `363m`, which hides that it is six hours. */
+export const exactly = (startedAt: number, finishedAt: number | null) => {
+  if (finishedAt === null) {
+    return "an unknown time";
+  }
+
+  const spelled = formatDuration(
+    intervalToDuration({ end: finishedAt, start: startedAt }),
+    { format: ["hours", "minutes", "seconds"] }
+  );
+
+  /* A run shorter than a second leaves every field zero, and formatDuration
+     answers an empty string rather than naming the unit nobody reached. */
+  return spelled === "" ? "less than a second" : spelled;
 };
 
 /** A moment on a clock: the day and the time it happened. */

@@ -1,4 +1,4 @@
-import { relativeTime } from "@anpord/ui/lib/relative-time";
+import { relativeTime, shortAge } from "@anpord/ui/lib/relative-time";
 import { useSyncExternalStore } from "react";
 
 const NEVER_CHANGES = () => () => undefined;
@@ -11,6 +11,16 @@ export function useRelativeTime(value: Date) {
   return useSyncExternalStore(
     NEVER_CHANGES,
     () => relativeTime(value, new Date()),
+    () => null
+  );
+}
+
+/** The same moment, in a column's worth of characters. Reads the clock the
+ * same way, so a list of rows agrees on when "now" was. */
+export function useShortAge(value: Date) {
+  return useSyncExternalStore(
+    NEVER_CHANGES,
+    () => shortAge(value, new Date()),
     () => null
   );
 }

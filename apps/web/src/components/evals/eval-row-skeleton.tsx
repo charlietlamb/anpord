@@ -46,18 +46,16 @@ function EvalRowSkeleton({ name }: { readonly name: string }) {
           ))}
         </span>
 
-        {/* OutcomeSummary, CommandSpread, duration, then when it started. */}
+        {/* OutcomeSummary: the arc alone. */}
+        <span className="flex w-16 items-center justify-end">
+          <Skeleton className="size-3.5 shrink-0 rounded-full" />
+        </span>
+        {/* How long it ran, then how long ago it started. */}
         <span className="flex w-12 justify-end">
-          <Skeleton className="h-3 w-8" />
+          <Skeleton className="h-3 w-7" />
         </span>
-        <span className="flex w-20 justify-end">
-          <Skeleton className="h-3 w-14" />
-        </span>
-        <span className="flex w-10 justify-end">
-          <Skeleton className="h-3 w-8" />
-        </span>
-        <span className="flex w-20 justify-end">
-          <Skeleton className="h-3 w-16" />
+        <span className="flex w-16 justify-end">
+          <Skeleton className="h-3 w-12" />
         </span>
       </span>
     </div>

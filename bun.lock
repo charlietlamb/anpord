@@ -104,6 +104,7 @@
         "@tanstack/react-table": "catalog:",
         "@tanstack/start-server-core": "catalog:",
         "better-auth": "catalog:",
+        "date-fns": "catalog:",
         "effect": "catalog:",
         "next-themes": "catalog:",
         "nitro": "catalog:",

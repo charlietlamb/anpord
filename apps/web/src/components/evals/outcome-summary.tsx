@@ -1,3 +1,5 @@
+import { PassArc } from "@/components/evals/pass-arc";
+import { SignalTip } from "@/components/evals/signal-tip";
 import { NOTHING } from "@/lib/evals/duration";
 
 interface OutcomeSummaryProps {
@@ -6,36 +8,49 @@ interface OutcomeSummaryProps {
   readonly voided: number;
 }
 
-export function OutcomeSummary({
-  passed,
-  scored,
-  voided,
-}: OutcomeSummaryProps) {
-  return (
-    <span className="flex items-center justify-end gap-1.5">
-      <span className="tabular-nums">
-        {scored === 0 ? NOTHING : `${passed}/${scored}`}
-      </span>
+const outcomeLabel = ({ passed, scored, voided }: OutcomeSummaryProps) => {
+  if (scored === 0) {
+    return voided > 0
+      ? `${voided} trials ended without a result`
+      : "Nothing scored yet";
+  }
 
-      {voided > 0 ? <span className="text-warning">{voided} void</span> : null}
-    </span>
-  );
-}
+  const scoredPart = `${passed} of ${scored} scored trials passed`;
 
-export function CommandSpread({
-  max,
-  min,
-}: {
-  readonly max: number | null;
-  readonly min: number | null;
-}) {
-  if (min === null || max === null) {
-    return <span className="tabular-nums">{NOTHING}</span>;
+  return voided > 0
+    ? `${scoredPart} · ${voided} ended without a result`
+    : scoredPart;
+};
+
+/**
+ * How a run turned out.
+ *
+ * The arc alone, because it already carries the proportion and the exact
+ * counts sit a hover away: `8/9` beside a nine-tenths ring is the same fact
+ * told twice, and the digits are the copy that costs a column.
+ *
+ * It is drawn against every trial attempted, not every trial scored. A run
+ * where 5 passed and 4 returned nothing is five ninths of a ring, and closing
+ * it would claim a perfect run out of one that mostly failed to answer. A run
+ * that scored nothing at all is then simply a grey one -- the shape says it
+ * without a word, and reading it back as "9 void" put text in a column of
+ * rings for the one case that needed it least.
+ */
+export function OutcomeSummary(props: OutcomeSummaryProps) {
+  const { passed, scored, voided } = props;
+
+  if (scored + voided === 0) {
+    return (
+      <span className="text-muted-foreground tabular-nums">{NOTHING}</span>
+    );
   }
 
   return (
-    <span className="tabular-nums">
-      {min === max ? min : `${min}-${max}`} cmds
-    </span>
+    <SignalTip
+      className="flex items-center justify-end"
+      label={outcomeLabel(props)}
+    >
+      <PassArc passed={passed} scored={scored} voided={voided} />
+    </SignalTip>
   );
 }
