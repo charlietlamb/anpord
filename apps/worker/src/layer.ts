@@ -1,5 +1,6 @@
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
+import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
 import { SuspenderTrigger } from "@anpord/eval/adapters/runner/trigger-suspender";
 import {
   GithubAppConfigLive,
@@ -49,6 +50,19 @@ export const WorkerLayer = evalGridWith(
   Layer.provide(EvalSandboxLive),
   /* Merged rather than provided: the task resolves the credentials a stored
      run recorded, so it yields the resolver itself. */
+  Layer.provideMerge(
+    CredentialResolverLive.pipe(Layer.provide(CredentialDependencies))
+  ),
+  Layer.provide(EvalHarnessVersionsLive),
+  Layer.provide(CodebaseLayer),
+  Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
+);
+
+/* The same stack, handing runs to Trigger rather than running them here. What
+   the api composes, and what a smoke test needs in order to exercise the
+   dispatch rather than stand in for it. */
+export const DispatchingLayer = evalGridWith(TrialRunnerTrigger).pipe(
+  Layer.provide(EvalSandboxLive),
   Layer.provideMerge(
     CredentialResolverLive.pipe(Layer.provide(CredentialDependencies))
   ),
