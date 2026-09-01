@@ -204,6 +204,13 @@
       "when": 1788116441782,
       "tag": "0028_typed_workspace_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788116442782,
+      "tag": "0029_case_cache",
+      "breakpoints": true
     }
   ]
 }

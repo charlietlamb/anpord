@@ -11,6 +11,8 @@ import { head, tryStore } from "./query";
 type TaskRow = typeof evalTask.$inferSelect;
 
 interface TaskDefinition {
+  /** What a prepare builds that is worth keeping between runs of this case. */
+  readonly cache?: { readonly key: string; readonly path: string };
   readonly name: string;
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
@@ -53,6 +55,8 @@ export class TaskRepository extends Context.Tag("@anpord/eval/TaskRepository")<
 >() {}
 
 const valuesOf = (input: TaskDefinition, id: string, internalId: string) => ({
+  cacheKey: input.cache?.key ?? null,
+  cachePath: input.cache?.path ?? null,
   id,
   internalId,
   name: input.name,
@@ -121,6 +125,8 @@ export const TaskRepositoryLive = Layer.effect(
                  against its old definition, silently. */
               .onConflictDoUpdate({
                 set: {
+                  cacheKey: input.cache?.key ?? null,
+                  cachePath: input.cache?.path ?? null,
                   name: input.name,
                   prepareName: input.prepare?.name ?? null,
                   prepareSource: input.prepare?.source ?? null,

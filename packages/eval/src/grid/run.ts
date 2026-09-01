@@ -113,6 +113,7 @@ export const GridRunLive = Layer.scoped(
           const prompt = renderPrompt(input.prompt, subject.variables);
 
           return tasks.upsertByIdentity({
+            cache: subject.cache,
             identity:
               subject.identity ??
               caseIdentityOf({

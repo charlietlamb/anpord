@@ -17,6 +17,13 @@ const pairOf = (
 ) => (name == null || source == null ? null : { name, source });
 
 export const caseFrom = (subject: CellTask): GridCase => ({
+  /* Read back, because a worker rebuilds every dispatched run from here: a
+     declaration that survives only in the request is one no run beyond the
+     first ever sees. */
+  cache:
+    subject.cacheKey === null || subject.cachePath === null
+      ? undefined
+      : { key: subject.cacheKey, path: subject.cachePath },
   identity: subject.identity,
   name: subject.name,
   prepare: pairOf(subject.prepareName, subject.prepareSource),

@@ -36,6 +36,8 @@ const sourceOf = (row: TaskSource): WorkspaceSource | null => {
 };
 
 export interface CellTask {
+  readonly cacheKey: string | null;
+  readonly cachePath: string | null;
   readonly cell: CellRow;
   readonly identity: string;
   readonly name: string;
@@ -347,6 +349,8 @@ export const RunQueryLive = Layer.effect(
       ).pipe(Effect.map(head), Effect.withSpan("RunQuery.findCellTask"));
 
     const CELL_TASK_COLUMNS = {
+      cacheKey: evalTask.cacheKey,
+      cachePath: evalTask.cachePath,
       cell: evalCell,
       identity: evalTask.id,
       name: evalTask.name,

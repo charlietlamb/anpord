@@ -8,6 +8,8 @@ import { type CellTask, RunQuery } from "../repositories/run-query";
 import { make } from "./cell-rerun";
 
 const cellTask = (source: WorkspaceSource | null): CellTask => ({
+  cacheKey: null,
+  cachePath: null,
   cell: {
     harness: "codex",
     harnessVersion: "0.144.4",
