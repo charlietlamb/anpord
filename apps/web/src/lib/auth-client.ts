@@ -1,5 +1,6 @@
 import { apiKeyClient } from "@better-auth/api-key/client";
 import {
+  adminClient,
   magicLinkClient,
   oidcClient,
   organizationClient,
@@ -12,6 +13,7 @@ const authClient = createAuthClient({
     magicLinkClient(),
     oidcClient(),
     apiKeyClient(),
+    adminClient(),
   ],
 });
 
