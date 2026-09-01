@@ -4,6 +4,7 @@ import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { ClockIcon, GridFourIcon, TimerIcon } from "@phosphor-icons/react";
+import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { RunVariants } from "@/components/evals/run-variants";
 import { clock, elapsed } from "@/lib/evals/duration";
 import { runStatusMark } from "@/lib/evals/eval-status";
@@ -52,6 +53,12 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
           />
         </div>
       </RailSection>
+
+      {run.costs === null ? null : (
+        <RailSection title="Cost">
+          <CostBreakdown costs={run.costs} />
+        </RailSection>
+      )}
 
       {run.tasks.length === 0 ? null : (
         <RailSection title="Variant">

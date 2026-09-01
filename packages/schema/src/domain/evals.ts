@@ -393,6 +393,7 @@ export const EvalCell = Schema.Struct({
   caseName: Schema.String,
 
   cellKey: Schema.NullOr(Schema.String),
+  costs: Schema.NullOr(EvalCosts),
   comparison: Schema.NullOr(EvalComparison),
   distribution: Schema.NullOr(EvalDistribution),
   internalId: Schema.NullOr(Schema.String),
@@ -416,6 +417,7 @@ export type EvalCell = typeof EvalCell.Type;
 export const EvalRun = Schema.Struct({
   cases: Schema.Array(Schema.String),
   cells: Schema.Array(EvalCell),
+  costs: Schema.NullOr(EvalCosts),
   failure: Schema.NullOr(Schema.String),
   finishedAt: Schema.NullOr(EvalTimestamp),
   id: Schema.String,

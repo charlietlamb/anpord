@@ -5,7 +5,7 @@ import {
   failedCommandsIn,
   filesIn,
 } from "@anpord/eval/domain/journal";
-import { costsOf } from "@anpord/eval/domain/trial-cost";
+import { costsOf, rollUp } from "@anpord/eval/domain/trial-cost";
 import type { GridCell, GridRunState } from "@anpord/eval/grid/state";
 import type { CellHistoryEntry } from "@anpord/eval/repositories/run-query";
 import type { CellComparison } from "@anpord/eval/services/baselines";
@@ -217,6 +217,9 @@ const asCell = (
   caseName: cell.caseName,
   cellKey: cell.cellKey,
   comparison: asComparison(comparisons, cell.cellKey),
+  /* Rolled up from the trials rather than stored, so a classification rule
+     that is later corrected corrects every run behind it too. */
+  costs: rollUp(asTrials(cell).map((trial) => trial.costs)),
   distribution: Option.getOrNull(cell.distribution),
   internalId: cell.internalId,
   setup: Option.getOrNull(cell.setup),
@@ -270,21 +273,26 @@ export const summarise = (state: GridRunState): EvalRunSummary => ({
 export const detail = (
   state: GridRunState,
   comparisons: readonly CellComparison[]
-): EvalRun => ({
-  cases: [...state.cases],
-  cells: state.cells.map((cell) => asCell(cell, comparisons)),
-  failure: Option.getOrNull(state.failure),
-  finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
-    Option.getOrNull
-  ),
-  id: state.id,
-  startedAt: DateTime.unsafeMake(state.startedAt),
-  status: state.status,
+): EvalRun => {
+  const cells = state.cells.map((cell) => asCell(cell, comparisons));
 
-  tasks: state.tasks.map((task) => ({
-    harness: task.harness,
-    harnessVersion: task.harnessVersion,
-    model: task.model,
-    provider: task.provider,
-  })),
-});
+  return {
+    cases: [...state.cases],
+    cells,
+    costs: rollUp(cells.map((cell) => cell.costs)),
+    failure: Option.getOrNull(state.failure),
+    finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
+      Option.getOrNull
+    ),
+    id: state.id,
+    startedAt: DateTime.unsafeMake(state.startedAt),
+    status: state.status,
+
+    tasks: state.tasks.map((task) => ({
+      harness: task.harness,
+      harnessVersion: task.harnessVersion,
+      model: task.model,
+      provider: task.provider,
+    })),
+  };
+};

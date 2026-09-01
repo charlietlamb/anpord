@@ -254,6 +254,7 @@ export const FAILED_TRIAL: EvalTrial = trial({
 export const CELL: EvalCell = {
   caseName: "github-logo-in-footer",
   cellKey: "e82b5274c0a2b4eaf3c4f11065b8f0cc",
+  costs: null,
   comparison: {
     baselinePassRate: 1,
     candidatePassRate: 0.667,
@@ -294,6 +295,7 @@ export const CELL_NO_BASELINE: EvalCell = {
   ...CELL,
   caseName: "react-doctor-diagnoses",
   cellKey: "9c4f0d41f90158e6aecaccdab6deb988",
+  costs: null,
   comparison: null,
   distribution: {
     commandMax: 12,
@@ -314,6 +316,7 @@ const RIVAL_TASK: EvalTask = { ...TASK, model: "gpt-5.6-sol" };
 const rivalOf = (cell: EvalCell, key: string): EvalCell => ({
   ...cell,
   cellKey: key,
+  costs: null,
   comparison: null,
   distribution: {
     commandMax: 3,
@@ -333,6 +336,7 @@ const rivalOf = (cell: EvalCell, key: string): EvalCell => ({
 /** Two cases against two variants, so the grid has something to lead on. */
 export const RUN: EvalRun = {
   cases: [CELL.caseName, CELL_NO_BASELINE.caseName],
+  costs: null,
   cells: [
     CELL,
     rivalOf(CELL, "1b7d2c4e6f8a9b0c1d2e3f4a5b6c7d8e"),

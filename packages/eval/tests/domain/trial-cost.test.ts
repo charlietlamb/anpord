@@ -3,7 +3,9 @@ import { Option } from "effect";
 import {
   breakdownOf,
   type CostComponent,
+  costsOf,
   nanosOf,
+  rollUp,
   summaryOf,
 } from "../../src/domain/trial-cost";
 
@@ -198,5 +200,53 @@ describe("what a set of trials cost", () => {
 
   test("counts nothing for a component with no amount", () => {
     expect(summaryOf([priced("managed", null)]).estimatedEquivalentUsd).toBe(0);
+  });
+});
+
+const stored = (classification: string, usd: number | null) => [
+  {
+    amountNanos: usd === null ? null : nanosOf(usd),
+    classification,
+    component: "model",
+    detail: {},
+    explanation: "",
+    source: "test",
+  },
+];
+
+describe("what a cell or run cost", () => {
+  test("adds the estimates of the trials under it", () => {
+    const total = rollUp([
+      costsOf(stored("estimate", 0.11)),
+      costsOf(stored("estimate", 0.13)),
+    ]);
+
+    expect(total?.estimatedEquivalentUsd).toBeCloseTo(0.24, 6);
+  });
+
+  /* A cell where one trial was priced and another was not is not partly
+     estimated: the figure it can show is less than what it spent. */
+  test("is unknown where its trials disagree, not partly estimated", () => {
+    const total = rollUp([
+      costsOf(stored("estimate", 0.11)),
+      costsOf(stored("unknown", null)),
+    ]);
+
+    expect(total?.components[0]?.classification).toBe("unknown");
+    expect(total?.incomplete).toBe(true);
+  });
+
+  /* Thirty-six managed sandboxes are not thirty-six times zero. */
+  test("keeps an unpriced layer unpriced however many there are", () => {
+    const total = rollUp([
+      costsOf(stored("managed", null)),
+      costsOf(stored("managed", null)),
+    ]);
+
+    expect(total?.components[0]?.usd).toBeNull();
+  });
+
+  test("is absent when nothing under it priced anything", () => {
+    expect(rollUp([null, null])).toBeNull();
   });
 });
