@@ -13,6 +13,7 @@ export const ID_PREFIXES = {
   evalRunInternal: "runx",
   evalTask: "tsk",
   evalTrial: "trl",
+  evalTrialCost: "tcst",
   prompt: "pmt",
   promptChannel: "chn",
   promptEvent: "pev",

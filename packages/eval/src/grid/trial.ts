@@ -1,8 +1,10 @@
 import { Cause, Clock, Effect, Option, Redacted, Ref } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
-import { costOf } from "../domain/model-price";
+import { costOf, type ModelPrice } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
+import { breakdownOf } from "../domain/trial-cost";
 import { ModelPrices } from "../ports/model-source";
+import type { TrialCostRepositoryShape } from "../repositories/trial-cost-repository";
 import type { TrialRecorderShape } from "../repositories/trial-record";
 import type {
   AgentTrialResult,
@@ -29,6 +31,12 @@ import type { GridExecutionTask } from "./state";
  * already happened, and losing the tokens it reported over a missing price
  * would be the more expensive failure.
  */
+const rateFor = (model: string) =>
+  ModelPrices.pipe(
+    Effect.flatMap((prices) => prices.forModel(model)),
+    Effect.catchAll(() => Effect.succeed(Option.none<ModelPrice>()))
+  );
+
 const priced = (
   usage: Option.Option<HarnessUsage>,
   model: string
@@ -40,10 +48,7 @@ const priced = (
       return null;
     }
 
-    const price = yield* ModelPrices.pipe(
-      Effect.flatMap((prices) => prices.forModel(model)),
-      Effect.catchAll(() => Effect.succeed(Option.none()))
-    );
+    const price = yield* rateFor(model);
 
     return Option.match(price, {
       onNone: () => reported,
@@ -53,6 +58,7 @@ const priced = (
 
 export interface TrialInputs {
   readonly agent: AgentTrialShape;
+  readonly costs: TrialCostRepositoryShape;
   readonly onProgress: (
     ordinal: number,
     journal: readonly HarnessEvent[]
@@ -149,14 +155,38 @@ export const runTrial = (input: RunOneTrial) =>
 
     const finishedAt = yield* Clock.currentTimeMillis;
 
+    const usage = yield* priced(result.usage, input.task.model);
+
     yield* input.recorder.settle({
       finishedAt: new Date(finishedAt),
       outcome: result.outcome,
       prepared: result.prepared,
       sandboxId: result.sandboxId,
       trialInternalId,
-      usage: yield* priced(result.usage, input.task.model),
+      usage,
     });
+
+    /* Recorded beside the trial rather than derived on read, because the rate
+       a trial was priced at is a fact about when it ran: a published rate
+       changes, and a run that already happened must not change with it. */
+    yield* input.costs
+      .record({
+        components: breakdownOf({
+          authMethodId: Redacted.value(input.task.credentials.harness)
+            .authMethodId,
+          harness: input.task.harness,
+          hasOwnSandboxCredential:
+            input.task.bindings?.sandboxConnectionId !== undefined,
+          model: input.task.model,
+          modelMs: result.outcome.modelMs ?? 0,
+          price: yield* rateFor(input.task.model),
+          provider: input.task.provider,
+          sandboxMs: result.outcome.sandboxMs ?? 0,
+          usage,
+        }),
+        trialInternalId,
+      })
+      .pipe(Effect.ignoreLogged);
 
     yield* input.onTrial(input.ordinal, result);
 

@@ -11,6 +11,7 @@ import { EventRepository } from "../repositories/event-repository";
 import { RunQuery } from "../repositories/run-query";
 import { RunRepository } from "../repositories/run-repository";
 import { TaskRepository } from "../repositories/task-repository";
+import { TrialCostRepository } from "../repositories/trial-cost-repository";
 import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
 import { Baselines } from "../services/baselines";
@@ -94,6 +95,7 @@ export const GridRunLive = Layer.scoped(
     const prices = yield* ModelPrices;
     const query = yield* RunQuery;
     const events = yield* EventRepository;
+    const costs = yield* TrialCostRepository;
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
     const tasks = yield* TaskRepository;
@@ -166,6 +168,7 @@ export const GridRunLive = Layer.scoped(
 
               const result = yield* runGridCell({
                 agent,
+                costs,
                 onProgress: (ordinal, journal) =>
                   update(created.id, (state) =>
                     advanceTrial(state, position, ordinal, journal)

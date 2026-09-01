@@ -12,6 +12,7 @@ import { EventRepositoryLive } from "./repositories/event-repository";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
+import { TrialCostRepositoryLive } from "./repositories/trial-cost-repository";
 import { TrialRecorderLive } from "./repositories/trial-record";
 import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
 import { AgentTrialLive } from "./services/agent-trial";
@@ -32,6 +33,7 @@ export const EvalRepositoriesLive = Layer.mergeAll(
   RunQueryLive,
   RunRepositoryLive,
   TaskRepositoryLive,
+  TrialCostRepositoryLive,
   TrialRecorderLive,
   WorkbenchRepositoryLive
 ).pipe(Layer.provide(IdGeneratorLive));

@@ -211,6 +211,13 @@
       "when": 1788116442782,
       "tag": "0029_case_cache",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1788116443782,
+      "tag": "0030_trial_costs",
+      "breakpoints": true
     }
   ]
 }
