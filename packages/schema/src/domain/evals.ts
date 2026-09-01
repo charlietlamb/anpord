@@ -245,8 +245,73 @@ export const EvalVerifyStep = Schema.Struct({
 });
 export type EvalVerifyStep = typeof EvalVerifyStep.Type;
 
+/**
+ * How much of a cost is known, and on what basis.
+ *
+ * The distinction is the point: a public-rate calculation is not an invoice, a
+ * subscription's marginal price is not zero, and a cost the platform absorbs
+ * is not one the customer paid. Collapsing any of those into a number produces
+ * a total that reads as authoritative and is not.
+ */
+export const CostClassification = Schema.Literal(
+  "actual",
+  "allocated",
+  "estimate",
+  "included",
+  "managed",
+  "unknown"
+);
+export type CostClassification = typeof CostClassification.Type;
+
+export const CostComponentName = Schema.Literal(
+  "harness",
+  "model",
+  "platform",
+  "sandbox"
+);
+export type CostComponentName = typeof CostComponentName.Type;
+
+export const EvalCostComponent = Schema.Struct({
+  classification: CostClassification,
+  component: CostComponentName,
+  /* What this layer measured, which differs by layer: a rate snapshot means
+     nothing to the platform, and eval units mean nothing to the model. */
+  detail: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+  explanation: Schema.String,
+  source: Schema.String,
+  /* Null where there is no amount to report, never zero: zero reads as free
+     and sums as free, and "we did not price this" is not free. */
+  usd: Schema.NullOr(Schema.Number),
+}).annotations({
+  description: "What one layer of a trial cost, and how far that is known.",
+  identifier: "EvalCostComponent",
+});
+export type EvalCostComponent = typeof EvalCostComponent.Type;
+
+/**
+ * What a run, case, or trial cost, kept apart by how it is known.
+ *
+ * No single total, deliberately. Adding an estimate to an actual charge and an
+ * allocated share produces a number that means none of the three.
+ */
+export const EvalCosts = Schema.Struct({
+  allocatedUsd: Schema.Number,
+  components: Schema.Array(EvalCostComponent),
+  estimatedEquivalentUsd: Schema.Number,
+  /* True when something could not be priced at all. Included and managed are
+     known states rather than missing ones, so they do not raise it: a flag
+     that is always on says nothing. */
+  incomplete: Schema.Boolean,
+  knownActualUsd: Schema.Number,
+}).annotations({
+  description: "Cost by component, kept apart by classification.",
+  identifier: "EvalCosts",
+});
+export type EvalCosts = typeof EvalCosts.Type;
+
 export const EvalTrial = Schema.Struct({
   commands: Schema.Int,
+  costs: Schema.NullOr(EvalCosts),
   prepared: Schema.NullOr(EvalPrepareValue),
 
   exitCode: Schema.Int,

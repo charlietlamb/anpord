@@ -5,6 +5,7 @@ import {
   failedCommandsIn,
   filesIn,
 } from "@anpord/eval/domain/journal";
+import { costsOf } from "@anpord/eval/domain/trial-cost";
 import type { GridCell, GridRunState } from "@anpord/eval/grid/state";
 import type { CellHistoryEntry } from "@anpord/eval/repositories/run-query";
 import type { CellComparison } from "@anpord/eval/services/baselines";
@@ -26,6 +27,7 @@ const waiting = (
   journal: readonly HarnessEvent[]
 ): EvalTrial => ({
   commands: commandsIn(journal),
+  costs: null,
   prepared: null,
   exitCode: -1,
   failedCommands: failedCommandsIn(journal),
@@ -104,6 +106,7 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
       onNone: () => waiting(index + 1, cell.live.get(index + 1) ?? []),
       onSome: (result) => ({
         commands: result.commands,
+        costs: null,
         prepared: result.prepared,
         exitCode: result.outcome.exitCode,
         failedCommands: result.failedCommands,
@@ -133,6 +136,14 @@ const asTrials = (cell: GridCell): readonly EvalTrial[] =>
  */
 const asStoredTrial = (trial: {
   readonly commandCount: number | null;
+  readonly costs?: readonly {
+    readonly amountNanos: bigint | null;
+    readonly classification: string;
+    readonly component: string;
+    readonly detail: Record<string, unknown>;
+    readonly explanation: string;
+    readonly source: string;
+  }[];
   readonly exitCode: number | null;
   readonly modelMs: number | null;
   readonly ordinal: number;
@@ -146,6 +157,7 @@ const asStoredTrial = (trial: {
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
   commands: trial.commandCount ?? 0,
+  costs: costsOf(trial.costs ?? []),
   prepared: trial.prepared,
   exitCode: trial.exitCode ?? -1,
   failedCommands: 0,

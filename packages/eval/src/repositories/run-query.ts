@@ -2,6 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
+import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { and, count, desc, eq, inArray, lt, or, type SQL } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
@@ -53,6 +54,12 @@ export interface CellTask {
 }
 type RunRow = typeof evalRun.$inferSelect;
 type TrialRow = typeof evalTrial.$inferSelect;
+type CostRow = typeof evalTrialCost.$inferSelect;
+
+/** A trial as a reader sees it: the row, and what each layer of it cost. */
+export interface TrialWithCosts extends TrialRow {
+  readonly costs: readonly CostRow[];
+}
 interface CellTaskRow {
   readonly caseName: string;
   readonly cell: CellRow;
@@ -74,7 +81,7 @@ interface CellWithTrials {
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
-  readonly trials: readonly TrialRow[];
+  readonly trials: readonly TrialWithCosts[];
 
   readonly validatorName: string | null;
   readonly verifyCommand: string | null;
@@ -180,10 +187,27 @@ export const RunQueryLive = Layer.effect(
               .where(inArray(evalTrial.cellInternalId, [...cellIds]))
           );
 
+    const costsForTrials = (trialIds: readonly string[]) =>
+      trialIds.length === 0
+        ? Effect.succeed([] as readonly CostRow[])
+        : tryStore("runQuery.trialCosts", () =>
+            db
+              .select()
+              .from(evalTrialCost)
+              .where(inArray(evalTrialCost.trialInternalId, [...trialIds]))
+          );
+
+    /* Kept as stored rather than summed here: a caller that wants a total
+       chooses which basis it is totalling, and one that wants to show the
+       layers needs them apart. Summing at the seam would decide both. */
+    const groupCosts = (rows: readonly CostRow[]) =>
+      Map.groupBy(rows, (row) => row.trialInternalId);
+
     const detailOf = (
       run: RunRow,
       cells: readonly CellTaskRow[],
-      trialsByCell: ReadonlyMap<string, readonly TrialRow[]>
+      trialsByCell: ReadonlyMap<string, readonly TrialRow[]>,
+      costsByTrial: ReadonlyMap<string, readonly CostRow[]>
     ): RunDetail => ({
       cells: cells.map((row) => {
         const own = (trialsByCell.get(row.cell.internalId) ?? []).toSorted(
@@ -198,7 +222,10 @@ export const RunQueryLive = Layer.effect(
           repoRef: row.repoRef,
           repoUrl: row.repoUrl,
           prepareName: row.prepareName,
-          trials: own,
+          trials: own.map((trial) => ({
+            ...trial,
+            costs: costsByTrial.get(trial.internalId) ?? [],
+          })),
           validatorName: row.validatorName,
           verifyCommand: row.verifyCommand,
           workspace: row.workspace,
@@ -243,11 +270,20 @@ export const RunQueryLive = Layer.effect(
         const trials = yield* trialsForCells(
           cells.map((row) => row.cell.internalId)
         );
+        const costs = yield* costsForTrials(
+          trials.map((trial) => trial.internalId)
+        );
         const cellsByRun = Map.groupBy(cells, (row) => row.cell.runInternalId);
         const trialsByCell = groupByCell(trials);
+        const costsByTrial = groupCosts(costs);
 
         return runs.map((run) =>
-          detailOf(run, cellsByRun.get(run.internalId) ?? [], trialsByCell)
+          detailOf(
+            run,
+            cellsByRun.get(run.internalId) ?? [],
+            trialsByCell,
+            costsByTrial
+          )
         );
       }).pipe(Effect.withSpan("RunQuery.hydrateRuns"));
 
@@ -307,7 +343,13 @@ export const RunQueryLive = Layer.effect(
           cells.map((row) => row.cell.internalId)
         );
 
-        return Option.some(detailOf(found.value, cells, groupByCell(trials)));
+        const costs = yield* costsForTrials(
+          trials.map((trial) => trial.internalId)
+        );
+
+        return Option.some(
+          detailOf(found.value, cells, groupByCell(trials), groupCosts(costs))
+        );
       }).pipe(Effect.withSpan("RunQuery.findRun"));
 
     const cellTasksWhere = (condition: SQL | undefined) =>

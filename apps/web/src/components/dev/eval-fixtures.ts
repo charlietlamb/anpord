@@ -137,6 +137,53 @@ const trial = (input: {
   readonly trajectory?: EvalTrial["trajectory"];
 }): EvalTrial => ({
   commands: input.commands,
+  /* Every classification the interface has to render, so the fixture exercises
+     the ones that must never show a number as readily as the one that does. */
+  costs:
+    input.tokens === null
+      ? null
+      : {
+          allocatedUsd: 0,
+          components: [
+            {
+              classification: "estimate" as const,
+              component: "model" as const,
+              detail: {},
+              explanation:
+                "Priced at the model's published rate when the trial ran, not from a bill.",
+              source: "models.dev",
+              usd: 0.113,
+            },
+            {
+              classification: "included" as const,
+              component: "harness" as const,
+              detail: { connectionMode: "subscription" },
+              explanation:
+                "The codex runtime bills nothing separately from the model it calls.",
+              source: "connection",
+              usd: null,
+            },
+            {
+              classification: "managed" as const,
+              component: "sandbox" as const,
+              detail: { sessions: 1 },
+              explanation: "Run on our daytona account and not billed to you.",
+              source: "connection",
+              usd: null,
+            },
+            {
+              classification: "included" as const,
+              component: "platform" as const,
+              detail: { evalUnits: 1 },
+              explanation: "Metered in eval units rather than priced per trial.",
+              source: "platform",
+              usd: null,
+            },
+          ],
+          estimatedEquivalentUsd: 0.113,
+          incomplete: false,
+          knownActualUsd: 0,
+        },
   exitCode: EXIT_CODES[input.status] ?? 1,
   failedCommands: input.failedCommands,
   filesChanged:

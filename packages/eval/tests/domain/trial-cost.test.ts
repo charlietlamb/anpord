@@ -4,6 +4,7 @@ import {
   breakdownOf,
   type CostComponent,
   nanosOf,
+  summaryOf,
 } from "../../src/domain/trial-cost";
 
 const RATE = { cacheRead: 0.3, cacheWrite: 3.75, input: 3, output: 15 };
@@ -139,5 +140,63 @@ describe("what is never reported", () => {
     );
 
     expect(unpriced.every((part) => part.amountNanos === null)).toBe(true);
+  });
+});
+
+const priced = (
+  classification: CostComponent["classification"],
+  usd: number | null
+): CostComponent => ({
+  amountNanos: usd === null ? null : nanosOf(usd),
+  classification,
+  component: "model",
+  detail: {},
+  explanation: "",
+  source: "test",
+});
+
+describe("what a set of trials cost", () => {
+  /* Three sums rather than one: an estimate added to a charge and an allocated
+     share is a number that means none of the three. */
+  test("keeps each basis apart rather than adding them together", () => {
+    const summary = summaryOf([
+      priced("estimate", 4.09),
+      priced("actual", 1.5),
+      priced("allocated", 0.25),
+    ]);
+
+    expect(summary.estimatedEquivalentUsd).toBeCloseTo(4.09, 6);
+    expect(summary.knownActualUsd).toBeCloseTo(1.5, 6);
+    expect(summary.allocatedUsd).toBeCloseTo(0.25, 6);
+  });
+
+  /* The reason for integers: a hundred trials of a third of a cent each is a
+     number a float cannot hold and cents cannot express. */
+  test("sums fractions of a cent without drift", () => {
+    const summary = summaryOf(
+      Array.from({ length: 100 }, () => priced("estimate", 0.003_33))
+    );
+
+    expect(summary.estimatedEquivalentUsd).toBeCloseTo(0.333, 9);
+  });
+
+  test("is incomplete when something could not be priced", () => {
+    expect(summaryOf([priced("unknown", null)]).incomplete).toBe(true);
+  });
+
+  /* A managed sandbox is the ordinary case, so raising the flag for it would
+     leave it on for every run and tell nobody anything. */
+  test("is not incomplete merely because a cost is managed or included", () => {
+    const summary = summaryOf([
+      priced("estimate", 1),
+      priced("managed", null),
+      priced("included", null),
+    ]);
+
+    expect(summary.incomplete).toBe(false);
+  });
+
+  test("counts nothing for a component with no amount", () => {
+    expect(summaryOf([priced("managed", null)]).estimatedEquivalentUsd).toBe(0);
   });
 });

@@ -198,3 +198,77 @@ export const breakdownOf = (input: {
   }),
   platformComponent(),
 ];
+
+/** Back to dollars for display. Lossy above about nine million dollars, which
+ * a trial is not; a lifetime total should sum in nanos and convert once. */
+export const dollarsOf = (nanos: bigint) => Number(nanos) / NANOS;
+
+/**
+ * What a set of trials cost, kept apart by how it is known.
+ *
+ * Three sums rather than one total: adding an estimate to an actual charge and
+ * an allocated share produces a number that means none of the three. The PRD
+ * calls this out and it is the whole reason there is no `totalUsd`.
+ */
+export const summaryOf = (components: readonly CostComponent[]) => {
+  const summed = (of: CostClassification) =>
+    components
+      .filter((part) => part.classification === of)
+      .reduce((total, part) => total + (part.amountNanos ?? 0n), 0n);
+
+  return {
+    allocatedUsd: dollarsOf(summed("allocated")),
+    estimatedEquivalentUsd: dollarsOf(summed("estimate")),
+    /* Unknown only. Included and managed are known states rather than missing
+       ones, and a managed sandbox is the ordinary case here: raising the flag
+       for it would leave it on for every run, which says nothing. */
+    incomplete: components.some((part) => part.classification === "unknown"),
+    knownActualUsd: dollarsOf(summed("actual")),
+  };
+};
+
+/**
+ * Stored cost rows as a reader sees them.
+ *
+ * The classification travels with each amount rather than being resolved into
+ * one number here: a caller showing four layers needs them apart, and a caller
+ * showing a total has to choose which basis it is totalling. Deciding either
+ * at this seam would take that choice away from both.
+ */
+export const costsOf = (
+  rows: readonly {
+    readonly amountNanos: bigint | null;
+    readonly classification: string;
+    readonly component: string;
+    readonly detail: Record<string, unknown>;
+    readonly explanation: string;
+    readonly source: string;
+  }[]
+) => {
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const components = rows.map((row) => ({
+    amountNanos: row.amountNanos,
+    classification: row.classification as CostClassification,
+    component: row.component as CostComponent["component"],
+    detail: row.detail,
+    explanation: row.explanation,
+    source: row.source,
+  }));
+
+  return {
+    ...summaryOf(components),
+    components: components.map((part) => ({
+      classification: part.classification,
+      component: part.component,
+      detail: part.detail,
+      explanation: part.explanation,
+      source: part.source,
+      /* Null stays null across the wire. A zero here would be a claim that
+         something was free, which is the one thing none of this may say. */
+      usd: part.amountNanos === null ? null : dollarsOf(part.amountNanos),
+    })),
+  };
+};
