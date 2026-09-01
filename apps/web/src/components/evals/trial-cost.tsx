@@ -4,15 +4,18 @@ import { ShareBar } from "@anpord/ui/components/ui/share-bar";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  CurrencyDollarIcon,
   LightningIcon,
   StackIcon,
 } from "@phosphor-icons/react";
 import { count } from "@/lib/evals/duration";
-import { dollars, percent } from "@/lib/evals/tokens";
+import { percent } from "@/lib/evals/tokens";
 
 /**
- * What the trial spent, and which direction it spent it.
+ * What the trial used, and which direction it used it.
+ *
+ * Tokens rather than money: what a layer cost is four separate answers with
+ * four different bases, and CostBreakdown is where they are kept apart. A
+ * single figure beside these would read as the total of all of them.
  *
  * The split is the interesting half. 260,000 read against 12,717 written says
  * the agent is re-reading a large context rather than generating one, and a
@@ -25,16 +28,6 @@ export function TrialCost({ usage }: { readonly usage: EvalUsage }) {
 
   return (
     <div className="flex flex-col">
-      {usage.costUsd === null || usage.costUsd === undefined ? null : (
-        <RailFact
-          hint="Estimated from the rates published for this model when the trial ran, not from a bill. It knows nothing of the discounts or tiers your account is on."
-          Icon={CurrencyDollarIcon}
-          label="cost"
-          layout="stated"
-          value={`${dollars(usage.costUsd)} est.`}
-        />
-      )}
-
       {usage.cacheReadTokens === 0 ? null : (
         <RailFact
           detail={<ShareBar of={served} value={usage.cacheReadTokens} />}

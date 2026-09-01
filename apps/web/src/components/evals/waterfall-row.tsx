@@ -144,7 +144,7 @@ function TurnUsage({ entry }: { readonly entry: EvalJournalEntry }) {
       )}
 
       {usage.costUsd === null || usage.costUsd === undefined ? null : (
-        <span>{dollars(usage.costUsd)}</span>
+        <span>{dollars(usage.costUsd)} est.</span>
       )}
     </span>
   );

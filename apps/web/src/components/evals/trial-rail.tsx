@@ -17,6 +17,7 @@ import {
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { CommandsHint } from "@/components/evals/commands-hint";
+import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { TrialStatusIcon } from "@/components/evals/eval-status-badge";
 import { TrialCost } from "@/components/evals/trial-cost";
 import { VoidReason } from "@/components/evals/void-reason";
@@ -174,8 +175,14 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
         </div>
       </RailSection>
 
-      {trial.usage === null ? null : (
+      {trial.costs === null ? null : (
         <RailSection title="Cost">
+          <CostBreakdown costs={trial.costs} />
+        </RailSection>
+      )}
+
+      {trial.usage === null ? null : (
+        <RailSection title="Usage">
           <TrialCost usage={trial.usage} />
         </RailSection>
       )}
