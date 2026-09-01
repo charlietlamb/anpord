@@ -31,10 +31,16 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
 
 const asked: string[] = [];
 
-const services = (
-  cells: readonly CellTask[],
-  status: "running" | "failed" = "failed"
-) => ({
+/* A cell that has reached setup is the evidence that something is already
+   working on the run; a bare status is not, since a run is marked running the
+   moment it is recorded. */
+const liveCell = (working: boolean) => ({
+  live: new Map(),
+  setup: working ? Option.some({}) : Option.none(),
+  trials: [],
+});
+
+const services = (cells: readonly CellTask[], working = false) => ({
   credentials: {
     resolve: () =>
       Effect.succeed(Redacted.make({ revision: 1, values: {} }) as never),
@@ -46,7 +52,7 @@ const services = (
       }),
   } as unknown as CredentialResolverShape,
   grid: {
-    get: () => Effect.succeed(Option.some({ status })),
+    get: () => Effect.succeed(Option.some({ cells: [liveCell(working)] })),
   } as unknown as GridRunShape,
   query: {
     findRunTasks: () => Effect.succeed(cells),
@@ -62,10 +68,10 @@ const AS_ACTOR = {
 const rebuilding = (
   cells: readonly CellTask[],
   source: Parameters<typeof rebuildRun>[1]["source"] = BOUND,
-  status: "running" | "failed" = "failed"
+  working = false
 ) =>
   Effect.runPromise(
-    rebuildRun(services(cells, status), {
+    rebuildRun(services(cells, working), {
       organizationId: "org",
       runId: "run_1",
       source,
@@ -153,8 +159,8 @@ describe("where the credentials come from", () => {
 });
 
 describe("a run that should not be continued", () => {
-  test("is refused while it is still running", async () => {
-    const outcome = await rebuilding([cell()], BOUND, "running");
+  test("is refused while something is already working on it", async () => {
+    const outcome = await rebuilding([cell()], BOUND, true);
 
     expect(outcome._tag).toBe("Left");
   });
@@ -163,5 +169,17 @@ describe("a run that should not be continued", () => {
     const outcome = await rebuilding([]);
 
     expect(outcome._tag).toBe("Left");
+  });
+});
+
+describe("a run that has only just been recorded", () => {
+  /* start marks a run running and then hands it to a worker, so the worker
+     always arrives at one already marked running. Refusing that would refuse
+     every dispatched run, which is what a status check did. */
+  test("is continued, not refused for being marked running", async () => {
+    const outcome = await rebuilding([cell()], BOUND, false);
+
+    expect(outcome._tag).toBe("Right");
+    expect(outcome.right?.input.cases).toHaveLength(1);
   });
 });

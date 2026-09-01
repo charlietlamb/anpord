@@ -8,7 +8,7 @@ import { type EvalStoreError, NotRunnable } from "../domain/errors";
 import type { CellTask, RunQueryShape } from "../repositories/run-query";
 import type { GridCase } from "./cell";
 import type { GridRunShape, ResumeGrid } from "./run";
-import type { GridExecutionTask } from "./state";
+import type { GridExecutionTask, GridRunState } from "./state";
 
 const pairOf = (
   name: string | null | undefined,
@@ -83,6 +83,16 @@ const gridOf = (cells: readonly CellTask[]) => ({
  * whether that run may use these credentials was answered when a person
  * started it. Asking again would mean inventing the user who is not there.
  */
+/** Whether anything has actually begun: a cell that reached setup, produced
+ * an event, or settled a trial. */
+const started = (run: GridRunState) =>
+  run.cells.some(
+    (cell) =>
+      Option.isSome(cell.setup) ||
+      cell.live.size > 0 ||
+      cell.trials.some(Option.isSome)
+  );
+
 export type CredentialSource =
   | { readonly actor: Actor; readonly legacyHarnessAuth: string }
   | { readonly bound: true };
@@ -166,13 +176,17 @@ export const rebuildRun = (
   Effect.gen(function* () {
     const live = yield* services.grid.get(input.organizationId, input.runId);
 
-    /* A run already executing has a fiber per cell. Continuing it would start
-       a second set against the same rows, so both write trials to one cell and
-       whichever finishes last decides what the run says. */
-    if (Option.isSome(live) && live.value.status === "running") {
+    /* A run with work under way already has a fiber per cell, and a second set
+       against the same rows would have both writing trials to one cell.
+
+       Judged by whether a cell has started rather than by the run's status: a
+       run is marked running the moment it is recorded, which is before anyone
+       has been handed it, so the status alone would refuse the very handoff
+       this exists to protect. */
+    if (Option.isSome(live) && started(live.value)) {
       return yield* new NotRunnable({
         id: input.runId,
-        problems: ["that run is already running"],
+        problems: ["that run is already being worked on"],
       });
     }
 
