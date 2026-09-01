@@ -1,6 +1,7 @@
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { FetchHttpClient } from "@effect/platform";
 import { Layer } from "effect";
+import type { ConfigError } from "effect/ConfigError";
 import { HarnessesLive } from "./adapters/harness/resolve";
 import { ModelPricesLive } from "./adapters/models/prices";
 import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
@@ -57,7 +58,7 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
    The runner is not: where a run executes is a deployment decision, and this
    package cannot see the worker that answers it. The composition root passes
    one in. */
-const gridWith = (runner: Layer.Layer<TrialRunner>) =>
+const gridWith = (runner: Layer.Layer<TrialRunner, ConfigError>) =>
   GridRunLive.pipe(
     Layer.provide(runner),
     Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
@@ -72,7 +73,7 @@ const gridWith = (runner: Layer.Layer<TrialRunner>) =>
  * stops paying for the wait.
  */
 export const evalGridWith = (
-  runner: Layer.Layer<TrialRunner>,
+  runner: Layer.Layer<TrialRunner, ConfigError>,
   suspender: Layer.Layer<Suspender> = SuspenderSleeping
 ) => {
   const grid = gridWith(runner);
