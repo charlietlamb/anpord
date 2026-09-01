@@ -58,6 +58,17 @@ describe("the codex command", () => {
     ).toEqual(["gpt-5.6-sol", hostile]);
   });
 
+  /* An empty flag is not the same as no flag: codex reads `--model ''` as a
+     name and refuses it, where omitting it lets a subscription choose its own,
+     which is the only thing a ChatGPT credential will run. */
+  it("omits the flag when the credential chooses its own model", () => {
+    expect(codexCommand(request({ model: "" }))).not.toContain("--model");
+  });
+
+  it("still runs the prompt when no model is named", () => {
+    expect(codexCommand(request({ model: "" }))).toContain("'add a footer'");
+  });
+
   it("still closes stdin, so codex does not wait on a terminal", () => {
     expect(codexCommand(request())).toContain("< /dev/null");
   });

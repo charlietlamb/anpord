@@ -18,7 +18,10 @@ export const codexCommand = (request: RunHarness) =>
     "&&",
     `${CODEX_BIN} exec --json --skip-git-repo-check`,
     "--dangerously-bypass-approvals-and-sandbox",
-    `--model ${shellQuote(request.model)}`,
+    /* Omitted rather than empty when there is none: a ChatGPT subscription
+       chooses its own model and refuses any name, so the flag itself is what
+       has to go. */
+    ...(request.model === "" ? [] : [`--model ${shellQuote(request.model)}`]),
     shellQuote(request.prompt),
     "< /dev/null",
   ].join(" ");
