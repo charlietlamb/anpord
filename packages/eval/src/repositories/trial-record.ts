@@ -26,6 +26,9 @@ export interface AppendTrialEvents {
 }
 
 export interface AbandonTrial {
+  /** Why it did not finish. Null said nothing, which is how a failed trial
+   * looked identical to one nobody had started. */
+  readonly failure?: string;
   readonly finishedAt: Date;
   readonly trialInternalId: string;
 }
@@ -78,7 +81,11 @@ export const TrialRecorderLive = Layer.effect(
       tryStore("trial.abandon", () =>
         db
           .update(evalTrial)
-          .set({ finishedAt: input.finishedAt, status: "void" })
+          .set({
+            failure: input.failure ?? null,
+            finishedAt: input.finishedAt,
+            status: "void",
+          })
           .where(
             and(
               eq(evalTrial.internalId, input.trialInternalId),

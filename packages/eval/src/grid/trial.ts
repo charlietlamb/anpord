@@ -1,4 +1,4 @@
-import { Clock, Effect, Option, Redacted, Ref } from "effect";
+import { Cause, Clock, Effect, Option, Redacted, Ref } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { costOf } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
@@ -9,6 +9,11 @@ import type {
   AgentTrialShape,
 } from "../services/agent-trial";
 import type { GridCase } from "./cell";
+
+/* Enough to say what went wrong without putting a stack trace of a stack trace
+   into every abandoned row. */
+const FAILURE_LIMIT = 2000;
+
 import type { GridExecutionTask } from "./state";
 
 /**
@@ -84,12 +89,16 @@ export const runTrial = (input: RunOneTrial) =>
       startedAt: new Date(startedAt),
     });
 
+    /* The cause is carried into the row rather than dropped. A trial that
+       ended badly used to record only that it had ended, so the reason lived
+       in a sandbox that is deleted on the way out and nowhere else. */
     yield* Effect.addFinalizer((exit) =>
       exit._tag === "Success"
         ? Effect.void
         : Clock.currentTimeMillis.pipe(
             Effect.flatMap((finishedAt) =>
               input.recorder.abandon({
+                failure: Cause.pretty(exit.cause).slice(0, FAILURE_LIMIT),
                 finishedAt: new Date(finishedAt),
                 trialInternalId,
               })
