@@ -77,6 +77,12 @@ export const runPrepare = (input: {
           ? false
           : yield* cache.restore(kept.key, `${input.workspace}/${kept.path}`);
 
+      if (kept !== undefined) {
+        yield* Effect.logInfo(
+          restored ? "restored what an earlier run kept" : "nothing kept yet"
+        ).pipe(Effect.annotateLogs({ key: kept.key, mounted: cache !== null }));
+      }
+
       const outcome = yield* runResumable(
         input.sandbox,
         `node ${quoted(path)}`,
@@ -111,9 +117,18 @@ export const runPrepare = (input: {
          Only after it succeeded, because caching what a failed install left
          behind is how a broken cache outlives the run that made it. */
       if (cache !== null && kept !== undefined && !restored) {
-        yield* cache
-          .save(kept.key, `${input.workspace}/${kept.path}`)
-          .pipe(Effect.ignoreLogged);
+        /* Warned rather than ignored: a save that fails costs the next run its
+           cache and nothing else, so it must not fail this one -- but silence
+           made a cache that never filled indistinguishable from one nobody
+           asked for. */
+        yield* cache.save(kept.key, `${input.workspace}/${kept.path}`).pipe(
+          Effect.tapError((cause) =>
+            Effect.logWarning("could not keep what the prepare built").pipe(
+              Effect.annotateLogs({ key: kept.key, reason: cause.reason })
+            )
+          ),
+          Effect.ignore
+        );
       }
 
       return reported;
