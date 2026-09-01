@@ -18,6 +18,14 @@ const LENGTH = 16;
  * stops the same shape here, so this argument must not become one a caller
  * can influence.
  */
+/* The bundler writes the path of every file it read into the output as a
+   comment, so the same prepare compiled from a different directory is
+   different bytes. Left in, a cache would miss on any machine but the one
+   that filled it, which is every machine a run of this actually happens on. */
+const COMMENTED_PATH = /^\s*\/\/.*$/gm;
+
+const meaningOf = (source: string) => source.replace(COMMENTED_PATH, "");
+
 export const cacheKeyOf = (
   organizationId: string,
   prepare: EvalPrepare | null
@@ -27,6 +35,6 @@ export const cacheKeyOf = (
     : `anpord-${createHash("sha256")
         .update(organizationId)
         .update("\u0000")
-        .update(prepare.source)
+        .update(meaningOf(prepare.source))
         .digest("hex")
         .slice(0, LENGTH)}`;

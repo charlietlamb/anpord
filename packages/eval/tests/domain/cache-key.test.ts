@@ -42,3 +42,25 @@ describe("naming the cache a prepare shares", () => {
     expect(cacheKeyOf(ORG, null)).toBeUndefined();
   });
 });
+
+describe("what the cache key ignores", () => {
+  /* The bundler writes the path of every file it read into its output. Left
+     in the key, a cache filled on one machine is a cache no other machine can
+     find -- and a checkout lives at a different path on each of them. */
+  test("the path a prepare happened to be compiled from", () => {
+    const compiled = (from: string) =>
+      prepare(`// ${from}/eval.ts\nexport const install = () => ({});`);
+
+    expect(cacheKeyOf(ORG, compiled("/tmp/build-a"))).toBe(
+      cacheKeyOf(ORG, compiled("/home/runner/work"))
+    );
+  });
+
+  test("but not a change to what the prepare actually does", () => {
+    expect(
+      cacheKeyOf(ORG, prepare("// x\nexport const install = () => ({ a: 1 });"))
+    ).not.toBe(
+      cacheKeyOf(ORG, prepare("// x\nexport const install = () => ({ a: 2 });"))
+    );
+  });
+});
