@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "openlogs-server-logs": {
+      "source": "charlietlamb/openlogs",
+      "sourceType": "github",
+      "skillPath": "skills/openlogs-server-logs/SKILL.md",
+      "computedHash": "8f05f0f8c7a0dbdd0b274ae4cb76cb887cc3ca794310907cc15f158c50bfd704"
+    }
+  }
+}
