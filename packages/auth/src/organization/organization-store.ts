@@ -11,6 +11,13 @@ import type { OrganizationStoreError } from "./organization-store-error";
 import { provisionPersonalOrganization } from "./provision-personal-organization";
 
 export interface OrganizationStoreShape {
+  /** The organisation a user already belongs to, or none. Creates nothing. */
+  readonly existingActive: (
+    userId: string
+  ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
+  /** Resolves an organisation, provisioning a personal one when the user has
+   * none. Signing in is the moment that is right; acting as someone else is
+   * not, so impersonation reads {@link existingActive} instead. */
   readonly resolveActive: (
     userId: string
   ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
@@ -28,6 +35,13 @@ const make = Effect.gen(function* () {
   const db = yield* Database;
   const ids = yield* IdGenerator;
   const autumn = yield* AutumnService;
+
+  const existingActive = (userId: string) =>
+    findLatestMembership(db, userId).pipe(
+      Effect.map(Option.map((membership) => membership.organizationId)),
+      Effect.withSpan("OrganizationStore.existingActive"),
+      Effect.annotateLogs({ userId })
+    );
 
   const resolveActive = (userId: string) =>
     Effect.gen(function* () {
@@ -58,7 +72,7 @@ const make = Effect.gen(function* () {
       Effect.annotateLogs({ organizationId, userId })
     );
 
-  return OrganizationStore.of({ resolveActive, roleOf });
+  return OrganizationStore.of({ existingActive, resolveActive, roleOf });
 });
 
 export const OrganizationStoreLive = Layer.effect(OrganizationStore, make);

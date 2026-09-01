@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
   grants,
+  permissionsForPlatformRole,
   permissionsForRole,
   ROLE_PERMISSIONS,
 } from "../../src/domain/permissions";
@@ -60,5 +61,45 @@ describe("permissionsForRole", () => {
   it("lets an admin manage keys and members", () => {
     expect(grants(ROLE_PERMISSIONS.admin, "apiKeys:write")).toBe(true);
     expect(grants(ROLE_PERMISSIONS.admin, "members:write")).toBe(true);
+  });
+});
+
+describe("permissionsForPlatformRole", () => {
+  it("grants nothing for a role it does not recognise", () => {
+    for (const role of [null, undefined, "", "owner", "Admin", "admin "]) {
+      expect(permissionsForPlatformRole(role)).toEqual([]);
+    }
+  });
+
+  it("reserves impersonation for the platform admin", () => {
+    expect(
+      grants(permissionsForPlatformRole("admin"), "platform:impersonate")
+    ).toBe(true);
+    expect(
+      grants(permissionsForPlatformRole("user"), "platform:impersonate")
+    ).toBe(false);
+  });
+
+  it("never lets an organisation role stand in for impersonation", () => {
+    for (const permissions of Object.values(ROLE_PERMISSIONS)) {
+      expect(grants(permissions, "platform:impersonate")).toBe(false);
+    }
+  });
+
+  it("grants nothing inside an organisation", () => {
+    const staff = permissionsForPlatformRole("admin");
+
+    expect(grants(staff, "prompts:read")).toBe(false);
+    expect(grants(staff, "organization:admin")).toBe(false);
+  });
+
+  it("leaves an impersonated owner unable to impersonate in turn", () => {
+    const acting = [
+      ...permissionsForRole("owner"),
+      ...permissionsForPlatformRole(null),
+    ];
+
+    expect(grants(acting, "organization:admin")).toBe(true);
+    expect(grants(acting, "platform:impersonate")).toBe(false);
   });
 });

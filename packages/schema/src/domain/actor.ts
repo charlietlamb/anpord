@@ -23,6 +23,10 @@ export const Actor = Schema.Struct({
    * `user` to attribute its writes to. Authorship columns carry a foreign key
    * to that table, so the id must not reach them. */
   isUser: Schema.Boolean,
+  /** The staff member behind an impersonated session. `id` stays the person
+   * being acted as, so data scoping is unchanged; this is who is really at the
+   * keyboard, and the only field an audit can tell the two apart by. */
+  impersonatedBy: Schema.optional(UserId),
 });
 export type Actor = typeof Actor.Type;
 

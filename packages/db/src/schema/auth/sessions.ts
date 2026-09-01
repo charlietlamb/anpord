@@ -12,6 +12,10 @@ export const session = pgTable(
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     activeOrganizationId: text("active_organization_id"),
+    /* Set only on a session a staff member opened as someone else. Every write
+       made through it is really theirs, so it is the audit trail rather than a
+       display detail. */
+    impersonatedBy: text("impersonated_by"),
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),

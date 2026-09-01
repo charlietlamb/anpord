@@ -67,6 +67,21 @@ const authorize = (required: Permission) =>
         })
       );
     }
+
+    /* Every authorised request made while impersonating, named at the one
+       place all of them pass through. The row a handler writes records the
+       person acted as, so without this nothing anywhere says a staff member
+       was the one who made it. */
+    if (actor.impersonatedBy !== undefined) {
+      yield* Effect.logInfo("authorized while impersonating").pipe(
+        Effect.annotateLogs({
+          actingAs: actor.id,
+          impersonatedBy: actor.impersonatedBy,
+          organizationId: actor.organizationId,
+          permission: required,
+        })
+      );
+    }
   });
 
 export const authorized = <E, Provides, R, Endpoints extends AnyEndpoint>(

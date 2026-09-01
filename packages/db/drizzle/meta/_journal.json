@@ -218,6 +218,13 @@
       "when": 1788116443782,
       "tag": "0030_trial_costs",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1788116444782,
+      "tag": "0031_platform_roles",
+      "breakpoints": true
     }
   ]
 }

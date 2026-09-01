@@ -3,9 +3,10 @@ import { Database } from "@anpord/db/client";
 import { schema } from "@anpord/db/schema";
 import { IdGenerator } from "@anpord/ids/id";
 import { EmailSender } from "@anpord/notifications/email/sender";
+import { DEFAULT_PLATFORM_ROLE } from "@anpord/schema/domain/permissions";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
-import { jwt, magicLink, organization } from "better-auth/plugins";
+import { admin, jwt, magicLink, organization } from "better-auth/plugins";
 import { Context, Effect, Layer, Redacted } from "effect";
 import { AuthConfig } from "./config/auth-config";
 import { apiKeyPlugin } from "./credentials/api-key-plugin";
@@ -20,6 +21,10 @@ import {
 } from "./session/send-magic-link";
 
 const SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES = 300;
+
+/* Short enough that a forgotten impersonation expires on its own, rather than
+   leaving a staff member holding someone else's session for a working day. */
+const IMPERSONATION_SESSION_SECONDS = 60 * 60;
 
 const makeAuth = Effect.gen(function* () {
   const config = yield* AuthConfig;
@@ -53,6 +58,10 @@ const makeAuth = Effect.gen(function* () {
       },
     },
     plugins: [
+      admin({
+        defaultRole: DEFAULT_PLATFORM_ROLE,
+        impersonationSessionDuration: IMPERSONATION_SESSION_SECONDS,
+      }),
       organization({
         organizationHooks: {
           afterCreateOrganization: ({ organization: created, user }) =>

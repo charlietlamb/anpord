@@ -22,7 +22,10 @@ export const Permission = Schema.Literal(
   /** Destructive and irreversible: archiving a prompt, deleting a channel,
    * removing a member, deleting the organisation. Held by owners alone, so a
    * compromised member account cannot empty the catalogue. */
-  "organization:admin"
+  "organization:admin",
+  /** Reaches organisations the holder does not belong to, so no organisation
+   * role may grant it — only {@link PLATFORM_ROLE_PERMISSIONS} does. */
+  "platform:impersonate"
 );
 
 export type Permission = typeof Permission.Type;
@@ -39,6 +42,7 @@ export const Permissions = {
   },
   Members: { Read: "members:read", Write: "members:write" },
   Organization: { Admin: "organization:admin" },
+  Platform: { Impersonate: "platform:impersonate" },
 } as const satisfies Record<string, Record<string, Permission>>;
 
 export const Role = Schema.Literal("owner", "admin", "member", "viewer");
@@ -93,6 +97,35 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
  * without being added here fails closed rather than opening everything. */
 export const permissionsForRole = (role: string): readonly Permission[] =>
   ROLE_PERMISSIONS[role as Role] ?? [];
+
+/**
+ * What someone is on the platform, as opposed to inside one organisation.
+ *
+ * `member.role` only exists within an organisation, so it cannot describe
+ * staff, who act across organisations they never joined and whose standing
+ * must outlive being removed from any of them.
+ */
+export const PlatformRole = Schema.Literal("user", "admin");
+
+export type PlatformRole = typeof PlatformRole.Type;
+
+/** Carried by a user row with no stored role, so existing rows need no
+ * backfill and a new one is never staff by accident. */
+export const DEFAULT_PLATFORM_ROLE: PlatformRole = "user";
+
+export const PLATFORM_ROLE_PERMISSIONS: Record<
+  PlatformRole,
+  readonly Permission[]
+> = {
+  user: [],
+  admin: ["platform:impersonate"],
+};
+
+/** Fails closed exactly as {@link permissionsForRole} does. */
+export const permissionsForPlatformRole = (
+  role: string | null | undefined
+): readonly Permission[] =>
+  PLATFORM_ROLE_PERMISSIONS[role as PlatformRole] ?? [];
 
 const impliedBy = (granted: Permission): readonly Permission[] =>
   granted.endsWith(":write")

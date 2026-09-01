@@ -5,7 +5,10 @@ import {
 } from "@anpord/auth/organization";
 import { Actor } from "@anpord/schema/domain/actor";
 import { Unauthorized } from "@anpord/schema/domain/errors";
-import { permissionsForRole } from "@anpord/schema/domain/permissions";
+import {
+  permissionsForPlatformRole,
+  permissionsForRole,
+} from "@anpord/schema/domain/permissions";
 import { Authentication } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder, HttpServerRequest } from "@effect/platform";
 import {
@@ -26,6 +29,14 @@ const ROLE_CACHE_TTL = Duration.seconds(5);
 interface RoleKey {
   readonly organizationId: string;
   readonly userId: string;
+}
+
+/** The columns Better Auth's admin plugin adds. Its inferred session type does
+ * not carry them, and both decide authority, so they are named here once
+ * rather than reached for with a cast at each use. */
+interface AdminFields {
+  readonly session?: { readonly impersonatedBy?: string | null } | null;
+  readonly user?: { readonly role?: string | null } | null;
 }
 
 export const makeRoleCache = (
@@ -81,14 +92,23 @@ export const AuthenticationLive = Layer.effect(
             )
             .pipe(Effect.orElseSucceed(() => Option.none<string>()));
 
+          const admin = session as AdminFields | null;
+
           return yield* Schema.decodeUnknown(Actor)({
             id: user.value.id,
             organizationId: organizationId.value,
-            permissions: Option.match(role, {
-              onNone: () => [],
-              onSome: permissionsForRole,
-            }),
+            /* Both tiers, unioned: an organisation grants what its member may
+               do inside it, the platform grants what staff may do across all
+               of them, and neither can express the other's reach. */
+            permissions: [
+              ...Option.match(role, {
+                onNone: () => [],
+                onSome: permissionsForRole,
+              }),
+              ...permissionsForPlatformRole(admin?.user?.role),
+            ],
             isUser: true,
+            impersonatedBy: admin?.session?.impersonatedBy ?? undefined,
           }).pipe(
             Effect.mapError(() =>
               unauthorized("Session identifiers are malformed")
