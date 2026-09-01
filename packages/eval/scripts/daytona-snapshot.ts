@@ -11,18 +11,27 @@ import { Daytona, Image } from "@daytonaio/sdk";
  * Run when the name in daytona.ts changes:
  *   bun --env-file=../../.env run scripts/daytona-snapshot.ts
  */
-const NAME = "anpord-eval:3";
+const NAME = "anpord-eval:4";
 
-const image = Image.debianSlim("3.13").runCommands(
-  "apt-get update && apt-get install -y curl git zstd ca-certificates bash",
-  "curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs",
-  "npm install -g bun",
-  /* The home the adapter runs commands from. Daytona's own image has it and a
-     custom one does not, and a command given a directory that is not there
-     fails with "fork/exec /usr/bin/bash: no such file or directory", which
-     describes neither the directory nor the command. */
-  "mkdir -p /home/daytona"
-);
+const image = Image.debianSlim("3.13")
+  .runCommands(
+    "apt-get update && apt-get install -y curl git zstd ca-certificates bash",
+    "curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs",
+    "npm install -g bun",
+    /* The home the adapter runs commands from, and the one HOME must name.
+     Daytona's own image has both; a custom one has neither, and each absence
+     fails in a way that describes something else: a missing directory reads as
+     a missing shell, and a HOME pointing elsewhere leaves a harness reading an
+     empty credential directory and reporting that the server rejected it. */
+    "mkdir -p /home/daytona"
+  )
+  /* HOME as well as the directory. Commands run as root here, and a harness
+     writes its credential to the adapter's home while reading it back from
+     $HOME: when those differ it finds an empty directory, sends no token, and
+     the server answers "missing bearer", which reads as a rejected credential
+     rather than one that was never offered. */
+  .env({ HOME: "/home/daytona" })
+  .workdir("/home/daytona");
 
 const daytona = new Daytona();
 
