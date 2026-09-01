@@ -6,6 +6,7 @@ import { resolveTaskCredentials } from "../credentials/tasks";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type EvalStoreError, NotRunnable } from "../domain/errors";
 import type { CellTask, RunQueryShape } from "../repositories/run-query";
+import type { AgentTrialResult } from "../services/agent-trial";
 import type { GridCase } from "./cell";
 import type { GridRunShape, ResumeGrid } from "./run";
 import type { GridExecutionTask, GridRunState } from "./state";
@@ -84,17 +85,20 @@ const gridOf = (cells: readonly CellTask[]) => ({
  * started it. Asking again would mean inventing the user who is not there.
  */
 /**
- * Whether a trial has actually been opened against this run.
+ * Whether a trial is on this run that somebody is still working on.
  *
- * Trials only, deliberately. A run read back from the database carries a
- * `setup` on every cell -- the prompt, the repository, the names of its
- * validator and prepare -- which is the case's description rather than
- * evidence that anything ran, so counting it called every stored run started.
+ * Not merely whether a trial exists. A run carries every trial it has ever
+ * had, and one the sweep voided is exactly the abandoned work a resume is for,
+ * so counting those meant a run could be picked up once and never again.
+ *
+ * Not `setup` either: a stored cell always has one, being the case's own
+ * description rather than evidence of anything running.
  */
+const alive = (trial: Option.Option<AgentTrialResult>) =>
+  Option.isSome(trial) && trial.value.outcome.status === "running";
+
 const started = (run: GridRunState) =>
-  run.cells.some(
-    (cell) => cell.live.size > 0 || cell.trials.some(Option.isSome)
-  );
+  run.cells.some((cell) => cell.live.size > 0 || cell.trials.some(alive));
 
 export type CredentialSource =
   | { readonly actor: Actor; readonly legacyHarnessAuth: string }

@@ -34,10 +34,12 @@ const asked: string[] = [];
 /* Every stored cell carries a setup -- the prompt, the repository, the names
    of its validator and prepare -- so a cell that has done nothing still has
    one. Only a trial says work began. */
+const trialWith = (status: string) => Option.some({ outcome: { status } });
+
 const liveCell = (working: boolean) => ({
   live: new Map(),
   setup: Option.some({ prompt: "{{task}}" }),
-  trials: working ? [Option.some({})] : [Option.none()],
+  trials: working ? [trialWith("running")] : [Option.none()],
 });
 
 const services = (cells: readonly CellTask[], working = false) => ({
@@ -181,5 +183,37 @@ describe("a run that has only just been recorded", () => {
 
     expect(outcome._tag).toBe("Right");
     expect(outcome.right?.input.cases).toHaveLength(1);
+  });
+});
+
+describe("a run whose earlier attempt was abandoned", () => {
+  /* The sweep voids a trial whose process died, which is exactly the run a
+     resume is for. Counting that trial as work under way meant a run could be
+     picked up once and never again. */
+  test("is continued, not refused for the trial the sweep voided", async () => {
+    const outcome = (await Effect.runPromise(
+      rebuildRun(
+        {
+          ...services([cell()], false),
+          grid: {
+            get: () =>
+              Effect.succeed(
+                Option.some({
+                  cells: [
+                    {
+                      live: new Map(),
+                      setup: Option.some({}),
+                      trials: [trialWith("void")],
+                    },
+                  ],
+                })
+              ),
+          } as unknown as GridRunShape,
+        },
+        { organizationId: "org", runId: "run_1", source: BOUND }
+      ).pipe(Effect.either) as never
+    )) as { _tag: string };
+
+    expect(outcome._tag).toBe("Right");
   });
 });
