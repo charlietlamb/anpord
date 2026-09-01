@@ -31,13 +31,13 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
 
 const asked: string[] = [];
 
-/* A cell that has reached setup is the evidence that something is already
-   working on the run; a bare status is not, since a run is marked running the
-   moment it is recorded. */
+/* Every stored cell carries a setup -- the prompt, the repository, the names
+   of its validator and prepare -- so a cell that has done nothing still has
+   one. Only a trial says work began. */
 const liveCell = (working: boolean) => ({
   live: new Map(),
-  setup: working ? Option.some({}) : Option.none(),
-  trials: [],
+  setup: Option.some({ prompt: "{{task}}" }),
+  trials: working ? [Option.some({})] : [Option.none()],
 });
 
 const services = (cells: readonly CellTask[], working = false) => ({

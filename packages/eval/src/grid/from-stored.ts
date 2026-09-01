@@ -83,14 +83,17 @@ const gridOf = (cells: readonly CellTask[]) => ({
  * whether that run may use these credentials was answered when a person
  * started it. Asking again would mean inventing the user who is not there.
  */
-/** Whether anything has actually begun: a cell that reached setup, produced
- * an event, or settled a trial. */
+/**
+ * Whether a trial has actually been opened against this run.
+ *
+ * Trials only, deliberately. A run read back from the database carries a
+ * `setup` on every cell -- the prompt, the repository, the names of its
+ * validator and prepare -- which is the case's description rather than
+ * evidence that anything ran, so counting it called every stored run started.
+ */
 const started = (run: GridRunState) =>
   run.cells.some(
-    (cell) =>
-      Option.isSome(cell.setup) ||
-      cell.live.size > 0 ||
-      cell.trials.some(Option.isSome)
+    (cell) => cell.live.size > 0 || cell.trials.some(Option.isSome)
   );
 
 export type CredentialSource =
