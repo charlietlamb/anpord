@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "trigger.dev dev",
+    "dev": "bunx trigger.dev dev",
     "smoke": "bun --env-file=.env run scripts/smoke.ts",
-    "deploy": "trigger.dev deploy",
+    "deploy": "bunx trigger.dev deploy",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test --pass-with-no-tests"
   },
