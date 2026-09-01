@@ -11,12 +11,17 @@ import { Daytona, Image } from "@daytonaio/sdk";
  * Run when the name in daytona.ts changes:
  *   bun --env-file=../../.env run scripts/daytona-snapshot.ts
  */
-const NAME = "anpord-eval:1";
+const NAME = "anpord-eval:3";
 
 const image = Image.debianSlim("3.13").runCommands(
   "apt-get update && apt-get install -y curl git zstd ca-certificates bash",
   "curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs",
-  "npm install -g bun"
+  "npm install -g bun",
+  /* The home the adapter runs commands from. Daytona's own image has it and a
+     custom one does not, and a command given a directory that is not there
+     fails with "fork/exec /usr/bin/bash: no such file or directory", which
+     describes neither the directory nor the command. */
+  "mkdir -p /home/daytona"
 );
 
 const daytona = new Daytona();
