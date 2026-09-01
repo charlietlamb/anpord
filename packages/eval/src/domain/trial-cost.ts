@@ -87,12 +87,20 @@ const modelComponent = (input: {
   };
 
   if (input.price._tag === "None") {
+    /* A credential that picks its own model leaves the name empty, so there is
+       nothing to look a rate up by. Saying "no rate for ''" would blame the
+       catalogue for a choice the connection made. */
+    const because =
+      input.model === ""
+        ? "The connection chose its own model, which it does not name, so its usage cannot be priced."
+        : `No published rate for ${input.model}, so its usage cannot be priced.`;
+
     return {
       ...base,
       amountNanos: null,
       classification: "unknown",
       detail: tokens,
-      explanation: `No published rate for ${input.model}, so its usage cannot be priced.`,
+      explanation: because,
       source: "models.dev",
     };
   }

@@ -250,3 +250,15 @@ describe("what a cell or run cost", () => {
     expect(rollUp([null, null])).toBeNull();
   });
 });
+
+describe("a credential that names no model", () => {
+  /* A ChatGPT subscription picks the model itself and reports no name, so
+     there is nothing to look a rate up by. Blaming the catalogue for that
+     would point a reader at the wrong thing entirely. */
+  test("says the connection chose it, not that the catalogue lacks it", () => {
+    const model = find(breakdown({ model: "", price: Option.none() }), "model");
+
+    expect(model.classification).toBe("unknown");
+    expect(model.explanation).toContain("chose its own model");
+  });
+});
