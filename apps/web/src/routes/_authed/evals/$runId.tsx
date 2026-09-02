@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { runLabel } from "@/lib/evals/run-label";
 import { shortId } from "@/lib/evals/short-id";
 
 export const Route = createFileRoute("/_authed/evals/$runId")({
@@ -17,14 +18,9 @@ export const Route = createFileRoute("/_authed/evals/$runId")({
         return shortId(params.runId);
       }
 
-      /* Named by what it tested rather than by its id: a person recognises
-         `fib` and reads a ULID twice. The id stays as the tiebreak, because a
-         case run nine times gives nine crumbs that are otherwise identical. */
-      const name = run.cases[0] ?? shortId(run.id);
-
-      return run.cases.length > 1
-        ? `${name} +${run.cases.length - 1}`
-        : `${name} ${shortId(run.id)}`;
+      /* Older runs predate persisted eval names, so retain their recognizable
+         case-based label rather than replacing it with an opaque id. */
+      return runLabel(run);
     },
     title: "Run",
   },

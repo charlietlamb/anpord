@@ -53,7 +53,11 @@ function CellScreen() {
             />
           </div>
 
-          <TrialTable cellKey={cellKey} readings={readings ?? []} />
+          <TrialTable
+            cellKey={cellKey}
+            currentRunId={runId}
+            readings={readings ?? []}
+          />
         </section>
 
         {cell.setup === null ? null : (

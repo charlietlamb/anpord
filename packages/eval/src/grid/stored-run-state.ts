@@ -139,6 +139,7 @@ export const runToState = (
       Option.map((date) => date.getTime())
     ),
     id: detail.run.id,
+    name: detail.run.name,
     organizationId: detail.run.organizationId,
     startedAt: detail.run.createdAt.getTime(),
     status: statusOf(detail.run.status),

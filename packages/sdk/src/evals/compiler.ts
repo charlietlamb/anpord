@@ -234,6 +234,7 @@ export const compileEvalEffect = (path: string) =>
 
     return {
       cases,
+      name: definition.name,
       prompt: definition.prompt,
       tasks: [...definition.tasks],
       trials: definition.trials,

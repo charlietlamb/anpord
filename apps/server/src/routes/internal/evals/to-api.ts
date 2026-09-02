@@ -262,9 +262,10 @@ export const summarise = (state: GridRunState): EvalRunSummary => ({
   finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
     Option.getOrNull
   ),
+  firstCaseName: state.cases[0] ?? null,
   id: state.id,
 
-  name: state.cases[0] ?? null,
+  name: state.name,
   startedAt: DateTime.unsafeMake(state.startedAt),
   status: state.status,
   taskCount: state.tasks.length,
@@ -285,6 +286,7 @@ export const detail = (
       Option.getOrNull
     ),
     id: state.id,
+    name: state.name,
     startedAt: DateTime.unsafeMake(state.startedAt),
     status: state.status,
 

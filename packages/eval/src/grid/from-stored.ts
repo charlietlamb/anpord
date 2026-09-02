@@ -231,6 +231,7 @@ export const rebuildRun = (
       created: { id: input.runId, internalId: first.cell.runInternalId },
       input: {
         cases: rebuilt.cases.map(caseFrom),
+        name: first.runName,
         organizationId: input.organizationId,
         prompt: first.prompt,
         startedBy: null,

@@ -40,6 +40,7 @@ export interface ResumeGrid {
 
 export interface StartGrid {
   readonly cases: readonly GridCase[];
+  readonly name: string | null;
   readonly organizationId: string;
   readonly prompt: string;
   readonly startedBy: string | null;
@@ -229,6 +230,7 @@ export const GridRunLive = Layer.scoped(
 
         const created = yield* runs.insert({
           cellCount,
+          name: input.name,
           organizationId: input.organizationId,
           startedBy: input.startedBy,
           trialCount: cellCount * input.trials,
@@ -268,6 +270,7 @@ export const GridRunLive = Layer.scoped(
           failure: Option.none(),
           finishedAt: Option.none(),
           id: created.id,
+          name: input.name,
           organizationId: input.organizationId,
           startedAt,
           status: "running",
@@ -395,6 +398,7 @@ export const GridRunLive = Layer.scoped(
           failure: Option.none(),
           finishedAt: Option.none(),
           id: grid.created.id,
+          name: grid.input.name,
           organizationId: grid.input.organizationId,
           startedAt,
           status: "running",

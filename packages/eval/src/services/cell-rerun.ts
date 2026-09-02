@@ -98,6 +98,7 @@ export const make = Effect.gen(function* () {
 
     return yield* grid.start({
       cases: [caseFrom(subject)],
+      name: subject.runName,
       organizationId: input.organizationId,
       prompt: subject.prompt,
       startedBy: input.startedBy,

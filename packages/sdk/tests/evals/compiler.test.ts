@@ -40,6 +40,7 @@ export default defineEval({
     const payload = await compileEval(join(workspace, "eval.ts"));
     const validator = payload.cases[0]?.validator;
 
+    expect(payload.name).toBe("direct-validator");
     expect(validator?.name).toBe("hasGreeting");
     expect(validator?.source).not.toContain("direct-validator");
     expect(payload.cases[0]?.verify).toBeNull();

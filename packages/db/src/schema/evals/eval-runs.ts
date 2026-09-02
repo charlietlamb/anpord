@@ -14,6 +14,7 @@ export const evalRun = pgTable(
   {
     internalId: text("internal_id").primaryKey(),
     id: text("id").notNull(),
+    name: text("name"),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),

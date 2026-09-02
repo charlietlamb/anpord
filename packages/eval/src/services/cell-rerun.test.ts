@@ -21,6 +21,7 @@ const cellTask = (source: WorkspaceSource | null): CellTask => ({
   prompt: "Fix the browser task",
   repoRef: null,
   repoUrl: null,
+  runName: "planner-core",
   prepareName: null,
   prepareSource: null,
   source,
@@ -104,6 +105,7 @@ test("cell reruns preserve file workspaces", async () => {
 
   expect(id).toBe("run_new");
   expect(started?.cases[0]?.identity).toBe("task_identity");
+  expect(started?.name).toBe("planner-core");
   expect(started?.prompt).toBe("Fix the browser task");
   expect(started?.cases[0]?.source).toEqual(source);
   expect(started?.trials).toBe(2);

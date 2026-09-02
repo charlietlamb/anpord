@@ -167,9 +167,15 @@ export const EvalTaskRequest = Schema.Struct({
 });
 export type EvalTaskRequest = typeof EvalTaskRequest.Type;
 
+export const EvalName = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(100)
+);
+export type EvalName = typeof EvalName.Type;
+
 export const StartEvalRequest = Schema.Struct({
   cases: Schema.Array(EvalCase).pipe(Schema.minItems(1)),
-
+  name: Schema.optional(EvalName),
   prompt: Schema.String,
   tasks: Schema.Array(EvalTaskRequest).pipe(Schema.minItems(1)),
   trials: Schema.Int.pipe(Schema.between(1, 10)),
@@ -421,6 +427,7 @@ export const EvalRun = Schema.Struct({
   failure: Schema.NullOr(Schema.String),
   finishedAt: Schema.NullOr(EvalTimestamp),
   id: Schema.String,
+  name: Schema.NullOr(EvalName),
   startedAt: EvalTimestamp,
   status: EvalRunStatus,
   tasks: Schema.Array(EvalTask),
@@ -438,6 +445,7 @@ export const EvalRunSummary = Schema.Struct({
   commandMin: Schema.NullOr(Schema.Int),
   failure: Schema.NullOr(Schema.String),
   finishedAt: Schema.NullOr(EvalTimestamp),
+  firstCaseName: Schema.NullOr(Schema.String),
   id: Schema.String,
 
   name: Schema.NullOr(Schema.String),

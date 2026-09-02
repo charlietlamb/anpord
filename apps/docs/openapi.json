@@ -1163,6 +1163,7 @@
           "commandMin",
           "failure",
           "finishedAt",
+          "firstCaseName",
           "id",
           "name",
           "passed",
@@ -1216,6 +1217,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "firstCaseName": {
+            "anyOf": [
+              {
+                "type": "string"
               },
               {
                 "type": "null"
@@ -1517,6 +1528,13 @@
             "title": "minItems(1)",
             "minItems": 1
           },
+          "name": {
+            "type": "string",
+            "description": "a string at most 100 character(s) long",
+            "title": "maxLength(100)",
+            "minLength": 1,
+            "maxLength": 100
+          },
           "prompt": {
             "type": "string"
           },
@@ -1780,6 +1798,7 @@
           "failure",
           "finishedAt",
           "id",
+          "name",
           "startedAt",
           "status",
           "tasks"
@@ -1819,6 +1838,20 @@
           },
           "id": {
             "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "a string at most 100 character(s) long",
+                "title": "maxLength(100)",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "startedAt": {
             "$ref": "#/components/schemas/EvalTimestamp"

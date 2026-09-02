@@ -67,6 +67,7 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
           finishedAt: new Date(),
           id: `run_${tag}`,
           internalId: `runint_${tag}`,
+          name: `eval-${tag}`,
           organizationId,
           status: "finished",
           trialCount: 2,
@@ -132,6 +133,7 @@ describe.skipIf(skipWithoutDatabase())("RunQuery", () => {
     expect(found.value.cells[0]?.distribution.passRate).toBe(1);
     expect(found.value.cells[0]?.distribution.scored).toBe(2);
     expect(found.value.cells[0]?.prompt).toBe("do the thing");
+    expect(found.value.run.name).toBe(`eval-qmine${suffix}`);
   });
 
   it("refuses a run belonging to another organization", async () => {

@@ -47,6 +47,7 @@ export interface CellTask {
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
+  readonly runName: string | null;
   readonly source: WorkspaceSource | null;
   readonly validatorName?: string | null;
   readonly validatorSource?: string | null;
@@ -401,6 +402,7 @@ export const RunQueryLive = Layer.effect(
       prompt: evalCell.prompt,
       repoRef: evalTask.repoRef,
       repoUrl: evalTask.repoUrl,
+      runName: evalRun.name,
       sourceFiles: evalTask.sourceFiles,
       sourceKind: evalTask.sourceKind,
       validatorName: evalTask.validatorName,

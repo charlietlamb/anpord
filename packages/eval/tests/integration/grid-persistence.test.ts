@@ -105,6 +105,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
                 verify: VERIFY_COMMAND,
               },
             ],
+            name: "persistence-check",
             organizationId,
             prompt: "{{task}}",
             startedBy: null,

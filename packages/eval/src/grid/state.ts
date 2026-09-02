@@ -53,6 +53,7 @@ export interface GridRunState {
   readonly failure: Option.Option<string>;
   readonly finishedAt: Option.Option<number>;
   readonly id: string;
+  readonly name: string | null;
   readonly organizationId: string;
   readonly startedAt: number;
   readonly status: "running" | "finished" | "failed";

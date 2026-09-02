@@ -23,6 +23,7 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
     prepareName: null,
     prepareSource: null,
     prompt: "{{task}}",
+    runName: "planner-core",
     source: { kind: "empty" },
     validatorName: null,
     validatorSource: null,
@@ -128,6 +129,12 @@ describe("rebuilding the grid a run was", () => {
       id: "run_1",
       internalId: "run-internal",
     });
+  });
+
+  test("preserves the eval name", async () => {
+    const outcome = await rebuilding([cell()]);
+
+    expect(outcome.right?.input.name).toBe("planner-core");
   });
 });
 

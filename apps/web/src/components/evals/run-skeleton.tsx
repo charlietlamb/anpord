@@ -41,7 +41,7 @@ export function RunSkeleton({ runId }: { readonly runId: string }) {
     <EvalLayout>
       <EvalMain>
         <section className="flex flex-col gap-1.5">
-          <PageHeading icon={SquaresFourIcon} title="Results" />
+          <PageHeading icon={SquaresFourIcon} title="Cases" />
           <RunGridSkeleton />
         </section>
       </EvalMain>

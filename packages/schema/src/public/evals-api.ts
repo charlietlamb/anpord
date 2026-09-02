@@ -5,6 +5,7 @@ import {
   CaseCache,
   EvalCellHistoryEntry,
   EvalHarness,
+  EvalName,
   EvalPageCursor,
   EvalPrepare,
   EvalProvider,
@@ -79,6 +80,7 @@ const PublicEvalTask = Schema.Struct({
 });
 export const PublicStartEvalRequest = Schema.Struct({
   cases: Schema.Array(PublicEvalCase).pipe(Schema.minItems(1)),
+  name: Schema.optional(EvalName),
   prompt: Schema.String,
   tasks: Schema.Array(PublicEvalTask).pipe(Schema.minItems(1)),
   trials: Schema.Int.pipe(Schema.between(1, 10)),

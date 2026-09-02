@@ -39,6 +39,7 @@ export interface RunRepositoryShape {
   }) => Effect.Effect<void, EvalStoreError>;
   readonly insert: (input: {
     readonly cellCount: number;
+    readonly name: string | null;
     readonly organizationId: string;
     readonly startedBy: string | null;
     readonly trialCount: number;
@@ -118,6 +119,7 @@ export const RunRepositoryLive = Layer.effect(
                 cellCount: input.cellCount,
                 id,
                 internalId,
+                name: input.name,
                 organizationId: input.organizationId,
                 startedBy: input.startedBy,
                 status: "running",

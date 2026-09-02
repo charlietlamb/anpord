@@ -3,7 +3,6 @@ import { TrialStatusMark } from "@/components/evals/eval-status-badge";
 import { Metric } from "@/components/evals/metric";
 import { ListRow } from "@/components/layout/list-row";
 import { count, NOTHING, seconds } from "@/lib/evals/duration";
-import { shortId } from "@/lib/evals/short-id";
 
 /** -1 is the sentinel a trial nothing decided carries. Shown as a word,
  * because a reader seeing "-1" would take it for an exit code. */
@@ -17,19 +16,16 @@ const exitOf = (trial: EvalTrial) =>
  * three screens is reading the same kind of thing at three depths: a mark on
  * the left, what it is, then its numbers holding their columns.
  *
- * The run names itself on the first trial of a reading only. Repeating it down
- * every row of a three-trial reading turns a column of distinct values into a
- * column of one value.
+ * The ordinal is the row's identity. A run belongs to the reading around the
+ * rows, not to one trial, so repeated readings name their run above the group.
  */
 export function TrialRow({
   cellKey,
   runId,
-  showRun,
   trial,
 }: {
   readonly cellKey: string;
   readonly runId: string;
-  readonly showRun: boolean;
   readonly trial: EvalTrial;
 }) {
   return (
@@ -65,14 +61,8 @@ export function TrialRow({
       params={{ cellKey, ordinal: String(trial.ordinal), runId }}
       to="/evals/$runId/cells/$cellKey/trials/$ordinal"
     >
-      <span className="flex min-w-0 items-center gap-2.5">
-        <span className="w-14 shrink-0 text-muted-foreground text-xs tabular-nums">
-          {showRun ? shortId(runId) : ""}
-        </span>
-
-        <span className="font-medium text-foreground text-label tabular-nums">
-          {trial.ordinal}
-        </span>
+      <span className="inline-flex size-5 items-center justify-center rounded-[5px] bg-muted/60 font-medium font-mono text-[10px] text-muted-foreground tabular-nums ring-1 ring-border">
+        {trial.ordinal}
       </span>
     </ListRow>
   );

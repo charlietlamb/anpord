@@ -32,7 +32,7 @@ function EvalRunScreen() {
     <EvalLayout>
       <EvalMain>
         <section className="flex flex-col gap-1.5">
-          <PageHeading icon={SquaresFourIcon} title="Results" />
+          <PageHeading icon={SquaresFourIcon} title="Cases" />
 
           {run.cells.length === 0 ? (
             <EmptyNote>

@@ -81,7 +81,7 @@ function EvalsPreview() {
           <EvalLayout>
             <EvalMain>
               <section className="flex flex-col gap-1.5">
-                <PageHeading icon={SquaresFourIcon} title="Results" />
+                <PageHeading icon={SquaresFourIcon} title="Cases" />
                 <RunGrid run={RUN} />
               </section>
             </EvalMain>
@@ -97,6 +97,7 @@ function EvalsPreview() {
                 <PageHeading icon={FlaskIcon} title={CELL.caseName} />
                 <TrialTable
                   cellKey={CELL.cellKey ?? ""}
+                  currentRunId={RUN.id}
                   readings={[
                     {
                       internalId: "cell_preview",

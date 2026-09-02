@@ -66,6 +66,7 @@ const startOne = () =>
             verify: VERIFY_COMMAND,
           },
         ],
+        name: "cell-key-stability",
         organizationId,
         prompt: "{{task}}",
         startedBy: null,

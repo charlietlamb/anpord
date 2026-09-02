@@ -4,6 +4,7 @@ import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
 const request = {
   cases: [{ variables: { task: "Fix it" }, name: "case", verify: "true" }],
+  name: "planner-core",
   prompt: "{{task}}",
   tasks: [
     { harness: "codex" as const, model: "gpt-5.6-sol", provider: "upstash" },
@@ -12,6 +13,20 @@ const request = {
 };
 
 describe("the public eval provider contract", () => {
+  it("accepts an eval name", () => {
+    expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(request)).toEqual(
+      request
+    );
+  });
+
+  it("continues to accept older unnamed clients", () => {
+    const { name: _, ...unnamed } = request;
+
+    expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(unnamed)).toEqual(
+      unnamed
+    );
+  });
+
   for (const provider of [
     "upstash",
     "modal",

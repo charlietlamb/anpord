@@ -57,6 +57,7 @@ const recordCell = (input: {
 
     const created = yield* runs.insert({
       cellCount: 1,
+      name: "regression-story",
       organizationId,
       startedBy: null,
       trialCount: input.total,

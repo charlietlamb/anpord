@@ -65,6 +65,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
                 variables: subject.variables,
                 verify: subject.verify,
               })),
+              name: payload.name ?? null,
               organizationId: actor.organizationId,
               prompt: payload.prompt,
               startedBy: null,

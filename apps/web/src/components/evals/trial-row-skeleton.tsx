@@ -16,26 +16,17 @@ const METRICS: readonly MetricShape[] = [
   { slot: "w-20", value: "w-10" },
 ];
 
-/* An ordinal is one or two characters, so the bars alternate between the two
-   widths the column actually holds. */
-const ORDINALS = ["w-2", "w-3"];
-
 /* Six rows: a cell is usually run ten times, and three left the page a third
    of its final height so it grew as the trials arrived. Six is the most a
    reader sees before scrolling, which is the part that has to hold still. */
 const ROWS = 6;
 
-function TrialRowSkeleton({ ordinal }: { readonly ordinal: string }) {
+function TrialRowSkeleton() {
   return (
     <div className={cn(BLEED_ROW, ROW_SHAPE)}>
-      {/* TrialStatusMark, then the run column the row reserves and usually
-          leaves empty, then the ordinal. */}
+      {/* TrialStatusMark, then the ordinal. */}
       <Skeleton className="size-4 shrink-0 rounded-full" />
-
-      <span className="flex min-w-0 items-center gap-2.5">
-        <span className="w-14 shrink-0" />
-        <Skeleton className={cn("h-3", ordinal)} />
-      </span>
+      <Skeleton className="size-5 rounded-[5px]" />
 
       <span className="ml-auto flex shrink-0 items-center gap-4">
         {METRICS.map((shape, index) => (
@@ -52,13 +43,15 @@ function TrialRowSkeleton({ ordinal }: { readonly ordinal: string }) {
 /** A reading's trials, waiting to load. */
 export function TrialListSkeleton() {
   return (
-    <div className="flex flex-col">
-      {Array.from({ length: ROWS }, (_row, index) => (
-        <TrialRowSkeleton
-          key={`row-${index satisfies number}`}
-          ordinal={ORDINALS[index % ORDINALS.length] ?? "w-2"}
-        />
-      ))}
+    <div className="flex flex-col gap-1">
+      <span className="px-2 font-medium text-label text-muted-foreground">
+        Trials
+      </span>
+      <div className="flex flex-col">
+        {Array.from({ length: ROWS }, (_row, index) => (
+          <TrialRowSkeleton key={`row-${index satisfies number}`} />
+        ))}
+      </div>
     </div>
   );
 }

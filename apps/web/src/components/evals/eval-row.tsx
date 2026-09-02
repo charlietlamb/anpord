@@ -72,7 +72,7 @@ export function EvalRow({ run }: { readonly run: EvalRunSummary }) {
       params={{ runId: run.id }}
       to="/evals/$runId"
     >
-      <RowTitle>{run.name ?? run.id}</RowTitle>
+      <RowTitle>{run.name ?? run.firstCaseName ?? run.id}</RowTitle>
 
       {/* The unit once, on the count itself: a column of "3 cases" repeats a
           word that never varies, and the number is the part that differs. */}
