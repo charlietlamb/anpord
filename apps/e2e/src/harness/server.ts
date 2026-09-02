@@ -84,6 +84,11 @@ export const startServer = async (
       DATABASE_URL: databaseUrl,
       HOST: "127.0.0.1",
       PORT: String(port),
+      /* The server refuses to start without one, deliberately: a deployment
+         that cannot reach a worker should say so at boot rather than on the
+         first run somebody starts. Nothing here dispatches a run, so a
+         stand-in satisfies the check without reaching Trigger. */
+      TRIGGER_SECRET_KEY: "tr_dev_e2e_no_dispatch",
     },
   });
 

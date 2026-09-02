@@ -1,0 +1,52 @@
+name: Deploy worker
+
+# What the worker's own bundle contains. The eval package is most of it: the
+# worker is a thin task around the grid, so a change there is a change to what
+# actually runs a trial.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/worker/**"
+      - "packages/db/**"
+      - "packages/eval/**"
+      - "packages/ids/**"
+      - "packages/schema/**"
+      - "bun.lock"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      # Trigger's cli builds the task with node, not bun.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: bun install --frozen-lockfile
+
+      # A personal access token rather than an environment secret key: deploying
+      # creates a new version, which a per-environment key is not allowed to do.
+      - name: Deploy the eval worker
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$TRIGGER_ACCESS_TOKEN" ]; then
+            echo "TRIGGER_ACCESS_TOKEN is not set; add it to the repository secrets."
+            exit 1
+          fi
+          bunx trigger.dev deploy
+        working-directory: apps/worker
