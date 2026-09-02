@@ -1,3 +1,4 @@
+import { realpathSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
@@ -94,6 +95,21 @@ const loadDefinition = (entry: string) =>
     )
   );
 
+/* Compared by what the filesystem resolves them to, not by the strings: on
+   macOS an entry under /var and the same file reported under /private/var are
+   one file with two names, and comparing the names let the entry match itself
+   as its own separate module. */
+const realOrGiven = (path: string) => {
+  try {
+    return realpathSync.native(path);
+  } catch {
+    return path;
+  }
+};
+
+const sameFile = (one: string, other: string) =>
+  one === other || realOrGiven(one) === realOrGiven(other);
+
 const validatorModule = (
   entry: string,
   inputs: readonly string[],
@@ -105,7 +121,8 @@ const validatorModule = (
     );
     const matches = yield* Effect.filter(
       inputs.filter(
-        (path) => path !== entry && !path.includes(`${sep}node_modules${sep}`)
+        (path) =>
+          !(sameFile(path, entry) || path.includes(`${sep}node_modules${sep}`))
       ),
       (path) =>
         Effect.tryPromise(() => readFile(path, "utf8")).pipe(

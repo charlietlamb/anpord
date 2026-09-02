@@ -15,12 +15,19 @@ afterEach(async () => {
 const compiled = async (caseBody: string) => {
   workspace = await mkdtemp(join(tmpdir(), "anpord-prepare-"));
 
+  /* Its own file, because a prepare is bundled from the module that exports it
+     and the compiler refuses to read one back out of the entry. */
+  await writeFile(
+    join(workspace, "install.ts"),
+    `import type { Prepare } from "anpord";
+
+export const install: Prepare = ({ cached }) => ({ skipped: cached });`
+  );
+
   await writeFile(
     join(workspace, "eval.ts"),
     `import { defineEval } from "anpord";
-import type { Prepare } from "anpord";
-
-export const install: Prepare = ({ cached }) => ({ skipped: cached });
+import { install } from "./install";
 
 export default defineEval({
   cases: [${caseBody}],
