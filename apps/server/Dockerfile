@@ -15,6 +15,7 @@ COPY apps/mcp/package.json ./apps/mcp/
 COPY apps/sandbox-bridge/package.json ./apps/sandbox-bridge/
 COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
+COPY apps/worker/package.json ./apps/worker/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/billing/package.json ./packages/billing/
 COPY packages/cache/package.json ./packages/cache/
