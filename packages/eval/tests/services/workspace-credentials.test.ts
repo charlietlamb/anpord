@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Effect, Redacted, Stream } from "effect";
+import { Effect, Option, Redacted, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
 import { SuspenderSleeping } from "../../src/services/resumable-command";
 import { prepareWorkspace } from "../../src/services/workspace";
@@ -47,6 +47,7 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
     home: HOME,
     sandbox,
     prepare: null,
+    profile: Option.none(),
     source: {
       kind: "repo",
       ref: null,

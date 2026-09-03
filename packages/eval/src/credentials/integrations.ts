@@ -109,6 +109,14 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     id: "env",
     label: "Environment",
   },
+  /* The customer owns the process, so there is nothing of ours to
+     authenticate: the variables it needs are all it can be given. */
+  {
+    authMethods: [{ fields: [], id: "env", kind: "env", label: "Variables" }],
+    category: "harness",
+    id: "command",
+    label: "Command",
+  },
   {
     authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
     category: "sandbox",
