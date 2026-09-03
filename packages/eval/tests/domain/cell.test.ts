@@ -5,6 +5,7 @@ import { type CellParts, cellKeyOf } from "../../src/domain/cell";
 const parts: CellParts = {
   harness: "codex",
   model: "gpt-5.2",
+  profile: null,
   provider: "daytona",
   taskId: "fix-parser",
   taskVersion: "abc123",
@@ -34,6 +35,24 @@ describe("cellKeyOf", () => {
   it("changes when the task changes", () => {
     expect(cellKeyOf({ ...parts, taskVersion: "def456" })).not.toBe(
       cellKeyOf(parts)
+    );
+  });
+
+  it("appends the profile name, leaving keys without one untouched", () => {
+    const expected = createHash("sha256")
+      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona\nsample")
+      .digest("hex")
+      .slice(0, 32);
+
+    expect<string>(cellKeyOf({ ...parts, profile: "sample" })).toBe(expected);
+    expect(cellKeyOf({ ...parts, profile: "sample" })).not.toBe(
+      cellKeyOf(parts)
+    );
+  });
+
+  it("separates two profiles on one base", () => {
+    expect(cellKeyOf({ ...parts, profile: "sample" })).not.toBe(
+      cellKeyOf({ ...parts, profile: "other" })
     );
   });
 });
