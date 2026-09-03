@@ -4,6 +4,7 @@ import type { RunHarness } from "../../../src/ports/harness";
 
 const request = (overrides: Partial<RunHarness> = {}): RunHarness =>
   ({
+    env: {},
     harness: "codex",
     harnessVersion: "0.144.4",
     model: "gpt-5.6-sol",
@@ -63,6 +64,12 @@ describe("the codex command", () => {
      which is the only thing a ChatGPT credential will run. */
   it("omits the flag when the credential chooses its own model", () => {
     expect(codexCommand(request({ model: "" }))).not.toContain("--model");
+  });
+
+  it("omits the flag when the account was found to choose its own", () => {
+    expect(
+      codexCommand(request({ env: { ANPORD_CODEX_ACCOUNT_MODEL: "1" } }))
+    ).not.toContain("--model");
   });
 
   it("still runs the prompt when no model is named", () => {

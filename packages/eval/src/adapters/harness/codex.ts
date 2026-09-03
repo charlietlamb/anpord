@@ -12,19 +12,32 @@ import { authenticateCodex, CODEX_BIN, installCodex } from "./codex-install";
 import { noPending, timeLine } from "./codex-timing";
 import { harnessLines, shellQuote } from "./process";
 
+/* A ChatGPT account chooses its own model and refuses any name. */
+const ACCOUNT_CHOOSES_MODEL = "ANPORD_CODEX_ACCOUNT_MODEL";
+
+const accountChoosesModel = (request: RunHarness) =>
+  request.model === "" || request.env[ACCOUNT_CHOOSES_MODEL] === "1";
+
 export const codexCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
     `${CODEX_BIN} exec --json --skip-git-repo-check`,
     "--dangerously-bypass-approvals-and-sandbox",
-    /* Omitted rather than empty when there is none: a ChatGPT subscription
-       chooses its own model and refuses any name, so the flag itself is what
-       has to go. */
-    ...(request.model === "" ? [] : [`--model ${shellQuote(request.model)}`]),
+    ...(accountChoosesModel(request)
+      ? []
+      : [`--model ${shellQuote(request.model)}`]),
     shellQuote(request.prompt),
     "< /dev/null",
   ].join(" ");
+
+const authModeOf = (auth: string) =>
+  Option.liftThrowable(JSON.parse)(auth).pipe(
+    Option.flatMap((value: unknown) =>
+      Option.fromNullable((value as { auth_mode?: string })?.auth_mode)
+    ),
+    Option.getOrElse(() => "apikey")
+  );
 
 const authOf = (credential: ResolvedCredential) => {
   if (credential.integrationId !== "codex") {
@@ -73,7 +86,10 @@ export const CodexDriver: HarnessDriverShape = {
       yield* installCodex(input.sandbox, input.version);
       yield* authenticateCodex(input.sandbox, auth, input.home);
 
-      return {};
+      const env: Readonly<Record<string, string>> =
+        authModeOf(auth) === "chatgpt" ? { [ACCOUNT_CHOOSES_MODEL]: "1" } : {};
+
+      return env;
     }).pipe(Effect.withSpan("Codex.prepare")),
   run: (request: RunHarness) =>
     Effect.gen(function* () {

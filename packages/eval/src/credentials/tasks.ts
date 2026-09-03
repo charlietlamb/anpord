@@ -4,7 +4,6 @@ import type {
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
 import { Effect, Option, Redacted } from "effect";
-import { modelFor } from "../domain/harness-models";
 import type { GridExecutionTask } from "../grid/state";
 import type { CredentialResolverShape } from "./connections";
 import type { CredentialError } from "./errors";
@@ -85,23 +84,6 @@ export const resolveTaskCredentials = (
       });
       const resolvedSandbox = Option.getOrUndefined(sandbox);
 
-      const harnessAuth = Redacted.value(resolvedHarness);
-
-      /* Settled here rather than in the sandbox, where finding out costs a
-         sandbox, an install and a model call before anybody is told. A
-         subscription that chooses its own model runs on that one; the name it
-         cannot honour is dropped, and said so. */
-      const model = modelFor(harnessAuth, task.model);
-
-      if (model !== task.model) {
-        yield* Effect.logWarning("the credential chooses its own model").pipe(
-          Effect.annotateLogs({
-            asked: task.model,
-            harness: task.harness,
-          })
-        );
-      }
-
       return {
         bindings: bindingsOf(resolvedHarness, resolvedSandbox),
         credentials: {
@@ -112,7 +94,7 @@ export const resolveTaskCredentials = (
         },
         harness: task.harness,
         harnessVersion: task.harnessVersion,
-        model,
+        model: task.model,
         provider: task.provider,
       } satisfies GridExecutionTask;
     })
