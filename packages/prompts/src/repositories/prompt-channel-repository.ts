@@ -2,18 +2,13 @@ import { Database } from "@anpord/db/client";
 import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
-import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
-import { promptReleaseVersion } from "@anpord/db/schema/prompts/prompt-release-versions";
-import { promptRelease } from "@anpord/db/schema/prompts/prompt-releases";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
-import { prompt } from "@anpord/db/schema/prompts/prompts";
 import { IdGenerator } from "@anpord/ids/id";
-import { DEFAULT_CHANNEL_COLOR } from "@anpord/schema/domain/channels";
-import type { ChannelName, VersionNumber } from "@anpord/schema/domain/prompts";
-import { pinned } from "@anpord/schema/domain/releases";
+import type { ChannelName } from "@anpord/schema/domain/prompts";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
+import { type ChannelMove, movePromptChannel } from "./prompt-channel-move";
 import type { VersionRow } from "./prompt-version-repository";
 import { head, tryStore } from "./query";
 
@@ -34,13 +29,7 @@ export interface PromptChannelRepositoryShape {
   readonly list: (
     promptInternalId: string
   ) => Effect.Effect<readonly ChannelRow[], PromptStoreError>;
-  readonly move: (input: {
-    readonly authorId: string | null;
-    readonly channel: ChannelName;
-    readonly movedAt: Date;
-    readonly promptInternalId: string;
-    readonly versionInternalId: string;
-  }) => Effect.Effect<void, PromptStoreError>;
+  readonly move: (input: ChannelMove) => Effect.Effect<void, PromptStoreError>;
   readonly resolve: (
     promptInternalId: string,
     channel: ChannelName
@@ -50,48 +39,6 @@ export interface PromptChannelRepositoryShape {
 export class PromptChannelRepository extends Context.Tag(
   "@anpord/prompts/PromptChannelRepository"
 )<PromptChannelRepository, PromptChannelRepositoryShape>() {}
-
-type Tx = Parameters<Parameters<Database["Type"]["transaction"]>[0]>[0];
-
-/** Publishing to a channel the organisation has not used before creates it, so
- * a move never fails on a missing row. Conflict means another writer got there
- * first, and its row is the one to use. */
-const claimChannel = async (
-  tx: Tx,
-  values: {
-    readonly color: string;
-    readonly internalId: string;
-    readonly name: string;
-    readonly organizationId: string;
-  }
-) => {
-  const [created] = await tx
-    .insert(channel)
-    .values(values)
-    .onConflictDoNothing()
-    .returning({ internalId: channel.internalId });
-
-  if (created) {
-    return created.internalId;
-  }
-
-  const [found] = await tx
-    .select({ internalId: channel.internalId })
-    .from(channel)
-    .where(
-      and(
-        eq(channel.organizationId, values.organizationId),
-        eq(channel.name, values.name)
-      )
-    )
-    .limit(1);
-
-  if (!found) {
-    throw new Error(`no channel named ${values.name}`);
-  }
-
-  return found.internalId;
-};
 
 export const PromptChannelRepositoryLive = Layer.effect(
   PromptChannelRepository,
@@ -167,108 +114,22 @@ export const PromptChannelRepositoryLive = Layer.effect(
             ([
               placementInternalId,
               eventInternalId,
-              newChannelId,
+              channelInternalId,
               releaseInternalId,
             ]) =>
-              /** One transaction, because a placement that moved without its
-               * release or without its audit event is a discrepancy nothing
-               * downstream can detect afterwards. */
               tryStore("promptChannel.move", () =>
-                db.transaction(async (tx) => {
-                  const [owner] = await tx
-                    .select({ organizationId: prompt.organizationId })
-                    .from(prompt)
-                    .where(eq(prompt.internalId, input.promptInternalId))
-                    .limit(1);
-
-                  if (!owner) {
-                    throw new Error(
-                      `no prompt with internal id ${input.promptInternalId}`
-                    );
-                  }
-
-                  const channelInternalId = await claimChannel(tx, {
-                    color: DEFAULT_CHANNEL_COLOR,
-                    internalId: newChannelId,
-                    name: input.channel,
-                    organizationId: owner.organizationId,
-                  });
-
-                  const [existing] = await tx
-                    .select()
-                    .from(promptChannel)
-                    .where(
-                      and(
-                        eq(
-                          promptChannel.promptInternalId,
-                          input.promptInternalId
-                        ),
-                        eq(promptChannel.channelInternalId, channelInternalId)
-                      )
-                    )
-                    .limit(1);
-
-                  const [version] = await tx
-                    .select({ version: promptVersion.version })
-                    .from(promptVersion)
-                    .where(
-                      eq(promptVersion.internalId, input.versionInternalId)
-                    )
-                    .limit(1);
-
-                  if (!version) {
-                    throw new Error(
-                      `no version with internal id ${input.versionInternalId}`
-                    );
-                  }
-
-                  await tx.insert(promptRelease).values({
-                    internalId: releaseInternalId,
-                    promptInternalId: input.promptInternalId,
-                    kind: "pinned",
-                    definition: pinned(version.version as VersionNumber),
-                    createdBy: input.authorId,
-                    createdAt: input.movedAt,
-                  });
-
-                  await tx.insert(promptReleaseVersion).values({
-                    releaseInternalId,
-                    versionInternalId: input.versionInternalId,
-                  });
-
-                  if (existing) {
-                    await tx
-                      .update(promptChannel)
-                      .set({
-                        releaseInternalId,
-                        versionInternalId: input.versionInternalId,
-                        updatedBy: input.authorId,
-                        updatedAt: input.movedAt,
-                      })
-                      .where(eq(promptChannel.internalId, existing.internalId));
-                  } else {
-                    await tx.insert(promptChannel).values({
-                      internalId: placementInternalId,
-                      promptInternalId: input.promptInternalId,
+                db.transaction((tx) =>
+                  movePromptChannel(
+                    tx,
+                    {
                       channelInternalId,
+                      eventInternalId,
+                      placementInternalId,
                       releaseInternalId,
-                      versionInternalId: input.versionInternalId,
-                      updatedBy: input.authorId,
-                      updatedAt: input.movedAt,
-                    });
-                  }
-
-                  await tx.insert(promptEvent).values({
-                    actorId: input.authorId,
-                    channel: input.channel,
-                    createdAt: input.movedAt,
-                    fromVersionInternalId: existing?.versionInternalId ?? null,
-                    internalId: eventInternalId,
-                    kind: "deployed",
-                    promptInternalId: input.promptInternalId,
-                    versionInternalId: input.versionInternalId,
-                  });
-                })
+                    },
+                    input
+                  )
+                )
               ).pipe(Effect.asVoid)
           )
         ),
