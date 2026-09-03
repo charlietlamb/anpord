@@ -32,6 +32,7 @@ describe("credential integrations", () => {
       "qwen",
       "cursor",
       "env",
+      "command",
       "daytona",
       "e2b",
       "upstash",

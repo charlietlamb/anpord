@@ -9,7 +9,7 @@ import {
   Context,
   Effect,
   Layer,
-  type Option,
+  Option,
   type Redacted,
   Ref,
   Stream,
@@ -23,6 +23,10 @@ import type {
   SourceUnavailable,
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import {
+  type RequestedProfile,
+  SYSTEM_PROMPT_PATH,
+} from "../domain/harness-profile";
 import {
   commandsIn,
   failedCommandsIn,
@@ -54,6 +58,7 @@ export interface AgentTrialRequest {
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
   readonly priorSandboxId?: string;
+  readonly profile?: RequestedProfile | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
@@ -136,6 +141,7 @@ export const AgentTrialLive = Layer.effect(
         yield* request.onSandbox?.(sandbox.id) ?? Effect.void;
 
         const driver = yield* harnesses.resolve(request.harness);
+        const profile = Option.fromNullable(request.profile);
 
         const { env, prepared } = yield* prepareWorkspace({
           /* The same name the volume has: what a prepare left last time it ran
@@ -148,6 +154,7 @@ export const AgentTrialLive = Layer.effect(
           home: sandbox.home,
           sandbox,
           prepare: request.prepare,
+          profile,
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
@@ -160,8 +167,13 @@ export const AgentTrialLive = Layer.effect(
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           model: request.model,
+          profile,
           prompt: request.prompt,
           sandbox,
+          systemPromptPath: profile.pipe(
+            Option.filter((found) => found.systemPrompt !== null),
+            Option.map(() => `${sandbox.home}/${SYSTEM_PROMPT_PATH}`)
+          ),
           workspace: request.workspace,
         });
 
