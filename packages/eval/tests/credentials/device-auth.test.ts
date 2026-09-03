@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseDeviceChallenge } from "../../src/credentials/device-auth";
+import { parseDeviceChallenge } from "../../src/credentials/device-challenge";
 
 describe("Codex device authentication", () => {
   it("extracts the verification URL and one-time code", () => {
