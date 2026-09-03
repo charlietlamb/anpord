@@ -39,6 +39,7 @@ const envOnly: CredentialResolverShape = {
 const task = {
   harness: "opencode" as const,
   harnessVersion: "1",
+  profile: null,
   model: "gpt-5.6-sol",
   provider: "daytona" as const,
 };
