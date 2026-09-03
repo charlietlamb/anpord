@@ -1,6 +1,6 @@
 import { Effect, Option } from "effect";
-import type { CredentialResolverShape } from "../credentials/resolver";
 import type { CredentialError } from "../credentials/errors";
+import type { CredentialResolverShape } from "../credentials/resolver";
 import { type EvalStoreError, NotRunnable } from "../domain/errors";
 import type { RunQueryShape } from "../repositories/run-query";
 import type { AgentTrialResult } from "../services/agent-trial";
