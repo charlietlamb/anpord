@@ -11,6 +11,7 @@ import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { JournalArchiveLive } from "./repositories/journal-archive";
+import { LiveSandboxesLive } from "./repositories/live-sandboxes";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
@@ -29,6 +30,10 @@ import {
   SuspenderSleeping,
 } from "./services/resumable-command";
 import { SandboxProviderLive } from "./services/sandbox-provider";
+import {
+  SandboxReaperLive,
+  SandboxReaperScheduleLive,
+} from "./services/sandbox-reaper";
 import { WorkbenchesLive } from "./services/workbench";
 
 export const EvalRepositoriesLive = Layer.mergeAll(
@@ -108,4 +113,12 @@ export const ReconcilerSweepLive = ReconcilerScheduleLive.pipe(
 
 export const JournalRetentionSweepLive = JournalRetentionScheduleLive.pipe(
   Layer.provide(JournalArchiveLive)
+);
+
+/** Requires the sandbox provider and the credential resolver as well as the
+ * database: reaping reaches the provider under the credentials a trial
+ * opened its sandbox with. */
+export const SandboxReaperSweepLive = SandboxReaperScheduleLive.pipe(
+  Layer.provide(SandboxReaperLive),
+  Layer.provide(LiveSandboxesLive)
 );

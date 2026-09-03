@@ -27,6 +27,7 @@ import {
   evalGridWith,
   JournalRetentionSweepLive,
   ReconcilerSweepLive,
+  SandboxReaperSweepLive,
 } from "@anpord/eval/layer";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EmailSenderLive } from "@anpord/notifications/email/layer";
@@ -107,6 +108,13 @@ const EvalLayer = Layer.mergeAll(
 
   ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
   JournalRetentionSweepLive.pipe(Layer.provide(DatabaseLayer)),
+  /* The same sandbox layer the grid uses, so the reaper shares its adapters
+     and its permits rather than building a second set. */
+  SandboxReaperSweepLive.pipe(
+    Layer.provide(EvalSandboxLive),
+    Layer.provide(CredentialLayer),
+    Layer.provide(DatabaseLayer)
+  ),
   EvalCredentialsLive.pipe(Layer.provide(BunContext.layer)),
   EvalHarnessVersionsLive,
 

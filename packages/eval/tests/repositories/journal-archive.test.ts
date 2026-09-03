@@ -97,7 +97,7 @@ const journalled = (input: {
     const recorder = yield* TrialRecorder;
     const db = yield* Database;
 
-    const trialInternalId = yield* recorder.open({
+    const { trialInternalId } = yield* recorder.open({
       cellInternalId,
       ordinal: input.ordinal,
       provider: "daytona",

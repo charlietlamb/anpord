@@ -1,6 +1,7 @@
 import { Config, Effect, Layer } from "effect";
 import type { ProviderName } from "../domain/cell";
 import {
+  type DestroySandbox,
   type OpenSandbox,
   SandboxAdapters,
   SandboxProvider,
@@ -69,6 +70,20 @@ export const SandboxProviderLive = Layer.effect(
         Effect.annotateLogs({ provider, sandboxId: id })
       );
 
-    return SandboxProvider.of({ attach, open });
+    const destroy = (input: DestroySandbox) =>
+      Effect.gen(function* () {
+        const adapter = yield* adapters.resolve(
+          input.provider,
+          input.credentials
+        );
+        yield* adapter.destroy({ id: input.id });
+      }).pipe(
+        Effect.withSpan("SandboxProvider.destroy", {
+          attributes: { provider: input.provider, sandboxId: input.id },
+        }),
+        Effect.annotateLogs({ provider: input.provider, sandboxId: input.id })
+      );
+
+    return SandboxProvider.of({ attach, destroy, open });
   })
 );

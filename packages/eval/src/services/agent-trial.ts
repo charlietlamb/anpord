@@ -12,9 +12,9 @@ import {
   type Option,
   type Redacted,
   Ref,
-  Schedule,
   Stream,
 } from "effect";
+import { cacheKeyOf } from "../domain/cache-key";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type {
   HarnessUnavailable,
@@ -35,19 +35,9 @@ import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
-
-const noReport = () => Effect.void;
-
-import { cacheKeyOf } from "../domain/cache-key";
 import { Suspender } from "./resumable-command";
+import { progressSink } from "./trial-progress-sink";
 import { prepareWorkspace } from "./workspace";
-
-const PROGRESS_BATCH = 32;
-const PROGRESS_WINDOW = "400 millis";
-
-const PROGRESS_RETRY = Schedule.exponential("100 millis").pipe(
-  Schedule.compose(Schedule.recurs(1))
-);
 
 export interface AgentTrialRequest {
   readonly autoStopMinutes: number;
@@ -63,6 +53,9 @@ export interface AgentTrialRequest {
   readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
+  /** A sandbox an earlier attempt of this trial left behind. Destroyed before
+   * a new one opens, so a trial never holds two. */
+  readonly priorSandboxId?: string;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
@@ -101,6 +94,15 @@ export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<
   AgentTrialShape
 >() {}
 
+/* A journal with a hole in it cannot support a verdict: the command count and
+   the determinism reading both come from it. Void, with the field named. */
+const voided = (outcome: TrialOutcome): TrialOutcome => ({
+  ...outcome,
+  passed: false,
+  status: "void",
+  voidFields: [...outcome.voidFields, "journal"],
+});
+
 export const AgentTrialLive = Layer.effect(
   AgentTrial,
   Effect.gen(function* () {
@@ -109,9 +111,22 @@ export const AgentTrialLive = Layer.effect(
     const scorer = yield* Scorer;
     const suspender = yield* Suspender;
 
+    const destroyPrior = (request: AgentTrialRequest) =>
+      request.priorSandboxId === undefined
+        ? Effect.void
+        : sandboxes
+            .destroy({
+              credentials: request.sandboxCredentials,
+              id: request.priorSandboxId,
+              provider: request.provider,
+            })
+            .pipe(Effect.ignoreLogged);
+
     const run = (request: AgentTrialRequest) =>
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
+
+        yield* destroyPrior(request);
 
         const sandbox = yield* sandboxes.open({
           autoStopMinutes: request.autoStopMinutes,
@@ -153,36 +168,10 @@ export const AgentTrialLive = Layer.effect(
           workspace: request.workspace,
         });
 
-        const reported = yield* Ref.make(0);
+        const sink = yield* progressSink(request.progress?.append);
 
         const events = Chunk.toReadonlyArray(
-          yield* session.events.pipe(
-            Stream.groupedWithin(PROGRESS_BATCH, PROGRESS_WINDOW),
-            Stream.tap((batch) =>
-              Ref.get(reported).pipe(
-                Effect.flatMap((from) =>
-                  (request.progress?.append ?? noReport)(
-                    Chunk.toReadonlyArray(batch),
-                    from
-                  ).pipe(
-                    Effect.retry(PROGRESS_RETRY),
-                    Effect.zipRight(Ref.set(reported, from + batch.length))
-                  )
-                ),
-                Effect.catchAllCause((cause) =>
-                  Effect.logWarning("trial progress not recorded", cause).pipe(
-                    Effect.annotateLogs({
-                      harness: request.harness,
-                      model: request.model,
-                      provider: request.provider,
-                    })
-                  )
-                )
-              )
-            ),
-            Stream.flattenChunks,
-            Stream.runCollect
-          )
+          yield* session.events.pipe(sink.through, Stream.runCollect)
         );
 
         const modelFinished = yield* Clock.currentTimeMillis;
@@ -199,6 +188,7 @@ export const AgentTrialLive = Layer.effect(
         });
 
         const finishedAt = yield* Clock.currentTimeMillis;
+        const journalLost = yield* Ref.get(sink.lost);
 
         return {
           commands: commandsIn(events),
@@ -206,7 +196,7 @@ export const AgentTrialLive = Layer.effect(
           failedCommands: failedCommandsIn(events),
           filesChanged: filesIn(events),
           outcome: {
-            ...scored,
+            ...(journalLost ? voided(scored) : scored),
 
             sandboxMs: finishedAt - startedAt - (modelFinished - modelStarted),
           },

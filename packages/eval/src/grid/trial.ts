@@ -88,7 +88,7 @@ export const runTrial = (input: RunOneTrial) =>
     const startedAt = yield* Clock.currentTimeMillis;
     const seen = yield* Ref.make<readonly HarnessEvent[]>([]);
 
-    const trialInternalId = yield* input.recorder.open({
+    const { priorSandboxId, trialInternalId } = yield* input.recorder.open({
       cellInternalId: input.cellInternalId,
       ordinal: input.ordinal,
       provider: input.task.provider,
@@ -124,6 +124,7 @@ export const runTrial = (input: RunOneTrial) =>
       harnessVersion: input.task.harnessVersion,
       model: input.task.model,
       organizationId: input.organizationId,
+      priorSandboxId: Option.getOrUndefined(priorSandboxId),
       progress: {
         append: (events, from) =>
           Effect.gen(function* () {

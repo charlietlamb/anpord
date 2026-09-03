@@ -247,7 +247,7 @@ export const makeConfiguredCloudflareAdapter = (
   Effect.gen(function* () {
     const env = yield* environment;
     const configured = configuration(values, env);
-    const destroy = (handle: SandboxHandle) =>
+    const destroy = (handle: Pick<SandboxHandle, "id">) =>
       Effect.tryPromise({
         catch: unavailable,
         try: async () => {

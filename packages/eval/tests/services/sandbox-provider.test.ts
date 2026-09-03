@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { Effect, Layer, Ref, Stream } from "effect";
+import { Effect, Layer, Redacted, Ref, Stream } from "effect";
 import type { SandboxHandle } from "../../src/ports/sandbox";
 import { SandboxAdapters, SandboxProvider } from "../../src/ports/sandbox";
 import { SandboxProviderLive } from "../../src/services/sandbox-provider";
@@ -122,6 +122,50 @@ describe("SandboxProviderLive", () => {
     expect(state.opened).toBe(2);
     expect(state.destroyed).toBe(2);
     expect(state.now).toBe(0);
+  });
+
+  /* A reaper and a resumed trial hold an id, not a handle, and the id was
+     opened under whatever credentials the trial ran with. Destroying under
+     the platform's account would find nothing and report success. */
+  it("destroys by id under the credentials it is given", async () => {
+    const seen: { credentials: unknown; id: string }[] = [];
+
+    const recording = Layer.succeed(
+      SandboxAdapters,
+      SandboxAdapters.of({
+        resolve: (provider, credentials) =>
+          Effect.succeed({
+            attach: (id) => Effect.succeed({ id } as SandboxHandle),
+            destroy: (handle) =>
+              Effect.sync(() => {
+                seen.push({ credentials, id: handle.id });
+              }),
+            open: () => Effect.die("not opened here"),
+            provider,
+          }),
+      })
+    );
+
+    const credentials = Redacted.make({ DAYTONA_API_KEY: "theirs" });
+
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const provider = yield* SandboxProvider;
+        yield* provider.destroy({
+          credentials,
+          id: "sbx-old",
+          provider: "daytona",
+        });
+        yield* provider.destroy({ id: "sbx-platform", provider: "daytona" });
+      }).pipe(
+        Effect.provide(SandboxProviderLive.pipe(Layer.provide(recording)))
+      )
+    );
+
+    expect(seen).toEqual([
+      { credentials, id: "sbx-old" },
+      { credentials: undefined, id: "sbx-platform" },
+    ]);
   });
 
   /* A sandbox must be released even when the work inside the scope fails,

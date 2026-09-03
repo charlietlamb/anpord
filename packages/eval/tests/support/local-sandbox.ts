@@ -106,7 +106,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
             reason: `a local sandbox does not outlive its process, so ${id} cannot be reattached`,
           })
         ),
-      destroy: (handle: SandboxHandle) =>
+      destroy: (handle: Pick<SandboxHandle, "id">) =>
         Effect.tryPromise({
           catch: unavailable,
           try: () => rm(handle.id, { force: true, recursive: true }),

@@ -4,7 +4,7 @@ import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
 import { and, eq, sql } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, Option } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
@@ -49,6 +49,13 @@ export interface AttachSandbox {
   readonly trialInternalId: string;
 }
 
+interface OpenedTrial {
+  /** The sandbox an earlier attempt of this trial left behind, if a process
+   * died holding one. The new attempt destroys it before opening its own. */
+  readonly priorSandboxId: Option.Option<string>;
+  readonly trialInternalId: string;
+}
+
 export interface TrialRecorderShape {
   readonly abandon: (
     input: AbandonTrial
@@ -62,7 +69,9 @@ export interface TrialRecorderShape {
     input: AttachSandbox
   ) => Effect.Effect<void, EvalStoreError>;
 
-  readonly open: (input: OpenTrial) => Effect.Effect<string, EvalStoreError>;
+  readonly open: (
+    input: OpenTrial
+  ) => Effect.Effect<OpenedTrial, EvalStoreError>;
 
   readonly settle: (input: SettleTrial) => Effect.Effect<void, EvalStoreError>;
 }
@@ -143,10 +152,14 @@ export const TrialRecorderLive = Layer.effect(
               },
               target: [evalTrial.cellInternalId, evalTrial.ordinal],
             })
-            .returning({ internalId: evalTrial.internalId })
+            .returning({
+              internalId: evalTrial.internalId,
+              sandboxId: evalTrial.sandboxId,
+            })
         );
 
         const trialInternalId = rows[0]?.internalId ?? fresh;
+        const priorSandboxId = Option.fromNullable(rows[0]?.sandboxId);
 
         /* An earlier attempt's journal describes a run that did not happen.
            Cleared here rather than left to interleave with the new one. */
@@ -162,7 +175,7 @@ export const TrialRecorderLive = Layer.effect(
             .where(eq(evalTrialJournal.trialInternalId, trialInternalId))
         );
 
-        return trialInternalId;
+        return { priorSandboxId, trialInternalId };
       }).pipe(
         Effect.withSpan("TrialRecorder.open", {
           attributes: { ordinal: input.ordinal, provider: input.provider },

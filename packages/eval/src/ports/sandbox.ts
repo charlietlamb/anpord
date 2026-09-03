@@ -92,11 +92,24 @@ export interface SandboxHandle {
   ) => Effect.Effect<void, SandboxUnavailable>;
 }
 
+/** A sandbox to destroy by id, under the credentials it was opened with. What
+ * a reaper or a resumed trial has in hand is a stored id, not a handle. */
+export interface DestroySandbox {
+  readonly credentials?: Redacted.Redacted<CredentialValues>;
+  readonly id: string;
+  readonly provider: ProviderName;
+}
+
 export interface SandboxProviderShape {
   readonly attach: (
     provider: ProviderName,
     id: string
   ) => Effect.Effect<SandboxHandle, SandboxUnavailable, Scope.Scope>;
+  /** Destroys now, in no scope and with no permit: the sandbox was opened by
+   * some other process, and nothing here is holding it. */
+  readonly destroy: (
+    input: DestroySandbox
+  ) => Effect.Effect<void, SandboxUnavailable>;
   readonly open: (
     request: OpenSandbox
   ) => Effect.Effect<SandboxHandle, SandboxUnavailable, Scope.Scope>;
@@ -110,8 +123,10 @@ export interface SandboxAdapterShape {
   readonly attach: (
     id: string
   ) => Effect.Effect<SandboxHandle, SandboxUnavailable>;
+  /** Only the id: every provider deletes by it, and a caller that never held
+   * the handle, a reaper working from a stored row, must still be able to. */
   readonly destroy: (
-    handle: SandboxHandle
+    handle: Pick<SandboxHandle, "id">
   ) => Effect.Effect<void, SandboxUnavailable>;
   readonly open: (
     request: OpenSandbox

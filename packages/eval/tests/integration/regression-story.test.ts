@@ -80,7 +80,7 @@ const recordCell = (input: {
         const passed = !isVoid && index - input.voided < input.passing;
 
         return Effect.gen(function* () {
-          const trialInternalId = yield* recorder.open({
+          const { trialInternalId } = yield* recorder.open({
             cellInternalId: cell.internalId,
             ordinal: index + 1,
             provider: "daytona",

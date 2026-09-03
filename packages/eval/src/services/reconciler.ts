@@ -38,6 +38,10 @@ export const ReconcilerLive = Layer.effect(
            between two statements should never find a closed cell holding a
            trial that still claims to be running.
 
+           Judged by the trial's own start, not the run's age: a resumed run
+           is older than any cutoff, and its trials were started just now. A
+           trial that never started is judged by when it was created.
+
            `void` rather than `failed`, because nothing decided these. The
            database agrees -- a status of `failed` requires a verdict to agree
            with, and an abandoned trial has none. */
@@ -48,20 +52,9 @@ export const ReconcilerLive = Layer.effect(
             .where(
               and(
                 eq(evalTrial.status, "running"),
-                exists(
-                  db
-                    .select({ one: sql`1` })
-                    .from(evalCell)
-                    .innerJoin(
-                      evalRun,
-                      eq(evalRun.internalId, evalCell.runInternalId)
-                    )
-                    .where(
-                      and(
-                        eq(evalCell.internalId, evalTrial.cellInternalId),
-                        lt(evalRun.createdAt, cutoff)
-                      )
-                    )
+                lt(
+                  sql`coalesce(${evalTrial.startedAt}, ${evalTrial.createdAt})`,
+                  cutoff
                 )
               )
             )
@@ -177,10 +170,10 @@ export const ReconcilerScheduleLive = Layer.scopedDiscard(
     const reconciler = yield* Reconciler;
 
     yield* reconciler.sweep({ olderThan: ABANDONED_AFTER }).pipe(
-      Effect.catchAll((error) =>
-        Effect.logError("reconcile failed").pipe(
-          Effect.annotateLogs({ reason: String(error) })
-        )
+      /* Every cause, not only the typed failure: a defect in one tick must
+         not end the fiber and with it every later sweep. */
+      Effect.catchAllCause((cause) =>
+        Effect.logError("reconcile failed", cause)
       ),
       Effect.repeat(Schedule.spaced(SWEEP_EVERY)),
       Effect.forkScoped

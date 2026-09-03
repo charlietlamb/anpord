@@ -9,7 +9,7 @@ import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { eq } from "drizzle-orm";
-import { Duration, Effect, Layer, Redacted } from "effect";
+import { Duration, Effect, Layer, Option, Redacted } from "effect";
 import type { HarnessEvent } from "../../src/domain/harness-event";
 import type { TrialOutcome } from "../../src/domain/trial";
 import {
@@ -121,7 +121,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
         const recorder = yield* TrialRecorder;
         const db = yield* Database;
 
-        const trialInternalId = yield* recorder.open({
+        const { trialInternalId } = yield* recorder.open({
           cellInternalId,
           ordinal: 1,
           provider: "daytona",
@@ -190,7 +190,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
         const recorder = yield* TrialRecorder;
         const db = yield* Database;
 
-        const trialInternalId = yield* recorder.open({
+        const { trialInternalId } = yield* recorder.open({
           cellInternalId,
           ordinal: 2,
           provider: "daytona",
@@ -218,7 +218,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
         const recorder = yield* TrialRecorder;
         const db = yield* Database;
 
-        const trialInternalId = yield* recorder.open({
+        const { trialInternalId } = yield* recorder.open({
           cellInternalId,
           ordinal: 3,
           provider: "daytona",
@@ -240,5 +240,51 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
 
     expect(closed[0]?.passed).toBeNull();
     expect(closed[0]?.finishedAt).not.toBeNull();
+  });
+
+  /* A process that died mid-trial left its sandbox id on the row. The next
+     attempt is told about it so it can destroy it before opening its own. */
+  it("hands the next attempt the sandbox the last one left behind", async () => {
+    const seen = await run(
+      Effect.gen(function* () {
+        const recorder = yield* TrialRecorder;
+        const db = yield* Database;
+
+        const first = yield* recorder.open({
+          cellInternalId,
+          ordinal: 4,
+          provider: "daytona",
+          startedAt: new Date(),
+        });
+
+        yield* recorder.attach({
+          sandboxId: "sbx-left-behind",
+          trialInternalId: first.trialInternalId,
+        });
+
+        const second = yield* recorder.open({
+          cellInternalId,
+          ordinal: 4,
+          provider: "daytona",
+          startedAt: new Date(),
+        });
+
+        const row = yield* Effect.promise(() =>
+          db
+            .select({ attempt: evalTrial.attempt })
+            .from(evalTrial)
+            .where(eq(evalTrial.internalId, second.trialInternalId))
+        );
+
+        return { attempt: row[0]?.attempt, first, second };
+      })
+    );
+
+    expect(Option.isNone(seen.first.priorSandboxId)).toBe(true);
+    expect(seen.second.trialInternalId).toBe(seen.first.trialInternalId);
+    expect(Option.getOrNull(seen.second.priorSandboxId)).toBe(
+      "sbx-left-behind"
+    );
+    expect(seen.attempt).toBe(2);
   });
 });
