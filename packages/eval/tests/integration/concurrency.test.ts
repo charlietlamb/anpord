@@ -281,6 +281,7 @@ const wave = (provider: ProviderName, ready: boolean) =>
                     credentials: { harness: harnessCredential },
                     harness: "codex",
                     harnessVersion: "0.0.0-test",
+                    profile: null,
                     model: "none",
                     provider,
                   },

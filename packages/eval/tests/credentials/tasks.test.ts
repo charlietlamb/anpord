@@ -27,6 +27,7 @@ const task = {
   harness: "codex" as const,
   harnessVersion: "1",
   model: "gpt-5.6-sol",
+  profile: null,
   provider: "daytona" as const,
 };
 

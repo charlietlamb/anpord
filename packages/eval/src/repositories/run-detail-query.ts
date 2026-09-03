@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
@@ -43,12 +44,17 @@ export const runDetailQuery = Effect.gen(function* () {
             repoUrl: evalTask.repoUrl,
             prepareName: evalTask.prepareName,
             prepareSource: evalTask.prepareSource,
+            profile: evalHarnessProfile,
             validatorName: evalTask.validatorName,
             verifyCommand: evalTask.verifyCommand,
             workspace: evalTask.workspace,
           })
           .from(evalCell)
           .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
+          .leftJoin(
+            evalHarnessProfile,
+            eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
+          )
           .where(
             inArray(
               evalCell.runInternalId,
@@ -90,6 +96,7 @@ export const runDetailQuery = Effect.gen(function* () {
                 repoRef: evalTask.repoRef,
                 repoUrl: evalTask.repoUrl,
                 prepareName: evalTask.prepareName,
+                profile: evalHarnessProfile,
                 validatorName: evalTask.validatorName,
                 verifyCommand: evalTask.verifyCommand,
                 workspace: evalTask.workspace,
@@ -102,6 +109,10 @@ export const runDetailQuery = Effect.gen(function* () {
               .innerJoin(
                 evalRun,
                 eq(evalCell.runInternalId, evalRun.internalId)
+              )
+              .leftJoin(
+                evalHarnessProfile,
+                eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
               )
               .where(
                 and(

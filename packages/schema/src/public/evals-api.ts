@@ -18,6 +18,11 @@ import {
   RerunCellRequest,
   StartedEval,
 } from "../domain/evals";
+import {
+  HarnessProfile,
+  PROFILE_HARNESS_RULE,
+  profileFitsHarness,
+} from "../domain/harness-profile";
 import { ApiKeyAuthentication } from "./authentication";
 
 export const EvalRunRequest = Schema.Struct({ id: Schema.String }).annotations({
@@ -70,14 +75,21 @@ const PublicEvalCase = Schema.Struct({
     description: "A task, workspace source, setup command, and verifier.",
     identifier: "StartEvalCase",
   });
+/* The harness rule is a filter on the struct, which the generated JSON Schema
+   drops, so the tool and endpoint descriptions repeat it. */
 const PublicEvalTask = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String.pipe(Schema.minLength(1)),
+  profile: Schema.optional(HarnessProfile),
   provider: PublicEvalProvider,
-}).annotations({
-  description: "A harness, model, and hosted sandbox combination.",
-  identifier: "StartEvalTask",
-});
+})
+  .pipe(
+    Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
+  )
+  .annotations({
+    description: `A harness, model, and hosted sandbox combination, with an optional profile layered on the harness. ${PROFILE_HARNESS_RULE}`,
+    identifier: "StartEvalTask",
+  });
 export const PublicStartEvalRequest = Schema.Struct({
   cases: Schema.Array(PublicEvalCase).pipe(Schema.minItems(1)),
   name: Schema.optional(EvalName),
@@ -109,7 +121,7 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
       .annotate(OpenApi.Summary, "Start an eval run")
       .annotate(
         OpenApi.Description,
-        "Starts the grid and returns its id while trials continue in the background."
+        `Starts the grid and returns its id while trials continue in the background. ${PROFILE_HARNESS_RULE}`
       )
   )
   .add(
@@ -141,6 +153,10 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
       .setPayload(EvalModelsRequest)
       .addSuccess(ModelCatalogue)
       .annotate(OpenApi.Summary, "List models available to the harness")
+      .annotate(
+        OpenApi.Description,
+        "The command harness has no catalogue of its own, so its list is empty: the model is whatever the profile's run command reads from ANPORD_MODEL."
+      )
   )
   .addError(BadRequest)
   .addError(Conflict)

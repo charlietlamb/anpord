@@ -75,6 +75,7 @@ const startOne = () =>
             credentials: { harness: codexCredential },
             harness: "codex",
             harnessVersion: "0.144.4",
+            profile: null,
             model: "gpt-5-codex",
             provider: "daytona",
           },

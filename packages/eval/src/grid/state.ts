@@ -6,22 +6,51 @@ import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
 import type { HarnessEvent } from "../domain/harness-event";
+import type { RequestedProfile } from "../domain/harness-profile";
 import type { AgentTrialResult } from "../services/agent-trial";
+
+/** A profile as a reader sees it on a task: what a column is labelled with. */
+export interface TaskProfile {
+  readonly internalId: string;
+  readonly name: string;
+  readonly version: string;
+}
 
 export interface GridTask {
   readonly harness: HarnessName;
   readonly harnessVersion: string;
   readonly model: string;
+  readonly profile: TaskProfile | null;
   readonly provider: ProviderName;
 }
 
-export interface GridExecutionTask extends GridTask {
+/* Carries the profile's content rather than its projection, because the row
+   naming it is written by the run itself: an intake has read a directory, not
+   a version. Registering the content yields the TaskProfile a reader sees. */
+export interface GridExecutionTask {
   readonly bindings?: CredentialBindings;
   readonly credentials: {
     readonly harness: Redacted.Redacted<ResolvedCredential>;
     readonly sandbox?: Redacted.Redacted<ResolvedCredential>;
   };
+  readonly harness: HarnessName;
+  readonly harnessVersion: string;
+  readonly model: string;
+  readonly profile: RequestedProfile | null;
+  readonly provider: ProviderName;
 }
+
+/** A task as a reader sees it, once the run's profiles have their rows. */
+export const projectTask = (
+  task: GridExecutionTask,
+  profile: TaskProfile | null
+): GridTask => ({
+  harness: task.harness,
+  harnessVersion: task.harnessVersion,
+  model: task.model,
+  profile,
+  provider: task.provider,
+});
 
 export interface GridSetup {
   readonly prepareName: string | null;

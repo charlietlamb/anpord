@@ -258,8 +258,10 @@ export const CELL: EvalCell = {
   comparison: {
     baselineHarnessVersion: "0.144.4",
     baselinePassRate: 1,
+    baselineProfileVersion: null,
     candidateHarnessVersion: "0.145.0",
     candidatePassRate: 0.667,
+    candidateProfileVersion: null,
     delta: -0.333,
     determinismLost: true,
     reason: null,

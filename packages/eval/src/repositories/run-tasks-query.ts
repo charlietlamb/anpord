@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { and, eq, type SQL } from "drizzle-orm";
@@ -29,6 +30,10 @@ const sourceOf = (row: TaskSource): WorkspaceSource | null => {
   return null;
 };
 
+/* The profile row a cell ran under, joined back so a rebuilt run writes its
+   files again and a reader can label the column. */
+type CellProfile = typeof evalHarnessProfile.$inferSelect;
+
 export interface CellTask {
   readonly cacheKey: string | null;
   readonly cachePath: string | null;
@@ -37,6 +42,7 @@ export interface CellTask {
   readonly name: string;
   readonly prepareName: string | null;
   readonly prepareSource: string | null;
+  readonly profile: CellProfile | null;
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
@@ -66,6 +72,7 @@ const CELL_TASK_COLUMNS = {
   name: evalTask.name,
   prepareName: evalTask.prepareName,
   prepareSource: evalTask.prepareSource,
+  profile: evalHarnessProfile,
   prompt: evalCell.prompt,
   repoRef: evalTask.repoRef,
   repoUrl: evalTask.repoUrl,
@@ -85,6 +92,10 @@ export const runTasksQuery = Effect.map(Database, (db) => {
         .from(evalCell)
         .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
         .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
+        .leftJoin(
+          evalHarnessProfile,
+          eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
+        )
         .where(condition)
     ).pipe(
       Effect.map((rows) =>

@@ -51,6 +51,7 @@
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/eval-costs": "./src/domain/eval-costs.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
+    "./domain/harness-profile": "./src/domain/harness-profile.ts",
     "./domain/harness-spec": "./src/domain/harness-spec.ts",
     "./domain/journal": "./src/domain/journal.ts",
     "./domain/page": "./src/domain/page.ts",

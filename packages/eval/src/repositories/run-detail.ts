@@ -1,4 +1,5 @@
 import type { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import type { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import type { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
@@ -9,6 +10,7 @@ type CellRow = typeof evalCell.$inferSelect;
 type RunRow = typeof evalRun.$inferSelect;
 type TrialRow = typeof evalTrial.$inferSelect;
 type CostRow = typeof evalTrialCost.$inferSelect;
+type ProfileRow = typeof evalHarnessProfile.$inferSelect;
 
 /** A trial as a reader sees it: the row, and what each layer of it cost. */
 interface TrialWithCosts extends TrialRow {
@@ -19,6 +21,7 @@ interface CellTaskRow {
   readonly caseName: string;
   readonly cell: CellRow;
   readonly prepareName: string | null;
+  readonly profile: ProfileRow | null;
   readonly prompt: string;
   readonly repoRef: string | null;
   readonly repoUrl: string | null;
@@ -32,6 +35,7 @@ interface CellWithTrials {
   readonly cell: CellRow;
   readonly distribution: Distribution;
   readonly prepareName: string | null;
+  readonly profile: ProfileRow | null;
 
   readonly prompt: string;
   readonly repoRef: string | null;
@@ -73,6 +77,7 @@ export const detailOf = (
       repoRef: row.repoRef,
       repoUrl: row.repoUrl,
       prepareName: row.prepareName,
+      profile: row.profile,
       trials: own.map((trial) => ({
         ...trial,
         costs: costsByTrial.get(trial.internalId) ?? [],

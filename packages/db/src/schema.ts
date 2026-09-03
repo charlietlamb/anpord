@@ -18,6 +18,7 @@ import { githubInstallation } from "./schema/credentials/installations";
 import { evalBaseline } from "./schema/evals/eval-baselines";
 import { evalCell } from "./schema/evals/eval-cells";
 import { evalEvent } from "./schema/evals/eval-events";
+import { evalHarnessProfile } from "./schema/evals/eval-harness-profiles";
 import { evalPlayground } from "./schema/evals/eval-playgrounds";
 import { evalRun } from "./schema/evals/eval-runs";
 import { evalTask } from "./schema/evals/eval-tasks";
@@ -44,6 +45,7 @@ export const schema = {
   evalBaseline,
   evalCell,
   evalEvent,
+  evalHarnessProfile,
   evalPlayground,
   evalRun,
   evalTask,

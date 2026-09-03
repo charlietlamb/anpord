@@ -5,8 +5,9 @@ import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
 import type { LiveRuns } from "./live-runs";
 import { makeRegisterCases } from "./register-cases";
+import { makeRegisterProfiles } from "./register-profiles";
 import type { ResumeGrid, StartGrid } from "./run";
-import type { GridCell } from "./state";
+import { type GridCell, projectTask } from "./state";
 import { WORKSPACE } from "./trial";
 
 export const makeStartRun = (
@@ -17,6 +18,7 @@ export const makeStartRun = (
     const runs = yield* RunRepository;
     const runner = yield* TrialRunner;
     const registerCases = yield* makeRegisterCases;
+    const registerProfiles = yield* makeRegisterProfiles;
 
     return (input: StartGrid) =>
       Effect.gen(function* () {
@@ -32,6 +34,7 @@ export const makeStartRun = (
         });
 
         const registered = yield* registerCases(input);
+        const profiles = yield* registerProfiles(input);
 
         const cells = input.tasks.flatMap((_, taskIndex) =>
           input.cases.map(
@@ -69,8 +72,8 @@ export const makeStartRun = (
           organizationId: input.organizationId,
           startedAt,
           status: "running",
-          tasks: input.tasks.map(
-            ({ bindings: _, credentials: __, ...task }) => task
+          tasks: input.tasks.map((task, taskIndex) =>
+            projectTask(task, profiles[taskIndex] ?? null)
           ),
         });
 
@@ -80,7 +83,7 @@ export const makeStartRun = (
            a worker that could find nothing to do. Idempotent, so the work
            creating them again is the same rows. */
         yield* runs.insertCells(
-          input.tasks.flatMap((task) =>
+          input.tasks.flatMap((task, taskIndex) =>
             input.cases.flatMap((subject, caseIndex) => {
               const row = registered[caseIndex];
 
@@ -91,6 +94,7 @@ export const makeStartRun = (
                       cellKey: cellKeyOf({
                         harness: task.harness,
                         model: task.model,
+                        profile: task.profile?.name ?? null,
                         provider: task.provider,
                         taskId: row.id,
                         taskVersion: row.internalId,
@@ -100,6 +104,8 @@ export const makeStartRun = (
                         task.bindings?.harnessConnectionId,
                       harnessVersion: task.harnessVersion,
                       model: task.model,
+                      profileInternalId:
+                        profiles[taskIndex]?.internalId ?? null,
                       prompt: renderPrompt(input.prompt, subject.variables),
                       provider: task.provider,
                       runInternalId: created.internalId,

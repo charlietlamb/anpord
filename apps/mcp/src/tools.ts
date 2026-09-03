@@ -1,4 +1,5 @@
 import { RerunCellRequest } from "@anpord/schema/domain/evals";
+import { PROFILE_HARNESS_RULE } from "@anpord/schema/domain/harness-profile";
 import {
   EvalCellRequest,
   EvalModelsRequest,
@@ -54,7 +55,8 @@ export const register = (server: MCPServer<AnpordUser>) => {
 
   server.tool(
     {
-      description: "List the models available to a harness.",
+      description:
+        "List the models available to a harness. The command harness has no catalogue and returns an empty list.",
       inputSchema: toolInput(EvalModelsRequest),
       name: "list_eval_models",
     },
@@ -65,7 +67,9 @@ export const register = (server: MCPServer<AnpordUser>) => {
   server.tool(
     {
       description:
-        "Start an eval run. Returns an id while trials continue in the background.",
+        "Start an eval run. Returns an id while trials continue in the background. " +
+        "A task may carry a profile: files under home/ or workspace/, a system prompt and env. " +
+        PROFILE_HARNESS_RULE,
       inputSchema: toolInput(PublicStartEvalRequest),
       name: "start_eval_run",
     },
