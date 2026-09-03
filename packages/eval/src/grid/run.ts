@@ -1,7 +1,16 @@
-import { Clock, Context, Effect, Layer, Option, type Stream } from "effect";
+import {
+  Clock,
+  Context,
+  Effect,
+  Either,
+  Layer,
+  Option,
+  type Stream,
+} from "effect";
 import { SourceTokens } from "../codebase/source-token";
 import { caseIdentityOf } from "../domain/case-identity";
 import { CellKey, cellKeyOf } from "../domain/cell";
+import { reasonOf } from "../domain/errors";
 import type { PageCursor } from "../domain/page";
 import { pageOf, pageSizeOf } from "../domain/page";
 import { renderPrompt } from "../domain/prompt";
@@ -154,7 +163,7 @@ export const GridRunLive = Layer.scoped(
           yield* sourceTokens.forOrganization(input.organizationId)
         );
 
-        yield* forEachGridCell(
+        const outcomes = yield* forEachGridCell(
           input.cases,
           input.tasks,
           (subject, task, caseIndex, taskIndex) =>
@@ -206,12 +215,23 @@ export const GridRunLive = Layer.scoped(
         );
 
         const finishedAt = yield* Clock.currentTimeMillis;
+        const failures = outcomes.flatMap((outcome) =>
+          Either.isLeft(outcome) ? [outcome.left] : []
+        );
+        const first = failures[0];
 
+        /* A cell that could not run is the run's failure to report, with the
+           reason on the row: a run that ended with no verdict for some of its
+           cells is not finished, and "failed" alone was the whole of what a
+           reader could see. */
         yield* runs.finish({
-          failure: null,
+          failure:
+            first === undefined
+              ? null
+              : `${failures.length} of ${outcomes.length} cells could not run: ${reasonOf(first)}`,
           finishedAt: new Date(finishedAt),
           internalId: created.internalId,
-          status: "finished",
+          status: first === undefined ? "finished" : "failed",
         });
 
         yield* update(created.id, (state) => ({

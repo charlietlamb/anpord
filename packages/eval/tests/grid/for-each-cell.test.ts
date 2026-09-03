@@ -1,26 +1,27 @@
 import { describe, expect, it } from "bun:test";
-import { Effect, Ref } from "effect";
+import { Effect, Either } from "effect";
 import { forEachGridCell } from "../../src/grid/for-each-cell";
 
 describe("forEachGridCell", () => {
-  it("starts the complete grid concurrently", async () => {
-    const active = await Effect.runPromise(Ref.make(0));
-    const peak = await Effect.runPromise(Ref.make(0));
-    const seen = new Set<string>();
-
-    await Effect.runPromise(
-      forEachGridCell(["a", "b"], ["x", "y"], (subject, task) =>
-        Effect.gen(function* () {
-          const count = yield* Ref.updateAndGet(active, (value) => value + 1);
-          yield* Ref.update(peak, (value) => Math.max(value, count));
-          yield* Effect.sleep("10 millis");
-          seen.add(`${subject}:${task}`);
-          yield* Ref.update(active, (value) => value - 1);
-        })
+  /* The failure this exists to keep contained: one cell the provider refused
+     used to interrupt every other cell and leave the run open forever. */
+  it("lets every cell end on its own and reports each outcome", async () => {
+    const outcomes = await Effect.runPromise(
+      forEachGridCell(["a", "b"], [1, 2], (subject, task) =>
+        subject === "a" && task === 2
+          ? Effect.fail(`${subject}${task} refused`)
+          : Effect.succeed(`${subject}${task}`)
       )
     );
 
-    expect(seen).toEqual(new Set(["a:x", "a:y", "b:x", "b:y"]));
-    expect(await Effect.runPromise(Ref.get(peak))).toBe(4);
+    expect(outcomes).toHaveLength(4);
+    expect(outcomes.filter(Either.isRight).map((o) => o.right)).toEqual([
+      "a1",
+      "b1",
+      "b2",
+    ]);
+    expect(outcomes.filter(Either.isLeft).map((o) => o.left)).toEqual([
+      "a2 refused",
+    ]);
   });
 });
