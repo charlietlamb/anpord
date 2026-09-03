@@ -11,7 +11,10 @@ import { evalTrial } from "./eval-trials";
 
 /** The stored shape of a journal entry. Structural rather than imported from
  * the eval package, because the schema package must not depend on it. */
-type HarnessEventRow = { readonly _tag: string } & Record<string, unknown>;
+export type HarnessEventRow = { readonly _tag: string } & Record<
+  string,
+  unknown
+>;
 
 /** The journal: every command with its exit code, every file event, every
  * harness message, as one ordered sequence per trial.
@@ -31,9 +34,9 @@ export const evalEvent = pgTable(
     payload: jsonb("payload").$type<HarnessEventRow>().notNull(),
     at: timestamp("at").notNull().defaultNow(),
     /* When the event happened, as against `at`, which is when the row was
-       written. The journal is inserted in one transaction after a trial ends,
-       so `at` is identical across every event in a trial and says nothing
-       about how the time was spent.
+       written. Events are appended in batches as a trial runs, so `at` is
+       the moment a batch landed rather than the moment anything in it
+       happened, and says nothing about how the time was spent.
 
        Nullable because it cannot be backfilled: the trials recorded before
        this existed never captured it, and null means unknown rather than

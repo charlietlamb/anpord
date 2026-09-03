@@ -21,6 +21,7 @@ import { evalEvent } from "./schema/evals/eval-events";
 import { evalPlayground } from "./schema/evals/eval-playgrounds";
 import { evalRun } from "./schema/evals/eval-runs";
 import { evalTask } from "./schema/evals/eval-tasks";
+import { evalTrialJournal } from "./schema/evals/eval-trial-journal";
 import { evalTrial } from "./schema/evals/eval-trials";
 import { channel } from "./schema/prompts/channels";
 import { promptChannel } from "./schema/prompts/prompt-channels";
@@ -47,6 +48,7 @@ export const schema = {
   evalRun,
   evalTask,
   evalTrial,
+  evalTrialJournal,
   prompt,
   channel,
   promptChannel,
