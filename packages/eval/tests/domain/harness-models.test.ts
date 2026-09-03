@@ -1,22 +1,21 @@
 import { describe, expect, test } from "bun:test";
-import { modelFor } from "../../src/domain/harness-models";
+import { reportsModel } from "../../src/domain/harness-models";
 
-const credential = (authMethodId: string) => ({ authMethodId }) as never;
-
-describe("the model a credential can be asked for", () => {
-  /* A subscription picks its own and refuses any name, so asking for one is
-     how a run fails after paying for a sandbox and an install. */
-  test("is the credential's own when it signs in as a ChatGPT account", () => {
-    expect(modelFor(credential("chatgpt"), "gpt-5.1-codex")).toBe("");
+describe("whether a harness ran the model it was asked for", () => {
+  test("the same id is the same model", () => {
+    expect(reportsModel("claude-sonnet-5", "claude-sonnet-5")).toBe(true);
   });
 
-  test("is the one asked for when it signs in with an api key", () => {
-    expect(modelFor(credential("api-key"), "gpt-5.1-codex")).toBe(
-      "gpt-5.1-codex"
-    );
+  /* The static catalogue offers `sonnet`, `opus` and `haiku`, and Claude Code
+     reports the member of the family it resolved the alias to. Refusing that
+     failed every documented run at its first event. */
+  test("an alias is matched by the family it names", () => {
+    expect(reportsModel("sonnet", "claude-sonnet-5")).toBe(true);
+    expect(reportsModel("opus", "claude-opus-4-8")).toBe(true);
   });
 
-  test("is the one asked for under any other method, which is the safe default", () => {
-    expect(modelFor(credential("legacy-auth-json"), "gpt-5")).toBe("gpt-5");
+  test("a different family is a different model", () => {
+    expect(reportsModel("opus", "claude-sonnet-5")).toBe(false);
+    expect(reportsModel("claude-opus-4-8", "claude-opus-4-7")).toBe(false);
   });
 });

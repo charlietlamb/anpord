@@ -2,6 +2,7 @@ import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import { Effect, Redacted, Ref, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
+import { reportsModel } from "../../domain/harness-models";
 import { EMPTY_TALLY, tallied, totalOf } from "../../domain/usage-tally";
 import type {
   HarnessSessionShape,
@@ -95,15 +96,6 @@ export const writeHarnessFile = (
         (cause) => new HarnessUnavailable({ harness, reason: cause.reason })
       )
     );
-
-/** Whether the model a harness reports is the one that was asked for.
- *
- * An alias names a family and the harness reports the member it resolved to:
- * `opus` comes back as `claude-opus-4-8`. Only a report that names neither
- * the id nor the family is a different model, which is the swap this check
- * exists to catch. */
-export const reportsModel = (requested: string, reported: string) =>
-  reported === requested || reported.includes(requested);
 
 export const jsonSession = (
   request: RunHarness,

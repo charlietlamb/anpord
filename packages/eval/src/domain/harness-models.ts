@@ -15,3 +15,15 @@ import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
  */
 export const modelFor = (credential: ResolvedCredential, model: string) =>
   credential.authMethodId === "chatgpt" ? "" : model;
+
+/**
+ * Whether the model a harness reports is the one it was asked for.
+ *
+ * An alias names a family, and the harness reports the member it resolved
+ * to: `opus` comes back as `claude-opus-4-8`. The alias is a whole segment of
+ * that id, so a match on segments accepts the family and nothing looser. A
+ * report naming neither the id nor the family is the swap this exists to
+ * catch.
+ */
+export const reportsModel = (requested: string, reported: string) =>
+  reported === requested || reported.split("-").includes(requested);
