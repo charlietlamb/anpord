@@ -10,6 +10,7 @@
     "./domain/credentials": "./src/domain/credentials.ts",
     "./domain/errors": "./src/domain/errors.ts",
     "./domain/evals": "./src/domain/evals.ts",
+    "./domain/harness-profile": "./src/domain/harness-profile.ts",
     "./domain/permissions": "./src/domain/permissions.ts",
     "./domain/prompt-activity": "./src/domain/prompt-activity.ts",
     "./domain/prompt-events": "./src/domain/prompt-events.ts",
