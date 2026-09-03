@@ -1,10 +1,11 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import type { EvalPrepare } from "@anpord/schema/domain/evals";
-import { Effect, Redacted } from "effect";
+import { Effect, type Option, Redacted } from "effect";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import { type PrepareFailed, SourceUnavailable } from "../domain/errors";
+import type { RequestedProfile } from "../domain/harness-profile";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
@@ -22,6 +23,7 @@ export interface PrepareWorkspace {
   readonly harnessVersion: string;
   readonly home: string;
   readonly prepare: EvalPrepare | null;
+  readonly profile: Option.Option<RequestedProfile>;
   readonly sandbox: SandboxHandle;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
@@ -125,6 +127,7 @@ export const prepareWorkspace = (
     const env = yield* input.driver.prepare({
       credential: input.credential,
       home: input.home,
+      profile: input.profile,
       sandbox: input.sandbox,
       version: input.harnessVersion,
     });

@@ -1,5 +1,9 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 
+/* Under the home directory. Written by the materialiser, read by whichever
+   driver has a flag or a variable for it. */
+export const SYSTEM_PROMPT_PATH = ".anpord/system-prompt.md";
+
 /** What a profile writes into the sandbox and hands the harness. */
 export interface ProfileContent {
   readonly env: Readonly<Record<string, string>> | null;
