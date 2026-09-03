@@ -8,6 +8,7 @@ import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { GridRunLive } from "./grid/run";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
+import { AbandonedWorkLive } from "./repositories/abandoned-work";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { ExpiredRowsLive } from "./repositories/expired-rows";
@@ -110,7 +111,8 @@ export const EvalModelCatalogueLive = ModelCatalogueLive;
 export const EvalHarnessVersionsLive = HarnessVersionsLive;
 
 export const ReconcilerSweepLive = ReconcilerScheduleLive.pipe(
-  Layer.provide(ReconcilerLive)
+  Layer.provide(ReconcilerLive),
+  Layer.provide(AbandonedWorkLive)
 );
 
 export const JournalRetentionSweepLive = JournalRetentionScheduleLive.pipe(

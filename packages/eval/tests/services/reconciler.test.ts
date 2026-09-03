@@ -9,6 +9,7 @@ import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer, Redacted } from "effect";
+import { AbandonedWorkLive } from "../../src/repositories/abandoned-work";
 import { Reconciler, ReconcilerLive } from "../../src/services/reconciler";
 import { skipWithoutDatabase } from "../fixtures/database";
 import { taskFixture } from "../fixtures/eval-rows";
@@ -16,6 +17,7 @@ import { taskFixture } from "../fixtures/eval-rows";
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
 const TestLayer = ReconcilerLive.pipe(
+  Layer.provide(AbandonedWorkLive),
   Layer.provide(IdGeneratorLive),
   Layer.provideMerge(DatabaseLive),
   Layer.provide(
