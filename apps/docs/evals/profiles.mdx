@@ -1,0 +1,125 @@
+---
+title: "Harness profiles"
+description: "Version the configuration you layer on a harness"
+---
+
+Nobody runs a coding agent as it ships. A team layers a system prompt, an `AGENTS.md`, a permission map, plugins, skills and a handful of environment variables on top of it, and that layer is what actually decides whether the agent works.
+
+A profile is that layer, versioned. It rides on a task beside the harness it configures:
+
+```ts
+tasks: [
+  { harness: "opencode", model: "anthropic/claude-sonnet-4.6", provider: "daytona" },
+  {
+    harness: { base: "opencode", profile: { name: "docs-writer", dir: "./profile" } },
+    model: "anthropic/claude-sonnet-4.6",
+    provider: "daytona",
+  },
+]
+```
+
+Two columns, one base, one model. The first is the harness as it ships; the second is the harness your team runs. Each is its own cell with its own baseline, so a change to the profile is measured against the profile's own history rather than against stock.
+
+## The directory
+
+`dir` resolves against the eval file. Anpord walks two directories and nothing else:
+
+```
+profile/
+  home/
+    .config/opencode/opencode.json
+  workspace/
+    AGENTS.md
+    .claude/skills/review/SKILL.md
+  system.md
+  profile.json
+  README.md
+```
+
+| Path | Where it lands |
+| --- | --- |
+| `home/**` | The sandbox home directory, before the harness starts |
+| `workspace/**` | The checked-out workspace, after the source is cloned |
+
+Everything outside those two directories is ignored unless the manifest names it, so a `README.md` beside them documents the profile without shipping into the sandbox. `node_modules` and `.git` are skipped wherever they appear.
+
+Files land before the agent runs, and after the harness has written its own credentials, so a profile can override what the harness put there.
+
+## The manifest
+
+`profile.json` carries what is not a file:
+
+```json profile.json
+{
+  "systemPrompt": "system.md",
+  "env": { "DOCS_BASE_URL": "https://example.com" },
+  "install": "pip install -r requirements.txt",
+  "run": "python run.py"
+}
+```
+
+| Key | Meaning |
+| --- | --- |
+| `systemPrompt` | The agent's system prompt, delivered per base as below |
+| `env` | Environment variables, present for every process the trial starts |
+| `install` | A command run once while the sandbox is prepared. Command harness only |
+| `run` | The command line that starts the process. Command harness only, and required there |
+
+A value naming a file inside the profile directory is replaced by that file's content, so `"systemPrompt": "system.md"` ships the prompt and `"systemPrompt": "Be terse."` ships the sentence. `env` values are always literal. A value naming a file outside the directory is refused rather than read: a prompt that only exists on one machine is not part of the profile.
+
+`install` and `run` belong to the [command harness](/evals/command-harness). A profile on any other base is rejected if it sets either.
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Files | 256 |
+| Characters per file | 96,000 |
+| Characters in total | 2,000,000 |
+| Path prefix | `home/` or `workspace/` |
+
+Paths are relative, may not contain a `..` segment, and are at most 512 characters. Files are text: a file holding a NUL byte is skipped rather than shipped, so a checked-in binary does not fail the compile.
+
+The per-file limit is not arbitrary. Two sandbox providers hand a file's content to the machine inside a single shell argument, which caps a file near 128 KiB once encoded.
+
+## System prompts
+
+Each base takes a system prompt in its own way. The prompt is written into the sandbox and handed to the harness by path:
+
+| Base | Delivery |
+| --- | --- |
+| `claude` | `--append-system-prompt-file`, with `--add-dir` on the workspace so `CLAUDE.md` is discovered, plus `--settings` and `--mcp-config` when the profile ships them |
+| `opencode` | `OPENCODE_CONFIG_CONTENT`, merging the profile's own config with the prompt's path in `instructions` |
+| `codex` | `-c developer_instructions=…`, which adds to the built-in prompt rather than replacing it |
+| `gemini`, `qwen`, `pi`, `fx`, `cursor` | Prepended to the instructions file the agent reads, `AGENTS.md` or `GEMINI.md` |
+| `command` | `ANPORD_SYSTEM_PROMPT_FILE`, holding the path |
+
+The last two rows are the weaker ones. An agent that reads its instructions file only when it feels like it will treat the prompt as a suggestion; if that matters, put the text in `workspace/AGENTS.md` yourself and read the trajectory to check it landed.
+
+## Identity
+
+The profile **name** is part of the cell key. Two profiles on one base, one model and one sandbox are two cells with two histories, exactly as two harnesses would be.
+
+The profile **version** is not. It is a content hash over the files, the system prompt, the environment, and the install and run commands, and it is compared the way a harness version is compared: an edited profile is a new reading on the same cell, measured against that cell's baseline. Renaming a file changes the version. Renaming the profile does not — that starts a new cell.
+
+So the question a profile answers is the one a team cannot answer today: *the prompt changed on Tuesday; did the agent get worse?*
+
+```ts
+const comparison = run.cells[0]?.comparison;
+
+if (comparison?.verdict === "regressed") {
+  console.error(comparison.baselineProfileVersion, "→", comparison.candidateProfileVersion);
+}
+```
+
+The run rail, the cell history and the CI gate all name the profile and the version change, so a failing check says which profile regressed rather than only which case did.
+
+## Comparing fairly
+
+A grid that puts a profile beside stock harnesses is only honest if the difference it measures is the one you meant.
+
+Ship the same skills to every column. A profile's skills usually live under one agent's directory — `.claude/skills` for Claude Code, `.agents/skills` for OpenCode — and a column that has them beside a column that does not is measuring the skills, not the harness. Write them into every directory the grid's harnesses read, through `workspace/`.
+
+Hold the model constant. Where you cannot — a profile pinned to a provider the other columns have no key for, or a base whose model ids do not overlap — the cells are not comparable, and the honest thing is to say so beside the grid rather than to read the delta.
+
+Change one thing at a time. A run that moves the profile and the model together tells you something moved.

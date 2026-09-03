@@ -126,3 +126,26 @@ export default defineEval({
 ```
 
 Run every `*.eval.ts` suite with `anpord eval`, or select this one with `anpord eval ./health-route.eval.ts`. Anpord bundles the validator and its imports, runs it after the agent, and shows the function name with the result. Use either `validate` or `verify` on a case, not both.
+
+## Tasks
+
+Each entry in `tasks` names a harness, a model and a sandbox, and each becomes one column of the grid:
+
+```ts
+tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }]
+```
+
+To run the harness as your team configures it rather than as it ships, give `harness` a base and a [profile](/evals/profiles) instead of a name:
+
+```ts
+tasks: [
+  { harness: "opencode", model: "anthropic/claude-sonnet-4.6", provider: "daytona" },
+  {
+    harness: { base: "opencode", profile: { name: "docs-writer", dir: "./profile" } },
+    model: "anthropic/claude-sonnet-4.6",
+    provider: "daytona",
+  },
+]
+```
+
+`dir` resolves against the eval file. Anpord reads the directory when the suite compiles and ships it with the run, so a profile is versioned with the case rather than left on one machine.
