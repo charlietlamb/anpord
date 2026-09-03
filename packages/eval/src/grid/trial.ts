@@ -125,6 +125,7 @@ export const runTrial = (input: RunOneTrial) =>
       model: input.task.model,
       organizationId: input.organizationId,
       priorSandboxId: Option.getOrUndefined(priorSandboxId),
+      profile: input.task.profile,
       progress: {
         append: (events, from) =>
           Effect.gen(function* () {

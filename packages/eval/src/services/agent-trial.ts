@@ -9,7 +9,7 @@ import {
   Context,
   Effect,
   Layer,
-  type Option,
+  Option,
   type Redacted,
   Ref,
   Stream,
@@ -23,6 +23,7 @@ import type {
   SourceUnavailable,
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import type { RequestedProfile } from "../domain/harness-profile";
 import {
   commandsIn,
   failedCommandsIn,
@@ -35,6 +36,7 @@ import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
+import { systemPromptPath } from "./profile-files";
 import { Suspender } from "./resumable-command";
 import { progressSink } from "./trial-progress-sink";
 import { prepareWorkspace } from "./workspace";
@@ -54,6 +56,7 @@ export interface AgentTrialRequest {
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
   readonly priorSandboxId?: string;
+  readonly profile: RequestedProfile | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
@@ -146,6 +149,8 @@ export const AgentTrialLive = Layer.effect(
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,
+          model: request.model,
+          profile: request.profile,
           sandbox,
           prepare: request.prepare,
           source: request.source,
@@ -155,13 +160,20 @@ export const AgentTrialLive = Layer.effect(
 
         const modelStarted = yield* Clock.currentTimeMillis;
 
+        const profile = Option.fromNullable(request.profile);
+
         const session = yield* driver.run({
           env,
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           model: request.model,
+          profile,
           prompt: request.prompt,
           sandbox,
+          systemPromptPath: profile.pipe(
+            Option.filter((found) => found.systemPrompt !== null),
+            Option.map(() => systemPromptPath(sandbox.home))
+          ),
           workspace: request.workspace,
         });
 

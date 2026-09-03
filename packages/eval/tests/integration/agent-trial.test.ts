@@ -49,6 +49,7 @@ for (const [provider, ready] of [
             organizationId: "org_test",
             model: "gpt-5.6-sol",
             prompt: AGENT_PROMPT,
+            profile: null,
             provider,
             prepare: null,
             source: brokenSource,

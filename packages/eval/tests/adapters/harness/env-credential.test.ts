@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import { Effect, Either, Redacted, Stream } from "effect";
+import { Effect, Either, Option, Redacted, Stream } from "effect";
 import { ClaudeDriver } from "../../../src/adapters/harness/claude";
 import { CodexDriver } from "../../../src/adapters/harness/codex";
 import { OpencodeDriver } from "../../../src/adapters/harness/opencode";
@@ -56,6 +56,7 @@ const prepare = (
       .prepare({
         credential: Redacted.make(credential),
         home: HOME,
+        profile: Option.none(),
         sandbox,
         version: "1.0.0",
       })
