@@ -45,6 +45,7 @@
               "evals/cases",
               "evals/variants",
               "evals/harnesses",
+              "evals/command-harness",
               "evals/results",
               "evals/baselines"
             ]
