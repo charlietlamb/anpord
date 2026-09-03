@@ -14,6 +14,7 @@ export interface RequestedTask {
   readonly harness: GridExecutionTask["harness"];
   readonly harnessVersion: string;
   readonly model: string;
+  readonly profile: GridExecutionTask["profile"];
   readonly provider: GridExecutionTask["provider"];
 }
 
@@ -95,6 +96,7 @@ export const resolveTaskCredentials = (
         harness: task.harness,
         harnessVersion: task.harnessVersion,
         model: task.model,
+        profile: task.profile,
         provider: task.provider,
       } satisfies GridExecutionTask;
     })

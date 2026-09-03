@@ -12,6 +12,7 @@ import { renderPrompt } from "../domain/prompt";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { ModelPrices } from "../ports/model-source";
 import type { RunRepositoryShape } from "../repositories/run-repository";
+import type { TaskProfile } from "./state";
 import { runTrial, type TrialInputs } from "./trial";
 
 export interface GridCase {
@@ -29,6 +30,8 @@ export interface GridCase {
 }
 
 export interface RunGridCell extends TrialInputs {
+  /** The row the task profile was registered as, null where there is none. */
+  readonly profile: TaskProfile | null;
   readonly runInternalId: string;
   readonly runs: RunRepositoryShape;
   readonly taskInternalId: string;
@@ -60,6 +63,7 @@ export const runGridCell = (
     const cellKey = cellKeyOf({
       harness: input.task.harness,
       model: input.task.model,
+      profile: input.profile?.name ?? null,
       provider: input.task.provider,
       taskId: input.taskPublicId,
       taskVersion: input.taskInternalId,
@@ -75,6 +79,7 @@ export const runGridCell = (
           : harnessCredential.revision,
       harnessVersion: input.task.harnessVersion,
       model: input.task.model,
+      profileInternalId: input.profile?.internalId ?? null,
       prompt: renderPrompt(input.prompt, input.subject.variables),
       provider: input.task.provider,
       runInternalId: input.runInternalId,

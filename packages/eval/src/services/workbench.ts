@@ -122,6 +122,9 @@ export const WorkbenchesLive = Layer.effect(
               ...column,
               credentials: credentialsOf(config.connections, column),
               harnessVersion,
+              /* A workbench column names a harness and a model only; a profile
+                 is declared beside an eval, which a workbench has none of. */
+              profile: null,
             }))
           )
         );

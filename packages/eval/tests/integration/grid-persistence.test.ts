@@ -117,6 +117,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
                 credentials: { harness: codexCredential },
                 harness: "codex",
                 harnessVersion: "0.144.4",
+                profile: null,
                 model: "gpt-5-codex",
                 provider: "daytona",
               },

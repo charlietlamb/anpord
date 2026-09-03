@@ -18,6 +18,7 @@ const cellTask = (source: WorkspaceSource | null): CellTask => ({
     provider: "daytona",
   } as CellTask["cell"],
   identity: "task_identity",
+  profile: null,
   name: "Browser task",
   prompt: "Fix the browser task",
   repoRef: null,

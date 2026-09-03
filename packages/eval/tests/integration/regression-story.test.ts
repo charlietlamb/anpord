@@ -40,6 +40,7 @@ const run = <A, E>(effect: Effect.Effect<A, E, Tags>) =>
 const cellKey = cellKeyOf({
   harness: "codex",
   model: "gpt-5",
+  profile: null,
   provider: "daytona",
   taskId: `task_story_${suffix}`,
   taskVersion: taskInternalId,
@@ -67,6 +68,7 @@ const recordCell = (input: {
       harness: "codex",
       harnessVersion: "0.144.4",
       model: "gpt-5",
+      profileInternalId: null,
       prompt: "do the thing",
       provider: "daytona",
       runInternalId: created.internalId,

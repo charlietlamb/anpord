@@ -1,6 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalBaseline } from "@anpord/db/schema/evals/eval-baselines";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { and, eq, inArray } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
@@ -15,6 +16,9 @@ type BaselineRow = typeof evalBaseline.$inferSelect;
 interface BaselineTrialRow {
   readonly baseline: BaselineRow;
   readonly harnessVersion: string;
+  /* Null where the cell ran without one. The profile name is in the cell key,
+     so a baseline and its candidate can only differ in the version. */
+  readonly profileVersion: string | null;
   readonly trial: TrialRow;
 }
 
@@ -66,6 +70,7 @@ export const BaselineRepositoryLive = Layer.effect(
                 .select({
                   baseline: evalBaseline,
                   harnessVersion: evalCell.harnessVersion,
+                  profileVersion: evalHarnessProfile.version,
                   trial: evalTrial,
                 })
                 .from(evalBaseline)
@@ -76,6 +81,10 @@ export const BaselineRepositoryLive = Layer.effect(
                 .innerJoin(
                   evalTrial,
                   eq(evalBaseline.cellInternalId, evalTrial.cellInternalId)
+                )
+                .leftJoin(
+                  evalHarnessProfile,
+                  eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
                 )
                 .where(
                   and(

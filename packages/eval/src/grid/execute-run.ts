@@ -3,8 +3,10 @@ import { ModelPrices } from "../ports/model-source";
 import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
 import type { LiveRuns } from "./live-runs";
+import { makeRegisterProfiles } from "./register-profiles";
 import type { ResumeGrid } from "./run";
 import { makeRunCells } from "./run-cells";
+import { projectTask } from "./state";
 
 export const makeExecuteRun = (live: LiveRuns) =>
   Effect.gen(function* () {
@@ -15,6 +17,7 @@ export const makeExecuteRun = (live: LiveRuns) =>
     const runs = yield* RunRepository;
     const runner = yield* TrialRunner;
     const runCells = yield* makeRunCells(live);
+    const registerProfiles = yield* makeRegisterProfiles;
 
     /* Reopening and publishing belong here rather than beside the dispatch:
        whoever executes the grid is the process that must claim the run, and
@@ -23,6 +26,11 @@ export const makeExecuteRun = (live: LiveRuns) =>
     const claimed = (grid: ResumeGrid) =>
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
+
+        /* Registered again rather than carried through the dispatch, because a
+           worker is handed a run id and rebuilds the grid from stored rows.
+           The version hashes the content, so this finds the same rows. */
+        const profiles = yield* registerProfiles(grid.input);
 
         /* The row says failed, because the sweep that closed it is why anybody
            is continuing it. Executing against that leaves a run in flight that
@@ -42,12 +50,12 @@ export const makeExecuteRun = (live: LiveRuns) =>
           organizationId: grid.input.organizationId,
           startedAt,
           status: "running",
-          tasks: grid.input.tasks.map(
-            ({ bindings: _, credentials: __, ...task }) => task
+          tasks: grid.input.tasks.map((task, taskIndex) =>
+            projectTask(task, profiles[taskIndex] ?? null)
           ),
         });
 
-        yield* runCells(grid);
+        yield* runCells(grid, profiles);
       });
 
     const execute = (grid: ResumeGrid) =>
