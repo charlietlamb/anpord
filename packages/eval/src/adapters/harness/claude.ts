@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import type { HarnessDriverShape, RunHarness } from "../../ports/harness";
 import { decodeClaudeLine } from "./claude-events";
 import { shellQuote } from "./process";
@@ -11,6 +11,38 @@ import {
 
 const BIN = "~/.local/bin/claude";
 
+const shipped = (request: RunHarness, path: string) =>
+  Option.match(request.profile, {
+    onNone: () => false,
+    onSome: (profile) => Object.hasOwn(profile.files, `workspace/${path}`),
+  });
+
+/* --bare turns off CLAUDE.md auto-discovery, so a profile's workspace files
+   are read only when the directory and each config file are named. */
+const profileFlags = (request: RunHarness) => {
+  if (Option.isNone(request.profile)) {
+    return [];
+  }
+
+  const workspace = shellQuote(request.workspace);
+
+  return [
+    `--add-dir ${workspace}`,
+    ...Option.match(request.systemPromptPath, {
+      onNone: (): string[] => [],
+      onSome: (path) => [`--append-system-prompt-file ${shellQuote(path)}`],
+    }),
+    ...(shipped(request, ".claude/settings.json")
+      ? [
+          `--settings ${shellQuote(`${request.workspace}/.claude/settings.json`)}`,
+        ]
+      : []),
+    ...(shipped(request, ".mcp.json")
+      ? [`--mcp-config ${shellQuote(`${request.workspace}/.mcp.json`)}`]
+      : []),
+  ];
+};
+
 export const claudeCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
@@ -19,6 +51,7 @@ export const claudeCommand = (request: RunHarness) =>
     "--output-format stream-json --verbose",
     `--model ${shellQuote(request.model)}`,
     "--bare --dangerously-skip-permissions",
+    ...profileFlags(request),
     "< /dev/null",
   ].join(" ");
 

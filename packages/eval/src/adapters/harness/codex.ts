@@ -18,12 +18,27 @@ const ACCOUNT_CHOOSES_MODEL = "ANPORD_CODEX_ACCOUNT_MODEL";
 const accountChoosesModel = (request: RunHarness) =>
   request.model === "" || request.env[ACCOUNT_CHOOSES_MODEL] === "1";
 
+/* developer_instructions is added to the built-in prompt, where
+   model_instructions_file replaces it: a profile layers on a base rather than
+   discarding what makes it that base. */
+const developerInstructions = (request: RunHarness) =>
+  Option.match(request.profile, {
+    onNone: (): string[] => [],
+    onSome: (profile) =>
+      profile.systemPrompt === null
+        ? []
+        : [
+            `-c ${shellQuote(`developer_instructions=${JSON.stringify(profile.systemPrompt)}`)}`,
+          ],
+  });
+
 export const codexCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
     `${CODEX_BIN} exec --json --skip-git-repo-check`,
     "--dangerously-bypass-approvals-and-sandbox",
+    ...developerInstructions(request),
     ...(accountChoosesModel(request)
       ? []
       : [`--model ${shellQuote(request.model)}`]),

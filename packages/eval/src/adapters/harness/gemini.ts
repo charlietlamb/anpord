@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import type { HarnessDriverShape, RunHarness } from "../../ports/harness";
 import { decodeGeminiLine } from "./gemini-events";
+import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
   credentialOf,
@@ -13,7 +14,7 @@ const BIN = "~/.local/bin/gemini";
 
 export const geminiCommand = (request: RunHarness) =>
   [
-    `cd ${shellQuote(request.workspace)}`,
+    `${instructionsPrefix(request)}cd ${shellQuote(request.workspace)}`,
     "&&",
     `${BIN} -p ${shellQuote(request.prompt)}`,
     "--output-format stream-json --yolo",

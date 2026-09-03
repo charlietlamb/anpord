@@ -7,6 +7,7 @@ import type {
   HarnessSessionShape,
   RunHarness,
 } from "../../ports/harness";
+import { opencodeConfigEnv } from "./opencode-config";
 import { decodeOpencodeLine } from "./opencode-events";
 import { installOpencode, OPENCODE_BIN, opencodeEnv } from "./opencode-install";
 import { harnessLines, shellQuote } from "./process";
@@ -21,6 +22,12 @@ export const opencodeCommand = (request: RunHarness) =>
     shellQuote(request.prompt),
     "< /dev/null",
   ].join(" ");
+
+export const opencodeRunEnv = (request: RunHarness) =>
+  Option.match(request.systemPromptPath, {
+    onNone: () => request.env,
+    onSome: (path) => opencodeConfigEnv(request.env, path),
+  });
 
 const added = (
   current: Option.Option<HarnessUsage>,
@@ -79,7 +86,7 @@ export const OpencodeDriver: HarnessDriverShape = {
         "opencode",
         request.sandbox,
         opencodeCommand(request),
-        request.env
+        opencodeRunEnv(request)
       ).pipe(
         Stream.mapConcatEffect(({ at, line }) =>
           Effect.gen(function* () {
