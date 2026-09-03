@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   index,
   integer,
@@ -7,6 +8,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { credentialConnection } from "../credentials/connections";
+import { evalHarnessProfile } from "./eval-harness-profiles";
 import { evalRun } from "./eval-runs";
 import { evalTask } from "./eval-tasks";
 
@@ -28,6 +30,12 @@ export const evalCell = pgTable(
     harnessCredentialRevision: integer("harness_credential_revision"),
     harnessVersion: text("harness_version").notNull(),
     model: text("model").notNull(),
+    /* Restricted like the task: a profile a cell ran under is part of what
+       the cell measured, and cannot go while the reading stands. */
+    profileInternalId: text("profile_internal_id").references(
+      () => evalHarnessProfile.internalId,
+      { onDelete: "restrict" }
+    ),
     prompt: text("prompt").notNull(),
     provider: text("provider").notNull(),
     sandboxCredentialConnectionId: text(
@@ -54,5 +62,8 @@ export const evalCell = pgTable(
       table.createdAt.desc()
     ),
     index("eval_cell_task_internal_id_idx").on(table.taskInternalId),
+    index("eval_cell_profile_internal_id_idx")
+      .on(table.profileInternalId)
+      .where(sql`"profile_internal_id" IS NOT NULL`),
   ]
 );
