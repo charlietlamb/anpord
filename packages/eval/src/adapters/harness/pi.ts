@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import type { HarnessDriverShape, RunHarness } from "../../ports/harness";
+import { instructionsPrefix } from "./instructions-file";
 import { decodePiLine } from "./pi-events";
 import { shellQuote } from "./process";
 import {
@@ -14,7 +15,7 @@ const BIN = "~/.local/bin/pi";
 
 export const piCommand = (request: RunHarness) =>
   [
-    `cd ${shellQuote(request.workspace)}`,
+    `${instructionsPrefix(request)}cd ${shellQuote(request.workspace)}`,
     "&&",
     `${BIN} --mode json --no-session --approve`,
     `--model ${shellQuote(request.model)}`,

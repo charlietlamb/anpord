@@ -22,8 +22,8 @@ export interface RunHarness {
   readonly profile: Option.Option<RequestedProfile>;
   readonly prompt: string;
   readonly sandbox: SandboxHandle;
-  /** Where the materialiser wrote the profile's system prompt, for a driver
-   * that has a flag or a variable to point at it. */
+  /** Where the materialiser left the profile's system prompt, for a base that
+   * names a file rather than taking the text. */
   readonly systemPromptPath: Option.Option<string>;
   readonly workspace: string;
 }

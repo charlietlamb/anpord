@@ -39,6 +39,7 @@ import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
+import { systemPromptPath } from "./profile-files";
 import { Suspender } from "./resumable-command";
 import { progressSink } from "./trial-progress-sink";
 import { prepareWorkspace } from "./workspace";
@@ -58,7 +59,7 @@ export interface AgentTrialRequest {
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
   readonly priorSandboxId?: string;
-  readonly profile?: RequestedProfile | null;
+  readonly profile: RequestedProfile | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
   readonly provider: ProviderName;
@@ -152,9 +153,10 @@ export const AgentTrialLive = Layer.effect(
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,
-          sandbox,
+          model: request.model,
+          profile: request.profile,
           prepare: request.prepare,
-          profile,
+          sandbox,
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
@@ -172,7 +174,7 @@ export const AgentTrialLive = Layer.effect(
           sandbox,
           systemPromptPath: profile.pipe(
             Option.filter((found) => found.systemPrompt !== null),
-            Option.map(() => `${sandbox.home}/${SYSTEM_PROMPT_PATH}`)
+            Option.map(() => systemPromptPath(sandbox.home))
           ),
           workspace: request.workspace,
         });
