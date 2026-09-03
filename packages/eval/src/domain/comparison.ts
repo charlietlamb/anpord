@@ -14,6 +14,14 @@ export interface Comparison {
   readonly verdict: Verdict;
 }
 
+/** A comparison with the one dimension that can differ between a baseline and
+ * its candidate named on it. Kept apart from `Comparison` so `compare` stays
+ * a function of two distributions and nothing else. */
+export interface VersionedComparison extends Comparison {
+  readonly baselineHarnessVersion: string;
+  readonly candidateHarnessVersion: string;
+}
+
 /** How far two pass rates must differ before the difference is a finding. */
 const MATERIAL_DELTA = 0.2;
 

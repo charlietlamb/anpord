@@ -44,9 +44,9 @@ export interface Case {
 }
 
 export interface Variant {
-  /** `codex@0.144.4`. One field, because the cell key is hashed over both and
-   * a column naming one without the other compares against a different
-   * identity. */
+  /** `codex`, or `codex@0.144.4`. The version is a note, not an identity:
+   * the server runs the version it has installed and records it on the cell,
+   * and a later release is compared against the same baseline. */
   readonly harness: string;
   readonly model: string;
   readonly name?: string;

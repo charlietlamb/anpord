@@ -178,9 +178,9 @@ const asStoredTrial = (trial: {
 /**
  * One past reading of a cell, with the trials it was computed from.
  *
- * Every reading holds the same case, setup and variant, because the cell key
- * hashes all three. Only the trials differ, which is why they travel together
- * rather than a page apart.
+ * Every reading holds the same case, setup, harness, model and provider,
+ * because the cell key hashes them. Only the trials and the harness version
+ * differ, which is why they travel together rather than a page apart.
  */
 export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
   distribution: entry.distribution,
@@ -188,6 +188,7 @@ export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
     entry.finishedAt === null
       ? null
       : DateTime.unsafeMake(entry.finishedAt.getTime()),
+  harnessVersion: entry.harnessVersion,
   internalId: entry.internalId,
   runId: entry.runId,
   trials: entry.trials.map(asStoredTrial),

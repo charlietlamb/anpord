@@ -59,7 +59,6 @@ export const runGridCell = (
     const sandboxConnectionId = input.task.bindings?.sandboxConnectionId;
     const cellKey = cellKeyOf({
       harness: input.task.harness,
-      harnessVersion: input.task.harnessVersion,
       model: input.task.model,
       provider: input.task.provider,
       taskId: input.taskPublicId,

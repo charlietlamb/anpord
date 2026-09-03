@@ -97,12 +97,13 @@ export interface RunDetail {
 export interface CellHistoryEntry {
   readonly distribution: Distribution;
   readonly finishedAt: Date | null;
+  readonly harnessVersion: string;
   readonly internalId: string;
   readonly runId: string;
   /** The rows the distribution was computed from. Carried rather than dropped:
    * a cell reads the same way on every repeat, so the readings differ only in
-   * their trials, and a screen that showed one run at a time made a reader
-   * open nine near-identical pages to compare them. */
+   * their trials and their harness version, and a screen that showed one run
+   * at a time made a reader open nine near-identical pages to compare them. */
   readonly trials: readonly TrialRow[];
 }
 
@@ -443,6 +444,7 @@ export const RunQueryLive = Layer.effect(
               byCell.get(row.cell.internalId) ?? []
             ),
             finishedAt: row.run.finishedAt,
+            harnessVersion: row.cell.harnessVersion,
             internalId: row.cell.internalId,
             runId: row.run.id,
             trials: byCell.get(row.cell.internalId) ?? [],

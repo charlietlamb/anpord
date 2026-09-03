@@ -295,7 +295,6 @@ export const GridRunLive = Layer.scoped(
                     {
                       cellKey: cellKeyOf({
                         harness: task.harness,
-                        harnessVersion: task.harnessVersion,
                         model: task.model,
                         provider: task.provider,
                         taskId: row.id,

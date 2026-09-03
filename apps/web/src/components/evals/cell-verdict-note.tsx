@@ -18,6 +18,9 @@ export function CellVerdictNote({ cell }: { readonly cell: EvalCell }) {
   const notes = [
     comparison.verdict === "incomparable" ? comparison.reason : null,
     comparison.determinismLost ? "no longer deterministic" : null,
+    comparison.baselineHarnessVersion === comparison.candidateHarnessVersion
+      ? null
+      : `harness ${comparison.baselineHarnessVersion} → ${comparison.candidateHarnessVersion}`,
   ].filter((note): note is string => note !== null);
 
   if (notes.length === 0) {

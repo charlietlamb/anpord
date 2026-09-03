@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
+import { createHash } from "node:crypto";
 import { type CellParts, cellKeyOf } from "../../src/domain/cell";
 
 const parts: CellParts = {
   harness: "codex",
-  harnessVersion: "0.144.4",
   model: "gpt-5.2",
   provider: "daytona",
   taskId: "fix-parser",
@@ -15,16 +15,25 @@ describe("cellKeyOf", () => {
     expect(cellKeyOf(parts)).toBe(cellKeyOf({ ...parts }));
   });
 
-  /* The reason harness version is in the key at all: a harness upgrade has to
-     produce a different cell, or a comparison silently keeps reporting last
-     month's answer as though it still held. */
-  it("changes when the harness version changes", () => {
-    expect(cellKeyOf({ ...parts, harnessVersion: "0.145.0" })).not.toBe(
-      cellKeyOf(parts)
-    );
+  /* The recipe is what migration 0033 recomputes in SQL, so it is pinned here:
+     sha256 over the parts joined by newline, first 32 hex characters. A change
+     to either side without the other silently splits every history. */
+  it("is the recipe the migration recomputes", () => {
+    const expected = createHash("sha256")
+      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona")
+      .digest("hex")
+      .slice(0, 32);
+
+    expect<string>(cellKeyOf(parts)).toBe(expected);
   });
 
   it("changes when the provider changes", () => {
     expect(cellKeyOf({ ...parts, provider: "e2b" })).not.toBe(cellKeyOf(parts));
+  });
+
+  it("changes when the task changes", () => {
+    expect(cellKeyOf({ ...parts, taskVersion: "def456" })).not.toBe(
+      cellKeyOf(parts)
+    );
   });
 });

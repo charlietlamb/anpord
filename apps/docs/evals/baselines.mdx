@@ -25,7 +25,9 @@ The baseline run has `comparison: null` because a cell is never compared with it
 
 ## Cell identity
 
-The cell key includes the case task, source, setup, verifier, harness, harness version, model, and sandbox provider. Changing any of them starts a new history.
+The cell key includes the case task, source, setup, verifier, harness, model, and sandbox provider. Changing any of them starts a new history.
+
+The harness version is not part of the key. Anpord records the installed version on every reading and compares across it, so a new release of the same harness is measured against the cell's baseline and the verdict names both versions.
 
 The shared prompt is not part of the key. This keeps prompt changes comparable against the same task and runtime.
 

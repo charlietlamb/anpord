@@ -2129,7 +2129,9 @@
       "EvalComparison": {
         "type": "object",
         "required": [
+          "baselineHarnessVersion",
           "baselinePassRate",
+          "candidateHarnessVersion",
           "candidatePassRate",
           "delta",
           "determinismLost",
@@ -2137,8 +2139,14 @@
           "verdict"
         ],
         "properties": {
+          "baselineHarnessVersion": {
+            "type": "string"
+          },
           "baselinePassRate": {
             "type": "number"
+          },
+          "candidateHarnessVersion": {
+            "type": "string"
           },
           "candidatePassRate": {
             "type": "number"
@@ -2687,6 +2695,7 @@
         "required": [
           "distribution",
           "finishedAt",
+          "harnessVersion",
           "internalId",
           "runId",
           "trials"
@@ -2704,6 +2713,9 @@
                 "type": "null"
               }
             ]
+          },
+          "harnessVersion": {
+            "type": "string"
           },
           "internalId": {
             "type": "string"

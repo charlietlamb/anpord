@@ -367,7 +367,12 @@ export const EvalVerdict = Schema.Literal(
 export type EvalVerdict = typeof EvalVerdict.Type;
 
 export const EvalComparison = Schema.Struct({
+  /* The harness version is the one dimension a baseline and its candidate
+     can differ on, because everything else is in the cell key. Both are
+     named so a verdict can say what changed. */
+  baselineHarnessVersion: Schema.String,
   baselinePassRate: Schema.Number,
+  candidateHarnessVersion: Schema.String,
   candidatePassRate: Schema.Number,
   delta: Schema.Number,
 
@@ -495,11 +500,15 @@ export type EvalRunPage = typeof EvalRunPage.Type;
 export const EvalCellHistoryEntry = Schema.Struct({
   distribution: EvalDistribution,
   finishedAt: Schema.NullOr(EvalTimestamp),
+  /* The one thing about a reading's variant that can differ from the last:
+     harness, model and provider are in the cell key, the version is not. */
+  harnessVersion: Schema.String,
   internalId: Schema.String,
   runId: Schema.String,
-  /* Every reading of a cell holds the same case, setup and variant -- the cell
-     key hashes all three -- so the trials are the only thing that differs
-     between them, and they belong in one table rather than one page each. */
+  /* Every reading of a cell holds the same case, setup, harness, model and
+     provider, so the trials and the harness version are the only things that
+     differ between them, and they belong in one table rather than one page
+     each. */
   trials: Schema.Array(EvalTrial),
 }).annotations({
   description: "A previous scored result for the same cell identity.",

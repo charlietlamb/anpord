@@ -147,19 +147,23 @@ export const getEvalRun = (id: string) =>
     const comparisons = yield* baselines
       .compareCells(
         actor.organizationId,
-        found.value.cells.flatMap((cell) =>
-          cell.cellKey === null ||
-          cell.internalId === null ||
-          Option.isNone(cell.distribution)
+        found.value.cells.flatMap((cell) => {
+          const task = found.value.tasks[cell.taskIndex];
+
+          return cell.cellKey === null ||
+            cell.internalId === null ||
+            task === undefined ||
+            Option.isNone(cell.distribution)
             ? []
             : [
                 {
                   cellInternalId: cell.internalId,
                   cellKey: cell.cellKey,
                   distribution: cell.distribution.value,
+                  harnessVersion: task.harnessVersion,
                 },
-              ]
-        )
+              ];
+        })
       )
       .pipe(Effect.catchTag("EvalStoreError", Effect.die));
 

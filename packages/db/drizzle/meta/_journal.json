@@ -232,6 +232,13 @@
       "when": 1788300000000,
       "tag": "0032_eval_run_name",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1788300001000,
+      "tag": "0033_cell_key_without_version",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@ import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { GridRunLive } from "./grid/run";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
+import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
@@ -29,6 +30,7 @@ import { SandboxProviderLive } from "./services/sandbox-provider";
 import { WorkbenchesLive } from "./services/workbench";
 
 export const EvalRepositoriesLive = Layer.mergeAll(
+  BaselineRepositoryLive,
   EventRepositoryLive,
   RunQueryLive,
   RunRepositoryLive,

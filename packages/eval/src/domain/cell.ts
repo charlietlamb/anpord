@@ -11,15 +11,21 @@ export type HarnessName = typeof HarnessName.Type;
 export const CellKey = Schema.String.pipe(Schema.brand("CellKey"));
 export type CellKey = typeof CellKey.Type;
 
+/** What a cell is: one case on one variant. The harness version is not part
+ * of it. A new release of the same harness is the change a baseline exists to
+ * measure, so it is recorded on each reading and compared, never hashed into
+ * the identity. */
 export interface CellParts {
   readonly harness: HarnessName;
-  readonly harnessVersion: string;
   readonly model: string;
   readonly provider: ProviderName;
   readonly taskId: string;
   readonly taskVersion: string;
 }
 
+/* Joined with a newline rather than NUL so the same key can be recomputed in
+   SQL, which is how a migration re-keys stored rows: Postgres text cannot hold
+   NUL. None of the parts can contain a newline. */
 export const cellKeyOf = (parts: CellParts): CellKey =>
   CellKey.make(
     createHash("sha256")
@@ -28,10 +34,9 @@ export const cellKeyOf = (parts: CellParts): CellKey =>
           parts.taskId,
           parts.taskVersion,
           parts.harness,
-          parts.harnessVersion,
           parts.model,
           parts.provider,
-        ].join("\0")
+        ].join("\n")
       )
       .digest("hex")
       .slice(0, 32)

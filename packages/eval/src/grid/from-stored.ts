@@ -78,7 +78,7 @@ const gridOf = (cells: readonly CellTask[]) => ({
   tasks: distinctBy(
     cells,
     (subject) =>
-      `${subject.cell.harness} ${subject.cell.harnessVersion} ${subject.cell.model} ${subject.cell.provider}`
+      `${subject.cell.harness} ${subject.cell.model} ${subject.cell.provider}`
   ),
 });
 

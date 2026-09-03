@@ -36,17 +36,31 @@ const same = (
   left.distribution.scored === right.distribution.scored &&
   left.distribution.voided === right.distribution.voided;
 
+/* A reading names its harness version only where it changed from the one
+   before, so a bar of twenty identical readings stays quiet and the one
+   release that moved the number stands out. */
+const versionOf = (
+  entry: EvalCellHistoryEntry,
+  previous: EvalCellHistoryEntry | undefined
+) =>
+  previous === undefined || previous.harnessVersion === entry.harnessVersion
+    ? ""
+    : ` · ${entry.harnessVersion}`;
+
 export const readingsOf = (
   entries: readonly EvalCellHistoryEntry[]
-): readonly Reading[] =>
-  [...entries].reverse().map((entry) => ({
+): readonly Reading[] => {
+  const ordered = [...entries].reverse();
+
+  return ordered.map((entry, index) => ({
     entry,
     title:
       entry.finishedAt === null
         ? "running"
-        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}`,
+        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionOf(entry, ordered[index - 1])}`,
     tone: toneOf(entry),
   }));
+};
 
 export const summaryOf = (readings: readonly Reading[]): string => {
   const settled = readings.filter((reading) => reading.tone !== "running");

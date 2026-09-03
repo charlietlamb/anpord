@@ -256,7 +256,9 @@ export const CELL: EvalCell = {
   cellKey: "e82b5274c0a2b4eaf3c4f11065b8f0cc",
   costs: null,
   comparison: {
+    baselineHarnessVersion: "0.144.4",
     baselinePassRate: 1,
+    candidateHarnessVersion: "0.145.0",
     candidatePassRate: 0.667,
     delta: -0.333,
     determinismLost: true,

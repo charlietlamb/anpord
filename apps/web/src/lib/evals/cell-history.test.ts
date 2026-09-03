@@ -8,7 +8,8 @@ const reading = (
   ordinal: number,
   passed: number,
   scored: number,
-  finished = true
+  finished = true,
+  harnessVersion = "0.144.4"
 ) => ({
   distribution: {
     commandMax: 2,
@@ -23,6 +24,7 @@ const reading = (
     voided: 0,
   },
   finishedAt: finished ? DateTime.unsafeMake(AT + ordinal * 3_600_000) : null,
+  harnessVersion,
   internalId: `cell_${ordinal}`,
   runId: `run_${ordinal}`,
   trials: [],
@@ -31,6 +33,24 @@ const reading = (
 const newestFirst = <A>(entries: readonly A[]) => [...entries].reverse();
 
 describe("readingsOf", () => {
+  it("names the harness version only where it changed", () => {
+    const marks = readingsOf(
+      newestFirst([
+        reading(1, 1, 1),
+        reading(2, 1, 1),
+        reading(3, 0, 1, true, "0.145.0"),
+        reading(4, 0, 1, true, "0.145.0"),
+      ])
+    );
+
+    expect(marks.map((mark) => mark.title.endsWith("0.145.0"))).toEqual([
+      false,
+      false,
+      true,
+      false,
+    ]);
+  });
+
   it("puts the oldest reading first, so left to right is time", () => {
     const marks = readingsOf(
       newestFirst([reading(1, 1, 1), reading(2, 0, 1), reading(3, 1, 1)])

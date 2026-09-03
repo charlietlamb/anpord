@@ -63,7 +63,6 @@ export const runToState = (
   for (const entry of detail.cells) {
     const taskKey = [
       entry.cell.harness,
-      entry.cell.harnessVersion,
       entry.cell.model,
       entry.cell.provider,
     ].join(" ");
@@ -82,7 +81,6 @@ export const runToState = (
   const cells = detail.cells.map((entry): GridCell => {
     const taskKey = [
       entry.cell.harness,
-      entry.cell.harnessVersion,
       entry.cell.model,
       entry.cell.provider,
     ].join(" ");

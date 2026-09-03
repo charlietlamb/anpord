@@ -1,14 +1,10 @@
-import { Database } from "@anpord/db/client";
-import { evalBaseline } from "@anpord/db/schema/evals/eval-baselines";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
-import { and, eq, inArray } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import { CellKey } from "../domain/cell";
-import { type Comparison, compare } from "../domain/comparison";
+import { compare, type VersionedComparison } from "../domain/comparison";
 import type { Distribution } from "../domain/distribution";
 import type { EvalStoreError } from "../domain/errors";
-import { tryStore } from "../repositories/query";
+import { BaselineRepository } from "../repositories/baseline-repository";
 import type { CellHistoryEntry } from "../repositories/run-query";
 import { RunQuery } from "../repositories/run-query";
 import {
@@ -25,13 +21,14 @@ export interface Baseline {
 
 export interface CellComparison {
   readonly cellKey: CellKey;
-  readonly comparison: Option.Option<Comparison>;
+  readonly comparison: Option.Option<VersionedComparison>;
 }
 
 export interface CellReading {
   readonly cellInternalId: string;
   readonly cellKey: string;
   readonly distribution: Distribution;
+  readonly harnessVersion: string;
 }
 
 export interface BaselinesShape {
@@ -69,45 +66,30 @@ export class Baselines extends Context.Tag("@anpord/eval/Baselines")<
 export const BaselinesLive = Layer.effect(
   Baselines,
   Effect.gen(function* () {
-    const db = yield* Database;
+    const baselines = yield* BaselineRepository;
     const ids = yield* IdGenerator;
     const query = yield* RunQuery;
 
     const distributionOfCell = (cellInternalId: string) =>
-      tryStore("baseline.trials", () =>
-        db
-          .select()
-          .from(evalTrial)
-          .where(eq(evalTrial.cellInternalId, cellInternalId))
-      ).pipe(Effect.map(distributionFor));
+      baselines.trialsOfCell(cellInternalId).pipe(Effect.map(distributionFor));
 
     const find = (organizationId: string, cellKey: CellKey) =>
       Effect.gen(function* () {
-        const rows = yield* tryStore("baseline.find", () =>
-          db
-            .select()
-            .from(evalBaseline)
-            .where(
-              and(
-                eq(evalBaseline.organizationId, organizationId),
-                eq(evalBaseline.cellKey, cellKey)
-              )
-            )
-        );
+        const row = yield* baselines.find(organizationId, cellKey);
 
-        const row = rows.at(0);
-
-        if (row === undefined) {
+        if (Option.isNone(row)) {
           return Option.none<Baseline>();
         }
 
-        const distribution = yield* distributionOfCell(row.cellInternalId);
+        const distribution = yield* distributionOfCell(
+          row.value.cellInternalId
+        );
 
         return Option.some({
-          cellInternalId: row.cellInternalId,
+          cellInternalId: row.value.cellInternalId,
           cellKey,
           distribution,
-          promotedAt: row.promotedAt,
+          promotedAt: row.value.promotedAt,
         } satisfies Baseline);
       }).pipe(Effect.withSpan("Baselines.find"));
 
@@ -116,26 +98,9 @@ export const BaselinesLive = Layer.effect(
       cells: readonly CellReading[]
     ) =>
       Effect.gen(function* () {
-        if (cells.length === 0) {
-          return [];
-        }
-
-        const rows = yield* tryStore("baseline.findMany", () =>
-          db
-            .select({ baseline: evalBaseline, trial: evalTrial })
-            .from(evalBaseline)
-            .innerJoin(
-              evalTrial,
-              eq(evalBaseline.cellInternalId, evalTrial.cellInternalId)
-            )
-            .where(
-              and(
-                eq(evalBaseline.organizationId, organizationId),
-                inArray(evalBaseline.cellKey, [
-                  ...new Set(cells.map((cell) => cell.cellKey)),
-                ])
-              )
-            )
+        const rows = yield* baselines.findManyWithTrials(
+          organizationId,
+          cells.map((cell) => cell.cellKey)
         );
         const byTrialCell = groupByCell(rows.map((row) => row.trial));
         const byKey = new Map(
@@ -146,6 +111,7 @@ export const BaselinesLive = Layer.effect(
               distribution: distributionFor(
                 byTrialCell.get(row.baseline.cellInternalId) ?? []
               ),
+              harnessVersion: row.harnessVersion,
             },
           ])
         );
@@ -159,9 +125,11 @@ export const BaselinesLive = Layer.effect(
               baseline === undefined ||
               baseline.cellInternalId === cell.cellInternalId
                 ? Option.none()
-                : Option.some(
-                    compare(baseline.distribution, cell.distribution)
-                  ),
+                : Option.some({
+                    ...compare(baseline.distribution, cell.distribution),
+                    baselineHarnessVersion: baseline.harnessVersion,
+                    candidateHarnessVersion: cell.harnessVersion,
+                  }),
           };
         });
       }).pipe(Effect.withSpan("Baselines.compareCells"));
@@ -181,21 +149,14 @@ export const BaselinesLive = Layer.effect(
         const internalId = yield* ids.generate("evalBaseline");
         const promotedAt = new Date(yield* Clock.currentTimeMillis);
 
-        yield* tryStore("baseline.promoteIfAbsent", () =>
-          db
-            .insert(evalBaseline)
-            .values({
-              cellInternalId: input.cellInternalId,
-              cellKey: input.cellKey,
-              internalId,
-              organizationId: input.organizationId,
-              promotedAt,
-              promotedBy: null,
-            })
-            .onConflictDoNothing({
-              target: [evalBaseline.organizationId, evalBaseline.cellKey],
-            })
-        );
+        yield* baselines.insertIfAbsent({
+          cellInternalId: input.cellInternalId,
+          cellKey: input.cellKey,
+          internalId,
+          organizationId: input.organizationId,
+          promotedAt,
+          promotedBy: null,
+        });
       }).pipe(
         Effect.withSpan("Baselines.promoteIfAbsent"),
         Effect.annotateLogs({
@@ -218,6 +179,7 @@ export const BaselinesLive = Layer.effect(
             cellInternalId: cell.cell.internalId,
             cellKey: cell.cell.cellKey,
             distribution: cell.distribution,
+            harnessVersion: cell.cell.harnessVersion,
           }))
         );
       }).pipe(Effect.withSpan("Baselines.compareRun"));
