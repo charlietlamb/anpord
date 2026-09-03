@@ -7,12 +7,14 @@ import {
   EventRepository,
   EventRepositoryLive,
 } from "../../src/repositories/event-repository";
+import { JournalArchiveLive } from "../../src/repositories/journal-archive";
 import { skipWithoutDatabase } from "../fixtures/database";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
 const TestLayer = EventRepositoryLive.pipe(
   Layer.provide(IdGeneratorLive),
+  Layer.provide(JournalArchiveLive),
   Layer.provideMerge(DatabaseLive),
   Layer.provide(
     Layer.succeed(DatabaseConfig, {

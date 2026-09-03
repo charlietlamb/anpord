@@ -1,43 +1,14 @@
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { IdGenerator } from "@anpord/ids/id";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, inArray } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import type { HarnessEvent } from "../domain/harness-event";
 import { momentOf } from "../domain/harness-event";
+import { groupByTrial } from "./event-row";
+import { JournalArchive } from "./journal-archive";
 import { tryStore } from "./query";
-
-type EventRow = typeof evalEvent.$inferSelect;
-
-const withTiming = (row: EventRow): HarnessEvent => {
-  const payload = row.payload as HarnessEvent;
-
-  if (row.occurredAt === null) {
-    return payload;
-  }
-
-  const at = row.occurredAt.getTime();
-
-  return payload._tag === "Command" && row.startedAt !== null
-    ? { ...payload, at, startedAt: row.startedAt.getTime() }
-    : { ...payload, at };
-};
-
-const groupByTrial = (
-  rows: readonly EventRow[]
-): ReadonlyMap<string, readonly HarnessEvent[]> => {
-  const grouped = new Map<string, HarnessEvent[]>();
-
-  for (const row of rows) {
-    const journal = grouped.get(row.trialInternalId) ?? [];
-
-    journal.push(withTiming(row));
-    grouped.set(row.trialInternalId, journal);
-  }
-
-  return grouped;
-};
 
 export interface AppendEvents {
   readonly events: readonly HarnessEvent[];
@@ -48,9 +19,6 @@ export interface EventRepositoryShape {
   readonly append: (
     input: AppendEvents
   ) => Effect.Effect<number, EvalStoreError>;
-  readonly listByTrial: (
-    trialInternalId: string
-  ) => Effect.Effect<readonly EventRow[], EvalStoreError>;
 
   readonly listByTrials: (
     trialInternalIds: readonly string[]
@@ -69,6 +37,7 @@ export const EventRepositoryLive = Layer.effect(
   Effect.gen(function* () {
     const db = yield* Database;
     const ids = yield* IdGenerator;
+    const archive = yield* JournalArchive;
 
     const append = (input: AppendEvents) =>
       Effect.gen(function* () {
@@ -104,36 +73,34 @@ export const EventRepositoryLive = Layer.effect(
         })
       );
 
+    /* A trial with no rows may have been compacted rather than never
+       journalled, so the archive is asked about those before an id is
+       reported absent. Only those: a hot journal never has an archive. */
     const listByTrials = (trialInternalIds: readonly string[]) =>
-      trialInternalIds.length === 0
-        ? Effect.succeed(
-            new Map<string, readonly HarnessEvent[]>() as ReadonlyMap<
-              string,
-              readonly HarnessEvent[]
-            >
-          )
-        : tryStore("event.listByTrials", () =>
-            db
-              .select()
-              .from(evalEvent)
-              .where(inArray(evalEvent.trialInternalId, [...trialInternalIds]))
-              .orderBy(asc(evalEvent.seq))
-          ).pipe(
-            Effect.map(groupByTrial),
-            Effect.withSpan("EventRepository.listByTrials")
-          );
+      Effect.gen(function* () {
+        if (trialInternalIds.length === 0) {
+          return new Map<string, readonly HarnessEvent[]>();
+        }
 
-    return EventRepository.of({
-      append,
-      listByTrials,
-      listByTrial: (trialInternalId) =>
-        tryStore("event.listByTrial", () =>
+        const rows = yield* tryStore("event.listByTrials", () =>
           db
             .select()
             .from(evalEvent)
-            .where(eq(evalEvent.trialInternalId, trialInternalId))
+            .where(inArray(evalEvent.trialInternalId, [...trialInternalIds]))
             .orderBy(asc(evalEvent.seq))
-        ).pipe(Effect.withSpan("EventRepository.listByTrial")),
-    });
+        );
+        const hot = groupByTrial(rows);
+        const cold = trialInternalIds.filter((id) => !hot.has(id));
+
+        if (cold.length === 0) {
+          return hot;
+        }
+
+        const archived = yield* archive.findByTrials(cold);
+
+        return new Map([...hot, ...archived]);
+      }).pipe(Effect.withSpan("EventRepository.listByTrials"));
+
+    return EventRepository.of({ append, listByTrials });
   })
 );

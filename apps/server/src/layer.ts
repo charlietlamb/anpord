@@ -25,6 +25,7 @@ import {
   EvalModelCatalogueLive,
   EvalSandboxLive,
   evalGridWith,
+  JournalRetentionSweepLive,
   ReconcilerSweepLive,
 } from "@anpord/eval/layer";
 import { IdGeneratorLive } from "@anpord/ids/layer";
@@ -105,6 +106,7 @@ const EvalLayer = Layer.mergeAll(
   ),
 
   ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
+  JournalRetentionSweepLive.pipe(Layer.provide(DatabaseLayer)),
   EvalCredentialsLive.pipe(Layer.provide(BunContext.layer)),
   EvalHarnessVersionsLive,
 

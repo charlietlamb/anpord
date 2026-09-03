@@ -1,5 +1,6 @@
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
+import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
 import { and, eq, sql } from "drizzle-orm";
@@ -153,6 +154,12 @@ export const TrialRecorderLive = Layer.effect(
           db
             .delete(evalEvent)
             .where(eq(evalEvent.trialInternalId, trialInternalId))
+        );
+
+        yield* tryStore("trial.clearArchive", () =>
+          db
+            .delete(evalTrialJournal)
+            .where(eq(evalTrialJournal.trialInternalId, trialInternalId))
         );
 
         return trialInternalId;

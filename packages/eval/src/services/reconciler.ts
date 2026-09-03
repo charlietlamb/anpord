@@ -170,7 +170,7 @@ export const ReconcilerLive = Layer.effect(
 const EMPTY_AFTER = Duration.minutes(5);
 
 const ABANDONED_AFTER = Duration.hours(6);
-const SWEEP_EVERY = Duration.minutes(30);
+export const SWEEP_EVERY = Duration.minutes(30);
 
 export const ReconcilerScheduleLive = Layer.scopedDiscard(
   Effect.gen(function* () {

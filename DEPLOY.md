@@ -62,6 +62,7 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `VERCEL_TOKEN` | *secret*. Same, for Vercel Sandbox, which also needs the two below |
 | `VERCEL_TEAM_ID` | Identifier rather than a secret |
 | `VERCEL_PROJECT_ID` | Identifier rather than a secret |
+| `EVAL_JOURNAL_HOT` | Defaults to `30 days`. How long a settled trial keeps one row per event before the journal is folded into one; the run page reads either |
 | `AUTUMN_API_KEY` | *secret*. Without it usage goes uncounted, since the meter fails open |
 | `GITHUB_APP_PRIVATE_KEY` | *secret*. The `.pem` GitHub issued, whole. `./scripts/configure-github-app.sh` puts all three on the service |
 | `HOST` | `0.0.0.0` — already set in the image |

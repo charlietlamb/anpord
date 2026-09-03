@@ -10,6 +10,7 @@ import { GridRunLive } from "./grid/run";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
+import { JournalArchiveLive } from "./repositories/journal-archive";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
 import { TaskRepositoryLive } from "./repositories/task-repository";
@@ -20,6 +21,7 @@ import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { CellRerunsLive } from "./services/cell-rerun";
 import { HarnessVersionsLive } from "./services/harness-versions";
+import { JournalRetentionScheduleLive } from "./services/journal-retention";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
 import {
@@ -38,7 +40,7 @@ export const EvalRepositoriesLive = Layer.mergeAll(
   TrialCostRepositoryLive,
   TrialRecorderLive,
   WorkbenchRepositoryLive
-).pipe(Layer.provide(IdGeneratorLive));
+).pipe(Layer.provide(IdGeneratorLive), Layer.provide(JournalArchiveLive));
 
 export const EvalSandboxLive = SandboxProviderLive.pipe(
   Layer.provide(SandboxAdaptersLive)
@@ -102,4 +104,8 @@ export const EvalHarnessVersionsLive = HarnessVersionsLive;
 
 export const ReconcilerSweepLive = ReconcilerScheduleLive.pipe(
   Layer.provide(ReconcilerLive)
+);
+
+export const JournalRetentionSweepLive = JournalRetentionScheduleLive.pipe(
+  Layer.provide(JournalArchiveLive)
 );
