@@ -176,6 +176,8 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     expect(seen.settled[0]?.passed).toBe(true);
 
     expect(seen.settled[0]?.usage).toEqual({
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
       inputTokens: 120,
       outputTokens: 40,
       totalTokens: 160,

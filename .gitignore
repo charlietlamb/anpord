@@ -34,3 +34,6 @@ apps/sandbox-lab/.sessions/
 .secrets/
 *.pem
 
+
+# Agent worktrees are checkouts of this repo, not files in it
+.claude/worktrees/

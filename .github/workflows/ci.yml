@@ -47,6 +47,26 @@ jobs:
 
   check:
     runs-on: ubuntu-latest
+    # The unit suite's database-backed tests skip without a database, and
+    # skipped silently for months. EVAL_REQUIRE_DATABASE turns that skip into
+    # a failure, and the service below gives them somewhere to run.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: anpord_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-retries 10
+          --health-timeout 5s
+    env:
+      EVAL_REQUIRE_DATABASE: "1"
+      EVAL_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/anpord_test
     steps:
       - uses: actions/checkout@v4
 
@@ -59,6 +79,13 @@ jobs:
       # The route tree and the SDK's entry points are generated, so both the
       # linter's import resolution and typecheck need a build to have run.
       - run: bun run build
+
+      # The real journal, so a migration that cannot apply from nothing fails
+      # here rather than by hand against production.
+      - name: Migrate the test database
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: ${{ env.EVAL_TEST_DATABASE_URL }}
 
       - run: bun run check
       - run: bun run typecheck

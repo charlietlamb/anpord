@@ -23,6 +23,7 @@
     },
     "test": {
       "dependsOn": ["build"],
+      "env": ["EVAL_REQUIRE_DATABASE", "EVAL_TEST_DATABASE_URL"],
       "outputs": []
     },
     "typecheck": {
