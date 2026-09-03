@@ -26,6 +26,7 @@ const reading = (
   finishedAt: finished ? DateTime.unsafeMake(AT + ordinal * 3_600_000) : null,
   harnessVersion,
   internalId: `cell_${ordinal}`,
+  profileVersion: null,
   runId: `run_${ordinal}`,
   trials: [],
 });

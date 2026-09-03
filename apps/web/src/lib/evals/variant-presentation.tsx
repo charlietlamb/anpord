@@ -25,7 +25,7 @@ import {
   ZaiMark,
 } from "@anpord/ui/components/brand/provider-marks";
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { CpuIcon } from "@phosphor-icons/react";
+import { CpuIcon, TerminalWindowIcon } from "@phosphor-icons/react";
 
 interface Presentation {
   readonly Icon: RailIcon;
@@ -35,6 +35,9 @@ interface Presentation {
 const HARNESSES: Record<EvalHarness, Presentation> = {
   claude: { Icon: AnthropicMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
+  /* No vendor mark: the process is the customer's own, and what it runs is
+     named by the profile beside it rather than by a harness anybody ships. */
+  command: { Icon: TerminalWindowIcon, label: "Command" },
   cursor: { Icon: CursorMark, label: "Cursor" },
   /* Vercel Labs ships it, and fx.sh credits them; the gateway key it takes
      is a Vercel key too. */
