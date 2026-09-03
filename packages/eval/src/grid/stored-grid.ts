@@ -1,4 +1,4 @@
-import type { CellTask } from "../repositories/run-query";
+import type { CellTask } from "../repositories/run-tasks-query";
 
 const distinctBy = <A>(
   subjects: readonly A[],

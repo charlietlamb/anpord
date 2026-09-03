@@ -66,6 +66,7 @@
     "./adapters/runner/trigger-suspender": "./src/adapters/runner/trigger-suspender.ts",
     "./adapters/runner/trigger": "./src/adapters/runner/trigger.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
+    "./repositories/cell-history-query": "./src/repositories/cell-history-query.ts",
     "./repositories/run-query": "./src/repositories/run-query.ts",
     "./sdk/define": "./src/sdk/define.ts",
     "./sdk/evidence": "./src/sdk/evidence.ts",

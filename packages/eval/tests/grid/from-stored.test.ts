@@ -4,7 +4,8 @@ import type { CredentialResolverShape } from "../../src/credentials/connections"
 import { caseFrom, taskFrom } from "../../src/grid/from-stored";
 import { rebuildRun } from "../../src/grid/rebuild-run";
 import type { GridRunShape, ResumeGrid } from "../../src/grid/run";
-import type { CellTask, RunQueryShape } from "../../src/repositories/run-query";
+import type { RunQueryShape } from "../../src/repositories/run-query";
+import type { CellTask } from "../../src/repositories/run-tasks-query";
 
 const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
   ({

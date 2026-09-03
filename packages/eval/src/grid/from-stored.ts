@@ -1,5 +1,5 @@
 import type { HarnessName, ProviderName } from "../domain/cell";
-import type { CellTask } from "../repositories/run-query";
+import type { CellTask } from "../repositories/run-tasks-query";
 import type { GridCase } from "./cell";
 
 const pairOf = (

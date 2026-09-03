@@ -5,7 +5,7 @@ import { compare, type VersionedComparison } from "../domain/comparison";
 import type { Distribution } from "../domain/distribution";
 import type { EvalStoreError } from "../domain/errors";
 import { BaselineRepository } from "../repositories/baseline-repository";
-import type { CellHistoryEntry } from "../repositories/run-query";
+import type { CellHistoryEntry } from "../repositories/cell-history-query";
 import { RunQuery } from "../repositories/run-query";
 import {
   distributionFor,

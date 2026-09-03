@@ -7,7 +7,7 @@ import {
 } from "@anpord/eval/domain/journal";
 import { costsOf, rollUp } from "@anpord/eval/domain/trial-cost";
 import type { GridCell, GridRunState } from "@anpord/eval/grid/state";
-import type { CellHistoryEntry } from "@anpord/eval/repositories/run-query";
+import type { CellHistoryEntry } from "@anpord/eval/repositories/cell-history-query";
 import type { CellComparison } from "@anpord/eval/services/baselines";
 import type {
   EvalCell,

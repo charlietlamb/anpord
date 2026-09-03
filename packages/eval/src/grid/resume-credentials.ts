@@ -4,7 +4,7 @@ import type { CredentialResolverShape } from "../credentials/connections";
 import { resolveTaskCredentials } from "../credentials/tasks";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { NotRunnable } from "../domain/errors";
-import type { CellTask } from "../repositories/run-query";
+import type { CellTask } from "../repositories/run-tasks-query";
 import { taskFrom } from "./from-stored";
 import type { GridExecutionTask } from "./state";
 

@@ -1,134 +1,22 @@
-import { Database } from "@anpord/db/client";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
-import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, count, desc, eq, inArray, lt, or, type SQL } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
-import type { CellKey } from "../domain/cell";
-import type { Distribution } from "../domain/distribution";
+import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
+import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
-import type { PageCursor } from "../domain/page";
-import type { WorkspaceSource } from "../domain/workspace-source";
-import { head, tryStore } from "./query";
-import { distributionFor, groupByCell } from "./trial-distribution";
+import {
+  type CellHistoryEntry,
+  type CellHistoryInput,
+  cellHistoryQuery,
+} from "./cell-history-query";
+import type { RunDetail } from "./run-detail";
+import { runDetailQuery } from "./run-detail-query";
+import { type ListRunsInput, runListQuery } from "./run-list-query";
+import {
+  type CellTask,
+  type CellTaskInput,
+  type RunTasksInput,
+  runTasksQuery,
+} from "./run-tasks-query";
 
-type CellRow = typeof evalCell.$inferSelect;
-type TaskSource = Pick<
-  typeof evalTask.$inferSelect,
-  "repoRef" | "repoUrl" | "sourceFiles" | "sourceKind"
->;
-
-const sourceOf = (row: TaskSource): WorkspaceSource | null => {
-  if (row.sourceKind === "empty") {
-    return { kind: "empty" };
-  }
-
-  if (row.sourceKind === "files" && row.sourceFiles !== null) {
-    return { files: row.sourceFiles, kind: "files" };
-  }
-
-  if (row.sourceKind === "repo" && row.repoUrl !== null) {
-    return { kind: "repo", ref: row.repoRef, url: row.repoUrl };
-  }
-
-  return null;
-};
-
-export interface CellTask {
-  readonly cacheKey: string | null;
-  readonly cachePath: string | null;
-  readonly cell: CellRow;
-  readonly identity: string;
-  readonly name: string;
-  readonly prepareName: string | null;
-  readonly prepareSource: string | null;
-  readonly prompt: string;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
-  readonly runName: string | null;
-  readonly source: WorkspaceSource | null;
-  readonly validatorName?: string | null;
-  readonly validatorSource?: string | null;
-  readonly verifyCommand: string | null;
-}
 type RunRow = typeof evalRun.$inferSelect;
-type TrialRow = typeof evalTrial.$inferSelect;
-type CostRow = typeof evalTrialCost.$inferSelect;
-
-/** A trial as a reader sees it: the row, and what each layer of it cost. */
-export interface TrialWithCosts extends TrialRow {
-  readonly costs: readonly CostRow[];
-}
-interface CellTaskRow {
-  readonly caseName: string;
-  readonly cell: CellRow;
-  readonly prepareName: string | null;
-  readonly prompt: string;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
-  readonly validatorName: string | null;
-  readonly verifyCommand: string | null;
-  readonly workspace: string;
-}
-
-interface CellWithTrials {
-  readonly caseName: string;
-  readonly cell: CellRow;
-  readonly distribution: Distribution;
-  readonly prepareName: string | null;
-
-  readonly prompt: string;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
-  readonly trials: readonly TrialWithCosts[];
-
-  readonly validatorName: string | null;
-  readonly verifyCommand: string | null;
-  readonly workspace: string;
-}
-
-export interface RunDetail {
-  readonly cells: readonly CellWithTrials[];
-  readonly run: RunRow;
-}
-
-export interface CellHistoryEntry {
-  readonly distribution: Distribution;
-  readonly finishedAt: Date | null;
-  readonly harnessVersion: string;
-  readonly internalId: string;
-  readonly runId: string;
-  /** The rows the distribution was computed from. Carried rather than dropped:
-   * a cell reads the same way on every repeat, so the readings differ only in
-   * their trials and their harness version, and a screen that showed one run
-   * at a time made a reader open nine near-identical pages to compare them. */
-  readonly trials: readonly TrialRow[];
-}
-
-/**
- * Rows strictly older than where the last page ended.
- *
- * Keyset rather than offset: an offset counts rows the database has already
- * discarded, so page fifty reads fifty pages to return one, and a run started
- * while somebody reads shifts every page after it. A cursor names a position,
- * so it costs the same at page fifty as at page one and cannot skip a row.
- *
- * The id breaks the tie on the timestamp. Two runs started in the same
- * millisecond are ordered by nothing otherwise, and a cursor that cannot tell
- * them apart repeats one of them or loses it.
- */
-const cursorBefore = (cursor: PageCursor | null) =>
-  cursor === null
-    ? undefined
-    : or(
-        lt(evalRun.createdAt, new Date(cursor.startedAtMillis)),
-        and(
-          eq(evalRun.createdAt, new Date(cursor.startedAtMillis)),
-          lt(evalRun.id, cursor.id)
-        )
-      );
 
 export interface RunQueryShape {
   /** How many runs the organization has, for a reader who wants to know how
@@ -137,36 +25,26 @@ export interface RunQueryShape {
   readonly countRuns: (
     organizationId: string
   ) => Effect.Effect<number, EvalStoreError>;
-  readonly findCellHistory: (input: {
-    readonly cellKey: CellKey;
-    readonly limit: number;
-    readonly organizationId: string;
-  }) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
-  readonly findCellTask: (input: {
-    readonly cellKey: string;
-    readonly organizationId: string;
-    readonly runId: string;
-  }) => Effect.Effect<Option.Option<CellTask>, EvalStoreError>;
+  readonly findCellHistory: (
+    input: CellHistoryInput
+  ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
+  readonly findCellTask: (
+    input: CellTaskInput
+  ) => Effect.Effect<Option.Option<CellTask>, EvalStoreError>;
   readonly findRun: (
     organizationId: string,
     runId: string
   ) => Effect.Effect<Option.Option<RunDetail>, EvalStoreError>;
 
-  readonly findRunTasks: (input: {
-    readonly organizationId: string;
-    readonly runId: string;
-  }) => Effect.Effect<readonly CellTask[], EvalStoreError>;
+  readonly findRunTasks: (
+    input: RunTasksInput
+  ) => Effect.Effect<readonly CellTask[], EvalStoreError>;
   readonly hydrateRuns: (
     runs: readonly RunRow[]
   ) => Effect.Effect<readonly RunDetail[], EvalStoreError>;
-  readonly listRuns: (input: {
-    /** Null on the first page. Names where the last one ended rather than how
-     * many rows to skip, so a run started between two fetches cannot shift a
-     * page under a reader. */
-    readonly cursor: PageCursor | null;
-    readonly limit: number;
-    readonly organizationId: string;
-  }) => Effect.Effect<readonly RunRow[], EvalStoreError>;
+  readonly listRuns: (
+    input: ListRunsInput
+  ) => Effect.Effect<readonly RunRow[], EvalStoreError>;
 }
 
 export class RunQuery extends Context.Tag("@anpord/eval/RunQuery")<
@@ -177,311 +55,19 @@ export class RunQuery extends Context.Tag("@anpord/eval/RunQuery")<
 export const RunQueryLive = Layer.effect(
   RunQuery,
   Effect.gen(function* () {
-    const db = yield* Database;
-
-    const trialsForCells = (cellIds: readonly string[]) =>
-      cellIds.length === 0
-        ? Effect.succeed([] as readonly TrialRow[])
-        : tryStore("runQuery.trials", () =>
-            db
-              .select()
-              .from(evalTrial)
-              .where(inArray(evalTrial.cellInternalId, [...cellIds]))
-          );
-
-    const costsForTrials = (trialIds: readonly string[]) =>
-      trialIds.length === 0
-        ? Effect.succeed([] as readonly CostRow[])
-        : tryStore("runQuery.trialCosts", () =>
-            db
-              .select()
-              .from(evalTrialCost)
-              .where(inArray(evalTrialCost.trialInternalId, [...trialIds]))
-          );
-
-    /* Kept as stored rather than summed here: a caller that wants a total
-       chooses which basis it is totalling, and one that wants to show the
-       layers needs them apart. Summing at the seam would decide both. */
-    const groupCosts = (rows: readonly CostRow[]) =>
-      Map.groupBy(rows, (row) => row.trialInternalId);
-
-    const detailOf = (
-      run: RunRow,
-      cells: readonly CellTaskRow[],
-      trialsByCell: ReadonlyMap<string, readonly TrialRow[]>,
-      costsByTrial: ReadonlyMap<string, readonly CostRow[]>
-    ): RunDetail => ({
-      cells: cells.map((row) => {
-        const own = (trialsByCell.get(row.cell.internalId) ?? []).toSorted(
-          (left, right) => left.ordinal - right.ordinal
-        );
-
-        return {
-          caseName: row.caseName,
-          cell: row.cell,
-          distribution: distributionFor(own),
-          prompt: row.prompt,
-          repoRef: row.repoRef,
-          repoUrl: row.repoUrl,
-          prepareName: row.prepareName,
-          trials: own.map((trial) => ({
-            ...trial,
-            costs: costsByTrial.get(trial.internalId) ?? [],
-          })),
-          validatorName: row.validatorName,
-          verifyCommand: row.verifyCommand,
-          workspace: row.workspace,
-        };
-      }),
-      run,
-    });
-
-    const hydrateRuns = (runs: readonly RunRow[]) =>
-      Effect.gen(function* () {
-        if (runs.length === 0) {
-          return [];
-        }
-
-        const cells = yield* tryStore("runQuery.cells", () =>
-          db
-            .select({
-              caseName: evalTask.name,
-              cell: evalCell,
-              prompt: evalCell.prompt,
-              repoRef: evalTask.repoRef,
-              repoUrl: evalTask.repoUrl,
-              prepareName: evalTask.prepareName,
-              prepareSource: evalTask.prepareSource,
-              validatorName: evalTask.validatorName,
-              verifyCommand: evalTask.verifyCommand,
-              workspace: evalTask.workspace,
-            })
-            .from(evalCell)
-            .innerJoin(
-              evalTask,
-              eq(evalCell.taskInternalId, evalTask.internalId)
-            )
-            .where(
-              inArray(
-                evalCell.runInternalId,
-                runs.map((run) => run.internalId)
-              )
-            )
-        );
-
-        const trials = yield* trialsForCells(
-          cells.map((row) => row.cell.internalId)
-        );
-        const costs = yield* costsForTrials(
-          trials.map((trial) => trial.internalId)
-        );
-        const cellsByRun = Map.groupBy(cells, (row) => row.cell.runInternalId);
-        const trialsByCell = groupByCell(trials);
-        const costsByTrial = groupCosts(costs);
-
-        return runs.map((run) =>
-          detailOf(
-            run,
-            cellsByRun.get(run.internalId) ?? [],
-            trialsByCell,
-            costsByTrial
-          )
-        );
-      }).pipe(Effect.withSpan("RunQuery.hydrateRuns"));
-
-    const findRun = (organizationId: string, runId: string) =>
-      Effect.gen(function* () {
-        const { cells, found } = yield* Effect.all(
-          {
-            cells: tryStore("runQuery.cells", () =>
-              db
-                .select({
-                  caseName: evalTask.name,
-                  cell: evalCell,
-                  prompt: evalCell.prompt,
-                  repoRef: evalTask.repoRef,
-                  repoUrl: evalTask.repoUrl,
-                  prepareName: evalTask.prepareName,
-                  validatorName: evalTask.validatorName,
-                  verifyCommand: evalTask.verifyCommand,
-                  workspace: evalTask.workspace,
-                })
-                .from(evalCell)
-                .innerJoin(
-                  evalTask,
-                  eq(evalCell.taskInternalId, evalTask.internalId)
-                )
-                .innerJoin(
-                  evalRun,
-                  eq(evalCell.runInternalId, evalRun.internalId)
-                )
-                .where(
-                  and(
-                    eq(evalRun.organizationId, organizationId),
-                    eq(evalRun.id, runId)
-                  )
-                )
-            ),
-            found: tryStore("runQuery.findRun", () =>
-              db
-                .select()
-                .from(evalRun)
-                .where(
-                  and(
-                    eq(evalRun.organizationId, organizationId),
-                    eq(evalRun.id, runId)
-                  )
-                )
-            ).pipe(Effect.map(head)),
-          },
-          { concurrency: "unbounded" }
-        );
-
-        if (Option.isNone(found)) {
-          return Option.none<RunDetail>();
-        }
-
-        const trials = yield* trialsForCells(
-          cells.map((row) => row.cell.internalId)
-        );
-
-        const costs = yield* costsForTrials(
-          trials.map((trial) => trial.internalId)
-        );
-
-        return Option.some(
-          detailOf(found.value, cells, groupByCell(trials), groupCosts(costs))
-        );
-      }).pipe(Effect.withSpan("RunQuery.findRun"));
-
-    const cellTasksWhere = (condition: SQL | undefined) =>
-      tryStore("runQuery.cellTasks", () =>
-        db
-          .select(CELL_TASK_COLUMNS)
-          .from(evalCell)
-          .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
-          .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
-          .where(condition)
-      ).pipe(
-        Effect.map((rows) =>
-          rows.map((row): CellTask => ({ ...row, source: sourceOf(row) }))
-        )
-      );
-
-    const findRunTasks = (input: {
-      readonly organizationId: string;
-      readonly runId: string;
-    }) =>
-      cellTasksWhere(
-        and(
-          eq(evalRun.id, input.runId),
-          eq(evalRun.organizationId, input.organizationId)
-        )
-      ).pipe(Effect.withSpan("RunQuery.findRunTasks"));
-
-    const findCellTask = (input: {
-      readonly cellKey: string;
-      readonly organizationId: string;
-      readonly runId: string;
-    }) =>
-      cellTasksWhere(
-        and(
-          eq(evalCell.cellKey, input.cellKey),
-          eq(evalRun.id, input.runId),
-          eq(evalRun.organizationId, input.organizationId)
-        )
-      ).pipe(Effect.map(head), Effect.withSpan("RunQuery.findCellTask"));
-
-    const CELL_TASK_COLUMNS = {
-      cacheKey: evalTask.cacheKey,
-      cachePath: evalTask.cachePath,
-      cell: evalCell,
-      identity: evalTask.id,
-      name: evalTask.name,
-      prepareName: evalTask.prepareName,
-      prepareSource: evalTask.prepareSource,
-      prompt: evalCell.prompt,
-      repoRef: evalTask.repoRef,
-      repoUrl: evalTask.repoUrl,
-      runName: evalRun.name,
-      sourceFiles: evalTask.sourceFiles,
-      sourceKind: evalTask.sourceKind,
-      validatorName: evalTask.validatorName,
-      validatorSource: evalTask.validatorSource,
-      verifyCommand: evalTask.verifyCommand,
-    };
-
-    const findCellHistory = (input: {
-      readonly cellKey: CellKey;
-      readonly limit: number;
-      readonly organizationId: string;
-    }) =>
-      Effect.gen(function* () {
-        const cells = yield* tryStore("runQuery.history", () =>
-          db
-            .select({ cell: evalCell, run: evalRun })
-            .from(evalCell)
-            .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
-            .where(
-              and(
-                eq(evalCell.cellKey, input.cellKey),
-                eq(evalRun.organizationId, input.organizationId)
-              )
-            )
-            .orderBy(desc(evalCell.createdAt))
-            .limit(input.limit)
-        );
-
-        const trials = yield* trialsForCells(
-          cells.map((row) => row.cell.internalId)
-        );
-
-        const byCell = groupByCell(trials);
-
-        return cells.map(
-          (row): CellHistoryEntry => ({
-            distribution: distributionFor(
-              byCell.get(row.cell.internalId) ?? []
-            ),
-            finishedAt: row.run.finishedAt,
-            harnessVersion: row.cell.harnessVersion,
-            internalId: row.cell.internalId,
-            runId: row.run.id,
-            trials: byCell.get(row.cell.internalId) ?? [],
-          })
-        );
-      }).pipe(Effect.withSpan("RunQuery.findCellHistory"));
+    const list = yield* runListQuery;
+    const detail = yield* runDetailQuery;
+    const history = yield* cellHistoryQuery;
+    const tasks = yield* runTasksQuery;
 
     return RunQuery.of({
-      countRuns: (organizationId) =>
-        tryStore("runQuery.countRuns", () =>
-          db
-            .select({ total: count() })
-            .from(evalRun)
-            .where(eq(evalRun.organizationId, organizationId))
-        ).pipe(
-          Effect.map((rows) => rows[0]?.total ?? 0),
-          Effect.withSpan("RunQuery.countRuns")
-        ),
-      findCellHistory,
-      findCellTask,
-      findRunTasks,
-      findRun,
-      hydrateRuns,
-      listRuns: (input) =>
-        tryStore("runQuery.listRuns", () =>
-          db
-            .select()
-            .from(evalRun)
-            .where(
-              and(
-                eq(evalRun.organizationId, input.organizationId),
-                cursorBefore(input.cursor)
-              )
-            )
-            .orderBy(desc(evalRun.createdAt), desc(evalRun.id))
-            .limit(input.limit + 1)
-        ).pipe(Effect.withSpan("RunQuery.listRuns")),
+      countRuns: list.countRuns,
+      findCellHistory: history.findCellHistory,
+      findCellTask: tasks.findCellTask,
+      findRunTasks: tasks.findRunTasks,
+      findRun: detail.findRun,
+      hydrateRuns: detail.hydrateRuns,
+      listRuns: list.listRuns,
     });
   })
 );

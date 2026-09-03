@@ -4,7 +4,8 @@ import { Effect, Layer, Option, Stream } from "effect";
 import { layerTestResolver } from "../credentials/connections";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { GridRun, type StartGrid } from "../grid/run";
-import { type CellTask, RunQuery } from "../repositories/run-query";
+import { RunQuery } from "../repositories/run-query";
+import type { CellTask } from "../repositories/run-tasks-query";
 import { make } from "./cell-rerun";
 
 const cellTask = (source: WorkspaceSource | null): CellTask => ({
