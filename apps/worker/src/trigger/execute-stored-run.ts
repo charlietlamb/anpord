@@ -1,5 +1,5 @@
 import { CredentialResolver } from "@anpord/eval/credentials/connections";
-import { rebuildRun } from "@anpord/eval/grid/from-stored";
+import { rebuildRun } from "@anpord/eval/grid/rebuild-run";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { telemetryFor } from "@anpord/eval/telemetry";

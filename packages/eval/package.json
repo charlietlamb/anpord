@@ -56,7 +56,7 @@
     "./domain/playground-config": "./src/domain/playground-config.ts",
     "./domain/trial": "./src/domain/trial.ts",
     "./domain/workspace-source": "./src/domain/workspace-source.ts",
-    "./grid/from-stored": "./src/grid/from-stored.ts",
+    "./grid/rebuild-run": "./src/grid/rebuild-run.ts",
     "./grid/run": "./src/grid/run.ts",
     "./grid/state": "./src/grid/state.ts",
     "./layer": "./src/layer.ts",

@@ -1,6 +1,6 @@
 import { CredentialResolver } from "@anpord/eval/credentials/connections";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
-import { rebuildRun } from "@anpord/eval/grid/from-stored";
+import { rebuildRun } from "@anpord/eval/grid/rebuild-run";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";

@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Option, Redacted } from "effect";
 import type { CredentialResolverShape } from "../../src/credentials/connections";
-import { caseFrom, rebuildRun, taskFrom } from "../../src/grid/from-stored";
+import { caseFrom, taskFrom } from "../../src/grid/from-stored";
+import { rebuildRun } from "../../src/grid/rebuild-run";
 import type { GridRunShape, ResumeGrid } from "../../src/grid/run";
 import type { CellTask, RunQueryShape } from "../../src/repositories/run-query";
 
