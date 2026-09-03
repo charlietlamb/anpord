@@ -53,8 +53,6 @@ export interface AgentTrialRequest {
   readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
-  /** A sandbox an earlier attempt of this trial left behind. Destroyed before
-   * a new one opens, so a trial never holds two. */
   readonly priorSandboxId?: string;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
@@ -94,8 +92,7 @@ export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<
   AgentTrialShape
 >() {}
 
-/* A journal with a hole in it cannot support a verdict: the command count and
-   the determinism reading both come from it. Void, with the field named. */
+/* A journal with a hole in it cannot support a verdict. */
 const voided = (outcome: TrialOutcome): TrialOutcome => ({
   ...outcome,
   passed: false,

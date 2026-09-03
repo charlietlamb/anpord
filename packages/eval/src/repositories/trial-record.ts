@@ -50,8 +50,6 @@ export interface AttachSandbox {
 }
 
 interface OpenedTrial {
-  /** The sandbox an earlier attempt of this trial left behind, if a process
-   * died holding one. The new attempt destroys it before opening its own. */
   readonly priorSandboxId: Option.Option<string>;
   readonly trialInternalId: string;
 }

@@ -40,9 +40,7 @@ export const ClaudeDriver: HarnessDriverShape = {
         "@anthropic-ai/claude-code",
         true
       );
-      /* Claude Code refuses to skip permissions as root unless told it is in
-         a sandbox, and some providers run every command as root. It is in a
-         sandbox: that is the whole arrangement. */
+      /* Without IS_SANDBOX, Claude Code refuses to skip permissions as root. */
       return { ANTHROPIC_API_KEY: apiKey, IS_SANDBOX: "1" };
     }).pipe(Effect.withSpan("Claude.prepare")),
   run: (request) =>

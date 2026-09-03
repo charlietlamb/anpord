@@ -220,10 +220,6 @@ export const GridRunLive = Layer.scoped(
         );
         const first = failures[0];
 
-        /* A cell that could not run is the run's failure to report, with the
-           reason on the row: a run that ended with no verdict for some of its
-           cells is not finished, and "failed" alone was the whole of what a
-           reader could see. */
         yield* runs.finish({
           failure:
             first === undefined

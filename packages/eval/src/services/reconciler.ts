@@ -38,9 +38,8 @@ export const ReconcilerLive = Layer.effect(
            between two statements should never find a closed cell holding a
            trial that still claims to be running.
 
-           Judged by the trial's own start, not the run's age: a resumed run
-           is older than any cutoff, and its trials were started just now. A
-           trial that never started is judged by when it was created.
+           Judged by the trial's own start: a resumed run is older than any
+           cutoff while its trials are live.
 
            `void` rather than `failed`, because nothing decided these. The
            database agrees -- a status of `failed` requires a verdict to agree
@@ -170,8 +169,6 @@ export const ReconcilerScheduleLive = Layer.scopedDiscard(
     const reconciler = yield* Reconciler;
 
     yield* reconciler.sweep({ olderThan: ABANDONED_AFTER }).pipe(
-      /* Every cause, not only the typed failure: a defect in one tick must
-         not end the fiber and with it every later sweep. */
       Effect.catchAllCause((cause) =>
         Effect.logError("reconcile failed", cause)
       ),

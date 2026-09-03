@@ -14,8 +14,6 @@ type BaselineRow = typeof evalBaseline.$inferSelect;
 
 interface BaselineTrialRow {
   readonly baseline: BaselineRow;
-  /** Read off the cell the baseline points at: the version is the one part of
-   * a variant the key does not hold, and a comparison has to name it. */
   readonly harnessVersion: string;
   readonly trial: TrialRow;
 }
@@ -32,9 +30,6 @@ export interface BaselineRepositoryShape {
   readonly insertIfAbsent: (
     row: typeof evalBaseline.$inferInsert
   ) => Effect.Effect<void, EvalStoreError>;
-  /** The rows a cell is scored from. One read over `eval_trial` lives here
-   * rather than in a trial repository because it exists only to decide
-   * whether a cell may become, or be measured against, a baseline. */
   readonly trialsOfCell: (
     cellInternalId: string
   ) => Effect.Effect<readonly TrialRow[], EvalStoreError>;

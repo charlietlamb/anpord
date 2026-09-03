@@ -5,11 +5,7 @@ import { runCommand } from "../sandbox/run-command";
 
 export const OPENCODE_BIN = "~/.opencode/bin/opencode";
 
-/* The published installer fetches one static binary for the platform.
-   Measured on an E2B sandbox against the npm package, which resolves a
-   platform binary through optional dependencies: the installer finished in
-   three seconds, and npm ran out of the sandbox's memory or its five-minute
-   window every time and left no binary behind. */
+/* The static binary: npm's optional-dependency install exhausts a small sandbox. */
 export const installOpencode = (sandbox: SandboxHandle, version: string) =>
   runCommand(
     sandbox,

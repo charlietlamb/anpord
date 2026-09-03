@@ -5,32 +5,19 @@ import type { TrialProgressShape } from "../ports/trial-progress";
 const PROGRESS_BATCH = 32;
 const PROGRESS_WINDOW = "400 millis";
 
-/* Five attempts over about a second and a half. Long enough to ride out a
-   pool that is momentarily full, short enough that a trial is not held up
-   behind a store that is down. */
 const PROGRESS_RETRY = Schedule.exponential("100 millis").pipe(
   Schedule.compose(Schedule.recurs(4))
 );
 
 export interface ProgressSink {
-  /** True once a batch could not be written. The journal on record is then
-   * missing events, and a trial scored from it is void, not evidence. */
   readonly lost: Ref.Ref<boolean>;
   readonly through: <E>(
     events: Stream.Stream<HarnessEvent, E>
   ) => Stream.Stream<HarnessEvent, E>;
 }
 
-/**
- * Writes a trial's events to the record as they happen, without letting the
- * record slow or stop the trial.
- *
- * A batch that cannot be written after its retries is not dropped silently,
- * which is what happened before: the stream marks the journal as lost and
- * carries on, and the trial settles void. Failing the stream instead would
- * interrupt every sibling trial in the cell, turning one starved connection
- * into fifty void rows.
- */
+/* A batch the store refuses marks the journal lost rather than failing the
+   stream, which would interrupt every sibling trial in the cell. */
 export const progressSink = (
   append: TrialProgressShape["append"] | undefined
 ): Effect.Effect<ProgressSink> =>

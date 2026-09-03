@@ -8,13 +8,9 @@ import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "./query";
 
-/** A sandbox a trial still holds, with what a reaper needs to reach it. */
 export interface LiveSandbox {
   readonly organizationId: string;
   readonly provider: ProviderName;
-  /** The connection the sandbox was opened under, or null for the platform's
-   * own account. A deleted connection reads as null too, which downgrades the
-   * reap to the platform account rather than skipping it. */
   readonly sandboxConnectionId: string | null;
   readonly sandboxId: string;
   readonly trialInternalId: string;
@@ -24,9 +20,6 @@ export interface LiveSandboxesShape {
   readonly clear: (
     trialInternalId: string
   ) => Effect.Effect<void, EvalStoreError>;
-  /** Trials whose current attempt started before the cutoff and still hold a
-   * sandbox. Keyed on the trial's own start rather than the run's age, because
-   * a resumed run is older than any cutoff and its trials are live. */
   readonly startedBefore: (
     cutoff: Date
   ) => Effect.Effect<readonly LiveSandbox[], EvalStoreError>;
@@ -69,9 +62,7 @@ export const LiveSandboxesLive = Layer.effect(
             .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
             .where(
               and(
-                /* Written as the literal the partial index is defined over, so
-                   the planner can prove the match. A bound parameter here
-                   reads the whole table. */
+                /* The literal the partial index is defined over. */
                 sql`${evalTrial.status} in ('queued', 'running') and ${evalTrial.sandboxId} is not null`,
                 lt(
                   sql`coalesce(${evalTrial.startedAt}, ${evalTrial.createdAt})`,

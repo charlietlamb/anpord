@@ -32,15 +32,7 @@ export class SandboxReaper extends Context.Tag("@anpord/eval/SandboxReaper")<
   SandboxReaperShape
 >() {}
 
-/**
- * Destroys the sandboxes of trials nothing is running any more.
- *
- * A sandbox is released by the scope that opened it, which covers every way a
- * trial can end inside a live process. It does not cover the process dying:
- * no finalizer runs, and the sandbox bills until the provider's own timeout,
- * which one provider does not set. The row still knows the id, so this reads
- * it back and finishes what the finalizer would have.
- */
+/* Finishes what a scope finalizer would have, for a process that died. */
 export const SandboxReaperLive = Layer.effect(
   SandboxReaper,
   Effect.gen(function* () {
@@ -72,8 +64,6 @@ export const SandboxReaperLive = Layer.effect(
         yield* live.clear(found.trialInternalId);
         return true;
       }).pipe(
-        /* One sandbox that cannot be reached must not stop the rest, and a
-           defect here must not stop the sweep. */
         Effect.catchAllCause((cause) =>
           Effect.logWarning("sandbox not reaped", cause).pipe(Effect.as(false))
         ),
@@ -108,10 +98,7 @@ export const SandboxReaperLive = Layer.effect(
   })
 );
 
-/* Longer than a worker may run, because a trial that started this long ago
-   and still holds a sandbox has no process behind it. The worker's wall clock
-   is compute time and a checkpointed wait keeps the sandbox live, so an hour
-   of work can take more than an hour of clock. */
+/* Past the worker's wall clock, with room for a checkpointed wait. */
 const LEAKED_AFTER = Duration.minutes(90);
 
 export const SandboxReaperScheduleLive = Layer.scopedDiscard(

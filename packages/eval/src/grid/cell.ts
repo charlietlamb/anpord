@@ -95,10 +95,7 @@ export const runGridCell = (
         .pipe(Effect.ignore)
     );
 
-    /* Each trial fails on its own. Under fail-fast, one sandbox the provider
-       refused interrupted every sibling, and a cell of fifty reported fifty
-       void trials over one. The cell itself fails only when nothing in it
-       could run, so a provider outage still reads as one. */
+    /* Each trial fails alone; the cell fails only when nothing in it ran. */
     const outcomes = yield* Effect.all(
       Array.from({ length: input.trials }, (_, index) =>
         runTrial({
