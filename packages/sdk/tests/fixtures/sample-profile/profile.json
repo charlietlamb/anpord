@@ -1,0 +1,4 @@
+{
+  "env": { "SAMPLE_MODE": "strict" },
+  "systemPrompt": "system.md"
+}

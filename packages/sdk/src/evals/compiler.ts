@@ -5,9 +5,23 @@ import { Effect, Option } from "effect";
 import { bundledCaseModule } from "./case-modules";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { localRepo } from "./local-repo";
+import { profileTask } from "./profile-directory";
 import { prepareEntry, validatorEntry } from "./runner-source";
 import { repo } from "./source";
-import type { EvalCaseDefinition, EvalDefinition } from "./types";
+import type {
+  EvalCaseDefinition,
+  EvalDefinition,
+  EvalTaskDefinition,
+} from "./types";
+
+const taskOf = (entry: string, task: EvalTaskDefinition) =>
+  typeof task.harness === "string"
+    ? Effect.succeed({
+        harness: task.harness,
+        model: task.model,
+        provider: task.provider,
+      })
+    : profileTask(entry, { ...task, harness: task.harness });
 
 const sourceFor = (
   definition: EvalDefinition,
@@ -93,11 +107,17 @@ export const compileEvalEffect = (path: string) =>
       { concurrency: 4 }
     );
 
+    const tasks = yield* Effect.forEach(
+      definition.tasks,
+      (task) => taskOf(entry, task),
+      { concurrency: 4 }
+    );
+
     return {
       cases,
       name: definition.name,
       prompt: definition.prompt,
-      tasks: [...definition.tasks],
+      tasks,
       trials: definition.trials,
     } satisfies PublicStartEvalRequest;
   }).pipe(Effect.withSpan("Eval.compile"));

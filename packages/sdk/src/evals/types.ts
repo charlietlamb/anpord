@@ -1,7 +1,29 @@
-import type { EvalSource } from "@anpord/schema/domain/evals";
+import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 
 type EvalTaskRequest = PublicStartEvalRequest["tasks"][number];
+
+/**
+ * A profile directory beside the eval file.
+ *
+ * `dir` resolves against the eval file. Files under `home/` and `workspace/`
+ * are shipped into the sandbox; an optional `profile.json` names a system
+ * prompt, env, and for the command harness the install and run steps.
+ */
+export interface ProfileRef {
+  readonly dir: string;
+  readonly name: string;
+}
+
+export type HarnessRef =
+  | EvalHarness
+  | { readonly base: EvalHarness; readonly profile: ProfileRef };
+
+export interface EvalTaskDefinition {
+  readonly harness: HarnessRef;
+  readonly model: EvalTaskRequest["model"];
+  readonly provider: EvalTaskRequest["provider"];
+}
 
 export interface CommandResult {
   readonly exitCode: number;
@@ -93,6 +115,6 @@ export interface EvalDefinition {
   readonly name: string;
   readonly prompt: string;
   readonly source?: DeclaredSource;
-  readonly tasks: readonly EvalTaskRequest[];
+  readonly tasks: readonly EvalTaskDefinition[];
   readonly trials: number;
 }
