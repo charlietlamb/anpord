@@ -1,108 +1,18 @@
 import { describe, expect, it } from "bun:test";
-import { Chunk, Effect, Option, Redacted, Stream } from "effect";
+import { Effect, Option, Redacted, Stream } from "effect";
 import { CommandDriver } from "../../../src/adapters/harness/command";
-import type { HarnessEvent } from "../../../src/domain/harness-event";
-import type { RequestedProfile } from "../../../src/domain/harness-profile";
-import type { RunHarness } from "../../../src/ports/harness";
-import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
-import { notResumableFixture } from "../../fixtures/not-resumable";
+import {
+  FINISHED,
+  fake,
+  HOME,
+  journal,
+  line,
+  profile,
+  request,
+  WORKSPACE,
+} from "./command-fake";
 
-const HOME = "/home/agent";
-const WORKSPACE = "/tmp/work space";
 const TRACE = `${HOME}/.anpord/trace.ndjson`;
-
-const profile = (
-  overrides: Partial<RequestedProfile> = {}
-): RequestedProfile => ({
-  env: null,
-  files: {},
-  install: null,
-  name: "sample",
-  run: "./agent.sh",
-  systemPrompt: null,
-  ...overrides,
-});
-
-interface Script {
-  readonly exitCode?: number;
-  readonly stdout?: readonly string[];
-  readonly trace?: string;
-}
-
-const fake = (script: Script) => {
-  const commands: string[] = [];
-  const writes: { path: string; content: string }[] = [];
-
-  const sandbox: SandboxHandle = {
-    exec: (command) => {
-      commands.push(command);
-
-      /* The trace fold is the one command the driver runs itself, and it is
-         the only one that reads a file rather than starting the agent. */
-      if (command.startsWith("cat ")) {
-        return Stream.fromIterable<ExecChunk>([
-          { at: 90, data: script.trace ?? "", stream: "stdout" },
-          { at: 91, exitCode: 0, stream: "exit" },
-        ]);
-      }
-
-      return Stream.fromIterable<ExecChunk>([
-        ...(script.stdout ?? []).map(
-          (line, index): ExecChunk => ({
-            at: 10 + index,
-            data: `${line}\n`,
-            stream: "stdout",
-          })
-        ),
-        { at: 50, exitCode: script.exitCode ?? 0, stream: "exit" },
-      ]);
-    },
-    home: HOME,
-    id: "sandbox",
-    provider: "e2b",
-    ...notResumableFixture,
-    streaming: true,
-    writeFile: (path, content) =>
-      Effect.sync(() => {
-        writes.push({ content, path });
-      }),
-  };
-
-  return { commands, sandbox, writes };
-};
-
-const request = (
-  sandbox: SandboxHandle,
-  found: RequestedProfile,
-  prompt = "fix it's broken"
-): RunHarness => ({
-  env: {},
-  harness: "command",
-  harnessVersion: "profile",
-  model: "vendor/model",
-  profile: Option.some(found),
-  prompt,
-  sandbox,
-  systemPromptPath: Option.none(),
-  workspace: WORKSPACE,
-});
-
-const journal = (script: Script, found = profile()) =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      const { commands, sandbox } = fake(script);
-      const session = yield* CommandDriver.run(request(sandbox, found));
-      const events = Chunk.toReadonlyArray(
-        yield* Stream.runCollect(session.events)
-      );
-
-      return { commands, events, usage: yield* session.usage };
-    }).pipe(Effect.scoped)
-  );
-
-const line = (event: Record<string, unknown>) => JSON.stringify(event);
-
-const FINISHED = line({ _tag: "Finished", reason: "done" });
 
 describe("the command harness command line", () => {
   it("carries the case in variables a shell cannot reinterpret", async () => {
@@ -144,80 +54,6 @@ describe("the command harness command line", () => {
   });
 });
 
-describe("a command harness process that exits non-zero", () => {
-  it("keeps the journal it printed before Finished", async () => {
-    const { events } = await journal({
-      exitCode: 1,
-      stdout: [
-        line({ _tag: "Message", role: "assistant", text: "done" }),
-        FINISHED,
-      ],
-    });
-
-    expect(events.map((event) => event._tag)).toEqual(["Message", "Finished"]);
-    expect(events.at(-1)).toEqual({ _tag: "Finished", at: 11, reason: "done" });
-  });
-
-  it("closes a journal that never finished with the exit itself", async () => {
-    const { events } = await journal({
-      exitCode: 7,
-      stdout: [line({ _tag: "Message", role: "assistant", text: "half" })],
-    });
-
-    expect(events.at(-1)).toEqual({
-      _tag: "Finished",
-      at: 50,
-      reason: "exit 7",
-    });
-  });
-});
-
-describe("the command harness trace fold", () => {
-  const traceLine = (argv: string) =>
-    JSON.stringify({
-      argv,
-      at: "2026-09-03T10:00:00Z",
-      cwd: WORKSPACE,
-      source: "trap",
-    });
-
-  it("appends only the commands the process did not report", async () => {
-    const { events } = await journal({
-      stdout: [
-        line({
-          _tag: "Command",
-          command: "wc -l notes.txt",
-          exitCode: 0,
-          output: "1",
-        }),
-        FINISHED,
-      ],
-      trace: [traceLine("wc -l notes.txt"), traceLine("./agent.sh"), ""].join(
-        "\n"
-      ),
-    });
-
-    const commands = events.filter(
-      (event): event is Extract<HarnessEvent, { _tag: "Command" }> =>
-        event._tag === "Command"
-    );
-
-    expect(commands.map((event) => event.command)).toEqual([
-      "wc -l notes.txt",
-      "./agent.sh",
-    ]);
-    /* The trap runs before the command, so the fold's own entries can only
-       say that something ran. */
-    expect(commands.at(-1)?.exitCode).toBeNull();
-  });
-
-  it("adds nothing when the recorder saw no bash at all", async () => {
-    const { events } = await journal({ stdout: [FINISHED], trace: "" });
-
-    expect(events.map((event) => event._tag)).toEqual(["Finished"]);
-  });
-});
-
 describe("the command harness driver", () => {
   it("writes the recorder and runs the profile's install", async () => {
     const { sandbox, commands, writes } = fake({});
@@ -256,5 +92,28 @@ describe("the command harness driver", () => {
     );
 
     expect(failure.reason).toContain("run command");
+  });
+
+  it("accumulates each turn's usage rather than restating a total", async () => {
+    const { usage } = await journal({
+      stdout: [
+        line({ _tag: "Usage", inputTokens: 10, outputTokens: 2 }),
+        line({
+          _tag: "Usage",
+          cacheReadTokens: 4,
+          inputTokens: 5,
+          outputTokens: 1,
+        }),
+        FINISHED,
+      ],
+    });
+
+    expect(Option.getOrThrow(usage)).toEqual({
+      cacheReadTokens: 4,
+      cacheWriteTokens: 0,
+      inputTokens: 15,
+      outputTokens: 3,
+      totalTokens: 18,
+    });
   });
 });
