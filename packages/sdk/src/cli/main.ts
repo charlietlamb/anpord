@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { layer } from "@anpord/schema/public/client";
 import { Command } from "@effect/cli";
+import { FetchHttpClient } from "@effect/platform";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
 import { Cause, Effect, Layer, Option } from "effect";
 import { version } from "../../package.json";
@@ -19,7 +20,9 @@ Command.run(anpord, {
   name: "Anpord",
   version,
 })(process.argv).pipe(
-  Effect.provide(Layer.mergeAll(ClientLayer, NodeContext.layer)),
+  Effect.provide(
+    Layer.mergeAll(ClientLayer, NodeContext.layer, FetchHttpClient.layer)
+  ),
   Effect.catchAllCause((cause) =>
     Cause.isInterruptedOnly(cause)
       ? Effect.void

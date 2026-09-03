@@ -15,6 +15,9 @@ jobs:
   eval:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -22,6 +25,7 @@ jobs:
       - run: bunx anpord eval
         env:
           ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
 ```
 
 The command waits for the run and exits nonzero when a cell regresses, so the
@@ -33,6 +37,13 @@ in. On a pull request that is the branch the request came from, so the run
 measures the change rather than the base branch.
 
 Use a dedicated key with `evals:read` and `evals:write`.
+
+With `GITHUB_TOKEN` present the command also posts one check named `anpord`
+on the pull request head, listing every cell with its pass rate, baseline, and
+verdict, and linking to the run. The check fails when any cell regressed,
+whatever `--fail-on` says; the exit code still follows the gate. A pull
+request from a fork gets a read-only token, so the check is skipped with a note
+on stderr and the job otherwise runs as before.
 
 ## Keep comparisons stable
 

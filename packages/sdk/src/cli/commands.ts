@@ -8,13 +8,9 @@ import { extractVariables } from "@anpord/template/extract";
 import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
-import { compileEvalEffect } from "../evals/compiler";
 import { declarationFile } from "./declarations";
-import { evalFilesIn } from "./eval-files";
-import { failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
-import { liveGrid, summaryOf } from "./eval-grid";
-import { waitForRun } from "./eval-run";
-import { attended, json, note, promptContent, row } from "./render";
+import { runEval } from "./eval-command";
+import { json, note, promptContent, row } from "./render";
 
 const promptId = Args.text({ name: "id" }).pipe(
   Args.withDescription("The prompt's id, such as support-reply"),
@@ -200,88 +196,6 @@ const generate = Command.make("generate", { out }, writeDeclarations).pipe(
 const gen = Command.make("gen", { out }, writeDeclarations).pipe(
   Command.withDescription(DESCRIPTION)
 );
-
-const evalFile = Args.text({ name: "file" }).pipe(
-  Args.withDescription(
-    "A TypeScript file that default exports defineEval(...); every *.eval.ts is run when omitted"
-  ),
-  Args.optional
-);
-
-const noWait = Options.boolean("no-wait").pipe(
-  Options.withDescription("Start the run and print its id, without waiting")
-);
-
-const failOn = Options.choice("fail-on", [
-  "never",
-  "regressed",
-  "unscored",
-]).pipe(
-  Options.withDescription("What makes the command exit nonzero"),
-  Options.withDefault("regressed" as const)
-);
-
-const runOneEval = (
-  file: string,
-  options: {
-    readonly gate: "never" | "regressed" | "unscored";
-    readonly label: boolean;
-    readonly skipWait: boolean;
-    readonly wantsJson: boolean;
-  }
-) =>
-  Effect.gen(function* () {
-    const api = yield* AnpordApi;
-    const payload = yield* compileEvalEffect(file);
-    const started = yield* api.evals.start({ payload });
-
-    if (options.skipWait) {
-      yield* json(started);
-      return [] as readonly string[];
-    }
-
-    const live = !options.wantsJson && (yield* attended);
-
-    if (live || options.label) {
-      yield* note(`${file} · run ${started.id}`);
-    }
-
-    const draw = yield* liveGrid(payload.trials, live);
-    const run = yield* waitForRun(started.id, draw);
-
-    yield* options.wantsJson
-      ? json(run)
-      : note(summaryOf(run, payload.trials, live));
-
-    return problemsWith(run, options.gate);
-  });
-
-const runEval = Command.make(
-  "eval",
-  { asJson, evalFile, failOn, noWait },
-  ({ asJson: wantsJson, evalFile: file, failOn: gate, noWait: skipWait }) =>
-    Effect.gen(function* () {
-      const files = yield* Option.match(file, {
-        onNone: () => evalFilesIn("."),
-        onSome: (one) => Effect.succeed([one] as readonly string[]),
-      });
-
-      if (files.length === 0) {
-        return yield* Effect.fail(new NoEvalFiles());
-      }
-
-      const found = yield* Effect.forEach(files, (one) =>
-        runOneEval(one, {
-          gate,
-          label: files.length > 1,
-          skipWait,
-          wantsJson,
-        })
-      );
-
-      return yield* failWhen(found.flat());
-    })
-).pipe(Command.withDescription("Compile and run an eval from TypeScript"));
 
 export const commands = [
   runEval,

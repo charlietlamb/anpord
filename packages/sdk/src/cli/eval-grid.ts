@@ -57,7 +57,7 @@ const rateOf = (cell: EvalCell) => {
   return paint(rate === 1 ? GREEN : RED, shown);
 };
 
-const variantOf = (run: EvalRun, cell: EvalCell) => {
+export const variantOf = (run: EvalRun, cell: EvalCell) => {
   const task = run.tasks[cell.taskIndex];
 
   return task === undefined ? "?" : `${task.harness}/${task.model}`;
