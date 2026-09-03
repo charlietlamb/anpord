@@ -48,5 +48,5 @@ jobs:
             echo "TRIGGER_ACCESS_TOKEN is not set; add it to the repository secrets."
             exit 1
           fi
-          bunx trigger.dev deploy
+          bunx trigger.dev@4.5.15 deploy
         working-directory: apps/worker
