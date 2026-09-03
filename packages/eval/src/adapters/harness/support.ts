@@ -96,6 +96,15 @@ export const writeHarnessFile = (
       )
     );
 
+/** Whether the model a harness reports is the one that was asked for.
+ *
+ * An alias names a family and the harness reports the member it resolved to:
+ * `opus` comes back as `claude-opus-4-8`. Only a report that names neither
+ * the id nor the family is a different model, which is the swap this check
+ * exists to catch. */
+export const reportsModel = (requested: string, reported: string) =>
+  reported === requested || reported.includes(requested);
+
 export const jsonSession = (
   request: RunHarness,
   command: string,
@@ -119,7 +128,7 @@ export const jsonSession = (
           if (
             verifyModel &&
             decoded.model !== undefined &&
-            decoded.model !== request.model
+            !reportsModel(request.model, decoded.model)
           ) {
             return yield* Effect.fail(
               new HarnessUnavailable({
