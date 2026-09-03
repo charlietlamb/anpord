@@ -17,7 +17,8 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
-import { asReading, detail, summarise } from "../internal/evals/to-api";
+import { asReading } from "../internal/evals/reading-to-api";
+import { detail, summarise } from "../internal/evals/run-to-api";
 
 const HISTORY_LIMIT = 20;
 

@@ -23,7 +23,7 @@ import {
   runPlayground,
   savePlayground,
 } from "./playground-handlers";
-import { asReading } from "./to-api";
+import { asReading } from "./reading-to-api";
 
 const HISTORY_LIMIT = 20;
 

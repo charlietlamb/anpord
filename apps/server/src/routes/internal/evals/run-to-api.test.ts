@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import type { GridRunState } from "@anpord/eval/grid/state";
 import { Option } from "effect";
-import { detail, summarise } from "./to-api";
+import { detail, summarise } from "./run-to-api";
 
 const state = (name: string | null): GridRunState => ({
   cases: ["cold-start", "data-rich"],
