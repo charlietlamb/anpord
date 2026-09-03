@@ -79,6 +79,7 @@ export const CodexDriver: HarnessDriverShape = {
     Effect.gen(function* () {
       const usage = yield* Ref.make(Option.none<HarnessUsage>());
       const pending = yield* Ref.make(noPending);
+      const failure = yield* Ref.make(Option.none<string>());
 
       const events = harnessLines(
         "codex",
@@ -89,6 +90,14 @@ export const CodexDriver: HarnessDriverShape = {
         Stream.mapEffect(({ at, line }) =>
           Effect.gen(function* () {
             const decoded = decodeCodexLine(line);
+
+            if (
+              Option.isSome(decoded.event) &&
+              decoded.event.value._tag === "Finished" &&
+              decoded.event.value.reason !== "turn.completed"
+            ) {
+              yield* Ref.set(failure, Option.some(decoded.event.value.reason));
+            }
 
             if (Option.isSome(decoded.usage)) {
               yield* Ref.set(usage, decoded.usage);
@@ -105,7 +114,26 @@ export const CodexDriver: HarnessDriverShape = {
             );
           })
         ),
-        Stream.filterMap((event) => event)
+        Stream.filterMap((event) => event),
+        /* A failed turn names its error in the stream; stderr only says it read stdin. */
+        Stream.catchAll((error) =>
+          Stream.fromEffect(
+            Ref.get(failure).pipe(
+              Effect.flatMap((reason) =>
+                Effect.fail(
+                  Option.match(reason, {
+                    onNone: () => error,
+                    onSome: (found) =>
+                      new HarnessUnavailable({
+                        harness: "codex",
+                        reason: found,
+                      }),
+                  })
+                )
+              )
+            )
+          )
+        )
       );
 
       return {

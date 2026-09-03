@@ -12,10 +12,22 @@ const FAILED =
   '{"type":"item.completed","item":{"id":"item_1","type":"command_execution","command":"bun test","aggregated_output":"expect(5).toBe(6)\\n","exit_code":1,"status":"failed"}}';
 const FILE =
   '{"type":"item.completed","item":{"id":"item_5","type":"file_change","changes":[{"path":"/tmp/total.ts","kind":"update"}],"status":"completed"}}';
+const TURN_FAILED =
+  '{"type":"turn.failed","error":{"message":"{\\"type\\":\\"error\\",\\"status\\":400,\\"error\\":{\\"type\\":\\"invalid_request_error\\",\\"message\\":\\"The gpt-5.2 model is not supported when using Codex with a ChatGPT account.\\"}}"}}';
 const TURN =
   '{"type":"turn.completed","usage":{"input_tokens":98371,"cached_input_tokens":87552,"output_tokens":757,"reasoning_output_tokens":175}}';
 
 describe("decodeCodexLine", () => {
+  it("keeps the reason a turn failed, not the wrapper around it", () => {
+    const event = Option.getOrThrow(decodeCodexLine(TURN_FAILED).event);
+
+    expect(event).toMatchObject({
+      _tag: "Finished",
+      reason:
+        "The gpt-5.2 model is not supported when using Codex with a ChatGPT account.",
+    });
+  });
+
   it("reads the session id from the opening line", () => {
     const event = Option.getOrThrow(decodeCodexLine(THREAD).event);
 

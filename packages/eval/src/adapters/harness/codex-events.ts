@@ -58,8 +58,23 @@ const Line = Schema.Union(
   Schema.Struct({
     type: Schema.Literal("turn.completed"),
     usage: Usage,
+  }),
+  Schema.Struct({
+    error: Schema.Struct({ message: Schema.String }),
+    type: Schema.Literal("turn.failed"),
   })
 );
+
+/* The API error arrives as a JSON string inside the message. */
+const failureReasonOf = (message: string) =>
+  Option.liftThrowable(JSON.parse)(message).pipe(
+    Option.flatMap((value: unknown) =>
+      Option.fromNullable(
+        (value as { error?: { message?: string } })?.error?.message
+      )
+    ),
+    Option.getOrElse(() => message)
+  );
 
 const decodeLine = Schema.decodeUnknownOption(Line);
 
@@ -111,6 +126,13 @@ export const decodeCodexLine = (line: string): DecodedLine => {
 
   if (value.type === "item.started") {
     return { ...none, commandId: Option.some(value.item.id), started: true };
+  }
+
+  if (value.type === "turn.failed") {
+    return only({
+      _tag: "Finished",
+      reason: failureReasonOf(value.error.message),
+    });
   }
 
   if (value.type === "turn.completed") {
