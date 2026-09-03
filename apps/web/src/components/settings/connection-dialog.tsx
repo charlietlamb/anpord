@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { VariantLabel } from "@/components/evals/variant-label";
 import { CredentialFields } from "@/components/settings/credential-fields";
 import { credentialsClient } from "@/lib/credentials-client";
+import { incompleteCredential } from "@/lib/settings/credential-values";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
 
 const POLL_MS = 2000;
@@ -230,11 +231,7 @@ export function ConnectionDialog({
     setChallenge(null);
   };
 
-  const missing =
-    method?.kind === "secret" &&
-    method.fields.some(
-      (field) => field.required && !values[field.name]?.trim()
-    );
+  const missing = method !== undefined && incompleteCredential(method, values);
 
   const submit = async () => {
     if (!(integration && method && name.trim()) || missing) {
@@ -330,12 +327,10 @@ export function ConnectionDialog({
         />
       </Field>
 
-      {method?.kind === "secret" ? (
+      {method !== undefined && method.kind !== "device" ? (
         <CredentialFields
           method={method}
-          onChange={(field, value) =>
-            setValues((current) => ({ ...current, [field]: value }))
-          }
+          onChange={(next) => setValues({ ...next })}
           values={values}
         />
       ) : null}

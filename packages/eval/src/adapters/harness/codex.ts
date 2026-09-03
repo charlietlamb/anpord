@@ -40,7 +40,10 @@ const authModeOf = (auth: string) =>
   );
 
 const authOf = (credential: ResolvedCredential) => {
-  if (credential.integrationId !== "codex") {
+  if (
+    credential.integrationId !== "codex" &&
+    credential.integrationId !== "env"
+  ) {
     return Effect.fail(
       new HarnessUnavailable({
         harness: "codex",
@@ -65,7 +68,10 @@ const authOf = (credential: ResolvedCredential) => {
     : Effect.fail(
         new HarnessUnavailable({
           harness: "codex",
-          reason: "Credential material is incomplete",
+          reason:
+            credential.integrationId === "env"
+              ? "Codex needs its own credential; an environment credential carries no auth.json"
+              : "Credential material is incomplete",
         })
       );
 };

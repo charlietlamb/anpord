@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { CredentialFields } from "@/components/settings/credential-fields";
 import { credentialsClient } from "@/lib/credentials-client";
+import { incompleteCredential } from "@/lib/settings/credential-values";
 
 export function RotateConnectionDialog({
   connection,
@@ -58,20 +59,14 @@ export function RotateConnectionDialog({
       {method ? (
         <CredentialFields
           method={method}
-          onChange={(field, value) =>
-            setValues((current) => ({ ...current, [field]: value }))
-          }
+          onChange={(next) => setValues({ ...next })}
           values={values}
         />
       ) : null}
       <ShortcutButton
         className="h-10 w-full text-sm"
         disabled={
-          pending ||
-          method === null ||
-          method.fields.some(
-            (field) => field.required && !values[field.name]?.trim()
-          )
+          pending || method === null || incompleteCredential(method, values)
         }
         metaShortcut="enter"
         onClick={submit}

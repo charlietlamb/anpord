@@ -1,9 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { Effect } from "effect";
-import {
-  credentialIntegrations,
-  validateCredential,
-} from "../../src/credentials/integrations";
+import { Effect, Either } from "effect";
+import { credentialIntegrations } from "../../src/credentials/integrations";
+import { validateCredential } from "../../src/credentials/validate-credential";
 
 describe("credential integrations", () => {
   it("rejects missing required fields", async () => {
@@ -33,6 +31,7 @@ describe("credential integrations", () => {
       "gemini",
       "qwen",
       "cursor",
+      "env",
       "daytona",
       "e2b",
       "upstash",
@@ -64,5 +63,29 @@ describe("credential integrations", () => {
       Effect.either(validateCredential("codex", "chatgpt", {}))
     );
     expect(result._tag).toBe("Left");
+  });
+
+  describe("the env method", () => {
+    const env = (values: Readonly<Record<string, string>>) =>
+      Effect.runPromise(
+        Effect.either(validateCredential("env", "env", values))
+      );
+
+    it("keeps every variable the customer names", async () => {
+      expect(
+        Either.getOrThrow(
+          await env({ ANTHROPIC_API_KEY: " sk-ant ", OPENAI_API_KEY: "sk-1" })
+        )
+      ).toEqual({ ANTHROPIC_API_KEY: "sk-ant", OPENAI_API_KEY: "sk-1" });
+    });
+
+    it.each([
+      ["a lower case name", { lower_case: "value" }],
+      ["a name starting with a digit", { "1KEY": "value" }],
+      ["an empty map", {}],
+      ["an empty value", { API_KEY: "  " }],
+    ])("rejects %s", async (_, values) => {
+      expect((await env(values))._tag).toBe("Left");
+    });
   });
 });

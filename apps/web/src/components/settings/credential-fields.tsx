@@ -2,6 +2,7 @@ import type { CredentialAuthMethod } from "@anpord/schema/domain/credentials";
 import { Input } from "@anpord/ui/components/input";
 import { Label } from "@anpord/ui/components/ui/label";
 import { cn } from "@anpord/ui/lib/utils";
+import { EnvFields } from "@/components/settings/env-fields";
 
 /**
  * The secrets one authentication method asks for.
@@ -12,6 +13,9 @@ import { cn } from "@anpord/ui/lib/utils";
  * value instead, which the label cannot -- a team id and a project id are
  * both "an id" until you see one. Shared with the rotate dialog, which asks
  * for exactly the same values.
+ *
+ * Hands up the whole map rather than one field at a time, because an env
+ * method has no fields of its own and replaces the map on every keystroke.
  */
 export function CredentialFields({
   method,
@@ -19,9 +23,13 @@ export function CredentialFields({
   values,
 }: {
   readonly method: CredentialAuthMethod;
-  readonly onChange: (field: string, value: string) => void;
+  readonly onChange: (values: Readonly<Record<string, string>>) => void;
   readonly values: Readonly<Record<string, string>>;
 }) {
+  if (method.kind === "env") {
+    return <EnvFields onChange={onChange} />;
+  }
+
   return (
     <div
       className={cn("grid gap-4", method.fields.length > 1 && "sm:grid-cols-2")}
@@ -31,7 +39,9 @@ export function CredentialFields({
           <Label htmlFor={`credential-${field.name}`}>{field.label}</Label>
           <Input
             id={`credential-${field.name}`}
-            onChange={(event) => onChange(field.name, event.target.value)}
+            onChange={(event) =>
+              onChange({ ...values, [field.name]: event.target.value })
+            }
             placeholder={field.hint}
             required={field.required}
             type={field.secret ? "password" : "text"}
