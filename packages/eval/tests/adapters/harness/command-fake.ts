@@ -7,7 +7,7 @@ import { notResumableFixture } from "../../fixtures/not-resumable";
 
 export const HOME = "/home/agent";
 export const WORKSPACE = "/tmp/work space";
-export const PROMPT = "fix it's broken";
+const PROMPT = "fix it's broken";
 
 export const profile = (
   overrides: Partial<RequestedProfile> = {}
