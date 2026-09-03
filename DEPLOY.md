@@ -94,6 +94,23 @@ the domain resolves, GitHub OAuth needs its callback updated to
 `https://<app-runner-url>/api/auth/callback/github`, otherwise sign-in fails
 with a redirect mismatch.
 
+## Worker → Trigger.dev
+
+`apps/worker` runs trials. It is deployed by `deploy-worker.yml` with
+`bunx trigger.dev deploy`; its environment is set in the Trigger dashboard,
+not by the workflow. It reads the same `DATABASE_URL`, provider keys, and
+`EVAL_*_CONCURRENCY` variables the server does.
+
+Two of them size a run. Each `eval-run` task holds every sandbox of its run
+from one container, and the per-provider concurrency caps how many are live at
+once; the pool has to keep up with the journal each one writes.
+
+| Variable | Worker value | Why |
+| --- | --- | --- |
+| `EVAL_DAYTONA_CONCURRENCY`, `EVAL_E2B_CONCURRENCY` | `50` | The code default is 5 so a laptop does not open fifty sandboxes by accident. A run of fifty trials in one wave needs the cap raised here. |
+| `DATABASE_POOL_MAX` | `24` | Fifty trials append their journals in batches of up to 32 events every 400ms. Eight connections, the default, starve the appends and the trials settle void with `journal` named. `DATABASE_URL` must be the pooled Neon endpoint, so concurrent runs multiply client connections against the pooler rather than the compute. |
+| `EVAL_JOURNAL_HOT` | unset | Retention runs in the server, not here. |
+
 ## Cost
 
 App Runner at the minimum size is roughly $5–10/month, billed for provisioned
