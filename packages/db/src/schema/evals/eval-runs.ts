@@ -29,7 +29,6 @@ export const evalRun = pgTable(
        clean one: evidence of failure read as evidence of success. */
     failure: text("failure"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),
   },
   (table) => [
@@ -37,6 +36,11 @@ export const evalRun = pgTable(
       table.organizationId,
       table.id
     ),
-    index("eval_run_organization_id_idx").on(table.organizationId),
+    /* The list pages on (created_at, id) within an organisation. */
+    index("eval_run_organization_id_created_at_idx").on(
+      table.organizationId,
+      table.createdAt.desc(),
+      table.id.desc()
+    ),
   ]
 );

@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -56,5 +57,9 @@ export const evalTrial = pgTable(
     index("eval_trial_live_sandbox_idx")
       .on(table.status)
       .where(sql`status in ('queued', 'running') and sandbox_id is not null`),
+    check(
+      "eval_trial_passed_agrees_check",
+      sql`${table.status} not in ('passed', 'failed') or ${table.passed} is not null`
+    ),
   ]
 );

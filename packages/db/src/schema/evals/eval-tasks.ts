@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   check,
-  index,
   jsonb,
   pgTable,
   text,
@@ -19,7 +18,6 @@ export const evalTask = pgTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
-    suiteId: text("suite_id"),
     name: text("name").notNull(),
     prompt: text("prompt").notNull(),
     sourceKind: text("source_kind").$type<"empty" | "files" | "repo">(),
@@ -49,7 +47,6 @@ export const evalTask = pgTable(
       table.organizationId,
       table.id
     ),
-    index("eval_task_organization_id_idx").on(table.organizationId),
     check(
       "eval_task_source_kind_check",
       sql`${table.sourceKind} in ('empty', 'files', 'repo')`

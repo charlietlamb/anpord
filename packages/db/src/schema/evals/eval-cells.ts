@@ -47,5 +47,6 @@ export const evalCell = pgTable(
       table.cellKey,
       table.createdAt.desc()
     ),
+    index("eval_cell_task_internal_id_idx").on(table.taskInternalId),
   ]
 );

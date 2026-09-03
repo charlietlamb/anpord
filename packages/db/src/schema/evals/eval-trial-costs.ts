@@ -1,6 +1,5 @@
 import {
   bigint,
-  index,
   jsonb,
   pgTable,
   text,
@@ -47,6 +46,5 @@ export const evalTrialCost = pgTable(
       table.component
     ),
     /* The aggregate every run summary asks for: sum by classification. */
-    index("eval_trial_cost_classification_idx").on(table.classification),
   ]
 );

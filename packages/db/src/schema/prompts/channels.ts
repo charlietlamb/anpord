@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
-  index,
   pgTable,
   text,
   timestamp,
@@ -29,7 +28,6 @@ export const channel = pgTable(
       table.organizationId,
       table.name
     ),
-    index("channel_organization_id_idx").on(table.organizationId),
     /** Partial, so an organisation may hold one default or none at all. */
     uniqueIndex("channel_one_default_idx")
       .on(table.organizationId)

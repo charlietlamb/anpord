@@ -1,5 +1,4 @@
 import {
-  index,
   integer,
   jsonb,
   pgTable,
@@ -31,6 +30,5 @@ export const promptVersion = pgTable(
       table.promptInternalId,
       table.version
     ),
-    index("prompt_version_prompt_internal_id_idx").on(table.promptInternalId),
   ]
 );
