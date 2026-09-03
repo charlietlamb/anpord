@@ -3,8 +3,8 @@ import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import { IdGenerator } from "@anpord/ids/id";
 import { inArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
+import type { CostComponent } from "../domain/cost-component";
 import type { EvalStoreError } from "../domain/errors";
-import type { CostComponent } from "../domain/trial-cost";
 import { tryStore } from "./query";
 
 interface TrialCostRow {

@@ -1,4 +1,4 @@
-import { rollUp } from "@anpord/eval/domain/trial-cost";
+import { rollUp } from "@anpord/eval/domain/eval-costs";
 import type { GridRunState } from "@anpord/eval/grid/state";
 import type { CellComparison } from "@anpord/eval/services/baselines";
 import type { EvalRun, EvalRunSummary } from "@anpord/schema/domain/evals";

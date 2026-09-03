@@ -1,13 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { Option } from "effect";
-import {
-  breakdownOf,
-  type CostComponent,
-  costsOf,
-  nanosOf,
-  rollUp,
-  summaryOf,
-} from "../../src/domain/trial-cost";
+import { nanosOf, summaryOf } from "../../src/domain/cost-arithmetic";
+import type { CostComponent } from "../../src/domain/cost-component";
+import { costsOf, rollUp } from "../../src/domain/eval-costs";
+import { breakdownOf } from "../../src/domain/trial-cost";
 
 const RATE = { cacheRead: 0.3, cacheWrite: 3.75, input: 3, output: 15 };
 

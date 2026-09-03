@@ -48,7 +48,7 @@
     "./credentials/tasks": "./src/credentials/tasks.ts",
     "./domain/case-file": "./src/domain/case-file.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
-    "./domain/trial-cost": "./src/domain/trial-cost.ts",
+    "./domain/eval-costs": "./src/domain/eval-costs.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
     "./domain/harness-spec": "./src/domain/harness-spec.ts",
     "./domain/journal": "./src/domain/journal.ts",

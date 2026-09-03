@@ -1,5 +1,5 @@
 import { usageOf } from "@anpord/eval/domain/harness-event";
-import { costsOf } from "@anpord/eval/domain/trial-cost";
+import { costsOf } from "@anpord/eval/domain/eval-costs";
 import type { CellHistoryEntry } from "@anpord/eval/repositories/cell-history-query";
 import type {
   EvalCellHistoryEntry,
