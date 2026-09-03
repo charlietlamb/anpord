@@ -1,5 +1,6 @@
 import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
 import { clock, dayOf } from "@/lib/evals/duration";
+import { shortProfileVersion } from "@/lib/evals/profile-version";
 
 export type ReadingTone = "critical" | "pending" | "positive" | "running";
 
@@ -36,16 +37,32 @@ const same = (
   left.distribution.scored === right.distribution.scored &&
   left.distribution.voided === right.distribution.voided;
 
-/* A reading names its harness version only where it changed from the one
-   before, so a bar of twenty identical readings stays quiet and the one
-   release that moved the number stands out. */
-const versionOf = (
+/* A reading names a version only where it changed from the one before, so a
+   bar of twenty identical readings stays quiet and the one release -- or the
+   one profile edit -- that moved the number stands out. */
+const changed = (
+  previous: string | null | undefined,
+  current: string | null
+) =>
+  previous === undefined ||
+  previous === null ||
+  current === null ||
+  previous === current
+    ? null
+    : current;
+
+const versionsOf = (
   entry: EvalCellHistoryEntry,
   previous: EvalCellHistoryEntry | undefined
-) =>
-  previous === undefined || previous.harnessVersion === entry.harnessVersion
-    ? ""
-    : ` · ${entry.harnessVersion}`;
+) => {
+  const harness = changed(previous?.harnessVersion, entry.harnessVersion);
+  const profile = changed(previous?.profileVersion, entry.profileVersion);
+
+  return [harness, profile === null ? null : shortProfileVersion(profile)]
+    .filter((version): version is string => version !== null)
+    .map((version) => ` · ${version}`)
+    .join("");
+};
 
 export const readingsOf = (
   entries: readonly EvalCellHistoryEntry[]
@@ -57,7 +74,7 @@ export const readingsOf = (
     title:
       entry.finishedAt === null
         ? "running"
-        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionOf(entry, ordered[index - 1])}`,
+        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionsOf(entry, ordered[index - 1])}`,
     tone: toneOf(entry),
   }));
 };

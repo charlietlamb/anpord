@@ -1,4 +1,21 @@
-import type { EvalCell } from "@anpord/schema/domain/evals";
+import type { EvalCell, EvalComparison } from "@anpord/schema/domain/evals";
+import { shortProfileVersion } from "@/lib/evals/profile-version";
+
+/* A profile version moves the same way a harness version does -- the name is
+   in the cell key, the version is not -- so it is reported the same way. */
+const profileNote = (comparison: EvalComparison) => {
+  const { baselineProfileVersion, candidateProfileVersion } = comparison;
+
+  if (
+    baselineProfileVersion === null ||
+    candidateProfileVersion === null ||
+    baselineProfileVersion === candidateProfileVersion
+  ) {
+    return null;
+  }
+
+  return `profile ${shortProfileVersion(baselineProfileVersion)} → ${shortProfileVersion(candidateProfileVersion)}`;
+};
 
 /**
  * What a verdict badge cannot fit.
@@ -21,6 +38,7 @@ export function CellVerdictNote({ cell }: { readonly cell: EvalCell }) {
     comparison.baselineHarnessVersion === comparison.candidateHarnessVersion
       ? null
       : `harness ${comparison.baselineHarnessVersion} → ${comparison.candidateHarnessVersion}`,
+    profileNote(comparison),
   ].filter((note): note is string => note !== null);
 
   if (notes.length === 0) {
