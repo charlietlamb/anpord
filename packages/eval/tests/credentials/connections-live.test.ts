@@ -168,6 +168,36 @@ describe.skipIf(skipWithoutDatabase())("credential connections", () => {
     expect(JSON.stringify(result.listed)).not.toContain("daytona-secret");
   });
 
+  it("seals and resolves an env map as the customer named it", async () => {
+    const result = await run(
+      Effect.gen(function* () {
+        const connections = yield* CredentialConnections;
+        const resolver = yield* CredentialResolver;
+        const created = yield* connections.create(actor, {
+          authMethodId: "env",
+          integrationId: "env",
+          isDefault: true,
+          name: "Shared keys",
+          scope: "organization",
+          values: { ANTHROPIC_API_KEY: "sk-ant", OPENAI_API_KEY: "sk-1" },
+        });
+        const checked = yield* connections.verify(actor, created.id);
+        const resolved = yield* resolver.resolve({
+          actor,
+          integrationId: "env",
+        });
+        return { checked, resolved: Redacted.value(resolved) };
+      })
+    );
+
+    expect(result.checked.lastVerifiedAt).not.toBeNull();
+    expect(result.resolved.integrationId).toBe("env");
+    expect(result.resolved.values).toEqual({
+      ANTHROPIC_API_KEY: "sk-ant",
+      OPENAI_API_KEY: "sk-1",
+    });
+  });
+
   it("prefers a personal default without exposing it to another user", async () => {
     const result = await run(
       Effect.gen(function* () {

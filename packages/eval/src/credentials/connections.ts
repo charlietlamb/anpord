@@ -16,7 +16,7 @@ import {
 import { summaryOf } from "./connection-row";
 import { verifyConnection } from "./connection-verification";
 import { CredentialError } from "./errors";
-import { validateCredential } from "./integrations";
+import { validateCredential } from "./validate-credential";
 
 export interface CredentialConnectionsShape {
   readonly awareness: (
