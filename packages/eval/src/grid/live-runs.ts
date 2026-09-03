@@ -1,7 +1,7 @@
 import { Effect, Option, PubSub, Ref, Stream } from "effect";
 import type { GridRunState } from "./state";
 
-interface LiveRuns {
+export interface LiveRuns {
   readonly changes: Stream.Stream<GridRunState>;
   /** Drops a run once it is terminal. Each entry holds every trial's full
    * journal, untruncated, so keeping finished runs grows without bound for
