@@ -1,12 +1,13 @@
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { rebuildRun } from "@anpord/eval/grid/rebuild-run";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import { Conflict, NotFound } from "@anpord/schema/domain/errors";
+import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
@@ -24,6 +25,7 @@ import {
   savePlayground,
 } from "./playground-handlers";
 import { asReading } from "./reading-to-api";
+import { tasksAreDistinct } from "./task-keys";
 
 const HISTORY_LIMIT = 20;
 
@@ -42,9 +44,20 @@ export const EvalsHandlers = HttpApiBuilder.group(
           const credentialResolver = yield* CredentialResolver;
           const grid = yield* GridRun;
           const credentials = yield* EvalCredentials;
+
+          if (!tasksAreDistinct(payload.tasks)) {
+            return yield* Effect.fail(
+              new BadRequest({ message: "Each eval task must be unique" })
+            );
+          }
+
           const requested = yield* Effect.forEach(payload.tasks, (task) =>
             harnessVersion(task.harness).pipe(
-              Effect.map((harnessVersion) => ({ ...task, harnessVersion }))
+              Effect.map((harnessVersion) => ({
+                ...task,
+                harnessVersion,
+                profile: profileOfRequest(task.profile),
+              }))
             )
           );
           const tasks = yield* resolveTaskCredentials(
