@@ -134,7 +134,3 @@ export const usageOf = (
       }
     : null;
 };
-
-/* Null rather than epoch zero: unknown is not 1970. */
-export const momentOf = (at: number | undefined) =>
-  at === undefined ? null : new Date(at);

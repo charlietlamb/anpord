@@ -27,6 +27,7 @@ export const promptRelease = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
+    index("prompt_release_created_by_idx").on(table.createdBy),
     index("prompt_release_prompt_internal_id_idx").on(table.promptInternalId),
   ]
 );

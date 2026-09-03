@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   jsonb,
   pgTable,
@@ -26,6 +27,7 @@ export const promptVersion = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
+    index("prompt_version_created_by_idx").on(table.createdBy),
     uniqueIndex("prompt_version_prompt_internal_id_version_idx").on(
       table.promptInternalId,
       table.version

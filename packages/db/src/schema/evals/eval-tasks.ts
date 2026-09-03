@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  index,
   jsonb,
   pgTable,
   text,
@@ -43,6 +44,7 @@ export const evalTask = pgTable(
     archivedAt: timestamp("archived_at"),
   },
   (table) => [
+    index("eval_task_created_by_idx").on(table.createdBy),
     uniqueIndex("eval_task_organization_id_id_idx").on(
       table.organizationId,
       table.id

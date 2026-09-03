@@ -38,6 +38,8 @@ export const credentialConnection = pgTable(
     lastUsedAt: timestamp("last_used_at"),
   },
   (table) => [
+    index("credential_connection_created_by_idx").on(table.createdBy),
+    index("credential_connection_owner_user_id_idx").on(table.ownerUserId),
     uniqueIndex("credential_connection_organization_name_idx")
       .on(table.organizationId, table.integrationId, table.name)
       .where(sql`${table.scope} = 'organization'`),

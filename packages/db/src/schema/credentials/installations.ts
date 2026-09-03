@@ -32,5 +32,10 @@ export const githubInstallation = pgTable(
     createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at").notNull(),
   },
-  (table) => [index("github_installation_org_idx").on(table.organizationId)]
+  (table) => [
+    index("github_installation_org_idx").on(table.organizationId),
+    index("github_installation_installed_by_user_id_idx").on(
+      table.installedByUserId
+    ),
+  ]
 );

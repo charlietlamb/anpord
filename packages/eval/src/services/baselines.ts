@@ -155,7 +155,6 @@ export const BaselinesLive = Layer.effect(
           internalId,
           organizationId: input.organizationId,
           promotedAt,
-          promotedBy: null,
         });
       }).pipe(
         Effect.withSpan("Baselines.promoteIfAbsent"),

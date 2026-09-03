@@ -8,7 +8,6 @@ import { Context, Effect, Layer, Option } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
-import { momentOf } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
 import { tryStore } from "./query";
 
@@ -190,14 +189,8 @@ export const TrialRecorderLive = Layer.effect(
           ids.generate("evalEvent").pipe(
             Effect.map((internalId) => ({
               internalId,
-              kind: event._tag,
-
-              occurredAt: momentOf(event.at),
               payload: event,
               seq: input.from + index,
-              startedAt: momentOf(
-                event._tag === "Command" ? event.startedAt : undefined
-              ),
               trialInternalId: input.trialInternalId,
             }))
           )

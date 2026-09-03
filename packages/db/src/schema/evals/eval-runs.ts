@@ -32,6 +32,7 @@ export const evalRun = pgTable(
     finishedAt: timestamp("finished_at"),
   },
   (table) => [
+    index("eval_run_started_by_idx").on(table.startedBy),
     uniqueIndex("eval_run_organization_id_id_idx").on(
       table.organizationId,
       table.id

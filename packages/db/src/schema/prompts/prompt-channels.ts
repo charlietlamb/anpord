@@ -37,6 +37,7 @@ export const promptChannel = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => [
+    index("prompt_channel_updated_by_idx").on(table.updatedBy),
     uniqueIndex("prompt_channel_prompt_internal_id_channel_idx").on(
       table.promptInternalId,
       table.channelInternalId

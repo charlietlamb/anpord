@@ -41,6 +41,8 @@ export const promptEvent = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
+    index("prompt_event_actor_id_idx").on(table.actorId),
+    index("prompt_event_version_internal_id_idx").on(table.versionInternalId),
     index("prompt_event_prompt_internal_id_idx").on(table.promptInternalId),
     /* Paged newest first by the pair, so two events sharing a millisecond
        cannot be skipped across a page boundary. */

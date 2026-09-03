@@ -253,6 +253,13 @@
       "when": 1788300003000,
       "tag": "0035_schema_hygiene",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1788300004000,
+      "tag": "0036_schema_leftovers",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,6 @@ import { asc, inArray } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import type { HarnessEvent } from "../domain/harness-event";
-import { momentOf } from "../domain/harness-event";
 import { groupByTrial } from "./event-row";
 import { JournalArchive } from "./journal-archive";
 import { tryStore } from "./query";
@@ -49,14 +48,8 @@ export const EventRepositoryLive = Layer.effect(
           ids.generate("evalEvent").pipe(
             Effect.map((internalId) => ({
               internalId,
-              kind: event._tag,
-              occurredAt: momentOf(event.at),
               payload: event,
-
               seq: index,
-              startedAt: momentOf(
-                event._tag === "Command" ? event.startedAt : undefined
-              ),
               trialInternalId: input.trialInternalId,
             }))
           )

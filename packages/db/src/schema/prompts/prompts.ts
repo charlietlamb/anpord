@@ -1,4 +1,10 @@
-import { pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
 import { user } from "../auth/users";
 
@@ -20,6 +26,7 @@ export const prompt = pgTable(
     archivedAt: timestamp("archived_at"),
   },
   (table) => [
+    index("prompt_created_by_idx").on(table.createdBy),
     uniqueIndex("prompt_organization_id_id_idx").on(
       table.organizationId,
       table.id

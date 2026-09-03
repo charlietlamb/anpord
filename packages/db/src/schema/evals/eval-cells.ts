@@ -38,6 +38,12 @@ export const evalCell = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
+    index("eval_cell_harness_credential_connection_id_idx").on(
+      table.harnessCredentialConnectionId
+    ),
+    index("eval_cell_sandbox_credential_connection_id_idx").on(
+      table.sandboxCredentialConnectionId
+    ),
     uniqueIndex("eval_cell_run_internal_id_cell_key_idx").on(
       table.runInternalId,
       table.cellKey

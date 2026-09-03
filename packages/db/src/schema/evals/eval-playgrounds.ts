@@ -44,6 +44,7 @@ export const evalPlayground = pgTable(
     archivedAt: timestamp("archived_at"),
   },
   (table) => [
+    index("eval_playground_created_by_idx").on(table.createdBy),
     /* Unique, matching every sibling table. A save updates by (org, id) and
        returns one row; with duplicates it would update several and report
        one, so somebody's work would vanish without an error. */

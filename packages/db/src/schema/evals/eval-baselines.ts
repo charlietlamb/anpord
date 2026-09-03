@@ -6,17 +6,9 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
-import { user } from "../auth/users";
 import { evalCell } from "./eval-cells";
 
-/** The first scored reading for a cell, and what a later run is measured
- * against.
- *
- * Written once and never replaced by a later run. If the latest reading
- * silently became the reference, a bad day would be adopted as the new normal
- * and the drift this table exists to expose would be absorbed one run at a
- * time. `promoted_by` is reserved for a deliberate promotion, which nothing
- * performs yet. */
+/* The first scored reading for a cell key. Written once, never replaced by a later run. */
 export const evalBaseline = pgTable(
   "eval_baseline",
   {
@@ -30,9 +22,6 @@ export const evalBaseline = pgTable(
     cellInternalId: text("cell_internal_id")
       .notNull()
       .references(() => evalCell.internalId, { onDelete: "restrict" }),
-    promotedBy: text("promoted_by").references(() => user.id, {
-      onDelete: "set null",
-    }),
     promotedAt: timestamp("promoted_at").notNull().defaultNow(),
   },
   (table) => [
