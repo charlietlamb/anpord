@@ -42,6 +42,7 @@
     "./codebase/source-token": "./src/codebase/source-token.ts",
     "./codebase/github-repositories": "./src/codebase/github-repositories.ts",
     "./credentials/connections": "./src/credentials/connections.ts",
+    "./credentials/resolver": "./src/credentials/resolver.ts",
     "./credentials/device-auth": "./src/credentials/device-auth.ts",
     "./credentials/errors": "./src/credentials/errors.ts",
     "./credentials/integrations": "./src/credentials/integrations.ts",

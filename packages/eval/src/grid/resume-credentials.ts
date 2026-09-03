@@ -1,6 +1,6 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import { Effect } from "effect";
-import type { CredentialResolverShape } from "../credentials/connections";
+import type { CredentialResolverShape } from "../credentials/resolver";
 import { resolveTaskCredentials } from "../credentials/tasks";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { NotRunnable } from "../domain/errors";

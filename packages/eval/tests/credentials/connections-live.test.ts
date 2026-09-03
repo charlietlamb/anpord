@@ -21,10 +21,12 @@ import {
 import {
   CredentialConnections,
   CredentialConnectionsLive,
-  CredentialResolver,
-  CredentialResolverLive,
 } from "../../src/credentials/connections";
 import { DeviceAuth, DeviceAuthLive } from "../../src/credentials/device-auth";
+import {
+  CredentialResolver,
+  CredentialResolverLive,
+} from "../../src/credentials/resolver";
 import { skipWithoutDatabase } from "../fixtures/database";
 
 const url = process.env.EVAL_TEST_DATABASE_URL;

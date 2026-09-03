@@ -8,7 +8,7 @@ import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { inArray } from "drizzle-orm";
 import { Duration, Effect, Layer, Redacted } from "effect";
-import { layerTestResolver } from "../../src/credentials/connections";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import type { DestroySandbox } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import { LiveSandboxesLive } from "../../src/repositories/live-sandboxes";

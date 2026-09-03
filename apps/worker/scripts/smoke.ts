@@ -1,7 +1,7 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CredentialResolver } from "@anpord/eval/credentials/connections";
+import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";

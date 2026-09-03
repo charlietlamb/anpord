@@ -1,129 +1,22 @@
-import { Database } from "@anpord/db/client";
-import { user } from "@anpord/db/schema/auth/users";
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
 import { IdGenerator } from "@anpord/ids/id";
 import type { Actor } from "@anpord/schema/domain/actor";
-import {
-  type CreateCredentialConnection,
+import type {
+  CreateCredentialConnection,
   CredentialConnection,
   CredentialValues,
-  type IntegrationAwareness,
-  type ResolvedCredential,
+  IntegrationAwareness,
 } from "@anpord/schema/domain/credentials";
-import { and, desc, eq, ne, or } from "drizzle-orm";
-import {
-  Clock,
-  Context,
-  DateTime,
-  Effect,
-  Either,
-  Layer,
-  Redacted,
-  Schema,
-} from "effect";
-import { tryStore } from "../repositories/query";
+import { Clock, Context, Effect, Layer } from "effect";
 import { CredentialCipher } from "./cipher";
+import { sealValues } from "./connection-payload";
+import {
+  CredentialConnectionRepository,
+  CredentialConnectionRepositoryLive,
+} from "./connection-repository";
+import { summaryOf } from "./connection-row";
+import { verifyConnection } from "./connection-verification";
 import { CredentialError } from "./errors";
 import { validateCredential } from "./integrations";
-
-type ConnectionRow = typeof credentialConnection.$inferSelect;
-
-const visibleTo = (organizationId: string, userId: string) =>
-  and(
-    eq(credentialConnection.organizationId, organizationId),
-    or(
-      eq(credentialConnection.scope, "organization"),
-      and(
-        eq(credentialConnection.scope, "personal"),
-        eq(credentialConnection.ownerUserId, userId)
-      )
-    )
-  );
-
-const defaultScope = (
-  organizationId: string,
-  userId: string,
-  integrationId: string,
-  scope: string
-) =>
-  and(
-    eq(credentialConnection.organizationId, organizationId),
-    eq(credentialConnection.integrationId, integrationId),
-    eq(credentialConnection.scope, scope),
-    scope === "personal"
-      ? eq(credentialConnection.ownerUserId, userId)
-      : undefined
-  );
-
-const contextOf = (row: {
-  readonly id: string;
-  readonly integrationId: string;
-  readonly organizationId: string;
-}) => `${row.organizationId}\0${row.id}\0${row.integrationId}`;
-
-const summaryOf = (row: ConnectionRow): CredentialConnection =>
-  Schema.validateSync(CredentialConnection)({
-    authMethodId: row.authMethodId,
-    createdAt: DateTime.unsafeMake(row.createdAt.getTime()),
-    id: row.id,
-    integrationId: row.integrationId,
-    isDefault: row.isDefault,
-    lastUsedAt:
-      row.lastUsedAt === null
-        ? null
-        : DateTime.unsafeMake(row.lastUsedAt.getTime()),
-    lastVerifiedAt:
-      row.lastVerifiedAt === null
-        ? null
-        : DateTime.unsafeMake(row.lastVerifiedAt.getTime()),
-    name: row.name,
-    scope: row.scope,
-    status: row.status,
-  });
-
-/** Rows arrive sorted by integration then name, so one pass groups them. */
-const groupOwners = (
-  rows: readonly { integrationId: string; owner: string }[]
-): readonly IntegrationAwareness[] => {
-  const byIntegration = new Map<string, string[]>();
-
-  for (const row of rows) {
-    const owners = byIntegration.get(row.integrationId);
-
-    if (owners === undefined) {
-      byIntegration.set(row.integrationId, [row.owner]);
-    } else {
-      owners.push(row.owner);
-    }
-  }
-
-  return [...byIntegration].map(([integrationId, owners]) => ({
-    integrationId,
-    owners,
-  }));
-};
-
-const notFound = () =>
-  new CredentialError({
-    code: "not-found",
-    message: "Credential connection not found",
-  });
-
-const storeUnavailable = () =>
-  new CredentialError({
-    code: "internal",
-    message: "Credential store is unavailable",
-  });
-
-const decodeValues = (payload: Redacted.Redacted<string>) =>
-  Schema.decodeUnknown(Schema.parseJson(CredentialValues))(
-    Redacted.value(payload)
-  ).pipe(
-    Effect.map(Redacted.make),
-    Effect.mapError(
-      () => new CredentialError({ message: "Credential payload is invalid" })
-    )
-  );
 
 export interface CredentialConnectionsShape {
   readonly awareness: (
@@ -159,66 +52,12 @@ export class CredentialConnections extends Context.Tag(
   "@anpord/eval/CredentialConnections"
 )<CredentialConnections, CredentialConnectionsShape>() {}
 
-export interface ResolveCredential {
-  readonly actor: Actor;
-  readonly connectionId?: string;
-  readonly integrationId: string;
-}
-
-/**
- * A credential a run already committed to, named by the connection its cells
- * recorded.
- *
- * Distinct from ResolveCredential because there is no actor to check against.
- * A worker continuing a run is not deciding whether that run may use this
- * credential; a person with a session decided when the run was started, and
- * the cell stores what they chose. Scoped to the organization so a run can
- * still only reach its own.
- */
-export interface BoundCredential {
-  readonly connectionId: string;
-  readonly organizationId: string;
-}
-
-export interface CredentialResolverShape {
-  readonly resolve: (
-    input: ResolveCredential
-  ) => Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>;
-  readonly resolveBound: (
-    input: BoundCredential
-  ) => Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>;
-}
-
-export class CredentialResolver extends Context.Tag(
-  "@anpord/eval/CredentialResolver"
-)<CredentialResolver, CredentialResolverShape>() {}
-
 export const CredentialConnectionsLive = Layer.effect(
   CredentialConnections,
   Effect.gen(function* () {
     const cipher = yield* CredentialCipher;
-    const db = yield* Database;
     const ids = yield* IdGenerator;
-
-    const find = (actor: Actor, id: string) =>
-      tryStore("credential.find", () =>
-        db
-          .select()
-          .from(credentialConnection)
-          .where(
-            and(
-              visibleTo(actor.organizationId, actor.id),
-              eq(credentialConnection.id, id)
-            )
-          )
-      ).pipe(
-        Effect.mapError(storeUnavailable),
-        Effect.flatMap((rows) =>
-          rows[0] === undefined
-            ? Effect.fail(notFound())
-            : Effect.succeed(rows[0])
-        )
-      );
+    const repository = yield* CredentialConnectionRepository;
 
     return CredentialConnections.of({
       create: (actor, input) =>
@@ -244,64 +83,29 @@ export const CredentialConnectionsLive = Layer.effect(
             input.values
           );
           const id = yield* ids.generate("credentialConnection");
-          const row = {
-            authMethodId: input.authMethodId,
-            createdBy: actor.isUser ? actor.id : null,
-            id,
-            integrationId: input.integrationId,
-            name,
-            organizationId: actor.organizationId,
-            ownerUserId: input.scope === "personal" ? actor.id : null,
-            scope: input.scope,
-            sealedPayload: yield* cipher.seal(
-              Redacted.make(JSON.stringify(values)),
-              contextOf({
+          const inserted = yield* repository.insert(
+            actor,
+            {
+              authMethodId: input.authMethodId,
+              createdBy: actor.isUser ? actor.id : null,
+              id,
+              integrationId: input.integrationId,
+              name,
+              organizationId: actor.organizationId,
+              ownerUserId: input.scope === "personal" ? actor.id : null,
+              scope: input.scope,
+              sealedPayload: yield* sealValues(cipher, values, {
                 id,
                 integrationId: input.integrationId,
                 organizationId: actor.organizationId,
-              })
-            ),
-            status: "active",
-          };
-
-          const inserted = yield* tryStore("credential.create", () =>
-            db.transaction(async (tx) => {
-              const existing = await tx
-                .select({ id: credentialConnection.id })
-                .from(credentialConnection)
-                .where(
-                  defaultScope(
-                    actor.organizationId,
-                    actor.id,
-                    input.integrationId,
-                    input.scope
-                  )
-                )
-                .limit(1);
-              const isDefault = input.isDefault || existing.length === 0;
-
-              if (isDefault) {
-                await tx
-                  .update(credentialConnection)
-                  .set({ isDefault: false })
-                  .where(
-                    defaultScope(
-                      actor.organizationId,
-                      actor.id,
-                      input.integrationId,
-                      input.scope
-                    )
-                  );
-              }
-              return tx
-                .insert(credentialConnection)
-                .values({ ...row, isDefault })
-                .returning();
-            })
-          ).pipe(Effect.mapError(storeUnavailable));
+              }),
+              status: "active",
+            },
+            input.isDefault
+          );
 
           yield* Effect.logInfo("credential created");
-          return summaryOf(inserted[0] as ConnectionRow);
+          return summaryOf(inserted);
         }).pipe(
           Effect.withSpan("CredentialConnections.create"),
           Effect.annotateLogs({
@@ -310,67 +114,21 @@ export const CredentialConnectionsLive = Layer.effect(
             scope: input.scope,
           })
         ),
-      /* Only what `visibleTo` withholds: somebody else's personal rows. An
-         organization row is already in the reader's own list, and repeating
-         it here would have the page say a teammate has what the reader can
-         see they have themselves. */
       awareness: (actor) =>
-        tryStore("credential.awareness", () =>
-          db
-            .selectDistinct({
-              integrationId: credentialConnection.integrationId,
-              owner: user.name,
-            })
-            .from(credentialConnection)
-            .innerJoin(user, eq(user.id, credentialConnection.ownerUserId))
-            .where(
-              and(
-                eq(credentialConnection.organizationId, actor.organizationId),
-                eq(credentialConnection.scope, "personal"),
-                eq(credentialConnection.status, "active"),
-                ne(credentialConnection.ownerUserId, actor.id)
-              )
-            )
-            .orderBy(credentialConnection.integrationId, user.name)
-        ).pipe(
-          Effect.map(groupOwners),
-          Effect.mapError(storeUnavailable),
-          Effect.withSpan("CredentialConnections.awareness"),
-          Effect.annotateLogs({ organizationId: actor.organizationId })
-        ),
-
+        repository
+          .awareness(actor)
+          .pipe(
+            Effect.withSpan("CredentialConnections.awareness"),
+            Effect.annotateLogs({ organizationId: actor.organizationId })
+          ),
       list: (actor) =>
-        tryStore("credential.list", () =>
-          db
-            .select()
-            .from(credentialConnection)
-            .where(visibleTo(actor.organizationId, actor.id))
-            .orderBy(
-              desc(credentialConnection.isDefault),
-              credentialConnection.name
-            )
-        ).pipe(
+        repository.list(actor).pipe(
           Effect.map((rows) => rows.map(summaryOf)),
-          Effect.mapError(storeUnavailable),
           Effect.withSpan("CredentialConnections.list"),
           Effect.annotateLogs({ organizationId: actor.organizationId })
         ),
       remove: (actor, id) =>
-        tryStore("credential.remove", () =>
-          db
-            .delete(credentialConnection)
-            .where(
-              and(
-                visibleTo(actor.organizationId, actor.id),
-                eq(credentialConnection.id, id)
-              )
-            )
-            .returning({ id: credentialConnection.id })
-        ).pipe(
-          Effect.mapError(storeUnavailable),
-          Effect.flatMap((rows) =>
-            rows.length === 0 ? Effect.fail(notFound()) : Effect.void
-          ),
+        repository.remove(actor, id).pipe(
           Effect.withSpan("CredentialConnections.remove"),
           Effect.annotateLogs({
             credentialId: id,
@@ -379,31 +137,17 @@ export const CredentialConnectionsLive = Layer.effect(
         ),
       rotate: (actor, id, input) =>
         Effect.gen(function* () {
-          const selected = yield* find(actor, id);
+          const selected = yield* repository.find(actor, id);
           const values = yield* validateCredential(
             selected.integrationId,
             selected.authMethodId,
             input
           );
           const now = new Date(yield* Clock.currentTimeMillis);
-          const sealedPayload = yield* cipher.seal(
-            Redacted.make(JSON.stringify(values)),
-            contextOf(selected)
+          const sealedPayload = yield* sealValues(cipher, values, selected);
+          return summaryOf(
+            yield* repository.rotate(selected, sealedPayload, now)
           );
-          const rows = yield* tryStore("credential.rotate", () =>
-            db
-              .update(credentialConnection)
-              .set({
-                lastVerifiedAt: null,
-                revision: selected.revision + 1,
-                sealedPayload,
-                status: "active",
-                updatedAt: now,
-              })
-              .where(eq(credentialConnection.id, selected.id))
-              .returning()
-          ).pipe(Effect.mapError(storeUnavailable));
-          return summaryOf(rows[0] as ConnectionRow);
         }).pipe(
           Effect.withSpan("CredentialConnections.rotate"),
           Effect.annotateLogs({
@@ -413,29 +157,9 @@ export const CredentialConnectionsLive = Layer.effect(
         ),
       setDefault: (actor, id) =>
         Effect.gen(function* () {
-          const selected = yield* find(actor, id);
+          const selected = yield* repository.find(actor, id);
           const now = new Date(yield* Clock.currentTimeMillis);
-          const rows = yield* tryStore("credential.setDefault", () =>
-            db.transaction(async (tx) => {
-              await tx
-                .update(credentialConnection)
-                .set({ isDefault: false })
-                .where(
-                  defaultScope(
-                    actor.organizationId,
-                    actor.id,
-                    selected.integrationId,
-                    selected.scope
-                  )
-                );
-              return tx
-                .update(credentialConnection)
-                .set({ isDefault: true, updatedAt: now })
-                .where(eq(credentialConnection.id, selected.id))
-                .returning();
-            })
-          ).pipe(Effect.mapError(storeUnavailable));
-          return summaryOf(rows[0] as ConnectionRow);
+          return summaryOf(yield* repository.setDefault(actor, selected, now));
         }).pipe(
           Effect.withSpan("CredentialConnections.setDefault"),
           Effect.annotateLogs({
@@ -443,199 +167,7 @@ export const CredentialConnectionsLive = Layer.effect(
             organizationId: actor.organizationId,
           })
         ),
-      verify: (actor, id) =>
-        Effect.gen(function* () {
-          const selected = yield* find(actor, id);
-          const checked = yield* cipher
-            .open(selected.sealedPayload, contextOf(selected))
-            .pipe(
-              Effect.flatMap(decodeValues),
-              Effect.flatMap((values) =>
-                validateCredential(
-                  selected.integrationId,
-                  selected.authMethodId,
-                  Redacted.value(values)
-                )
-              ),
-              Effect.either
-            );
-          const now = new Date(yield* Clock.currentTimeMillis);
-          const rows = yield* tryStore("credential.verify", () =>
-            db
-              .update(credentialConnection)
-              .set({
-                lastVerifiedAt: Either.isRight(checked) ? now : null,
-                status: Either.isRight(checked) ? "active" : "invalid",
-                updatedAt: now,
-              })
-              .where(eq(credentialConnection.id, selected.id))
-              .returning()
-          ).pipe(Effect.mapError(storeUnavailable));
-
-          if (Either.isLeft(checked)) {
-            return yield* Effect.fail(checked.left);
-          }
-
-          return summaryOf(rows[0] as ConnectionRow);
-        }).pipe(
-          Effect.withSpan("CredentialConnections.verify"),
-          Effect.annotateLogs({
-            credentialId: id,
-            organizationId: actor.organizationId,
-          })
-        ),
+      verify: verifyConnection(cipher, repository),
     });
   })
-);
-
-export const CredentialResolverLive = Layer.effect(
-  CredentialResolver,
-  Effect.gen(function* () {
-    const cipher = yield* CredentialCipher;
-    const db = yield* Database;
-
-    const openRow = (row: ConnectionRow) =>
-      cipher.open(row.sealedPayload, contextOf(row)).pipe(
-        Effect.flatMap(decodeValues),
-        Effect.map((values) =>
-          Redacted.make({
-            authMethodId: row.authMethodId,
-            connectionId: row.id,
-            integrationId: row.integrationId,
-            revision: row.revision,
-            values: Redacted.value(values),
-          })
-        )
-      );
-
-    /* No actor, by design: a run that already recorded this connection was
-       authorised when a person started it. Still bounded by the organization,
-       so a run cannot reach another's credential. */
-    const resolveBound = (input: BoundCredential) =>
-      tryStore("credential.resolveBound", () =>
-        db
-          .select()
-          .from(credentialConnection)
-          .where(
-            and(
-              eq(credentialConnection.id, input.connectionId),
-              eq(credentialConnection.organizationId, input.organizationId),
-              eq(credentialConnection.status, "active")
-            )
-          )
-          .limit(1)
-      ).pipe(
-        Effect.mapError(storeUnavailable),
-        Effect.flatMap((rows) =>
-          rows[0] === undefined ? Effect.fail(notFound()) : openRow(rows[0])
-        ),
-        Effect.withSpan("CredentialResolver.resolveBound"),
-        Effect.annotateLogs({
-          connectionId: input.connectionId,
-          organizationId: input.organizationId,
-        })
-      );
-
-    const resolve = (input: ResolveCredential) =>
-      tryStore("credential.resolve", () =>
-        db
-          .select()
-          .from(credentialConnection)
-          .where(
-            and(
-              visibleTo(input.actor.organizationId, input.actor.id),
-              eq(credentialConnection.integrationId, input.integrationId),
-              eq(credentialConnection.status, "active"),
-              input.connectionId === undefined
-                ? eq(credentialConnection.isDefault, true)
-                : eq(credentialConnection.id, input.connectionId)
-            )
-          )
-          .orderBy(
-            desc(credentialConnection.scope),
-            desc(credentialConnection.updatedAt)
-          )
-          .limit(1)
-      ).pipe(
-        Effect.mapError(storeUnavailable),
-        Effect.flatMap((rows) =>
-          rows[0] === undefined
-            ? Effect.fail(notFound())
-            : Effect.succeed(rows[0])
-        ),
-        Effect.tap((row) =>
-          Clock.currentTimeMillis.pipe(
-            Effect.flatMap((now) =>
-              tryStore("credential.touch", () =>
-                db
-                  .update(credentialConnection)
-                  .set({ lastUsedAt: new Date(now) })
-                  .where(eq(credentialConnection.id, row.id))
-              )
-            ),
-            Effect.ignore
-          )
-        ),
-        Effect.flatMap((row) =>
-          cipher
-            .open(row.sealedPayload, contextOf(row))
-            .pipe(Effect.map((payload) => ({ payload, row })))
-        )
-      );
-
-    return CredentialResolver.of({
-      resolveBound,
-      resolve: (input) =>
-        resolve(input).pipe(
-          Effect.flatMap(({ payload, row }) =>
-            decodeValues(payload).pipe(
-              Effect.map((values) =>
-                Redacted.make({
-                  authMethodId: row.authMethodId,
-                  connectionId: row.id,
-                  integrationId: row.integrationId,
-                  revision: row.revision,
-                  values: Redacted.value(values),
-                })
-              )
-            )
-          ),
-          Effect.withSpan("CredentialResolver.resolve"),
-          Effect.annotateLogs({
-            credentialId: input.connectionId ?? "default",
-            integrationId: input.integrationId,
-            organizationId: input.actor.organizationId,
-          })
-        ),
-    });
-  })
-);
-
-export const layerTestResolver = (
-  values: CredentialValues = {}
-): Layer.Layer<CredentialResolver> =>
-  Layer.succeed(
-    CredentialResolver,
-    CredentialResolver.of({
-      resolve: (input) =>
-        Effect.succeed(
-          Redacted.make({
-            authMethodId: "test",
-            connectionId: input.connectionId ?? "test",
-            integrationId: input.integrationId,
-            revision: 1,
-            values,
-          })
-        ),
-      resolveBound: (input) =>
-        Effect.succeed(
-          Redacted.make({
-            authMethodId: "test",
-            connectionId: input.connectionId,
-            integrationId: "test",
-            revision: 1,
-            values,
-          })
-        ),
-    })
-  );
+).pipe(Layer.provide(CredentialConnectionRepositoryLive));

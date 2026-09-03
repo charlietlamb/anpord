@@ -1,4 +1,4 @@
-import { CredentialResolver } from "@anpord/eval/credentials/connections";
+import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { rebuildRun } from "@anpord/eval/grid/rebuild-run";
 import { GridRun } from "@anpord/eval/grid/run";

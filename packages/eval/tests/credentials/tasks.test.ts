@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Redacted } from "effect";
-import type { CredentialResolverShape } from "../../src/credentials/connections";
 import { CredentialError } from "../../src/credentials/errors";
+import type { CredentialResolverShape } from "../../src/credentials/resolver";
 import { resolveTaskCredentials } from "../../src/credentials/tasks";
 
 const actor = Actor.make({

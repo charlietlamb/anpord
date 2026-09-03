@@ -1,8 +1,8 @@
 import type { evalPlayground } from "@anpord/db/schema/evals/eval-playgrounds";
 import type { Actor } from "@anpord/schema/domain/actor";
 import { Context, Effect, Layer, Option } from "effect";
-import { CredentialResolver } from "../credentials/connections";
 import type { CredentialError } from "../credentials/errors";
+import { CredentialResolver } from "../credentials/resolver";
 import { resolveTaskCredentials } from "../credentials/tasks";
 import type { EvalStoreError } from "../domain/errors";
 import { NotRunnable } from "../domain/errors";

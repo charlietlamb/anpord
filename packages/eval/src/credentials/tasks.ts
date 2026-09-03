@@ -5,9 +5,9 @@ import type {
 } from "@anpord/schema/domain/credentials";
 import { Effect, Option, Redacted } from "effect";
 import type { GridExecutionTask } from "../grid/state";
-import type { CredentialResolverShape } from "./connections";
 import type { CredentialError } from "./errors";
 import { CredentialError as CredentialFailure } from "./errors";
+import type { CredentialResolverShape } from "./resolver";
 
 export interface RequestedTask {
   readonly credentials?: CredentialBindings;

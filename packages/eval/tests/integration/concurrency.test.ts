@@ -19,7 +19,7 @@ import { ModelPricesLive } from "../../src/adapters/models/prices";
 import { runCommandForOutcome } from "../../src/adapters/sandbox/run-command";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { SourceTokensNone } from "../../src/codebase/source-token";
-import { layerTestResolver } from "../../src/credentials/connections";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import type { ProviderName } from "../../src/domain/cell";
 import { HarnessUnavailable } from "../../src/domain/errors";
 import { GridRun, GridRunLive } from "../../src/grid/run";

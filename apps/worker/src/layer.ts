@@ -9,7 +9,7 @@ import {
 import { InstallationsLive } from "@anpord/eval/codebase/installations";
 import { SourceTokensLive } from "@anpord/eval/codebase/source-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
-import { CredentialResolverLive } from "@anpord/eval/credentials/connections";
+import { CredentialResolverLive } from "@anpord/eval/credentials/resolver";
 import {
   EvalHarnessVersionsLive,
   EvalSandboxLive,

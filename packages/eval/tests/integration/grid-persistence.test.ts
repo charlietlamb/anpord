@@ -12,7 +12,7 @@ import {
   Redacted,
 } from "effect";
 import { SourceTokensNone } from "../../src/codebase/source-token";
-import { layerTestResolver } from "../../src/credentials/connections";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { CellKey } from "../../src/domain/cell";
 import { GridRun } from "../../src/grid/run";
 import { EvalGridLive, EvalSandboxLive } from "../../src/layer";

@@ -1,5 +1,5 @@
 import { AutumnService } from "@anpord/billing/autumn";
-import { CredentialResolver } from "@anpord/eval/credentials/connections";
+import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { GridRun } from "@anpord/eval/grid/run";
 import { Baselines } from "@anpord/eval/services/baselines";

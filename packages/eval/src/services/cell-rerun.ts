@@ -1,7 +1,7 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import { Context, Effect, Layer, Option } from "effect";
-import { CredentialResolver } from "../credentials/connections";
 import type { CredentialError } from "../credentials/errors";
+import { CredentialResolver } from "../credentials/resolver";
 import { resolveTaskCredentials } from "../credentials/tasks";
 import type { ProviderName } from "../domain/cell";
 import { type EvalStoreError, NotRunnable } from "../domain/errors";

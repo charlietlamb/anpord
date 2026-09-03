@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Layer, Option, Stream } from "effect";
-import { layerTestResolver } from "../credentials/connections";
+import { layerTestResolver } from "../credentials/layer-test-resolver";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { GridRun, type StartGrid } from "../grid/run";
 import { RunQuery } from "../repositories/run-query";

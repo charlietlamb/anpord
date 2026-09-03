@@ -7,7 +7,7 @@ import {
   Redacted,
   Schedule,
 } from "effect";
-import { CredentialResolver } from "../credentials/connections";
+import { CredentialResolver } from "../credentials/resolver";
 import type { EvalStoreError } from "../domain/errors";
 import { SandboxProvider } from "../ports/sandbox";
 import {

@@ -15,11 +15,9 @@ import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositorie
 import { InstallationsLive } from "@anpord/eval/codebase/installations";
 import { SourceTokensLive } from "@anpord/eval/codebase/source-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
-import {
-  CredentialConnectionsLive,
-  CredentialResolverLive,
-} from "@anpord/eval/credentials/connections";
+import { CredentialConnectionsLive } from "@anpord/eval/credentials/connections";
 import { DeviceAuthLive } from "@anpord/eval/credentials/device-auth";
+import { CredentialResolverLive } from "@anpord/eval/credentials/resolver";
 import {
   EvalHarnessVersionsLive,
   EvalModelCatalogueLive,
