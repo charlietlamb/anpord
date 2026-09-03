@@ -24,6 +24,7 @@ import {
   EvalHarnessVersionsLive,
   EvalModelCatalogueLive,
   EvalSandboxLive,
+  ExpirySweepLive,
   evalGridWith,
   JournalRetentionSweepLive,
   ReconcilerSweepLive,
@@ -108,6 +109,7 @@ const EvalLayer = Layer.mergeAll(
 
   ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
   JournalRetentionSweepLive.pipe(Layer.provide(DatabaseLayer)),
+  ExpirySweepLive.pipe(Layer.provide(DatabaseLayer)),
   /* The same sandbox layer the grid uses, so the reaper shares its adapters
      and its permits rather than building a second set. */
   SandboxReaperSweepLive.pipe(

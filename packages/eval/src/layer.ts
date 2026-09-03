@@ -10,6 +10,7 @@ import { GridRunLive } from "./grid/run";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
+import { ExpiredRowsLive } from "./repositories/expired-rows";
 import { JournalArchiveLive } from "./repositories/journal-archive";
 import { LiveSandboxesLive } from "./repositories/live-sandboxes";
 import { RunQueryLive } from "./repositories/run-query";
@@ -21,6 +22,7 @@ import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
 import { AgentTrialLive } from "./services/agent-trial";
 import { BaselinesLive } from "./services/baselines";
 import { CellRerunsLive } from "./services/cell-rerun";
+import { ExpirySweepScheduleLive } from "./services/expiry-sweep";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { JournalRetentionScheduleLive } from "./services/journal-retention";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
@@ -121,4 +123,8 @@ export const JournalRetentionSweepLive = JournalRetentionScheduleLive.pipe(
 export const SandboxReaperSweepLive = SandboxReaperScheduleLive.pipe(
   Layer.provide(SandboxReaperLive),
   Layer.provide(LiveSandboxesLive)
+);
+
+export const ExpirySweepLive = ExpirySweepScheduleLive.pipe(
+  Layer.provide(ExpiredRowsLive)
 );
