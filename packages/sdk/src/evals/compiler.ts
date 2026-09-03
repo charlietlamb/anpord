@@ -1,156 +1,13 @@
-import { realpathSync } from "node:fs";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { dirname, join, resolve, sep } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { dirname, resolve } from "node:path";
 import type { EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
-import { build, type Plugin } from "esbuild";
+import { bundledCaseModule } from "./case-modules";
+import { isDefinition, loadDefinition } from "./definition-loader";
 import { localRepo } from "./local-repo";
-import { definitionEntry, prepareEntry, validatorEntry } from "./runner-source";
+import { prepareEntry, validatorEntry } from "./runner-source";
 import { repo } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
-
-const authoringExports = [
-  "export const defineEval = value => value;",
-  `export { empty, files, repo } from "./source";`,
-].join("\n");
-
-const authoringDir = dirname(fileURLToPath(import.meta.url));
-
-const ANPORD_MODULE = /^anpord$/;
-const ANY_MODULE = /.*/;
-
-const authoringModule: Plugin = {
-  name: "anpord-authoring",
-  setup: (compiler) => {
-    compiler.onResolve({ filter: ANPORD_MODULE }, () => ({
-      namespace: "anpord-authoring",
-      path: "anpord",
-    }));
-    compiler.onLoad(
-      { filter: ANY_MODULE, namespace: "anpord-authoring" },
-      () => ({
-        contents: authoringExports,
-        loader: "js",
-        resolveDir: authoringDir,
-      })
-    );
-  },
-};
-
-const bundle = (contents: string, entry: string) =>
-  Effect.tryPromise({
-    try: () =>
-      build({
-        absWorkingDir: process.cwd(),
-        bundle: true,
-        format: "esm",
-        metafile: true,
-        platform: "node",
-        resolveExtensions: [".ts", ".mjs", ".js", ".cjs", ".json"],
-        plugins: [authoringModule],
-        stdin: {
-          contents,
-          resolveDir: process.cwd(),
-          sourcefile: "anpord-eval-entry.ts",
-        },
-        target: "node18",
-        treeShaking: true,
-        write: false,
-      }).then((result) => ({
-        inputs: Object.keys(result.metafile?.inputs ?? {}).map((path) =>
-          resolve(path)
-        ),
-        source: result.outputFiles[0]?.text ?? "",
-      })),
-    catch: (cause) => new Error(`Could not compile ${entry}`, { cause }),
-  });
-
-const loadDefinition = (entry: string) =>
-  bundle(definitionEntry(entry), entry).pipe(
-    Effect.flatMap(({ inputs, source }) =>
-      Effect.acquireUseRelease(
-        Effect.tryPromise(() => mkdtemp(join(tmpdir(), "anpord-eval-"))),
-        (directory) =>
-          Effect.tryPromise({
-            try: async () => {
-              const output = join(directory, "definition.mjs");
-              await writeFile(output, source);
-              const module = await import(pathToFileURL(output).href);
-              return { definition: module.default as unknown, inputs };
-            },
-            catch: (cause) =>
-              new Error(
-                `Could not load ${entry}: ${cause instanceof Error ? cause.message : String(cause)}`,
-                { cause }
-              ),
-          }),
-        (directory) =>
-          Effect.promise(() =>
-            rm(directory, { force: true, recursive: true })
-          ).pipe(Effect.ignore)
-      )
-    )
-  );
-
-/* Compared by what the filesystem resolves them to, not by the strings: on
-   macOS an entry under /var and the same file reported under /private/var are
-   one file with two names, and comparing the names let the entry match itself
-   as its own separate module. */
-const realOrGiven = (path: string) => {
-  try {
-    return realpathSync.native(path);
-  } catch {
-    return path;
-  }
-};
-
-const sameFile = (one: string, other: string) =>
-  one === other || realOrGiven(one) === realOrGiven(other);
-
-const validatorModule = (
-  entry: string,
-  inputs: readonly string[],
-  name: string
-) =>
-  Effect.gen(function* () {
-    const pattern = new RegExp(
-      `\\bexport\\s+(?:async\\s+)?(?:const|function)\\s+${name}\\b`
-    );
-    const matches = yield* Effect.filter(
-      inputs.filter(
-        (path) =>
-          !(sameFile(path, entry) || path.includes(`${sep}node_modules${sep}`))
-      ),
-      (path) =>
-        Effect.tryPromise(() => readFile(path, "utf8")).pipe(
-          Effect.map((source) => pattern.test(source)),
-          Effect.orElseSucceed(() => false)
-        ),
-      { concurrency: 8 }
-    );
-
-    if (matches.length !== 1) {
-      return yield* Effect.fail(
-        new Error(
-          `${name} must be one named function or const export from a separate TypeScript file`
-        )
-      );
-    }
-
-    return matches[0] as string;
-  });
-
-const isDefinition = (value: unknown): value is EvalDefinition =>
-  typeof value === "object" &&
-  value !== null &&
-  typeof (value as EvalDefinition).name === "string" &&
-  typeof (value as EvalDefinition).prompt === "string" &&
-  Array.isArray((value as EvalDefinition).cases) &&
-  Array.isArray((value as EvalDefinition).tasks) &&
-  Number.isInteger((value as EvalDefinition).trials);
 
 const sourceFor = (
   definition: EvalDefinition,
@@ -168,19 +25,6 @@ const sourceFor = (
     onSome: (source) => ({ source }),
   });
 };
-
-const bundled = (
-  entry: string,
-  inputs: readonly string[],
-  name: string,
-  wrap: (module: string, exported: string) => string
-) =>
-  Effect.gen(function* () {
-    const module = yield* validatorModule(entry, inputs, name);
-    const { source } = yield* bundle(wrap(module, name), entry);
-
-    return { name, source };
-  });
 
 export const compileEvalEffect = (path: string) =>
   Effect.gen(function* () {
@@ -218,7 +62,7 @@ export const compileEvalEffect = (path: string) =>
           }
 
           const validator = hasValidator
-            ? yield* bundled(
+            ? yield* bundledCaseModule(
                 entry,
                 loaded.inputs,
                 subject.validate?.name || subject.name,
@@ -228,7 +72,7 @@ export const compileEvalEffect = (path: string) =>
 
           const prepare =
             typeof subject.prepare === "function"
-              ? yield* bundled(
+              ? yield* bundledCaseModule(
                   entry,
                   loaded.inputs,
                   subject.prepare.name || `${subject.name}-prepare`,
