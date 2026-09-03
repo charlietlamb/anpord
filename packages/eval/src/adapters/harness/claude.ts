@@ -33,7 +33,11 @@ export const ClaudeDriver: HarnessDriverShape = {
   prepare: (input) =>
     Effect.gen(function* () {
       const credential = yield* credentialOf(input, "claude");
-      const apiKey = yield* requiredValue(credential, "claude", "apiKey");
+      const apiKey = yield* requiredValue(
+        credential,
+        "claude",
+        credential.integrationId === "env" ? "ANTHROPIC_API_KEY" : "apiKey"
+      );
       yield* installNpmHarness(
         input,
         "claude",

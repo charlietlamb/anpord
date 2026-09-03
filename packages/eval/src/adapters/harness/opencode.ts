@@ -37,11 +37,17 @@ const added = (
     }),
   });
 
+/* An env credential brings no auth.json; the variables it carries reach the
+   binary through the sandbox env, and OpenCode reads its providers from there. */
 const authOf = (credential: ResolvedCredential) => {
   const authJson = credential.values.authJson;
 
+  if (credential.integrationId === "env") {
+    return Effect.succeed(Option.none<Redacted.Redacted<string>>());
+  }
+
   return credential.integrationId === "opencode" && authJson
-    ? Effect.succeed(authJson)
+    ? Effect.succeed(Option.some(Redacted.make(authJson)))
     : Effect.fail(
         new HarnessUnavailable({
           harness: "opencode",
@@ -62,7 +68,7 @@ export const OpencodeDriver: HarnessDriverShape = {
     Effect.gen(function* () {
       const auth = yield* authOf(Redacted.value(input.credential));
       yield* installOpencode(input.sandbox, input.version);
-      return opencodeEnv(Redacted.make(auth));
+      return opencodeEnv(auth);
     }).pipe(Effect.withSpan("Opencode.prepare")),
   run: (request: RunHarness) =>
     Effect.gen(function* () {

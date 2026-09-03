@@ -56,7 +56,8 @@ export const credentialOf = (
 ): Effect.Effect<ResolvedCredential, HarnessUnavailable> => {
   const credential = Redacted.value(input.credential);
 
-  return credential.integrationId === harness
+  return credential.integrationId === harness ||
+    credential.integrationId === "env"
     ? Effect.succeed(credential)
     : Effect.fail(
         new HarnessUnavailable({
