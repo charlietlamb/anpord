@@ -1,0 +1,51 @@
+{
+  "skill_name": "release notes",
+  "evals": [
+    {
+      "id": 1,
+      "name": "Lists the breaking change",
+      "prompt": "Read `CHANGELOG.md` and write ${count} release notes.\nMind the $ sign.",
+      "expected_output": "A short note naming the breaking change.",
+      "files": ["fixtures/changelog"],
+      "assertions": [
+        {
+          "text": "names the removed flag",
+          "kind": "content_contains_all",
+          "needles": ["--legacy", "removed"]
+        },
+        {
+          "text": "mentions a migration",
+          "kind": "content_contains_any",
+          "needles": ["migrate", "migration"]
+        },
+        {
+          "text": "does not invent a version",
+          "kind": "content_contains_none",
+          "needles": ["v9.0.0"]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Summarise the diff.",
+      "files": [],
+      "assertions": [
+        "The summary reads as though a maintainer wrote it, not a machine.",
+        {
+          "text": "names the file",
+          "kind": "content_contains_all",
+          "needles": ["parser.ts"]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Only prose",
+      "prompt": "Explain the change to a new reader.",
+      "assertions": [
+        "It avoids jargon a first-week reader would not know.",
+        "It says why the change was made, not only what changed."
+      ]
+    }
+  ]
+}

@@ -14,6 +14,7 @@
       "!packages/ui/src/components/ui",
       "!context",
       "!packages/eval/tests/fixtures/case-files",
+      "!packages/sdk/tests/imports/fixtures",
       "!**/.claude/worktrees"
     ]
   },
