@@ -1,0 +1,5 @@
+name: Shell Report
+task: "Run `bun test` and report ${count} failures, cost $9"
+judge_context:
+  - "The agent must quote the failing test names"
+max_steps: 20

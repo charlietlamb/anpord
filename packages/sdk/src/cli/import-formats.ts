@@ -1,6 +1,7 @@
 import type { FileSystem } from "@effect/platform";
 import type { Effect } from "effect";
 import { type ImportedSuite, importEvalsJson } from "../imports/evals-json";
+import { importYamlCases } from "../imports/yaml-cases";
 
 export type Importer = (
   path: string
@@ -13,4 +14,7 @@ export type Importer = (
 /** A format is an entry here, so adding one adds an entry rather than editing
  * the command. Each name carries the importer it names, so the parsed option
  * is the importer itself and no lookup can miss. */
-export const FORMATS: [string, Importer][] = [["evals-json", importEvalsJson]];
+export const FORMATS: [string, Importer][] = [
+  ["evals-json", importEvalsJson],
+  ["yaml", importYamlCases],
+];

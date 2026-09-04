@@ -3,10 +3,10 @@ title: "Import a case file"
 description: "Turn cases a team already wrote into a runnable suite"
 ---
 
-Most teams write their cases down long before they own a way to run them. The
-file is usually JSON, one entry per case, with a prompt and a list of things
-the answer ought to say. `anpord eval import` reads that file and writes a
-`*.eval.ts` suite from it.
+Most teams write their cases down long before they own a way to run them.
+Usually it is one file of JSON, or a directory of YAML with a file per case,
+each carrying a prompt and a list of things the answer ought to say. `anpord
+eval import` reads what they wrote and writes a `*.eval.ts` suite from it.
 
 ```bash
 anpord eval import --format evals-json ./evals.json --out ./release-notes.eval.ts
@@ -15,10 +15,22 @@ anpord eval import --format evals-json ./evals.json --out ./release-notes.eval.t
 Leave `--out` off and the suite goes to stdout, so you can read it before it
 lands anywhere.
 
-## The format
+## The formats
 
-`--format` names the shape of the file, not the team that wrote it.
-`evals-json` is the one Anpord reads today:
+`--format` names the shape of the file, not the team that wrote it. Anpord
+reads two today:
+
+| `--format` | Shape |
+| --- | --- |
+| `evals-json` | One JSON file holding every case |
+| `yaml` | One YAML file per case, or a directory of them |
+
+The path can be a single file or, for a format that keeps one case per file, a
+directory.
+
+## evals-json
+
+`evals-json` is one file holding every case:
 
 ```json
 {
@@ -146,7 +158,7 @@ Fill each one from the directory it names, or point the case at a
 Steps two and four are the work. Nothing that comes out of step one is worth
 trusting until they are done, and the suite stays red until they are.
 
-## When a file is refused
+## When an evals-json file is refused
 
 An import fails rather than writing a suite it is not sure of.
 
@@ -161,4 +173,104 @@ A shape mismatch names the case the way you would search for it:
 
 ```
 evals.json is not an evals-json file: case 47, prompt: Expected string, actual 12
+```
+
+## yaml
+
+`yaml` is one case per file. A directory imports as one suite, a file at a
+time, sorted by name:
+
+```bash
+anpord eval import --format yaml ./cases --out ./browsing.eval.ts
+```
+
+Point it at a single file instead and you get a suite of one. A directory is
+read for `*.yaml` and `*.yml`; anything else in it is left alone.
+
+Each file holds four fields:
+
+```yaml
+name: Checkout flow
+task: Open the demo storefront, add the sample widget and pay with the test card
+judge_context:
+  - The agent must reach the basket page before paying
+  - The agent must use the test card, never a real one
+max_steps: 12
+```
+
+`name` and `task` are required. `judge_context` lists what a person told a
+model judge to look for, and `max_steps` caps how long the case may run.
+
+### What converts
+
+`task` becomes the case prompt, verbatim. `name` becomes the case name,
+slugged. That is the whole of it.
+
+### What does not
+
+Nothing else does, and that is the point. Every `judge_context` entry is prose
+one person wrote for a model judge to read. "The agent must use the test card,
+never a real one" has no mechanical reading: it is not a string to look for, it
+is a description of correct behaviour that a judge weighs. Pattern-matching it
+into a `contains` check would produce a suite that goes green while measuring
+something the author never asked for.
+
+So each entry is written into the file as the author's own words, next to the
+same always-false placeholder `evals-json` uses:
+
+```ts
+validate: async (context) => {
+  const answer = await context.answer();
+
+  return [
+    /* Write this check, then delete the line under it: */
+    /* The agent must use the test card, never a real one */
+    unwritten("The agent must use the test card, never a real one"),
+  ].every(Boolean);
+},
+```
+
+A file that names no `judge_context` gets one placeholder anyway. Nothing in it
+says what a good answer is, so the case fails until somebody writes that down.
+
+`max_steps` becomes a comment on the case rather than a setting. Anpord has no
+step budget, so there is nothing to set it to, but the number says how much
+room the case had when its author last ran it, which is worth keeping:
+
+```ts
+/* The file allowed 12 steps. Anpord does not cap steps, so this is a note, not a limit. */
+```
+
+Every case also gets an empty `files({})` source. The YAML names nothing the
+case starts from, so there is nothing to fill in from.
+
+### The workflow
+
+1. **Import.** Run the command and read the suite before writing it anywhere.
+2. **Fill the sources.** Replace each `files({})` with what the case works on,
+   or point it at a [repository](/evals/cases).
+3. **Pick a task.** Edit the one harness, model and sandbox the suite ships
+   with, or add [variants](/evals/variants).
+4. **Write the checks.** Work through every placeholder. Each carries the
+   sentence its author wrote for the judge, which is the specification.
+5. **Run it.** `anpord eval ./browsing.eval.ts`.
+
+Step four is the work. The suite stays red until it is done.
+
+### When a yaml file is refused
+
+| Refusal | Meaning |
+| --- | --- |
+| `CaseFileUnreadable` | The path does not exist or cannot be read |
+| `CaseDirectoryUnreadable` | The directory exists but cannot be listed |
+| `CaseFileNotYaml` | A file is not YAML |
+| `CaseFileNotYamlCase` | A file is YAML but not a case, named by the field |
+| `CaseDirectoryEmpty` | The directory holds no `.yaml` or `.yml` files |
+
+A file that fails to decode stops the import by name rather than being skipped
+quietly, so a directory that half-imported is never mistaken for one that
+imported:
+
+```
+cases/checkout.yaml is not a yaml case: task: Expected string, actual 12
 ```

@@ -1,0 +1,4 @@
+name: Wrong Shape
+task: 12
+judge_context:
+  - The agent must do the thing

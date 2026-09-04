@@ -267,7 +267,7 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.7",
+      "version": "0.1.8",
       "bin": {
         "anpord": "./dist/cli.mjs",
       },
@@ -277,6 +277,7 @@
         "@effect/platform-node": "^0.107.0",
         "effect": "^3.21.2",
         "esbuild": "^0.25.12",
+        "yaml": "^2.9.0",
       },
       "devDependencies": {
         "@anpord/schema": "workspace:*",
