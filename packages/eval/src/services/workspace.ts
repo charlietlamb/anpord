@@ -11,7 +11,7 @@ import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
 import { profileEnv } from "./profile-env";
-import { materialiseProfile } from "./profile-files";
+import { materialiseProfile, WRITE_CONCURRENCY } from "./profile-files";
 import { runProfileInstall } from "./profile-install";
 import type { Suspender } from "./resumable-command";
 import { runPrepare } from "./workspace-setup";
@@ -113,7 +113,7 @@ const materialise = (input: PrepareWorkspace) => {
     Object.entries(source.files),
     ([path, content]) =>
       input.sandbox.writeFile(`${input.workspace}/${path}`, content),
-    { discard: true }
+    { concurrency: WRITE_CONCURRENCY, discard: true }
   );
 };
 

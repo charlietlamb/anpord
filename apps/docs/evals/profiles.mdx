@@ -61,11 +61,19 @@ Files land before the agent runs, and after the harness has written its own cred
 | Key | Meaning |
 | --- | --- |
 | `systemPrompt` | The agent's system prompt, delivered per base as below |
-| `env` | Environment variables, present for every process the trial starts |
+| `env` | Environment variables, present for every process the trial starts. Never a secret: see below |
 | `install` | A command run once while the sandbox is prepared, after the profile's files are written. Any harness |
 | `run` | The command line that starts the process. Command harness only, and required there |
 
 A value naming a file inside the profile directory is replaced by that file's content, so `"systemPrompt": "system.md"` ships the prompt and `"systemPrompt": "Be terse."` ships the sentence. `env` values are always literal. A value naming a file outside the directory is refused rather than read: a prompt that only exists on one machine is not part of the profile.
+
+<Warning>
+  Never put a key in `env`. A profile is committed beside the eval file, sent
+  with the run, stored unencrypted, and readable by anyone who can read the
+  run. Provider keys belong in an `env` credential, which is sealed and
+  injected into the sandbox at run time, and whose values override anything
+  the profile sets under the same name.
+</Warning>
 
 `run` belongs to the [command harness](/evals/command-harness), and a profile on any other base is rejected if it sets one. `install` is available to every base: fetching a skill package or a dependency is not a property of the harness that reads it afterwards. It runs after both file stages, so it can read what the profile shipped, and before the case's own prepare.
 

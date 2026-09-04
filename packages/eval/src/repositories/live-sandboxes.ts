@@ -4,13 +4,15 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "./query";
 
 export interface LiveSandbox {
   readonly organizationId: string;
-  readonly provider: ProviderName;
+  /* The text the column holds, not a name this build claims to know: the
+     reaper must still try to destroy a sandbox whose provider was retired,
+     and an adapter that cannot be resolved says so. */
+  readonly provider: string;
   readonly sandboxConnectionId: string | null;
   readonly sandboxId: string;
   readonly trialInternalId: string;
@@ -72,13 +74,16 @@ export const LiveSandboxesLive = Layer.effect(
             )
         ).pipe(
           Effect.map((rows) =>
+            /* A row whose provider this build cannot name is kept rather
+               than dropped: the reaper is what stops a sandbox billing, and
+               a leak is worse than a destroy that fails loudly. */
             rows.flatMap((row): LiveSandbox[] =>
               row.sandboxId === null
                 ? []
                 : [
                     {
                       organizationId: row.organizationId,
-                      provider: row.provider as ProviderName,
+                      provider: row.provider,
                       sandboxConnectionId: row.sandboxConnectionId,
                       sandboxId: row.sandboxId,
                       trialInternalId: row.trialInternalId,

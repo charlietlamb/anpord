@@ -1,9 +1,9 @@
 import type { Actor } from "@anpord/schema/domain/actor";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import type { CredentialResolverShape } from "../credentials/resolver";
 import { resolveTaskCredentials } from "../credentials/tasks";
-import type { HarnessName, ProviderName } from "../domain/cell";
 import { NotRunnable } from "../domain/errors";
+import { namesOf } from "../domain/stored-cell";
 import type { CellTask } from "../repositories/run-tasks-query";
 import { profileFrom, taskFrom } from "./from-stored";
 import type { GridExecutionTask } from "./state";
@@ -35,6 +35,15 @@ const boundTask = (
       });
     }
 
+    const names = namesOf(subject.cell);
+
+    if (Option.isNone(names)) {
+      return yield* new NotRunnable({
+        id: subject.identity,
+        problems: ["that cell names a harness or provider this build has not"],
+      });
+    }
+
     const harness = yield* credentials.resolveBound({
       connectionId: harnessId,
       organizationId,
@@ -56,11 +65,11 @@ const boundTask = (
         sandboxConnectionId: sandboxId ?? undefined,
       },
       credentials: { harness, ...(sandbox === undefined ? {} : { sandbox }) },
-      harness: subject.cell.harness as HarnessName,
+      harness: names.value.harness,
       harnessVersion: subject.cell.harnessVersion,
       model: subject.cell.model,
       profile: profileFrom(subject),
-      provider: subject.cell.provider as ProviderName,
+      provider: names.value.provider,
     } satisfies GridExecutionTask;
   });
 
@@ -75,6 +84,8 @@ export const tasksWithCredentials = (
     : resolveTaskCredentials(
         credentials,
         source.actor,
-        cells.map(taskFrom),
+        /* A cell whose harness this build no longer has is dropped rather
+           than resolved: the rest of the run can still be resumed. */
+        cells.flatMap((cell) => Option.toArray(taskFrom(cell))),
         source.legacyHarnessAuth
       );

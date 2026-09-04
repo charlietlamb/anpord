@@ -63,6 +63,10 @@ const ProfileFiles = Schema.Record({
 );
 
 export const HarnessProfile = Schema.Struct({
+  /* Stored in the clear, travels in the definition a customer commits, and
+     is readable by anyone who can read the run. A key belongs in an `env`
+     credential, which is sealed; this is for the settings that say where to
+     look and how to behave. */
   env: Schema.optional(Schema.Record({ key: EnvName, value: Schema.String })),
   files: ProfileFiles,
   install: Schema.optional(Schema.String),

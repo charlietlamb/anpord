@@ -1,6 +1,5 @@
 import { Effect, Layer } from "effect";
 import type { HarnessName } from "../../domain/cell";
-import { HarnessUnavailable } from "../../domain/errors";
 import { type HarnessDriverShape, Harnesses } from "../../ports/harness";
 import { ClaudeDriver } from "./claude";
 import { CodexDriver } from "./codex";
@@ -12,9 +11,10 @@ import { OpencodeDriver } from "./opencode";
 import { PiDriver } from "./pi";
 import { QwenDriver } from "./qwen";
 
-/* Partial, so a name the wire accepts before its driver is written resolves
-   to HarnessUnavailable rather than failing the build. */
-const BY_NAME: Partial<Record<HarnessName, HarnessDriverShape>> = {
+/* Total, so adding a harness to the wire union does not compile until it has
+   a driver. The unavailable branch below is for a name that reached us from
+   a stored row rather than from the union. */
+const BY_NAME: Record<HarnessName, HarnessDriverShape> = {
   claude: ClaudeDriver,
   codex: CodexDriver,
   command: CommandDriver,
@@ -29,22 +29,12 @@ const BY_NAME: Partial<Record<HarnessName, HarnessDriverShape>> = {
 export const HarnessesLive = Layer.succeed(
   Harnesses,
   Harnesses.of({
-    resolve: (harness) => {
-      const driver = BY_NAME[harness];
-
-      const resolved =
-        driver === undefined
-          ? Effect.fail(
-              new HarnessUnavailable({
-                harness,
-                reason: "Harness driver is not registered",
-              })
-            )
-          : Effect.succeed(driver);
-
-      return resolved.pipe(
+    /* Every name in the union has a driver above, and a name read from a
+       stored row is decoded before it reaches here, so there is nothing left
+       to fail on. */
+    resolve: (harness) =>
+      Effect.succeed(BY_NAME[harness]).pipe(
         Effect.withSpan("Harnesses.resolve", { attributes: { harness } })
-      );
-    },
+      ),
   })
 );

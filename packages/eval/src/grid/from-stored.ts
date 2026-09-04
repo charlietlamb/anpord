@@ -1,5 +1,6 @@
-import type { HarnessName, ProviderName } from "../domain/cell";
+import { Option } from "effect";
 import type { RequestedProfile } from "../domain/harness-profile";
+import { namesOf } from "../domain/stored-cell";
 import type { CellTask } from "../repositories/run-tasks-query";
 import type { GridCase } from "./cell";
 
@@ -39,18 +40,24 @@ export const profileFrom = (subject: CellTask): RequestedProfile | null =>
         systemPrompt: subject.profile.systemPrompt,
       };
 
-/** The task a stored cell ran, for a caller that will resolve its own
- * credentials. */
-export const taskFrom = (subject: CellTask) => ({
-  credentials: {
-    harnessConnectionId:
-      subject.cell.harnessCredentialConnectionId ?? undefined,
-    sandboxConnectionId:
-      subject.cell.sandboxCredentialConnectionId ?? undefined,
-  },
-  harness: subject.cell.harness as HarnessName,
-  harnessVersion: subject.cell.harnessVersion,
-  model: subject.cell.model,
-  profile: profileFrom(subject),
-  provider: subject.cell.provider as ProviderName,
-});
+/**
+ * The task a stored cell ran, for a caller that will resolve its own
+ * credentials.
+ *
+ * None where the row names a harness or provider this build does not have,
+ * which a deploy that dropped one leaves behind.
+ */
+export const taskFrom = (subject: CellTask) =>
+  Option.map(namesOf(subject.cell), (names) => ({
+    credentials: {
+      harnessConnectionId:
+        subject.cell.harnessCredentialConnectionId ?? undefined,
+      sandboxConnectionId:
+        subject.cell.sandboxCredentialConnectionId ?? undefined,
+    },
+    harness: names.harness,
+    harnessVersion: subject.cell.harnessVersion,
+    model: subject.cell.model,
+    profile: profileFrom(subject),
+    provider: names.provider,
+  }));

@@ -94,10 +94,25 @@ describe("reading a case back from what was stored", () => {
   });
 
   test("carries the connections a caller will resolve for itself", () => {
-    expect(taskFrom(cell()).credentials).toEqual({
+    expect(Option.getOrThrow(taskFrom(cell())).credentials).toEqual({
       harnessConnectionId: "conn",
       sandboxConnectionId: undefined,
     });
+  });
+
+  /* The columns are plain text, so a row can name a harness this build was
+     deployed without. That is a cell to skip, not a crash at resolve time. */
+  test("reads no task from a row naming a harness this build does not have", () => {
+    const stored = cell();
+
+    expect(
+      Option.isNone(
+        taskFrom({
+          ...stored,
+          cell: { ...stored.cell, harness: "retired-harness" },
+        })
+      )
+    ).toBe(true);
   });
 });
 

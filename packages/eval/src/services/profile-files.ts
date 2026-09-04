@@ -15,7 +15,9 @@ export interface MaterialiseProfile {
 }
 
 const MKDIR_TIMEOUT_MS = 60_000;
-const WRITE_CONCURRENCY = 4;
+/* Shared with the fixture writer, so one number governs how hard a trial
+   leans on a sandbox's file API. */
+export const WRITE_CONCURRENCY = 4;
 
 /** Where the system prompt lands, so a driver can name it on a command line. */
 export const systemPromptPath = (home: string) =>

@@ -1,3 +1,4 @@
+import { EvalProvider } from "@anpord/schema/domain/evals";
 import {
   Clock,
   Context,
@@ -6,6 +7,7 @@ import {
   Layer,
   Redacted,
   Schedule,
+  Schema,
 } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
 import type { EvalStoreError } from "../domain/errors";
@@ -56,10 +58,17 @@ export const SandboxReaperLive = Layer.effect(
 
     const reapOne = (found: LiveSandbox) =>
       Effect.gen(function* () {
+        /* Decoded here rather than asserted at the query: a provider this
+           build cannot name is a warning naming the sandbox that outlived
+           it, which is what the operator needs to go and kill it by hand. */
+        const provider = yield* Schema.decodeUnknown(EvalProvider)(
+          found.provider
+        );
+
         yield* sandboxes.destroy({
           credentials: yield* credentialsFor(found),
           id: found.sandboxId,
-          provider: found.provider,
+          provider,
         });
         yield* live.clear(found.trialInternalId);
         return true;

@@ -54,7 +54,9 @@ export const make = Effect.gen(function* () {
 
     if (
       input.allowedProviders !== undefined &&
-      !input.allowedProviders.includes(subject.cell.provider as ProviderName)
+      !input.allowedProviders.some(
+        (allowed) => allowed === subject.cell.provider
+      )
     ) {
       return yield* new NotRunnable({
         id: input.cellKey,
@@ -89,10 +91,21 @@ export const make = Effect.gen(function* () {
       });
     }
 
+    const task = taskFrom(subject);
+
+    if (Option.isNone(task)) {
+      return yield* new NotRunnable({
+        id: input.cellKey,
+        problems: [
+          "this cell names a harness or provider this build does not have",
+        ],
+      });
+    }
+
     const tasks = yield* resolveTaskCredentials(
       credentials,
       input.actor,
-      [taskFrom(subject)],
+      [task.value],
       input.legacyHarnessAuth
     );
 

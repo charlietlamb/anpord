@@ -1,8 +1,8 @@
 import { Option } from "effect";
-import type { HarnessName, ProviderName } from "../domain/cell";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
+import { namesOf } from "../domain/stored-cell";
 import type { VerifyStepResult } from "../domain/trial";
 import type { RunDetail } from "../repositories/run-detail";
 import type { AgentTrialResult } from "../services/agent-trial";
@@ -68,10 +68,12 @@ export const runToState = (
       entry.profile?.name ?? "",
     ].join(" ");
 
-    if (!taskKeys.includes(taskKey)) {
+    const names = namesOf(entry.cell);
+
+    if (!taskKeys.includes(taskKey) && Option.isSome(names)) {
       taskKeys.push(taskKey);
       tasks.push({
-        harness: entry.cell.harness as HarnessName,
+        harness: names.value.harness,
         harnessVersion: entry.cell.harnessVersion,
         model: entry.cell.model,
         profile:
@@ -82,7 +84,7 @@ export const runToState = (
                 name: entry.profile.name,
                 version: entry.profile.version,
               },
-        provider: entry.cell.provider as ProviderName,
+        provider: names.value.provider,
       });
     }
   }

@@ -116,17 +116,20 @@ export const WorkbenchesLive = Layer.effect(
           );
         }
 
-        const requested = yield* Effect.forEach(config.columns, (column) =>
-          versions.version(column.harness).pipe(
-            Effect.map((harnessVersion) => ({
-              ...column,
-              credentials: credentialsOf(config.connections, column),
-              harnessVersion,
-              /* A workbench column names a harness and a model only; a profile
+        const requested = yield* Effect.forEach(
+          config.columns,
+          (column) =>
+            versions.version(column.harness).pipe(
+              Effect.map((harnessVersion) => ({
+                ...column,
+                credentials: credentialsOf(config.connections, column),
+                harnessVersion,
+                /* A workbench column names a harness and a model only; a profile
                  is declared beside an eval, which a workbench has none of. */
-              profile: null,
-            }))
-          )
+                profile: null,
+              }))
+            ),
+          { concurrency: 4 }
         );
         const tasks = yield* resolveTaskCredentials(
           credentials,
