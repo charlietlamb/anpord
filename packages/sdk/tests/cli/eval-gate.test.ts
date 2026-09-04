@@ -76,13 +76,13 @@ describe("what makes a run fail the command", () => {
           [cell("b", "regressed", 3, undefined, ["a1b2c3d4", "0f9e8d7c"])],
           {
             harness: "opencode",
-            profile: { name: "craft", version: "0f9e8d7c" },
+            profile: { name: "house-style", version: "0f9e8d7c" },
           }
         ),
         "regressed"
       )
     ).toEqual([
-      "b regressed against its baseline: craft a1b2c3d4 → 0f9e8d7c, pass rate 0.9 → 0.5.",
+      "b regressed against its baseline: house-style a1b2c3d4 → 0f9e8d7c, pass rate 0.9 → 0.5.",
     ]);
   });
 
@@ -101,13 +101,13 @@ describe("what makes a run fail the command", () => {
           ],
           {
             harness: "opencode",
-            profile: { name: "craft", version: "0f9e8d7c" },
+            profile: { name: "house-style", version: "0f9e8d7c" },
           }
         ),
         "regressed"
       )
     ).toEqual([
-      "b regressed against its baseline: opencode 1.18.21 → 1.19.0, craft a1b2c3d4 → 0f9e8d7c, pass rate 0.9 → 0.5.",
+      "b regressed against its baseline: opencode 1.18.21 → 1.19.0, house-style a1b2c3d4 → 0f9e8d7c, pass rate 0.9 → 0.5.",
     ]);
   });
 
@@ -118,7 +118,7 @@ describe("what makes a run fail the command", () => {
           [cell("b", "regressed", 3, undefined, ["a1b2c3d4", "a1b2c3d4"])],
           {
             harness: "opencode",
-            profile: { name: "craft", version: "a1b2c3d4" },
+            profile: { name: "house-style", version: "a1b2c3d4" },
           }
         ),
         "regressed"

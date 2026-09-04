@@ -42,10 +42,10 @@ describe("naming a variant", () => {
   it("names a profile beside the base it was layered on", () => {
     expect(
       harnessLabel("opencode", "1.18.21", {
-        name: "craft",
+        name: "house-style",
         version: "a1b2c3d4e5f60718293a4b5c6d7e8f90",
       })
-    ).toBe("OpenCode 1.18.21 · craft@a1b2c3d4");
+    ).toBe("OpenCode 1.18.21 · house-style@a1b2c3d4");
   });
 
   /** The command harness installs nothing, so `HarnessVersions.command` is
@@ -53,10 +53,10 @@ describe("naming a variant", () => {
   it("names only the profile where the base has no version to report", () => {
     expect(
       harnessLabel("command", "profile", {
-        name: "browser-use",
+        name: "site-agent",
         version: "a1b2c3d4e5f60718293a4b5c6d7e8f90",
       })
-    ).toBe("browser-use@a1b2c3d4");
+    ).toBe("site-agent@a1b2c3d4");
   });
 
   it("leaves a profileless column exactly as it read before", () => {
