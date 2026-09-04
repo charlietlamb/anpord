@@ -1,0 +1,6 @@
+# The oldest case in the set, kept for the regression it caught.
+name: Archive Search
+task: Search the local archive for 'quarterly report' and return the newest match
+judge_context:
+  - The agent must search rather than guess a filename
+max_steps: 8

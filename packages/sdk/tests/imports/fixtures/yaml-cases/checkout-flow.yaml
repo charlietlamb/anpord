@@ -1,0 +1,9 @@
+name: Checkout Flow
+task: |
+  Open the demo storefront, add the sample widget to the basket
+  and complete checkout with the test card.
+judge_context:
+  - The agent must reach the basket page before paying
+  - The agent must use the test card, never a real one
+  - "The receipt it reports must quote the order total"
+max_steps: 12

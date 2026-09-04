@@ -1,0 +1,4 @@
+name: Build Check
+task: Run the build and report whether it succeeded
+judge_context:
+  - The agent must run the build, not read a cached log
