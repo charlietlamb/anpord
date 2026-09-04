@@ -66,13 +66,13 @@ The process has fifteen minutes. A run that is still going at the cap is ended a
 
 ## The recorder
 
-Anpord sources a small script into every bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`, and each becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with the same text.
+Anpord sources a small script into every non-interactive shell the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`, and each becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` whose text matches byte for byte.
 
-What it sees is limited to bash:
+What it sees is limited to bash and zsh, the two shells with a `DEBUG` trap:
 
 - `bash -c` and nested bash scripts are traced, line by line.
 - `sh -c` on Debian is dash, which has no `DEBUG` trap. Only the `sh -c …` invocation is recorded, not what ran inside it.
 - Shells spawned by Node, Python or any other runtime are invisible. A Python agent leaves one line: its own invocation.
-- Exit codes are never captured; the trap runs before the command.
+- Exit codes are never captured. Bash runs the trap before the command, and zsh reports the command it is about to run, so neither knows how it ended.
 
 If you want inner commands and exit codes in the journal, print `Command` yourself.

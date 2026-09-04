@@ -1,3 +1,4 @@
+import { posix } from "node:path";
 import { Effect } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import { runCommand } from "../adapters/sandbox/run-command";
@@ -22,16 +23,25 @@ export const systemPromptPath = (home: string) =>
 
 const parentOf = (path: string) => path.slice(0, path.lastIndexOf("/"));
 
+/* The wire schema already refuses a `.` or `..` segment. Checked again here
+   because this is the last place before a write: a path that reached the
+   sandbox from anywhere but a decoded request would otherwise land wherever
+   it asked to. */
+const within = (root: string, path: string) => {
+  const resolved = posix.normalize(`${root}/${path}`);
+
+  return resolved === root || resolved.startsWith(`${root}/`);
+};
+
 const staged = (input: MaterialiseProfile) => {
   const prefix = `${input.stage}/`;
   const root = input.stage === "home" ? input.home : input.workspace;
 
   const files = Object.entries(input.profile.files)
     .filter(([path]) => path.startsWith(prefix))
-    .map(
-      ([path, content]) =>
-        [`${root}/${path.slice(prefix.length)}`, content] as const
-    );
+    .map(([path, content]) => [path.slice(prefix.length), content] as const)
+    .filter(([path]) => within(root, path))
+    .map(([path, content]) => [`${root}/${path}`, content] as const);
 
   const prompt = input.profile.systemPrompt;
 

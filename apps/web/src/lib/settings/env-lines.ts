@@ -14,13 +14,13 @@ const meaningful = (line: string) => line !== "" && !line.startsWith("#");
  * credential stores.
  *
  * Blank lines and `#` comments are skipped so a pasted `.env` file works as
- * it is. The first bad line names itself, because a form that only greys
- * out its button leaves the reader guessing which of forty lines it minds.
+ * A bad line is named by its number rather than quoted back, because this
+ * is where someone pastes a key and an error is a place text gets read from.
  */
 export const parseEnvLines = (text: string): ParsedEnvLines => {
   const values: Record<string, string> = {};
 
-  for (const raw of text.split("\n")) {
+  for (const [index, raw] of text.split("\n").entries()) {
     const line = raw.trim();
 
     if (!meaningful(line)) {
@@ -31,7 +31,7 @@ export const parseEnvLines = (text: string): ParsedEnvLines => {
 
     if (separator < 0) {
       return {
-        problem: `"${line}" needs a = between name and value`,
+        problem: `Line ${index + 1} needs a = between name and value`,
         values: null,
       };
     }

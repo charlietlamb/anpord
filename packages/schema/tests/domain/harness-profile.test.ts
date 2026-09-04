@@ -32,14 +32,22 @@ describe("a profile's file paths", () => {
     });
   }
 
+  /* An interior segment is the one that got through: a check that guarded
+     only the first and the last accepted `home/a/../../../etc/passwd`, and
+     this string is joined onto the sandbox home and written. */
   for (const refused of [
     "workspace/../etc/passwd",
+    "home/a/../../../etc/passwd",
+    "home/a/../b",
+    "workspace/./x",
+    "home/a/./b",
     "home/..",
     "../workspace/AGENTS.md",
     "/etc/passwd",
     "other/AGENTS.md",
     "AGENTS.md",
     "workspace/",
+    "home//a",
   ]) {
     it(`refuses ${refused}`, () => {
       expect(() => path(refused)).toThrow();

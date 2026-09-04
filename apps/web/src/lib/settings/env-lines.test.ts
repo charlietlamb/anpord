@@ -17,10 +17,12 @@ describe("env lines", () => {
     expect(parseEnvLines("")).toEqual({ problem: null, values: {} });
   });
 
-  it("names a line without a separator", () => {
-    expect(parseEnvLines("API_KEY=x\njust words").problem).toContain(
-      "just words"
-    );
+  it("names a line without a separator by its number, never its text", () => {
+    const problem = parseEnvLines("API_KEY=x\njust words").problem;
+
+    expect(problem).toContain("Line 2");
+    /* The text is where a pasted key lives, so an error never quotes it. */
+    expect(problem).not.toContain("just words");
   });
 
   it("refuses a lower case name", () => {

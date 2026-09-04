@@ -19,11 +19,13 @@ export const ProfileName = Schema.String.pipe(
 export type ProfileName = typeof ProfileName.Type;
 
 /* The path rules live in the regex, because a Schema.filter on a Record key
-   is lost when the MCP tool schema is generated. */
+   is lost when the MCP tool schema is generated.
+
+   Every segment is guarded, not just the first and the last: this string is
+   joined onto the sandbox home or workspace and written, so one interior
+   `..` would put a customer's file anywhere on the machine. */
 export const ProfilePath = Schema.String.pipe(
-  Schema.pattern(
-    /^(home|workspace)\/(?!\.\.(\/|$))(?:[^/\0]+\/)*(?!\.\.$)[^/\0]+$/
-  ),
+  Schema.pattern(/^(home|workspace)(?:\/(?!\.\.?(?:\/|$))[^/\0]+)+$/),
   Schema.maxLength(512),
   Schema.annotations({
     description:

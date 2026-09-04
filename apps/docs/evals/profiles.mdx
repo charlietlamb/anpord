@@ -84,14 +84,14 @@ The per-file limit is not arbitrary. Two sandbox providers hand a file's content
 
 ## System prompts
 
-Each base takes a system prompt in its own way. The prompt is written into the sandbox and handed to the harness by path:
+Each base takes a system prompt in its own way. The prompt is always written into the sandbox; whether the harness is given its path or its text depends on the base:
 
 | Base | Delivery |
 | --- | --- |
-| `claude` | `--append-system-prompt-file`, with `--add-dir` on the workspace so `CLAUDE.md` is discovered, plus `--settings` and `--mcp-config` when the profile ships them |
+| `claude` | `--append-system-prompt-file`, with `--add-dir` on the workspace so the profile's files are readable, plus `--settings` and `--mcp-config` when the profile ships them. Anpord runs Claude with `--bare`, so a `CLAUDE.md` is not auto-discovered and must be named this way |
 | `opencode` | `OPENCODE_CONFIG_CONTENT`, merging the profile's own config with the prompt's path in `instructions` |
-| `codex` | `-c developer_instructions=…`, which adds to the built-in prompt rather than replacing it |
-| `gemini`, `qwen`, `pi`, `fx`, `cursor` | Prepended to the instructions file the agent reads, `AGENTS.md` or `GEMINI.md` |
+| `codex` | `-c developer_instructions=…`, carrying the text rather than a path, and adding to the built-in prompt rather than replacing it |
+| `gemini`, `qwen`, `pi`, `fx`, `cursor` | The text is prepended to the instructions file the agent reads, `AGENTS.md` or `GEMINI.md` |
 | `command` | `ANPORD_SYSTEM_PROMPT_FILE`, holding the path |
 
 The last two rows are the weaker ones. An agent that reads its instructions file only when it feels like it will treat the prompt as a suggestion; if that matters, put the text in `workspace/AGENTS.md` yourself and read the trajectory to check it landed.

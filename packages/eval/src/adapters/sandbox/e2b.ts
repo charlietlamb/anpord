@@ -7,6 +7,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { shellQuote } from "../harness/process";
 import { execStream } from "./exec-stream";
 import { noCache, notResumable } from "./not-resumable";
 
@@ -108,7 +109,10 @@ export const makeConfiguredE2BAdapter = (
           Effect.tap((sandbox) =>
             Effect.tryPromise({
               catch: unavailable,
-              try: () => sandbox.commands.run(`mkdir -p ${request.workspace}`),
+              try: () =>
+                sandbox.commands.run(
+                  `mkdir -p ${shellQuote(request.workspace)}`
+                ),
             })
           ),
           Effect.map((sandbox) => handleFor(sandbox, request.workspace))
