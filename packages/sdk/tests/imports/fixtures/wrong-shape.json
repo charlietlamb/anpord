@@ -1,0 +1,15 @@
+{
+  "skill_name": "wrong shape",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A fine case.",
+      "assertions": []
+    },
+    {
+      "id": 47,
+      "prompt": 12,
+      "assertions": []
+    }
+  ]
+}
