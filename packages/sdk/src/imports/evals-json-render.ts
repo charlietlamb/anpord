@@ -4,14 +4,13 @@ import type {
   StructuredAssertion,
 } from "./evals-json-schema";
 import { commentSafe, quoted, templated } from "./typescript-literal";
+import { placeholderBlock, proseLine } from "./unwritten-check";
 
 const SCORER_OF: Record<StructuredAssertion["kind"], string> = {
   content_contains_all: "containsAll",
   content_contains_any: "containsAny",
   content_contains_none: "containsNone",
 };
-
-const PLACEHOLDER = "unwritten";
 
 export interface ImportTally {
   readonly cases: number;
@@ -49,15 +48,6 @@ const scorerLine = (assertion: StructuredAssertion) =>
   [
     `          /* ${commentSafe(assertion.text)} */`,
     `          ${SCORER_OF[assertion.kind]}(answer, [${assertion.needles.map(quoted).join(", ")}]),`,
-  ].join("\n");
-
-/** The author's own words, kept whole, because they are the specification for
- * the check that replaces the line beneath them. */
-const proseLine = (text: string) =>
-  [
-    "          /* Write this check, then delete the line under it: */",
-    `          /* ${commentSafe(text)} */`,
-    `          ${PLACEHOLDER}(${quoted(text)}),`,
   ].join("\n");
 
 const scorerLines = (subject: EvalsJsonCase) =>
@@ -100,15 +90,6 @@ const caseBlock = (subject: EvalsJsonCase) =>
     "      },",
     "    },",
   ].join("\n");
-
-/** Local rather than imported, so the generated file carries its own proof
- * that an unconverted assertion fails. Deleting the last call deletes it. */
-const placeholderBlock = [
-  "/* A check nobody has written yet. It is false, so the case stays red until",
-  "   the sentence above it becomes a real check. The argument is that",
-  "   sentence, kept so the file says what is owed. */",
-  `const ${PLACEHOLDER} = (_specification: string) => false;`,
-].join("\n");
 
 const importsOf = () => 'import { defineEval, files } from "anpord";';
 
