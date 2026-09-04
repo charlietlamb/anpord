@@ -1,5 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { Chunk, Effect, Layer, Stream } from "effect";
+import {
+  ANSWER_ENV,
+  ANSWER_PATH,
+  TRANSCRIPT_ENV,
+  TRANSCRIPT_PATH,
+} from "../../domain/answer-file";
+import { answerOf, transcriptOf } from "../../domain/journal";
 import { outcomeOf } from "../../domain/trial";
 import {
   stepResultsOf,
@@ -96,6 +103,22 @@ const validatorResultOf = (output: string) => {
   }
 };
 
+/** What the agent said, on disk beside the workspace rather than in it, so a
+ * verifier can read the reply without the reply becoming part of the diff. */
+const writeAnswer = (sandbox: SandboxHandle, events: ScoreRequest["events"]) =>
+  Effect.all(
+    [
+      sandbox.writeFile(ANSWER_PATH(sandbox.home), answerOf(events)),
+      sandbox.writeFile(TRANSCRIPT_PATH(sandbox.home), transcriptOf(events)),
+    ],
+    { discard: true }
+  );
+
+const answerEnv = (sandbox: SandboxHandle) => ({
+  [ANSWER_ENV]: ANSWER_PATH(sandbox.home),
+  [TRANSCRIPT_ENV]: TRANSCRIPT_PATH(sandbox.home),
+});
+
 const runValidator = (
   sandbox: SandboxHandle,
   source: string,
@@ -106,6 +129,7 @@ const runValidator = (
     const path = `${sandbox.home}/.anpord-validator-${randomUUID()}.mjs`;
     yield* sandbox.writeFile(path, source);
     return yield* verify(sandbox, `node ${quoted(path)}`, workspace, {
+      ...answerEnv(sandbox),
       ANPORD_PREPARE_VALUE: JSON.stringify(prepared),
     });
   });
@@ -145,6 +169,8 @@ export const ScorerGroundTruthLive = Layer.succeed(
   Scorer.of({
     score: (request: ScoreRequest) =>
       Effect.gen(function* () {
+        yield* writeAnswer(request.sandbox, request.events);
+
         if (request.validator != null) {
           return yield* scoreValidator({
             ...request,
@@ -180,7 +206,8 @@ export const ScorerGroundTruthLive = Layer.succeed(
         const chunks = yield* verify(
           request.sandbox,
           script.command,
-          request.workspace
+          request.workspace,
+          answerEnv(request.sandbox)
         );
 
         const exit = exitOf(chunks);

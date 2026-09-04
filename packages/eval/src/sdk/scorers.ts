@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import type { HarnessEvent } from "../domain/harness-event";
 import {
+  answerOf,
   calledAll,
   calledAny,
   lastToolCallIn,
@@ -80,6 +81,68 @@ export const finishedWith = (name: string): Scorer =>
       evidence: last === null ? "no tool calls" : `finished on ${last}`,
       name: `finished with ${name}`,
       score: last === name ? 1 : 0,
+    };
+  });
+
+/**
+ * Which needles the answer contains, case-insensitively.
+ *
+ * Case-insensitive by decision, not by accident: a case asserting an agent
+ * mentioned `useState` should not fail because it wrote `useState()` at the
+ * start of a sentence, and a case that genuinely turns on case is asserting
+ * over code, where a file scorer reads the file rather than the reply.
+ */
+const found = (events: readonly HarnessEvent[], needles: readonly string[]) => {
+  const answer = answerOf(events).toLowerCase();
+
+  return needles.filter((needle) => answer.includes(needle.toLowerCase()));
+};
+
+/** Read from the journal rather than from the sandbox, so a judgement over
+ * what the agent said needs no shell and no file. */
+export const answerContainsAny = (
+  needles: readonly string[],
+  name?: string
+): Scorer =>
+  fromEvents((events) => {
+    const hits = found(events, needles);
+
+    return {
+      evidence: hits.length === 0 ? "none found" : `found ${hits.join(", ")}`,
+      name: name ?? `answer contains any of ${needles.join(", ")}`,
+      score: hits.length > 0 ? 1 : 0,
+    };
+  });
+
+export const answerContainsAll = (
+  needles: readonly string[],
+  name?: string
+): Scorer =>
+  fromEvents((events) => {
+    const hits = new Set(found(events, needles));
+    const missing = needles.filter((needle) => !hits.has(needle));
+
+    return {
+      evidence:
+        missing.length === 0 ? "all found" : `missing ${missing.join(", ")}`,
+      name: name ?? `answer contains ${needles.join(", ")}`,
+      score: missing.length === 0 ? 1 : 0,
+    };
+  });
+
+/** Scores 1 when no needle appears, so an empty list of needles passes: an
+ * assertion about nothing is not a failure. */
+export const answerContainsNone = (
+  needles: readonly string[],
+  name?: string
+): Scorer =>
+  fromEvents((events) => {
+    const hits = found(events, needles);
+
+    return {
+      evidence: hits.length === 0 ? "none found" : `found ${hits.join(", ")}`,
+      name: name ?? `answer avoids ${needles.join(", ")}`,
+      score: hits.length === 0 ? 1 : 0,
     };
   });
 

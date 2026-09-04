@@ -77,10 +77,14 @@ export type Prepare = (
 ) => Promise<PrepareValue | undefined> | PrepareValue | undefined;
 
 export interface ValidatorContext {
+  /** The agent's final reply, empty when it said nothing. */
+  readonly answer: () => Promise<string>;
   readonly exec: (command: string) => Promise<CommandResult>;
   readonly exists: (path: string) => Promise<boolean>;
   readonly prepared: Readonly<Record<string, unknown>>;
   readonly readText: (path: string) => Promise<string>;
+  /** Every reply the agent made, oldest first, separated by a blank line. */
+  readonly transcript: () => Promise<string>;
 }
 
 export interface ValidatorResult {

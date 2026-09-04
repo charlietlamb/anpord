@@ -12,11 +12,16 @@ const exec = (command) => new Promise((resolve, reject) => {
   child.on("close", code => resolve({ exitCode: code ?? 1, stderr, stdout }));
 });
 
+const readOrEmpty = (path) =>
+  path === undefined ? Promise.resolve("") : readFile(path, "utf8").then(text => text, () => "");
+
 const context = {
+  answer: () => readOrEmpty(process.env.ANPORD_ANSWER_FILE),
   exec,
   exists: path => access(path).then(() => true, () => false),
   readText: path => readFile(path, "utf8"),
   prepared: JSON.parse(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
+  transcript: () => readOrEmpty(process.env.ANPORD_TRANSCRIPT_FILE),
 };
 
 try {

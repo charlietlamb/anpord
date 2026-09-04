@@ -52,6 +52,24 @@ export const calledAny = (
 export const lastToolCallIn = (events: readonly HarnessEvent[]) =>
   toolCallsIn(events).at(-1) ?? null;
 
+/** Assistant messages in order, oldest first. */
+const assistantMessagesIn = (events: readonly HarnessEvent[]) =>
+  events.flatMap((event) =>
+    event._tag === "Message" && event.role === "assistant" ? [event.text] : []
+  );
+
+/** What the agent finally said, which is the whole answer for a case that
+ * asserts over the reply rather than over the files it wrote. Empty when it
+ * said nothing, so a reader never has to tell absence from silence. */
+export const answerOf = (events: readonly HarnessEvent[]) =>
+  assistantMessagesIn(events).at(-1) ?? "";
+
+/** Every assistant message, newest last, separated by a blank line. Kept apart
+ * from the answer because an agent that worked aloud and then summarised says
+ * different things in the two, and a case may assert on either. */
+export const transcriptOf = (events: readonly HarnessEvent[]) =>
+  assistantMessagesIn(events).join("\n\n");
+
 export const sessionIdOf = (events: readonly HarnessEvent[]) => {
   const started = events.find((event) => event._tag === "Started");
 
