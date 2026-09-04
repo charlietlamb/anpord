@@ -8,6 +8,7 @@ import { extractVariables } from "@anpord/template/extract";
 import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
+import { ClientLayer } from "../client/config";
 import { declarationFile } from "./declarations";
 import { runEval } from "./eval-command";
 import { json, note, promptContent, row } from "./render";
@@ -197,13 +198,19 @@ const gen = Command.make("gen", { out }, writeDeclarations).pipe(
   Command.withDescription(DESCRIPTION)
 );
 
+/* Every command here but `runEval` talks to the API, and `runEval` attaches
+   the client itself so its `import` subcommand does not inherit the need. */
+const withClient = <Name extends string, R, E, A>(
+  command: Command.Command<Name, R, E, A>
+) => Command.provide(command, ClientLayer);
+
 export const commands = [
   runEval,
-  gen,
-  generate,
-  get,
-  list,
-  promote,
-  push,
-  versions,
+  withClient(gen),
+  withClient(generate),
+  withClient(get),
+  withClient(list),
+  withClient(promote),
+  withClient(push),
+  withClient(versions),
 ] as const;

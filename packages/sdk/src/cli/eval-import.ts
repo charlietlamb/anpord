@@ -51,7 +51,7 @@ export const importEval = Command.make(
       });
 
       return yield* note(summaryOf(suite.tally));
-    })
+    }).pipe(Effect.withSpan("Cli.evalImport"))
 ).pipe(
   Command.withDescription("Turn a case file a team already wrote into a suite")
 );

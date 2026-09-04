@@ -41,7 +41,7 @@ describe("tool calls in a journal", () => {
     expect(calledAll(journal, ["read_file", "web_search"])).toBe(false);
   });
 
-  /** PostHog's NoToolCall, DeerFlow's forbidden_tool_actions. Returns the
+  /** A tool the case forbids. Returns the
    * offenders so a failure names what happened. */
   it("names which forbidden tools were called", () => {
     expect(calledAny(journal, ["web_search", "apply_patch"])).toEqual([
@@ -50,7 +50,7 @@ describe("tool calls in a journal", () => {
     expect(calledAny(journal, ["web_search"])).toEqual([]);
   });
 
-  /** PostHog's LastToolCallNot. */
+  /** The call a trial must not have ended on. */
   it("reads the last tool invoked", () => {
     expect(lastToolCallIn(journal)).toBe("read_file");
     expect(lastToolCallIn([])).toBeNull();

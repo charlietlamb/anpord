@@ -1,7 +1,7 @@
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Args, Command, Options } from "@effect/cli";
 import { Effect, Option } from "effect";
-import { webUrlConfig } from "../client/config";
+import { ClientLayer, webUrlConfig } from "../client/config";
 import { compileEvalEffect } from "../evals/compiler";
 import { evalFilesIn } from "./eval-files";
 import { failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
@@ -136,7 +136,11 @@ export const runEval = Command.make(
       yield* reportToGithub(outcomes);
 
       return yield* failWhen(outcomes.flatMap((outcome) => outcome.problems));
-    })
+    }).pipe(
+      /* Provided to the work rather than to the command, so the `import`
+         subcommand, which only reads a local file, never asks for a key. */
+      Effect.provide(ClientLayer)
+    )
 ).pipe(
   Command.withDescription("Compile and run an eval from TypeScript"),
   Command.withSubcommands([importEval])

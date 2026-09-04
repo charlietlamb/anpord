@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { Chunk, Effect, Layer, Stream } from "effect";
+import { Chunk, Effect, Layer, Random, Stream } from "effect";
 import {
   ANSWER_ENV,
   ANSWER_PATH,
@@ -126,7 +125,10 @@ const runValidator = (
   prepared: Readonly<Record<string, unknown>>
 ) =>
   Effect.gen(function* () {
-    const path = `${sandbox.home}/.anpord-validator-${randomUUID()}.mjs`;
+    /* Named from the runtime's own randomness so a seeded run is
+       reproducible, and so two validators in one sandbox never collide. */
+    const suffix = yield* Random.nextIntBetween(0x10_00_00_00, 0x7f_ff_ff_ff);
+    const path = `${sandbox.home}/.anpord-validator-${suffix.toString(16)}.mjs`;
     yield* sandbox.writeFile(path, source);
     return yield* verify(sandbox, `node ${quoted(path)}`, workspace, {
       ...answerEnv(sandbox),

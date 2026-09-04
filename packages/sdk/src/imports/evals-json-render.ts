@@ -42,8 +42,11 @@ const slug = (value: string, fallback: string) => {
   return cleaned === "" ? fallback : cleaned;
 };
 
+/* The id is carried even when the case has a name, because `slug` is not
+   injective: "Foo: Bar" and "Foo  Bar" reduce to one string, and two cases
+   that read alike in a result table are two cases nobody can tell apart. */
 const nameOf = (subject: EvalsJsonCase) =>
-  slug(subject.name ?? `case ${subject.id}`, `case-${subject.id}`);
+  `${slug(subject.name ?? "case", "case")}-${subject.id}`;
 
 const scorerLine = (assertion: StructuredAssertion) =>
   [
@@ -110,7 +113,7 @@ const placeholderBlock = [
   `const ${PLACEHOLDER} = (_specification: string) => false;`,
 ].join("\n");
 
-const importsOf = () => 'import { defineEval, files } from "anpord";';
+const IMPORTS = 'import { defineEval, files } from "anpord";';
 
 /* Emitted into the file rather than imported, so an imported suite is one
    self-contained module a reader can follow and edit without learning the
@@ -136,7 +139,7 @@ export const renderEvalSuite = (file: EvalsJsonFile) => {
   const structured = tally.converted > 0;
 
   return `${[
-    importsOf(),
+    IMPORTS,
     "",
     ...(structured ? [helpersBlock, ""] : []),
     ...(prose ? [placeholderBlock, ""] : []),
