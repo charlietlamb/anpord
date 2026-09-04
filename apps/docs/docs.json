@@ -43,6 +43,7 @@
             "pages": [
               "concepts",
               "evals/cases",
+              "evals/import",
               "evals/variants",
               "evals/harnesses",
               "evals/profiles",

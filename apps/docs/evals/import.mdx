@@ -1,0 +1,156 @@
+---
+title: "Import a case file"
+description: "Turn cases a team already wrote into a runnable suite"
+---
+
+Most teams write their cases down long before they own a way to run them. The
+file is usually JSON, one entry per case, with a prompt and a list of things
+the answer ought to say. `anpord eval import` reads that file and writes a
+`*.eval.ts` suite from it.
+
+```bash
+anpord eval import --format evals-json ./evals.json --out ./release-notes.eval.ts
+```
+
+Leave `--out` off and the suite goes to stdout, so you can read it before it
+lands anywhere.
+
+## The format
+
+`--format` names the shape of the file, not the team that wrote it.
+`evals-json` is the one Anpord reads today:
+
+```json
+{
+  "skill_name": "release notes",
+  "evals": [
+    {
+      "id": 1,
+      "name": "Lists the breaking change",
+      "prompt": "Read CHANGELOG.md and write the release notes.",
+      "expected_output": "A short note naming the breaking change.",
+      "files": ["fixtures/changelog"],
+      "assertions": []
+    }
+  ]
+}
+```
+
+Only `id`, `prompt` and `assertions` are required. `name` labels the case,
+`expected_output` describes the answer in prose, and `files` names the fixture
+directories the case starts from.
+
+## Two dialects
+
+An assertion comes in two shapes, and both turn up in the wild, sometimes in
+sibling files. The first is a plain string:
+
+```json
+"assertions": ["The summary reads as though a maintainer wrote it."]
+```
+
+The second is an object naming a check and the strings it looks for:
+
+```json
+"assertions": [
+  { "text": "names the removed flag", "kind": "content_contains_all", "needles": ["--legacy", "removed"] }
+]
+```
+
+The import reads both from the same file. What it does with them is not the
+same.
+
+## What converts
+
+A structured assertion is mechanical. It says which strings to look for and
+what rule to apply to them, so it converts exactly:
+
+| `kind` | Becomes |
+| --- | --- |
+| `content_contains_any` | `answerContainsAny(needles)` |
+| `content_contains_all` | `answerContainsAll(needles)` |
+| `content_contains_none` | `answerContainsNone(needles)` |
+
+Each scorer reads the agent's final answer from the trial journal. The
+assertion's `text` stays above the call as a comment, so the generated line
+still says what the author meant by it.
+
+## What does not
+
+A prose assertion cannot be converted, and Anpord does not try. "Reads as
+though a maintainer wrote it" has no mechanical reading; any conversion would
+be a guess at what the author meant. A guess that guesses wrong produces a
+suite that passes while measuring the wrong thing, which is worse than no
+suite at all, because it is a green check nobody has reason to doubt.
+
+So a prose assertion is written into the generated file as the author's own
+words, verbatim, next to a placeholder that scores zero:
+
+```ts
+scorers: [
+  /* Write this check, then delete the line under it: */
+  /* The summary reads as though a maintainer wrote it. */
+  unwritten("The summary reads as though a maintainer wrote it."),
+],
+```
+
+The file compiles and runs. The case fails until somebody replaces the
+placeholder with a real check. That is the point: an unwritten check reads as
+a failure, never as a pass.
+
+The command says so on stderr when it finishes:
+
+```
+Read 3 cases, converted 4 assertions. 3 assertions could not be converted and
+need a human: each is written as prose, and the suite fails until you write the
+check it describes.
+```
+
+`expected_output` is prose too, so it becomes a comment on the case rather
+than a check. It describes the answer; it does not decide one.
+
+## Fixtures do not travel
+
+`files` names fixture directories by convention. The JSON carries the names,
+never the contents, so the import cannot fill them in. Every case gets an
+empty `files({})` source and a comment naming what the entry asked for:
+
+```ts
+/* This case named fixtures/changelog. The JSON carries the directory names,
+   not their contents, so add the files here. */
+source: files({}),
+```
+
+Fill each one from the directory it names, or point the case at a
+[repository](/evals/cases) instead.
+
+## The workflow
+
+1. **Import.** Run the command and read the suite before writing it anywhere.
+2. **Fill the fixtures.** Replace each `files({})` with the files the case
+   starts from.
+3. **Pick a task.** The suite ships with one harness, model and sandbox. Edit
+   it, or add [variants](/evals/variants) to compare several.
+4. **Write the checks.** Work through every placeholder. Each one carries the
+   sentence that specifies it.
+5. **Run it.** `anpord eval ./release-notes.eval.ts`.
+
+Steps two and four are the work. Nothing that comes out of step one is worth
+trusting until they are done, and the suite stays red until they are.
+
+## When a file is refused
+
+An import fails rather than writing a suite it is not sure of.
+
+| Refusal | Meaning |
+| --- | --- |
+| `CaseFileUnreadable` | The path does not exist or cannot be read |
+| `CaseFileNotJson` | The file is not JSON |
+| `CaseFileNotEvalsJson` | A case does not match the format, named by its `id` and the field |
+| `CaseFileEmpty` | `evals` is empty, so there is nothing to import |
+
+A shape mismatch names the case the way you would search for it:
+
+```
+evals.json is not an evals-json file: case 47, prompt: Expected string, actual 12
+```

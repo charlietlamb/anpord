@@ -27,6 +27,7 @@ Set `ANPORD_API_KEY` before running a command.
 | Command | Purpose |
 | --- | --- |
 | `anpord eval [file] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval suite and wait for it |
+| `anpord eval import --format <format> <file> [--out <path>]` | Turn a case file a team already wrote into a suite |
 | `anpord list [--json]` | List up to 100 prompts |
 | `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
 | `anpord versions <id>` | Print version history as JSON |
@@ -64,6 +65,11 @@ nonzero when a cell regresses against its baseline.
 
 A run that fails outright is reported whatever the gate, because that is the
 sandbox rather than the result.
+
+`anpord eval import` reads a case file a team already wrote and prints a suite,
+or writes one with `--out`. It converts the assertions that are mechanical and
+leaves the ones written as prose failing until a human writes them, saying how
+many of each on stderr. See [importing a case file](/evals/import).
 
 `push` does not promote or accept config. Use the SDK or API for prompts with versioned config.
 
