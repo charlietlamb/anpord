@@ -6,9 +6,9 @@ import type {
 import { commentSafe, quoted, templated } from "./typescript-literal";
 
 const SCORER_OF: Record<StructuredAssertion["kind"], string> = {
-  content_contains_all: "answerContainsAll",
-  content_contains_any: "answerContainsAny",
-  content_contains_none: "answerContainsNone",
+  content_contains_all: "containsAll",
+  content_contains_any: "containsAny",
+  content_contains_none: "containsNone",
 };
 
 const PLACEHOLDER = "unwritten";
@@ -33,15 +33,6 @@ export const tallyOf = (file: EvalsJsonFile): ImportTally => {
   };
 };
 
-const scorersUsed = (file: EvalsJsonFile) => [
-  ...new Set(
-    file.evals
-      .flatMap((subject) => subject.assertions)
-      .filter(isStructured)
-      .map((assertion) => SCORER_OF[assertion.kind])
-  ),
-];
-
 const slug = (value: string, fallback: string) => {
   const cleaned = value
     .toLowerCase()
@@ -56,17 +47,17 @@ const nameOf = (subject: EvalsJsonCase) =>
 
 const scorerLine = (assertion: StructuredAssertion) =>
   [
-    `        /* ${commentSafe(assertion.text)} */`,
-    `        ${SCORER_OF[assertion.kind]}([${assertion.needles.map(quoted).join(", ")}]),`,
+    `          /* ${commentSafe(assertion.text)} */`,
+    `          ${SCORER_OF[assertion.kind]}(answer, [${assertion.needles.map(quoted).join(", ")}]),`,
   ].join("\n");
 
 /** The author's own words, kept whole, because they are the specification for
  * the check that replaces the line beneath them. */
 const proseLine = (text: string) =>
   [
-    "        /* Write this check, then delete the line under it: */",
-    `        /* ${commentSafe(text)} */`,
-    `        ${PLACEHOLDER}(${quoted(text)}),`,
+    "          /* Write this check, then delete the line under it: */",
+    `          /* ${commentSafe(text)} */`,
+    `          ${PLACEHOLDER}(${quoted(text)}),`,
   ].join("\n");
 
 const scorerLines = (subject: EvalsJsonCase) =>
@@ -100,33 +91,54 @@ const caseBlock = (subject: EvalsJsonCase) =>
     "      },",
     sourceComment(subject),
     "      source: files({}),",
-    "      scorers: [",
+    "      validate: async (context) => {",
+    "        const answer = await context.answer();",
+    "",
+    "        return [",
     scorerLines(subject),
-    "      ],",
+    "        ].every(Boolean);",
+    "      },",
     "    },",
   ].join("\n");
 
 /** Local rather than imported, so the generated file carries its own proof
  * that an unconverted assertion fails. Deleting the last call deletes it. */
 const placeholderBlock = [
-  "/* A check nobody has written yet. It scores zero so the case stays red",
-  "   until the prose above it becomes a real check. */",
-  `const ${PLACEHOLDER} = (specification: string) => () => ({`,
-  '  evidence: "nobody has written this check yet",',
-  "  name: specification,",
-  "  score: 0,",
-  "});",
+  "/* A check nobody has written yet. It is false, so the case stays red until",
+  "   the sentence above it becomes a real check. The argument is that",
+  "   sentence, kept so the file says what is owed. */",
+  `const ${PLACEHOLDER} = (_specification: string) => false;`,
 ].join("\n");
 
-const importsOf = (file: EvalsJsonFile) =>
-  `import { ${["defineEval", "files", ...scorersUsed(file)].join(", ")} } from "anpord";`;
+const importsOf = () => 'import { defineEval, files } from "anpord";';
+
+/* Emitted into the file rather than imported, so an imported suite is one
+   self-contained module a reader can follow and edit without learning the
+   scorer library first. Matching is case-insensitive, which is what a person
+   writing "Mentions the Dashboard" means. */
+const helpersBlock = [
+  "const has = (answer: string, needle: string) =>",
+  "  answer.toLowerCase().includes(needle.toLowerCase());",
+  "",
+  "const containsAny = (answer: string, needles: string[]) =>",
+  "  needles.some((needle) => has(answer, needle));",
+  "",
+  "const containsAll = (answer: string, needles: string[]) =>",
+  "  needles.every((needle) => has(answer, needle));",
+  "",
+  "const containsNone = (answer: string, needles: string[]) =>",
+  "  !needles.some((needle) => has(answer, needle));",
+].join("\n");
 
 export const renderEvalSuite = (file: EvalsJsonFile) => {
-  const prose = tallyOf(file).needsAuthor > 0;
+  const tally = tallyOf(file);
+  const prose = tally.needsAuthor > 0;
+  const structured = tally.converted > 0;
 
   return `${[
-    importsOf(file),
+    importsOf(),
     "",
+    ...(structured ? [helpersBlock, ""] : []),
     ...(prose ? [placeholderBlock, ""] : []),
     "export default defineEval({",
     `  name: ${quoted(slug(file.skill_name, "imported-suite"))},`,

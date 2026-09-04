@@ -34,19 +34,18 @@ describe("the generated suite", () => {
       ])
     );
 
-    expect(source).toContain('answerContainsAny(["a", "b"])');
-    expect(source).toContain('answerContainsAll(["c"])');
-    expect(source).toContain('answerContainsNone(["d"])');
+    expect(source).toContain('containsAny(answer, ["a", "b"])');
+    expect(source).toContain('containsAll(answer, ["c"])');
+    expect(source).toContain('containsNone(answer, ["d"])');
   });
 
-  test("imports only the scorers it used", () => {
+  test("carries its own checks rather than importing them", () => {
     const source = renderEvalSuite(
       oneCase([{ kind: "content_contains_any", needles: ["a"], text: "any" }])
     );
 
-    expect(source).toContain(
-      'import { defineEval, files, answerContainsAny } from "anpord";'
-    );
+    expect(source).toContain('import { defineEval, files } from "anpord";');
+    expect(source).toContain("const containsAny = (answer: string");
   });
 
   /** The author's own words are the specification for the check that replaces
@@ -64,7 +63,9 @@ describe("the generated suite", () => {
       oneCase(["Reads like a maintainer wrote it."])
     );
 
-    expect(source).toContain("score: 0,");
+    expect(source).toContain(
+      "const unwritten = (_specification: string) => false;"
+    );
     expect(source).toContain('unwritten("Reads like a maintainer wrote it.")');
   });
 

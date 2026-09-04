@@ -27,9 +27,9 @@ describe("reading a case file", () => {
   test("takes both dialects from one file", async () => {
     const { source } = await imported("both-dialects.json");
 
-    expect(source).toContain('answerContainsAll(["--legacy", "removed"])');
-    expect(source).toContain('answerContainsAny(["migrate", "migration"])');
-    expect(source).toContain('answerContainsNone(["v9.0.0"])');
+    expect(source).toContain('containsAll(answer, ["--legacy", "removed"])');
+    expect(source).toContain('containsAny(answer, ["migrate", "migration"])');
+    expect(source).toContain('containsNone(answer, ["v9.0.0"])');
   });
 
   /** The honest headline: three prose assertions across two cases, and the

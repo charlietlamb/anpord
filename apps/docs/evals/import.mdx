@@ -67,13 +67,17 @@ what rule to apply to them, so it converts exactly:
 
 | `kind` | Becomes |
 | --- | --- |
-| `content_contains_any` | `answerContainsAny(needles)` |
-| `content_contains_all` | `answerContainsAll(needles)` |
-| `content_contains_none` | `answerContainsNone(needles)` |
+| `content_contains_any` | `containsAny(answer, needles)` |
+| `content_contains_all` | `containsAll(answer, needles)` |
+| `content_contains_none` | `containsNone(answer, needles)` |
 
-Each scorer reads the agent's final answer from the trial journal. The
-assertion's `text` stays above the call as a comment, so the generated line
-still says what the author meant by it.
+The case gets a `validate` function that reads the agent's final answer and
+returns whether every check held. Those three helpers are written into the
+file rather than imported, so an imported suite is one module a reader can
+follow and edit without learning a scorer library first. Matching is
+case-insensitive, which is what somebody writing "mentions the dashboard"
+means. The assertion's `text` stays above the call as a comment, so the
+generated line still says what the author meant by it.
 
 ## What does not
 
@@ -84,14 +88,18 @@ suite that passes while measuring the wrong thing, which is worse than no
 suite at all, because it is a green check nobody has reason to doubt.
 
 So a prose assertion is written into the generated file as the author's own
-words, verbatim, next to a placeholder that scores zero:
+words, verbatim, next to a placeholder that is always false:
 
 ```ts
-scorers: [
-  /* Write this check, then delete the line under it: */
-  /* The summary reads as though a maintainer wrote it. */
-  unwritten("The summary reads as though a maintainer wrote it."),
-],
+validate: async (context) => {
+  const answer = await context.answer();
+
+  return [
+    /* Write this check, then delete the line under it: */
+    /* The summary reads as though a maintainer wrote it. */
+    unwritten("The summary reads as though a maintainer wrote it."),
+  ].every(Boolean);
+},
 ```
 
 The file compiles and runs. The case fails until somebody replaces the
