@@ -5,8 +5,10 @@ import type { ImportTally } from "../imports/evals-json-render";
 import { FORMATS } from "./import-formats";
 import { note, row } from "./render";
 
-const caseFile = Args.file({ name: "file" }).pipe(
-  Args.withDescription("The case file to read")
+/** A path rather than a file, because a format may keep one case per file and
+ * import a directory of them as one suite. */
+const caseFile = Args.path({ name: "path" }).pipe(
+  Args.withDescription("The case file, or a directory of them, to read")
 );
 
 const format = Options.choiceWithValue("format", FORMATS).pipe(
