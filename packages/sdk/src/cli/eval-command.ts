@@ -6,6 +6,7 @@ import { compileEvalEffect } from "../evals/compiler";
 import { evalFilesIn } from "./eval-files";
 import { failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
 import { liveGrid, summaryOf } from "./eval-grid";
+import { importEval } from "./eval-import";
 import type { EvalOutcome } from "./eval-outcome";
 import { waitForRun } from "./eval-run";
 import { checkRunOf } from "./github-check";
@@ -136,4 +137,7 @@ export const runEval = Command.make(
 
       return yield* failWhen(outcomes.flatMap((outcome) => outcome.problems));
     })
-).pipe(Command.withDescription("Compile and run an eval from TypeScript"));
+).pipe(
+  Command.withDescription("Compile and run an eval from TypeScript"),
+  Command.withSubcommands([importEval])
+);
