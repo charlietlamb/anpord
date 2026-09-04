@@ -12,6 +12,7 @@ import { AbandonedWorkLive } from "./repositories/abandoned-work";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { ExpiredRowsLive } from "./repositories/expired-rows";
+import { HarnessProfileRepositoryLive } from "./repositories/harness-profile-repository";
 import { JournalArchiveLive } from "./repositories/journal-archive";
 import { LiveSandboxesLive } from "./repositories/live-sandboxes";
 import { RunQueryLive } from "./repositories/run-query";
@@ -42,6 +43,7 @@ import { WorkbenchesLive } from "./services/workbench";
 export const EvalRepositoriesLive = Layer.mergeAll(
   BaselineRepositoryLive,
   EventRepositoryLive,
+  HarnessProfileRepositoryLive,
   RunQueryLive,
   RunRepositoryLive,
   TaskRepositoryLive,

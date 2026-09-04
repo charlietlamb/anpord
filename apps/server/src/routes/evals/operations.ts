@@ -1,6 +1,7 @@
 import { AutumnService } from "@anpord/billing/autumn";
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { GridRun } from "@anpord/eval/grid/run";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
@@ -19,6 +20,7 @@ import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
 import { asReading } from "../internal/evals/reading-to-api";
 import { detail, summarise } from "../internal/evals/run-to-api";
+import { tasksAreDistinct } from "../internal/evals/task-keys";
 
 const HISTORY_LIMIT = 20;
 
@@ -55,11 +57,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
     const credentialResolver = yield* CredentialResolver;
-    const taskKeys = payload.tasks.map(({ harness, model, provider }) =>
-      [harness, model, provider].join("\0")
-    );
-
-    if (new Set(taskKeys).size !== taskKeys.length) {
+    if (!tasksAreDistinct(payload.tasks)) {
       return yield* Effect.fail(
         new BadRequest({ message: "Each eval task must be unique" })
       );
@@ -81,7 +79,11 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     const credentials = yield* EvalCredentials;
     const requested = yield* Effect.forEach(payload.tasks, (task) =>
       harnessVersion(task.harness).pipe(
-        Effect.map((harnessVersion) => ({ ...task, harnessVersion }))
+        Effect.map((harnessVersion) => ({
+          ...task,
+          harnessVersion,
+          profile: profileOfRequest(task.profile),
+        }))
       )
     );
     const tasks = yield* resolveTaskCredentials(
@@ -162,6 +164,7 @@ export const getEvalRun = (id: string) =>
                   cellKey: cell.cellKey,
                   distribution: cell.distribution.value,
                   harnessVersion: task.harnessVersion,
+                  profileVersion: task.profile?.version ?? null,
                 },
               ];
         })

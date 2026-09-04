@@ -69,7 +69,18 @@ export const codexCredential = codexCredentials
     })
   : NO_CREDENTIAL;
 
+/* What a command task resolves to with nothing configured: the customer's own
+   process is what holds a key, if it needs one at all. */
+export const emptyEnvCredential = Redacted.make({
+  authMethodId: "env",
+  connectionId: "env-none",
+  integrationId: "env",
+  revision: 0,
+  values: {},
+});
+
 export const hasDaytona = Boolean(process.env.DAYTONA_API_KEY);
+export const hasE2b = Boolean(process.env.E2B_API_KEY);
 export const hasUpstash = Boolean(process.env.UPSTASH_BOX_API_KEY);
 export const hasModal = Boolean(
   process.env.MODAL_TOKEN_ID && process.env.MODAL_TOKEN_SECRET

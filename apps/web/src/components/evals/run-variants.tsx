@@ -7,6 +7,17 @@ import {
   SandboxLabel,
 } from "@/components/evals/variant-label";
 
+/* The profile takes part because two profiles on one base share a harness and
+   a version, and a row keyed on those alone would show one of them and
+   silently drop the other. */
+const harnessKeyOf = (task: EvalTask) =>
+  [
+    task.harness,
+    task.harnessVersion,
+    task.profile?.name ?? "",
+    task.profile?.version ?? "",
+  ].join(" ");
+
 const distinct = <T,>(values: readonly T[], keyOf: (value: T) => string) => {
   const seen = new Map<string, T>();
 
@@ -50,10 +61,7 @@ export function RunVariants({
     return null;
   }
 
-  const harnesses = distinct(
-    tasks,
-    (task) => `${task.harness} ${task.harnessVersion}`
-  );
+  const harnesses = distinct(tasks, harnessKeyOf);
   const models = distinct(tasks, (task) => task.model);
   const providers = distinct(tasks, (task) => task.provider);
 
@@ -67,7 +75,8 @@ export function RunVariants({
             items={harnesses.map((task) => (
               <HarnessLabel
                 harness={task.harness}
-                key={`${task.harness} ${task.harnessVersion}`}
+                key={harnessKeyOf(task)}
+                profile={task.profile}
                 version={task.harnessVersion}
               />
             ))}

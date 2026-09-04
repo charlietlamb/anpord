@@ -1,4 +1,5 @@
 import type { HarnessName, ProviderName } from "../domain/cell";
+import type { RequestedProfile } from "../domain/harness-profile";
 import type { CellTask } from "../repositories/run-tasks-query";
 import type { GridCase } from "./cell";
 
@@ -24,6 +25,20 @@ export const caseFrom = (subject: CellTask): GridCase => ({
   verify: subject.verifyCommand,
 });
 
+/** The profile a stored cell ran under, read back whole rather than by name:
+ * a resumed run writes the same files, and only the row holds them. */
+export const profileFrom = (subject: CellTask): RequestedProfile | null =>
+  subject.profile == null
+    ? null
+    : {
+        env: subject.profile.env,
+        files: subject.profile.files,
+        install: subject.profile.install,
+        name: subject.profile.name,
+        run: subject.profile.run,
+        systemPrompt: subject.profile.systemPrompt,
+      };
+
 /** The task a stored cell ran, for a caller that will resolve its own
  * credentials. */
 export const taskFrom = (subject: CellTask) => ({
@@ -36,5 +51,6 @@ export const taskFrom = (subject: CellTask) => ({
   harness: subject.cell.harness as HarnessName,
   harnessVersion: subject.cell.harnessVersion,
   model: subject.cell.model,
+  profile: profileFrom(subject),
   provider: subject.cell.provider as ProviderName,
 });

@@ -103,6 +103,7 @@ const request: AgentTrialRequest = {
   model: "gpt-5",
   organizationId: "org_guard",
   prepare: null,
+  profile: null,
   prompt: "do nothing",
   provider: "daytona",
   source: { kind: "empty" },

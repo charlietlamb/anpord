@@ -17,13 +17,14 @@ import { credentialKeys, credentialQueries } from "@/lib/credential-queries";
 import { credentialsClient } from "@/lib/credentials-client";
 import type { ConnectionSectionSpec } from "@/lib/settings/connection-sections";
 
-const secretMethodOf = (
+/* Only what can be typed again: a device login is redone, not rotated. */
+const rotatableMethodOf = (
   integration: CredentialIntegration | undefined,
   connection: CredentialConnection
 ) =>
   integration?.authMethods.find(
     (method) =>
-      method.id === connection.authMethodId && method.kind === "secret"
+      method.id === connection.authMethodId && method.kind !== "device"
   ) ?? null;
 
 /**
@@ -122,7 +123,7 @@ export function CredentialPage({
                 onDefault={() => setDefault.mutate(connection.id)}
                 onRemove={() => remove.mutate(connection.id)}
                 onRotate={
-                  secretMethodOf(integration, connection) === null
+                  rotatableMethodOf(integration, connection) === null
                     ? undefined
                     : () => setRotating(connection)
                 }
@@ -156,7 +157,7 @@ export function CredentialPage({
         method={
           rotating === null
             ? null
-            : secretMethodOf(integrationOf(rotating), rotating)
+            : rotatableMethodOf(integrationOf(rotating), rotating)
         }
         onClose={() => setRotating(null)}
         onRotated={refresh}

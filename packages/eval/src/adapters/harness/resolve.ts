@@ -4,6 +4,7 @@ import { HarnessUnavailable } from "../../domain/errors";
 import { type HarnessDriverShape, Harnesses } from "../../ports/harness";
 import { ClaudeDriver } from "./claude";
 import { CodexDriver } from "./codex";
+import { CommandDriver } from "./command";
 import { CursorDriver } from "./cursor";
 import { FxDriver } from "./fx";
 import { GeminiDriver } from "./gemini";
@@ -11,9 +12,12 @@ import { OpencodeDriver } from "./opencode";
 import { PiDriver } from "./pi";
 import { QwenDriver } from "./qwen";
 
-const BY_NAME: Record<HarnessName, HarnessDriverShape> = {
+/* Partial, so a name the wire accepts before its driver is written resolves
+   to HarnessUnavailable rather than failing the build. */
+const BY_NAME: Partial<Record<HarnessName, HarnessDriverShape>> = {
   claude: ClaudeDriver,
   codex: CodexDriver,
+  command: CommandDriver,
   cursor: CursorDriver,
   fx: FxDriver,
   gemini: GeminiDriver,

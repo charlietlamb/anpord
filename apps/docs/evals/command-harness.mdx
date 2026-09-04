@@ -1,0 +1,78 @@
+---
+title: "Command harness"
+description: "Run your own agent as a process inside the sandbox"
+---
+
+The `command` harness runs a process you own instead of a coding agent Anpord installs. Anpord starts it in the sandbox, hands it the case through environment variables, reads events from its stdout, and scores the trial with the case's verifier.
+
+```ts
+tasks: [
+  {
+    harness: { base: "command", profile: { name: "sample", dir: "./profile" } },
+    model: "openai/gpt-5.5",
+    provider: "e2b",
+  },
+]
+```
+
+The profile's `run` is the command line; its `install` step runs once while the sandbox is prepared. The profile directory ships everything else the process needs.
+
+## Environment
+
+The process receives these variables:
+
+| Variable | Value |
+| --- | --- |
+| `ANPORD_PROMPT` | The case prompt |
+| `ANPORD_MODEL` | The task's `model`, verbatim |
+| `ANPORD_HOME` | The sandbox home directory |
+| `ANPORD_WORKSPACE` | The checked-out workspace; the working directory when the process starts |
+| `ANPORD_SYSTEM_PROMPT_FILE` | Path to the profile's system prompt, when it has one |
+| `ANPORD_TRACE_LOG` | Where the shell recorder appends what it sees |
+
+Anything in the profile's `env` is present too. Stdin is closed.
+
+## Events
+
+Print one JSON object per line on stdout. A line with a known `_tag` is recorded; every other line is ignored, so ordinary logging is harmless. `at` is epoch milliseconds and optional; a line without it takes the moment it was read.
+
+```json
+{"_tag":"Started","sessionId":"run-42","model":"openai/gpt-5.5"}
+{"_tag":"Message","role":"assistant","text":"Reading the failing test first."}
+{"_tag":"Command","command":"bun test","exitCode":1,"output":"expect(5).toBe(6)\n"}
+{"_tag":"FileChange","paths":["/workspace/src/total.ts"]}
+{"_tag":"ToolCall","callId":"call_7","name":"search","input":"{\"query\":\"total\"}","status":"completed"}
+{"_tag":"Usage","inputTokens":9120,"outputTokens":312,"cacheReadTokens":8000}
+{"_tag":"Finished","reason":"done","at":1788300005000}
+```
+
+| Line | Recorded as |
+| --- | --- |
+| `Started` | Opens the session; `sessionId` and `model` are taken from it. One is synthesised if you never print it. |
+| `Message` | A turn of the conversation; `role` is `assistant` or `user` |
+| `Command` | A shell command with its exit code and output. `exitCode` may be `null` when you did not capture it. |
+| `FileChange` | Paths written, absolute |
+| `ToolCall` | A tool invoked by name; `callId` and `status` may be `null` |
+| `Usage` | Tokens spent by one turn, added to the run's total. `cacheReadTokens` and `cacheWriteTokens` default to 0 and `totalTokens` to input plus output. |
+| `Finished` | Ends the journal with a reason |
+
+The JSON Schema for these lines is generated from the same definition Anpord decodes with, so the examples above are checked against it.
+
+## Exit
+
+A non-zero exit does not fail the trial and does not discard what was printed before it. When the process exits without printing `Finished`, one is recorded with the reason `exit N`. The verifier scores the trial either way: a process that prints `Finished` and writes nothing fails its verifier exactly as one that crashes does.
+
+The process has fifteen minutes. A run that is still going at the cap is ended and recorded as unavailable.
+
+## The recorder
+
+Anpord sources a small script into every bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`, and each becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with the same text.
+
+What it sees is limited to bash:
+
+- `bash -c` and nested bash scripts are traced, line by line.
+- `sh -c` on Debian is dash, which has no `DEBUG` trap. Only the `sh -c …` invocation is recorded, not what ran inside it.
+- Shells spawned by Node, Python or any other runtime are invisible. A Python agent leaves one line: its own invocation.
+- Exit codes are never captured; the trap runs before the command.
+
+If you want inner commands and exit codes in the journal, print `Command` yourself.

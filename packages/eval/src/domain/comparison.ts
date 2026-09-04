@@ -16,7 +16,9 @@ export interface Comparison {
 
 export interface VersionedComparison extends Comparison {
   readonly baselineHarnessVersion: string;
+  readonly baselineProfileVersion: string | null;
   readonly candidateHarnessVersion: string;
+  readonly candidateProfileVersion: string | null;
 }
 
 /** How far two pass rates must differ before the difference is a finding. */

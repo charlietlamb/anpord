@@ -20,7 +20,7 @@ export type CredentialField = typeof CredentialField.Type;
 export const CredentialAuthMethod = Schema.Struct({
   fields: Schema.Array(CredentialField),
   id: Schema.String,
-  kind: Schema.Literal("secret", "device"),
+  kind: Schema.Literal("secret", "device", "env"),
   label: Schema.String,
 });
 export type CredentialAuthMethod = typeof CredentialAuthMethod.Type;

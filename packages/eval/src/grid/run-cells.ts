@@ -11,7 +11,12 @@ import { runGridCell } from "./cell";
 import { forEachGridCell } from "./for-each-cell";
 import type { LiveRuns } from "./live-runs";
 import type { ResumeGrid } from "./run";
-import { advanceTrial, completeCell, settleTrial } from "./state";
+import {
+  advanceTrial,
+  completeCell,
+  settleTrial,
+  type TaskProfile,
+} from "./state";
 
 /** Runs every cell of a grid, then closes the run with what became of them. */
 export const makeRunCells = (live: LiveRuns) =>
@@ -23,7 +28,10 @@ export const makeRunCells = (live: LiveRuns) =>
     const runs = yield* RunRepository;
     const sourceTokens = yield* SourceTokens;
 
-    return ({ created, input, registered }: ResumeGrid) =>
+    return (
+      { created, input, registered }: ResumeGrid,
+      profiles: readonly (TaskProfile | null)[]
+    ) =>
       Effect.gen(function* () {
         const sourceToken = Option.getOrUndefined(
           yield* sourceTokens.forOrganization(input.organizationId)
@@ -54,6 +62,7 @@ export const makeRunCells = (live: LiveRuns) =>
                     settleTrial(state, position, ordinal, trial)
                   ),
                 organizationId: input.organizationId,
+                profile: profiles[taskIndex] ?? null,
                 prompt: input.prompt,
                 recorder,
                 runInternalId: created.internalId,

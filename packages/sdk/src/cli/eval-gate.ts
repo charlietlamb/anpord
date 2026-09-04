@@ -13,13 +13,29 @@ const unscored = (run: EvalRun) =>
 
 const rate = (value: number) => `${Math.round(value * 100) / 100}`;
 
-/* Named only when it moved: the version is the one thing about a variant that
-   can differ between a baseline and its candidate, so when it did, it is the
-   first thing a reader wants to know. */
+/* Named only when it moved: the harness version and the profile version are
+   the two things about a variant that can differ between a baseline and its
+   candidate, so when one did, it is the first thing a reader wants to know. */
 const versionClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) =>
   found.baselineHarnessVersion === found.candidateHarnessVersion
     ? ""
     : `${run.tasks[cell.taskIndex]?.harness ?? "harness"} ${found.baselineHarnessVersion} → ${found.candidateHarnessVersion}, `;
+
+const profileClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) => {
+  const { baselineProfileVersion, candidateProfileVersion } = found;
+
+  if (
+    baselineProfileVersion === null ||
+    candidateProfileVersion === null ||
+    baselineProfileVersion === candidateProfileVersion
+  ) {
+    return "";
+  }
+
+  const name = run.tasks[cell.taskIndex]?.profile?.name ?? "profile";
+
+  return `${name} ${baselineProfileVersion} → ${candidateProfileVersion}, `;
+};
 
 const regressionSentence = (run: EvalRun, cell: EvalCell) => {
   const found = cell.comparison;
@@ -28,7 +44,7 @@ const regressionSentence = (run: EvalRun, cell: EvalCell) => {
     return `${cell.caseName} regressed against its baseline.`;
   }
 
-  return `${cell.caseName} regressed against its baseline: ${versionClause(run, cell, found)}pass rate ${rate(found.baselinePassRate)} → ${rate(found.candidatePassRate)}.`;
+  return `${cell.caseName} regressed against its baseline: ${versionClause(run, cell, found)}${profileClause(run, cell, found)}pass rate ${rate(found.baselinePassRate)} → ${rate(found.candidatePassRate)}.`;
 };
 
 export const problemsWith = (

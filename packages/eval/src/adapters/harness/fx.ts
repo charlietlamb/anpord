@@ -7,6 +7,7 @@ import type {
 } from "../../ports/harness";
 import { runCommand } from "../sandbox/run-command";
 import { decodeFxLine } from "./fx-events";
+import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
   credentialOf,
@@ -44,7 +45,7 @@ const install = (input: PrepareHarness) =>
 
 export const fxCommand = (request: RunHarness) =>
   [
-    `cd ${shellQuote(request.workspace)}`,
+    `${instructionsPrefix(request)}cd ${shellQuote(request.workspace)}`,
     "&& mkdir -p ~/.fx",
     `&& printf %s ${shellQuote(JSON.stringify({ model: request.model }))} > ~/.fx/settings.json`,
     "&&",

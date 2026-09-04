@@ -1,0 +1,3 @@
+# Sample profile
+
+Not shipped.

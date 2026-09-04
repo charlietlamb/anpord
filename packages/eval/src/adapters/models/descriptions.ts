@@ -9,6 +9,7 @@ import { staticDescriptions } from "./static";
 const sourceOf: Record<HarnessName, "codex" | "opencode" | "static"> = {
   claude: "static",
   codex: "codex",
+  command: "static",
   cursor: "static",
   fx: "opencode",
   gemini: "static",

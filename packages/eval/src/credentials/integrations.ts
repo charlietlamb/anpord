@@ -101,6 +101,22 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     id: "cursor",
     label: "Cursor Agent",
   },
+  /* One credential any harness can run on: a map of variables the customer
+     names, handed to the sandbox as they are. */
+  {
+    authMethods: [{ fields: [], id: "env", kind: "env", label: "Variables" }],
+    category: "harness",
+    id: "env",
+    label: "Environment",
+  },
+  /* The customer owns the process, so there is nothing of ours to
+     authenticate: the variables it needs are all it can be given. */
+  {
+    authMethods: [{ fields: [], id: "env", kind: "env", label: "Variables" }],
+    category: "harness",
+    id: "command",
+    label: "Command",
+  },
   {
     authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
     category: "sandbox",
@@ -179,39 +195,3 @@ export const credentialMethod = (integrationId: string, methodId: string) => {
       )
     : Effect.succeed({ integration, method });
 };
-
-export const validateCredential = (
-  integrationId: string,
-  methodId: string,
-  values: Readonly<Record<string, string>>
-) =>
-  Effect.gen(function* () {
-    const { method } = yield* credentialMethod(integrationId, methodId);
-    const missing = method.fields.find(
-      (item) => item.required && !values[item.name]?.trim()
-    );
-
-    if (missing !== undefined) {
-      return yield* Effect.fail(
-        new CredentialError({ message: `${missing.label} is required` })
-      );
-    }
-
-    if (method.kind === "device") {
-      const authJson = values.authJson?.trim();
-      return authJson
-        ? { authJson }
-        : yield* Effect.fail(
-            new CredentialError({
-              message: "Device authentication is incomplete",
-            })
-          );
-    }
-
-    return Object.fromEntries(
-      method.fields.flatMap((item) => {
-        const value = values[item.name]?.trim();
-        return value ? [[item.name, value]] : [];
-      })
-    );
-  });

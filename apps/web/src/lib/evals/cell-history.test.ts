@@ -9,7 +9,8 @@ const reading = (
   passed: number,
   scored: number,
   finished = true,
-  harnessVersion = "0.144.4"
+  harnessVersion = "0.144.4",
+  profileVersion: string | null = null
 ) => ({
   distribution: {
     commandMax: 2,
@@ -26,6 +27,7 @@ const reading = (
   finishedAt: finished ? DateTime.unsafeMake(AT + ordinal * 3_600_000) : null,
   harnessVersion,
   internalId: `cell_${ordinal}`,
+  profileVersion,
   runId: `run_${ordinal}`,
   trials: [],
 });
@@ -49,6 +51,38 @@ describe("readingsOf", () => {
       true,
       false,
     ]);
+  });
+
+  /** An edited profile is a new version on the same cell, so it moves a
+   * reading the way a harness release does and is marked the same way. */
+  it("names a profile version only where it changed, shortened", () => {
+    const long = "a1b2c3d4e5f60718293a4b5c6d7e8f90";
+    const edited = "0f9e8d7c6b5a49382716f5e4d3c2b1a0";
+
+    const marks = readingsOf(
+      newestFirst([
+        reading(1, 1, 1, true, "1.18.21", long),
+        reading(2, 1, 1, true, "1.18.21", long),
+        reading(3, 0, 1, true, "1.18.21", edited),
+      ])
+    );
+
+    expect(marks.map((mark) => mark.title.endsWith("· 0f9e8d7c"))).toEqual([
+      false,
+      false,
+      true,
+    ]);
+  });
+
+  it("names both versions where a release and an edit landed together", () => {
+    const marks = readingsOf(
+      newestFirst([
+        reading(1, 1, 1, true, "1.18.21", "a1b2c3d4e5f60718293a4b5c6d7e8f90"),
+        reading(2, 1, 1, true, "1.19.0", "0f9e8d7c6b5a49382716f5e4d3c2b1a0"),
+      ])
+    );
+
+    expect(marks[1].title).toContain("· 1.19.0 · 0f9e8d7c");
   });
 
   it("puts the oldest reading first, so left to right is time", () => {

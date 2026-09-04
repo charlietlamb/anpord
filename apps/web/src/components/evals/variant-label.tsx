@@ -2,7 +2,9 @@ import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 import {
+  harnessLabel,
   harnessPresentation,
+  type LabelledProfile,
   modelPresentation,
   providerPresentation,
 } from "@/lib/evals/variant-presentation";
@@ -66,14 +68,19 @@ export function ModelLabel({
 
 export function HarnessLabel({
   harness,
+  profile,
   size,
   version,
-}: { readonly harness: string; readonly version?: string } & Sized) {
+}: {
+  readonly harness: string;
+  readonly profile?: LabelledProfile | null;
+  readonly version?: string;
+} & Sized) {
   const own = harnessPresentation(harness);
 
   return (
     <VariantLabel Icon={own.Icon} size={size}>
-      {version === undefined ? own.label : `${own.label} ${version}`}
+      {harnessLabel(harness, version, profile)}
     </VariantLabel>
   );
 }

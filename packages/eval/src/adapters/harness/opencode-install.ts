@@ -1,4 +1,4 @@
-import { Effect, Redacted } from "effect";
+import { Effect, Option, Redacted } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { SandboxHandle } from "../../ports/sandbox";
 import { runCommand } from "../sandbox/run-command";
@@ -20,8 +20,11 @@ export const installOpencode = (sandbox: SandboxHandle, version: string) =>
   );
 
 export const opencodeEnv = (
-  credentials: Redacted.Redacted<string>
+  credentials: Option.Option<Redacted.Redacted<string>>
 ): Readonly<Record<string, string>> => ({
-  OPENCODE_AUTH_CONTENT: Redacted.value(credentials),
+  ...Option.match(credentials, {
+    onNone: () => ({}),
+    onSome: (auth) => ({ OPENCODE_AUTH_CONTENT: Redacted.value(auth) }),
+  }),
   OPENCODE_DISABLE_MODELS_FETCH: "1",
 });

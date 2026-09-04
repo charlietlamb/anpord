@@ -5,7 +5,7 @@ import { resolveTaskCredentials } from "../credentials/tasks";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { NotRunnable } from "../domain/errors";
 import type { CellTask } from "../repositories/run-tasks-query";
-import { taskFrom } from "./from-stored";
+import { profileFrom, taskFrom } from "./from-stored";
 import type { GridExecutionTask } from "./state";
 
 /**
@@ -59,6 +59,7 @@ const boundTask = (
       harness: subject.cell.harness as HarnessName,
       harnessVersion: subject.cell.harnessVersion,
       model: subject.cell.model,
+      profile: profileFrom(subject),
       provider: subject.cell.provider as ProviderName,
     } satisfies GridExecutionTask;
   });

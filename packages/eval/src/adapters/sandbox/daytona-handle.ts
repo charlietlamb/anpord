@@ -1,9 +1,15 @@
 import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
-import { Effect } from "effect";
+import { Effect, Random } from "effect";
 import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
 import { CACHE_SECONDS, cacheOn } from "./daytona-cache";
 import { sessionCommands } from "./daytona-session";
 import { cdInto, DEFAULT_TIMEOUT_MS, HOME, unavailable } from "./daytona-shell";
+
+const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
+
+const heredocMarker = Random.nextInt.pipe(
+  Effect.map((value) => `ANPORD_EOF_${Math.abs(value).toString(36)}`)
+);
 
 export const handleFor = (
   sandbox: DaytonaSandbox,
@@ -43,9 +49,13 @@ export const handleFor = (
     home: HOME,
     provider: "daytona",
     streaming: true,
+    /* The marker is drawn per write, because a content line equal to a fixed
+       one would end the heredoc and truncate the file at that line. */
     writeFile: (path, content) =>
-      execute(
-        `mkdir -p "$(dirname ${path})" && cat > ${path} <<'ANPORD_EOF'\n${content}\nANPORD_EOF`
+      Effect.flatMap(heredocMarker, (marker) =>
+        execute(
+          `mkdir -p "$(dirname ${quoted(path)})" && cat > ${quoted(path)} <<'${marker}'\n${content}\n${marker}`
+        )
       ).pipe(Effect.asVoid),
   };
 };

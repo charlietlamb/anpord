@@ -7,6 +7,7 @@ import type {
   HarnessSessionShape,
   RunHarness,
 } from "../../ports/harness";
+import { opencodeConfigEnv } from "./opencode-config";
 import { decodeOpencodeLine } from "./opencode-events";
 import { installOpencode, OPENCODE_BIN, opencodeEnv } from "./opencode-install";
 import { harnessLines, shellQuote } from "./process";
@@ -21,6 +22,12 @@ export const opencodeCommand = (request: RunHarness) =>
     shellQuote(request.prompt),
     "< /dev/null",
   ].join(" ");
+
+export const opencodeRunEnv = (request: RunHarness) =>
+  Option.match(request.systemPromptPath, {
+    onNone: () => request.env,
+    onSome: (path) => opencodeConfigEnv(request.env, path),
+  });
 
 const added = (
   current: Option.Option<HarnessUsage>,
@@ -37,11 +44,17 @@ const added = (
     }),
   });
 
+/* An env credential brings no auth.json; the variables it carries reach the
+   binary through the sandbox env, and OpenCode reads its providers from there. */
 const authOf = (credential: ResolvedCredential) => {
   const authJson = credential.values.authJson;
 
+  if (credential.integrationId === "env") {
+    return Effect.succeed(Option.none<Redacted.Redacted<string>>());
+  }
+
   return credential.integrationId === "opencode" && authJson
-    ? Effect.succeed(authJson)
+    ? Effect.succeed(Option.some(Redacted.make(authJson)))
     : Effect.fail(
         new HarnessUnavailable({
           harness: "opencode",
@@ -62,7 +75,7 @@ export const OpencodeDriver: HarnessDriverShape = {
     Effect.gen(function* () {
       const auth = yield* authOf(Redacted.value(input.credential));
       yield* installOpencode(input.sandbox, input.version);
-      return opencodeEnv(Redacted.make(auth));
+      return opencodeEnv(auth);
     }).pipe(Effect.withSpan("Opencode.prepare")),
   run: (request: RunHarness) =>
     Effect.gen(function* () {
@@ -73,7 +86,7 @@ export const OpencodeDriver: HarnessDriverShape = {
         "opencode",
         request.sandbox,
         opencodeCommand(request),
-        request.env
+        opencodeRunEnv(request)
       ).pipe(
         Stream.mapConcatEffect(({ at, line }) =>
           Effect.gen(function* () {

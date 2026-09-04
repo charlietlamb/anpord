@@ -45,8 +45,10 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
     harness: "codex" as never,
     harnessVersion: "1",
     home: HOME,
-    sandbox,
+    model: "vendor/model",
     prepare: null,
+    profile: null,
+    sandbox,
     source: {
       kind: "repo",
       ref: null,

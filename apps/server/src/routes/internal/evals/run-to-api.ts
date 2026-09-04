@@ -71,6 +71,10 @@ export const detail = (
       harness: task.harness,
       harnessVersion: task.harnessVersion,
       model: task.model,
+      profile:
+        task.profile == null
+          ? null
+          : { name: task.profile.name, version: task.profile.version },
       provider: task.provider,
     })),
   };

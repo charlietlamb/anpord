@@ -27,10 +27,19 @@ const marksOf = (columns: readonly EvalTask[]): readonly Mark[] => {
     const model = modelPresentation(column.model);
     const provider = providerPresentation(column.provider);
 
-    models.set(column.model, {
+    const harness = harnessLabel(
+      column.harness,
+      column.harnessVersion,
+      column.profile
+    );
+
+    /* Keyed by what the tooltip says rather than by the model alone: two
+       profiles on one base share a model, and the second would otherwise
+       replace the first and name a harness the row never ran. */
+    models.set(`${column.model} ${harness}`, {
       Icon: model.Icon,
-      key: `model:${column.model}`,
-      title: `${model.label} · ${harnessLabel(column.harness, column.harnessVersion)}`,
+      key: `model:${column.model} ${harness}`,
+      title: `${model.label} · ${harness}`,
     });
 
     providers.set(column.provider, {

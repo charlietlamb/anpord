@@ -56,3 +56,40 @@ describe("harness process framing", () => {
     expect(failure.reason).toBe("specific failure");
   });
 });
+
+describe("harness process reporting its exit", () => {
+  it("closes with the exit instead of failing on it", async () => {
+    const outputs = await Effect.runPromise(
+      harnessLines(
+        "codex",
+        sandbox([
+          { at: 1, data: "one\n", stream: "stdout" },
+          { at: 2, data: "specific failure", stream: "stderr" },
+          { at: 3, exitCode: 7, stream: "exit" },
+        ]),
+        "false",
+        {},
+        { exit: "report" }
+      ).pipe(Stream.runCollect, Effect.map(Array.from))
+    );
+
+    expect(outputs).toEqual([
+      { _tag: "line", at: 1, line: "one" },
+      { _tag: "exit", at: 3, exitCode: 7, stderr: "specific failure" },
+    ]);
+  });
+
+  it("reports a clean exit too, so a driver can tell the process ended", async () => {
+    const outputs = await Effect.runPromise(
+      harnessLines(
+        "codex",
+        sandbox([{ at: 3, exitCode: 0, stream: "exit" }]),
+        "true",
+        {},
+        { exit: "report" }
+      ).pipe(Stream.runCollect, Effect.map(Array.from))
+    );
+
+    expect(outputs).toEqual([{ _tag: "exit", at: 3, exitCode: 0, stderr: "" }]);
+  });
+});

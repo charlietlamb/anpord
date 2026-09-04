@@ -4,7 +4,7 @@ import type { CredentialCipherShape } from "./cipher";
 import { openValues } from "./connection-payload";
 import type { CredentialConnectionRepositoryShape } from "./connection-repository";
 import { summaryOf } from "./connection-row";
-import { validateCredential } from "./integrations";
+import { validateCredential } from "./validate-credential";
 
 export const verifyConnection =
   (

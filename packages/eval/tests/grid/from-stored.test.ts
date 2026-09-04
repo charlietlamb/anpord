@@ -24,6 +24,7 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
     name,
     prepareName: null,
     prepareSource: null,
+    profile: null,
     prompt: "{{task}}",
     runName: "planner-core",
     source: { kind: "empty" },

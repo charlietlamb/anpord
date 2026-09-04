@@ -31,6 +31,7 @@ const trial = Effect.gen(function* () {
     organizationId: "org_test",
     model: "gpt-5.2",
     prompt: `Run exactly one shell command: \`sleep ${SLEEP_SECONDS} && echo done\`. Then stop without running anything else.`,
+    profile: null,
     provider: "daytona",
     prepare: null,
     source: { kind: "files", files: { "note.txt": "nothing to fix" } },

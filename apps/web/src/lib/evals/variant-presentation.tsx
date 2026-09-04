@@ -25,7 +25,8 @@ import {
   ZaiMark,
 } from "@anpord/ui/components/brand/provider-marks";
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { CpuIcon } from "@phosphor-icons/react";
+import { CpuIcon, TerminalWindowIcon } from "@phosphor-icons/react";
+import { shortProfileVersion } from "@/lib/evals/profile-version";
 
 interface Presentation {
   readonly Icon: RailIcon;
@@ -35,6 +36,9 @@ interface Presentation {
 const HARNESSES: Record<EvalHarness, Presentation> = {
   claude: { Icon: AnthropicMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
+  /* No vendor mark: the process is the customer's own, and what it runs is
+     named by the profile beside it rather than by a harness anybody ships. */
+  command: { Icon: TerminalWindowIcon, label: "Command" },
   cursor: { Icon: CursorMark, label: "Cursor" },
   /* Vercel Labs ships it, and fx.sh credits them; the gateway key it takes
      is a Vercel key too. */
@@ -113,5 +117,36 @@ export const modelPresentation = (model: string): Presentation => {
     : unknown(model);
 };
 
-export const harnessLabel = (harness: string, version: string) =>
-  `${harnessPresentation(harness).label} ${version}`;
+export interface LabelledProfile {
+  readonly name: string;
+  readonly version: string;
+}
+
+const profileLabel = (profile: LabelledProfile) =>
+  `${profile.name}@${shortProfileVersion(profile.version)}`;
+
+/* The command harness runs the customer's own process, so `Command` names
+   nothing and its stored version is the literal `profile` rather than a
+   release anybody could read. The profile beside it says what actually ran. */
+const baseLabel = (
+  harness: string,
+  version: string | undefined,
+  profile: LabelledProfile | null | undefined
+) => {
+  if (harness === "command" && profile) {
+    return "";
+  }
+
+  const own = harnessPresentation(harness).label;
+
+  return version === undefined ? own : `${own} ${version}`;
+};
+
+export const harnessLabel = (
+  harness: string,
+  version?: string,
+  profile?: LabelledProfile | null
+) =>
+  [baseLabel(harness, version, profile), profile ? profileLabel(profile) : ""]
+    .filter((part) => part !== "")
+    .join(" · ");

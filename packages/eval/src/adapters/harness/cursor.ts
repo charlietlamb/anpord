@@ -7,6 +7,7 @@ import type {
 } from "../../ports/harness";
 import { runCommand } from "../sandbox/run-command";
 import { decodeClaudeLine } from "./claude-events";
+import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import { credentialOf, jsonSession, requiredValue } from "./support";
 
@@ -41,7 +42,7 @@ const install = (input: PrepareHarness) =>
 
 export const cursorCommand = (request: RunHarness) =>
   [
-    `cd ${shellQuote(request.workspace)}`,
+    `${instructionsPrefix(request)}cd ${shellQuote(request.workspace)}`,
     "&&",
     `${BIN} -p --force --output-format stream-json`,
     `--model ${shellQuote(request.model)}`,

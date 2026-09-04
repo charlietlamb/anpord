@@ -65,6 +65,7 @@ export const runToState = (
       entry.cell.harness,
       entry.cell.model,
       entry.cell.provider,
+      entry.profile?.name ?? "",
     ].join(" ");
 
     if (!taskKeys.includes(taskKey)) {
@@ -73,6 +74,14 @@ export const runToState = (
         harness: entry.cell.harness as HarnessName,
         harnessVersion: entry.cell.harnessVersion,
         model: entry.cell.model,
+        profile:
+          entry.profile == null
+            ? null
+            : {
+                internalId: entry.profile.internalId,
+                name: entry.profile.name,
+                version: entry.profile.version,
+              },
         provider: entry.cell.provider as ProviderName,
       });
     }
@@ -83,6 +92,7 @@ export const runToState = (
       entry.cell.harness,
       entry.cell.model,
       entry.cell.provider,
+      entry.profile?.name ?? "",
     ].join(" ");
 
     const caseName = entry.caseName;

@@ -1,14 +1,18 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import type { EvalPrepare } from "@anpord/schema/domain/evals";
-import { Effect, Redacted } from "effect";
+import { Effect, Option, Redacted } from "effect";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import { type PrepareFailed, SourceUnavailable } from "../domain/errors";
+import type { RequestedProfile } from "../domain/harness-profile";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
+import { profileEnv } from "./profile-env";
+import { materialiseProfile } from "./profile-files";
+import { runProfileInstall } from "./profile-install";
 import type { Suspender } from "./resumable-command";
 import { runPrepare } from "./workspace-setup";
 
@@ -21,7 +25,9 @@ export interface PrepareWorkspace {
   readonly harness: HarnessName;
   readonly harnessVersion: string;
   readonly home: string;
+  readonly model: string;
   readonly prepare: EvalPrepare | null;
+  readonly profile: RequestedProfile | null;
   readonly sandbox: SandboxHandle;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
@@ -111,6 +117,20 @@ const materialise = (input: PrepareWorkspace) => {
   );
 };
 
+const materialiseStage = (
+  input: PrepareWorkspace,
+  stage: "home" | "workspace"
+) =>
+  input.profile == null
+    ? Effect.void
+    : materialiseProfile({
+        home: input.home,
+        profile: input.profile,
+        sandbox: input.sandbox,
+        stage,
+        workspace: input.workspace,
+      });
+
 export const prepareWorkspace = (
   input: PrepareWorkspace
 ): Effect.Effect<
@@ -122,9 +142,12 @@ export const prepareWorkspace = (
   Suspender
 > =>
   Effect.gen(function* () {
-    const env = yield* input.driver.prepare({
+    const profile = Option.fromNullable(input.profile);
+
+    const driverEnv = yield* input.driver.prepare({
       credential: input.credential,
       home: input.home,
+      profile,
       sandbox: input.sandbox,
       version: input.harnessVersion,
     });
@@ -133,7 +156,23 @@ export const prepareWorkspace = (
       timeoutMs: 60_000,
     });
 
+    /* Home files after the driver's own prepare, so a profile overrides the
+       auth and config a driver wrote; workspace files after the clone, because
+       git refuses to clone into a directory that already holds something. */
+    yield* materialiseStage(input, "home");
     yield* materialise(input);
+    yield* materialiseStage(input, "workspace");
+
+    /* After both stages, so an install command can read the files the profile
+       shipped, and before the case prepare, which may depend on what it put
+       on the PATH. */
+    if (input.profile != null) {
+      yield* runProfileInstall({
+        profile: input.profile,
+        sandbox: input.sandbox,
+        workspace: input.workspace,
+      });
+    }
 
     const prepared =
       input.prepare === null
@@ -145,5 +184,15 @@ export const prepareWorkspace = (
             workspace: input.workspace,
           });
 
-    return { env, prepared };
+    return {
+      env: profileEnv({
+        credential: input.credential,
+        driverEnv,
+        home: input.home,
+        model: input.model,
+        profile: input.profile,
+        workspace: input.workspace,
+      }),
+      prepared,
+    };
   }).pipe(Effect.withSpan("Workspace.prepare"));

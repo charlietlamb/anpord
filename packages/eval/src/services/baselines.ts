@@ -29,6 +29,7 @@ export interface CellReading {
   readonly cellKey: string;
   readonly distribution: Distribution;
   readonly harnessVersion: string;
+  readonly profileVersion: string | null;
 }
 
 export interface BaselinesShape {
@@ -112,6 +113,7 @@ export const BaselinesLive = Layer.effect(
                 byTrialCell.get(row.baseline.cellInternalId) ?? []
               ),
               harnessVersion: row.harnessVersion,
+              profileVersion: row.profileVersion,
             },
           ])
         );
@@ -128,7 +130,9 @@ export const BaselinesLive = Layer.effect(
                 : Option.some({
                     ...compare(baseline.distribution, cell.distribution),
                     baselineHarnessVersion: baseline.harnessVersion,
+                    baselineProfileVersion: baseline.profileVersion,
                     candidateHarnessVersion: cell.harnessVersion,
+                    candidateProfileVersion: cell.profileVersion,
                   }),
           };
         });
@@ -179,6 +183,7 @@ export const BaselinesLive = Layer.effect(
             cellKey: cell.cell.cellKey,
             distribution: cell.distribution,
             harnessVersion: cell.cell.harnessVersion,
+            profileVersion: cell.profile?.version ?? null,
           }))
         );
       }).pipe(Effect.withSpan("Baselines.compareRun"));

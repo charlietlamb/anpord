@@ -18,6 +18,7 @@ interface InsertCell {
   readonly harnessCredentialRevision?: number;
   readonly harnessVersion: string;
   readonly model: string;
+  readonly profileInternalId: string | null;
   readonly prompt: string;
   readonly provider: ProviderName;
   readonly runInternalId: string;
@@ -156,6 +157,7 @@ export const RunRepositoryLive = Layer.effect(
                 harnessVersion: cell.harnessVersion,
                 internalId,
                 model: cell.model,
+                profileInternalId: cell.profileInternalId,
                 prompt: cell.prompt,
                 provider: cell.provider,
                 runInternalId: cell.runInternalId,
@@ -189,6 +191,7 @@ export const RunRepositoryLive = Layer.effect(
                 harnessVersion: input.harnessVersion,
                 internalId,
                 model: input.model,
+                profileInternalId: input.profileInternalId,
                 prompt: input.prompt,
                 provider: input.provider,
                 runInternalId: input.runInternalId,

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { Option } from "effect";
 import { codexCommand } from "../../../src/adapters/harness/codex";
 import type { RunHarness } from "../../../src/ports/harness";
 
@@ -8,8 +9,10 @@ const request = (overrides: Partial<RunHarness> = {}): RunHarness =>
     harness: "codex",
     harnessVersion: "0.144.4",
     model: "gpt-5.6-sol",
+    profile: Option.none(),
     prompt: "add a footer",
     sandbox: {} as RunHarness["sandbox"],
+    systemPromptPath: Option.none(),
     workspace: "/tmp/anpord-task",
     ...overrides,
   }) as RunHarness;

@@ -1,5 +1,10 @@
 import { Schema } from "effect";
 import { CredentialBindings, CredentialSelections } from "./credentials";
+import {
+  HarnessProfile,
+  PROFILE_HARNESS_RULE,
+  profileFitsHarness,
+} from "./harness-profile";
 
 /* Sandboxes an eval can run in. There is no local option: it ran a shell on
    whatever machine the server was on, which is fine on a laptop and an open
@@ -18,6 +23,8 @@ export type EvalProvider = typeof EvalProvider.Type;
 
 export const EVAL_PROVIDERS = EvalProvider.literals;
 
+/* `command` is a customer's own process run inside the sandbox from a
+   profile's install and run steps, emitting the event schema on stdout. */
 export const EvalHarness = Schema.Literal(
   "codex",
   "opencode",
@@ -26,7 +33,8 @@ export const EvalHarness = Schema.Literal(
   "claude",
   "gemini",
   "qwen",
-  "cursor"
+  "cursor",
+  "command"
 );
 export type EvalHarness = typeof EvalHarness.Type;
 
@@ -147,14 +155,27 @@ export const EvalCase = Schema.Struct({
 });
 export type EvalCase = typeof EvalCase.Type;
 
+export const EvalTaskProfile = Schema.Struct({
+  name: Schema.String,
+  /* The content hash, compared across readings the way the harness version
+     is: an edited profile is a new version on the same cell. */
+  version: Schema.String,
+}).annotations({
+  description: "The profile a cell's harness ran under, by name and version.",
+  identifier: "EvalTaskProfile",
+});
+export type EvalTaskProfile = typeof EvalTaskProfile.Type;
+
 export const EvalTask = Schema.Struct({
   harness: EvalHarness,
 
   harnessVersion: Schema.String,
   model: Schema.String,
+  profile: Schema.optional(Schema.NullOr(EvalTaskProfile)),
   provider: EvalProvider,
 }).annotations({
-  description: "The harness, installed version, model, and sandbox for a cell.",
+  description:
+    "The harness, installed version, profile, model, and sandbox for a cell.",
   identifier: "EvalTask",
 });
 export type EvalTask = typeof EvalTask.Type;
@@ -163,8 +184,11 @@ export const EvalTaskRequest = Schema.Struct({
   credentials: Schema.optional(CredentialBindings),
   harness: EvalHarness,
   model: Schema.String,
+  profile: Schema.optional(HarnessProfile),
   provider: EvalProvider,
-});
+}).pipe(
+  Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
+);
 export type EvalTaskRequest = typeof EvalTaskRequest.Type;
 
 export const EvalName = Schema.String.pipe(
@@ -372,8 +396,12 @@ export const EvalComparison = Schema.Struct({
      named so a verdict can say what changed. */
   baselineHarnessVersion: Schema.String,
   baselinePassRate: Schema.Number,
+  /* Null where the cell ran without a profile; the profile name is in the
+     cell key, so only its version can move between two readings. */
+  baselineProfileVersion: Schema.NullOr(Schema.String),
   candidateHarnessVersion: Schema.String,
   candidatePassRate: Schema.Number,
+  candidateProfileVersion: Schema.NullOr(Schema.String),
   delta: Schema.Number,
 
   determinismLost: Schema.Boolean,
@@ -504,11 +532,12 @@ export const EvalCellHistoryEntry = Schema.Struct({
      harness, model and provider are in the cell key, the version is not. */
   harnessVersion: Schema.String,
   internalId: Schema.String,
+  profileVersion: Schema.NullOr(Schema.String),
   runId: Schema.String,
-  /* Every reading of a cell holds the same case, setup, harness, model and
-     provider, so the trials and the harness version are the only things that
-     differ between them, and they belong in one table rather than one page
-     each. */
+  /* Every reading of a cell holds the same case, setup, harness, model,
+     provider and profile name, so the trials and the two versions are the
+     only things that differ between them, and they belong in one table
+     rather than one page each. */
   trials: Schema.Array(EvalTrial),
 }).annotations({
   description: "A previous scored result for the same cell identity.",

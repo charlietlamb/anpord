@@ -9,6 +9,9 @@ const config = Config.all({
     Config.orElse(() => Config.string("EVAL_HARNESS_VERSION")),
     Config.withDefault("0.149.0")
   ),
+  /* The command harness installs nothing of ours, so there is no version to
+     pin: what moves between two readings is the profile's version. */
+  command: Config.succeed("profile"),
   cursor: Config.string("EVAL_CURSOR_VERSION").pipe(
     Config.withDefault("2026.08.11-e8db854")
   ),
