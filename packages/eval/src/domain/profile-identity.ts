@@ -5,8 +5,10 @@ import type { ProfileContent } from "./harness-profile";
    computes does not move with the machine's language. */
 const byCodeUnit = (left: string, right: string) => (left < right ? -1 : 1);
 
-const sortedEntries = (record: Readonly<Record<string, string>> | null) =>
-  record === null
+const sortedEntries = (
+  record: Readonly<Record<string, string>> | null | undefined
+) =>
+  record == null
     ? null
     : Object.entries(record).toSorted(([left], [right]) =>
         byCodeUnit(left, right)
@@ -26,9 +28,12 @@ export const profileVersionOf = (profile: ProfileContent): string =>
       JSON.stringify({
         env: sortedEntries(profile.env),
         files: sortedEntries(profile.files),
-        install: profile.install,
-        run: profile.run,
-        systemPrompt: profile.systemPrompt,
+        /* Coalesced so a field the wire omitted and a field explicitly null
+           hash alike: the same profile must not get two versions for the way
+           its absence was spelled. */
+        install: profile.install ?? null,
+        run: profile.run ?? null,
+        systemPrompt: profile.systemPrompt ?? null,
       })
     )
     .digest("hex")
