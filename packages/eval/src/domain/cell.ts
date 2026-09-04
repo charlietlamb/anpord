@@ -35,7 +35,7 @@ export const cellKeyOf = (parts: CellParts): CellKey =>
           parts.harness,
           parts.model,
           parts.provider,
-          ...(parts.profile === null ? [] : [parts.profile]),
+          ...(parts.profile == null ? [] : [parts.profile]),
         ].join("\n")
       )
       .digest("hex")

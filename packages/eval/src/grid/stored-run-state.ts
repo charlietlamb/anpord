@@ -75,7 +75,7 @@ export const runToState = (
         harnessVersion: entry.cell.harnessVersion,
         model: entry.cell.model,
         profile:
-          entry.profile === null
+          entry.profile == null
             ? null
             : {
                 internalId: entry.profile.internalId,

@@ -28,7 +28,7 @@ export const caseFrom = (subject: CellTask): GridCase => ({
 /** The profile a stored cell ran under, read back whole rather than by name:
  * a resumed run writes the same files, and only the row holds them. */
 export const profileFrom = (subject: CellTask): RequestedProfile | null =>
-  subject.profile === null
+  subject.profile == null
     ? null
     : {
         env: subject.profile.env,

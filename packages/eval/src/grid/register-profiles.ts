@@ -18,7 +18,9 @@ export const makeRegisterProfiles = Effect.gen(function* () {
     Effect.forEach(
       input.tasks,
       (task) =>
-        task.profile === null
+        /* Nullish rather than null: a caller that rebuilds a task from its
+           names omits the key, and an absent profile is no profile. */
+        task.profile == null
           ? Effect.succeed(null)
           : profiles
               .insertIfAbsent({

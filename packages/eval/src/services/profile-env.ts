@@ -32,7 +32,7 @@ const credentialValues = (
 export const profileEnv = (
   input: ProfileEnv
 ): Readonly<Record<string, string>> =>
-  input.profile === null
+  input.profile == null
     ? input.driverEnv
     : {
         ...input.driverEnv,

@@ -6,13 +6,10 @@ import type {
   PrepareHarness,
   RunHarness,
 } from "../../ports/harness";
-import { runCommandForOutcome } from "../sandbox/run-command";
 import { commandCommand, recorderPath } from "./command-line";
 import { COMMAND_RECORDER } from "./command-recorder";
 import { commandSession } from "./command-session";
-import { shellQuote } from "./process";
 import { writeHarnessFile } from "./support";
-
 
 const missing = (reason: string) =>
   new HarnessUnavailable({ harness: "command", reason });
