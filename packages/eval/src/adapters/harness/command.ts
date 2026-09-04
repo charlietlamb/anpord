@@ -13,7 +13,6 @@ import { commandSession } from "./command-session";
 import { shellQuote } from "./process";
 import { writeHarnessFile } from "./support";
 
-const INSTALL_TIMEOUT_MS = 600_000;
 
 const missing = (reason: string) =>
   new HarnessUnavailable({ harness: "command", reason });
@@ -23,26 +22,6 @@ const profileOf = (profile: Option.Option<RequestedProfile>, reason: string) =>
     onNone: () => Effect.fail(missing(reason)),
     onSome: Effect.succeed,
   });
-
-/* Through `bash -lc` so the login profile is read: an install that puts a
-   binary on the PATH expects the shell that finds it later to have seen the
-   same rc files. */
-const install = (input: PrepareHarness, script: string) =>
-  runCommandForOutcome(input.sandbox, `bash -lc ${shellQuote(script)}`, {
-    timeoutMs: INSTALL_TIMEOUT_MS,
-  }).pipe(
-    Effect.mapError((cause) => missing(cause.reason)),
-    Effect.flatMap((outcome) =>
-      outcome.exitCode === 0
-        ? Effect.void
-        : Effect.fail(
-            missing(
-              outcome.stderr.trim() ||
-                `Profile install exited with status ${outcome.exitCode}`
-            )
-          )
-    )
-  );
 
 /**
  * A customer's own process, run inside the sandbox.
@@ -68,17 +47,10 @@ export const CommandDriver: HarnessDriverShape = {
         COMMAND_RECORDER
       );
 
-      const script = input.profile.pipe(
-        Option.flatMap((profile) => Option.fromNullable(profile.install))
-      );
-
-      if (Option.isSome(script)) {
-        yield* install(input, script.value);
-      }
-
-      /* Nothing of ours is on the PATH and nothing of ours holds a key: the
-         profile's env and the env credential's values reach the sandbox
-         through the materialiser. */
+      /* The install runs in the workspace step, after the profile's files
+         exist for it to read. Nothing of ours is on the PATH and nothing of
+         ours holds a key: the profile's env and the env credential's values
+         reach the sandbox through the materialiser. */
       return {};
     }).pipe(Effect.withSpan("Command.prepare")),
   run: (request: RunHarness) =>

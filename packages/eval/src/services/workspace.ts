@@ -13,6 +13,7 @@ import { cloneFailureReason } from "./clone-failure";
 import { profileEnv } from "./profile-env";
 import { materialiseProfile } from "./profile-files";
 import type { Suspender } from "./resumable-command";
+import { runProfileInstall } from "./profile-install";
 import { runPrepare } from "./workspace-setup";
 
 export interface PrepareWorkspace {
@@ -161,6 +162,17 @@ export const prepareWorkspace = (
     yield* materialiseStage(input, "home");
     yield* materialise(input);
     yield* materialiseStage(input, "workspace");
+
+    /* After both stages, so an install command can read the files the profile
+       shipped, and before the case prepare, which may depend on what it put
+       on the PATH. */
+    if (input.profile !== null) {
+      yield* runProfileInstall({
+        profile: input.profile,
+        sandbox: input.sandbox,
+        workspace: input.workspace,
+      });
+    }
 
     const prepared =
       input.prepare === null

@@ -23,10 +23,7 @@ import type {
   SourceUnavailable,
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
-import {
-  type RequestedProfile,
-  SYSTEM_PROMPT_PATH,
-} from "../domain/harness-profile";
+import type { RequestedProfile } from "../domain/harness-profile";
 import {
   commandsIn,
   failedCommandsIn,

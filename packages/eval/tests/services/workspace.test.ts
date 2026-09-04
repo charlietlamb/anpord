@@ -131,6 +131,27 @@ describe("a profile materialised around the workspace", () => {
 
     expect(steps.some((step) => step.startsWith("write"))).toBe(false);
   });
+
+  test("installs after both stages, on a base that is not the command harness", async () => {
+    const { sandbox, steps } = recording();
+
+    await Effect.runPromise(
+      prepare(sandbox, {
+        profile: { ...profile, install: "npx skills add sample/skills" },
+      })
+    );
+
+    const install = steps.findIndex((step) =>
+      step.includes("npx skills add sample/skills")
+    );
+
+    expect(install).toBeGreaterThan(
+      indexOf(steps, `write ${WORKSPACE}/AGENTS.md`)
+    );
+    expect(install).toBeGreaterThan(
+      indexOf(steps, `write ${HOME}/.config/opencode/opencode.json`)
+    );
+  });
 });
 
 describe("the environment a profile cell runs under", () => {

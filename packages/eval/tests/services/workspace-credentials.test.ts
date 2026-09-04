@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Effect, Option, Redacted, Stream } from "effect";
+import { Effect, Redacted, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
 import { SuspenderSleeping } from "../../src/services/resumable-command";
 import { prepareWorkspace } from "../../src/services/workspace";

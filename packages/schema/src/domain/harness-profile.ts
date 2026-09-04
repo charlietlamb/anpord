@@ -69,7 +69,7 @@ export const HarnessProfile = Schema.Struct({
   systemPrompt: Schema.optional(Schema.String),
 }).annotations({
   description:
-    "Configuration layered on a harness: files written under the sandbox home and workspace, a system prompt, environment, and for the command harness the install and run commands.",
+    "Configuration layered on a harness: files written under the sandbox home and workspace, a system prompt, environment, an install command run before the harness, and for the command harness the run command.",
   identifier: "HarnessProfile",
 });
 export type HarnessProfile = typeof HarnessProfile.Type;
@@ -82,7 +82,7 @@ export const profileFitsHarness = (task: {
 }): boolean =>
   task.harness === "command"
     ? task.profile?.run !== undefined
-    : task.profile?.install === undefined && task.profile?.run === undefined;
+    : task.profile?.run === undefined;
 
 export const PROFILE_HARNESS_RULE =
-  "The command harness needs a profile with a run command; other harnesses take no install or run.";
+  "The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.";

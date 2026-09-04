@@ -55,7 +55,7 @@ describe("the command harness command line", () => {
 });
 
 describe("the command harness driver", () => {
-  it("writes the recorder and runs the profile's install", async () => {
+  it("writes the recorder, leaving the install to the workspace step", async () => {
     const { sandbox, commands, writes } = fake({});
 
     const env = await Effect.runPromise(
@@ -78,7 +78,9 @@ describe("the command harness driver", () => {
     expect(writes.map(({ path }) => path)).toEqual([
       `${HOME}/.anpord/trace.sh`,
     ]);
-    expect(commands).toEqual(["bash -lc 'pip install sample'"]);
+    /* The install runs once, in the workspace step, where the profile's own
+       files already exist for it to read. */
+    expect(commands).toEqual([]);
   });
 
   it("refuses a task whose profile has no run command", async () => {

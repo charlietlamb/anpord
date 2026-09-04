@@ -135,10 +135,7 @@ const fittingHarness = (base: EvalHarness, profile: HarnessProfile) => {
     return new CommandProfileNeedsRun({ name: profile.name });
   }
 
-  return new ProfileStepNotSupported({
-    base,
-    step: profile.install === undefined ? "run" : "install",
-  });
+  return new ProfileStepNotSupported({ base, step: "run" });
 };
 
 /** The task a definition's `{ base, profile }` harness compiles to, with the

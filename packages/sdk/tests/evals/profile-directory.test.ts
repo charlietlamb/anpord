@@ -139,6 +139,19 @@ describe("reading a profile directory", () => {
     );
   });
 
+  test("takes an install command on a harness that is not command", async () => {
+    const dir = await copyOfFixture();
+
+    await writeFile(
+      join(dir, "profile.json"),
+      JSON.stringify({ install: "npx skills add sample/skills" })
+    );
+
+    const outcome = await compiled(dir);
+
+    expect(outcome._tag).toBe("Right");
+  });
+
   test("accepts the command harness with a run command", async () => {
     const dir = await copyOfFixture();
 
