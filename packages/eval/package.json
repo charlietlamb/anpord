@@ -47,7 +47,6 @@
     "./credentials/errors": "./src/credentials/errors.ts",
     "./credentials/integrations": "./src/credentials/integrations.ts",
     "./credentials/tasks": "./src/credentials/tasks.ts",
-    "./domain/case-file": "./src/domain/case-file.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/eval-costs": "./src/domain/eval-costs.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",

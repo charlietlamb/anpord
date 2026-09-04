@@ -58,7 +58,6 @@
       "entry": [
         "src/adapters/sandbox/local.ts",
         "src/adapters/scorers/journal-assertions.ts",
-        "src/domain/case-file.ts",
         "src/layer.ts",
         "src/sdk/define.ts",
         "src/sdk/evidence.ts",
