@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Config, Effect, type Stream } from "effect";
+import { Config, Effect, Option, type Stream } from "effect";
 import { execStream } from "../../src/adapters/sandbox/exec-stream";
 import { SandboxUnavailable } from "../../src/domain/errors";
 import type {
@@ -11,7 +11,8 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../src/ports/sandbox";
-import { notResumableFixture } from "../fixtures/not-resumable";
+import { localCache } from "./local-cache";
+import { localDetached } from "./local-detached";
 
 /* A real shell on the machine running the tests, used to prove the sandbox
    streaming contract without holding a cloud credential. It is not a provider
@@ -111,14 +112,20 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
           catch: unavailable,
           try: () => rm(handle.id, { force: true, recursive: true }),
         }).pipe(Effect.asVoid),
-      open: (_request: OpenSandbox) =>
+      open: (request: OpenSandbox) =>
         Effect.gen(function* () {
           const root = yield* Effect.tryPromise({
             catch: unavailable,
             try: () => mkdtemp(join(tmpdir(), "anpord-local-")),
           });
 
+          const store = join(root, ".anpord-cache");
+
           return {
+            cache:
+              request.cache === undefined
+                ? Option.none()
+                : Option.some(localCache(store)),
             exec: (command, options) =>
               execute(
                 options?.cwd ?? root,
@@ -131,18 +138,19 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
             id: root,
             home: root,
             provider: STANDS_IN_FOR,
-            streaming: true,
-            writeFile: (path, content) =>
+            resumable: Option.some(localDetached(root, path, STANDS_IN_FOR)),
+            writeFile: (target, content) =>
               Effect.tryPromise({
                 catch: unavailable,
                 try: async () => {
-                  const target = path.startsWith("/") ? path : join(root, path);
+                  const file = target.startsWith("/")
+                    ? target
+                    : join(root, target);
 
-                  await mkdir(join(target, ".."), { recursive: true });
-                  await writeFile(target, content, "utf8");
+                  await mkdir(join(file, ".."), { recursive: true });
+                  await writeFile(file, content, "utf8");
                 },
               }),
-            ...notResumableFixture,
           } satisfies SandboxHandle;
         }),
       provider: STANDS_IN_FOR,

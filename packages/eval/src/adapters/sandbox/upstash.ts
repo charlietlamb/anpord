@@ -7,8 +7,8 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { noCache, noResumableCommands } from "./capabilities";
 import { execStream } from "./exec-stream";
-import { noCache, notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/boxuser";
@@ -33,6 +33,7 @@ const commandFor = (
 const unavailable = (reason: unknown) => sandboxUnavailable("upstash", reason);
 
 const handleFor = (box: UpstashBox, workspace: string): SandboxHandle => ({
+  cache: noCache,
   exec: (command, options) =>
     execStream((sink) =>
       Effect.acquireUseRelease(
@@ -76,9 +77,7 @@ const handleFor = (box: UpstashBox, workspace: string): SandboxHandle => ({
   home: HOME,
   id: box.id,
   provider: "upstash",
-  ...noCache,
-  ...notResumable("upstash"),
-  streaming: true,
+  resumable: noResumableCommands,
   writeFile: (path, content) =>
     Effect.tryPromise({
       catch: unavailable,

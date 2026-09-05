@@ -5,8 +5,8 @@ import { ANSWER_PATH, TRANSCRIPT_PATH } from "../../../src/domain/answer-file";
 import type { HarnessEvent } from "../../../src/domain/harness-event";
 import type { ExecOptions, SandboxHandle } from "../../../src/ports/sandbox";
 import { Scorer } from "../../../src/ports/scorer";
+import { declinesEverything } from "../../fixtures/declines-everything";
 import { exit } from "../../fixtures/exec-chunk";
-import { notResumableFixture } from "../../fixtures/not-resumable";
 
 const HOME = "/home/agent";
 
@@ -30,8 +30,7 @@ const recording = () => {
     home: HOME,
     id: "sbx-1",
     provider: "daytona",
-    ...notResumableFixture,
-    streaming: true,
+    ...declinesEverything,
     writeFile: (path: string, content: string) =>
       Effect.sync(() => {
         steps.push(`write ${path}`);

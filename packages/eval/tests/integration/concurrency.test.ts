@@ -30,7 +30,7 @@ import { RunQuery } from "../../src/repositories/run-query";
 import { AgentTrialLive } from "../../src/services/agent-trial";
 import { BaselinesLive } from "../../src/services/baselines";
 import { HarnessVersionsLive } from "../../src/services/harness-versions";
-import { SuspenderSleeping } from "../../src/services/resumable-command";
+import { SuspenderSleeping } from "../../src/services/suspender";
 import { hasDatabase, hasDaytona } from "../fixtures/credentials";
 
 /**

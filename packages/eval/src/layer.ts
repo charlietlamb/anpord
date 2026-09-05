@@ -29,15 +29,12 @@ import { HarnessVersionsLive } from "./services/harness-versions";
 import { JournalRetentionScheduleLive } from "./services/journal-retention";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
-import {
-  type Suspender,
-  SuspenderSleeping,
-} from "./services/resumable-command";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import {
   SandboxReaperLive,
   SandboxReaperScheduleLive,
 } from "./services/sandbox-reaper";
+import { type Suspender, SuspenderSleeping } from "./services/suspender";
 import { WorkbenchesLive } from "./services/workbench";
 
 export const EvalRepositoriesLive = Layer.mergeAll(

@@ -11,7 +11,7 @@ import {
 } from "../../../src/adapters/harness/process";
 import { EMPTY_TALLY, tallied } from "../../../src/domain/usage-tally";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
-import { notResumableFixture } from "../../fixtures/not-resumable";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const AT = 1_700_000_000_000;
 
@@ -31,8 +31,7 @@ const sandbox = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   home: "/home/test",
   id: "sandbox",
   provider: "e2b",
-  ...notResumableFixture,
-  streaming: true,
+  ...declinesEverything,
   writeFile: () => Effect.void,
 });
 

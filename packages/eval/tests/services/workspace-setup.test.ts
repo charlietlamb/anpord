@@ -1,16 +1,30 @@
 import { describe, expect, test } from "bun:test";
-import { Effect, Exit, Stream } from "effect";
+import { Effect, Exit, Option, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
-import { SuspenderSleeping } from "../../src/services/resumable-command";
+import { SuspenderSleeping } from "../../src/services/suspender";
 import { runPrepare } from "../../src/services/workspace-setup";
+import { declinesEverything } from "../fixtures/declines-everything";
 
+/* Both paths a prepare can take, run against the same assertions: a provider
+   that resumes is polled, and one that does not is streamed. Five of six
+   providers are the second kind, which is the case that used to fail
+   outright. */
 const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
   const commands: string[] = [];
   const environments: (Readonly<Record<string, string>> | undefined)[] = [];
 
-  const sandbox = {
-    exec: (command: string) => {
-      commands.push(command);
+  const record = (
+    command: string,
+    options?: { readonly env?: Readonly<Record<string, string>> }
+  ) => {
+    commands.push(command);
+    environments.push(options?.env);
+  };
+
+  const streamed: SandboxHandle = {
+    ...declinesEverything,
+    exec: (command, options) => {
+      record(command, options);
 
       return Stream.fromIterable<ExecChunk>([
         {
@@ -29,22 +43,29 @@ const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
     home: "/home/agent",
     id: "test",
     provider: "daytona",
-    progress: () => Effect.succeed({ exitCode, stderr, stdout }),
-    start: (
-      command: string,
-      options?: { readonly env?: Readonly<Record<string, string>> }
-    ) =>
-      Effect.sync(() => {
-        commands.push(command);
-        environments.push(options?.env);
-
-        return { id: "cmd", session: "session" };
-      }),
-    streaming: false,
     writeFile: () => Effect.void,
-  } as unknown as SandboxHandle;
+  };
 
-  return { commands, environments, sandbox };
+  const polled: SandboxHandle = {
+    ...streamed,
+    /* The cleanup of the setup script still goes through exec, and must not be
+       recorded twice, so this one only streams what the poller does not. */
+    exec: (command, options) =>
+      Stream.fromIterable<ExecChunk>([
+        { at: 0, exitCode: 0, stream: "exit" },
+      ]).pipe(Stream.tap(() => Effect.sync(() => record(command, options)))),
+    resumable: Option.some({
+      progress: () => Effect.succeed({ exitCode, stderr, stdout }),
+      start: (command, options) =>
+        Effect.sync(() => {
+          record(command, options);
+
+          return { id: "cmd", session: "session" };
+        }),
+    }),
+  };
+
+  return { commands, environments, polled, sandbox: streamed };
 };
 
 const run = (sandbox: SandboxHandle) =>
@@ -99,7 +120,7 @@ describe("running a workspace setup", () => {
         prepare: { name: "prepareRepoImage", source: "export {}" },
         sandbox: {
           ...sandbox,
-          cache: {
+          cache: Option.some({
             has: () => Effect.succeed(true),
             restore: (key: string) =>
               Effect.sync(() => {
@@ -107,7 +128,7 @@ describe("running a workspace setup", () => {
                 return true;
               }),
             save: () => Effect.void,
-          },
+          }),
         },
         workspace: "/tmp/ws",
       }).pipe(Effect.provide(SuspenderSleeping))
@@ -126,11 +147,11 @@ describe("running a workspace setup", () => {
         prepare: { name: "prepareRepoImage", source: "export {}" },
         sandbox: {
           ...sandbox,
-          cache: {
+          cache: Option.some({
             has: () => Effect.succeed(false),
             restore: () => Effect.succeed(false),
             save: () => Effect.void,
-          },
+          }),
         },
         workspace: "/tmp/ws",
       }).pipe(Effect.provide(SuspenderSleeping))
@@ -151,14 +172,14 @@ describe("running a workspace setup", () => {
           prepare: { name: "prepareRepoImage", source: "export {}" },
           sandbox: {
             ...sandbox,
-            cache: {
+            cache: Option.some({
               has: () => Effect.succeed(false),
               restore: () => Effect.succeed(false),
               save: (key: string) =>
                 Effect.sync(() => {
                   saved.push(key);
                 }),
-            },
+            }),
           },
           workspace: "/tmp/ws",
         }).pipe(Effect.provide(SuspenderSleeping))
@@ -174,5 +195,53 @@ describe("running a workspace setup", () => {
     await Effect.runPromise(run(sandbox));
 
     expect(environments[0]).toBeUndefined();
+  });
+});
+
+/* The defect this file now guards: a prepare went through the resumable path
+   unconditionally, so on the five providers that cannot resume a command it
+   failed before running at all. */
+describe("a prepare on a provider that cannot resume a command", () => {
+  test("runs, and returns what it reported", async () => {
+    const { sandbox } = sandboxSaying(
+      0,
+      'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n'
+    );
+
+    expect(await Effect.runPromise(run(sandbox))).toEqual({
+      rendererPort: 4173,
+    });
+  });
+
+  test("returns the same value a provider that resumes would", async () => {
+    const output = 'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n';
+    const { polled } = sandboxSaying(0, output);
+    const { sandbox } = sandboxSaying(0, output);
+
+    expect(await Effect.runPromise(run(sandbox))).toEqual(
+      await Effect.runPromise(run(polled))
+    );
+  });
+
+  test("still tells the prepare a restore happened", async () => {
+    const { environments, sandbox } = sandboxSaying(0, "");
+
+    await Effect.runPromise(
+      runPrepare({
+        caseCache: { key: "deps-abc", path: "vendor" },
+        prepare: { name: "prepareRepoImage", source: "export {}" },
+        sandbox: {
+          ...sandbox,
+          cache: Option.some({
+            has: () => Effect.succeed(true),
+            restore: () => Effect.succeed(true),
+            save: () => Effect.void,
+          }),
+        },
+        workspace: "/tmp/ws",
+      }).pipe(Effect.provide(SuspenderSleeping))
+    );
+
+    expect(environments[0]?.ANPORD_CACHE_RESTORED).toBe("1");
   });
 });

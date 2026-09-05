@@ -37,7 +37,7 @@ import { SandboxProvider } from "../ports/sandbox";
 import { Scorer } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
 import { systemPromptPath } from "./profile-files";
-import { Suspender } from "./resumable-command";
+import { Suspender } from "./suspender";
 import { progressSink } from "./trial-progress-sink";
 import { prepareWorkspace } from "./workspace";
 

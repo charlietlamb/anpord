@@ -1,19 +1,42 @@
 import { describe, expect, test } from "bun:test";
-import { Duration, Effect, Layer, TestClock, TestContext } from "effect";
+import {
+  Duration,
+  Effect,
+  Layer,
+  Option,
+  TestClock,
+  TestContext,
+} from "effect";
 import { SandboxUnavailable } from "../../src/domain/errors";
-import type { SandboxHandle } from "../../src/ports/sandbox";
-import { runResumable, Suspender } from "../../src/services/resumable-command";
+import type {
+  CommandProgress,
+  ResumableCommands,
+  SandboxHandle,
+} from "../../src/ports/sandbox";
+import { runLongCommand } from "../../src/services/long-command";
+import { Suspender } from "../../src/services/suspender";
+import { declinesEverything } from "../fixtures/declines-everything";
 
 const Immediate = Layer.succeed(
   Suspender,
   Suspender.of({ waitFor: () => Effect.void })
 );
 
+const resuming = (resumable: Partial<ResumableCommands>): SandboxHandle =>
+  ({
+    ...declinesEverything,
+    id: "sandbox-1",
+    resumable: Option.some({
+      progress: () => Effect.succeed({} as CommandProgress),
+      start: () => Effect.succeed({ id: "cmd", session: "session" }),
+      ...resumable,
+    }),
+  }) as unknown as SandboxHandle;
+
 const sandboxFinishingAfter = (checks: number) => {
   const seen = { checks: 0, starts: 0 };
 
-  const sandbox = {
-    id: "sandbox-1",
+  const sandbox = resuming({
     progress: () =>
       Effect.sync(() => {
         seen.checks += 1;
@@ -28,14 +51,14 @@ const sandboxFinishingAfter = (checks: number) => {
 
         return { id: "cmd", session: "session" };
       }),
-  } as unknown as SandboxHandle;
+  });
 
   return { sandbox, seen };
 };
 
 const run = (sandbox: SandboxHandle) =>
   Effect.runPromise(
-    runResumable(sandbox, "npm ci").pipe(Effect.provide(Immediate))
+    runLongCommand(sandbox, "npm ci").pipe(Effect.provide(Immediate))
   );
 
 describe("running a command that outlives a suspension", () => {
@@ -70,12 +93,10 @@ describe("running a command that outlives a suspension", () => {
 /* Never exits, which is the case the loop had no answer for: a wedged install
    waiting on input polls until something else stops the sandbox. */
 const sandboxThatNeverFinishes = () =>
-  ({
-    id: "sandbox-1",
+  resuming({
     progress: () =>
       Effect.succeed({ exitCode: null, stderr: "", stdout: "working\n" }),
-    start: () => Effect.succeed({ id: "cmd", session: "session" }),
-  }) as unknown as SandboxHandle;
+  });
 
 /* Advances the clock by what it was asked to wait, so the deadline is reached
    by polling rather than by the test sleeping. */
@@ -84,30 +105,23 @@ const Advancing = Layer.succeed(
   Suspender.of({ waitFor: (duration) => TestClock.adjust(duration) })
 );
 
+const givingUp = () =>
+  Effect.runPromise(
+    runLongCommand(sandboxThatNeverFinishes(), "npm ci", {
+      timeoutMs: Duration.toMillis(Duration.minutes(2)),
+    }).pipe(Effect.provide(Advancing), Effect.provide(TestContext.TestContext))
+  );
+
 describe("a command that never exits", () => {
   test("gives up at its deadline rather than polling forever", async () => {
-    const outcome = await Effect.runPromise(
-      runResumable(sandboxThatNeverFinishes(), "npm ci", {
-        timeoutMs: Duration.toMillis(Duration.minutes(2)),
-      }).pipe(
-        Effect.provide(Advancing),
-        Effect.provide(TestContext.TestContext)
-      )
-    );
+    const outcome = await givingUp();
 
     expect(outcome.exitCode).toBe(1);
     expect(outcome.stderr).toContain("timed out");
   });
 
   test("keeps what it printed before the deadline", async () => {
-    const outcome = await Effect.runPromise(
-      runResumable(sandboxThatNeverFinishes(), "npm ci", {
-        timeoutMs: Duration.toMillis(Duration.minutes(2)),
-      }).pipe(
-        Effect.provide(Advancing),
-        Effect.provide(TestContext.TestContext)
-      )
-    );
+    const outcome = await givingUp();
 
     expect(outcome.stdout).toContain("working");
   });
@@ -116,17 +130,15 @@ describe("a command that never exits", () => {
 /* Every poll returns the whole log from byte zero, so what a long install
    printed accumulates rather than streams past. */
 const sandboxPrinting = (output: string) =>
-  ({
-    id: "sandbox-1",
+  resuming({
     progress: () =>
       Effect.succeed({ exitCode: 0, stderr: output, stdout: output }),
-    start: () => Effect.succeed({ id: "cmd", session: "session" }),
-  }) as unknown as SandboxHandle;
+  });
 
-describe("what a resumable command reports", () => {
+describe("what a long command reports", () => {
   test("keeps the tail rather than the whole log", async () => {
     const outcome = await Effect.runPromise(
-      runResumable(sandboxPrinting("x".repeat(50_000)), "npm ci").pipe(
+      runLongCommand(sandboxPrinting("x".repeat(50_000)), "npm ci").pipe(
         Effect.provide(Immediate)
       )
     );
@@ -137,7 +149,7 @@ describe("what a resumable command reports", () => {
 
   test("keeps the end, which is where a command says what went wrong", async () => {
     const outcome = await Effect.runPromise(
-      runResumable(
+      runLongCommand(
         sandboxPrinting(`${"x".repeat(50_000)}ENOENT missing lockfile`),
         "npm ci"
       ).pipe(Effect.provide(Immediate))
@@ -152,8 +164,7 @@ describe("what a resumable command reports", () => {
 const sandboxFailingChecks = (failures: number) => {
   const seen = { checks: 0 };
 
-  const sandbox = {
-    id: "sandbox-1",
+  const sandbox = resuming({
     progress: () =>
       Effect.suspend(() => {
         seen.checks += 1;
@@ -164,8 +175,7 @@ const sandboxFailingChecks = (failures: number) => {
             )
           : Effect.succeed({ exitCode: 0, stderr: "", stdout: "done\n" });
       }),
-    start: () => Effect.succeed({ id: "cmd", session: "session" }),
-  } as unknown as SandboxHandle;
+  });
 
   return { sandbox, seen };
 };
@@ -180,7 +190,7 @@ describe("a check that fails on the way", () => {
     const { sandbox, seen } = sandboxFailingChecks(2);
 
     const outcome = await Effect.runPromise(
-      quickly(runResumable(sandbox, "npm ci"))
+      quickly(runLongCommand(sandbox, "npm ci"))
     );
 
     expect(outcome.exitCode).toBe(0);
@@ -191,9 +201,9 @@ describe("a check that fails on the way", () => {
     const { sandbox } = sandboxFailingChecks(99);
 
     const outcome = await Effect.runPromise(
-      quickly(runResumable(sandbox, "npm ci")).pipe(Effect.either)
+      quickly(runLongCommand(sandbox, "npm ci")).pipe(Effect.either)
     );
 
-    expect((outcome as { _tag: string })._tag).toBe("Left");
+    expect(outcome._tag).toBe("Left");
   });
 });

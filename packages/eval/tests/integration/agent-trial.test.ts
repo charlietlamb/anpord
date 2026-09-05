@@ -7,7 +7,7 @@ import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import type { RequestedProfile } from "../../src/domain/harness-profile";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
-import { SuspenderSleeping } from "../../src/services/resumable-command";
+import { SuspenderSleeping } from "../../src/services/suspender";
 import {
   AGENT_PROMPT,
   brokenSource,

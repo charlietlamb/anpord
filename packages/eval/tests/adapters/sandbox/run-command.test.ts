@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { Effect, Stream } from "effect";
 import { runCommand } from "../../../src/adapters/sandbox/run-command";
 import type { SandboxHandle } from "../../../src/ports/sandbox";
-import { notResumableFixture } from "../../fixtures/not-resumable";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const sandbox = (exitCode: number) =>
   ({
@@ -10,8 +10,7 @@ const sandbox = (exitCode: number) =>
     home: "/tmp",
     id: "sandbox",
     provider: "daytona",
-    ...notResumableFixture,
-    streaming: true,
+    ...declinesEverything,
     writeFile: () => Effect.void,
   }) satisfies SandboxHandle;
 

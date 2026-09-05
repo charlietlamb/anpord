@@ -1,9 +1,9 @@
 import type { EvalPrepare } from "@anpord/schema/domain/evals";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";
 import { PrepareFailed } from "../domain/errors";
 import type { SandboxHandle } from "../ports/sandbox";
-import { runResumable } from "./resumable-command";
+import { runLongCommand } from "./long-command";
 
 const MARKER = "ANPORD_PREPARE_RESULT=";
 const SETUP_TIMEOUT_MS = 1_800_000;
@@ -73,17 +73,25 @@ export const runPrepare = (input: {
       const kept = input.caseCache;
 
       const restored =
-        cache === null || kept === undefined
+        Option.isNone(cache) || kept === undefined
           ? false
-          : yield* cache.restore(kept.key, `${input.workspace}/${kept.path}`);
+          : yield* cache.value.restore(
+              kept.key,
+              `${input.workspace}/${kept.path}`
+            );
 
       if (kept !== undefined) {
         yield* Effect.logInfo(
           restored ? "restored what an earlier run kept" : "nothing kept yet"
-        ).pipe(Effect.annotateLogs({ key: kept.key, mounted: cache !== null }));
+        ).pipe(
+          Effect.annotateLogs({
+            key: kept.key,
+            mounted: Option.isSome(cache),
+          })
+        );
       }
 
-      const outcome = yield* runResumable(
+      const outcome = yield* runLongCommand(
         input.sandbox,
         `node ${quoted(path)}`,
         {
@@ -116,19 +124,21 @@ export const runPrepare = (input: {
 
          Only after it succeeded, because caching what a failed install left
          behind is how a broken cache outlives the run that made it. */
-      if (cache !== null && kept !== undefined && !restored) {
+      if (Option.isSome(cache) && kept !== undefined && !restored) {
         /* Warned rather than ignored: a save that fails costs the next run its
            cache and nothing else, so it must not fail this one -- but silence
            made a cache that never filled indistinguishable from one nobody
            asked for. */
-        yield* cache.save(kept.key, `${input.workspace}/${kept.path}`).pipe(
-          Effect.tapError((cause) =>
-            Effect.logWarning("could not keep what the prepare built").pipe(
-              Effect.annotateLogs({ key: kept.key, reason: cause.reason })
-            )
-          ),
-          Effect.ignore
-        );
+        yield* cache.value
+          .save(kept.key, `${input.workspace}/${kept.path}`)
+          .pipe(
+            Effect.tapError((cause) =>
+              Effect.logWarning("could not keep what the prepare built").pipe(
+                Effect.annotateLogs({ key: kept.key, reason: cause.reason })
+              )
+            ),
+            Effect.ignore
+          );
       }
 
       return reported;

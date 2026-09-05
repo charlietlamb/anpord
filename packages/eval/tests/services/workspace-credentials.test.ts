@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Redacted, Stream } from "effect";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
-import { SuspenderSleeping } from "../../src/services/resumable-command";
+import { SuspenderSleeping } from "../../src/services/suspender";
 import { prepareWorkspace } from "../../src/services/workspace";
-import { notResumableFixture } from "../fixtures/not-resumable";
+import { declinesEverything } from "../fixtures/declines-everything";
 
 const HOME = "/home/agent";
 const CREDENTIALS = `${HOME}/.anpord-git-credentials`;
@@ -27,8 +27,7 @@ const recording = (exitCode: number) => {
     home: HOME,
     id: "test",
     provider: "daytona",
-    ...notResumableFixture,
-    streaming: false,
+    ...declinesEverything,
     writeFile: (path) =>
       Effect.sync(() => {
         steps.push(`write ${path}`);

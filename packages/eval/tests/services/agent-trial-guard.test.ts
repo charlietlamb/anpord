@@ -11,8 +11,8 @@ import {
   AgentTrialLive,
   type AgentTrialRequest,
 } from "../../src/services/agent-trial";
-import { SuspenderSleeping } from "../../src/services/resumable-command";
-import { notResumableFixture } from "../fixtures/not-resumable";
+import { SuspenderSleeping } from "../../src/services/suspender";
+import { declinesEverything } from "../fixtures/declines-everything";
 
 const passed: TrialOutcome = {
   commandCount: 1,
@@ -26,7 +26,7 @@ const passed: TrialOutcome = {
 };
 
 const obliging = (id: string): SandboxHandle => ({
-  ...notResumableFixture,
+  ...declinesEverything,
   exec: () =>
     Stream.fromIterable<ExecChunk>([
       { at: 0, data: "", stream: "stdout" },
@@ -35,7 +35,6 @@ const obliging = (id: string): SandboxHandle => ({
   home: "/home/agent",
   id,
   provider: "daytona",
-  streaming: true,
   writeFile: () => Effect.void,
 });
 

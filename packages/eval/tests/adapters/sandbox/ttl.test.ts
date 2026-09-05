@@ -7,7 +7,7 @@ import {
   SandboxProvider,
 } from "../../../src/ports/sandbox";
 import { SandboxProviderLive } from "../../../src/services/sandbox-provider";
-import { notResumableFixture } from "../../fixtures/not-resumable";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const recordingAdapters = (seen: Ref.Ref<OpenSandbox[]>) =>
   Layer.succeed(
@@ -24,8 +24,7 @@ const recordingAdapters = (seen: Ref.Ref<OpenSandbox[]>) =>
                 home: "/tmp",
                 id: "sbx-1",
                 provider,
-                ...notResumableFixture,
-                streaming: true,
+                ...declinesEverything,
                 writeFile: () => Effect.void,
               } as SandboxHandle)
             ),
