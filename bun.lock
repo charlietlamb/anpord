@@ -267,7 +267,7 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "bin": {
         "anpord": "./dist/cli.mjs",
       },
@@ -278,7 +278,7 @@
         "@modelcontextprotocol/server": "^2.0.0",
         "effect": "^3.21.2",
         "esbuild": "^0.25.12",
-        "smol-toml": "catalog:",
+        "smol-toml": "^1.8.0",
         "yaml": "^2.9.0",
       },
       "devDependencies": {
