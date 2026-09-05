@@ -24,12 +24,6 @@ export const piCommand = (request: RunHarness) =>
   ].join(" ");
 
 export const PiDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "pi",
   prepare: (input) =>
     Effect.gen(function* () {

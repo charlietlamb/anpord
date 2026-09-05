@@ -38,14 +38,6 @@ export const EvalHarness = Schema.Literal(
 );
 export type EvalHarness = typeof EvalHarness.Type;
 
-export const HarnessCapabilities = Schema.Struct({
-  commands: Schema.Boolean,
-  fileChanges: Schema.Boolean,
-  streaming: Schema.Boolean,
-  usage: Schema.Boolean,
-});
-export type HarnessCapabilities = typeof HarnessCapabilities.Type;
-
 export const EvalTrialStatus = Schema.Literal(
   "queued",
   "running",

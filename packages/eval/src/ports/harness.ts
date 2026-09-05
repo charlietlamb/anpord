@@ -1,5 +1,4 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import type { HarnessCapabilities } from "@anpord/schema/domain/evals";
 import {
   Context,
   type Effect,
@@ -44,7 +43,6 @@ export interface HarnessSessionShape {
 }
 
 export interface HarnessDriverShape {
-  readonly capabilities: HarnessCapabilities;
   readonly harness: HarnessName;
   readonly prepare: (
     input: PrepareHarness

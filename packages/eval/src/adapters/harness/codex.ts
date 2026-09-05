@@ -92,12 +92,6 @@ const authOf = (credential: ResolvedCredential) => {
 };
 
 export const CodexDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "codex",
   prepare: (input) =>
     Effect.gen(function* () {

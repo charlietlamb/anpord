@@ -56,12 +56,6 @@ export const claudeCommand = (request: RunHarness) =>
   ].join(" ");
 
 export const ClaudeDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "claude",
   prepare: (input) =>
     Effect.gen(function* () {

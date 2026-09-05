@@ -51,12 +51,6 @@ export const cursorCommand = (request: RunHarness) =>
   ].join(" ");
 
 export const CursorDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: false,
-  },
   harness: "cursor",
   prepare: (input) =>
     Effect.gen(function* () {

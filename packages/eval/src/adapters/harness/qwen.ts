@@ -25,12 +25,6 @@ export const qwenCommand = (request: RunHarness) =>
   ].join(" ");
 
 export const QwenDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "qwen",
   prepare: (input) =>
     Effect.gen(function* () {

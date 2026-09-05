@@ -67,12 +67,6 @@ const oneCommandHarness = Layer.succeed(
   Harnesses.of({
     resolve: (harness) =>
       Effect.succeed({
-        capabilities: {
-          commands: true,
-          fileChanges: false,
-          streaming: true,
-          usage: false,
-        },
         harness,
         prepare: () => Effect.succeed({}),
         run: (request) =>

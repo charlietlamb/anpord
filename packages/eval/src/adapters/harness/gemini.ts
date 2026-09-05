@@ -23,12 +23,6 @@ export const geminiCommand = (request: RunHarness) =>
   ].join(" ");
 
 export const GeminiDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "gemini",
   prepare: (input) =>
     Effect.gen(function* () {

@@ -64,12 +64,6 @@ const authOf = (credential: ResolvedCredential) => {
 };
 
 export const OpencodeDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "opencode",
   prepare: (input) =>
     Effect.gen(function* () {

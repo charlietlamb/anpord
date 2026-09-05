@@ -54,12 +54,6 @@ export const fxCommand = (request: RunHarness) =>
   ].join(" ");
 
 export const FxDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: false,
-    fileChanges: false,
-    streaming: false,
-    usage: false,
-  },
   harness: "fx",
   prepare: (input) =>
     Effect.gen(function* () {

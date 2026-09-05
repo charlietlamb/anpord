@@ -28,12 +28,6 @@ const profileOf = (profile: Option.Option<RequestedProfile>, reason: string) =>
  * fact about that agent rather than about the harness.
  */
 export const CommandDriver: HarnessDriverShape = {
-  capabilities: {
-    commands: true,
-    fileChanges: true,
-    streaming: true,
-    usage: true,
-  },
   harness: "command",
   prepare: (input: PrepareHarness) =>
     Effect.gen(function* () {
