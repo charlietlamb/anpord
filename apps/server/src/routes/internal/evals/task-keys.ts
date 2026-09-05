@@ -1,6 +1,6 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 
-interface KeyedTask {
+export interface KeyedTask {
   readonly harness: string;
   readonly model: string;
   readonly profile?: HarnessProfile | undefined;

@@ -53,6 +53,7 @@ const layer = (
     Layer.succeed(
       RunQuery,
       RunQuery.of({
+        countRunning: () => Effect.succeed(0),
         countRuns: () => Effect.succeed(0),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
