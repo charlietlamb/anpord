@@ -6,8 +6,8 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { noCache, noResumableCommands } from "./capabilities";
 import { execStream } from "./exec-stream";
-import { noCache, notResumable } from "./not-resumable";
 
 const APP = "anpord-evals";
 const HOME = "/root";
@@ -32,6 +32,7 @@ const drain = async (
 };
 
 const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
+  cache: noCache,
   exec: (command, options) =>
     execStream((sink) =>
       Effect.tryPromise({
@@ -54,9 +55,7 @@ const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
   home: HOME,
   id: sandbox.sandboxId,
   provider: "modal",
-  ...noCache,
-  ...notResumable("modal"),
-  streaming: true,
+  resumable: noResumableCommands,
   writeFile: (path, content) =>
     Effect.tryPromise({
       catch: unavailable,

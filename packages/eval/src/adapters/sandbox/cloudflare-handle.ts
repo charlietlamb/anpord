@@ -1,6 +1,7 @@
 import { dirname } from "node:path";
 import { Effect } from "effect";
 import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
+import { noCache, noResumableCommands } from "./capabilities";
 import {
   type BridgeConfiguration,
   ensure,
@@ -8,7 +9,6 @@ import {
 } from "./cloudflare-bridge";
 import { type ExecSink, readEvents } from "./cloudflare-events";
 import { execStream } from "./exec-stream";
-import { noCache, notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/sandbox";
@@ -55,6 +55,7 @@ export const handleFor = (
   };
 
   return {
+    cache: noCache,
     exec: (command, options) =>
       execStream((sink) =>
         Effect.tryPromise({
@@ -65,9 +66,7 @@ export const handleFor = (
     home: HOME,
     id,
     provider: "cloudflare",
-    ...noCache,
-    ...notResumable("cloudflare"),
-    streaming: true,
+    resumable: noResumableCommands,
     writeFile: (path, content) =>
       Effect.tryPromise({
         catch: unavailable,

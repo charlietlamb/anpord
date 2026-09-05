@@ -3,7 +3,7 @@ import { CommandDriver } from "../../../src/adapters/harness/command";
 import type { RequestedProfile } from "../../../src/domain/harness-profile";
 import type { RunHarness } from "../../../src/ports/harness";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
-import { notResumableFixture } from "../../fixtures/not-resumable";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 export const HOME = "/home/agent";
 export const WORKSPACE = "/tmp/work space";
@@ -59,8 +59,7 @@ export const fake = (script: Script) => {
     home: HOME,
     id: "sandbox",
     provider: "e2b",
-    ...notResumableFixture,
-    streaming: true,
+    ...declinesEverything,
     writeFile: (path, content) =>
       Effect.sync(() => {
         writes.push({ content, path });

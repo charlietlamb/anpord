@@ -8,8 +8,8 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { shellQuote } from "../harness/process";
+import { noCache, noResumableCommands } from "./capabilities";
 import { execStream } from "./exec-stream";
-import { noCache, notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/user";
@@ -40,6 +40,7 @@ const asCommandResult = (rejection: unknown): CommandResult | null => {
 const unavailable = (reason: unknown) => sandboxUnavailable("e2b", reason);
 
 const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
+  cache: noCache,
   exec: (command, options?: ExecOptions) =>
     execStream((sink) =>
       Effect.tryPromise({
@@ -67,9 +68,7 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
   id: sandbox.sandboxId,
   home: HOME,
   provider: "e2b",
-  ...noCache,
-  ...notResumable("e2b"),
-  streaming: true,
+  resumable: noResumableCommands,
   writeFile: (path, content) =>
     Effect.tryPromise({
       catch: unavailable,

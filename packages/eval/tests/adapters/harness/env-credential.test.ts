@@ -7,7 +7,7 @@ import { OpencodeDriver } from "../../../src/adapters/harness/opencode";
 import { PiDriver } from "../../../src/adapters/harness/pi";
 import type { HarnessDriverShape } from "../../../src/ports/harness";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
-import { notResumableFixture } from "../../fixtures/not-resumable";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const HOME = "/home/agent";
 
@@ -24,8 +24,7 @@ const recording = () => {
     home: HOME,
     id: "test",
     provider: "daytona",
-    ...notResumableFixture,
-    streaming: false,
+    ...declinesEverything,
     writeFile: (path) =>
       Effect.sync(() => {
         steps.push(`write ${path}`);

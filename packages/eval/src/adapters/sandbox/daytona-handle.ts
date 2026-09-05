@@ -1,6 +1,7 @@
 import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
-import { Effect, Random } from "effect";
+import { Effect, Option, Random } from "effect";
 import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
+import { noCache } from "./capabilities";
 import { CACHE_SECONDS, cacheOn } from "./daytona-cache";
 import { sessionCommands } from "./daytona-session";
 import { cdInto, DEFAULT_TIMEOUT_MS, HOME, unavailable } from "./daytona-shell";
@@ -42,13 +43,15 @@ export const handleFor = (
       }))
     );
 
+  const { exec, resumable } = sessionCommands(sandbox, workspace);
+
   return {
-    ...sessionCommands(sandbox, workspace),
-    cache: cached ? cacheOn(shellOut) : null,
+    cache: cached ? Option.some(cacheOn(shellOut)) : noCache,
+    exec,
     id: sandbox.id,
     home: HOME,
     provider: "daytona",
-    streaming: true,
+    resumable: Option.some(resumable),
     /* The marker is drawn per write, because a content line equal to a fixed
        one would end the heredoc and truncate the file at that line. */
     writeFile: (path, content) =>

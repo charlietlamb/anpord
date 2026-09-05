@@ -2,6 +2,7 @@ import type { CredentialValues } from "@anpord/schema/domain/credentials";
 import {
   Context,
   type Effect,
+  type Option,
   type Redacted,
   type Scope,
   type Stream,
@@ -30,7 +31,7 @@ export interface OpenSandbox {
   readonly workspace: string;
 }
 
-export interface StartedCommand {
+interface StartedCommand {
   readonly id: string;
   readonly session: string;
 }
@@ -68,24 +69,42 @@ export interface SandboxCache {
   ) => Effect.Effect<void, SandboxUnavailable>;
 }
 
+/**
+ * Starting a command that outlives the call which asked for it.
+ *
+ * Offered as a pair, because either alone is useless: a start nobody can poll
+ * leaves a command running that nothing will ever collect.
+ */
+export interface ResumableCommands {
+  readonly progress: (
+    started: StartedCommand
+  ) => Effect.Effect<CommandProgress, SandboxUnavailable>;
+  readonly start: (
+    command: string,
+    options?: ExecOptions
+  ) => Effect.Effect<StartedCommand, SandboxUnavailable>;
+}
+
+/**
+ * A running sandbox, and what it can do beyond running one command.
+ *
+ * Capabilities are `Option`: a provider declares one by supplying the thing
+ * itself and declines it by supplying nothing. So a provider cannot claim a
+ * capability it does not have, and a caller cannot reach for one without
+ * first asking whether it is there.
+ */
 export interface SandboxHandle {
-  /** Null when the provider has nowhere to keep one, or none was asked for. */
-  readonly cache: SandboxCache | null;
+  /** None when the provider has nowhere to keep one, or none was asked for. */
+  readonly cache: Option.Option<SandboxCache>;
   readonly exec: (
     command: string,
     options?: ExecOptions
   ) => Stream.Stream<ExecChunk, SandboxUnavailable>;
   readonly home: string;
   readonly id: string;
-  readonly progress: (
-    started: StartedCommand
-  ) => Effect.Effect<CommandProgress, SandboxUnavailable>;
   readonly provider: ProviderName;
-  readonly start: (
-    command: string,
-    options?: ExecOptions
-  ) => Effect.Effect<StartedCommand, SandboxUnavailable>;
-  readonly streaming: boolean;
+  /** None when a command dies with the call that started it. */
+  readonly resumable: Option.Option<ResumableCommands>;
   readonly writeFile: (
     path: string,
     content: string

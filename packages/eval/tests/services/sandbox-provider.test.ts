@@ -3,7 +3,7 @@ import { Effect, Layer, Redacted, Ref, Stream } from "effect";
 import type { SandboxHandle } from "../../src/ports/sandbox";
 import { SandboxAdapters, SandboxProvider } from "../../src/ports/sandbox";
 import { SandboxProviderLive } from "../../src/services/sandbox-provider";
-import { notResumableFixture } from "../fixtures/not-resumable";
+import { declinesEverything } from "../fixtures/declines-everything";
 
 interface Live {
   readonly destroyed: number;
@@ -38,8 +38,7 @@ const scriptedAdapters = (live: Ref.Ref<Live>) =>
                   home: "/tmp",
                   id: `sbx-${state.opened}`,
                   provider,
-                  ...notResumableFixture,
-                  streaming: true,
+                  ...declinesEverything,
                   writeFile: () => Effect.void,
                 })
               )

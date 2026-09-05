@@ -1,25 +1,11 @@
-import { Clock, Context, Duration, Effect, Layer, Ref, Schedule } from "effect";
+import { Clock, Duration, Effect, Ref, Schedule } from "effect";
 import { type CommandOutcome, lastOf } from "../adapters/sandbox/run-command";
-import type { SandboxHandle } from "../ports/sandbox";
-
-export interface SuspenderShape {
-  readonly waitFor: (duration: Duration.Duration) => Effect.Effect<void>;
-}
-
-export class Suspender extends Context.Tag("@anpord/eval/Suspender")<
-  Suspender,
-  SuspenderShape
->() {}
-
-export const SuspenderSleeping = Layer.succeed(
-  Suspender,
-  Suspender.of({ waitFor: (duration) => Effect.sleep(duration) })
-);
+import type { ExecOptions, ResumableCommands } from "../ports/sandbox";
+import type { SuspenderShape } from "./suspender";
 
 const FIRST_CHECK_MS = 5000;
 const SLOWEST_CHECK_MS = 30_000;
 const WIDENING = 1.5;
-const DEFAULT_TIMEOUT_MS = 120_000;
 const WATCHED_TAIL = 400;
 
 /* A check that fails is not a command that failed: the command runs in the
@@ -29,22 +15,26 @@ const CHECK_RETRY = Schedule.exponential("200 millis").pipe(
   Schedule.compose(Schedule.recurs(3))
 );
 
-export const runResumable = (
-  sandbox: SandboxHandle,
-  command: string,
-  options?: {
-    readonly cwd?: string;
-    readonly env?: Readonly<Record<string, string>>;
-    readonly timeoutMs?: number;
-    /** Called with what a command has printed since the last check, when it
-     * printed anything. A command that runs for half an hour says nothing at
-     * all otherwise. */
-    readonly watch?: (text: string) => Effect.Effect<void>;
-  }
-) =>
+export interface PolledCommand {
+  readonly command: string;
+  readonly options: ExecOptions;
+  readonly resumable: ResumableCommands;
+  readonly suspender: SuspenderShape;
+  readonly timeoutMs: number;
+  readonly watch?: (text: string) => Effect.Effect<void>;
+}
+
+/**
+ * A command started detached, then polled until it exits or the deadline
+ * passes.
+ *
+ * The deadline is held here rather than handed to the provider, because the
+ * point of starting a command detached is that no call is left waiting on it:
+ * there is nothing for a provider-side timeout to interrupt.
+ */
+export const pollUntilDone = (input: PolledCommand) =>
   Effect.gen(function* () {
-    const suspender = yield* Suspender;
-    const started = yield* sandbox.start(command, options);
+    const started = yield* input.resumable.start(input.command, input.options);
 
     const gap = yield* Ref.make(FIRST_CHECK_MS);
     const reported = yield* Ref.make(0);
@@ -55,23 +45,19 @@ export const runResumable = (
     const report = (progress: { readonly stdout: string }) =>
       Ref.getAndSet(reported, progress.stdout.length).pipe(
         Effect.flatMap((seen) =>
-          progress.stdout.length > seen && options?.watch !== undefined
-            ? options.watch(
+          progress.stdout.length > seen && input.watch !== undefined
+            ? input.watch(
                 progress.stdout.slice(seen).slice(-WATCHED_TAIL).trim()
               )
             : Effect.void
         )
       );
 
-    const check = sandbox.progress(started).pipe(Effect.retry(CHECK_RETRY));
+    const check = input.resumable
+      .progress(started)
+      .pipe(Effect.retry(CHECK_RETRY));
 
-    /* Held here rather than handed to the provider, because the point of
-       starting a command detached is that no call is left waiting on it: there
-       is nothing for a provider-side timeout to interrupt. Without a deadline
-       of its own the loop ends only when the command does. */
-    const giveUpAt =
-      (yield* Clock.currentTimeMillis) +
-      (options?.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+    const giveUpAt = (yield* Clock.currentTimeMillis) + input.timeoutMs;
 
     const settled = yield* Effect.iterate(
       { progress: yield* check, timedOut: false },
@@ -82,7 +68,7 @@ export const runResumable = (
               Math.min(Math.round(current * WIDENING), SLOWEST_CHECK_MS)
             );
 
-            yield* suspender.waitFor(Duration.millis(millis));
+            yield* input.suspender.waitFor(Duration.millis(millis));
 
             const progress = yield* check;
 
@@ -108,7 +94,7 @@ export const runResumable = (
       ? ({
           exitCode: 1,
           stderr: lastOf(
-            `${settled.progress.stderr}\ntimed out after ${options?.timeoutMs ?? DEFAULT_TIMEOUT_MS}ms`
+            `${settled.progress.stderr}\ntimed out after ${input.timeoutMs}ms`
           ),
           stdout: lastOf(settled.progress.stdout),
         } satisfies CommandOutcome)
@@ -117,8 +103,4 @@ export const runResumable = (
           stderr: lastOf(settled.progress.stderr),
           stdout: lastOf(settled.progress.stdout),
         } satisfies CommandOutcome);
-  }).pipe(
-    Effect.withSpan("Sandbox.runResumable", {
-      attributes: { sandboxId: sandbox.id },
-    })
-  );
+  });

@@ -1,6 +1,6 @@
 import { wait } from "@trigger.dev/sdk";
 import { Duration, Effect, Layer } from "effect";
-import { Suspender } from "../../services/resumable-command";
+import { Suspender } from "../../services/suspender";
 
 /* Below this a suspension costs more than it saves: checkpointing and resuming
    is not free, and a wait this short is cheaper simply held. */

@@ -13,7 +13,7 @@ import { cloneFailureReason } from "./clone-failure";
 import { profileEnv } from "./profile-env";
 import { materialiseProfile, WRITE_CONCURRENCY } from "./profile-files";
 import { runProfileInstall } from "./profile-install";
-import type { Suspender } from "./resumable-command";
+import type { Suspender } from "./suspender";
 import { runPrepare } from "./workspace-setup";
 
 export interface PrepareWorkspace {

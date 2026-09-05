@@ -4,7 +4,7 @@ import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
-import { SuspenderSleeping } from "../../src/services/resumable-command";
+import { SuspenderSleeping } from "../../src/services/suspender";
 import { codexCredential, hasCodex, hasDaytona } from "../fixtures/credentials";
 
 const READY = hasDaytona && hasCodex;
