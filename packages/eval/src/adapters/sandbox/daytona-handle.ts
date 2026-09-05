@@ -1,15 +1,11 @@
 import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
-import { Effect, Option, Random } from "effect";
+import { Effect, Option } from "effect";
 import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
 import { noCache } from "./capabilities";
 import { CACHE_SECONDS, cacheOn } from "./daytona-cache";
 import { sessionCommands } from "./daytona-session";
 import { cdInto, DEFAULT_TIMEOUT_MS, HOME, unavailable } from "./daytona-shell";
 import { quoted } from "./env-file";
-
-const heredocMarker = Random.nextInt.pipe(
-  Effect.map((value) => `ANPORD_EOF_${Math.abs(value).toString(36)}`)
-);
 
 export const handleFor = (
   sandbox: DaytonaSandbox,
@@ -51,13 +47,17 @@ export const handleFor = (
     home: HOME,
     provider: "daytona",
     resumable: Option.some(resumable),
-    /* The marker is drawn per write, because a content line equal to a fixed
-       one would end the heredoc and truncate the file at that line. */
+    /* Uploaded rather than shelled through a heredoc, which wrote a file a
+       byte longer than it was given (the newline before the closing marker)
+       and truncated any content that happened to look like the marker. */
     writeFile: (path, content) =>
-      Effect.flatMap(heredocMarker, (marker) =>
-        execute(
-          `mkdir -p "$(dirname ${quoted(path)})" && cat > ${quoted(path)} <<'${marker}'\n${content}\n${marker}`
+      execute(`mkdir -p "$(dirname ${quoted(path)})"`).pipe(
+        Effect.flatMap(() =>
+          Effect.tryPromise({
+            catch: unavailable,
+            try: () => sandbox.fs.uploadFile(Buffer.from(content), path),
+          })
         )
-      ).pipe(Effect.asVoid),
+      ),
   };
 };
