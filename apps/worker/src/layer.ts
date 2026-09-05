@@ -14,6 +14,7 @@ import {
   EvalHarnessVersionsLive,
   EvalSandboxLive,
   evalGridWith,
+  SandboxReaperSweepLive,
 } from "@anpord/eval/layer";
 import { TrialRunnerInProcess } from "@anpord/eval/ports/trial-runner";
 import { IdGeneratorLive } from "@anpord/ids/layer";
@@ -43,10 +44,7 @@ const CodebaseLayer = Layer.mergeAll(
    handing it on again would be a task dispatching to itself. The suspender is
    Trigger's, because a wait held here is a wait billed here, and a prepare
    waits for most of its life. */
-export const WorkerLayer = evalGridWith(
-  TrialRunnerInProcess,
-  SuspenderTrigger
-).pipe(
+const GridLayer = evalGridWith(TrialRunnerInProcess, SuspenderTrigger).pipe(
   Layer.provide(EvalSandboxLive),
   /* Merged rather than provided: the task resolves the credentials a stored
      run recorded, so it yields the resolver itself. */
@@ -57,6 +55,21 @@ export const WorkerLayer = evalGridWith(
   Layer.provide(CodebaseLayer),
   Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
 );
+
+/* Swept here as well as in the api, because this is the process that opens
+   every sandbox: a worker that dies mid-trial leaves a VM its own scope
+   finalizer never got to, and the reaper is what finishes that. Both sweeps
+   are idempotent -- the reaper clears the id it destroys, so whichever
+   process reaches a row first is the one that reaps it. */
+const ReaperLayer = SandboxReaperSweepLive.pipe(
+  Layer.provide(EvalSandboxLive),
+  Layer.provide(
+    CredentialResolverLive.pipe(Layer.provide(CredentialDependencies))
+  ),
+  Layer.provide(DatabaseLayer)
+);
+
+export const WorkerLayer = Layer.mergeAll(GridLayer, ReaperLayer);
 
 /* The same stack, handing runs to Trigger rather than running them here. What
    the api composes, and what a smoke test needs in order to exercise the

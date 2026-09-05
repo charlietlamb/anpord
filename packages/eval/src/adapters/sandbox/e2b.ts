@@ -8,6 +8,7 @@ import type {
   SandboxHandle,
 } from "../../ports/sandbox";
 import { shellQuote } from "../harness/process";
+import { settingUp } from "./after-create";
 import { noCache, noResumableCommands } from "./capabilities";
 import { execStream } from "./exec-stream";
 
@@ -105,16 +106,19 @@ export const makeConfiguredE2BAdapter = (
               timeoutMs: request.autoStopMinutes * 60_000,
             }),
         }).pipe(
-          Effect.tap((sandbox) =>
-            Effect.tryPromise({
-              catch: unavailable,
-              try: () =>
-                sandbox.commands.run(
-                  `mkdir -p ${shellQuote(request.workspace)}`
-                ),
-            })
-          ),
-          Effect.map((sandbox) => handleFor(sandbox, request.workspace))
+          Effect.flatMap((sandbox) =>
+            settingUp(
+              Effect.tryPromise({
+                catch: unavailable,
+                try: () =>
+                  sandbox.commands.run(
+                    `mkdir -p ${shellQuote(request.workspace)}`
+                  ),
+              }),
+              handleFor(sandbox, request.workspace),
+              () => sandbox.kill()
+            )
+          )
         ),
       provider: "e2b",
     })

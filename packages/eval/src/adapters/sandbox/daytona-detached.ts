@@ -1,7 +1,8 @@
 import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
 import { Effect } from "effect";
 import type { ResumableCommands } from "../../ports/sandbox";
-import { cdInto, sessionName, unavailable } from "./daytona-shell";
+import { cdInto, sessionName, unavailable, uploadedEnv } from "./daytona-shell";
+import { envFileFor, sourcing } from "./env-file";
 
 const logsOf = (logs: unknown, stream: "stdout" | "stderr") => {
   const value = (logs as Record<string, unknown> | null)?.[stream];
@@ -52,11 +53,17 @@ export const detachedCommands = (
         try: () => sandbox.process.createSession(id),
       });
 
+      const envFile = yield* envFileFor(options?.env);
+      yield* uploadedEnv(sandbox, envFile);
+
       const started = yield* Effect.tryPromise({
         catch: unavailable,
         try: () =>
           sandbox.process.executeSessionCommand(id, {
-            command: cdInto(options?.cwd ?? workspace, command, options?.env),
+            command: cdInto(
+              options?.cwd ?? workspace,
+              sourcing(envFile, command)
+            ),
             runAsync: true,
           }),
       });

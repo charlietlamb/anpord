@@ -44,6 +44,11 @@ export const AbandonedWorkLive = Layer.effect(
          `void` rather than `failed`, because nothing decided these. The
          database agrees -- a status of `failed` requires a verdict to agree
          with, and an abandoned trial has none. */
+      /* The sandbox id is deliberately kept. This sweep decides the trial is
+         over; it does not destroy anything, and the VM it opened is still
+         running. Clearing the id here is what made those VMs unreapable, so
+         the id stays until the reaper has actually destroyed the sandbox and
+         clears it itself. */
       voidTrialsRunningSince: (cutoff) =>
         counted("reconcile.trials", () =>
           db

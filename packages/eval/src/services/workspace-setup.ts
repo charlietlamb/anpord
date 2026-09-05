@@ -99,10 +99,19 @@ export const runPrepare = (input: {
           env: restored ? { ANPORD_CACHE_RESTORED: "1" } : undefined,
           timeoutMs: SETUP_TIMEOUT_MS,
           /* A prepare can run for half an hour and said nothing until it
-             finished, which is how a failing install read as a hang. */
+             finished, which is how a failing install read as a hang.
+
+             The output is the customer's own script talking, so it is
+             annotated as untrusted rather than trimmed: a script that echoes
+             its environment puts a key here, and no length limit would redact
+             that. A log sink is what must treat this as third-party text. */
           watch: (text) =>
             Effect.logInfo("preparing").pipe(
-              Effect.annotateLogs({ output: text, prepare: input.prepare.name })
+              Effect.annotateLogs({
+                output: text,
+                prepare: input.prepare.name,
+                untrusted: true,
+              })
             ),
         }
       );

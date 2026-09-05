@@ -62,6 +62,7 @@ const trialIds = {
   fresh: `trialint_reap_fresh_${suffix}`,
   released: `trialint_reap_released_${suffix}`,
   stale: `trialint_reap_stale_${suffix}`,
+  voided: `trialint_reap_voided_${suffix}`,
 };
 
 describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
@@ -140,9 +141,21 @@ describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
               ordinal: 3,
               passed: true,
               provider: "daytona",
-              sandboxId: "sbx-released",
+              sandboxId: null,
               startedAt: new Date(Date.now() - 2 * HOURS),
               status: "passed",
+            },
+            /* The trial the reconciler gave up on. It kept the id of a VM
+               that is still running, and the sweep that voided it destroys
+               nothing, so this is the row a reaper must still reach. */
+            {
+              cellInternalId: `cellint_reap_${suffix}`,
+              internalId: trialIds.voided,
+              ordinal: 4,
+              provider: "daytona",
+              sandboxId: "sbx-voided",
+              startedAt: new Date(Date.now() - 2 * HOURS),
+              status: "void",
             },
           ]);
         });
@@ -181,12 +194,16 @@ describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
        only this suite's own ids are asserted on. */
     expect(destroyed.map((input) => input.id)).toContain("sbx-stale");
     expect(destroyed.map((input) => input.id)).not.toContain("sbx-fresh");
-    expect(destroyed.map((input) => input.id)).not.toContain("sbx-released");
     expect(reaped.destroyed).toBeGreaterThanOrEqual(1);
 
+    /* The defect this exists to catch: the query asked for a status of
+       queued or running, so the reconciler voiding a trial hid its still
+       running VM from the only thing that would have destroyed it. */
+    expect(destroyed.map((input) => input.id)).toContain("sbx-voided");
+
     expect(byId.get(trialIds.stale)).toBeNull();
+    expect(byId.get(trialIds.voided)).toBeNull();
     expect(byId.get(trialIds.fresh)).toBe("sbx-fresh");
-    expect(byId.get(trialIds.released)).toBe("sbx-released");
   });
 
   it("finds nothing the second time", async () => {

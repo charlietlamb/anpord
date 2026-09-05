@@ -2,7 +2,8 @@ import type { Daytona } from "@daytonaio/sdk";
 import { Duration, Effect } from "effect";
 import type { SandboxUnavailable } from "../../domain/errors";
 import type { SandboxCache } from "../../ports/sandbox";
-import { quoted, unavailable } from "./daytona-shell";
+import { unavailable } from "./daytona-shell";
+import { quoted } from "./env-file";
 
 export const CACHE_PATH = "/anpord-cache";
 export const CACHE_SECONDS = 900;

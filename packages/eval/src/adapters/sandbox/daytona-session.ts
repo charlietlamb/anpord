@@ -7,7 +7,9 @@ import {
   DEFAULT_TIMEOUT_MS,
   sessionName,
   unavailable,
+  uploadedEnv,
 } from "./daytona-shell";
+import { envFileFor, sourcing } from "./env-file";
 import { execStream } from "./exec-stream";
 
 const EXIT_POLL_MS = 250;
@@ -59,14 +61,16 @@ export const sessionCommands = (
           const sessionId = yield* sessionName;
           yield* session(sessionId);
 
+          const envFile = yield* envFileFor(options?.env);
+          yield* uploadedEnv(sandbox, envFile);
+
           const started = yield* Effect.tryPromise({
             catch: unavailable,
             try: () =>
               sandbox.process.executeSessionCommand(sessionId, {
                 command: cdInto(
                   options?.cwd ?? workspace,
-                  command,
-                  options?.env
+                  sourcing(envFile, command)
                 ),
                 runAsync: true,
               }),

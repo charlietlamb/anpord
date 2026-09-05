@@ -84,6 +84,10 @@ export const TrialRecorderLive = Layer.effect(
     const db = yield* Database;
     const ids = yield* IdGenerator;
 
+    /* The sandbox id is cleared with the status. This runs from a finalizer
+       registered before the sandbox was opened, so the scope has already
+       destroyed it by the time this writes -- an id left here would send the
+       reaper after a VM that no longer exists. */
     const abandon = (input: AbandonTrial) =>
       tryStore("trial.abandon", () =>
         db
@@ -91,6 +95,7 @@ export const TrialRecorderLive = Layer.effect(
           .set({
             failure: input.failure ?? null,
             finishedAt: input.finishedAt,
+            sandboxId: null,
             status: "void",
           })
           .where(

@@ -1,4 +1,4 @@
-import { Config, Effect, Layer } from "effect";
+import { Config, Duration, Effect, Layer, Schedule } from "effect";
 import type { ProviderName } from "../domain/cell";
 import {
   type DestroySandbox,
@@ -21,6 +21,15 @@ const concurrencyConfig = Config.all({
   modal: Config.integer("EVAL_MODAL_CONCURRENCY").pipe(Config.withDefault(5)),
   vercel: Config.integer("EVAL_VERCEL_CONCURRENCY").pipe(Config.withDefault(5)),
 });
+
+/* A teardown that gives up on the first refusal leaks the VM for good: the
+   scope is closing, so nothing tries again and the id goes out of scope with
+   it. Bounded rather than open-ended, because the reaper is the backstop and
+   a release that never returns holds the permit the next trial is waiting
+   for. */
+const TEARDOWN = Schedule.exponential(Duration.seconds(1)).pipe(
+  Schedule.compose(Schedule.recurs(4))
+);
 
 export const SandboxProviderLive = Layer.effect(
   SandboxProvider,
@@ -50,7 +59,7 @@ export const SandboxProviderLive = Layer.effect(
         );
 
         return yield* Effect.acquireRelease(adapter.open(request), (handle) =>
-          Effect.orDie(adapter.destroy(handle))
+          adapter.destroy(handle).pipe(Effect.retry(TEARDOWN), Effect.orDie)
         );
       }).pipe(
         Effect.withSpan("SandboxProvider.open", {
@@ -76,7 +85,7 @@ export const SandboxProviderLive = Layer.effect(
           input.provider,
           input.credentials
         );
-        yield* adapter.destroy({ id: input.id });
+        yield* adapter.destroy({ id: input.id }).pipe(Effect.retry(TEARDOWN));
       }).pipe(
         Effect.withSpan("SandboxProvider.destroy", {
           attributes: { provider: input.provider, sandboxId: input.id },

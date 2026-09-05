@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Layer, Redacted, Ref, Stream } from "effect";
+import { SandboxUnavailable } from "../../src/domain/errors";
 import type { SandboxHandle } from "../../src/ports/sandbox";
 import { SandboxAdapters, SandboxProvider } from "../../src/ports/sandbox";
 import { SandboxProviderLive } from "../../src/services/sandbox-provider";
@@ -165,6 +166,57 @@ describe("SandboxProviderLive", () => {
       { credentials, id: "sbx-old" },
       { credentials: undefined, id: "sbx-platform" },
     ]);
+  });
+
+  /* The defect this exists to catch: a teardown that gave up on the first
+     refusal leaked the VM for good, because the scope is closing and nothing
+     tries again. A provider 5xx during teardown is ordinary. */
+  it("retries a teardown the provider refuses", async () => {
+    let attempts = 0;
+
+    const flaky = Layer.succeed(
+      SandboxAdapters,
+      SandboxAdapters.of({
+        resolve: (provider) =>
+          Effect.succeed({
+            attach: () => Effect.die("not attached here"),
+            destroy: () =>
+              Effect.suspend(() => {
+                attempts += 1;
+
+                return attempts < 3
+                  ? Effect.fail(
+                      new SandboxUnavailable({
+                        provider,
+                        reason: "the provider returned 503",
+                      })
+                    )
+                  : Effect.void;
+              }),
+            open: () =>
+              Effect.succeed({
+                exec: () => Stream.empty,
+                home: "/tmp",
+                id: "sbx-flaky",
+                provider,
+                ...declinesEverything,
+                writeFile: () => Effect.void,
+              } satisfies SandboxHandle),
+            provider,
+          }),
+      })
+    );
+
+    await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const provider = yield* SandboxProvider;
+          yield* provider.open(openSandbox);
+        })
+      ).pipe(Effect.provide(SandboxProviderLive.pipe(Layer.provide(flaky))))
+    );
+
+    expect(attempts).toBe(3);
   });
 
   /* A sandbox must be released even when the work inside the scope fails,

@@ -5,8 +5,7 @@ import { noCache } from "./capabilities";
 import { CACHE_SECONDS, cacheOn } from "./daytona-cache";
 import { sessionCommands } from "./daytona-session";
 import { cdInto, DEFAULT_TIMEOUT_MS, HOME, unavailable } from "./daytona-shell";
-
-const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
+import { quoted } from "./env-file";
 
 const heredocMarker = Random.nextInt.pipe(
   Effect.map((value) => `ANPORD_EOF_${Math.abs(value).toString(36)}`)

@@ -6,6 +6,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { settingUp } from "./after-create";
 import { noCache, noResumableCommands } from "./capabilities";
 import { execStream } from "./exec-stream";
 
@@ -102,17 +103,16 @@ export const makeConfiguredModalAdapter = (
           },
         }).pipe(
           Effect.flatMap((sandbox) =>
-            Effect.tryPromise({
-              catch: unavailable,
-              try: () =>
-                sandbox.filesystem.makeDirectory(request.workspace, {
-                  createParents: true,
-                }),
-            }).pipe(
-              Effect.as(handleFor(sandbox, request.workspace)),
-              Effect.tapError(() =>
-                Effect.promise(() => sandbox.terminate()).pipe(Effect.ignore)
-              )
+            settingUp(
+              Effect.tryPromise({
+                catch: unavailable,
+                try: () =>
+                  sandbox.filesystem.makeDirectory(request.workspace, {
+                    createParents: true,
+                  }),
+              }),
+              handleFor(sandbox, request.workspace),
+              () => sandbox.terminate()
             )
           )
         ),

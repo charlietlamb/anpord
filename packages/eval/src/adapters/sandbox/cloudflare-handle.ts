@@ -8,40 +8,59 @@ import {
   unavailable,
 } from "./cloudflare-bridge";
 import { type ExecSink, readEvents } from "./cloudflare-events";
+import { type EnvFile, envFileFor, quoted, sourcing } from "./env-file";
 import { execStream } from "./exec-stream";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/sandbox";
-
-export const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
+/* The bridge resolves every file path under this tree and refuses the rest,
+   so the env file cannot live in /tmp the way it does elsewhere. */
+const WRITABLE_ROOT = "/workspace";
 
 const commandFor = (
   workspace: string,
   command: string,
+  envFile: EnvFile | null,
   options?: ExecOptions
-) => {
-  const environment = Object.entries(options?.env ?? {}).map(([key, value]) =>
-    quoted(`${key}=${value}`)
-  );
-  const env = environment.length === 0 ? "" : `env ${environment.join(" ")} `;
-  return `cd ${quoted(options?.cwd ?? workspace)} && ${env}bash -lc ${quoted(command)}`;
-};
+) =>
+  `cd ${quoted(options?.cwd ?? workspace)} && bash -lc ${quoted(sourcing(envFile, command))}`;
 
 export const handleFor = (
   id: string,
   workspace: string,
   configured: Promise<BridgeConfiguration>
 ): SandboxHandle => {
+  /* The body carries the bytes, so the values never enter a command string
+     the bridge traces or the container's shell history keeps. */
+  const upload = async (path: string, contents: string) => {
+    const { key, url } = await configured;
+    await ensure(
+      await fetch(`${url}/v1/sandbox/${id}/file${path}`, {
+        body: contents,
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/octet-stream",
+        },
+        method: "PUT",
+      })
+    );
+  };
+
   const execute = async (
     command: string,
     sink: ExecSink,
-    options?: ExecOptions
+    options?: ExecOptions,
+    envFile: EnvFile | null = null
   ) => {
     const { key, url } = await configured;
     const response = await ensure(
       await fetch(`${url}/v1/sandbox/${id}/exec`, {
         body: JSON.stringify({
-          argv: ["bash", "-lc", commandFor(workspace, command, options)],
+          argv: [
+            "bash",
+            "-lc",
+            commandFor(workspace, command, envFile, options),
+          ],
           timeout_ms: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
         }),
         headers: {
@@ -58,9 +77,20 @@ export const handleFor = (
     cache: noCache,
     exec: (command, options) =>
       execStream((sink) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () => execute(command, sink, options),
+        Effect.gen(function* () {
+          const envFile = yield* envFileFor(options?.env, WRITABLE_ROOT);
+
+          if (envFile !== null) {
+            yield* Effect.tryPromise({
+              catch: unavailable,
+              try: () => upload(envFile.path, envFile.contents),
+            });
+          }
+
+          return yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () => execute(command, sink, options, envFile),
+          });
         })
       ),
     home: HOME,
