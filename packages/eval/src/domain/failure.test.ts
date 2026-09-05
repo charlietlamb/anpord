@@ -52,4 +52,25 @@ describe("failureOf", () => {
     expect(failure).toContain("socket hang up");
     expect(failure).not.toContain("\n");
   });
+
+  /* The defect this exists to catch: a trial recorded Cause.pretty straight
+     into its row, so the two kilobytes of stack around a one-line problem --
+     absolute paths, frames, and whatever an error dragged with it -- became
+     the column a person reads. */
+  it("records no stack for a cause that carries one", () => {
+    const deep = new Error("connect ECONNREFUSED 10.0.0.1:443");
+    deep.stack = [
+      "Error: connect ECONNREFUSED 10.0.0.1:443",
+      "    at TCPConnectWrap.afterConnect (node:net:1611:16)",
+      "    at /Users/someone/anpord/packages/eval/src/adapters/sandbox.ts:24:9",
+    ].join("\n");
+
+    const failure = failureOf(Cause.die(deep));
+
+    expect(failure).toContain("ECONNREFUSED");
+    expect(failure).not.toContain("\n");
+    expect(failure).not.toContain("at TCPConnectWrap");
+    expect(failure).not.toContain("/Users/");
+    expect(failure.length).toBeLessThanOrEqual(241);
+  });
 });

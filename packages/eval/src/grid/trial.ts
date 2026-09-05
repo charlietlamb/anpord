@@ -1,4 +1,5 @@
-import { Cause, Clock, Effect, Option, Redacted, Ref } from "effect";
+import { Clock, Effect, Option, Redacted, Ref } from "effect";
+import { failureOf } from "../domain/failure";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { costOf, type ModelPrice } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
@@ -11,10 +12,6 @@ import type {
   AgentTrialShape,
 } from "../services/agent-trial";
 import type { GridCase } from "./cell";
-
-/* Enough to say what went wrong without putting a stack trace of a stack trace
-   into every abandoned row. */
-const FAILURE_LIMIT = 2000;
 
 import type { GridExecutionTask } from "./state";
 
@@ -104,7 +101,7 @@ export const runTrial = (input: RunOneTrial) =>
         : Clock.currentTimeMillis.pipe(
             Effect.flatMap((finishedAt) =>
               input.recorder.abandon({
-                failure: Cause.pretty(exit.cause).slice(0, FAILURE_LIMIT),
+                failure: failureOf(exit.cause),
                 finishedAt: new Date(finishedAt),
                 trialInternalId,
               })
