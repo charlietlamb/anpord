@@ -107,9 +107,11 @@ const countOf = (value: number | undefined) =>
  * having usage whose cache share is unknown.
  */
 export const usageOf = (
-  value: Record<string, number> | null
+  value: Record<string, number> | null | undefined
 ): HarnessUsage | null => {
-  if (value === null) {
+  /* Loose, so an absent column reads the same as an explicitly null one: the
+     strict check crashed on a row whose usage was never written. */
+  if (value == null) {
     return null;
   }
 

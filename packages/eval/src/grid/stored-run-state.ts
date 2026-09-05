@@ -3,7 +3,7 @@ import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
 import { namesOf } from "../domain/stored-cell";
-import type { VerifyStepResult } from "../domain/trial";
+import { trialStatusOf, type VerifyStepResult } from "../domain/trial";
 import type { RunDetail } from "../repositories/run-detail";
 import type { AgentTrialResult } from "../services/agent-trial";
 import type { GridCell, GridRunState, GridTask } from "./state";
@@ -33,7 +33,13 @@ const asResult = (input: {
     modelMs: input.modelMs,
     passed: input.passed,
     sandboxMs: input.sandboxMs,
-    status: input.status as AgentTrialResult["outcome"]["status"],
+    /* Void, not the row's own text: a status this build cannot name describes
+       a trial it has no way to interpret, and void is the status for a trial
+       that is not evidence about anything. */
+    status: Option.getOrElse(
+      trialStatusOf(input.status),
+      () => "void" as const
+    ),
     verifySteps: [...input.verifySteps],
     voidFields: [...input.voidFields],
   },

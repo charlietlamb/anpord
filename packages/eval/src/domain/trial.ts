@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { type Option, Schema } from "effect";
 
 /** `void` is a status of its own, never a flavour of `failed`: a trial whose
  * commands never executed is not evidence about the harness. */
@@ -10,6 +10,17 @@ export const TrialStatus = Schema.Literal(
   "void"
 );
 export type TrialStatus = typeof TrialStatus.Type;
+
+/**
+ * A trial's status, read back from the text column that holds it.
+ *
+ * Decoded rather than asserted: the column has no check constraint, so a row
+ * written by an older deploy carries a status this build does not name.
+ * Casting made such a row silently compare unequal to every branch, which is
+ * how a run holding live trials reported none and could never be resumed.
+ */
+export const trialStatusOf: (value: string) => Option.Option<TrialStatus> =
+  Schema.decodeUnknownOption(TrialStatus);
 
 export const VerifyStepResult = Schema.Struct({
   command: Schema.String,

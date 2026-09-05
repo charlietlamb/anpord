@@ -1,5 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { outcomeOf } from "../../src/domain/trial";
+import { Option } from "effect";
+import {
+  outcomeOf,
+  type TrialStatus,
+  trialStatusOf,
+} from "../../src/domain/trial";
 
 const base = {
   commandCount: 9,
@@ -165,5 +170,33 @@ describe("configured void patterns", () => {
     });
 
     expect(outcome.status).toBe("passed");
+  });
+});
+
+/* Typed as the union rather than inferred, so a status removed from the schema
+   fails here instead of widening to string and passing. */
+const EVERY_STATUS: readonly TrialStatus[] = [
+  "queued",
+  "running",
+  "passed",
+  "failed",
+  "void",
+];
+
+describe("trialStatusOf", () => {
+  it("reads back every status the product writes", () => {
+    for (const status of EVERY_STATUS) {
+      expect(trialStatusOf(status)).toEqual(Option.some(status));
+    }
+  });
+
+  /** The column has no check constraint, so a row written by an older deploy
+   * carries a status this build does not name. It must be absent rather than
+   * asserted: a cast let it compare unequal to every branch, which is how a
+   * run holding live trials reported none and could never be resumed. */
+  it("refuses a status it does not name", () => {
+    for (const status of ["RUNNING", "in_progress", "", "cancelled"]) {
+      expect(trialStatusOf(status)).toEqual(Option.none());
+    }
   });
 });

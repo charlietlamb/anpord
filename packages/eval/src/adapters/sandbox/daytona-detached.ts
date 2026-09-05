@@ -1,14 +1,25 @@
 import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
-import { Effect } from "effect";
+import { Effect, Option, Schema } from "effect";
 import type { ResumableCommands } from "../../ports/sandbox";
 import { cdInto, sessionName, unavailable, uploadedEnv } from "./daytona-shell";
 import { envFileFor, sourcing } from "./env-file";
 
-const logsOf = (logs: unknown, stream: "stdout" | "stderr") => {
-  const value = (logs as Record<string, unknown> | null)?.[stream];
+/* The SDK types this as `any`, and it is one of two shapes depending on how
+   the session was created: the streams apart, or one interleaved string.
+   Decoded rather than asserted, so a third shape reads as absent output
+   instead of reaching the journal as `undefined` where a string is due. */
+const SessionLogs = Schema.Struct({
+  stderr: Schema.optional(Schema.String),
+  stdout: Schema.optional(Schema.String),
+});
 
-  return typeof value === "string" ? value : "";
-};
+const decodeLogs = Schema.decodeUnknownOption(SessionLogs);
+
+export const logsOf = (logs: unknown, stream: "stdout" | "stderr") =>
+  decodeLogs(logs).pipe(
+    Option.flatMapNullable((decoded) => decoded[stream]),
+    Option.getOrElse(() => "")
+  );
 
 /**
  * Commands that outlive the call which started them.

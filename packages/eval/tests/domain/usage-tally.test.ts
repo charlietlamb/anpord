@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Option } from "effect";
-import type { HarnessUsage } from "../../src/domain/harness-event";
+import { type HarnessUsage, usageOf } from "../../src/domain/harness-event";
 import {
   EMPTY_TALLY,
   NO_USAGE,
@@ -69,5 +69,24 @@ describe("usage tally", () => {
     const counted = tallied(EMPTY_TALLY, NO_USAGE, false);
 
     expect(Option.isSome(totalOf(counted))).toBe(true);
+  });
+});
+
+describe("usageOf", () => {
+  it("reads a row that carries every required count", () => {
+    expect(
+      usageOf({ inputTokens: 10, outputTokens: 4, totalTokens: 14 })
+    ).toMatchObject({ inputTokens: 10, outputTokens: 4, totalTokens: 14 });
+  });
+
+  /** A trial recorded before usage was stored has no column to read. Null and
+   * undefined are the same absence, and the strict check crashed on one. */
+  it("treats an absent column as no usage rather than crashing", () => {
+    expect(usageOf(null)).toBeNull();
+    expect(usageOf(undefined)).toBeNull();
+  });
+
+  it("refuses a row missing a required count", () => {
+    expect(usageOf({ inputTokens: 10 })).toBeNull();
   });
 });
