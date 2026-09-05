@@ -75,7 +75,6 @@ export const InstallationsLive = Layer.effect(
                 accountLogin: input.accountLogin,
                 createdAt: now,
                 id: input.id,
-                installedByUserId: actor.isUser ? actor.id : null,
                 organizationId: actor.organizationId,
                 repositorySelection: input.repositorySelection,
                 updatedAt: now,

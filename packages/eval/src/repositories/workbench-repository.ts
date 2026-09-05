@@ -1,7 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalPlayground } from "@anpord/db/schema/evals/eval-playgrounds";
 import { IdGenerator } from "@anpord/ids/id";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import type { PlaygroundConfig } from "../domain/playground-config";
@@ -55,8 +55,7 @@ export const WorkbenchRepositoryLive = Layer.effect(
             .where(
               and(
                 eq(evalPlayground.organizationId, organizationId),
-                eq(evalPlayground.id, id),
-                isNull(evalPlayground.archivedAt)
+                eq(evalPlayground.id, id)
               )
             )
         ).pipe(
@@ -91,12 +90,7 @@ export const WorkbenchRepositoryLive = Layer.effect(
           db
             .select()
             .from(evalPlayground)
-            .where(
-              and(
-                eq(evalPlayground.organizationId, organizationId),
-                isNull(evalPlayground.archivedAt)
-              )
-            )
+            .where(eq(evalPlayground.organizationId, organizationId))
             .orderBy(desc(evalPlayground.updatedAt))
         ).pipe(Effect.withSpan("WorkbenchRepository.list")),
 

@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
@@ -84,8 +84,7 @@ export const TaskRepositoryLive = Layer.effect(
             .where(
               and(
                 eq(evalTask.organizationId, organizationId),
-                eq(evalTask.id, id),
-                isNull(evalTask.archivedAt)
+                eq(evalTask.id, id)
               )
             )
         ).pipe(Effect.map(head), Effect.withSpan("TaskRepository.findById")),
@@ -159,12 +158,7 @@ export const TaskRepositoryLive = Layer.effect(
           db
             .select()
             .from(evalTask)
-            .where(
-              and(
-                eq(evalTask.organizationId, organizationId),
-                isNull(evalTask.archivedAt)
-              )
-            )
+            .where(eq(evalTask.organizationId, organizationId))
         ).pipe(Effect.withSpan("TaskRepository.list")),
     });
   })

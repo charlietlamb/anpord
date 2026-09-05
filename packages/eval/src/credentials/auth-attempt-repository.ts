@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
 import type { Actor } from "@anpord/schema/domain/actor";
 import { and, eq } from "drizzle-orm";
-import { Clock, Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { tryStore } from "../repositories/query";
 import { CredentialError, storeUnavailable } from "./errors";
 
@@ -71,12 +71,7 @@ export const CredentialAuthAttemptRepositoryLive = Layer.effect(
               : Effect.succeed(rows[0])
           )
         ),
-      finish: (id, values) =>
-        Clock.currentTimeMillis.pipe(
-          Effect.flatMap((now) =>
-            update(id, { ...values, completedAt: new Date(now) })
-          )
-        ),
+      finish: (id, values) => update(id, values),
     });
   })
 );

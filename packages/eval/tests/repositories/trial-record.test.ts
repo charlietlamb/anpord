@@ -248,7 +248,6 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     const seen = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
-        const db = yield* Database;
 
         const first = yield* recorder.open({
           cellInternalId,
@@ -269,14 +268,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           startedAt: new Date(),
         });
 
-        const row = yield* Effect.promise(() =>
-          db
-            .select({ attempt: evalTrial.attempt })
-            .from(evalTrial)
-            .where(eq(evalTrial.internalId, second.trialInternalId))
-        );
-
-        return { attempt: row[0]?.attempt, first, second };
+        return { first, second };
       })
     );
 
@@ -285,6 +277,5 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     expect(Option.getOrNull(seen.second.priorSandboxId)).toBe(
       "sbx-left-behind"
     );
-    expect(seen.attempt).toBe(2);
   });
 });

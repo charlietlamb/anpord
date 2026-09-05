@@ -267,6 +267,13 @@
       "when": 1788300005000,
       "tag": "0037_harness_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1788300006000,
+      "tag": "0038_write_only_columns",
+      "breakpoints": true
     }
   ]
 }

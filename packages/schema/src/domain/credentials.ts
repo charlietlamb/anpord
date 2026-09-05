@@ -59,7 +59,6 @@ export const CredentialConnection = Schema.Struct({
   integrationId: Schema.String,
   isDefault: Schema.Boolean,
   lastUsedAt: Schema.NullOr(Schema.DateTimeUtc),
-  lastVerifiedAt: Schema.NullOr(Schema.DateTimeUtc),
   name: Schema.String,
   scope: CredentialScope,
   status: CredentialStatus,

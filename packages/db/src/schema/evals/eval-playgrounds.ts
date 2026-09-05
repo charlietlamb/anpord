@@ -41,7 +41,6 @@ export const evalPlayground = pgTable(
     }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
-    archivedAt: timestamp("archived_at"),
   },
   (table) => [
     index("eval_playground_created_by_idx").on(table.createdBy),

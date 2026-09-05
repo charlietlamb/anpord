@@ -88,7 +88,6 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
 
         await db.insert(evalTrial).values(
           [1, 2].map((ordinal) => ({
-            attempt: 1,
             cellInternalId: `cellint_${tag}`,
             commandCount: 3,
             exitCode: passed ? 0 : 1,

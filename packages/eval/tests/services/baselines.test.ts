@@ -88,7 +88,6 @@ const seedCell = async (input: {
             };
 
             return {
-              attempt: 1,
               cellInternalId: `cellint_${input.tag}`,
               commandCount: 10,
               exitCode: passed ? 0 : 1,

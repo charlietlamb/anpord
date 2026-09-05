@@ -20,7 +20,6 @@ const connection = (
   integrationId,
   isDefault,
   lastUsedAt: null,
-  lastVerifiedAt: null,
   name: id,
   scope: "organization",
   status,

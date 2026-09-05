@@ -129,7 +129,6 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
           db
             .update(credentialConnection)
             .set({
-              lastVerifiedAt: verified ? now : null,
               status: verified ? "active" : "invalid",
               updatedAt: now,
             })
@@ -158,7 +157,6 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
           db
             .update(credentialConnection)
             .set({
-              lastVerifiedAt: null,
               revision: row.revision + 1,
               sealedPayload,
               status: "active",

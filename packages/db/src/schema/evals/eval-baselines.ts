@@ -1,10 +1,4 @@
-import {
-  index,
-  pgTable,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { index, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
 import { evalCell } from "./eval-cells";
 
@@ -22,7 +16,6 @@ export const evalBaseline = pgTable(
     cellInternalId: text("cell_internal_id")
       .notNull()
       .references(() => evalCell.internalId, { onDelete: "restrict" }),
-    promotedAt: timestamp("promoted_at").notNull().defaultNow(),
   },
   (table) => [
     /* One current baseline per cell key per organization. Promoting again

@@ -15,10 +15,6 @@ export const summaryOf = (row: ConnectionRow): CredentialConnection =>
       row.lastUsedAt === null
         ? null
         : DateTime.unsafeMake(row.lastUsedAt.getTime()),
-    lastVerifiedAt:
-      row.lastVerifiedAt === null
-        ? null
-        : DateTime.unsafeMake(row.lastVerifiedAt.getTime()),
     name: row.name,
     scope: row.scope,
     status: row.status,

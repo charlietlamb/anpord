@@ -160,7 +160,7 @@ describe.skipIf(skipWithoutDatabase())("credential connections", () => {
 
     expect(result.listed).toHaveLength(1);
     expect(result.listed[0]?.isDefault).toBe(true);
-    expect(result.checked.lastVerifiedAt).not.toBeNull();
+    expect(result.checked.status).toBe("active");
     expect(result.resolved.revision).toBe(2);
     expect(result.resolved.values).toEqual({
       apiKey: "daytona-secret-rotated",
@@ -190,7 +190,7 @@ describe.skipIf(skipWithoutDatabase())("credential connections", () => {
       })
     );
 
-    expect(result.checked.lastVerifiedAt).not.toBeNull();
+    expect(result.checked.status).toBe("active");
     expect(result.resolved.integrationId).toBe("env");
     expect(result.resolved.values).toEqual({
       ANTHROPIC_API_KEY: "sk-ant",

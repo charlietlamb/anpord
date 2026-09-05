@@ -34,7 +34,6 @@ export const credentialConnection = pgTable(
     }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
-    lastVerifiedAt: timestamp("last_verified_at"),
     lastUsedAt: timestamp("last_used_at"),
   },
   (table) => [

@@ -18,7 +18,6 @@ export const credentialAuthAttempt = pgTable(
     sealedState: text("sealed_state").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    completedAt: timestamp("completed_at"),
   },
   (table) => [
     index("credential_auth_attempt_organization_user_status_idx").on(

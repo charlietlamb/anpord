@@ -36,12 +36,10 @@ export const evalTask = pgTable(
     cachePath: text("cache_path"),
     verifyCommand: text("verify_command"),
     workspace: text("workspace").notNull(),
-    bracketedAt: timestamp("bracketed_at"),
     createdBy: text("created_by").references(() => user.id, {
       onDelete: "set null",
     }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    archivedAt: timestamp("archived_at"),
   },
   (table) => [
     index("eval_task_created_by_idx").on(table.createdBy),

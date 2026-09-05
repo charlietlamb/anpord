@@ -3,7 +3,7 @@ import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
@@ -131,7 +131,6 @@ export const TrialRecorderLive = Layer.effect(
           db
             .insert(evalTrial)
             .values({
-              attempt: 1,
               cellInternalId: input.cellInternalId,
               internalId: fresh,
               ordinal: input.ordinal,
@@ -141,7 +140,6 @@ export const TrialRecorderLive = Layer.effect(
             })
             .onConflictDoUpdate({
               set: {
-                attempt: sql`${evalTrial.attempt} + 1`,
                 finishedAt: null,
                 provider: input.provider,
                 startedAt: input.startedAt,

@@ -1,5 +1,5 @@
 import { IdGenerator } from "@anpord/ids/id";
-import { Clock, Context, Effect, Layer, Option } from "effect";
+import { Context, Effect, Layer, Option } from "effect";
 import { CellKey } from "../domain/cell";
 import { compare, type VersionedComparison } from "../domain/comparison";
 import type { Distribution } from "../domain/distribution";
@@ -16,7 +16,6 @@ export interface Baseline {
   readonly cellInternalId: string;
   readonly cellKey: CellKey;
   readonly distribution: Distribution;
-  readonly promotedAt: Date;
 }
 
 export interface CellComparison {
@@ -90,7 +89,6 @@ export const BaselinesLive = Layer.effect(
           cellInternalId: row.value.cellInternalId,
           cellKey,
           distribution,
-          promotedAt: row.value.promotedAt,
         } satisfies Baseline);
       }).pipe(Effect.withSpan("Baselines.find"));
 
@@ -151,14 +149,12 @@ export const BaselinesLive = Layer.effect(
         }
 
         const internalId = yield* ids.generate("evalBaseline");
-        const promotedAt = new Date(yield* Clock.currentTimeMillis);
 
         yield* baselines.insertIfAbsent({
           cellInternalId: input.cellInternalId,
           cellKey: input.cellKey,
           internalId,
           organizationId: input.organizationId,
-          promotedAt,
         });
       }).pipe(
         Effect.withSpan("Baselines.promoteIfAbsent"),

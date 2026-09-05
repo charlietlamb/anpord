@@ -29,7 +29,6 @@ export const evalTrial = pgTable(
       .references(() => evalCell.internalId, { onDelete: "cascade" }),
     ordinal: integer("ordinal").notNull(),
     status: text("status").notNull(),
-    attempt: integer("attempt").notNull().default(1),
     provider: text("provider").notNull(),
     sandboxId: text("sandbox_id"),
     passed: boolean("passed"),
