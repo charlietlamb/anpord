@@ -1,4 +1,4 @@
-import { Box, EphemeralBox } from "@upstash/box";
+import { Box, EphemeralBox, type ExecStreamChunk } from "@upstash/box";
 import { Duration, Effect } from "effect";
 import { sandboxUnavailable } from "../../domain/errors";
 import type {
@@ -7,38 +7,72 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { type EnvFile, envFileFor, quoted, sourcing } from "./env-file";
 import { execStream } from "./exec-stream";
 import { noCache, notResumable } from "./not-resumable";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/boxuser";
 
-type UpstashBox = Pick<Box, "delete" | "exec" | "files" | "id">;
+/** Only what a handle reaches for, so a fake standing in for a box in a test
+ * is a real value of this type rather than an assertion about one. */
+interface UpstashRun extends AsyncIterable<ExecStreamChunk> {
+  readonly cancel: () => Promise<unknown>;
+  readonly status: string;
+}
 
-const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
+interface UpstashBox {
+  readonly delete: Box["delete"];
+  readonly exec: { readonly stream: (command: string) => Promise<UpstashRun> };
+  readonly files: { readonly write: (file: BoxFile) => Promise<unknown> };
+  readonly id: string;
+}
+
+interface BoxFile {
+  readonly content: string;
+  readonly path: string;
+}
 
 const commandFor = (
   workspace: string,
   command: string,
+  envFile: EnvFile | null,
   options?: ExecOptions
 ) => {
-  const environment = Object.entries(options?.env ?? {}).map(([key, value]) =>
-    quoted(`${key}=${value}`)
-  );
-  const env = environment.length === 0 ? "" : `env ${environment.join(" ")} `;
   const timeout = Math.max(options?.timeoutMs ?? DEFAULT_TIMEOUT_MS, 1) / 1000;
-  return `cd ${quoted(options?.cwd ?? workspace)} && ${env}timeout --signal=TERM --kill-after=1s ${timeout}s sh -lc ${quoted(command)}`;
+  return `cd ${quoted(options?.cwd ?? workspace)} && timeout --signal=TERM --kill-after=1s ${timeout}s sh -lc ${quoted(sourcing(envFile, command))}`;
 };
 
 const unavailable = (reason: unknown) => sandboxUnavailable("upstash", reason);
 
-const handleFor = (box: UpstashBox, workspace: string): SandboxHandle => ({
+export const handleFor = (
+  box: UpstashBox,
+  workspace: string
+): SandboxHandle => ({
   exec: (command, options) =>
     execStream((sink) =>
       Effect.acquireUseRelease(
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () => box.exec.stream(commandFor(workspace, command, options)),
+        Effect.gen(function* () {
+          const envFile = yield* envFileFor(options?.env);
+
+          /* Written through the file API rather than spliced into the
+             command: the command string is what the provider records. */
+          if (envFile !== null) {
+            yield* Effect.tryPromise({
+              catch: unavailable,
+              try: () =>
+                box.files.write({
+                  content: envFile.contents,
+                  path: envFile.path,
+                }),
+            });
+          }
+
+          return yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () =>
+              box.exec.stream(commandFor(workspace, command, envFile, options)),
+          });
         }),
         (run) =>
           Effect.tryPromise({

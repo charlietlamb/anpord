@@ -2,6 +2,7 @@ import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
 import { Clock, Duration, Effect, Random, Schedule } from "effect";
 import type { SandboxHandle } from "../../ports/sandbox";
 import { cdInto, DEFAULT_TIMEOUT_MS, unavailable } from "./daytona-shell";
+import { type EnvFile, envFileFor, sourcing } from "./env-file";
 import { execStream } from "./exec-stream";
 
 const EXIT_POLL_MS = 250;
@@ -26,6 +27,17 @@ export const sessionCommands = (
   sandbox: DaytonaSandbox,
   workspace: string
 ): Pick<SandboxHandle, "exec" | "progress" | "start"> => {
+  /* Uploaded rather than echoed into place, because the session API retains
+     every command it is given and an echo would put the values there. */
+  const uploaded = (file: EnvFile | null) =>
+    file === null
+      ? Effect.void
+      : Effect.tryPromise({
+          catch: unavailable,
+          try: () =>
+            sandbox.fs.uploadFile(Buffer.from(file.contents), file.path),
+        });
+
   const session = (id: string) =>
     Effect.acquireRelease(
       Effect.tryPromise({
@@ -69,14 +81,16 @@ export const sessionCommands = (
           const sessionId = yield* sessionName;
           yield* session(sessionId);
 
+          const envFile = yield* envFileFor(options?.env);
+          yield* uploaded(envFile);
+
           const started = yield* Effect.tryPromise({
             catch: unavailable,
             try: () =>
               sandbox.process.executeSessionCommand(sessionId, {
                 command: cdInto(
                   options?.cwd ?? workspace,
-                  command,
-                  options?.env
+                  sourcing(envFile, command)
                 ),
                 runAsync: true,
               }),
@@ -137,11 +151,17 @@ export const sessionCommands = (
           try: () => sandbox.process.createSession(id),
         });
 
+        const envFile = yield* envFileFor(options?.env);
+        yield* uploaded(envFile);
+
         const started = yield* Effect.tryPromise({
           catch: unavailable,
           try: () =>
             sandbox.process.executeSessionCommand(id, {
-              command: cdInto(options?.cwd ?? workspace, command, options?.env),
+              command: cdInto(
+                options?.cwd ?? workspace,
+                sourcing(envFile, command)
+              ),
               runAsync: true,
             }),
         });

@@ -10,7 +10,8 @@ import {
   environment,
   unavailable,
 } from "./cloudflare-bridge";
-import { handleFor, quoted } from "./cloudflare-handle";
+import { handleFor } from "./cloudflare-handle";
+import { quoted } from "./env-file";
 import { runCommand } from "./run-command";
 
 const WORKSPACE = "/workspace";
