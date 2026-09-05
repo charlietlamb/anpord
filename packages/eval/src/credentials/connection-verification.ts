@@ -26,6 +26,7 @@ export const verifyConnection =
       );
       const now = new Date(yield* Clock.currentTimeMillis);
       const row = yield* repository.recordVerification(
+        actor,
         selected.id,
         Either.isRight(checked),
         now

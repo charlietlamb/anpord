@@ -1,6 +1,13 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
+import { EvalCaseName, EvalPrompt, EvalVerify } from "../domain/eval-limits";
+import {
+  MAX_RUN_TRIALS,
+  MAX_START_CASES,
+  MAX_START_TASKS,
+  MAX_START_TRIALS,
+} from "../domain/eval-quota";
 import {
   CaseCache,
   EvalCellHistoryEntry,
@@ -57,12 +64,12 @@ export const ListEvalsRequest = Schema.Struct({
 
 const PublicEvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
-  name: Schema.String,
+  name: EvalCaseName,
   prepare: Schema.optional(Schema.NullOr(EvalPrepare)),
   source: Schema.optional(EvalSource),
   validator: Schema.optional(Schema.NullOr(EvalValidator)),
   variables: Schema.optional(EvalVariables),
-  verify: Schema.NullOr(Schema.String),
+  verify: Schema.NullOr(EvalVerify),
 })
   .pipe(
     Schema.filter(
@@ -91,14 +98,19 @@ const PublicEvalTask = Schema.Struct({
     identifier: "StartEvalTask",
   });
 export const PublicStartEvalRequest = Schema.Struct({
-  cases: Schema.Array(PublicEvalCase).pipe(Schema.minItems(1)),
+  cases: Schema.Array(PublicEvalCase).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(MAX_START_CASES)
+  ),
   name: Schema.optional(EvalName),
-  prompt: Schema.String,
-  tasks: Schema.Array(PublicEvalTask).pipe(Schema.minItems(1)),
-  trials: Schema.Int.pipe(Schema.between(1, 10)),
+  prompt: EvalPrompt,
+  tasks: Schema.Array(PublicEvalTask).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(MAX_START_TASKS)
+  ),
+  trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),
 }).annotations({
-  description:
-    "Start a grid with at most 100 total case, task, and trial combinations.",
+  description: `Start a grid with at most ${MAX_RUN_TRIALS} total case, task, and trial combinations.`,
   identifier: "StartEvalRequest",
 });
 export type PublicStartEvalRequest = typeof PublicStartEvalRequest.Type;

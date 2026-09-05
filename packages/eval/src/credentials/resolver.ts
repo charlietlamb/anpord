@@ -63,9 +63,13 @@ export const CredentialResolverLive = Layer.effect(
         )
       );
 
-    const touch = (row: ConnectionRow) =>
+    /* The organisation comes from the caller rather than from the row, so the
+       predicate is a check on the row rather than a restatement of it. */
+    const touch = (organizationId: string) => (row: ConnectionRow) =>
       Clock.currentTimeMillis.pipe(
-        Effect.flatMap((now) => repository.touch(row.id, new Date(now))),
+        Effect.flatMap((now) =>
+          repository.touch(organizationId, row.id, new Date(now))
+        ),
         Effect.ignore
       );
 
@@ -74,7 +78,7 @@ export const CredentialResolverLive = Layer.effect(
         repository
           .findActive(input.actor, input.integrationId, input.connectionId)
           .pipe(
-            Effect.tap(touch),
+            Effect.tap(touch(input.actor.organizationId)),
             Effect.flatMap(openRow),
             Effect.withSpan("CredentialResolver.resolve"),
             Effect.annotateLogs({

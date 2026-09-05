@@ -48,6 +48,24 @@ export const runListQuery = Effect.map(Database, (db) => ({
       Effect.map((rows) => rows[0]?.total ?? 0),
       Effect.withSpan("RunQuery.countRuns")
     ),
+  /* Counted rather than kept in memory, because a run this process did not
+     start -- dispatched to a worker, or started on another server -- still
+     holds sandboxes against the same organisation and the same accounts. */
+  countRunning: (organizationId: string) =>
+    tryStore("runQuery.countRunning", () =>
+      db
+        .select({ total: count() })
+        .from(evalRun)
+        .where(
+          and(
+            eq(evalRun.organizationId, organizationId),
+            eq(evalRun.status, "running")
+          )
+        )
+    ).pipe(
+      Effect.map((rows) => rows[0]?.total ?? 0),
+      Effect.withSpan("RunQuery.countRunning")
+    ),
   listRuns: (input: ListRunsInput) =>
     tryStore("runQuery.listRuns", () =>
       db

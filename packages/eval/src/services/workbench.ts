@@ -155,7 +155,11 @@ export const WorkbenchesLive = Layer.effect(
           trials: config.trials,
         });
 
-        yield* store.markRun(found.value.internalId, runId);
+        yield* store.markRun({
+          internalId: found.value.internalId,
+          organizationId: input.organizationId,
+          runId,
+        });
 
         return runId;
       }).pipe(

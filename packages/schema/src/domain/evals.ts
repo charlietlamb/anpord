@@ -1,6 +1,17 @@
 import { Schema } from "effect";
 import { CredentialBindings, CredentialSelections } from "./credentials";
 import {
+  EvalCaseName,
+  EvalPrompt,
+  EvalVariableValue,
+  EvalVerify,
+} from "./eval-limits";
+import {
+  MAX_START_CASES,
+  MAX_START_TASKS,
+  MAX_START_TRIALS,
+} from "./eval-quota";
+import {
   HarnessProfile,
   PROFILE_HARNESS_RULE,
   profileFitsHarness,
@@ -43,8 +54,7 @@ export const EvalTrialStatus = Schema.Literal(
   "running",
   "passed",
   "failed",
-  "void",
-  "exceeded"
+  "void"
 );
 export type EvalTrialStatus = typeof EvalTrialStatus.Type;
 
@@ -104,7 +114,7 @@ export type EvalPrepareValue = typeof EvalPrepareValue.Type;
 
 export const EvalVariables = Schema.Record({
   key: Schema.String,
-  value: Schema.String,
+  value: EvalVariableValue,
 }).annotations({
   description:
     "Values for the placeholders the run prompt names, such as {{task}}.",
@@ -135,7 +145,7 @@ export type CaseCache = typeof CaseCache.Type;
 
 export const EvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
-  name: Schema.String,
+  name: EvalCaseName,
   prepare: Schema.NullOr(EvalPrepare),
   source: EvalSource,
   variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
@@ -143,7 +153,7 @@ export const EvalCase = Schema.Struct({
   validator: Schema.optionalWith(Schema.NullOr(EvalValidator), {
     default: () => null,
   }),
-  verify: Schema.NullOr(Schema.String),
+  verify: Schema.NullOr(EvalVerify),
 });
 export type EvalCase = typeof EvalCase.Type;
 
@@ -190,11 +200,17 @@ export const EvalName = Schema.String.pipe(
 export type EvalName = typeof EvalName.Type;
 
 export const StartEvalRequest = Schema.Struct({
-  cases: Schema.Array(EvalCase).pipe(Schema.minItems(1)),
+  cases: Schema.Array(EvalCase).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(MAX_START_CASES)
+  ),
   name: Schema.optional(EvalName),
-  prompt: Schema.String,
-  tasks: Schema.Array(EvalTaskRequest).pipe(Schema.minItems(1)),
-  trials: Schema.Int.pipe(Schema.between(1, 10)),
+  prompt: EvalPrompt,
+  tasks: Schema.Array(EvalTaskRequest).pipe(
+    Schema.minItems(1),
+    Schema.maxItems(MAX_START_TASKS)
+  ),
+  trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),
 });
 export type StartEvalRequest = typeof StartEvalRequest.Type;
 

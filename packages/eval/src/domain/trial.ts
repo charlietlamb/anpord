@@ -7,8 +7,7 @@ export const TrialStatus = Schema.Literal(
   "running",
   "passed",
   "failed",
-  "void",
-  "exceeded"
+  "void"
 );
 export type TrialStatus = typeof TrialStatus.Type;
 

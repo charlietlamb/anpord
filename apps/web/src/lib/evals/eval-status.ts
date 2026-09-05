@@ -11,7 +11,6 @@ import {
   EqualsIcon,
   type Icon,
   MinusCircleIcon,
-  ProhibitInsetIcon,
   TrendDownIcon,
   TrendUpIcon,
   XCircleIcon,
@@ -27,7 +26,6 @@ const RUN_TONES: Record<EvalRunStatus, EvalTone> = {
 };
 
 const TRIAL_TONES: Record<EvalTrialStatus, EvalTone> = {
-  exceeded: "critical",
   failed: "critical",
   passed: "positive",
   queued: "pending",
@@ -42,7 +40,6 @@ const RUN_GLYPHS: Record<EvalRunStatus, Icon> = {
 };
 
 const TRIAL_GLYPHS: Record<EvalTrialStatus, Icon> = {
-  exceeded: ProhibitInsetIcon,
   failed: XCircleIcon,
   passed: CheckCircleIcon,
   queued: CircleDashedIcon,

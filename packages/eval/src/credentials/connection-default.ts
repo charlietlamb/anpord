@@ -1,6 +1,6 @@
 import type { Database } from "@anpord/db/client";
 import { credentialConnection } from "@anpord/db/schema/credentials/connections";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { defaultScope } from "./connection-scope";
 
 type Db = Database["Type"];
@@ -78,9 +78,16 @@ export const promoteToDefault = (
           selected.scope
         )
       );
+    /* The clearing statement above is scoped and this one was not, so the two
+       halves of one promotion disagreed about which rows they could reach. */
     return tx
       .update(credentialConnection)
       .set({ isDefault: true, updatedAt: now })
-      .where(eq(credentialConnection.id, selected.id))
+      .where(
+        and(
+          eq(credentialConnection.organizationId, actor.organizationId),
+          eq(credentialConnection.id, selected.id)
+        )
+      )
       .returning();
   });

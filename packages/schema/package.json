@@ -9,6 +9,8 @@
     "./domain/codebase": "./src/domain/codebase.ts",
     "./domain/credentials": "./src/domain/credentials.ts",
     "./domain/errors": "./src/domain/errors.ts",
+    "./domain/eval-limits": "./src/domain/eval-limits.ts",
+    "./domain/eval-quota": "./src/domain/eval-quota.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",
     "./domain/permissions": "./src/domain/permissions.ts",

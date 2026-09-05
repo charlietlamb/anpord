@@ -222,7 +222,7 @@
             }
           }
         },
-        "description": "Starts the grid and returns its id while trials continue in the background.",
+        "description": "Starts the grid and returns its id while trials continue in the background. The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.",
         "summary": "Start an eval run",
         "requestBody": {
           "content": {
@@ -624,6 +624,7 @@
             }
           }
         },
+        "description": "The command harness has no catalogue of its own, so its list is empty: the model is whatever the profile's run command reads from ANPORD_MODEL.",
         "summary": "List models available to the harness",
         "requestBody": {
           "content": {
@@ -1292,7 +1293,8 @@
               "claude",
               "gemini",
               "qwen",
-              "cursor"
+              "cursor",
+              "command"
             ]
           },
           "harnessVersion": {
@@ -1300,6 +1302,16 @@
           },
           "model": {
             "type": "string"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTaskProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "provider": {
             "type": "string",
@@ -1314,7 +1326,24 @@
           }
         },
         "additionalProperties": false,
-        "description": "The harness, installed version, model, and sandbox for a cell."
+        "description": "The harness, installed version, profile, model, and sandbox for a cell."
+      },
+      "EvalTaskProfile": {
+        "type": "object",
+        "required": [
+          "name",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The profile a cell's harness ran under, by name and version."
       },
       "EvalTimestamp": {
         "type": "string",
@@ -1524,9 +1553,10 @@
             "items": {
               "$ref": "#/components/schemas/StartEvalCase"
             },
-            "description": "an array of at least 1 item(s)",
-            "title": "minItems(1)",
-            "minItems": 1
+            "description": "an array of at most 100 item(s)",
+            "title": "maxItems(100)",
+            "minItems": 1,
+            "maxItems": 100
           },
           "name": {
             "type": "string",
@@ -1536,16 +1566,17 @@
             "maxLength": 100
           },
           "prompt": {
-            "type": "string"
+            "$ref": "#/components/schemas/EvalPrompt"
           },
           "tasks": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/StartEvalTask"
             },
-            "description": "an array of at least 1 item(s)",
-            "title": "minItems(1)",
-            "minItems": 1
+            "description": "an array of at most 20 item(s)",
+            "title": "maxItems(20)",
+            "minItems": 1,
+            "maxItems": 20
           },
           "trials": {
             "$ref": "#/components/schemas/Int",
@@ -1569,7 +1600,7 @@
             "$ref": "#/components/schemas/CaseCache"
           },
           "name": {
-            "type": "string"
+            "$ref": "#/components/schemas/EvalCaseName"
           },
           "prepare": {
             "anyOf": [
@@ -1600,7 +1631,7 @@
           "verify": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/EvalVerify"
               },
               {
                 "type": "null"
@@ -1631,6 +1662,12 @@
           }
         },
         "additionalProperties": false
+      },
+      "EvalCaseName": {
+        "type": "string",
+        "description": "What a case is called.",
+        "title": "maxLength(200)",
+        "maxLength": 200
       },
       "EvalPrepare": {
         "type": "object",
@@ -1764,9 +1801,27 @@
         "required": [],
         "properties": {},
         "additionalProperties": {
-          "type": "string"
+          "$ref": "#/components/schemas/EvalVariableValue"
         },
         "description": "Values for the placeholders the run prompt names, such as {{task}}."
+      },
+      "EvalVariableValue": {
+        "type": "string",
+        "description": "a string at most 2048 character(s) long",
+        "title": "maxLength(2048)",
+        "maxLength": 2048
+      },
+      "EvalVerify": {
+        "type": "string",
+        "description": "The shell command that decides whether a trial passed.",
+        "title": "maxLength(8192)",
+        "maxLength": 8192
+      },
+      "EvalPrompt": {
+        "type": "string",
+        "description": "What the agent is asked to do.",
+        "title": "maxLength(16384)",
+        "maxLength": 16384
       },
       "StartEvalTask": {
         "type": "object",
@@ -1786,7 +1841,8 @@
               "claude",
               "gemini",
               "qwen",
-              "cursor"
+              "cursor",
+              "command"
             ]
           },
           "model": {
@@ -1795,12 +1851,83 @@
             "title": "minLength(1)",
             "minLength": 1
           },
+          "profile": {
+            "$ref": "#/components/schemas/HarnessProfile"
+          },
           "provider": {
             "$ref": "#/components/schemas/PublicEvalProvider"
           }
         },
+        "additionalProperties": false
+      },
+      "HarnessProfile": {
+        "type": "object",
+        "required": [
+          "files",
+          "name"
+        ],
+        "properties": {
+          "env": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "patternProperties": {
+              "": {
+                "type": "string"
+              }
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/EnvName"
+            }
+          },
+          "files": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "patternProperties": {
+              "": {
+                "type": "string",
+                "description": "a string at most 96000 character(s) long",
+                "title": "maxLength(96000)",
+                "maxLength": 96000
+              }
+            },
+            "propertyNames": {
+              "$ref": "#/components/schemas/ProfilePath"
+            }
+          },
+          "install": {
+            "type": "string"
+          },
+          "name": {
+            "$ref": "#/components/schemas/ProfileName"
+          },
+          "run": {
+            "type": "string"
+          },
+          "systemPrompt": {
+            "type": "string"
+          }
+        },
         "additionalProperties": false,
-        "description": "A harness, model, and hosted sandbox combination."
+        "description": "Configuration layered on a harness: files written under the sandbox home and workspace, a system prompt, environment, an install command run before the harness, and for the command harness the run command."
+      },
+      "EnvName": {
+        "type": "string",
+        "description": "An environment variable name.",
+        "pattern": "^[A-Z_][A-Z0-9_]*$"
+      },
+      "ProfilePath": {
+        "type": "string",
+        "description": "A relative path under home/ or workspace/, without a .. segment.",
+        "pattern": "^(home|workspace)(?:\\/(?!\\.\\.?(?:\\/|$))[^/\\0]+)+$",
+        "title": "maxLength(512)",
+        "maxLength": 512
+      },
+      "ProfileName": {
+        "type": "string",
+        "description": "Lowercase letters, digits and hyphens, at most 64 characters, starting with a letter or digit.",
+        "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
       },
       "PublicEvalProvider": {
         "type": "string",
@@ -2131,8 +2258,10 @@
         "required": [
           "baselineHarnessVersion",
           "baselinePassRate",
+          "baselineProfileVersion",
           "candidateHarnessVersion",
           "candidatePassRate",
+          "candidateProfileVersion",
           "delta",
           "determinismLost",
           "reason",
@@ -2145,11 +2274,31 @@
           "baselinePassRate": {
             "type": "number"
           },
+          "baselineProfileVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "candidateHarnessVersion": {
             "type": "string"
           },
           "candidatePassRate": {
             "type": "number"
+          },
+          "candidateProfileVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "delta": {
             "type": "number"
@@ -2387,8 +2536,7 @@
               "running",
               "passed",
               "failed",
-              "void",
-              "exceeded"
+              "void"
             ]
           },
           "timed": {
@@ -2697,6 +2845,7 @@
           "finishedAt",
           "harnessVersion",
           "internalId",
+          "profileVersion",
           "runId",
           "trials"
         ],
@@ -2719,6 +2868,16 @@
           },
           "internalId": {
             "type": "string"
+          },
+          "profileVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "runId": {
             "type": "string"
@@ -2749,7 +2908,8 @@
               "claude",
               "gemini",
               "qwen",
-              "cursor"
+              "cursor",
+              "command"
             ]
           },
           "q": {
@@ -2777,7 +2937,8 @@
               "claude",
               "gemini",
               "qwen",
-              "cursor"
+              "cursor",
+              "command"
             ]
           },
           "models": {

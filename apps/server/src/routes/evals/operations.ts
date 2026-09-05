@@ -1,4 +1,3 @@
-import { AutumnService } from "@anpord/billing/autumn";
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
@@ -8,6 +7,7 @@ import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import { authorIdOf } from "@anpord/schema/domain/actor";
 import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
+import { trialsRequested } from "@anpord/schema/domain/eval-quota";
 import {
   EVAL_PROVIDERS,
   type EvalHarness,
@@ -18,9 +18,10 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
+import { meterRun } from "../internal/evals/meter-run";
 import { asReading } from "../internal/evals/reading-to-api";
 import { detail, summarise } from "../internal/evals/run-to-api";
-import { tasksAreDistinct } from "../internal/evals/task-keys";
+import { admitStart } from "../internal/evals/start-admission";
 
 const HISTORY_LIMIT = 20;
 
@@ -51,31 +52,20 @@ export const listEvalRuns = (params: {
     };
   });
 
-const MAX_PUBLIC_TRIALS = 100;
-
 export const startEvalRun = (payload: PublicStartEvalRequest) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
+
+    yield* admitStart(actor.organizationId, payload);
+
+    const totalTrials = trialsRequested({
+      cases: payload.cases.length,
+      tasks: payload.tasks.length,
+      trials: payload.trials,
+    });
+
     const credentialResolver = yield* CredentialResolver;
-    if (!tasksAreDistinct(payload.tasks)) {
-      return yield* Effect.fail(
-        new BadRequest({ message: "Each eval task must be unique" })
-      );
-    }
-
-    const totalTrials =
-      payload.cases.length * payload.tasks.length * payload.trials;
-
-    if (totalTrials > MAX_PUBLIC_TRIALS) {
-      return yield* Effect.fail(
-        new BadRequest({
-          message: `A run may contain at most ${MAX_PUBLIC_TRIALS} trials`,
-        })
-      );
-    }
-
     const grid = yield* GridRun;
-    const autumn = yield* AutumnService;
     const credentials = yield* EvalCredentials;
     const requested = yield* Effect.forEach(payload.tasks, (task) =>
       harnessVersion(task.harness).pipe(
@@ -111,25 +101,11 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
       trials: payload.trials,
     });
 
-    /* Counted after the run is accepted, so a refused request is not billed,
-       and forked so a slow meter does not hold up the response. */
-    yield* Effect.forkDaemon(
-      autumn
-        .call("Autumn.track", (client) =>
-          client.track({
-            customerId: actor.organizationId,
-            featureId: "evals",
-            value: totalTrials,
-          })
-        )
-        .pipe(
-          Effect.catchAll((error) =>
-            Effect.logError("could not record eval usage", error).pipe(
-              Effect.annotateLogs({ orgId: actor.organizationId, runId: id })
-            )
-          )
-        )
-    );
+    yield* meterRun({
+      organizationId: actor.organizationId,
+      runId: id,
+      trials: totalTrials,
+    });
 
     return { id };
   });
