@@ -37,11 +37,6 @@ export interface TaskRepositoryShape {
     organizationId: string
   ) => Effect.Effect<readonly TaskRow[], EvalStoreError>;
 
-  readonly markBracketed: (
-    internalId: string,
-    bracketedAt: Date
-  ) => Effect.Effect<void, EvalStoreError>;
-
   readonly upsertByIdentity: (
     input: TaskDefinition & {
       readonly identity: string;
@@ -171,14 +166,6 @@ export const TaskRepositoryLive = Layer.effect(
               )
             )
         ).pipe(Effect.withSpan("TaskRepository.list")),
-
-      markBracketed: (internalId, bracketedAt) =>
-        tryStore("task.markBracketed", () =>
-          db
-            .update(evalTask)
-            .set({ bracketedAt })
-            .where(eq(evalTask.internalId, internalId))
-        ).pipe(Effect.asVoid, Effect.withSpan("TaskRepository.markBracketed")),
     });
   })
 );

@@ -34,7 +34,6 @@
     "./adapters/models/codex-available": "./src/adapters/models/codex-available.ts",
     "./adapters/sandbox/local": "./src/adapters/sandbox/local.ts",
     "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
-    "./adapters/scorers/journal-assertions": "./src/adapters/scorers/journal-assertions.ts",
     "./credentials/cipher": "./src/credentials/cipher.ts",
     "./codebase/errors": "./src/codebase/errors.ts",
     "./codebase/github-app": "./src/codebase/github-app.ts",
