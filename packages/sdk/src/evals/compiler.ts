@@ -5,6 +5,11 @@ import { Effect, Option } from "effect";
 import { bundledCaseModule } from "./case-modules";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { localRepo } from "./local-repo";
+import {
+  type CompiledMcpServer,
+  compileMcpServers,
+  withMcpServers,
+} from "./mcp-profile";
 import { profileTask } from "./profile-directory";
 import { prepareEntry, validatorEntry } from "./runner-source";
 import { repo } from "./source";
@@ -14,14 +19,25 @@ import type {
   EvalTaskDefinition,
 } from "./types";
 
-const taskOf = (entry: string, task: EvalTaskDefinition) =>
-  typeof task.harness === "string"
-    ? Effect.succeed({
-        harness: task.harness,
-        model: task.model,
-        provider: task.provider,
-      })
-    : profileTask(entry, { ...task, harness: task.harness });
+type PublicEvalTask = PublicStartEvalRequest["tasks"][number];
+
+const taskOf = (
+  entry: string,
+  task: EvalTaskDefinition,
+  mcp: readonly CompiledMcpServer[]
+) =>
+  Effect.gen(function* () {
+    const compiled: PublicEvalTask =
+      typeof task.harness === "string"
+        ? {
+            harness: task.harness,
+            model: task.model,
+            provider: task.provider,
+          }
+        : yield* profileTask(entry, { ...task, harness: task.harness });
+
+    return yield* Effect.try(() => withMcpServers(compiled, mcp));
+  });
 
 const sourceFor = (
   definition: EvalDefinition,
@@ -51,6 +67,8 @@ export const compileEvalEffect = (path: string) =>
         new Error(`${entry} must default export defineEval({ ... })`)
       );
     }
+
+    const mcp = yield* compileMcpServers(entry, definition.mcp ?? []);
 
     const needsFallback =
       definition.source === undefined &&
@@ -109,7 +127,7 @@ export const compileEvalEffect = (path: string) =>
 
     const tasks = yield* Effect.forEach(
       definition.tasks,
-      (task) => taskOf(entry, task),
+      (task) => taskOf(entry, task, mcp),
       { concurrency: 4 }
     );
 

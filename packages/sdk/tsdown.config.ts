@@ -9,9 +9,11 @@ export default defineConfig({
     config: "src/client/config.ts",
     eval: "src/evals/compiler.ts",
     index: "src/index.ts",
+    mcp: "src/mcp/index.ts",
+    "mcp-runtime": "src/mcp/runtime.ts",
     source: "src/evals/source.ts",
   },
   format: ["esm", "cjs"],
-  target: "node18",
+  target: "node20",
   treeshake: true,
 });

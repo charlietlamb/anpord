@@ -40,6 +40,26 @@
         "types": "./dist/config.d.mts",
         "default": "./dist/config.mjs"
       }
+    },
+    "./mcp": {
+      "import": {
+        "types": "./dist/mcp.d.mts",
+        "default": "./dist/mcp.mjs"
+      },
+      "require": {
+        "types": "./dist/mcp.d.cts",
+        "default": "./dist/mcp.cjs"
+      }
+    },
+    "./mcp/runtime": {
+      "import": {
+        "types": "./dist/mcp-runtime.d.mts",
+        "default": "./dist/mcp-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/mcp-runtime.d.cts",
+        "default": "./dist/mcp-runtime.cjs"
+      }
     }
   },
   "keywords": [
@@ -57,7 +77,7 @@
   ],
   "homepage": "https://anpord.com",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "publishConfig": {
     "access": "public"
@@ -72,14 +92,17 @@
   "devDependencies": {
     "@anpord/schema": "workspace:*",
     "@anpord/template": "workspace:*",
+    "@modelcontextprotocol/client": "catalog:",
     "publint": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "zod": "catalog:"
   },
   "dependencies": {
     "@effect/cli": "^0.75.2",
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.107.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "effect": "^3.21.2",
     "esbuild": "^0.25.12",
     "yaml": "^2.9.0"

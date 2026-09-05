@@ -72,3 +72,4 @@ export type {
   ValidatorContext,
   ValidatorResult,
 } from "./evals/types";
+export type { McpCall } from "./mcp/calls";

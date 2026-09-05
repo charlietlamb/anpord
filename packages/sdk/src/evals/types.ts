@@ -1,5 +1,7 @@
 import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
+import type { McpCall } from "../mcp/calls";
+import type { McpServerDefinition } from "../mcp/define";
 
 type EvalTaskRequest = PublicStartEvalRequest["tasks"][number];
 
@@ -81,6 +83,9 @@ export interface ValidatorContext {
   readonly answer: () => Promise<string>;
   readonly exec: (command: string) => Promise<CommandResult>;
   readonly exists: (path: string) => Promise<boolean>;
+  readonly mcp: {
+    readonly calls: (server?: string) => Promise<readonly McpCall[]>;
+  };
   readonly prepared: Readonly<Record<string, unknown>>;
   readonly readText: (path: string) => Promise<string>;
   /** Every reply the agent made, oldest first, separated by a blank line. */
@@ -116,6 +121,7 @@ export type EvalCaseDefinition = EvalCaseBase &
 
 export interface EvalDefinition {
   readonly cases: readonly EvalCaseDefinition[];
+  readonly mcp?: readonly McpServerDefinition[];
   readonly name: string;
   readonly prompt: string;
   readonly source?: DeclaredSource;

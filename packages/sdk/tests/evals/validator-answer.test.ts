@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { validatorEntry } from "../../src/evals/runner-source";
@@ -51,6 +51,22 @@ const wrote = async (name: string, content: string) => {
 };
 
 describe("a validator reading what the agent said", () => {
+  test("reads and filters MCP calls", async () => {
+    const root = await directory();
+    await mkdir(join(root, ".anpord"));
+    await writeFile(
+      join(root, ".anpord/mcp-calls.jsonl"),
+      `${JSON.stringify({ input: { id: "user_1" }, kind: "tool", name: "users_get", server: "example" })}\n${JSON.stringify({ input: {}, kind: "tool", name: "other", server: "other" })}\n`
+    );
+
+    const result = await runValidator(
+      "async ({ mcp }) => ({ passed: (await mcp.calls('example'))[0]?.input.id === 'user_1' })",
+      {}
+    );
+
+    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+  });
+
   test("is handed the answer from the file the scorer named", async () => {
     const path = await wrote("answer.txt", "There are eight planets.");
     const result = await runValidator(

@@ -70,6 +70,38 @@ npx anpord eval
 With no paths, the CLI discovers every `**/*.eval.ts` file and starts the
 suites concurrently. Pass files or directories to run a smaller set.
 
+## Mock MCP servers
+
+Define local MCP dependencies once and Anpord gives every OpenCode trial a
+fresh stdio server:
+
+```ts
+import { z } from "zod";
+import { defineEval } from "anpord";
+import { server, tool } from "anpord/mcp";
+
+const api = server({
+  name: "example",
+  version: "1.0.0",
+  tools: [
+    tool({
+      name: "users_get",
+      inputSchema: z.object({ id: z.string() }),
+      outputSchema: z.object({ id: z.string(), name: z.string() }),
+      handler: ({ id }) => ({ id, name: "Ada" }),
+    }),
+  ],
+});
+
+export default defineEval({
+  mcp: [api],
+  // cases, prompt, tasks, and trials
+});
+```
+
+Handlers return plain values or promises. Validators can inspect exact calls
+with `await context.mcp.calls("example")`. No service credentials are needed.
+
 ## Resolve a prompt
 
 ```ts

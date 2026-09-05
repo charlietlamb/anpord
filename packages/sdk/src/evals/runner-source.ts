@@ -15,10 +15,17 @@ const exec = (command) => new Promise((resolve, reject) => {
 const readOrEmpty = (path) =>
   path === undefined ? Promise.resolve("") : readFile(path, "utf8").then(text => text, () => "");
 
+const mcpCalls = async (server) => {
+  const text = await readOrEmpty(".anpord/mcp-calls.jsonl");
+  const calls = text.trim() === "" ? [] : text.trim().split("\\n").map((line) => JSON.parse(line));
+  return server === undefined ? calls : calls.filter((call) => call.server === server);
+};
+
 const context = {
   answer: () => readOrEmpty(process.env.ANPORD_ANSWER_FILE),
   exec,
   exists: path => access(path).then(() => true, () => false),
+  mcp: { calls: mcpCalls },
   readText: path => readFile(path, "utf8"),
   prepared: JSON.parse(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
   transcript: () => readOrEmpty(process.env.ANPORD_TRANSCRIPT_FILE),
@@ -87,3 +94,10 @@ export const prepareEntry = (module: string, name: string) =>
 
 export const definitionEntry = (entry: string) =>
   `import definition from ${JSON.stringify(entry)}; export default definition;`;
+
+export const mcpEntry = (entry: string, index: number) =>
+  `import definition from ${JSON.stringify(entry)};
+import { runMcpServer } from "anpord/mcp/runtime";
+const server = definition.mcp?.[${index}];
+if (server === undefined) throw new Error("MCP server ${index} is missing");
+runMcpServer(server);`;

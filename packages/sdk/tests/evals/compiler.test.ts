@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compileEval } from "../../src/evals/compiler";
+import { withMcpServers } from "../../src/evals/mcp-profile";
 
 let workspace: string | undefined;
 
@@ -14,6 +15,81 @@ afterEach(async () => {
 });
 
 describe("compileEval", () => {
+  test("strictly decodes existing OpenCode MCP config", () => {
+    expect(() =>
+      withMcpServers(
+        {
+          harness: "opencode",
+          model: "model",
+          profile: {
+            env: { OPENCODE_CONFIG_CONTENT: '{"mcp":[]}' },
+            files: {},
+            name: "profile",
+          },
+          provider: "e2b",
+        },
+        [{ entry: "workspace/server.mjs", files: {}, name: "example" }]
+      )
+    ).toThrow();
+  });
+
+  test("adds root MCP servers to every OpenCode task", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-mcp-eval-"));
+    await mkdir(join(workspace, "node_modules"));
+    await symlink(
+      join(import.meta.dir, "../../node_modules/zod"),
+      join(workspace, "node_modules/zod")
+    );
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { defineEval } from "anpord";
+import { server, tool } from "anpord/mcp";
+import { z } from "zod";
+const api = server({
+  name: "example",
+  version: "1.0.0",
+  tools: [tool({
+    name: "users_get",
+    inputSchema: z.object({ id: z.string() }),
+    outputSchema: z.object({ id: z.string() }),
+    handler: ({ id }) => ({ id }),
+  })],
+});
+export default defineEval({
+  cases: [{ name: "case", verify: "true" }],
+  mcp: [api],
+  name: "mcp",
+  prompt: "Use the tool",
+  source: { kind: "empty" },
+  tasks: [
+    { harness: "opencode", model: "one", provider: "daytona" },
+    { harness: "opencode", model: "two", provider: "daytona" },
+  ],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileEval(join(workspace, "eval.ts"));
+
+    for (const task of payload.tasks) {
+      expect(task.profile?.name).toBe("anpord-mcp");
+      expect(
+        task.profile?.files["workspace/.anpord/mcp/0/server.mjs"]
+      ).toContain("gunzipSync");
+      expect(
+        JSON.parse(task.profile?.env?.OPENCODE_CONFIG_CONTENT ?? "")
+      ).toEqual({
+        mcp: {
+          example: {
+            command: ["node", ".anpord/mcp/0/server.mjs"],
+            enabled: true,
+            type: "local",
+          },
+        },
+      });
+    }
+  });
+
   test("bundles a directly referenced TypeScript validator", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-validator-"));
     await writeFile(
