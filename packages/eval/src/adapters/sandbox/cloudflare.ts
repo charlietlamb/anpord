@@ -41,6 +41,16 @@ export const makeConfiguredCloudflareAdapter = (
     return {
       attach: (id) => Effect.succeed(handleFor(id, WORKSPACE, configured)),
       destroy,
+      /* `request.autoStopMinutes` is deliberately not sent: the bridge's
+         create route takes no body at all -- it generates a random id and
+         returns it -- so this provider has no server-side stop the way every
+         other one does.
+
+         The residual risk is real. A Cloudflare sandbox lives until something
+         deletes it, which means the scope finalizer on the happy path and the
+         reaper on every other. That is why the id is recorded before any work
+         runs, and why the reaper must find a sandbox by the column holding it
+         rather than by the trial's status. */
       open: (request: OpenSandbox) =>
         Effect.tryPromise({
           catch: unavailable,

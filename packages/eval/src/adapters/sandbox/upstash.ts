@@ -7,6 +7,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { settingUp } from "./after-create";
 import { type EnvFile, envFileFor, quoted, sourcing } from "./env-file";
 import { execStream } from "./exec-stream";
 import { noCache, notResumable } from "./not-resumable";
@@ -144,21 +145,24 @@ export const makeConfiguredUpstashAdapter = (
             ttl: request.autoStopMinutes * 60,
           }),
       }).pipe(
-        Effect.tap((box) =>
-          Effect.tryPromise({
-            catch: unavailable,
-            try: async () => {
-              const run = await box.exec.command(
-                `mkdir -p ${quoted(request.workspace)}`
-              );
+        Effect.flatMap((box) =>
+          settingUp(
+            Effect.tryPromise({
+              catch: unavailable,
+              try: async () => {
+                const run = await box.exec.command(
+                  `mkdir -p ${quoted(request.workspace)}`
+                );
 
-              if (run.exitCode !== 0) {
-                throw new Error(run.result);
-              }
-            },
-          })
-        ),
-        Effect.map((box) => handleFor(box, request.workspace))
+                if (run.exitCode !== 0) {
+                  throw new Error(run.result);
+                }
+              },
+            }),
+            handleFor(box, request.workspace),
+            () => box.delete()
+          )
+        )
       ),
     provider: "upstash",
   });

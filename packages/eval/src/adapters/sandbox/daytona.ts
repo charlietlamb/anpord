@@ -1,6 +1,7 @@
 import { Daytona } from "@daytonaio/sdk";
 import { Effect } from "effect";
 import type { OpenSandbox, SandboxAdapterShape } from "../../ports/sandbox";
+import { settingUp } from "./after-create";
 import { CACHE_PATH, readyVolume } from "./daytona-cache";
 import { handleFor } from "./daytona-handle";
 import { HOME, unavailable } from "./daytona-shell";
@@ -58,20 +59,25 @@ export const makeConfiguredDaytonaAdapter = (
               }),
           });
         }).pipe(
-          Effect.tap((sandbox) =>
-            Effect.tryPromise({
-              catch: unavailable,
-              try: () =>
-                sandbox.process.executeCommand(
-                  `mkdir -p ${request.workspace}`,
-                  HOME,
-                  undefined,
-                  30
-                ),
-            })
-          ),
-          Effect.map((sandbox) =>
-            handleFor(sandbox, request.workspace, request.cache !== undefined)
+          Effect.flatMap((sandbox) =>
+            settingUp(
+              Effect.tryPromise({
+                catch: unavailable,
+                try: () =>
+                  sandbox.process.executeCommand(
+                    `mkdir -p ${request.workspace}`,
+                    HOME,
+                    undefined,
+                    30
+                  ),
+              }),
+              handleFor(
+                sandbox,
+                request.workspace,
+                request.cache !== undefined
+              ),
+              () => sandbox.delete()
+            )
           )
         ),
       provider: "daytona",

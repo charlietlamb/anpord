@@ -9,6 +9,7 @@ import type {
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { settingUp } from "./after-create";
 import { execStream } from "./exec-stream";
 import { noCache, notResumable } from "./not-resumable";
 
@@ -149,15 +150,14 @@ export const makeConfiguredVercelAdapter = (
             }),
         }).pipe(
           Effect.flatMap((sandbox) =>
-            Effect.tryPromise({
-              catch: unavailable,
-              try: () =>
-                sandbox.fs.mkdir(request.workspace, { recursive: true }),
-            }).pipe(
-              Effect.as(handleFor(sandbox, request.workspace)),
-              Effect.tapError(() =>
-                Effect.promise(() => sandbox.delete()).pipe(Effect.ignore)
-              )
+            settingUp(
+              Effect.tryPromise({
+                catch: unavailable,
+                try: () =>
+                  sandbox.fs.mkdir(request.workspace, { recursive: true }),
+              }),
+              handleFor(sandbox, request.workspace),
+              () => sandbox.delete()
             )
           )
         ),
