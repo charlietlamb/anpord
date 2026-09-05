@@ -1,6 +1,6 @@
 {
   "name": "anpord",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "TypeScript SDK and CLI for coding agent evals and prompt management.",
   "license": "MIT",
   "type": "module",
@@ -25,6 +25,26 @@
       }
     },
     "./package.json": "./package.json",
+    "./cli": {
+      "import": {
+        "types": "./dist/cli.d.mts",
+        "default": "./dist/cli.mjs"
+      },
+      "require": {
+        "types": "./dist/cli.d.cts",
+        "default": "./dist/cli.cjs"
+      }
+    },
+    "./cli/runtime": {
+      "import": {
+        "types": "./dist/cli-runtime.d.mts",
+        "default": "./dist/cli-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/cli-runtime.d.cts",
+        "default": "./dist/cli-runtime.cjs"
+      }
+    },
     "./eval": {
       "import": {
         "types": "./dist/eval.d.mts",
@@ -103,13 +123,14 @@
     "@effect/platform": "^0.96.1",
     "@effect/platform-node": "^0.107.0",
     "@modelcontextprotocol/server": "^2.0.0",
+    "@standard-schema/spec": "^1.1.0",
     "effect": "^3.21.2",
     "esbuild": "^0.25.12",
     "smol-toml": "^1.8.0",
     "yaml": "^2.9.0"
   },
   "bin": {
-    "anpord": "./dist/cli.mjs"
+    "anpord": "./dist/bin.mjs"
   },
   "repository": {
     "type": "git",

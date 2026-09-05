@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const binary = join(packageRoot, "dist", "cli.mjs");
+const binary = join(packageRoot, "dist", "bin.mjs");
 const built = existsSync(binary);
 const CLI_TIMEOUT = 15_000;
 const version = JSON.parse(

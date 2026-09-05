@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { parse } from "smol-toml";
 import { compileEval } from "../../src/evals/compiler";
 import { withMcpServers } from "../../src/evals/mcp-profile";
@@ -34,7 +34,7 @@ describe("compileEval", () => {
     ).toThrow();
   });
 
-  test("adds root MCP servers to every built-in agent task", async () => {
+  test("adds MCP servers and CLIs to every built-in agent task", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-mcp-eval-"));
     await mkdir(join(workspace, "node_modules"));
     await symlink(
@@ -44,8 +44,20 @@ describe("compileEval", () => {
     await writeFile(
       join(workspace, "eval.ts"),
       `import { defineEval } from "anpord";
+import { cli, command } from "anpord/cli";
 import { server, tool } from "anpord/mcp";
 import { z } from "zod";
+const client = cli({
+  name: "example-cli",
+  version: "1.0.0",
+  commands: [command({
+    name: "users get",
+    inputSchema: z.object({ id: z.string() }),
+    outputSchema: z.object({ id: z.string() }),
+    options: { id: { type: "string" } },
+    handler: ({ id }) => ({ id }),
+  })],
+});
 const api = server({
   name: "example",
   version: "1.0.0",
@@ -58,6 +70,7 @@ const api = server({
 });
 export default defineEval({
   cases: [{ name: "case", verify: "true" }],
+  cli: [client],
   mcp: [api],
   name: "mcp",
   prompt: "Use the tool",
@@ -78,7 +91,29 @@ export default defineEval({
       expect(
         task.profile?.files["workspace/.anpord/mcp/0/server.mjs"]
       ).toContain("gunzipSync");
+      expect(task.profile?.files["workspace/.anpord/cli/0/cli.mjs"]).toContain(
+        "gunzipSync"
+      );
+      expect(task.profile?.install).toContain(
+        'ln -sf "$PWD/.anpord/cli/0/cli.mjs" ~/.local/bin/example-cli'
+      );
     }
+
+    const first = payload.tasks[0];
+    for (const [path, source] of Object.entries(first?.profile?.files ?? {})) {
+      if (path.startsWith("workspace/")) {
+        const target = join(workspace, path.slice("workspace/".length));
+        await mkdir(dirname(target), { recursive: true });
+        await writeFile(target, source);
+      }
+    }
+    expect(
+      execFileSync(
+        "node",
+        [".anpord/cli/0/cli.mjs", "users", "get", "--id", "user_1"],
+        { cwd: workspace, encoding: "utf8" }
+      )
+    ).toContain('"id": "user_1"');
 
     const opencode = payload.tasks.find(
       ({ harness }) => harness === "opencode"

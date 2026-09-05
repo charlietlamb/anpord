@@ -5,7 +5,9 @@ export default defineConfig({
   deps: { alwaysBundle: [/^@anpord\//] },
   dts: { eager: true },
   entry: {
-    cli: "src/cli/main.ts",
+    bin: "src/cli/main.ts",
+    cli: "src/mock-cli/index.ts",
+    "cli-runtime": "src/mock-cli/runtime.ts",
     config: "src/client/config.ts",
     eval: "src/evals/compiler.ts",
     index: "src/index.ts",

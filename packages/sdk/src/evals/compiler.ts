@@ -3,6 +3,7 @@ import type { EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { bundledCaseModule } from "./case-modules";
+import { type CompiledCli, compileClis, withClis } from "./cli-profile";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { localRepo } from "./local-repo";
 import {
@@ -24,6 +25,7 @@ type PublicEvalTask = PublicStartEvalRequest["tasks"][number];
 const taskOf = (
   entry: string,
   task: EvalTaskDefinition,
+  clis: readonly CompiledCli[],
   mcp: readonly CompiledMcpServer[]
 ) =>
   Effect.gen(function* () {
@@ -36,7 +38,9 @@ const taskOf = (
           }
         : yield* profileTask(entry, { ...task, harness: task.harness });
 
-    return yield* Effect.try(() => withMcpServers(compiled, mcp));
+    return yield* Effect.try(() =>
+      withClis(withMcpServers(compiled, mcp), clis)
+    );
   });
 
 const sourceFor = (
@@ -68,6 +72,7 @@ export const compileEvalEffect = (path: string) =>
       );
     }
 
+    const clis = yield* compileClis(entry, definition.cli ?? []);
     const mcp = yield* compileMcpServers(entry, definition.mcp ?? []);
 
     const needsFallback =
@@ -127,7 +132,7 @@ export const compileEvalEffect = (path: string) =>
 
     const tasks = yield* Effect.forEach(
       definition.tasks,
-      (task) => taskOf(entry, task, mcp),
+      (task) => taskOf(entry, task, clis, mcp),
       { concurrency: 4 }
     );
 

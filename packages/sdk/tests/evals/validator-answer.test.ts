@@ -51,6 +51,22 @@ const wrote = async (name: string, content: string) => {
 };
 
 describe("a validator reading what the agent said", () => {
+  test("reads and filters CLI calls", async () => {
+    const root = await directory();
+    await mkdir(join(root, ".anpord"));
+    await writeFile(
+      join(root, ".anpord/cli-calls.jsonl"),
+      `${JSON.stringify({ cli: "mcp-use", command: "servers list", input: { json: true } })}\n`
+    );
+
+    const result = await runValidator(
+      "async ({ cli }) => ({ passed: (await cli.calls('mcp-use'))[0]?.input.json === true })",
+      {}
+    );
+
+    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+  });
+
   test("reads and filters MCP calls", async () => {
     const root = await directory();
     await mkdir(join(root, ".anpord"));

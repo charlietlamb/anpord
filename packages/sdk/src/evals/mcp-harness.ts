@@ -3,6 +3,7 @@ import { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 import { Schema } from "effect";
 import { parse, stringify } from "smol-toml";
 import type { CompiledMcpServer } from "./mcp-profile";
+import { appendInstall } from "./profile-compose";
 
 interface McpHarnessAdapter {
   apply(
@@ -106,10 +107,7 @@ const pi: McpHarnessAdapter = {
   apply: (profile, servers) => {
     const configured = piBase.apply(profile, servers);
     const install = "~/.local/bin/pi install npm:pi-mcp-adapter@2.32.1";
-    return {
-      ...configured,
-      install: profile.install ? `${profile.install} && ${install}` : install,
-    };
+    return appendInstall(configured, install);
   },
 };
 

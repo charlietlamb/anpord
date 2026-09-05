@@ -267,15 +267,16 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "bin": {
-        "anpord": "./dist/cli.mjs",
+        "anpord": "./dist/bin.mjs",
       },
       "dependencies": {
         "@effect/cli": "^0.75.2",
         "@effect/platform": "^0.96.1",
         "@effect/platform-node": "^0.107.0",
         "@modelcontextprotocol/server": "^2.0.0",
+        "@standard-schema/spec": "^1.1.0",
         "effect": "^3.21.2",
         "esbuild": "^0.25.12",
         "smol-toml": "^1.8.0",
@@ -356,6 +357,7 @@
     "@opentelemetry/sdk-trace-base": "2.10.0",
     "@phosphor-icons/react": "2.1.10",
     "@posthog/react": "1.10.3",
+    "@standard-schema/spec": "1.1.0",
     "@tailwindcss/vite": "4.2.1",
     "@tanstack/react-form": "1.33.0",
     "@tanstack/react-query": "5.101.4",

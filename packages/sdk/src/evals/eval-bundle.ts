@@ -12,9 +12,33 @@ const authoringExports = [
 const authoringDir = dirname(fileURLToPath(import.meta.url));
 
 const ANPORD_MODULE = /^anpord$/;
-const ANPORD_MCP_MODULE = /^anpord\/mcp$/;
-const ANPORD_MCP_RUNTIME_MODULE = /^anpord\/mcp\/runtime$/;
 const ANY_MODULE = /.*/;
+const localModules = [
+  {
+    built: "cli.mjs",
+    filter: /^anpord\/cli$/,
+    namespace: "anpord-cli-authoring",
+    source: "../mock-cli/index.ts",
+  },
+  {
+    built: "cli-runtime.mjs",
+    filter: /^anpord\/cli\/runtime$/,
+    namespace: "anpord-cli-runtime",
+    source: "../mock-cli/runtime.ts",
+  },
+  {
+    built: "mcp.mjs",
+    filter: /^anpord\/mcp$/,
+    namespace: "anpord-mcp-authoring",
+    source: "../mcp/index.ts",
+  },
+  {
+    built: "mcp-runtime.mjs",
+    filter: /^anpord\/mcp\/runtime$/,
+    namespace: "anpord-mcp-runtime",
+    source: "../mcp/runtime.ts",
+  },
+] as const;
 
 const authoringModule: Plugin = {
   name: "anpord-authoring",
@@ -23,14 +47,26 @@ const authoringModule: Plugin = {
       namespace: "anpord-authoring",
       path: "anpord",
     }));
-    compiler.onResolve({ filter: ANPORD_MCP_MODULE }, () => ({
-      namespace: "anpord-mcp-authoring",
-      path: "anpord/mcp",
-    }));
-    compiler.onResolve({ filter: ANPORD_MCP_RUNTIME_MODULE }, () => ({
-      namespace: "anpord-mcp-runtime",
-      path: "anpord/mcp/runtime",
-    }));
+    for (const module of localModules) {
+      compiler.onResolve({ filter: module.filter }, ({ path }) => ({
+        namespace: module.namespace,
+        path,
+      }));
+      compiler.onLoad(
+        { filter: ANY_MODULE, namespace: module.namespace },
+        () => {
+          const source = resolve(authoringDir, module.source);
+          const resolved = existsSync(source)
+            ? source
+            : resolve(authoringDir, module.built);
+          return {
+            contents: `export * from ${JSON.stringify(resolved)};`,
+            loader: "js",
+            resolveDir: authoringDir,
+          };
+        }
+      );
+    }
     compiler.onLoad(
       { filter: ANY_MODULE, namespace: "anpord-authoring" },
       () => ({
@@ -38,36 +74,6 @@ const authoringModule: Plugin = {
         loader: "js",
         resolveDir: authoringDir,
       })
-    );
-    compiler.onLoad(
-      { filter: ANY_MODULE, namespace: "anpord-mcp-runtime" },
-      () => {
-        const source = resolve(authoringDir, "../mcp/runtime.ts");
-        const module = existsSync(source)
-          ? source
-          : resolve(authoringDir, "mcp-runtime.mjs");
-
-        return {
-          contents: `export * from ${JSON.stringify(module)};`,
-          loader: "js",
-          resolveDir: authoringDir,
-        };
-      }
-    );
-    compiler.onLoad(
-      { filter: ANY_MODULE, namespace: "anpord-mcp-authoring" },
-      () => {
-        const source = resolve(authoringDir, "../mcp/index.ts");
-        const module = existsSync(source)
-          ? source
-          : resolve(authoringDir, "mcp.mjs");
-
-        return {
-          contents: `export * from ${JSON.stringify(module)};`,
-          loader: "js",
-          resolveDir: authoringDir,
-        };
-      }
     );
   },
 };

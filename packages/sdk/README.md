@@ -102,6 +102,39 @@ export default defineEval({
 Handlers return plain values or promises. Validators can inspect exact calls
 with `await context.mcp.calls("example")`. No service credentials are needed.
 
+## Mock CLIs
+
+Define a local executable with the same Standard Schema fixtures and attach it
+to any eval:
+
+```ts
+import { z } from "zod";
+import { defineEval } from "anpord";
+import { cli, command } from "anpord/cli";
+
+const client = cli({
+  name: "example",
+  version: "1.0.0",
+  commands: [
+    command({
+      name: "users get",
+      inputSchema: z.object({ id: z.string() }),
+      outputSchema: z.object({ id: z.string(), name: z.string() }),
+      options: { id: { type: "string" } },
+      handler: ({ id }) => ({ id, name: "Ada" }),
+    }),
+  ],
+});
+
+export default defineEval({
+  cli: [client],
+  // cases, prompt, tasks, and trials
+});
+```
+
+Every built-in agent receives the executable on `PATH`. Validators can inspect
+calls with `await context.cli.calls("example")`.
+
 ## Resolve a prompt
 
 ```ts

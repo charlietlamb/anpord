@@ -1,0 +1,57 @@
+---
+title: "Mock CLIs"
+description: "Test agent command use without external credentials or data"
+---
+
+Define typed commands with Standard Schema, then attach the CLI to an eval:
+
+```ts
+import { defineEval } from "anpord";
+import { cli, command } from "anpord/cli";
+import { z } from "zod";
+
+const user = { id: "user_1", name: "Ada" };
+
+const client = cli({
+  name: "example",
+  version: "1.0.0",
+  description: "Manage users",
+  commands: [
+    command({
+      name: "users get",
+      description: "Get a user by ID",
+      inputSchema: z.object({ id: z.string() }),
+      outputSchema: z.object({ id: z.string(), name: z.string() }),
+      options: { id: { description: "User ID", type: "string" } },
+      handler: ({ id }) => ({ ...user, id }),
+    }),
+  ],
+});
+
+export default defineEval({
+  name: "uses-users-cli",
+  cli: [client],
+  // cases, prompt, source, tasks, and trials
+});
+```
+
+The same definition works with Codex, Claude, OpenCode, Pi, Gemini, Qwen,
+Cursor, and FX. Anpord bundles each CLI into the task profile and puts its name
+on `PATH`. Handlers use plain TypeScript and may return a value or promise;
+inputs and outputs are validated against their schemas.
+
+MCP tools and CLI commands can import the same fixture values and schemas. No
+external organization IDs, service credentials, or test data are required.
+
+Inspect exact calls in a validator:
+
+```ts
+import type { Validator } from "anpord";
+
+export const calledUsers: Validator = async ({ cli }) => ({
+  message: "the agent ran users get",
+  passed: (await cli.calls("example")).some(
+    (call) => call.command === "users get"
+  ),
+});
+```

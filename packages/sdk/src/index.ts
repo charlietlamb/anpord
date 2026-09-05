@@ -73,3 +73,4 @@ export type {
   ValidatorResult,
 } from "./evals/types";
 export type { McpCall } from "./mcp/calls";
+export type { CliCall } from "./mock-cli/calls";

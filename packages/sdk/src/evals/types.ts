@@ -2,6 +2,8 @@ import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import type { McpCall } from "../mcp/calls";
 import type { McpServerDefinition } from "../mcp/define";
+import type { CliCall } from "../mock-cli/calls";
+import type { CliDefinition } from "../mock-cli/define";
 
 type EvalTaskRequest = PublicStartEvalRequest["tasks"][number];
 
@@ -81,6 +83,9 @@ export type Prepare = (
 export interface ValidatorContext {
   /** The agent's final reply, empty when it said nothing. */
   readonly answer: () => Promise<string>;
+  readonly cli: {
+    readonly calls: (cli?: string) => Promise<readonly CliCall[]>;
+  };
   readonly exec: (command: string) => Promise<CommandResult>;
   readonly exists: (path: string) => Promise<boolean>;
   readonly mcp: {
@@ -121,6 +126,7 @@ export type EvalCaseDefinition = EvalCaseBase &
 
 export interface EvalDefinition {
   readonly cases: readonly EvalCaseDefinition[];
+  readonly cli?: readonly CliDefinition[];
   readonly mcp?: readonly McpServerDefinition[];
   readonly name: string;
   readonly prompt: string;

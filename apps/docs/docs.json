@@ -47,6 +47,7 @@
               "evals/variants",
               "evals/harnesses",
               "evals/mock-mcp",
+              "evals/mock-cli",
               "evals/profiles",
               "evals/command-harness",
               "evals/results",
