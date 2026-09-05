@@ -43,8 +43,7 @@ export const EvalTrialStatus = Schema.Literal(
   "running",
   "passed",
   "failed",
-  "void",
-  "exceeded"
+  "void"
 );
 export type EvalTrialStatus = typeof EvalTrialStatus.Type;
 
