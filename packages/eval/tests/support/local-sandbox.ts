@@ -121,6 +121,13 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
 
           const store = join(root, ".anpord-cache");
 
+          /* Every real adapter makes the workspace as it opens, and a command
+             whose cwd does not exist fails before it runs. */
+          yield* Effect.tryPromise({
+            catch: unavailable,
+            try: () => mkdir(request.workspace, { recursive: true }),
+          });
+
           return {
             cache:
               request.cache === undefined
