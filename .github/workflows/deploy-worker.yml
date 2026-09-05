@@ -38,15 +38,26 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      # A personal access token rather than an environment secret key: deploying
-      # creates a new version, which a per-environment key is not allowed to do.
+      # An access token, not the environment secret key the server runs with:
+      # tr_prod_sk_ triggers runs, and creating a version is a different right
+      # the cli refuses it for. Either prefix the cli accepts works, and an
+      # organization token is the one to prefer -- it belongs to the org rather
+      # than to whoever created it, so the deploy survives them leaving.
       - name: Deploy the eval worker
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
         run: |
-          if [ -z "$TRIGGER_ACCESS_TOKEN" ]; then
-            echo "TRIGGER_ACCESS_TOKEN is not set; add it to the repository secrets."
-            exit 1
-          fi
+          case "$TRIGGER_ACCESS_TOKEN" in
+            tr_oat_*|tr_pat_*) ;;
+            "")
+              echo "TRIGGER_ACCESS_TOKEN is not set. Add an organization access"
+              echo "token (tr_oat_, from Organization settings) or a personal one"
+              echo "(tr_pat_) to the repository secrets."
+              exit 1 ;;
+            *)
+              echo "TRIGGER_ACCESS_TOKEN is not an access token: the cli takes"
+              echo "tr_oat_ or tr_pat_, not an environment secret key."
+              exit 1 ;;
+          esac
           bunx trigger.dev@4.5.15 deploy
         working-directory: apps/worker
