@@ -56,7 +56,6 @@
     },
     "packages/eval": {
       "entry": [
-        "src/adapters/sandbox/local.ts",
         "src/adapters/scorers/journal-assertions.ts",
         "src/layer.ts",
         "src/sdk/define.ts",
