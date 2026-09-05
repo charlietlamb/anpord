@@ -51,11 +51,12 @@ export const evalTrial = pgTable(
       table.cellInternalId,
       table.ordinal
     ),
-    /* Partial, and only over trials that may still hold a sandbox. The
-       previous index covered every status and supported no query at all. */
+    /* Partial, over every trial still holding a sandbox whatever its status:
+       a terminal status is not evidence the VM is gone, and requiring one
+       here hid every sandbox the reconciler voided. */
     index("eval_trial_live_sandbox_idx")
-      .on(table.status)
-      .where(sql`status in ('queued', 'running') and sandbox_id is not null`),
+      .on(table.startedAt)
+      .where(sql`sandbox_id is not null`),
     check(
       "eval_trial_passed_agrees_check",
       sql`${table.status} not in ('passed', 'failed') or ${table.passed} is not null`
