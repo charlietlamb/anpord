@@ -146,7 +146,7 @@ export const CredentialConnectionsLive = Layer.effect(
           const now = new Date(yield* Clock.currentTimeMillis);
           const sealedPayload = yield* sealValues(cipher, values, selected);
           return summaryOf(
-            yield* repository.rotate(selected, sealedPayload, now)
+            yield* repository.rotate(actor, selected, sealedPayload, now)
           );
         }).pipe(
           Effect.withSpan("CredentialConnections.rotate"),

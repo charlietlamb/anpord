@@ -23,10 +23,11 @@ export interface WorkbenchRepositoryShape {
   readonly list: (
     organizationId: string
   ) => Effect.Effect<readonly Row[], EvalStoreError>;
-  readonly markRun: (
-    internalId: string,
-    runId: string
-  ) => Effect.Effect<void, EvalStoreError>;
+  readonly markRun: (input: {
+    readonly internalId: string;
+    readonly organizationId: string;
+    readonly runId: string;
+  }) => Effect.Effect<void, EvalStoreError>;
   readonly update: (input: {
     readonly config: PlaygroundConfig;
     readonly id: string;
@@ -94,12 +95,17 @@ export const WorkbenchRepositoryLive = Layer.effect(
             .orderBy(desc(evalPlayground.updatedAt))
         ).pipe(Effect.withSpan("WorkbenchRepository.list")),
 
-      markRun: (internalId, runId) =>
+      markRun: (input) =>
         tryStore("workbench.markRun", () =>
           db
             .update(evalPlayground)
-            .set({ lastRunId: runId })
-            .where(eq(evalPlayground.internalId, internalId))
+            .set({ lastRunId: input.runId })
+            .where(
+              and(
+                eq(evalPlayground.organizationId, input.organizationId),
+                eq(evalPlayground.internalId, input.internalId)
+              )
+            )
         ).pipe(Effect.asVoid, Effect.withSpan("WorkbenchRepository.markRun")),
 
       update: (input) =>
