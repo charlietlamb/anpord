@@ -144,6 +144,17 @@ describe("a profile on Codex", () => {
   });
 });
 
+describe("a profile on Cursor", () => {
+  it("pre-approves a shipped MCP config", () => {
+    expect(
+      cursorCommand({
+        ...withProfile({ "workspace/.cursor/mcp.json": "{}" }),
+        harness: "cursor",
+      })
+    ).toContain("--approve-mcps");
+  });
+});
+
 describe("a profile on OpenCode", () => {
   it("names the prompt through the config content, not the command", () => {
     const run = { ...withProfile({}), env: {}, harness: "opencode" } as const;

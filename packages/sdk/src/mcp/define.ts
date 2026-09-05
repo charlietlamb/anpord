@@ -70,6 +70,8 @@ interface McpServerOptions {
   readonly version: string;
 }
 
+const SERVER_NAME = /^[A-Za-z0-9_-]{1,64}$/;
+
 const unique = (label: string, values: readonly string[]) => {
   const duplicate = values.find(
     (value, index) => values.indexOf(value) !== index
@@ -81,7 +83,13 @@ const unique = (label: string, values: readonly string[]) => {
 };
 
 export const server = (definition: McpServerOptions): McpServerDefinition => {
-  if (!(definition.name.trim() && definition.version.trim())) {
+  if (!SERVER_NAME.test(definition.name)) {
+    throw new Error(
+      "MCP server names need 1-64 letters, digits, underscores, or hyphens"
+    );
+  }
+
+  if (!definition.version.trim()) {
     throw new Error("MCP servers need a name and version");
   }
 

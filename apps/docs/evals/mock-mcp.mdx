@@ -1,0 +1,56 @@
+---
+title: "Mock MCP servers"
+description: "Test agent tool use without external credentials or data"
+---
+
+Define typed tools and resources with Standard Schema, then attach the server to
+an eval:
+
+```ts
+import { defineEval } from "anpord";
+import { server, tool } from "anpord/mcp";
+import { z } from "zod";
+
+const users = server({
+  name: "users",
+  version: "1.0.0",
+  tools: [
+    tool({
+      name: "users_get",
+      description: "Get a user by ID",
+      inputSchema: z.object({ id: z.string() }),
+      outputSchema: z.object({ id: z.string(), name: z.string() }),
+      handler: ({ id }) => ({ id, name: "Ada" }),
+    }),
+  ],
+});
+
+export default defineEval({
+  name: "uses-users-api",
+  mcp: [users],
+  // cases, prompt, source, tasks, and trials
+});
+```
+
+The same definition works with Codex, Claude, OpenCode, Pi, Gemini, Qwen,
+Cursor, and FX. Anpord bundles a fresh stdio process into each task and writes
+the harness's native configuration. Pi's MCP adapter is installed automatically.
+The custom `command` harness owns its process and MCP integration, so it does
+not receive an implicit configuration.
+
+Handlers use plain TypeScript and may return a value or promise. Inputs and
+outputs are validated against their schemas. No external organization IDs,
+service credentials, or test data are required.
+
+Inspect exact calls in a validator:
+
+```ts
+import type { Validator } from "anpord";
+
+export const calledUser: Validator = async ({ mcp }) => ({
+  message: "the agent called users_get",
+  passed: (await mcp.calls("users")).some(
+    (call) => call.kind === "tool" && call.name === "users_get"
+  ),
+});
+```

@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { parse } from "smol-toml";
 import { compileEval } from "../../src/evals/compiler";
 import { withMcpServers } from "../../src/evals/mcp-profile";
 
@@ -33,7 +34,7 @@ describe("compileEval", () => {
     ).toThrow();
   });
 
-  test("adds root MCP servers to every OpenCode task", async () => {
+  test("adds root MCP servers to every built-in agent task", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-mcp-eval-"));
     await mkdir(join(workspace, "node_modules"));
     await symlink(
@@ -62,8 +63,9 @@ export default defineEval({
   prompt: "Use the tool",
   source: { kind: "empty" },
   tasks: [
-    { harness: "opencode", model: "one", provider: "daytona" },
-    { harness: "opencode", model: "two", provider: "daytona" },
+    ...["claude", "codex", "cursor", "fx", "gemini", "opencode", "pi", "qwen"].map(
+      (harness) => ({ harness, model: "model", provider: "daytona" })
+    ),
   ],
   trials: 1,
 });`
@@ -76,18 +78,51 @@ export default defineEval({
       expect(
         task.profile?.files["workspace/.anpord/mcp/0/server.mjs"]
       ).toContain("gunzipSync");
-      expect(
-        JSON.parse(task.profile?.env?.OPENCODE_CONFIG_CONTENT ?? "")
-      ).toEqual({
-        mcp: {
+    }
+
+    const opencode = payload.tasks.find(
+      ({ harness }) => harness === "opencode"
+    );
+    expect(
+      JSON.parse(opencode?.profile?.env?.OPENCODE_CONFIG_CONTENT ?? "")
+    ).toEqual({
+      mcp: {
+        example: {
+          command: ["node", ".anpord/mcp/0/server.mjs"],
+          enabled: true,
+          type: "local",
+        },
+      },
+    });
+  });
+
+  test("adds root MCP servers to Codex config", () => {
+    const task = withMcpServers(
+      {
+        harness: "codex",
+        model: "gpt-5",
+        profile: {
+          files: { "home/.codex/config.toml": 'model = "gpt-5"' },
+          name: "profile",
+        },
+        provider: "e2b",
+      },
+      [{ entry: "workspace/server.mjs", files: {}, name: "example" }]
+    );
+
+    expect(parse(task.profile?.files["home/.codex/config.toml"] ?? "")).toEqual(
+      {
+        model: "gpt-5",
+        mcp_servers: {
           example: {
-            command: ["node", ".anpord/mcp/0/server.mjs"],
-            enabled: true,
-            type: "local",
+            args: ["server.mjs"],
+            command: "node",
+            default_tools_approval_mode: "approve",
+            required: true,
           },
         },
-      });
-    }
+      }
+    );
   });
 
   test("bundles a directly referenced TypeScript validator", async () => {

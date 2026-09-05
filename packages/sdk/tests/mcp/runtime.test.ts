@@ -154,4 +154,10 @@ describe("MCP mocks", () => {
       server({ name: "example", tools: [duplicate, duplicate], version: "1" })
     ).toThrow("Duplicate MCP tool: same");
   });
+
+  test("uses names every supported harness accepts", () => {
+    expect(() => server({ name: "not valid", version: "1" })).toThrow(
+      "MCP server names need 1-64 letters, digits, underscores, or hyphens"
+    );
+  });
 });

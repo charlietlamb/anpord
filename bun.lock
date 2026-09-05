@@ -278,6 +278,7 @@
         "@modelcontextprotocol/server": "^2.0.0",
         "effect": "^3.21.2",
         "esbuild": "^0.25.12",
+        "smol-toml": "catalog:",
         "yaml": "^2.9.0",
       },
       "devDependencies": {
@@ -399,6 +400,7 @@
     "react-doctor": "0.9.3",
     "react-dom": "19.2.4",
     "resend": "6.18.1",
+    "smol-toml": "1.8.0",
     "sonner": "2.0.7",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.2.1",

@@ -1,9 +1,10 @@
 import { gzipSync } from "node:zlib";
-import { HarnessProfile } from "@anpord/schema/domain/harness-profile";
+import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { Effect, Schema } from "effect";
+import { Effect } from "effect";
 import type { McpServerDefinition } from "../mcp/define";
 import { bundle } from "./eval-bundle";
+import { applyMcpHarness } from "./mcp-harness";
 import { mcpEntry } from "./runner-source";
 
 type EvalTask = PublicStartEvalRequest["tasks"][number];
@@ -15,11 +16,6 @@ export interface CompiledMcpServer {
 }
 
 const CHUNK_SIZE = 90_000;
-const Entries = Schema.Record({ key: Schema.String, value: Schema.Unknown });
-const OpenCodeConfig = Schema.parseJson(
-  Schema.Struct({ mcp: Schema.optional(Entries) }, Entries)
-);
-
 const packaged = (index: number, source: string) => {
   const root = `workspace/.anpord/mcp/${index}`;
   const archive = gzipSync(source).toString("base64");
@@ -76,12 +72,6 @@ export const withMcpServers = (
     return task;
   }
 
-  if (task.harness !== "opencode") {
-    throw new Error(
-      `MCP mock servers are not supported by the ${task.harness} harness`
-    );
-  }
-
   const profile: HarnessProfile = task.profile ?? {
     files: {},
     name: "anpord-mcp",
@@ -97,35 +87,8 @@ export const withMcpServers = (
     }
   }
 
-  const env = { ...profile.env };
-  const config = Schema.decodeUnknownSync(OpenCodeConfig)(
-    env.OPENCODE_CONFIG_CONTENT ?? "{}"
-  );
-  const mcp = { ...config.mcp };
-
-  for (const item of servers) {
-    if (mcp[item.name] !== undefined) {
-      throw new Error(`OpenCode MCP server ${item.name} is already configured`);
-    }
-
-    mcp[item.name] = {
-      command: ["node", item.entry.slice("workspace/".length)],
-      enabled: true,
-      type: "local",
-    };
-  }
-
-  env.OPENCODE_CONFIG_CONTENT = Schema.encodeSync(OpenCodeConfig)({
-    ...config,
-    mcp,
-  });
-
   return {
     ...task,
-    profile: Schema.decodeUnknownSync(HarnessProfile)({
-      ...profile,
-      env,
-      files,
-    }),
+    profile: applyMcpHarness(task.harness, { ...profile, files }, servers),
   };
 };

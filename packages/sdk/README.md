@@ -72,8 +72,8 @@ suites concurrently. Pass files or directories to run a smaller set.
 
 ## Mock MCP servers
 
-Define local MCP dependencies once and Anpord gives every OpenCode trial a
-fresh stdio server:
+Define local MCP dependencies once and Anpord gives every built-in agent trial
+a fresh stdio server:
 
 ```ts
 import { z } from "zod";

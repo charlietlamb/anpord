@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type {
   HarnessDriverShape,
@@ -12,6 +12,15 @@ import { shellQuote } from "./process";
 import { credentialOf, jsonSession, requiredValue } from "./support";
 
 const BIN = "~/.local/bin/cursor-agent";
+
+const mcpFlags = (request: RunHarness) =>
+  Option.match(request.profile, {
+    onNone: (): string[] => [],
+    onSome: ({ files }) =>
+      Object.hasOwn(files, "workspace/.cursor/mcp.json")
+        ? ["--approve-mcps"]
+        : [],
+  });
 
 const install = (input: PrepareHarness) =>
   runCommand(
@@ -45,6 +54,7 @@ export const cursorCommand = (request: RunHarness) =>
     `${instructionsPrefix(request)}cd ${shellQuote(request.workspace)}`,
     "&&",
     `${BIN} -p --force --output-format stream-json`,
+    ...mcpFlags(request),
     `--model ${shellQuote(request.model)}`,
     shellQuote(request.prompt),
     "< /dev/null",
