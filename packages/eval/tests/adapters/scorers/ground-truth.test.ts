@@ -1,9 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Stream } from "effect";
-import {
-  isUnguardedPipeline,
-  ScorerGroundTruthLive,
-} from "../../../src/adapters/scorers/ground-truth";
+import { ScorerGroundTruthLive } from "../../../src/adapters/scorers/ground-truth";
 import { distributionOf } from "../../../src/domain/distribution";
 import { outcomeOf } from "../../../src/domain/trial";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
@@ -41,16 +38,23 @@ const score = (
     }).pipe(Effect.provide(ScorerGroundTruthLive))
   );
 
-describe("isUnguardedPipeline", () => {
+/* The scorer refuses an unguarded pipeline before it runs anything, so a
+   refusal turns a sandbox that would have exited zero into a failure. */
+const refusesAsPipeline = async (command: string) => {
+  const outcome = await score(sandboxYielding([exit(0)]), command);
+  return outcome.status === "failed";
+};
+
+describe("a verifier that is a pipeline", () => {
   /* Measured on both providers: bun test | tail exits 0 while the runner exits 1. A
      verifier written that way records every failure as a pass. */
-  it("catches a verifier that would report its own success", () => {
-    expect(isUnguardedPipeline("bun test | tail -1")).toBe(true);
-    expect(isUnguardedPipeline("bun test")).toBe(false);
+  it("catches a verifier that would report its own success", async () => {
+    expect(await refusesAsPipeline("bun test | tail -1")).toBe(true);
+    expect(await refusesAsPipeline("bun test")).toBe(false);
   });
 
-  it("accepts a pipeline that guards its exit code", () => {
-    expect(isUnguardedPipeline("set -o pipefail; bun test | tail -1")).toBe(
+  it("accepts a pipeline that guards its exit code", async () => {
+    expect(await refusesAsPipeline("set -o pipefail; bun test | tail -1")).toBe(
       false
     );
   });
@@ -209,27 +213,27 @@ describe("a verifier of several conditions", () => {
   });
 });
 
-describe("isUnguardedPipeline and ordinary commands", () => {
+describe("a pipeline refusal and ordinary commands", () => {
   /* Every one of these was refused by a bare substring test, which voided the
      whole cell before the sandbox was touched and reported a pass rate of
      zero with no diagnostic. */
-  it("accepts a command whose pipe is not a pipeline", () => {
+  it("accepts a command whose pipe is not a pipeline", async () => {
     for (const command of [
       "node --test || exit 1",
       "grep -E 'foo|bar' out.txt && node --test",
       'echo "a|b" && node --test',
       "awk '/a|b/' f && node --test",
     ]) {
-      expect(isUnguardedPipeline(command)).toBe(false);
+      expect(await refusesAsPipeline(command)).toBe(false);
     }
   });
 
-  it("still catches a real pipeline", () => {
+  it("still catches a real pipeline", async () => {
     for (const command of [
       "node --test | tail -1",
       "node --test 2>&1 | head -5",
     ]) {
-      expect(isUnguardedPipeline(command)).toBe(true);
+      expect(await refusesAsPipeline(command)).toBe(true);
     }
   });
 });

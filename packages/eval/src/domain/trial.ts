@@ -63,7 +63,7 @@ export interface VoidCheck {
   readonly voided: boolean;
 }
 
-export const checkVoid = (
+const checkVoid = (
   fingerprint: Readonly<Record<string, string>>,
   extra: readonly string[] = []
 ): VoidCheck => {

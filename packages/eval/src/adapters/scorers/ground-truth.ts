@@ -16,7 +16,7 @@ import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
 import { type ScoreRequest, Scorer } from "../../ports/scorer";
 
 /** A single `|` that is not `||`, outside single or double quotes. */
-export const isUnguardedPipeline = (command: string) => {
+const isUnguardedPipeline = (command: string) => {
   let quote: string | null = null;
 
   for (let index = 0; index < command.length; index++) {
