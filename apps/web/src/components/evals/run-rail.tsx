@@ -20,9 +20,7 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
   return (
     <aside className={RAIL_FRAME}>
       <RailSection title="Run">
-        <p className="text-muted-foreground text-xs">
-          Started via <RunTrigger linked trigger={run.trigger} />
-        </p>
+        <RunTrigger linked trigger={run.trigger} />
         <div className="flex flex-col gap-1">
           <RailFact
             Icon={status.Icon}

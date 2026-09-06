@@ -102,9 +102,7 @@ export function TrialRail({
 
   return (
     <aside className={RAIL_FRAME}>
-      <RailSection title="Started via">
-        <RunTrigger linked trigger={trigger} />
-      </RailSection>
+      <RunTrigger linked trigger={trigger} />
       <RailSection title="Outcome">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">

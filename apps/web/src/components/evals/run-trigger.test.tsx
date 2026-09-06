@@ -7,12 +7,13 @@ const trigger = {
   url: "https://github.com/acme/app/actions/runs/123",
 } as const;
 
-test("the run list shows a label without nesting links", () => {
+test("unlinked origins show only their icon and label", () => {
   const html = renderToStaticMarkup(<RunTrigger trigger={trigger} />);
   expect(html).toContain("GitHub Actions");
   expect(html).toContain("<svg");
   expect(html).toContain("text-xs");
   expect(html).not.toContain("<a ");
+  expect(html).not.toContain("Started via");
 });
 
 test("keeps other CI providers generic", () => {
@@ -37,8 +38,8 @@ test("run details link to the triggering CI run", () => {
   expect(html).not.toContain("↗");
 });
 
-test("legacy runs are not labelled as API calls", () => {
-  const html = renderToStaticMarkup(<RunTrigger trigger={null} />);
-  expect(html).toContain("Unknown");
-  expect(html).not.toContain("API");
+test.each([false, true])("hides unknown origins with linked=%s", (linked) => {
+  expect(
+    renderToStaticMarkup(<RunTrigger linked={linked} trigger={null} />)
+  ).toBe("");
 });

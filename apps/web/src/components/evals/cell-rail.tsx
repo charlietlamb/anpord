@@ -46,9 +46,7 @@ export function CellRail({
 
   return (
     <aside className={RAIL_FRAME}>
-      <RailSection title="Started via">
-        <RunTrigger linked trigger={trigger} />
-      </RailSection>
+      <RunTrigger linked trigger={trigger} />
       <RailSection title="Result">
         <div className="flex flex-col gap-2">
           {distribution === null ? (

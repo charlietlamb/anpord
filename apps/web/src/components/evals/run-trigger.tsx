@@ -9,6 +9,9 @@ export function RunTrigger({
   readonly trigger: EvalTrigger | null;
   readonly linked?: boolean;
 }) {
+  if (trigger === null) {
+    return null;
+  }
   const { label, Icon } = triggerPresentation(trigger);
   const content = (
     <>
@@ -19,7 +22,7 @@ export function RunTrigger({
       <span>{label}</span>
     </>
   );
-  return linked && trigger?.url ? (
+  return linked && trigger.url ? (
     <a
       className="inline-flex h-6 items-center gap-2 text-foreground text-xs underline-offset-4 hover:underline"
       href={trigger.url}
@@ -34,14 +37,7 @@ export function RunTrigger({
       />
     </a>
   ) : (
-    <span
-      className="inline-flex items-center gap-1.5 text-muted-foreground text-xs"
-      title={
-        trigger == null
-          ? "This run predates trigger tracking."
-          : `Started via ${label}`
-      }
-    >
+    <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs">
       {content}
     </span>
   );
