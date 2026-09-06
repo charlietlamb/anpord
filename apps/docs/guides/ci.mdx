@@ -9,6 +9,10 @@ so the action can discover them.
 Create an API key with `evals:read` and `evals:write`, then save it as the
 `ANPORD_API_KEY` repository secret. Use a dedicated organization for CI.
 
+In that organization, connect the harness under **Settings → Connections** and
+make it an organization default. API keys cannot use personal connections.
+Provider credentials stay in Anpord, not in GitHub or the eval definition.
+
 ```yaml
 name: Agent evals
 
