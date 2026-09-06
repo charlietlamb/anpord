@@ -1,12 +1,7 @@
-/* The server validates every response against the same schema before sending
-   it, so decoding again in the browser bought nothing but the Effect runtime:
-   115 modules and 1.6 MB of source, including the whole fiber scheduler, to
-   call runPromise on a parse.
+/* The server already validated these bytes against the same schema, so the
+   browser decoded only to rebuild what DateTimeUtc transformed. */
 
-   Timestamps are the one thing the schema did transform. The API sends ISO
-   strings and the UI reads `.epochMillis`, so that shape is rebuilt here. */
-
-export interface WireTime {
+interface WireTime {
   readonly epochMillis: number;
 }
 

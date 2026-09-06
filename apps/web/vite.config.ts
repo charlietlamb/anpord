@@ -18,6 +18,27 @@ export default defineConfig({
       ),
     },
   },
+  /* Dozens of sub-kilobyte chunks -- one per icon, one per small hook -- each
+     cost a request and a module evaluation on first paint. Grouped so the
+     shell arrives in a few files rather than eighty. */
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("@phosphor-icons")) {
+            return "icons";
+          }
+          if (id.includes("@base-ui") || id.includes("@floating-ui")) {
+            return "ui-primitives";
+          }
+          if (id.includes("node_modules/react") || id.includes("react-dom")) {
+            return "react";
+          }
+          return;
+        },
+      },
+    },
+  },
   server: { port: 3005 },
   ssr: { noExternal: [/^@anpord\//] },
   optimizeDeps: { exclude: ["@tanstack/start-server-core"] },

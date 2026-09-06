@@ -17,7 +17,9 @@ test("nulls and nested collections survive the walk", () => {
   const page = fromWire<{
     readonly runs: readonly {
       readonly finishedAt: null;
-      readonly cells: readonly { readonly at: { readonly epochMillis: number } }[];
+      readonly cells: readonly {
+        readonly at: { readonly epochMillis: number };
+      }[];
     }[];
     readonly total: number;
   }>({
