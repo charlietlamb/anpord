@@ -4,11 +4,11 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Effect, Option, Schema } from "effect";
 import { bundle } from "./eval-bundle";
-import { definitionEntry } from "./runner-source";
+import { type DefinitionRef, definitionEntry } from "./runner-source";
 import type { EvalDefinition } from "./types";
 
-export const loadDefinition = (entry: string) =>
-  bundle(definitionEntry(entry), entry).pipe(
+export const loadDefinition = (ref: DefinitionRef) =>
+  bundle(definitionEntry(ref), ref.entry).pipe(
     Effect.flatMap(({ inputs, source }) =>
       Effect.acquireUseRelease(
         Effect.tryPromise(() => mkdtemp(join(tmpdir(), "anpord-eval-"))),
@@ -22,7 +22,7 @@ export const loadDefinition = (entry: string) =>
             },
             catch: (cause) =>
               new Error(
-                `Could not load ${entry}: ${cause instanceof Error ? cause.message : String(cause)}`,
+                `Could not load ${ref.entry}: ${cause instanceof Error ? cause.message : String(cause)}`,
                 { cause }
               ),
           }),

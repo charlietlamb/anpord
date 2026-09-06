@@ -2,11 +2,15 @@ import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Schema } from "effect";
 import { bundle } from "./eval-bundle";
-import { definitionEntry, validatorCaseEntry } from "./runner-source";
+import {
+  type DefinitionRef,
+  definitionEntry,
+  validatorCaseEntry,
+} from "./runner-source";
 import type { EvalCaseDefinition, Validator } from "./types";
 
 export const compileValidator = (
-  entry: string,
+  ref: DefinitionRef,
   subject: EvalCaseDefinition,
   caseIndex: number,
   captureSource: boolean,
@@ -42,9 +46,9 @@ export const compileValidator = (
     const hasCode = manifest.length > 0;
     const compiled = yield* bundle(
       hasCode
-        ? validatorCaseEntry(entry, caseIndex, manifest)
-        : definitionEntry(entry),
-      entry,
+        ? validatorCaseEntry(ref, caseIndex, manifest)
+        : definitionEntry(ref),
+      ref.entry,
       { minify: true, captureSource }
     );
     const checks = hasCode

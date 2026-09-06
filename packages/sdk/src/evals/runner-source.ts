@@ -1,14 +1,24 @@
+export interface DefinitionRef {
+  readonly entry: string;
+  readonly exportName: string | null;
+}
+
+export const importsDefinition = ({ entry, exportName }: DefinitionRef) =>
+  exportName === null
+    ? `import definition from ${JSON.stringify(entry)};`
+    : `import { ${exportName} as definition } from ${JSON.stringify(entry)};`;
+
 export const validatorEntry = (module: string, name: string) => `
 import { ${name} as validate } from ${JSON.stringify(module)};
 import { runValidators } from "anpord/validators/runtime";
 await runValidators([{ index: 0, name: ${JSON.stringify(name)}, validate }]);`;
 
 export const validatorCaseEntry = (
-  entry: string,
+  ref: DefinitionRef,
   index: number,
   names: readonly { index: number; name: string }[] = []
 ) =>
-  `import definition from ${JSON.stringify(entry)};
+  `${importsDefinition(ref)}
 import { runValidators } from "anpord/validators/runtime";
 const selected = definition.cases[${index}].validate;
 const names = ${JSON.stringify(names)};
@@ -64,19 +74,19 @@ try {
 export const prepareEntry = (module: string, name: string) =>
   `import { ${name} as setup } from ${JSON.stringify(module)};\n${prepareRuntime}`;
 
-export const definitionEntry = (entry: string) =>
-  `import definition from ${JSON.stringify(entry)}; export default definition;`;
+export const definitionEntry = (ref: DefinitionRef) =>
+  `${importsDefinition(ref)} export default definition;`;
 
-export const mcpEntry = (entry: string, index: number) =>
-  `import definition from ${JSON.stringify(entry)};
+export const mcpEntry = (ref: DefinitionRef, index: number) =>
+  `${importsDefinition(ref)}
 import { runMcpServer } from "anpord/mcp/runtime";
 const server = definition.mcp?.[${index}];
 if (server === undefined) throw new Error("MCP server ${index} is missing");
 runMcpServer(server);`;
 
-export const cliEntry = (entry: string, index: number) =>
+export const cliEntry = (ref: DefinitionRef, index: number) =>
   `import { fileURLToPath } from "node:url";
-import definition from ${JSON.stringify(entry)};
+${importsDefinition(ref)}
 import { runCli } from "anpord/cli/runtime";
 const cli = definition.cli?.[${index}];
 if (cli === undefined) throw new Error("CLI ${index} is missing");

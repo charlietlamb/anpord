@@ -4,9 +4,10 @@ import { Effect } from "effect";
 import type { ApiDefinition } from "../mock-api/define";
 import { bundle } from "./eval-bundle";
 import { packageProgram } from "./program-package";
+import { type DefinitionRef, importsDefinition } from "./runner-source";
 
 export const compileApis = (
-  entry: string,
+  ref: DefinitionRef,
   definitions: readonly ApiDefinition[]
 ): Effect.Effect<Readonly<Record<string, string>>, Error> =>
   Effect.gen(function* () {
@@ -18,10 +19,10 @@ export const compileApis = (
       return yield* Effect.fail(new Error("Duplicate API mock name"));
     }
     const { source } = yield* bundle(
-      `import definition from ${JSON.stringify(entry)};
+      `${importsDefinition(ref)}
 import { runApiServers } from "anpord/api/runtime";
 runApiServers(definition.api ?? []);`,
-      entry,
+      ref.entry,
       { minify: true }
     );
     const program = packageProgram(

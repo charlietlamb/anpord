@@ -5,7 +5,7 @@ import type { CliDefinition } from "../mock-cli/define";
 import { bundle } from "./eval-bundle";
 import { appendInstall } from "./profile-compose";
 import { packageProgram } from "./program-package";
-import { cliEntry } from "./runner-source";
+import { cliEntry, type DefinitionRef } from "./runner-source";
 
 type EvalTask = PublicStartEvalRequest["tasks"][number];
 
@@ -16,7 +16,7 @@ export interface CompiledCli {
 }
 
 export const compileClis = (
-  entry: string,
+  ref: DefinitionRef,
   definitions: readonly CliDefinition[]
 ) =>
   Effect.gen(function* () {
@@ -31,7 +31,7 @@ export const compileClis = (
     return yield* Effect.forEach(
       definitions,
       (definition, index) =>
-        bundle(cliEntry(entry, index), entry, { minify: true }).pipe(
+        bundle(cliEntry(ref, index), ref.entry, { minify: true }).pipe(
           Effect.map(({ source }) => ({
             ...packageProgram(
               `workspace/.anpord/cli/${index}`,

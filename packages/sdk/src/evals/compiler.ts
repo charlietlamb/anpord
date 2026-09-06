@@ -8,13 +8,14 @@ import { type CompiledCli, compileClis, withClis } from "./cli-profile";
 import { compileValidator } from "./compile-validator";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { localRepo } from "./local-repo";
+import { locate } from "./locate";
 import {
   type CompiledMcpServer,
   compileMcpServers,
   withMcpServers,
 } from "./mcp-profile";
 import { profileTask } from "./profile-directory";
-import { prepareEntry } from "./runner-source";
+import { type DefinitionRef, prepareEntry } from "./runner-source";
 import { repo } from "./source";
 import type {
   EvalCaseDefinition,
@@ -63,21 +64,24 @@ const sourceFor = (
   });
 };
 
-export const compileEvalEffect = (path: string) =>
+export const compileRefEffect = (ref: DefinitionRef) =>
   Effect.gen(function* () {
-    const entry = resolve(path);
-    const loaded = yield* loadDefinition(entry);
+    const entry = ref.entry;
+    const loaded = yield* loadDefinition(ref);
     const definition = loaded.definition;
 
     if (!isDefinition(definition)) {
+      const named =
+        ref.exportName === null ? "default export" : `export ${ref.exportName}`;
+
       return yield* Effect.fail(
-        new Error(`${entry} must default export defineEval({ ... })`)
+        new Error(`${entry} must ${named} defineEval({ ... })`)
       );
     }
 
-    const clis = yield* compileClis(entry, definition.cli ?? []);
-    const mcp = yield* compileMcpServers(entry, definition.mcp ?? []);
-    const apis = yield* compileApis(entry, definition.api ?? []);
+    const clis = yield* compileClis(ref, definition.cli ?? []);
+    const mcp = yield* compileMcpServers(ref, definition.mcp ?? []);
+    const apis = yield* compileApis(ref, definition.api ?? []);
 
     const needsFallback =
       definition.source === undefined &&
@@ -103,7 +107,7 @@ export const compileEvalEffect = (path: string) =>
           }
 
           const validator = yield* compileValidator(
-            entry,
+            ref,
             subject,
             caseIndex,
             definition.captureSource !== false,
@@ -147,6 +151,22 @@ export const compileEvalEffect = (path: string) =>
       trials: definition.trials,
     });
   }).pipe(Effect.withSpan("Eval.compile"));
+
+export const compileDefinitionEffect = (definition: EvalDefinition) =>
+  Effect.flatMap(locate(definition), compileRefEffect);
+
+export const compileDefinition = (
+  definition: EvalDefinition
+): Promise<PublicStartEvalRequest> =>
+  Effect.runPromise(compileDefinitionEffect(definition));
+
+const refOfPath = (path: string): DefinitionRef => ({
+  entry: resolve(path),
+  exportName: null,
+});
+
+export const compileEvalEffect = (path: string) =>
+  compileRefEffect(refOfPath(path));
 
 export const compileEval = (path: string): Promise<PublicStartEvalRequest> =>
   Effect.runPromise(compileEvalEffect(path));

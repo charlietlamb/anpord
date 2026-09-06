@@ -5,7 +5,7 @@ import type { McpServerDefinition } from "../mcp/define";
 import { bundle } from "./eval-bundle";
 import { applyMcpHarness } from "./mcp-harness";
 import { packageProgram } from "./program-package";
-import { mcpEntry } from "./runner-source";
+import { type DefinitionRef, mcpEntry } from "./runner-source";
 
 type EvalTask = PublicStartEvalRequest["tasks"][number];
 
@@ -16,7 +16,7 @@ export interface CompiledMcpServer {
 }
 
 export const compileMcpServers = (
-  entry: string,
+  ref: DefinitionRef,
   definitions: readonly McpServerDefinition[]
 ) =>
   Effect.gen(function* () {
@@ -34,7 +34,7 @@ export const compileMcpServers = (
     return yield* Effect.forEach(
       definitions,
       (definition, index) =>
-        bundle(mcpEntry(entry, index), entry, { minify: true }).pipe(
+        bundle(mcpEntry(ref, index), ref.entry, { minify: true }).pipe(
           Effect.map(({ source }) => ({
             ...packageProgram(
               `workspace/.anpord/mcp/${index}`,

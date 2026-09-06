@@ -56,15 +56,20 @@ const { id } = await anpord.evals.start({
 });
 ```
 
-Use `compileEval` to keep validators, preparation, profiles, and mock dependencies in declarative TypeScript:
+Validators, preparation, profiles and mock dependencies live in an eval file. Import it and hand it over:
+
+```ts evals/smoke.eval.ts
+export const smoke = defineEval(import.meta.url, { ... });
+```
 
 ```ts
-import { compileEval } from "anpord/eval";
+import { compileDefinition } from "anpord/eval";
+import { smoke } from "./evals/smoke.eval";
 
-const run = await anpord.evals.startAndWait(
-  await compileEval("./evals/smoke.eval.ts")
-);
+const run = await anpord.evals.startAndWait(await compileDefinition(smoke));
 ```
+
+`import.meta.url` tells Anpord where the eval was written, which is how the validators reach the sandbox with everything they close over. `compileEval("./evals/smoke.eval.ts")` takes a path instead and needs no argument to `defineEval`.
 
 ## Prompts
 
