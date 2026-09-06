@@ -16,11 +16,15 @@ import {
 const DETAIL_POLL_MS = 2000;
 const LIST_POLL_MS = 5000;
 
+/* Freshness comes from the poll below while a run moves, so a navigation
+   between screens sharing this data renders from cache instead of refetching.
+   staleTime 0 here made every hover-preload and every hop between a run, its
+   cells and its trials a new request. */
 const LIVE = {
   refetchIntervalInBackground: false,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
-  staleTime: 0,
+  staleTime: DETAIL_POLL_MS,
 } as const;
 
 /* Polls only while a run is still moving, so a finished page stops polling itself. */
