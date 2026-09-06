@@ -30,6 +30,7 @@ export {
 
 import type { EvalsSurface as PublicEvalsSurface } from "./client/anpord";
 export type StartEvalRequest = Parameters<PublicEvalsSurface["start"]>[0];
+export type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 export type EvalCase = StartEvalRequest["cases"][number];
 export type EvalTaskRequest = StartEvalRequest["tasks"][number];
 export type {

@@ -12,6 +12,7 @@
     "./domain/eval-limits": "./src/domain/eval-limits.ts",
     "./domain/eval-quota": "./src/domain/eval-quota.ts",
     "./domain/eval-source-files": "./src/domain/eval-source-files.ts",
+    "./domain/eval-trigger": "./src/domain/eval-trigger.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/eval-judges": "./src/domain/eval-judges.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",

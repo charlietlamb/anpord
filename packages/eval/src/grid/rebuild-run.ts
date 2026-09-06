@@ -76,8 +76,9 @@ export const rebuildRun = (
         organizationId: input.organizationId,
         prompt: first.prompt,
         startedBy: null,
+        trigger: first.trigger,
         tasks,
-        trials: 1,
+        trials: first.trialsPerCell,
       },
       /* Indexed by case, because that is how the grid reads it: one entry per
          case, not per cell. */

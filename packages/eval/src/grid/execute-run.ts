@@ -38,6 +38,7 @@ export const makeExecuteRun = (live: LiveRuns) =>
           finishedAt: Option.none(),
           id: grid.created.id,
           name: grid.input.name,
+          trigger: grid.input.trigger ?? null,
           organizationId: grid.input.organizationId,
           startedAt,
           status: "running",

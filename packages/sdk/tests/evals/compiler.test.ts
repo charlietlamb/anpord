@@ -1,11 +1,18 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { parse } from "smol-toml";
-import { compileEval } from "../../src/evals/compiler";
 import { withMcpServers } from "../../src/evals/mcp-profile";
+import { compileFixture } from "../fixtures/compile-eval";
 
 let workspace: string | undefined;
 
@@ -84,7 +91,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
 
     for (const task of payload.tasks) {
       expect(task.profile?.name).toBe("anpord-mcp");
@@ -110,10 +117,21 @@ export default defineEval({
     expect(
       execFileSync(
         "node",
-        [".anpord/cli/0/cli.mjs", "users", "get", "--id", "user_1"],
-        { cwd: workspace, encoding: "utf8" }
+        [
+          join(workspace, ".anpord/cli/0/cli.mjs"),
+          "users",
+          "get",
+          "--id",
+          "user_1",
+        ],
+        { cwd: join(workspace, "node_modules"), encoding: "utf8" }
       )
     ).toContain('"id": "user_1"');
+    expect(
+      JSON.parse(
+        await readFile(join(workspace, ".anpord/cli-calls.jsonl"), "utf8")
+      )
+    ).toMatchObject({ command: "users get", input: { id: "user_1" } });
 
     const opencode = payload.tasks.find(
       ({ harness }) => harness === "opencode"
@@ -183,7 +201,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
     const validator = payload.cases[0]?.validator;
     if (validator == null || !("source" in validator)) {
       throw new Error("Expected a code validator");
@@ -227,7 +245,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
 
     expect(payload.cases[0]?.source).toEqual({
       kind: "repo",
@@ -252,7 +270,7 @@ export default defineEval({
 });`
     );
 
-    expect(compileEval(join(workspace, "eval.ts"))).rejects.toThrow();
+    expect(compileFixture(join(workspace, "eval.ts"))).rejects.toThrow();
   });
 
   test("reads a repository named as a plain string", async () => {
@@ -273,7 +291,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
 
     expect(payload.cases[0]?.source).toEqual({
       kind: "repo",
@@ -302,7 +320,7 @@ export default defineEval({
 });`
     );
 
-    expect(compileEval(join(workspace, "eval.ts"))).rejects.toThrow();
+    expect(compileFixture(join(workspace, "eval.ts"))).rejects.toThrow();
   });
 
   test("falls back to the repository the definition sits in", async () => {
@@ -325,7 +343,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
 
     expect(payload.cases[0]?.source).toEqual({
       kind: "repo",
@@ -349,7 +367,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
 
     expect(payload.cases[0]?.source).toEqual({
       kind: "repo",
@@ -393,7 +411,7 @@ export default defineEval({
 });`
     );
 
-    const payload = await compileEval(join(workspace, "eval.ts"));
+    const payload = await compileFixture(join(workspace, "eval.ts"));
     const subject = payload.cases[0];
 
     expect(subject?.prepare?.name).toBe("prepareRepoImage");

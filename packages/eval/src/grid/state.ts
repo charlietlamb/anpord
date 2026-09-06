@@ -2,6 +2,7 @@ import type {
   CredentialBindings,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { EvalSetup } from "@anpord/schema/domain/evals";
 import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
@@ -80,6 +81,7 @@ export interface GridRunState {
   readonly startedAt: number;
   readonly status: "running" | "finished" | "failed";
   readonly tasks: readonly GridTask[];
+  readonly trigger: EvalTrigger | null;
 }
 
 export const cellKeyOfPosition = (taskIndex: number, caseName: string) =>

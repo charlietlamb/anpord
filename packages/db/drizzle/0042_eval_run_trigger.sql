@@ -1,0 +1,1 @@
+ALTER TABLE "eval_run" ADD COLUMN "trigger" jsonb;

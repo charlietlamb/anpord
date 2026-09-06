@@ -69,6 +69,7 @@ function CellScreen() {
         cellKey={cellKey}
         runId={runId}
         task={run.tasks[cell.taskIndex]}
+        trigger={run.trigger}
       />
     </EvalLayout>
   );

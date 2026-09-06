@@ -65,5 +65,6 @@ export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
   internalId: entry.internalId,
   profileVersion: entry.profileVersion,
   runId: entry.runId,
+  trigger: entry.trigger,
   trials: entry.trials.map(asStoredTrial),
 });

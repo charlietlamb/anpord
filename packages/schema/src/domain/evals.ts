@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import { CredentialBindings, CredentialSelections } from "./credentials";
 import { EvalJudge, EvalJudgment } from "./eval-judges";
 import { EvalSourceFiles } from "./eval-source-files";
+import { EvalTrigger } from "./eval-trigger";
 import { EvalHarness as Harness } from "./harness";
 
 export const EvalHarness = Harness;
@@ -437,6 +438,9 @@ const EvalTimestamp = Schema.DateTimeUtc.annotations({
 export type EvalCell = typeof EvalCell.Type;
 
 export const EvalRun = Schema.Struct({
+  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
+    default: () => null,
+  }),
   cases: Schema.Array(Schema.String),
   cells: Schema.Array(EvalCell),
   costs: Schema.NullOr(EvalCosts),
@@ -454,6 +458,9 @@ export const EvalRun = Schema.Struct({
 export type EvalRun = typeof EvalRun.Type;
 
 export const EvalRunSummary = Schema.Struct({
+  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
+    default: () => null,
+  }),
   caseCount: Schema.Int,
 
   columns: Schema.Array(EvalTask),
@@ -495,6 +502,9 @@ export const EvalRunPage = Schema.Struct({
 export type EvalRunPage = typeof EvalRunPage.Type;
 
 export const EvalCellHistoryEntry = Schema.Struct({
+  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
+    default: () => null,
+  }),
   distribution: EvalDistribution,
   finishedAt: Schema.NullOr(EvalTimestamp),
   harnessVersion: Schema.String,
@@ -645,6 +655,7 @@ export const StartedEval = Schema.Struct({ id: Schema.String }).annotations({
 });
 
 export const RerunCellRequest = Schema.Struct({
+  trigger: Schema.optional(EvalTrigger),
   trials: Schema.Int.pipe(Schema.between(1, 10)),
 });
 export type RerunCellRequest = typeof RerunCellRequest.Type;

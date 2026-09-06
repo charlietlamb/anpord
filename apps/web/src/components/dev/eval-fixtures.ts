@@ -332,6 +332,10 @@ const rivalOf = (cell: EvalCell, key: string): EvalCell => ({
 });
 
 export const RUN: EvalRun = {
+  trigger: {
+    source: "ci",
+    url: "https://github.com/acme/app/actions/runs/123",
+  },
   cases: [CELL.caseName, CELL_NO_BASELINE.caseName],
   costs: null,
   cells: [
@@ -351,6 +355,7 @@ export const RUN: EvalRun = {
 
 export const RUNS: readonly EvalRunSummary[] = [
   {
+    trigger: { source: "ci" },
     caseCount: 1,
     columns: [
       {
@@ -395,6 +400,7 @@ export const RUNS: readonly EvalRunSummary[] = [
     failure: "abandoned: the process running this did not finish it",
     finishedAt: at(44_000),
     firstCaseName: "docs/house-style",
+    trigger: { source: "mcp" },
     id: "run_540CDY1NPF4DWF22AM389CQZ",
     name: "docs/house-style",
     passed: 0,
@@ -412,6 +418,7 @@ export const RUNS: readonly EvalRunSummary[] = [
     failure: null,
     finishedAt: null,
     firstCaseName: "lint/react-doctor",
+    trigger: { source: "dashboard" },
     id: "run_ECQCAZCX7CM57CK1MARQREF7",
     name: "lint/react-doctor",
     passed: 0,
@@ -437,6 +444,7 @@ export const RUNS: readonly EvalRunSummary[] = [
     finishedAt: at(-86_300_000),
     firstCaseName: "assets/icon-set",
     id: "run_YMBJ190C0Q0T2H8VMYDMYPFQ",
+    trigger: null,
     name: "assets/icon-set",
     passed: 2,
     scored: 3,

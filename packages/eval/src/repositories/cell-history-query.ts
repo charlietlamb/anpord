@@ -3,8 +3,9 @@ import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { and, desc, eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { CellKey } from "../domain/cell";
 import type { Distribution } from "../domain/distribution";
 import { cellTrialsQuery } from "./cell-trials-query";
@@ -23,6 +24,7 @@ export interface CellHistoryEntry {
   /* Carried rather than dropped: repeats of a cell differ only in their trials
      and versions, so one run per screen makes a reader open near-identical pages. */
   readonly trials: readonly TrialRow[];
+  readonly trigger: EvalTrigger | null;
 }
 
 export interface CellHistoryInput {
@@ -74,6 +76,9 @@ export const cellHistoryQuery = Effect.gen(function* () {
           internalId: row.cell.internalId,
           profileVersion: row.profileVersion,
           runId: row.run.id,
+          trigger: Schema.decodeUnknownSync(Schema.NullOr(EvalTrigger))(
+            row.run.trigger
+          ),
           trials: byCell.get(row.cell.internalId) ?? [],
         })
       );

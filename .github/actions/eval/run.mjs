@@ -28,16 +28,16 @@ if (process.env.GITHUB_OUTPUT) {
   appendFileSync(process.env.GITHUB_OUTPUT, `report=${report}\n`);
 }
 const file = process.env.ANPORD_EVAL_FILE;
+const gate = process.env.ANPORD_EVAL_GATE;
+const timeout = process.env.ANPORD_EVAL_TIMEOUT;
 const result = spawnSync(
   process.execPath,
   [
     binary,
     "eval",
     ...(file ? [resolve(file)] : []),
-    "--fail-on",
-    process.env.ANPORD_EVAL_GATE || "strict",
-    "--timeout",
-    process.env.ANPORD_EVAL_TIMEOUT || "1200",
+    ...(gate ? ["--fail-on", gate] : []),
+    ...(timeout ? ["--timeout", timeout] : []),
     "--output",
     report,
   ],

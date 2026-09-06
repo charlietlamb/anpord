@@ -1,4 +1,5 @@
 import type { Actor } from "@anpord/schema/domain/actor";
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { Context, Effect, Layer, Option } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
@@ -18,6 +19,7 @@ export interface RerunCell {
   readonly runId: string;
   readonly startedBy: string | null;
   readonly trials: number;
+  readonly trigger?: EvalTrigger;
 }
 
 export interface CellRerunsShape {
@@ -115,6 +117,7 @@ export const make = Effect.gen(function* () {
       organizationId: input.organizationId,
       prompt: subject.prompt,
       startedBy: input.startedBy,
+      trigger: input.trigger,
       tasks,
       trials: input.trials,
     });

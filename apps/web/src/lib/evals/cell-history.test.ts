@@ -12,6 +12,7 @@ const reading = (
   harnessVersion = "0.144.4",
   profileVersion: string | null = null
 ) => ({
+  trigger: null,
   distribution: {
     commandMax: 2,
     commandMedian: 2,

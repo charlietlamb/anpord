@@ -128,9 +128,13 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
         const created = yield* runs.insert({
           cellCount: 2,
           name: "two-profiles",
+          trigger: {
+            source: "ci",
+            url: "https://github.com/acme/app/actions/runs/123",
+          },
           organizationId,
           startedBy: null,
-          trialCount: 2,
+          trialCount: 6,
         });
 
         const registered = yield* Effect.all([
@@ -175,6 +179,10 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
     expect(stored.detail.value.cells).toHaveLength(2);
 
     const state = runToState(stored.detail.value);
+    expect(state.trigger).toEqual({
+      source: "ci",
+      url: "https://github.com/acme/app/actions/runs/123",
+    });
 
     /* Sorted rather than read in query order: the stored read has no ORDER
        BY, and what matters is that both profiles survived as their own
@@ -191,6 +199,11 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
     /* A rebuilt grid squares its cases against its tasks, so two profiles that
        collapsed into one column here would run the wrong pairing on resume. */
     expect(gridOf(stored.tasks).tasks).toHaveLength(2);
+    expect(stored.tasks.map((task) => task.trialsPerCell)).toEqual([3, 3]);
+    expect(stored.tasks.map((task) => task.trigger)).toEqual([
+      { source: "ci", url: "https://github.com/acme/app/actions/runs/123" },
+      { source: "ci", url: "https://github.com/acme/app/actions/runs/123" },
+    ]);
     expect(
       stored.tasks
         .map((cell) => cell.profile?.files["workspace/AGENTS.md"])

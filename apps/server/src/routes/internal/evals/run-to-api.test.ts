@@ -4,6 +4,10 @@ import { Option } from "effect";
 import { detail, summarise } from "./run-to-api";
 
 const state = (name: string | null): GridRunState => ({
+  trigger: {
+    source: "ci",
+    url: "https://github.com/acme/app/actions/runs/123",
+  },
   cases: ["cold-start", "data-rich"],
   cells: [],
   failure: Option.none(),
@@ -22,6 +26,8 @@ describe("eval run names", () => {
 
     expect(summarise(run).name).toBe("planner-core");
     expect(detail(run, []).name).toBe("planner-core");
+    expect(summarise(run).trigger).toEqual(run.trigger);
+    expect(detail(run, []).trigger).toEqual(run.trigger);
   });
 
   it("does not present the first case as an eval name", () => {

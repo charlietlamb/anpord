@@ -13,6 +13,8 @@ After checkout and your normal locked dependency install:
 
 Replace `COMMIT_SHA` with the action release commit. Keep `anpord` installed in your project.
 
+Connect the harness as an organization default in Anpord. The API key uses that organization's connections, not your personal login. Provider credentials do not belong in the workflow.
+
 | Input | Default |
 | --- | --- |
 | `api-key` | Required, with `evals:read` and `evals:write` |

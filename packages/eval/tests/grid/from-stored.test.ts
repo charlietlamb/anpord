@@ -9,6 +9,10 @@ import type { CellTask } from "../../src/repositories/run-tasks-query";
 
 const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
   ({
+    trigger: {
+      source: "ci",
+      url: "https://github.com/acme/app/actions/runs/123",
+    },
     cell: {
       harness: "codex",
       harnessCredentialConnectionId: "conn",
@@ -28,6 +32,7 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
     prompt: "{{task}}",
     runName: "planner-core",
     source: { kind: "empty" },
+    trialsPerCell: 1,
     validatorName: null,
     validatorSource: null,
     verifyCommand: "true",
@@ -85,6 +90,12 @@ const rebuilding = (
   ) as Promise<{ _tag: string; right?: ResumeGrid }>;
 
 describe("reading a case back from what was stored", () => {
+  test("preserves the requested trial count when rebuilding a dispatched run", async () => {
+    const rebuilt = await rebuilding([{ ...cell(), trialsPerCell: 3 }]);
+    expect(rebuilt.right?.input.trials).toBe(3);
+    expect(rebuilt.right?.input.trigger).toEqual(cell().trigger);
+  });
+
   test("restores the complete judge configuration", () => {
     const validatorConfig = {
       kind: "judged",

@@ -1,3 +1,4 @@
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { Context, Effect, Layer, type Option, type Stream } from "effect";
 import type { PageCursor } from "../domain/page";
 import type { GridCase } from "./cell";
@@ -24,6 +25,7 @@ export interface StartGrid {
   readonly startedBy: string | null;
   readonly tasks: readonly GridExecutionTask[];
   readonly trials: number;
+  readonly trigger?: EvalTrigger | null;
 }
 
 export interface GridRunPage {

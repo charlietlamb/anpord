@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compileEval } from "../../src/evals/compiler";
+import { compileFixture } from "../fixtures/compile-eval";
 
 let workspace: string | undefined;
 
@@ -38,7 +38,7 @@ export default defineEval({
 });`
   );
 
-  return await compileEval(join(workspace, "eval.ts"));
+  return await compileFixture(join(workspace, "eval.ts"));
 };
 
 const runScript = async (script: string, cwd: string, restored: boolean) => {

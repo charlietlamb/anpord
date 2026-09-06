@@ -1,3 +1,4 @@
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { EvalCell, EvalTask } from "@anpord/schema/domain/evals";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
@@ -9,6 +10,7 @@ import {
   TerminalWindowIcon,
 } from "@phosphor-icons/react";
 import { CellHistory } from "@/components/evals/cell-history";
+import { RunTrigger } from "@/components/evals/run-trigger";
 import { RunVariants } from "@/components/evals/run-variants";
 import { VerdictLine } from "@/components/evals/verdict-line";
 import { VoidReason } from "@/components/evals/void-reason";
@@ -27,11 +29,13 @@ export function CellRail({
   cellKey,
   runId,
   task,
+  trigger = null,
 }: {
   readonly cell: EvalCell;
   readonly cellKey: string;
   readonly runId: string;
   readonly task: EvalTask | undefined;
+  readonly trigger?: EvalTrigger | null;
 }) {
   const distribution = cell.distribution;
   const lostAgreement = cell.comparison?.determinismLost === true;
@@ -42,6 +46,9 @@ export function CellRail({
 
   return (
     <aside className={RAIL_FRAME}>
+      <RailSection title="Started via">
+        <RunTrigger linked trigger={trigger} />
+      </RailSection>
       <RailSection title="Result">
         <div className="flex flex-col gap-2">
           {distribution === null ? (
