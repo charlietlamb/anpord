@@ -74,6 +74,31 @@ describe("decodeCodexLine", () => {
 });
 
 describe("tool calls", () => {
+  it.each(["completed", "failed"])("records %s MCP tool calls", (status) => {
+    const decoded = decodeCodexLine(
+      JSON.stringify({
+        type: "item.completed",
+        item: {
+          type: "mcp_tool_call",
+          id: "item_1",
+          server: "inventory",
+          tool: "lookup",
+          arguments: { id: "fixture" },
+          status,
+        },
+      })
+    );
+
+    expect(Option.getOrThrow(decoded.event)).toEqual({
+      _tag: "ToolCall",
+      callId: "item_1",
+      input: '{"id":"fixture"}',
+      name: "inventory.lookup",
+      status,
+    });
+    expect(Option.getOrThrow(decoded.itemId)).toBe("item_1");
+  });
+
   /* The payload shape taken from a real Codex session transcript, where
      function calls outnumbered shell executions sixteen to one. */
   it("decodes a custom tool call", () => {

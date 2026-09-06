@@ -12,7 +12,9 @@ export interface Timed {
 }
 
 const withStart = (event: HarnessEvent, startedAt: number): HarnessEvent =>
-  event._tag === "Command" ? { ...event, startedAt } : event;
+  event._tag === "Command" || event._tag === "ToolCall"
+    ? { ...event, startedAt }
+    : event;
 
 export const timeLine = (
   decoded: DecodedLine,
@@ -20,13 +22,13 @@ export const timeLine = (
   pending: Pending
 ): Timed => {
   if (decoded.started) {
-    if (Option.isNone(decoded.commandId)) {
+    if (Option.isNone(decoded.itemId)) {
       return { event: Option.none(), pending };
     }
 
     return {
       event: Option.none(),
-      pending: new Map(pending).set(decoded.commandId.value, at),
+      pending: new Map(pending).set(decoded.itemId.value, at),
     };
   }
 
@@ -36,11 +38,11 @@ export const timeLine = (
 
   const stamped: HarnessEvent = { ...decoded.event.value, at };
 
-  if (Option.isNone(decoded.commandId)) {
+  if (Option.isNone(decoded.itemId)) {
     return { event: Option.some(stamped), pending };
   }
 
-  const id = decoded.commandId.value;
+  const id = decoded.itemId.value;
   const startedAt = pending.get(id);
 
   if (startedAt === undefined) {

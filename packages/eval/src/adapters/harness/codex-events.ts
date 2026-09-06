@@ -22,6 +22,15 @@ const ToolCallItem = Schema.Struct({
   type: Schema.Literal("function_call", "custom_tool_call"),
 });
 
+const McpToolCallItem = Schema.Struct({
+  arguments: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+  id: Schema.String,
+  server: Schema.String,
+  status: Schema.Literal("in_progress", "completed", "failed"),
+  tool: Schema.String,
+  type: Schema.Literal("mcp_tool_call"),
+});
+
 const FileChangeItem = Schema.Struct({
   changes: Schema.Array(Schema.Struct({ path: Schema.String })),
   type: Schema.Literal("file_change"),
@@ -39,7 +48,7 @@ const Usage = Schema.Struct({
 
 const StartedItem = Schema.Struct({
   id: Schema.String,
-  type: Schema.Literal("command_execution"),
+  type: Schema.Literal("command_execution", "mcp_tool_call"),
 });
 
 const Line = Schema.Union(
@@ -52,7 +61,13 @@ const Line = Schema.Union(
     type: Schema.Literal("item.started"),
   }),
   Schema.Struct({
-    item: Schema.Union(CommandItem, MessageItem, FileChangeItem, ToolCallItem),
+    item: Schema.Union(
+      CommandItem,
+      MessageItem,
+      FileChangeItem,
+      ToolCallItem,
+      McpToolCallItem
+    ),
     type: Schema.Literal("item.completed"),
   }),
   Schema.Struct({
@@ -79,14 +94,14 @@ const failureReasonOf = (message: string) =>
 const decodeLine = Schema.decodeUnknownOption(Line);
 
 export interface DecodedLine {
-  readonly commandId: Option.Option<string>;
   readonly event: Option.Option<HarnessEvent>;
+  readonly itemId: Option.Option<string>;
   readonly started: boolean;
   readonly usage: Option.Option<HarnessUsage>;
 }
 
 const none: DecodedLine = {
-  commandId: Option.none(),
+  itemId: Option.none(),
   event: Option.none(),
   started: false,
   usage: Option.none(),
@@ -125,7 +140,7 @@ export const decodeCodexLine = (line: string): DecodedLine => {
   }
 
   if (value.type === "item.started") {
-    return { ...none, commandId: Option.some(value.item.id), started: true };
+    return { ...none, itemId: Option.some(value.item.id), started: true };
   }
 
   if (value.type === "turn.failed") {
@@ -154,12 +169,26 @@ export const decodeCodexLine = (line: string): DecodedLine => {
   if (item.type === "command_execution") {
     return {
       ...none,
-      commandId: Option.fromNullable(item.id),
+      itemId: Option.fromNullable(item.id),
       event: Option.some({
         _tag: "Command",
         command: item.command,
         exitCode: item.exit_code ?? null,
         output: item.aggregated_output ?? "",
+      }),
+    };
+  }
+
+  if (item.type === "mcp_tool_call") {
+    return {
+      ...none,
+      itemId: Option.some(item.id),
+      event: Option.some({
+        _tag: "ToolCall",
+        callId: item.id,
+        input: JSON.stringify(item.arguments),
+        name: `${item.server}.${item.tool}`,
+        status: item.status,
       }),
     };
   }

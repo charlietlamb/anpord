@@ -44,3 +44,4 @@ The deployment workflow requires the Trigger key before building and checks the 
 - The web server uses TanStack's default server entry. `bun --cwd apps/web run test:reload` checks HTML and other Accept headers across three full SSR reloads without modifying environment variables.
 - The dispatcher no longer publishes an initial live run into its own memory. Only the executing worker owns live state. This prevents API reads from shadowing stored worker progress and completed judgments with a stale "running" snapshot. A database-backed regression checks detail reads, list reads, and organization isolation.
 - Missing optional local Codex authentication is a debug message. Production uses organization credentials and does not need a local auth file.
+- Codex MCP tool calls are decoded from `mcp_tool_call` items, including failure status and start/completion timing. These calls appear in the trajectory and are visible to the judge's tool-use check.

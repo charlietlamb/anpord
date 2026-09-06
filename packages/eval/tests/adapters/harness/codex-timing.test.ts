@@ -51,6 +51,41 @@ const replay = (stream: readonly (readonly [number, string])[]) => {
 };
 
 describe("pairing a command to its start", () => {
+  it("pairs an MCP call with its own start", () => {
+    const item = {
+      type: "mcp_tool_call",
+      id: "item_1",
+      server: "inventory",
+      tool: "lookup",
+      arguments: { id: "fixture" },
+    };
+    const { events, pending } = replay([
+      [
+        100,
+        JSON.stringify({
+          type: "item.started",
+          item: { ...item, status: "in_progress" },
+        }),
+      ],
+      [
+        350,
+        JSON.stringify({
+          type: "item.completed",
+          item: { ...item, status: "completed" },
+        }),
+      ],
+    ]);
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      _tag: "ToolCall",
+      name: "inventory.lookup",
+      startedAt: 100,
+      at: 350,
+    });
+    expect(pending.size).toBe(0);
+  });
+
   it("measures a real duration rather than a gap", () => {
     const { events } = replay(STREAM);
     const command = events.find((event) => event._tag === "Command");
