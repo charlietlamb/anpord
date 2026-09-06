@@ -12,3 +12,4 @@ jobs:
       - run: |
           ARN="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='anpord-server'].ServiceArn | [0]" --output text)"
           aws apprunner describe-service --service-arn "$ARN" --query 'Service.{Status:Status,Image:SourceConfiguration.ImageRepository.ImageIdentifier,Port:SourceConfiguration.ImageRepository.ImageConfiguration.Port,Command:SourceConfiguration.ImageRepository.ImageConfiguration.StartCommand,Health:HealthCheckConfiguration,Url:ServiceUrl}'
+          aws logs describe-log-groups --log-group-name-prefix /aws/apprunner/anpord-server/ --query 'logGroups[].logGroupName'
