@@ -56,8 +56,6 @@ Print one JSON object per line on stdout. A line with a known `_tag` is recorded
 | `Usage` | Tokens spent by one turn, added to the run's total. `cacheReadTokens` and `cacheWriteTokens` default to 0 and `totalTokens` to input plus output. |
 | `Finished` | Ends the journal with a reason |
 
-The examples conform to the event JSON Schema.
-
 ## Exit
 
 A non-zero exit does not fail the trial or discard earlier events. If the process omits `Finished`, Anpord records one with the reason `exit N`. The verifier scores the trial either way.
