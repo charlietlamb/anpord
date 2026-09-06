@@ -46,3 +46,23 @@ test("does not fabricate evidence for historical trials", () => {
     "Execution evidence was not recorded"
   );
 });
+
+test.each([
+  "code",
+  "judge",
+  "command",
+] as const)("labels the %s icon accessibly", (kind) => {
+  const html = renderToStaticMarkup(
+    <TrialValidations
+      validations={[
+        validationExecution(
+          { id: `${kind}:0`, index: 0, name: "check", kind },
+          null
+        ),
+      ]}
+    />
+  );
+  expect(html).toContain(`aria-label="${kind}"`);
+  expect(html).toContain('role="img"');
+  expect(html).not.toContain(`>${kind}</span>`);
+});

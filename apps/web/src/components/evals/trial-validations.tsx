@@ -3,12 +3,19 @@ import type {
   ValidationValue,
 } from "@anpord/schema/domain/eval-validations";
 import { cn } from "@anpord/ui/lib/utils";
-import { CheckSquareIcon } from "@phosphor-icons/react";
+import {
+  BrainIcon,
+  CheckSquareIcon,
+  CodeIcon,
+  TerminalIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { EvidenceValue } from "./evidence-value";
 import { SetupSurface } from "./setup-surface";
+import { SignalTip } from "./signal-tip";
 
 const views = ["Output", "Input", "Calls", "Logs", "Metadata"] as const;
+const kindIcons = { code: CodeIcon, judge: BrainIcon, command: TerminalIcon };
 
 function Evidence({
   validation,
@@ -98,6 +105,7 @@ function ValidationRow({
   readonly validation: EvalValidation;
 }) {
   const [view, setView] = useState<(typeof views)[number]>("Output");
+  const KindIcon = kindIcons[validation.kind];
   const failed =
     validation.status === "failed" || validation.status === "error";
   return (
@@ -106,7 +114,13 @@ function ValidationRow({
         <span className="min-w-0 flex-1 truncate font-mono">
           {validation.name}
         </span>
-        <span className="text-muted-foreground">{validation.kind}</span>
+        <SignalTip label={validation.kind}>
+          <KindIcon
+            aria-label={validation.kind}
+            className="size-3.5 shrink-0 text-muted-foreground"
+            role="img"
+          />
+        </SignalTip>
         {validation.durationMs === null ? null : (
           <span className="text-muted-foreground tabular-nums">
             {validation.durationMs}ms
