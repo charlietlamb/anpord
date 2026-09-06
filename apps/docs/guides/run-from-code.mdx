@@ -29,6 +29,6 @@ if (regressions.length || unscored.length) process.exitCode = 1;
 await anpord.dispose();
 ```
 
-`compileEval` bundles typed validators, preparation, profiles, mock MCP servers, and mock CLIs into the serializable API request. `startAndWait` polls until the run finishes; pass `timeoutMs` or `signal` to control waiting.
+`compileEval` bundles typed validators, preparation, profiles, and MCP, CLI and HTTP mocks into the serializable API request. `startAndWait` polls until the run finishes; pass `timeoutMs` or `signal` to control waiting.
 
-Use `anpord.evals.start(request)` only when you already have a compiled request. See the [SDK reference](/tools/sdk) for the lower-level API.
+Use `anpord.evals.start(request)` only when you already have a compiled request. See the [API client](/sdk/client) for the lower-level API.

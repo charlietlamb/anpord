@@ -1,0 +1,67 @@
+---
+title: "Run Claude Code evals"
+description: "Connect Claude once, verify one trial, then compare models"
+---
+
+Anpord runs the actual Claude Code CLI in an isolated sandbox. You do not need to install Claude locally or write an authentication script.
+
+## Connect Claude
+
+1. Select the organization that will own the runs.
+2. Open **Settings > Harnesses > Add harness** and choose **Claude Code**.
+3. Enter an Anthropic API key and choose **Everyone in the organization** for CLI, SDK or CI runs.
+4. Save it, make it the Claude default, and choose **Verify**.
+
+The key stays in Anpord. A local Claude login or Claude subscription does not authenticate these runs: Anpord uses [Claude Code's bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), which requires API credentials.
+
+Create an Anpord API key with `evals:read` and `evals:write` in the same organization. Configure it as `ANPORD_API_KEY` in your shell or CI secret store. No Anthropic key belongs in your eval file or GitHub workflow. Hosted E2B sandboxes need no separate key.
+
+## Verify one trial
+
+Install `anpord`, then create `claude.eval.ts`:
+
+```ts
+import { defineEval, empty } from "anpord";
+
+export default defineEval({
+  name: "claude-smoke",
+  source: empty,
+  prompt: "Create hello.txt containing exactly hello.",
+  cases: [{ name: "writes-hello", verify: 'test "$(cat hello.txt)" = hello' }],
+  tasks: [{ harness: "claude", model: "claude-haiku-4-5-20251001" }],
+  trials: 1,
+});
+```
+
+```sh
+npx anpord eval ./claude.eval.ts
+```
+
+A passing trial confirms the connection, Claude installation, file tools and verifier. Open the returned dashboard link to inspect commands and output. It does not establish reliability across repeated attempts.
+
+## Compare models
+
+Keep the cases unchanged and add tasks:
+
+```ts
+tasks: [
+  { harness: "claude", model: "claude-haiku-4-5-20251001" },
+  { harness: "claude", model: "claude-sonnet-5" },
+  { harness: "claude", model: "claude-opus-5" },
+]
+```
+
+Use [exact model IDs](https://platform.claude.com/docs/en/models/overview) available to your Anthropic account. Model discovery is optional. Calls are billed to that account.
+
+Add [MCP and CLI mocks](/evals/mocks) or [HTTP mocks](/evals/api-mocks) to test tool use. The same definitions work with Claude; Anpord configures them in each sandbox.
+
+For repeatability, use at least three trials per case and model. A run is limited to 100 total trials: `cases × tasks × trials`. Split larger matrices into separate suites. Use the [shared GitHub Action](/guides/ci) with the same organization API key.
+
+## If setup fails
+
+- **Missing Claude credential:** check the organization, shared scope and default connection.
+- **Authentication rejected:** rotate the Anthropic key and verify it again.
+- **Model unavailable:** check the exact ID and your account's access.
+- **Local login works but CI fails:** CI needs an organization connection, not your personal connection or local session.
+
+Passing compilation or local mock tests does not confirm a hosted Claude run. Check the trial result before expanding the matrix.

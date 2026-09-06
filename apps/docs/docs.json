@@ -12,7 +12,12 @@
     "default": "dark"
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
   },
   "fonts": {
     "heading": {
@@ -35,29 +40,70 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
-            "pages": ["getting-started", "connections"]
-          },
-          {
-            "group": "Evals",
+            "group": "Fundamentals",
             "pages": [
+              "connections",
               "concepts",
-              "evals/cases",
               "evals/variants",
-              "evals/mocks",
-              "evals/api-mocks",
-              "evals/judges",
               "evals/results",
               "evals/baselines"
             ]
           },
           {
-            "group": "Advanced evals",
-            "pages": ["evals/profiles", "evals/command-harness", "evals/import"]
+            "group": "Workflows",
+            "pages": [
+              "guides/claude-code",
+              "guides/ci"
+            ]
           },
           {
-            "group": "Guides",
-            "pages": ["guides/run-from-code", "guides/ci"]
+            "group": "Advanced evals",
+            "pages": [
+              "evals/profiles",
+              "evals/command-harness",
+              "evals/import"
+            ]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "tools/cli",
+              "tools/mcp"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              "troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDK",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "sdk/overview",
+              "getting-started"
+            ]
+          },
+          {
+            "group": "Define evals",
+            "pages": [
+              "evals/cases",
+              "evals/mocks",
+              "evals/api-mocks",
+              "evals/judges"
+            ]
+          },
+          {
+            "group": "Run evals",
+            "pages": [
+              "guides/run-from-code",
+              "sdk/client"
+            ]
           },
           {
             "group": "Prompts",
@@ -67,14 +113,6 @@
               "variables",
               "freshness"
             ]
-          },
-          {
-            "group": "Tools",
-            "pages": ["tools/sdk", "tools/cli", "tools/mcp"]
-          },
-          {
-            "group": "Help",
-            "pages": ["troubleshooting"]
           }
         ]
       },
@@ -83,7 +121,9 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["api-reference/introduction"]
+            "pages": [
+              "api-reference/introduction"
+            ]
           },
           {
             "group": "Endpoints",
@@ -97,6 +137,11 @@
     ]
   },
   "redirects": [
+    {
+      "source": "/tools/sdk",
+      "destination": "/sdk/client",
+      "permanent": true
+    },
     {
       "source": "/evals/mock-mcp",
       "destination": "/evals/mocks",

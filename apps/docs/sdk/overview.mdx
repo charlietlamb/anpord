@@ -1,0 +1,43 @@
+---
+title: "TypeScript SDK"
+sidebarTitle: "Overview"
+description: "Define evals, mock dependencies and validate results in TypeScript"
+---
+
+`anpord` is the TypeScript package for defining and running coding-agent evals. Cases, mocks and validators live in your repository alongside the code they test.
+
+```sh
+npm install anpord
+```
+
+Start with the [quickstart](/getting-started) to define a suite and run it on Anpord.
+
+## Package exports
+
+| Import | Use |
+| --- | --- |
+| `anpord` | [`defineEval`, workspace sources and validator types](/evals/cases) |
+| `anpord/mcp` | [`server`, `tool`, `resource`](/evals/mocks#mcp) |
+| `anpord/cli` | [`cli`, `command`](/evals/mocks#cli) |
+| `anpord/api` | [`api`, `endpoint`, `withApi`](/evals/api-mocks) |
+| `anpord/validators` | [`judge`](/evals/judges) |
+| `anpord/eval` | [`compileEval`](/guides/run-from-code) |
+| `anpord` | [`Anpord` client for runs, results and prompts](/sdk/client) |
+
+Definitions take objects. Handlers use ordinary TypeScript functions and promises. Standard Schema infers mock inputs and checks values at runtime; examples use Zod. You do not need Effect imports or a separate model client.
+
+## One definition, multiple ways to run
+
+Keep suites in `*.eval.ts` files. The CLI compiles them locally, including imported fixtures and validators, then submits them to Anpord's hosted infrastructure:
+
+```sh
+npx anpord eval ./smoke.eval.ts
+```
+
+The [GitHub Action](/guides/ci) runs the same command. To submit from application code, use [`compileEval` with the API client](/guides/run-from-code). Results retain the calls, validator evidence and captured source for that run.
+
+## Connections
+
+Configure `ANPORD_API_KEY` for calls to Anpord. Save model credentials in [Settings > Harnesses](/connections); they do not belong in eval definitions. Hosted sandboxes and mocked product services need no separate keys by default.
+
+For agent setup, start with [Claude Code](/guides/claude-code) or the [supported agents](/evals/variants).
