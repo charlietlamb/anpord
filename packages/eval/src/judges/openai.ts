@@ -113,7 +113,7 @@ export const makeOpenAIJudge = Effect.gen(function* () {
         text: content
           .flatMap((item) => (item.type === "output_text" ? [item.text] : []))
           .join(""),
-        requestId: response.id,
+        responseId: response.id,
         model: response.model,
         refusal: content.find((item) => item.type === "refusal")?.refusal,
         incomplete: response.status === "incomplete",

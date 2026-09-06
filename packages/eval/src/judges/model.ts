@@ -7,7 +7,7 @@ import { Context, Data, type Effect, type Redacted, Schema } from "effect";
 
 export const JudgeCompletion = Schema.Struct({
   text: Schema.String,
-  requestId: Schema.optional(Schema.String),
+  responseId: Schema.optional(Schema.String),
   model: Schema.optional(Schema.String),
   harnessVersion: Schema.optional(Schema.String),
   sessionId: Schema.optional(Schema.String),

@@ -45,6 +45,36 @@ const evaluate = (complete: Effect.Effect<string, JudgeFailed>) =>
   );
 
 describe("model judgments", () => {
+  test("disables judge payloads without changing the score", async () => {
+    const records: EvalValidation[] = [];
+    const result = await Effect.runPromise(
+      evaluateJudge({
+        ...request,
+        capture: false,
+        onValidation: (record) =>
+          Effect.sync(() => {
+            records.push(record);
+          }),
+      }).pipe(
+        Effect.provideService(JudgeModel, {
+          complete: (input) =>
+            Effect.gen(function* () {
+              yield* input.onRequest?.({ prompt: "private evidence" }) ??
+                Effect.void;
+              return {
+                text: '{"choice":"correct","reason":"Matches"}',
+                model: "exact-model",
+              };
+            }),
+        })
+      )
+    );
+    expect(result.score).toBe(1);
+    expect(records.at(-1)?.input.state).toBe("disabled");
+    expect(records.at(-1)?.output.state).toBe("disabled");
+    expect(records.at(-1)?.metadata?.state).toBe("disabled");
+    expect(JSON.stringify(records)).not.toContain("private evidence");
+  });
   test.each([
     '{"choice":"correct","reason":"Matches"}',
     "invalid json",
@@ -70,7 +100,7 @@ describe("model judgments", () => {
               return {
                 text,
                 model: "reported-model",
-                requestId: "request-1",
+                responseId: "response-1",
                 usage: { inputTokens: 20, outputTokens: 10, totalTokens: 30 },
               };
             }),
@@ -85,7 +115,7 @@ describe("model judgments", () => {
     });
     expect(JSON.parse(record?.metadata?.text ?? "null")).toMatchObject({
       model: "reported-model",
-      requestId: "request-1",
+      responseId: "response-1",
       usage: { totalTokens: 30 },
     });
     expect(record?.judgment).toEqual(result);

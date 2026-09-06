@@ -127,7 +127,8 @@ const completeValidations = (
   records: readonly EvalValidation[],
   message: string | null,
   finished: number,
-  error: ValidationValue | null
+  error: ValidationValue | null,
+  exitCode: number | null
 ) => {
   const incomplete = records.findIndex(
     (record) => record.status === "running" || record.status === "queued"
@@ -146,6 +147,7 @@ const completeValidations = (
         return {
           ...record,
           status: "error",
+          exitCode,
           message: message ?? "Validator did not return a complete result",
           error: record.error ?? error,
           durationMs:
@@ -252,7 +254,8 @@ const scoreValidator = (
         : execution.records,
       processError(execution),
       finished,
-      execution.stderr ? capture(execution.stderr, "text") : null
+      execution.stderr ? capture(execution.stderr, "text") : null,
+      execution.exitCode
     );
     const failed = validations.some((record) => record.status === "failed");
     const invalid =
@@ -365,7 +368,7 @@ const scoreCommand: ScorerShape["score"] = (request) =>
       sandboxMs: 0,
       verifySteps: stepResultsOf(script, raw),
     });
-    const validation: EvalValidation = {
+    const validation = validationSnapshot({
       ...record,
       status:
         interrupted || outcome.status === "void"
@@ -380,7 +383,7 @@ const scoreCommand: ScorerShape["score"] = (request) =>
         exitCode: execution.exitCode,
       }),
       truncated: execution.rawTruncated,
-    };
+    });
     yield* publishValidation(validation, request.onValidation);
     return {
       ...outcome,

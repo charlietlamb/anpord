@@ -24,7 +24,7 @@ export default defineEval({
   source: empty,
   prompt: "What is 2 + 2? Explain briefly.",
   cases: [{ name: "addition", validate: correctness }],
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "e2b" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],
   trials: 3,
 });
 ```
