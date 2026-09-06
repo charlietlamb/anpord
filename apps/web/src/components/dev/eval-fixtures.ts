@@ -289,7 +289,7 @@ export const CELL: EvalCell = {
   trials: TRIALS,
 };
 
-export const CELL_NO_BASELINE: EvalCell = {
+const CELL_NO_BASELINE: EvalCell = {
   ...CELL,
   caseName: "react-doctor-diagnoses",
   cellKey: "9c4f0d41f90158e6aecaccdab6deb988",

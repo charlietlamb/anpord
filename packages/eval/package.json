@@ -32,7 +32,6 @@
   },
   "exports": {
     "./adapters/models/codex-available": "./src/adapters/models/codex-available.ts",
-    "./adapters/sandbox/local": "./src/adapters/sandbox/local.ts",
     "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
     "./credentials/cipher": "./src/credentials/cipher.ts",
     "./codebase/errors": "./src/codebase/errors.ts",
@@ -50,7 +49,6 @@
     "./domain/eval-costs": "./src/domain/eval-costs.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",
-    "./domain/harness-spec": "./src/domain/harness-spec.ts",
     "./domain/journal": "./src/domain/journal.ts",
     "./domain/page": "./src/domain/page.ts",
     "./domain/playground-config": "./src/domain/playground-config.ts",

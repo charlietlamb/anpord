@@ -23,7 +23,6 @@
         "src/router.tsx",
         "src/server.ts",
         "src/routes/**/*.{ts,tsx}",
-        "src/components/dev/eval-fixtures.ts",
         "vite.config.ts"
       ],
       "project": "src/**",
@@ -55,17 +54,7 @@
       "project": "src/**"
     },
     "packages/eval": {
-      "entry": [
-        "src/adapters/scorers/journal-assertions.ts",
-        "src/layer.ts",
-        "src/sdk/define.ts",
-        "src/sdk/evidence.ts",
-        "src/sdk/outcome.ts",
-        "src/sdk/report.ts",
-        "src/sdk/scorers.ts",
-        "src/sdk/variant.ts",
-        "tests/**/*.test.ts"
-      ],
+      "entry": ["src/layer.ts", "tests/**/*.test.ts"],
       "project": ["src/**", "tests/**"]
     },
     "packages/ids": {
@@ -126,7 +115,33 @@
       "project": ["src/**", "tests/**"]
     },
     "packages/ui": {
-      "entry": ["src/components/**/*.tsx"],
+      "entry": [],
+      "project": "src/**"
+    },
+    "packages/billing": {
+      "entry": [
+        "src/autumn.ts",
+        "src/config.ts",
+        "src/domain/errors.ts",
+        "src/layer.ts"
+      ],
+      "project": "src/**"
+    },
+    "packages/template": {
+      "entry": [
+        "src/errors.ts",
+        "src/extract.ts",
+        "src/render.ts",
+        "src/syntax.ts"
+      ],
+      "project": "src/**"
+    },
+    "apps/mcp": {
+      "entry": ["src/main.ts", "src/server.ts", "build.ts"],
+      "project": "src/**"
+    },
+    "apps/sandbox-bridge": {
+      "entry": ["src/index.ts"],
       "project": "src/**"
     }
   },
