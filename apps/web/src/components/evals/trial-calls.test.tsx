@@ -32,6 +32,8 @@ test("shows tool inputs, results, and errors in recorded order", () => {
   expect(html).toContain("Output");
   expect(html).toContain("Error");
   expect(html.match(/<details/g)).toHaveLength(2);
+  expect(html).toContain("<h3");
+  expect(html).not.toContain("aria-expanded=");
 });
 
 test("does not invent results for older tool calls", () => {

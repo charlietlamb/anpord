@@ -11,6 +11,7 @@ const create = () =>
     engine: createJavaScriptRegexEngine(),
     langs: [
       import("shiki/langs/typescript.mjs"),
+      import("shiki/langs/json.mjs"),
       import("shiki/langs/bash.mjs"),
       import("shiki/langs/markdown.mjs"),
     ],
@@ -26,7 +27,7 @@ export const highlighter = () => {
   return pending;
 };
 
-export type CodeLanguage = "bash" | "markdown" | "typescript";
+export type CodeLanguage = "bash" | "json" | "markdown" | "text" | "typescript";
 
 /** Shiki writes light colours inline and dark ones as custom properties, so one
  * pass follows the app's theme without re-highlighting. */

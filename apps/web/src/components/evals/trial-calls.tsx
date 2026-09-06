@@ -92,6 +92,7 @@ export function TrialCalls({
   }
   return (
     <SetupSurface
+      collapsible={false}
       contentClassName="divide-y divide-border-faint p-0"
       Icon={PlugsConnectedIcon}
       meta={String(calls.length)}

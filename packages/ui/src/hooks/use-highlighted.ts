@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 
 /** Null until the wasm highlighter loads, so callers show plain text. */
 export function useHighlighted(code: string, lang: CodeLanguage) {
-  const [html, setHtml] = useState<string | null>(null);
+  const [result, setResult] = useState<{
+    code: string;
+    lang: CodeLanguage;
+    html: string;
+  } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -13,7 +17,7 @@ export function useHighlighted(code: string, lang: CodeLanguage) {
     highlight(code, lang)
       .then((next) => {
         if (alive) {
-          setHtml(next);
+          setResult({ code, lang, html: next });
         }
       })
       .catch(() => {
@@ -25,5 +29,5 @@ export function useHighlighted(code: string, lang: CodeLanguage) {
     };
   }, [code, lang]);
 
-  return html;
+  return result?.code === code && result.lang === lang ? result.html : null;
 }

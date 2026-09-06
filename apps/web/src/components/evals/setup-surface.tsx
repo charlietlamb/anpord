@@ -4,6 +4,7 @@ import { type ReactNode, useState } from "react";
 
 export function SetupSurface({
   children,
+  collapsible = true,
   contentClassName,
   controls,
   defaultOpen = true,
@@ -12,6 +13,7 @@ export function SetupSurface({
   title,
 }: {
   readonly children: ReactNode;
+  readonly collapsible?: boolean;
   readonly contentClassName?: string;
   readonly controls?: ReactNode;
   readonly defaultOpen?: boolean;
@@ -19,7 +21,9 @@ export function SetupSurface({
   readonly meta?: string;
   readonly title: string;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [expanded, setExpanded] = useState(defaultOpen);
+  const open = !collapsible || expanded;
+  const Heading = collapsible ? "button" : "h3";
 
   return (
     <section className="group/surface overflow-hidden rounded-lg border border-border-faint bg-muted/30">
@@ -29,21 +33,23 @@ export function SetupSurface({
           open && "border-border-faint border-b"
         )}
       >
-        <button
-          aria-expanded={open}
+        <Heading
+          aria-expanded={collapsible ? open : undefined}
           className="flex h-full min-w-0 flex-1 items-center gap-1.5 text-left text-muted-foreground text-xs transition-colors duration-150 ease-out hover:text-foreground"
-          onClick={() => setOpen((was) => !was)}
-          type="button"
+          onClick={collapsible ? () => setExpanded((was) => !was) : undefined}
+          type={collapsible ? "button" : undefined}
         >
-          <CaretRightIcon
-            aria-hidden="true"
-            className={cn(
-              "shrink-0 transition-transform ease-out",
-              open ? "rotate-90 duration-200" : "duration-75"
-            )}
-            size={10}
-            weight="bold"
-          />
+          {collapsible ? (
+            <CaretRightIcon
+              aria-hidden="true"
+              className={cn(
+                "shrink-0 transition-transform ease-out",
+                open ? "rotate-90 duration-200" : "duration-75"
+              )}
+              size={10}
+              weight="bold"
+            />
+          ) : null}
           <Glyph aria-hidden="true" className="shrink-0" size={13} />
           <span className="font-medium text-foreground">{title}</span>
           {meta === undefined ? null : (
@@ -51,7 +57,7 @@ export function SetupSurface({
               {meta}
             </span>
           )}
-        </button>
+        </Heading>
 
         {open && controls ? (
           <span className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity duration-150 ease-out focus-within:opacity-100 group-hover/surface:opacity-100">

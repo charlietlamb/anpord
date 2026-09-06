@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ValidationSource } from "./validation-source";
 
-test("shows the original TypeScript and file choices", () => {
+test("shows the original TypeScript with the shared file select", () => {
   const html = renderToStaticMarkup(
     <ValidationSource
       files={[
@@ -11,11 +11,12 @@ test("shows the original TypeScript and file choices", () => {
       ]}
     />
   );
+  expect(html).toContain('data-slot="select-trigger"');
+  expect(html).toContain('aria-label="Source file"');
+  expect(html).not.toContain("<select");
   expect(html).toContain("const valid: boolean = true;\n");
-  expect(html).toContain('value="judges.ts"');
   expect(html).toContain("Copy validate.ts");
   expect(html).toContain('aria-expanded="true"');
-  expect(html.match(/rounded-lg border/g)).toHaveLength(1);
   expect(html).not.toContain("rounded-xl border");
   expect(html.match(/>validate.ts</g)).toHaveLength(1);
 });
@@ -37,4 +38,14 @@ test("does not invent source for older runs", () => {
   expect(renderToStaticMarkup(<ValidationSource files={[]} />)).toContain(
     "Source unavailable for this run."
   );
+});
+
+test("does not show a selector for a single source file", () => {
+  const html = renderToStaticMarkup(
+    <ValidationSource
+      files={[{ path: "eval.ts", content: "export default {}" }]}
+    />
+  );
+  expect(html).not.toContain('data-slot="select-trigger"');
+  expect(html).toContain("eval.ts");
 });

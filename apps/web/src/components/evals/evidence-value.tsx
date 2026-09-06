@@ -1,11 +1,13 @@
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
+import { CopyButton } from "@anpord/ui/components/copy-button";
+import { CodeContent } from "@anpord/ui/components/ui/code-card";
+import type { CodeLanguage } from "@anpord/ui/lib/highlight";
 
-const formatValue = (value: string) => {
+const formatValue = (value: string): { code: string; lang: CodeLanguage } => {
   try {
     const parsed: unknown = JSON.parse(value);
-    return JSON.stringify(parsed, null, 2);
+    return { code: JSON.stringify(parsed, null, 2), lang: "json" };
   } catch {
-    return value;
+    return { code: value || "(empty)", lang: "text" };
   }
 };
 
@@ -20,16 +22,23 @@ export function EvidenceValue({
 }) {
   return (
     <div className="min-w-0">
-      <dt className="px-3.5 pt-2 text-muted-foreground text-xs">{label}</dt>
+      <dt className="flex items-center justify-between px-3.5 pt-2 text-muted-foreground text-xs">
+        {label}
+        {value === undefined ? null : (
+          <CopyButton
+            className="size-6"
+            label={`Copy ${label}`}
+            value={value}
+          />
+        )}
+      </dt>
       <dd>
         {value === undefined ? (
           <p className="px-3.5 py-2.5 text-muted-foreground text-xs">
             Not recorded
           </p>
         ) : (
-          <CodeBlock copyValue={value} tone="plain">
-            {value === "" ? "(empty)" : formatValue(value)}
-          </CodeBlock>
+          <CodeContent {...formatValue(value)} maxHeight="max-h-64" />
         )}
         {truncated ? (
           <p className="px-3.5 pb-2 text-warning text-xs">Truncated</p>

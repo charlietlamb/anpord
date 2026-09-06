@@ -1,8 +1,15 @@
 import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { CodeContent } from "@anpord/ui/components/ui/code-card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@anpord/ui/components/ui/select";
 import { CheckSquareIcon } from "@phosphor-icons/react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { SetupSurface } from "./setup-surface";
 
 export function ValidationSource({
@@ -10,8 +17,7 @@ export function ValidationSource({
 }: {
   readonly files: readonly EvalSourceFile[];
 }) {
-  const id = useId();
-  const [path, setPath] = useState(files[0]?.path);
+  const [path, setPath] = useState<string | null>(null);
   const selected = files.find((file) => file.path === path) ?? files[0];
 
   return (
@@ -28,23 +34,26 @@ export function ValidationSource({
         <>
           <div className="flex min-w-0 items-center gap-2 border-border-faint border-b px-3.5 py-2">
             {files.length > 1 ? (
-              <>
-                <label className="sr-only" htmlFor={id}>
-                  Source file
-                </label>
-                <select
-                  className="min-w-0 flex-1 bg-transparent font-mono text-muted-foreground text-xs"
-                  id={id}
-                  onChange={(event) => setPath(event.target.value)}
-                  value={selected.path}
+              <Select onValueChange={setPath} value={selected.path}>
+                <SelectTrigger
+                  aria-label="Source file"
+                  className="min-w-0 flex-1 font-mono text-xs"
+                  size="sm"
                 >
+                  <SelectValue>{selected.path}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
                   {files.map((file) => (
-                    <option key={file.path} value={file.path}>
+                    <SelectItem
+                      className="font-mono"
+                      key={file.path}
+                      value={file.path}
+                    >
                       {file.path}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-              </>
+                </SelectContent>
+              </Select>
             ) : (
               <span className="min-w-0 flex-1 truncate font-mono text-muted-foreground text-xs">
                 {selected.path}
