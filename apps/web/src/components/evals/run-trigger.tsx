@@ -23,7 +23,7 @@ export function RunTrigger({
     <span
       className="text-muted-foreground"
       title={
-        trigger === null
+        trigger == null
           ? "This run predates trigger tracking."
           : `Started via ${label}`
       }

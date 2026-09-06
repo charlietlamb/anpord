@@ -36,7 +36,6 @@ const resolveSource = (row: TaskSource): WorkspaceSource | null => {
 type CellProfile = typeof evalHarnessProfile.$inferSelect;
 
 export interface CellTask {
-  readonly trigger: EvalTrigger | null;
   readonly cacheKey: string | null;
   readonly cachePath: string | null;
   readonly cell: CellRow;
@@ -51,6 +50,7 @@ export interface CellTask {
   readonly runName: string | null;
   readonly source: WorkspaceSource | null;
   readonly trialsPerCell: number;
+  readonly trigger: EvalTrigger | null;
   readonly validatorConfig?: unknown;
   readonly validatorName?: string | null;
   readonly validatorSource?: string | null;

@@ -9,7 +9,10 @@ import type { CellTask } from "../../src/repositories/run-tasks-query";
 
 const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
   ({
-    trigger: { source: "ci", url: "https://github.com/acme/app/actions/runs/123" },
+    trigger: {
+      source: "ci",
+      url: "https://github.com/acme/app/actions/runs/123",
+    },
     cell: {
       harness: "codex",
       harnessCredentialConnectionId: "conn",

@@ -18,7 +18,6 @@ export interface ResumeGrid {
 }
 
 export interface StartGrid {
-  readonly trigger?: EvalTrigger | null;
   readonly cases: readonly GridCase[];
   readonly name: string | null;
   readonly organizationId: string;
@@ -26,6 +25,7 @@ export interface StartGrid {
   readonly startedBy: string | null;
   readonly tasks: readonly GridExecutionTask[];
   readonly trials: number;
+  readonly trigger?: EvalTrigger | null;
 }
 
 export interface GridRunPage {

@@ -18,8 +18,8 @@ export interface RerunCell {
   readonly organizationId: string;
   readonly runId: string;
   readonly startedBy: string | null;
-  readonly trigger?: EvalTrigger;
   readonly trials: number;
+  readonly trigger?: EvalTrigger;
 }
 
 export interface CellRerunsShape {

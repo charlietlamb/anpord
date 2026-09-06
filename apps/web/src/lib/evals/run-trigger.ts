@@ -9,4 +9,4 @@ const LABELS = {
 } satisfies Record<EvalTrigger["source"], string>;
 
 export const triggerLabel = (trigger: EvalTrigger | null) =>
-  trigger === null ? "Unknown" : LABELS[trigger.source];
+  trigger == null ? "Unknown" : LABELS[trigger.source];

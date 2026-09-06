@@ -4,7 +4,10 @@ import { Option } from "effect";
 import { detail, summarise } from "./run-to-api";
 
 const state = (name: string | null): GridRunState => ({
-  trigger: { source: "ci", url: "https://github.com/acme/app/actions/runs/123" },
+  trigger: {
+    source: "ci",
+    url: "https://github.com/acme/app/actions/runs/123",
+  },
   cases: ["cold-start", "data-rich"],
   cells: [],
   failure: Option.none(),

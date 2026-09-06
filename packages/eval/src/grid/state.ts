@@ -78,7 +78,6 @@ export interface GridCell {
 }
 
 export interface GridRunState {
-  readonly trigger: EvalTrigger | null;
   readonly cases: readonly string[];
   readonly cells: readonly GridCell[];
   readonly failure: Option.Option<string>;
@@ -89,6 +88,7 @@ export interface GridRunState {
   readonly startedAt: number;
   readonly status: "running" | "finished" | "failed";
   readonly tasks: readonly GridTask[];
+  readonly trigger: EvalTrigger | null;
 }
 
 export const cellKeyOfPosition = (taskIndex: number, caseName: string) =>
