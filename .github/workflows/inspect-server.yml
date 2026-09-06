@@ -1,0 +1,14 @@
+name: Inspect server deployment
+on: workflow_dispatch
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - run: |
+          ARN="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='anpord-server'].ServiceArn | [0]" --output text)"
+          aws apprunner describe-service --service-arn "$ARN" --query 'Service.{Status:Status,Image:SourceConfiguration.ImageRepository.ImageIdentifier,Port:SourceConfiguration.ImageRepository.ImageConfiguration.Port,Command:SourceConfiguration.ImageRepository.ImageConfiguration.StartCommand,Health:HealthCheckConfiguration,Url:ServiceUrl}'
