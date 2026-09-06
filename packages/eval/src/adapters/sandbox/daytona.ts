@@ -1,4 +1,4 @@
-import { Daytona } from "@daytonaio/sdk";
+import { Daytona, DaytonaNotFoundError } from "@daytonaio/sdk";
 import { Effect } from "effect";
 import type { OpenSandbox, SandboxAdapterShape } from "../../ports/sandbox";
 import { settingUp } from "./after-create";
@@ -27,12 +27,18 @@ export const makeConfiguredDaytonaAdapter = (
         }).pipe(Effect.map((sandbox) => handleFor(sandbox, "/tmp/anpord"))),
       destroy: (handle) =>
         Effect.tryPromise({
-          catch: unavailable,
+          catch: (cause) => cause,
           try: async () => {
             const sandbox = await daytona.get(handle.id);
             await sandbox.delete();
           },
-        }),
+        }).pipe(
+          Effect.catchIf(
+            (cause) => cause instanceof DaytonaNotFoundError,
+            () => Effect.void
+          ),
+          Effect.mapError(unavailable)
+        ),
       open: (request: OpenSandbox) =>
         Effect.gen(function* () {
           const volumes =

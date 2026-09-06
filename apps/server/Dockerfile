@@ -40,6 +40,8 @@ FROM oven/bun:1.3.14-alpine AS release
 WORKDIR /app
 
 ENV NODE_ENV=production
+ARG BUILD_REVISION=development
+ENV BUILD_REVISION=$BUILD_REVISION
 
 # Source first, then the installed trees on top: bun resolves per workspace
 # member rather than hoisting everything, so packages/*/node_modules carries

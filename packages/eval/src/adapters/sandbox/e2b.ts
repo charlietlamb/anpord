@@ -90,12 +90,7 @@ export const makeConfiguredE2BAdapter = (
       destroy: (handle) =>
         Effect.tryPromise({
           catch: unavailable,
-          try: async () => {
-            const sandbox = await E2BSandbox.connect(handle.id, {
-              apiKey: values?.apiKey,
-            });
-            await sandbox.kill();
-          },
+          try: () => E2BSandbox.kill(handle.id, { apiKey: values?.apiKey }),
         }).pipe(Effect.asVoid),
       open: (request: OpenSandbox) =>
         Effect.tryPromise({

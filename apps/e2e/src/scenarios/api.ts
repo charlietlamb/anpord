@@ -25,6 +25,21 @@ const apiSurface = (world: World) => ({
 
 export const apiScenarios: readonly Scenario<World>[] = [
   {
+    name: "api: health identifies the running revision",
+    run: async (world) => {
+      const response = await fetch(`${world.baseUrl}/api/healthz`);
+      equals("health status", response.status, 200);
+      equals(
+        "running revision",
+        await response.text(),
+        JSON.stringify({
+          ok: true,
+          revision: process.env.BUILD_REVISION ?? "development",
+        })
+      );
+    },
+  },
+  {
     name: "api: a key creates, reads back, and versions a prompt",
     run: async (world) => {
       const { id } = await givenPrompt(world, "api-versions", {

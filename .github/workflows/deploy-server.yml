@@ -45,19 +45,6 @@ jobs:
       - id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Tagged with the commit as well as latest, so a bad deploy can be rolled
-      # back to a specific image rather than whatever latest happens to be.
-      - name: Build and push
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-        run: |
-          docker build --platform linux/amd64 \
-            -f apps/server/Dockerfile \
-            -t "$REGISTRY/$ECR_REPO:latest" \
-            -t "$REGISTRY/$ECR_REPO:${{ github.sha }}" .
-          docker push "$REGISTRY/$ECR_REPO:latest"
-          docker push "$REGISTRY/$ECR_REPO:${{ github.sha }}"
-
       # The auth server mints MCP tokens for whatever this names, so leaving it
       # unset issues tokens for localhost that the MCP server then rejects. It
       # is merged into the existing environment rather than written over it,
@@ -93,6 +80,12 @@ jobs:
             }
             const image = repository.ImageConfiguration ?? {};
             const env = image.RuntimeEnvironmentVariables ?? {};
+            const secrets = image.RuntimeEnvironmentSecrets ?? {};
+            if (![env.TRIGGER_SECRET_KEY, env.TRIGGER_API_KEY,
+                  secrets.TRIGGER_SECRET_KEY, secrets.TRIGGER_API_KEY].some(Boolean)) {
+              console.error('Configure the production Trigger key in App Runner before deploying. See DEPLOY.md.');
+              process.exit(1);
+            }
             if (env.MCP_RESOURCE_URL === process.env.MCP_RESOURCE_URL) {
               fs.writeFileSync('/tmp/unchanged', '');
               process.exit(0);
@@ -131,6 +124,18 @@ jobs:
             sleep 15
           done
 
+      - name: Build and push
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          docker build --platform linux/amd64 \
+            --build-arg BUILD_REVISION="${{ github.sha }}" \
+            -f apps/server/Dockerfile \
+            -t "$REGISTRY/$ECR_REPO:latest" \
+            -t "$REGISTRY/$ECR_REPO:${{ github.sha }}" .
+          docker push "$REGISTRY/$ECR_REPO:latest"
+          docker push "$REGISTRY/$ECR_REPO:${{ github.sha }}"
+
       - name: Deploy
         run: |
           ARN="$(aws apprunner list-services --region "$AWS_REGION" \
@@ -149,10 +154,18 @@ jobs:
               --region "$AWS_REGION" --query 'Service.Status' --output text)"
             echo "status: $STATUS"
             case "$STATUS" in
-              RUNNING) exit 0 ;;
+              RUNNING)
+                if curl --fail --silent --show-error --max-time 10 \
+                  https://api.anpord.com/api/healthz \
+                  | jq --exit-status --arg revision "${{ github.sha }}" \
+                    '.ok == true and .revision == $revision' >/dev/null; then
+                  exit 0
+                fi
+                echo "The requested revision is not serving healthy traffic yet."
+                ;;
               CREATE_FAILED|DELETE_FAILED) exit 1 ;;
             esac
             sleep 15
           done
-          echo "Timed out waiting for the service to reach RUNNING."
+          echo "Timed out waiting for the requested revision to serve healthy traffic."
           exit 1

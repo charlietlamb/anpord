@@ -34,4 +34,12 @@ Offline tests cover authoring, compilation, choice mapping, invalid output, verd
 - Production HTTP verification is blocked. App Runner still serves the old validator schema and rejected both suites before creating runs. Its environment has neither `TRIGGER_SECRET_KEY` nor `TRIGGER_API_KEY`. The current Linux image exits without this setting and passes health checks with it.
 - The CI identity cannot create `anpord/server/TRIGGER_SECRET_KEY`; local AWS sessions are expired. An authorized AWS session must create this secret with the existing production Trigger key and attach its ARN as `RuntimeEnvironmentSecrets.TRIGGER_SECRET_KEY`, preserving the other settings. The instance role already permits reads under `anpord/server/*`. Redeploy, then rerun the spike's `run-production.ts`.
 
-The deployment workflow currently treats App Runner's `RUNNING` status as success. That does not prove the new revision is serving traffic. Production completion requires passing runs with stored judgments, not a green deployment job.
+The deployment workflow now requires the Trigger key before building and checks the health response's revision against the deployed commit. Production completion still requires passing runs with stored judgments, not a green deployment job.
+
+### Runtime fixes: 2026-09-06
+
+- Daytona cleanup accepts the SDK's typed not-found error. E2B cleanup uses its idempotent static kill operation without reconnecting to a stopped sandbox. Other failures remain failures.
+- The local cleanup sweep cleared 113 stale sandbox references with zero failures. Eval history was retained.
+- Worker scripts use the installed CLI instead of resolving the latest release through `bunx`. The local worker starts with the pinned 4.5.15 version.
+- The web server uses TanStack's default server entry. `bun --cwd apps/web run test:reload` checks HTML and other Accept headers across three full SSR reloads without modifying environment variables.
+- The production eval-list endpoint returns HTTP 500, while the same authenticated request succeeds locally. The org's newest stored run remains 2026-08-23. AWS authentication is expired and the configured Axiom token cannot read logs; production repair and judge runs remain unverified.

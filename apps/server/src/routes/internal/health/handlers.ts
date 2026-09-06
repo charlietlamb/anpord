@@ -2,7 +2,7 @@ import { pingDatabase } from "@anpord/db/health";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { Unhealthy } from "@anpord/schema/internal/health-api";
 import { HttpApiBuilder } from "@effect/platform";
-import { Duration, Effect } from "effect";
+import { Config, Duration, Effect } from "effect";
 
 /* Shorter than the statement timeout, so the probe answers before the platform gives up on it. */
 const PROBE_TIMEOUT = Duration.seconds(2);
@@ -15,7 +15,10 @@ const health = pingDatabase.pipe(
       Effect.annotateLogs({ cause: String(cause) })
     )
   ),
-  Effect.as({ ok: true }),
+  Effect.andThen(
+    Config.string("BUILD_REVISION").pipe(Config.withDefault("development"))
+  ),
+  Effect.map((revision) => ({ ok: true, revision })),
   Effect.mapError(
     () => new Unhealthy({ message: "The database is not reachable." })
   )

@@ -1,26 +1,21 @@
-import {
-  createStartHandler,
-  defaultStreamHandler,
-} from "@tanstack/react-start/server";
-
-const handler = createStartHandler(defaultStreamHandler);
+import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 
 const SERVED = /(^|,)\s*(\*\/\*|text\/html)/;
 
 /* TanStack Start answers any `Accept` it does not recognise with a 500, so unknown types are re-asked as HTML. */
 /* `Vary: Accept` because the response now varies by the request's `Accept`. */
-export default {
-  async fetch(request: Request, ...rest: unknown[]) {
+export default createServerEntry({
+  async fetch(request, options) {
     const accept = request.headers.get("accept") ?? "*/*";
 
     if (SERVED.test(accept)) {
-      return await handler(request, ...(rest as []));
+      return await handler.fetch(request, options);
     }
 
     const headers = new Headers(request.headers);
     headers.set("accept", "text/html");
 
-    const response = await handler(
+    const response = await handler.fetch(
       new Request(request.url, {
         body: request.body,
         headers,
@@ -29,7 +24,7 @@ export default {
         signal: request.signal,
         ...(request.body === null ? {} : { duplex: "half" }),
       } as RequestInit),
-      ...(rest as [])
+      options
     );
     const withVary = new Headers(response.headers);
     withVary.set("vary", appendAccept(withVary.get("vary")));
@@ -40,7 +35,7 @@ export default {
       statusText: response.statusText,
     });
   },
-};
+});
 
 const appendAccept = (existing: string | null) => {
   if (existing === null || existing.trim() === "") {

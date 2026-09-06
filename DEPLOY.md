@@ -74,6 +74,13 @@ workload. Set the health check path to `/api/healthz`, which answers 200.
 App Runner counts only 2xx as healthy, so an authenticated route returning 401
 fails the check even though the server is up.
 
+The deployment workflow checks for the Trigger key before building. Store it in
+Secrets Manager and reference its ARN as `TRIGGER_SECRET_KEY` in App Runner;
+keep the existing environment and secret references intact. Health responses
+include the image's `revision`, which must match the deployed commit before the
+workflow succeeds. `RUNNING` alone can also mean the previous image survived a
+failed rollout.
+
 Re-running the script after the service exists is an ordinary deploy.
 
 ## 2. Web → Vercel
