@@ -3,10 +3,13 @@ import type { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-pr
 import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import type { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { EvalSourceFiles } from "@anpord/schema/domain/eval-source-files";
+import type { EvalSetup } from "@anpord/schema/domain/evals";
+import { Schema } from "effect";
 import type { Distribution } from "../domain/distribution";
 import { distributionFor } from "./trial-distribution";
 
-type CellRow = typeof evalCell.$inferSelect;
+type CellRow = Omit<typeof evalCell.$inferSelect, "validatorFiles">;
 type RunRow = typeof evalRun.$inferSelect;
 type TrialRow = typeof evalTrial.$inferSelect;
 type CostRow = typeof evalTrialCost.$inferSelect;
@@ -17,34 +20,17 @@ interface TrialWithCosts extends TrialRow {
   readonly costs: readonly CostRow[];
 }
 
-interface CellTaskRow {
+interface CellTaskRow extends Omit<EvalSetup, "validatorFiles"> {
   readonly caseName: string;
   readonly cell: CellRow;
-  readonly prepareName: string | null;
   readonly profile: ProfileRow | null;
-  readonly prompt: string;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
-  readonly validatorName: string | null;
-  readonly verifyCommand: string | null;
-  readonly workspace: string;
+  readonly validatorFiles?: unknown;
 }
 
-interface CellWithTrials {
-  readonly caseName: string;
-  readonly cell: CellRow;
+interface CellWithTrials extends Omit<CellTaskRow, "validatorFiles"> {
   readonly distribution: Distribution;
-  readonly prepareName: string | null;
-  readonly profile: ProfileRow | null;
-
-  readonly prompt: string;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
   readonly trials: readonly TrialWithCosts[];
-
-  readonly validatorName: string | null;
-  readonly verifyCommand: string | null;
-  readonly workspace: string;
+  readonly validatorFiles?: EvalSetup["validatorFiles"];
 }
 
 export interface RunDetail {
@@ -83,6 +69,9 @@ export const detailOf = (
         costs: costsByTrial.get(trial.internalId) ?? [],
       })),
       validatorName: row.validatorName,
+      validatorFiles: Schema.decodeUnknownSync(EvalSourceFiles)(
+        row.validatorFiles ?? []
+      ),
       verifyCommand: row.verifyCommand,
       workspace: row.workspace,
     };

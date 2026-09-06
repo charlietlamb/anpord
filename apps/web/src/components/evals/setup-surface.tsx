@@ -4,6 +4,7 @@ import { type ReactNode, useState } from "react";
 
 export function SetupSurface({
   children,
+  contentClassName,
   controls,
   defaultOpen = true,
   Icon: Glyph,
@@ -11,6 +12,7 @@ export function SetupSurface({
   title,
 }: {
   readonly children: ReactNode;
+  readonly contentClassName?: string;
   readonly controls?: ReactNode;
   readonly defaultOpen?: boolean;
   readonly Icon: Icon;
@@ -58,7 +60,9 @@ export function SetupSurface({
         ) : null}
       </div>
 
-      {open ? <div className="px-3.5 py-3">{children}</div> : null}
+      {open ? (
+        <div className={cn("px-3.5 py-3", contentClassName)}>{children}</div>
+      ) : null}
     </section>
   );
 }

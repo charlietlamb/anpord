@@ -4,7 +4,6 @@ import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { PanelCard } from "@/components/layout/panel-card";
-import { SiteLayout } from "@/components/layout/site-layout";
 
 interface ErrorCardProps {
   description: string;
@@ -20,7 +19,7 @@ export function ErrorCard({
   onRetry,
 }: ErrorCardProps) {
   return (
-    <SiteLayout center>
+    <div className="flex flex-1 items-center justify-center p-6">
       <PanelCard description={description} heading="h1" title={title}>
         {detail ? (
           <CodeBlock
@@ -44,6 +43,6 @@ export function ErrorCard({
           </Link>
         </div>
       </PanelCard>
-    </SiteLayout>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -36,6 +37,7 @@ export const evalCell = pgTable(
       { onDelete: "restrict" }
     ),
     prompt: text("prompt").notNull(),
+    validatorFiles: jsonb("validator_files").$type<readonly EvalSourceFile[]>(),
     provider: text("provider").notNull(),
     sandboxCredentialConnectionId: text(
       "sandbox_credential_connection_id"
@@ -66,3 +68,5 @@ export const evalCell = pgTable(
       .where(sql`"profile_internal_id" IS NOT NULL`),
   ]
 );
+
+import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";

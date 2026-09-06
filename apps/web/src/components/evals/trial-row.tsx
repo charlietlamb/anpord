@@ -1,5 +1,5 @@
 import type { EvalTrial } from "@anpord/schema/domain/evals";
-import { TrialStatusMark } from "@/components/evals/eval-status-badge";
+import { TrialBadge } from "@/components/evals/eval-status-badge";
 import { Metric } from "@/components/evals/metric";
 import { ListRow } from "@/components/layout/list-row";
 import { count, NOTHING, seconds } from "@/lib/evals/duration";
@@ -19,7 +19,6 @@ export function TrialRow({
 }) {
   return (
     <ListRow
-      leading={<TrialStatusMark status={trial.status} />}
       meta={
         <>
           <Metric className="w-20" name="exit">
@@ -50,9 +49,7 @@ export function TrialRow({
       params={{ cellKey, ordinal: String(trial.ordinal), runId }}
       to="/evals/$runId/cells/$cellKey/trials/$ordinal"
     >
-      <span className="inline-flex size-5 items-center justify-center rounded-[5px] bg-muted/60 font-medium font-mono text-[10px] text-muted-foreground tabular-nums ring-1 ring-border">
-        {trial.ordinal}
-      </span>
+      <TrialBadge ordinal={trial.ordinal} status={trial.status} />
     </ListRow>
   );
 }

@@ -80,13 +80,18 @@ describe("decoding an OpenCode line", () => {
 
   it("keeps any other tool as a call", () => {
     const decoded = decodeOpencodeLine(
-      toolLine("todowrite", { input: { todos: [] }, status: "completed" })
+      toolLine("todowrite", {
+        input: { todos: [] },
+        output: "Saved",
+        status: "completed",
+      })
     );
 
     expect(Option.getOrThrow(decoded.event)).toMatchObject({
       _tag: "ToolCall",
       callId: "toolu_01",
       name: "todowrite",
+      output: "Saved",
       status: "completed",
     });
   });

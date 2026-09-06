@@ -21,8 +21,7 @@ const ROWS = 6;
 function TrialRowSkeleton() {
   return (
     <div className={cn(BLEED_ROW, ROW_SHAPE)}>
-      <Skeleton className="size-4 shrink-0 rounded-full" />
-      <Skeleton className="size-5 rounded-[5px]" />
+      <Skeleton className="size-6 rounded-md" />
 
       <span className="ml-auto flex shrink-0 items-center gap-4">
         {METRICS.map((shape, index) => (

@@ -16,6 +16,32 @@ const base: CaseDefinition = {
 };
 
 describe("case identity", () => {
+  it("does not change when only the source snapshot changes", () => {
+    const validator = Schema.decodeUnknownSync(EvalValidator)({
+      kind: "judged",
+      name: "answer",
+      checks: [],
+      judges: [
+        {
+          kind: "judge",
+          name: "correct",
+          provider: "openai",
+          model: "model",
+          rubric: "Correct answer",
+          choices: { correct: 1, incorrect: 0 },
+        },
+      ],
+    });
+    expect(caseIdentityOf({ ...base, validator })).toBe(
+      caseIdentityOf({
+        ...base,
+        validator: {
+          ...validator,
+          sourceFiles: [{ path: "judge.ts", content: "// comment" }],
+        },
+      })
+    );
+  });
   it("changes when the judge model or rubric changes", () => {
     const identity = (model: string, rubric: string) =>
       caseIdentityOf({

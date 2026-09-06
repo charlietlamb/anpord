@@ -29,11 +29,16 @@ export default defineEval({ name: "judged", source: empty, prompt: "Answer", tri
 };
 
 test("compiles a judge without a code check", async () => {
-  expect(await compile("correctness")).toMatchObject({
+  const validator = await compile("correctness");
+  expect(validator).toMatchObject({
     kind: "judged",
     checks: [],
     judges: [{ model: "exact-model" }],
   });
+  expect(validator?.sourceFiles?.[0]?.path).toBe("eval.ts");
+  expect(validator?.sourceFiles?.[0]?.content).toContain(
+    'model: "exact-model"'
+  );
 });
 
 test("bundles inline code checks alongside a judge", async () => {

@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TokenBand } from "@/components/evals/token-band";
+import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { Waterfall } from "@/components/evals/waterfall";
@@ -56,6 +57,8 @@ function TrialScreen() {
             trajectory={trial.trajectory}
           />
         </section>
+
+        <TrialCalls trajectory={trial.trajectory} />
 
         {cell?.setup == null ? null : (
           <section className="flex flex-col gap-1.5">

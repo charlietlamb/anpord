@@ -2,6 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { IdGenerator } from "@anpord/ids/id";
+import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { CellKey, HarnessName, ProviderName } from "../domain/cell";
@@ -25,6 +26,7 @@ interface InsertCell {
   readonly sandboxCredentialConnectionId?: string;
   readonly sandboxCredentialRevision?: number;
   readonly taskInternalId: string;
+  readonly validatorFiles?: readonly EvalSourceFile[];
 }
 
 export interface RunRepositoryShape {
@@ -159,6 +161,7 @@ export const RunRepositoryLive = Layer.effect(
                 model: cell.model,
                 profileInternalId: cell.profileInternalId,
                 prompt: cell.prompt,
+                validatorFiles: cell.validatorFiles,
                 provider: cell.provider,
                 runInternalId: cell.runInternalId,
                 sandboxCredentialConnectionId:
@@ -193,6 +196,7 @@ export const RunRepositoryLive = Layer.effect(
                 model: input.model,
                 profileInternalId: input.profileInternalId,
                 prompt: input.prompt,
+                validatorFiles: input.validatorFiles,
                 provider: input.provider,
                 runInternalId: input.runInternalId,
                 sandboxCredentialConnectionId:

@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Effect } from "effect";
 import { build, type Plugin } from "esbuild";
+import { sourceFiles } from "./source-files";
 
 const authoringExports = [
   "export const defineEval = value => value;",
@@ -87,7 +88,7 @@ const authoringModule: Plugin = {
 export const bundle = (
   contents: string,
   entry: string,
-  options: { readonly minify?: boolean } = {}
+  options: { readonly minify?: boolean; readonly captureSource?: boolean } = {}
 ) =>
   Effect.tryPromise({
     try: () =>
@@ -97,6 +98,8 @@ export const bundle = (
         format: "esm",
         metafile: true,
         minify: options.minify,
+        outfile: resolve(dirname(entry), "anpord-bundle.mjs"),
+        sourcemap: options.captureSource ? "external" : false,
         platform: "node",
         resolveExtensions: [".ts", ".mjs", ".js", ".cjs", ".json"],
         plugins: [authoringModule],
@@ -112,7 +115,18 @@ export const bundle = (
         inputs: Object.keys(result.metafile?.inputs ?? {}).map((path) =>
           resolve(path)
         ),
-        source: result.outputFiles[0]?.text ?? "",
+        source:
+          result.outputFiles.find((file) => file.path.endsWith(".mjs"))?.text ??
+          "",
+        ...(options.captureSource
+          ? {
+              sourceFiles: sourceFiles(
+                result.outputFiles.find((file) => file.path.endsWith(".map"))
+                  ?.text ?? "",
+                entry
+              ),
+            }
+          : {}),
       })),
     catch: (cause) => new Error(`Could not compile ${entry}`, { cause }),
   });

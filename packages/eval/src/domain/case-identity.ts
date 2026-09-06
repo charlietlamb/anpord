@@ -22,7 +22,11 @@ const validatorOf = (validator: EvalValidator | null | undefined) => {
   if (validator == null) {
     return "";
   }
-  return "source" in validator ? validator.source : JSON.stringify(validator);
+  if ("source" in validator) {
+    return validator.source;
+  }
+  const { sourceFiles, ...execution } = validator;
+  return JSON.stringify(execution);
 };
 
 const sourceOf = (source: WorkspaceSource) => {

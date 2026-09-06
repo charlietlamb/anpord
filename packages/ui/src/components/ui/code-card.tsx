@@ -27,8 +27,6 @@ export function CodeCard({
   /** Bounded so a long file does not push the page it sits on out of shape. */
   readonly maxHeight?: string;
 }) {
-  const html = useHighlighted(code, lang);
-
   return (
     <div
       className={cn(
@@ -48,24 +46,40 @@ export function CodeCard({
         />
       </div>
 
-      <div className={cn("overflow-auto", maxHeight)}>
-        {html === null ? (
-          <pre className="p-4 font-mono text-muted-foreground text-xs leading-relaxed">
-            {code}
-          </pre>
-        ) : (
-          /* Shiki's own markup, which carries both themes: the light colours
-             inline and the dark ones as custom properties. */
-          <div
-            className={cn(
-              "[&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-xs [&_pre]:leading-relaxed",
-              "[.dark_&_.shiki]:![color:var(--shiki-dark)] [.dark_&_.shiki_span]:![color:var(--shiki-dark)]"
-            )}
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: markup is produced by shiki from a string this app owns
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-        )}
-      </div>
+      <CodeContent code={code} lang={lang} maxHeight={maxHeight} />
+    </div>
+  );
+}
+
+export function CodeContent({
+  code,
+  lang,
+  maxHeight = "max-h-[28rem]",
+}: {
+  readonly code: string;
+  readonly lang: CodeLanguage;
+  readonly maxHeight?: string;
+}) {
+  const html = useHighlighted(code, lang);
+
+  return (
+    <div className={cn("overflow-auto", maxHeight)}>
+      {html === null ? (
+        <pre className="p-4 font-mono text-muted-foreground text-xs leading-relaxed">
+          {code}
+        </pre>
+      ) : (
+        /* Shiki's own markup, which carries both themes: the light colours
+           inline and the dark ones as custom properties. */
+        <div
+          className={cn(
+            "[&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-xs [&_pre]:leading-relaxed",
+            "[.dark_&_.shiki]:![color:var(--shiki-dark)] [.dark_&_.shiki_span]:![color:var(--shiki-dark)]"
+          )}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: markup is produced by shiki from a string this app owns
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      )}
     </div>
   );
 }

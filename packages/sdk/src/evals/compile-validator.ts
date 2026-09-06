@@ -2,13 +2,14 @@ import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Schema } from "effect";
 import { bundle } from "./eval-bundle";
-import { validatorCaseEntry } from "./runner-source";
+import { definitionEntry, validatorCaseEntry } from "./runner-source";
 import type { EvalCaseDefinition, Validator } from "./types";
 
 export const compileValidator = (
   entry: string,
   subject: EvalCaseDefinition,
-  caseIndex: number
+  caseIndex: number,
+  captureSource: boolean
 ) =>
   Effect.gen(function* () {
     if (subject.validate === undefined) {
@@ -33,6 +34,11 @@ export const compileValidator = (
       );
     }
     const hasCode = validations.some((value) => typeof value === "function");
+    const compiled = yield* bundle(
+      hasCode ? validatorCaseEntry(entry, caseIndex) : definitionEntry(entry),
+      entry,
+      { minify: true, captureSource }
+    );
     const checks = hasCode
       ? [
           {
@@ -40,17 +46,14 @@ export const compileValidator = (
               typeof subject.validate === "function"
                 ? subject.validate.name || subject.name
                 : subject.name,
-            source: (yield* bundle(
-              validatorCaseEntry(entry, caseIndex),
-              entry,
-              { minify: true }
-            )).source,
+            source: compiled.source,
           },
         ]
       : [];
-    return yield* Schema.decodeUnknown(EvalValidator)(
-      judges.length > 0
+    return yield* Schema.decodeUnknown(EvalValidator)({
+      ...(judges.length > 0
         ? { kind: "judged", name: subject.name, checks, judges }
-        : checks[0]
-    );
+        : checks[0]),
+      sourceFiles: compiled.sourceFiles,
+    });
   });

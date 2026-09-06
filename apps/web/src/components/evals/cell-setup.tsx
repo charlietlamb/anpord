@@ -7,7 +7,6 @@ import {
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import {
   CheckSquareIcon,
-  FolderOpenIcon,
   GitBranchIcon,
   type Icon,
   TerminalWindowIcon,
@@ -17,12 +16,7 @@ import { useState } from "react";
 import { TickedProse } from "@/components/evals/inline-code";
 import { SetupSurface } from "@/components/evals/setup-surface";
 import { VerifySteps } from "@/components/evals/verify-steps";
-
-const lines = (value: string) => {
-  const count = value.trimEnd().split("\n").length;
-
-  return `${count} line${count === 1 ? "" : "s"}`;
-};
+import { ValidationSource } from "./validation-source";
 
 const checks = (verdicts: readonly StepVerdict[]) => {
   const total = verdicts.length;
@@ -60,17 +54,17 @@ function Pill({
 }
 
 function Where({ setup }: { readonly setup: EvalSetup }) {
+  if (setup.repoUrl === null) {
+    return null;
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <Pill Icon={FolderOpenIcon} label="workspace" value={setup.workspace} />
-
-      {setup.repoUrl === null ? null : (
-        <Pill
-          Icon={GitBranchIcon}
-          label="repo"
-          value={`${setup.repoUrl}${setup.repoRef === null ? "" : `@${setup.repoRef}`}`}
-        />
-      )}
+      <Pill
+        Icon={GitBranchIcon}
+        label="repo"
+        value={`${setup.repoUrl}${setup.repoRef === null ? "" : `@${setup.repoRef}`}`}
+      />
     </div>
   );
 }
@@ -128,12 +122,7 @@ function Validation({
   readonly trials: readonly EvalTrial[];
 }) {
   if (setup.validatorName !== null) {
-    return (
-      <p className="flex h-7 items-center gap-1.5 text-muted-foreground text-xs">
-        <CheckSquareIcon aria-hidden="true" className="shrink-0" size={13} />
-        Validated by <code>{setup.validatorName}</code>
-      </p>
-    );
+    return <ValidationSource files={setup.validatorFiles ?? []} />;
   }
 
   if (setup.verifyCommand !== null) {
@@ -164,10 +153,9 @@ export function CellSetup({
           <CopyButton label="Copy prompt" size="inline" value={setup.prompt} />
         }
         Icon={TextAlignLeftIcon}
-        meta={lines(setup.prompt)}
         title="Prompt"
       >
-        <p className="max-w-prose whitespace-pre-wrap text-pretty text-foreground/80 text-xs leading-relaxed">
+        <p className="max-w-prose whitespace-pre-wrap text-pretty text-foreground/90 text-sm leading-7">
           <TickedProse text={setup.prompt} />
         </p>
       </SetupSurface>

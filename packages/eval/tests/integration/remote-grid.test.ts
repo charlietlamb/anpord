@@ -1,9 +1,23 @@
 import { describe, expect, test } from "bun:test";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { IdGeneratorLive } from "@anpord/ids/layer";
-import { Clock, Duration, Effect, Layer, Option, Redacted } from "effect";
+import { EvalSetup } from "@anpord/schema/domain/evals";
+import { eq } from "drizzle-orm";
+import {
+  Clock,
+  Duration,
+  Effect,
+  Layer,
+  Option,
+  Redacted,
+  Schema,
+} from "effect";
+import { compileEval } from "../../../sdk/src/evals/compiler";
 import { SourceTokensNone } from "../../src/codebase/source-token";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive } from "../../src/layer";
@@ -13,6 +27,7 @@ import { RunRepository } from "../../src/repositories/run-repository";
 import { AgentTrial } from "../../src/services/agent-trial";
 import { BaselinesLive } from "../../src/services/baselines";
 import { skipWithoutDatabase } from "../fixtures/database";
+import definition from "../fixtures/source-snapshot";
 
 const TestLayer = GridRunLive.pipe(
   Layer.provide(BaselinesLive),
@@ -40,6 +55,17 @@ const TestLayer = GridRunLive.pipe(
 
 describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
   test("the dispatcher reads worker completion from storage", async () => {
+    const entry = resolve(import.meta.dir, "../fixtures/source-snapshot.ts");
+    const compiled = await compileEval(entry);
+    expect(compiled.prompt).toBe(definition.prompt);
+    const validator = compiled.cases[0]?.validator;
+    const sourceFiles = [
+      {
+        path: "tests/fixtures/source-snapshot.ts",
+        content: await readFile(entry, "utf8"),
+      },
+    ];
+    expect(validator?.sourceFiles).toEqual(sourceFiles);
     await Effect.runPromise(
       Effect.gen(function* () {
         const db = yield* Database;
@@ -63,6 +89,7 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
               name: "fixture",
               prepare: null,
               source: { kind: "empty" },
+              validator,
               variables: {},
               verify: null,
             },
@@ -97,6 +124,25 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
         const running = yield* read();
         expect(running.status).toBe("running");
         expect(running.cells[0]?.internalId).toBeString();
+        const setupOf = (run: typeof running | undefined) =>
+          Schema.decodeUnknownSync(EvalSetup)(
+            Option.getOrNull(run?.cells[0]?.setup ?? Option.none())
+          );
+        expect(setupOf(running).validatorFiles).toEqual(sourceFiles);
+
+        yield* Effect.promise(() =>
+          db
+            .update(evalTask)
+            .set({
+              validatorConfig: {
+                name: "changed",
+                source: "changed",
+                sourceFiles: [],
+              },
+            })
+            .where(eq(evalTask.organizationId, organizationId))
+        );
+        expect(setupOf(yield* read()).validatorFiles).toEqual(sourceFiles);
 
         const row = Option.getOrThrow(yield* runs.findById(organizationId, id));
         yield* runs.finish({
@@ -114,6 +160,7 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
         });
         expect(page.runs[0]?.status).toBe("finished");
         expect(page.total).toBe(1);
+        expect(setupOf(page.runs[0]).validatorFiles).toEqual([]);
         expect(yield* grid.get("another-org", id)).toEqual(Option.none());
       }).pipe(Effect.provide(TestLayer))
     );

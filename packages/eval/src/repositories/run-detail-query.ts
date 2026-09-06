@@ -4,7 +4,7 @@ import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profile
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { cellTrialsQuery } from "./cell-trials-query";
 import { head, tryStore } from "./query";
@@ -13,6 +13,7 @@ import { groupByCell } from "./trial-distribution";
 
 type RunRow = typeof evalRun.$inferSelect;
 type CostRow = typeof evalTrialCost.$inferSelect;
+const { validatorFiles, ...cellColumns } = getTableColumns(evalCell);
 
 export const runDetailQuery = Effect.gen(function* () {
   const db = yield* Database;
@@ -38,7 +39,7 @@ export const runDetailQuery = Effect.gen(function* () {
         db
           .select({
             caseName: evalTask.name,
-            cell: evalCell,
+            cell: cellColumns,
             prompt: evalCell.prompt,
             repoRef: evalTask.repoRef,
             repoUrl: evalTask.repoUrl,
@@ -91,13 +92,14 @@ export const runDetailQuery = Effect.gen(function* () {
             db
               .select({
                 caseName: evalTask.name,
-                cell: evalCell,
+                cell: cellColumns,
                 prompt: evalCell.prompt,
                 repoRef: evalTask.repoRef,
                 repoUrl: evalTask.repoUrl,
                 prepareName: evalTask.prepareName,
                 profile: evalHarnessProfile,
                 validatorName: evalTask.validatorName,
+                validatorFiles,
                 verifyCommand: evalTask.verifyCommand,
                 workspace: evalTask.workspace,
               })

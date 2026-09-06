@@ -24,6 +24,13 @@ const TONE_CLASSES: Record<EvalTone, string> = {
   positive: "text-success",
 };
 
+const BADGE_BACKGROUNDS: Record<EvalTone, string> = {
+  critical: "bg-destructive/15",
+  neutral: "bg-muted",
+  pending: "bg-warning/15",
+  positive: "bg-success/15",
+};
+
 export function TrialStatusIcon({
   status,
 }: {
@@ -102,16 +109,26 @@ export function RunStatusIcon({
   );
 }
 
-export function TrialStatusMark({
+export function TrialBadge({
+  ordinal,
   status,
 }: {
+  readonly ordinal: number;
   readonly status: EvalTrialStatus;
 }) {
+  const tone = trialTone(status);
   return (
-    <StatusMark
-      Glyph={trialGlyph(status)}
-      label={status}
-      tone={trialTone(status)}
-    />
+    <span
+      className={cn(
+        "inline-flex size-6 items-center justify-center rounded-md font-medium font-mono text-xs tabular-nums",
+        TONE_CLASSES[tone],
+        BADGE_BACKGROUNDS[tone]
+      )}
+      title={`Trial ${ordinal}: ${status}`}
+    >
+      <span className="sr-only">Trial </span>
+      {ordinal}
+      <span className="sr-only">: {status}</span>
+    </span>
   );
 }

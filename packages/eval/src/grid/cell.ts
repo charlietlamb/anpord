@@ -81,6 +81,7 @@ export const runGridCell = (
       model: input.task.model,
       profileInternalId: input.profile?.internalId ?? null,
       prompt: renderPrompt(input.prompt, input.subject.variables),
+      validatorFiles: input.subject.validator?.sourceFiles,
       provider: input.task.provider,
       runInternalId: input.runInternalId,
       sandboxCredentialConnectionId: sandboxConnectionId,

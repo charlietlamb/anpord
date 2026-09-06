@@ -126,6 +126,7 @@ export const runToState = (
         repoUrl: entry.repoUrl,
         prepareName: entry.prepareName,
         validatorName: entry.validatorName,
+        validatorFiles: entry.validatorFiles,
         verifyCommand: entry.verifyCommand,
         workspace: entry.workspace,
       }),

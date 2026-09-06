@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { Dither } from "@anpord/ui/components/ui/dither";
 import {
   SidebarInset,
   SidebarProvider,
@@ -21,7 +22,8 @@ interface DashboardShellProps {
 export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
   return (
     <TooltipProvider>
-      <SidebarProvider defaultOpen={sidebarOpen}>
+      <SidebarProvider className="relative isolate" defaultOpen={sidebarOpen}>
+        <Dither className="fixed inset-0 -z-10 text-foreground/[0.08] opacity-50" />
         <Hydrate when={idle()}>
           <ClientOnly>
             <CommandMenu />

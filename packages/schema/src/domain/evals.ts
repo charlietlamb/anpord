@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 import { CredentialBindings, CredentialSelections } from "./credentials";
 import { EvalJudge, EvalJudgment } from "./eval-judges";
+import { EvalSourceFiles } from "./eval-source-files";
 import { EvalHarness as Harness } from "./harness";
 
 export const EvalHarness = Harness;
@@ -76,7 +77,11 @@ export const EvalCodeValidator = Schema.Struct({
 });
 
 export const EvalValidator = Schema.Union(
-  EvalCodeValidator,
+  EvalCodeValidator.pipe(
+    Schema.extend(
+      Schema.Struct({ sourceFiles: Schema.optional(EvalSourceFiles) })
+    )
+  ),
   Schema.Struct({
     kind: Schema.Literal("judged"),
     name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
@@ -85,6 +90,7 @@ export const EvalValidator = Schema.Union(
       Schema.minItems(1),
       Schema.maxItems(20)
     ),
+    sourceFiles: Schema.optional(EvalSourceFiles),
   })
 ).annotations({
   description: "A bundled TypeScript validator and its exported function name.",
@@ -227,6 +233,7 @@ export const EvalJournalEntry = Schema.Union(
     exitCode: Schema.NullOr(Schema.Int),
     finishedAtMillis: OccurredAtMillis,
     output: Schema.String,
+    outputTruncated: Schema.optional(Schema.Boolean),
     startedAtMillis: OccurredAtMillis,
   }),
   Schema.Struct({
@@ -238,7 +245,13 @@ export const EvalJournalEntry = Schema.Union(
   Schema.Struct({
     _tag: Schema.Literal("toolCall"),
     finishedAtMillis: OccurredAtMillis,
+    input: Schema.optional(Schema.String),
     name: Schema.String,
+    output: Schema.optional(Schema.String),
+    error: Schema.optional(Schema.String),
+    outputTruncated: Schema.optional(Schema.Boolean),
+    inputTruncated: Schema.optional(Schema.Boolean),
+    errorTruncated: Schema.optional(Schema.Boolean),
     /* Null where the harness reports only completion, which is most of them. */
     startedAtMillis: Schema.optional(OccurredAtMillis),
     status: Schema.NullOr(Schema.String),
@@ -389,6 +402,7 @@ export const EvalSetup = Schema.Struct({
   prepareName: Schema.NullOr(Schema.String),
 
   validatorName: Schema.NullOr(Schema.String),
+  validatorFiles: Schema.optional(EvalSourceFiles),
   verifyCommand: Schema.NullOr(Schema.String),
   workspace: Schema.String,
 }).annotations({

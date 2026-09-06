@@ -58,6 +58,7 @@ export const makeStartRun = (
                       profileInternalId:
                         profiles[taskIndex]?.internalId ?? null,
                       prompt: renderPrompt(input.prompt, subject.variables),
+                      validatorFiles: subject.validator?.sourceFiles,
                       provider: task.provider,
                       runInternalId: created.internalId,
                       sandboxCredentialConnectionId:

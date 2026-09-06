@@ -2,6 +2,7 @@ import type {
   CredentialBindings,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+import type { EvalSetup } from "@anpord/schema/domain/evals";
 import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
@@ -52,15 +53,7 @@ export const projectTask = (
   provider: task.provider,
 });
 
-export interface GridSetup {
-  readonly prepareName: string | null;
-  readonly prompt: string;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
-  readonly validatorName: string | null;
-  readonly verifyCommand: string | null;
-  readonly workspace: string;
-}
+export type GridSetup = EvalSetup;
 
 export interface GridCell {
   readonly caseName: string;

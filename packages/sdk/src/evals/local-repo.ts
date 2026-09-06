@@ -1,8 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { EvalSource } from "@anpord/schema/domain/evals";
 import { cloneUrlOf, parseRepo } from "@anpord/schema/domain/repo-spec";
-import { Effect, Option } from "effect";
+import { Config, Effect, Option } from "effect";
 
 const run = promisify(execFile);
 
@@ -12,25 +11,21 @@ const git = (args: readonly string[], cwd: string) =>
     Effect.orElseSucceed(() => "")
   );
 
-const environment = () => globalThis.process?.env ?? {};
-
 const remoteUrl = (cwd: string) =>
   Effect.gen(function* () {
-    const { GITHUB_REPOSITORY } = environment();
+    const repository = yield* Config.string("GITHUB_REPOSITORY").pipe(
+      Config.withDefault("")
+    );
     const origin = yield* git(["remote", "get-url", "origin"], cwd);
 
-    return origin === "" && GITHUB_REPOSITORY !== undefined
-      ? GITHUB_REPOSITORY
-      : origin;
+    return origin === "" ? repository : origin;
   });
 
 const fetchableRef = (cwd: string) =>
   Effect.gen(function* () {
-    const { GITHUB_HEAD_REF } = environment();
-
-    if (GITHUB_HEAD_REF !== undefined && GITHUB_HEAD_REF !== "") {
-      return GITHUB_HEAD_REF;
-    }
+    const ci = yield* Config.boolean("GITHUB_ACTIONS").pipe(
+      Config.withDefault(false)
+    );
 
     const [head, onRemote] = yield* Effect.all(
       [
@@ -40,12 +35,17 @@ const fetchableRef = (cwd: string) =>
       { concurrency: 2 }
     );
 
-    return head === "" || onRemote === "" ? null : head;
+    if (ci && head === "") {
+      return yield* Effect.fail(
+        new Error(
+          "Check out the commit before running evals in GitHub Actions."
+        )
+      );
+    }
+    return head === "" || (!ci && onRemote === "") ? null : head;
   });
 
-export const localRepo = (
-  cwd: string
-): Effect.Effect<Option.Option<EvalSource>> =>
+export const localRepo = (cwd: string) =>
   Effect.gen(function* () {
     const [remote, ref] = yield* Effect.all(
       [remoteUrl(cwd), fetchableRef(cwd)],

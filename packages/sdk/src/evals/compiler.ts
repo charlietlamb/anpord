@@ -99,7 +99,12 @@ export const compileEvalEffect = (path: string) =>
             );
           }
 
-          const validator = yield* compileValidator(entry, subject, caseIndex);
+          const validator = yield* compileValidator(
+            entry,
+            subject,
+            caseIndex,
+            definition.captureSource !== false
+          );
 
           const prepare =
             typeof subject.prepare === "function"

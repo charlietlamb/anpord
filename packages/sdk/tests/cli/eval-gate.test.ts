@@ -1,153 +1,117 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import { problemsWith } from "../../src/cli/eval-gate";
+import { EvalGate, problemsWith } from "../../src/cli/eval-gate";
+import {
+  createCell,
+  createComparison,
+  createRun,
+  createTrial,
+} from "../fixtures/eval-run";
 
-const comparisonOf = (
-  verdict: string,
-  versions: readonly [string, string] = ["0.144.4", "0.144.4"],
-  profiles: readonly [string | null, string | null] = [null, null]
-) => ({
-  baselineHarnessVersion: versions[0],
-  baselinePassRate: 0.9,
-  baselineProfileVersion: profiles[0],
-  candidateHarnessVersion: versions[1],
-  candidatePassRate: 0.5,
-  candidateProfileVersion: profiles[1],
-  verdict,
-});
-
-const cell = (
-  caseName: string,
-  verdict: string | null,
-  scored: number,
-  versions?: readonly [string, string],
-  profiles?: readonly [string | null, string | null]
-) =>
-  ({
-    caseName,
-    comparison:
-      verdict === null ? null : comparisonOf(verdict, versions, profiles),
-    distribution: { scored },
-    taskIndex: 0,
-  }) as never;
-
-const finished = (
-  cells: readonly unknown[],
-  task: unknown = { harness: "codex" }
-) =>
-  ({
-    cells,
-    failure: null,
-    status: "finished",
-    tasks: [task],
-  }) as unknown as EvalRun;
-
-describe("what makes a run fail the command", () => {
-  test("a clean grid reports nothing", () => {
-    expect(
-      problemsWith(finished([cell("a", "improved", 3)]), "regressed")
-    ).toEqual([]);
+describe("the eval gate", () => {
+  test("strict passes only completed passing trials", () => {
+    expect(problemsWith(createRun(), "strict")).toEqual([]);
   });
 
-  test("a regressed cell is named with its pass rates", () => {
-    expect(
-      problemsWith(
-        finished([cell("a", "improved", 3), cell("b", "regressed", 3)]),
-        "regressed"
-      )
-    ).toEqual(["b regressed against its baseline: pass rate 0.9 → 0.5."]);
-  });
-
-  test("a harness release that regressed names both versions", () => {
-    expect(
-      problemsWith(
-        finished([cell("b", "regressed", 3, ["0.144.4", "0.145.0"])]),
-        "regressed"
-      )
-    ).toEqual([
-      "b regressed against its baseline: codex 0.144.4 → 0.145.0, pass rate 0.9 → 0.5.",
+  test.each([
+    "failed",
+    "void",
+    "running",
+  ] as const)("strict rejects a %s trial without a baseline", (status) => {
+    const run = createRun({
+      cells: [createCell({ trials: [createTrial({ status, passed: false })] })],
+    });
+    expect(problemsWith(run, "strict")).toEqual([
+      `fixture, trial 1: ${status}.`,
     ]);
   });
 
-  test("a profile edit that regressed names the profile and both versions", () => {
+  test("strict rejects missing and incomplete trial evidence", () => {
+    for (const cell of [
+      createCell({ trials: [] }),
+      createCell({ status: "running" }),
+    ]) {
+      expect(
+        problemsWith(createRun({ cells: [cell] }), "strict")
+      ).not.toBeEmpty();
+    }
+  });
+
+  test("strict requires all requested cells and trials", () => {
+    expect(
+      problemsWith(createRun(), "strict", { cells: 2, trials: 1 })
+    ).not.toBeEmpty();
+    expect(
+      problemsWith(createRun(), "strict", { cells: 1, trials: 3 })
+    ).not.toBeEmpty();
+  });
+
+  test.each([
+    ...EvalGate.literals,
+  ])("%s never hides an empty or failed run", (gate) => {
+    expect(problemsWith(createRun({ cells: [] }), gate)).not.toBeEmpty();
+    expect(
+      problemsWith(createRun({ status: "running" }), gate)
+    ).not.toBeEmpty();
     expect(
       problemsWith(
-        finished(
-          [cell("b", "regressed", 3, undefined, ["a1b2c3d4", "0f9e8d7c"])],
-          {
-            harness: "opencode",
-            profile: { name: "house-style", version: "0f9e8d7c" },
-          }
-        ),
-        "regressed"
+        createRun({ status: "failed", failure: "sandbox died" }),
+        gate
       )
-    ).toEqual([
-      "b regressed against its baseline: house-style a1b2c3d4 → 0f9e8d7c, pass rate 0.9 → 0.5.",
+    ).toEqual(["sandbox died"]);
+  });
+
+  test("regression mode measures the baseline instead of absolute passes", () => {
+    const run = createRun({
+      cells: [
+        createCell({
+          comparison: createComparison({
+            verdict: "regressed",
+            baselinePassRate: 0.9,
+            candidatePassRate: 0.5,
+          }),
+        }),
+      ],
+    });
+    expect(problemsWith(run, "regressed")).toEqual([
+      "fixture regressed against its baseline: pass rate 0.9 → 0.5.",
     ]);
+    expect(problemsWith(run, "never")).toEqual([]);
   });
 
-  test("a base release under a profile names both changes", () => {
-    expect(
-      problemsWith(
-        finished(
-          [
-            cell(
-              "b",
-              "regressed",
-              3,
-              ["1.18.21", "1.19.0"],
-              ["a1b2c3d4", "0f9e8d7c"]
-            ),
-          ],
-          {
-            harness: "opencode",
-            profile: { name: "house-style", version: "0f9e8d7c" },
-          }
-        ),
-        "regressed"
-      )
-    ).toEqual([
-      "b regressed against its baseline: opencode 1.18.21 → 1.19.0, house-style a1b2c3d4 → 0f9e8d7c, pass rate 0.9 → 0.5.",
-    ]);
-  });
-
-  test("a profile held steady is not mentioned", () => {
-    expect(
-      problemsWith(
-        finished(
-          [cell("b", "regressed", 3, undefined, ["a1b2c3d4", "a1b2c3d4"])],
-          {
-            harness: "opencode",
-            profile: { name: "house-style", version: "a1b2c3d4" },
-          }
-        ),
-        "regressed"
-      )
-    ).toEqual(["b regressed against its baseline: pass rate 0.9 → 0.5."]);
-  });
-
-  test("an unscored cell passes unless it is asked about", () => {
-    const run = finished([cell("c", null, 0)]);
-
+  test("unscored mode also rejects cells without scored trials", () => {
+    const run = createRun({ cells: [createCell({ distribution: null })] });
     expect(problemsWith(run, "regressed")).toEqual([]);
     expect(problemsWith(run, "unscored")).toEqual([
-      "c produced no scored trials.",
+      "fixture produced no scored trials.",
     ]);
   });
 
-  test("never leaves results alone", () => {
-    expect(
-      problemsWith(finished([cell("b", "regressed", 3)]), "never")
-    ).toEqual([]);
-  });
-
-  test("a run that failed is reported whatever the gate", () => {
-    const run = {
-      cells: [],
-      failure: "sandbox died",
-      status: "failed",
-    } as unknown as EvalRun;
-
-    expect(problemsWith(run, "never")).toEqual(["sandbox died"]);
+  test("names both harness and profile versions when they change", () => {
+    const run = createRun({
+      tasks: [
+        {
+          harness: "codex",
+          harnessVersion: "2.0.0",
+          model: "test",
+          provider: "e2b",
+          profile: { name: "house", version: "new" },
+        },
+      ],
+      cells: [
+        createCell({
+          comparison: createComparison({
+            verdict: "regressed",
+            candidateHarnessVersion: "2.0.0",
+            baselineProfileVersion: "old",
+            candidateProfileVersion: "new",
+            baselinePassRate: 0.9,
+            candidatePassRate: 0.5,
+          }),
+        }),
+      ],
+    });
+    expect(problemsWith(run, "regressed")[0]).toContain(
+      "codex 1.0.0 → 2.0.0, house old → new"
+    );
   });
 });

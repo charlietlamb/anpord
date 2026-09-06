@@ -15,6 +15,20 @@ const API_KEY_PERMISSIONS: readonly Permission[] = [
   "evals:write",
 ];
 
+type VerifiedKey = NonNullable<
+  Awaited<ReturnType<AuthInstance["api"]["verifyApiKey"]>>["key"]
+>;
+
+export const resolveApiKeyPermissions = (
+  scopes: VerifiedKey["permissions"]
+): readonly Permission[] =>
+  scopes == null
+    ? API_KEY_PERMISSIONS
+    : API_KEY_PERMISSIONS.filter((permission) => {
+        const [resource, action] = permission.split(":");
+        return scopes[resource]?.includes(action) === true;
+      });
+
 export const resolveApiKey = (auth: AuthInstance, token: string) =>
   Effect.gen(function* () {
     const verified = yield* Effect.tryPromise({
@@ -30,7 +44,7 @@ export const resolveApiKey = (auth: AuthInstance, token: string) =>
     return yield* Schema.decodeUnknown(Actor)({
       id: key.value.referenceId,
       organizationId: key.value.referenceId,
-      permissions: API_KEY_PERMISSIONS,
+      permissions: resolveApiKeyPermissions(key.value.permissions),
       isUser: false,
     }).pipe(Effect.mapError(() => unauthorized("API key is malformed")));
   }).pipe(Effect.withSpan("Authentication.resolveApiKey"));

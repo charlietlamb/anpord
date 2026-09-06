@@ -30,6 +30,7 @@
         "anpord": "workspace:*",
         "effect": "catalog:",
         "pg": "catalog:",
+        "zod": "catalog:",
       },
       "devDependencies": {
         "@types/pg": "catalog:",
@@ -268,7 +269,7 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.11",
+      "version": "0.1.12",
       "bin": {
         "anpord": "./dist/bin.mjs",
       },

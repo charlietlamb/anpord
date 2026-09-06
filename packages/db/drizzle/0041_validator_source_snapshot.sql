@@ -1,0 +1,1 @@
+ALTER TABLE "eval_cell" ADD COLUMN "validator_files" jsonb;

@@ -25,7 +25,11 @@ export function AppSidebar() {
   const { pathname } = useLocation();
 
   return (
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar
+      className="[&_[data-slot=sidebar-inner]]:rounded-xl [&_[data-slot=sidebar-inner]]:border [&_[data-slot=sidebar-inner]]:border-sidebar-border"
+      collapsible="icon"
+      variant="inset"
+    >
       <SidebarHeader>
         <ClientOnly fallback={<Skeleton className="h-12 w-full rounded-md" />}>
           <OrgSwitcher />

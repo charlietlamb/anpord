@@ -47,6 +47,7 @@ const asTrajectory = (
           exitCode: event.exitCode,
           finishedAtMillis: millisOrNull(event.at),
           output: event.output.slice(0, JOURNAL_OUTPUT_LIMIT),
+          outputTruncated: event.output.length > JOURNAL_OUTPUT_LIMIT,
           startedAtMillis: millisOrNull(event.startedAt),
         },
       ];
@@ -68,7 +69,13 @@ const asTrajectory = (
         {
           _tag: "toolCall" as const,
           finishedAtMillis: millisOrNull(event.at),
+          input: event.input.slice(0, JOURNAL_OUTPUT_LIMIT),
+          inputTruncated: event.input.length > JOURNAL_OUTPUT_LIMIT,
           name: event.name,
+          output: event.output?.slice(0, JOURNAL_OUTPUT_LIMIT),
+          outputTruncated: (event.output?.length ?? 0) > JOURNAL_OUTPUT_LIMIT,
+          error: event.error?.slice(0, JOURNAL_OUTPUT_LIMIT),
+          errorTruncated: (event.error?.length ?? 0) > JOURNAL_OUTPUT_LIMIT,
           startedAtMillis: millisOrNull(event.startedAt),
           status: event.status,
         },

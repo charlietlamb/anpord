@@ -22,8 +22,10 @@ import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { EvalRow } from "@/components/evals/eval-row";
 import { RunGrid } from "@/components/evals/run-grid";
+import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialTable } from "@/components/evals/trial-table";
+import { ValidationSource } from "@/components/evals/validation-source";
 import { Waterfall } from "@/components/evals/waterfall";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
@@ -44,6 +46,53 @@ function EvalsPreview() {
           <h1 className="font-heading text-xl tracking-tight">Evals</h1>
           <ThemeToggle />
         </div>
+
+        <PreviewScreen name="Validation and calls">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5 py-5">
+            <ValidationSource
+              files={[
+                {
+                  path: "evals/catalog.eval.ts",
+                  content:
+                    "import { defineEval, empty } from 'anpord';\nimport { catalog } from './catalog';\nimport { validate } from './validate';\n\nexport default defineEval({\n  source: empty,\n  mcp: [catalog],\n  prompt: 'Retrieve the fixture and report its name.',\n  cases: [{ name: 'retrieve-item', validate }],\n});\n",
+                },
+                {
+                  path: "evals/validate.ts",
+                  content:
+                    "export const validate = async ({ answer }) => ({\n  passed: (await answer()).includes('CI fixture'),\n});\n",
+                },
+              ]}
+            />
+            <TrialCalls
+              trajectory={[
+                {
+                  _tag: "toolCall",
+                  name: "catalog.items_get",
+                  input: '{"id":"missing"}',
+                  error: "Unknown item: missing",
+                  status: "failed",
+                  finishedAtMillis: 1,
+                },
+                {
+                  _tag: "toolCall",
+                  name: "catalog.items_get",
+                  input: '{"id":"ci_fixture"}',
+                  output: '{"id":"ci_fixture","name":"CI fixture"}',
+                  status: "completed",
+                  finishedAtMillis: 2,
+                },
+                {
+                  _tag: "command",
+                  command: "catalog items list",
+                  output: '[{"id":"ci_fixture","name":"CI fixture"}]',
+                  exitCode: 0,
+                  startedAtMillis: 3,
+                  finishedAtMillis: 4,
+                },
+              ]}
+            />
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="New eval">
           <div className="mx-auto w-full max-w-3xl px-5 py-5">

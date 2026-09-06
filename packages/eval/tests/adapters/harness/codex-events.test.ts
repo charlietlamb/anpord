@@ -74,6 +74,34 @@ describe("decodeCodexLine", () => {
 });
 
 describe("tool calls", () => {
+  it("retains MCP results and errors", () => {
+    const result = { content: [{ type: "text", text: "Fixture" }] };
+    for (const response of [
+      { result },
+      { error: { message: "Unknown item" } },
+    ]) {
+      const decoded = decodeCodexLine(
+        JSON.stringify({
+          type: "item.completed",
+          item: {
+            type: "mcp_tool_call",
+            id: "call_1",
+            server: "catalog",
+            tool: "get",
+            arguments: { id: "fixture" },
+            status: "completed",
+            ...response,
+          },
+        })
+      );
+      expect(Option.getOrThrow(decoded.event)).toMatchObject(
+        "result" in response
+          ? { output: JSON.stringify(result) }
+          : { error: "Unknown item" }
+      );
+    }
+  });
+
   it.each(["completed", "failed"])("records %s MCP tool calls", (status) => {
     const decoded = decodeCodexLine(
       JSON.stringify({

@@ -54,6 +54,8 @@ export const HarnessEvent = Schema.Union(
     callId: Schema.NullOr(Schema.String),
     input: Schema.String,
     name: Schema.String,
+    output: Schema.optional(Schema.String),
+    error: Schema.optional(Schema.String),
     /* Only for a harness that reports both ends of the call. */
     startedAt: Schema.optional(Schema.Number),
     status: Schema.NullOr(Schema.String),

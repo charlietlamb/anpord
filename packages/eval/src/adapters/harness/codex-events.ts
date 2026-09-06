@@ -24,7 +24,13 @@ const ToolCallItem = Schema.Struct({
 
 const McpToolCallItem = Schema.Struct({
   arguments: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+  error: Schema.optional(
+    Schema.NullOr(Schema.Struct({ message: Schema.String }))
+  ),
   id: Schema.String,
+  result: Schema.optional(
+    Schema.NullOr(Schema.Record({ key: Schema.String, value: Schema.Unknown }))
+  ),
   server: Schema.String,
   status: Schema.Literal("in_progress", "completed", "failed"),
   tool: Schema.String,
@@ -112,6 +118,20 @@ const only = (event: HarnessEvent): DecodedLine => ({
   event: Option.some(event),
 });
 
+const mcpEvent = (item: typeof McpToolCallItem.Type): DecodedLine => ({
+  ...none,
+  itemId: Option.some(item.id),
+  event: Option.some({
+    _tag: "ToolCall",
+    callId: item.id,
+    input: JSON.stringify(item.arguments),
+    name: `${item.server}.${item.tool}`,
+    ...(item.result == null ? {} : { output: JSON.stringify(item.result) }),
+    ...(item.error == null ? {} : { error: item.error.message }),
+    status: item.status,
+  }),
+});
+
 export const decodeCodexLine = (line: string): DecodedLine => {
   if (line.trim() === "") {
     return none;
@@ -180,17 +200,7 @@ export const decodeCodexLine = (line: string): DecodedLine => {
   }
 
   if (item.type === "mcp_tool_call") {
-    return {
-      ...none,
-      itemId: Option.some(item.id),
-      event: Option.some({
-        _tag: "ToolCall",
-        callId: item.id,
-        input: JSON.stringify(item.arguments),
-        name: `${item.server}.${item.tool}`,
-        status: item.status,
-      }),
-    };
+    return mcpEvent(item);
   }
 
   if (item.type === "function_call" || item.type === "custom_tool_call") {

@@ -85,6 +85,12 @@ export const hasHealthRoute: Validator = async ({ readText }) => ({
 
 Import the function into the eval and set `validate: hasHealthRoute`. Anpord bundles the function and its imports with the case.
 
+The dashboard's **Validation** panel shows the original source captured during compilation, including types, comments, and formatting. Each run keeps its own snapshot.
+
+Capture includes TypeScript and JavaScript files present in the bundle, within the eval's nearest `package.json` directory. Without a package file, it uses the eval's directory. Dependencies, generated code, and files outside that directory are excluded. Imported fixtures and other code in those files may be included, not just the selected validator.
+
+Source is uploaded with the eval. Keep secrets out of source files, or set `captureSource: false` on `defineEval` to disable capture. Snapshots are limited to 100 files and 1,000,000 characters in total. Older runs without a snapshot show “Source unavailable.”
+
 Use [model judges](/evals/judges) for subjective checks, or combine both with `validate: [hasHealthRoute, correctness]`.
 
 Run every discovered `*.eval.ts` suite with `anpord eval`, or pass one file with `anpord eval ./smoke.eval.ts`.
