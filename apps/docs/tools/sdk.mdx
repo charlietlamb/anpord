@@ -39,7 +39,9 @@ const anpord = new Anpord({
 | Method | Returns |
 | --- | --- |
 | `evals.start(request)` | A run id while trials continue on the server |
+| `evals.startAndWait(request)` | The finished run |
 | `evals.get({ id })` | One run with cells and trials |
+| `evals.wait({ id })` | An already-started run once it finishes |
 | `evals.list({ cursor?, limit? })` | A page of runs and its next cursor |
 | `evals.models({ harness })` | Models available to a harness |
 | `evals.cellHistory({ cellKey })` | The twenty latest results for a cell |
@@ -52,6 +54,16 @@ const { id } = await anpord.evals.start({
   tasks: [{ harness: "codex", model, provider: "daytona" }],
   trials: 3,
 });
+```
+
+Use `compileEval` to keep validators, preparation, profiles, and mock dependencies in declarative TypeScript:
+
+```ts
+import { compileEval } from "anpord/eval";
+
+const run = await anpord.evals.startAndWait(
+  await compileEval("./evals/smoke.eval.ts")
+);
 ```
 
 ## Prompts

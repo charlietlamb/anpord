@@ -1,0 +1,132 @@
+---
+title: "Mock MCP and CLI"
+description: "Give agents typed local MCP servers and CLIs"
+---
+
+Mock dependencies are declarative TypeScript objects. Schemas infer handler types and validate requests and responses at runtime. Anpord compiles the fixtures, MCP servers, and CLIs into every task and isolated trial in the suite.
+
+```bash
+npm install anpord zod
+```
+
+## Share fixtures
+
+Keep fixture data and schemas separate from each interface:
+
+```ts fixtures/users.ts
+import { z } from "zod";
+
+export const User = z.object({ id: z.string(), name: z.string() });
+export const GetUserInput = z.object({ id: z.string() });
+
+export const user = {
+  id: "user_fixture",
+  name: "Ada",
+} satisfies z.infer<typeof User>;
+
+export const getUser = (id: string) => {
+  if (id !== user.id) throw new Error(`User not found: ${id}`);
+  return user;
+};
+```
+
+## MCP
+
+```ts mcp/users.ts
+import { resource, server, tool } from "anpord/mcp";
+import { GetUserInput, User, getUser, user } from "../fixtures/users";
+
+export const usersMcp = server({
+  name: "users",
+  version: "1.0.0",
+  tools: [
+    tool({
+      name: "users_get",
+      inputSchema: GetUserInput,
+      outputSchema: User,
+      handler: ({ id }) => getUser(id),
+    }),
+  ],
+  resources: [
+    resource({
+      name: "current_user",
+      uri: "users://current",
+      outputSchema: User,
+      handler: () => user,
+    }),
+  ],
+});
+```
+
+MCP supports tools and fixed-URI resources. Its schemas must implement Standard Schema and expose JSON Schema; the examples use Zod 4.
+
+## CLI
+
+```ts cli/users.ts
+import { cli, command } from "anpord/cli";
+import { GetUserInput, User, getUser } from "../fixtures/users";
+
+export const usersCli = cli({
+  path: "users",
+  version: "1.0.0",
+  commands: [
+    command({
+      path: ["get"],
+      inputSchema: GetUserInput,
+      outputSchema: User,
+      options: { id: { description: "User ID", type: "string" } },
+      handler: ({ id }) => getUser(id),
+    }),
+  ],
+});
+```
+
+`cli.path` is the executable. `command.path` is a non-empty argv segment tuple. Schema keys become kebab-case options; set an option's `name` to override it. String options accept `--id value` or `--id=value`. Boolean options are `true` when present and should be optional or have a schema default.
+
+The runtime generates help and version output, validates output, prints JSON to stdout, and returns a nonzero exit code on failure. Positional arguments are not supported.
+
+## Attach and validate
+
+```ts users.eval.ts
+import { defineEval, empty, type Validator } from "anpord";
+import { usersCli } from "./cli/users";
+import { GetUserInput, user } from "./fixtures/users";
+import { usersMcp } from "./mcp/users";
+
+const requestedFixture = (input: unknown) => {
+  const result = GetUserInput.safeParse(input);
+  return result.success && result.data.id === user.id;
+};
+
+const validate: Validator = async ({ answer, cli, mcp }) => {
+  const [text, cliCalls, mcpCalls] = await Promise.all([
+    answer(),
+    cli.calls("users"),
+    mcp.calls("users"),
+  ]);
+  const called =
+    cliCalls.some(({ input }) => requestedFixture(input)) ||
+    mcpCalls.some(
+      ({ input, kind, name }) =>
+        kind === "tool" && name === "users_get" && requestedFixture(input)
+    );
+  return { passed: called && text.includes(user.name) };
+};
+
+export default defineEval({
+  name: "users-interface",
+  source: empty,
+  prompt: "Use an available interface to retrieve user_fixture and report its name.",
+  mcp: [usersMcp],
+  cli: [usersCli],
+  cases: [{ name: "gets user", validate }],
+  tasks: [{ harness: "codex", model: "model-id", provider: "daytona" }],
+  trials: 1,
+});
+```
+
+Validators should check both the recorded call and the task outcome. Journal inputs and outputs are `unknown`, so parse them with the shared schema before asserting values.
+
+Definitions apply to every task in the suite. Split tasks into separate eval files when they need different interfaces. CLI mocks work with every harness; MCP mocks work with every [built-in harness](/evals/harnesses), not the custom command harness.
+
+Mock handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox and must contain no secrets. Running the hosted eval still requires `ANPORD_API_KEY` and a model connection.

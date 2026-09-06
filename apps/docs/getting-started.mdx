@@ -1,19 +1,16 @@
 ---
 title: "Quickstart"
-description: "Run your first coding-agent eval"
+description: "Run a TypeScript coding-agent eval"
 ---
 
 ## Prerequisites
 
-Model usage is charged to your own account, so add a [connection](/connections) for the harness first — this example uses Codex. Sandboxes run on Anpord's accounts unless you add one of your own.
-
-Then create a key under **Settings > API keys**:
+Add a [model connection](/connections), then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
 
 ```bash
 export ANPORD_API_KEY="anp_..."
+export EVAL_MODEL="your-model-id"
 ```
-
-The key needs `evals:write` and `evals:read`. The example below pins a model id; find the ones your connection can reach with `anpord.evals.models({ harness: "codex" })`.
 
 ## Install
 
@@ -29,52 +26,45 @@ bun add anpord
 
 </CodeGroup>
 
-## Run an eval
+## Define the eval
 
-Create `eval.ts`:
+Create `smoke.eval.ts`:
 
 ```ts
-import { Anpord } from "anpord";
+import { defineEval, empty } from "anpord";
 
-const anpord = new Anpord();
+const model = process.env.EVAL_MODEL;
+if (!model) throw new Error("Set EVAL_MODEL");
 
-const run = await anpord.evals.startAndWait({
+export default defineEval({
+  name: "smoke",
+  source: empty,
+  prompt: "{{task}}",
   cases: [
     {
-      name: "writes the requested file",
+      name: "writes hello",
       variables: { task: "Create hello.txt containing exactly hello" },
-      verify: "test \"$(cat hello.txt)\" = hello",
+      verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  prompt: "Work in the current repository. {{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model, provider: "daytona" }],
   trials: 3,
 });
-
-if (run.status === "failed") {
-  throw new Error(run.failure ?? "Eval run failed");
-}
-
-const result = run.cells[0]?.distribution;
-if (!result) throw new Error("Run produced no result");
-
-console.log({ passRate: result.passRate, scored: result.scored });
-await anpord.dispose();
 ```
 
-Run it:
+## Run it
 
 ```bash
-bun eval.ts
+npx anpord eval ./smoke.eval.ts
 ```
 
-Each trial runs in its own sandbox. The first scored result becomes the baseline for this case, harness, model, and sandbox provider.
+Anpord compiles the TypeScript locally, then runs each trial in an isolated hosted sandbox. The first scored cell becomes its baseline.
 
 <CardGroup cols={2}>
   <Card title="Write cases" icon="list-check" href="/evals/cases">
-    Set the source, task, setup, and verifier.
+    Add sources, preparation, and typed validators.
   </Card>
-  <Card title="Run in CI" icon="code-branch" href="/guides/ci">
-    Fail a build on regressions or missing evidence.
+  <Card title="Mock MCP and CLI" icon="terminal" href="/evals/mocks">
+    Give agents typed local MCP servers and CLIs.
   </Card>
 </CardGroup>

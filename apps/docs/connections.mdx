@@ -3,7 +3,15 @@ title: "Connections"
 description: "The credentials your evals run with"
 ---
 
-A run needs a credential for its [harness](/evals/harnesses) — the model usage is charged to your own account, so Anpord cannot supply one. Add it under **Settings > Harnesses** before the first run. This applies to the SDK, CLI, and MCP too; there is no way to pass a raw key through the API.
+A run needs a credential for its [harness](/evals/harnesses) because model usage is charged to your account. Add it under **Settings > Harnesses** before the first run. Raw model keys cannot be passed through the eval API.
+
+| Surface | Credential |
+| --- | --- |
+| Anpord CLI and SDK | `ANPORD_API_KEY` |
+| Agent model | Saved harness connection |
+| Hosted sandbox | None by default |
+| Mock product MCP or CLI | None |
+| [Hosted Anpord MCP](/tools/mcp) | OAuth 2.1 |
 
 Sandboxes run on Anpord's accounts by default. Add a sandbox connection only to run somewhere you control.
 

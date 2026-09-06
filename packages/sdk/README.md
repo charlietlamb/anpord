@@ -67,8 +67,8 @@ export default defineEval({
 npx anpord eval
 ```
 
-With no paths, the CLI discovers every `**/*.eval.ts` file and starts the
-suites concurrently. Pass files or directories to run a smaller set.
+With no file, the CLI discovers every `**/*.eval.ts` suite. Pass one file to
+run only that suite.
 
 ## Mock MCP servers
 

@@ -46,8 +46,7 @@
               "evals/import",
               "evals/variants",
               "evals/harnesses",
-              "evals/mock-mcp",
-              "evals/mock-cli",
+              "evals/mocks",
               "evals/profiles",
               "evals/command-harness",
               "evals/results",
@@ -96,6 +95,18 @@
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/evals/mock-mcp",
+      "destination": "/evals/mocks",
+      "permanent": true
+    },
+    {
+      "source": "/evals/mock-cli",
+      "destination": "/evals/mocks",
+      "permanent": true
+    }
+  ],
   "navbar": {
     "links": [
       {

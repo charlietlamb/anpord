@@ -11,7 +11,7 @@ This is a Bun and Turbo TypeScript monorepo containing:
 - the `anpord` TypeScript SDK and CLI
 - the hosted MCP server
 - the eval runtime and sandbox adapters
-- the a docs tool documentation
+- Product documentation
 
 ## Setup
 

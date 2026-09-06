@@ -1,107 +1,80 @@
 ---
-title: "Cases"
-description: "Define the work and its pass condition"
+title: "Suites and cases"
+description: "Define work and its pass condition"
 ---
 
-A case describes one coding task:
+An eval suite is a TypeScript object. Its prompt and tasks are shared; each case supplies variables, a workspace, and one pass condition.
 
 ```ts
-{
-  name: "health route",
-  variables: { task: "Add a /health route that returns 200" },
-  source: {
-    kind: "repo",
-    url: "https://github.com/acme/api",
-    ref: "8f31c4a",
-  },
-  prepare: installDependencies,
-  verify: "bun test test/health.test.ts",
-}
+import { defineEval, repo } from "anpord";
+
+export default defineEval({
+  name: "api",
+  source: repo("acme/api@8f31c4a"),
+  prompt: "{{task}}",
+  cases: [
+    {
+      name: "health route",
+      variables: { task: "Add a /health route that returns 200" },
+      verify: "bun test test/health.test.ts",
+    },
+  ],
+  tasks: [{ harness: "codex", model: "model-id", provider: "daytona" }],
+  trials: 3,
+});
 ```
 
-| Field | Purpose |
+| Case field | Purpose |
 | --- | --- |
-| `name` | Labels the row in a run |
-| `task` | Replaces `{{task}}` in the shared prompt |
-| `source` | Supplies the starting workspace |
-| `prepare` | A TypeScript function run after the workspace is ready and before the agent starts |
-| `verify` | Runs a shell check after the agent finishes |
-| `validate` | References a TypeScript validator in file-based evals |
+| `name` | Labels the grid row |
+| `variables` | Replaces prompt variables such as `{{task}}` |
+| `source` | Overrides the suite workspace |
+| `prepare` | Runs typed preparation before the agent |
+| `cache` | Restores and saves one prepared directory |
+| `verify` | Runs a shell check after the agent |
+| `validate` | Runs a TypeScript validator after the agent |
 
-Keep `name` short. Write `task` as the task, not the full agent instruction. Put shared instructions in the run prompt.
+Every case needs exactly one of `verify` or `validate`.
+
+## Sources
+
+When `source` is omitted, the CLI uses the eval file's Git repository when it can resolve a fetchable remote. Set the source explicitly for reproducible runs:
+
+```ts
+import { empty, files, repo } from "anpord";
+
+source: empty;
+source: repo("acme/api@8f31c4a");
+source: files({ "src/add.ts": "export const add = () => 0;" });
+```
+
+A case-level source overrides the suite source.
 
 ## Prepare
 
-`prepare` is a function, not a shell string, so a step is a file and arguments
-rather than a line to quote:
+`prepare` receives typed filesystem and process helpers. Its return value reaches the validator as `prepared`.
 
 ```ts
 import type { Prepare } from "anpord";
 
-export const installDependencies: Prepare = async ({ exec }) => {
-  await exec("npm", ["ci", "--workspace", "renderer"], { timeoutMs: 600_000 });
-
-  return { rendererPort: 4173 };
+export const install: Prepare = async ({ cached, exec }) => {
+  if (!cached) await exec("npm", ["ci"], { timeoutMs: 600_000 });
+  return { port: 4173 };
 };
 ```
 
-Each `exec` takes its own `timeoutMs`, so a long install does not force the
-same ceiling on every other step.
-
-What `prepare` returns reaches the validator as `prepared`, and is recorded
-with the trial:
-
 ```ts
-export const validateRender: Validator = ({ prepared }) =>
-  fetch(`http://localhost:${prepared.rendererPort}`).then((response) => response.ok);
-```
-
-The bundled function is stored with the case and hashed into its identity, so
-a rerun prepares the same way and changing it starts a new baseline.
-
-## Source
-
-Omit `source` for an empty workspace, or set it explicitly:
-
-```ts
-source: { kind: "empty" }
-```
-
-Use a repository for larger tasks. Pin `ref` to a commit when runs must start from the same files.
-
-```ts
-source: {
-  kind: "repo",
-  url: "https://github.com/acme/api",
-  ref: "8f31c4a",
+{
+  cache: { key: "npm-lock-v1", path: "node_modules" },
+  prepare: install,
 }
 ```
 
-Use inline files for small fixtures:
+## Validate
+
+Use a validator when the check is clearer in TypeScript:
 
 ```ts
-source: {
-  kind: "files",
-  files: {
-    "src/add.ts": "export const add = () => 0;",
-    "src/add.test.ts": "import { expect, test } from 'bun:test';",
-  },
-}
-```
-
-## Setup and verification
-
-`setup` runs after the source is prepared. A nonzero exit prevents that trial's harness from starting and fails the run. Omit it when no preparation is needed.
-
-`verify` runs after the harness finishes. Exit code `0` passes. A nonzero exit fails when the command produced usable evidence. A verifier that cannot execute, or a test runner that reports no tests, produces a void trial. Use `set -o pipefail` in shell pipelines.
-
-Set `verify: null` to record the trajectory without scoring the trial. Void trials do not affect pass rate or create a baseline.
-
-### TypeScript validators
-
-For checks that are clearer in code, export a typed function:
-
-```ts validator.ts
 import type { Validator } from "anpord";
 
 export const hasHealthRoute: Validator = async ({ readText }) => ({
@@ -110,42 +83,8 @@ export const hasHealthRoute: Validator = async ({ readText }) => ({
 });
 ```
 
-Import and reference it directly in the case. It does not need another wrapper:
+Import the function into the eval and set `validate: hasHealthRoute`. Anpord bundles the function and its imports with the case.
 
-```ts health-route.eval.ts
-import { defineEval } from "anpord";
-import { hasHealthRoute } from "./validator";
+Run every discovered `*.eval.ts` suite with `anpord eval`, or pass one file with `anpord eval ./smoke.eval.ts`.
 
-export default defineEval({
-  name: "health-route",
-  prompt: "{{task}}",
-  cases: [{ name: "health route", variables: { task: "Add a /health route" }, validate: hasHealthRoute }],
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
-  trials: 3,
-});
-```
-
-Run every `*.eval.ts` suite with `anpord eval`, or select this one with `anpord eval ./health-route.eval.ts`. Anpord bundles the validator and its imports, runs it after the agent, and shows the function name with the result. Use either `validate` or `verify` on a case, not both.
-
-## Tasks
-
-Each entry in `tasks` names a harness, a model and a sandbox, and each becomes one column of the grid:
-
-```ts
-tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }]
-```
-
-To run the harness as your team configures it rather than as it ships, give `harness` a base and a [profile](/evals/profiles) instead of a name:
-
-```ts
-tasks: [
-  { harness: "opencode", model: "anthropic/claude-sonnet-4.6", provider: "daytona" },
-  {
-    harness: { base: "opencode", profile: { name: "docs-writer", dir: "./profile" } },
-    model: "anthropic/claude-sonnet-4.6",
-    provider: "daytona",
-  },
-]
-```
-
-`dir` resolves against the eval file. Anpord reads the directory when the suite compiles and ships it with the run, so a profile is versioned with the case rather than left on one machine.
+See [agents and sandboxes](/evals/harnesses) for tasks and [profiles](/evals/profiles) for custom harness configuration.
