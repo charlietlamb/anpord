@@ -42,6 +42,7 @@
           {
             "group": "Fundamentals",
             "pages": [
+              "introduction",
               "connections",
               "concepts",
               "evals/variants",
