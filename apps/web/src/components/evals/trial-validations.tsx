@@ -56,7 +56,7 @@ function Evidence({
         </p>
       ) : (
         validation.calls.map((call) => (
-          <div className="border-border-faint border-t" key={call.index}>
+          <div className="py-2" key={call.index}>
             <dt className="px-3.5 pt-3 font-mono text-xs">
               {call.method} ·{" "}
               {call.durationMs === null ? "Incomplete" : `${call.durationMs}ms`}
@@ -110,7 +110,7 @@ function ValidationRow({
     validation.status === "failed" || validation.status === "error";
   return (
     <details open={failed}>
-      <summary className="flex cursor-pointer items-center gap-2 px-3.5 py-3 text-xs hover:bg-muted/40">
+      <summary className="flex cursor-pointer items-center gap-2 rounded px-3.5 py-3 text-xs hover:bg-muted/40">
         <SignalTip label={validation.kind}>
           <KindIcon
             aria-label={validation.kind}
@@ -137,7 +137,7 @@ function ValidationRow({
           {validation.status}
         </span>
       </summary>
-      <div className="border-border-faint border-t">
+      <div className="pb-3">
         {validation.message ? (
           <p className="px-3.5 pt-3 text-xs">{validation.message}</p>
         ) : null}
@@ -194,17 +194,13 @@ export function TrialValidations({
   readonly validations?: readonly EvalValidation[];
 }) {
   return (
-    <SetupSurface
-      contentClassName="border-border-faint border-y"
-      Icon={CheckSquareIcon}
-      title="Validation results"
-    >
+    <SetupSurface Icon={CheckSquareIcon} title="Validation results">
       {validations === undefined || validations.length === 0 ? (
         <p className="px-3.5 py-3 text-muted-foreground text-xs">
           Execution evidence was not recorded for this trial.
         </p>
       ) : (
-        <div className="divide-y divide-border-faint">
+        <div className="space-y-1">
           {validations.map((validation) => (
             <ValidationRow key={validation.id} validation={validation} />
           ))}

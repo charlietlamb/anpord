@@ -18,7 +18,7 @@ test("shows the original TypeScript with the shared file select", () => {
   expect(html).toContain("Copy validate.ts");
   expect(html).toContain("<h3");
   expect(html).not.toContain("group/surface");
-  expect(html).not.toContain("rounded-xl border");
+  expect(html.split("rounded-xl border")).toHaveLength(2);
   expect(html.match(/>validate.ts</g)).toHaveLength(1);
 });
 

@@ -21,18 +21,14 @@ export function ValidationSource({
   const selected = files.find((file) => file.path === path) ?? files[0];
 
   return (
-    <SetupSurface
-      contentClassName="border-border-faint border-y"
-      Icon={CheckSquareIcon}
-      title="Validation"
-    >
+    <SetupSurface Icon={CheckSquareIcon} title="Validation">
       {selected === undefined ? (
         <p className="px-3.5 py-3 text-muted-foreground text-xs">
           Source unavailable for this run.
         </p>
       ) : (
-        <>
-          <div className="flex min-w-0 items-center gap-2 border-border-faint border-b px-3.5 py-2">
+        <div className="overflow-hidden rounded-xl border border-border-faint bg-muted/40">
+          <div className="flex min-w-0 items-center gap-2 px-3.5 py-2">
             {files.length > 1 ? (
               <Select onValueChange={setPath} value={selected.path}>
                 <SelectTrigger
@@ -70,7 +66,7 @@ export function ValidationSource({
             key={selected.path}
             lang="typescript"
           />
-        </>
+        </div>
       )}
     </SetupSurface>
   );

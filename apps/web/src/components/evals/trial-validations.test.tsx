@@ -39,6 +39,8 @@ test("shows each validator, exact return, and error without nested cards", () =>
   expect(html).toContain("false");
   expect(html.match(/<details/g)).toHaveLength(2);
   expect(html).not.toContain("rounded-lg");
+  expect(html).not.toContain("border-border-faint");
+  expect(html).not.toContain("divide-");
   expect(html).toContain("<h3");
 });
 

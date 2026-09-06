@@ -31,7 +31,7 @@ function CallRow({
 
   return (
     <details className="group/call" open={ordinal === 1}>
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-3.5 py-2.5 text-xs hover:bg-muted/40 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded px-3.5 py-2.5 text-xs hover:bg-muted/40 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <span className="text-muted-foreground tabular-nums">{ordinal}</span>
         <span className="min-w-0 flex-1 truncate font-mono">
           {command ? call.command : call.name}
@@ -51,7 +51,7 @@ function CallRow({
           ›
         </span>
       </summary>
-      <dl className="grid border-border-faint border-t pb-2 md:grid-cols-2 md:divide-x md:divide-border-faint">
+      <dl className="grid gap-2 pb-3 md:grid-cols-2">
         <EvidenceValue
           label="Input"
           truncated={command ? false : call.inputTruncated}
@@ -63,7 +63,7 @@ function CallRow({
           value={call.output}
         />
         {!command && call.error !== undefined ? (
-          <div className="border-border-faint border-t md:col-span-2">
+          <div className="md:col-span-2">
             <EvidenceValue
               label="Error"
               truncated={call.errorTruncated}
@@ -92,7 +92,7 @@ export function TrialCalls({
   }
   return (
     <SetupSurface
-      contentClassName="divide-y divide-border-faint border-border-faint border-y"
+      contentClassName="space-y-1"
       Icon={PlugsConnectedIcon}
       meta={String(calls.length)}
       title="Calls"
