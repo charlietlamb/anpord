@@ -4,42 +4,15 @@ sidebarTitle: "Results"
 description: "Read outcomes and inspect each attempt"
 ---
 
-## Run origin
-
-Each run records a `trigger`: Dashboard, CLI, CI, API, or MCP. It appears in the
-run list, details, and history. Trials inherit their run's origin.
-
-The CLI and MCP set it automatically. Direct API calls default to API. Other
-automation can supply `trigger: { source: "ci", url: "https://ci.example/run/123" }`
-when starting or rerunning an eval. This metadata describes the caller; it
-does not grant permissions or verify a CI provider's identity.
-
-Resuming preserves the original trigger. Running again records the new caller.
-Older runs show Unknown.
-
-`evals.start` returns a run id while trials continue on the server. `startAndWait` starts a run and resolves once it stops:
+`evals.start` returns a run id while trials continue on the server. `startAndWait` runs and resolves once the grid stops:
 
 ```ts
 const run = await anpord.evals.startAndWait({ cases, prompt, tasks, trials: 3 });
 ```
 
-To wait on a run you started earlier, pass its id:
+To wait on a run you started earlier, pass its id to `evals.wait({ id })`. Both poll `evals.get`, widening the gap as the run goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs`, and `maxIntervalMs`.
 
-```ts
-const run = await anpord.evals.wait({ id });
-```
-
-Both poll `evals.get`, widening the gap between requests as the run goes on. Both accept:
-
-| Option | Default | Purpose |
-| --- | --- | --- |
-| `onProgress` | None | Called with the run after every poll |
-| `signal` | None | Stop waiting when an `AbortSignal` fires |
-| `timeoutMs` | 1 hour | Give up waiting and throw `EvalTimeout` |
-| `pollIntervalMs` | 2000 | Gap before the first re-check |
-| `maxIntervalMs` | 10000 | Ceiling the gap grows to |
-
-Neither cancels the run. On timeout or abort the grid keeps going on the server, and `evals.get` still reads it.
+Neither cancels the run. On timeout or abort the grid keeps going, and `evals.get` still reads it.
 
 | Run status | Meaning |
 | --- | --- |
@@ -50,69 +23,67 @@ Neither cancels the run. On timeout or abort the grid keeps going on the server,
 ## Cell distribution
 
 ```ts
-const result = run.cells[0]?.distribution;
-
-console.log({
-  passRate: result?.passRate,
-  passed: result?.passed,
-  failed: result?.failed,
-  voided: result?.voided,
-  scored: result?.scored,
-  deterministic: result?.deterministic,
-});
+const { passRate, passed, failed, voided, scored, deterministic } =
+  run.cells[0].distribution;
 ```
 
-Pass rate uses scored trials as its denominator. If `scored` is zero, the serialized pass rate is zero, but there is no scored result. A later unscored candidate with a baseline is `incomparable`.
+Pass rate counts only scored trials. When `scored` is zero the pass rate serializes as zero, which is not a result: a later candidate with a baseline reads as `incomparable`.
 
-`deterministic` is true when multiple scored trials agree on pass or fail and their command counts stay within four. One scored trial cannot establish determinism.
+`deterministic` is true when several scored trials agree on pass or fail and their command counts stay within four. One trial cannot establish it.
 
 ## Trial status
 
 | Status | Meaning |
 | --- | --- |
-| `queued` | Reserved for work that has not started |
+| `queued` | Not started |
 | `running` | The harness is working |
 | `passed` | The verifier passed |
 | `failed` | The verifier ran and did not pass |
 | `void` | Required evidence is missing |
-| `exceeded` | Reserved for a runtime or resource limit |
 
-`voidFields` lists missing evidence when scoring can identify it. Keep void trials separate from failures in reports and CI.
+`voidFields` names the missing evidence where scoring can identify it. Keep void trials out of pass rates in reports and CI: a trial that never ran is not a failure.
 
 ## Trajectory
 
-The detail view includes the prompt and a **Validation** panel with captured source files. Select a file to read or copy its original contents. These are compile-time snapshots, not the current files in your repository. See [source capture](/evals/cases#validate).
-
-Each trial includes an ordered `trajectory` of commands, messages, tool calls, and file changes:
+Each trial carries an ordered `trajectory` of commands, messages, tool calls, and file changes:
 
 ```ts
-for (const event of run.cells[0]?.trials[0]?.trajectory ?? []) {
+for (const event of run.cells[0].trials[0].trajectory) {
   if (event._tag === "command") {
     console.log(event.command, event.exitCode, event.output);
   }
 }
 ```
 
-Trial metadata also includes command counts, changed files, model and sandbox time, sandbox id, and token counts when the harness reports them. Command output and tool payloads are capped at 4,000 characters, with truncation marked explicitly.
+Trials also record command counts, changed files, model and sandbox time, sandbox id, and token counts where the harness reports them. Output and tool payloads cap at 4,000 characters, and truncation is marked.
 
-Read the distribution first, then compare passing and failing trajectories from the same cell. Pass rate summarizes outcomes. Command counts show how attempts differed.
+Read the distribution first, then compare a passing and a failing trajectory from the same cell. The pass rate says what happened; the command counts say how the attempts differed.
 
 ## Validation evidence
 
-Each trial's `validations` contains the individual code checks, judges, or command verifier. The dashboard shows these under **Validation results**, alongside the original source files.
+Each trial's `validations` holds the code checks, judges, and command verifier that scored it:
 
 ```ts
-for (const validation of run.cells[0]?.trials[0]?.validations ?? []) {
+for (const validation of run.cells[0].trials[0].validations) {
   console.log(validation.name, validation.status, validation.durationMs);
   console.log(validation.input, validation.output, validation.error);
-  console.log(validation.calls, validation.logs);
 }
 ```
 
-Code checks record their return value, context method arguments and results, console logs, and exceptions. Judges record the request body or harness prompt, raw response text, provider metadata when available, and parsed judgment. Command verifiers record their command, stdout, stderr, and exit code. This uses the same execution path for CI, CLI, API, MCP, and dashboard runs.
+Code checks record their return value, context arguments and results, logs, and exceptions. Judges record the prompt, raw response, provider metadata, and parsed judgment. Command verifiers record the command, stdout, stderr, and exit code.
 
-`failed` means a completed check did not pass. `error` means it could not finish reliably. `skipped` means it did not run. Earlier completed checks remain visible if a later check crashes. Historical runs cannot recover evidence that was never captured.
+`failed` is a check that completed and did not pass. `error` is one that could not finish. `skipped` is one that never ran. Earlier checks stay visible when a later one crashes, and a run that predates capture cannot recover it.
 
-Values carry `state`, `format`, `text`, and `truncated`. Each validator has a 64,000-character capture budget, with up to 16,000 additional characters for process errors. Individual values are limited to 16,000 characters, with at most 64 calls or log entries. Truncation affects stored evidence, not scoring. Unavailable evidence is never presented as an empty result.
+Each validator gets a 64,000-character budget, single values cap at 16,000, and at most 64 calls or log entries are kept. Truncation affects the stored evidence, never the score.
 
-Inputs, results, and logs can contain your data. Set `captureValidation: false` on `defineEval` to disable payload capture for code checks and judges while retaining their verdicts and timing. This is separate from `captureSource`. Authorization headers, credentials, and private model reasoning are not collected by the capture layer; do not print secrets from your own validators. Worker logs include validation status transitions and run, cell, trial, and validator identifiers, not payloads.
+Inputs and logs can contain your data. `captureValidation: false` on `defineEval` keeps verdicts and timing but stores no payloads, separately from `captureSource`. Credentials and model reasoning are never collected, but a validator that prints a secret will store it.
+
+## Run origin
+
+Each run records a `trigger`: Dashboard, CLI, CI, API, or MCP, which trials inherit. The CLI and MCP set it; direct API calls default to API. Other automation can pass its own:
+
+```ts
+trigger: { source: "ci", url: "https://ci.example/run/123" }
+```
+
+This describes the caller. It grants nothing and verifies nothing. Resuming keeps the original trigger, running again records the new one, and older runs show Unknown.

@@ -12,12 +12,7 @@
     "default": "dark"
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude"]
   },
   "fonts": {
     "heading": {
@@ -52,31 +47,19 @@
           },
           {
             "group": "Workflows",
-            "pages": [
-              "guides/claude-code",
-              "guides/ci"
-            ]
+            "pages": ["guides/claude-code", "guides/ci"]
           },
           {
             "group": "Advanced evals",
-            "pages": [
-              "evals/profiles",
-              "evals/command-harness",
-              "evals/import"
-            ]
+            "pages": ["evals/profiles", "evals/command-harness", "evals/import"]
           },
           {
             "group": "Tools",
-            "pages": [
-              "tools/cli",
-              "tools/mcp"
-            ]
+            "pages": ["tools/cli", "tools/mcp"]
           },
           {
             "group": "Help",
-            "pages": [
-              "troubleshooting"
-            ]
+            "pages": ["troubleshooting"]
           }
         ]
       },
@@ -85,10 +68,7 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": [
-              "sdk/overview",
-              "getting-started"
-            ]
+            "pages": ["sdk/overview", "getting-started"]
           },
           {
             "group": "Define evals",
@@ -101,10 +81,7 @@
           },
           {
             "group": "Run evals",
-            "pages": [
-              "guides/run-from-code",
-              "sdk/client"
-            ]
+            "pages": ["guides/run-from-code", "sdk/client"]
           },
           {
             "group": "Prompts",
@@ -122,9 +99,7 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "pages": ["api-reference/introduction"]
           },
           {
             "group": "Endpoints",
