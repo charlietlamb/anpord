@@ -56,10 +56,6 @@
           {
             "group": "Tools",
             "pages": ["tools/cli", "tools/mcp"]
-          },
-          {
-            "group": "Help",
-            "pages": ["troubleshooting"]
           }
         ]
       },
