@@ -9,12 +9,14 @@ import { z } from "zod";
 export const prepareSdk: Prepare = async ({ exec }): Promise<undefined> => {
   for (const [file, ...args] of [
     ["npm", "install", "--global", "bun@1.3.14"],
-    ["bun", "install", "--frozen-lockfile"],
-    ["bun", "run", "--cwd", "packages/sdk", "build"],
+    ["bun", "install", "--frozen-lockfile", "--filter", "./packages/sdk"],
+    ["bun", "--bun", "run", "--cwd", "packages/sdk", "build", "--no-dts"],
   ]) {
     const result = await exec(file, args, { timeoutMs: 600_000 });
     if (result.exitCode !== 0) {
-      throw new Error(`${file} ${args.join(" ")} failed: ${result.stderr}`);
+      throw new Error(
+        `${file} ${args.join(" ")} exited ${result.exitCode}: ${result.stderr || result.stdout}`
+      );
     }
   }
   return;
