@@ -30,9 +30,9 @@ Offline tests cover authoring, compilation, choice mapping, invalid output, verd
 - Published `anpord@0.1.12` from `045e9a6`; installed it in the separate customer spike and passed its mock MCP and CLI tests and scoped strict typecheck.
 - Real Codex `gpt-5.6-sol` judges in E2B scored the positive arithmetic control 1 and the negative control 0.
 - Workspace checks and CI passed. The existing API/SDK/CLI integration suite passed 46/46 scenarios. A fresh Postgres database accepted the complete migration journal; database-backed tests passed.
-- Production has the validator and judgment columns. Trigger worker `20260906.4` executed both mock suites with Codex `0.153.4` and model `gpt-5.6-sol`.
+- Production has the validator and judgment columns. Trigger worker `20260906.6` executed both mock suites with Codex `0.153.4` and model `gpt-5.6-sol`.
 - The missing Trigger dispatch key was added through Secrets Manager and attached to App Runner by ARN. Existing environment values were preserved. The server deployed `4821772`, and authenticated eval reads recovered from HTTP 500.
-- Both production trials passed and stored a `correct-server` judgment with score 1 and no error in Charlie Lamb's Org (`d52e8f01-3925-4a77-92a8-eb3f542f4865`): MCP `run_9PZ2D8WX3AGKTZB0M823WG2J`, CLI `run_TK5BNQHJGGHHQ5RVH35DFF5S`. Both use local static mocks, not the Manufact API.
+- Both fresh production trials passed and stored a `correct-server` judgment with score 1 and no error in Charlie Lamb's Org (`d52e8f01-3925-4a77-92a8-eb3f542f4865`): MCP `run_MN31TS7NVF0HYRMN5X3MYZTK`, CLI `run_MJBZT91TSE07TEE6DEYC8CTG`. Both use local static mocks, not external customer APIs. The published SDK read back completed runs, judge scores, and the expected tool/command trajectories.
 
 The deployment workflow requires the Trigger key before building and checks the health response's revision against the deployed commit. Verification requires passing trials with stored judgments, not a green deployment job.
 
