@@ -16,7 +16,7 @@ export const Route = createFileRoute(
 )({
   component: TrialScreen,
   staticData: {
-    crumb: (params: Record<string, string>) => `trial ${params.ordinal}`,
+    crumb: (params: Record<string, string>) => `Trial ${params.ordinal}`,
   },
 });
 

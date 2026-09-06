@@ -18,9 +18,23 @@ const TONE_CLASSES: Record<ReadingTone, string> = {
   running: "border border-warning/50 border-dashed bg-transparent",
 };
 
-export function CellHistory({ cellKey }: { readonly cellKey: string }) {
-  const { data, isPending } = useQuery(evalQueries.history(cellKey));
+export function CellHistory({
+  cellKey,
+  runId,
+}: {
+  readonly cellKey: string;
+  readonly runId: string;
+}) {
+  const { data, isPending, error } = useQuery(evalQueries.history(cellKey));
   const entries = data ?? [];
+
+  if (error) {
+    return (
+      <p className="text-muted-foreground text-xs">
+        Could not load run history.
+      </p>
+    );
+  }
 
   if (isPending) {
     return (
@@ -34,7 +48,7 @@ export function CellHistory({ cellKey }: { readonly cellKey: string }) {
   if (entries.length <= 1) {
     return (
       <p className="text-muted-foreground text-xs">
-        No earlier readings of this cell.
+        No other runs for this case and variant.
       </p>
     );
   }
@@ -49,9 +63,14 @@ export function CellHistory({ cellKey }: { readonly cellKey: string }) {
             <TooltipTrigger
               render={
                 <Link
+                  aria-current={
+                    reading.entry.runId === runId ? "page" : undefined
+                  }
                   className={cn(
                     "h-4 min-w-[3px] flex-1 rounded-[2px] transition-colors duration-150 ease-out",
-                    TONE_CLASSES[reading.tone]
+                    TONE_CLASSES[reading.tone],
+                    reading.entry.runId === runId &&
+                      "ring-1 ring-foreground ring-offset-2 ring-offset-background"
                   )}
                   params={{ cellKey, runId: reading.entry.runId }}
                   to="/evals/$runId/cells/$cellKey"

@@ -120,7 +120,7 @@ describe("summaryOf", () => {
       newestFirst(Array.from({ length: 8 }, (_, index) => reading(index, 1, 1)))
     );
 
-    expect(summaryOf(marks)).toContain("Steady across 8 readings");
+    expect(summaryOf(marks)).toContain("Steady across 8 runs");
   });
 
   it("dates the change rather than the readings", () => {
@@ -146,13 +146,13 @@ describe("summaryOf", () => {
 
     const summary = summaryOf(marks);
 
-    expect(summary).toContain("Steady across 2 readings");
+    expect(summary).toContain("Steady across 2 runs");
     expect(summary).toContain("1 running");
   });
 
   it("says so when nothing has settled yet", () => {
     expect(summaryOf(readingsOf([reading(1, 0, 0, false)]))).toBe(
-      "One reading running."
+      "One run in progress."
     );
   });
 });

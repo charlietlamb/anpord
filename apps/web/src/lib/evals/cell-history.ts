@@ -1,6 +1,7 @@
 import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
 import { clock, dayOf } from "@/lib/evals/duration";
 import { shortProfileVersion } from "@/lib/evals/profile-version";
+import { shortId } from "@/lib/evals/short-id";
 
 export type ReadingTone = "critical" | "pending" | "positive" | "running";
 
@@ -69,10 +70,11 @@ export const readingsOf = (
 
   return ordered.map((entry, index) => ({
     entry,
-    title:
+    title: `Run ${shortId(entry.runId)} · ${
       entry.finishedAt === null
         ? "running"
-        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionsOf(entry, ordered[index - 1])}`,
+        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionsOf(entry, ordered[index - 1])}`
+    }`,
     tone: toneOf(entry),
   }));
 };
@@ -84,8 +86,8 @@ export const summaryOf = (readings: readonly Reading[]): string => {
 
   if (settled.length === 0) {
     return running === 1
-      ? "One reading running."
-      : `${running} readings running.`;
+      ? "One run in progress."
+      : `${running} runs in progress.`;
   }
 
   const changedAt = settled.findLastIndex(
@@ -108,7 +110,7 @@ export const summaryOf = (readings: readonly Reading[]): string => {
       : ` since ${spansOneDay ? clock(since.epochMillis) : dayOf(since.epochMillis)}`;
 
   if (changedAt === -1) {
-    return `Steady across ${settled.length} readings${when}${tail}.`;
+    return `Steady across ${settled.length} ${settled.length === 1 ? "run" : "runs"}${when}${tail}.`;
   }
 
   return `Changed${when}, steady for ${settled.length - changedAt} since${tail}.`;

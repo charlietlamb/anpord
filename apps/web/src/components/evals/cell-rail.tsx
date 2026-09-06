@@ -25,10 +25,12 @@ const agreementOf = (deterministic: boolean, lost: boolean) => {
 export function CellRail({
   cell,
   cellKey,
+  runId,
   task,
 }: {
   readonly cell: EvalCell;
   readonly cellKey: string;
+  readonly runId: string;
   readonly task: EvalTask | undefined;
 }) {
   const distribution = cell.distribution;
@@ -40,7 +42,7 @@ export function CellRail({
 
   return (
     <aside className={RAIL_FRAME}>
-      <RailSection title="Reading">
+      <RailSection title="Result">
         <div className="flex flex-col gap-2">
           {distribution === null ? (
             <p className="text-muted-foreground text-xs">
@@ -106,7 +108,7 @@ export function CellRail({
       ) : null}
 
       <RailSection title="History">
-        <CellHistory cellKey={cellKey} />
+        <CellHistory cellKey={cellKey} runId={runId} />
       </RailSection>
     </aside>
   );

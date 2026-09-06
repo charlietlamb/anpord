@@ -1,6 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { evalQueries } from "@/lib/evals/eval-queries";
-import { runLabel } from "@/lib/evals/run-label";
 import { shortId } from "@/lib/evals/short-id";
 
 export const Route = createFileRoute("/_authed/evals/$runId")({
@@ -14,12 +13,8 @@ export const Route = createFileRoute("/_authed/evals/$runId")({
         evalQueries.detail(params.runId).queryKey
       );
 
-      if (run === undefined) {
-        return shortId(params.runId);
-      }
-
-      /* Older runs predate persisted eval names, so fall back to the case-based label. */
-      return runLabel(run);
+      const label = `Run ${shortId(params.runId)}`;
+      return run?.name ? `${run.name} · ${label}` : label;
     },
     title: "Run",
   },

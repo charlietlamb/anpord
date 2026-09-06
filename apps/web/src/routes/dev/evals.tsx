@@ -96,14 +96,8 @@ function EvalsPreview() {
                 <PageHeading icon={FlaskIcon} title={CELL.caseName} />
                 <TrialTable
                   cellKey={CELL.cellKey ?? ""}
-                  currentRunId={RUN.id}
-                  readings={[
-                    {
-                      internalId: "cell_preview",
-                      runId: RUN.id,
-                      trials: TRIALS,
-                    },
-                  ]}
+                  runId={RUN.id}
+                  trials={TRIALS}
                 />
               </section>
 

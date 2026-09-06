@@ -21,7 +21,6 @@ export const Route = createFileRoute("/_authed/evals/$runId/cells/$cellKey/")({
 function CellScreen() {
   const { cellKey, runId } = Route.useParams();
   const { data: run } = useQuery(evalQueries.detail(runId));
-  const { data: readings } = useQuery(evalQueries.history(cellKey));
 
   const cell = run?.cells.find((candidate) => candidate.cellKey === cellKey);
 
@@ -51,11 +50,7 @@ function CellScreen() {
             />
           </div>
 
-          <TrialTable
-            cellKey={cellKey}
-            currentRunId={runId}
-            readings={readings ?? []}
-          />
+          <TrialTable cellKey={cellKey} runId={runId} trials={cell.trials} />
         </section>
 
         {cell.setup === null ? null : (
@@ -69,6 +64,7 @@ function CellScreen() {
       <CellRail
         cell={cell}
         cellKey={cellKey}
+        runId={runId}
         task={run.tasks[cell.taskIndex]}
       />
     </EvalLayout>

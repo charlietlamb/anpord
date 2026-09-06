@@ -48,7 +48,7 @@ export function CellSkeleton({
       </EvalMain>
 
       <aside className={RAIL_FRAME}>
-        <RailSection title="Reading">
+        <RailSection title="Result">
           <RailFactSkeleton className="gap-2" facts={READING} />
         </RailSection>
 
@@ -57,7 +57,7 @@ export function CellSkeleton({
         </RailSection>
 
         <RailSection title="History">
-          <CellHistory cellKey={cellKey} />
+          <CellHistory cellKey={cellKey} runId={runId} />
         </RailSection>
       </aside>
     </EvalLayout>
