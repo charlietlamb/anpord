@@ -58,7 +58,9 @@ export const bundledCaseModule = (
 ) =>
   Effect.gen(function* () {
     const module = yield* exportingModule(entry, inputs, name);
-    const { source } = yield* bundle(wrap(module, name), entry);
+    const { source } = yield* bundle(wrap(module, name), entry, {
+      minify: true,
+    });
 
     return { name, source };
   });

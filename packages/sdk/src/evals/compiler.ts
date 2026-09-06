@@ -1,7 +1,7 @@
 import { dirname, resolve } from "node:path";
 import type { EvalSource } from "@anpord/schema/domain/evals";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { Effect, Option } from "effect";
+import { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
+import { Effect, Option, Schema } from "effect";
 import { compileApis, withApis } from "./api-profile";
 import { bundledCaseModule } from "./case-modules";
 import { type CompiledCli, compileClis, withClis } from "./cli-profile";
@@ -139,13 +139,13 @@ export const compileEvalEffect = (path: string) =>
       { concurrency: 4 }
     );
 
-    return {
+    return yield* Schema.decodeUnknown(PublicStartEvalRequest)({
       cases,
       name: definition.name,
       prompt: definition.prompt,
       tasks,
       trials: definition.trials,
-    } satisfies PublicStartEvalRequest;
+    });
   }).pipe(Effect.withSpan("Eval.compile"));
 
 export const compileEval = (path: string): Promise<PublicStartEvalRequest> =>

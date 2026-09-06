@@ -118,4 +118,4 @@ export async function resolvePrompt(baseUrl, id, name) {
       await rm(workspace, { recursive: true, force: true });
     }
   }
-});
+}, 30_000);
