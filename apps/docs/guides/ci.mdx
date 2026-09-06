@@ -3,46 +3,82 @@ title: "Run evals in CI"
 description: "Catch regressions before release"
 ---
 
-Name suites `*.eval.ts` so the same discovery command works locally and in CI.
+Install `anpord` in your project and commit the lockfile. Name suites `*.eval.ts`
+so the action can discover them.
+
+Create an API key with `evals:read` and `evals:write`, then save it as the
+`ANPORD_API_KEY` repository secret. Use a dedicated organization for CI.
 
 ```yaml
 name: Agent evals
 
 on:
   pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   eval:
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    permissions:
-      contents: read
-      checks: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bunx anpord eval
-        env:
-          ANPORD_API_KEY: ${{ secrets.ANPORD_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
+      - uses: charlietlamb/anpord/.github/actions/eval@COMMIT_SHA
+        with:
+          api-key: ${{ secrets.ANPORD_API_KEY }}
 ```
 
-The command waits and exits nonzero when a cell regresses. Pass `--fail-on
-unscored` to also fail cells with no scored trials.
+Replace `COMMIT_SHA` with a reviewed action commit. The action uses your installed
+SDK, not a downloaded CLI. It requires Node 20 or later.
+
+The default `strict` gate requires every expected trial to pass. Failed, void,
+missing, and unfinished trials fail the job, including a suite's first run.
+Run links appear in the job summary as soon as submission succeeds.
+
+| Input | Default | Purpose |
+| --- | --- | --- |
+| `api-key` | Required | Anpord API key |
+| `working-directory` | `.` | Project containing the installed SDK |
+| `file` | Discover `*.eval.ts` | Run one suite |
+| `fail-on` | `strict` | `strict`, `regressed`, `unscored`, or `never` |
+| `timeout` | `1200` | Seconds to wait per run |
+
+Use `regressed` to gate only against a baseline. `unscored` also rejects cells
+without scored trials. `never` ignores trial results. Submission errors, failed
+runs, and timeouts still fail all gates.
+
+The action's `report` output is the path to a JSON results file. Upload it with
+`actions/upload-artifact` and `if: always()` if you want to keep it after the job.
+
+## What runs
 
 A definition that names no source is evaluated against the repository it sits
-in. On a pull request that is the branch the request came from, so the run
-measures the change rather than the base branch.
+in. In GitHub Actions, the CLI pins that source to the checked-out commit. The
+checkout above tests the PR head, not GitHub's synthetic merge commit.
 
-Use a dedicated key with `evals:read` and `evals:write`.
+The action skips fork and Dependabot PRs in this example because they cannot
+receive repository secrets. Keep unit tests separate so they still run. Do not
+use `pull_request_target` to execute untrusted eval definitions with a secret.
 
-With `GITHUB_TOKEN` present the command also posts one check named `anpord`
-on the pull request head, listing every cell with its pass rate, baseline, and
-verdict, and linking to the run. The check fails when any cell regressed,
-whatever `--fail-on` says; the exit code still follows the gate. A pull
-request from a fork gets a read-only token, so the check is skipped with a note
-on stderr and the job otherwise runs as before.
+The job itself is the PR check. For an additional check named `anpord`, pass
+`GITHUB_TOKEN` in the step environment and grant `checks: write`. Its verdict
+matches the selected gate.
+
+Outside the action, the same command is:
+
+```sh
+bunx --no-install anpord eval --fail-on strict --timeout 1200 --output results.json
+```
 
 ## Keep comparisons stable
 
@@ -60,4 +96,6 @@ Five cases, two tasks, and three trials open thirty sandbox sessions. Keep pull 
 
 A cell runs between 1 and 10 trials, and one request can contain at most 100 in total. Starting a run is not idempotent. If the response is lost, check recent runs before retrying.
 
-Print the run id before polling. The run continues on the server if the CI job times out.
+The CLI records run IDs before polling and does not retry submissions. A remote
+run continues if CI times out or is cancelled. Open its dashboard link before
+starting another run.

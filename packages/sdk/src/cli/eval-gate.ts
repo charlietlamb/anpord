@@ -3,7 +3,15 @@ import type {
   EvalComparison,
   EvalRun,
 } from "@anpord/schema/domain/evals";
-import { Data, Effect } from "effect";
+import { Data, Effect, Schema } from "effect";
+
+export const EvalGate = Schema.Literal(
+  "strict",
+  "never",
+  "regressed",
+  "unscored"
+);
+export type EvalGate = typeof EvalGate.Type;
 
 const regressions = (run: EvalRun) =>
   run.cells.filter((cell) => cell.comparison?.verdict === "regressed");
@@ -48,10 +56,42 @@ const regressionSentence = (run: EvalRun, cell: EvalCell) => {
 
 export const problemsWith = (
   run: EvalRun,
-  failOn: "never" | "regressed" | "unscored"
+  failOn: EvalGate,
+  expected?: { readonly cells: number; readonly trials: number }
 ): readonly string[] => {
   if (run.status === "failed") {
     return [run.failure ?? "The run failed."];
+  }
+
+  if (run.status !== "finished") {
+    return ["The run has not finished."];
+  }
+
+  if (run.cells.length === 0) {
+    return ["The run recorded no cells."];
+  }
+
+  if (failOn === "strict") {
+    if (expected && run.cells.length !== expected.cells) {
+      return [
+        `Expected ${expected.cells} cells, received ${run.cells.length}.`,
+      ];
+    }
+    return run.cells.flatMap((cell) => {
+      if (cell.status !== "finished" || cell.trials.length === 0) {
+        return [`${cell.caseName} has no complete trial results.`];
+      }
+      if (expected && cell.trials.length !== expected.trials) {
+        return [
+          `${cell.caseName}: expected ${expected.trials} trials, received ${cell.trials.length}.`,
+        ];
+      }
+      return cell.trials.flatMap((trial) =>
+        trial.status === "passed" && trial.passed
+          ? []
+          : [`${cell.caseName}, trial ${trial.ordinal}: ${trial.status}.`]
+      );
+    });
   }
 
   if (failOn === "never") {

@@ -1,12 +1,19 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
+    ".": {
+      "entry": [".github/actions/eval/run.mjs"]
+    },
     "apps/docs": {
       "entry": ["style.css"],
       "project": []
     },
     "apps/e2e": {
-      "entry": ["src/main.ts"],
+      "entry": [
+        "src/main.ts",
+        "src/evals/**/*.eval.ts",
+        "src/evals/**/*.test.ts"
+      ],
       "project": ["src/**"]
     },
     "apps/worker": {

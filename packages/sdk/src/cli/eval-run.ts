@@ -1,6 +1,6 @@
 import type { EvalRun } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
-import { Clock, Duration, Effect, Ref } from "effect";
+import { Clock, Data, Duration, Effect, Ref } from "effect";
 
 const FIRST_POLL = 2000;
 const SLOWEST_POLL = 10_000;
@@ -8,9 +8,19 @@ const WIDENING = 1.5;
 
 const running = (run: EvalRun) => run.status === "running";
 
+class EvalWaitTimeout extends Data.TaggedError("EvalWaitTimeout")<{
+  readonly runId: string;
+  readonly seconds: number;
+}> {
+  override get message() {
+    return `Timed out after ${this.seconds}s waiting for ${this.runId}. The remote run was not cancelled.`;
+  }
+}
+
 export const waitForRun = (
   id: string,
-  onProgress: (run: EvalRun, elapsedMs: number) => Effect.Effect<void>
+  onProgress: (run: EvalRun, elapsedMs: number) => Effect.Effect<void>,
+  timeoutSeconds = 1200
 ) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
@@ -40,4 +50,11 @@ export const waitForRun = (
       body: () => waitThenPoll,
       while: running,
     });
-  }).pipe(Effect.withSpan("Cli.waitForRun", { attributes: { runId: id } }));
+  }).pipe(
+    Effect.timeoutFail({
+      duration: Duration.seconds(timeoutSeconds),
+      onTimeout: () =>
+        new EvalWaitTimeout({ runId: id, seconds: timeoutSeconds }),
+    }),
+    Effect.withSpan("Cli.waitForRun", { attributes: { runId: id } })
+  );

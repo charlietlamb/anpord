@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { EvalRun } from "@anpord/schema/domain/evals";
-import { gridOf } from "../../src/cli/eval-grid";
+import { formatGrid } from "../../src/cli/eval-grid";
 
 const COLOUR = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
 
@@ -35,7 +35,7 @@ const run = {
 
 describe("the grid a reader watches", () => {
   test("groups cells under the case they belong to", () => {
-    const lines = gridOf(run, 3, 0).map(bare);
+    const lines = formatGrid(run, 3, 0).map(bare);
 
     expect(lines[0]).toContain("adds a test");
     expect(lines[1]).toContain("codex/gpt-5.6-sol");
@@ -43,21 +43,21 @@ describe("the grid a reader watches", () => {
   });
 
   test("shows a settled pass rate, and an unscored cell as absent", () => {
-    const [, settled, running] = gridOf(run, 3, 0).map(bare);
+    const [, settled, running] = formatGrid(run, 3, 0).map(bare);
 
     expect(settled).toContain("100%");
     expect(running).toContain("\u2014");
   });
 
   test("fills one pip per settled trial", () => {
-    const [, settled, running] = gridOf(run, 3, 0).map(bare);
+    const [, settled, running] = formatGrid(run, 3, 0).map(bare);
 
     expect(settled).toContain("\u25b0\u25b0\u25b0");
     expect(running).toContain("\u25b0\u25b1\u25b1");
   });
 
   test("reads elapsed time in minutes once there are minutes", () => {
-    expect(bare(gridOf(run, 3, 45_000).at(-1) ?? "")).toContain("45s");
-    expect(bare(gridOf(run, 3, 134_000).at(-1) ?? "")).toContain("2m14s");
+    expect(bare(formatGrid(run, 3, 45_000).at(-1) ?? "")).toContain("45s");
+    expect(bare(formatGrid(run, 3, 134_000).at(-1) ?? "")).toContain("2m14s");
   });
 });

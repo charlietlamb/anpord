@@ -1,7 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "paths": { "anpord": ["../../packages/sdk/src/index.ts"] },
+    "paths": {
+      "anpord": ["../../packages/sdk/src/index.ts"],
+      "anpord/cli": ["../../packages/sdk/src/mock-cli/index.ts"],
+      "anpord/eval": ["../../packages/sdk/src/evals/compiler.ts"],
+      "anpord/mcp": ["../../packages/sdk/src/mcp/index.ts"]
+    },
     "types": ["bun"]
   },
   "include": ["src"]

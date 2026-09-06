@@ -20,7 +20,7 @@ const MINUTE = 60;
 
 const paint = (colour: string, text: string) => `${colour}${text}${RESET}`;
 
-const elapsedOf = (ms: number) => {
+const formatElapsed = (ms: number) => {
   const total = Math.floor(ms / SECONDS);
   const minutes = Math.floor(total / MINUTE);
 
@@ -29,7 +29,7 @@ const elapsedOf = (ms: number) => {
     : `${minutes}m${String(total % MINUTE).padStart(2, "0")}s`;
 };
 
-const markOf = (cell: EvalCell) => {
+const formatStatus = (cell: EvalCell) => {
   if (cell.status === "finished") {
     return paint(GREEN, DONE);
   }
@@ -37,7 +37,7 @@ const markOf = (cell: EvalCell) => {
   return cell.status === "failed" ? paint(RED, DONE) : paint(YELLOW, RUNNING);
 };
 
-const trialsOf = (cell: EvalCell, trials: number) => {
+const formatTrialProgress = (cell: EvalCell, trials: number) => {
   const settled = cell.trials.filter(
     (trial) => trial.status !== "queued" && trial.status !== "running"
   ).length;
@@ -45,7 +45,7 @@ const trialsOf = (cell: EvalCell, trials: number) => {
   return `${FILLED.repeat(settled)}${paint(DIM, HOLLOW.repeat(Math.max(0, trials - settled)))}`;
 };
 
-const rateOf = (cell: EvalCell) => {
+const formatPassRate = (cell: EvalCell) => {
   const rate = cell.distribution?.passRate;
 
   if (rate === undefined || cell.distribution?.scored === 0) {
@@ -57,7 +57,7 @@ const rateOf = (cell: EvalCell) => {
   return paint(rate === 1 ? GREEN : RED, shown);
 };
 
-export const variantOf = (run: EvalRun, cell: EvalCell) => {
+export const formatVariant = (run: EvalRun, cell: EvalCell) => {
   const task = run.tasks[cell.taskIndex];
 
   return task === undefined ? "?" : `${task.harness}/${task.model}`;
@@ -65,11 +65,11 @@ export const variantOf = (run: EvalRun, cell: EvalCell) => {
 
 const widest = (run: EvalRun) =>
   run.cells.reduce(
-    (width, cell) => Math.max(width, variantOf(run, cell).length),
+    (width, cell) => Math.max(width, formatVariant(run, cell).length),
     0
   );
 
-export const gridOf = (run: EvalRun, trials: number, elapsedMs: number) => {
+export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
   const width = widest(run);
   const lines: string[] = [];
 
@@ -78,14 +78,14 @@ export const gridOf = (run: EvalRun, trials: number, elapsedMs: number) => {
 
     for (const cell of run.cells.filter((one) => one.caseName === caseName)) {
       lines.push(
-        `    ${markOf(cell)} ${variantOf(run, cell).padEnd(width)}  ${trialsOf(cell, trials)}  ${rateOf(cell)}`
+        `    ${formatStatus(cell)} ${formatVariant(run, cell).padEnd(width)}  ${formatTrialProgress(cell, trials)}  ${formatPassRate(cell)}`
       );
     }
 
     lines.push("");
   }
 
-  lines.push(paint(DIM, `  ${elapsedOf(elapsedMs)} elapsed`));
+  lines.push(paint(DIM, `  ${formatElapsed(elapsedMs)} elapsed`));
 
   return lines;
 };
@@ -103,12 +103,15 @@ export const liveGrid = (trials: number, interactive: boolean) =>
         }
 
         const rows = yield* Ref.getAndSet(drawn, 0);
-        const lines = gridOf(run, trials, elapsedMs);
+        const lines = formatGrid(run, trials, elapsedMs);
 
         yield* note(`${rows === 0 ? "" : up(rows)}${lines.join("\n")}`);
         yield* Ref.set(drawn, lines.length);
       });
   });
 
-export const summaryOf = (run: EvalRun, trials: number, drawn: boolean) =>
-  drawn ? "" : gridOf(run, trials, 0).join("\n");
+export const formatGridSummary = (
+  run: EvalRun,
+  trials: number,
+  drawn: boolean
+) => (drawn ? "" : formatGrid(run, trials, 0).join("\n"));

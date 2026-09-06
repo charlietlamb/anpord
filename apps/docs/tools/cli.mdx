@@ -52,11 +52,13 @@ anpord eval
 
 Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Cells and trials run concurrently within Anpord and provider limits.
 
-The command waits for the run and exits nonzero when a cell regresses against its baseline. In an interactive terminal, the grid updates as cells settle. Non-interactive runs print the final grid once.
+The command waits for the run and fails unless every expected trial passes. In an interactive terminal, the grid updates as cells settle. Non-interactive runs print the final grid once.
 
 | Option | Purpose |
 | --- | --- |
-| `--fail-on` | `regressed` by default; `unscored` also fails a cell with no scored trials, `never` reports without gating |
+| `--fail-on` | `strict` by default: every expected trial must pass. `regressed` gates on baseline regressions, `unscored` also rejects cells without scores, and `never` ignores trial results |
+| `--timeout` | Seconds to wait per run, default `1200`. A timeout fails the command but does not cancel the remote run |
+| `--output` | Write a JSON report containing run IDs, results, and gate failures |
 | `--no-wait` | Start the run and print its id |
 | `--json` | Print the finished run instead of the grid |
 
