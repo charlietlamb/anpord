@@ -27,6 +27,7 @@ const cellTask = (source: WorkspaceSource | null): CellTask => ({
   prepareName: null,
   prepareSource: null,
   source,
+  trialsPerCell: 1,
   verifyCommand: "bun test",
 });
 

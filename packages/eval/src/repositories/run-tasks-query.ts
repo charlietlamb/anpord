@@ -3,7 +3,7 @@ import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
-import { and, eq, type SQL } from "drizzle-orm";
+import { and, eq, type SQL, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { head, tryStore } from "./query";
@@ -14,7 +14,7 @@ type TaskSource = Pick<
   "repoRef" | "repoUrl" | "sourceFiles" | "sourceKind"
 >;
 
-const sourceOf = (row: TaskSource): WorkspaceSource | null => {
+const resolveSource = (row: TaskSource): WorkspaceSource | null => {
   if (row.sourceKind === "empty") {
     return { kind: "empty" };
   }
@@ -48,6 +48,7 @@ export interface CellTask {
   readonly repoUrl: string | null;
   readonly runName: string | null;
   readonly source: WorkspaceSource | null;
+  readonly trialsPerCell: number;
   readonly validatorConfig?: unknown;
   readonly validatorName?: string | null;
   readonly validatorSource?: string | null;
@@ -80,6 +81,7 @@ const CELL_TASK_COLUMNS = {
   runName: evalRun.name,
   sourceFiles: evalTask.sourceFiles,
   sourceKind: evalTask.sourceKind,
+  trialsPerCell: sql<number>`${evalRun.trialCount} / ${evalRun.cellCount}`,
   validatorName: evalTask.validatorName,
   validatorSource: evalTask.validatorSource,
   validatorConfig: evalTask.validatorConfig,
@@ -101,7 +103,7 @@ export const runTasksQuery = Effect.map(Database, (db) => {
         .where(condition)
     ).pipe(
       Effect.map((rows) =>
-        rows.map((row): CellTask => ({ ...row, source: sourceOf(row) }))
+        rows.map((row): CellTask => ({ ...row, source: resolveSource(row) }))
       )
     );
 
