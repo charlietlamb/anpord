@@ -24,7 +24,7 @@ import { Schema } from "effect";
 import { compileFixture } from "../fixtures/compile-eval";
 
 let workspace: string | undefined;
-let server: ReturnType<typeof Bun.spawn> | undefined;
+let server: Bun.Subprocess<"ignore", "pipe", "pipe"> | undefined;
 afterEach(async () => {
   server?.kill();
   await server?.exited;
@@ -94,16 +94,20 @@ export default defineEval({ name: "http", source: empty, prompt: "Use catalog", 
   }
   server = Bun.spawn(["node", ".anpord/api/server.mjs"], {
     cwd: workspace,
+    stdin: "ignore",
     stdout: "pipe",
     stderr: "pipe",
   });
   let ready = "";
-  for await (const chunk of server.stdout) {
-    ready += new TextDecoder().decode(chunk);
-    if (ready.includes("\n")) {
+  const reader = server.stdout.getReader();
+  while (!ready.includes("\n")) {
+    const chunk = await reader.read();
+    if (chunk.done) {
       break;
     }
+    ready += new TextDecoder().decode(chunk.value);
   }
+  reader.releaseLock();
   if (!ready) {
     throw new Error((await new Response(server.stderr).text()).slice(-4000));
   }
