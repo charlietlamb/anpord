@@ -120,7 +120,9 @@ export interface LabelledProfile {
 }
 
 const profileLabel = (profile: LabelledProfile) =>
-  `${profile.name}@${shortProfileVersion(profile.version)}`;
+  ["anpord-cli", "anpord-mcp"].includes(profile.name)
+    ? ""
+    : `${profile.name}@${shortProfileVersion(profile.version)}`;
 
 /* The command harness stores the literal `profile` as its version, so only the profile beside it says what ran. */
 const baseLabel = (

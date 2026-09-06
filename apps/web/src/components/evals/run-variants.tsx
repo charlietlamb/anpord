@@ -6,15 +6,10 @@ import {
   ModelLabel,
   SandboxLabel,
 } from "@/components/evals/variant-label";
+import { harnessLabel } from "@/lib/evals/variant-presentation";
 
-/* The profile is part of the key: two profiles on one base share harness and version. */
 const harnessKeyOf = (task: EvalTask) =>
-  [
-    task.harness,
-    task.harnessVersion,
-    task.profile?.name ?? "",
-    task.profile?.version ?? "",
-  ].join(" ");
+  harnessLabel(task.harness, task.harnessVersion, task.profile);
 
 const distinct = <T,>(values: readonly T[], keyOf: (value: T) => string) => {
   const seen = new Map<string, T>();

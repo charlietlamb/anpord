@@ -145,7 +145,7 @@ export function CellSetup({
   readonly trials: readonly EvalTrial[];
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6">
       <Where setup={setup} />
 
       <SetupSurface

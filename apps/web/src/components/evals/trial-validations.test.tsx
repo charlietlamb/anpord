@@ -38,7 +38,8 @@ test("shows each validator, exact return, and error without nested cards", () =>
   expect(html).not.toContain("<script>");
   expect(html).toContain("false");
   expect(html.match(/<details/g)).toHaveLength(2);
-  expect(html.match(/rounded-lg/g)).toHaveLength(1);
+  expect(html).not.toContain("rounded-lg");
+  expect(html).toContain("<h3");
 });
 
 test("does not fabricate evidence for historical trials", () => {
@@ -64,5 +65,8 @@ test.each([
   );
   expect(html).toContain(`aria-label="${kind}"`);
   expect(html).toContain('role="img"');
+  expect(html.indexOf(`aria-label="${kind}"`)).toBeLessThan(
+    html.indexOf(">check</span>")
+  );
   expect(html).not.toContain(`>${kind}</span>`);
 });

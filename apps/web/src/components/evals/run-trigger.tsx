@@ -1,4 +1,5 @@
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import { ArrowUpRightIcon } from "@phosphor-icons/react";
 import { triggerPresentation } from "@/lib/evals/run-trigger";
 
 export function RunTrigger({
@@ -11,23 +12,30 @@ export function RunTrigger({
   const { label, Icon } = triggerPresentation(trigger);
   const content = (
     <>
-      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+      <Icon
+        aria-hidden="true"
+        className="size-3.5 shrink-0 text-muted-foreground/80"
+      />
       <span>{label}</span>
     </>
   );
   return linked && trigger?.url ? (
     <a
-      className="inline-flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      className="inline-flex h-6 items-center gap-2 text-foreground text-xs underline-offset-4 hover:underline"
       href={trigger.url}
       rel="noopener noreferrer"
       target="_blank"
       title="Open the triggering run"
     >
-      {content} ↗
+      {content}
+      <ArrowUpRightIcon
+        aria-hidden="true"
+        className="size-3 shrink-0 text-muted-foreground/80"
+      />
     </a>
   ) : (
     <span
-      className="inline-flex items-center gap-1.5 text-muted-foreground"
+      className="inline-flex items-center gap-1.5 text-muted-foreground text-xs"
       title={
         trigger == null
           ? "This run predates trigger tracking."

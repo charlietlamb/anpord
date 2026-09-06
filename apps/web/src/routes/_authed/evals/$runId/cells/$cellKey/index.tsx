@@ -1,5 +1,5 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { FlaskIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
+import { FlaskIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CellRail } from "@/components/evals/cell-rail";
@@ -57,10 +57,7 @@ function CellScreen() {
         </section>
 
         {cell.setup === null ? null : (
-          <section className="flex flex-col gap-1.5">
-            <PageHeading icon={SlidersHorizontalIcon} title="Setup" />
-            <CellSetup setup={cell.setup} trials={cell.trials} />
-          </section>
+          <CellSetup setup={cell.setup} trials={cell.trials} />
         )}
       </EvalMain>
 

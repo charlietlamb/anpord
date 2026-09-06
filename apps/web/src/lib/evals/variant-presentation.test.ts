@@ -45,6 +45,15 @@ describe("naming a variant", () => {
     ).toBe("OpenCode 1.18.21 · house-style@a1b2c3d4");
   });
 
+  it.each([
+    "anpord-cli",
+    "anpord-mcp",
+  ])("omits the generated %s profile from the label", (name) => {
+    expect(
+      harnessLabel("codex", "0.153.4", { name, version: "a1b2c3d4" })
+    ).toBe("Codex 0.153.4");
+  });
+
   /* `HarnessVersions.command` is the literal `profile`, which says nothing worth printing. */
   it("names only the profile where the base has no version to report", () => {
     expect(

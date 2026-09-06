@@ -22,7 +22,7 @@ export function ValidationSource({
 
   return (
     <SetupSurface
-      contentClassName="p-0"
+      contentClassName="border-border-faint border-y"
       Icon={CheckSquareIcon}
       title="Validation"
     >

@@ -1,5 +1,5 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { PulseIcon, SlidersHorizontalIcon } from "@phosphor-icons/react";
+import { PulseIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
@@ -63,10 +63,7 @@ function TrialScreen() {
         <TrialValidations validations={trial.validations} />
 
         {cell?.setup == null ? null : (
-          <section className="flex flex-col gap-1.5">
-            <PageHeading icon={SlidersHorizontalIcon} title="Setup" />
-            <CellSetup setup={cell.setup} trials={[trial]} />
-          </section>
+          <CellSetup setup={cell.setup} trials={[trial]} />
         )}
       </EvalMain>
 

@@ -111,9 +111,6 @@ function ValidationRow({
   return (
     <details open={failed}>
       <summary className="flex cursor-pointer items-center gap-2 px-3.5 py-3 text-xs hover:bg-muted/40">
-        <span className="min-w-0 flex-1 truncate font-mono">
-          {validation.name}
-        </span>
         <SignalTip label={validation.kind}>
           <KindIcon
             aria-label={validation.kind}
@@ -121,6 +118,9 @@ function ValidationRow({
             role="img"
           />
         </SignalTip>
+        <span className="min-w-0 flex-1 truncate font-mono">
+          {validation.name}
+        </span>
         {validation.durationMs === null ? null : (
           <span className="text-muted-foreground tabular-nums">
             {validation.durationMs}ms
@@ -195,7 +195,7 @@ export function TrialValidations({
 }) {
   return (
     <SetupSurface
-      contentClassName="p-0"
+      contentClassName="border-border-faint border-y"
       Icon={CheckSquareIcon}
       title="Validation results"
     >
