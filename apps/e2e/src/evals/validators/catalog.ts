@@ -9,6 +9,7 @@ const validateRetrieval = (
     id: getItemInput.safeParse(input).data?.id,
     error,
   }));
+  console.info("Catalog requests", requests);
   const missing = requests.findIndex(
     ({ id, error }) => id === "missing" && error !== undefined
   );

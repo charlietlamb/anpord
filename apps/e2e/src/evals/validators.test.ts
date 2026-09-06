@@ -90,6 +90,9 @@ export async function resolvePrompt(baseUrl, id, name) {
       expect(code).toBe(0);
       expect(output).toContain(`ANPORD_VALIDATOR_RESULT={"passed":${passed}`);
       expect(output).toContain("ANPORD_VALIDATION=");
+      if (suite !== "sdk") {
+        expect(output).toContain("Catalog requests");
+      }
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }
