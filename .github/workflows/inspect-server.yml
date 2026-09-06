@@ -9,8 +9,19 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
-      - run: |
+      - env:
+          TRIGGER_SECRET_KEY: ${{ secrets.TRIGGER_SECRET_KEY }}
+        run: |
           ARN="$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='anpord-server'].ServiceArn | [0]" --output text)"
           aws apprunner describe-service --service-arn "$ARN" --query 'Service.{Status:Status,Image:SourceConfiguration.ImageRepository.ImageIdentifier,Port:SourceConfiguration.ImageRepository.ImageConfiguration.Port,Command:SourceConfiguration.ImageRepository.ImageConfiguration.StartCommand,Health:HealthCheckConfiguration,Url:ServiceUrl}'
           aws apprunner describe-service --service-arn "$ARN" --query 'Service.SourceConfiguration.ImageRepository.ImageConfiguration.{Variables:keys(RuntimeEnvironmentVariables),Secrets:keys(RuntimeEnvironmentSecrets)}'
-          aws logs describe-log-groups --log-group-name-prefix /aws/apprunner/anpord-server/ --query 'logGroups[].logGroupName'
+          SECRET_ARN="$(aws secretsmanager create-secret --name anpord/server/TRIGGER_SECRET_KEY --secret-string "$TRIGGER_SECRET_KEY" --query ARN --output text)"
+          aws apprunner describe-service --service-arn "$ARN" --query Service.SourceConfiguration > /tmp/source.json
+          SECRET_ARN="$SECRET_ARN" node -e '
+            const fs = require("node:fs");
+            const source = JSON.parse(fs.readFileSync("/tmp/source.json", "utf8"));
+            const image = source.ImageRepository.ImageConfiguration;
+            image.RuntimeEnvironmentSecrets = { ...image.RuntimeEnvironmentSecrets, TRIGGER_SECRET_KEY: process.env.SECRET_ARN };
+            fs.writeFileSync("/tmp/source.json", JSON.stringify(source));
+          '
+          aws apprunner update-service --service-arn "$ARN" --source-configuration file:///tmp/source.json --query OperationId --output text

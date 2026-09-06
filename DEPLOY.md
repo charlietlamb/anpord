@@ -59,6 +59,7 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `GITHUB_APP_SLUG` | `anpord`, which addresses its install page |
 | `DAYTONA_API_KEY` | *secret*. The sandbox an organisation gets when it has connected none of its own. Without it such a run fails, because the fallback adapter has no account to build itself from |
 | `E2B_API_KEY` | *secret*. Same, for E2B |
+| `TRIGGER_SECRET_KEY` | *secret*. Required to start the server and dispatch runs. Use the production environment key (`tr_prod_*`), not the deployment access token. `TRIGGER_API_KEY` is also accepted |
 | `VERCEL_TOKEN` | *secret*. Same, for Vercel Sandbox, which also needs the two below |
 | `VERCEL_TEAM_ID` | Identifier rather than a secret |
 | `VERCEL_PROJECT_ID` | Identifier rather than a secret |
