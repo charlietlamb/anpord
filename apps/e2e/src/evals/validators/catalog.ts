@@ -1,41 +1,41 @@
-import type { Validator } from "anpord";
+import type { McpCall, Validator } from "anpord";
 import { getItemInput, item } from "../fixtures/catalog";
 
-export const validateMcp: Validator = async ({ answer, mcp }) => {
-  const calls = await mcp.calls("catalog");
-  const retrieved = calls.some(
-    ({ kind, name, input, error }) =>
-      kind === "tool" &&
-      name === "items_get" &&
-      getItemInput.safeParse(input).data?.id === item.id &&
-      error === undefined
-  );
-  const recovered = calls.some(
-    ({ input, error }) =>
-      getItemInput.safeParse(input).data?.id === "missing" &&
-      error !== undefined
+const validateRetrieval = (
+  calls: readonly Pick<McpCall, "input" | "error">[],
+  answer: string
+) => {
+  const requests = calls.map(({ input, error }) => ({
+    id: getItemInput.safeParse(input).data?.id,
+    error,
+  }));
+  const missing = requests.findIndex(
+    ({ id, error }) => id === "missing" && error !== undefined
   );
   return {
-    passed: retrieved && recovered && (await answer()).includes(item.name),
-    message: "Use the MCP tool and recover from the missing item.",
+    passed:
+      missing >= 0 &&
+      requests
+        .slice(missing + 1)
+        .some(({ id, error }) => id === item.id && error === undefined) &&
+      answer.includes(item.name),
+    message:
+      "Recover from the missing item, retrieve the fixture, and report its name.",
   };
 };
 
-export const validateCli: Validator = async ({ answer, cli }) => {
-  const calls = await cli.calls("catalog");
-  const retrieved = calls.some(
-    ({ command, input, error }) =>
-      command === "items get" &&
-      getItemInput.safeParse(input).data?.id === item.id &&
-      error === undefined
+export const validateMcp: Validator = async ({ answer, mcp }) =>
+  validateRetrieval(
+    (await mcp.calls("catalog")).filter(
+      ({ kind, name }) => kind === "tool" && name === "items_get"
+    ),
+    await answer()
   );
-  const recovered = calls.some(
-    ({ input, error }) =>
-      getItemInput.safeParse(input).data?.id === "missing" &&
-      error !== undefined
+
+export const validateCli: Validator = async ({ answer, cli }) =>
+  validateRetrieval(
+    (await cli.calls("catalog")).filter(
+      ({ command }) => command === "items get"
+    ),
+    await answer()
   );
-  return {
-    passed: retrieved && recovered && (await answer()).includes(item.name),
-    message: "Use the CLI command and recover from the missing item.",
-  };
-};
