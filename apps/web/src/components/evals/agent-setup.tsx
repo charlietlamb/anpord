@@ -61,7 +61,7 @@ Reference:
 
 - ${DOCS_URL}/guides/run-from-code
 - ${DOCS_URL}/evals/cases
-- ${DOCS_URL}/evals/harnesses`;
+- ${DOCS_URL}/evals/variants`;
 
 export function AgentSetup() {
   const { dismiss, dismissed } = useDismissed("anpord.install-dismissed");

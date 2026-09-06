@@ -25,11 +25,11 @@ The baseline or candidate has no scored trials. `comparison.reason` identifies t
 
 ## No models are returned
 
-Model ids are per harness, and `codex` and `opencode` read theirs from the harness itself. An empty list usually means the credential for that harness cannot list models. Verify the connection, then check what the account has access to.
+Model catalogues come from Anpord's Codex cache, models.dev, or a fixed list, depending on the harness. An empty result means that source is unavailable or empty.
 
 ## `No credential configured for ...`
 
-The run named a harness with no [connection](/connections). Add one and start again — nothing was charged. Sandboxes do not need one.
+The run named a harness with no [connection](/connections). Add one and start again. Nothing was charged. Sandboxes do not need one.
 
 ## `MissingApiKey`
 

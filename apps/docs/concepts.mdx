@@ -1,51 +1,22 @@
 ---
 title: "The evaluation grid"
-sidebarTitle: "The evaluation grid"
+sidebarTitle: "Grid"
 description: "How cases and variants become results"
 ---
 
-An eval run is a grid. Cases are rows, variants are columns, and each cell contains repeated trials.
+An eval is a grid. Cases are rows, variants are columns, and cells contain repeated trials.
 
 | Part | Meaning |
 | --- | --- |
-| Case | The task, source, preparation, and validator |
-| Variant | The harness, model, and sandbox provider |
+| Case | A task, workspace, preparation, and validator |
+| Variant | An agent, model, and sandbox provider |
 | Cell | One case run with one variant |
 | Trial | One isolated attempt inside a cell |
 
 Two cases, three variants, and three trials produce six cells and eighteen sandbox sessions.
 
-## Cases
+Each cell reports pass, fail, and void counts, pass rate, command spread, and determinism. Its first scored result becomes the fixed [baseline](/evals/baselines).
 
-The task tells the agent what to do. The verifier decides whether the result passed.
+Changing the task, source, preparation, validator, agent, model, or sandbox starts a new cell history. Prompt changes and agent releases stay in the same history so their effect can be compared.
 
-```ts
-{
-  name: "health route",
-  variables: { task: "Add a /health route that returns 200" },
-  source: { kind: "repo", url: "https://github.com/acme/api", ref: "8f31c4a" },
-  verify: "bun test test/health.test.ts",
-}
-```
-
-A file-based case uses either a shell `verify` command or a TypeScript `validate` function.
-
-## Variants
-
-The API calls variants `tasks`:
-
-```ts
-{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }
-```
-
-Anpord records the installed harness version when the run starts. The harness, model, and sandbox provider are part of the cell identity; the version is compared across readings instead, so a harness release is measured against the same baseline.
-
-## Trials and cells
-
-Repeated trials show how often a cell passes and whether its outcome and command count stay consistent. Each cell reports pass, fail, and void counts, pass rate, command spread, and determinism.
-
-The first scored result for a cell becomes its [baseline](/evals/baselines). Changing the shared prompt or case name keeps the same history. Changing the task, source, preparation, validator, or variant starts a new one.
-
-## Runs
-
-A run is `running`, `finished`, or `failed`. Rerunning a cell creates a new run, so earlier results never change.
+A run is `running`, `finished`, or `failed`. Rerunning a cell creates a new run and leaves earlier results unchanged.

@@ -50,6 +50,17 @@ await anpord.prompts.promote({
 });
 ```
 
+Promoting to a new channel creates it. To roll back, promote an earlier version to the same channel. SDK caches refresh in the background, so readers do not update synchronously with promotion.
+
+The CLI can perform the same release:
+
+```bash
+anpord push coding-agent - -m "Inspect before editing" < prompts/coding-agent.md
+anpord promote coding-agent --to production --at 7
+```
+
+`push` stores an empty config object. Use the SDK when a prompt has versioned config.
+
 `latest` is a reserved read-only selector for the highest version number. It cannot be promoted.
 
 ## Test prompt content with evals
@@ -68,12 +79,3 @@ await anpord.evals.start({ cases, prompt: prompt.content, tasks, trials: 3 });
 The eval uses `prompt.content`; it does not apply `prompt.config`. Resolve the exact version so the run receives the intended content, then promote that version after review.
 
 Owners can archive prompts from the dashboard. Archived prompts disappear from listings but remain readable by existing selectors. The public API does not expose archiving.
-
-<CardGroup cols={2}>
-  <Card title="Resolve prompts" icon="download" href="/guides/resolving-prompts">
-    Follow a channel or pin a version.
-  </Card>
-  <Card title="Publish changes" icon="upload" href="/guides/publishing">
-    Add, test, and promote a version.
-  </Card>
-</CardGroup>

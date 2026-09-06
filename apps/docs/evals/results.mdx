@@ -20,8 +20,8 @@ Both poll `evals.get`, widening the gap between requests as the run goes on. Bot
 
 | Option | Default | Purpose |
 | --- | --- | --- |
-| `onProgress` | — | Called with the run after every poll |
-| `signal` | — | Stop waiting when an `AbortSignal` fires |
+| `onProgress` | None | Called with the run after every poll |
+| `signal` | None | Stop waiting when an `AbortSignal` fires |
 | `timeoutMs` | 1 hour | Give up waiting and throw `EvalTimeout` |
 | `pollIntervalMs` | 2000 | Gap before the first re-check |
 | `maxIntervalMs` | 10000 | Ceiling the gap grows to |

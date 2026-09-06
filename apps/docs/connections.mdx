@@ -3,7 +3,7 @@ title: "Connections"
 description: "The credentials your evals run with"
 ---
 
-A run needs a credential for its [harness](/evals/harnesses) because model usage is charged to your account. Add it under **Settings > Harnesses** before the first run. Raw model keys cannot be passed through the eval API.
+A run needs a credential for its [agent](/evals/variants) because model usage is charged to your account. Add it under **Settings > Harnesses** before the first run. Raw model keys cannot be passed through the eval API.
 
 | Surface | Credential |
 | --- | --- |
@@ -19,7 +19,7 @@ Sandboxes run on Anpord's accounts by default. Add a sandbox connection only to 
 
 Choose **Add harness** or **Add sandbox**, pick the provider, paste the key. Secrets are encrypted on arrival and never shown again.
 
-Harnesses are listed [here](/evals/harnesses). Sandboxes are `daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`.
+Agents and sandboxes are listed [here](/evals/variants).
 
 The first connection for an integration becomes its default, and runs use defaults unless you pick otherwise. **Verify** checks a stored credential against the provider without revealing it.
 
@@ -35,7 +35,7 @@ No credential configured for codex
 
 Nothing is charged and no sandbox opens. In the dashboard the run button stays disabled and names what is missing.
 
-A missing sandbox connection is not an error — the run uses Anpord's account for that provider.
+A missing sandbox connection is not an error. The run uses Anpord's account for that provider.
 
 ## Rotating and removing
 

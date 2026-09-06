@@ -1,6 +1,6 @@
 # anpord
 
-TypeScript SDK for [Anpord](https://anpord.com). Run coding agent evals across harnesses, models, and sandboxes, and manage versioned prompts from the same client.
+TypeScript SDK for [Anpord](https://anpord.com). Define coding-agent evals, run them across agents and sandboxes, and manage versioned prompts.
 
 ## Install
 
@@ -8,116 +8,71 @@ TypeScript SDK for [Anpord](https://anpord.com). Run coding agent evals across h
 npm install anpord
 ```
 
-## Run an eval
+## Define an eval
 
 ```ts
-import { Anpord } from "anpord";
-
-const anpord = new Anpord({ apiKey: process.env.ANPORD_API_KEY });
-
-const run = await anpord.evals.startAndWait({
-  cases: [
-    {
-      name: "writes the requested file",
-      variables: { task: "Create hello.txt containing exactly hello" },
-      verify: "test \"$(cat hello.txt)\" = hello",
-    },
-  ],
-  prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
-  trials: 3,
-});
-
-for (const cell of run.cells) {
-  console.log(cell.caseName, cell.distribution?.passRate);
-}
-```
-
-For a TypeScript validator, export the function from its own file:
-
-```ts
-import type { Validator } from "anpord";
-
-export const hasGreeting: Validator = async ({ readText }) =>
-  (await readText("hello.txt")) === "hello";
-```
-
-Reference it directly from `greeting.eval.ts`:
-
-```ts
-import { defineEval } from "anpord";
-import { hasGreeting } from "./validators/greeting";
+import { defineEval, empty } from "anpord";
 
 export default defineEval({
   name: "greeting",
+  source: empty,
+  prompt: "{{task}}",
   cases: [
     {
-      name: "greeting",
-      variables: { task: "Write hello.txt" },
-      validate: hasGreeting,
+      name: "writes hello",
+      variables: { task: "Create hello.txt containing exactly hello" },
+      verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "model-id", provider: "daytona" }],
   trials: 3,
 });
 ```
 
 ```sh
-npx anpord eval
+npx anpord eval ./greeting.eval.ts
 ```
 
-With no file, the CLI discovers every `**/*.eval.ts` suite. Pass one file to
-run only that suite.
+With no file, the CLI discovers every `**/*.eval.ts` suite.
 
-## Mock MCP servers
+## Mock MCP and CLI
 
-Define local MCP dependencies once and Anpord gives every built-in agent trial
-a fresh stdio server:
+Install Zod for the examples:
+
+```sh
+npm install zod
+```
 
 ```ts
 import { z } from "zod";
-import { defineEval } from "anpord";
 import { server, tool } from "anpord/mcp";
 
-const api = server({
-  name: "example",
+const User = z.object({ id: z.string(), name: z.string() });
+
+export const usersMcp = server({
+  name: "users",
   version: "1.0.0",
   tools: [
     tool({
       name: "users_get",
       inputSchema: z.object({ id: z.string() }),
-      outputSchema: z.object({ id: z.string(), name: z.string() }),
+      outputSchema: User,
       handler: ({ id }) => ({ id, name: "Ada" }),
     }),
   ],
 });
-
-export default defineEval({
-  mcp: [api],
-  // cases, prompt, tasks, and trials
-});
 ```
-
-Handlers return plain values or promises. Validators can inspect exact calls
-with `await context.mcp.calls("example")`. No service credentials are needed.
-
-## Mock CLIs
-
-Define a local executable with the same Standard Schema fixtures and attach it
-to any eval:
 
 ```ts
 import { z } from "zod";
-import { defineEval } from "anpord";
 import { cli, command } from "anpord/cli";
 
-const client = cli({
-  path: "example",
+export const usersCli = cli({
+  path: "users",
   version: "1.0.0",
   commands: [
     command({
-      path: ["users", "get"],
+      path: ["get"],
       inputSchema: z.object({ id: z.string() }),
       outputSchema: z.object({ id: z.string(), name: z.string() }),
       options: { id: { type: "string" } },
@@ -125,24 +80,28 @@ const client = cli({
     }),
   ],
 });
-
-export default defineEval({
-  cli: [client],
-  // cases, prompt, tasks, and trials
-});
 ```
 
-Every built-in agent receives the executable on `PATH`. Validators can inspect
-calls with `await context.cli.calls("example")`.
+Attach definitions with `mcp: [usersMcp]` or `cli: [usersCli]`. Handlers use plain TypeScript. Schemas infer handler types and validate calls at runtime.
 
-## Resolve a prompt
+## Use the API
 
 ```ts
-const prompt = await anpord.prompts.get({ id: "support-reply" });
-console.log(prompt.content, prompt.version);
+import { Anpord } from "anpord";
+import { compileEval } from "anpord/eval";
+
+const anpord = new Anpord();
+const run = await anpord.evals.startAndWait(
+  await compileEval("./greeting.eval.ts")
+);
+
+console.log(run.status, run.cells);
+await anpord.dispose();
 ```
 
-See the [documentation](https://docs.anpord.com) for eval concepts, prompt releases, SDK methods, and the API reference.
+The client reads `ANPORD_API_KEY`.
+
+See the [documentation](https://docs.anpord.com) for cases, validators, profiles, mock interfaces, prompt releases, and the API reference.
 
 ## License
 

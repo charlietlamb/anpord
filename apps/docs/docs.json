@@ -36,22 +36,22 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["quickstart", "getting-started", "connections"]
+            "pages": ["getting-started", "connections"]
           },
           {
             "group": "Evals",
             "pages": [
               "concepts",
               "evals/cases",
-              "evals/import",
               "evals/variants",
-              "evals/harnesses",
               "evals/mocks",
-              "evals/profiles",
-              "evals/command-harness",
               "evals/results",
               "evals/baselines"
             ]
+          },
+          {
+            "group": "Advanced evals",
+            "pages": ["evals/profiles", "evals/command-harness", "evals/import"]
           },
           {
             "group": "Guides",
@@ -63,8 +63,7 @@
               "prompts/overview",
               "guides/resolving-prompts",
               "variables",
-              "freshness",
-              "guides/publishing"
+              "freshness"
             ]
           },
           {
@@ -104,6 +103,21 @@
     {
       "source": "/evals/mock-cli",
       "destination": "/evals/mocks",
+      "permanent": true
+    },
+    {
+      "source": "/quickstart",
+      "destination": "/getting-started",
+      "permanent": true
+    },
+    {
+      "source": "/evals/harnesses",
+      "destination": "/evals/variants",
+      "permanent": true
+    },
+    {
+      "source": "/guides/publishing",
+      "destination": "/prompts/overview",
       "permanent": true
     }
   ],

@@ -3,9 +3,7 @@ title: "Harness profiles"
 description: "Version the configuration you layer on a harness"
 ---
 
-Nobody runs a coding agent as it ships. A team layers a system prompt, an `AGENTS.md`, a permission map, plugins, skills and a handful of environment variables on top of it, and that layer is what actually decides whether the agent works.
-
-A profile is that layer, versioned. It rides on a task beside the harness it configures:
+Profiles version the files and settings layered onto a harness:
 
 ```ts
 tasks: [
@@ -18,7 +16,7 @@ tasks: [
 ]
 ```
 
-Two columns, one base, one model. The first is the harness as it ships; the second is the harness your team runs. Each is its own cell with its own baseline, so a change to the profile is measured against the profile's own history rather than against stock.
+The first column is the stock harness. The second is your configured harness. Each has its own cell and baseline, so profile changes are measured against that profile's history.
 
 ## The directory
 
@@ -88,8 +86,6 @@ A value naming a file inside the profile directory is replaced by that file's co
 
 Paths are relative, may not contain a `..` segment, and are at most 512 characters. Files are text: a file holding a NUL byte is skipped rather than shipped, so a checked-in binary does not fail the compile.
 
-The per-file limit is not arbitrary. Two sandbox providers hand a file's content to the machine inside a single shell argument, which caps a file near 128 KiB once encoded.
-
 ## System prompts
 
 Each base takes a system prompt in its own way. The prompt is always written into the sandbox; whether the harness is given its path or its text depends on the base:
@@ -102,15 +98,13 @@ Each base takes a system prompt in its own way. The prompt is always written int
 | `gemini`, `qwen`, `pi`, `fx`, `cursor` | The text is prepended to the instructions file the agent reads, `AGENTS.md` or `GEMINI.md` |
 | `command` | `ANPORD_SYSTEM_PROMPT_FILE`, holding the path |
 
-The last two rows are the weaker ones. An agent that reads its instructions file only when it feels like it will treat the prompt as a suggestion; if that matters, put the text in `workspace/AGENTS.md` yourself and read the trajectory to check it landed.
+For file-based delivery, place required instructions in `workspace/AGENTS.md` and inspect the trajectory to confirm the harness read them.
 
 ## Identity
 
 The profile **name** is part of the cell key. Two profiles on one base, one model and one sandbox are two cells with two histories, exactly as two harnesses would be.
 
-The profile **version** is not. It is a content hash over the files, the system prompt, the environment, and the install and run commands, and it is compared the way a harness version is compared: an edited profile is a new reading on the same cell, measured against that cell's baseline. Renaming a file changes the version. Renaming the profile does not — that starts a new cell.
-
-So the question a profile answers is the one a team cannot answer today: *the prompt changed on Tuesday; did the agent get worse?*
+The profile **version** is not. It is a content hash over the files, system prompt, environment, and install and run commands. An edited profile is a new reading on the same cell, measured against its baseline. Renaming a file changes the version. Renaming the profile starts a new cell.
 
 ```ts
 const comparison = run.cells[0]?.comparison;
@@ -120,14 +114,12 @@ if (comparison?.verdict === "regressed") {
 }
 ```
 
-The run rail, the cell history and the CI gate all name the profile and the version change, so a failing check says which profile regressed rather than only which case did.
-
 ## Comparing fairly
 
-A grid that puts a profile beside stock harnesses is only honest if the difference it measures is the one you meant.
+Compare one change at a time.
 
-Ship the same skills to every column. A profile's skills usually live under one agent's directory — `.claude/skills` for Claude Code, `.agents/skills` for OpenCode — and a column that has them beside a column that does not is measuring the skills, not the harness. Write them into every directory the grid's harnesses read, through `workspace/`.
+Ship the same skills to every column. Skills usually live in agent-specific directories such as `.claude/skills` and `.agents/skills`. If only one column has them, the grid measures the skills instead of the harness. Write them into every directory the selected harnesses read through `workspace/`.
 
-Hold the model constant. Where you cannot — a profile pinned to a provider the other columns have no key for, or a base whose model ids do not overlap — the cells are not comparable, and the honest thing is to say so beside the grid rather than to read the delta.
+Hold the model constant. Cells are not comparable when a profile requires an unavailable provider or the model ids do not overlap. State that beside the grid instead of interpreting the delta.
 
 Change one thing at a time. A run that moves the profile and the model together tells you something moved.

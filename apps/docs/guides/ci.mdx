@@ -28,9 +28,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 ```
 
-The command waits for the run and exits nonzero when a cell regresses, so the
-job fails the request rather than reporting a run nobody reads. Pass
-`--fail-on unscored` to also fail a cell that produced no scored trials.
+The command waits and exits nonzero when a cell regresses. Pass `--fail-on
+unscored` to also fail cells with no scored trials.
 
 A definition that names no source is evaluated against the repository it sits
 in. On a pull request that is the branch the request came from, so the run

@@ -1,36 +1,22 @@
 ---
 title: "Import a case file"
-description: "Turn cases a team already wrote into a runnable suite"
+description: "Turn existing JSON or YAML cases into a TypeScript suite"
 ---
 
-Most teams write their cases down long before they own a way to run them.
-Usually it is one file of JSON, or a directory of YAML with a file per case,
-each carrying a prompt and a list of things the answer ought to say. `anpord
-eval import` reads what they wrote and writes a `*.eval.ts` suite from it.
+`anpord eval import` converts an existing case file into a `*.eval.ts` suite.
 
 ```bash
 anpord eval import --format evals-json ./evals.json --out ./release-notes.eval.ts
 ```
 
-Leave `--out` off and the suite goes to stdout, so you can read it before it
-lands anywhere.
+Omit `--out` to print the suite to stdout.
 
-## The formats
-
-`--format` names the shape of the file, not the team that wrote it. Anpord
-reads two today:
-
-| `--format` | Shape |
+| `--format` | Input |
 | --- | --- |
-| `evals-json` | One JSON file holding every case |
+| `evals-json` | One JSON file containing all cases |
 | `yaml` | One YAML file per case, or a directory of them |
 
-The path can be a single file or, for a format that keeps one case per file, a
-directory.
-
 ## evals-json
-
-`evals-json` is one file holding every case:
 
 ```json
 {
@@ -42,235 +28,64 @@ directory.
       "prompt": "Read CHANGELOG.md and write the release notes.",
       "expected_output": "A short note naming the breaking change.",
       "files": ["fixtures/changelog"],
-      "assertions": []
+      "assertions": [
+        {
+          "text": "names the removed flag",
+          "kind": "content_contains_all",
+          "needles": ["--legacy", "removed"]
+        }
+      ]
     }
   ]
 }
 ```
 
-Only `id`, `prompt` and `assertions` are required. `name` labels the case,
-`expected_output` describes the answer in prose, and `files` names the fixture
-directories the case starts from.
+Only `id`, `prompt`, and `assertions` are required. Assertions may be structured objects or prose strings.
 
-## Two dialects
-
-An assertion comes in two shapes, and both turn up in the wild, sometimes in
-sibling files. The first is a plain string:
-
-```json
-"assertions": ["The summary reads as though a maintainer wrote it."]
-```
-
-The second is an object naming a check and the strings it looks for:
-
-```json
-"assertions": [
-  { "text": "names the removed flag", "kind": "content_contains_all", "needles": ["--legacy", "removed"] }
-]
-```
-
-The import reads both from the same file. What it does with them is not the
-same.
-
-## What converts
-
-A structured assertion is mechanical. It says which strings to look for and
-what rule to apply to them, so it converts exactly:
-
-| `kind` | Becomes |
+| `kind` | Generated check |
 | --- | --- |
 | `content_contains_any` | `containsAny(answer, needles)` |
 | `content_contains_all` | `containsAll(answer, needles)` |
 | `content_contains_none` | `containsNone(answer, needles)` |
 
-The case gets a `validate` function that reads the agent's final answer and
-returns whether every check held. Those three helpers are written into the
-file rather than imported, so an imported suite is one module a reader can
-follow and edit without learning a scorer library first. Matching is
-case-insensitive, which is what somebody writing "mentions the dashboard"
-means. The assertion's `text` stays above the call as a comment, so the
-generated line still says what the author meant by it.
-
-## What does not
-
-A prose assertion cannot be converted, and Anpord does not try. "Reads as
-though a maintainer wrote it" has no mechanical reading; any conversion would
-be a guess at what the author meant. A guess that guesses wrong produces a
-suite that passes while measuring the wrong thing, which is worse than no
-suite at all, because it is a green check nobody has reason to doubt.
-
-So a prose assertion is written into the generated file as the author's own
-words, verbatim, next to a placeholder that is always false:
+Matching is case-insensitive. Prose assertions cannot be converted safely, so they become failing placeholders:
 
 ```ts
-validate: async (context) => {
-  const answer = await context.answer();
-
-  return [
-    /* Write this check, then delete the line under it: */
-    /* The summary reads as though a maintainer wrote it. */
-    unwritten("The summary reads as though a maintainer wrote it."),
-  ].every(Boolean);
-},
+validate: async () => [
+  /* The summary reads as though a maintainer wrote it. */
+  unwritten("The summary reads as though a maintainer wrote it."),
+].every(Boolean),
 ```
 
-The file compiles and runs. The case fails until somebody replaces the
-placeholder with a real check. That is the point: an unwritten check reads as
-a failure, never as a pass.
-
-The command says so on stderr when it finishes:
-
-```
-Read 3 cases, converted 4 assertions. 3 assertions could not be converted and
-need a human: each is written as prose, and the suite fails until you write the
-check it describes.
-```
-
-`expected_output` is prose too, so it becomes a comment on the case rather
-than a check. It describes the answer; it does not decide one.
-
-## Fixtures do not travel
-
-`files` names fixture directories by convention. The JSON carries the names,
-never the contents, so the import cannot fill them in. Every case gets an
-empty `files({})` source and a comment naming what the entry asked for:
-
-```ts
-/* This case named fixtures/changelog. The JSON carries the directory names,
-   not their contents, so add the files here. */
-source: files({}),
-```
-
-Fill each one from the directory it names, or point the case at a
-[repository](/evals/cases) instead.
-
-## The workflow
-
-1. **Import.** Run the command and read the suite before writing it anywhere.
-2. **Fill the fixtures.** Replace each `files({})` with the files the case
-   starts from.
-3. **Pick a task.** The suite ships with one harness, model and sandbox. Edit
-   it, or add [variants](/evals/variants) to compare several.
-4. **Write the checks.** Work through every placeholder. Each one carries the
-   sentence that specifies it.
-5. **Run it.** `anpord eval ./release-notes.eval.ts`.
-
-Steps two and four are the work. Nothing that comes out of step one is worth
-trusting until they are done, and the suite stays red until they are.
-
-## When an evals-json file is refused
-
-An import fails rather than writing a suite it is not sure of.
-
-| Refusal | Meaning |
-| --- | --- |
-| `CaseFileUnreadable` | The path does not exist or cannot be read |
-| `CaseFileNotJson` | The file is not JSON |
-| `CaseFileNotEvalsJson` | A case does not match the format, named by its `id` and the field |
-| `CaseFileEmpty` | `evals` is empty, so there is nothing to import |
-
-A shape mismatch names the case the way you would search for it:
-
-```
-evals.json is not an evals-json file: case 47, prompt: Expected string, actual 12
-```
+`expected_output` becomes a comment, not a check. `files` carries directory names but not their contents, so each case starts with `files({})` and a comment naming the requested fixtures.
 
 ## yaml
 
-`yaml` is one case per file. A directory imports as one suite, a file at a
-time, sorted by name:
+A directory imports all `*.yaml` and `*.yml` files, sorted by name.
 
 ```bash
 anpord eval import --format yaml ./cases --out ./browsing.eval.ts
 ```
 
-Point it at a single file instead and you get a suite of one. A directory is
-read for `*.yaml` and `*.yml`; anything else in it is left alone.
-
-Each file holds four fields:
-
 ```yaml
 name: Checkout flow
-task: Open the demo storefront, add the sample widget and pay with the test card
+task: Open the demo storefront and pay with the test card
 judge_context:
-  - The agent must reach the basket page before paying
-  - The agent must use the test card, never a real one
+  - Reach the basket page before paying
+  - Use the test card, never a real one
 max_steps: 12
 ```
 
-`name` and `task` are required. `judge_context` lists what a person told a
-model judge to look for, and `max_steps` caps how long the case may run.
+`name` and `task` are required. The task becomes the prompt. Each `judge_context` entry becomes a failing placeholder because it requires human judgment. A case without `judge_context` gets one placeholder asking for a pass condition.
 
-### What converts
+`max_steps` becomes a comment because Anpord does not cap agent steps. YAML cases use `files({})` because the format carries no source files.
 
-`task` becomes the case prompt, verbatim. `name` becomes the case name,
-slugged. That is the whole of it.
+## Finish the suite
 
-### What does not
+1. Run the import and review its output.
+2. Replace each `files({})` with fixture files or a [repository source](/evals/cases).
+3. Choose the harness, model, and sandbox.
+4. Replace every `unwritten(...)` placeholder with a real check.
+5. Run the generated suite with `anpord eval ./suite.eval.ts`.
 
-Nothing else does, and that is the point. Every `judge_context` entry is prose
-one person wrote for a model judge to read. "The agent must use the test card,
-never a real one" has no mechanical reading: it is not a string to look for, it
-is a description of correct behaviour that a judge weighs. Pattern-matching it
-into a `contains` check would produce a suite that goes green while measuring
-something the author never asked for.
-
-So each entry is written into the file as the author's own words, next to the
-same always-false placeholder `evals-json` uses:
-
-```ts
-validate: async (context) => {
-  const answer = await context.answer();
-
-  return [
-    /* Write this check, then delete the line under it: */
-    /* The agent must use the test card, never a real one */
-    unwritten("The agent must use the test card, never a real one"),
-  ].every(Boolean);
-},
-```
-
-A file that names no `judge_context` gets one placeholder anyway. Nothing in it
-says what a good answer is, so the case fails until somebody writes that down.
-
-`max_steps` becomes a comment on the case rather than a setting. Anpord has no
-step budget, so there is nothing to set it to, but the number says how much
-room the case had when its author last ran it, which is worth keeping:
-
-```ts
-/* The file allowed 12 steps. Anpord does not cap steps, so this is a note, not a limit. */
-```
-
-Every case also gets an empty `files({})` source. The YAML names nothing the
-case starts from, so there is nothing to fill in from.
-
-### The workflow
-
-1. **Import.** Run the command and read the suite before writing it anywhere.
-2. **Fill the sources.** Replace each `files({})` with what the case works on,
-   or point it at a [repository](/evals/cases).
-3. **Pick a task.** Edit the one harness, model and sandbox the suite ships
-   with, or add [variants](/evals/variants).
-4. **Write the checks.** Work through every placeholder. Each carries the
-   sentence its author wrote for the judge, which is the specification.
-5. **Run it.** `anpord eval ./browsing.eval.ts`.
-
-Step four is the work. The suite stays red until it is done.
-
-### When a yaml file is refused
-
-| Refusal | Meaning |
-| --- | --- |
-| `CaseFileUnreadable` | The path does not exist or cannot be read |
-| `CaseDirectoryUnreadable` | The directory exists but cannot be listed |
-| `CaseFileNotYaml` | A file is not YAML |
-| `CaseFileNotYamlCase` | A file is YAML but not a case, named by the field |
-| `CaseDirectoryEmpty` | The directory holds no `.yaml` or `.yml` files |
-
-A file that fails to decode stops the import by name rather than being skipped
-quietly, so a directory that half-imported is never mistaken for one that
-imported:
-
-```
-cases/checkout.yaml is not a yaml case: task: Expected string, actual 12
-```
+The command reports converted and unconverted assertions on stderr. Invalid files fail by path, case, and field. A directory is never partially imported.

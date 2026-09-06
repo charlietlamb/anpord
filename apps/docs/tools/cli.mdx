@@ -50,12 +50,9 @@ Run every eval suite in the repository:
 anpord eval
 ```
 
-Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Every case,
-task, and trial in a suite is scheduled concurrently, with each sandbox
-provider enforcing its configured concurrency limit.
+Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Cells and trials run concurrently within Anpord and provider limits.
 
-The command waits for the run, draws the grid as cells settle, and exits
-nonzero when a cell regresses against its baseline.
+The command waits for the run and exits nonzero when a cell regresses against its baseline. In an interactive terminal, the grid updates as cells settle. Non-interactive runs print the final grid once.
 
 | Option | Purpose |
 | --- | --- |

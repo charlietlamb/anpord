@@ -1,10 +1,10 @@
 ---
-title: "Harnesses, models, and sandboxes"
+title: "Agents and sandboxes"
 sidebarTitle: "Variants"
 description: "Choose what runs a case and where it runs"
 ---
 
-Each entry in `tasks` defines one variant:
+Each task defines one grid column:
 
 ```ts
 { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }
@@ -13,34 +13,41 @@ Each entry in `tasks` defines one variant:
 | Field | Purpose |
 | --- | --- |
 | `harness` | Runs the agent and its tools |
-| `model` | Selects the model used by the harness |
+| `model` | Selects the harness model |
 | `provider` | Supplies the sandbox |
 
-See [Harnesses](/evals/harnesses) for the full list and what each one reports.
+## Agents
 
-## Choose a model
+| Agent | `harness` | Credential | Reports |
+| --- | --- | --- | --- |
+| Codex | `codex` | API key or ChatGPT | Commands, files, tokens |
+| Claude Code | `claude` | API key | Commands, files, tokens |
+| OpenCode | `opencode` | Auth file | Commands, files, tokens |
+| Pi | `pi` | Auth file | Commands, files, tokens |
+| Gemini CLI | `gemini` | API key | Commands, files, tokens |
+| Qwen Code | `qwen` | API key | Commands, files, tokens |
+| Cursor Agent | `cursor` | API key | Commands, files |
+| FX | `fx` | AI Gateway key or ChatGPT auth file | Tool names, answer |
 
-Keep the model id in application or CI configuration. Use the catalogue when choosing or changing it:
+Each agent needs a [connection](/connections). Agents with fewer reports still use the same verifier but leave less trajectory and cost data.
+
+## Models
+
+Model ids vary by agent. Use the catalogue when choosing one:
 
 ```ts
 const { models } = await anpord.evals.models({ harness: "codex" });
-
-for (const model of models) {
-  console.log(model.id, model.displayName);
-}
 ```
 
-Model discovery is not required before `evals.start`. Available ids depend on the harness and the credential it runs with.
+Model discovery is not required before a run. Available ids depend on the harness.
 
-## Choose a sandbox
+## Sandboxes
 
-`daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`.
-
-Each trial gets a separate workspace. Setup, agent work, and verification run in that workspace.
+Providers are `daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`. Every trial gets an isolated workspace.
 
 ## Compare variants
 
-Change one field at a time when you want to explain the difference:
+Change one field at a time:
 
 ```ts
 tasks: [
@@ -49,4 +56,4 @@ tasks: [
 ]
 ```
 
-Changing the harness, model, or provider creates a new cell history and baseline. A new harness version keeps the history and is compared against it.
+Changing the harness, model, or provider creates a new cell history. A new harness version remains in the same history. Use a [profile](/evals/profiles) to compare an agent's stock and configured forms.
