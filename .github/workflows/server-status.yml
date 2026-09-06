@@ -1,0 +1,21 @@
+name: Server status
+
+on:
+  workflow_dispatch:
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - run: |
+          ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='anpord-server'].ServiceArn | [0]" --output text)
+          aws apprunner describe-service --service-arn "$ARN" \
+            --query '{status:Service.Status,image:Service.SourceConfiguration.ImageRepository.ImageIdentifier,url:Service.ServiceUrl}'
+          aws apprunner list-operations --service-arn "$ARN" --max-results 5 \
+            --query 'OperationSummaryList[].{id:Id,type:Type,status:Status,started:StartedAt,ended:EndedAt}'
