@@ -22,9 +22,13 @@ const optional = <A>(
   effect: Effect.Effect<A, CredentialError>,
   explicit: string | undefined
 ) =>
-  explicit === undefined
-    ? effect.pipe(Effect.option)
-    : effect.pipe(Effect.map(Option.some));
+  effect.pipe(
+    Effect.map(Option.some),
+    Effect.catchIf(
+      (error) => explicit === undefined && error.code === "not-found",
+      () => Effect.succeed(Option.none())
+    )
+  );
 
 const legacyCodex = (auth: string) =>
   Redacted.make<ResolvedCredential>({

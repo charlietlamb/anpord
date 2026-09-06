@@ -32,6 +32,33 @@ const task = {
 };
 
 describe("task credentials", () => {
+  it.each([
+    "codex",
+    "daytona",
+  ])("preserves default %s credential failures", async (integration) => {
+    const error = new CredentialError({
+      code: "internal",
+      message: "Credential could not be decrypted",
+    });
+    const resolver: CredentialResolverShape = {
+      ...missing,
+      resolve: (input) =>
+        input.integrationId === integration
+          ? Effect.fail(error)
+          : missing.resolve(input),
+    };
+    const failure = await Effect.runPromise(
+      resolveTaskCredentials(resolver, actor, [task], "legacy").pipe(
+        Effect.flip
+      )
+    );
+
+    expect(failure).toMatchObject({
+      code: error.code,
+      message: error.message,
+    });
+  });
+
   it("keeps the legacy fallback only for Codex", async () => {
     const [resolved] = await Effect.runPromise(
       resolveTaskCredentials(missing, actor, [task], '{"tokens":{}}')
