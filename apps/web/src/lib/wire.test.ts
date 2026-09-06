@@ -1,53 +1,92 @@
 import { expect, test } from "bun:test";
+import { EvalRunSummary } from "@anpord/schema/domain/evals";
+import {
+  PromptPage,
+  ResolvedPrompt,
+  Timestamp,
+} from "@anpord/schema/domain/prompts";
+import { relativeTime } from "@anpord/ui/lib/relative-time";
+import { DateTime, Schema } from "effect";
 import { fromWire } from "./wire";
 
-test("an ISO timestamp becomes the shape the UI reads", () => {
-  const run = fromWire<{
-    readonly startedAt: { readonly epochMillis: number };
-    readonly name: string;
-  }>({ name: "planner-core", startedAt: "2026-09-06T12:00:00.000Z" });
+const timestamp = "2026-09-06T12:00:00.000Z";
 
-  expect(run.startedAt.epochMillis).toBe(
-    Date.parse("2026-09-06T12:00:00.000Z")
+test("prompt dates reach the relative-time formatter as native Dates", () => {
+  const page = fromWire(PromptPage, {
+    items: [
+      {
+        author: null,
+        description: null,
+        id: "fixture",
+        latestVersion: 1,
+        name: "Fixture",
+        productionVersion: null,
+        updatedAt: timestamp,
+      },
+    ],
+    nextCursor: null,
+  });
+  const updatedAt = page.items[0]?.updatedAt;
+  expect(updatedAt).toBeInstanceOf(Date);
+  if (updatedAt === undefined) {
+    throw new Error("Missing prompt");
+  }
+  expect(relativeTime(updatedAt, new Date("2026-09-06T13:00:00Z"))).toBe(
+    "1 hour ago"
   );
-  expect(run.name).toBe("planner-core");
+  expect(relativeTime(updatedAt, new Date("2026-09-16T13:00:00Z"))).toBe(
+    "6 Sep 2026"
+  );
 });
 
-test("nulls and nested collections survive the walk", () => {
-  const page = fromWire<{
-    readonly runs: readonly {
-      readonly finishedAt: null;
-      readonly cells: readonly {
-        readonly at: { readonly epochMillis: number };
-      }[];
-    }[];
-    readonly total: number;
-  }>({
-    runs: [{ cells: [{ at: "2026-01-02T03:04:05Z" }], finishedAt: null }],
-    total: 7,
+test("eval dates retain their Effect DateTime type", () => {
+  const run = fromWire(EvalRunSummary, {
+    caseCount: 1,
+    columns: [],
+    commandMax: null,
+    commandMin: null,
+    failure: null,
+    finishedAt: null,
+    firstCaseName: "fixture",
+    id: "run_fixture",
+    name: timestamp,
+    passed: 0,
+    scored: 0,
+    startedAt: timestamp,
+    status: "running",
+    taskCount: 1,
+    voided: 0,
   });
-
-  expect(page.runs[0]?.finishedAt).toBeNull();
-  expect(page.runs[0]?.cells[0]?.at.epochMillis).toBe(
-    Date.parse("2026-01-02T03:04:05Z")
-  );
-  expect(page.total).toBe(7);
+  expect(DateTime.isDateTime(run.startedAt)).toBe(true);
+  expect(run.startedAt.epochMillis).toBe(Date.parse(timestamp));
+  expect(run.finishedAt).toBeNull();
+  expect(run.trigger).toBeNull();
+  expect(run.name).toBe(timestamp);
 });
 
-/* An id or a plain date would become an object the UI then renders as
-   [object Object], so the pattern has to require a time. */
-test("an ordinary string is not mistaken for a timestamp", () => {
-  const value = fromWire<Record<string, string>>({
-    cellKey: "9c4f0d41f90158e6",
-    id: "run_123",
-    when: "2026-09-06",
+test("ISO-looking source and config values remain untouched", () => {
+  const prompt = fromWire(ResolvedPrompt, {
+    author: null,
+    channel: null,
+    commitMessage: null,
+    config: { date: timestamp, nested: [timestamp, null] },
+    content: timestamp,
+    createdAt: timestamp,
+    id: "fixture",
+    name: "Fixture",
+    version: 1,
+    versionId: "version_fixture",
   });
+  expect(prompt.createdAt).toBeInstanceOf(Date);
+  expect(prompt.content).toBe(timestamp);
+  expect(prompt.config).toEqual({ date: timestamp, nested: [timestamp, null] });
+});
 
-  expect(value.id).toBe("run_123");
-  expect(value.when).toBe("2026-09-06");
-  expect(value.cellKey).toBe("9c4f0d41f90158e6");
+test("invalid timestamps fail during decoding", () => {
+  expect(() => fromWire(Timestamp, "not a date")).toThrow();
+  expect(() => fromWire(Schema.DateTimeUtc, "not a date")).toThrow();
 });
 
 test("a 204 carries no payload", () => {
-  expect(fromWire<undefined>(undefined)).toBeUndefined();
+  expect(fromWire(Schema.Void, undefined)).toBeUndefined();
 });

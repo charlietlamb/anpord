@@ -1,14 +1,15 @@
-import type {
+import {
   EvalCellHistoryEntry,
-  EvalHarness,
-  EvalPageCursor,
+  type EvalHarness,
+  type EvalPageCursor,
   EvalRun,
   EvalRunPage,
   ModelCatalogue,
-  PlaygroundConfigView,
+  type PlaygroundConfigView,
   PlaygroundView,
   StartedEval,
 } from "@anpord/schema/domain/evals";
+import { Schema } from "effect";
 import { fromWire } from "@/lib/wire";
 
 const BASE = "/api";
@@ -33,10 +34,14 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   return response;
 }
 
-async function request<A>(path: string, init?: RequestInit): Promise<A> {
+async function request<A, I>(
+  schema: Schema.Schema<A, I>,
+  path: string,
+  init?: RequestInit
+): Promise<A> {
   const response = await send(path, init);
 
-  return fromWire<A>(await response.json());
+  return fromWire(schema, await response.json());
 }
 
 export const listRuns = (cursor: EvalPageCursor | null) => {
@@ -49,35 +54,40 @@ export const listRuns = (cursor: EvalPageCursor | null) => {
 
   const query = params.toString();
 
-  return request<EvalRunPage>(query === "" ? "/evals" : `/evals?${query}`);
+  return request(EvalRunPage, query === "" ? "/evals" : `/evals?${query}`);
 };
 
 export const getRun = (id: string) =>
-  request<EvalRun>(`/evals/${encodeURIComponent(id)}`);
+  request(EvalRun, `/evals/${encodeURIComponent(id)}`);
 
 export const listCellHistory = (cellKey: string) =>
-  request<readonly EvalCellHistoryEntry[]>(
+  request(
+    Schema.Array(EvalCellHistoryEntry),
     `/evals/cells/${encodeURIComponent(cellKey)}/history`
   );
 
-function post<A>(path: string, body: unknown): Promise<A> {
-  return request<A>(path, {
+function post<A, I>(
+  schema: Schema.Schema<A, I>,
+  path: string,
+  body: unknown
+): Promise<A> {
+  return request(schema, path, {
     body: JSON.stringify(body),
     method: "POST",
   });
 }
 
 export const createPlayground = (name: string) =>
-  post<PlaygroundView>("/evals/playgrounds", { name });
+  post(PlaygroundView, "/evals/playgrounds", { name });
 
 export const getPlayground = (id: string) =>
-  request<PlaygroundView>(`/evals/playgrounds/${encodeURIComponent(id)}`);
+  request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`);
 
 export const savePlayground = (
   id: string,
   input: { readonly config: PlaygroundConfig; readonly name: string }
 ) =>
-  request<PlaygroundView>(`/evals/playgrounds/${encodeURIComponent(id)}`, {
+  request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`, {
     body: JSON.stringify(input),
     method: "PUT",
   });
@@ -89,14 +99,15 @@ export const getModelCatalogue = (harness: EvalHarness, query: string) => {
     params.set("q", query.trim());
   }
 
-  return request<ModelCatalogue>(`/evals/models?${params}`);
+  return request(ModelCatalogue, `/evals/models?${params}`);
 };
 
 export const rerunCell = (runId: string, cellKey: string, trials: number) =>
-  post<StartedEval>(
+  post(
+    StartedEval,
     `/evals/${encodeURIComponent(runId)}/cells/${encodeURIComponent(cellKey)}/runs`,
     { trials }
   );
 
 export const runPlayground = (id: string) =>
-  post<StartedEval>(`/evals/playgrounds/${encodeURIComponent(id)}/runs`, {});
+  post(StartedEval, `/evals/playgrounds/${encodeURIComponent(id)}/runs`, {});

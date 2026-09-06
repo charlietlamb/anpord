@@ -1,11 +1,12 @@
-import type {
+import {
   ChannelPlacement,
-  CreatePromptRequest,
+  type CreatePromptRequest,
   PromptPage,
   ResolvedPrompt,
-  SetChannelRequest,
-  UpdatePromptRequest,
+  type SetChannelRequest,
+  type UpdatePromptRequest,
 } from "@anpord/schema/domain/prompts";
+import { Schema } from "effect";
 import { fromWire } from "@/lib/wire";
 
 const BASE = "/api/prompts";
@@ -27,10 +28,14 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   return response;
 }
 
-async function request<A>(path: string, init?: RequestInit): Promise<A> {
+async function request<A, I>(
+  schema: Schema.Schema<A, I>,
+  path: string,
+  init?: RequestInit
+): Promise<A> {
   const response = await send(path, init);
 
-  return fromWire<A>(await response.json());
+  return fromWire(schema, await response.json());
 }
 
 export const listPrompts = (params: {
@@ -47,14 +52,14 @@ export const listPrompts = (params: {
     }
   }
   const suffix = query.size > 0 ? `?${query}` : "";
-  return request<PromptPage>(suffix);
+  return request(PromptPage, suffix);
 };
 
 export const listVersions = (id: string) =>
-  request<readonly ResolvedPrompt[]>(`/${encodeURIComponent(id)}/versions`);
+  request(Schema.Array(ResolvedPrompt), `/${encodeURIComponent(id)}/versions`);
 
 export const createPrompt = (body: CreatePromptRequest) =>
-  request<ResolvedPrompt>("", {
+  request(ResolvedPrompt, "", {
     body: JSON.stringify(body),
     method: "POST",
   });
@@ -63,7 +68,7 @@ export const addVersion = (
   id: string,
   body: { content: string; commitMessage?: string; publish?: boolean }
 ) =>
-  request<ResolvedPrompt>(`/${encodeURIComponent(id)}/versions`, {
+  request(ResolvedPrompt, `/${encodeURIComponent(id)}/versions`, {
     body: JSON.stringify(body),
     method: "POST",
   });
@@ -73,19 +78,22 @@ export const updateVersion = (
   version: number,
   body: { content: string; commitMessage?: string }
 ) =>
-  request<ResolvedPrompt>(`/${encodeURIComponent(id)}/versions/${version}`, {
+  request(ResolvedPrompt, `/${encodeURIComponent(id)}/versions/${version}`, {
     body: JSON.stringify(body),
     method: "PATCH",
   });
 
 export const updatePrompt = (id: string, body: UpdatePromptRequest) =>
-  request<ResolvedPrompt>(`/${encodeURIComponent(id)}`, {
+  request(ResolvedPrompt, `/${encodeURIComponent(id)}`, {
     body: JSON.stringify(body),
     method: "PATCH",
   });
 
 export const listChannels = (id: string) =>
-  request<readonly ChannelPlacement[]>(`/${encodeURIComponent(id)}/channels`);
+  request(
+    Schema.Array(ChannelPlacement),
+    `/${encodeURIComponent(id)}/channels`
+  );
 
 export const setChannel = async (
   id: string,

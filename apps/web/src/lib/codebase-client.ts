@@ -1,12 +1,17 @@
-import type {
+import {
   Repository,
   SourceControlAccount,
 } from "@anpord/schema/domain/codebase";
+import { Schema } from "effect";
 import { failureOf, fromWire } from "@/lib/wire";
 
 const BASE = "/api/evals/codebase";
 
-const request = async <A>(path: string, init?: RequestInit): Promise<A> => {
+const request = async <A, I>(
+  schema: Schema.Schema<A, I>,
+  path: string,
+  init?: RequestInit
+): Promise<A> => {
   const response = await fetch(`${BASE}${path}`, {
     ...init,
     headers: { "content-type": "application/json", ...init?.headers },
@@ -18,19 +23,19 @@ const request = async <A>(path: string, init?: RequestInit): Promise<A> => {
 
   const payload = response.status === 204 ? undefined : await response.json();
 
-  return fromWire<A>(payload);
+  return fromWire(schema, payload);
 };
 
 export const codebaseClient = {
-  account: () => request<SourceControlAccount | null>("/account"),
+  account: () => request(Schema.NullOr(SourceControlAccount), "/account"),
   connect: (installationId?: number) =>
-    request<SourceControlAccount>("/connect", {
+    request(SourceControlAccount, "/connect", {
       body: JSON.stringify(
         installationId === undefined ? {} : { installationId }
       ),
       method: "POST",
     }),
-  disconnect: () => request<void>("/connect", { method: "DELETE" }),
-  installUrl: () => request<{ readonly url: string }>("/install"),
-  repositories: () => request<readonly Repository[]>("/repositories"),
+  disconnect: () => request(Schema.Void, "/connect", { method: "DELETE" }),
+  installUrl: () => request(Schema.Struct({ url: Schema.String }), "/install"),
+  repositories: () => request(Schema.Array(Repository), "/repositories"),
 };
