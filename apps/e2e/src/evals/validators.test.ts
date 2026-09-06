@@ -20,7 +20,12 @@ test.each([
   if (!validator || "kind" in validator) {
     throw new Error("Expected a code validator");
   }
-  for (const passed of [true, false]) {
+  for (const scenario of [
+    "passed",
+    "missing-evidence",
+    "wrong-answer",
+  ] as const) {
+    const passed = scenario === "passed";
     const workspace = await mkdtemp(join(tmpdir(), "anpord-ci-validator-"));
     try {
       await mkdir(join(workspace, ".anpord"));
@@ -28,7 +33,10 @@ test.each([
       const script = join(workspace, "validator.mjs");
       const answer = join(workspace, "answer.txt");
       await writeFile(script, validator.source);
-      await writeFile(answer, item.name);
+      await writeFile(
+        answer,
+        scenario === "wrong-answer" ? "Wrong item" : item.name
+      );
       if (suite === "sdk") {
         await writeFile(
           join(workspace, "apps/e2e/sdk-smoke.mjs"),
@@ -46,12 +54,13 @@ export async function resolvePrompt(baseUrl, id, name) {
           suite === "mcp"
             ? { server: "catalog", kind: "tool", name: "items_get" }
             : { cli: "catalog", command: "items get" };
-        const calls = passed
-          ? [
-              { ...call, input: { id: "missing" }, error: "Unknown item" },
-              { ...call, input: { id: item.id } },
-            ]
-          : [];
+        const calls =
+          scenario === "missing-evidence"
+            ? []
+            : [
+                { ...call, input: { id: "missing" }, error: "Unknown item" },
+                { ...call, input: { id: item.id } },
+              ];
         await writeFile(
           join(workspace, `.anpord/${suite}-calls.jsonl`),
           calls.map((entry) => JSON.stringify(entry)).join("\n")

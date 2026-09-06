@@ -67,6 +67,7 @@ const execute = async (
         cwd: resolve(root, "apps/e2e"),
         env: {
           PATH: process.env.PATH,
+          TMPDIR: directory,
           ANPORD_API_KEY: options.key ?? "fixture",
           ANPORD_BASE_URL: server.url.href.slice(0, -1),
           ANPORD_WEB_URL: "https://anpord.test",

@@ -12,15 +12,18 @@ const validateRetrieval = (
   const missing = requests.findIndex(
     ({ id, error }) => id === "missing" && error !== undefined
   );
+  const problems = [
+    missing < 0 && "No failed request for the missing item.",
+    !requests
+      .slice(missing + 1)
+      .some(({ id, error }) => id === item.id && error === undefined) &&
+      "No successful fixture request after the missing item.",
+    !answer.includes(item.name) && "The answer does not name the fixture.",
+  ].filter(Boolean);
   return {
-    passed:
-      missing >= 0 &&
-      requests
-        .slice(missing + 1)
-        .some(({ id, error }) => id === item.id && error === undefined) &&
-      answer.includes(item.name),
+    passed: problems.length === 0,
     message:
-      "Recover from the missing item, retrieve the fixture, and report its name.",
+      problems.join(" ") || "Retrieved the fixture after the missing item.",
   };
 };
 
