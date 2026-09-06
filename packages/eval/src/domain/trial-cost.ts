@@ -1,3 +1,4 @@
+import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import type { Option } from "effect";
 import type { CostComponent } from "./cost-component";
 import {
@@ -21,6 +22,7 @@ export const breakdownOf = (input: {
   readonly provider: string;
   readonly sandboxMs: number;
   readonly usage: HarnessUsage | null;
+  readonly judgments?: readonly EvalJudgment[];
 }): readonly CostComponent[] => [
   modelComponent(input),
   harnessComponent(input),
@@ -30,4 +32,24 @@ export const breakdownOf = (input: {
     sandboxMs: input.sandboxMs,
   }),
   platformComponent(),
+  ...(input.judgments?.length
+    ? [
+        {
+          component: "judge" as const,
+          classification: "unknown" as const,
+          amountNanos: null,
+          source: "judge",
+          explanation: "Judge model and sandbox costs are not yet priced.",
+          detail: {
+            judgments: input.judgments.map(
+              ({ model, evaluator, durationMs }) => ({
+                model,
+                evaluator,
+                durationMs,
+              })
+            ),
+          },
+        },
+      ]
+    : []),
 ];

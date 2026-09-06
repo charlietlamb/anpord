@@ -183,6 +183,7 @@
       "name": "@anpord/db",
       "version": "0.0.0",
       "dependencies": {
+        "@anpord/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
         "pg": "catalog:",
@@ -267,7 +268,7 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "bin": {
         "anpord": "./dist/bin.mjs",
       },

@@ -1,0 +1,79 @@
+---
+title: "Model judges"
+description: "Score answers with a model you choose"
+---
+
+Use code for exact checks. Add a judge for qualities such as correctness, relevance, or clarity that need interpretation.
+
+```ts
+import { defineEval, empty } from "anpord";
+import { judge } from "anpord/validators";
+
+const correctness = judge({
+  name: "correctness",
+  harness: "codex",
+  model: "gpt-5.6-sol",
+  rubric: "The answer explains why the result is correct, without inventing facts.",
+  expected: "2 + 2 = 4",
+  choices: { correct: 1, partial: 0.5, incorrect: 0 },
+  threshold: 1,
+});
+
+export default defineEval({
+  name: "arithmetic",
+  source: empty,
+  prompt: "What is 2 + 2? Explain briefly.",
+  cases: [{ name: "addition", validate: correctness }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "e2b" }],
+  trials: 3,
+});
+```
+
+No Effect imports or model client setup are needed in the eval file. The judge model is independent of the task model. Anpord requests the exact model you specify; an unavailable model produces an unscored judgment, not a fallback.
+
+## Combine checks
+
+`validate` accepts one validator or an array:
+
+```ts
+validate: [checkToolCalls, correctness];
+```
+
+Code checks run in the task sandbox. Judges run afterward. A case passes only when its code checks pass and every judge meets its threshold. A passing judge cannot override a failed code check.
+
+## Configuration
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Unique judge name within the case |
+| `harness` or `provider` | Agent harness, or `provider: "openai"` for a direct model call |
+| `model` | Exact model identifier |
+| `rubric` | Instructions for the judgment |
+| `expected` | Optional reference answer |
+| `choices` | Labels mapped to scores between 0 and 1 |
+| `threshold` | Inclusive pass threshold; defaults to 1 |
+| `timeoutMs` | Total judging timeout; defaults to 120,000, maximum 300,000 |
+
+A case accepts up to 20 validators. Each judge accepts up to 20 choices. Names, rubrics, and expected answers are checked when the eval compiles.
+
+## Authentication
+
+Agent judges use your organization's connection for that harness. A Codex judge can use a ChatGPT subscription connection; it does not need an OpenAI API key. When the task uses the same harness, the judge reuses its bound connection.
+
+For direct OpenAI calls, replace `harness` with `provider: "openai"`. Configure `OPENAI_API_KEY` in the organization's environment connection, or in the server and worker environment for a self-hosted deployment. A ChatGPT subscription is not an OpenAI API key.
+
+Keep credentials out of eval definitions, rubrics, and fixtures.
+
+## Evidence and isolation
+
+Judges receive the rendered task prompt, final answer, and optional expected answer. They do not receive the task workspace, transcript, MCP or CLI configuration, or task environment.
+
+Agent judges start in a fresh sandbox after the task sandbox closes. They are instructed to grade only the supplied evidence. Tool use invalidates the judgment; it is detected, not prevented by a network firewall. For tool-use assertions, keep a code validator that inspects the mock call log.
+
+Direct OpenAI judges use structured outputs with storage disabled. Both backends validate the response against the declared choices and require a short explanation. Timeouts, refusals, invalid responses, and provider failures produce `score: null` and make the trial `void`.
+
+## Results
+
+Each trial's `judgments` contains `name`, `model`, `evaluator`, `choice`, `score`, `threshold`, `reason`, `durationMs`, and `error`. The dashboard shows these separately from code checks. Judge costs are marked unpriced, so a judged run's cost total is incomplete.
+
+Changing a judge changes the case identity used for baselines. Calibrate each rubric against known good and bad answers before trusting its scores. Repeat trials: model judgments can vary, even with the same model and rubric.

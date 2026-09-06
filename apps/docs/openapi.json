@@ -1772,28 +1772,301 @@
         "description": "The workspace available to the harness before setup runs."
       },
       "EvalValidator": {
-        "type": "object",
-        "required": [
-          "name",
-          "source"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "a string at most 100 character(s) long",
-            "title": "maxLength(100)",
-            "minLength": 1,
-            "maxLength": 100
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "source"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "a string at most 100 character(s) long",
+                "title": "maxLength(100)",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "source": {
+                "type": "string",
+                "description": "a string at most 1000000 character(s) long",
+                "title": "maxLength(1000000)",
+                "minLength": 1,
+                "maxLength": 1000000
+              }
+            },
+            "additionalProperties": false
           },
-          "source": {
-            "type": "string",
-            "description": "a string at most 1000000 character(s) long",
-            "title": "maxLength(1000000)",
-            "minLength": 1,
-            "maxLength": 1000000
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "name",
+              "checks",
+              "judges"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "judged"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "description": "a string at most 100 character(s) long",
+                "title": "maxLength(100)",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "checks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "source"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "a string at most 100 character(s) long",
+                      "title": "maxLength(100)",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "source": {
+                      "type": "string",
+                      "description": "a string at most 1000000 character(s) long",
+                      "title": "maxLength(1000000)",
+                      "minLength": 1,
+                      "maxLength": 1000000
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "description": "an array of at most 20 item(s)",
+                "title": "maxItems(20)",
+                "maxItems": 20
+              },
+              "judges": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "name",
+                        "model",
+                        "rubric",
+                        "choices",
+                        "provider"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "judge"
+                          ]
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "a string at most 100 character(s) long",
+                          "title": "maxLength(100)",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "model": {
+                          "type": "string",
+                          "description": "a string at most 200 character(s) long",
+                          "title": "maxLength(200)",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "rubric": {
+                          "type": "string",
+                          "description": "a string at most 32000 character(s) long",
+                          "title": "maxLength(32000)",
+                          "minLength": 1,
+                          "maxLength": 32000
+                        },
+                        "expected": {
+                          "type": "string",
+                          "description": "a string at most 32000 character(s) long",
+                          "title": "maxLength(32000)",
+                          "maxLength": 32000
+                        },
+                        "choices": {
+                          "type": "object",
+                          "required": [],
+                          "properties": {},
+                          "patternProperties": {
+                            "": {
+                              "type": "number",
+                              "description": "a number between 0 and 1",
+                              "title": "between(0, 1)",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          },
+                          "propertyNames": {
+                            "type": "string",
+                            "description": "a string at least 1 character(s) long",
+                            "title": "minLength(1)",
+                            "minLength": 1
+                          }
+                        },
+                        "threshold": {
+                          "type": "number",
+                          "description": "a number between 0 and 1",
+                          "title": "between(0, 1)",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "timeoutMs": {
+                          "allOf": [
+                            {
+                              "$ref": "#/components/schemas/Int",
+                              "description": "a number between 1000 and 300000",
+                              "title": "between(1000, 300000)",
+                              "minimum": 1000,
+                              "maximum": 300000
+                            }
+                          ],
+                          "title": "between(1000, 300000)",
+                          "description": "a number between 1000 and 300000"
+                        },
+                        "provider": {
+                          "type": "string",
+                          "enum": [
+                            "openai"
+                          ]
+                        },
+                        "harness": {
+                          "$id": "/schemas/never",
+                          "not": {},
+                          "title": "never"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "name",
+                        "model",
+                        "rubric",
+                        "choices",
+                        "harness"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "judge"
+                          ]
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "a string at most 100 character(s) long",
+                          "title": "maxLength(100)",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "model": {
+                          "type": "string",
+                          "description": "a string at most 200 character(s) long",
+                          "title": "maxLength(200)",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "rubric": {
+                          "type": "string",
+                          "description": "a string at most 32000 character(s) long",
+                          "title": "maxLength(32000)",
+                          "minLength": 1,
+                          "maxLength": 32000
+                        },
+                        "expected": {
+                          "type": "string",
+                          "description": "a string at most 32000 character(s) long",
+                          "title": "maxLength(32000)",
+                          "maxLength": 32000
+                        },
+                        "choices": {
+                          "type": "object",
+                          "required": [],
+                          "properties": {},
+                          "patternProperties": {
+                            "": {
+                              "type": "number",
+                              "description": "a number between 0 and 1",
+                              "title": "between(0, 1)",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          },
+                          "propertyNames": {
+                            "type": "string",
+                            "description": "a string at least 1 character(s) long",
+                            "title": "minLength(1)",
+                            "minLength": 1
+                          }
+                        },
+                        "threshold": {
+                          "type": "number",
+                          "description": "a number between 0 and 1",
+                          "title": "between(0, 1)",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "timeoutMs": {
+                          "allOf": [
+                            {
+                              "$ref": "#/components/schemas/Int",
+                              "description": "a number between 1000 and 300000",
+                              "title": "between(1000, 300000)",
+                              "minimum": 1000,
+                              "maximum": 300000
+                            }
+                          ],
+                          "title": "between(1000, 300000)",
+                          "description": "a number between 1000 and 300000"
+                        },
+                        "provider": {
+                          "$id": "/schemas/never",
+                          "not": {},
+                          "title": "never"
+                        },
+                        "harness": {
+                          "type": "string",
+                          "enum": [
+                            "codex",
+                            "opencode",
+                            "pi",
+                            "fx",
+                            "claude",
+                            "gemini",
+                            "qwen",
+                            "cursor"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "description": "an array of at most 20 item(s)",
+                "title": "maxItems(20)",
+                "minItems": 1,
+                "maxItems": 20
+              }
+            },
+            "additionalProperties": false
           }
-        },
-        "additionalProperties": false,
+        ],
         "description": "A bundled TypeScript validator and its exported function name."
       },
       "EvalVariables": {
@@ -2218,6 +2491,7 @@
           "component": {
             "type": "string",
             "enum": [
+              "judge",
               "harness",
               "model",
               "platform",
@@ -2472,6 +2746,82 @@
           "voidFields"
         ],
         "properties": {
+          "judgments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "model",
+                "evaluator",
+                "score",
+                "choice",
+                "reason",
+                "threshold",
+                "durationMs",
+                "error"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "evaluator": {
+                  "type": "string"
+                },
+                "score": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "description": "a number between 0 and 1",
+                      "title": "between(0, 1)",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "choice": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "threshold": {
+                  "type": "number",
+                  "description": "a number between 0 and 1",
+                  "title": "between(0, 1)",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "durationMs": {
+                  "$ref": "#/components/schemas/NonNegativeInt"
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "commands": {
             "$ref": "#/components/schemas/Int"
           },
@@ -2573,6 +2923,12 @@
         },
         "additionalProperties": false,
         "description": "One sandbox attempt for a grid cell."
+      },
+      "NonNegativeInt": {
+        "type": "integer",
+        "description": "an integer",
+        "title": "int",
+        "minimum": 0
       },
       "EvalPrepareValue": {
         "type": "object",

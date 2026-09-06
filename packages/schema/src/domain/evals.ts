@@ -1,5 +1,11 @@
 import { Schema } from "effect";
 import { CredentialBindings, CredentialSelections } from "./credentials";
+import { EvalJudge, EvalJudgment } from "./eval-judges";
+import { EvalHarness as Harness } from "./harness";
+
+export const EvalHarness = Harness;
+export type EvalHarness = typeof EvalHarness.Type;
+
 import {
   EvalCaseName,
   EvalPrompt,
@@ -28,19 +34,6 @@ export const EvalProvider = Schema.Literal(
 export type EvalProvider = typeof EvalProvider.Type;
 
 export const EVAL_PROVIDERS = EvalProvider.literals;
-
-export const EvalHarness = Schema.Literal(
-  "codex",
-  "opencode",
-  "pi",
-  "fx",
-  "claude",
-  "gemini",
-  "qwen",
-  "cursor",
-  "command"
-);
-export type EvalHarness = typeof EvalHarness.Type;
 
 export const EvalTrialStatus = Schema.Literal(
   "queued",
@@ -77,10 +70,23 @@ export const EvalSource = Schema.Union(
 });
 export type EvalSource = typeof EvalSource.Type;
 
-export const EvalValidator = Schema.Struct({
+export const EvalCodeValidator = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
   source: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(1_000_000)),
-}).annotations({
+});
+
+export const EvalValidator = Schema.Union(
+  EvalCodeValidator,
+  Schema.Struct({
+    kind: Schema.Literal("judged"),
+    name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
+    checks: Schema.Array(EvalCodeValidator).pipe(Schema.maxItems(20)),
+    judges: Schema.Array(EvalJudge).pipe(
+      Schema.minItems(1),
+      Schema.maxItems(20)
+    ),
+  })
+).annotations({
   description: "A bundled TypeScript validator and its exported function name.",
   identifier: "EvalValidator",
 });
@@ -270,6 +276,7 @@ export const CostClassification = Schema.Literal(
 export type CostClassification = typeof CostClassification.Type;
 
 export const CostComponentName = Schema.Literal(
+  "judge",
   "harness",
   "model",
   "platform",
@@ -306,6 +313,7 @@ export const EvalCosts = Schema.Struct({
 export type EvalCosts = typeof EvalCosts.Type;
 
 export const EvalTrial = Schema.Struct({
+  judgments: Schema.optional(Schema.Array(EvalJudgment)),
   commands: Schema.Int,
   costs: Schema.NullOr(EvalCosts),
   prepared: Schema.NullOr(EvalPrepareValue),

@@ -1,3 +1,4 @@
+import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { sql } from "drizzle-orm";
 import {
   check,
@@ -29,6 +30,7 @@ export const evalTask = pgTable(
     prepareSource: text("prepare_source"),
     validatorName: text("validator_name"),
     validatorSource: text("validator_source"),
+    validatorConfig: jsonb("validator_config").$type<EvalValidator>(),
     /* Stored because a worker rebuilds the case from here, never from the request. */
     cacheKey: text("cache_key"),
     cachePath: text("cache_path"),

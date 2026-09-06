@@ -84,6 +84,25 @@ export const usersCli = cli({
 
 Attach definitions with `mcp: [usersMcp]` or `cli: [usersCli]`. Handlers use plain TypeScript. Schemas infer handler types and validate calls at runtime.
 
+## Model judges
+
+```ts
+import { judge } from "anpord/validators";
+
+const correctness = judge({
+  name: "correctness",
+  harness: "codex",
+  model: "gpt-5.6-sol",
+  rubric: "The answer matches the reference without inventing facts.",
+  expected: "Ada",
+  choices: { correct: 1, incorrect: 0 },
+});
+```
+
+Set `validate: correctness`, or combine it with code: `validate: [checkToolCalls, correctness]`. Every check must pass. Judges use the organization's harness connection, including Codex subscriptions. For direct OpenAI calls, use `provider: "openai"` and configure an OpenAI key in the environment connection.
+
+See [model judges](https://docs.anpord.com/evals/judges) for isolation, authentication, and unscored failures.
+
 ## Use the API
 
 ```ts

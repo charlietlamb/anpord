@@ -46,6 +46,23 @@ try {
 export const validatorEntry = (module: string, name: string) =>
   `import { ${name} as validate } from ${JSON.stringify(module)};\n${runtime}`;
 
+export const validatorCaseEntry = (entry: string, index: number) =>
+  `import definition from ${JSON.stringify(entry)};
+const selected = definition.cases[${index}].validate;
+const checks = (Array.isArray(selected) ? selected : [selected]).filter(value => typeof value === "function");
+const validate = async context => {
+  const messages = [];
+  for (const check of checks) {
+    const raw = await check(context);
+    const result = typeof raw === "boolean" ? { passed: raw } : raw;
+    if (typeof result?.passed !== "boolean") throw new Error("Invalid validator result");
+    if (result.message) messages.push(result.message);
+    if (!result.passed) return { passed: false, message: messages.join("; ") };
+  }
+  return { passed: true, message: messages.join("; ") || "Code validators passed" };
+};
+${runtime}`;
+
 const prepareRuntime = `
 import { access, readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";

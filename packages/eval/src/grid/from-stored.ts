@@ -1,4 +1,5 @@
-import { Option } from "effect";
+import { EvalValidator } from "@anpord/schema/domain/evals";
+import { Option, Schema } from "effect";
 import type { RequestedProfile } from "../domain/harness-profile";
 import { namesOf } from "../domain/stored-cell";
 import type { CellTask } from "../repositories/run-tasks-query";
@@ -20,7 +21,10 @@ export const caseFrom = (subject: CellTask): GridCase => ({
   name: subject.name,
   prepare: pairOf(subject.prepareName, subject.prepareSource),
   source: subject.source ?? { kind: "empty" },
-  validator: pairOf(subject.validatorName, subject.validatorSource),
+  validator:
+    subject.validatorConfig == null
+      ? pairOf(subject.validatorName, subject.validatorSource)
+      : Schema.decodeUnknownSync(EvalValidator)(subject.validatorConfig),
   variables: {},
   verify: subject.verifyCommand,
 });

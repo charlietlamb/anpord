@@ -94,6 +94,7 @@ export const asTrials = (cell: GridCell): readonly EvalTrial[] =>
       onNone: () => waiting(index + 1, cell.live.get(index + 1) ?? []),
       onSome: (result) => ({
         commands: result.commands,
+        judgments: result.outcome.judgments ?? [],
         costs: null,
         prepared: result.prepared,
         exitCode: result.outcome.exitCode,

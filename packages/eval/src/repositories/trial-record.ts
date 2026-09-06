@@ -209,6 +209,7 @@ export const TrialRecorderLive = Layer.effect(
             modelMs: input.outcome.modelMs,
             passed: input.outcome.passed,
             prepared: input.prepared,
+            judgments: input.outcome.judgments ?? [],
             sandboxId: input.sandboxId,
             sandboxMs: input.outcome.sandboxMs,
             status: input.outcome.status,

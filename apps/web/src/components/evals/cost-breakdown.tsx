@@ -10,6 +10,7 @@ import { count } from "@/lib/evals/duration";
 import { dollars } from "@/lib/evals/tokens";
 
 const ICONS = {
+  judge: RobotIcon,
   harness: RobotIcon,
   model: CurrencyDollarIcon,
   platform: StackIcon,
@@ -17,6 +18,7 @@ const ICONS = {
 } as const;
 
 const LABELS = {
+  judge: "judging",
   harness: "harness",
   model: "model",
   platform: "platform",

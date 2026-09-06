@@ -17,8 +17,6 @@ export interface ScoreRequest {
   readonly workspace: string;
 }
 
-/* A judge would be another Layer behind this tag, deliberately unwritten: a judge
-   as a gate drifts, and the regression signal must stay stable. */
 export interface ScorerShape {
   readonly score: (
     request: ScoreRequest

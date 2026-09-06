@@ -1,4 +1,5 @@
-import { Chunk, Effect, Layer, Random, Stream } from "effect";
+import type { EvalCodeValidator } from "@anpord/schema/domain/evals";
+import { Chunk, Effect, Layer, Option, Random, Schema, Stream } from "effect";
 import {
   ANSWER_ENV,
   ANSWER_PATH,
@@ -84,18 +85,14 @@ const validatorResultOf = (output: string) => {
     return null;
   }
 
-  try {
-    const value: unknown = JSON.parse(line.slice(RESULT.length));
-    return typeof value === "object" &&
-      value !== null &&
-      typeof (value as { passed?: unknown }).passed === "boolean" &&
-      ((value as { message?: unknown }).message === undefined ||
-        typeof (value as { message?: unknown }).message === "string")
-      ? (value as { readonly message?: string; readonly passed: boolean })
-      : null;
-  } catch {
-    return null;
-  }
+  return Schema.decodeUnknownOption(
+    Schema.parseJson(
+      Schema.Struct({
+        passed: Schema.Boolean,
+        message: Schema.optional(Schema.String),
+      })
+    )
+  )(line.slice(RESULT.length)).pipe(Option.getOrNull);
 };
 
 /* Beside the workspace, not in it, so the reply never becomes part of the diff. */
@@ -133,7 +130,7 @@ const runValidator = (
 
 const scoreValidator = (
   request: ScoreRequest & {
-    readonly validator: NonNullable<ScoreRequest["validator"]>;
+    readonly validator: typeof EvalCodeValidator.Type;
   }
 ) =>
   Effect.gen(function* () {
@@ -167,7 +164,7 @@ export const ScorerGroundTruthLive = Layer.succeed(
       Effect.gen(function* () {
         yield* writeAnswer(request.sandbox, request.events);
 
-        if (request.validator != null) {
+        if (request.validator != null && "source" in request.validator) {
           return yield* scoreValidator({
             ...request,
             validator: request.validator,

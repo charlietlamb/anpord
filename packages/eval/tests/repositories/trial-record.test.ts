@@ -37,6 +37,19 @@ const organizationId = `org_rec_${suffix}`;
 const cellInternalId = `cell_rec_${suffix}`;
 
 const outcome: TrialOutcome = {
+  judgments: [
+    {
+      name: "correctness",
+      model: "judge-model",
+      evaluator: "codex",
+      score: 1,
+      choice: "correct",
+      reason: "Matches expected",
+      threshold: 1,
+      durationMs: 10,
+      error: null,
+    },
+  ],
   commandCount: 3,
   exitCode: 0,
   modelMs: 1000,
@@ -174,6 +187,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
 
     expect(seen.settled[0]?.status).toBe("passed");
     expect(seen.settled[0]?.passed).toBe(true);
+    expect(seen.settled[0]?.judgments).toEqual(outcome.judgments ?? []);
 
     expect(seen.settled[0]?.usage).toEqual({
       cacheReadTokens: 0,

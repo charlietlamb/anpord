@@ -20,6 +20,7 @@ import { CommandsHint } from "@/components/evals/commands-hint";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { TrialStatusIcon } from "@/components/evals/eval-status-badge";
 import { TrialCost } from "@/components/evals/trial-cost";
+import { TrialJudgments } from "@/components/evals/trial-judgments";
 import { VoidReason } from "@/components/evals/void-reason";
 import { seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
@@ -83,7 +84,13 @@ const commandsValue = (trial: EvalTrial) =>
 export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;
-  const trialTotalMs = trial.modelMs + trial.sandboxMs;
+  const trialTotalMs =
+    trial.modelMs +
+    trial.sandboxMs +
+    (trial.judgments ?? []).reduce(
+      (total, judgment) => total + judgment.durationMs,
+      0
+    );
 
   return (
     <aside className={RAIL_FRAME}>
@@ -120,10 +127,12 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
         </div>
       </RailSection>
 
+      <TrialJudgments judgments={trial.judgments} />
+
       <RailSection title="Time">
         <div className="flex flex-col">
           <RailFact
-            hint="The agent run plus the sandbox around it."
+            hint="The agent, its sandbox, and any model judges."
             Icon={TimerIcon}
             label="duration"
             layout="stated"

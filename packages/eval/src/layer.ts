@@ -5,8 +5,10 @@ import type { ConfigError } from "effect/ConfigError";
 import { HarnessesLive } from "./adapters/harness/resolve";
 import { ModelPricesLive } from "./adapters/models/prices";
 import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
+import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { GridRunLive } from "./grid/run";
+import { JudgeModelLive } from "./judges/layer";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { AbandonedWorkLive } from "./repositories/abandoned-work";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
@@ -27,6 +29,7 @@ import { CellRerunsLive } from "./services/cell-rerun";
 import { ExpirySweepScheduleLive } from "./services/expiry-sweep";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { JournalRetentionScheduleLive } from "./services/journal-retention";
+import { AgentTrialJudgedLive } from "./services/judged-trial";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
 import { SandboxProviderLive } from "./services/sandbox-provider";
@@ -54,10 +57,17 @@ export const EvalSandboxLive = SandboxProviderLive.pipe(
 );
 
 const agentWith = (suspender: Layer.Layer<Suspender>) =>
-  AgentTrialLive.pipe(
+  AgentTrialJudgedLive.pipe(
     Layer.provide(
-      Layer.mergeAll(HarnessesLive, ScorerGroundTruthLive, suspender)
-    )
+      AgentTrialLive.pipe(
+        Layer.provide(
+          ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
+        ),
+        Layer.provide(suspender)
+      )
+    ),
+    Layer.provide(JudgeModelLive.pipe(Layer.provide(FetchHttpClient.layer))),
+    Layer.provide(Layer.mergeAll(HarnessesLive, HarnessVersionsLive))
   );
 
 export const EvalBaselinesLive = BaselinesLive.pipe(

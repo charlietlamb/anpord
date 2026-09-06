@@ -1,15 +1,17 @@
 import { costsOf } from "@anpord/eval/domain/eval-costs";
 import { usageOf } from "@anpord/eval/domain/harness-event";
 import type { CellHistoryEntry } from "@anpord/eval/repositories/cell-history-query";
+import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import type {
   EvalCellHistoryEntry,
   EvalTrial,
 } from "@anpord/schema/domain/evals";
-import { DateTime } from "effect";
+import { DateTime, Schema } from "effect";
 
 /* No trajectory: the journal is fetched per trial, so a history of twenty readings would pull twenty journals to draw a table showing none. */
 const asStoredTrial = (trial: {
   readonly commandCount: number | null;
+  readonly judgments?: unknown;
   readonly costs?: readonly {
     readonly amountNanos: bigint | null;
     readonly classification: string;
@@ -31,6 +33,9 @@ const asStoredTrial = (trial: {
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
   commands: trial.commandCount ?? 0,
+  judgments: Schema.decodeUnknownSync(Schema.Array(EvalJudgment))(
+    trial.judgments ?? []
+  ),
   costs: costsOf(trial.costs ?? []),
   prepared: trial.prepared,
   exitCode: trial.exitCode ?? -1,

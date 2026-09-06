@@ -12,12 +12,6 @@ import { authenticateCodex, CODEX_BIN, installCodex } from "./codex-install";
 import { noPending, timeLine } from "./codex-timing";
 import { harnessLines, shellQuote } from "./process";
 
-/* A ChatGPT account chooses its own model and refuses any name. */
-const ACCOUNT_CHOOSES_MODEL = "ANPORD_CODEX_ACCOUNT_MODEL";
-
-const accountChoosesModel = (request: RunHarness) =>
-  request.model === "" || request.env[ACCOUNT_CHOOSES_MODEL] === "1";
-
 /* developer_instructions is added to the built-in prompt, where
    model_instructions_file replaces it: a profile layers on a base rather than
    discarding what makes it that base. */
@@ -39,20 +33,10 @@ export const codexCommand = (request: RunHarness) =>
     `${CODEX_BIN} exec --json --skip-git-repo-check`,
     "--dangerously-bypass-approvals-and-sandbox",
     ...developerInstructions(request),
-    ...(accountChoosesModel(request)
-      ? []
-      : [`--model ${shellQuote(request.model)}`]),
+    ...(request.model === "" ? [] : [`--model ${shellQuote(request.model)}`]),
     shellQuote(request.prompt),
     "< /dev/null",
   ].join(" ");
-
-const authModeOf = (auth: string) =>
-  Option.liftThrowable(JSON.parse)(auth).pipe(
-    Option.flatMap((value: unknown) =>
-      Option.fromNullable((value as { auth_mode?: string })?.auth_mode)
-    ),
-    Option.getOrElse(() => "apikey")
-  );
 
 const authOf = (credential: ResolvedCredential) => {
   if (
@@ -101,10 +85,7 @@ export const CodexDriver: HarnessDriverShape = {
       yield* installCodex(input.sandbox, input.version);
       yield* authenticateCodex(input.sandbox, auth, input.home);
 
-      const env: Readonly<Record<string, string>> =
-        authModeOf(auth) === "chatgpt" ? { [ACCOUNT_CHOOSES_MODEL]: "1" } : {};
-
-      return env;
+      return {};
     }).pipe(Effect.withSpan("Codex.prepare")),
   run: (request: RunHarness) =>
     Effect.gen(function* () {

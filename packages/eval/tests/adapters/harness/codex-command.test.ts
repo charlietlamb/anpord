@@ -69,10 +69,10 @@ describe("the codex command", () => {
     expect(codexCommand(request({ model: "" }))).not.toContain("--model");
   });
 
-  it("omits the flag when the account was found to choose its own", () => {
+  it("never lets subscription authentication override an explicit model", () => {
     expect(
       codexCommand(request({ env: { ANPORD_CODEX_ACCOUNT_MODEL: "1" } }))
-    ).not.toContain("--model");
+    ).toContain("--model 'gpt-5.6-sol'");
   });
 
   it("still runs the prompt when no model is named", () => {

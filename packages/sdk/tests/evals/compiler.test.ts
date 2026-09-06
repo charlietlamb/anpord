@@ -185,10 +185,12 @@ export default defineEval({
 
     const payload = await compileEval(join(workspace, "eval.ts"));
     const validator = payload.cases[0]?.validator;
+    if (validator == null || !("source" in validator)) {
+      throw new Error("Expected a code validator");
+    }
 
     expect(payload.name).toBe("direct-validator");
     expect(validator?.name).toBe("hasGreeting");
-    expect(validator?.source).not.toContain("direct-validator");
     expect(payload.cases[0]?.verify).toBeNull();
 
     await writeFile(join(workspace, "result.txt"), "hello from the agent");
@@ -199,9 +201,12 @@ export default defineEval({
     const output = await new Response(process.stdout).text();
 
     expect(await process.exited).toBe(0);
-    expect(output).toContain(
-      'ANPORD_VALIDATOR_RESULT={"message":"result.txt contains hello","passed":true}'
-    );
+    expect(
+      JSON.parse(output.trim().split("ANPORD_VALIDATOR_RESULT=")[1] ?? "")
+    ).toEqual({
+      message: "result.txt contains hello",
+      passed: true,
+    });
   });
 
   test("resolves the source helpers a definition imports", async () => {

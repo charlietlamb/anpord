@@ -167,6 +167,7 @@ export const runTrial = (input: RunOneTrial) =>
           provider: input.task.provider,
           sandboxMs: result.outcome.sandboxMs ?? 0,
           usage,
+          judgments: result.outcome.judgments,
         }),
         trialInternalId,
       })

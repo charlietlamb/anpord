@@ -4,6 +4,7 @@ import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { bundledCaseModule } from "./case-modules";
 import { type CompiledCli, compileClis, withClis } from "./cli-profile";
+import { compileValidator } from "./compile-validator";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { localRepo } from "./local-repo";
 import {
@@ -12,7 +13,7 @@ import {
   withMcpServers,
 } from "./mcp-profile";
 import { profileTask } from "./profile-directory";
-import { prepareEntry, validatorEntry } from "./runner-source";
+import { prepareEntry } from "./runner-source";
 import { repo } from "./source";
 import type {
   EvalCaseDefinition,
@@ -85,9 +86,9 @@ export const compileEvalEffect = (path: string) =>
 
     const cases = yield* Effect.forEach(
       definition.cases,
-      (subject) =>
+      (subject, caseIndex) =>
         Effect.gen(function* () {
-          const hasValidator = typeof subject.validate === "function";
+          const hasValidator = subject.validate !== undefined;
           const hasVerifier = typeof subject.verify === "string";
 
           if (hasValidator === hasVerifier) {
@@ -98,14 +99,7 @@ export const compileEvalEffect = (path: string) =>
             );
           }
 
-          const validator = hasValidator
-            ? yield* bundledCaseModule(
-                entry,
-                loaded.inputs,
-                subject.validate?.name || subject.name,
-                validatorEntry
-              )
-            : null;
+          const validator = yield* compileValidator(entry, subject, caseIndex);
 
           const prepare =
             typeof subject.prepare === "function"

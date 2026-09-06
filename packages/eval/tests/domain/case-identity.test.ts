@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import { EvalValidator } from "@anpord/schema/domain/evals";
+import { Schema } from "effect";
 import {
   type CaseDefinition,
   caseIdentityOf,
@@ -14,6 +16,29 @@ const base: CaseDefinition = {
 };
 
 describe("case identity", () => {
+  it("changes when the judge model or rubric changes", () => {
+    const identity = (model: string, rubric: string) =>
+      caseIdentityOf({
+        ...base,
+        validator: Schema.decodeUnknownSync(EvalValidator)({
+          kind: "judged",
+          name: "answer",
+          checks: [],
+          judges: [
+            {
+              kind: "judge",
+              name: "correctness",
+              provider: "openai",
+              model,
+              rubric,
+              choices: { correct: 1, incorrect: 0 },
+            },
+          ],
+        }),
+      });
+    expect(identity("one", "accurate")).not.toBe(identity("two", "accurate"));
+    expect(identity("one", "accurate")).not.toBe(identity("one", "concise"));
+  });
   it("is stable for the same case", () => {
     expect(caseIdentityOf(base)).toBe(caseIdentityOf({ ...base }));
   });

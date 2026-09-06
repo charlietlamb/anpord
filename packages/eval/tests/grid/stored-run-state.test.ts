@@ -60,6 +60,33 @@ const EVERY_STATUS: readonly TrialStatus[] = [
 ];
 
 describe("a trial's stored status", () => {
+  test("retains judgments when reloading a finished trial", () => {
+    const judgments = [
+      {
+        name: "correctness",
+        model: "judge-model",
+        evaluator: "codex",
+        score: 1,
+        choice: "correct",
+        reason: "Matches expected",
+        threshold: 1,
+        durationMs: 5,
+        error: null,
+      },
+    ];
+    const original = detailWith("passed");
+    const detail = {
+      ...original,
+      cells: original.cells.map((cell) => ({
+        ...cell,
+        trials: cell.trials.map((trial) => ({ ...trial, judgments })),
+      })),
+    };
+    const trial = runToState(detail).cells[0]?.trials[0];
+    expect(Option.getOrNull(trial ?? Option.none())?.outcome.judgments).toEqual(
+      judgments
+    );
+  });
   test("survives the read for every status the product writes", () => {
     for (const status of EVERY_STATUS) {
       expect(statusRead(status)).toBe(status);

@@ -18,6 +18,13 @@ const variablesOf = (variables: Readonly<Record<string, string>>) =>
     .map((key) => `${key}=${variables[key]}`)
     .join("\u0000");
 
+const validatorOf = (validator: EvalValidator | null | undefined) => {
+  if (validator == null) {
+    return "";
+  }
+  return "source" in validator ? validator.source : JSON.stringify(validator);
+};
+
 const sourceOf = (source: WorkspaceSource) => {
   if (source.kind === "empty") {
     return "empty";
@@ -42,7 +49,7 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
       [
         variablesOf(input.variables),
         input.prepare?.source ?? "",
-        input.validator?.source ?? "",
+        validatorOf(input.validator),
         input.verifyCommand ?? "",
         input.workspace,
         sourceOf(input.source),

@@ -49,13 +49,10 @@ export class TaskRepository extends Context.Tag("@anpord/eval/TaskRepository")<
   TaskRepositoryShape
 >() {}
 
-const valuesOf = (input: TaskDefinition, id: string, internalId: string) => ({
+const definitionOf = (input: TaskDefinition) => ({
   cacheKey: input.cache?.key ?? null,
   cachePath: input.cache?.path ?? null,
-  id,
-  internalId,
   name: input.name,
-  organizationId: input.organizationId,
   prompt: input.prompt,
   repoRef: input.source.kind === "repo" ? input.source.ref : null,
   repoUrl: input.source.kind === "repo" ? input.source.url : null,
@@ -64,7 +61,11 @@ const valuesOf = (input: TaskDefinition, id: string, internalId: string) => ({
   sourceFiles: input.source.kind === "files" ? input.source.files : null,
   sourceKind: input.source.kind,
   validatorName: input.validator?.name ?? null,
-  validatorSource: input.validator?.source ?? null,
+  validatorSource:
+    input.validator != null && "source" in input.validator
+      ? input.validator.source
+      : null,
+  validatorConfig: input.validator,
   verifyCommand: input.verifyCommand,
   workspace: input.workspace,
 });
@@ -96,7 +97,12 @@ export const TaskRepositoryLive = Layer.effect(
           const rows = yield* tryStore("task.insert", () =>
             db
               .insert(evalTask)
-              .values(valuesOf(input, input.id, internalId))
+              .values({
+                ...definitionOf(input),
+                id: input.id,
+                internalId,
+                organizationId: input.organizationId,
+              })
               .returning()
           );
 
@@ -110,29 +116,17 @@ export const TaskRepositoryLive = Layer.effect(
           const rows = yield* tryStore("task.upsertByIdentity", () =>
             db
               .insert(evalTask)
-              .values(valuesOf(input, input.identity, internalId))
+              .values({
+                ...definitionOf(input),
+                id: input.identity,
+                internalId,
+                organizationId: input.organizationId,
+              })
 
               /* Updated, not left alone: an identity names which case this is, not
                  what it contained, so an edited case must not run its old definition. */
               .onConflictDoUpdate({
-                set: {
-                  cacheKey: input.cache?.key ?? null,
-                  cachePath: input.cache?.path ?? null,
-                  name: input.name,
-                  prepareName: input.prepare?.name ?? null,
-                  prepareSource: input.prepare?.source ?? null,
-                  prompt: input.prompt,
-                  repoRef:
-                    input.source.kind === "repo" ? input.source.ref : null,
-                  repoUrl:
-                    input.source.kind === "repo" ? input.source.url : null,
-                  sourceFiles:
-                    input.source.kind === "files" ? input.source.files : null,
-                  sourceKind: input.source.kind,
-                  validatorName: input.validator?.name ?? null,
-                  validatorSource: input.validator?.source ?? null,
-                  verifyCommand: input.verifyCommand,
-                },
+                set: definitionOf(input),
                 target: [evalTask.organizationId, evalTask.id],
               })
               .returning()

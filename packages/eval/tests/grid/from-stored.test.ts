@@ -85,6 +85,34 @@ const rebuilding = (
   ) as Promise<{ _tag: string; right?: ResumeGrid }>;
 
 describe("reading a case back from what was stored", () => {
+  test("restores the complete judge configuration", () => {
+    const validatorConfig = {
+      kind: "judged",
+      name: "answer",
+      checks: [],
+      judges: [
+        {
+          kind: "judge",
+          name: "correctness",
+          harness: "codex",
+          model: "exact-model",
+          rubric: "Matches expected",
+          choices: { correct: 1, incorrect: 0 },
+          threshold: 1,
+          timeoutMs: 120_000,
+        },
+      ],
+    } as const;
+    expect(caseFrom({ ...cell(), validatorConfig }).validator).toEqual(
+      validatorConfig
+    );
+  });
+
+  test("refuses corrupt judge configuration instead of dropping it", () => {
+    expect(() =>
+      caseFrom({ ...cell(), validatorConfig: { kind: "judged", judges: [] } })
+    ).toThrow();
+  });
   test("pairs a prepare only when it has both halves", () => {
     expect(caseFrom(cell()).prepare).toBeNull();
   });

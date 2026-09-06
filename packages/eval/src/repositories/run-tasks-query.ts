@@ -48,6 +48,7 @@ export interface CellTask {
   readonly repoUrl: string | null;
   readonly runName: string | null;
   readonly source: WorkspaceSource | null;
+  readonly validatorConfig?: unknown;
   readonly validatorName?: string | null;
   readonly validatorSource?: string | null;
   readonly verifyCommand: string | null;
@@ -81,6 +82,7 @@ const CELL_TASK_COLUMNS = {
   sourceKind: evalTask.sourceKind,
   validatorName: evalTask.validatorName,
   validatorSource: evalTask.validatorSource,
+  validatorConfig: evalTask.validatorConfig,
   verifyCommand: evalTask.verifyCommand,
 };
 

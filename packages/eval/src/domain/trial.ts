@@ -1,3 +1,4 @@
+import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import { type Option, Schema } from "effect";
 
 /* `void` is its own status, never a flavour of `failed`: a trial whose commands
@@ -23,6 +24,7 @@ export const VerifyStepResult = Schema.Struct({
 export type VerifyStepResult = typeof VerifyStepResult.Type;
 
 export const TrialOutcome = Schema.Struct({
+  judgments: Schema.optional(Schema.Array(EvalJudgment)),
   commandCount: Schema.Int,
   exitCode: Schema.Int,
   modelMs: Schema.Int,

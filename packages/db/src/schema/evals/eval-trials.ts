@@ -1,3 +1,4 @@
+import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -30,6 +31,7 @@ export const evalTrial = pgTable(
     modelMs: integer("model_ms"),
     sandboxMs: integer("sandbox_ms"),
     prepared: jsonb("prepared").$type<Record<string, unknown>>(),
+    judgments: jsonb("judgments").$type<readonly EvalJudgment[]>(),
     voidFields: jsonb("void_fields").$type<string[]>(),
     verifySteps:
       jsonb("verify_steps").$type<{ command: string; exitCode: number }[]>(),

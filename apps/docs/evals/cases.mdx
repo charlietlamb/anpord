@@ -32,7 +32,7 @@ export default defineEval({
 | `prepare` | Runs typed preparation before the agent |
 | `cache` | Restores and saves one prepared directory |
 | `verify` | Runs a shell check after the agent |
-| `validate` | Runs a TypeScript validator after the agent |
+| `validate` | Runs code validators, model judges, or an array of both |
 
 Every case needs exactly one of `verify` or `validate`.
 
@@ -84,6 +84,8 @@ export const hasHealthRoute: Validator = async ({ readText }) => ({
 ```
 
 Import the function into the eval and set `validate: hasHealthRoute`. Anpord bundles the function and its imports with the case.
+
+Use [model judges](/evals/judges) for subjective checks, or combine both with `validate: [hasHealthRoute, correctness]`.
 
 Run every discovered `*.eval.ts` suite with `anpord eval`, or pass one file with `anpord eval ./smoke.eval.ts`.
 

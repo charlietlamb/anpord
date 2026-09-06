@@ -1,4 +1,5 @@
-import { Option } from "effect";
+import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
+import { Option, Schema } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
@@ -13,6 +14,7 @@ const asResult = (input: {
   readonly events: readonly HarnessEvent[];
   readonly exitCode: number;
   readonly modelMs: number;
+  readonly judgments?: unknown;
   readonly passed: boolean;
   readonly sandboxId: string | null;
   readonly prepared: Readonly<Record<string, unknown>> | null;
@@ -28,6 +30,9 @@ const asResult = (input: {
   filesChanged: filesIn(input.events),
   prepared: input.prepared ?? {},
   outcome: {
+    judgments: Schema.decodeUnknownSync(Schema.Array(EvalJudgment))(
+      input.judgments ?? []
+    ),
     commandCount: input.commandCount,
     exitCode: input.exitCode,
     modelMs: input.modelMs,
@@ -133,6 +138,7 @@ export const runToState = (
             events: eventsByTrial.get(trial.internalId) ?? [],
             exitCode: trial.exitCode ?? -1,
             modelMs: trial.modelMs ?? 0,
+            judgments: trial.judgments,
             passed: trial.passed ?? false,
             prepared: trial.prepared ?? null,
             sandboxId: trial.sandboxId,
