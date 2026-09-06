@@ -34,7 +34,7 @@ import type { TrialOutcome } from "../domain/trial";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
-import { Scorer } from "../ports/scorer";
+import { Scorer, type ValidationObserver } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
 import { systemPromptPath } from "./profile-files";
 import { Suspender } from "./suspender";
@@ -53,6 +53,7 @@ export interface AgentTrialRequest {
   readonly model: string;
 
   readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
+  readonly onValidation?: ValidationObserver;
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
   readonly priorSandboxId?: string;
@@ -185,6 +186,7 @@ export const AgentTrialLive = Layer.effect(
         const modelFinished = yield* Clock.currentTimeMillis;
 
         const scored = yield* scorer.score({
+          onValidation: request.onValidation,
           commandCount: commandsIn(events),
           events,
           modelMs: modelFinished - modelStarted,

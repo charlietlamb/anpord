@@ -15,6 +15,7 @@ export default defineConfig({
     "mcp-runtime": "src/mcp/runtime.ts",
     source: "src/evals/source.ts",
     validators: "src/validators.ts",
+    "validator-runtime": "src/evals/validator-runtime.ts",
   },
   format: ["esm", "cjs"],
   target: "node20",

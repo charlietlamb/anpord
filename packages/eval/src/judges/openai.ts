@@ -10,17 +10,32 @@ import { JudgeFailed, type JudgeRequest } from "./model";
 import { judgeEvidence, judgeInstructions, judgmentJsonSchema } from "./prompt";
 
 const responseSchema = Schema.Struct({
-  status: Schema.Literal("completed"),
+  id: Schema.optional(Schema.String),
+  model: Schema.optional(Schema.String),
+  status: Schema.Literal("completed", "incomplete"),
+  usage: Schema.optional(
+    Schema.Struct({
+      input_tokens: Schema.NonNegativeInt,
+      output_tokens: Schema.NonNegativeInt,
+      total_tokens: Schema.NonNegativeInt,
+    })
+  ),
   output: Schema.Array(
     Schema.Union(
       Schema.Struct({ type: Schema.Literal("reasoning") }),
       Schema.Struct({
         type: Schema.Literal("message"),
         content: Schema.Array(
-          Schema.Struct({
-            type: Schema.Literal("output_text"),
-            text: Schema.String,
-          })
+          Schema.Union(
+            Schema.Struct({
+              type: Schema.Literal("output_text"),
+              text: Schema.String,
+            }),
+            Schema.Struct({
+              type: Schema.Literal("refusal"),
+              refusal: Schema.String,
+            })
+          )
         ),
       })
     )
@@ -62,36 +77,55 @@ export const makeOpenAIJudge = Effect.gen(function* () {
           })
         );
       }
+      const body = {
+        model: request.judge.model,
+        instructions: judgeInstructions(request),
+        input: judgeEvidence(request),
+        store: false,
+        max_output_tokens: 2048,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "judgment",
+            strict: true,
+            schema: judgmentJsonSchema(request),
+          },
+        },
+      };
+      if (request.onRequest) {
+        yield* request.onRequest(body);
+      }
       const httpRequest = yield* HttpClientRequest.post(
         "https://api.openai.com/v1/responses"
       ).pipe(
         HttpClientRequest.bearerToken(Redacted.make(key.value)),
-        HttpClientRequest.bodyJson({
-          model: request.judge.model,
-          instructions: judgeInstructions(request),
-          input: judgeEvidence(request),
-          store: false,
-          max_output_tokens: 2048,
-          text: {
-            format: {
-              type: "json_schema",
-              name: "judgment",
-              strict: true,
-              schema: judgmentJsonSchema(request),
-            },
-          },
-        })
+        HttpClientRequest.bodyJson(body)
       );
       const response = yield* client
         .execute(httpRequest)
         .pipe(
           Effect.flatMap(HttpClientResponse.schemaBodyJson(responseSchema))
         );
-      return response.output
-        .flatMap((item) =>
-          item.type === "message" ? item.content.map(({ text }) => text) : []
-        )
-        .join("");
+      const content = response.output.flatMap((item) =>
+        item.type === "message" ? item.content : []
+      );
+      return {
+        text: content
+          .flatMap((item) => (item.type === "output_text" ? [item.text] : []))
+          .join(""),
+        requestId: response.id,
+        model: response.model,
+        refusal: content.find((item) => item.type === "refusal")?.refusal,
+        incomplete: response.status === "incomplete",
+        usage:
+          response.usage === undefined
+            ? undefined
+            : {
+                inputTokens: response.usage.input_tokens,
+                outputTokens: response.usage.output_tokens,
+                totalTokens: response.usage.total_tokens,
+              },
+      };
     }).pipe(
       Effect.scoped,
       Effect.mapError((error) =>

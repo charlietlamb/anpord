@@ -1,4 +1,9 @@
+import {
+  type EvalValidation,
+  validationExecution,
+} from "@anpord/schema/domain/eval-validations";
 import { Effect, Layer } from "effect";
+import { publishValidation } from "../adapters/scorers/validation";
 import { answerOf } from "../domain/journal";
 import { evaluateJudge } from "../judges/evaluate";
 import { JudgeModel } from "../judges/model";
@@ -13,17 +18,55 @@ export const AgentTrialJudgedLive = Layer.effect(
       run: (request) =>
         Effect.gen(function* () {
           const result = yield* trial.run(request);
-          if (
-            request.validator == null ||
-            "source" in request.validator ||
-            result.outcome.status === "void"
-          ) {
+          if (request.validator == null || "source" in request.validator) {
             return result;
+          }
+          const validations = new Map(
+            (result.outcome.validations ?? []).map((record) => [
+              record.id,
+              record,
+            ])
+          );
+          const observe = (record: EvalValidation) =>
+            Effect.gen(function* () {
+              validations.set(record.id, record);
+              if (request.onValidation) {
+                yield* request.onValidation(record);
+              }
+            });
+          if (result.outcome.status === "void") {
+            for (const [index, judge] of request.validator.judges.entries()) {
+              yield* publishValidation(
+                {
+                  ...validationExecution(
+                    {
+                      id: `judge:${index}`,
+                      index,
+                      name: judge.name,
+                      kind: "judge",
+                    },
+                    null
+                  ),
+                  message: "The trial did not produce valid evidence",
+                },
+                observe
+              );
+            }
+            return {
+              ...result,
+              outcome: {
+                ...result.outcome,
+                validations: [...validations.values()],
+              },
+            };
           }
           const judgments = yield* Effect.forEach(
             request.validator.judges,
-            (judge) =>
+            (judge, index) =>
               evaluateJudge({
+                index,
+                onValidation: observe,
+                capture: request.validator?.capture !== false,
                 judge,
                 context: request,
                 input: request.prompt,
@@ -44,6 +87,7 @@ export const AgentTrialJudgedLive = Layer.effect(
             outcome: {
               ...result.outcome,
               judgments,
+              validations: [...validations.values()],
               passed,
               ...verdict,
               ...(invalid.length > 0

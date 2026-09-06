@@ -25,6 +25,7 @@ const row = (status: string, passed: boolean | null): TrialRow => ({
   verifySteps: null,
   voidFields: null,
   judgments: null,
+  validations: null,
 });
 
 describe("distributionFor", () => {

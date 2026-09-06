@@ -76,4 +76,6 @@ Direct OpenAI judges use structured outputs with storage disabled. Both backends
 
 Each trial's `judgments` contains `name`, `model`, `evaluator`, `choice`, `score`, `threshold`, `reason`, `durationMs`, and `error`. The dashboard shows these separately from code checks. Judge costs are marked unpriced, so a judged run's cost total is incomplete.
 
+For the request, raw response, and provider metadata, inspect the judge entry in `trial.validations`. Invalid response text is retained even when no score can be assigned. See [validation evidence](/evals/results#validation-evidence) for capture limits and privacy settings.
+
 Changing a judge changes the case identity used for baselines. Calibrate each rubric against known good and bad answers before trusting its scores. Repeat trials: model judgments can vary, even with the same model and rubric.

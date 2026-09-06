@@ -9,7 +9,8 @@ export const compileValidator = (
   entry: string,
   subject: EvalCaseDefinition,
   caseIndex: number,
-  captureSource: boolean
+  captureSource: boolean,
+  captureValidation = true
 ) =>
   Effect.gen(function* () {
     if (subject.validate === undefined) {
@@ -33,9 +34,16 @@ export const compileValidator = (
         new Error("Judge names must be unique within a case")
       );
     }
-    const hasCode = validations.some((value) => typeof value === "function");
+    const manifest = validations.flatMap((value, index) =>
+      typeof value === "function"
+        ? [{ index, name: value.name || `Validator ${index + 1}` }]
+        : []
+    );
+    const hasCode = manifest.length > 0;
     const compiled = yield* bundle(
-      hasCode ? validatorCaseEntry(entry, caseIndex) : definitionEntry(entry),
+      hasCode
+        ? validatorCaseEntry(entry, caseIndex, manifest)
+        : definitionEntry(entry),
       entry,
       { minify: true, captureSource }
     );
@@ -47,6 +55,8 @@ export const compileValidator = (
                 ? subject.validate.name || subject.name
                 : subject.name,
             source: compiled.source,
+            manifest,
+            capture: captureValidation,
           },
         ]
       : [];
@@ -55,5 +65,6 @@ export const compileValidator = (
         ? { kind: "judged", name: subject.name, checks, judges }
         : checks[0]),
       sourceFiles: compiled.sourceFiles,
+      capture: captureValidation,
     });
   });

@@ -1,4 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import {
+  validationCapture,
+  validationExecution,
+} from "@anpord/schema/domain/eval-validations";
 import { Option } from "effect";
 import type { TrialStatus } from "../../src/domain/trial";
 import { runToState } from "../../src/grid/stored-run-state";
@@ -61,6 +65,50 @@ const EVERY_STATUS: readonly TrialStatus[] = [
 ];
 
 describe("a trial's stored status", () => {
+  test("closes unfinished validation evidence after crash recovery", () => {
+    const original = detailWith("void");
+    const validations = [
+      {
+        ...validationExecution(
+          { id: "code:0", index: 0, name: "completed", kind: "code" },
+          1000
+        ),
+        status: "passed" as const,
+        output: validationCapture()(true),
+      },
+      validationExecution(
+        { id: "code:1", index: 1, name: "interrupted", kind: "code" },
+        1000
+      ),
+      {
+        ...validationExecution(
+          { id: "judge:0", index: 0, name: "not started", kind: "judge" },
+          null
+        ),
+        status: "queued" as const,
+      },
+    ];
+    const detail = {
+      ...original,
+      cells: original.cells.map((cell) => ({
+        ...cell,
+        trials: cell.trials.map((trial) => ({
+          ...trial,
+          validations,
+          finishedAt: new Date(2000),
+        })),
+      })),
+    };
+    const trial = Option.getOrNull(
+      runToState(detail).cells[0]?.trials[0] ?? Option.none()
+    );
+    expect(trial?.outcome.validations?.map((record) => record.status)).toEqual([
+      "passed",
+      "error",
+      "skipped",
+    ]);
+    expect(trial?.outcome.validations?.[0]?.output.text).toBe("true");
+  });
   test("retains judgments when reloading a finished trial", () => {
     const judgments = [
       {

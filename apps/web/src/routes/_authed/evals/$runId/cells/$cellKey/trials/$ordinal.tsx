@@ -8,6 +8,7 @@ import { TokenBand } from "@/components/evals/token-band";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
+import { TrialValidations } from "@/components/evals/trial-validations";
 import { Waterfall } from "@/components/evals/waterfall";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
@@ -59,6 +60,7 @@ function TrialScreen() {
         </section>
 
         <TrialCalls trajectory={trial.trajectory} />
+        <TrialValidations validations={trial.validations} />
 
         {cell?.setup == null ? null : (
           <section className="flex flex-col gap-1.5">

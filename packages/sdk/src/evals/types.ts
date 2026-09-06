@@ -115,6 +115,7 @@ export type EvalCaseDefinition = EvalCaseBase &
 
 export interface EvalDefinition {
   readonly captureSource?: boolean;
+  readonly captureValidation?: boolean;
   readonly cases: readonly EvalCaseDefinition[];
   readonly cli?: readonly CliDefinition[];
   readonly mcp?: readonly McpServerDefinition[];

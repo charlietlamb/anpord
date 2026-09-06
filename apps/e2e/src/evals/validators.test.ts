@@ -16,9 +16,18 @@ test.each([
   const compiled = await compileEval(
     fileURLToPath(new URL(`./${suite}.eval.ts`, import.meta.url))
   );
-  const validator = compiled.cases[0].validator;
-  if (!validator || "kind" in validator) {
+  const validation = compiled.cases[0].validator;
+  if (!validation) {
     throw new Error("Expected a code validator");
+  }
+  const validator = "checks" in validation ? validation.checks[0] : validation;
+  if (!validator) {
+    throw new Error("Expected a code check");
+  }
+  expect(validation.sourceFiles?.length).toBeGreaterThan(0);
+  expect(validator.manifest).toHaveLength(1);
+  if ("judges" in validation) {
+    expect(validation.judges[0]?.name).toBe("correct-item");
   }
   for (const scenario of [
     "passed",
@@ -80,6 +89,7 @@ export async function resolvePrompt(baseUrl, id, name) {
       expect(error).toBe("");
       expect(code).toBe(0);
       expect(output).toContain(`ANPORD_VALIDATOR_RESULT={"passed":${passed}`);
+      expect(output).toContain("ANPORD_VALIDATION=");
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }

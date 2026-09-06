@@ -60,6 +60,54 @@ describe("a verifier that is a pipeline", () => {
 });
 
 describe("ScorerGroundTruthLive", () => {
+  it.each([
+    1,
+    null,
+  ])("never accepts a passing marker with process exit %s", async (code) => {
+    const outcome = await score(
+      sandboxYielding([
+        stdout('ANPORD_VALIDATOR_RESULT={"passed":true}\n'),
+        ...(code === null ? [] : [exit(code)]),
+      ]),
+      null,
+      { name: "check", source: "source" }
+    );
+    expect(outcome.status).toBe("void");
+    expect(outcome.passed).toBe(false);
+    expect(outcome.validations?.[0]?.status).toBe("error");
+  });
+
+  it("does not infer validity from a code validator's message", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        stdout(
+          'ANPORD_VALIDATOR_RESULT={"passed":true,"message":"No tests found permission denied"}\n'
+        ),
+        exit(0),
+      ]),
+      null,
+      { name: "check", source: "source" }
+    );
+    expect(outcome.status).toBe("passed");
+    expect(outcome.validations?.[0]?.message).toBe(
+      "No tests found permission denied"
+    );
+  });
+
+  it("rejects malformed execution frames", async () => {
+    const outcome = await score(
+      sandboxYielding([
+        stdout(
+          'ANPORD_VALIDATION={}\nANPORD_VALIDATOR_RESULT={"passed":true}\n'
+        ),
+        exit(0),
+      ]),
+      null,
+      { name: "check", source: "source" }
+    );
+    expect(outcome.status).toBe("void");
+  });
+
   it("scores a bundled TypeScript validator", async () => {
     const outcome = await score(
       sandboxYielding([

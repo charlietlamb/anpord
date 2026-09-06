@@ -1,3 +1,4 @@
+import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { Context, type Effect } from "effect";
 import type { SandboxUnavailable } from "../domain/errors";
@@ -9,13 +10,19 @@ export interface ScoreRequest {
   readonly commandCount: number;
   readonly events: readonly HarnessEvent[];
   readonly modelMs: number;
+  readonly onValidation?: ValidationObserver;
   readonly prepared?: Readonly<Record<string, unknown>>;
   readonly sandbox: SandboxHandle;
+  readonly validationPrefix?: string;
   readonly validator?: EvalValidator | null;
   /* Null for a case with no verifier, whose trials are void rather than passed. */
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
+
+export type ValidationObserver = (
+  validation: EvalValidation
+) => Effect.Effect<void>;
 
 export interface ScorerShape {
   readonly score: (

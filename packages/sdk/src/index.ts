@@ -34,6 +34,11 @@ export type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 export type EvalCase = StartEvalRequest["cases"][number];
 export type EvalTaskRequest = StartEvalRequest["tasks"][number];
 export type {
+  EvalValidation,
+  ValidationCall,
+  ValidationValue,
+} from "@anpord/schema/domain/eval-validations";
+export type {
   PublicPrompt,
   PublicPromptSummary,
   PublicPromptWithVersions,

@@ -1,9 +1,11 @@
+import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
 import { failureOf } from "../domain/failure";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { costOf, type ModelPrice } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
 import { breakdownOf } from "../domain/trial-cost";
+import { validationPlan } from "../domain/validation-plan";
 import { ModelPrices } from "../ports/model-source";
 import type { TrialCostRepositoryShape } from "../repositories/trial-cost-repository";
 import type { TrialRecorderShape } from "../repositories/trial-record";
@@ -80,6 +82,14 @@ export const runTrial = (input: RunOneTrial) =>
       provider: input.task.provider,
       startedAt: new Date(startedAt),
     });
+    const validations = yield* Ref.make<readonly EvalValidation[]>(
+      validationPlan(input.subject.validator, input.subject.verify)
+    );
+    const recordValidations = (records: readonly EvalValidation[]) =>
+      input.recorder.recordValidations({
+        trialInternalId,
+        validations: records,
+      });
 
     /* The cause goes into the row: the sandbox holding it is deleted on the way out. */
     yield* Effect.addFinalizer((exit) =>
@@ -97,7 +107,36 @@ export const runTrial = (input: RunOneTrial) =>
           )
     );
 
+    yield* recordValidations(yield* Ref.get(validations));
     const result = yield* input.agent.run({
+      onValidation: (record) =>
+        Effect.gen(function* () {
+          const records = yield* Ref.get(validations);
+          const previous = records.find((entry) => entry.id === record.id);
+          const next = previous
+            ? records.map((entry) => (entry.id === record.id ? record : entry))
+            : [...records, record];
+          yield* Ref.set(validations, next);
+          yield* recordValidations(next);
+          if (previous?.status !== record.status) {
+            yield* Effect.logInfo("validation status changed").pipe(
+              Effect.annotateLogs({
+                validationId: record.id,
+                validator: record.name,
+                kind: record.kind,
+                status: record.status,
+                durationMs: record.durationMs,
+              })
+            );
+          }
+        }).pipe(
+          Effect.orDie,
+          Effect.annotateLogs({
+            trialInternalId,
+            cellInternalId: input.cellInternalId,
+            ordinal: input.ordinal,
+          })
+        ),
       autoStopMinutes: AUTO_STOP_MINUTES,
       onSandbox: (sandboxId) =>
         Effect.ignoreLogged(
@@ -179,6 +218,10 @@ export const runTrial = (input: RunOneTrial) =>
   }).pipe(
     Effect.scoped,
     Effect.withSpan("GridCell.trial", {
-      attributes: { ordinal: input.ordinal },
+      attributes: {
+        ordinal: input.ordinal,
+        cellInternalId: input.cellInternalId,
+        organizationId: input.organizationId,
+      },
     })
   );

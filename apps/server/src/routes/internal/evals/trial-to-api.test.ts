@@ -1,6 +1,11 @@
 import { expect, test } from "bun:test";
 import { HarnessEvent } from "@anpord/eval/domain/harness-event";
+import { outcomeOf } from "@anpord/eval/domain/trial";
 import type { GridCell } from "@anpord/eval/grid/state";
+import {
+  validationCapture,
+  validationExecution,
+} from "@anpord/schema/domain/eval-validations";
 import { EvalTrial } from "@anpord/schema/domain/evals";
 import { Option, Schema } from "effect";
 import { asTrials } from "./trial-to-api";
@@ -77,4 +82,72 @@ test("keeps historical results absent instead of inventing an empty output", () 
     },
   ]);
   expect(response.trajectory[0]).not.toHaveProperty("output");
+});
+
+test("preserves code and judge evidence through API serialization", () => {
+  const capture = validationCapture();
+  const validations = [
+    {
+      ...validationExecution(
+        { id: "code:0", index: 0, name: "exactCheck", kind: "code" },
+        1000
+      ),
+      status: "passed" as const,
+      input: capture({ prepared: { id: "fixture" } }),
+      output: capture({ passed: true }),
+      logs: [
+        {
+          index: 0,
+          at: 1001,
+          level: "stdout" as const,
+          value: capture("checked", "text"),
+        },
+      ],
+    },
+    {
+      ...validationExecution(
+        { id: "judge:0", index: 0, name: "correctness", kind: "judge" },
+        1002
+      ),
+      status: "passed" as const,
+      input: capture({ model: "exact-model", prompt: "Score fixture" }),
+      output: capture('{"choice":"correct","reason":"Matches"}', "text"),
+    },
+  ];
+  const cell: GridCell = {
+    caseName: "lookup",
+    cellKey: null,
+    distribution: Option.none(),
+    internalId: null,
+    live: new Map(),
+    setup: Option.none(),
+    status: "finished",
+    taskIndex: 0,
+    trials: [
+      Option.some({
+        commands: 0,
+        events: [],
+        failedCommands: 0,
+        filesChanged: [],
+        prepared: {},
+        sandboxId: "local",
+        sessionId: null,
+        usage: Option.none(),
+        outcome: {
+          ...outcomeOf({
+            commandCount: 0,
+            exitCode: 0,
+            fingerprint: { verify: "passed" },
+            modelMs: 0,
+            sandboxMs: 0,
+          }),
+          validations,
+        },
+      }),
+    ],
+  };
+  const response = Schema.decodeUnknownSync(EvalTrial)(
+    JSON.parse(JSON.stringify(asTrials(cell)[0]))
+  );
+  expect(response.validations).toEqual(validations);
 });

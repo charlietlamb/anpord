@@ -15,6 +15,7 @@
     "./domain/eval-trigger": "./src/domain/eval-trigger.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/eval-judges": "./src/domain/eval-judges.ts",
+    "./domain/eval-validations": "./src/domain/eval-validations.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",
     "./domain/permissions": "./src/domain/permissions.ts",
     "./domain/prompt-activity": "./src/domain/prompt-activity.ts",

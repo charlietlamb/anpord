@@ -102,6 +102,7 @@ export const asTrials = (cell: GridCell): readonly EvalTrial[] =>
       onSome: (result) => ({
         commands: result.commands,
         judgments: result.outcome.judgments ?? [],
+        validations: result.outcome.validations,
         costs: null,
         prepared: result.prepared,
         exitCode: result.outcome.exitCode,

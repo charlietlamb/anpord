@@ -1,11 +1,13 @@
 import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import { EvalValidations } from "@anpord/schema/domain/eval-validations";
 import { Option, Schema } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
 import { namesOf } from "../domain/stored-cell";
 import { trialStatusOf, type VerifyStepResult } from "../domain/trial";
+import { interruptedValidation } from "../domain/validation-plan";
 import type { RunDetail } from "../repositories/run-detail";
 import type { AgentTrialResult } from "../services/agent-trial";
 import type { GridCell, GridRunState, GridTask } from "./state";
@@ -16,6 +18,8 @@ const asResult = (input: {
   readonly exitCode: number;
   readonly modelMs: number;
   readonly judgments?: unknown;
+  readonly validations?: unknown;
+  readonly finishedAt: number | null;
   readonly passed: boolean;
   readonly sandboxId: string | null;
   readonly prepared: Readonly<Record<string, unknown>> | null;
@@ -31,6 +35,15 @@ const asResult = (input: {
   filesChanged: filesIn(input.events),
   prepared: input.prepared ?? {},
   outcome: {
+    validations:
+      input.validations == null
+        ? undefined
+        : Schema.decodeUnknownSync(EvalValidations)(input.validations).map(
+            (record) =>
+              input.finishedAt === null
+                ? record
+                : interruptedValidation(record, input.finishedAt)
+          ),
     judgments: Schema.decodeUnknownSync(Schema.Array(EvalJudgment))(
       input.judgments ?? []
     ),
@@ -141,6 +154,8 @@ export const runToState = (
             exitCode: trial.exitCode ?? -1,
             modelMs: trial.modelMs ?? 0,
             judgments: trial.judgments,
+            validations: trial.validations,
+            finishedAt: trial.finishedAt?.getTime() ?? null,
             passed: trial.passed ?? false,
             prepared: trial.prepared ?? null,
             sandboxId: trial.sandboxId,

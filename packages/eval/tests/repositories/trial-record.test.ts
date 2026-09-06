@@ -8,6 +8,10 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGeneratorLive } from "@anpord/ids/layer";
+import {
+  validationCapture,
+  validationExecution,
+} from "@anpord/schema/domain/eval-validations";
 import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer, Option, Redacted } from "effect";
 import type { HarnessEvent } from "../../src/domain/harness-event";
@@ -142,6 +146,22 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
         });
 
         yield* recorder.append({ events, from: 0, trialInternalId });
+        yield* recorder.recordValidations({
+          trialInternalId,
+          validations: [
+            {
+              ...validationExecution(
+                { id: "code:0", index: 0, name: "check", kind: "code" },
+                1000
+              ),
+              status: "passed",
+              output: validationCapture()({
+                passed: true,
+                message: "Exact evidence",
+              }),
+            },
+          ],
+        });
 
         const midFlight = yield* Effect.promise(async () => ({
           events: await db
@@ -182,6 +202,12 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
 
     expect(seen.midFlight.events).toHaveLength(2);
     expect(seen.midFlight.trial[0]?.status).toBe("running");
+    expect(seen.midFlight.trial[0]?.validations?.[0]?.output.text).toBe(
+      '{"passed":true,"message":"Exact evidence"}'
+    );
+    expect(seen.settled[0]?.validations).toEqual(
+      seen.midFlight.trial[0]?.validations
+    );
 
     expect(seen.midFlight.trial[0]?.passed).toBeNull();
 
@@ -239,6 +265,30 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           startedAt: new Date(),
         });
 
+        yield* recorder.recordValidations({
+          trialInternalId,
+          validations: [
+            {
+              ...validationExecution(
+                { id: "code:0", index: 0, name: "completed", kind: "code" },
+                1000
+              ),
+              status: "passed",
+              output: validationCapture()(true),
+            },
+            validationExecution(
+              { id: "code:1", index: 1, name: "interrupted", kind: "code" },
+              1000
+            ),
+            {
+              ...validationExecution(
+                { id: "judge:0", index: 0, name: "not started", kind: "judge" },
+                null
+              ),
+              status: "queued",
+            },
+          ],
+        });
         yield* recorder.abandon({ finishedAt: new Date(), trialInternalId });
 
         return yield* Effect.promise(() =>
@@ -251,6 +301,12 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     );
 
     expect(closed[0]?.status).toBe("void");
+    expect(closed[0]?.validations?.map((record) => record.status)).toEqual([
+      "passed",
+      "error",
+      "skipped",
+    ]);
+    expect(closed[0]?.validations?.[0]?.output.text).toBe("true");
 
     expect(closed[0]?.passed).toBeNull();
     expect(closed[0]?.finishedAt).not.toBeNull();

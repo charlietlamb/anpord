@@ -84,7 +84,7 @@ const run = (
               order.push("judge");
               expect(input.judge.model).toBe("judge-model");
               expect(input.input).toBe(request.prompt);
-              return output;
+              return { text: output };
             }),
         })
       )

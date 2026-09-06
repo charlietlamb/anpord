@@ -3,12 +3,14 @@ import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
+import { EvalValidations } from "@anpord/schema/domain/eval-validations";
 import { and, eq } from "drizzle-orm";
-import { Context, Effect, Layer, Option } from "effect";
+import { Context, Effect, Layer, Option, Schema } from "effect";
 import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { TrialOutcome } from "../domain/trial";
+import { interruptedValidation } from "../domain/validation-plan";
 import { tryStore } from "./query";
 
 export interface OpenTrial {
@@ -67,6 +69,10 @@ export interface TrialRecorderShape {
   readonly open: (
     input: OpenTrial
   ) => Effect.Effect<OpenedTrial, EvalStoreError>;
+  readonly recordValidations: (input: {
+    readonly trialInternalId: string;
+    readonly validations: typeof EvalValidations.Type;
+  }) => Effect.Effect<void, EvalStoreError>;
 
   readonly settle: (input: SettleTrial) => Effect.Effect<void, EvalStoreError>;
 }
@@ -85,22 +91,32 @@ export const TrialRecorderLive = Layer.effect(
     /* The sandbox id is cleared: the scope destroyed it before this finalizer
        writes, and a leftover id sends the reaper after a VM that is gone. */
     const abandon = (input: AbandonTrial) =>
-      tryStore("trial.abandon", () =>
-        db
+      tryStore("trial.abandon", async () => {
+        const [trial] = await db
+          .select({ validations: evalTrial.validations })
+          .from(evalTrial)
+          .where(eq(evalTrial.internalId, input.trialInternalId));
+        const validations = Schema.decodeUnknownSync(EvalValidations)(
+          trial?.validations ?? []
+        ).map((record) =>
+          interruptedValidation(record, input.finishedAt.getTime())
+        );
+        return db
           .update(evalTrial)
           .set({
             failure: input.failure ?? null,
             finishedAt: input.finishedAt,
             sandboxId: null,
             status: "void",
+            validations,
           })
           .where(
             and(
               eq(evalTrial.internalId, input.trialInternalId),
               eq(evalTrial.status, "running")
             )
-          )
-      ).pipe(Effect.asVoid, Effect.withSpan("TrialRecorder.abandon"));
+          );
+      }).pipe(Effect.asVoid, Effect.withSpan("TrialRecorder.abandon"));
 
     const attach = (input: AttachSandbox) =>
       tryStore("trial.attach", () =>
@@ -140,6 +156,7 @@ export const TrialRecorderLive = Layer.effect(
                 provider: input.provider,
                 startedAt: input.startedAt,
                 status: "running",
+                validations: [],
               },
               target: [evalTrial.cellInternalId, evalTrial.ordinal],
             })
@@ -210,6 +227,9 @@ export const TrialRecorderLive = Layer.effect(
             passed: input.outcome.passed,
             prepared: input.prepared,
             judgments: input.outcome.judgments ?? [],
+            ...(input.outcome.validations === undefined
+              ? {}
+              : { validations: input.outcome.validations }),
             sandboxId: input.sandboxId,
             sandboxMs: input.outcome.sandboxMs,
             status: input.outcome.status,
@@ -225,6 +245,33 @@ export const TrialRecorderLive = Layer.effect(
         })
       );
 
-    return TrialRecorder.of({ abandon, attach, append, open, settle });
+    const recordValidations: TrialRecorderShape["recordValidations"] = (
+      input
+    ) =>
+      Effect.gen(function* () {
+        const validations = yield* Schema.decodeUnknown(EvalValidations)(
+          input.validations
+        ).pipe(Effect.orDie);
+        yield* tryStore("trial.recordValidations", () =>
+          db
+            .update(evalTrial)
+            .set({ validations })
+            .where(
+              and(
+                eq(evalTrial.internalId, input.trialInternalId),
+                eq(evalTrial.status, "running")
+              )
+            )
+        );
+      }).pipe(Effect.withSpan("TrialRecorder.recordValidations"));
+
+    return TrialRecorder.of({
+      abandon,
+      attach,
+      append,
+      open,
+      settle,
+      recordValidations,
+    });
   })
 );

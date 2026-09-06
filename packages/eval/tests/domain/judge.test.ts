@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { Effect, Redacted, Schema } from "effect";
 import { evaluateJudge } from "../../src/judges/evaluate";
 import {
@@ -37,11 +38,83 @@ const request: JudgeRequest = {
 const evaluate = (complete: Effect.Effect<string, JudgeFailed>) =>
   Effect.runPromise(
     evaluateJudge(request).pipe(
-      Effect.provideService(JudgeModel, { complete: () => complete })
+      Effect.provideService(JudgeModel, {
+        complete: () => complete.pipe(Effect.map((text) => ({ text }))),
+      })
     )
   );
 
 describe("model judgments", () => {
+  test.each([
+    '{"choice":"correct","reason":"Matches"}',
+    "invalid json",
+  ])("retains exact judge evidence and raw response: %s", async (text) => {
+    const records: EvalValidation[] = [];
+    const result = await Effect.runPromise(
+      evaluateJudge({
+        ...request,
+        onValidation: (record) =>
+          Effect.sync(() => {
+            records.push(record);
+          }),
+      }).pipe(
+        Effect.provideService(JudgeModel, {
+          complete: (input) =>
+            Effect.gen(function* () {
+              if (input.onRequest) {
+                yield* input.onRequest({
+                  input: input.input,
+                  output: input.output,
+                });
+              }
+              return {
+                text,
+                model: "reported-model",
+                requestId: "request-1",
+                usage: { inputTokens: 20, outputTokens: 10, totalTokens: 30 },
+              };
+            }),
+        })
+      )
+    );
+    const record = records.at(-1);
+    expect(record?.output.text).toBe(text);
+    expect(JSON.parse(record?.input.text ?? "null")).toEqual({
+      input: request.input,
+      output: request.output,
+    });
+    expect(JSON.parse(record?.metadata?.text ?? "null")).toMatchObject({
+      model: "reported-model",
+      requestId: "request-1",
+      usage: { totalTokens: 30 },
+    });
+    expect(record?.judgment).toEqual(result);
+    expect(record?.status).toBe(text === "invalid json" ? "error" : "passed");
+  });
+
+  test("keeps tool-using judge output but refuses to score it", async () => {
+    const records: EvalValidation[] = [];
+    const result = await Effect.runPromise(
+      evaluateJudge({
+        ...request,
+        onValidation: (record) =>
+          Effect.sync(() => {
+            records.push(record);
+          }),
+      }).pipe(
+        Effect.provideService(JudgeModel, {
+          complete: () =>
+            Effect.succeed({
+              text: '{"choice":"correct","reason":"Used a tool"}',
+              toolCalls: ["command"],
+            }),
+        })
+      )
+    );
+    expect(result.score).toBeNull();
+    expect(records.at(-1)?.output.text).toContain("Used a tool");
+    expect(records.at(-1)?.status).toBe("error");
+  });
   test("bounds slow judges without inventing a score", async () => {
     const result = await Effect.runPromise(
       evaluateJudge({

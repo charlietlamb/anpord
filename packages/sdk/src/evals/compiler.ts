@@ -103,7 +103,8 @@ export const compileEvalEffect = (path: string) =>
             entry,
             subject,
             caseIndex,
-            definition.captureSource !== false
+            definition.captureSource !== false,
+            definition.captureValidation !== false
           );
 
           const prepare =

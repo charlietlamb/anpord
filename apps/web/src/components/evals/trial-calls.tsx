@@ -1,7 +1,7 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlugsConnectedIcon } from "@phosphor-icons/react";
+import { EvidenceValue } from "./evidence-value";
 import { SetupSurface } from "./setup-surface";
 
 type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
@@ -14,45 +14,6 @@ const callStatus = (call: Call) => {
   }
   return call.status ?? "Status not recorded";
 };
-
-const formatValue = (value: string) => {
-  try {
-    const parsed: unknown = JSON.parse(value);
-    return JSON.stringify(parsed, null, 2);
-  } catch {
-    return value;
-  }
-};
-
-function CallValue({
-  label,
-  value,
-  truncated,
-}: {
-  readonly label: string;
-  readonly value: string | undefined;
-  readonly truncated?: boolean;
-}) {
-  return (
-    <div className="min-w-0">
-      <dt className="px-3.5 pt-2 text-muted-foreground text-xs">{label}</dt>
-      <dd>
-        {value === undefined ? (
-          <p className="px-3.5 py-2.5 text-muted-foreground text-xs">
-            Not recorded
-          </p>
-        ) : (
-          <CodeBlock copyValue={value} tone="plain">
-            {value === "" ? "(empty)" : formatValue(value)}
-          </CodeBlock>
-        )}
-        {truncated ? (
-          <p className="px-3.5 pb-2 text-warning text-xs">Truncated</p>
-        ) : null}
-      </dd>
-    </div>
-  );
-}
 
 function CallRow({
   call,
@@ -91,19 +52,19 @@ function CallRow({
         </span>
       </summary>
       <dl className="grid border-border-faint border-t pb-2 md:grid-cols-2 md:divide-x md:divide-border-faint">
-        <CallValue
+        <EvidenceValue
           label="Input"
           truncated={command ? false : call.inputTruncated}
           value={command ? call.command : call.input}
         />
-        <CallValue
+        <EvidenceValue
           label="Output"
           truncated={call.outputTruncated}
           value={call.output}
         />
         {!command && call.error !== undefined ? (
           <div className="border-border-faint border-t md:col-span-2">
-            <CallValue
+            <EvidenceValue
               label="Error"
               truncated={call.errorTruncated}
               value={call.error}

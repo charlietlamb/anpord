@@ -3,6 +3,7 @@ import { CredentialBindings, CredentialSelections } from "./credentials";
 import { EvalJudge, EvalJudgment } from "./eval-judges";
 import { EvalSourceFiles } from "./eval-source-files";
 import { EvalTrigger } from "./eval-trigger";
+import { EvalValidations } from "./eval-validations";
 import { EvalHarness as Harness } from "./harness";
 
 export const EvalHarness = Harness;
@@ -77,6 +78,23 @@ export const EvalSource = Schema.Union(
 export type EvalSource = typeof EvalSource.Type;
 
 export const EvalCodeValidator = Schema.Struct({
+  capture: Schema.optional(Schema.Boolean),
+  manifest: Schema.optional(
+    Schema.Array(
+      Schema.Struct({
+        index: Schema.NonNegativeInt,
+        name: Schema.String.pipe(Schema.maxLength(200)),
+      })
+    ).pipe(
+      Schema.minItems(1),
+      Schema.maxItems(20),
+      Schema.filter(
+        (checks) =>
+          new Set(checks.map((check) => check.index)).size === checks.length,
+        { message: () => "Validator indices must be unique" }
+      )
+    )
+  ),
   name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
   source: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(1_000_000)),
 });
@@ -89,6 +107,7 @@ export const EvalValidator = Schema.Union(
   ),
   Schema.Struct({
     kind: Schema.Literal("judged"),
+    capture: Schema.optional(Schema.Boolean),
     name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
     checks: Schema.Array(EvalCodeValidator).pipe(Schema.maxItems(20)),
     judges: Schema.Array(EvalJudge).pipe(
@@ -96,7 +115,16 @@ export const EvalValidator = Schema.Union(
       Schema.maxItems(20)
     ),
     sourceFiles: Schema.optional(EvalSourceFiles),
-  })
+  }).pipe(
+    Schema.filter(
+      (validator) =>
+        validator.checks.reduce(
+          (total, check) => total + (check.manifest?.length ?? 1),
+          0
+        ) <= 20,
+      { message: () => "At most 20 code validators are supported" }
+    )
+  )
 ).annotations({
   description: "A bundled TypeScript validator and its exported function name.",
   identifier: "EvalValidator",
@@ -333,6 +361,7 @@ export const EvalCosts = Schema.Struct({
 export type EvalCosts = typeof EvalCosts.Type;
 
 export const EvalTrial = Schema.Struct({
+  validations: Schema.optional(EvalValidations),
   judgments: Schema.optional(Schema.Array(EvalJudgment)),
   commands: Schema.Int,
   costs: Schema.NullOr(EvalCosts),

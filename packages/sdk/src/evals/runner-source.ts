@@ -1,67 +1,19 @@
-const runtime = `
-import { access, readFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
+export const validatorEntry = (module: string, name: string) => `
+import { ${name} as validate } from ${JSON.stringify(module)};
+import { runValidators } from "anpord/validators/runtime";
+await runValidators([{ index: 0, name: ${JSON.stringify(name)}, validate }]);`;
 
-const exec = (command) => new Promise((resolve, reject) => {
-  const child = spawn("/bin/sh", ["-lc", command], { cwd: process.cwd() });
-  let stderr = "";
-  let stdout = "";
-  child.stderr.on("data", chunk => { stderr += chunk; });
-  child.stdout.on("data", chunk => { stdout += chunk; });
-  child.on("error", reject);
-  child.on("close", code => resolve({ exitCode: code ?? 1, stderr, stdout }));
-});
-
-const readOrEmpty = (path) =>
-  path === undefined ? Promise.resolve("") : readFile(path, "utf8").then(text => text, () => "");
-
-const calls = async (path, key, value) => {
-  const text = await readOrEmpty(path);
-  const calls = text.trim() === "" ? [] : text.trim().split("\\n").map((line) => JSON.parse(line));
-  return value === undefined ? calls : calls.filter((call) => call[key] === value);
-};
-
-const context = {
-  answer: () => readOrEmpty(process.env.ANPORD_ANSWER_FILE),
-  cli: { calls: cli => calls(".anpord/cli-calls.jsonl", "cli", cli) },
-  exec,
-  exists: path => access(path).then(() => true, () => false),
-  mcp: { calls: server => calls(".anpord/mcp-calls.jsonl", "server", server) },
-  readText: path => readFile(path, "utf8"),
-  prepared: JSON.parse(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
-  transcript: () => readOrEmpty(process.env.ANPORD_TRANSCRIPT_FILE),
-};
-
-try {
-  const raw = await validate(context);
-  const result = typeof raw === "boolean" ? { passed: raw } : raw;
-  if (typeof result?.passed !== "boolean") throw new Error("A validator must return a boolean or { passed, message? }");
-  console.log("ANPORD_VALIDATOR_RESULT=" + JSON.stringify(result));
-} catch (error) {
-  console.error(error instanceof Error ? error.stack : String(error));
-  process.exitCode = 1;
-}
-`;
-
-export const validatorEntry = (module: string, name: string) =>
-  `import { ${name} as validate } from ${JSON.stringify(module)};\n${runtime}`;
-
-export const validatorCaseEntry = (entry: string, index: number) =>
+export const validatorCaseEntry = (
+  entry: string,
+  index: number,
+  names: readonly { index: number; name: string }[] = []
+) =>
   `import definition from ${JSON.stringify(entry)};
+import { runValidators } from "anpord/validators/runtime";
 const selected = definition.cases[${index}].validate;
-const checks = (Array.isArray(selected) ? selected : [selected]).filter(value => typeof value === "function");
-const validate = async context => {
-  const messages = [];
-  for (const check of checks) {
-    const raw = await check(context);
-    const result = typeof raw === "boolean" ? { passed: raw } : raw;
-    if (typeof result?.passed !== "boolean") throw new Error("Invalid validator result");
-    if (result.message) messages.push(result.message);
-    if (!result.passed) return { passed: false, message: messages.join("; ") };
-  }
-  return { passed: true, message: messages.join("; ") || "Code validators passed" };
-};
-${runtime}`;
+const names = ${JSON.stringify(names)};
+const checks = (Array.isArray(selected) ? selected : [selected]).flatMap((validate, index) => typeof validate === "function" ? [{ index, name: names.find(check => check.index === index)?.name ?? "Validator " + (index + 1), validate }] : []);
+await runValidators(checks, definition.captureValidation !== false);`;
 
 const prepareRuntime = `
 import { access, readFile } from "node:fs/promises";

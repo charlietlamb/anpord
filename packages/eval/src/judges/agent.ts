@@ -1,7 +1,7 @@
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Chunk, Effect, Option, Redacted, Stream } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
-import { answerOf } from "../domain/journal";
+import { answerOf, sessionIdOf } from "../domain/journal";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { HarnessVersions } from "../services/harness-versions";
@@ -48,13 +48,22 @@ export const makeAgentJudge = Effect.gen(function* () {
         sandbox,
         version,
       });
+      const prompt = `${judgeInstructions(request)}\n\nEvidence:\n${judgeEvidence(request)}`;
+      if (request.onRequest) {
+        yield* request.onRequest({
+          model,
+          harness,
+          harnessVersion: version,
+          prompt,
+        });
+      }
       const session = yield* driver.run({
         env,
         harness,
         harnessVersion: version,
         model,
         profile: Option.none(),
-        prompt: `${judgeInstructions(request)}\n\nEvidence:\n${judgeEvidence(request)}`,
+        prompt,
         sandbox,
         systemPromptPath: Option.none(),
         workspace: "/tmp/anpord-judge",
@@ -62,19 +71,24 @@ export const makeAgentJudge = Effect.gen(function* () {
       const events = Chunk.toReadonlyArray(
         yield* Stream.runCollect(session.events)
       );
-      if (
-        events.some(
-          (event) => event._tag === "Command" || event._tag === "ToolCall"
-        )
-      ) {
-        return yield* Effect.fail(
-          new JudgeFailed({
-            message:
-              "The judge used tools instead of scoring the supplied evidence",
-          })
-        );
-      }
-      return answerOf(events);
+      const toolCalls = events.flatMap((event) => {
+        if (event._tag === "Command") {
+          return ["command"];
+        }
+        if (event._tag === "ToolCall") {
+          return [event.name];
+        }
+        return [];
+      });
+      const usage = yield* session.usage;
+      return {
+        text: answerOf(events),
+        model,
+        harnessVersion: version,
+        sessionId: sessionIdOf(events) ?? undefined,
+        usage: Option.getOrUndefined(usage),
+        toolCalls,
+      };
     }).pipe(
       Effect.scoped,
       Effect.mapError((error) =>

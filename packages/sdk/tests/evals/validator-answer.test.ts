@@ -2,6 +2,8 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Effect } from "effect";
+import { bundle } from "../../src/evals/eval-bundle";
 import { validatorEntry } from "../../src/evals/runner-source";
 
 let workspace: string | undefined;
@@ -30,7 +32,11 @@ const runValidator = async (
   await writeFile(module, `export const check = ${body};`);
 
   const script = join(workspace, "runner.mjs");
-  await writeFile(script, validatorEntry(module, "check"));
+  await writeFile(
+    script,
+    (await Effect.runPromise(bundle(validatorEntry(module, "check"), module)))
+      .source
+  );
 
   const process = Bun.spawn(["node", script], {
     cwd: workspace,

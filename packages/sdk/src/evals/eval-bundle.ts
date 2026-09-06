@@ -16,6 +16,12 @@ const ANPORD_MODULE = /^anpord$/;
 const ANY_MODULE = /.*/;
 const localModules = [
   {
+    built: "validator-runtime.mjs",
+    filter: /^anpord\/validators\/runtime$/,
+    namespace: "anpord-validator-runtime",
+    source: "validator-runtime.ts",
+  },
+  {
     built: "validators.mjs",
     filter: /^anpord\/validators$/,
     namespace: "anpord-validators",

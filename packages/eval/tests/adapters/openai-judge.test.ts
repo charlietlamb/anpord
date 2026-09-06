@@ -102,8 +102,14 @@ test.each([
       },
     ],
   },
-])("rejects incomplete or refused responses", async (response) => {
-  expect((await complete(response)).result._tag).toBe("Left");
+])("preserves incomplete or refused responses for the evaluator", async (response) => {
+  const result = (await complete(response)).result;
+  expect(result._tag).toBe("Right");
+  if (result._tag === "Right") {
+    expect(result.right.incomplete || result.right.refusal !== undefined).toBe(
+      true
+    );
+  }
 });
 
 test("does not expose provider response bodies in errors", async () => {

@@ -93,6 +93,26 @@ for (const event of run.cells[0]?.trials[0]?.trajectory ?? []) {
 }
 ```
 
-Trial metadata also includes command counts, changed files, model and sandbox time, sandbox id, and token counts when the harness reports them. Command output is capped at 4,000 characters. Tool inputs are not stored.
+Trial metadata also includes command counts, changed files, model and sandbox time, sandbox id, and token counts when the harness reports them. Command output and tool payloads are capped at 4,000 characters, with truncation marked explicitly.
 
 Read the distribution first, then compare passing and failing trajectories from the same cell. Pass rate summarizes outcomes. Command counts show how attempts differed.
+
+## Validation evidence
+
+Each trial's `validations` contains the individual code checks, judges, or command verifier. The dashboard shows these under **Validation results**, alongside the original source files.
+
+```ts
+for (const validation of run.cells[0]?.trials[0]?.validations ?? []) {
+  console.log(validation.name, validation.status, validation.durationMs);
+  console.log(validation.input, validation.output, validation.error);
+  console.log(validation.calls, validation.logs);
+}
+```
+
+Code checks record their return value, context method arguments and results, console logs, and exceptions. Judges record the request body or harness prompt, raw response text, provider metadata when available, and parsed judgment. Command verifiers record their command, stdout, stderr, and exit code. This uses the same execution path for CI, CLI, API, MCP, and dashboard runs.
+
+`failed` means a completed check did not pass. `error` means it could not finish reliably. `skipped` means it did not run. Earlier completed checks remain visible if a later check crashes. Historical runs cannot recover evidence that was never captured.
+
+Values carry `state`, `format`, `text`, and `truncated`. Capture is limited to 16,000 characters per value, 64,000 per validator, and 64 calls or log entries. Truncation affects stored evidence, not scoring. Unavailable evidence is never presented as an empty result.
+
+Inputs, results, and logs can contain your data. Set `captureValidation: false` on `defineEval` to disable payload capture for code checks and judges while retaining their verdicts and timing. This is separate from `captureSource`. Authorization headers, credentials, and private model reasoning are not collected by the capture layer; do not print secrets from your own validators. Worker logs include validation status transitions and run, cell, trial, and validator identifiers, not payloads.

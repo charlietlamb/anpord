@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { Effect, Layer, Schema } from "effect";
 import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { connectionNotFound } from "../../src/credentials/errors";
@@ -45,8 +46,15 @@ test.skipIf(!enabled)(
       ["4", 1],
       ["5", 0],
     ] as const) {
+      const validations: EvalValidation[] = [];
       const result = await Effect.runPromise(
         evaluateJudge({
+          onValidation: (record) =>
+            Effect.sync(() => {
+              validations.push(
+                Schema.decodeUnknownSync(EvalValidation)(record)
+              );
+            }),
           judge,
           input: "What is 2 + 2?",
           output,
@@ -66,6 +74,17 @@ test.skipIf(!enabled)(
       });
       expect(result.error).toBeNull();
       expect(result.score).toBe(score);
+      const validation = validations.at(-1);
+      expect(validation?.status).toBe(score === 1 ? "passed" : "failed");
+      expect(validation?.input.state).toBe("captured");
+      expect(validation?.input.text).toContain("What is 2 + 2?");
+      expect(JSON.parse(validation?.output.text ?? "{}").choice).toBe(
+        result.choice
+      );
+      expect(validation?.judgment).toEqual(result);
+      expect(JSON.parse(validation?.metadata?.text ?? "{}").model).toBe(
+        judge.model
+      );
     }
   },
   400_000
