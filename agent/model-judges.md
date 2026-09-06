@@ -24,3 +24,14 @@ This first release does not implement Braintrust's scorer registry, UI authoring
 ## Verification
 
 Offline tests cover authoring, compilation, choice mapping, invalid output, verdict composition, and cleanup ordering. The opt-in `packages/eval/tests/integration/agent-judge.test.ts` runs positive and negative controls against Codex in E2B using an exact model. Run it with `EVAL_LIVE_JUDGES=1` and configured E2B and Codex credentials. It does not call third-party fixture APIs.
+
+### Release verification: 2026-09-06
+
+- Published `anpord@0.1.12` from `045e9a6`; installed it in the separate customer spike and passed its mock MCP and CLI tests and scoped strict typecheck.
+- Real Codex `gpt-5.6-sol` judges in E2B scored the positive arithmetic control 1 and the negative control 0.
+- Workspace checks and CI passed. The existing API/SDK/CLI integration suite passed 46/46 scenarios. A fresh Postgres database accepted the complete migration journal; database-backed tests passed.
+- Production has the validator and judgment columns. Trigger worker `20260906.3` is deployed.
+- Production HTTP verification is blocked. App Runner still serves the old validator schema and rejected both suites before creating runs. Its environment has neither `TRIGGER_SECRET_KEY` nor `TRIGGER_API_KEY`. The current Linux image exits without this setting and passes health checks with it.
+- The CI identity cannot create `anpord/server/TRIGGER_SECRET_KEY`; local AWS sessions are expired. An authorized AWS session must create this secret with the existing production Trigger key and attach its ARN as `RuntimeEnvironmentSecrets.TRIGGER_SECRET_KEY`, preserving the other settings. The instance role already permits reads under `anpord/server/*`. Redeploy, then rerun the spike's `run-production.ts`.
+
+The deployment workflow currently treats App Runner's `RUNNING` status as success. That does not prove the new revision is serving traffic. Production completion requires passing runs with stored judgments, not a green deployment job.
