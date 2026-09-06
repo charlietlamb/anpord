@@ -30,11 +30,11 @@ Offline tests cover authoring, compilation, choice mapping, invalid output, verd
 - Published `anpord@0.1.12` from `045e9a6`; installed it in the separate customer spike and passed its mock MCP and CLI tests and scoped strict typecheck.
 - Real Codex `gpt-5.6-sol` judges in E2B scored the positive arithmetic control 1 and the negative control 0.
 - Workspace checks and CI passed. The existing API/SDK/CLI integration suite passed 46/46 scenarios. A fresh Postgres database accepted the complete migration journal; database-backed tests passed.
-- Production has the validator and judgment columns. Trigger worker `20260906.3` is deployed.
-- Production HTTP verification is blocked. App Runner still serves the old validator schema and rejected both suites before creating runs. Its environment has neither `TRIGGER_SECRET_KEY` nor `TRIGGER_API_KEY`. The current Linux image exits without this setting and passes health checks with it.
-- The CI identity cannot create `anpord/server/TRIGGER_SECRET_KEY`; local AWS sessions are expired. An authorized AWS session must create this secret with the existing production Trigger key and attach its ARN as `RuntimeEnvironmentSecrets.TRIGGER_SECRET_KEY`, preserving the other settings. The instance role already permits reads under `anpord/server/*`. Redeploy, then rerun the spike's `run-production.ts`.
+- Production has the validator and judgment columns. Trigger worker `20260906.4` executed both mock suites with Codex `0.153.4` and model `gpt-5.6-sol`.
+- The missing Trigger dispatch key was added through Secrets Manager and attached to App Runner by ARN. Existing environment values were preserved. The server deployed `4821772`, and authenticated eval reads recovered from HTTP 500.
+- Both production trials passed and stored a `correct-server` judgment with score 1 and no error in Charlie Lamb's Org (`d52e8f01-3925-4a77-92a8-eb3f542f4865`): MCP `run_9PZ2D8WX3AGKTZB0M823WG2J`, CLI `run_TK5BNQHJGGHHQ5RVH35DFF5S`. Both use local static mocks, not the Manufact API.
 
-The deployment workflow now requires the Trigger key before building and checks the health response's revision against the deployed commit. Production completion still requires passing runs with stored judgments, not a green deployment job.
+The deployment workflow requires the Trigger key before building and checks the health response's revision against the deployed commit. Verification requires passing trials with stored judgments, not a green deployment job.
 
 ### Runtime fixes: 2026-09-06
 
@@ -42,4 +42,5 @@ The deployment workflow now requires the Trigger key before building and checks 
 - The local cleanup sweep cleared 113 stale sandbox references with zero failures. Eval history was retained.
 - Worker scripts use the installed CLI instead of resolving the latest release through `bunx`. The local worker starts with the pinned 4.5.15 version.
 - The web server uses TanStack's default server entry. `bun --cwd apps/web run test:reload` checks HTML and other Accept headers across three full SSR reloads without modifying environment variables.
-- The production eval-list endpoint returns HTTP 500, while the same authenticated request succeeds locally. The org's newest stored run remains 2026-08-23. AWS authentication is expired and the configured Axiom token cannot read logs; production repair and judge runs remain unverified.
+- The dispatcher no longer publishes an initial live run into its own memory. Only the executing worker owns live state. This prevents API reads from shadowing stored worker progress and completed judgments with a stale "running" snapshot. A database-backed regression checks detail reads, list reads, and organization isolation.
+- Missing optional local Codex authentication is a debug message. Production uses organization credentials and does not need a local auth file.

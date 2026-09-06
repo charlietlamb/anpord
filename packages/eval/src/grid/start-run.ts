@@ -1,17 +1,13 @@
-import { Clock, Effect, Option } from "effect";
+import { Effect } from "effect";
 import { cellKeyOf } from "../domain/cell";
 import { renderPrompt } from "../domain/prompt";
 import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
-import type { LiveRuns } from "./live-runs";
 import { makeRegisterCases } from "./register-cases";
 import { makeRegisterProfiles } from "./register-profiles";
 import type { ResumeGrid, StartGrid } from "./run";
-import { type GridCell, projectTask } from "./state";
-import { WORKSPACE } from "./trial";
 
 export const makeStartRun = (
-  live: LiveRuns,
   execute: (grid: ResumeGrid) => Effect.Effect<void>
 ) =>
   Effect.gen(function* () {
@@ -22,7 +18,6 @@ export const makeStartRun = (
 
     return (input: StartGrid) =>
       Effect.gen(function* () {
-        const startedAt = yield* Clock.currentTimeMillis;
         const cellCount = input.cases.length * input.tasks.length;
 
         const created = yield* runs.insert({
@@ -35,47 +30,6 @@ export const makeStartRun = (
 
         const registered = yield* registerCases(input);
         const profiles = yield* registerProfiles(input);
-
-        const cells = input.tasks.flatMap((_, taskIndex) =>
-          input.cases.map(
-            (subject): GridCell => ({
-              caseName: subject.name,
-              cellKey: null,
-              distribution: Option.none(),
-              internalId: null,
-              live: new Map(),
-              setup: Option.some({
-                prompt: renderPrompt(input.prompt, subject.variables),
-                repoRef:
-                  subject.source.kind === "repo" ? subject.source.ref : null,
-                repoUrl:
-                  subject.source.kind === "repo" ? subject.source.url : null,
-                prepareName: subject.prepare?.name ?? null,
-                validatorName: subject.validator?.name ?? null,
-                verifyCommand: subject.verify,
-                workspace: WORKSPACE,
-              }),
-              status: "running",
-              taskIndex,
-              trials: Array.from({ length: input.trials }, () => Option.none()),
-            })
-          )
-        );
-
-        yield* live.publish({
-          cases: input.cases.map((subject) => subject.name),
-          cells,
-          failure: Option.none(),
-          finishedAt: Option.none(),
-          id: created.id,
-          name: input.name,
-          organizationId: input.organizationId,
-          startedAt,
-          status: "running",
-          tasks: input.tasks.map((task, taskIndex) =>
-            projectTask(task, profiles[taskIndex] ?? null)
-          ),
-        });
 
         /* Written before handover, because an out-of-process runner rebuilds the
            grid from these rows. Idempotent, so creating them again is the same rows. */

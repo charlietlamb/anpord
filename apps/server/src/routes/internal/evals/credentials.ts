@@ -23,9 +23,9 @@ export const EvalCredentialsLive = Layer.effect(
 
     const codexAuth = yield* fs.readFileString(path).pipe(
       Effect.tapError(() =>
-        Effect.logWarning(
-          "No Codex auth file, so eval runs will fail until one exists"
-        ).pipe(Effect.annotateLogs({ path }))
+        Effect.logDebug("No local Codex auth fallback configured").pipe(
+          Effect.annotateLogs({ path })
+        )
       ),
       Effect.orElseSucceed(() => "")
     );
