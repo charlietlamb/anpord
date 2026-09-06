@@ -3,6 +3,7 @@ import {
   AlibabaMark,
   AnthropicMark,
   CerebrasMark,
+  ClaudeMark,
   CloudflareMark,
   CursorMark,
   DaytonaMark,
@@ -34,7 +35,7 @@ interface Presentation {
 }
 
 const HARNESSES: Record<EvalHarness, Presentation> = {
-  claude: { Icon: AnthropicMark, label: "Claude Code" },
+  claude: { Icon: ClaudeMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
   /* No vendor mark: the process is the customer's own, named by the profile beside it. */
   command: { Icon: TerminalWindowIcon, label: "Command" },

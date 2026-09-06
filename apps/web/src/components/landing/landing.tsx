@@ -1,5 +1,5 @@
 import {
-  AnthropicMark,
+  ClaudeMark,
   CloudflareMark,
   CursorMark,
   DaytonaMark,
@@ -41,7 +41,7 @@ const HARNESSES: readonly Vendor[] = [
     name: "Codex",
   },
   {
-    Mark: AnthropicMark,
+    Mark: ClaudeMark,
     href: "https://claude.com/product/claude-code",
     name: "Claude Code",
   },
