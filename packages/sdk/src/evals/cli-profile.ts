@@ -12,7 +12,7 @@ type EvalTask = PublicStartEvalRequest["tasks"][number];
 export interface CompiledCli {
   readonly entry: string;
   readonly files: Readonly<Record<string, string>>;
-  readonly name: string;
+  readonly path: string;
 }
 
 export const compileClis = (
@@ -20,9 +20,9 @@ export const compileClis = (
   definitions: readonly CliDefinition[]
 ) =>
   Effect.gen(function* () {
-    const names = definitions.map(({ name }) => name);
-    const duplicate = names.find(
-      (name, index) => names.indexOf(name) !== index
+    const paths = definitions.map(({ path }) => path);
+    const duplicate = paths.find(
+      (path, index) => paths.indexOf(path) !== index
     );
     if (duplicate !== undefined) {
       return yield* Effect.fail(new Error(`Duplicate CLI: ${duplicate}`));
@@ -38,7 +38,7 @@ export const compileClis = (
               "cli.mjs",
               source
             ),
-            name: definition.name,
+            path: definition.path,
           }))
         ),
       { concurrency: 4 }
@@ -70,9 +70,12 @@ export const withClis = (
 
   const install = [
     "mkdir -p ~/.local/bin",
-    ...clis.flatMap(({ entry, name }) => {
-      const path = entry.slice("workspace/".length);
-      return [`chmod +x ${path}`, `ln -sf "$PWD/${path}" ~/.local/bin/${name}`];
+    ...clis.flatMap(({ entry, path }) => {
+      const executable = entry.slice("workspace/".length);
+      return [
+        `chmod +x ${executable}`,
+        `ln -sf "$PWD/${executable}" ~/.local/bin/${path}`,
+      ];
     }),
   ].join(" && ");
 

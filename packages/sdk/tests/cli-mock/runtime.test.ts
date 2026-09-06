@@ -16,7 +16,7 @@ afterEach(async () => {
 });
 
 const getServer = command({
-  name: "servers get",
+  path: ["servers", "get"],
   description: "Get a server",
   inputSchema: z.object({
     json: z.boolean().default(false),
@@ -31,7 +31,7 @@ const getServer = command({
 });
 
 const fixture = cli({
-  name: "mcp-use",
+  path: "mcp-use",
   version: "1.0.0",
   description: "Manage MCP servers",
   commands: [getServer],
@@ -95,7 +95,7 @@ describe("CLI mocks", () => {
   });
 
   test("rejects invalid and duplicate declarations", () => {
-    expect(() => cli({ ...fixture, name: "Not Valid" })).toThrow();
+    expect(() => cli({ ...fixture, path: "Not Valid" })).toThrow();
     expect(() => cli({ ...fixture, commands: [getServer, getServer] })).toThrow(
       "Duplicate CLI command: servers get"
     );

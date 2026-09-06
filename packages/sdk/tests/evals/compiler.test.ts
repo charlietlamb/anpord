@@ -48,10 +48,10 @@ import { cli, command } from "anpord/cli";
 import { server, tool } from "anpord/mcp";
 import { z } from "zod";
 const client = cli({
-  name: "example-cli",
+  path: "example-cli",
   version: "1.0.0",
   commands: [command({
-    name: "users get",
+    path: ["users", "get"],
     inputSchema: z.object({ id: z.string() }),
     outputSchema: z.object({ id: z.string() }),
     options: { id: { type: "string" } },

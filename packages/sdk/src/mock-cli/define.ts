@@ -25,11 +25,11 @@ export interface CliCommandDefinition<
     context: CliHandlerContext
   ): Awaitable<StandardSchemaV1.InferInput<Output>>;
   readonly inputSchema: Input;
-  readonly name: string;
   readonly options: {
     readonly [Key in Extract<keyof InputOf<Input>, string>]: CliOption;
   };
   readonly outputSchema: Output;
+  readonly path: readonly [string, ...string[]];
 }
 
 type CliCommandOptions<
@@ -62,14 +62,14 @@ export interface CliDefinition {
   readonly _tag: "Cli";
   readonly commands: readonly CliCommandDefinition[];
   readonly description?: string;
-  readonly name: string;
+  readonly path: string;
   readonly version: string;
 }
 
 type CliOptions = Omit<CliDefinition, "_tag">;
 
-const NAME = /^[a-z0-9][a-z0-9_-]{0,63}$/;
-const COMMAND = /^[a-z0-9][a-z0-9-]*(?: [a-z0-9][a-z0-9-]*)*$/;
+const CLI_PATH = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const COMMAND_PATH = /^[a-z0-9][a-z0-9-]*$/;
 const OPTION = /^--[a-z0-9][a-z0-9-]*$/;
 
 export const optionName = (key: string, option: CliOption) =>
@@ -80,9 +80,9 @@ const duplicateOf = (values: readonly string[]) =>
   values.find((value, index) => values.indexOf(value) !== index);
 
 export const cli = (definition: CliOptions): CliDefinition => {
-  if (!NAME.test(definition.name)) {
+  if (!CLI_PATH.test(definition.path)) {
     throw new Error(
-      "CLI names need 1-64 lowercase letters, digits, underscores, or hyphens"
+      "CLI paths need 1-64 lowercase letters, digits, underscores, or hyphens"
     );
   }
   if (!definition.version.trim()) {
@@ -90,8 +90,11 @@ export const cli = (definition: CliOptions): CliDefinition => {
   }
 
   for (const item of definition.commands) {
-    if (!COMMAND.test(item.name)) {
-      throw new Error(`Invalid CLI command: ${item.name}`);
+    if (
+      item.path.length === 0 ||
+      !item.path.every((part) => COMMAND_PATH.test(part))
+    ) {
+      throw new Error(`Invalid CLI command: ${item.path.join(" ")}`);
     }
     const options = Object.entries(item.options).map(([key, value]) =>
       optionName(key, value)
@@ -106,7 +109,9 @@ export const cli = (definition: CliOptions): CliDefinition => {
     }
   }
 
-  const duplicate = duplicateOf(definition.commands.map(({ name }) => name));
+  const duplicate = duplicateOf(
+    definition.commands.map(({ path }) => path.join(" "))
+  );
   if (duplicate !== undefined) {
     throw new Error(`Duplicate CLI command: ${duplicate}`);
   }

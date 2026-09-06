@@ -13,12 +13,12 @@ import { z } from "zod";
 const user = { id: "user_1", name: "Ada" };
 
 const client = cli({
-  name: "example",
+  path: "example",
   version: "1.0.0",
   description: "Manage users",
   commands: [
     command({
-      name: "users get",
+      path: ["users", "get"],
       description: "Get a user by ID",
       inputSchema: z.object({ id: z.string() }),
       outputSchema: z.object({ id: z.string(), name: z.string() }),

@@ -44,7 +44,7 @@ const commandHelp = (definition: CliDefinition, item: CliCommandDefinition) => {
       `  ${optionName(key, option)}${option.type === "string" ? " <value>" : ""}${option.description ? `  ${option.description}` : ""}`
   );
   return [
-    `Usage: ${definition.name} ${item.name} [options]`,
+    `Usage: ${definition.path} ${item.path.join(" ")} [options]`,
     item.description,
     options.length
       ? `Options:\n${options.join("\n")}\n  -h, --help`
@@ -56,9 +56,9 @@ const commandHelp = (definition: CliDefinition, item: CliCommandDefinition) => {
 
 const rootHelp = (definition: CliDefinition) =>
   [
-    `Usage: ${definition.name} <command> [options]`,
+    `Usage: ${definition.path} <command> [options]`,
     definition.description,
-    `Commands:\n${definition.commands.map(({ description, name }) => `  ${name}${description ? `  ${description}` : ""}`).join("\n")}`,
+    `Commands:\n${definition.commands.map(({ description, path }) => `  ${path.join(" ")}${description ? `  ${description}` : ""}`).join("\n")}`,
     "Options:\n  -h, --help\n  -v, --version",
   ]
     .filter(Boolean)
@@ -66,11 +66,8 @@ const rootHelp = (definition: CliDefinition) =>
 
 const selectedCommand = (definition: CliDefinition, args: readonly string[]) =>
   [...definition.commands]
-    .sort((left, right) => right.name.length - left.name.length)
-    .find(({ name }) => {
-      const path = name.split(" ");
-      return path.every((part, index) => args[index] === part);
-    });
+    .sort((left, right) => right.path.length - left.path.length)
+    .find(({ path }) => path.every((part, index) => args[index] === part));
 
 const parseOptions = (item: CliCommandDefinition, args: readonly string[]) => {
   const options = new Map<
@@ -144,7 +141,7 @@ export const executeCli = (
       };
     }
 
-    const rest = args.slice(item.name.split(" ").length);
+    const rest = args.slice(item.path.length);
     if (rest[0] === "--help" || rest[0] === "-h") {
       return {
         exitCode: 0,
@@ -168,8 +165,8 @@ export const executeCli = (
           ),
       }).pipe(Effect.flatMap((value) => decode(item.outputSchema, value)));
       yield* append(journal, {
-        cli: definition.name,
-        command: item.name,
+        cli: definition.path,
+        command: item.path.join(" "),
         input: decoded,
         output,
       });
@@ -181,8 +178,8 @@ export const executeCli = (
     }).pipe(
       Effect.catchAll((cause) =>
         append(journal, {
-          cli: definition.name,
-          command: item.name,
+          cli: definition.path,
+          command: item.path.join(" "),
           error: errorOf(cause).message,
           input,
         }).pipe(

@@ -113,11 +113,11 @@ import { defineEval } from "anpord";
 import { cli, command } from "anpord/cli";
 
 const client = cli({
-  name: "example",
+  path: "example",
   version: "1.0.0",
   commands: [
     command({
-      name: "users get",
+      path: ["users", "get"],
       inputSchema: z.object({ id: z.string() }),
       outputSchema: z.object({ id: z.string(), name: z.string() }),
       options: { id: { type: "string" } },
