@@ -4,8 +4,10 @@ import { shortId } from "@/lib/evals/short-id";
 
 export const Route = createFileRoute("/_authed/evals/$runId")({
   ssr: false,
+  /* Ensured rather than prefetched: every screen under this route reads the
+     same run, and the breadcrumb reads it synchronously from the cache. */
   loader: ({ context, params }) =>
-    context.queryClient.prefetchQuery(evalQueries.detail(params.runId)),
+    context.queryClient.ensureQueryData(evalQueries.detail(params.runId)),
   component: RunLayout,
   staticData: {
     crumb: (params, queryClient) => {

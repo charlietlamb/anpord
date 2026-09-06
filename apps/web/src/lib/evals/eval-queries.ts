@@ -16,11 +16,13 @@ import {
 const DETAIL_POLL_MS = 2000;
 const LIST_POLL_MS = 5000;
 
+/* The poll below owns freshness while a run moves; staleTime 0 here made every
+   hop between a run, its cells and its trials refetch the same data. */
 const LIVE = {
   refetchIntervalInBackground: false,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
-  staleTime: 0,
+  staleTime: DETAIL_POLL_MS,
 } as const;
 
 /* Polls only while a run is still moving, so a finished page stops polling itself. */

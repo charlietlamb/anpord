@@ -14,8 +14,11 @@ import { evalQueries } from "@/lib/evals/eval-queries";
 export const Route = createFileRoute("/_authed/evals/$runId/cells/$cellKey/")({
   component: CellScreen,
   ssr: false,
-  loader: ({ context, params }) =>
-    context.queryClient.prefetchQuery(evalQueries.history(params.cellKey)),
+  /* Not returned: the run this screen renders from is already ensured by the
+     parent, so history streams in rather than holding the navigation. */
+  loader: ({ context, params }) => {
+    context.queryClient.prefetchQuery(evalQueries.history(params.cellKey));
+  },
 });
 
 function CellScreen() {

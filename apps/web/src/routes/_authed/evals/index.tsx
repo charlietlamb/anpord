@@ -17,7 +17,7 @@ import { useCursorStack } from "@/lib/use-cursor-stack";
 export const Route = createFileRoute("/_authed/evals/")({
   ssr: false,
   loader: ({ context }) =>
-    context.queryClient.prefetchQuery(evalQueries.list(null)),
+    context.queryClient.ensureQueryData(evalQueries.list(null)),
   component: EvalsIndex,
 });
 

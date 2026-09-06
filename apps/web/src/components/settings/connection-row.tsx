@@ -12,7 +12,6 @@ import {
 } from "@anpord/ui/components/dropdown-menu";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { DotsThreeIcon } from "@phosphor-icons/react";
-import { DateTime } from "effect";
 import { ListRow, RowTitle } from "@/components/layout/list-row";
 import { ROW_ACTION } from "@/components/layout/row-action";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
@@ -38,7 +37,7 @@ export function ConnectionRow({
   );
   const own = integrationPresentation(integration);
   const used = useRelativeTime(
-    DateTime.toDateUtc(connection.lastUsedAt ?? connection.createdAt)
+    new Date((connection.lastUsedAt ?? connection.createdAt).epochMillis)
   );
 
   return (
