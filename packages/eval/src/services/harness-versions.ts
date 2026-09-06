@@ -3,11 +3,11 @@ import type { HarnessName } from "../domain/cell";
 
 const config = Config.all({
   claude: Config.string("EVAL_CLAUDE_VERSION").pipe(
-    Config.withDefault("2.1.241")
+    Config.withDefault("2.1.263")
   ),
   codex: Config.string("EVAL_CODEX_VERSION").pipe(
     Config.orElse(() => Config.string("EVAL_HARNESS_VERSION")),
-    Config.withDefault("0.149.0")
+    Config.withDefault("0.153.4")
   ),
   /* The command harness installs nothing of ours, so there is no version to
      pin: what moves between two readings is the profile's version. */
@@ -17,13 +17,13 @@ const config = Config.all({
   ),
   fx: Config.string("EVAL_FX_VERSION").pipe(Config.withDefault("v0.0.5")),
   gemini: Config.string("EVAL_GEMINI_VERSION").pipe(
-    Config.withDefault("0.56.0")
+    Config.withDefault("0.58.0")
   ),
   opencode: Config.string("EVAL_OPENCODE_VERSION").pipe(
-    Config.withDefault("1.18.21")
+    Config.withDefault("1.18.29")
   ),
   pi: Config.string("EVAL_PI_VERSION").pipe(Config.withDefault("0.84.2")),
-  qwen: Config.string("EVAL_QWEN_VERSION").pipe(Config.withDefault("0.22.0")),
+  qwen: Config.string("EVAL_QWEN_VERSION").pipe(Config.withDefault("0.23.0")),
 });
 
 export interface HarnessVersionsShape {
