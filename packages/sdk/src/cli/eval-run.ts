@@ -20,7 +20,7 @@ class EvalWaitTimeout extends Data.TaggedError("EvalWaitTimeout")<{
 export const waitForRun = (
   id: string,
   onProgress: (run: EvalRun, elapsedMs: number) => Effect.Effect<void>,
-  timeoutSeconds = 1200
+  timeoutSeconds: number
 ) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
