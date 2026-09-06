@@ -1,6 +1,6 @@
-import { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
+import type { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
 import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
-import { Effect, Schema } from "effect";
+import { fromWire } from "@/lib/wire";
 
 const BASE = "/api/activity";
 
@@ -41,5 +41,5 @@ export const listActivity = async (
   const response = await send(query.size > 0 ? `?${query}` : "");
   const payload = await response.json();
 
-  return Effect.runPromise(Schema.decodeUnknown(PromptActivityPage)(payload));
+  return fromWire<PromptActivityPage>(payload);
 };

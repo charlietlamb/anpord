@@ -1,9 +1,7 @@
-import { Channel } from "@anpord/schema/domain/channels";
-import { Effect, Schema } from "effect";
+import type { Channel } from "@anpord/schema/domain/channels";
+import { fromWire } from "@/lib/wire";
 
 const BASE = "/api/channels";
-
-const ChannelList = Schema.Array(Channel);
 
 async function send(path: string, init?: RequestInit): Promise<Response> {
   const response = await fetch(`${BASE}${path}`, {
@@ -20,27 +18,22 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   return response;
 }
 
-async function request<A, I>(
-  schema: Schema.Schema<A, I>,
-  path: string,
-  init?: RequestInit
-): Promise<A> {
+async function request<A>(path: string, init?: RequestInit): Promise<A> {
   const response = await send(path, init);
-  const payload = await response.json();
 
-  return Effect.runPromise(Schema.decodeUnknown(schema)(payload));
+  return fromWire<A>(await response.json());
 }
 
-export const listChannels = () => request(ChannelList, "");
+export const listChannels = () => request<readonly Channel[]>("");
 
 export const createChannel = (body: { color: string; name: string }) =>
-  request(Channel, "", { body: JSON.stringify(body), method: "POST" });
+  request<Channel>("", { body: JSON.stringify(body), method: "POST" });
 
 export const updateChannel = (
   name: string,
   body: { color?: string; name?: string }
 ) =>
-  request(Channel, `/${encodeURIComponent(name)}`, {
+  request<Channel>(`/${encodeURIComponent(name)}`, {
     body: JSON.stringify(body),
     method: "PATCH",
   });
