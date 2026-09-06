@@ -1,6 +1,8 @@
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import {
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -15,6 +17,7 @@ export const evalRun = pgTable(
     internalId: text("internal_id").primaryKey(),
     id: text("id").notNull(),
     name: text("name"),
+    trigger: jsonb("trigger").$type<EvalTrigger>(),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),

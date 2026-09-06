@@ -4,6 +4,19 @@ sidebarTitle: "Results"
 description: "Read outcomes and inspect each attempt"
 ---
 
+## Run origin
+
+Each run records a `trigger`: Dashboard, CLI, CI, API, or MCP. It appears in the
+run list, details, and history. Trials inherit their run's origin.
+
+The CLI and MCP set it automatically. Direct API calls default to API. Other
+automation can supply `trigger: { source: "ci", url: "https://ci.example/run/123" }`
+when starting or rerunning an eval. This metadata describes the caller; it
+does not grant permissions or verify a CI provider's identity.
+
+Resuming preserves the original trigger. Running again records the new caller.
+Older runs show Unknown.
+
 `evals.start` returns a run id while trials continue on the server. `startAndWait` starts a run and resolves once it stops:
 
 ```ts

@@ -31,6 +31,7 @@ const detailWith = (status: string): RunDetail =>
       },
     ],
     run: {
+      trigger: null,
       createdAt: new Date(0),
       failure: null,
       finishedAt: null,

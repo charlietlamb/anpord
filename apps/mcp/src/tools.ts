@@ -70,11 +70,18 @@ export const register = (server: MCPServer<AnpordUser>) => {
         "Start an eval run. Returns an id while trials continue in the background. " +
         "A task may carry a profile: files under home/ or workspace/, a system prompt and env. " +
         PROFILE_HARNESS_RULE,
-      inputSchema: toolInput(PublicStartEvalRequest),
+      inputSchema: toolInput(PublicStartEvalRequest.omit("trigger")),
       name: "start_eval_run",
     },
     (payload, ctx) =>
-      callApi(ctx, (api) => Effect.map(api.evals.start({ payload }), asJson))
+      callApi(ctx, (api) =>
+        Effect.map(
+          api.evals.start({
+            payload: { ...payload, trigger: { source: "mcp" } },
+          }),
+          asJson
+        )
+      )
   );
 
   server.tool(
@@ -102,12 +109,17 @@ export const register = (server: MCPServer<AnpordUser>) => {
   server.tool(
     {
       description: "Run one cell again with the same case and variant.",
-      inputSchema: toolInput(RerunCell),
+      inputSchema: toolInput(RerunCell.omit("trigger")),
       name: "rerun_eval_cell",
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
-        Effect.map(api.evals.rerunCell({ payload }), asJson)
+        Effect.map(
+          api.evals.rerunCell({
+            payload: { ...payload, trigger: { source: "mcp" } },
+          }),
+          asJson
+        )
       )
   );
 

@@ -49,6 +49,10 @@ The default `strict` gate requires every expected trial to pass. Failed, void,
 missing, and unfinished trials fail the job, including a suite's first run.
 Run links appear in the job summary as soon as submission succeeds.
 
+The dashboard labels these runs **CI** and links back to the exact GitHub
+Actions attempt. The CLI reads GitHub's existing environment; no extra setup
+or environment overrides are needed.
+
 | Input | Default | Purpose |
 | --- | --- | --- |
 | `api-key` | Required | Anpord API key |

@@ -151,6 +151,7 @@ export const WorkbenchesLive = Layer.effect(
           organizationId: input.organizationId,
           prompt: config.prompt,
           startedBy: input.startedBy,
+          trigger: { source: "dashboard" },
           tasks,
           trials: config.trials,
         });

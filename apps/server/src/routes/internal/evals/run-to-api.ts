@@ -43,6 +43,7 @@ export const summarise = (state: GridRunState): EvalRunSummary => ({
   id: state.id,
 
   name: state.name,
+  trigger: state.trigger,
   startedAt: DateTime.unsafeMake(state.startedAt),
   status: state.status,
   taskCount: state.tasks.length,
@@ -64,6 +65,7 @@ export const detail = (
     ),
     id: state.id,
     name: state.name,
+    trigger: state.trigger,
     startedAt: DateTime.unsafeMake(state.startedAt),
     status: state.status,
 

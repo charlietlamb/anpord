@@ -69,6 +69,7 @@ export const createCell = (overrides: Partial<EvalCell> = {}): EvalCell => ({
 });
 
 export const createRun = (overrides: Partial<EvalRun> = {}): EvalRun => ({
+  trigger: null,
   cases: ["fixture"],
   cells: [createCell()],
   costs: null,

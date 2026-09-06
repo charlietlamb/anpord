@@ -1,4 +1,5 @@
 import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
+import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { Option, Schema } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
@@ -162,6 +163,9 @@ export const runToState = (
     ),
     id: detail.run.id,
     name: detail.run.name,
+    trigger: Schema.decodeUnknownSync(Schema.NullOr(EvalTrigger))(
+      detail.run.trigger
+    ),
     organizationId: detail.run.organizationId,
     startedAt: detail.run.createdAt.getTime(),
     status: statusOf(detail.run.status),

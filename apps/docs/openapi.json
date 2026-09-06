@@ -527,6 +527,9 @@
                   "cellKey": {
                     "type": "string"
                   },
+                  "trigger": {
+                    "$ref": "#/components/schemas/EvalTrigger"
+                  },
                   "trials": {
                     "$ref": "#/components/schemas/Int",
                     "description": "a number between 1 and 10",
@@ -1175,6 +1178,16 @@
           "voided"
         ],
         "properties": {
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "caseCount": {
             "$ref": "#/components/schemas/Int"
           },
@@ -1273,6 +1286,32 @@
         },
         "additionalProperties": false,
         "description": "A compact eval run returned by the run list."
+      },
+      "EvalTrigger": {
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "dashboard",
+              "api",
+              "cli",
+              "ci",
+              "mcp"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "a string at most 2048 character(s) long",
+            "title": "maxLength(2048)",
+            "maxLength": 2048
+          }
+        },
+        "additionalProperties": false,
+        "description": "What started this run. Client-reported context, not authorization."
       },
       "EvalTask": {
         "type": "object",
@@ -1548,6 +1587,9 @@
           "trials"
         ],
         "properties": {
+          "trigger": {
+            "$ref": "#/components/schemas/EvalTrigger"
+          },
           "cases": {
             "type": "array",
             "items": {
@@ -2255,6 +2297,16 @@
           "tasks"
         ],
         "properties": {
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "cases": {
             "type": "array",
             "items": {
@@ -3206,6 +3258,16 @@
           "trials"
         ],
         "properties": {
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "distribution": {
             "$ref": "#/components/schemas/EvalDistribution"
           },

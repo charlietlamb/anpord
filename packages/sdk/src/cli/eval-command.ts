@@ -10,6 +10,7 @@ import { importEval } from "./eval-import";
 import type { EvalOutcome } from "./eval-outcome";
 import { reportFinished, reportStarted, writeReport } from "./eval-report";
 import { waitForRun } from "./eval-run";
+import { evalTrigger } from "./eval-trigger";
 import { buildGithubCheck } from "./github-check";
 import { postCheckRun } from "./github-check-client";
 import { githubContext } from "./github-context";
@@ -58,7 +59,10 @@ const runOneEval = (
     return yield* Effect.gen(function* () {
       const api = yield* AnpordApi;
       const payload = yield* compileEvalEffect(file);
-      const started = yield* api.evals.start({ payload });
+      const trigger = yield* evalTrigger;
+      const started = yield* api.evals.start({
+        payload: { ...payload, trigger },
+      });
       runId = started.id;
       yield* reportStarted(file, runId);
       const pending: EvalOutcome = { file, runId, problems: [], run: null };

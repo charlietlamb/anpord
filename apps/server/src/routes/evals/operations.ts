@@ -97,6 +97,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
       organizationId: actor.organizationId,
       prompt: payload.prompt,
       startedBy: authorIdOf(actor),
+      trigger: payload.trigger ?? { source: "api" },
       tasks,
       trials: payload.trials,
     });
@@ -181,6 +182,7 @@ export const rerunEvalCell = (
       organizationId: actor.organizationId,
       runId: input.id,
       startedBy: authorIdOf(actor),
+      trigger: input.trigger ?? { source: "api" },
       trials: input.trials,
     });
     return { id };

@@ -1,3 +1,4 @@
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { EvalTrial } from "@anpord/schema/domain/evals";
 import {
   Tooltip,
@@ -19,6 +20,7 @@ import type { ReactNode } from "react";
 import { CommandsHint } from "@/components/evals/commands-hint";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { TrialStatusIcon } from "@/components/evals/eval-status-badge";
+import { RunTrigger } from "@/components/evals/run-trigger";
 import { TrialCost } from "@/components/evals/trial-cost";
 import { TrialJudgments } from "@/components/evals/trial-judgments";
 import { VoidReason } from "@/components/evals/void-reason";
@@ -81,7 +83,13 @@ const commandsValue = (trial: EvalTrial) =>
     : `${trial.commands} commands, ${trial.failedCommands} failed`;
 
 /* The time breakdown deliberately does not sum to the total: the journal records fewer ms than the phase took. */
-export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
+export function TrialRail({
+  trial,
+  trigger = null,
+}: {
+  readonly trial: EvalTrial;
+  readonly trigger?: EvalTrigger | null;
+}) {
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;
   const trialTotalMs =
@@ -94,6 +102,9 @@ export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
 
   return (
     <aside className={RAIL_FRAME}>
+      <RailSection title="Started via">
+        <RunTrigger linked trigger={trigger} />
+      </RailSection>
       <RailSection title="Outcome">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">

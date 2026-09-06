@@ -76,6 +76,7 @@ export const rebuildRun = (
         organizationId: input.organizationId,
         prompt: first.prompt,
         startedBy: null,
+        trigger: first.trigger,
         tasks,
         trials: first.trialsPerCell,
       },

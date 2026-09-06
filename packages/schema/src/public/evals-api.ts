@@ -8,6 +8,7 @@ import {
   MAX_START_TASKS,
   MAX_START_TRIALS,
 } from "../domain/eval-quota";
+import { EvalTrigger } from "../domain/eval-trigger";
 import {
   CaseCache,
   EvalCellHistoryEntry,
@@ -96,6 +97,7 @@ const PublicEvalTask = Schema.Struct({
     identifier: "StartEvalTask",
   });
 export const PublicStartEvalRequest = Schema.Struct({
+  trigger: Schema.optional(EvalTrigger),
   cases: Schema.Array(PublicEvalCase).pipe(
     Schema.minItems(1),
     Schema.maxItems(MAX_START_CASES)

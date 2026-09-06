@@ -25,6 +25,7 @@ export const makeStartRun = (
           name: input.name,
           organizationId: input.organizationId,
           startedBy: input.startedBy,
+          trigger: input.trigger,
           trialCount: cellCount * input.trials,
         });
 

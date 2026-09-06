@@ -5,6 +5,7 @@ import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
+import { authorIdOf } from "@anpord/schema/domain/actor";
 import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
@@ -75,7 +76,8 @@ export const EvalsHandlers = HttpApiBuilder.group(
                 legacyHarnessAuth: credentials.codexAuth,
                 organizationId: actor.organizationId,
                 runId: path.id,
-                startedBy: null,
+                startedBy: authorIdOf(actor),
+                trigger: { source: "dashboard" },
                 trials: payload.trials,
               })
               .pipe(

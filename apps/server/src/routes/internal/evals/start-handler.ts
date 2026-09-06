@@ -2,6 +2,7 @@ import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { GridRun } from "@anpord/eval/grid/run";
+import { authorIdOf } from "@anpord/schema/domain/actor";
 import { BadRequest } from "@anpord/schema/domain/errors";
 import { trialsRequested } from "@anpord/schema/domain/eval-quota";
 import type { StartEvalRequest } from "@anpord/schema/domain/evals";
@@ -55,7 +56,8 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
       name: payload.name ?? null,
       organizationId: actor.organizationId,
       prompt: payload.prompt,
-      startedBy: null,
+      startedBy: authorIdOf(actor),
+      trigger: { source: "dashboard" },
       tasks,
       trials: payload.trials,
     });

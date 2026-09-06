@@ -9,6 +9,7 @@ import type { CellTask } from "../repositories/run-tasks-query";
 import { make } from "./cell-rerun";
 
 const cellTask = (source: WorkspaceSource | null): CellTask => ({
+  trigger: { source: "ci" },
   cacheKey: null,
   cachePath: null,
   cell: {
@@ -87,6 +88,7 @@ const rerun = (
       organizationId: "org_id",
       runId: "run_id",
       startedBy: "user_id",
+      trigger: { source: "dashboard" },
       trials: 2,
     });
   }).pipe(
@@ -113,6 +115,7 @@ test("cell reruns preserve file workspaces", async () => {
   expect(started?.prompt).toBe("Fix the browser task");
   expect(started?.cases[0]?.source).toEqual(source);
   expect(started?.trials).toBe(2);
+  expect(started?.trigger).toEqual({ source: "dashboard" });
 });
 
 test("cell reruns refuse legacy rows without a workspace snapshot", async () => {

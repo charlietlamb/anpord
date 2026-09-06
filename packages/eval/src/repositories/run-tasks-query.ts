@@ -3,6 +3,7 @@ import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import type { WorkspaceSource } from "../domain/workspace-source";
@@ -35,6 +36,7 @@ const resolveSource = (row: TaskSource): WorkspaceSource | null => {
 type CellProfile = typeof evalHarnessProfile.$inferSelect;
 
 export interface CellTask {
+  readonly trigger: EvalTrigger | null;
   readonly cacheKey: string | null;
   readonly cachePath: string | null;
   readonly cell: CellRow;
@@ -67,6 +69,7 @@ export interface CellTaskInput {
 }
 
 const CELL_TASK_COLUMNS = {
+  trigger: evalRun.trigger,
   cacheKey: evalTask.cacheKey,
   cachePath: evalTask.cachePath,
   cell: evalCell,

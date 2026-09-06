@@ -2,6 +2,7 @@ import type {
   CredentialBindings,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
@@ -77,6 +78,7 @@ export interface GridCell {
 }
 
 export interface GridRunState {
+  readonly trigger: EvalTrigger | null;
   readonly cases: readonly string[];
   readonly cells: readonly GridCell[];
   readonly failure: Option.Option<string>;

@@ -1,6 +1,7 @@
 import type { EvalRunSummary } from "@anpord/schema/domain/evals";
 import { RunStatusIcon } from "@/components/evals/eval-status-badge";
 import { OutcomeSummary } from "@/components/evals/outcome-summary";
+import { RunTrigger } from "@/components/evals/run-trigger";
 import { SignalTip } from "@/components/evals/signal-tip";
 import { VariantMarks } from "@/components/evals/variant-marks";
 import { ListRow, RowTitle } from "@/components/layout/list-row";
@@ -18,6 +19,9 @@ export function EvalRow({ run }: { readonly run: EvalRunSummary }) {
       leading={<RunStatusIcon failure={run.failure} status={run.status} />}
       meta={
         <>
+          <span className="flex w-20 justify-end text-xs">
+            <RunTrigger trigger={run.trigger} />
+          </span>
           <span className="flex w-20 justify-end">
             <VariantMarks columns={run.columns} />
           </span>

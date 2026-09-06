@@ -65,7 +65,7 @@ function TrialScreen() {
         )}
       </EvalMain>
 
-      <TrialRail trial={trial} />
+      <TrialRail trial={trial} trigger={run.trigger} />
     </EvalLayout>
   );
 }

@@ -1,6 +1,7 @@
 import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
 import { clock, dayOf } from "@/lib/evals/duration";
 import { shortProfileVersion } from "@/lib/evals/profile-version";
+import { triggerLabel } from "@/lib/evals/run-trigger";
 import { shortId } from "@/lib/evals/short-id";
 
 export type ReadingTone = "critical" | "pending" | "positive" | "running";
@@ -70,7 +71,7 @@ export const readingsOf = (
 
   return ordered.map((entry, index) => ({
     entry,
-    title: `Run ${shortId(entry.runId)} · ${
+    title: `Run ${shortId(entry.runId)} · ${triggerLabel(entry.trigger)} · ${
       entry.finishedAt === null
         ? "running"
         : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionsOf(entry, ordered[index - 1])}`
