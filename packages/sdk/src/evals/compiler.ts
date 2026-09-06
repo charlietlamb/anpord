@@ -35,7 +35,7 @@ const taskOf = (
         ? {
             harness: task.harness,
             model: task.model,
-            provider: task.provider,
+            sandbox: task.sandbox,
           }
         : yield* profileTask(entry, { ...task, harness: task.harness });
 

@@ -1,4 +1,4 @@
-import { EvalProvider } from "@anpord/schema/domain/evals";
+import { EvalSandbox } from "@anpord/schema/domain/evals";
 import {
   Clock,
   Context,
@@ -61,7 +61,7 @@ export const SandboxReaperLive = Layer.effect(
         /* Decoded here rather than asserted at the query: a provider this
            build cannot name is a warning naming the sandbox that outlived
            it, which is what the operator needs to go and kill it by hand. */
-        const provider = yield* Schema.decodeUnknown(EvalProvider)(
+        const provider = yield* Schema.decodeUnknown(EvalSandbox)(
           found.provider
         );
 

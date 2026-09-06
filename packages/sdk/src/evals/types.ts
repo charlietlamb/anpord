@@ -21,7 +21,7 @@ export type HarnessRef =
 export interface EvalTaskDefinition {
   readonly harness: HarnessRef;
   readonly model: EvalTaskRequest["model"];
-  readonly provider: EvalTaskRequest["provider"];
+  readonly sandbox?: EvalTaskRequest["sandbox"];
 }
 
 export interface CommandResult {

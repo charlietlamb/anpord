@@ -15,7 +15,7 @@ const evalCase = {
 const task = {
   harness: "codex" as const,
   model: "gpt-5.6-sol",
-  provider: "upstash" as const,
+  sandbox: "upstash" as const,
 };
 
 const request = {

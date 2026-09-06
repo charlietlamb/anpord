@@ -1,4 +1,5 @@
 import {
+  type PlaygroundConfig,
   readinessOf,
   ungatedCasesIn,
 } from "@anpord/eval/domain/playground-config";
@@ -10,8 +11,30 @@ import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { DateTime, Effect, Option } from "effect";
 import { EvalCredentials } from "./credentials";
 
+type ConfigView = PlaygroundView["config"];
+
+/* The stored config and the wire shape differ in one field: rows written before
+   the rename still say `provider`, so translate rather than migrate. */
+const asConfigView = (config: PlaygroundConfig): ConfigView => ({
+  ...config,
+  columns: config.columns.map(({ harness, model, provider }) => ({
+    harness,
+    model,
+    sandbox: provider,
+  })),
+});
+
+const asStoredConfig = (config: ConfigView): PlaygroundConfig => ({
+  ...config,
+  columns: config.columns.map(({ harness, model, sandbox }) => ({
+    harness,
+    model,
+    provider: sandbox,
+  })),
+});
+
 const view = (workbench: Workbench): PlaygroundView => ({
-  config: workbench.config,
+  config: asConfigView(workbench.config),
   id: workbench.id,
   lastRunId: workbench.lastRunId,
   name: workbench.name,
@@ -64,7 +87,7 @@ export const getPlayground = (id: string) =>
 export const savePlayground = (
   id: string,
   payload: {
-    readonly config: PlaygroundView["config"];
+    readonly config: ConfigView;
     readonly name: string;
   }
 ) =>
@@ -81,7 +104,7 @@ export const savePlayground = (
 
     return view(
       yield* workbenches.save({
-        config: payload.config,
+        config: asStoredConfig(payload.config),
         id,
         name: payload.name,
         organizationId: actor.organizationId,

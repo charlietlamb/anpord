@@ -1,0 +1,101 @@
+diff --git a/packages/eval/tests/adapters/openai-judge.test.ts b/packages/eval/tests/adapters/openai-judge.test.ts
+--- a/packages/eval/tests/adapters/openai-judge.test.ts
++++ b/packages/eval/tests/adapters/openai-judge.test.ts
+@@ -44,1 +44,12 @@
+-      expect(sent.text.format.schema.additionalProperties).toBe(false);
++      expect(sent.text.format.schema.additionalProperties).toBe(false);
++      expect(JSON.parse(sent.input)).toEqual({
++        input: request.input,
++        output: request.output,
++        expected: null,
++      });
++      expect(sent.instructions).toContain(request.judge.rubric);
++      expect(sent.text.format.schema.properties.choice.enum).toEqual([
++        "correct",
++        "incorrect",
++      ]);
++      expect(JSON.stringify(sent)).not.toContain("test-secret");
+diff --git a/packages/eval/tests/services/judged-trial.test.ts b/packages/eval/tests/services/judged-trial.test.ts
+--- a/packages/eval/tests/services/judged-trial.test.ts
++++ b/packages/eval/tests/services/judged-trial.test.ts
+@@ -37,1 +37,2 @@
+-        rubric: "Matches the expected answer",
++        rubric: "Matches the expected answer",
++        expected: "4",
+@@ -52,1 +53,4 @@
+-    events: [],
++    events: [
++      { _tag: "Message", role: "assistant", text: "Checking the answer" },
++      { _tag: "Message", role: "assistant", text: "4" },
++    ],
+@@ -86,1 +90,4 @@
+-              expect(input.input).toBe(request.prompt);
++              expect(input.input).toBe(request.prompt);
++              expect(input.output).toBe("4");
++              expect(input.judge.expected).toBe("4");
++              expect(input.judge.rubric).toBe("Matches the expected answer");
+diff --git a/packages/sdk/tests/evals/judged-compiler.test.ts b/packages/sdk/tests/evals/judged-compiler.test.ts
+--- a/packages/sdk/tests/evals/judged-compiler.test.ts
++++ b/packages/sdk/tests/evals/judged-compiler.test.ts
+@@ -40,2 +40,8 @@
+-    'model: "exact-model"'
+-  );
++    'model: "exact-model"'
++  );
++  if (workspace === undefined) {
++    throw new Error("Expected compiled workspace");
++  }
++  expect(validator?.sourceFiles?.[0]?.content).toBe(
++    await Bun.file(join(workspace, "eval.ts")).text()
++  );
+diff --git a/packages/sdk/tests/evals/validator-answer.test.ts b/packages/sdk/tests/evals/validator-answer.test.ts
+--- a/packages/sdk/tests/evals/validator-answer.test.ts
++++ b/packages/sdk/tests/evals/validator-answer.test.ts
+@@ -37,1 +37,2 @@
+-    env: { ...Bun.env, ...env },
++    env: { ...Bun.env, ...env },
++    stderr: "pipe",
+@@ -42,1 +43,2 @@
+-    output: await new Response(process.stdout).text(),
++    output: await new Response(process.stdout).text(),
++    stderr: await new Response(process.stderr).text(),
+@@ -53,1 +55,38 @@
+-describe("a validator reading what the agent said", () => {
++describe("a validator reading what the agent said", () => {
++  test("returns exact method results alongside validator logs", async () => {
++    await wrote("fixture.txt", "fixture\n");
++    const result = await runValidator(
++      `async ({ readText, exists, exec }) => {
++        console.log("Checking fixture");
++        console.error("Fixture diagnostic");
++        const input = await readText("fixture.txt");
++        const found = await exists("fixture.txt");
++        const command = await exec("printf command-output");
++        return { passed: found, message: JSON.stringify({ input, command }) };
++      }`,
++      {}
++    );
++
++    expect(result).toEqual({
++      exitCode: 0,
++      output: `Checking fixture\nANPORD_VALIDATOR_RESULT=${JSON.stringify({
++        passed: true,
++        message: JSON.stringify({
++          input: "fixture\n",
++          command: { exitCode: 0, stderr: "", stdout: "command-output" },
++        }),
++      })}\n`,
++      stderr: "Fixture diagnostic\n",
++    });
++  });
++
++  test("reports a thrown validator without emitting a verdict", async () => {
++    const result = await runValidator(
++      'async () => { throw new Error("Fixture unavailable"); }',
++      {}
++    );
++    expect(result.exitCode).toBe(1);
++    expect(result.output).not.toContain("ANPORD_VALIDATOR_RESULT=");
++    expect(result.stderr).toContain("Error: Fixture unavailable");
++  });
++

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
-import { EvalHarness, EvalProvider } from "@anpord/schema/domain/evals";
+import { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 
-export const ProviderName = EvalProvider;
+export const ProviderName = EvalSandbox;
 export type ProviderName = typeof ProviderName.Type;
 
 export const HarnessName = EvalHarness;

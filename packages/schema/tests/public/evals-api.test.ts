@@ -7,12 +7,12 @@ const request = {
   name: "planner-core",
   prompt: "{{task}}",
   tasks: [
-    { harness: "codex" as const, model: "gpt-5.6-sol", provider: "upstash" },
+    { harness: "codex" as const, model: "gpt-5.6-sol", sandbox: "upstash" },
   ],
   trials: 1,
 };
 
-describe("the public eval provider contract", () => {
+describe("the public eval task contract", () => {
   it("accepts an eval name", () => {
     expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(request)).toEqual(
       request
@@ -27,16 +27,11 @@ describe("the public eval provider contract", () => {
     );
   });
 
-  for (const provider of [
-    "upstash",
-    "modal",
-    "cloudflare",
-    "vercel",
-  ] as const) {
-    it(`accepts ${provider}`, () => {
+  for (const sandbox of ["upstash", "modal", "cloudflare", "vercel"] as const) {
+    it(`accepts ${sandbox}`, () => {
       const value = {
         ...request,
-        tasks: [{ ...request.tasks[0], provider }],
+        tasks: [{ ...request.tasks[0], sandbox }],
       };
       expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(value)).toEqual(
         value
@@ -44,11 +39,11 @@ describe("the public eval provider contract", () => {
     });
   }
 
-  it("continues to reject the unisolated local provider", () => {
+  it("continues to reject the unisolated local sandbox", () => {
     expect(() =>
       Schema.decodeUnknownSync(PublicStartEvalRequest)({
         ...request,
-        tasks: [{ ...request.tasks[0], provider: "local" }],
+        tasks: [{ ...request.tasks[0], sandbox: "local" }],
       })
     ).toThrow();
   });

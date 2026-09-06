@@ -1,4 +1,4 @@
-import type { EvalDraft } from "@anpord/schema/domain/evals";
+import { DEFAULT_SANDBOX, type EvalDraft } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi-select";
 import { FlaskIcon, PlayIcon } from "@phosphor-icons/react";
@@ -23,8 +23,8 @@ import {
   useCaseKeys,
   useEvalForm,
 } from "@/lib/evals/use-eval-form";
-import { DEFAULT_HARNESS, PROVIDER_OPTIONS } from "@/lib/evals/variant-options";
-import { providerPresentation } from "@/lib/evals/variant-presentation";
+import { DEFAULT_HARNESS, SANDBOX_OPTIONS } from "@/lib/evals/variant-options";
+import { sandboxPresentation } from "@/lib/evals/variant-presentation";
 
 export function EvalForm({
   initial,
@@ -46,7 +46,7 @@ export function EvalForm({
       onSubmit({
         ...draft,
         connections: normalizeCredentialSelections(
-          selectableCredentialIntegrations(draft.agents, draft.providers),
+          selectableCredentialIntegrations(draft.agents, draft.sandboxes),
           connections.data ?? [],
           draft.connections
         ),
@@ -172,24 +172,24 @@ export function EvalForm({
             )}
           </form.Field>
 
-          <form.Field name="providers">
-            {(providers) => (
+          <form.Field name="sandboxes">
+            {(sandboxes) => (
               <div className="grid gap-1.5">
                 <span className="font-medium text-xs">Sandboxes</span>
                 <SearchableMultiSelect
-                  emptyLabel="Choose a sandbox"
+                  emptyLabel={`${sandboxPresentation(DEFAULT_SANDBOX).label} by default`}
                   label="Sandboxes"
-                  onChange={(next) => providers.handleChange(next)}
-                  options={PROVIDER_OPTIONS}
+                  onChange={(next) => sandboxes.handleChange(next)}
+                  options={SANDBOX_OPTIONS}
                   renderOption={(option) => {
-                    const { Icon } = providerPresentation(option.value);
+                    const { Icon } = sandboxPresentation(option.value);
 
                     return (
                       <Icon className="size-3.5 shrink-0 text-muted-foreground" />
                     );
                   }}
                   searchPlaceholder="Search sandboxes…"
-                  value={providers.state.value}
+                  value={sandboxes.state.value}
                 />
               </div>
             )}
@@ -199,17 +199,17 @@ export function EvalForm({
         <form.Subscribe
           selector={(state) => ({
             agents: state.values.agents,
-            providers: state.values.providers,
+            sandboxes: state.values.sandboxes,
           })}
         >
-          {({ agents, providers }) => (
+          {({ agents, sandboxes }) => (
             <form.Field name="connections">
               {(field) => (
                 <CredentialField
                   connections={connections.data ?? []}
                   integrationIds={selectableCredentialIntegrations(
                     agents,
-                    providers
+                    sandboxes
                   )}
                   loading={connections.isPending}
                   onChange={field.handleChange}
@@ -237,7 +237,7 @@ export function EvalForm({
       <form.Subscribe selector={(state) => state.values}>
         {(values) => {
           const selected = normalizeCredentialSelections(
-            selectableCredentialIntegrations(values.agents, values.providers),
+            selectableCredentialIntegrations(values.agents, values.sandboxes),
             connections.data ?? [],
             values.connections
           );
@@ -252,7 +252,7 @@ export function EvalForm({
               <RunPreview
                 agents={values.agents}
                 cases={values.cases}
-                providers={values.providers}
+                sandboxes={values.sandboxes}
                 trials={values.trials}
                 ungated={ungatedIn(values.cases)}
               />

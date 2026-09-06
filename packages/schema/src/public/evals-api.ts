@@ -16,9 +16,9 @@ import {
   EvalName,
   EvalPageCursor,
   EvalPrepare,
-  EvalProvider,
   EvalRun,
   EvalRunPage,
+  EvalSandbox,
   EvalSource,
   EvalValidator,
   EvalVariables,
@@ -50,9 +50,9 @@ export const EvalModelsRequest = Schema.Struct({
   description: "Select a harness whose available models should be listed.",
   identifier: "EvalModelsRequest",
 });
-const PublicEvalProvider = EvalProvider.annotations({
-  description: "A hosted sandbox provider.",
-  identifier: "PublicEvalProvider",
+const PublicEvalSandbox = EvalSandbox.annotations({
+  description: "The hosted sandbox a task runs in.",
+  identifier: "PublicEvalSandbox",
 });
 export const ListEvalsRequest = Schema.Struct({
   cursor: Schema.optional(Schema.NullOr(EvalPageCursor)),
@@ -87,13 +87,13 @@ const PublicEvalTask = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String.pipe(Schema.minLength(1)),
   profile: Schema.optional(HarnessProfile),
-  provider: PublicEvalProvider,
+  sandbox: Schema.optional(PublicEvalSandbox),
 })
   .pipe(
     Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
   )
   .annotations({
-    description: `A harness, model, and hosted sandbox combination, with an optional profile layered on the harness. ${PROFILE_HARNESS_RULE}`,
+    description: `A harness and model, with an optional sandbox and an optional profile layered on the harness. Omit the sandbox to use the default. ${PROFILE_HARNESS_RULE}`,
     identifier: "StartEvalTask",
   });
 export const PublicStartEvalRequest = Schema.Struct({

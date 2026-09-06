@@ -8,7 +8,7 @@ import type { ComponentType } from "react";
 import {
   harnessLabel,
   modelPresentation,
-  providerPresentation,
+  sandboxPresentation,
 } from "@/lib/evals/variant-presentation";
 
 const SHOWN = 3;
@@ -21,11 +21,11 @@ interface Mark {
 
 const marksOf = (columns: readonly EvalTask[]): readonly Mark[] => {
   const models = new Map<string, Mark>();
-  const providers = new Map<string, Mark>();
+  const sandboxes = new Map<string, Mark>();
 
   for (const column of columns) {
     const model = modelPresentation(column.model);
-    const provider = providerPresentation(column.provider);
+    const sandbox = sandboxPresentation(column.sandbox);
 
     const harness = harnessLabel(
       column.harness,
@@ -40,14 +40,14 @@ const marksOf = (columns: readonly EvalTask[]): readonly Mark[] => {
       title: `${model.label} · ${harness}`,
     });
 
-    providers.set(column.provider, {
-      Icon: provider.Icon,
-      key: `provider:${column.provider}`,
-      title: provider.label,
+    sandboxes.set(column.sandbox, {
+      Icon: sandbox.Icon,
+      key: `sandbox:${column.sandbox}`,
+      title: sandbox.label,
     });
   }
 
-  return [...models.values(), ...providers.values()];
+  return [...models.values(), ...sandboxes.values()];
 };
 
 export function VariantMarks({

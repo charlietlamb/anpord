@@ -1,4 +1,8 @@
-import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
+import {
+  DEFAULT_SANDBOX,
+  type EvalAgent,
+  type EvalSandbox,
+} from "@anpord/schema/domain/evals";
 import { cn } from "@anpord/ui/lib/utils";
 import { WarningIcon } from "@phosphor-icons/react";
 import {
@@ -11,18 +15,19 @@ export function RunPreview({
   agents,
   cases,
   className,
-  providers,
+  sandboxes,
   trials,
   ungated,
 }: {
   readonly agents: readonly EvalAgent[];
   readonly cases: readonly { readonly name: string }[];
   readonly className?: string;
-  readonly providers: readonly EvalProvider[];
+  readonly sandboxes: readonly EvalSandbox[];
   readonly trials: number;
   readonly ungated: readonly string[];
 }) {
-  const columns = agents.length * providers.length;
+  const chosen = sandboxes.length === 0 ? [DEFAULT_SANDBOX] : sandboxes;
+  const columns = agents.length * chosen.length;
   const showHarness = new Set(agents.map((agent) => agent.harness)).size > 1;
   const cells = cases.length * columns;
   const runs = cells * trials;
@@ -44,10 +49,10 @@ export function RunPreview({
 
       <ul className="flex flex-wrap gap-1">
         {agents.flatMap(({ harness, model }) =>
-          providers.map((provider) => (
+          chosen.map((sandbox) => (
             <li
               className="inline-flex items-center gap-1.5 rounded-md border border-border-faint px-2 py-1 text-xs"
-              key={`${harness}-${provider}-${model}`}
+              key={`${harness}-${sandbox}-${model}`}
             >
               {showHarness ? (
                 <>
@@ -57,7 +62,7 @@ export function RunPreview({
               ) : null}
               <ModelLabel model={model} size="compact" />
               <span className="text-muted-foreground">on</span>
-              <SandboxLabel provider={provider} size="compact" />
+              <SandboxLabel sandbox={sandbox} size="compact" />
             </li>
           ))
         )}

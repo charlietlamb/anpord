@@ -5,7 +5,10 @@ import { GridRun } from "@anpord/eval/grid/run";
 import { authorIdOf } from "@anpord/schema/domain/actor";
 import { BadRequest } from "@anpord/schema/domain/errors";
 import { trialsRequested } from "@anpord/schema/domain/eval-quota";
-import type { StartEvalRequest } from "@anpord/schema/domain/evals";
+import {
+  DEFAULT_SANDBOX,
+  type StartEvalRequest,
+} from "@anpord/schema/domain/evals";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { Effect } from "effect";
 import { EvalCredentials } from "./credentials";
@@ -30,6 +33,7 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
           ...task,
           harnessVersion,
           profile: profileOfRequest(task.profile),
+          provider: task.sandbox ?? DEFAULT_SANDBOX,
         }))
       )
     );

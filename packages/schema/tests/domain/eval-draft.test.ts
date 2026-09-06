@@ -35,7 +35,7 @@ const draft = {
   connections: {},
   name: "brand logos",
   prompt: "{{task}}",
-  providers: ["daytona" as const],
+  sandboxes: ["daytona" as const],
   trials: 3,
 };
 
@@ -45,12 +45,20 @@ describe("the eval draft", () => {
       ...draft,
       agents: [],
       cases: [],
-      providers: [],
+      sandboxes: [],
     }).map((issue) => issue.message);
 
     expect(messages).toContain("Add at least one case.");
     expect(messages).toContain("Choose at least one agent.");
-    expect(messages).toContain("Choose at least one sandbox.");
+  });
+
+  /* A draft that names no sandbox is complete: the run takes the default. */
+  it("does not ask for a sandbox", () => {
+    const messages = validate({ ...draft, sandboxes: [] }).map(
+      (issue) => issue.message
+    );
+
+    expect(messages).toEqual([]);
   });
 
   it("points at the row that is wrong", () => {
@@ -77,11 +85,11 @@ describe("the eval draft", () => {
         { harness: "opencode", model: "openai/gpt-5" },
         { harness: "gemini", model: "gemini-2.5-pro" },
       ],
-      providers: ["daytona", "e2b", "upstash", "modal", "cloudflare", "vercel"],
+      sandboxes: ["daytona", "e2b", "upstash", "modal", "cloudflare", "vercel"],
     });
 
     expect(columns).toHaveLength(18);
-    expect(new Set(columns.map((column) => column.provider))).toEqual(
+    expect(new Set(columns.map((column) => column.sandbox))).toEqual(
       new Set(["daytona", "e2b", "upstash", "modal", "cloudflare", "vercel"])
     );
   });

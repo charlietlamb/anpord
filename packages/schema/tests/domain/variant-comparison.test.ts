@@ -10,7 +10,7 @@ const task = (model: string): EvalTask => ({
   harness: "codex",
   harnessVersion: "1",
   model,
-  provider: "daytona",
+  sandbox: "daytona",
 });
 
 const trial = (over: Partial<EvalTrial>): EvalTrial =>

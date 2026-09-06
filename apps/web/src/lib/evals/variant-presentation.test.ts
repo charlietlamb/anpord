@@ -3,24 +3,24 @@ import {
   harnessLabel,
   harnessPresentation,
   modelPresentation,
-  providerPresentation,
+  sandboxPresentation,
 } from "./variant-presentation";
 
 describe("naming a variant", () => {
-  it("names the harnesses and providers the contract defines", () => {
+  it("names the harnesses and sandboxes the contract defines", () => {
     expect(harnessPresentation("codex").label).toBe("Codex");
-    expect(providerPresentation("daytona").label).toBe("Daytona");
-    expect(providerPresentation("e2b").label).toBe("E2B");
-    expect(providerPresentation("upstash").label).toBe("Upstash Box");
-    expect(providerPresentation("modal").label).toBe("Modal");
-    expect(providerPresentation("cloudflare").label).toBe("Cloudflare");
-    expect(providerPresentation("vercel").label).toBe("Vercel");
+    expect(sandboxPresentation("daytona").label).toBe("Daytona");
+    expect(sandboxPresentation("e2b").label).toBe("E2B");
+    expect(sandboxPresentation("upstash").label).toBe("Upstash Box");
+    expect(sandboxPresentation("modal").label).toBe("Modal");
+    expect(sandboxPresentation("cloudflare").label).toBe("Cloudflare");
+    expect(sandboxPresentation("vercel").label).toBe("Vercel");
   });
 
   /* Stored cells name harnesses this build no longer defines, and one names `none`. */
   it("falls back rather than throwing on a value it does not know", () => {
     expect(harnessPresentation("none").label).toBe("none");
-    expect(providerPresentation("future").label).toBe("future");
+    expect(sandboxPresentation("future").label).toBe("future");
     expect(modelPresentation("none").label).toBe("none");
   });
 

@@ -51,7 +51,7 @@ const anpord = new Anpord({
 const { id } = await anpord.evals.start({
   cases,
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  tasks: [{ harness: "codex", model }],
   trials: 3,
 });
 ```

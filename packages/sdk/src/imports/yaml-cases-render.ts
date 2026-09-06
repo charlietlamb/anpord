@@ -84,7 +84,7 @@ export const renderYamlSuite = (files: readonly YamlCaseFile[]) =>
     "  ],",
     "  tasks: [",
     "    /* Name the harness, model and sandbox this suite runs on. */",
-    '    { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },',
+    '    { harness: "codex", model: "gpt-5.6-sol" },',
     "  ],",
     "});",
   ].join("\n")}\n`;

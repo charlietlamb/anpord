@@ -9,7 +9,7 @@ const config = (
   columns: readonly {
     harness: "codex" | "opencode";
     model: string;
-    provider: "daytona" | "e2b";
+    sandbox: "daytona" | "e2b";
   }[]
 ): typeof PlaygroundConfigView.Type =>
   ({
@@ -34,7 +34,7 @@ const config = (
 describe("reading a saved eval back as a draft", () => {
   it("keeps the case, the prompt and the trials", () => {
     const draft = draftOfConfig(
-      config([{ harness: "codex", model: "a", provider: "daytona" }]),
+      config([{ harness: "codex", model: "a", sandbox: "daytona" }]),
       "My eval"
     );
 
@@ -48,13 +48,13 @@ describe("reading a saved eval back as a draft", () => {
     expect(draft.cases[0]?.variables.task).toBe("do the thing");
   });
 
-  it("reads each agent and provider once", () => {
+  it("reads each agent and sandbox once", () => {
     const draft = draftOfConfig(
       config([
-        { harness: "codex", model: "a", provider: "daytona" },
-        { harness: "codex", model: "b", provider: "daytona" },
-        { harness: "codex", model: "a", provider: "e2b" },
-        { harness: "codex", model: "b", provider: "e2b" },
+        { harness: "codex", model: "a", sandbox: "daytona" },
+        { harness: "codex", model: "b", sandbox: "daytona" },
+        { harness: "codex", model: "a", sandbox: "e2b" },
+        { harness: "codex", model: "b", sandbox: "e2b" },
       ]),
       "grid"
     );
@@ -63,7 +63,7 @@ describe("reading a saved eval back as a draft", () => {
       { harness: "codex", model: "a" },
       { harness: "codex", model: "b" },
     ]);
-    expect(draft.providers).toEqual(["daytona", "e2b"]);
+    expect(draft.sandboxes).toEqual(["daytona", "e2b"]);
   });
 
   it("survives a round trip unchanged", () => {
@@ -72,7 +72,7 @@ describe("reading a saved eval back as a draft", () => {
         { harness: "codex", model: "a" },
         { harness: "opencode", model: "b" },
       ],
-      providers: ["daytona"],
+      sandboxes: ["daytona"],
     });
 
     const draft = draftOfConfig(config(columns), "grid");

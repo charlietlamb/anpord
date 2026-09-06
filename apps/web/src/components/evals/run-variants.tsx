@@ -46,7 +46,7 @@ export function RunVariants({
 
   const harnesses = distinct(tasks, harnessKeyOf);
   const models = distinct(tasks, (task) => task.model);
-  const providers = distinct(tasks, (task) => task.provider);
+  const sandboxes = distinct(tasks, (task) => task.sandbox);
 
   return (
     <div className="flex flex-col">
@@ -82,8 +82,8 @@ export function RunVariants({
         layout="stated"
         value={
           <Listed
-            items={providers.map((task) => (
-              <SandboxLabel key={task.provider} provider={task.provider} />
+            items={sandboxes.map((task) => (
+              <SandboxLabel key={task.sandbox} sandbox={task.sandbox} />
             ))}
           />
         }

@@ -3,7 +3,7 @@ import { EvalDraft as EvalDraftSchema } from "@anpord/schema/domain/evals";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { Schema } from "effect";
 import { useId, useRef, useState } from "react";
-import { DEFAULT_HARNESS, DEFAULT_PROVIDER } from "@/lib/evals/variant-options";
+import { DEFAULT_HARNESS } from "@/lib/evals/variant-options";
 
 const draftValidator = Schema.standardSchemaV1(EvalDraftSchema);
 
@@ -24,7 +24,7 @@ const emptyDraft = (defaultModel: string | null): EvalDraft => ({
   connections: {},
   name: "",
   prompt: "{{task}}",
-  providers: [DEFAULT_PROVIDER],
+  sandboxes: [],
   trials: 3,
 });
 

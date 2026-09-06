@@ -25,7 +25,7 @@ import {
   profileFitsHarness,
 } from "./harness-profile";
 
-export const EvalProvider = Schema.Literal(
+export const EvalSandbox = Schema.Literal(
   "daytona",
   "e2b",
   "upstash",
@@ -33,9 +33,13 @@ export const EvalProvider = Schema.Literal(
   "cloudflare",
   "vercel"
 );
-export type EvalProvider = typeof EvalProvider.Type;
+export type EvalSandbox = typeof EvalSandbox.Type;
 
-export const EVAL_PROVIDERS = EvalProvider.literals;
+export const EVAL_SANDBOXES = EvalSandbox.literals;
+
+/* Conformance passes cleanly here and both client milestones ran on it, so a
+   task that names no sandbox gets one that works rather than an error. */
+export const DEFAULT_SANDBOX: EvalSandbox = "e2b";
 
 export const EvalTrialStatus = Schema.Literal(
   "queued",
@@ -171,7 +175,9 @@ export const EvalTask = Schema.Struct({
   harnessVersion: Schema.String,
   model: Schema.String,
   profile: Schema.optional(Schema.NullOr(EvalTaskProfile)),
-  provider: EvalProvider,
+  /* Resolved, never optional: a cell that ran has a sandbox, whether or not
+     the request named one. */
+  sandbox: EvalSandbox,
 }).annotations({
   description:
     "The harness, installed version, profile, model, and sandbox for a cell.",
@@ -184,7 +190,7 @@ export const EvalTaskRequest = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String,
   profile: Schema.optional(HarnessProfile),
-  provider: EvalProvider,
+  sandbox: Schema.optional(EvalSandbox),
 }).pipe(
   Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
 );
@@ -530,7 +536,7 @@ export const PlaygroundCaseView = Schema.Struct({
 export const PlaygroundColumnView = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String,
-  provider: EvalProvider,
+  sandbox: EvalSandbox,
 });
 
 export const PlaygroundConfigView = Schema.Struct({
@@ -578,10 +584,8 @@ export const EvalDraft = Schema.Struct({
   connections: CredentialSelections,
   name: Schema.String,
   prompt: Schema.String,
-  providers: Schema.mutable(Schema.Array(EvalProvider)).pipe(
-    Schema.minItems(1),
-    Schema.annotations({ message: () => "Choose at least one sandbox." })
-  ),
+  /* Empty is allowed: a draft that names no sandbox runs on the default. */
+  sandboxes: Schema.mutable(Schema.Array(EvalSandbox)),
   trials: Schema.Int.pipe(
     Schema.between(1, 10),
     Schema.annotations({ message: () => "Run between 1 and 10 trials." })
@@ -591,15 +595,19 @@ export type EvalDraft = typeof EvalDraft.Type;
 
 export const columnsOfDraft = (draft: {
   readonly agents: readonly EvalAgent[];
-  readonly providers: readonly EvalProvider[];
+  readonly sandboxes: readonly EvalSandbox[];
 }): readonly {
   harness: EvalHarness;
   model: string;
-  provider: EvalProvider;
-}[] =>
-  draft.agents.flatMap(({ harness, model }) =>
-    draft.providers.map((provider) => ({ harness, model, provider }))
+  sandbox: EvalSandbox;
+}[] => {
+  const chosen =
+    draft.sandboxes.length === 0 ? [DEFAULT_SANDBOX] : draft.sandboxes;
+
+  return draft.agents.flatMap(({ harness, model }) =>
+    chosen.map((sandbox) => ({ harness, model, sandbox }))
   );
+};
 
 export const draftOfConfig = (
   config: typeof PlaygroundConfigView.Type,
@@ -623,7 +631,7 @@ export const draftOfConfig = (
   connections: config.connections,
   name,
   prompt: config.prompt,
-  providers: [...new Set(config.columns.map((column) => column.provider))],
+  sandboxes: [...new Set(config.columns.map((column) => column.sandbox))],
   trials: config.trials,
 });
 

@@ -147,7 +147,7 @@ export const profileTask = (
       readonly profile: ProfileRef;
     };
     readonly model: string;
-    readonly provider: PublicEvalTask["provider"];
+    readonly sandbox?: PublicEvalTask["sandbox"];
   }
 ) =>
   Effect.gen(function* () {
@@ -173,7 +173,7 @@ export const profileTask = (
       harness: task.harness.base,
       model: task.model,
       profile,
-      provider: task.provider,
+      sandbox: task.sandbox,
     } satisfies PublicEvalTask;
   }).pipe(
     Effect.withSpan("Eval.profileTask", {

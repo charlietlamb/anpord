@@ -7,11 +7,11 @@ Profiles version the files and settings layered onto a harness:
 
 ```ts
 tasks: [
-  { harness: "opencode", model: "anthropic/claude-sonnet-4.6", provider: "daytona" },
+  { harness: "opencode", model: "anthropic/claude-sonnet-4.6" },
   {
     harness: { base: "opencode", profile: { name: "docs-writer", dir: "./profile" } },
     model: "anthropic/claude-sonnet-4.6",
-    provider: "daytona",
+    sandbox: "daytona",
   },
 ]
 ```

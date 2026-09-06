@@ -47,7 +47,7 @@ export default defineEval({
       verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  tasks: [{ harness: "codex", model, provider: "daytona" }],
+  tasks: [{ harness: "codex", model }],
   trials: 3,
 });
 ```

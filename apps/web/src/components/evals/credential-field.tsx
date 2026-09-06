@@ -18,7 +18,7 @@ import {
 } from "@/lib/evals/credential-selection";
 import {
   harnessPresentation,
-  providerPresentation,
+  sandboxPresentation,
 } from "@/lib/evals/variant-presentation";
 
 const SANDBOXES = new Set([
@@ -31,7 +31,7 @@ const SANDBOXES = new Set([
 ]);
 
 const presentationOf = (id: string) =>
-  SANDBOXES.has(id) ? providerPresentation(id) : harnessPresentation(id);
+  SANDBOXES.has(id) ? sandboxPresentation(id) : harnessPresentation(id);
 
 const placeholderFor = (loading: boolean, optional: boolean) => {
   if (loading) {

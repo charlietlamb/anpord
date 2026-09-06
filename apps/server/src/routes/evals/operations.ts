@@ -9,7 +9,8 @@ import { authorIdOf } from "@anpord/schema/domain/actor";
 import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { trialsRequested } from "@anpord/schema/domain/eval-quota";
 import {
-  EVAL_PROVIDERS,
+  DEFAULT_SANDBOX,
+  EVAL_SANDBOXES,
   type EvalHarness,
   type RerunCellRequest,
 } from "@anpord/schema/domain/evals";
@@ -67,12 +68,16 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     const credentialResolver = yield* CredentialResolver;
     const grid = yield* GridRun;
     const credentials = yield* EvalCredentials;
+    /* The sandbox is resolved here rather than defaulted in the schema: the
+       cell key hashes the name, so it has to be a real one before a cell is
+       identified. */
     const requested = yield* Effect.forEach(payload.tasks, (task) =>
       harnessVersion(task.harness).pipe(
         Effect.map((harnessVersion) => ({
           ...task,
           harnessVersion,
           profile: profileOfRequest(task.profile),
+          provider: task.sandbox ?? DEFAULT_SANDBOX,
         }))
       )
     );
@@ -175,7 +180,7 @@ export const rerunEvalCell = (
     const reruns = yield* CellReruns;
     const credentials = yield* EvalCredentials;
     const id = yield* reruns.again({
-      allowedProviders: EVAL_PROVIDERS,
+      allowedProviders: EVAL_SANDBOXES,
       actor,
       cellKey: input.cellKey,
       legacyHarnessAuth: credentials.codexAuth,

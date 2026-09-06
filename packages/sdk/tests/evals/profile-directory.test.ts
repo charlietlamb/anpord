@@ -43,7 +43,7 @@ const compiled = (
     profileTask(join(dir, "..", "suite.eval.ts"), {
       harness: { base, profile: { dir: "./profile", name } },
       model: "anthropic/claude-sonnet-4.6",
-      provider: "daytona",
+      sandbox: "daytona",
     }).pipe(Effect.either)
   );
 

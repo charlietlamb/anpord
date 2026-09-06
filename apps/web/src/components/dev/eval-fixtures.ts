@@ -15,7 +15,7 @@ export const TASK: EvalTask = {
   harness: "codex",
   harnessVersion: "0.144.4",
   model: "gpt-5-codex",
-  provider: "daytona",
+  sandbox: "daytona",
 };
 
 const command = (input: {
@@ -362,7 +362,7 @@ export const RUNS: readonly EvalRunSummary[] = [
         harness: "codex",
         harnessVersion: "0.144.4",
         model: "gpt-5.6-sol",
-        provider: "daytona",
+        sandbox: "daytona",
       },
     ],
     commandMax: 8,
@@ -386,13 +386,13 @@ export const RUNS: readonly EvalRunSummary[] = [
         harness: "codex",
         harnessVersion: "0.144.4",
         model: "gpt-5.6-sol",
-        provider: "daytona",
+        sandbox: "daytona",
       },
       {
         harness: "codex",
         harnessVersion: "0.144.4",
         model: "gpt-5.5",
-        provider: "e2b",
+        sandbox: "e2b",
       },
     ],
     commandMax: 2,
@@ -435,7 +435,7 @@ export const RUNS: readonly EvalRunSummary[] = [
         harness: "codex",
         harnessVersion: "0.144.4",
         model: "gpt-5.6-sol",
-        provider: "daytona",
+        sandbox: "daytona",
       },
     ],
     commandMax: 9,

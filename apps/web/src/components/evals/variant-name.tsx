@@ -13,7 +13,7 @@ export function VariantName({ task }: { readonly task: EvalTask }) {
       <span className="text-muted-foreground">in</span>
       <HarnessLabel harness={task.harness} profile={task.profile} />
       <span className="text-muted-foreground">on</span>
-      <SandboxLabel provider={task.provider} />
+      <SandboxLabel sandbox={task.sandbox} />
     </span>
   );
 }

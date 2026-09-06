@@ -93,7 +93,7 @@ describe("the eval gate", () => {
           harness: "codex",
           harnessVersion: "2.0.0",
           model: "test",
-          provider: "e2b",
+          sandbox: "e2b",
           profile: { name: "house", version: "new" },
         },
       ],

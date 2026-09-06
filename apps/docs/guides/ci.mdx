@@ -90,7 +90,7 @@ bunx --no-install anpord eval --fail-on strict --timeout 1200 --output results.j
 
 ## Keep comparisons stable
 
-When testing a prompt change, keep the task, source, preparation, validator, harness, model, and provider unchanged. Those fields form the cell identity. Pin fixture repositories to a commit. A harness release is compared against the existing baseline rather than starting a new one, and a regression names both versions.
+When testing a prompt change, keep the task, source, preparation, validator, harness, model, and sandbox unchanged. Those fields form the cell identity. Pin fixture repositories to a commit. A harness release is compared against the existing baseline rather than starting a new one, and a regression names both versions.
 
 Use at least three trials for a gating check. One trial measures an outcome, not repeatability.
 

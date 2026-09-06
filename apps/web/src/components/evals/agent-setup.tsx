@@ -37,9 +37,9 @@ const run = await anpord.evals.startAndWait({
   ],
   prompt: "Read the repository. Make the smallest correct change. {{task}}",
   tasks: [
-    { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },
-    { harness: "claude", model: "opus", provider: "daytona" },
-    { harness: "gemini", model: "gemini-2.5-pro", provider: "daytona" },
+    { harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" },
+    { harness: "claude", model: "opus", sandbox: "daytona" },
+    { harness: "gemini", model: "gemini-2.5-pro", sandbox: "daytona" },
   ],
   trials: 3,
 });

@@ -7,14 +7,14 @@ description: "Choose what runs a case and where it runs"
 Each task defines one grid column:
 
 ```ts
-{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }
+{ harness: "codex", model: "gpt-5.6-sol" }
 ```
 
 | Field | Purpose |
 | --- | --- |
 | `harness` | Runs the agent and its tools |
 | `model` | Selects the harness model |
-| `provider` | Supplies the sandbox |
+| `sandbox` | Where the trial runs. Optional, defaults to `e2b` |
 
 ## Agents
 
@@ -43,7 +43,15 @@ Model discovery is not required before a run. Available ids depend on the harnes
 
 ## Sandboxes
 
-Providers are `daytona`, `e2b`, `upstash`, `modal`, `cloudflare`, and `vercel`. Every trial gets an isolated workspace.
+`sandbox` is optional. A task that omits it runs on `e2b`:
+
+```ts
+tasks: [{ harness: "codex", model: "gpt-5.6-sol" }]
+```
+
+The rest are `daytona`, `upstash`, `modal`, `cloudflare`, and `vercel`. Every trial gets an isolated workspace.
+
+The sandbox is part of the cell key, so adding or removing it starts a new history. Name one explicitly to keep an existing baseline.
 
 ## Compare variants
 
@@ -51,9 +59,9 @@ Change one field at a time:
 
 ```ts
 tasks: [
-  { harness: "codex", model: "gpt-5.6-sol", provider: "daytona" },
-  { harness: "codex", model: "gpt-5.6-terra", provider: "daytona" },
+  { harness: "codex", model: "gpt-5.6-sol" },
+  { harness: "codex", model: "gpt-5.6-terra" },
 ]
 ```
 
-Changing the harness, model, or provider creates a new cell history. A new harness version remains in the same history. Use a [profile](/evals/profiles) to compare an agent's stock and configured forms.
+Changing the harness, model, or sandbox creates a new cell history. A new harness version remains in the same history. Use a [profile](/evals/profiles) to compare an agent's stock and configured forms.

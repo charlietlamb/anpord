@@ -2,7 +2,7 @@ import type { CredentialIntegration } from "@anpord/schema/domain/credentials";
 import { BracketsCurlyIcon } from "@phosphor-icons/react";
 import {
   harnessPresentation,
-  providerPresentation,
+  sandboxPresentation,
 } from "@/lib/evals/variant-presentation";
 
 /* The env integration is no harness, so it names itself. */
@@ -13,5 +13,5 @@ export const integrationPresentation = (integration: CredentialIntegration) => {
 
   return integration.category === "harness"
     ? harnessPresentation(integration.id)
-    : providerPresentation(integration.id);
+    : sandboxPresentation(integration.id);
 };

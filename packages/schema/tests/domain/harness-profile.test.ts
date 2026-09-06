@@ -18,7 +18,7 @@ const decode = (task: Record<string, unknown>) =>
 const opencode = {
   harness: "opencode",
   model: "anthropic/claude-sonnet-4.6",
-  provider: "daytona",
+  sandbox: "daytona",
 };
 
 describe("a profile's file paths", () => {
@@ -75,7 +75,7 @@ describe("which harness a profile fits", () => {
         harness: "command",
         model: "openai/gpt-5.5",
         profile: { files: {}, name: "sample" },
-        provider: "e2b",
+        sandbox: "e2b",
       })
     ).toThrow();
   });
@@ -91,7 +91,7 @@ describe("which harness a profile fits", () => {
 
   it("rejects the command harness with no profile at all", () => {
     expect(() =>
-      decode({ harness: "command", model: "openai/gpt-5.5", provider: "e2b" })
+      decode({ harness: "command", model: "openai/gpt-5.5", sandbox: "e2b" })
     ).toThrow();
   });
 });

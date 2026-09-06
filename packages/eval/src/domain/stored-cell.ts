@@ -1,9 +1,9 @@
-import { EvalHarness, EvalProvider } from "@anpord/schema/domain/evals";
+import { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
 import { Option, Schema } from "effect";
 import type { HarnessName, ProviderName } from "./cell";
 
 const harness = Schema.decodeUnknownOption(EvalHarness);
-const provider = Schema.decodeUnknownOption(EvalProvider);
+const provider = Schema.decodeUnknownOption(EvalSandbox);
 
 /* Decoded, not asserted: the columns are plain text, so an older deploy's row may
    name a harness this build has no driver for. */

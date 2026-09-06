@@ -6,7 +6,7 @@ import {
   harnessPresentation,
   type LabelledProfile,
   modelPresentation,
-  providerPresentation,
+  sandboxPresentation,
 } from "@/lib/evals/variant-presentation";
 
 export function VariantLabel({
@@ -75,10 +75,10 @@ export function HarnessLabel({
 }
 
 export function SandboxLabel({
-  provider,
+  sandbox,
   size,
-}: { readonly provider: string } & Sized) {
-  const own = providerPresentation(provider);
+}: { readonly sandbox: string } & Sized) {
+  const own = sandboxPresentation(sandbox);
 
   return (
     <VariantLabel Icon={own.Icon} size={size}>

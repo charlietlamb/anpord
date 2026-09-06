@@ -2,12 +2,12 @@ import type {
   CredentialConnection,
   CredentialSelections,
 } from "@anpord/schema/domain/credentials";
-import type { EvalAgent, EvalProvider } from "@anpord/schema/domain/evals";
+import type { EvalAgent, EvalSandbox } from "@anpord/schema/domain/evals";
 
 export const selectableCredentialIntegrations = (
   agents: readonly EvalAgent[],
-  providers: readonly EvalProvider[]
-) => [...new Set([...agents.map((agent) => agent.harness), ...providers])];
+  sandboxes: readonly EvalSandbox[]
+) => [...new Set([...agents.map((agent) => agent.harness), ...sandboxes])];
 
 /* Harnesses only: a sandbox without a connection falls back to Anpord's own account, so requiring one would block a run that would have worked. */
 export const requiredCredentialIntegrations = (

@@ -1,9 +1,24 @@
 import { rollUp } from "@anpord/eval/domain/eval-costs";
 import type { GridRunState } from "@anpord/eval/grid/state";
 import type { CellComparison } from "@anpord/eval/services/baselines";
-import type { EvalRun, EvalRunSummary } from "@anpord/schema/domain/evals";
+import type {
+  EvalRun,
+  EvalRunSummary,
+  EvalTask,
+} from "@anpord/schema/domain/evals";
 import { DateTime, Option } from "effect";
 import { asCell } from "./cell-to-api";
+
+const asTask = (task: GridRunState["tasks"][number]): EvalTask => ({
+  harness: task.harness,
+  harnessVersion: task.harnessVersion,
+  model: task.model,
+  profile:
+    task.profile == null
+      ? null
+      : { name: task.profile.name, version: task.profile.version },
+  sandbox: task.provider,
+});
 
 const outcomeOf = (state: GridRunState) => {
   const distributions = state.cells.flatMap((cell) =>
@@ -33,7 +48,7 @@ const outcomeOf = (state: GridRunState) => {
 
 export const summarise = (state: GridRunState): EvalRunSummary => ({
   caseCount: state.cases.length,
-  columns: [...state.tasks],
+  columns: state.tasks.map(asTask),
   ...outcomeOf(state),
   failure: Option.getOrNull(state.failure),
   finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
@@ -69,15 +84,6 @@ export const detail = (
     startedAt: DateTime.unsafeMake(state.startedAt),
     status: state.status,
 
-    tasks: state.tasks.map((task) => ({
-      harness: task.harness,
-      harnessVersion: task.harnessVersion,
-      model: task.model,
-      profile:
-        task.profile == null
-          ? null
-          : { name: task.profile.name, version: task.profile.version },
-      provider: task.provider,
-    })),
+    tasks: state.tasks.map(asTask),
   };
 };

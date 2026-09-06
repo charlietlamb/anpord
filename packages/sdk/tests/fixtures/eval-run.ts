@@ -84,7 +84,7 @@ export const createRun = (overrides: Partial<EvalRun> = {}): EvalRun => ({
       harness: "codex",
       harnessVersion: "1.0.0",
       model: "test",
-      provider: "e2b",
+      sandbox: "e2b",
     },
   ],
   ...overrides,

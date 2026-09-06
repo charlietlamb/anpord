@@ -90,7 +90,7 @@ describe("surface", () => {
 
 const NAMES_THE_FIELD = /^id: /;
 const EXPLAINS_THE_RULE = /^id: Prompt id must be lowercase/;
-const PROVIDER_ERROR = /provider/;
+const SANDBOX_ERROR = /sandbox/;
 const MODEL_ERROR = /model/;
 
 describe("validation", () => {
@@ -125,10 +125,10 @@ describe("validation", () => {
           },
         ],
         prompt: "{{task}}",
-        tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "local" }],
+        tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "local" }],
         trials: 1,
       } as never)
-    ).rejects.toThrow(PROVIDER_ERROR);
+    ).rejects.toThrow(SANDBOX_ERROR);
   });
 
   test("public evals reject an empty model before the network", async () => {
@@ -146,7 +146,7 @@ describe("validation", () => {
           },
         ],
         prompt: "{{task}}",
-        tasks: [{ harness: "codex", model: "", provider: "daytona" }],
+        tasks: [{ harness: "codex", model: "", sandbox: "daytona" }],
         trials: 1,
       })
     ).rejects.toThrow(MODEL_ERROR);

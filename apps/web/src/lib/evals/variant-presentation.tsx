@@ -1,4 +1,4 @@
-import type { EvalHarness, EvalProvider } from "@anpord/schema/domain/evals";
+import type { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
 import {
   AlibabaMark,
   AnthropicMark,
@@ -48,7 +48,7 @@ const HARNESSES: Record<EvalHarness, Presentation> = {
   qwen: { Icon: AlibabaMark, label: "Qwen Code" },
 };
 
-const PROVIDERS: Record<EvalProvider, Presentation> = {
+const SANDBOX_MARKS: Record<EvalSandbox, Presentation> = {
   cloudflare: { Icon: CloudflareMark, label: "Cloudflare" },
   daytona: { Icon: DaytonaMark, label: "Daytona" },
   e2b: { Icon: E2bMark, label: "E2B" },
@@ -65,14 +65,14 @@ const unknown = (value: string): Presentation => ({
 export const harnessPresentation = (harness: string): Presentation =>
   HARNESSES[harness as EvalHarness] ?? unknown(harness);
 
-export const providerPresentation = (provider: string): Presentation =>
-  PROVIDERS[provider as EvalProvider] ?? unknown(provider);
+export const sandboxPresentation = (sandbox: string): Presentation =>
+  SANDBOX_MARKS[sandbox as EvalSandbox] ?? unknown(sandbox);
 
 /* An integration id names either side of a run and the two sets do not overlap, so either order is correct. */
 export const integrationLabel = (integrationId: string): string =>
   (
     HARNESSES[integrationId as EvalHarness] ??
-    PROVIDERS[integrationId as EvalProvider] ??
+    SANDBOX_MARKS[integrationId as EvalSandbox] ??
     unknown(integrationId)
   ).label;
 

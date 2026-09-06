@@ -34,7 +34,7 @@ describe("compileEval", () => {
             files: {},
             name: "profile",
           },
-          provider: "e2b",
+          sandbox: "e2b",
         },
         [{ entry: "workspace/server.mjs", files: {}, name: "example" }]
       )
@@ -84,7 +84,7 @@ export default defineEval({
   source: { kind: "empty" },
   tasks: [
     ...["claude", "codex", "cursor", "fx", "gemini", "opencode", "pi", "qwen"].map(
-      (harness) => ({ harness, model: "model", provider: "daytona" })
+      (harness) => ({ harness, model: "model", sandbox: "daytona" })
     ),
   ],
   trials: 1,
@@ -158,7 +158,7 @@ export default defineEval({
           files: { "home/.codex/config.toml": 'model = "gpt-5"' },
           name: "profile",
         },
-        provider: "e2b",
+        sandbox: "e2b",
       },
       [{ entry: "workspace/server.mjs", files: {}, name: "example" }]
     );
@@ -196,7 +196,7 @@ export default defineEval({
   cases: [{ variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
   name: "direct-validator",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -240,7 +240,7 @@ export default defineEval({
   name: "suite",
   prompt: "{{task}}",
   source: repo("acme/widgets@a1b2c3d"),
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -265,7 +265,7 @@ export default defineEval({
   name: "suite",
   prompt: "{{task}}",
   source: repo("acme"),
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -286,7 +286,7 @@ export default defineEval({
   name: "suite",
   prompt: "{{task}}",
   source: "charlietlamb/strudel@main",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -315,7 +315,7 @@ export default defineEval({
   name: "suite",
   prompt: "{{task}}",
   source: "nonsense",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -338,7 +338,7 @@ export default defineEval({
   cases: [{ variables: { task: "add a test" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -362,7 +362,7 @@ export default defineEval({
   name: "suite",
   prompt: "{{task}}",
   source: "acme/widgets",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -406,7 +406,7 @@ export default defineEval({
   ],
   name: "suite",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", provider: "daytona" }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );

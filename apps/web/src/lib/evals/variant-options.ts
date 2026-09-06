@@ -1,4 +1,4 @@
-import type { EvalHarness, EvalProvider } from "@anpord/schema/domain/evals";
+import type { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
 
 export interface VariantOption<TValue extends string = string> {
   readonly description: string;
@@ -51,7 +51,7 @@ export const HARNESS_OPTIONS: readonly VariantOption<EvalHarness>[] = [
 
 export const DEFAULT_HARNESS: EvalHarness = "codex";
 
-export const PROVIDER_OPTIONS: readonly VariantOption<EvalProvider>[] = [
+export const SANDBOX_OPTIONS: readonly VariantOption<EvalSandbox>[] = [
   {
     description: "Cloud sandboxes that reattach",
     label: "Daytona",
@@ -83,5 +83,3 @@ export const PROVIDER_OPTIONS: readonly VariantOption<EvalProvider>[] = [
     value: "vercel",
   },
 ];
-
-export const DEFAULT_PROVIDER: EvalProvider = "daytona";
