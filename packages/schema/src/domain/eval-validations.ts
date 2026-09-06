@@ -23,6 +23,8 @@ export const ValidationCall = Schema.Struct({
     "exists",
     "exec",
     "cli.calls",
+    "api.calls",
+    "api.url",
     "mcp.calls"
   ),
   startedAt: Schema.Number,

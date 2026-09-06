@@ -46,6 +46,7 @@ describe("naming a variant", () => {
   });
 
   it.each([
+    "anpord-api",
     "anpord-cli",
     "anpord-mcp",
   ])("omits the generated %s profile from the label", (name) => {

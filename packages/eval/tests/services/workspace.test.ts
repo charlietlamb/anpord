@@ -77,7 +77,7 @@ const prepare = (
     source: { kind: "repo", ref: null, url: "https://example.test/repo.git" },
     workspace: WORKSPACE,
     ...overrides,
-  }).pipe(Effect.provide(SuspenderSleeping));
+  }).pipe(Effect.provide(SuspenderSleeping), Effect.scoped);
 
 const indexOf = (steps: readonly string[], fragment: string) =>
   steps.findIndex((step) => step.includes(fragment));

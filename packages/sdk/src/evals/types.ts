@@ -1,8 +1,10 @@
+import type { ApiCall } from "@anpord/schema/domain/api-mocks";
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import type { McpCall } from "../mcp/calls";
 import type { McpServerDefinition } from "../mcp/define";
+import type { ApiDefinition } from "../mock-api/define";
 import type { CliCall } from "../mock-cli/calls";
 import type { CliDefinition } from "../mock-cli/define";
 
@@ -45,6 +47,7 @@ export interface CaseCache {
 }
 
 export interface PrepareContext {
+  readonly api: { readonly url: (name: string) => Promise<string> };
   /** True when the runner restored a cached directory, so a prepare can skip
    * the work that produced it. */
   readonly cached: boolean;
@@ -67,6 +70,10 @@ export type Prepare = (
 export interface ValidatorContext {
   /** Empty when the agent said nothing. */
   readonly answer: () => Promise<string>;
+  readonly api: {
+    readonly url: (name: string) => Promise<string>;
+    readonly calls: (name?: string) => Promise<readonly ApiCall[]>;
+  };
   readonly cli: {
     readonly calls: (cli?: string) => Promise<readonly CliCall[]>;
   };
@@ -114,6 +121,7 @@ export type EvalCaseDefinition = EvalCaseBase &
   );
 
 export interface EvalDefinition {
+  readonly api?: readonly ApiDefinition[];
   readonly captureSource?: boolean;
   readonly captureValidation?: boolean;
   readonly cases: readonly EvalCaseDefinition[];

@@ -1,6 +1,6 @@
 {
   "name": "anpord",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "TypeScript SDK and CLI for coding agent evals and prompt management.",
   "license": "MIT",
   "type": "module",
@@ -25,6 +25,26 @@
       }
     },
     "./package.json": "./package.json",
+    "./api": {
+      "import": {
+        "types": "./dist/api.d.mts",
+        "default": "./dist/api.mjs"
+      },
+      "require": {
+        "types": "./dist/api.d.cts",
+        "default": "./dist/api.cjs"
+      }
+    },
+    "./api/runtime": {
+      "import": {
+        "types": "./dist/api-runtime.d.mts",
+        "default": "./dist/api-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/api-runtime.d.cts",
+        "default": "./dist/api-runtime.cjs"
+      }
+    },
     "./validators": {
       "import": {
         "types": "./dist/validators.d.mts",

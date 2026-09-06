@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./domain/api-mocks": "./src/domain/api-mocks.ts",
     "./domain/actor": "./src/domain/actor.ts",
     "./domain/channels": "./src/domain/channels.ts",
     "./domain/codebase": "./src/domain/codebase.ts",

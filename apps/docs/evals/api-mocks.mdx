@@ -1,0 +1,104 @@
+---
+title: "Mock HTTP APIs"
+description: "Test agents against local HTTP endpoints with typed requests and responses"
+---
+
+Define endpoints with `api()` and `endpoint()`. Both take objects. Standard Schema infers handler inputs and checks each response against its status code. Effect runs internally; your handlers use ordinary TypeScript.
+
+```ts mocks/catalog.ts
+import { api, endpoint } from "anpord/api";
+import { z } from "zod";
+
+const item = { id: "fixture", name: "Test item" };
+const Item = z.object({ id: z.string(), name: z.string() });
+
+export const catalog = api({
+  name: "catalog",
+  endpoints: [
+    endpoint({
+      method: "GET",
+      path: "/items/:id",
+      inputSchema: z.object({ params: z.object({ id: z.string() }) }),
+      responses: {
+        200: Item,
+        404: z.object({ message: z.string() }),
+      },
+      handler: ({ params }) => params.id === item.id
+        ? { status: 200, body: item }
+        : { status: 404, body: { message: "Item not found" } },
+    }),
+  ],
+});
+```
+
+Move `item` and `Item` into a shared fixture file to reuse them with [MCP and CLI mocks](/evals/mocks).
+
+## Run an eval
+
+```ts catalog.eval.ts
+import { defineEval, empty, type Validator } from "anpord";
+import { catalog } from "./mocks/catalog";
+
+const validate: Validator = async ({ api, answer }) => ({
+  passed: (await api.calls("catalog")).some(
+    ({ path, status }) => path === "/items/fixture" && status === 200
+  ) && (await answer()).includes("Test item"),
+});
+
+export default defineEval({
+  name: "catalog/api",
+  source: empty,
+  api: [catalog],
+  prompt: "Use the local catalog API to retrieve fixture and report its name.",
+  cases: [{ name: "retrieve-item", validate }],
+  tasks: [{ harness: "codex", model: "model-id" }],
+  trials: 1,
+});
+```
+
+Anpord starts a loopback HTTP server on a free port inside each trial. It adds the base URL and endpoint list to the agent's input. Curl, Python, and SDK clients can use it directly. The original prompt is unchanged.
+
+Prepare functions and validators can call `await api.url("catalog")` and pass the URL explicitly to a client. No environment variables or global fetch functions are replaced.
+
+## Requests and responses
+
+The input schema receives `{ params, query, headers, body }`. Headers are lowercase. Repeated query values are arrays. Empty bodies become `null`; nonempty bodies must be JSON. Schema transforms handle coercion.
+
+Handlers return `{ status, body, headers? }`. Use `null` for bodyless responses such as 204. Content type and framing headers are managed by the runtime. Optional `description` text is included in agent discovery.
+
+Explicit error responses, such as 404 or 429, are normal mock behavior. Unmatched routes return 404 with `matched: false`. Thrown handlers, invalid response schemas, and serialization failures fail the mock execution. Nothing is forwarded upstream.
+
+## Evidence
+
+HTTP requests appear in trial Calls and are available to judges. `api.calls(name?)` returns typed records containing method, path, status, timing, matching outcome, input, output, handler logs, and runtime errors. Calls to `api.url` and `api.calls` appear in validator evidence.
+
+Input, output, and log values contain `text`, `format`, `state`, and `truncated`. Inspect those fields before parsing captured JSON. These are bounded snapshots, not raw packet captures.
+
+Authorization, cookies, and common secret fields are redacted before recording. Add case-insensitive field names with `api({ redact: ["accessToken"], ... })`. This does not redact secrets embedded in arbitrary strings or URL paths. Keep credentials out of fixtures.
+
+Handlers can accept a second argument: `handler(input, { signal, log })`. Use `log(value)` for correlated evidence and `signal` to cancel asynchronous work.
+
+## Validator-owned servers
+
+Use `withApi()` when a validator needs fresh, hidden test data. It closes the server when the callback finishes or fails.
+
+```ts
+import { withApi } from "anpord/api";
+
+await withApi({
+  api: catalog,
+  run: async ({ url, calls }) => {
+    const response = await fetch(`${url}/items/fixture`);
+    console.info("HTTP evidence", await calls());
+    return response.json();
+  },
+});
+```
+
+These local calls are returned by `calls()`, not the trial-wide journal. Log the evidence inside a validator to include it in that validator's logs.
+
+## Limits
+
+JSON HTTP endpoints only. Request bodies are limited to 1 MiB, handlers to 30 seconds, and a runtime to 256 requests. Captured values are truncated at 16,000 characters. There is no proxying, streaming, WebSocket support, or automatic recording.
+
+The mocks never call an upstream service. They do not block an agent from independently contacting other hosts. Network isolation requires a sandbox egress policy.

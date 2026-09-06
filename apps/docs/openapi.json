@@ -3433,6 +3433,8 @@
               "exists",
               "exec",
               "cli.calls",
+              "api.calls",
+              "api.url",
               "mcp.calls"
             ]
           },

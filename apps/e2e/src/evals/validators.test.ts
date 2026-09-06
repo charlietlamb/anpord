@@ -3,8 +3,10 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { withApi } from "anpord/api";
 import { compileEval } from "anpord/eval";
 import { item } from "./fixtures/catalog";
+import { catalogApi } from "./mocks/catalog-api";
 
 const sdk = new URL("../../../../packages/sdk/dist/index.mjs", import.meta.url);
 
@@ -12,6 +14,7 @@ test.each([
   "mcp",
   "cli",
   "sdk",
+  "api",
 ] as const)("%s validator accepts real evidence and rejects an unsupported answer", async (suite) => {
   const compiled = await compileEval(
     fileURLToPath(new URL(`./${suite}.eval.ts`, import.meta.url))
@@ -58,6 +61,22 @@ export async function resolvePrompt(baseUrl, id, name) {
 }`
             : 'export async function resolvePrompt() { return "Hello CI"; }'
         );
+      } else if (suite === "api") {
+        const calls = await withApi({
+          api: catalogApi,
+          run: async ({ url, calls }) => {
+            await fetch(`${url}/items/missing`);
+            await fetch(`${url}/items/${item.id}`);
+            return calls();
+          },
+        });
+        await mkdir(join(workspace, ".anpord/api"));
+        await writeFile(
+          join(workspace, ".anpord/api/calls.jsonl"),
+          scenario === "missing-evidence"
+            ? ""
+            : calls.map((call) => JSON.stringify(call)).join("\n")
+        );
       } else {
         const call =
           suite === "mcp"
@@ -91,7 +110,9 @@ export async function resolvePrompt(baseUrl, id, name) {
       expect(output).toContain(`ANPORD_VALIDATOR_RESULT={"passed":${passed}`);
       expect(output).toContain("ANPORD_VALIDATION=");
       if (suite !== "sdk") {
-        expect(output).toContain("Catalog requests");
+        expect(output).toContain(
+          suite === "api" ? "Catalog HTTP requests" : "Catalog requests"
+        );
       }
     } finally {
       await rm(workspace, { recursive: true, force: true });

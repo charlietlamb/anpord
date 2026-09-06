@@ -16,6 +16,7 @@ const checks = (Array.isArray(selected) ? selected : [selected]).flatMap((valida
 await runValidators(checks, definition.captureValidation !== false);`;
 
 const prepareRuntime = `
+import { apiContext } from "anpord/api/context";
 import { access, readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 
@@ -43,6 +44,7 @@ const exec = (file, args = [], options = {}) => new Promise((resolve, reject) =>
 });
 
 const context = {
+  api: apiContext,
   cached: process.env.ANPORD_CACHE_RESTORED === "1",
   exec,
   exists: path => access(path).then(() => true, () => false),

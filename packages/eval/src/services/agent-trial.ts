@@ -36,6 +36,7 @@ import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer, type ValidationObserver } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
+import { apiInstructions } from "./mock-apis";
 import { systemPromptPath } from "./profile-files";
 import { Suspender } from "./suspender";
 import { progressSink } from "./trial-progress-sink";
@@ -141,8 +142,9 @@ export const AgentTrialLive = Layer.effect(
 
         const driver = yield* harnesses.resolve(request.harness);
         const profile = Option.fromNullable(request.profile);
+        const sink = yield* progressSink(request.progress?.append);
 
-        const { env, prepared } = yield* prepareWorkspace({
+        const { env, prepared, api } = yield* prepareWorkspace({
           /* The same name the volume has: what a prepare left last time it ran
              this way, before it has told us anything narrower. */
           caseCache: request.caseCache,
@@ -160,7 +162,32 @@ export const AgentTrialLive = Layer.effect(
           workspace: request.workspace,
         }).pipe(Effect.provideService(Suspender, suspender));
 
+        yield* Effect.addFinalizer(() =>
+          api.collect().pipe(
+            Effect.flatMap((events) =>
+              Stream.fromIterable(events).pipe(sink.through, Stream.runDrain)
+            ),
+            Effect.ignoreLogged
+          )
+        );
+
         const modelStarted = yield* Clock.currentTimeMillis;
+        const instructions = apiInstructions(api.manifest);
+        const discovery: readonly HarnessEvent[] =
+          instructions === ""
+            ? []
+            : [
+                {
+                  _tag: "Message",
+                  at: modelStarted,
+                  role: "user",
+                  text: instructions.trim(),
+                },
+              ];
+        yield* Stream.fromIterable(discovery).pipe(
+          sink.through,
+          Stream.runDrain
+        );
 
         const session = yield* driver.run({
           env,
@@ -168,7 +195,7 @@ export const AgentTrialLive = Layer.effect(
           harnessVersion: request.harnessVersion,
           model: request.model,
           profile,
-          prompt: request.prompt,
+          prompt: request.prompt + instructions,
           sandbox,
           systemPromptPath: profile.pipe(
             Option.filter((found) => found.systemPrompt !== null),
@@ -177,11 +204,16 @@ export const AgentTrialLive = Layer.effect(
           workspace: request.workspace,
         });
 
-        const sink = yield* progressSink(request.progress?.append);
-
-        const events = Chunk.toReadonlyArray(
+        const agentEvents = Chunk.toReadonlyArray(
           yield* session.events.pipe(sink.through, Stream.runCollect)
         );
+        const apiEvents = yield* api.collect();
+        yield* Stream.fromIterable(apiEvents).pipe(
+          sink.through,
+          Stream.runDrain
+        );
+        yield* api.check;
+        const events = [...discovery, ...agentEvents, ...apiEvents];
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
@@ -196,13 +228,19 @@ export const AgentTrialLive = Layer.effect(
           verifyCommand: request.verifyCommand,
           workspace: request.workspace,
         });
+        const validationApiEvents = yield* api.collect();
+        yield* Stream.fromIterable(validationApiEvents).pipe(
+          sink.through,
+          Stream.runDrain
+        );
+        yield* api.check;
 
         const finishedAt = yield* Clock.currentTimeMillis;
         const journalLost = yield* Ref.get(sink.lost);
 
         return {
           commands: commandsIn(events),
-          events,
+          events: [...events, ...validationApiEvents],
           failedCommands: failedCommandsIn(events),
           filesChanged: filesIn(events),
           outcome: {

@@ -45,6 +45,7 @@
               "evals/cases",
               "evals/variants",
               "evals/mocks",
+              "evals/api-mocks",
               "evals/judges",
               "evals/results",
               "evals/baselines"

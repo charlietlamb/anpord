@@ -41,7 +41,7 @@ describe("compileEval", () => {
     ).toThrow();
   });
 
-  test("adds MCP servers and CLIs to every built-in agent task", async () => {
+  test("adds MCP, CLI, and API mocks to every built-in agent task", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-mcp-eval-"));
     await mkdir(join(workspace, "node_modules"));
     await symlink(
@@ -53,6 +53,7 @@ describe("compileEval", () => {
       `import { defineEval } from "anpord";
 import { cli, command } from "anpord/cli";
 import { server, tool } from "anpord/mcp";
+import { api as httpApi, endpoint } from "anpord/api";
 import { z } from "zod";
 const client = cli({
   path: "example-cli",
@@ -79,6 +80,12 @@ export default defineEval({
   cases: [{ name: "case", verify: "true" }],
   cli: [client],
   mcp: [api],
+  api: [httpApi({ name: "example", endpoints: [endpoint({
+    method: "GET", path: "/users/:id",
+    inputSchema: z.object({ params: z.object({ id: z.string() }) }),
+    responses: { 200: z.object({ id: z.string() }) },
+    handler: ({ params }) => ({ status: 200, body: params }),
+  })] })],
   name: "mcp",
   prompt: "Use the tool",
   source: { kind: "empty" },
@@ -94,6 +101,9 @@ export default defineEval({
     const payload = await compileFixture(join(workspace, "eval.ts"));
 
     for (const task of payload.tasks) {
+      expect(task.profile?.files["workspace/.anpord/api/server.mjs"]).toContain(
+        "gunzipSync"
+      );
       expect(task.profile?.name).toBe("anpord-mcp");
       expect(
         task.profile?.files["workspace/.anpord/mcp/0/server.mjs"]

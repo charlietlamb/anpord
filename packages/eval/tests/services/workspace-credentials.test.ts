@@ -58,7 +58,10 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
   });
 
 const prepareWorkspaceWith = (input: Parameters<typeof prepareWorkspace>[0]) =>
-  prepareWorkspace(input).pipe(Effect.provide(SuspenderSleeping));
+  prepareWorkspace(input).pipe(
+    Effect.provide(SuspenderSleeping),
+    Effect.scoped
+  );
 
 describe("cloning with an installation token", () => {
   test("writes the credential before the clone that needs it", async () => {

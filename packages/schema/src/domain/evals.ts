@@ -169,6 +169,18 @@ export const CaseCache = Schema.Struct({
     Schema.filter(
       (value) => !(value.startsWith("/") || value.split("/").includes("..")),
       { message: () => "a cache path must stay inside the workspace" }
+    ),
+    Schema.filter(
+      (value) => {
+        const directory = value
+          .split("/")
+          .find((part) => part !== "" && part !== ".");
+        return directory !== undefined && directory !== ".anpord";
+      },
+      {
+        message: () =>
+          "a cache must name a subdirectory outside the reserved .anpord runtime",
+      }
     )
   ),
 }).annotations({ identifier: "CaseCache" });

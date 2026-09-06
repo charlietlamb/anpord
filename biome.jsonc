@@ -52,7 +52,11 @@
       }
     },
     {
-      "includes": ["packages/db/src/schema.ts", "packages/sdk/src/index.ts"],
+      "includes": [
+        "packages/db/src/schema.ts",
+        "packages/sdk/src/index.ts",
+        "packages/sdk/src/mock-api/index.ts"
+      ],
       "linter": {
         "rules": {
           "performance": { "noBarrelFile": "off" }

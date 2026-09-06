@@ -16,6 +16,24 @@ const ANPORD_MODULE = /^anpord$/;
 const ANY_MODULE = /.*/;
 const localModules = [
   {
+    built: "api.mjs",
+    filter: /^anpord\/api$/,
+    namespace: "anpord-api-authoring",
+    source: "../mock-api/index.ts",
+  },
+  {
+    built: "api-runtime.mjs",
+    filter: /^anpord\/api\/runtime$/,
+    namespace: "anpord-api-runtime",
+    source: "../mock-api/runtime.ts",
+  },
+  {
+    built: "api-context.mjs",
+    filter: /^anpord\/api\/context$/,
+    namespace: "anpord-api-context",
+    source: "../mock-api/context.ts",
+  },
+  {
     built: "validator-runtime.mjs",
     filter: /^anpord\/validators\/runtime$/,
     namespace: "anpord-validator-runtime",
@@ -101,6 +119,9 @@ export const bundle = (
       build({
         absWorkingDir: process.cwd(),
         bundle: true,
+        banner: {
+          js: 'import { createRequire as anpordCreateRequire } from "node:module"; const require = anpordCreateRequire(import.meta.url);',
+        },
         format: "esm",
         metafile: true,
         minify: options.minify,

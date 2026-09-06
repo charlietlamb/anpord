@@ -1,6 +1,6 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import type { EvalPrepare } from "@anpord/schema/domain/evals";
-import { Effect, Option, Redacted } from "effect";
+import { Effect, Option, Redacted, type Scope } from "effect";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
@@ -10,6 +10,7 @@ import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
+import { startMockApis } from "./mock-apis";
 import { profileEnv } from "./profile-env";
 import { materialiseProfile, WRITE_CONCURRENCY } from "./profile-files";
 import { runProfileInstall } from "./profile-install";
@@ -137,9 +138,10 @@ export const prepareWorkspace = (
   {
     readonly env: Readonly<Record<string, string>>;
     readonly prepared: Readonly<Record<string, unknown>>;
+    readonly api: Effect.Effect.Success<ReturnType<typeof startMockApis>>;
   },
   HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable,
-  Suspender
+  Suspender | Scope.Scope
 > =>
   Effect.gen(function* () {
     const profile = Option.fromNullable(input.profile);
@@ -174,6 +176,7 @@ export const prepareWorkspace = (
       });
     }
 
+    const api = yield* startMockApis(input);
     const prepared =
       input.prepare === null
         ? {}
@@ -185,6 +188,7 @@ export const prepareWorkspace = (
           });
 
     return {
+      api,
       env: profileEnv({
         credential: input.credential,
         driverEnv,

@@ -1,9 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { createServer } from "node:http";
 import { resolve } from "node:path";
-import { json } from "node:stream/consumers";
 import { pathToFileURL } from "node:url";
 import type { Prepare, Validator } from "anpord";
+import { api, endpoint, withApi } from "anpord/api";
 import { z } from "zod";
 
 export const prepareSdk: Prepare = async ({ exec }): Promise<undefined> => {
@@ -28,54 +27,62 @@ const submissionSchema = z.object({
     output: z.promise(z.string()),
   }),
 });
-const requestSchema = z.object({ id: z.literal("ci/prompt") });
+const promptSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  content: z.string(),
+  config: z.object({}),
+  version: z.number(),
+  channel: z.null(),
+  message: z.null(),
+  createdAt: z.string(),
+});
 
-export const validateSdk: Validator = async () => {
+export const validateSdk: Validator = () => {
   const nonce = randomUUID();
-  let requested = false;
-  const server = createServer(async (request, response) => {
-    const body = requestSchema.safeParse(await json(request).catch(() => null));
-    requested =
-      request.method === "POST" &&
-      request.url === "/v1/prompts.get" &&
-      request.headers.authorization === "Bearer ci-fixture" &&
-      body.success;
-    response.writeHead(requested ? 200 : 400, {
-      "content-type": "application/json",
-    });
-    response.end(
-      JSON.stringify({
-        id: "ci/prompt",
-        name: "CI",
-        content: `Hello {{name}} ${nonce}`,
-        config: {},
-        version: 1,
-        channel: null,
-        message: null,
-        createdAt: "2026-09-06T00:00:00.000Z",
-      })
-    );
+  return withApi({
+    api: api({
+      name: "anpord",
+      endpoints: [
+        endpoint({
+          method: "POST",
+          path: "/v1/prompts.get",
+          inputSchema: z.object({
+            headers: z.object({
+              authorization: z.literal("Bearer ci-fixture"),
+            }),
+            body: z.object({ id: z.literal("ci/prompt") }),
+          }),
+          responses: { 200: promptSchema },
+          handler: () => ({
+            status: 200,
+            body: {
+              id: "ci/prompt",
+              name: "CI",
+              content: `Hello {{name}} ${nonce}`,
+              config: {},
+              version: 1,
+              channel: null,
+              message: null,
+              createdAt: "2026-09-06T00:00:00.000Z",
+            },
+          }),
+        }),
+      ],
+    }),
+    run: async ({ url, calls }) => {
+      const module = submissionSchema.parse(
+        await import(pathToFileURL(resolve("apps/e2e/sdk-smoke.mjs")).href)
+      );
+      const content = await module.resolvePrompt(url, "ci/prompt", "CI");
+      const requests = await calls();
+      console.info("SDK HTTP requests", requests);
+      return {
+        passed:
+          requests.some(({ status, matched }) => matched && status === 200) &&
+          content === `Hello CI ${nonce}`,
+        message: "Resolve and interpolate a prompt through the PR-built SDK.",
+      };
+    },
   });
-  await new Promise<void>((ready) => server.listen(0, "127.0.0.1", ready));
-  try {
-    const address = server.address();
-    if (address === null || typeof address === "string") {
-      throw new Error("Mock API did not listen");
-    }
-    const module = submissionSchema.parse(
-      await import(pathToFileURL(resolve("apps/e2e/sdk-smoke.mjs")).href)
-    );
-    const content = await module.resolvePrompt(
-      `http://127.0.0.1:${address.port}`,
-      "ci/prompt",
-      "CI"
-    );
-    return {
-      passed: requested && content === `Hello CI ${nonce}`,
-      message: "Resolve and interpolate a prompt through the PR-built SDK.",
-    };
-  } finally {
-    server.closeAllConnections();
-    await new Promise<void>((done) => server.close(() => done()));
-  }
 };

@@ -120,7 +120,7 @@ export interface LabelledProfile {
 }
 
 const profileLabel = (profile: LabelledProfile) =>
-  ["anpord-cli", "anpord-mcp"].includes(profile.name)
+  ["anpord-api", "anpord-cli", "anpord-mcp"].includes(profile.name)
     ? ""
     : `${profile.name}@${shortProfileVersion(profile.version)}`;
 

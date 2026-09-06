@@ -1,9 +1,9 @@
 ---
-title: "Mock MCP and CLI"
-description: "Give agents typed local MCP servers and CLIs"
+title: "Mock dependencies"
+description: "Give agents typed local MCP servers, CLIs, and HTTP APIs"
 ---
 
-Mock dependencies are declarative TypeScript objects. Schemas infer handler types and validate requests and responses at runtime. Anpord compiles the fixtures, MCP servers, and CLIs into every task and isolated trial in the suite.
+Mock dependencies are declarative TypeScript objects. Schemas infer handler types and validate requests and responses at runtime. Each trial gets its own MCP servers, CLIs, and HTTP APIs. Share fixtures across interfaces; keep assertions in validators.
 
 ```bash
 npm install anpord zod
@@ -86,6 +86,8 @@ export const usersCli = cli({
 The runtime generates help and version output, validates output, prints JSON to stdout, and returns a nonzero exit code on failure. Positional arguments are not supported.
 
 ## Attach and validate
+
+For HTTP servers, see [API mocks](/evals/api-mocks). They use the same fixtures and validators below.
 
 ```ts users.eval.ts
 import { defineEval, empty, type Validator } from "anpord";

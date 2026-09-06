@@ -2,7 +2,14 @@ import { gzipSync } from "node:zlib";
 
 const CHUNK_SIZE = 90_000;
 
-export const packageProgram = (root: string, entry: string, source: string) => {
+export const packageProgram = (
+  root: string,
+  entry: string,
+  source: string
+): {
+  readonly entry: string;
+  readonly files: Readonly<Record<string, string>>;
+} => {
   const archive = gzipSync(source).toString("base64");
   const chunks = Array.from(
     { length: Math.ceil(archive.length / CHUNK_SIZE) },
@@ -15,7 +22,7 @@ export const packageProgram = (root: string, entry: string, source: string) => {
     entry: `${root}/${entry}`,
     files: Object.fromEntries([
       [`${root}/${entry}`, loader],
-      ...names.map((name, index) => [`${root}/${name}`, chunks[index]]),
+      ...chunks.map((chunk, index) => [`${root}/${index}.txt`, chunk]),
     ]),
   };
 };

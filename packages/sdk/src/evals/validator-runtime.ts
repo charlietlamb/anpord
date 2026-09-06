@@ -14,6 +14,7 @@ import {
 } from "@anpord/schema/domain/eval-validations";
 import { Schema } from "effect";
 import { McpCallSchema } from "../mcp/calls";
+import { apiContext } from "../mock-api/context";
 import { CliCallSchema } from "../mock-cli/calls";
 import type { CommandResult, Validator, ValidatorContext } from "./types";
 
@@ -133,6 +134,13 @@ const calls = async <A, I>(path: string, schema: Schema.Schema<A, I>) => {
 };
 
 const context = (): ValidatorContext => ({
+  api: {
+    url: (name) => observe("api.url", [name], () => apiContext.url(name)),
+    calls: (name) =>
+      observe("api.calls", name === undefined ? [] : [name], () =>
+        apiContext.calls(name)
+      ),
+  },
   answer: () =>
     observe("answer", [], () => readOptional(process.env.ANPORD_ANSWER_FILE)),
   transcript: () =>

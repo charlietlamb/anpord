@@ -5,6 +5,9 @@ export default defineConfig({
   deps: { alwaysBundle: [/^@anpord\//] },
   dts: { eager: true },
   entry: {
+    api: "src/mock-api/index.ts",
+    "api-runtime": "src/mock-api/runtime.ts",
+    "api-context": "src/mock-api/context.ts",
     bin: "src/cli/main.ts",
     cli: "src/mock-cli/index.ts",
     "cli-runtime": "src/mock-cli/runtime.ts",
@@ -19,5 +22,6 @@ export default defineConfig({
   },
   format: ["esm", "cjs"],
   target: "node20",
+  tsconfig: "./tsconfig.build.json",
   treeshake: true,
 });
