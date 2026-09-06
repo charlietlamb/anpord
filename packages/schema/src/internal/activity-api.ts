@@ -15,8 +15,6 @@ const ActivityQuery = Schema.Struct({
         "returned by this endpoint.",
     })
   ),
-  /** Narrows to one kind, which is how a deployment log is read out of the
-   * history the whole organisation shares. */
   kind: Schema.optional(PromptEventKind),
   limit: Schema.optional(LimitFromString),
   prompt: Schema.optional(PromptId),

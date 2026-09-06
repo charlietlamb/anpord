@@ -15,7 +15,6 @@ import {
 import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
 import { type ScoreRequest, Scorer } from "../../ports/scorer";
 
-/** A single `|` that is not `||`, outside single or double quotes. */
 const isUnguardedPipeline = (command: string) => {
   let quote: string | null = null;
 
@@ -38,8 +37,7 @@ const isUnguardedPipeline = (command: string) => {
       continue;
     }
 
-    /* `||` is a fallback, not a pipeline: its exit code is the last command
-       that actually ran, which is what we want to read. */
+    /* `||` is a fallback, not a pipeline. */
     if (command[index + 1] === "|") {
       index++;
       continue;
@@ -49,10 +47,8 @@ const isUnguardedPipeline = (command: string) => {
       continue;
     }
 
-    /* A pipeline exits with its last command, so `bun test | tail` reports the
-       success of tail while the runner exits 1. A verifier written that way
-       records every failure as a pass, which is the defect this product exists
-       to find, so it is refused rather than discovered in a result. */
+    /* A pipeline exits with its last command, so `bun test | tail` would record
+       every failure as a pass. Refused unless PIPESTATUS or pipefail is used. */
     return !(command.includes("PIPESTATUS") || command.includes("pipefail"));
   }
 
@@ -102,8 +98,7 @@ const validatorResultOf = (output: string) => {
   }
 };
 
-/** What the agent said, on disk beside the workspace rather than in it, so a
- * verifier can read the reply without the reply becoming part of the diff. */
+/* Beside the workspace, not in it, so the reply never becomes part of the diff. */
 const writeAnswer = (sandbox: SandboxHandle, events: ScoreRequest["events"]) =>
   Effect.all(
     [
@@ -125,8 +120,8 @@ const runValidator = (
   prepared: Readonly<Record<string, unknown>>
 ) =>
   Effect.gen(function* () {
-    /* Named from the runtime's own randomness so a seeded run is
-       reproducible, and so two validators in one sandbox never collide. */
+    /* From the runtime's randomness, so a seeded run is reproducible and two
+       validators in one sandbox never collide. */
     const suffix = yield* Random.nextIntBetween(0x10_00_00_00, 0x7f_ff_ff_ff);
     const path = `${sandbox.home}/.anpord-validator-${suffix.toString(16)}.mjs`;
     yield* sandbox.writeFile(path, source);
@@ -165,7 +160,6 @@ const scoreValidator = (
     });
   });
 
-/** The verdict comes from running the tests, not from judging the diff. */
 export const ScorerGroundTruthLive = Layer.succeed(
   Scorer,
   Scorer.of({
@@ -180,10 +174,8 @@ export const ScorerGroundTruthLive = Layer.succeed(
           });
         }
 
-        /* Nothing decides this case, so there is nothing to report but the
-           absence. Returning a pass here would be the void gate's own bug in
-           a new place: maximum confidence from zero evidence, deterministic
-           and promotable as a baseline that can never move. */
+        /* Nothing decides this case, and a pass here would be full confidence
+           from zero evidence. */
         if (request.verifyCommand === null) {
           return outcomeOf({
             commandCount: request.commandCount,
@@ -220,9 +212,8 @@ export const ScorerGroundTruthLive = Layer.succeed(
         return outcomeOf({
           commandCount: request.commandCount,
           exitCode,
-          /* Evidence that the verifier ran, which is not the same question as
-             whether it printed. A silent pass is ordinary; a verifier that
-             never started is what voids a trial. */
+          /* Whether the verifier ran, not whether it printed: a silent pass is
+             ordinary, a verifier that never started voids the trial. */
           fingerprint: {
             verify:
               output.trim() === "" && exit !== undefined

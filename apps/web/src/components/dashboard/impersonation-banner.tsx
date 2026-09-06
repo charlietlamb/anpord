@@ -3,13 +3,6 @@ import { UserSwitchIcon } from "@phosphor-icons/react";
 import { useSession } from "@/lib/auth-client";
 import { useImpersonation } from "@/lib/use-impersonation";
 
-/**
- * A standing reminder that this is not your account.
- *
- * Impersonation looks exactly like signing in, so without a persistent marker
- * the only difference between reading someone's data and editing it by mistake
- * is memory. It stays until impersonation ends, and carries the way out.
- */
 export function ImpersonationBanner() {
   const { active, stop } = useImpersonation();
   const { data } = useSession();

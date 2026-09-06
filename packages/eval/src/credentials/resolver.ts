@@ -16,16 +16,8 @@ export interface ResolveCredential {
   readonly integrationId: string;
 }
 
-/**
- * A credential a run already committed to, named by the connection its cells
- * recorded.
- *
- * Distinct from ResolveCredential because there is no actor to check against.
- * A worker continuing a run is not deciding whether that run may use this
- * credential; a person with a session decided when the run was started, and
- * the cell stores what they chose. Scoped to the organization so a run can
- * still only reach its own.
- */
+/* No actor: a person authorised this connection when the run was started. Still
+   scoped to the organization, so a run cannot reach another's credential. */
 export interface BoundCredential {
   readonly connectionId: string;
   readonly organizationId: string;
@@ -63,8 +55,8 @@ export const CredentialResolverLive = Layer.effect(
         )
       );
 
-    /* The organisation comes from the caller rather than from the row, so the
-       predicate is a check on the row rather than a restatement of it. */
+    /* The organisation comes from the caller, so this checks the row rather than
+       restating it. */
     const touch = (organizationId: string) => (row: ConnectionRow) =>
       Clock.currentTimeMillis.pipe(
         Effect.flatMap((now) =>
@@ -87,9 +79,6 @@ export const CredentialResolverLive = Layer.effect(
               organizationId: input.actor.organizationId,
             })
           ),
-      /* No actor, by design: a run that already recorded this connection was
-         authorised when a person started it. Still bounded by the organization,
-         so a run cannot reach another's credential. */
       resolveBound: (input) =>
         repository.findBound(input.organizationId, input.connectionId).pipe(
           Effect.flatMap(openRow),

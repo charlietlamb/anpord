@@ -2,9 +2,8 @@ import { channel } from "@anpord/db/schema/prompts/channels";
 import { and, eq } from "drizzle-orm";
 import type { Tx } from "./query";
 
-/** Publishing to a channel the organisation has not used before creates it, so
- * a move never fails on a missing row. Conflict means another writer got there
- * first, and its row is the one to use. */
+/* Publishing creates an unused channel so a move never fails on a missing row;
+   a conflict means another writer won and its row is the one to use. */
 export const claimChannel = async (
   tx: Tx,
   values: {

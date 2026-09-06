@@ -1,10 +1,6 @@
 import { Schema } from "effect";
 
-/**
- * Permissions read `${resource}:${action}`, and write implies read: a caller
- * granted `prompts:write` passes a `prompts:read` requirement without the grant
- * being listed twice.
- */
+/* Write implies read, so a `prompts:write` grant is never listed alongside `prompts:read`. */
 export const Permission = Schema.Literal(
   "prompts:read",
   "prompts:write",
@@ -19,12 +15,9 @@ export const Permission = Schema.Literal(
   "credentials:read",
   "credentials:write",
   "credentials:use",
-  /** Destructive and irreversible: archiving a prompt, deleting a channel,
-   * removing a member, deleting the organisation. Held by owners alone, so a
-   * compromised member account cannot empty the catalogue. */
+  /* Owners alone, so a compromised member account cannot empty the catalogue. */
   "organization:admin",
-  /** Reaches organisations the holder does not belong to, so no organisation
-   * role may grant it — only {@link PLATFORM_ROLE_PERMISSIONS} does. */
+  /* Reaches organisations the holder never joined, so only PLATFORM_ROLE_PERMISSIONS grants it. */
   "platform:impersonate"
 );
 
@@ -60,17 +53,12 @@ const AUTHOR: readonly Permission[] = [
   ...READ_ONLY,
   "prompts:write",
   "channels:write",
-  /* Running an eval spends real money on sandboxes and model tokens, so it
-     sits with the other authoring permissions rather than with reads. */
+  /* Spends real money on sandboxes and tokens, so it is an authoring permission. */
   "evals:write",
   "credentials:use",
 ];
 
-/**
- * A role is a named bundle of permissions rather than a check of its own, so a
- * handler never asks "is this an admin" — it asks for the permission it needs
- * and the bundle decides. Adding a role is then additive.
- */
+/* Handlers ask for a permission, never for a role, so adding a role stays additive. */
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   viewer: READ_ONLY,
   member: AUTHOR,
@@ -93,24 +81,16 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
   ],
 };
 
-/** An unrecognised role grants nothing, so a role added to the database
- * without being added here fails closed rather than opening everything. */
+/* An unrecognised role grants nothing, so a role missing here fails closed. */
 export const permissionsForRole = (role: string): readonly Permission[] =>
   ROLE_PERMISSIONS[role as Role] ?? [];
 
-/**
- * What someone is on the platform, as opposed to inside one organisation.
- *
- * `member.role` only exists within an organisation, so it cannot describe
- * staff, who act across organisations they never joined and whose standing
- * must outlive being removed from any of them.
- */
+/* Separate from `member.role`, which cannot describe staff acting across organisations they never joined. */
 export const PlatformRole = Schema.Literal("user", "admin");
 
 export type PlatformRole = typeof PlatformRole.Type;
 
-/** Carried by a user row with no stored role, so existing rows need no
- * backfill and a new one is never staff by accident. */
+/* Carried by a row with no stored role, so no backfill and no accidental staff. */
 export const DEFAULT_PLATFORM_ROLE: PlatformRole = "user";
 
 export const PLATFORM_ROLE_PERMISSIONS: Record<
@@ -121,7 +101,7 @@ export const PLATFORM_ROLE_PERMISSIONS: Record<
   admin: ["platform:impersonate"],
 };
 
-/** Fails closed exactly as {@link permissionsForRole} does. */
+/* Fails closed exactly as permissionsForRole does. */
 export const permissionsForPlatformRole = (
   role: string | null | undefined
 ): readonly Permission[] =>

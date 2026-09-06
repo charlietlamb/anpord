@@ -1,13 +1,6 @@
 import type { EvalVerifyStep } from "./evals";
 
-/**
- * What the trials said about one condition of the verifier.
- *
- * `unknown` is a trial recorded before the trail existed, or a verifier of
- * one command, which reports nothing per step. `unreached` is a step the
- * script never got to because an earlier one failed: nothing was measured
- * for it, and it is drawn as such rather than as a pass it did not earn.
- */
+/* `unknown` is a trial predating the trail or a one-command verifier; `unreached` is a step an earlier failure stopped, never a pass. */
 export type StepVerdict = "failed" | "passed" | "unknown" | "unreached";
 
 const byIndex = (
@@ -22,13 +15,7 @@ const byIndex = (
       : found.exitCode;
   });
 
-/**
- * One verdict per step, across every trial that left a trail.
- *
- * A step that failed in any trial failed: one counterexample is a finding.
- * A step that held in every trial that reached it passed, because that is
- * every time it was tested. A step no trial reached is unreached.
- */
+/* One failing trial fails the step; passing means it held in every trial that reached it. */
 export const verdictsOf = (
   steps: readonly string[],
   trials: readonly { readonly verifySteps: readonly EvalVerifyStep[] }[]

@@ -1,11 +1,6 @@
 import type * as React from "react";
 import { cn } from "../lib/utils";
 
-/**
- * A row of context above the writing surface. It names what is being edited
- * and sits on the page at reduced contrast, so the prompt below stays the
- * loudest thing in the column.
- */
 export function ComposerContext({
   className,
   ...props
@@ -21,11 +16,7 @@ export function ComposerContext({
   );
 }
 
-/**
- * The input surface. It draws nothing at all: the prompt is the page's subject,
- * and neither a frame nor a focus ring around the thing you came to read earns
- * its place. The caret already says where you are typing.
- */
+/* Deliberately frameless: the caret already says where you are typing. */
 export function ComposerSurface({
   className,
   ...props
@@ -33,10 +24,6 @@ export function ComposerSurface({
   return <div className={cn("relative flex flex-col", className)} {...props} />;
 }
 
-/**
- * Toolbar beneath the writing surface. A hairline separates the controls from
- * the text without drawing a container around either.
- */
 export function ComposerToolbar({
   className,
   ...props

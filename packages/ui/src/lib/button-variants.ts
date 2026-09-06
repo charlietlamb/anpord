@@ -13,13 +13,8 @@ export const buttonVariants = cva(
           "input-bevel-shadow border-border bg-secondary text-secondary-foreground hover:bg-muted",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted dark:hover:bg-muted/50",
-        /* No fill in any state. For rows in a quiet column, where a block of
-           grey behind one of them would outweigh everything around it — the
-           text brightens instead. */
+        /* No fill in any state; the text brightens instead. */
         bare: "text-muted-foreground hover:text-foreground aria-expanded:text-foreground",
-        /* A faint ground and an edge at rest, lifting on approach: enough to
-           read as a control on an empty page without weighing as much as an
-           outline button. */
         subtle:
           "border-border-faint bg-alpha-4 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
         destructive:
@@ -31,8 +26,6 @@ export const buttonVariants = cva(
         lg: "h-9 gap-2.5 px-7 text-base [&_svg:not([class*='size-'])]:size-5",
         icon: "size-[1.875rem]",
         "icon-sm": "size-7 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
-        /* Round, so a row of them reads as a cluster of actions floated over
-           the page rather than a strip of buttons seated in a bar. */
         "icon-round":
           "size-8 rounded-full [&_svg:not([class*='size-'])]:size-4",
       },

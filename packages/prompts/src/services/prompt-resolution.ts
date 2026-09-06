@@ -55,15 +55,8 @@ export const PromptResolutionLive = Layer.effect(
       );
     };
 
-    /**
-     * A request that named nothing is answered by the organisation's default
-     * channel, and by production when it has not chosen one.
-     *
-     * Production rather than the newest version: a caller who named nothing is
-     * asking for what is live, and answering with the newest would ship every
-     * draft the moment it was written, which is the one thing channels exist
-     * to prevent.
-     */
+    /* Production rather than the newest version: answering with the newest
+       would ship every draft the moment it was written. */
     const readDefault = (
       organizationId: Actor["organizationId"],
       promptInternalId: string

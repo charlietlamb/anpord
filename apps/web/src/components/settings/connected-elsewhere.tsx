@@ -1,10 +1,7 @@
 import { UsersThreeIcon } from "@phosphor-icons/react";
 import { integrationLabel } from "@/lib/evals/variant-presentation";
 
-/* "Ada and Grace" rather than "Ada, Grace": two is the common case, and a
-   comma between two names reads as a fragment. Beyond three the tail is
-   counted, because the point is that somebody has it, not who all of them
-   are. */
+/* Two names join with "and"; a comma between just two reads as a fragment. */
 const NAMED = 2;
 
 const listed = (owners: readonly string[]) => {
@@ -17,14 +14,7 @@ const listed = (owners: readonly string[]) => {
   return `${owners.slice(0, NAMED).join(", ")} and ${rest} other${rest === 1 ? "" : "s"}`;
 };
 
-/**
- * That a teammate already has this integration, where the reader does not.
- *
- * A personal connection is invisible to the rest of the organization, which
- * is right for the credential and wrong for the fact: someone landing on an
- * empty Codex section had no way to know their team was already set up, and
- * would go and buy a second subscription. Names only, never the secret.
- */
+/* Names only, never the secret: a personal connection stays private. */
 export function ConnectedElsewhere({
   integrationId,
   owners,

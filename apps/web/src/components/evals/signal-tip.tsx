@@ -11,13 +11,6 @@ interface SignalTipProps {
   readonly label: ReactNode;
 }
 
-/**
- * A compact figure that can say the whole thing when asked.
- *
- * A list row has space for `1m` but not for the exact seconds, and for `8h`
- * but not the date. Rather than choose, the short form holds the column and
- * the full one waits under the pointer.
- */
 export function SignalTip({ children, className, label }: SignalTipProps) {
   return (
     <Tooltip>

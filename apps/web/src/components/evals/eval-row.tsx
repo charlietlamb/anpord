@@ -7,17 +7,6 @@ import { ListRow, RowTitle } from "@/components/layout/list-row";
 import { clock, elapsed, exactly } from "@/lib/evals/duration";
 import { useShortAge } from "@/lib/use-relative-time";
 
-/**
- * One run, as a row.
- *
- * Each fact holds its own width so a column forms down the list: left to
- * natural widths, `1/1` and `·` land wherever the value above them ended, and
- * nothing lines up.
- *
- * Every figure is the short form, because the column repeats it on each row
- * and the words between them never vary. What each one leaves out waits in a
- * tooltip rather than being lost.
- */
 export function EvalRow({ run }: { readonly run: EvalRunSummary }) {
   const startedAt = new Date(run.startedAt.epochMillis);
   const age = useShortAge(startedAt);
@@ -33,8 +22,6 @@ export function EvalRow({ run }: { readonly run: EvalRunSummary }) {
             <VariantMarks columns={run.columns} />
           </span>
 
-          {/* The arc holds the whole outcome; the counts are in its tooltip.
-              A void-only run writes "9 void" here instead. */}
           <span className="flex w-16 justify-end">
             <OutcomeSummary
               passed={run.passed}
@@ -54,9 +41,7 @@ export function EvalRow({ run }: { readonly run: EvalRunSummary }) {
             )}
           </span>
 
-          {/* "ago" because the column beside it is also a length of time:
-              1m and 8h are a duration and an age, and only the word separates
-              them. */}
+          {/* "ago" separates this age from the duration column beside it. */}
           <span className="flex w-16 justify-end">
             {age === null ? null : (
               <SignalTip
@@ -74,8 +59,6 @@ export function EvalRow({ run }: { readonly run: EvalRunSummary }) {
     >
       <RowTitle>{run.name ?? run.firstCaseName ?? run.id}</RowTitle>
 
-      {/* The unit once, on the count itself: a column of "3 cases" repeats a
-          word that never varies, and the number is the part that differs. */}
       {run.caseCount > 1 ? (
         <SignalTip
           className="ml-2 text-muted-foreground/60 text-xs tabular-nums"

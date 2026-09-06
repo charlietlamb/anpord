@@ -18,15 +18,6 @@ import { ROW_ACTION } from "@/components/layout/row-action";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
-/**
- * One stored credential, as a row.
- *
- * The same shape as every other list on the site: a mark, a name, a few
- * muted facts, the numbers on the right, and a menu that appears on approach.
- * The previous row stated seven facts in a sentence joined by dots, and said
- * "Active" on every healthy row -- the normal case is not news, so only an
- * invalid credential and a default one are badged.
- */
 export function ConnectionRow({
   connection,
   integration,
@@ -101,10 +92,6 @@ export function ConnectionRow({
       <span className="flex min-w-0 items-center gap-2">
         <RowTitle>{connection.name}</RowTitle>
 
-        {/* The mark already says which vendor this is, so naming it again in
-            the same breath as the method reads as two facts where there is
-            one. Default is the common case and says so quietly; only invalid
-            is worth a badge, because only invalid needs acting on. */}
         <span className="truncate text-muted-foreground/60 text-xs">
           {[
             method?.label ?? null,

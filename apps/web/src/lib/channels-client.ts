@@ -33,8 +33,6 @@ async function request<A, I>(
 
 export const listChannels = () => request(ChannelList, "");
 
-/** The dialog hands back a plain string, so the brand is applied here at the
- * boundary rather than being asserted by every caller. */
 export const createChannel = (body: { color: string; name: string }) =>
   request(Channel, "", { body: JSON.stringify(body), method: "POST" });
 

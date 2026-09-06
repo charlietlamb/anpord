@@ -10,9 +10,8 @@ const pairOf = (
 ) => (name == null || source == null ? null : { name, source });
 
 export const caseFrom = (subject: CellTask): GridCase => ({
-  /* Read back, because a worker rebuilds every dispatched run from here: a
-     declaration that survives only in the request is one no run beyond the
-     first ever sees. */
+  /* A worker rebuilds every dispatched run from here, so nothing may live only
+     in the original request. */
   cache:
     subject.cacheKey === null || subject.cachePath === null
       ? undefined
@@ -26,8 +25,7 @@ export const caseFrom = (subject: CellTask): GridCase => ({
   verify: subject.verifyCommand,
 });
 
-/** The profile a stored cell ran under, read back whole rather than by name:
- * a resumed run writes the same files, and only the row holds them. */
+/* Read back whole, not by name: only the row holds the files a resume must write. */
 export const profileFrom = (subject: CellTask): RequestedProfile | null =>
   subject.profile == null
     ? null
@@ -40,13 +38,7 @@ export const profileFrom = (subject: CellTask): RequestedProfile | null =>
         systemPrompt: subject.profile.systemPrompt,
       };
 
-/**
- * The task a stored cell ran, for a caller that will resolve its own
- * credentials.
- *
- * None where the row names a harness or provider this build does not have,
- * which a deploy that dropped one leaves behind.
- */
+/* None where the row names a harness or provider this build no longer has. */
 export const taskFrom = (subject: CellTask) =>
   Option.map(namesOf(subject.cell), (names) => ({
     credentials: {

@@ -11,11 +11,7 @@ const call = <Body = unknown>(
   key = world.writeKey.key
 ) => callApi<Body>(world.baseUrl, key, endpoint, payload);
 
-/**
- * An api key is deliberately refused organization:admin, so archiving is
- * driven through the store the dashboard writes to. The scenarios are about
- * what archiving means for readers, not about who is allowed to do it.
- */
+/* An api key is deliberately refused organization:admin, so archiving goes through the store the dashboard writes to. */
 const archive = (world: World, id: string) =>
   world.query("update prompt set archived_at = now() where id = $1", [id]);
 
@@ -183,20 +179,14 @@ export const lifecycleScenarios: readonly Scenario<World>[] = [
         [id]
       );
 
-      /* Most of them, not all of them. A write that exhausts its retries under
-         contention answers 409 and is a correct outcome; asserting that every
-         one lands measures how fast the machine is rather than whether the
-         numbering holds, and a slower runner failed here on seven of eight.
-         What must never happen is two writes claiming one number, which the
-         checks either side of this cover. */
+      /* Most, not all: a write exhausting its retries under contention answers 409 correctly, so asserting every one lands measures machine speed. The real invariant, two writes never claiming one number, is checked either side. */
       isTrue(
         "contention did not starve the writers",
         written.length >= attempts - 2,
         `only ${written.length} of ${attempts} writes landed; the rest gave up`
       );
 
-      /* Compared against the sequence it should be rather than counted: a
-         history of 1,2,3,5,8 has the right length and the wrong contents. */
+      /* Compared against the sequence rather than counted: 1,2,3,5,8 has the right length and wrong contents. */
       equals(
         "the history runs unbroken",
         stored.map((row) => row.version).join(","),

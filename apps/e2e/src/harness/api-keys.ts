@@ -43,11 +43,7 @@ export interface KeyStoreOptions {
   readonly path: string;
 }
 
-/**
- * A key is shown once and never again, so the plaintext is kept here rather
- * than re-minted per run. Preserving it also lets a developer point the CLI or
- * a scratch script at the same organization the scenarios just exercised.
- */
+/* A key is shown once and never again, so the plaintext is kept rather than re-minted per run. */
 export class ApiKeyStore {
   private file: KeyFile;
 
@@ -62,15 +58,7 @@ export class ApiKeyStore {
     this.file = readFile(options.path);
   }
 
-  /**
-   * Verified against the running server before reuse. A preserved key is only
-   * useful while the organization it points at still exists, and a reset
-   * database leaves the file pointing at nothing.
-   *
-   * A key that cannot be reused is replaced rather than reported, because the
-   * alternative is a run where every scenario fails on an unrelated 404 and
-   * nothing names the key file as the reason.
-   */
+  /* Verified before reuse, and replaced rather than reported: a reset database leaves the file pointing at nothing, and every scenario would fail on an unrelated 404. */
   async resolve(name: string, owner: KeyOwner): Promise<StoredKey> {
     const existing = this.file.keys[name];
 
@@ -106,8 +94,7 @@ export class ApiKeyStore {
     return response.status === 200;
   }
 
-  /** Through the same endpoint the dashboard calls, so a run also covers the
-   * path a person takes to get a key. */
+  /* Through the same endpoint the dashboard calls, so a run covers that path too. */
   private async mint(name: string, owner: KeyOwner) {
     const response = await fetch(`${this.baseUrl}/api/auth/api-key/create`, {
       body: JSON.stringify({

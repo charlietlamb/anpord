@@ -17,14 +17,8 @@ const distinctBy = <A>(
   return [...found.values()];
 };
 
-/**
- * The cases and tasks a stored run was built from.
- *
- * A run stores one row per cell, and a grid is the product of its cases and
- * its tasks, so handing the cells to both sides squares them: four cells of
- * two cases across two models rebuilt as sixteen, each pairing a case with a
- * model it had never been run against.
- */
+/* Deduplicated on both sides: a grid is the product of its cases and tasks, so
+   handing the cells to both squares them. */
 export const gridOf = (cells: readonly CellTask[]) => ({
   cases: distinctBy(cells, (subject) => subject.identity),
   tasks: distinctBy(

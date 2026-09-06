@@ -64,13 +64,8 @@ const journalled =
       return events;
     });
 
-/**
- * The recorder's log, read once the process has ended.
- *
- * A command the process already printed is dropped rather than shown twice,
- * and a log that was never written reads as no commands: the trap is bash's,
- * so a process that never ran one leaves nothing behind.
- */
+/* Read only once the process has ended; a log that was never written reads as
+   no commands. */
 const traceFold = (
   request: RunHarness,
   reported: Ref.Ref<readonly HarnessEvent[]>
@@ -95,8 +90,6 @@ const traceFold = (
     })
   );
 
-/** A command harness's stdout as a session: events, usage, and the shell
- * recorder's account of what actually ran. */
 export const commandSession = (request: RunHarness, command: string) =>
   Effect.gen(function* () {
     const state: SessionState = {
@@ -115,9 +108,8 @@ export const commandSession = (request: RunHarness, command: string) =>
     ).pipe(Stream.mapConcatEffect(journalled(state, request)));
 
     return {
-      /* Concatenated rather than merged: the fold reads a file the process is
-         still appending to until it exits, and it drops what the process
-         already reported, which is only known once it has. */
+      /* Concatenated, not merged: the fold reads a file the process appends to
+         until it exits. */
       events: printed.pipe(Stream.concat(traceFold(request, state.reported))),
       harness: request.harness,
       usage: Ref.get(state.usage).pipe(Effect.map(totalOf)),

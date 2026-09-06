@@ -63,8 +63,7 @@ export function CommandMenu() {
     onTrigger: () => (open ? close() : setOpen(true)),
   });
 
-  /* Only while the menu is open, so the shortcut cannot open a staff-only page
-     from anywhere in the app the way ⌘K opens the menu itself. */
+  /* Only while the menu is open, so the shortcut cannot reach a staff-only page from anywhere. */
   useShortcut("i", {
     disabled: !(open && impersonation.allowed) || page === "impersonate",
     meta: true,
@@ -81,9 +80,7 @@ export function CommandMenu() {
       onOpenChange={(next) => (next ? setOpen(true) : close())}
       open={open}
     >
-      {/* cmdk filters on the typed value, but the impersonate results come
-          already chosen by the server; filtering them again would hide a match
-          found by email while a name was being typed. */}
+      {/* Impersonate results are already chosen by the server; cmdk filtering them again would hide matches. */}
       <Command shouldFilter={page === "main"}>
         <CommandInput
           onKeyDown={(event) => {

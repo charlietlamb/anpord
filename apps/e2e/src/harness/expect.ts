@@ -32,8 +32,7 @@ export const contains = (check: string, haystack: string, needle: string) => {
   }
 };
 
-/** Asserts the call fails, and hands back the reason so a scenario can check
- * the failure it actually wanted rather than any failure at all. */
+/* Hands back the reason so a scenario can check the failure it wanted, not any failure. */
 export const rejects = async (check: string, run: () => Promise<unknown>) => {
   try {
     await run();

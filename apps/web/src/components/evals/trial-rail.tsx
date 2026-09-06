@@ -25,9 +25,6 @@ import { seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 
-/* The name alone, with the path on hover. A rail is too narrow for a full
-   path, and truncating one leaves a column of identical prefixes with the
-   part that differs off the right edge. */
 function FileRow({ path }: { readonly path: string }) {
   const Glyph = fileIcon(path);
   const name = path.slice(path.lastIndexOf("/") + 1);
@@ -60,8 +57,7 @@ function FileRow({ path }: { readonly path: string }) {
   );
 }
 
-/* Named so the row can carry both facts: how many ran, and how many of them
-   the shell rejected. */
+/* Cached so the icon component keeps its identity across renders. */
 const VERDICT_ICONS = new Map<EvalTrial["status"], () => ReactNode>();
 
 const verdictIcon = (status: EvalTrial["status"]) => {
@@ -83,15 +79,7 @@ const commandsValue = (trial: EvalTrial) =>
     ? `${trial.commands} commands`
     : `${trial.commands} commands, ${trial.failedCommands} failed`;
 
-/**
- * What the trial did, how long it took and what it cost, beside the
- * trajectory that spent it.
- *
- * Three sections because it answers three questions. The time breakdown is
- * drawn from the same journal the chart draws, so the rail and the trajectory
- * cannot disagree; it does not add up to the total and is not presented as if
- * it does, because the journal records fewer milliseconds than the phase took.
- */
+/* The time breakdown deliberately does not sum to the total: the journal records fewer ms than the phase took. */
 export function TrialRail({ trial }: { readonly trial: EvalTrial }) {
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;

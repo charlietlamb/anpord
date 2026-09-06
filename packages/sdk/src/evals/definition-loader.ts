@@ -34,10 +34,8 @@ export const loadDefinition = (entry: string) =>
     )
   );
 
-/* The structure a `defineEval` result has, and no more: the cases and tasks
-   carry the author's own functions, which no schema can describe and which
-   are the compiler's to reject by name if they are wrong. This decides only
-   whether the module exported a definition at all. */
+/* Decides only whether the module exported a definition: the author's own
+   functions inside it are the compiler's to reject, not a schema's. */
 const DefinitionShape = Schema.Struct({
   cases: Schema.Array(Schema.Unknown),
   name: Schema.String,

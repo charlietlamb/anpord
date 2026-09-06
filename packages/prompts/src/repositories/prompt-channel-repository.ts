@@ -15,8 +15,7 @@ import { head, tryStore } from "./query";
 export interface ChannelRow {
   readonly channel: string;
   readonly updatedAt: Date;
-  /** Left-joined onto a nullable actor, so a deleted user arrives as a row of
-   * nulls rather than as no row. */
+  /* Left-joined, so a deleted user arrives as a row of nulls. */
   readonly updatedBy: {
     readonly image: string | null;
     readonly name: string | null;

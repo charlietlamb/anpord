@@ -15,11 +15,7 @@ const settled = Effect.runSync(settings);
 
 export const { authUrl, baseUrl, port } = settled;
 
-/**
- * A client rejects metadata whose resource is not the URL it connected to, so
- * the identifier follows the port the server actually listens on. Only a
- * deployment knows its public origin, which is what MCP_RESOURCE_URL names.
- */
+/* A client rejects metadata whose resource is not the URL it connected to, so this follows the listening port unless MCP_RESOURCE_URL names the public origin. */
 export const resource = Option.getOrElse(
   settled.resource,
   () => `http://localhost:${port}/mcp`

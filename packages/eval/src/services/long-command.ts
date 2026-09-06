@@ -10,26 +10,12 @@ export interface LongCommandOptions {
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly timeoutMs?: number;
-  /** Called with what a command has printed since the last check, when it
-   * printed anything. A command that runs for half an hour says nothing at
-   * all otherwise. */
+  /* Called with output since the last check, when there was any. */
   readonly watch?: (text: string) => Effect.Effect<void>;
 }
 
-/**
- * A command long enough to be worth not waiting on.
- *
- * A provider that resumes commands starts one detached and is polled for it,
- * so the run can suspend between checks. One that does not gets a streamed
- * `exec` instead: the same outcome and the same `watch`, reported as the
- * output arrives rather than by polling, at the cost of holding the call open
- * for as long as the command runs.
- *
- * The fallback lives here rather than behind the port because the port is
- * where a provider says what it can do, and a `start` faked from a stream
- * would let a provider claim a capability it does not have. Callers branch on
- * nothing either way: both paths return one `CommandOutcome`.
- */
+/* The streamed fallback lives here, not behind the port: a `start` faked from a
+   stream would let a provider claim a capability it does not have. */
 export const runLongCommand = (
   sandbox: SandboxHandle,
   command: string,

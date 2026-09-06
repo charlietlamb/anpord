@@ -5,14 +5,6 @@ import { shortId } from "@/lib/evals/short-id";
 import type { Reading } from "@/lib/evals/trial-rows";
 import { trialRowsOf } from "@/lib/evals/trial-rows";
 
-/**
- * Every trial this cell has ever recorded, newest reading first.
- *
- * One list rather than one page per reading. A cell holds the same case, setup
- * and variant on every repeat, because the cell key hashes all three, so the
- * trials are the only thing that differs between readings -- and reading nine
- * of them meant opening nine pages that differed in their numbers alone.
- */
 export function TrialTable({
   cellKey,
   currentRunId,

@@ -111,8 +111,6 @@ const VERIFY_STEPS = [
 
 const VERIFY = VERIFY_STEPS.join(" && ");
 
-/** The trail a passing trial leaves, and the one that stopped at the third
- * step, so a preview shows every mark the rail can carry. */
 const trailOf = (status: EvalTrial["status"]): EvalTrial["verifySteps"] => {
   if (status === "passed") {
     return VERIFY_STEPS.map((command) => ({ command, exitCode: 0 }));
@@ -137,8 +135,6 @@ const trial = (input: {
   readonly trajectory?: EvalTrial["trajectory"];
 }): EvalTrial => ({
   commands: input.commands,
-  /* Every classification the interface has to render, so the fixture exercises
-     the ones that must never show a number as readily as the one that does. */
   costs:
     input.tokens === null
       ? null
@@ -241,8 +237,6 @@ export const TRIALS: readonly EvalTrial[] = [
   }),
 ];
 
-/** A trial that stopped at the third check, so a rail can show a cross and
- * the steps it never reached. */
 export const FAILED_TRIAL: EvalTrial = trial({
   commands: 5,
   failedCommands: 1,
@@ -337,7 +331,6 @@ const rivalOf = (cell: EvalCell, key: string): EvalCell => ({
   taskIndex: 1,
 });
 
-/** Two cases against two variants, so the grid has something to lead on. */
 export const RUN: EvalRun = {
   cases: [CELL.caseName, CELL_NO_BASELINE.caseName],
   costs: null,

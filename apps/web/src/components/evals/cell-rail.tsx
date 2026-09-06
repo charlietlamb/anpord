@@ -13,8 +13,7 @@ import { RunVariants } from "@/components/evals/run-variants";
 import { VerdictLine } from "@/components/evals/verdict-line";
 import { VoidReason } from "@/components/evals/void-reason";
 
-/* Three states rather than two: a cell that never agreed reads differently
-   from one that stopped, and only the second is a finding. */
+/* Three states, not two: only a cell that stopped agreeing is a finding. */
 const agreementOf = (deterministic: boolean, lost: boolean) => {
   if (lost) {
     return "no longer deterministic";
@@ -23,10 +22,6 @@ const agreementOf = (deterministic: boolean, lost: boolean) => {
   return deterministic ? "deterministic" : "varies";
 };
 
-/**
- * What the cell is and how it has read before, beside the trials that produced
- * this reading.
- */
 export function CellRail({
   cell,
   cellKey,

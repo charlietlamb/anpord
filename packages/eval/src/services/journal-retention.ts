@@ -2,17 +2,11 @@ import { Clock, Config, Duration, Effect, Layer, Schedule } from "effect";
 import { JournalArchive } from "../repositories/journal-archive";
 import { SWEEP_EVERY } from "./reconciler";
 
-/** How long a settled trial's journal stays as rows before it is folded
- * into one. A month covers every run anybody is still comparing against. */
 const HOT_FOR = Duration.days(30);
 
-/** Trials per transaction. Small enough that one batch holds its lock for
- * well under a second, and the loop below takes as many as it needs. */
+/* Small enough that one batch holds its lock for well under a second. */
 const BATCH = 200;
 
-/* No service in front of this: a tag whose one method forwards to one
-   repository method is a wrapper, not a seam. The schedule yields the
-   repository itself. */
 export const JournalRetentionScheduleLive = Layer.scopedDiscard(
   Effect.gen(function* () {
     const archive = yield* JournalArchive;
@@ -24,9 +18,8 @@ export const JournalRetentionScheduleLive = Layer.scopedDiscard(
       const now = yield* Clock.currentTimeMillis;
       const olderThan = new Date(now - Duration.toMillis(hotFor));
 
-      /* A batch as long as the limit may have left more behind, so the loop
-         runs until one comes back short. The cutoff is fixed for the whole
-         sweep, so a trial settling during it is judged once. */
+      /* The cutoff is fixed for the whole sweep, so a trial settling during it is
+         judged once. */
       const compacted = yield* Effect.iterate(
         { compacted: 0, last: BATCH },
         {

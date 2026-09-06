@@ -12,7 +12,6 @@ import { ListRow, RowTitle } from "@/components/layout/list-row";
 import { ROW_ACTION } from "@/components/layout/row-action";
 import { RowList } from "@/components/layout/row-list";
 
-/** The GitHub account an organisation clones with, and what can be done to it. */
 export function InstalledAccountRow({
   account,
   onRefresh,
@@ -46,8 +45,6 @@ export function InstalledAccountRow({
               <DropdownMenuItem disabled={refreshing} onClick={onRefresh}>
                 Refresh repositories
               </DropdownMenuItem>
-              {/* GitHub owns the picker. This is its address, which is the
-                  one screen where repositories are added or removed. */}
               <DropdownMenuItem
                 render={
                   <a href={account.manageUrl} rel="noreferrer" target="_blank">

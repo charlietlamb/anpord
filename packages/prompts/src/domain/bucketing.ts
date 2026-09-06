@@ -13,24 +13,13 @@ const fnv1a = (value: string): number => {
   return hash >>> 0;
 };
 
-/**
- * Which of ten thousand buckets a unit falls into for a given salt.
- *
- * Hashed twice. A single pass correlates across concurrent rollouts — two
- * rollouts at 50% put measurably more than a quarter of units in both, because
- * FNV is not independent across seeds (Kohavi et al. 2009, DMKD 18(1) §5.1.2).
- * Each pass looks uniform on its own, which is what makes the single-pass
- * version dangerous: it reads as correct until a second rollout starts.
- *
- * Ten thousand rather than a hundred so a rollout can move by fractions of a
- * percent without re-basing, which would move every unit above the change.
- */
+/* Hashed twice: FNV is not independent across seeds, so a single pass
+   correlates concurrent rollouts (Kohavi et al. 2009, DMKD 18(1) §5.1.2). */
 export const bucketOf = (salt: string, unit: string): number =>
   fnv1a(String(fnv1a(salt + unit))) % BUCKETS;
 
-/** Whether a unit is inside a gate of the given percent. Widening the gate can
- * only admit units, never move one already inside it, because the bucket does
- * not depend on the percent. */
+/* The bucket does not depend on the percent, so widening a gate only admits
+   units and never moves one already inside. */
 export const withinGate = (
   salt: string,
   unit: string,

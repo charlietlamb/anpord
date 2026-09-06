@@ -3,14 +3,7 @@ import { signIn } from "@/lib/auth-client";
 
 const UNREACHABLE = "Can't reach the server. Please try again.";
 
-/**
- * Better Auth reports a rejected request in the returned `error` rather than by
- * throwing, so the catch here is reserved for transport failures. Both paths
- * surface, otherwise a dead server looks like a silent no-op.
- *
- * No success toast: a successful call navigates straight to GitHub, so the
- * toast would be torn down mid-animation.
- */
+/* Better Auth returns a rejected request in `error` rather than throwing, so the catch is transport failures only. */
 export async function signInWithGithub(callbackURL: string) {
   try {
     const { error } = await signIn.social({ provider: "github", callbackURL });

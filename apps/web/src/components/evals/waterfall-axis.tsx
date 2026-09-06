@@ -2,8 +2,7 @@ import { seconds } from "@/lib/evals/duration";
 
 const TICKS = 4;
 
-/* First tick hugs the left edge, last hugs the right, the rest centre on their
-   line. Without this the end label overflows the chart. */
+/* Without shifting the end tick, its label overflows the chart. */
 const tickShift = (index: number) => {
   if (index === 0) {
     return;
@@ -17,7 +16,6 @@ const fractions = Array.from(
   (_, index) => index / TICKS
 );
 
-/** The scale every bar below is read against, so a width means something. */
 export function Axis({ spanMs }: { readonly spanMs: number }) {
   return (
     <div className="relative h-4">
@@ -34,8 +32,6 @@ export function Axis({ spanMs }: { readonly spanMs: number }) {
   );
 }
 
-/** Run the full height rather than stopping at the axis, so a bar is read
- * against the scale instead of against the row above it. */
 export function Gridlines() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">

@@ -4,21 +4,10 @@ import { Metric } from "@/components/evals/metric";
 import { ListRow } from "@/components/layout/list-row";
 import { count, NOTHING, seconds } from "@/lib/evals/duration";
 
-/** -1 is the sentinel a trial nothing decided carries. Shown as a word,
- * because a reader seeing "-1" would take it for an exit code. */
+/* -1 is the sentinel for an undecided trial, not a real exit code. */
 const exitOf = (trial: EvalTrial) =>
   trial.exitCode === -1 ? "undecided" : String(trial.exitCode);
 
-/**
- * One trial, as a row.
- *
- * The same shape as a run and a cell, because a reader moving between the
- * three screens is reading the same kind of thing at three depths: a mark on
- * the left, what it is, then its numbers holding their columns.
- *
- * The ordinal is the row's identity. A run belongs to the reading around the
- * rows, not to one trial, so repeated readings name their run above the group.
- */
 export function TrialRow({
   cellKey,
   runId,

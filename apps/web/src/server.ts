@@ -5,27 +5,10 @@ import {
 
 const handler = createStartHandler(defaultStreamHandler);
 
-/* What the handler already answers. Anything else it refuses outright. */
 const SERVED = /(^|,)\s*(\*\/\*|text\/html)/;
 
-/**
- * The server entry, wrapped to answer requests that do not ask for HTML.
- *
- * TanStack Start refuses any `Accept` it does not recognise with a 500, so an
- * agent sending `Accept: text/markdown` -- the convention agents use to ask
- * for a readable version of a page -- got a server error rather than the
- * page. Documents are HTML here, so the honest answer is to render the
- * document and let the caller read it, which means asking the handler for
- * HTML on its behalf. A 500 also reads as "this site is broken" rather than
- * "this page is HTML", which is the wrong thing to tell anyone probing it.
- *
- * Routes under /api are untouched: they serve JSON already, and their own
- * handlers run before this one.
- *
- * `Vary: Accept` goes on the way out because the response now depends on the
- * request's `Accept`. Without it a CDN may hand the HTML it cached for one
- * caller to a different one, or the reverse.
- */
+/* TanStack Start answers any `Accept` it does not recognise with a 500, so unknown types are re-asked as HTML. */
+/* `Vary: Accept` because the response now varies by the request's `Accept`. */
 export default {
   async fetch(request: Request, ...rest: unknown[]) {
     const accept = request.headers.get("accept") ?? "*/*";

@@ -18,7 +18,7 @@ export const Route = createFileRoute("/oauth/consent")({
   }),
 });
 
-/** Fetched on the client: the name needs the session cookie. */
+/* Fetched on the client: the name needs the session cookie. */
 function ConsentPage() {
   const { client_id, scope } = Route.useSearch();
   const { data: session, isPending } = useSession();

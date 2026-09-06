@@ -4,10 +4,8 @@ import type { ResumableCommands } from "../../ports/sandbox";
 import { cdInto, sessionName, unavailable, uploadedEnv } from "./daytona-shell";
 import { envFileFor, sourcing } from "./env-file";
 
-/* The SDK types this as `any`, and it is one of two shapes depending on how
-   the session was created: the streams apart, or one interleaved string.
-   Decoded rather than asserted, so a third shape reads as absent output
-   instead of reaching the journal as `undefined` where a string is due. */
+/* The SDK types this as `any` and returns one of two shapes, so it is decoded
+   rather than asserted. */
 const SessionLogs = Schema.Struct({
   stderr: Schema.optional(Schema.String),
   stdout: Schema.optional(Schema.String),
@@ -21,12 +19,8 @@ export const logsOf = (logs: unknown, stream: "stdout" | "stderr") =>
     Option.getOrElse(() => "")
   );
 
-/**
- * Commands that outlive the call which started them.
- *
- * Daytona is the only provider offering this: its sessions survive the request
- * that created them, so a half-hour install can be started, left, and polled.
- */
+/* Daytona sessions survive the request that created them, so a half-hour install
+   can be started, left, and polled. */
 export const detachedCommands = (
   sandbox: DaytonaSandbox,
   workspace: string
@@ -51,10 +45,8 @@ export const detachedCommands = (
       }))
     ),
 
-  /* The session is deliberately not released with the calling scope, unlike
-     exec's: the point of starting detached is that the command outlives the
-     process that asked for it, and a released session takes the command with
-     it. Deleting the sandbox takes its sessions, which bounds them. */
+  /* Deliberately not scoped: a released session takes its command with it.
+     Deleting the sandbox takes its sessions, which bounds them. */
   start: (command, options) =>
     Effect.gen(function* () {
       const id = yield* sessionName;

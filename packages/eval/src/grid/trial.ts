@@ -15,19 +15,8 @@ import type { GridCase } from "./cell";
 
 import type { GridExecutionTask } from "./state";
 
-/**
- * The usage a trial reported, with what it cost at the time it ran.
- *
- * Priced here rather than when the trial is read, because a published rate
- * changes and a finished run does not: recomputing later would silently
- * restate what a past run cost, and two readings of the same trial would
- * disagree. An unpriced model records its tokens and no cost, which reads as
- * unknown rather than as free.
- *
- * A catalogue that cannot be reached costs the trial nothing: the run has
- * already happened, and losing the tokens it reported over a missing price
- * would be the more expensive failure.
- */
+/* Priced at run time, not read time: a published rate changes and a finished run
+   must not. An unreachable catalogue costs the trial nothing. */
 const rateFor = (model: string) =>
   ModelPrices.pipe(
     Effect.flatMap((prices) => prices.forModel(model)),
@@ -92,9 +81,7 @@ export const runTrial = (input: RunOneTrial) =>
       startedAt: new Date(startedAt),
     });
 
-    /* The cause is carried into the row rather than dropped. A trial that
-       ended badly used to record only that it had ended, so the reason lived
-       in a sandbox that is deleted on the way out and nowhere else. */
+    /* The cause goes into the row: the sandbox holding it is deleted on the way out. */
     yield* Effect.addFinalizer((exit) =>
       exit._tag === "Success"
         ? Effect.void
@@ -165,9 +152,7 @@ export const runTrial = (input: RunOneTrial) =>
       usage,
     });
 
-    /* Recorded beside the trial rather than derived on read, because the rate
-       a trial was priced at is a fact about when it ran: a published rate
-       changes, and a run that already happened must not change with it. */
+    /* Stored, not derived on read: the rate is a fact about when the trial ran. */
     yield* input.costs
       .record({
         components: breakdownOf({

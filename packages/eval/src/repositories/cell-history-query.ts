@@ -20,10 +20,8 @@ export interface CellHistoryEntry {
   readonly internalId: string;
   readonly profileVersion: string | null;
   readonly runId: string;
-  /** The rows the distribution was computed from. Carried rather than dropped:
-   * a cell reads the same way on every repeat, so the readings differ only in
-   * their trials and their two versions, and a screen that showed one run at a
-   * time made a reader open nine near-identical pages to compare them. */
+  /* Carried rather than dropped: repeats of a cell differ only in their trials
+     and versions, so one run per screen makes a reader open near-identical pages. */
   readonly trials: readonly TrialRow[];
 }
 

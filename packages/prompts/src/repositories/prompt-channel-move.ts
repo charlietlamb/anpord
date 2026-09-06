@@ -26,7 +26,8 @@ export interface ChannelMoveIds {
   readonly releaseInternalId: string;
 }
 
-/** One transaction: a placement moved without its release or its audit event is a discrepancy nothing downstream can detect. */
+/* One transaction: a placement moved without its release or audit event is a
+   discrepancy nothing downstream can detect. */
 export const movePromptChannel = async (
   tx: Tx,
   ids: ChannelMoveIds,

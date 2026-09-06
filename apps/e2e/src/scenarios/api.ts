@@ -12,8 +12,6 @@ const call = <Body = unknown>(
   key = world.writeKey.key
 ) => callApi<Body>(world.baseUrl, key, endpoint, payload);
 
-/** The surface under test, expressed as the operations every surface shares,
- * so a behaviour proved here can be proved identically elsewhere. */
 const apiSurface = (world: World) => ({
   get: async (id: string, selector?: { readonly channel?: string }) =>
     (await call<PromptShape>(world, "prompts.get", { id, ...selector })).body,
@@ -106,10 +104,7 @@ export const apiScenarios: readonly Scenario<World>[] = [
     },
   },
   {
-    /* Archiving is a dashboard action rather than an API one, so the public
-       surface does not carry it at all. The answer is 404 rather than 403
-       because there is no route to be forbidden from, and what matters to a
-       caller either way is that the prompt is still there afterwards. */
+    /* 404 rather than 403: archiving is a dashboard action, so there is no public route to be forbidden from. */
     name: "api: a key cannot archive, and the prompt survives the attempt",
     run: async (world) => {
       const { id } = await givenPrompt(world, "api-guarded");

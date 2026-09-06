@@ -3,7 +3,6 @@ import { cn } from "@anpord/ui/lib/utils";
 
 interface SkeletonLinesProps {
   readonly className?: string;
-  /** Ragged widths, so a block of lines reads as prose rather than a bar. */
   readonly widths: readonly string[];
 }
 

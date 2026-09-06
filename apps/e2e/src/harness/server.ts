@@ -7,24 +7,17 @@ import { waitUntil } from "./wait";
 
 const READY = "server listening on";
 const BOOT_TIMEOUT_MS = 45_000;
-/** The kill returns before the kernel releases the socket, and how long that
- * takes depends on the machine, so the port is watched rather than guessed at
- * with a sleep long enough to look safe. */
+/* The kill returns before the kernel releases the socket, so the port is watched rather than slept on. */
 const PORT_RELEASE_TIMEOUT_MS = 5000;
 
 export interface RunningServer {
   readonly baseUrl: string;
-  /** What the server has written so far, for a scenario that needs to prove
-   * something reached the log rather than only the response. */
+  /* For a scenario proving something reached the log rather than only the response. */
   readonly output: () => string;
   readonly stop: () => void;
 }
 
-/**
- * Asked of the socket rather than of `lsof`, which is absent on a bare CI
- * image. A missing tool would answer "free" for a port something is holding,
- * and the failure would land later as an unexplained bind error.
- */
+/* Asked of the socket, not `lsof`, which is absent on a bare CI image and would answer "free" for a held port. */
 const portIsFree = (port: number) =>
   new Promise<boolean>((resolve) => {
     const socket = connect({ host: "127.0.0.1", port });
@@ -37,11 +30,7 @@ const portIsFree = (port: number) =>
     socket.once("error", () => settle(true));
   });
 
-/**
- * A run killed part way through, or a server started by hand against this
- * cluster, leaves the port held. The port belongs to the tests, so reclaiming
- * it is safer than asking a developer to hunt down the process.
- */
+/* The port belongs to the tests, so a leftover holder is reclaimed rather than hunted down by hand. */
 const reclaimPort = async (port: number) => {
   if (await portIsFree(port)) {
     return;
@@ -58,13 +47,7 @@ const reclaimPort = async (port: number) => {
   });
 };
 
-/**
- * The real server binary rather than an in-process handler, so a run exercises
- * routing, authentication, and encoding exactly as a deployment does.
- *
- * REDIS_URL is removed rather than blanked: an empty value still reads as a
- * url and sends the server retrying against nothing.
- */
+/* REDIS_URL is removed rather than blanked: an empty value still reads as a url and sends the server retrying against nothing. */
 export const startServer = async (
   repositoryRoot: string,
   databaseUrl: string,
@@ -84,10 +67,7 @@ export const startServer = async (
       DATABASE_URL: databaseUrl,
       HOST: "127.0.0.1",
       PORT: String(port),
-      /* The server refuses to start without one, deliberately: a deployment
-         that cannot reach a worker should say so at boot rather than on the
-         first run somebody starts. Nothing here dispatches a run, so a
-         stand-in satisfies the check without reaching Trigger. */
+      /* The server refuses to boot without one; nothing here dispatches a run, so a stand-in satisfies the check without reaching Trigger. */
       TRIGGER_SECRET_KEY: "tr_dev_e2e_no_dispatch",
     },
   });

@@ -24,10 +24,7 @@ export const DatabaseLive = Layer.scoped(
           statement_timeout: Duration.toMillis(config.statementTimeout),
         });
 
-        /* Set per connection rather than as a startup parameter: Neon's pooler
-           refuses `options: "-c search_path=..."` outright, failing every
-           connection made with it. A pooled session can still hand back an
-           empty search_path, so it is set here instead. */
+        /* Neon's pooler refuses `options: "-c search_path=..."` outright, yet can hand back an empty search_path, so it is set per connection. */
         created.on("connect", (client) => {
           client.query("set search_path to public").catch(() => undefined);
         });

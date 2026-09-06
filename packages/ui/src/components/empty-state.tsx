@@ -30,9 +30,7 @@ export function EmptyState({
     <Empty
       className={cn(
         "relative overflow-hidden",
-        /* Dashed, and a step fainter than a real edge: this outlines a
-           space waiting to be filled rather than a container holding
-           something, and a solid rule says the opposite. */
+        /* Dashed: a space waiting to be filled, not a container. */
         bordered && "border border-border-faint border-dashed",
         className
       )}

@@ -10,16 +10,10 @@ import { decodeArchivedJournal } from "../domain/journal-archive";
 import { groupByTrial } from "./event-row";
 import { tryStore } from "./query";
 
-/**
- * The archive of cold journals.
- *
- * Owns `eval_trial_journal`, and also deletes from `eval_event`: the archive
- * row and the rows it replaces must change in one transaction, or a reader
- * between the two statements sees a trial with both journals, or neither.
- */
+/* Also deletes from `eval_event`: the archive row and the rows it replaces must
+   change in one transaction, or a reader sees both journals or neither. */
 
-/** Trials that cannot receive another event. The other statuses have
- * settled, and settling is the last write a trial's journal ever gets. */
+/* Statuses that can still receive an event. */
 const LIVE_STATUSES = ["queued", "running"];
 
 const ARCHIVE_VERSION = 1;
@@ -30,8 +24,7 @@ export interface CompactJournals {
 }
 
 export interface JournalArchiveShape {
-  /** Folds every cold, settled journal into one row each, and returns how
-   * many. A batch as long as `limit` means there may be more. */
+  /* A batch as long as `limit` means there may be more. */
   readonly compact: (
     input: CompactJournals
   ) => Effect.Effect<number, EvalStoreError>;
@@ -57,9 +50,7 @@ export const JournalArchiveLive = Layer.effect(
     const compact = (input: CompactJournals) =>
       tryStore("journal.compact", () =>
         db.transaction(async (tx) => {
-          /* Narrowed by the index on `at` before anything is grouped: the
-             trials with an old event are few against the table, and only
-             those need their newest event checked. */
+          /* Narrowed by the index on `at` before grouping. */
           const aged = tx
             .selectDistinct({ trialInternalId: evalEvent.trialInternalId })
             .from(evalEvent)

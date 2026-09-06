@@ -6,9 +6,8 @@ export interface Comparison {
   readonly baselinePassRate: number;
   readonly candidatePassRate: number;
   readonly delta: number;
-  /** True when the pass rate held but the cell stopped agreeing with itself.
-   * An agent that became unreliable without becoming wrong is a regression no
-   * score can express, and it is invisible to anything comparing two numbers. */
+  /* An agent that became unreliable without becoming wrong is a regression no
+     pass-rate comparison can express. */
   readonly determinismLost: boolean;
   readonly reason: string | null;
   readonly verdict: Verdict;
@@ -21,7 +20,6 @@ export interface VersionedComparison extends Comparison {
   readonly candidateProfileVersion: string | null;
 }
 
-/** How far two pass rates must differ before the difference is a finding. */
 const MATERIAL_DELTA = 0.2;
 
 const incomparable = (reason: string): Comparison => ({
@@ -33,7 +31,6 @@ const incomparable = (reason: string): Comparison => ({
   verdict: "incomparable",
 });
 
-/** Whether a cell got worse than its baseline. */
 export const compare = (
   baseline: Distribution,
   candidate: Distribution
@@ -48,9 +45,8 @@ export const compare = (
 
   const delta = candidate.passRate - baseline.passRate;
 
-  /* Determinism is only claimed from more than one trial, so a baseline that
-     never had it cannot lose it. Reading `deterministic: false` on a single
-     trial as a loss would flag every first comparison. */
+  /* Determinism needs more than one trial, so a single-trial candidate cannot
+     have lost it. */
   const determinismLost =
     baseline.deterministic && !candidate.deterministic && candidate.scored > 1;
 
@@ -81,9 +77,7 @@ export const compare = (
     candidatePassRate: candidate.passRate,
     delta,
     determinismLost,
-    /* A cell that still passes as often but no longer agrees with itself is
-       reported as a regression on its own, because the pass rate alone would
-       call it unchanged and the instability is the finding. */
+    /* Instability alone is a regression: the pass rate would call it unchanged. */
     reason: determinismLost ? "the cell stopped agreeing with itself" : null,
     verdict: determinismLost ? "regressed" : "unchanged",
   };

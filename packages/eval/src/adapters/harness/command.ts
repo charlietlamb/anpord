@@ -20,13 +20,8 @@ const profileOf = (profile: Option.Option<RequestedProfile>, reason: string) =>
     onSome: Effect.succeed,
   });
 
-/**
- * A customer's own process, run inside the sandbox.
- *
- * Every capability is claimed because the contract offers every event; what a
- * given process reports is its own business, and a column left empty is a
- * fact about that agent rather than about the harness.
- */
+/* Every capability is claimed because the contract offers every event; what a
+   given process reports is its own business. */
 export const CommandDriver: HarnessDriverShape = {
   harness: "command",
   prepare: (input: PrepareHarness) =>
@@ -38,10 +33,7 @@ export const CommandDriver: HarnessDriverShape = {
         COMMAND_RECORDER
       );
 
-      /* The install runs in the workspace step, after the profile's files
-         exist for it to read. Nothing of ours is on the PATH and nothing of
-         ours holds a key: the profile's env and the env credential's values
-         reach the sandbox through the materialiser. */
+      /* The install runs in the workspace step, once the profile's files exist. */
       return {};
     }).pipe(Effect.withSpan("Command.prepare")),
   run: (request: RunHarness) =>

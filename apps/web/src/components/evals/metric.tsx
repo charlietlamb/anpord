@@ -7,14 +7,6 @@ import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 import { METRICS, type MetricName } from "@/lib/evals/metrics";
 
-/**
- * A figure with the glyph that says what it counts.
- *
- * The glyph rather than a column heading, because these rows sit in lists
- * that have none, and a heading forty rows up is no help on row forty-one.
- * The words arrive on hover: the glyph is learned once, and the tooltip is
- * there for the first time and for the reader who never learned it.
- */
 export function Metric({
   children,
   className,
@@ -23,7 +15,7 @@ export function Metric({
 }: {
   readonly children: ReactNode;
   readonly className?: string;
-  /** Overrides the metric's own hint, for a screen that aggregates it. */
+  /* Overrides the metric's own hint, for a screen that aggregates it. */
   readonly hint?: string;
   readonly name: MetricName;
 }) {

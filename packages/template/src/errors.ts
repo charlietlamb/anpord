@@ -1,10 +1,5 @@
-/**
- * A template asked for something the caller did not supply.
- *
- * A plain `Error` rather than a tagged one: this package has no dependencies,
- * and it is thrown across the published SDK boundary where callers reach for
- * `instanceof`.
- */
+/** Plain `Error`: crosses the published SDK boundary, where callers use
+ * `instanceof`. */
 export class MissingVariables extends Error {
   readonly missing: readonly string[];
 

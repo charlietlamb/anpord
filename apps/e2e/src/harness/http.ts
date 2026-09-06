@@ -3,12 +3,7 @@ export interface ApiResponse<Body = unknown> {
   readonly status: number;
 }
 
-/**
- * Every public endpoint is a POST carrying JSON and a bearer key, so a caller
- * names the endpoint and the payload and nothing else. The body is parsed
- * leniently because a failure is allowed to answer with nothing, and a
- * scenario asserting on the status should not die on the parse.
- */
+/* The body is parsed leniently: a failure may answer with nothing, and a scenario asserting on the status should not die on the parse. */
 export const callApi = async <Body = unknown>(
   baseUrl: string,
   apiKey: string,
@@ -32,8 +27,7 @@ export const callApi = async <Body = unknown>(
   };
 };
 
-/** Setup rather than assertion: a scenario that cannot build its fixture
- * should say so there, not fail later in a check about something else. */
+/* Setup rather than assertion: a fixture that cannot be built should fail here, not in a later unrelated check. */
 export const callApiOrThrow = async <Body = unknown>(
   baseUrl: string,
   apiKey: string,

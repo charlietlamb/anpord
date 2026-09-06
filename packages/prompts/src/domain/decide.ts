@@ -10,15 +10,9 @@ export interface Decision {
   readonly version: VersionNumber;
 }
 
-/**
- * Which version a release serves this caller. Pure and total: it reads no
- * clock, no store and no randomness, so the same release and unit always agree
- * and a test needs nothing but the two arguments.
- *
- * A caller that sends no unit gets `previous` rather than a coin flip. Random
- * assignment would let one conversation see two versions in consecutive turns,
- * which is worse than not participating at all.
- */
+/* No clock, store or randomness, so the same release and unit always agree. A
+   caller with no unit gets `previous`: a coin flip would let one conversation
+   see two versions in consecutive turns. */
 export const decide = (
   release: Release,
   unit: string | undefined

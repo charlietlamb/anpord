@@ -18,18 +18,8 @@ const sourceOf: Record<HarnessName, "codex" | "opencode" | "static"> = {
   qwen: "static",
 };
 
-/**
- * Routes a catalogue request to the harness that can answer it.
- *
- * Each source answers only for the harness it knows: OpenCode takes
- * `provider/model` and Codex takes a bare id, so offering either list for the
- * other names models the run cannot address.
- *
- * The runtime each wants is taken once here and handed back to whichever
- * branch runs. Building both adapters up front instead made asking for one
- * demand the other's dependencies, and a server holding an http client but no
- * filesystem lost the whole catalogue rather than the half it could not serve.
- */
+/* The runtime is taken once and handed to whichever branch runs: building both
+   adapters up front made asking for one demand the other's dependencies. */
 export const AvailableModelsLive = Layer.effect(
   AvailableModels,
   Effect.gen(function* () {

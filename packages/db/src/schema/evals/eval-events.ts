@@ -15,7 +15,7 @@ export type HarnessEventRow = { readonly _tag: string } & Record<
   unknown
 >;
 
-/* The journal, one row per event. Append only; the retention sweep compacts it. */
+/* Append only; the retention sweep compacts it into eval_trial_journal. */
 export const evalEvent = pgTable(
   "eval_event",
   {

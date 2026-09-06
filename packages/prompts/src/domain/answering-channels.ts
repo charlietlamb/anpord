@@ -5,15 +5,8 @@ import { PromptStoreError } from "./errors";
 
 const decodeChannel = Schema.decodeUnknown(ChannelName);
 
-/**
- * Several channels may point at one version, but `ResolvedPrompt.channel` is
- * singular and is part of the public wire shape.
- *
- * Which one to name is settled alphabetically rather than by preferring a
- * channel: the organisation chooses which one answers a bare request, and a
- * pure function over these rows cannot know it. `listChannels` carries the
- * rest either way.
- */
+/* Several channels may share a version but the wire shape names one, so the
+   tie is broken alphabetically -- these rows cannot know the org's default. */
 const preferred = (left: ChannelRow, right: ChannelRow) =>
   left.channel <= right.channel ? left : right;
 

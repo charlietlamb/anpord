@@ -21,8 +21,7 @@ export const Route = createFileRoute("/_authed/evals/")({
   component: EvalsIndex,
 });
 
-/* Wide, matching the detail screens: a list that changes the page width when
-   a row is opened makes every navigation feel like a reload. */
+/* Matches the detail screens, so opening a row does not change the page width. */
 function EvalsIndex() {
   const { cursor, page, pop, push } = useCursorStack<EvalPageCursor>();
   const { data, error, isFetching, isPending } = useQuery(

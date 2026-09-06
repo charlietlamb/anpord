@@ -5,12 +5,6 @@ const REASONS: Record<string, string> = {
   stdout: "nothing was written to stdout",
 };
 
-/**
- * Why a trial produced no evidence.
- *
- * A sentence rather than `["stdout"]`, because `void` on its own tells nobody
- * what to fix, and the field names are ours rather than the reader's.
- */
 export function VoidReason({ fields }: { readonly fields: readonly string[] }) {
   if (fields.length === 0) {
     return null;

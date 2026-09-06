@@ -21,19 +21,7 @@ const sizeOf = (payload: StartPayload): StartSize => ({
   trials: payload.trials,
 });
 
-/**
- * Whether an organisation may open the sandboxes this start is asking for.
- *
- * Shared by both intakes, because the public API and the web app reach the
- * same grid and the same provider accounts: a cap only one of them enforces
- * bounds nothing. Every check runs before `grid.start`, so a refused request
- * has opened no VM and written no run row.
- *
- * The in-flight count is read rather than reserved, so two starts racing can
- * both see the same number and both be admitted. That is deliberate: a
- * transaction around a count that a background run settles asynchronously
- * would serialise every start to bound an overshoot of one run.
- */
+/* Runs before `grid.start`, so a refusal has opened no VM and written no run row. The in-flight count is read rather than reserved: two racing starts can both be admitted, which is cheaper than serialising every start to bound an overshoot of one. */
 export const admitStart = (
   organizationId: string,
   payload: StartPayload

@@ -5,8 +5,8 @@ import type { ImportTally } from "../imports/evals-json-render";
 import { FORMATS } from "./import-formats";
 import { note, row } from "./render";
 
-/** A path rather than a file, because a format may keep one case per file and
- * import a directory of them as one suite. */
+/* A path, not a file: a format may keep one case per file and import a whole
+   directory as one suite. */
 const caseFile = Args.path({ name: "path" }).pipe(
   Args.withDescription("The case file, or a directory of them, to read")
 );
@@ -25,8 +25,8 @@ const out = Options.file("out").pipe(
 const plural = (count: number, one: string) =>
   `${count} ${count === 1 ? one : `${one}s`}`;
 
-/** The count of unwritten checks leads, because a suite that reports a pass
- * for a check nobody wrote is the failure this product exists to prevent. */
+/* Unwritten checks lead, because a suite reporting a pass for a check nobody
+   wrote is the failure this exists to prevent. */
 export const summaryOf = (tally: ImportTally) => {
   const read = `Read ${plural(tally.cases, "case")}, converted ${plural(tally.converted, "assertion")}.`;
 

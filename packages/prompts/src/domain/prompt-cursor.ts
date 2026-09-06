@@ -7,9 +7,8 @@ import { Effect, ParseResult, Schema } from "effect";
 import type { PromptListRow } from "../repositories/prompt-list-query";
 import { InvalidCursor } from "./errors";
 
-/** The cursor carries the key of the sort that issued it, so a client that
- * changes sort while holding an old cursor is rejected rather than paged
- * against a predicate the key does not belong to. */
+/* The cursor names the sort that issued it, so changing sort mid-page is
+   rejected rather than paged against the wrong predicate. */
 export const PromptCursorPayload = Schema.Union(
   Schema.Struct({
     id: PromptId,
@@ -35,8 +34,6 @@ const fromBase64Url = (value: string) =>
 export const encodePromptCursor = (cursor: PromptCursorPayload): string =>
   toBase64Url(JSON.stringify(cursor));
 
-/** The cursor must carry the key the active sort pages on, or the next page is
- * compared against a column the ordering does not use. */
 export const cursorFor = (
   row: PromptListRow,
   sort: PromptSortOrder
@@ -53,8 +50,8 @@ export const cursorFor = (
         updatedAt: row.updatedAt.getTime(),
       };
 
-/** Decoded through the schema rather than cast, so a tampered cursor is
- * rejected here instead of reaching the query as an arbitrary id. */
+/* Decoded, not cast, so a tampered cursor is rejected before it reaches the
+   query as an arbitrary id. */
 export const decodePromptCursor = (
   encoded: string,
   sort: PromptSortOrder

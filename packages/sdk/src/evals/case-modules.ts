@@ -4,10 +4,8 @@ import { sep } from "node:path";
 import { Effect } from "effect";
 import { bundle } from "./eval-bundle";
 
-/* Compared by what the filesystem resolves them to, not by the strings: on
-   macOS an entry under /var and the same file reported under /private/var are
-   one file with two names, and comparing the names let the entry match itself
-   as its own separate module. */
+/* Compared by what the filesystem resolves to, not the strings: on macOS /var
+   and /private/var name one file two ways. */
 const realOrGiven = (path: string) => {
   try {
     return realpathSync.native(path);

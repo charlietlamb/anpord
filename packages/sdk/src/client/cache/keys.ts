@@ -2,14 +2,8 @@ import type { PromptSelector } from "./types";
 
 const NAMESPACE = "prompt";
 
-/**
- * Which version a selector asks for.
- *
- * Asking for no channel is its own selector rather than a named one: the
- * organisation decides which channel answers, it can rename or drop that
- * channel, and naming a guess here would key the answer under a channel the
- * server never resolved.
- */
+/** No channel is its own segment, never a guessed name: the server decides
+ * which channel answers and may rename or drop it. */
 const selectorSegment = (selector: PromptSelector) => {
   if (selector.version !== undefined) {
     return `v:${selector.version}`;
@@ -17,13 +11,8 @@ const selectorSegment = (selector: PromptSelector) => {
   return selector.channel === undefined ? "default" : `c:${selector.channel}`;
 };
 
-/**
- * What makes one cached answer different from another.
- *
- * `includeVersions` belongs here even though the server's key omits it: this
- * cache holds the response rather than the resolution, and a response asked
- * for without history has no `versions` to give to a caller who wanted it.
- */
+/** `includeVersions` is part of the key even though the server's is not: this
+ * caches the response, and a bare one has no `versions` to hand back. */
 export const promptKey = (selector: PromptSelector) =>
   [
     NAMESPACE,

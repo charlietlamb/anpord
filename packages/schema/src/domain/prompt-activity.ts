@@ -1,11 +1,6 @@
 import { Schema } from "effect";
 import { Author, ChannelName, Timestamp, VersionNumber } from "./prompts";
 
-/**
- * What happened to a prompt. A tagged union rather than a kind plus a bag of
- * nullable fields, so a reader gets exactly the columns their kind uses and
- * adding a kind is exhaustively checked wherever entries are read.
- */
 const Happened = {
   actor: Schema.NullOr(Author),
   at: Timestamp,
@@ -23,15 +18,7 @@ export const PromptOverwritten = Schema.TaggedStruct("overwrote", {
   version: Schema.NullOr(VersionNumber),
 });
 
-/**
- * What kind of move this was. Derived from the versions rather than stored, so
- * it cannot disagree with them, and named here rather than left to the reader
- * to work out by comparing two numbers.
- *
- * A repeat is a move to the version already serving. Nothing changed for
- * callers, so it reads as its own kind rather than as a promotion that happens
- * to be a no-op.
- */
+/* Derived from the versions rather than stored, so it cannot disagree with them. A repeat moves to the version already serving. */
 export const DeploymentKind = Schema.Literal(
   "first",
   "promotion",
@@ -43,7 +30,7 @@ export type DeploymentKind = typeof DeploymentKind.Type;
 export const PromptDeployed = Schema.TaggedStruct("deployed", {
   ...Happened,
   channel: ChannelName,
-  /** Absent on a channel's first move, where there is nowhere to move from. */
+  /* Absent on a channel's first move, where there is nowhere to move from. */
   from: Schema.NullOr(VersionNumber),
   move: DeploymentKind,
   to: Schema.NullOr(VersionNumber),
@@ -61,8 +48,7 @@ export type PromptActivityEntry = typeof PromptActivityEntry.Type;
 
 export const PromptActivityPage = Schema.Struct({
   items: Schema.Array(PromptActivityEntry),
-  /** Opaque to callers, and null once the last page has been read. A short page
-   * does not mean the end: only this saying so does. */
+  /* Null once the last page has been read; a short page does not mean the end. */
   nextCursor: Schema.NullOr(Schema.String),
 });
 export type PromptActivityPage = typeof PromptActivityPage.Type;

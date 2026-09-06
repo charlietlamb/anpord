@@ -103,10 +103,8 @@ export const HarnessProfileRepositoryLive = Layer.effect(
                 systemPrompt: input.systemPrompt,
                 version: input.version,
               })
-              /* Left alone on conflict, the opposite of the task rule: the
-                 version hashes the content, so a row that already exists
-                 holds exactly this profile, and an edited one arrives as a
-                 new version rather than as a change to this row. */
+              /* Left alone on conflict, unlike tasks: the version hashes the
+                 content, so an existing row holds exactly this profile. */
               .onConflictDoNothing({
                 target: [
                   evalHarnessProfile.organizationId,

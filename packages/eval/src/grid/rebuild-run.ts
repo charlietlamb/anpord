@@ -13,29 +13,14 @@ import type { GridRunShape, ResumeGrid } from "./run";
 import type { GridRunState } from "./state";
 import { gridOf } from "./stored-grid";
 
-/**
- * Whether a trial is on this run that somebody is still working on.
- *
- * Not merely whether a trial exists. A run carries every trial it has ever
- * had, and one the sweep voided is exactly the abandoned work a resume is for,
- * so counting those meant a run could be picked up once and never again.
- *
- * Not `setup` either: a stored cell always has one, being the case's own
- * description rather than evidence of anything running.
- */
+/* Voided and `setup` trials do not count: the first is exactly the abandoned
+   work a resume is for, the second is on every stored cell. */
 const alive = (trial: Option.Option<AgentTrialResult>) =>
   Option.isSome(trial) && trial.value.outcome.status === "running";
 
 const started = (run: GridRunState) =>
   run.cells.some((cell) => cell.live.size > 0 || cell.trials.some(alive));
 
-/**
- * The grid a stored run was, ready to be executed again.
- *
- * Shared by the two things that continue a run: the api, where a person asked,
- * and a worker, which was handed the id. They differ only in how credentials
- * are read, which is what CredentialSource carries.
- */
 export const rebuildRun = (
   services: {
     readonly credentials: CredentialResolverShape;
@@ -51,13 +36,8 @@ export const rebuildRun = (
   Effect.gen(function* () {
     const live = yield* services.grid.get(input.organizationId, input.runId);
 
-    /* A run with work under way already has a fiber per cell, and a second set
-       against the same rows would have both writing trials to one cell.
-
-       Judged by whether a cell has started rather than by the run's status: a
-       run is marked running the moment it is recorded, which is before anyone
-       has been handed it, so the status alone would refuse the very handoff
-       this exists to protect. */
+    /* Judged by whether a cell started, not by the run's status: a run is marked
+       running the moment it is recorded, before anyone has been handed it. */
     if (Option.isSome(live) && started(live.value)) {
       return yield* new NotRunnable({
         id: input.runId,

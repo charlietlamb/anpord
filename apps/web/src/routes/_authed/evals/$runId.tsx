@@ -18,8 +18,7 @@ export const Route = createFileRoute("/_authed/evals/$runId")({
         return shortId(params.runId);
       }
 
-      /* Older runs predate persisted eval names, so retain their recognizable
-         case-based label rather than replacing it with an opaque id. */
+      /* Older runs predate persisted eval names, so fall back to the case-based label. */
       return runLabel(run);
     },
     title: "Run",

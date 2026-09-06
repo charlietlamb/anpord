@@ -14,8 +14,7 @@ export const ActivityHandlers = HttpApiBuilder.group(
   (handlers) =>
     authorized(handlers).handle(
       "list",
-      /** The log carries channel moves alongside everything else, so reading it
-       * asks for the rights a channel move would. */
+      /* The log carries channel moves, so reading it asks for the rights a channel move would. */
       { permission: Permissions.Channels.Read },
       ({ urlParams }) =>
         Effect.gen(function* () {

@@ -12,12 +12,7 @@ export interface ProcessOptions {
   readonly stdin?: string;
 }
 
-/**
- * Both streams are kept apart rather than merged. Which stream a line arrived
- * on is the thing several checks are about: results belong on stdout so they
- * can be piped, and status messages belong on stderr so they do not corrupt
- * what was piped.
- */
+/* Streams stay apart: scenarios assert that results go to stdout and status messages to stderr, so merging them would hide the bug. */
 export const runProcess = (
   command: string,
   args: readonly string[],
@@ -46,8 +41,6 @@ export const runProcess = (
     child.on("close", (code) => resolve({ code: code ?? 1, stderr, stdout }));
   });
 
-/** The output of a failed command is the only useful thing about it, so a
- * caller never has to remember to attach it to the message. */
 export const runOrThrow = async (
   describe: string,
   command: string,

@@ -65,9 +65,8 @@ export const PromptAuthoringLive = Layer.effect(
             promptInternalId: row.internalId,
           });
 
-          /* Published to the channel the organisation answers a bare request
-             from. Holding none, the newest version already answers, so there
-             is nowhere a publish would make it more readable. */
+          /* With no default channel the newest version already answers a bare
+             request, so there is nowhere a publish would make it readable. */
           const fallback = yield* channelCatalog.defaultChannel(
             actor.organizationId
           );

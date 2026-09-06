@@ -45,9 +45,7 @@ export const CodebaseHandlers = HttpApiBuilder.group(
             installationId: id,
             login: accountLogin,
             manageUrl: app.manageUrl(id),
-            /* Widened at the boundary rather than in the store: the column is
-               text, and a row written by an older build is worth showing as
-               "selected" rather than failing the page. */
+            /* The column is text, so a row from an older build shows as "selected" rather than failing the page. */
             repositorySelection:
               repositorySelection === "all"
                 ? ("all" as const)
@@ -66,8 +64,7 @@ export const CodebaseHandlers = HttpApiBuilder.group(
               actor.organizationId
             );
 
-            /* Nothing installed is an empty list rather than an error: the
-               picker shows it as "connect GitHub", which is the truth. */
+            /* Nothing installed is an empty list, which the picker shows as "connect GitHub". */
             if (Option.isNone(installed) || app === undefined) {
               return [];
             }
@@ -86,8 +83,7 @@ export const CodebaseHandlers = HttpApiBuilder.group(
             return yield* Effect.fail(unconfigured);
           }
 
-          /* The organisation travels through GitHub and back, so the callback
-             records the installation against the one that asked for it. */
+          /* The organisation travels through GitHub and back so the callback records the installation against the one that asked. */
           return { url: app.installUrl(actor.organizationId) };
         })
       )
@@ -103,16 +99,10 @@ export const CodebaseHandlers = HttpApiBuilder.group(
               return yield* Effect.fail(unconfigured);
             }
 
-            /* Read from GitHub rather than trusted from the request: an
-               installation id is a number anyone can type, and asking is also
-               the only way to learn one when GitHub's redirect carried it to
-               the sign-in route and dropped it. */
+            /* Read from GitHub, never trusted from the request: an installation id is a number anyone can type. */
             const jwt = yield* handled(app.jwt);
             const repositories = yield* GithubRepositories;
-            /* The newest wins where there are several: an account installs
-               once, so a second is another account the reader has just
-               added. Undefined where the app is installed nowhere, which is
-               an answer rather than a failure. */
+            /* Newest wins where there are several; undefined where the app is installed nowhere is an answer, not a failure. */
             const found = yield* handled(
               payload.installationId === undefined
                 ? repositories

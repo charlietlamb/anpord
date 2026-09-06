@@ -70,18 +70,6 @@ const SANDBOXES: readonly Vendor[] = [
   },
 ];
 
-/**
- * The vendors a phrase covers, as their own marks.
- *
- * No ring around each one: a vendor mark is already a recognisable shape, and
- * a bordered circle drew the eye to the container rather than to what it held.
- * No overlap either -- stacking is an avatar idiom meaning "more of these than
- * you need to count", which is the wrong claim about ten named vendors.
- *
- * Names are left to the tooltip. Written out they came to fifty-two characters
- * for the sandboxes alone, which is a paragraph rather than the quiet line a
- * hero ends on, and the sentence around them already says what each group is.
- */
 function MarkRow({ items }: { readonly items: readonly Vendor[] }) {
   return (
     <span className="inline-flex items-center gap-2">
@@ -99,9 +87,7 @@ function MarkRow({ items }: { readonly items: readonly Vendor[] }) {
                 rel="noreferrer"
                 target="_blank"
               >
-                {/* Inside the anchor, not beside it: the trigger renders the
-                    element it is given and drops its own children, so a mark
-                    passed as a child left a row of empty circles. */}
+                {/* Must sit inside the anchor: the trigger renders the element it is given and drops its own children. */}
                 <Mark className="size-4 shrink-0" />
                 <span className="sr-only">{name}</span>
               </a>
@@ -163,8 +149,6 @@ export function Landing() {
           </a>
         </div>
 
-        {/* A sentence rather than a table: the words name each group, so the
-            marks carry no labels of their own and the line stays one line. */}
         <p className="fade-in-0 slide-in-from-bottom-2 mt-9 flex animate-in flex-wrap items-center gap-x-2.5 gap-y-3 fill-mode-both text-muted-foreground/80 text-sm leading-normal ease-out [animation-delay:225ms] [animation-duration:500ms]">
           Works with <MarkRow items={HARNESSES} /> across{" "}
           <MarkRow items={SANDBOXES} />

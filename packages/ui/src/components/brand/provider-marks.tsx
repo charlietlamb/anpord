@@ -132,9 +132,7 @@ export function VercelMark({ className }: MarkProps) {
   );
 }
 
-/* pi.dev/logo-auto.svg, whose blocky P and separate i-dot are the mark. It
-   is not the Greek letter, which is what the name suggests and what a guess
-   would reach for. */
+/* pi.dev/logo-auto.svg: a blocky P and i-dot, not the Greek letter. */
 export function PiMark({ className }: MarkProps) {
   return (
     <svg

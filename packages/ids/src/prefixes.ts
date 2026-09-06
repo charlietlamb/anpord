@@ -1,5 +1,6 @@
-/* Domain entities only. Organizations and members are Better Auth's tables:
-   its plugins write them as well, so its generator defines their shape. */
+/* Never rename a prefix: it is stored in rows and in customer integrations.
+   Organizations and members are absent because Better Auth's generator owns
+   those tables. */
 export const ID_PREFIXES = {
   channel: "chl",
   credentialAuthAttempt: "caa",

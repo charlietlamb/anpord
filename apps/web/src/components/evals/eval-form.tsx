@@ -111,10 +111,6 @@ export function EvalForm({
                             )}
                           </form.AppField>
 
-                          {/* Workspace and setup sit between the task and the
-                              verifier because that is the order the run takes:
-                              the code arrives, it is prepared, the agent works,
-                              and the verifier decides. */}
                           <form.Field name={`cases[${index}].source`}>
                             {(field) => (
                               <WorkspaceField
@@ -270,9 +266,6 @@ export function EvalForm({
                   />
                 </form.AppForm>
 
-                {/* Said beside the control rather than on hover: a disabled
-                    button with no reason is a dead end, and the reader who
-                    needs this is the one who has not thought to hover it. */}
                 <BlockedNote failed={connections.isError} missing={missing} />
               </div>
             </div>

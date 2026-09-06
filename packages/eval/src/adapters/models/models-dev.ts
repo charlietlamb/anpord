@@ -6,11 +6,8 @@ import type { ModelDescription } from "../../ports/model-source";
 
 const SOURCE = "https://models.dev/api.json";
 
-/* Only what a picker needs. The payload carries far more per model, and
-   decoding fields nobody reads would let a shape change upstream break a
-   catalogue that would otherwise still be usable. */
-/* Optional throughout: an open-weight model published with no rates is
-   priceless rather than free, and a missing block must not cost the entry. */
+/* Only what a picker needs, so an upstream shape change elsewhere cannot break
+   the catalogue. Optional throughout: an unpriced model is priceless, not free. */
 const DevCost = Schema.Struct({
   cache_read: Schema.optional(Schema.NullOr(Schema.Number)),
   cache_write: Schema.optional(Schema.NullOr(Schema.Number)),
@@ -41,8 +38,7 @@ interface ModelsDevCatalogue {
   readonly priced: ReadonlyMap<string, ModelPrice>;
 }
 
-/* Both sides of the exchange are needed to charge anything, so a model that
-   publishes only one is left unpriced rather than half-priced. */
+/* A model publishing only one side is left unpriced rather than half-priced. */
 const priceOf = (cost: typeof DevCost.Type | null | undefined) => {
   if (cost === null || cost === undefined) {
     return null;
@@ -94,16 +90,9 @@ const fetchCatalogue = Effect.gen(function* () {
       if (price !== null) {
         priced.set(id, price);
 
-        /* A trial records the model it was asked to run, which for most
-           harnesses is the bare id rather than the qualified one, so the
-           bare key is kept alongside the qualified one.
-
-           Several providers resell the same model at different rates and
-           only one can hold the bare key. The lowest is chosen, so an
-           estimate errs low rather than landing on whichever provider the
-           catalogue happened to list first -- an arbitrary winner made the
-           same run cost different amounts between deploys. A caller that
-           needs the exact rate asks for the qualified id. */
+        /* Trials record the bare id, so it is keyed alongside the qualified one.
+           Resellers differ, and the lowest wins so the estimate is stable
+           between deploys rather than following catalogue order. */
         const held = priced.get(model);
 
         if (held === undefined || price.input < held.input) {
@@ -116,10 +105,6 @@ const fetchCatalogue = Effect.gen(function* () {
   return { described, ids, priced } satisfies ModelsDevCatalogue;
 }).pipe(Effect.withSpan("ModelsDev.fetch"));
 
-/**
- * The catalogue, fetched once.
- *
- * Cached because it is seven thousand entries behind one request, read on
- * every visit to the form, and changes on the order of days.
- */
+/* Cached: seven thousand entries behind one request, read on every visit to the
+   form, and changing on the order of days. */
 export const modelsDev = Effect.cached(fetchCatalogue);

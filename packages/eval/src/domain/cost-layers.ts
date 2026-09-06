@@ -4,14 +4,11 @@ import type { CostComponent } from "./cost-component";
 import type { HarnessUsage } from "./harness-event";
 import { costOf, type ModelPrice } from "./model-price";
 
-/** One eval unit per trial the platform accepted, failures included: a trial
- * that ran and failed consumed what a trial that ran and passed did. */
+/* Failures included: a trial that ran and failed consumed what a passing one did. */
 const PLATFORM_UNITS = 1;
 
 const subscriptionAuth = new Set(["chatgpt", "legacy-auth-json"]);
 
-/** How the harness was paid for, which decides whether its usage creates a
- * marginal charge at all. */
 const connectionMode = (authMethodId: string | null) => {
   if (authMethodId === null) {
     return "unknown" as const;
@@ -50,9 +47,8 @@ export const modelComponent = (input: {
   };
 
   if (input.price._tag === "None") {
-    /* A credential that picks its own model leaves the name empty, so there is
-       nothing to look a rate up by. Saying "no rate for ''" would blame the
-       catalogue for a choice the connection made. */
+    /* An empty model name is the connection choosing for itself, not a gap in
+       the catalogue. */
     const because =
       input.model === ""
         ? "The connection chose its own model, which it does not name, so its usage cannot be priced."
@@ -70,9 +66,7 @@ export const modelComponent = (input: {
 
   const rate = input.price.value;
 
-  /* An estimate even on a subscription: the tokens are real and the public
-     rate is real, but what the account is billed is neither of those, and a
-     subscription may charge nothing marginal at all. */
+  /* An estimate even on a subscription, which may charge nothing marginal. */
   return {
     ...base,
     amountNanos: nanosOf(costOf(input.usage, rate)),
@@ -101,8 +95,7 @@ export const harnessComponent = (input: {
       durationMs: input.modelMs,
       harness: input.harness,
     },
-    /* Never the model's cost: the harness is the agent runtime around the
-       model, and copying one into the other doubles a run's reported spend. */
+    /* Never the model's cost: copying one into the other doubles reported spend. */
     explanation:
       mode === "unknown"
         ? "The connection this ran on is not recorded, so the harness cannot be priced."
@@ -117,9 +110,8 @@ export const sandboxComponent = (input: {
   readonly sandboxMs: number;
 }): CostComponent => ({
   amountNanos: null,
-  /* A sandbox on our own provider account is one the customer is not billed
-     for; one on theirs is billed by the provider, to them, and we see no
-     amount for it. Neither is zero. */
+  /* Ours is unbilled to the customer; theirs is billed by the provider with no
+     amount visible to us. Neither is zero. */
   classification: input.hasOwnCredential ? "unknown" : "managed",
   component: "sandbox",
   detail: {

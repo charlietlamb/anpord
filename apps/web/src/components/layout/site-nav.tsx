@@ -8,15 +8,7 @@ const linkClass = cn(
   "text-muted-foreground"
 );
 
-/**
- * Two links, the same for everyone.
- *
- * This used to read the session and swap between "Sign in" and "Dashboard",
- * which meant the marketing header could not render until the session
- * resolved, and rendered the signed-out label first either way. Someone
- * already signed in lands on the dashboard from /login regardless, so the
- * branch bought a word and cost a fetch on every page that shows this.
- */
+/* Deliberately session-free: reading it would block the marketing header on a fetch. */
 export function SiteNav() {
   return (
     <>

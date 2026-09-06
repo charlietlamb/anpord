@@ -31,9 +31,7 @@ interface RoleKey {
   readonly userId: string;
 }
 
-/** The columns Better Auth's admin plugin adds. Its inferred session type does
- * not carry them, and both decide authority, so they are named here once
- * rather than reached for with a cast at each use. */
+/* Better Auth's admin plugin adds these columns but its inferred session type omits them. */
 interface AdminFields {
   readonly session?: { readonly impersonatedBy?: string | null } | null;
   readonly user?: { readonly role?: string | null } | null;
@@ -97,9 +95,7 @@ export const AuthenticationLive = Layer.effect(
           return yield* Schema.decodeUnknown(Actor)({
             id: user.value.id,
             organizationId: organizationId.value,
-            /* Both tiers, unioned: an organisation grants what its member may
-               do inside it, the platform grants what staff may do across all
-               of them, and neither can express the other's reach. */
+            /* Organisation and platform grants are unioned: neither tier can express the other's reach. */
             permissions: [
               ...Option.match(role, {
                 onNone: () => [],

@@ -11,14 +11,11 @@ import { PromptVariables } from "@/components/prompts/prompt-variables";
 import { VersionList } from "@/components/prompts/version-list";
 
 interface PromptRailProps {
-  /** What acts on the prompt, carried at the head of the rail. */
   readonly actions: ReactNode;
-  /** Every channel the organisation defines, so any version can be sent to one. */
   readonly channels: readonly Channel[];
   readonly onEditFrom: (version: ResolvedPrompt) => void;
   readonly onPromote: (channel: string, version: number) => void;
   readonly onSelect: (version: ResolvedPrompt) => void;
-  /** Where each channel points today. */
   readonly placements: readonly ChannelPlacement[];
   readonly variables: readonly string[];
   readonly versions: readonly ResolvedPrompt[];
@@ -38,9 +35,7 @@ export function PromptRail({
 }: PromptRailProps) {
   const oldest = versions.at(-1) ?? viewed;
 
-  /* Held in view while the prompt scrolls past it. Capped to the screen so a
-     rail longer than the viewport can still reach its end, and its own
-     scrollbar hidden so the page keeps the only one on screen. */
+  /* Its own scrollbar is hidden so the page keeps the only one on screen. */
   return (
     <aside className={RAIL_FRAME}>
       <div className="flex justify-end">{actions}</div>

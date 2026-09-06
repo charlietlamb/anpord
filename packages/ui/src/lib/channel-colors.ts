@@ -1,7 +1,5 @@
-/** Colours are stored as token names rather than hex, so a channel keeps its
- * meaning when the theme changes and every swatch is guaranteed to stay legible
- * against both grounds. Full class strings, never interpolated, so Tailwind can
- * see them. */
+/* Token names, not hex, so a channel survives a theme change. Swatches below
+   are full class strings, never interpolated, so Tailwind can see them. */
 export const CHANNEL_COLORS = [
   "slate",
   "blue",

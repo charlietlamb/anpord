@@ -35,29 +35,12 @@ function ExitCode({ code }: { readonly code: number | null }) {
   );
 }
 
-/**
- * The narrowest a measured span is drawn.
- *
- * A step that really ran is worth seeing and worth clicking, and on a span of
- * forty seconds a forty-millisecond command comes out around a pixel: too
- * thin to hit, and indistinguishable from the ticks that mean "no duration
- * known". Widening it overstates that one step by a few pixels, which is the
- * cheaper error -- the alternative hides a step that happened.
- *
- * Three pixels was the old floor and still read as a tick. Six is the point
- * at which a bar reads as a bar, and stays inside the eight-pixel gap the
- * axis keeps between its own ticks.
- */
+/* Below 6px a real span is unhittable and reads as a zero-duration tick. */
 const MIN_BAR = 6;
 
-/* Waiting is drawn hatched and working is drawn solid, so the two read apart
-   at a glance without spending a second hue on the distinction. The stripes
-   run at 45 degrees over the kind's own colour, which keeps a hatched bar
-   recognisably the same thing as the solid one it leads into. */
 const hatched = (colour: string) =>
   `repeating-linear-gradient(45deg, ${colour} 0 3px, transparent 3px 6px)`;
 
-/** The lead-in: time the agent spent deciding before this step began. */
 function Lead({ row }: { readonly row: WaterfallRow }) {
   if (row.lead === null) {
     return null;
@@ -87,10 +70,6 @@ function Track({ row }: { readonly row: WaterfallRow }) {
       <Lead row={row} />
 
       {row._tag === "marker" ? (
-        /* An instant, not a span: a harness that says only when a step
-           finished gives it no width, and a guessed one would be a drawn
-           lie. Squared off rather than round so it reads as a tick on the
-           timeline instead of a very short bar. */
         <span
           className="absolute top-1/2 block h-3 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-[2px] transition-[filter,width] duration-150 ease-out group-hover:w-[5px] group-hover:brightness-125 group-focus-visible:w-[5px] group-focus-visible:brightness-125 motion-reduce:transition-none"
           style={{ background, left: `${row.leftPercent}%` }}
@@ -110,14 +89,6 @@ function Track({ row }: { readonly row: WaterfallRow }) {
   );
 }
 
-/**
- * What one turn of the run spent, where the harness reported it per turn.
- *
- * Only a message carries usage, and only from a harness that reports each
- * turn rather than a closing total, so this is absent far more often than it
- * is present. Silent in that case rather than showing a zero, which would
- * claim a turn was free.
- */
 function TurnUsage({ entry }: { readonly entry: EvalJournalEntry }) {
   if (entry._tag !== "message") {
     return null;

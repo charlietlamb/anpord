@@ -5,22 +5,13 @@ import { Effect, Schema } from "effect";
 import { toast } from "sonner";
 import { createPrompt } from "@/lib/prompts-client";
 
-/** Lowercase slug so the handle is URL-safe without the author thinking about
- * it. Exported because the composer shows it as the name is typed. */
 export const toId = (name: string) =>
   name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-/**
- * Creating a prompt, and going to it.
- *
- * Decoded through the contract rather than cast to it. The call site used
- * `as never` to get past the branded ids, which silences the one check that
- * knows a handle must be lowercase and a name must not be empty -- so a prompt
- * with an invalid id reached the server and failed there instead of here.
- */
+/* Decoded through the contract, not cast: a cast past the branded ids skips the id and name checks. */
 export function useCreatePrompt() {
   const navigate = useNavigate();
 

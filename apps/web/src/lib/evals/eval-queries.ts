@@ -23,8 +23,7 @@ const LIVE = {
   staleTime: 0,
 } as const;
 
-/* Polls only while something on the page is still moving. A run that finishes
-   on the page a reader is looking at stops the polling it started. */
+/* Polls only while a run is still moving, so a finished page stops polling itself. */
 const pollWhileRunning = (page: EvalRunPage | undefined) =>
   page?.runs.some((run) => run.status === "running") ? LIST_POLL_MS : false;
 

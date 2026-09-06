@@ -33,9 +33,6 @@ export function DangerZoneSettings() {
       description="Irreversible actions for this organization."
       title="Danger zone"
     >
-      {/* The one border left in the authed app. It is not drawing a card: it
-          says this row is different from the settings above it, which is what
-          a border is for. */}
       <div className="flex items-center justify-between gap-4 rounded-lg border border-destructive/25 px-4 py-3">
         <div className="flex flex-col gap-0.5">
           <p className="font-medium text-sm">Delete organization</p>

@@ -34,13 +34,7 @@ const searchField = (
         : (result.data.users as readonly StaffUser[])
     );
 
-/**
- * Everyone matching a search, by name or email.
- *
- * Better Auth searches one field per request, and a staff member looking
- * someone up does not know which of the two they are typing. Both run and the
- * results merge, so "ada" finds Ada Lovelace and ada@example.com alike.
- */
+/* Better Auth searches one field per request, so name and email are searched separately and merged. */
 async function findUsers(search: string): Promise<readonly StaffUser[]> {
   const [byName, byEmail] = await Promise.all([
     searchField(search, "name"),

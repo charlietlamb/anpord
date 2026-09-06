@@ -8,9 +8,8 @@ import { CodebaseError } from "./errors";
 
 const API = "https://api.github.com";
 
-/** What a picker needs. The payload carries far more per repository, and
- * decoding fields nobody reads would let a shape change upstream break a list
- * that would otherwise still be usable. */
+/* Only what a picker needs, so an upstream shape change elsewhere cannot break
+   the list. */
 const GithubRepo = Schema.Struct({
   clone_url: Schema.String,
   default_branch: Schema.String,
@@ -18,8 +17,7 @@ const GithubRepo = Schema.Struct({
   private: Schema.Boolean,
 });
 
-/* An installation lists its repositories under a key rather than as a bare
-   array, which is the one shape difference from listing a user's own. */
+/* An installation nests its repositories under a key; a user's own list is bare. */
 const InstallationRepos = Schema.Struct({
   repositories: Schema.Array(GithubRepo),
 });
@@ -41,15 +39,12 @@ export interface InstallationAccount {
 }
 
 export interface GithubRepositoriesShape {
-  /** The account the app is installed on, read with the app's own JWT. */
   readonly installation: (
     jwt: Redacted.Redacted<string>,
     installationId: number
   ) => Effect.Effect<InstallationAccount, CodebaseError>;
-  /** Every account the app is installed on, read with the app's own JWT.
-   * Asked for by the page rather than waiting to be told: GitHub redirects
-   * an install to the app's configured callback, which is the sign-in route
-   * and drops `installation_id` on the floor. */
+  /* Polled rather than awaited: GitHub redirects an install to the app's
+     configured callback and drops `installation_id` on the floor. */
   readonly installations: (
     jwt: Redacted.Redacted<string>
   ) => Effect.Effect<readonly InstallationAccount[], CodebaseError>;

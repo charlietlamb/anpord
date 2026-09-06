@@ -1,6 +1,6 @@
 import { serverUrl } from "./server-url";
 
-/** GET and HEAD carry no body, so reading one would throw. */
+/* GET and HEAD carry no body, so reading one would throw. */
 const METHODS_WITHOUT_BODY = new Set(["GET", "HEAD"]);
 
 export function proxyToServer({ request }: { request: Request }) {
@@ -9,13 +9,7 @@ export function proxyToServer({ request }: { request: Request }) {
 
 const AUTH_BASE = "/api/auth";
 
-/**
- * Better Auth serves its metadata under /api/auth, but clients look for it
- * where RFC 8414 says it lives. An issuer without a path puts the well-known
- * segment at the root; one with a path — which is how the MCP server names this
- * server — puts the segment before the path, as /.well-known/<doc>/api/auth.
- * Both forms are answered so either resolution strategy finds the document.
- */
+/* Better Auth serves its metadata under /api/auth, but RFC 8414 clients look for it at the root or before the path, so both forms are answered. */
 export function proxyDiscoveryToServer({ request }: { request: Request }) {
   const { pathname } = new URL(request.url);
   const document = pathname.endsWith(AUTH_BASE)
@@ -24,12 +18,7 @@ export function proxyDiscoveryToServer({ request }: { request: Request }) {
   return forward(request, `${AUTH_BASE}${document}`);
 }
 
-/**
- * Buffers the body instead of forwarding the stream. A streamed body has to be
- * non-null and unread at the moment fetch takes it, which does not hold once
- * the framework has touched the request — undici then fails the whole call with
- * "expected non-null body source". Prompts are small, so the copy is cheap.
- */
+/* The body is buffered, not streamed: once the framework has touched the request, undici fails a streamed body with "expected non-null body source". */
 async function forward(request: Request, pathname: string) {
   const baseUrl = serverUrl();
   if (!baseUrl) {

@@ -30,11 +30,6 @@ async function send(path: string, init?: RequestInit): Promise<Response> {
   return response;
 }
 
-/**
- * Responses arrive as JSON, so dates are strings and branded fields are plain.
- * Decoding here rather than casting is what keeps `createdAt` an actual Date by
- * the time a component formats it.
- */
 async function request<A, I>(
   schema: Schema.Schema<A, I>,
   path: string,

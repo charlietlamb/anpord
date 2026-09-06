@@ -27,15 +27,6 @@ const rotatableMethodOf = (
       method.id === connection.authMethodId && method.kind !== "device"
   ) ?? null;
 
-/**
- * One category of stored credential, as a page.
- *
- * Harnesses and sandboxes differ in what they mean -- one is required, the
- * other overrides a default -- but not in what you do with them, so the
- * difference lives in the spec passed in and everything else is shared. Two
- * pages that read the same list and drew the same rows would drift the moment
- * one of them grew a column.
- */
 export function CredentialPage({
   spec,
 }: {
@@ -79,8 +70,6 @@ export function CredentialPage({
   const rows = (connections.data ?? []).filter(
     (connection) => integrationOf(connection)?.category === spec.category
   );
-  /* Only for an integration the reader has none of: once they have their own,
-     whose else is beside the point. */
   const connected = new Set(rows.map((row) => row.integrationId));
   const elsewhere = (awareness.data ?? []).filter(
     (entry) =>
@@ -92,12 +81,8 @@ export function CredentialPage({
 
   return (
     <SettingsPanel
-      /* Offered in the header once there is a list, and in the middle of the
-         empty state before that, where it is the obvious next thing. */
       add={{ label: spec.addLabel, onAdd: () => setAdding(true) }}
       description={spec.note}
-      /* Held back while loading too: the empty state carries the same action,
-         and offering it twice for a list that may not be empty is a guess. */
       empty={loading || rows.length === 0}
       title={spec.title}
     >

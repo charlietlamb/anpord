@@ -15,20 +15,17 @@ export interface MaterialiseProfile {
 }
 
 const MKDIR_TIMEOUT_MS = 60_000;
-/* Shared with the fixture writer, so one number governs how hard a trial
-   leans on a sandbox's file API. */
+/* Shared with the fixture writer: one number governs how hard a trial leans on a
+   sandbox's file API. */
 export const WRITE_CONCURRENCY = 4;
 
-/** Where the system prompt lands, so a driver can name it on a command line. */
 export const systemPromptPath = (home: string) =>
   `${home}/.anpord/system-prompt.md`;
 
 const parentOf = (path: string) => path.slice(0, path.lastIndexOf("/"));
 
-/* The wire schema already refuses a `.` or `..` segment. Checked again here
-   because this is the last place before a write: a path that reached the
-   sandbox from anywhere but a decoded request would otherwise land wherever
-   it asked to. */
+/* The wire schema already refuses `.` and `..`, but this is the last place before
+   a write, and not every path arrives through a decoded request. */
 const within = (root: string, path: string) => {
   const resolved = posix.normalize(`${root}/${path}`);
 
@@ -52,16 +49,12 @@ const staged = (input: MaterialiseProfile) => {
     : files;
 };
 
-/* Linux caps one argv element at 128 KiB, and the whole `mkdir -p` is handed
-   to `sh -c` as one. A profile may name 256 paths, each of which a deep tree
-   makes long, so the joined command can pass that ceiling and die as an opaque
-   E2BIG. Chunked well under it: a directory is at most 4096 bytes, so 24 of
-   them plus their quoting cannot reach the limit whatever they are called. */
+/* Linux caps one argv element at 128 KiB and the whole `mkdir -p` goes to `sh -c`
+   as one; 24 paths of at most 4096 bytes each stays well under it. */
 const PARENTS_PER_COMMAND = 24;
 
-/* Batched rather than one command per directory, because E2B, Modal and
-   Upstash write a file without creating its parents and a round trip each
-   would cost a profile its startup. */
+/* E2B, Modal and Upstash write a file without creating its parents, and a round
+   trip per directory would cost a profile its startup. */
 const makeParents = (
   sandbox: SandboxHandle,
   files: readonly (readonly [string, string])[]

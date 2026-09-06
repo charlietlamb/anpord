@@ -42,8 +42,7 @@ export class ChannelInUse extends Data.TaggedError("ChannelInUse")<{
   readonly promptCount: number;
 }> {}
 
-/** `production` is named by the schema, the MCP tools and the SDK, so renaming
- * or removing it would break callers that never asked for the change. */
+/* `production` is named by the schema, the MCP tools and the SDK. */
 export class ChannelReserved extends Data.TaggedError("ChannelReserved")<{
   readonly channel: ChannelName;
 }> {}

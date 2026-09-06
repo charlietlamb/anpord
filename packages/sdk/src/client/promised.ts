@@ -8,8 +8,7 @@ type Payload<Method> = Method extends (request: {
   ? P
   : never;
 
-/** Brands are the server's business. A caller passes the string they have
- * rather than one the schema has blessed. */
+/* Brands are the server's business: a caller passes the string they have. */
 type Unbranded<A> = A extends string & Brand.Brand<string>
   ? string
   : A extends number & Brand.Brand<string>
@@ -38,7 +37,7 @@ type Result<Method> = Method extends (
 type Request<Method> = Unbranded<Payload<Method>>;
 
 /** The Effect client as promises, so a caller who does not use Effect never
- * meets it. A group with no payload takes no argument. */
+ * meets it. */
 export type Promised<Group> = {
   readonly [Method in keyof Group]: Payload<Group[Method]> extends Record<
     string,

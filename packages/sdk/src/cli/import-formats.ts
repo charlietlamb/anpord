@@ -11,9 +11,8 @@ export type Importer = (
   FileSystem.FileSystem
 >;
 
-/** A format is an entry here, so adding one adds an entry rather than editing
- * the command. Each name carries the importer it names, so the parsed option
- * is the importer itself and no lookup can miss. */
+/* Each name carries its importer, so the parsed option is the importer itself
+   and no lookup can miss. */
 export const FORMATS: [string, Importer][] = [
   ["evals-json", importEvalsJson],
   ["yaml", importYamlCases],

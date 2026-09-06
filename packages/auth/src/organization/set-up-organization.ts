@@ -10,20 +10,8 @@ interface NewOrganization {
   readonly name: string | null;
 }
 
-/**
- * Everything a new organisation needs before anyone uses it.
- *
- * One function for both ways an organisation appears -- provisioned at first
- * sign-in, or created through Better Auth's plugin -- because the two had
- * drifted: both seeded the channel, only one registered for billing, so an
- * organisation's setup depended on which door it came through.
- *
- * Each step is logged rather than raised, and they run concurrently because
- * neither needs the other. An organisation missing its channel still resolves
- * prompts from the newest version, and one missing its billing customer is
- * registered on its first eval; failing the sign-in over either would be the
- * worse outcome.
- */
+/** Shared by both ways an organisation appears, so the two cannot drift. Steps
+ * are logged rather than raised: neither is worth failing a sign-in over. */
 export const setUpOrganization = (
   db: Database["Type"],
   ids: IdGeneratorShape,

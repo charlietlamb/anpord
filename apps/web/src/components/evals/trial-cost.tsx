@@ -10,18 +10,7 @@ import {
 import { count } from "@/lib/evals/duration";
 import { percent } from "@/lib/evals/tokens";
 
-/**
- * What the trial used, and which direction it used it.
- *
- * Tokens rather than money: what a layer cost is four separate answers with
- * four different bases, and CostBreakdown is where they are kept apart. A
- * single figure beside these would read as the total of all of them.
- *
- * The split is the interesting half. 260,000 read against 12,717 written says
- * the agent is re-reading a large context rather than generating one, and a
- * total alone cannot say which. The bars carry the ratio so nobody has to
- * divide.
- */
+/* Tokens, not money: costs have four different bases and live in CostBreakdown. */
 export function TrialCost({ usage }: { readonly usage: EvalUsage }) {
   const served =
     usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;

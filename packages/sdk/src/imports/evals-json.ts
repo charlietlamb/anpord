@@ -35,8 +35,8 @@ const idAt = (parsed: unknown, index: number) => {
   return found?.id === undefined ? `${index}` : String(found.id);
 };
 
-/** The case as its author sees it. A path into the decoded value tells them
- * nothing; the id is what they search the file for. */
+/* The id is what an author searches the file for; a path into the decoded
+   value tells them nothing. */
 const located = (parsed: unknown, path: readonly PropertyKey[]) => {
   const [head, index, ...rest] = path;
 

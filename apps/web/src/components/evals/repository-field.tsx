@@ -11,14 +11,6 @@ import {
 import { LockSimpleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 
-/**
- * Where a repository source comes from.
- *
- * A list where GitHub is connected, the URL box where it is not. The box is
- * not a fallback so much as the general case: a public repository someone
- * does not own has no reason to appear in their account's list, and typing
- * its URL is the only way to reach it.
- */
 export function RepositoryField({
   onChange,
   repositories,
@@ -53,10 +45,7 @@ export function RepositoryField({
 
               return picked === undefined
                 ? undefined
-                : /* The default branch comes with the choice: it is the one
-                     the reader means by "the repo", and typing it again is a
-                     chance to type it wrong. */
-                  onChange({
+                : onChange({
                     kind: "repo",
                     ref: picked.defaultBranch,
                     url: picked.url,

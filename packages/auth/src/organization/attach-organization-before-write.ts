@@ -9,18 +9,14 @@ interface SessionBeforeWrite {
 export const attachOrganizationBeforeWrite =
   (organizations: OrganizationStoreShape) =>
   async (session: SessionBeforeWrite) => {
-    /* Impersonation reads rather than resolves: resolving provisions a personal
-       organisation for a user who has none, and that row would carry the
-       target's name, outlive the impersonation, and be indistinguishable from
-       one they made themselves. Staff land nowhere instead, which is honest. */
+    /* Impersonation reads rather than resolves: resolving would provision a
+       personal organisation in the target's name that outlives the session. */
     const lookUp = session.impersonatedBy
       ? organizations.existingActive
       : organizations.resolveActive;
 
-    /* Every cause, not just the typed ones: this runs inside a Better Auth
-       database hook, so a rejection here fails the sign-in itself. A store
-       that cannot answer should cost the session its organisation, not the
-       person their way in. */
+    /* Every cause: this runs in a Better Auth database hook, where a rejection
+       fails the sign-in itself. */
     const active = await Effect.runPromise(
       lookUp(session.userId).pipe(
         Effect.catchAllCause(() => Effect.succeedNone)

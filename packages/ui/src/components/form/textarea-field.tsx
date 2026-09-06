@@ -4,9 +4,6 @@ import { FieldShell } from "@anpord/ui/components/form/field-shell";
 import { Textarea } from "@anpord/ui/components/ui/textarea";
 import { useFieldContext } from "@anpord/ui/hooks/form-context";
 
-/** Prose that runs past a line: a goal, a description. Grows with its content
- * rather than scrolling inside a fixed box, because a person editing a
- * paragraph needs to see the paragraph. */
 export function TextareaField({
   description,
   label,

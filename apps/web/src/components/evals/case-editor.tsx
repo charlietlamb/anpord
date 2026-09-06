@@ -3,14 +3,6 @@ import { cn } from "@anpord/ui/lib/utils";
 import { CaretRightIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-/**
- * One case, open or closed.
- *
- * Collapsed by default past the first, because a run of six cases is a list to
- * scan and a single case is a thing to write. The name stays visible either
- * way: it is what the grid will label this row, and a collapsed row that
- * cannot be told from its neighbour is a row nobody dares delete.
- */
 export function CaseRow({
   children,
   defaultOpen,
@@ -79,8 +71,6 @@ export function CaseRow({
   );
 }
 
-/** Adds a row to a list that is never empty: a run with no cases is not a
- * smaller run, it is not a run. */
 export function AddCaseButton({ onAdd }: { readonly onAdd: () => void }) {
   return (
     <Button

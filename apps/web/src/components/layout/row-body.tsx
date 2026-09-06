@@ -12,15 +12,11 @@ interface RowBodyProps {
   readonly ref?: Ref<HTMLElement>;
   readonly role?: "option";
   readonly selected?: boolean;
-  /** Held by the list rather than the row: only the row the keyboard is on is
-   * reachable by Tab, so a long list does not swallow the tab order. */
+  /* Owned by the list: only the focused row is tabbable, so a long list does not swallow the tab order. */
   readonly tabIndex?: number;
   readonly to?: LinkProps["to"];
 }
 
-/** A row that goes somewhere is a link, one that does something is a button,
- * and one that does neither is neither — a row whose only control is the menu
- * beside it should not answer to the keyboard as though the whole line acts. */
 export function RowBody({
   children,
   className,

@@ -1,7 +1,7 @@
 import { type Option, Schema } from "effect";
 
-/** `void` is a status of its own, never a flavour of `failed`: a trial whose
- * commands never executed is not evidence about the harness. */
+/* `void` is its own status, never a flavour of `failed`: a trial whose commands
+   never executed is not evidence about the harness. */
 export const TrialStatus = Schema.Literal(
   "queued",
   "running",
@@ -11,14 +11,8 @@ export const TrialStatus = Schema.Literal(
 );
 export type TrialStatus = typeof TrialStatus.Type;
 
-/**
- * A trial's status, read back from the text column that holds it.
- *
- * Decoded rather than asserted: the column has no check constraint, so a row
- * written by an older deploy carries a status this build does not name.
- * Casting made such a row silently compare unequal to every branch, which is
- * how a run holding live trials reported none and could never be resumed.
- */
+/* Decoded, not asserted: the column has no check constraint, so an older deploy's
+   row may carry a status this build does not name. */
 export const trialStatusOf: (value: string) => Option.Option<TrialStatus> =
   Schema.decodeUnknownOption(TrialStatus);
 
@@ -35,16 +29,14 @@ export const TrialOutcome = Schema.Struct({
   passed: Schema.Boolean,
   sandboxMs: Schema.Int,
   status: TrialStatus,
-  /** The verifier's conditions in the order they ran, up to and including the
-   * one that failed. Empty when the verifier was one command, refused, or
-   * never ran. */
+  /* In run order, up to and including the one that failed. */
   verifySteps: Schema.Array(VerifyStepResult),
   voidFields: Schema.Array(Schema.String),
 });
 export type TrialOutcome = typeof TrialOutcome.Type;
 
-/** What a command that never ran looks like. `fork/exec` is the exact string
- * a Daytona sandbox returns when the working directory does not exist. */
+/* `fork/exec` is the exact string a Daytona sandbox returns when the working
+   directory does not exist. */
 const VOID_PATTERNS: readonly RegExp[] = [
   /fork\/exec .*: no such file or directory/i,
   /^\s*$/,
@@ -53,7 +45,6 @@ const VOID_PATTERNS: readonly RegExp[] = [
   /permission denied/i,
 ];
 
-/** Extra signatures, supplied per deployment. */
 const configuredPatterns = (extra: readonly string[]): readonly RegExp[] =>
   extra.flatMap((source) => {
     try {
@@ -84,7 +75,7 @@ const checkVoid = (
   return { fields, voided: fields.length > 0 };
 };
 
-/** A runner that found nothing to run exits zero and says so. */
+/* A runner that found nothing to run exits zero and says so. */
 const VACUOUS_PATTERNS: readonly RegExp[] = [
   /^\s*(?:ℹ\s*)?tests\s+0\s*$/m,
   /\b0\s+(?:tests?|specs?|examples?)\b/i,
@@ -101,12 +92,10 @@ export interface ScoreInput {
   readonly modelMs: number;
   readonly sandboxMs: number;
   readonly verifySteps?: readonly VerifyStepResult[];
-  /** Extra void signatures for this deployment, from configuration. */
   readonly voidPatterns?: readonly string[];
 }
 
-/** The gate runs before the verdict, never after. A voided trial carries no
- * pass or fail, because it has no evidence to carry one. */
+/* The void gate runs before the verdict, never after. */
 export const outcomeOf = (input: ScoreInput): TrialOutcome => {
   const check = checkVoid(input.fingerprint, input.voidPatterns ?? []);
   const verifySteps = input.verifySteps ?? [];
@@ -124,8 +113,7 @@ export const outcomeOf = (input: ScoreInput): TrialOutcome => {
     };
   }
 
-  /* A zero exit from a runner that found no tests is not a pass. It is the
-     same absence of evidence a non-run is, so it voids rather than scores. */
+  /* A zero exit from a runner that found no tests is absence of evidence, not a pass. */
   const vacuous = Object.entries(input.fingerprint)
     .filter(([, value]) => isVacuous(String(value)))
     .map(([key]) => key);

@@ -23,9 +23,7 @@ export function ApiKeyRow({
 
   return (
     <ListRow
-      /* Revoking is destructive and the control carries no label of its own,
-         so it says what it does on approach rather than only to a reader
-         using assistive technology. */
+      /* Revoking is destructive and the icon carries no label, hence an explicit accessible name. */
       actions={
         <ActionTooltip label={`Revoke ${name}`}>
           <Button

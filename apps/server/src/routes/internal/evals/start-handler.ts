@@ -12,8 +12,7 @@ import { harnessVersion } from "./harness-version";
 import { meterRun } from "./meter-run";
 import { admitStart } from "./start-admission";
 
-/** The intake the web app uses. Bounded by the same admission the public API
- * is, because both reach one grid and one set of provider accounts. */
+/* Bounded by the same admission as the public API: both reach one grid and one set of provider accounts. */
 export const startEvalFromApp = (payload: StartEvalRequest) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
@@ -33,9 +32,7 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
         }))
       )
     );
-    /* Reported rather than died on: a connection that is missing or revoked is
-       something the person starting the run can fix, and the 500 orDie used to
-       produce told them only that the server broke. */
+    /* Reported rather than died on: a missing or revoked connection is something the caller can fix. */
     const tasks = yield* resolveTaskCredentials(
       credentialResolver,
       actor,

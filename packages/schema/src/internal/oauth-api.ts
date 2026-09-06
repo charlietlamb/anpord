@@ -17,8 +17,5 @@ export class OAuthGroup extends HttpApiGroup.make("oauth")
   )
   .addError(InternalError)
   .addError(NotFound)
-  /** Anyone may register a client, so the name this returns is attacker-chosen
-   * text that the consent screen renders. Requiring a session keeps it from
-   * being an open lookup, and costs nothing: the consent page already redirects
-   * to sign-in before it asks. */
+  /* Anyone may register a client, so this returns attacker-chosen text the consent screen renders; a session keeps it from being an open lookup. */
   .middleware(Authentication) {}

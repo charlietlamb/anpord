@@ -8,26 +8,13 @@ import { authClient, useSession } from "@/lib/auth-client";
 
 interface UseImpersonation {
   readonly active: boolean;
-  /** Whether to offer impersonation at all. True throughout an impersonation
-   * as well, because the staff member is still there and needs the way back —
-   * the session's own user is not staff. */
+  /* True during an impersonation too: the staff member needs the way back, and the session's user is not staff. */
   readonly allowed: boolean;
   readonly start: (userId: string) => Promise<void>;
   readonly stop: () => Promise<void>;
 }
 
-/**
- * Acting as someone else, and stopping.
- *
- * Both paths end in a document load rather than a router invalidation. The
- * session changes identity, and every cache in the app — React Query, route
- * loaders, anything holding a rendered organisation — is keyed without it, so
- * a soft refresh leaves one person's data on screen under another's session.
- *
- * The client's check only decides what to render. The server re-derives the
- * same permission from the user row on every request, so a forged session
- * field buys nothing.
- */
+/* Both paths end in a document load: caches are keyed without the session identity, so a soft refresh would leave one person's data under another's session. */
 export function useImpersonation(): UseImpersonation {
   const { data } = useSession();
 
@@ -36,9 +23,7 @@ export function useImpersonation(): UseImpersonation {
 
   const start = useCallback(
     async (userId: string) => {
-      /* An impersonated session belongs to a non-staff user and fails the
-         permission check that starting a new one requires. Handing the admin
-         session back first is what makes switching targets work. */
+      /* An impersonated session is non-staff and fails the check a new impersonation requires, so the admin session is handed back first. */
       if (active) {
         await authClient.admin.stopImpersonating();
       }

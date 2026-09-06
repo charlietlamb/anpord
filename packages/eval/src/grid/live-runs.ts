@@ -3,9 +3,8 @@ import type { GridRunState } from "./state";
 
 export interface LiveRuns {
   readonly changes: Stream.Stream<GridRunState>;
-  /** Drops a run once it is terminal. Each entry holds every trial's full
-   * journal, untruncated, so keeping finished runs grows without bound for
-   * the life of the process. The record answers for them afterwards. */
+  /* Each entry holds every trial's untruncated journal, so keeping finished runs
+     grows without bound. The record answers for them afterwards. */
   readonly forget: (id: string) => Effect.Effect<void>;
   readonly get: (id: string) => Effect.Effect<Option.Option<GridRunState>>;
   readonly publish: (state: GridRunState) => Effect.Effect<void>;
@@ -15,14 +14,11 @@ export interface LiveRuns {
   ) => Effect.Effect<void>;
 }
 
-/** The in-flight view of runs, kept apart from the service that schedules
- * them. */
 export const makeLiveRuns = Effect.gen(function* () {
   const runs = yield* Ref.make(new Map<string, GridRunState>());
 
-  /* Bounded and dropping: a slow reader must never stall a run that is
-     spending money, and a missed frame costs nothing because every message
-     carries the whole run. */
+  /* Dropping: a slow reader must not stall a run, and every message carries the
+     whole run so a missed frame costs nothing. */
   const changes = yield* PubSub.dropping<GridRunState>(64);
 
   const publish = (state: GridRunState) =>

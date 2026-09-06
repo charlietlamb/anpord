@@ -7,13 +7,7 @@ import type { CliDefinition } from "../mock-cli/define";
 
 type EvalTaskRequest = PublicStartEvalRequest["tasks"][number];
 
-/**
- * A profile directory beside the eval file.
- *
- * `dir` resolves against the eval file. Files under `home/` and `workspace/`
- * are shipped into the sandbox; an optional `profile.json` names a system
- * prompt, env, and for the command harness the install and run steps.
- */
+/** A profile directory beside the eval file; `dir` resolves against it. */
 export interface ProfileRef {
   readonly dir: string;
   readonly name: string;
@@ -41,19 +35,8 @@ export interface ExecOptions {
   readonly timeoutMs?: number;
 }
 
-/**
- * A directory worth keeping between runs of the same case.
- *
- * Declared on the case rather than returned by the prepare, because a restore
- * has to happen before the prepare runs: something that only exists once it has
- * finished cannot say where to look. This is the shape CI caches use for the
- * same reason -- actions/cache names its path and key before the step, not
- * after.
- *
- * The key should name everything the contents depend on, a lockfile hash above
- * all, because entries are write-once: a key that already holds an entry keeps
- * it, which is what makes two runs preparing at once safe.
- */
+/** Entries are write-once, so the key must name everything the contents
+ * depend on -- a lockfile hash above all. */
 export interface CaseCache {
   readonly key: string;
   /** Relative to the workspace. */
@@ -61,8 +44,8 @@ export interface CaseCache {
 }
 
 export interface PrepareContext {
-  /** True when the runner restored a cached directory before this ran, so a
-   * prepare can skip the work that produced it. */
+  /** True when the runner restored a cached directory, so a prepare can skip
+   * the work that produced it. */
   readonly cached: boolean;
   readonly exec: (
     file: string,
@@ -81,7 +64,7 @@ export type Prepare = (
 ) => Promise<PrepareValue | undefined> | PrepareValue | undefined;
 
 export interface ValidatorContext {
-  /** The agent's final reply, empty when it said nothing. */
+  /** Empty when the agent said nothing. */
   readonly answer: () => Promise<string>;
   readonly cli: {
     readonly calls: (cli?: string) => Promise<readonly CliCall[]>;
@@ -93,7 +76,7 @@ export interface ValidatorContext {
   };
   readonly prepared: Readonly<Record<string, unknown>>;
   readonly readText: (path: string) => Promise<string>;
-  /** Every reply the agent made, oldest first, separated by a blank line. */
+  /** Every reply, oldest first, separated by a blank line. */
   readonly transcript: () => Promise<string>;
 }
 
@@ -109,8 +92,7 @@ export type Validator = (
 type DeclaredSource = EvalSource | string;
 
 interface EvalCaseBase {
-  /** What a prepare builds that is worth keeping for the next run of this
-   * case. Restored before it runs, and saved after it succeeds. */
+  /** Restored before the prepare runs, saved after it succeeds. */
   readonly cache?: CaseCache;
   readonly name: string;
   readonly prepare?: Prepare | null;

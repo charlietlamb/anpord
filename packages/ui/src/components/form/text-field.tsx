@@ -8,9 +8,7 @@ import { cn } from "@anpord/ui/lib/utils";
 
 interface TextFieldProps {
   autoComplete?: string;
-  /** Hides the label without removing it. For a field whose placeholder says
-   * what it is and whose form has one input, where a written label repeats the
-   * heading above it. The label still reaches a screen reader. */
+  /** Visually hidden only; the label still reaches a screen reader. */
   hideLabel?: boolean;
   label: string;
   onValueChange?: (value: string) => void;

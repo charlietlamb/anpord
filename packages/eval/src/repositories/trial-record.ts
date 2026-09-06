@@ -26,8 +26,6 @@ export interface AppendTrialEvents {
 }
 
 export interface AbandonTrial {
-  /** Why it did not finish. Null said nothing, which is how a failed trial
-   * looked identical to one nobody had started. */
   readonly failure?: string;
   readonly finishedAt: Date;
   readonly trialInternalId: string;
@@ -84,10 +82,8 @@ export const TrialRecorderLive = Layer.effect(
     const db = yield* Database;
     const ids = yield* IdGenerator;
 
-    /* The sandbox id is cleared with the status. This runs from a finalizer
-       registered before the sandbox was opened, so the scope has already
-       destroyed it by the time this writes -- an id left here would send the
-       reaper after a VM that no longer exists. */
+    /* The sandbox id is cleared: the scope destroyed it before this finalizer
+       writes, and a leftover id sends the reaper after a VM that is gone. */
     const abandon = (input: AbandonTrial) =>
       tryStore("trial.abandon", () =>
         db
@@ -121,13 +117,8 @@ export const TrialRecorderLive = Layer.effect(
         })
       );
 
-    /* Reopened rather than inserted beside, because a resumed run reuses its
-       cells and a trial is unique on its cell and ordinal. The first live
-       resume died here on that constraint.
-
-       The same trial, on a later attempt: keeping the row keeps the run the
-       shape a reader already has, and the events of the attempt that did not
-       finish are replaced rather than interleaved with the new one's. */
+    /* Reopened, not inserted beside: a resumed run reuses its cells and a trial
+       is unique on its cell and ordinal. */
     const open = (input: OpenTrial) =>
       Effect.gen(function* () {
         const fresh = yield* ids.generate("evalTrial");
@@ -161,8 +152,7 @@ export const TrialRecorderLive = Layer.effect(
         const trialInternalId = rows[0]?.internalId ?? fresh;
         const priorSandboxId = Option.fromNullable(rows[0]?.sandboxId);
 
-        /* An earlier attempt's journal describes a run that did not happen.
-           Cleared here rather than left to interleave with the new one. */
+        /* An earlier attempt's journal would otherwise interleave with this one. */
         yield* tryStore("trial.clearEvents", () =>
           db
             .delete(evalEvent)

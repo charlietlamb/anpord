@@ -112,11 +112,8 @@ export const TaskRepositoryLive = Layer.effect(
               .insert(evalTask)
               .values(valuesOf(input, input.identity, internalId))
 
-              /* Updated rather than left alone: an identity names which case
-                 this is, not what it contained, so a case whose prepare or
-                 verify was edited must not keep running the one it was first
-                 stored with. Doing nothing here meant an edited eval passed
-                 against its old definition, silently. */
+              /* Updated, not left alone: an identity names which case this is, not
+                 what it contained, so an edited case must not run its old definition. */
               .onConflictDoUpdate({
                 set: {
                   cacheKey: input.cache?.key ?? null,

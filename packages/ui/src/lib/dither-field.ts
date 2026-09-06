@@ -3,49 +3,36 @@ import { bayerMatrix } from "./bayer-dither";
 const MATRIX_ORDER = 3;
 const TWO_PI = Math.PI * 2;
 
-/**
- * Low spatial frequencies, so a whole region shares a tone and the dither
- * describes a shape. Directions are off-axis and mutually irrational, which
- * keeps the crests from lining up into stripes.
- */
+/* Directions are off-axis and mutually irrational, so crests never line up
+   into stripes. */
 const WAVES = [
   { amplitude: 0.5, dx: 0.9, dy: 0.31, phase: 0, speed: 0.05 },
   { amplitude: 0.32, dx: -0.53, dy: 0.77, phase: 2.1, speed: -0.031 },
   { amplitude: 0.24, dx: 0.37, dy: -0.61, phase: 4.3, speed: 0.019 },
 ] as const;
 
-/** The whole field slides along one heading while the waves beat against each
- * other, so it looks like it is going somewhere rather than merely churning.
- * The heading turns slowly, which is what stops the drift reading as a slide. */
+/** The heading turns slowly, which stops the drift reading as a slide. */
 const DRIFT = { radius: 0.09, turn: 0.013 } as const;
 
-/** Steepens the field so most of it sits at an extreme. An ordered threshold
- * degenerates into a checkerboard at the midpoint, so only a narrow band is
- * left there and the eye reads the masses instead of the weave. */
+/** An ordered threshold degenerates into a checkerboard at the midpoint, so
+ * the field is steepened to leave only a narrow band there. */
 const CONTRAST = 1.9;
 
-/**
- * A second field, slower than the first and unrelated to it, deciding where
- * dither is allowed at all. Without it the waves cover the page evenly; with it
- * the texture gathers into pockets and leaves the space between them clear.
- */
+/* A second, unrelated field deciding where dither is allowed at all. */
 const MASK_WAVES = [
   { amplitude: 0.62, dx: 0.23, dy: 0.17, phase: 1.7, speed: 0.011 },
   { amplitude: 0.38, dx: -0.14, dy: 0.29, phase: 3.9, speed: -0.007 },
   { amplitude: 0.7, dx: 0.71, dy: 0.38, phase: 0.6, speed: 0.017 },
 ] as const;
 
-/** Derived rather than written down, so the field keeps normalising to itself
- * when a wave above is retuned. */
+/** Derived, so the field still normalises when a wave above is retuned. */
 const MASK_SUM = MASK_WAVES.reduce((total, wave) => total + wave.amplitude, 0);
 
-/** Raising the field to a power isolates its peaks: the mid-range collapses
- * toward nothing, so pockets stay separate instead of merging into one mass
- * whenever the waves happen to align. */
+/** Raising the field to a power collapses the mid-range, keeping pockets
+ * separate instead of merging whenever the waves align. */
 const MASK_FALLOFF = 2.5;
 
-/** Above this the pocket is solid, below it nothing draws. The gap between the
- * two is the pocket's edge, which frays rather than cutting. */
+/** The gap between the two is the pocket's edge, which frays rather than cuts. */
 const MASK_FLOOR = 0.33;
 const MASK_CEILING = 0.6;
 
@@ -59,13 +46,9 @@ interface Wave {
   readonly speed: number;
 }
 
-/**
- * A wave is `sin(ax + by + c)`, which expands to
- * `sin(ax)cos(by + c) + cos(ax)sin(by + c)`. The second half is constant across
- * a row and the first across a column, so each is computed once per row or
- * column instead of once per cell: a full screen goes from millions of trig
- * calls to a few thousand.
- */
+/** `sin(ax + by + c)` expands to `sin(ax)cos(by + c) + cos(ax)sin(by + c)`,
+ * whose halves are constant across a column and a row, so each is computed once
+ * per column or row rather than once per cell. */
 const writeRowTerms = (
   waves: readonly Wave[],
   y: number,
@@ -119,8 +102,7 @@ const pocketOf = (sum: number) => {
 
 const toneOf = (sum: number) => clamp((sum / 1.06) * CONTRAST + 0.5);
 
-/** The threshold map flattened once, so the inner loop indexes a typed array
- * rather than walking two levels of object. */
+/** Flattened so the inner loop indexes a typed array, not nested objects. */
 const thresholds = (() => {
   const matrix = bayerMatrix(MATRIX_ORDER);
   const size = matrix.length;
@@ -157,8 +139,7 @@ const toneRowScratch: Scratch = {
   sines: new Float64Array(0),
 };
 
-/** Grown to fit and then kept. The field runs several times a second, and
- * allocating a pair of arrays per frame is work the collector has to undo. */
+/** Kept between frames; per-frame allocation is work the collector must undo. */
 const scratch = (held: Scratch, columns: number, waves: number) => {
   const needed = columns * waves;
 
@@ -170,11 +151,8 @@ const scratch = (held: Scratch, columns: number, waves: number) => {
   return held;
 };
 
-/**
- * Writes which cells are lit into the caller's mask rather than returning a
- * list of them. A full screen is hundreds of thousands of cells, and allocating
- * an object per lit one made the field cost more to collect than to compute.
- */
+/** Writes into the caller's mask: an object per lit cell cost more to collect
+ * than the field costs to compute. */
 export const ditherField = (
   mask: Uint8Array,
   columns: number,
@@ -189,9 +167,7 @@ export const ditherField = (
 
   mask.fill(0);
 
-  /* Both fields' column terms, built once for the frame and kept between them.
-     The mask reads the undrifted column and the tone the drifted one, so they
-     are held apart. */
+  /* Held apart: the mask reads the undrifted column, the tone the drifted one. */
   const maskColumns = scratch(maskScratch, columns, MASK_WAVES.length);
   const toneColumns = scratch(toneScratch, columns, WAVES.length);
 
@@ -228,8 +204,7 @@ export const ditherField = (
         continue;
       }
 
-      /* The pocket scales the tone rather than clipping it, so a dot thins out
-         toward the edge instead of the pocket ending on a hard line. */
+      /* Scales rather than clips, so dots thin out instead of ending on a line. */
       const tone = toneOf(
         combine(WAVES, toneRow, toneColumns, column * WAVES.length)
       );

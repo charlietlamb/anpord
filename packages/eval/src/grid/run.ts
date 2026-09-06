@@ -26,22 +26,17 @@ export interface StartGrid {
   readonly trials: number;
 }
 
-/** A page of runs, where the next one starts, and how many there are in all. */
 export interface GridRunPage {
   readonly next: PageCursor | null;
   readonly runs: readonly GridRunState[];
-  /** Every run the organization has, so a reader can be told how far the
-   * listing goes rather than only whether another page exists. */
   readonly total: number;
 }
 
 export interface GridRunShape {
   readonly changes: Stream.Stream<GridRunState>;
 
-  /** Runs the grid here, to completion.
-   *
-   * What a runner is handed, rather than what asks a runner to take it: a
-   * worker calling resume would dispatch the run to itself forever. */
+  /* What a runner is handed, not what asks for one: a worker calling resume
+     would dispatch the run to itself forever. */
   readonly execute: (grid: ResumeGrid) => Effect.Effect<void>;
 
   readonly get: (
@@ -49,7 +44,6 @@ export interface GridRunShape {
     id: string
   ) => Effect.Effect<Option.Option<GridRunState>>;
   readonly list: (input: {
-    /** Null on the first page. */
     readonly cursor: PageCursor | null;
     readonly limit: number | undefined;
     readonly organizationId: string;

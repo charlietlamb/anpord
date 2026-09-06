@@ -39,8 +39,7 @@ export const ChannelsHandlers = HttpApiBuilder.group(
             return yield* channels.update(actor, path.name, payload);
           }).pipe(withPromptErrors)
       )
-      /** A channel is deleted outright rather than archived, so unlike a prompt
-       * there is nothing to restore afterwards. */
+      /* Deleted outright rather than archived: unlike a prompt there is nothing to restore. */
       .handle(
         "remove",
         { permission: Permissions.Organization.Admin },

@@ -12,13 +12,6 @@ const INSTALL: readonly SnippetCommand[] = [
 
 const KEYS_URL = "https://www.anpord.com/settings/keys";
 
-/* One block, because it is one instruction. Split in two, an agent has to
-   work out which half is the brief and which is the file; together it reads
-   top to bottom the way it will be acted on.
-   
-   The model is written in rather than read from the environment: one variable
-   to set is a step, two is a checklist, and the id is the thing most likely
-   to be changed by hand anyway. */
 const PROMPT = `Write an eval for this repository using Anpord, in scripts/eval.ts.
 
 Set ANPORD_API_KEY in the environment. Create one at ${KEYS_URL}.
@@ -70,13 +63,6 @@ Reference:
 - ${DOCS_URL}/evals/cases
 - ${DOCS_URL}/evals/harnesses`;
 
-/**
- * Writing an eval somewhere other than this page.
- *
- * The form beside it is the faster path for one case typed by hand; this is
- * the one that lasts, because an eval kept in the repository is reviewed,
- * versioned and run in CI like anything else.
- */
 export function AgentSetup() {
   const { dismiss, dismissed } = useDismissed("anpord.install-dismissed");
 

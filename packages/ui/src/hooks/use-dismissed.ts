@@ -2,18 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-/**
- * Whether the reader has put something away, remembered on this device.
- *
- * Starts false on every render, including the server's, so the markup the
- * server sends and the browser's first pass agree; the stored answer arrives
- * a moment later. A thing that flashes away is better than one that appears
- * from nowhere, and there is nothing to show if it was never dismissed.
- *
- * Every access is guarded: a private window, cleared site data or a browser
- * set to block storage all throw rather than return null, and none of that
- * is worth failing a page over.
- */
+/* Starts false so server and first client render agree; storage access is
+   guarded because a private window or blocked site data throws. */
 export function useDismissed(key: string) {
   const [dismissed, setDismissed] = useState(false);
 

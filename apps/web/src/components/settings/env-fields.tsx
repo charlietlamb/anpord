@@ -3,15 +3,7 @@ import { Textarea } from "@anpord/ui/components/ui/textarea";
 import { useState } from "react";
 import { parseEnvLines } from "@/lib/settings/env-lines";
 
-/**
- * The variables an environment credential carries, typed as `KEY=VALUE`
- * lines.
- *
- * One textarea rather than a row per variable: what a reader has is a
- * `.env` file, and pasting it whole is the only way this form is quicker
- * than the one they came from. The text is kept here and only the parsed
- * map is handed up, so the form above never holds a half-typed line.
- */
+/* Only the parsed map is handed up, so the form above never holds a half-typed line. */
 export function EnvFields({
   onChange,
 }: {

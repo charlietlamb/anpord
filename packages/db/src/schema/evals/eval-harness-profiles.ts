@@ -7,8 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
 
-/* The version is a hash of the content, so a row names one exact profile
-   and an edit is a new row rather than a change to this one. */
+/* The version is a content hash, so an edit writes a new row rather than changing this one. */
 export const evalHarnessProfile = pgTable(
   "eval_harness_profile",
   {

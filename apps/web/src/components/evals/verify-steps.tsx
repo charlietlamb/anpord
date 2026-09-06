@@ -40,13 +40,6 @@ function Reading({
   );
 }
 
-/**
- * The mark on the rail: a tick, a cross, or a dot for a step nobody measured.
- *
- * The tick and cross sit in a tinted disc rather than bare, so at ten pixels
- * they read as marks and not as stray glyphs; the dot stays a dot, because a
- * step with no verdict should not look like it has one.
- */
 function Mark({ verdict }: { readonly verdict: StepVerdict }) {
   if (verdict === "passed") {
     return (
@@ -84,33 +77,13 @@ function Mark({ verdict }: { readonly verdict: StepVerdict }) {
   );
 }
 
-/**
- * What decided whether the trial passed.
- *
- * A verifier is usually one command and is shown as one. A verifier that gates
- * on many conditions is written as those conditions joined by `&&`, and the
- * longest here is 2891 characters holding fifteen: as a single block that is a
- * wall, and a reader cannot tell what is being asked of the agent without
- * reading shell.
- *
- * So the conditions are drawn as steps on one line, because that is what `&&`
- * is: each runs only if the one above it held, and the first to fail ends the
- * walk. Each is set as what it is. A condition is a sentence. A message is
- * what the step throws, and is marked so, because "too many tabs" beside
- * "docs.json exists" would otherwise read as two checks phrased two ways
- * rather than a check and a failure. A command is code, whole, and wraps.
- *
- * The marks come from the trail the scorer leaves as it runs the steps. Where
- * there is no trail the rail carries dots, and past a failure the line fades:
- * the steps below it were never run, and a tick there would be a claim.
- */
 export function VerifySteps({
   command,
   script,
   verdicts,
 }: {
   readonly command: string;
-  /** The shell itself rather than what it checks. */
+  /* The shell itself rather than what it checks. */
   readonly script: boolean;
   readonly verdicts: readonly StepVerdict[];
 }) {

@@ -37,17 +37,10 @@ const CodebaseLayer = Layer.mergeAll(
   )
 );
 
-/* The eval stack without the http and auth around it: a worker is handed a run
-   id and executes it, so it needs the grid and what the grid reaches, and
-   nothing that serves a request. */
-/* The runner is in-process because this is where a dispatched run arrives:
-   handing it on again would be a task dispatching to itself. The suspender is
-   Trigger's, because a wait held here is a wait billed here, and a prepare
-   waits for most of its life. */
+/* In-process runner because a dispatched run arrives here; handing it on again would be a task dispatching to itself. The suspender is Trigger's, because a wait held here is a wait billed here. */
 const GridLayer = evalGridWith(TrialRunnerInProcess, SuspenderTrigger).pipe(
   Layer.provide(EvalSandboxLive),
-  /* Merged rather than provided: the task resolves the credentials a stored
-     run recorded, so it yields the resolver itself. */
+  /* Merged, not provided: the task yields the resolver itself to resolve a stored run's credentials. */
   Layer.provideMerge(
     CredentialResolverLive.pipe(Layer.provide(CredentialDependencies))
   ),
@@ -56,11 +49,7 @@ const GridLayer = evalGridWith(TrialRunnerInProcess, SuspenderTrigger).pipe(
   Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
 );
 
-/* Swept here as well as in the api, because this is the process that opens
-   every sandbox: a worker that dies mid-trial leaves a VM its own scope
-   finalizer never got to, and the reaper is what finishes that. Both sweeps
-   are idempotent -- the reaper clears the id it destroys, so whichever
-   process reaches a row first is the one that reaps it. */
+/* Swept here as well as in the api: a worker that dies mid-trial leaves a VM its scope finalizer never reached. Both sweeps are idempotent, so whichever process reaches a row first reaps it. */
 const ReaperLayer = SandboxReaperSweepLive.pipe(
   Layer.provide(EvalSandboxLive),
   Layer.provide(
@@ -71,9 +60,7 @@ const ReaperLayer = SandboxReaperSweepLive.pipe(
 
 export const WorkerLayer = Layer.mergeAll(GridLayer, ReaperLayer);
 
-/* The same stack, handing runs to Trigger rather than running them here. What
-   the api composes, and what a smoke test needs in order to exercise the
-   dispatch rather than stand in for it. */
+/* The same stack, handing runs to Trigger rather than running them here. */
 export const DispatchingLayer = evalGridWith(TrialRunnerTrigger).pipe(
   Layer.provide(EvalSandboxLive),
   Layer.provideMerge(

@@ -19,11 +19,9 @@ import {
 type RunRow = typeof evalRun.$inferSelect;
 
 export interface RunQueryShape {
-  /** How many runs the organization has, for a reader who wants to know how
-   * far the listing goes. Separate from the page itself because a page is
-   * read on every step and this only when the count is shown. */
-  /** How many of the organization's runs are still running, which is what
-   * bounds how many sandboxes it can have open at once. */
+  /* Separate from the page itself: a page is read on every step, this only when
+     the count is shown. */
+  /* Bounds how many sandboxes an organization can have open at once. */
   readonly countRunning: (
     organizationId: string
   ) => Effect.Effect<number, EvalStoreError>;

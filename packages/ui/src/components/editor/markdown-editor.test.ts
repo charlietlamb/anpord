@@ -51,12 +51,8 @@ beforeAll(async () => {
   };
 });
 
-/**
- * A prompt is sent to a model verbatim, so anything the editor rewrites is a
- * change the author never made. Underscores are the sharp edge: the markdown
- * escaper would turn {{customer_name}} into {{customer\_name}} and the variable
- * would silently stop interpolating.
- */
+/* The markdown escaper would turn {{customer_name}} into {{customer\_name}},
+   and the variable would silently stop interpolating. */
 describe("markdown round-trip", () => {
   test("variables survive underscores, dots and hyphens", () => {
     expect(toMarkdown("Answer {{customer_name}} politely.")).toBe(

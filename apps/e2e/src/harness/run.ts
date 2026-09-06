@@ -15,8 +15,7 @@ export interface Outcome {
 const PASS = "pass";
 const FAIL = "fail";
 
-/** A failed check already reads as a sentence, so it needs no stack. Anything
- * else is a surprise, and the stack is the useful part. */
+/* A failed check already reads as a sentence; anything else is a surprise, where the stack is the useful part. */
 const reason = (cause: unknown) => {
   if (cause instanceof CheckFailed) {
     return cause.message;
@@ -27,10 +26,7 @@ const reason = (cause: unknown) => {
   return String(cause);
 };
 
-/**
- * Every scenario runs even when an earlier one fails, so a single run reports
- * the whole surface rather than stopping at the first break.
- */
+/* Every scenario runs even after a failure, so one run reports the whole surface. */
 export const runScenarios = async <Context>(
   scenarios: readonly Scenario<Context>[],
   context: Context

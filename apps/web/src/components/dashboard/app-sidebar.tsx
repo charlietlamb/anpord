@@ -66,9 +66,6 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        {/* Client-only, like everything else here that reads the session: it
-            asks what this organization has connected, which the server render
-            has no answer for. */}
         <ClientOnly>
           <SetupCard />
         </ClientOnly>

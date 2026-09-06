@@ -10,8 +10,8 @@ export const CACHE_SECONDS = 900;
 const VOLUME_CHECK_MS = 1000;
 const VOLUME_CHECKS = 60;
 
-/* A volume is created asynchronously, and mounting one that is still
-   pending_create fails the sandbox rather than waiting for it. */
+/* Daytona creates volumes asynchronously; mounting one still pending_create fails
+   the sandbox rather than waiting. */
 export const readyVolume = (daytona: Daytona, name: string) =>
   Effect.iterate(
     { attempts: 0, volume: null as { id: string; state?: string } | null },
@@ -40,14 +40,11 @@ export const readyVolume = (daytona: Daytona, name: string) =>
     )
   );
 
-/* What actions/cache passes, for the reasons it gives: every core, and a
-   1GiB window, which is what finds the duplication a dependency tree is full
-   of. */
+/* What actions/cache passes: every core, and a 1GiB window. */
 const ZSTD_WRITE = "zstd -T0 --long=30";
 const ZSTD_READ = "zstd -d --long=30";
 
-/* Percent-encoded so a key cannot name a path, and the percents themselves
-   replaced because they are awkward in a shell. */
+/* Percent-encoded so a key cannot name a path; percents replaced for the shell. */
 const entryFor = (key: string) =>
   `${CACHE_PATH}/${encodeURIComponent(key).replaceAll("%", "_")}`;
 
@@ -58,14 +55,8 @@ export type CacheShell = (
   SandboxUnavailable
 >;
 
-/**
- * The cache as the mounted volume can actually provide it.
- *
- * The volume is object storage: it takes and returns whole files but cannot
- * rename or hard link, so an entry is committed by writing its manifest last.
- * A restore trusts nothing without one, which is what makes a save that died
- * partway a miss rather than a half-restored directory.
- */
+/* The volume is object storage with no rename, so an entry is committed by writing
+   its manifest last and a restore trusts nothing without one. */
 export const cacheOn = (run: CacheShell): SandboxCache => {
   const manifest = (key: string) =>
     run(`cat ${quoted(`${entryFor(key)}/manifest.json`)} 2>/dev/null`).pipe(
@@ -112,9 +103,7 @@ export const cacheOn = (run: CacheShell): SandboxCache => {
       }),
     save: (key, path) =>
       Effect.gen(function* () {
-        /* Write-once: the first sandbox to finish owns the key, and a second
-           preparing the same way leaves it alone rather than writing over an
-           entry another may be reading. */
+        /* Write-once: the first sandbox to finish owns the key. */
         if (yield* manifest(key).pipe(Effect.map((f) => f !== null))) {
           return;
         }

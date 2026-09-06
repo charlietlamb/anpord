@@ -24,9 +24,6 @@ const lines = (value: string) => {
   return `${count} line${count === 1 ? "" : "s"}`;
 };
 
-/* A verifier is measured in the conditions it gates on rather than the lines
-   it occupies: the longest here is one line holding fifteen checks. Once the
-   trials have said which held, that is the count worth stating. */
 const checks = (verdicts: readonly StepVerdict[]) => {
   const total = verdicts.length;
   const judged = verdicts.filter((verdict) => verdict !== "unknown").length;
@@ -40,8 +37,6 @@ const checks = (verdicts: readonly StepVerdict[]) => {
   return `${passed}/${total} passed`;
 };
 
-/** A fact about where the agent stood: a dim name, a mono value, on a pill so
- * a long path breaks inside its own tint rather than across the line. */
 function Pill({
   Icon: Glyph,
   label,
@@ -153,25 +148,11 @@ function Validation({
   );
 }
 
-/**
- * What the agent was asked and what decided whether it succeeded.
- *
- * Each part sits on its own surface with its name on the frame, the way a
- * code block carries its filename, so the prompt and the rubric are seen as
- * two artifacts rather than one column of text that changes register halfway
- * down. Where it ran is a line of pills above them: a fact, not a section.
- *
- * The prompt is set as prose with its backticks honoured, and the commands as
- * code, because that is what each of them is: a prompt in mono would claim the
- * agent was handed a script.
- */
 export function CellSetup({
   setup,
   trials,
 }: {
   readonly setup: EvalSetup;
-  /** Whose verdicts the verify steps carry: one trial on its own page, every
-   * trial on the cell's. */
   readonly trials: readonly EvalTrial[];
 }) {
   return (

@@ -2,17 +2,6 @@ import { cn } from "@anpord/ui/lib/utils";
 import { CaretRightIcon, type Icon } from "@phosphor-icons/react";
 import { type ReactNode, useState } from "react";
 
-/**
- * One part of the setup on its own ground.
- *
- * A framed surface with a header bar, the way a code block carries its
- * filename: the label names what is inside, the count says how much, and the
- * controls that act on it sit on the same line. The frame is alpha-white on
- * both sides so it reads as a lift off the page rather than a second colour.
- *
- * Closing keeps the header as a pill, so a collapsed part is still a thing on
- * the page and not a line of text pretending to be one.
- */
 export function SetupSurface({
   children,
   controls,

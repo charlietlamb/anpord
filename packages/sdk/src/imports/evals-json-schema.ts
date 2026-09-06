@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 
-/** The three checks that convert mechanically, because each is a needle list
- * and a rule over it rather than a description of intent. */
+/* The only checks that convert mechanically: a needle list and a rule over
+   it, rather than a description of intent. */
 const AssertionKind = Schema.Literal(
   "content_contains_any",
   "content_contains_all",
@@ -16,8 +16,8 @@ export const StructuredAssertion = Schema.Struct({
 
 export type StructuredAssertion = typeof StructuredAssertion.Type;
 
-/** Both dialects occur, sometimes in sibling files: a bare string is prose one
- * person wrote for another, an object is a mechanical check. */
+/* Both dialects occur, sometimes in sibling files: a bare string is prose, an
+   object is a mechanical check. */
 const Assertion = Schema.Union(Schema.String, StructuredAssertion);
 
 export const EvalsJsonCase = Schema.Struct({

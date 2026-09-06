@@ -13,9 +13,8 @@ const unscored = (run: EvalRun) =>
 
 const rate = (value: number) => `${Math.round(value * 100) / 100}`;
 
-/* Named only when it moved: the harness version and the profile version are
-   the two things about a variant that can differ between a baseline and its
-   candidate, so when one did, it is the first thing a reader wants to know. */
+/* Named only when it moved -- a harness or profile version differing between
+   baseline and candidate is the first thing a reader wants to know. */
 const versionClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) =>
   found.baselineHarnessVersion === found.candidateHarnessVersion
     ? ""

@@ -34,11 +34,7 @@ const deployments = (world: World, query = "") =>
     `/activity?kind=deployed${query.replace("?", "&")}`
   );
 
-/**
- * The record a team reads after a bad deploy. Nothing else tells them what
- * moved, when, or what it moved from, so a classification that quietly calls a
- * rollback a promotion is worse than no log at all.
- */
+/* Nothing else records what moved, when, and from what, so a rollback misclassified as a promotion is worse than no log. */
 export const activityScenarios: readonly Scenario<World>[] = [
   {
     name: "deployments: the log says what moved and which way it went",

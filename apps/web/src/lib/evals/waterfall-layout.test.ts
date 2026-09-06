@@ -21,8 +21,6 @@ const message = (finishedAtMillis: number | null): EvalJournalEntry => ({
 });
 
 describe("laying out a trajectory", () => {
-  /* The real numbers from a captured Codex run: the command ran 4986ms and
-     that is what a bar must be drawn from. */
   it("measures a bar from both of its ends", () => {
     const { rows, spanMs } = waterfallLayout([
       message(6924),
@@ -48,17 +46,12 @@ describe("laying out a trajectory", () => {
     expect(marker?.leftPercent).toBe(0);
   });
 
-  /** A command whose start was never recorded still has to appear. Dropping
-   * it would hide work the agent actually did. */
   it("keeps a command that has no start", () => {
     const { rows } = waterfallLayout([command(null, 500), command(0, 100)]);
     expect(rows).toHaveLength(2);
     expect(rows.some((row) => row._tag === "marker")).toBe(true);
   });
 
-  /** The gap between one event ending and the next beginning, which on a real
-   * trial is most of the elapsed time and the reason the chart is worth
-   * drawing at all. */
   it("draws the gap before a step as its lead", () => {
     const { rows, thinkingMs } = waterfallLayout([
       command(0, 1000),
@@ -70,9 +63,7 @@ describe("laying out a trajectory", () => {
     expect(thinkingMs).toBe(3000);
   });
 
-  /** Every millisecond is either work or waiting, so the two must account for
-   * the whole span. A thinking row that started from the wrong moment would
-   * double-count and push the last row past the axis. */
+  /* Every millisecond is either work or waiting, so the two must account for the whole span. */
   it("accounts for the whole span with no overlap", () => {
     const { rows, spanMs, thinkingMs, workingMs } = waterfallLayout([
       command(0, 1000),
@@ -89,9 +80,6 @@ describe("laying out a trajectory", () => {
     ).toBe(true);
   });
 
-  /** Back-to-back events are not a decision worth a row: the gap is the cost
-   * of recording two events, and a row per pair would double the height of
-   * every trajectory for nothing. */
   it("draws no lead between adjacent events", () => {
     const { rows, thinkingMs } = waterfallLayout([
       command(0, 1000),
@@ -114,11 +102,7 @@ describe("laying out a trajectory", () => {
 
     expect(spanMs).toBe(1);
   });
-  /** A journal is usually chronological but nothing guarantees it. An entry
-   * landing behind the one before it used to drag the cursor back, so the
-   * overlap was billed twice and the trial reported more thinking than it had
-   * time for. The conservation test above passed throughout, because every
-   * fixture it used was already sorted. */
+  /* A journal is usually chronological but nothing guarantees it, and an out-of-order entry used to drag the cursor back. */
   it("bills no time twice when an entry lands out of order", () => {
     const { spanMs, thinkingMs, workingMs } = waterfallLayout([
       command(0, 1000),
@@ -148,9 +132,6 @@ const toolCall = (
 });
 
 describe("timing a tool call", () => {
-  /* A harness that reports both ends of a call gives it a real width, the
-     same as it would a command. Drawn as a dot, a call that ran a third of a
-     second was indistinguishable from one that returned instantly. */
   it("draws a bar for a call reported at both ends", () => {
     const { rows } = waterfallLayout([toolCall(1000, 1303)]);
 
@@ -164,16 +145,14 @@ describe("timing a tool call", () => {
     expect(rows[0]?._tag).toBe("marker");
   });
 
-  /* A zero-width bar renders as nothing at all, which reads as a dropped row
-     rather than as a fast call. */
+  /* A zero-width bar renders as nothing, which reads as a dropped row rather than a fast call. */
   it("leaves a call that reports no elapsed time as a marker", () => {
     const { rows } = waterfallLayout([toolCall(1000, 1000)]);
 
     expect(rows[0]?._tag).toBe("marker");
   });
 
-  /* The rail reads workingMs as time spent running commands in the sandbox,
-     and a tool call the harness answered itself never went near one. */
+  /* The rail reads workingMs as sandbox time, and a harness-answered tool call never reached the sandbox. */
   it("keeps a tool call out of the time spent running commands", () => {
     const { workingMs } = waterfallLayout([
       command(0, 1000),

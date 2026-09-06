@@ -22,10 +22,8 @@ export const prepareValueOf = (
 
   const encoded = line.slice(MARKER.length);
 
-  /* A prepare returns whatever it likes and every trial stores a copy, which
-     is then served to any reader of the run. Bounded here so one script cannot
-     put a log, a lockfile, or a base64 image through the database and into an
-     API response. */
+  /* Every trial stores a copy and serves it to readers, so one script must not
+     put a log or a base64 image through the database. */
   if (encoded.length > PREPARED_LIMIT) {
     return {};
   }
@@ -54,8 +52,7 @@ const scriptIn = (sandbox: SandboxHandle, source: string) =>
   );
 
 export const runPrepare = (input: {
-  /** What this case keeps between runs. Declared on the case rather than
-   * reported by the prepare, because a restore precedes it. */
+  /* Declared on the case, not reported by the prepare, because a restore precedes it. */
   readonly caseCache?: { readonly key: string; readonly path: string };
   readonly sandbox: SandboxHandle;
   readonly prepare: EvalPrepare;
@@ -67,9 +64,8 @@ export const runPrepare = (input: {
 
       const cache = input.sandbox.cache;
 
-      /* Restored before the prepare runs and saved after, so a prepare names
-         what is worth keeping and never touches the store: providers differ in
-         what theirs can do, and a script cannot know which it is on. */
+      /* Restored before the prepare and saved after, so a script never touches a
+         store whose capabilities it cannot know. */
       const kept = input.caseCache;
 
       const restored =
@@ -98,13 +94,8 @@ export const runPrepare = (input: {
           cwd: input.workspace,
           env: restored ? { ANPORD_CACHE_RESTORED: "1" } : undefined,
           timeoutMs: SETUP_TIMEOUT_MS,
-          /* A prepare can run for half an hour and said nothing until it
-             finished, which is how a failing install read as a hang.
-
-             The output is the customer's own script talking, so it is
-             annotated as untrusted rather than trimmed: a script that echoes
-             its environment puts a key here, and no length limit would redact
-             that. A log sink is what must treat this as third-party text. */
+          /* The customer's own script talking, annotated untrusted: it may echo a
+             key, and no length limit would redact that. */
           watch: (text) =>
             Effect.logInfo("preparing").pipe(
               Effect.annotateLogs({
@@ -127,17 +118,11 @@ export const runPrepare = (input: {
 
       const reported = prepareValueOf(outcome.stdout);
 
-      /* Under the key a restore will look for, which is why the case declares
-         it: something the prepare returned could name only what a later run
-         has no way to ask for.
-
-         Only after it succeeded, because caching what a failed install left
-         behind is how a broken cache outlives the run that made it. */
+      /* Only on success: caching what a failed install left behind outlives the
+         run that made it. */
       if (Option.isSome(cache) && kept !== undefined && !restored) {
-        /* Warned rather than ignored: a save that fails costs the next run its
-           cache and nothing else, so it must not fail this one -- but silence
-           made a cache that never filled indistinguishable from one nobody
-           asked for. */
+        /* A failed save costs the next run its cache only, so it must not fail
+           this one, but silence hides a cache that never fills. */
         yield* cache.value
           .save(kept.key, `${input.workspace}/${kept.path}`)
           .pipe(

@@ -26,10 +26,8 @@ export interface HarnessExit {
 export type HarnessOutput = HarnessLine | HarnessExit;
 
 export interface HarnessLinesOptions {
-  /* "fail" ends the stream with HarnessUnavailable on a non-zero exit, which
-     is what every stock harness wants. "report" keeps every line and closes
-     with the exit itself, for a driver that records how a process ended
-     rather than discarding what it printed first. */
+  /* "fail" ends the stream with HarnessUnavailable on a non-zero exit; "report"
+     keeps every line and closes with the exit itself. */
   readonly exit: "fail" | "report";
 }
 

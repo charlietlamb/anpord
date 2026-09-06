@@ -45,9 +45,6 @@ function StatusMark({
   label,
   tone,
 }: {
-  /** Why, for a state that has a reason. A run that failed says so in its
-   * mark rather than in a second line under every failed row: the same
-   * provider limit repeated down a list is one fact printed twenty times. */
   readonly detail?: string | null;
   readonly Glyph: Icon;
   readonly label: string;

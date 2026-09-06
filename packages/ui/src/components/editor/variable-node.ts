@@ -1,19 +1,12 @@
 import { VARIABLE_PATTERN, variableAtStart } from "@anpord/template/syntax";
 import { Node, nodeInputRule } from "@tiptap/core";
 
-/**
- * Anchored to the end so it fires as the final brace is typed. The whole
- * `{{name}}` must be inside the match: nodeInputRule replaces exactly what it
- * matched, so a narrower capture leaves the outer braces behind and the text
- * becomes `{{{{name}}}}`, which the renderer then reads as an escape.
- */
+/* nodeInputRule replaces exactly what it matched, so the whole `{{name}}` must
+   be inside it or the leftover braces read as an escape. */
 const TYPED_VARIABLE = new RegExp(`(?:^|[^{])(${VARIABLE_PATTERN})$`);
 
-/**
- * A variable is an atom, not prose. Serialising it through the markdown escaper
- * would turn `{{customer_name}}` into `{{customer\_name}}` and the model would
- * never interpolate it, so the node round-trips its own text verbatim.
- */
+/* Round-trips verbatim: the markdown escaper would turn `{{customer_name}}`
+   into `{{customer\_name}}`, which never interpolates. */
 export const Variable = Node.create({
   name: "variable",
   group: "inline",

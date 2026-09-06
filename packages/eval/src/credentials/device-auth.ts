@@ -56,10 +56,8 @@ export const DeviceAuthLive = Layer.effect(
     return DeviceAuth.of({
       start: (actor, input) =>
         Effect.gen(function* () {
-          /* A key acts for an organization and has no person to sign in as,
-             so there is nobody for the browser on the other end to be. The
-             scope itself is the caller's: a team sharing one subscription
-             says so by choosing organization. */
+          /* A key acts for an organization and has no person to sign in as, so
+             there is nobody for the browser on the other end to be. */
           if (!actor.isUser) {
             return yield* Effect.fail(
               new CredentialError({

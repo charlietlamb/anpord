@@ -7,9 +7,7 @@ const joined = (source: string) =>
     .join("");
 
 describe("shellTokens", () => {
-  /** The property that matters: highlighting must never change the text it
-   * highlights. Everything else is cosmetic; losing a character is a lie
-   * about what ran. */
+  /* Losing a character would be a lie about what ran. */
   it("loses nothing, whatever the input", () => {
     const commands = [
       `/bin/sh -lc "pwd && rg --files -g 'AGENTS.md' | sed -n '1,160p'"`,
@@ -37,16 +35,13 @@ describe("shellTokens", () => {
     expect(kinds.has("operator")).toBe(true);
   });
 
-  /** A flag inside a string belongs to the string. Matching flags first would
-   * paint the inside of a quoted argument. */
   it("does not find flags inside strings", () => {
     const tokens = shellTokens(`echo "--not-a-flag"`);
 
     expect(tokens.some((token) => token.kind === "flag")).toBe(false);
   });
 
-  /** The bug this was written for: `-light` sits inside a filename, and
-   * matching a hyphen anywhere painted half a path as a flag. */
+  /* Regression: matching a hyphen anywhere painted half a path as a flag. */
   it("does not find flags inside a filename", () => {
     const tokens = shellTokens("test -f public/logos/github-light.svg");
     const flags = tokens

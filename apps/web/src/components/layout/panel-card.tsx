@@ -1,17 +1,6 @@
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
-/**
- * A card a page is built around.
- *
- * The sign-in and check-your-email screens had each rebuilt this shell by hand
- * and drifted: one aligned its text left and the others did not, and both
- * re-wrote the heading style this file already owns.
- *
- * `mark` is for a screen a reader arrives at cold, where the product should
- * name itself beside the title. Everything inside the app already knows where
- * it is, so it renders nothing there.
- */
 export function PanelCard({
   children,
   description,

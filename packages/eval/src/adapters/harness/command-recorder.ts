@@ -1,11 +1,8 @@
 import { Option, Schema } from "effect";
 import type { HarnessEvent } from "../../domain/harness-event";
 
-/**
- * Sourced by every non-interactive bash through BASH_ENV. Only bash and zsh
- * have a DEBUG trap, so `sh -c`, dash, and the shells Node or Python spawn
- * leave no line here; a customer who wants those prints `Command` itself.
- */
+/* Only bash and zsh have a DEBUG trap, so `sh -c`, dash, and shells Node or
+   Python spawn leave no line here. */
 export const COMMAND_RECORDER = `# Sourced by every non-interactive bash through BASH_ENV.
 #
 # The DEBUG trap is the one shell hook that fires without a prompt, so it is
@@ -90,7 +87,7 @@ const commandOf = (line: string): Option.Option<CommandEvent> =>
     })
   );
 
-/** The recorder's log as commands. A line it cannot read is skipped. */
+/* An unreadable line is skipped. */
 export const traceToEvents = (text: string): CommandEvent[] =>
   text.split("\n").flatMap((line) =>
     Option.match(commandOf(line), {
@@ -99,10 +96,7 @@ export const traceToEvents = (text: string): CommandEvent[] =>
     })
   );
 
-/**
- * Trace commands the process already reported itself, dropped so a customer
- * who prints `Command` with an exit code is not shown the same line twice.
- */
+/* Dropped so a customer printing `Command` is not shown the same line twice. */
 export const withoutReported = (
   trace: readonly CommandEvent[],
   reported: readonly HarnessEvent[]

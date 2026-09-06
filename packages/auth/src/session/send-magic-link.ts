@@ -25,9 +25,8 @@ export const sendMagicLink =
         )
         .pipe(
           Effect.tapErrorCause(Effect.logError),
-          /* Rejected rather than died: a provider that refuses the send is a
-             thing the person signing in can be told about and retry, and
-             dying turns it into a blank 500 that names nothing. */
+          /* Rejected rather than died, so the caller sees a message and not a
+             blank 500. */
           Effect.mapError(
             () =>
               new Error(

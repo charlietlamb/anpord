@@ -6,8 +6,7 @@ import { CHANNEL_DEFAULT_COLOR } from "@anpord/ui/lib/channel-colors";
 import { z } from "zod";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 
-/** Mirrors ChannelName, so a name the API would refuse is caught in the form
- * rather than as a failed request. */
+/* Mirrors ChannelName, so a name the API would refuse is caught in the form. */
 const channelSchema = z.object({
   color: z.string(),
   name: z
@@ -19,7 +18,6 @@ const channelSchema = z.object({
 
 interface ChannelDialogProps {
   readonly color?: ChannelColor;
-  /** Absent when creating, which is what tells the dialog which act it is. */
   readonly name?: string;
   readonly onSubmit: (value: { color: ChannelColor; name: string }) => void;
 }

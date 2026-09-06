@@ -53,10 +53,8 @@ describe("failureOf", () => {
     expect(failure).not.toContain("\n");
   });
 
-  /* The defect this exists to catch: a trial recorded Cause.pretty straight
-     into its row, so the two kilobytes of stack around a one-line problem --
-     absolute paths, frames, and whatever an error dragged with it -- became
-     the column a person reads. */
+  /* The defect this catches: Cause.pretty recorded straight into the row put two
+     kilobytes of stack in the column a person reads. */
   it("records no stack for a cause that carries one", () => {
     const deep = new Error("connect ECONNREFUSED 10.0.0.1:443");
     deep.stack = [

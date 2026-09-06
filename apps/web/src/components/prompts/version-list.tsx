@@ -12,7 +12,6 @@ interface VersionListProps {
   readonly onEditFrom: (version: ResolvedPrompt) => void;
   readonly onPromote: (channel: string, version: number) => void;
   readonly onSelect: (version: ResolvedPrompt) => void;
-  /** Where each channel points, so a row can say what it serves. */
   readonly placements: readonly ChannelPlacement[];
   readonly versions: readonly ResolvedPrompt[];
   readonly viewedVersion: number;
@@ -21,8 +20,6 @@ interface VersionListProps {
 const NEXT_KEYS = new Set(["ArrowDown", "ArrowRight"]);
 const PREVIOUS_KEYS = new Set(["ArrowUp", "ArrowLeft"]);
 
-/** The channels a version serves, which is what makes its row say it is live
- * rather than merely saved. */
 const servedBy = (
   placements: readonly ChannelPlacement[],
   version: number

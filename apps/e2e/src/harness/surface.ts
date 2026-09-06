@@ -1,10 +1,6 @@
 import { equals } from "./expect";
 
-/**
- * What every way into anpord can do, named once. The API, the SDK and the CLI
- * are different transports over the same operations, so a behaviour that must
- * hold everywhere is written once here and run against each of them.
- */
+/* The API, SDK and CLI are transports over the same operations, so a shared behaviour is written once and run against each. */
 export interface PromptSurface {
   readonly get: (
     id: string,
@@ -18,11 +14,7 @@ export interface PromptSurface {
   readonly update: (id: string, content: string) => Promise<number>;
 }
 
-/**
- * Updating writes a version and promoting ships it. Getting these the wrong way
- * round would mean an edit reaching production the moment somebody saved it, so
- * every surface is held to it rather than one of them being trusted.
- */
+/* Updating writes a version, promoting ships it: reversing them would put an edit into production the moment it was saved. */
 export const drafting = async (
   surface: PromptSurface,
   id: string,
@@ -41,8 +33,7 @@ export const drafting = async (
   return drafted;
 };
 
-/** A channel is a pointer, so pointing it backwards has to work as readily as
- * pointing it forwards. Rolling back is the reason the indirection exists. */
+/* Rolling back is the reason the channel indirection exists. */
 export const rollback = async (
   surface: PromptSurface,
   id: string,

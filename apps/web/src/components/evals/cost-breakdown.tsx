@@ -26,14 +26,7 @@ const LABELS = {
 const units = (detail: Readonly<Record<string, unknown>>, key: string) =>
   typeof detail[key] === "number" ? (detail[key] as number) : null;
 
-/**
- * What a layer cost, said in the terms it is actually known in.
- *
- * A priced layer reads as money and says whether that money is an estimate. An
- * unpriced one reads as words -- what covered it, or that nothing could -- and
- * never as a number, because the only number available would be zero and zero
- * is a claim that it was free.
- */
+/* An unpriced layer states words, never zero: zero would claim it was free. */
 const statedAs = (part: EvalCostComponent) => {
   if (part.usd !== null) {
     return part.classification === "estimate"
@@ -63,8 +56,6 @@ function CostLine({ part }: { readonly part: EvalCostComponent }) {
       Icon={ICONS[part.component]}
       label={LABELS[part.component]}
       layout="stated"
-      /* Muted wherever there is no amount, so an unpriced layer never reads
-         with the weight of a figure somebody could add up. */
       tone={part.usd === null ? "muted" : undefined}
       value={statedAs(part)}
     />
@@ -78,13 +69,7 @@ const ORDER: readonly EvalCostComponent["component"][] = [
   "platform",
 ];
 
-/**
- * What a run cost, layer by layer.
- *
- * Four lines rather than a total. The model estimate is the only figure most
- * runs have, and putting it beside three layers that are covered rather than
- * free is what stops it reading as the bill for all of them.
- */
+/* Layers stay separate rather than totalled: the model estimate is not the bill for all four. */
 export function CostBreakdown({ costs }: { readonly costs: EvalCosts }) {
   const byComponent = new Map(
     costs.components.map((part) => [part.component, part])

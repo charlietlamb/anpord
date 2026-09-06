@@ -12,14 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { evalCell } from "./eval-cells";
 
-/** One execution of a cell, and the atomic unit of work.
- *
- * `voidFields` is a column rather than a flavour of failure. A trial that
- * never ran is not evidence about the harness, and folding it into failed
- * would let a broken provider report a clean pass rate.
- *
- * `modelMs` and `sandboxMs` are separate because a slow provider and a slow
- * model are different findings, and one column cannot tell them apart. */
+/* `voidFields` is its own column, not a flavour of failure: a trial that never ran would otherwise let a broken provider report a clean pass rate. */
 export const evalTrial = pgTable(
   "eval_trial",
   {
@@ -51,9 +44,7 @@ export const evalTrial = pgTable(
       table.cellInternalId,
       table.ordinal
     ),
-    /* Partial, over every trial still holding a sandbox whatever its status:
-       a terminal status is not evidence the VM is gone, and requiring one
-       here hid every sandbox the reconciler voided. */
+    /* Covers every trial holding a sandbox whatever its status: a terminal status is not evidence the VM is gone. */
     index("eval_trial_live_sandbox_idx")
       .on(table.startedAt)
       .where(sql`sandbox_id is not null`),

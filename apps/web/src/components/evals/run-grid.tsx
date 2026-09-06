@@ -28,8 +28,6 @@ interface Column {
   readonly read: (result: VariantResult) => string;
 }
 
-/* A single cell reads as a tally, because 2/3 says more than 67% when there
-   are three trials; several cells aggregate to a rate. */
 const passOf = (result: VariantResult) => {
   if (result.scored === 0) {
     return NOTHING;
@@ -72,7 +70,6 @@ const COLUMNS: readonly Column[] = [
   },
 ];
 
-/** Status, name, one column per metric, and the verdict against baseline. */
 const TRACKS =
   "grid-cols-[auto_minmax(0,1fr)_repeat(4,auto)_auto] gap-x-4 gap-y-0";
 
@@ -116,12 +113,6 @@ function Verdict({ cell }: { readonly cell: EvalCell }) {
   );
 }
 
-/**
- * One case, as a divider the variant rows hang under.
- *
- * Its tally counts cells rather than trials, because the question at this
- * level is which variants solved it, not how often each did.
- */
 function CaseHeading({ result }: { readonly result: CaseResult }) {
   const solved = result.results.filter(
     (entry) => entry.scored > 0 && entry.passed === entry.scored
@@ -190,14 +181,7 @@ function CellLine({
   );
 }
 
-/**
- * Every variant across every case, under the cases it summarises.
- *
- * The leader on each metric is marked rather than the rows being sorted,
- * because there is no one order: the fastest variant is often not the one
- * that passed most, and sorting would have to pick which question the reader
- * came with. Two that tie are both marked; nothing is marked for a race of one.
- */
+/* Leaders are marked rather than rows sorted: no single order answers both "fastest" and "passed most". */
 function Overall({ run }: { readonly run: EvalRun }) {
   const variants = variantsOf(run);
   const leaders = leadersOf(variants);
@@ -225,18 +209,6 @@ function Overall({ run }: { readonly run: EvalRun }) {
   );
 }
 
-/**
- * The run as the grid it is: cases down, variants across.
- *
- * Two flat lists -- a table per variant, a list per cell -- made a reader
- * cross-reference them to answer the one question the grid exists for, which
- * is who did better on what. Grouped by case, the variants sit side by side
- * under the problem they were given, and the leader on each metric is marked
- * within that case. Several cases earn a footer that says who won overall.
- *
- * With one variant there is nothing to compare within a case, so each case
- * is a single row named for itself and the grouping disappears.
- */
 export function RunGrid({ run }: { readonly run: EvalRun }) {
   const cases = casesOf(run);
   const single = run.tasks.length === 1;

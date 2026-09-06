@@ -3,12 +3,7 @@ import { Client } from "pg";
 import { startDatabase, stopDatabase } from "./database";
 import { startServer } from "./server";
 
-/**
- * Each resource carries its own release, so a run that dies part way through
- * still gives the cluster, the server, and the connection back. A single
- * try/finally could only ever protect whichever resource was acquired last,
- * which is how a failed server start used to orphan a running cluster.
- */
+/* Each resource carries its own release: a single try/finally protects only the last acquired, which once orphaned a running cluster. */
 export const database = (dataDirectory: string, keepRunning: boolean) =>
   Effect.acquireRelease(
     Effect.promise(() => startDatabase(dataDirectory)),

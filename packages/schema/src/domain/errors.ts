@@ -25,9 +25,7 @@ export class Unauthorized extends Schema.TaggedError<Unauthorized>()(
   HttpApiSchema.annotations({ status: 401 })
 ) {}
 
-/** Distinct from Unauthorized: the caller is who they say they are, and the
- * answer is still no. Signing in again cannot help, so the client must not
- * treat this as an expired session. */
+/* Distinct from Unauthorized: signing in again cannot help, so this is not an expired session. */
 export class Forbidden extends Schema.TaggedError<Forbidden>()(
   "Forbidden",
   { message: Schema.String },

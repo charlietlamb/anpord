@@ -53,8 +53,6 @@ describe("readingsOf", () => {
     ]);
   });
 
-  /** An edited profile is a new version on the same cell, so it moves a
-   * reading the way a harness release does and is marked the same way. */
   it("names a profile version only where it changed, shortened", () => {
     const long = "a1b2c3d4e5f60718293a4b5c6d7e8f90";
     const edited = "0f9e8d7c6b5a49382716f5e4d3c2b1a0";

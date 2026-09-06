@@ -48,9 +48,8 @@ export const ChannelCatalogLive = Layer.effect(
     const promptCache = yield* PromptCache;
     const ids = yield* IdGenerator;
 
-    /** The default answers every request that names no channel, so renaming or
-     * removing it would change what callers receive without them asking.
-     * Point the default elsewhere first. */
+    /* Renaming or removing the default changes what callers receive without
+       them asking, so it has to be pointed elsewhere first. */
     const requireNotDefault = (actor: Actor, name: ChannelName) =>
       Effect.gen(function* () {
         const fallback = yield* channels.defaultChannel(actor.organizationId);

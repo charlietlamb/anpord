@@ -44,7 +44,6 @@ export const EvalCellRequest = Schema.Struct({
 });
 export const EvalModelsRequest = Schema.Struct({
   harness: EvalHarness,
-  /** Narrows to models whose id or name contains this. */
   q: Schema.optional(Schema.String),
 }).annotations({
   description: "Select a harness whose available models should be listed.",
@@ -82,8 +81,7 @@ const PublicEvalCase = Schema.Struct({
     description: "A task, workspace source, setup command, and verifier.",
     identifier: "StartEvalCase",
   });
-/* The harness rule is a filter on the struct, which the generated JSON Schema
-   drops, so the tool and endpoint descriptions repeat it. */
+/* The generated JSON Schema drops the struct filter, so tool and endpoint descriptions repeat the harness rule. */
 const PublicEvalTask = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String.pipe(Schema.minLength(1)),

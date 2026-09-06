@@ -21,9 +21,7 @@ const CellPath = Schema.Struct({ cellKey: Schema.String });
 
 export class EvalsGroup extends HttpApiGroup.make("evals")
   .add(
-    /* Cursor rather than page number: an offset counts rows the database has
-       already discarded, and a run started between two fetches shifts every
-       page after it. */
+    /* Cursor rather than offset: a run started between two fetches shifts every page after it. */
     HttpApiEndpoint.get("list", "/evals")
       .setUrlParams(
         Schema.Struct({
@@ -60,8 +58,7 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
   )
 
   .add(
-    /* The run keeps its own id: a resume continues the cells already recorded
-       against it rather than opening a second run beside the first. */
+    /* The run keeps its id: a resume continues its cells rather than opening a second run. */
     HttpApiEndpoint.post("resume", "/evals/:id/resume")
       .setPath(RunPath)
       .addSuccess(StartedEval)
@@ -69,15 +66,11 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
 
   .add(
     HttpApiEndpoint.get("modelCatalogue", "/evals/models")
-      /* The harness decides which models exist: Codex takes a bare id and
-         OpenCode takes `provider/model`, so a catalogue fetched without one
-         offers names the run cannot address. */
+      /* Codex takes a bare id and OpenCode `provider/model`, so a catalogue fetched without a harness offers names the run cannot address. */
       .setUrlParams(
         Schema.Struct({
           harness: EvalHarness,
-          /* Filtered on the server because the catalogue is seven thousand
-             models: sending them all to be filtered in a browser is the
-             1.27 MB the picker used to pay on every open. */
+          /* Filtered server-side: the catalogue is seven thousand models, 1.27 MB per picker open. */
           q: Schema.optional(Schema.String),
         })
       )

@@ -1,11 +1,7 @@
 import { tokenMatcher } from "./syntax";
 
-/**
- * Distinct variable names in source order, so callers can count or list them.
- *
- * Escaped braces are read here too, so a name the renderer will treat as
- * literal text is never reported as a variable the editor should draw.
- */
+/** Reads escapes too, so text the renderer leaves literal is never reported as
+ * a variable. */
 export function extractVariables(template: string): string[] {
   const names: string[] = [];
 

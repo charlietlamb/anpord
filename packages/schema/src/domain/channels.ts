@@ -1,8 +1,7 @@
 import { Schema } from "effect";
 import { ChannelName, Timestamp } from "./prompts";
 
-/** Stored as token names rather than hex so a channel keeps its meaning when the
- * theme changes. */
+/* Token names rather than hex, so a channel keeps its meaning when the theme changes. */
 export const ChannelColor = Schema.Literal(
   "slate",
   "blue",

@@ -36,9 +36,7 @@ export const cliScenarios: readonly Scenario<World>[] = [
     run: async (world) => {
       const { id } = await givenPrompt(world, "cli-stdin");
 
-      /* Long enough to arrive in more than one chunk, which is what a pipe
-         does and what reading it as a file got wrong: the body was whatever
-         had landed by the time the read happened. */
+      /* Long enough to arrive in more than one chunk, which is what reading stdin as a file got wrong. */
       const body = `Body delivered over stdin. ${"padding ".repeat(20_000)}end.`;
 
       const pushed = await cli(world, ["push", id, "-"], body);
@@ -144,9 +142,7 @@ export const cliScenarios: readonly Scenario<World>[] = [
 
       contains("augments the sdk", written, 'import "anpord"');
       contains("declares the registry", written, "AnpordPromptVariables");
-      /* Matched together rather than separately: gen writes every prompt in
-         the organisation, so finding the id and finding a variable somewhere
-         in the file would both hold even if this prompt contributed neither. */
+      /* Matched together: gen writes every prompt, so separate matches would both hold even if this prompt contributed neither. */
       const entry = new RegExp(`"${id}":\\s*\\{[^}]*customer_name[^}]*product`);
       isTrue(
         "names this prompt with both of its variables",

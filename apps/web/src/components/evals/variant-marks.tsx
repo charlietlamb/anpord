@@ -33,9 +33,7 @@ const marksOf = (columns: readonly EvalTask[]): readonly Mark[] => {
       column.profile
     );
 
-    /* Keyed by what the tooltip says rather than by the model alone: two
-       profiles on one base share a model, and the second would otherwise
-       replace the first and name a harness the row never ran. */
+    /* Keyed on model plus harness: two profiles on one base share a model and the second would replace the first. */
     models.set(`${column.model} ${harness}`, {
       Icon: model.Icon,
       key: `model:${column.model} ${harness}`,

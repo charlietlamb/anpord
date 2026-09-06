@@ -23,8 +23,6 @@ export interface ExecOptions {
 
 export interface OpenSandbox {
   readonly autoStopMinutes: number;
-  /** Names the store this sandbox's prepare should share with the next one
-   * preparing the same way. Absent asks for none. */
   readonly cache?: string;
   readonly credentials?: Redacted.Redacted<CredentialValues>;
   readonly provider: ProviderName;
@@ -42,23 +40,11 @@ export interface CommandProgress {
   readonly stdout: string;
 }
 
-/**
- * Somewhere a prepare can leave what it built for the next run preparing the
- * same way.
- *
- * Whole directories in and out rather than a path to work in, because a
- * provider is free to back this with object storage, and object storage does
- * not do the renames and hard links an install performs constantly. A provider
- * that cannot offer this at all offers none, and a prepare is handed nothing.
- *
- * Write-once, as every CI cache is: a key that holds an entry keeps it. That
- * is what makes two sandboxes preparing at once safe without a lock, given
- * neither can rename a finished file into place.
- */
+/* Write-once whole directories, so concurrent prepares need no lock and a
+   provider may back it with object storage. */
 export interface SandboxCache {
   readonly has: (key: string) => Effect.Effect<boolean, SandboxUnavailable>;
-  /** False when nothing was stored, when a save did not finish, or when what
-   * is there no longer matches what was written. Never a partial restore. */
+  /* False on a missing, unfinished, or mismatched entry; never a partial restore. */
   readonly restore: (
     key: string,
     path: string
@@ -69,12 +55,8 @@ export interface SandboxCache {
   ) => Effect.Effect<void, SandboxUnavailable>;
 }
 
-/**
- * Starting a command that outlives the call which asked for it.
- *
- * Offered as a pair, because either alone is useless: a start nobody can poll
- * leaves a command running that nothing will ever collect.
- */
+/* A command outliving the call that started it; paired because a start nobody
+   can poll leaves a command nothing will collect. */
 export interface ResumableCommands {
   readonly progress: (
     started: StartedCommand
@@ -85,16 +67,8 @@ export interface ResumableCommands {
   ) => Effect.Effect<StartedCommand, SandboxUnavailable>;
 }
 
-/**
- * A running sandbox, and what it can do beyond running one command.
- *
- * Capabilities are `Option`: a provider declares one by supplying the thing
- * itself and declines it by supplying nothing. So a provider cannot claim a
- * capability it does not have, and a caller cannot reach for one without
- * first asking whether it is there.
- */
+/* Capabilities are `Option` so a provider cannot claim one it does not supply. */
 export interface SandboxHandle {
-  /** None when the provider has nowhere to keep one, or none was asked for. */
   readonly cache: Option.Option<SandboxCache>;
   readonly exec: (
     command: string,
@@ -103,7 +77,6 @@ export interface SandboxHandle {
   readonly home: string;
   readonly id: string;
   readonly provider: ProviderName;
-  /** None when a command dies with the call that started it. */
   readonly resumable: Option.Option<ResumableCommands>;
   readonly writeFile: (
     path: string,

@@ -6,17 +6,13 @@ import {
 } from "@/lib/analytics/config";
 import { useIdentify } from "@/lib/analytics/use-identify";
 
-/** Sits inside the provider, which is what gives it a client to identify on. */
+/* Must sit inside the provider, which is what gives it a client. */
 function Identify() {
   useIdentify();
   return null;
 }
 
-/**
- * Mounted after hydration rather than at the root, so posthog-js stays out of
- * the boot chunk. It wraps nothing, because identifying happens in an effect and
- * no rendered component reads the client.
- */
+/* Mounted after hydration, so posthog-js stays out of the boot chunk. */
 export function PostHogAnalytics() {
   return (
     <PostHogProvider

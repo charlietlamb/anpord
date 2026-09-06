@@ -12,15 +12,8 @@ interface Resolved {
   readonly value: PublicPromptWithVersions;
 }
 
-/**
- * Which answer the caller gets, in the order the answers are worth having.
- *
- * Fresh cache first, because that is the whole point. Then the API, since it
- * is the only source that can be right. Then whatever is held however old,
- * because a prompt someone wrote and promoted beats a string written at deploy
- * time. Then the fallback, which the caller asked for. Then the failure, since
- * with nothing cached and no fallback there is no honest answer to give.
- */
+/** Ordered by how good the answer is: fresh cache, API, stale cache, caller's
+ * fallback, then the failure. */
 export const resolvePrompt = (options: GetPromptOptions) =>
   Effect.gen(function* () {
     const cache = yield* PromptCache;
@@ -31,9 +24,8 @@ export const resolvePrompt = (options: GetPromptOptions) =>
       return {
         metadata: {
           ageMs: held.value.ageMs,
-          /** Where the answer came from, not how old it is. An entry read in
-           * the same millisecond it was stored is still an entry, and calling
-           * it fresh made a cache hit indistinguishable from a network read. */
+          /* Where the answer came from, not how old it is -- a zero-age hit
+             is still a hit, not a network read. */
           freshness: "cached",
           key,
         },

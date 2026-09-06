@@ -13,12 +13,7 @@ const call = <Body = unknown>(
 const messageOf = (body: unknown) =>
   (body as { message?: string }).message ?? "";
 
-/**
- * Which version a caller receives when they name a channel, a version, a
- * derived name, or nothing at all. Every one of these is a different path
- * through resolution, and the wrong answer is silent: the caller still gets a
- * prompt, just not the one they shipped.
- */
+/* The wrong answer here is silent: the caller still gets a prompt, just not the one they shipped. */
 export const resolutionScenarios: readonly Scenario<World>[] = [
   {
     name: "resolution: latest reads the newest version rather than a channel",
@@ -106,10 +101,7 @@ export const resolutionScenarios: readonly Scenario<World>[] = [
       );
       const organizationId = owner?.organization_id;
 
-      /* Cleared before the new one is set, never in a single statement: the
-         schema holds a partial unique index over the organization, and
-         postgres checks it per row, so raising the second default before
-         lowering the first collides even though the end state is legal. */
+      /* Cleared before the new one is set: postgres checks the partial unique index per row, so raising the second default first collides even though the end state is legal. */
       const pointDefaultAt = async (name: string) => {
         await world.query(
           "update channel set is_default = false where organization_id = $1",
@@ -130,9 +122,7 @@ export const resolutionScenarios: readonly Scenario<World>[] = [
         equals("the default takes over", bare.body.version, 2);
         equals("and says which answered", bare.body.channel ?? null, "staging");
       } finally {
-        /* Scoped to this organization and always run: a prompt created while
-           the default points elsewhere is published there and nowhere else,
-           so leaving it moved would strand every later fixture. */
+        /* Always restored: leaving the default moved would strand every later fixture. */
         await pointDefaultAt("production");
       }
     },

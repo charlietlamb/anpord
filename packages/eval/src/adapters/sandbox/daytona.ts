@@ -6,10 +6,8 @@ import { CACHE_PATH, readyVolume } from "./daytona-cache";
 import { handleFor } from "./daytona-handle";
 import { HOME, unavailable } from "./daytona-shell";
 
-/* The default snapshot gives three gigabytes, which a dependency tree fills
-   before an install finishes, and resources cannot be asked for alongside it.
-   This one is built once by scripts/daytona-snapshot.ts and starts in about a
-   second, so naming it is both larger and faster than not. */
+/* The default snapshot gives three gigabytes and takes no resource request
+   alongside it; this one is built by scripts/daytona-snapshot.ts. */
 const SNAPSHOT = "anpord-eval:4";
 const AUTO_DELETE_FACTOR = 6;
 

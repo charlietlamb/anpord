@@ -1,16 +1,5 @@
-/**
- * Shell, split into the few kinds worth colouring.
- *
- * Hand-rolled rather than a grammar engine: every command here is `/bin/sh`,
- * and the alternative ships a WASM regex engine and a grammar file into a
- * hover card. Four token kinds carry a command's shape - where the strings
- * end, where one stage pipes into the next - and that is what a reader is
- * scanning for.
- *
- * Deliberately not a parser. It does not track nesting or expansion, so a
- * `$(...)` reads as an operator and a plain word. Wrong highlighting is
- * cosmetic here; a parser that throws on the shell an agent invented is not.
- */
+/* Deliberately not a parser: it tracks no nesting or expansion, because wrong
+   highlighting is cosmetic where a parser throwing on invented shell is not. */
 export type ShellTokenKind =
   | "comment"
   | "flag"
@@ -23,8 +12,7 @@ export interface ShellToken {
   readonly value: string;
 }
 
-/* Ordered: a flag inside a string is part of the string, so strings match
-   first and the scanner never re-examines what they consumed. */
+/* Order matters: strings match first, so a flag inside one stays part of it. */
 const PATTERNS: readonly (readonly [ShellTokenKind, RegExp])[] = [
   ["comment", /^#[^\n]*/],
   ["string", /^'(?:[^'\\]|\\.)*'?/],
@@ -33,16 +21,11 @@ const PATTERNS: readonly (readonly [ShellTokenKind, RegExp])[] = [
   ["flag", /^--?[A-Za-z][\w-]*/],
 ];
 
-/** What can precede a flag. A hyphen anywhere else is inside a word, like the
- * one in `github-light.svg`. */
+/** A hyphen elsewhere is inside a word, like the one in `github-light.svg`. */
 const WORD_BOUNDARY = /[\s|&;()<>]/;
 
-/** Splits a command into runs of one kind, in order, losing nothing: the
- * concatenated values equal the input.
- *
- * The scan position is tracked separately from the plain-text run, because a
- * flag has to know what preceded it and the run cannot say: the previous token
- * may have been a string, leaving it empty. */
+/** Concatenated values equal the input. The scan position is tracked apart from
+ * the plain-text run, which may be empty when a string preceded a flag. */
 export const shellTokens = (source: string): readonly ShellToken[] => {
   const tokens: ShellToken[] = [];
   let rest = source;

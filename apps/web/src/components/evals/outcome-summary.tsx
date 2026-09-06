@@ -22,20 +22,6 @@ const outcomeLabel = ({ passed, scored, voided }: OutcomeSummaryProps) => {
     : scoredPart;
 };
 
-/**
- * How a run turned out.
- *
- * The arc alone, because it already carries the proportion and the exact
- * counts sit a hover away: `8/9` beside a nine-tenths ring is the same fact
- * told twice, and the digits are the copy that costs a column.
- *
- * It is drawn against every trial attempted, not every trial scored. A run
- * where 5 passed and 4 returned nothing is five ninths of a ring, and closing
- * it would claim a perfect run out of one that mostly failed to answer. A run
- * that scored nothing at all is then simply a grey one -- the shape says it
- * without a word, and reading it back as "9 void" put text in a column of
- * rings for the one case that needed it least.
- */
 export function OutcomeSummary(props: OutcomeSummaryProps) {
   const { passed, scored, voided } = props;
 

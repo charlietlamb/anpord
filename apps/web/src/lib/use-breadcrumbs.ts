@@ -3,12 +3,6 @@ import { useMatches } from "@tanstack/react-router";
 
 declare module "@tanstack/react-router" {
   interface StaticDataRouteOption {
-    /** Names a crumb the route only knows at runtime.
-     *
-     * Takes the query client as well as the params, because the useful name
-     * for a record is in the record: a cell is known by its case, and the id
-     * in the path is a hash nobody reads. Returns undefined to fall back to a
-     * generic label while the data is still loading. */
     crumb?: (
       params: Record<string, string>,
       queryClient: QueryClient
@@ -22,10 +16,6 @@ export interface Crumb {
   label: string;
 }
 
-/**
- * Reads the label each matched route declares, so a section that renders an
- * Outlet contributes its own crumb and the leaf keeps naming only itself.
- */
 export function useBreadcrumbs(): Crumb[] {
   const queryClient = useQueryClient();
   const matches = useMatches();

@@ -5,15 +5,8 @@ import type { HarnessName, ProviderName } from "./cell";
 const harness = Schema.decodeUnknownOption(EvalHarness);
 const provider = Schema.decodeUnknownOption(EvalProvider);
 
-/**
- * A cell's harness and provider, read back from the text columns that hold
- * them.
- *
- * Decoded rather than asserted: the columns are plain text with no check
- * constraint, so a row written by an older deploy names a harness this build
- * has no driver for. Casting made that a crash at resolve time; an `Option`
- * makes it a cell the caller can skip.
- */
+/* Decoded, not asserted: the columns are plain text, so an older deploy's row may
+   name a harness this build has no driver for. */
 export const namesOf = (row: {
   readonly harness: string;
   readonly provider: string;

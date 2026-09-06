@@ -3,8 +3,6 @@ import { commentSafe, quoted, templated } from "./typescript-literal";
 import { placeholderBlock, proseLine } from "./unwritten-check";
 import type { YamlCase } from "./yaml-cases-schema";
 
-/** One file is one case, so the file's own name is what the author searches
- * for when a case fails. */
 export interface YamlCaseFile {
   readonly path: string;
   readonly subject: YamlCase;
@@ -19,9 +17,8 @@ const slug = (value: string, fallback: string) => {
   return cleaned === "" ? fallback : cleaned;
 };
 
-/** Every line is prose a person wrote for a model judge, so none of it
- * converts and the whole list is what a human still owes. A case with no
- * lines owes one too: something has to say what a good answer is. */
+/* Judge context is prose for a model, so none of it converts; a case with no
+   lines still owes one. */
 export const tallyOf = (files: readonly YamlCaseFile[]): ImportTally => ({
   cases: files.length,
   converted: 0,
@@ -31,14 +28,11 @@ export const tallyOf = (files: readonly YamlCaseFile[]): ImportTally => ({
   ),
 });
 
-/** Anpord has no step budget, so the number is kept as a note rather than
- * dropped: the suite it came from ran under it, and a case that needed ten
- * steps is a different case from one that needed a hundred. */
+/* Anpord has no step budget, so the source suite's number survives as a note
+   rather than being dropped. */
 const budgetComment = (subject: YamlCase) =>
   `      /* The file allowed ${subject.max_steps} steps. Anpord does not cap steps, so this is a note, not a limit. */`;
 
-/** A file with no judge context says nothing about what a good answer is, so
- * it is owed a check like any other rather than passing by default. */
 const UNJUDGED =
   "This case named no judge context. Write what a good answer is.";
 
@@ -68,8 +62,8 @@ const caseBlock = (file: YamlCaseFile) =>
     "    },",
   ].join("\n");
 
-/** A directory has no name of its own in the files, so a suite built from
- * several is named generically and the author renames it. */
+/* The files carry no directory name, so a multi-file suite is named
+   generically for the author to rename. */
 const suiteName = (files: readonly YamlCaseFile[]) =>
   files.length === 1
     ? slug(files[0]?.subject.name ?? "", "imported-suite")

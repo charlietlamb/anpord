@@ -1,10 +1,8 @@
 import { Effect } from "effect";
 import { parseDocument } from "yaml";
 
-/** A YAML document can parse into a value while still carrying errors the
- * author needs to see, so the errors are read rather than the throw relied on.
- * The value is returned as `unknown` because the schema, not the parser,
- * decides what shape it has. */
+/* A document can parse into a value while still carrying errors, so they are
+   read rather than the throw relied on. */
 export const parseYamlDocument = (
   body: string
 ): Effect.Effect<unknown, string> =>

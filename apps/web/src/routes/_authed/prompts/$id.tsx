@@ -23,8 +23,7 @@ import { usePromptSelection } from "@/lib/use-prompt-selection";
 import { useSaveVersion } from "@/lib/use-save-version";
 
 export const Route = createFileRoute("/_authed/prompts/$id")({
-  /** The client fetches these: the API is addressed relatively, which has no
-   * base on the server, and the session cookie is the browser's to send. */
+  /* Client-only: the relative API URL has no base on the server, and the session cookie is the browser's to send. */
   ssr: false,
   loader: ({ context, params }) =>
     Promise.all([
@@ -61,13 +60,9 @@ interface PromptEditorProps {
   readonly versions: readonly ResolvedPrompt[];
 }
 
-/** Split from the route so these hooks run against a prompt that exists rather
- * than behind the early returns deciding whether one does. */
 function PromptEditor({ id, latest, versions }: PromptEditorProps) {
   const { open: openDialog } = useDialog();
   const channels = useQuery(promptQueries.channels(id));
-  /** Every channel the organisation defines, so a version can be sent to one
-   * that this prompt has never published to. */
   const definedChannels = useQuery(channelQueries.list());
   const placements = channels.data ?? [];
 
@@ -88,8 +83,6 @@ function PromptEditor({ id, latest, versions }: PromptEditorProps) {
     });
   };
 
-  /** Writing into a version being read is a choice between two different acts,
-   * so it asks which rather than picking one. */
   const onEditRequest = () => {
     if (selection.editing) {
       return;

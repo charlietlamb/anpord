@@ -3,14 +3,6 @@ import { CheckCircleIcon, CircleDashedIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { useSetupProgress } from "@/lib/settings/use-setup-progress";
 
-/**
- * What is left before the first eval can run.
- *
- * It removes itself rather than being dismissed: the one required step is a
- * harness, and once that exists the card has nothing left to say. GitHub is
- * listed because a repository list is better than a URL box, but it never
- * holds the card open -- an organization typing its URLs is not nagged.
- */
 export function SetupCard() {
   const { known, steps } = useSetupProgress();
 

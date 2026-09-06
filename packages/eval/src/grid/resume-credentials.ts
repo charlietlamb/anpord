@@ -8,15 +8,8 @@ import type { CellTask } from "../repositories/run-tasks-query";
 import { profileFrom, taskFrom } from "./from-stored";
 import type { GridExecutionTask } from "./state";
 
-/**
- * How the credentials a stored run used are read back.
- *
- * Two callers, two answers. A person resuming through the api has a session,
- * so their credentials are resolved against them and a personal one stays
- * theirs. A worker has none: it was handed a run id, and the question of
- * whether that run may use these credentials was answered when a person
- * started it. Asking again would mean inventing the user who is not there.
- */
+/* A worker has no actor: whether the run may use these credentials was answered
+   when a person started it. */
 export type CredentialSource =
   | { readonly actor: Actor; readonly legacyHarnessAuth: string }
   | { readonly bound: true };
@@ -84,8 +77,7 @@ export const tasksWithCredentials = (
     : resolveTaskCredentials(
         credentials,
         source.actor,
-        /* A cell whose harness this build no longer has is dropped rather
-           than resolved: the rest of the run can still be resumed. */
+        /* Dropping an unknown harness lets the rest of the run resume. */
         cells.flatMap((cell) => Option.toArray(taskFrom(cell))),
         source.legacyHarnessAuth
       );

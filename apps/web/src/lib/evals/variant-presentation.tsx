@@ -36,12 +36,10 @@ interface Presentation {
 const HARNESSES: Record<EvalHarness, Presentation> = {
   claude: { Icon: AnthropicMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
-  /* No vendor mark: the process is the customer's own, and what it runs is
-     named by the profile beside it rather than by a harness anybody ships. */
+  /* No vendor mark: the process is the customer's own, named by the profile beside it. */
   command: { Icon: TerminalWindowIcon, label: "Command" },
   cursor: { Icon: CursorMark, label: "Cursor" },
-  /* Vercel Labs ships it, and fx.sh credits them; the gateway key it takes
-     is a Vercel key too. */
+  /* Vercel Labs ships fx, and the gateway key it takes is a Vercel key. */
   fx: { Icon: VercelMark, label: "FX" },
   gemini: { Icon: GoogleMark, label: "Gemini CLI" },
   opencode: { Icon: OpencodeMark, label: "OpenCode" },
@@ -69,9 +67,7 @@ export const harnessPresentation = (harness: string): Presentation =>
 export const providerPresentation = (provider: string): Presentation =>
   PROVIDERS[provider as EvalProvider] ?? unknown(provider);
 
-/* An integration id names either side of a run, and a caller holding one from
-   a credential does not know which. Harnesses are checked first because the
-   two sets do not overlap and either order is correct. */
+/* An integration id names either side of a run and the two sets do not overlap, so either order is correct. */
 export const integrationLabel = (integrationId: string): string =>
   (
     HARNESSES[integrationId as EvalHarness] ??
@@ -125,9 +121,7 @@ export interface LabelledProfile {
 const profileLabel = (profile: LabelledProfile) =>
   `${profile.name}@${shortProfileVersion(profile.version)}`;
 
-/* The command harness runs the customer's own process, so `Command` names
-   nothing and its stored version is the literal `profile` rather than a
-   release anybody could read. The profile beside it says what actually ran. */
+/* The command harness stores the literal `profile` as its version, so only the profile beside it says what ran. */
 const baseLabel = (
   harness: string,
   version: string | undefined,

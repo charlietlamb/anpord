@@ -4,10 +4,7 @@ import { type ProcessResult, runProcess } from "./process";
 
 const VERSION_IN_NOTE = /v(\d+)/;
 
-/**
- * The CLI entrypoint through bun rather than a built binary, so a run needs no
- * publish step and still exercises the same command definitions.
- */
+/* Through bun rather than a built binary, so a run needs no publish step. */
 export const cli = (world: World, args: readonly string[], stdin?: string) =>
   runProcess(
     "bun",
@@ -27,8 +24,7 @@ export const cli = (world: World, args: readonly string[], stdin?: string) =>
     }
   );
 
-/** Push reports the version it wrote, so a scenario can read that exact
- * version back rather than assuming how many ran before it. */
+/* Read back from push's own output rather than assuming how many versions ran before. */
 export const pushedVersion = (result: ProcessResult) => {
   const found = result.stderr.match(VERSION_IN_NOTE);
   if (!found?.[1]) {

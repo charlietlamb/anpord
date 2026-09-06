@@ -9,16 +9,6 @@ import {
   providerPresentation,
 } from "@/lib/evals/variant-presentation";
 
-/**
- * A thing a run was pointed at -- a model, a harness, a sandbox -- named
- * beside its mark.
- *
- * One component because every list, rail and chip had drawn this pair for
- * itself, and they had drifted: some set the mark in the text colour, some
- * the text in the mark's, and a row could carry both in one line. Here the
- * mark is always muted and the name always foreground, so the eye lands on
- * the word and the logo confirms it rather than competing with it.
- */
 export function VariantLabel({
   children,
   className,
@@ -28,7 +18,6 @@ export function VariantLabel({
   readonly children: ReactNode;
   readonly className?: string;
   readonly Icon: RailIcon;
-  /** `compact` for a chip, where the mark sits a step smaller. */
   readonly size?: "compact" | "default";
 }) {
   return (

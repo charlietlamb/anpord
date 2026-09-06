@@ -1,8 +1,7 @@
 import type { EvalCell, EvalComparison } from "@anpord/schema/domain/evals";
 import { shortProfileVersion } from "@/lib/evals/profile-version";
 
-/* A profile version moves the same way a harness version does -- the name is
-   in the cell key, the version is not -- so it is reported the same way. */
+/* The profile name is in the cell key but its version is not, so a version change is reported here. */
 const profileNote = (comparison: EvalComparison) => {
   const { baselineProfileVersion, candidateProfileVersion } = comparison;
 
@@ -17,14 +16,6 @@ const profileNote = (comparison: EvalComparison) => {
   return `profile ${shortProfileVersion(baselineProfileVersion)} → ${shortProfileVersion(candidateProfileVersion)}`;
 };
 
-/**
- * What a verdict badge cannot fit.
- *
- * Its own line under the row rather than beside the badge: an incomparable
- * reason is a sentence, and a cell that stopped agreeing with itself has
- * regressed in a way no delta expresses. Absent when there is nothing to add,
- * so a clean grid stays a grid.
- */
 export function CellVerdictNote({ cell }: { readonly cell: EvalCell }) {
   const comparison = cell.comparison;
 

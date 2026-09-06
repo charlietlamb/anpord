@@ -33,8 +33,6 @@ function TrialScreen() {
     return <TrialSkeleton />;
   }
 
-  /* Loaded, and no such trial in it. Waiting on something the run does not
-     hold would leave the reader watching an empty page forever. */
   if (trial === undefined) {
     return (
       <ErrorCard
@@ -50,8 +48,6 @@ function TrialScreen() {
         <section className="flex flex-col gap-1.5">
           <PageHeading icon={PulseIcon} title="Trajectory" />
 
-          {/* Above the waterfall and on its width, so the run's spend and its
-              latency are read in one pass rather than one after the other. */}
           {trial.usage === null ? null : <TokenBand usage={trial.usage} />}
 
           <Waterfall
@@ -61,10 +57,6 @@ function TrialScreen() {
           />
         </section>
 
-        {/* The instruction that produced the trajectory above it. A reader
-            looking at what an agent did could not see what it was asked
-            without leaving the page, and the verify script is the companion to
-            the exit code the rail states. */}
         {cell?.setup == null ? null : (
           <section className="flex flex-col gap-1.5">
             <PageHeading icon={SlidersHorizontalIcon} title="Setup" />

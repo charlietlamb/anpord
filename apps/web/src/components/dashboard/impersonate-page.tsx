@@ -43,9 +43,7 @@ export function ImpersonatePage({ onSelect, search }: ImpersonatePageProps) {
         <CommandItem
           key={person.id}
           onSelect={() => onSelect(person.id)}
-          /* Keyed by id so cmdk's own matching cannot re-filter results the
-             server already chose, which would hide a match found by email
-             while the reader was typing a name. */
+          /* Keyed by id so cmdk cannot re-filter results the server already chose. */
           value={person.id}
         >
           <span className="truncate">{person.name || person.email}</span>

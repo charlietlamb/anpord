@@ -4,13 +4,7 @@ import { BillingConfig } from "./config";
 import { BillingUnavailable } from "./domain/errors";
 
 export interface AutumnShape {
-  /**
-   * Runs an SDK call, or nothing where no key is configured.
-   *
-   * Everything Autumn offers is reached through the client itself rather than
-   * wrapped method by method, so adding a call is a call site rather than a
-   * change here.
-   */
+  /** Runs an SDK call, or nothing where no key is configured. */
   readonly call: (
     operation: string,
     run: (client: Autumn) => Promise<unknown>
@@ -27,14 +21,12 @@ export const AutumnServiceLive = Layer.effect(
   Effect.gen(function* () {
     const { autumn } = yield* BillingConfig;
 
-    /* Without a key the product still runs evals and accepts signups; it
-       simply counts nothing. */
+    /* Without a key the product still runs; it simply counts nothing. */
     if (autumn === undefined) {
       return AutumnService.of({ call: () => Effect.void });
     }
 
-    /* failOpen off: it drops a call and reports success, which loses usage
-       silently. Callers already log and carry on. */
+    /* failOpen would drop a call and report success, losing usage silently. */
     const client = new Autumn({
       failOpen: false,
       secretKey: Redacted.value(autumn.apiKey),

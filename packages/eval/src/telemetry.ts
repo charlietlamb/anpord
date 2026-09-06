@@ -10,13 +10,8 @@ const telemetryConfig = Config.all({
   ),
 });
 
-/**
- * Traces and logs, when a token is configured, and nothing when not.
- *
- * Shared rather than copied per app: the worker runs the same code as the
- * server and its spans belong in the same dataset, distinguished by the name
- * it passes rather than by a second copy of this.
- */
+/* Shared across apps so worker and server spans land in one dataset, told apart
+   by the name each passes. */
 export const telemetryFor = (serviceName: string) =>
   Layer.unwrapEffect(
     telemetryConfig.pipe(

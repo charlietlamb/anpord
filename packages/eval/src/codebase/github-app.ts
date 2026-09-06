@@ -23,12 +23,7 @@ export class GithubAppConfig extends Context.Tag(
 const base64 = (value: unknown) =>
   Buffer.from(JSON.stringify(value)).toString("base64url");
 
-/**
- * A short-lived token proving this request is the app itself.
- *
- * Signed rather than fetched: GitHub has no endpoint that issues one, so the
- * app's private key signs a JWT it will accept for the next few minutes.
- */
+/* Signed locally: GitHub has no endpoint that issues one. */
 const appJwt = (config: GithubAppConfigShape, now: number) =>
   Effect.try({
     catch: (cause) =>
@@ -53,14 +48,10 @@ const appJwt = (config: GithubAppConfigShape, now: number) =>
   });
 
 export interface GithubAppShape {
-  /** Where a reader goes to install, or to change which repositories are
-   * shared. GitHub owns both screens; this is the address of them. */
   readonly installUrl: (state: string) => string;
-  /** The app's own credential, for the few calls that are about the app
-   * rather than about one installation. */
   readonly jwt: Effect.Effect<Redacted.Redacted<string>, CodebaseError>;
   readonly manageUrl: (installationId: number) => string;
-  /** An hour-long token scoped to one installation, which is what clones. */
+  /* Scoped to one installation, and expires after an hour. */
   readonly tokenFor: (
     installationId: number
   ) => Effect.Effect<Redacted.Redacted<string>, CodebaseError>;
@@ -84,9 +75,8 @@ export const GithubAppConfigLive = Layer.effect(
       Config.withDefault(Redacted.make(""))
     );
 
-    /* Undefined without all three, so an environment that has not registered
-       an app behaves like one without the feature rather than failing every
-       call with a signature error. */
+    /* Undefined without all three, so an unregistered environment reads as
+       feature-off rather than failing every call with a signature error. */
     return appId && slug && Redacted.value(privateKey)
       ? { appId, privateKey, slug }
       : undefined;

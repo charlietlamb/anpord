@@ -7,12 +7,7 @@ import { AbortTaskRunError } from "@trigger.dev/sdk";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { WorkerLayer } from "../layer";
 
-/* Built once per worker process rather than per run: a layer holds a database
-   pool and a sandbox registry, and rebuilding those for every task would open
-   a pool per trial.
-
-   Named apart from the server so a trace shows which side of the dispatch a
-   span came from, into the same dataset. */
+/* Built once per process: rebuilding the layer per task would open a database pool per trial. Named apart from the server so a trace shows which side of the dispatch a span came from. */
 const runtime = ManagedRuntime.make(
   Layer.merge(WorkerLayer, telemetryFor("anpord-worker"))
 );
@@ -22,15 +17,12 @@ interface StoredRun {
   readonly runId: string;
 }
 
-/** Runs a grid that is already recorded, and answers how many cells it held. */
 export const executeStoredRun = (run: StoredRun): Promise<number> =>
   runtime.runPromise(
     Effect.gen(function* () {
       const grid = yield* GridRun;
 
-      /* Bound rather than resolved against an actor: this process has no
-         session, and a person already chose these credentials when they
-         started the run. */
+      /* Bound rather than resolved against an actor: this process has no session. */
       const rebuilt = yield* rebuildRun(
         {
           credentials: yield* CredentialResolver,
@@ -51,10 +43,7 @@ export const executeStoredRun = (run: StoredRun): Promise<number> =>
       Effect.tapErrorCause((cause) =>
         Effect.logError("worker could not run the grid", cause)
       ),
-      /* A run nobody can rebuild is not a run a retry rebuilds. Aborting says
-         so, where dying looks transient: the first attempt claims the run and
-         opens a trial, and every retry after it finds work under way and
-         fails, which reports the run's own progress as its failure. */
+      /* Aborted, not died: a retry would find the work the first attempt claimed and report that progress as the failure. */
       Effect.catchTag("NotRunnable", (problem) =>
         Effect.die(new AbortTaskRunError(problem.message))
       ),

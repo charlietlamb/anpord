@@ -50,11 +50,8 @@ const ToolInput = Schema.Struct({
 });
 const decodeToolInput = Schema.decodeUnknownOption(ToolInput);
 
-/* Anthropic reports the cache counts beside the input rather than inside it,
-   so a cached turn reads as a small `input_tokens` and a large
-   `cache_read_input_tokens`. Both are tokens the model was given, and the
-   total counts them: without it a well-cached run reports a fraction of the
-   context it actually ran on. */
+/* Anthropic reports cache counts beside the input rather than inside it, so the
+   total must add them or a cached run reports a fraction of its real context. */
 const usageOf = (usage: typeof Usage.Type): HarnessUsage => {
   const cacheReadTokens = usage.cache_read_input_tokens ?? 0;
   const cacheWriteTokens = usage.cache_creation_input_tokens ?? 0;

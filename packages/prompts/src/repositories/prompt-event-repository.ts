@@ -19,14 +19,13 @@ interface RecordEventInput {
 }
 
 export interface PromptEventRow {
-  /** Left-joined onto a nullable actor, so a deleted user arrives as a row of
-   * nulls rather than as no row. */
+  /* Left-joined, so a deleted user arrives as a row of nulls. */
   readonly actor: {
     readonly image: string | null;
     readonly name: string | null;
   } | null;
   readonly at: Date;
-  /** Named by a channel move, and nothing else. */
+  /* Named by a channel move, and nothing else. */
   readonly channel: string | null;
   readonly from: number | null;
   readonly internalId: string;

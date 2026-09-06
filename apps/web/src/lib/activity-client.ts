@@ -12,9 +12,6 @@ export interface ActivityFilters {
   readonly prompt?: string;
 }
 
-/** The status is parenthesised so a dead session is recognised and failed
- * rather than retried, and the body's own message is preferred so a caller
- * reads the reason instead of a raw payload. */
 async function send(path: string): Promise<Response> {
   const response = await fetch(`${BASE}${path}`, {
     credentials: "same-origin",

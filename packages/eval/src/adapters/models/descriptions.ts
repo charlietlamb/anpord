@@ -18,14 +18,8 @@ const sourceOf: Record<HarnessName, "codex" | "opencode" | "static"> = {
   qwen: "static",
 };
 
-/**
- * Routes a description request to the catalogue that can answer it, so a bare
- * Codex slug is never looked up among qualified OpenCode ids.
- *
- * The runtime is taken once and handed to whichever branch runs, for the same
- * reason as the ids beside it: built eagerly, asking one adapter demanded the
- * other's dependencies and a missing filesystem cost the whole catalogue.
- */
+/* The runtime is taken once and handed to whichever branch runs: building both
+   eagerly made asking for one demand the other's dependencies. */
 export const ModelDescriptionsLive = Layer.effect(
   ModelDescriptions,
   Effect.gen(function* () {

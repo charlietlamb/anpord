@@ -23,9 +23,8 @@ import {
 import type { PromptCursorPayload } from "../domain/prompt-cursor";
 
 export interface PromptListRow {
-  /** Whoever last wrote a version that records an author, read through a left
-   * join so a deleted account arrives as a row of nulls rather than as no
-   * prompt. */
+  /* A left join, so a deleted account arrives as a row of nulls rather than as
+     no prompt. */
   readonly author: {
     readonly image: string | null;
     readonly name: string | null;
@@ -47,8 +46,8 @@ export interface PromptListParams {
   readonly status?: PromptStatusFilter;
 }
 
-/** `%` and `_` are wildcards to LIKE, so a user searching for "100%" would
- * otherwise match everything starting with "100". */
+/* `%` and `_` are LIKE wildcards, so searching "100%" would otherwise match
+   everything starting with "100". */
 const escapeLike = (term: string) =>
   term.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
 
@@ -62,16 +61,15 @@ const matchesSearch = (term: string) => {
   );
 };
 
-/** Each predicate mirrors its own `order by`, tuple for tuple: descending sorts
- * look for rows below the cursor, ascending ones above it. Comparing the whole
- * tuple in one shot is what stops rows sharing a sort key from being skipped. */
+/* Each predicate mirrors its own `order by` tuple for tuple; comparing the
+   whole tuple at once is what stops rows sharing a sort key being skipped. */
 export const afterCursor = (cursor: PromptCursorPayload) =>
   cursor.sort === "name"
     ? sql`(${prompt.name}, ${prompt.id}) > (${cursor.name}, ${cursor.id})`
     : sql`(${prompt.updatedAt}, ${prompt.id}) < (${new Date(cursor.updatedAt)}, ${cursor.id})`;
 
-/** Production placement is reached through a left join, so "draft" is the
- * absence of a joined row rather than a column on the prompt itself. */
+/* Placement is a left join, so "draft" is the absence of a joined row rather
+   than a column on the prompt. */
 const matchesStatus = (status: PromptStatusFilter) => {
   if (status === "live") {
     return isNotNull(promptVersion.version);
@@ -95,10 +93,8 @@ export const selectPromptList = (
     .groupBy(promptVersion.promptInternalId)
     .as("latest");
 
-  /* Who last touched the prompt: the newest version that records an author,
-     not simply the newest. A version written through the API carries no user,
-     and binding to the highest number would blank the face on a prompt a
-     person did edit merely because a machine wrote after them. */
+  /* The newest version that records an author, not simply the newest: an API
+     write carries no user and would blank the face on a person's edit. */
   const edited = db
     .select({
       promptInternalId: promptVersion.promptInternalId,
@@ -129,8 +125,8 @@ export const selectPromptList = (
     .leftJoin(user, eq(user.id, edited.editorId))
     .leftJoin(
       channel,
-      /* The channel the organisation answers a bare request from, so the
-         column shows what a caller receives rather than a channel by name. */
+      /* The channel a bare request is answered from, so the column shows what
+         a caller receives. */
       and(
         eq(channel.organizationId, organizationId),
         eq(channel.isDefault, true)

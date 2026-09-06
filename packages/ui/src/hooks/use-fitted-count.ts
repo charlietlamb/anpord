@@ -2,17 +2,8 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
-/**
- * How many of a row's children fit on one line.
- *
- * Measured rather than assumed, because the answer depends on what the labels
- * say: three sandbox names fit where two model names do not, and a fixed count
- * would either clip the short case or wrap the long one. Children are laid out
- * normally and read back, so the measurement is of the real thing.
- *
- * The counter that stands in for the remainder takes room of its own, so it is
- * measured too and the last chip yields to it rather than being overlapped.
- */
+/* The overflow counter takes room of its own, so it is measured too and the
+   last chip yields to it rather than being overlapped. */
 export function useFittedCount(total: number) {
   const rowRef = useRef<HTMLElement | null>(null);
   const overflowRef = useRef<HTMLElement | null>(null);

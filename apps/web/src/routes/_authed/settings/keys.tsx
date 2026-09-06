@@ -122,9 +122,6 @@ function ApiKeyList({
     return <p className="text-muted-foreground text-sm">{error.message}</p>;
   }
 
-  /* The same list every other settings screen draws: a mark, a sentence and
-     the action, rather than a bare title with the page's own button repeated
-     underneath it. */
   return (
     <SettingsList
       addLabel="New key"

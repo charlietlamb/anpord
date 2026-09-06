@@ -1,22 +1,10 @@
-/**
- * How long a channel's answer is trusted without asking again.
- *
- * This is the delay between a promotion and callers seeing it, so it is short:
- * the dashboard tells whoever promotes that callers receive the new version
- * immediately, and a minute of drift makes that untrue exactly when someone is
- * rolling back something bad. Serving stale while refreshing means the number
- * costs no latency, only freshness.
- */
+/** The delay between a promotion and callers seeing it, so it stays short. */
 const TTL_MS = 15_000;
 
-/** Long enough to cover a deploy or an incident, short enough that a value
- * this old is worth saying out loud. Only reached while the API answers; when
- * it cannot be reached at all there is no bound, since a day-old real prompt
- * beats no prompt. */
+/** Only bounds staleness while the API answers; an unreachable API has no
+ * bound, since a day-old real prompt beats no prompt. */
 const MAX_STALE_MS = 24 * 60 * 60 * 1000;
 
-/** Least recently used past this. A thousand prompts is far more than one
- * process serves and still bounds the memory a long-running server holds. */
 const CAPACITY = 1000;
 
 /** A cold cache going stale at once must not fork a refresh per prompt. */

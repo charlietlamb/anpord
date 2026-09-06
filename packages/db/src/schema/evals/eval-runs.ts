@@ -24,9 +24,7 @@ export const evalRun = pgTable(
     startedBy: text("started_by").references(() => user.id, {
       onDelete: "set null",
     }),
-    /* Why a run ended badly, kept because the in-memory copy is evicted on
-       restart and a crashed grid would otherwise be indistinguishable from a
-       clean one: evidence of failure read as evidence of success. */
+    /* Persisted because the in-memory copy is evicted on restart, leaving a crashed grid indistinguishable from a clean one. */
     failure: text("failure"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     finishedAt: timestamp("finished_at"),
@@ -37,7 +35,6 @@ export const evalRun = pgTable(
       table.organizationId,
       table.id
     ),
-    /* The list pages on (created_at, id) within an organisation. */
     index("eval_run_organization_id_created_at_idx").on(
       table.organizationId,
       table.createdAt.desc(),

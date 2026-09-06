@@ -4,13 +4,8 @@ import { HarnessProfileRepository } from "../repositories/harness-profile-reposi
 import type { StartGrid } from "./run";
 import type { TaskProfile } from "./state";
 
-/**
- * A row per distinct profile the run's tasks carry, positionally beside them.
- *
- * The version hashes the content, so a profile a run has used before finds its
- * existing row and every reading of it lands on the same cell; an edited one
- * arrives as a new version and compares against the old.
- */
+/* The version hashes the content, so a reused profile finds its existing row and
+   an edited one arrives as a new version. */
 export const makeRegisterProfiles = Effect.gen(function* () {
   const profiles = yield* HarnessProfileRepository;
 
@@ -18,8 +13,7 @@ export const makeRegisterProfiles = Effect.gen(function* () {
     Effect.forEach(
       input.tasks,
       (task) =>
-        /* Nullish rather than null: a caller that rebuilds a task from its
-           names omits the key, and an absent profile is no profile. */
+        /* Nullish: a caller rebuilding a task from names omits the key entirely. */
         task.profile == null
           ? Effect.succeed(null)
           : profiles

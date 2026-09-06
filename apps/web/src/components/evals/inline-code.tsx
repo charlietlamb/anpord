@@ -1,13 +1,7 @@
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
-/**
- * A span of code inside a line of text.
- *
- * Padded and tinted rather than only set in mono, because in a sentence the
- * face alone is not enough to say where the code starts. `box-decoration-clone`
- * keeps the tint and radius on both halves when a long path wraps.
- */
+/* box-decoration-clone keeps the tint and radius on both halves when a long path wraps. */
 export function InlineCode({
   children,
   className,
@@ -32,12 +26,6 @@ export function InlineCode({
 
 const TICKED = /`([^`\n]+)`/g;
 
-/**
- * Prose with its backticks honoured.
- *
- * A prompt is written in markdown's habit of ticking file names and keys,
- * and read raw the ticks are noise around the very words that matter.
- */
 export function TickedProse({ text }: { readonly text: string }) {
   const parts: ReactNode[] = [];
   let last = 0;

@@ -37,9 +37,7 @@ const same = (
   left.distribution.scored === right.distribution.scored &&
   left.distribution.voided === right.distribution.voided;
 
-/* A reading names a version only where it changed from the one before, so a
-   bar of twenty identical readings stays quiet and the one release -- or the
-   one profile edit -- that moved the number stands out. */
+/* A version is named only where it changed, so the one release that moved the number stands out. */
 const changed = (
   previous: string | null | undefined,
   current: string | null

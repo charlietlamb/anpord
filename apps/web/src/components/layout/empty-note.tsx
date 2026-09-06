@@ -1,14 +1,6 @@
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
-/**
- * A section with nothing in it, said in a line.
- *
- * Smaller than `ListState`, which owns a whole screen and offers an action.
- * This is the sentence a section prints in place of its content: a trial that
- * recorded no journal, a run whose grid has not registered yet. There is
- * nothing for a reader to do about any of them, so there is no button.
- */
 export function EmptyNote({
   children,
   className,

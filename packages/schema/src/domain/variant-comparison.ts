@@ -1,17 +1,9 @@
 import type { EvalCell, EvalTask, EvalTrial } from "./evals";
 
-/**
- * What a set of cells says about one variant.
- *
- * A run is a grid: cases down, variants across. The same reading serves two
- * questions -- how a variant did on one case, and how it did across all of
- * them -- so the shape is shared and only the cells fed in differ.
- */
+/* Shared between one case and all of them: only the cells fed in differ. */
 export interface VariantResult {
   readonly cases: number;
-  /** Median commands run, which is the cheapest proxy for how hard the agent
-   * worked. Median rather than mean because one runaway trial should not
-   * describe the other nine. */
+  /* Median rather than mean: one runaway trial should not describe the other nine. */
   readonly commands: number | null;
   readonly modelMs: number | null;
   readonly passed: number;
@@ -22,20 +14,17 @@ export interface VariantResult {
   readonly tokens: number | null;
 }
 
-/** One variant's attempt at one case: the cell, read as a result. */
 export interface CellResult extends VariantResult {
   readonly cell: EvalCell;
 }
 
-/** One row of the grid: a case and how every variant fared on it. Variants
- * that never registered a cell for this case are absent rather than blank. */
+/* Variants with no cell for this case are absent rather than blank. */
 export interface CaseResult {
   readonly name: string;
   readonly results: readonly CellResult[];
 }
 
-/** The metrics a variant can win on. Better is not the same direction for all
- * of them, which is why the direction travels with the name. */
+/* Better is not the same direction for all of them, hence METRIC_IS_LOWER_BETTER. */
 export type Metric = "commands" | "modelMs" | "passRate" | "tokens";
 
 export const METRIC_IS_LOWER_BETTER: Record<Metric, boolean> = {
@@ -58,9 +47,7 @@ const median = (values: readonly number[]) => {
     : (sorted[middle] ?? null);
 };
 
-/* Only trials that produced a verdict describe the variant. A trial that was
-   voided never tested anything, and averaging its zero into a duration would
-   make a variant that failed to start look fast. */
+/* Voided trials tested nothing; averaging their zero would make a failed start look fast. */
 const scoredIn = (cells: readonly EvalCell[]): readonly EvalTrial[] =>
   cells.flatMap((cell) =>
     cell.trials.filter(
@@ -106,8 +93,6 @@ interface Grid {
   readonly tasks: readonly EvalTask[];
 }
 
-/** One row per variant, across every case, in the order the run declared
- * them. */
 export const variantsOf = (run: {
   readonly cells: readonly EvalCell[];
   readonly tasks: readonly EvalTask[];
@@ -118,14 +103,7 @@ export const variantsOf = (run: {
     return cells.length === 0 ? [] : [variantOf(cells, task, taskIndex)];
   });
 
-/**
- * The grid, case by case, each holding its variants in declared order.
- *
- * Ordered by the run's own case list so the rows sit where the author put
- * them; a cell for a case the run did not list -- which should not happen,
- * but a grid is only as tidy as what was stored -- is appended rather than
- * dropped, because a result that ran deserves to be seen.
- */
+/* A cell for a case the run did not list is appended rather than dropped. */
 export const casesOf = (run: Grid): readonly CaseResult[] => {
   const names = [
     ...new Set([...run.cases, ...run.cells.map((cell) => cell.caseName)]),
@@ -144,13 +122,7 @@ export const casesOf = (run: Grid): readonly CaseResult[] => {
   });
 };
 
-/**
- * The variants that lead on a metric.
- *
- * A set rather than one winner, because two variants that tie have both won
- * and marking one of them would be a claim the numbers do not make. Nothing
- * leads when only one variant ran: a race of one has no result.
- */
+/* A set, not one winner: ties have both won, and a race of one has no result. */
 export const leadersOn = (
   variants: readonly VariantResult[],
   metric: Metric

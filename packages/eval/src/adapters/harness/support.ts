@@ -19,15 +19,8 @@ export interface DecodedOutput {
   readonly model?: string;
   readonly sessionId?: string;
   readonly usage?: HarnessUsage;
-  /**
-   * Whether `usage` restates the run's total rather than one turn's share.
-   *
-   * The two cannot be told apart by looking at the numbers, and adding a
-   * cumulative report to the turns it already contains counts every token
-   * twice. Only the decoder knows which its harness emits -- Claude sends
-   * per-turn usage on each message and a cumulative total at the end -- so
-   * the decoder is what says so.
-   */
+  /* Only the decoder can tell the two apart, and adding a cumulative report to
+     the turns it contains counts every token twice. */
   readonly usageIsCumulative?: boolean;
 }
 

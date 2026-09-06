@@ -6,7 +6,7 @@ import { useDebouncedSave } from "@/lib/query/use-debounced-save";
 import { useUpdatePrompt } from "@/lib/query/use-update-prompt";
 
 interface PromptEditorTitleProps {
-  /** Set while a past version is being rewritten rather than branched from. */
+  /* Set while a past version is rewritten rather than branched from. */
   readonly correctingVersion: number | null;
   readonly dirty: boolean;
   readonly name: string;
@@ -14,11 +14,6 @@ interface PromptEditorTitleProps {
   readonly viewingVersion: number | null;
 }
 
-/**
- * Names the prompt, at the top of the prompt rather than above the page, and
- * renames it in place. The identifier sits beneath: it is what callers ask
- * for, so it is read and copied here and changed deliberately elsewhere.
- */
 export function PromptEditorTitle({
   correctingVersion,
   dirty,
@@ -36,8 +31,6 @@ export function PromptEditorTitle({
     toInput: (value: string) => ({ name: value }),
   });
 
-  /* The identifier is stated once, at the head of the rail, rather than twice
-     on the same screen. */
   return (
     <div className="mb-5 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
       <InlineEdit

@@ -24,8 +24,6 @@ export function useAddPromptVersion(id: string) {
         ]
       );
       queryClient.invalidateQueries({ queryKey: promptKeys.channels(id) });
-      /** The save is recorded server-side, so the activity below the prompt is
-       * stale until it is read again. */
       queryClient.invalidateQueries({ queryKey: activityKeys.all });
       queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
     },

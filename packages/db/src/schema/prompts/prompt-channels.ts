@@ -24,9 +24,7 @@ export const promptChannel = pgTable(
     releaseInternalId: text("release_internal_id")
       .notNull()
       .references(() => promptRelease.internalId, { onDelete: "restrict" }),
-    /** The version a pinned release serves, denormalised so listing prompts
-     * stays one join rather than a JSON read per row. Null while a rollout is
-     * running, because there is no single answer. */
+    /* Denormalised so listing prompts stays one join; null during a rollout, which serves no single version. */
     versionInternalId: text("version_internal_id").references(
       () => promptVersion.internalId,
       { onDelete: "restrict" }

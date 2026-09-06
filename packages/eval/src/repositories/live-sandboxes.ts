@@ -64,11 +64,8 @@ export const LiveSandboxesLive = Layer.effect(
             .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
             .where(
               and(
-                /* The column holding the sandbox, not the status beside it:
-                   a trial voided by the reconciler kept its sandbox id while
-                   leaving the statuses this used to require, which made every
-                   VM it had open unreapable for good. The literal the partial
-                   index is defined over. */
+                /* Keyed on the sandbox column, not the status beside it: a voided
+                   trial keeps its id. Written as the literal the partial index uses. */
                 sql`${evalTrial.sandboxId} is not null`,
                 lt(
                   sql`coalesce(${evalTrial.startedAt}, ${evalTrial.createdAt})`,

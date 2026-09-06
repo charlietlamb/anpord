@@ -2,20 +2,11 @@ import { Effect, ParseResult, Schema } from "effect";
 import type { PromptEventRow } from "../repositories/prompt-event-repository";
 import { InvalidCursor } from "./errors";
 
-/**
- * Where the last page stopped: a timestamp and the row that carried it.
- *
- * The id is not decoration. Two events written in the same millisecond share an
- * `at` — the clock behind it reads milliseconds while the column keeps
- * microseconds — and a cursor that carries only the timestamp cannot say which
- * of them was already read. Paging on the pair leaves no room for that
- * ambiguity.
- */
+/* The id breaks ties: the clock reads milliseconds while the column keeps
+   microseconds, so two events can share an `at`. */
 export const ActivityCursorPayload = Schema.Struct({
-  /** Carried as the wall-clock string the column holds rather than as epoch
-   * millis. `created_at` is a timestamp without a zone, so turning it into an
-   * instant and back shifts it by the offset and the cursor stops landing on
-   * the row it came from. */
+  /* The column's wall-clock string, not epoch millis: `created_at` has no
+     zone, so a round trip through an instant shifts it by the offset. */
   at: Schema.String,
   id: Schema.String,
 });
@@ -32,10 +23,8 @@ const fromBase64Url = (value: string) =>
 export const encodeActivityCursor = (cursor: ActivityCursorPayload): string =>
   toBase64Url(JSON.stringify(cursor));
 
-/** `created_at` has no zone, and the driver parses it as if it were local, so
- * the Date it hands back is offset from the value the column actually holds.
- * Reading it back in UTC undoes exactly that shift and recovers the stored
- * wall clock, which is what the comparison has to be made against. */
+/* The driver parses the zoneless `created_at` as local, so reading the Date
+   back in UTC undoes that shift and recovers the stored wall clock. */
 const wallClock = (value: Date) =>
   value.toISOString().replace("T", " ").replace("Z", "");
 
@@ -46,8 +35,8 @@ export const activityCursorFor = (
   id: row.internalId,
 });
 
-/** Decoded through the schema rather than cast, so a tampered cursor is
- * rejected here instead of reaching the query as an arbitrary id. */
+/* Decoded, not cast, so a tampered cursor is rejected before it reaches the
+   query as an arbitrary id. */
 export const decodeActivityCursor = (
   encoded: string
 ): Effect.Effect<ActivityCursorPayload, InvalidCursor> =>

@@ -7,8 +7,6 @@ export const CredentialStatus = Schema.Literal("active", "invalid");
 export type CredentialStatus = typeof CredentialStatus.Type;
 
 export const CredentialField = Schema.Struct({
-  /** The shape of the value, shown as a placeholder beside the label. Absent
-   * where the label already says it, as a bare API key does. */
   hint: Schema.optional(Schema.String),
   label: Schema.String,
   name: Schema.String,
@@ -33,18 +31,10 @@ export const CredentialIntegration = Schema.Struct({
 });
 export type CredentialIntegration = typeof CredentialIntegration.Type;
 
-/**
- * That somebody else in the organization has this integration connected.
- *
- * Carries who, and nothing else. A personal connection is invisible to the
- * rest of the organization by design, which left a member staring at an empty
- * Codex section while a teammate two desks away had one -- so the fact is
- * published without the credential ever being.
- */
+/* Publishes that a personal connection exists without publishing the credential. */
 export const IntegrationAwareness = Schema.Struct({
   integrationId: Schema.String,
-  /** Display names of the members holding one, so the reader knows who to
-   * ask. Never ids: this is read by everyone in the organization. */
+  /* Display names, never ids: read by everyone in the organization. */
   owners: Schema.Array(Schema.String),
 }).annotations({
   description: "Who else in the organization has an integration connected.",

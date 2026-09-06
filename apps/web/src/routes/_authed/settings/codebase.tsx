@@ -15,8 +15,6 @@ import { useCodebaseInstall } from "@/lib/use-codebase-install";
 export const Route = createFileRoute("/_authed/settings/codebase")({
   component: CodebasePage,
   staticData: { title: "Codebase" },
-  /* GitHub returns here with the installation it just created. Validated so
-     the value reaching the component is a number or nothing at all. */
   validateSearch: (search): { installation_id?: number } => {
     const raw = Number(search.installation_id);
 
@@ -24,9 +22,7 @@ export const Route = createFileRoute("/_authed/settings/codebase")({
   },
 });
 
-/* The listing is one page of the most recently pushed, so a full page is a
-   floor rather than a total: saying "100 repositories" to someone with four
-   hundred would be wrong. */
+/* The listing is a single page, so a full page is a floor rather than a total. */
 const repositoryCount = (
   fetching: boolean,
   repositories: readonly unknown[] | undefined
@@ -44,8 +40,6 @@ const repositoryCount = (
 
 function CodebasePage() {
   const account = useQuery(codebaseQueries.account());
-  /* Undefined while the query is failing, which reads the same as none: the
-     page offers the install and says nothing it cannot stand behind. */
   const installed = account.data ?? null;
   const repositories = useQuery(
     codebaseQueries.repositories(installed !== null)
@@ -55,9 +49,6 @@ function CodebasePage() {
 
   const loading = account.isPending || connecting;
 
-  /* One button for both cases. It claims an installation that already exists
-     and only leaves for GitHub when there is none, so the reader is never
-     asked to know which of those they are in. */
   const connectButton = (
     <Button disabled={connecting} onClick={connect} size="sm" variant="outline">
       <GithubIcon />
@@ -99,8 +90,6 @@ function CodebasePage() {
 
   return (
     <SettingsPanel
-      /* Withheld while loading: the empty state offers the same button, and
-         which of the two is right is not known until the answer arrives. */
       actions={loading || installed === null ? undefined : connectButton}
       description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
       title="Codebase"

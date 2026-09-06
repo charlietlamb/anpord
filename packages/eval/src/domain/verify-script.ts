@@ -1,20 +1,8 @@
 import { stepsOf } from "@anpord/schema/domain/verify-steps";
 import type { VerifyStepResult } from "./trial";
 
-/**
- * A verifier rewritten to say which of its conditions held.
- *
- * `a && b && c` runs in one shell and reports one exit code, so on a failure
- * nothing says whether it was `a` or `c`. The same conditions, each followed
- * by a line that prints its number and exit code and stops the script if it
- * failed, run in the same shell with the same semantics -- a `cd` or an
- * `export` in one step still reaches the next -- and leave a trail the
- * output can be read back from.
- *
- * A verifier of one condition is left alone. It has nothing to tell apart,
- * and a wrapper around `bun test` would be a change to the thing it measures
- * for no finding.
- */
+/* `a && b && c` reports one exit code, so a failure never says which condition
+   failed; the rewrite keeps one shell, so a `cd` or `export` still carries across. */
 const MARK = "@@anpord-verify";
 
 const MARK_LINE = new RegExp(`^${MARK} (\\d+) (\\d+)$`, "gm");
@@ -47,8 +35,7 @@ export const verifyScriptOf = (verifier: string): VerifyScript => {
   return { command, steps };
 };
 
-/** The trail, read back. Steps the script never reached leave no line and
- * are absent, which is the truth: nothing was measured for them. */
+/* Steps the script never reached leave no line and are absent, not zero. */
 export const stepResultsOf = (
   script: VerifyScript,
   output: string
@@ -67,7 +54,6 @@ export const stepResultsOf = (
   });
 };
 
-/** The output as the verifier would have printed it, for the fingerprint
- * that decides whether the verifier ran at all. */
+/* The output as the unwrapped verifier would have printed it, for the fingerprint. */
 export const withoutMarks = (output: string): string =>
   output.replace(MARK_LINES, "");

@@ -11,14 +11,9 @@ import { SkeletonLines } from "@/components/prompts/skeleton-lines";
 const BODY_LINES = ["w-[92%]", "w-[74%]", "w-[97%]", "w-[38%]"];
 
 interface PromptEditorSkeletonProps {
-  /** The address already names the prompt, so the id copies while it loads. */
   readonly promptId: string;
 }
 
-/**
- * The page's chrome is known before the fetch, so it renders in place and only
- * the values arriving from the server are placeheld.
- */
 export function PromptEditorSkeleton({ promptId }: PromptEditorSkeletonProps) {
   return (
     <PromptEditorLayout>

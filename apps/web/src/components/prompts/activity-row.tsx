@@ -7,11 +7,6 @@ interface ActivityRowProps {
   readonly entry: PromptActivityEntry;
 }
 
-/**
- * One thing that happened, on one line, in one grammar: who, then what they
- * did. Both kinds of entry take the same shape, so the feed reads down its
- * left edge rather than asking which sentence pattern this row uses.
- */
 export function ActivityRow({ entry }: ActivityRowProps) {
   const when = useRelativeTime(entry.at);
 

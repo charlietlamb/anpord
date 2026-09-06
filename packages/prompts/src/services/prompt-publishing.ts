@@ -95,9 +95,8 @@ export const PromptPublishingLive = Layer.effect(
 
       setChannel: (actor, id, request) =>
         Effect.gen(function* () {
-          /* `latest` is read from the version table rather than stored, so a
-             placement under that name would never be consulted: the promotion
-             would report success and change nothing a caller can see. */
+          /* `latest` is read from the version table, so a placement under that
+             name would report success and change nothing. */
           if (request.channel === LATEST) {
             yield* Effect.fail(new ChannelReserved({ channel: LATEST }));
           }

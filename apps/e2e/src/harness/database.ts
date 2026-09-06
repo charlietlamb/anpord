@@ -7,21 +7,12 @@ const PORT = 55_433;
 const SUPERUSER = "postgres";
 const DATABASE = "anpord_e2e";
 
-/**
- * The default unix socket path is derived from the data directory, and a
- * scratch path alone can exceed the 103 byte limit Postgres allows. A short
- * directory keeps the socket inside the limit wherever the data lives.
- */
+/* Postgres caps a unix socket path at 103 bytes, which a scratch data directory alone can exceed. */
 const SOCKET_DIRECTORY = join(tmpdir(), "anpord-e2e-pg");
 
 export const DATABASE_URL = `postgresql://${SUPERUSER}@127.0.0.1:${PORT}/${DATABASE}`;
 
-/**
- * Where the server binaries live, which is not the same on every machine and
- * is not on PATH at all on Debian: `initdb` and `pg_ctl` sit under
- * /usr/lib/postgresql/&lt;major&gt;/bin while only the client tools are linked.
- * PGBIN names it outright when a machine keeps them somewhere else again.
- */
+/* initdb and pg_ctl are not on PATH on Debian; PGBIN names their directory when a machine keeps them elsewhere. */
 const CANDIDATE_BINS = [
   process.env.PGBIN,
   "/opt/homebrew/opt/postgresql@17/bin",
@@ -64,10 +55,7 @@ const psqlArgs = (sql: string) => [
 const isRunning = async () =>
   (await runProcess(tool("psql"), psqlArgs("select 1"))).code === 0;
 
-/**
- * A cluster owned by the tests rather than the machine, so a developer's own
- * Postgres keeps its port, its data, and its version.
- */
+/* A cluster owned by the tests, so a developer's own Postgres keeps its port, data and version. */
 export const startDatabase = async (dataDirectory: string) => {
   if (await isRunning()) {
     return;
@@ -99,8 +87,7 @@ export const startDatabase = async (dataDirectory: string) => {
 export const stopDatabase = (dataDirectory: string) =>
   runProcess(tool("pg_ctl"), ["-D", dataDirectory, "-m", "immediate", "stop"]);
 
-/** Dropped and recreated per run, so a scenario never inherits a row it did
- * not write and a failed run cannot poison the next one. */
+/* Dropped and recreated per run, so a failed run cannot poison the next. */
 export const resetDatabase = async () => {
   await runOrThrow(
     "Could not drop the test database",
@@ -115,10 +102,7 @@ export const resetDatabase = async () => {
   );
 };
 
-/**
- * The real migrations rather than a schema push, so a run also proves the
- * journal applies cleanly from nothing.
- */
+/* Real migrations rather than a schema push, so a run proves the journal applies cleanly from nothing. */
 export const migrateDatabase = (repositoryRoot: string) =>
   runOrThrow(
     "Could not migrate the test database",

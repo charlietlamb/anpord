@@ -21,16 +21,14 @@ export interface PromptRepositoryShape {
     organizationId: OrganizationId,
     id: PromptId
   ) => Effect.Effect<Option.Option<PromptRow>, PromptStoreError>;
-  /** Archived rows included, for reads. Archiving hides a prompt from the
-   * dashboard; a service pinned to a version it already shipped keeps working,
-   * which is what the public contract promises. */
+  /* Archiving hides a prompt from the dashboard, but a service pinned to a
+     shipped version keeps working. */
   readonly findByIdIncludingArchived: (
     organizationId: OrganizationId,
     id: PromptId
   ) => Effect.Effect<Option.Option<PromptRow>, PromptStoreError>;
-  /** Archived rows included. An id an archived prompt still holds is not free:
-   * the unique index covers both, so treating it as free turns an ordinary
-   * conflict into a store error the caller cannot act on. */
+  /* The unique index covers archived rows too, so an id one still holds is not
+     free. */
   readonly idExists: (
     organizationId: OrganizationId,
     id: PromptId

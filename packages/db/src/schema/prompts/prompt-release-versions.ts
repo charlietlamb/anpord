@@ -2,12 +2,7 @@ import { index, pgTable, text, uniqueIndex } from "drizzle-orm/pg-core";
 import { promptRelease } from "./prompt-releases";
 import { promptVersion } from "./prompt-versions";
 
-/**
- * Every version a release can serve. `prompt_channel.version_internal_id`
- * guards the pinned case, and this guards the rest: a version a rollout still
- * serves cannot be deleted, and the database enforces it rather than the
- * application remembering to read the definition.
- */
+/* Guards the rollout case the way `prompt_channel.version_internal_id` guards the pinned one, so the database refuses the delete rather than the application remembering to. */
 export const promptReleaseVersion = pgTable(
   "prompt_release_version",
   {

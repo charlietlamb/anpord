@@ -21,9 +21,6 @@ export function PromptList({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* No rules between the rows: they are the same shape repeated, and the
-          highlight that follows the pointer is what separates one from the
-          next. */}
       <RowList label="Prompts" onKeyDown={nav.onKeyDown} role="listbox">
         {prompts.map((prompt, index) => (
           <PromptRow

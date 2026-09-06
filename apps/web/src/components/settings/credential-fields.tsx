@@ -4,19 +4,7 @@ import { Label } from "@anpord/ui/components/ui/label";
 import { cn } from "@anpord/ui/lib/utils";
 import { EnvFields } from "@/components/settings/env-fields";
 
-/**
- * The secrets one authentication method asks for.
- *
- * Labelled above rather than by placeholder: a placeholder is the only name a
- * field has until it is filled, and then it is gone, so a half-filled form
- * stops saying what its own boxes are. The placeholder shows the shape of the
- * value instead, which the label cannot -- a team id and a project id are
- * both "an id" until you see one. Shared with the rotate dialog, which asks
- * for exactly the same values.
- *
- * Hands up the whole map rather than one field at a time, because an env
- * method has no fields of its own and replaces the map on every keystroke.
- */
+/* Hands up the whole map, because an env method has no fields of its own. */
 export function CredentialFields({
   method,
   onChange,

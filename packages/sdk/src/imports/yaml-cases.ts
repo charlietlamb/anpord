@@ -56,8 +56,7 @@ const readCase = (path: string) =>
     return file;
   });
 
-/** Sorted, so the same directory always produces the same suite and a diff of
- * two imports shows what changed rather than what moved. */
+/* Sorted, so the same directory always produces the same suite. */
 const caseFilesIn = (directory: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;

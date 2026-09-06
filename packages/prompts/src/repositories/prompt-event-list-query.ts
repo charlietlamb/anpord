@@ -19,14 +19,13 @@ export interface PromptEventListParams {
   readonly promptId?: string;
 }
 
-/** The predicate mirrors the `order by` tuple for tuple. Comparing the pair in
- * one shot is what stops two events sharing a millisecond from being skipped
- * when they straddle a page boundary. */
+/* Mirrors the `order by` tuple for tuple; comparing the pair at once is what
+   stops two events sharing a millisecond being skipped across a page. */
 export const afterCursor = (cursor: ActivityCursorPayload) =>
   sql`(${promptEvent.createdAt}, ${promptEvent.internalId}) < (${cursor.at}::timestamp, ${cursor.id})`;
 
-/** Built out here rather than inline in the layer so the joins and the tenant
- * predicate can be asserted without a database. */
+/* Built out of the layer so the joins and the tenant predicate can be asserted
+   without a database. */
 export const selectPromptEventList = (
   db: Database["Type"],
   organizationId: OrganizationId,
@@ -62,8 +61,8 @@ export const selectPromptEventList = (
       })
       .from(promptEvent)
       .innerJoin(prompt, eq(prompt.internalId, promptEvent.promptInternalId))
-      /* Left-joined throughout: a version may be gone and an actor may have
-         left, and neither should take the event with them. */
+      /* Left-joined: a removed version or a departed actor must not take the
+         event with them. */
       .leftJoin(
         atVersion,
         eq(atVersion.internalId, promptEvent.versionInternalId)

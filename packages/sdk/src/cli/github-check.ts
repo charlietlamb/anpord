@@ -30,8 +30,8 @@ const rateOf = (cell: EvalCell) =>
     ? ABSENT
     : percent(cell.distribution.passRate);
 
-/* Read structurally rather than from the schema, so the clause appears once
-   the server sends the versions and is omitted, not broken, until then. */
+/* Read structurally, not from the schema, so the clause is omitted rather than
+   broken until the server sends the versions. */
 const versionsOf = (
   comparison: EvalComparison
 ): { readonly baseline?: string; readonly candidate?: string } => ({

@@ -6,18 +6,11 @@ import type { HttpApiBuilder, HttpApiEndpoint } from "@effect/platform";
 import { Effect } from "effect";
 
 interface RouteOptions {
-  /** The permission a caller must hold to reach this endpoint. */
   readonly permission: Permission;
   readonly uninterruptible?: boolean;
 }
 
-/**
- * The builder's own `handle`, with the permission between the name and the
- * handler. Written against the library's types rather than inferred from the
- * value, so the name stays checked against the endpoints still unhandled, the
- * handler keeps its inferred path, payload, and url params, and the group's
- * "Endpoint not handled" exhaustiveness check survives the wrapper.
- */
+/* Written against the library's types rather than inferred, so the group's "Endpoint not handled" exhaustiveness check survives the wrapper. */
 type Authorized<E, Provides, R, Endpoints extends AnyEndpoint> = Omit<
   HttpApiBuilder.Handlers<E, Provides, R, Endpoints>,
   "handle"
@@ -45,9 +38,7 @@ type Authorized<E, Provides, R, Endpoints extends AnyEndpoint> = Omit<
       >,
     HttpApiEndpoint.HttpApiEndpoint.ExcludeName<Endpoints, Name>
   >;
-  /** Hands the group back to the builder once every endpoint is handled. The
-   * wrapper reorders `handle`, which changes the type the builder recognises,
-   * so the chain ends by naming itself as what it has been all along. */
+  /* The wrapper reorders `handle`, changing the type the builder recognises, so the chain ends by naming itself. */
   readonly done: HttpApiBuilder.Handlers<E, Provides, R, Endpoints>;
 };
 
@@ -68,10 +59,7 @@ const authorize = (required: Permission) =>
       );
     }
 
-    /* Every authorised request made while impersonating, named at the one
-       place all of them pass through. The row a handler writes records the
-       person acted as, so without this nothing anywhere says a staff member
-       was the one who made it. */
+    /* A handler's row records only the person acted as, so impersonation is audited here or nowhere. */
     if (actor.impersonatedBy !== undefined) {
       yield* Effect.logInfo("authorized while impersonating").pipe(
         Effect.annotateLogs({

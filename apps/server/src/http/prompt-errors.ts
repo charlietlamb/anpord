@@ -4,11 +4,7 @@ import { Effect } from "effect";
 
 type PromptHttpError = Conflict | NotFound;
 
-/**
- * A failure the caller cannot act on is still a failure an operator has to see.
- * Dying without logging first turns an outage into an empty 500 with no trace
- * of what broke.
- */
+/* Logged before dying: the platform discards the cause, leaving an empty 500. */
 const logged = (error: unknown) =>
   Effect.logError("Unhandled prompt failure", error).pipe(
     Effect.zipRight(Effect.die(error))

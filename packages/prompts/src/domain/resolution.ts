@@ -5,16 +5,8 @@ import type {
 } from "@anpord/schema/domain/prompts";
 import { LATEST } from "@anpord/schema/domain/prompts";
 
-/**
- * Which version a request asks for.
- *
- * `Default` is a request that named nothing. The organisation decides which
- * channel answers it, so the choice belongs to the service that can read that
- * setting rather than to a pure function over the selector.
- *
- * `Latest` is a name rather than a stored channel, so it is read from the
- * version table and cannot fall out of step with it.
- */
+/* `Default` names nothing and is settled by the service that can read the
+   organisation's setting; `Latest` is read from the version table. */
 export type Resolution =
   | { readonly _tag: "ByVersion"; readonly version: VersionNumber }
   | { readonly _tag: "ByChannel"; readonly channel: ChannelName }
@@ -35,7 +27,6 @@ export const resolutionFor = (selector: PromptSelector): Resolution => {
     : { _tag: "ByChannel", channel: selector.channel };
 };
 
-/** The channel a caller should be told answered, once the default is known. */
 export const answeringChannel = (
   resolution: Resolution,
   fallbackChannel: ChannelName | null

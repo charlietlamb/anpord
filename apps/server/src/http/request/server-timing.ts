@@ -1,9 +1,5 @@
 const HEADER = "server-timing";
 
-/**
- * How long the server itself took, so a slow call can be told apart from a
- * slow network without access to the traces.
- */
 export const withServerTiming = async (
   respond: () => Promise<Response>
 ): Promise<Response> => {

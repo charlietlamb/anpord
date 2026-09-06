@@ -1,15 +1,7 @@
 import type { CatalogueModel } from "@anpord/schema/domain/evals";
 
-/**
- * The providers a picker should offer first, best first.
- *
- * Curated rather than measured, because models.dev carries no popularity of
- * any kind: no downloads, no rank, no usage. The one signal available is how
- * many hosts resell a model, and that ranks open-weight models above Claude
- * and GPT, which only their own vendor serves. A short ordered list is
- * honest about being a judgement, and it needs revisiting when a vendor
- * starts mattering rather than silently going stale.
- */
+/* Curated: models.dev publishes no popularity signal, and reseller count ranks
+   open-weight models above single-vendor Claude and GPT. */
 const RANKED_VENDORS: readonly string[] = [
   "anthropic",
   "openai",
@@ -40,12 +32,6 @@ export interface RankedModel extends CatalogueModel {
   readonly releasedAt: string | null;
 }
 
-/**
- * Orders models so the first twenty are ones somebody would actually pick.
- *
- * Within a vendor the newest wins, because a picker offering last year's model
- * above this year's reads as stale even when the list is complete.
- */
 export const byPopularity = (left: RankedModel, right: RankedModel) => {
   const vendors = rankOf(left.vendor) - rankOf(right.vendor);
 
@@ -60,14 +46,7 @@ export const byPopularity = (left: RankedModel, right: RankedModel) => {
   return released === 0 ? left.id.localeCompare(right.id) : released;
 };
 
-/**
- * Takes each vendor's best in turn, so a first page shows the field.
- *
- * Sorted alone, Anthropic's thirteen models and OpenAI's seven fill all twenty
- * places and a reader never learns GLM or Kimi are offered at all. Round after
- * round each vendor contributes one, so the first rows are the best of every
- * lab rather than the whole of the first two.
- */
+/* Sorted alone, Anthropic and OpenAI fill the whole first page. */
 export const interleavedByVendor = (
   models: readonly RankedModel[]
 ): readonly RankedModel[] => {
@@ -112,8 +91,6 @@ export const interleavedByVendor = (
   return [...rounds, ...rest];
 };
 
-/** Matched against the id and the name, so both `sonnet` and
- * `anthropic/claude` find the same model. */
 export const matches = (model: RankedModel, query: string) => {
   const needle = query.trim().toLowerCase();
 

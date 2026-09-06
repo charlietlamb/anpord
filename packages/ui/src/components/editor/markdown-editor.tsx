@@ -19,11 +19,6 @@ interface MarkdownEditorProps {
 /** setContent defaults to HTML, so every write states its type. */
 const MARKDOWN = { contentType: "markdown" as const };
 
-/**
- * Markdown in, markdown out. Headings and emphasis style as you type the way
- * Obsidian does, while variables stay atoms so the stored string is exactly
- * what the model receives.
- */
 export function MarkdownEditor({
   className,
   onChange,

@@ -22,11 +22,8 @@ const concurrencyConfig = Config.all({
   vercel: Config.integer("EVAL_VERCEL_CONCURRENCY").pipe(Config.withDefault(5)),
 });
 
-/* A teardown that gives up on the first refusal leaks the VM for good: the
-   scope is closing, so nothing tries again and the id goes out of scope with
-   it. Bounded rather than open-ended, because the reaper is the backstop and
-   a release that never returns holds the permit the next trial is waiting
-   for. */
+/* Giving up on the first refusal leaks the VM for good, but this stays bounded:
+   the reaper is the backstop, and a release that never returns holds the permit. */
 const TEARDOWN = Schedule.exponential(Duration.seconds(1)).pipe(
   Schedule.compose(Schedule.recurs(4))
 );

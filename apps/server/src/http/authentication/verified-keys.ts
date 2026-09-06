@@ -6,16 +6,11 @@ import { resolveApiKey } from "./api-key";
 
 const CAPACITY = 4096;
 
-/**
- * How long a revoked key keeps answering on an instance that has not been told
- * about the revocation. Short, because the dashboard promises the key stops
- * working immediately and this is the gap behind that promise.
- */
+/* The window in which a revoked key still answers on an uninformed instance. */
 const TTL = Duration.seconds(5);
 
 export interface VerifiedKeysShape {
-  /** Forgets a key so the next request re-reads it. Called when a key is
-   * revoked, which is what turns the TTL into a ceiling rather than the wait. */
+  /* Called on revocation, which turns the TTL into a ceiling rather than the wait. */
   readonly forget: (token: string) => Effect.Effect<void>;
   readonly verify: (token: string) => Effect.Effect<Actor, Unauthorized>;
 }
@@ -25,14 +20,7 @@ export class VerifiedKeys extends Context.Tag("@anpord/server/VerifiedKeys")<
   VerifiedKeysShape
 >() {}
 
-/**
- * Verifying a key reads the database, and a caller sending a burst pays that
- * round trip on every request.
- *
- * Only a success is remembered. A rejection is never cached, so a mistyped key
- * cannot lock out the real one behind it, and a key revoked between requests is
- * refused as soon as the entry lapses or is forgotten.
- */
+/* Only a success is cached: caching a rejection would let a mistyped key lock out the real one behind it. */
 const make = (auth: AuthInstance) =>
   Cache.makeWith<string, Actor, Unauthorized>({
     capacity: CAPACITY,

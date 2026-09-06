@@ -15,15 +15,6 @@ const emailSchema = z.object({
     .email("That does not look like an email address."),
 });
 
-/**
- * Signing in, by GitHub or by link.
- *
- * `sentTo` is the only state here: which address the link went to, which is
- * what the confirmation reads back and what a reader corrects if they mistyped
- * it. Everything else the form owns -- the value, whether it is valid, whether
- * it is in flight -- because a form that tracked those by hand is a form that
- * disagrees with itself about whether the button should be disabled.
- */
 export function AuthCard({ redirect }: { readonly redirect: string }) {
   const [sentTo, setSentTo] = useState<string | null>(null);
 

@@ -9,14 +9,7 @@ const ENV_KEY = /^[A-Z_][A-Z0-9_]*$/;
 
 const meaningful = (line: string) => line !== "" && !line.startsWith("#");
 
-/**
- * `KEY=VALUE` lines as typed into a textarea, read into the map the env
- * credential stores.
- *
- * Blank lines and `#` comments are skipped so a pasted `.env` file works as
- * A bad line is named by its number rather than quoted back, because this
- * is where someone pastes a key and an error is a place text gets read from.
- */
+/* A bad line is named by its number, never quoted back: the text holds pasted secrets. */
 export const parseEnvLines = (text: string): ParsedEnvLines => {
   const values: Record<string, string> = {};
 

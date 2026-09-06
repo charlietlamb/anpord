@@ -75,8 +75,7 @@ export function CredentialField({
     connections,
     value
   );
-  /* Sandboxes fall back to Anpord's own account, so one without a
-     connection is a default rather than a gap. */
+  /* Sandboxes fall back to Anpord's own account, so an unconnected one is a default, not a gap. */
   const missing = missingCredentialIntegrations(
     integrationIds.filter((id) => !SANDBOXES.has(id)),
     connections,

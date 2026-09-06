@@ -6,26 +6,13 @@ import type { PageCursor } from "../domain/page";
 import { tryStore } from "./query";
 
 export interface ListRunsInput {
-  /** Null on the first page. Names where the last one ended rather than how
-   * many rows to skip, so a run started between two fetches cannot shift a
-   * page under a reader. */
   readonly cursor: PageCursor | null;
   readonly limit: number;
   readonly organizationId: string;
 }
 
-/**
- * Rows strictly older than where the last page ended.
- *
- * Keyset rather than offset: an offset counts rows the database has already
- * discarded, so page fifty reads fifty pages to return one, and a run started
- * while somebody reads shifts every page after it. A cursor names a position,
- * so it costs the same at page fifty as at page one and cannot skip a row.
- *
- * The id breaks the tie on the timestamp. Two runs started in the same
- * millisecond are ordered by nothing otherwise, and a cursor that cannot tell
- * them apart repeats one of them or loses it.
- */
+/* Keyset, not offset: constant cost per page, and a run started mid-read cannot
+   shift a page. The id breaks ties on same-millisecond timestamps. */
 const cursorBefore = (cursor: PageCursor | null) =>
   cursor === null
     ? undefined
@@ -48,9 +35,8 @@ export const runListQuery = Effect.map(Database, (db) => ({
       Effect.map((rows) => rows[0]?.total ?? 0),
       Effect.withSpan("RunQuery.countRuns")
     ),
-  /* Counted rather than kept in memory, because a run this process did not
-     start -- dispatched to a worker, or started on another server -- still
-     holds sandboxes against the same organisation and the same accounts. */
+  /* Counted in the database: runs started by another process hold sandboxes
+     against the same organisation. */
   countRunning: (organizationId: string) =>
     tryStore("runQuery.countRunning", () =>
       db

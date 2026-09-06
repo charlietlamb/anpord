@@ -6,10 +6,6 @@ interface PromptSearchProps {
   readonly value: string;
 }
 
-/**
- * Search sits in the row of controls rather than across the page: it is one of
- * the things you can do here, not the first thing to read.
- */
 export function PromptSearch({ onChange, value }: PromptSearchProps) {
   return (
     <div className="relative flex items-center">

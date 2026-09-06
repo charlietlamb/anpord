@@ -2,11 +2,7 @@ import type { ApiResponse } from "./http";
 import { sessionCookieHeader } from "./session-cookie";
 import { AUTH_SECRET } from "./settings";
 
-/**
- * The dashboard's own API, which authenticates with a session rather than a
- * key. A key deliberately cannot reach it, so anything only the dashboard can
- * do is only testable through a seeded session.
- */
+/* The dashboard's own API: a key deliberately cannot reach it, so it is only testable through a seeded session. */
 export const callInternal = async <Body = unknown>(
   baseUrl: string,
   sessionToken: string,
@@ -19,9 +15,7 @@ export const callInternal = async <Body = unknown>(
     headers: {
       "content-type": "application/json",
       cookie: await sessionCookieHeader(sessionToken, AUTH_SECRET),
-      /** A write from another site driving a signed-in session is what the
-       * origin check exists to stop, so anything but a read has to say where
-       * it came from. */
+      /* The origin check rejects any write that does not say where it came from. */
       ...(method === "GET" ? {} : { origin: baseUrl }),
     },
     method,

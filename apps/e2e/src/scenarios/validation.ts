@@ -9,9 +9,7 @@ const CONTENT_MAX = 256 * 1024;
 const call = (world: World, endpoint: string, payload: unknown) =>
   callApi(world.baseUrl, world.writeKey.key, endpoint, payload);
 
-/** The field is named rather than merely asserting some rejection happened:
- * a check that accepts any 400 keeps passing when the wrong validator fires,
- * which is the regression it exists to catch. */
+/* The field is named: a check accepting any 400 keeps passing when the wrong validator fires. */
 const rejected = async (
   world: World,
   check: string,
@@ -25,11 +23,7 @@ const rejected = async (
   contains(`${check} names the field`, JSON.stringify(body), field);
 };
 
-/**
- * The edge is where a bad request should stop. Rejecting late means a caller
- * is told the connection dropped rather than which field was wrong, and it
- * means the store is the thing enforcing the rule.
- */
+/* A bad request must stop at the edge: rejecting late tells the caller the connection dropped rather than which field was wrong. */
 export const validationScenarios: readonly Scenario<World>[] = [
   {
     name: "validation: an id has to be one a url and a filesystem can carry",

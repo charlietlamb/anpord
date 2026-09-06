@@ -29,9 +29,7 @@ export const evalTask = pgTable(
     prepareSource: text("prepare_source"),
     validatorName: text("validator_name"),
     validatorSource: text("validator_source"),
-    /* What a prepare builds that is worth keeping between runs of this case.
-       Stored because a worker rebuilds the case from here, so a declaration
-       that lives only in the request is one no dispatched run ever sees. */
+    /* Stored because a worker rebuilds the case from here, never from the request. */
     cacheKey: text("cache_key"),
     cachePath: text("cache_path"),
     verifyCommand: text("verify_command"),

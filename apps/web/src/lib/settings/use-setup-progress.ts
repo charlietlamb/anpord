@@ -6,26 +6,16 @@ import { evalQueries } from "@/lib/evals/eval-queries";
 interface SetupStep {
   readonly done: boolean;
   readonly label: string;
-  /** Optional steps are shown but never hold the card open. */
   readonly required: boolean;
   readonly to: "/settings/harnesses" | "/settings/codebase" | "/evals/new";
 }
 
 export interface SetupProgress {
-  /** False while the answers are still arriving, so the card cannot appear
-   * and then withdraw once a connection turns out to exist. */
+  /* False while answers are still arriving, so the card cannot appear and then withdraw. */
   readonly known: boolean;
   readonly steps: readonly SetupStep[];
 }
 
-/**
- * What is still missing before an eval can run.
- *
- * A harness is the only hard requirement: sandboxes fall back to Anpord's
- * account, and GitHub is what turns a URL box into a repository list. The
- * card that reads this is dismissible, so an organization that means to type
- * its repository URLs is not nagged about a step it does not want.
- */
 export function useSetupProgress(): SetupProgress {
   const connections = useQuery(credentialQueries.connections());
   const integrations = useQuery(credentialQueries.integrations());
@@ -64,8 +54,6 @@ export function useSetupProgress(): SetupProgress {
         to: "/settings/codebase",
       },
       {
-        /* The point of the other two. Required, so the card stays until
-           something has actually run. */
         done: (evals.data?.total ?? 0) > 0,
         label: "Write your first eval",
         required: true,

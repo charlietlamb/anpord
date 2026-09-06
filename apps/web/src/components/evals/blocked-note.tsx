@@ -2,8 +2,6 @@ import { WarningIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { integrationLabel } from "@/lib/evals/variant-presentation";
 
-/* A list read as a sentence: "Codex and Daytona" rather than "Codex, Daytona".
-   Two is the common case, and a comma between two names reads as a fragment. */
 const listed = (names: readonly string[]) => {
   if (names.length <= 1) {
     return names[0] ?? "";
@@ -12,16 +10,7 @@ const listed = (names: readonly string[]) => {
   return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 };
 
-/**
- * Why the run button will not start anything.
- *
- * A run needs a credential for every harness it names -- sandboxes fall back
- * to Anpord's own account -- and the form picks one by default once it
- * exists, so this appears only when a harness has none at all. It names which
- * ones and links to where they are added, because "disabled" on its own is a
- * dead end for the reader who has just signed up and has nothing configured
- * yet.
- */
+/* Only harnesses can be missing a credential; sandboxes fall back to Anpord's own account. */
 export function BlockedNote({
   failed,
   missing,

@@ -5,10 +5,6 @@ import { useState } from "react";
 
 const TRUNCATED_AT = 4000;
 
-/* A command is read for what it printed and a message for what it said, but a
-   row opens the same way for both. The closing summary an agent writes is the
-   most readable thing a trial produces -- it names what was built and shows
-   the output -- and it was reachable only by hovering a dot. */
 const readableOf = (entry: EvalJournalEntry) => {
   if (entry._tag === "command") {
     return entry.output;

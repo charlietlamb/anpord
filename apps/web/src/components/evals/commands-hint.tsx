@@ -1,14 +1,6 @@
 import type { EvalTrial } from "@anpord/schema/domain/evals";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 
-/**
- * Which commands failed, not just how many.
- *
- * A count says a trial hit a non-zero exit; the commands themselves say
- * whether that was `git status` on a fresh checkout or the verify script
- * giving up. Set as code, because that is what they are: as prose they wrap
- * mid-flag and read as a sentence the agent never wrote.
- */
 export function CommandsHint({ trial }: { readonly trial: EvalTrial }) {
   const failed = trial.trajectory.filter(
     (entry) => entry._tag === "command" && (entry.exitCode ?? 0) !== 0

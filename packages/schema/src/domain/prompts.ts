@@ -48,7 +48,7 @@ export const VersionNumberFromString = Schema.NumberFromString.pipe(
   Schema.brand("VersionNumber")
 );
 
-/** Capped so a caller cannot ask for the whole table in one request. */
+/* Capped so a caller cannot ask for the whole table in one request. */
 export const PAGE_LIMIT_MAX = 100;
 export const PAGE_LIMIT_DEFAULT = 25;
 
@@ -62,12 +62,7 @@ export const Timestamp = Schema.Union(Schema.DateFromSelf, Schema.Date);
 
 export const CommitMessage = Schema.String.pipe(Schema.maxLength(500));
 
-/**
- * Generous for a prompt somebody wrote and small enough that a request cannot
- * exhaust the instance holding it. Bounded here rather than only at the socket
- * so the caller is told which field was too long instead of having the
- * connection cut.
- */
+/* Bounded here rather than only at the socket, so the caller is told which field was too long. */
 const CONTENT_MAX_LENGTH = 256 * 1024;
 
 export const PromptContent = Schema.String.pipe(
@@ -124,17 +119,14 @@ export const PromptSummary = Schema.Struct({
 });
 export type PromptSummary = typeof PromptSummary.Type;
 
-/** Keyset rather than offset: prompts are ordered by when they were last
- * touched, and editing one mid-scroll would shift every offset after it. The
- * id breaks ties, since two prompts can share a timestamp. */
+/* Keyset rather than offset: editing a prompt mid-scroll would shift every offset after it. */
 export const PromptCursor = Schema.Struct({
   id: PromptId,
   updatedAt: Timestamp,
 });
 export type PromptCursor = typeof PromptCursor.Type;
 
-/** "live" is a prompt some channel currently serves; "draft" is one no channel
- * points at yet, which is a different thing from having no versions. */
+/* "draft" is a prompt no channel points at yet, which is not the same as having no versions. */
 export const PromptStatusFilter = Schema.Literal("all", "draft", "live");
 export type PromptStatusFilter = typeof PromptStatusFilter.Type;
 
@@ -143,7 +135,7 @@ export type PromptSortOrder = typeof PromptSortOrder.Type;
 
 export const PromptPage = Schema.Struct({
   items: Schema.Array(PromptSummary),
-  /** Opaque to callers, and null once the last page has been read. */
+  /* Null once the last page has been read. */
   nextCursor: Schema.NullOr(Schema.String),
 });
 export type PromptPage = typeof PromptPage.Type;
@@ -167,9 +159,7 @@ export const AddVersionRequest = Schema.Struct({
 });
 export type AddVersionRequest = typeof AddVersionRequest.Type;
 
-/** Correcting a version rewrites history in place, so it carries only the
- * content: the author, the number, and the time it was first saved all still
- * describe the change that was made. */
+/* Rewrites a version in place, so author, number and first-saved time are untouched. */
 export const UpdateVersionRequest = Schema.Struct({
   commitMessage: Schema.optional(CommitMessage),
   config: Schema.optional(PromptConfig),

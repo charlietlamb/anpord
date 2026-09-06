@@ -3,11 +3,7 @@ import { Schema } from "effect";
 
 export const HealthResponse = Schema.Struct({ ok: Schema.Boolean });
 
-/**
- * The deployment platform decides whether to shift traffic from this, so it has
- * to be able to fail. A 503 is what tells App Runner to hold the old version
- * rather than replacing a working one with a broken one.
- */
+/* The 503 is what tells App Runner to hold the old version rather than shift traffic. */
 export class Unhealthy extends Schema.TaggedError<Unhealthy>()(
   "Unhealthy",
   { message: Schema.String },

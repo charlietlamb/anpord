@@ -1,7 +1,5 @@
 import type { Outcome } from "./run";
 
-/** Names every failure again at the end, so a long run does not need scrolling
- * back through the passes to find what broke. */
 export const summarise = (outcomes: readonly Outcome[]) => {
   const failed = outcomes.filter((outcome) => !outcome.passed);
 

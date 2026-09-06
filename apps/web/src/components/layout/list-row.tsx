@@ -23,24 +23,9 @@ interface ListRowProps {
   readonly to?: LinkProps["to"];
 }
 
-/** The geometry of a row, shared so a skeleton stands exactly where the row it
- * stands in for will: three of them had drifted to their own heights, and a
- * list settled by a pixel or two as it loaded. */
+/* Shared with the skeletons so a list does not settle as it loads. */
 export const ROW_SHAPE = "flex h-10 items-center gap-2.5 px-2";
 
-/**
- * The name a row is recognised by.
- *
- * A row is muted until it is selected, so the one thing a reader scans for
- * has to lift itself out of that. Five lists had each decided how: two wrote
- * `font-medium text-foreground`, one added a size the row already sets, and
- * one left the name at the same weight as the metadata beside it.
- *
- * Set in the display face the headings use, a step smaller than the row's own
- * size and tracked in. A name is the one thing on a row that is read rather
- * than scanned, and the face that carries the page title carries it here at a
- * size that stops it shouting down the numbers beside it.
- */
 export function RowTitle({
   children,
   className,

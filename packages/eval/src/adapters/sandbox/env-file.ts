@@ -7,13 +7,8 @@ export const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
    at run time instead of a variable nobody can read. */
 const EXPORTABLE = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
-/**
- * What a command needs in order to read its environment from a file.
- *
- * `contents` is written through the provider's file API, never as an argument
- * of a shell command: the command string is the thing providers retain, and a
- * value spliced into it is a credential in their logs.
- */
+/* `contents` goes through the provider's file API, never a shell argument:
+   providers retain command strings, so a spliced value is a credential in their logs. */
 export interface EnvFile {
   readonly contents: string;
   readonly path: string;
@@ -27,9 +22,8 @@ const nameFor = Random.nextInt.pipe(
   Effect.map((value) => `.anpord-env-${Math.abs(value).toString(36)}`)
 );
 
-/** The directory is the caller's, because a provider may refuse to write
- * outside one tree: Cloudflare's file route resolves every path under
- * `/workspace` and rejects anything else. */
+/* Caller-supplied directory: Cloudflare's file route resolves every path under
+   `/workspace` and rejects anything else. */
 export const envFileFor = (
   env: Readonly<Record<string, string>> | undefined,
   directory = "/tmp"
@@ -51,13 +45,8 @@ export const envFileFor = (
     };
   });
 
-/**
- * Sources the file, removes it, then runs the command.
- *
- * `chmod` before the source rather than after the write, because a provider's
- * file API says nothing about the mode it creates, and the window between a
- * world-readable write and a fix is the exposure being closed.
- */
+/* `chmod` before the source: a provider's file API says nothing about the mode
+   it creates. */
 export const sourcing = (file: EnvFile | null, command: string) =>
   file === null
     ? command

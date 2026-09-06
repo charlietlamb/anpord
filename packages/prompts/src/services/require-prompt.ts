@@ -5,25 +5,16 @@ import { PromptNotFound } from "../domain/errors";
 import type { OwnedPromptId } from "../domain/owned-prompt";
 import type { PromptRepositoryShape } from "../repositories/prompt-repository";
 
-/**
- * Reads a prompt the actor's organisation owns, or fails as though it does not
- * exist — which is also what keeps one organisation from learning whether
- * another's prompt id is taken.
- *
- * The row it returns carries an `internalId` the mutating repository methods
- * accept, so every write is reachable only from a read that was scoped.
- */
+/* Fails as not-found rather than forbidden, so one organisation cannot learn
+   whether another's prompt id is taken. */
 export const requirePrompt = (
   prompts: PromptRepositoryShape,
   actor: Actor,
   id: PromptId
 ) => scopedRead(prompts.findById(actor.organizationId, id), id);
 
-/**
- * The same scoping for a read that must still answer once the prompt is
- * archived. Archiving hides a prompt from the dashboard rather than retiring
- * the versions a running service already pinned itself to.
- */
+/* Archiving hides a prompt from the dashboard without retiring the versions a
+   running service already pinned itself to. */
 export const requireReadablePrompt = (
   prompts: PromptRepositoryShape,
   actor: Actor,

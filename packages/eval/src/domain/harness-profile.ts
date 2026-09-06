@@ -1,9 +1,5 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 
-/* Under the home directory. Written by the materialiser, read by whichever
-   driver has a flag or a variable for it. */
-
-/** What a profile writes into the sandbox and hands the harness. */
 export interface ProfileContent {
   readonly env: Readonly<Record<string, string>> | null;
   readonly files: Readonly<Record<string, string>>;
@@ -12,9 +8,7 @@ export interface ProfileContent {
   readonly systemPrompt: string | null;
 }
 
-/** A profile as an intake hands it to the grid: content under a name. Its
- * row, and so its internal id and version, exist once the start has
- * registered it. */
+/* Its row, internal id, and version exist only once the start has registered it. */
 export interface RequestedProfile extends ProfileContent {
   readonly name: string;
 }

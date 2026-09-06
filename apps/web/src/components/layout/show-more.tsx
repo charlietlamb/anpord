@@ -2,15 +2,6 @@ import { Button } from "@anpord/ui/components/button";
 import { cn } from "@anpord/ui/lib/utils";
 import { SpinnerGapIcon } from "@phosphor-icons/react";
 
-/**
- * The next page, on request.
- *
- * Bare rather than outlined: it sits under the list it extends, and a bordered
- * button there reads as the end of the page rather than more of it.
- *
- * Renders nothing when there is nothing more, so a caller passes the query's
- * own flags rather than deciding for itself whether to show a control.
- */
 export function ShowMore({
   className,
   hasMore,

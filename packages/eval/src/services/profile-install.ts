@@ -7,14 +7,8 @@ import type { SandboxHandle } from "../ports/sandbox";
 
 const INSTALL_TIMEOUT_MS = 600_000;
 
-/**
- * A profile's install command, run before the harness.
- *
- * Through `bash -lc` so the login profile is read: an install that puts a
- * binary on the PATH expects the shell that finds it later to have seen the
- * same rc files. Available to every base, because installing what a profile
- * needs is not a property of which harness reads it afterwards.
- */
+/* Through `bash -lc` so the login profile is read: an install putting a binary on
+   the PATH expects the shell that finds it later to have seen the same rc files. */
 export const runProfileInstall = (input: {
   readonly profile: RequestedProfile;
   readonly sandbox: SandboxHandle;

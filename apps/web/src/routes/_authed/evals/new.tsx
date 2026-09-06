@@ -71,9 +71,6 @@ function NewEvalScreen() {
 
   return (
     <PageShell
-      /* The tabs stand where the title would. The breadcrumb above already
-         says New eval, and each panel names itself, so a heading here would
-         be the third statement of the same thing. */
       leading={<PageTabs onChange={setTab} options={TABS} value={tab} />}
       width="wide"
     >

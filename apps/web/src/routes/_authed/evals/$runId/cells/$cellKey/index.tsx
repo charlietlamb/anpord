@@ -29,8 +29,6 @@ function CellScreen() {
     return <CellSkeleton cellKey={cellKey} runId={runId} />;
   }
 
-  /* Loaded, and no such cell in it. A skeleton here would wait forever for
-     something the run does not contain. */
   if (cell === undefined) {
     return (
       <ErrorCard

@@ -17,8 +17,6 @@ export class CaseFileNotYaml extends Data.TaggedError("CaseFileNotYaml")<{
   }
 }
 
-/** Names the file rather than a path into the decoded value, because one case
- * is one file and the file name is what the author searches for. */
 export class CaseFileNotYamlCase extends Data.TaggedError(
   "CaseFileNotYamlCase"
 )<{ readonly path: string; readonly reason: string }> {

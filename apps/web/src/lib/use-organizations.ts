@@ -24,18 +24,7 @@ export function useOrganizations(): UseOrganizations {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  /**
-   * Switches organisation and reloads what the page is showing.
-   *
-   * Every query is scoped to the session's organisation on the server but
-   * keyed without it on the client, so the cache from the last organisation
-   * answers for the next one: the switch appeared to work and the page went
-   * on showing another organisation's evals until something else refetched.
-   *
-   * Cleared rather than invalidated, because invalidating leaves the old data
-   * on screen while it refetches, and the wrong organisation's rows are worse
-   * to look at than a loading state.
-   */
+  /* Cleared, not invalidated: invalidating leaves the previous organisation's rows on screen while it refetches. */
   const setActive = useCallback(
     async (organizationId: string) => {
       const result = await authClient.organization.setActive({
@@ -52,8 +41,7 @@ export function useOrganizations(): UseOrganizations {
 
       queryClient.clear();
 
-      /* Route loaders prefetch outside React Query's control, so the cache
-         alone does not refill them. */
+      /* Route loaders prefetch outside React Query's control, so the cache alone does not refill them. */
       await router.invalidate();
     },
     [queryClient, router]

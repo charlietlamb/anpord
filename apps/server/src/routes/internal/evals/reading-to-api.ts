@@ -7,13 +7,7 @@ import type {
 } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 
-/**
- * A stored trial row as the wire sees it.
- *
- * No trajectory: the journal is fetched per trial, and a history of twenty
- * readings would pull twenty journals to draw a table that shows none of them.
- * The trial's own page is where a trajectory is read.
- */
+/* No trajectory: the journal is fetched per trial, so a history of twenty readings would pull twenty journals to draw a table showing none. */
 const asStoredTrial = (trial: {
   readonly commandCount: number | null;
   readonly costs?: readonly {
@@ -55,13 +49,7 @@ const asStoredTrial = (trial: {
   voidFields: trial.voidFields ?? [],
 });
 
-/**
- * One past reading of a cell, with the trials it was computed from.
- *
- * Every reading holds the same case, setup, harness, model, provider and
- * profile name, because the cell key hashes them. Only the trials and the two
- * versions differ, which is why they travel together rather than a page apart.
- */
+/* The cell key hashes case, setup, harness, model, provider and profile, so only trials and versions differ across readings. */
 export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
   distribution: entry.distribution,
   finishedAt:

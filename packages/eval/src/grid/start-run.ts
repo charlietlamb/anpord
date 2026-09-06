@@ -77,11 +77,8 @@ export const makeStartRun = (
           ),
         });
 
-        /* Written before the run is handed over, because a runner that is not
-           this process rebuilds the grid from these rows. They used to be
-           created by the work itself, so a run dispatched elsewhere arrived at
-           a worker that could find nothing to do. Idempotent, so the work
-           creating them again is the same rows. */
+        /* Written before handover, because an out-of-process runner rebuilds the
+           grid from these rows. Idempotent, so creating them again is the same rows. */
         yield* runs.insertCells(
           input.tasks.flatMap((task, taskIndex) =>
             input.cases.flatMap((subject, caseIndex) => {

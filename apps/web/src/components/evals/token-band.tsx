@@ -7,8 +7,7 @@ import {
 import { count } from "@/lib/evals/duration";
 import { percent } from "@/lib/evals/tokens";
 
-/* A share too thin to see reads as a rendering fault rather than as a small
-   number, so a present share is never drawn narrower than this. */
+/* A present share is never drawn thinner than this; below it reads as a rendering fault. */
 const FLOOR = 1.5;
 
 const widthOf = (part: number, whole: number) => {
@@ -19,9 +18,6 @@ const widthOf = (part: number, whole: number) => {
   return Math.max((part / whole) * 100, FLOOR);
 };
 
-/* Cached context is hatched and fresh is solid, the same device the bars
-   below use for waiting against working: what was paid for in full reads as
-   filled, and what was re-used reads as ruled. */
 const HATCH =
   "repeating-linear-gradient(45deg, var(--trace-cached) 0 3px, transparent 3px 6px)";
 
@@ -76,20 +72,7 @@ function Segment({
   );
 }
 
-/**
- * What the model was given, split by where it came from.
- *
- * A trial's headline token count says how much context a run carried but not
- * what it cost, and those diverge by an order of magnitude: a cached read is
- * a tenth the price of fresh input. Drawn as one bar so the split is read as
- * shares of a whole rather than as three unrelated figures, and set above the
- * waterfall on the same width so a reader takes in spend and latency in one
- * pass.
- *
- * Output is left out. It is priced highest per token but is a rounding error
- * beside the context on an agent run, and at true scale it would be a sliver
- * that only makes the other two harder to compare.
- */
+/* Output tokens are deliberately excluded: a rounding error beside context on an agent run. */
 export function TokenBand({ usage }: { readonly usage: EvalUsage }) {
   const served =
     usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;

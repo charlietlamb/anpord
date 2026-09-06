@@ -4,19 +4,8 @@ import { FieldShell } from "@anpord/ui/components/form/field-shell";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 import { useFieldContext } from "@anpord/ui/hooks/form-context";
 
-/**
- * A shell script, highlighted while it is written.
- *
- * A transparent textarea laid over the same `ShellBlock` that renders a
- * command everywhere else, so what is typed is highlighted by the tokeniser
- * the rest of the app already uses and no editor library is shipped to do it.
- * The two layers share a font, a size and a line height, which is what keeps
- * the caret over its own character.
- *
- * A verify script earns this where a build command would not: it decides
- * whether a trial passed, and it fails silently at cell N of a grid, so a
- * misquoted string is worth seeing before the run rather than after it.
- */
+/* A transparent textarea over a `ShellBlock`; the two layers must share font,
+   size and line height to keep the caret over its own character. */
 export function ShellField({
   description,
   label,

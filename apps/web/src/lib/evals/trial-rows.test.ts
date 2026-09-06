@@ -23,9 +23,6 @@ describe("trialRowsOf", () => {
     ]);
   });
 
-  /** The run names itself once. A three-trial reading that repeated its id on
-   * every row would turn a column of distinct values into a column of the same
-   * value, which is what made the old page-per-reading hard to compare. */
   it("names the run on its first trial only", () => {
     const rows = trialRowsOf([reading("a", 3)]);
 

@@ -4,10 +4,6 @@ import { toast } from "sonner";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";
 
-/**
- * Pointing a channel at a version, and asking first where that changes what
- * callers already receive.
- */
 export function usePointChannel(
   promptId: string,
   placements: readonly ChannelPlacement[]
@@ -15,8 +11,6 @@ export function usePointChannel(
   const { open: openDialog } = useDialog();
   const promote = useSetPromptChannel(promptId);
 
-  /** Where a channel sits now, which both the confirmation and the undo need
-   * and neither should recompute. */
   const versionOn = (channel: string): number | null =>
     placements.find((placement) => placement.channel === channel)?.version ??
     null;
@@ -45,9 +39,6 @@ export function usePointChannel(
     );
   };
 
-  /** Naming both ends is what makes this a decision rather than a restatement:
-   * a caller cannot tell a routine step forward from a rollback nine versions
-   * back without being told where the channel is now. */
   return (channel: string, version: number) => {
     const current = versionOn(channel);
 

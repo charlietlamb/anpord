@@ -33,13 +33,8 @@ const merged = (base: Json, extra: Json): Json => {
   return result;
 };
 
-/**
- * The config content OpenCode reads, carrying the profile's system prompt.
- *
- * `instructions` is concatenated rather than merged, because OpenCode's own
- * merge replaces an array wholesale: writing the prompt path alone would drop
- * whatever instructions the profile declared for itself.
- */
+/* `instructions` is concatenated because OpenCode's own merge replaces an array
+   wholesale, dropping whatever the profile declared. */
 export const opencodeConfigContent = (
   env: Readonly<Record<string, string>>,
   systemPromptPath: string

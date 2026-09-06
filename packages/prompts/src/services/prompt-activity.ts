@@ -14,8 +14,6 @@ import { PromptEventRepository } from "../repositories/prompt-event-repository";
 export interface ActivityQuery {
   readonly channel?: string;
   readonly cursor?: string;
-  /** Narrows to one kind, which is how a deployment log is read out of the
-   * same table the whole history lives in. */
   readonly kind?: PromptEventKind;
   readonly limit: number;
   readonly promptId?: string;
@@ -45,8 +43,8 @@ export const PromptActivityLive = Layer.effect(
               ? undefined
               : yield* decodeActivityCursor(query.cursor);
 
-          /** One more than asked for, so a full page can be told apart from the
-           * last one without a second request that returns nothing. */
+          /* One more than asked for, so a full page is distinguishable from
+             the last without a second empty request. */
           const rows = yield* events.list(actor.organizationId, {
             channel: query.channel,
             cursor,

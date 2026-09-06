@@ -82,8 +82,6 @@ const CredentialLayer = Layer.mergeAll(
   )
 );
 
-/* The token comes from the database and the listing from GitHub, so neither
-   depends on the other and both are provided beside the credential layer. */
 const CodebaseLayer = Layer.mergeAll(
   InstallationsLive.pipe(Layer.provide(DatabaseLayer)),
   GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)),
@@ -94,8 +92,7 @@ const CodebaseLayer = Layer.mergeAll(
   )
 );
 
-/* Trials run in a worker, not here: this process records a run and hands its
-   id over, so a deploy or a crash mid-run no longer takes the run with it. */
+/* Trials run in a worker, so a deploy or crash mid-run no longer takes the run with it. */
 const EvalLayer = Layer.mergeAll(
   evalGridWith(TrialRunnerTrigger).pipe(
     Layer.provide(EvalSandboxLive),
@@ -108,8 +105,7 @@ const EvalLayer = Layer.mergeAll(
   ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
   JournalRetentionSweepLive.pipe(Layer.provide(DatabaseLayer)),
   ExpirySweepLive.pipe(Layer.provide(DatabaseLayer)),
-  /* The same sandbox layer the grid uses, so the reaper shares its adapters
-     and its permits rather than building a second set. */
+  /* The grid's own sandbox layer, so the reaper shares its permits rather than building a second set. */
   SandboxReaperSweepLive.pipe(
     Layer.provide(EvalSandboxLive),
     Layer.provide(CredentialLayer),
@@ -135,8 +131,6 @@ export const AppLayer = Layer.mergeAll(
   CredentialLayer,
   CodebaseLayer,
   EvalLayer,
-  /* Merged rather than provided to one branch: the auth hook registers a
-     customer at signup and the eval routes count against it, so both sides
-     read the same meter. */
+  /* Merged so the signup hook and the eval routes read the same meter. */
   BillingLive
 );

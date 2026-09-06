@@ -64,13 +64,8 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
   Layer.provideMerge(EvalRepositoriesLive)
 );
 
-/* Prices are provided here rather than deeper, because this is the first
-   place that knows a run is being executed for real: a trial is priced as it
-   settles, and nothing below chooses where a rate comes from.
-
-   The runner is not: where a run executes is a deployment decision, and this
-   package cannot see the worker that answers it. The composition root passes
-   one in. */
+/* The runner is not provided here: where a run executes is a deployment decision
+   this package cannot see, so the composition root passes one in. */
 const gridWith = (runner: Layer.Layer<TrialRunner, ConfigError>) =>
   GridRunLive.pipe(
     Layer.provide(runner),
@@ -79,12 +74,8 @@ const gridWith = (runner: Layer.Layer<TrialRunner, ConfigError>) =>
     Layer.provideMerge(BaselinesLive)
   );
 
-/**
- * @param runner where a dispatched run executes.
- * @param suspender how a wait is served. Sleeping holds the process, which is
- * what a server does; a durable runner passes one that suspends instead, and
- * stops paying for the wait.
- */
+/* A sleeping suspender holds the process; a durable runner passes one that
+   suspends instead and stops paying for the wait. */
 export const evalGridWith = (
   runner: Layer.Layer<TrialRunner, ConfigError>,
   suspender: Layer.Layer<Suspender> = SuspenderSleeping
@@ -102,8 +93,6 @@ export const evalGridWith = (
   );
 };
 
-/** The grid running trials in this process, which is what a worker itself
- * does once something else has handed it the run. */
 export const EvalGridLive = evalGridWith(TrialRunnerInProcess);
 
 export const EvalModelCatalogueLive = ModelCatalogueLive;
@@ -118,9 +107,7 @@ export const JournalRetentionSweepLive = JournalRetentionScheduleLive.pipe(
   Layer.provide(JournalArchiveLive)
 );
 
-/** Requires the sandbox provider and the credential resolver as well as the
- * database: reaping reaches the provider under the credentials a trial
- * opened its sandbox with. */
+/* Reaping reaches the provider under the credentials a trial opened its sandbox with. */
 export const SandboxReaperSweepLive = SandboxReaperScheduleLive.pipe(
   Layer.provide(SandboxReaperLive),
   Layer.provide(LiveSandboxesLive)

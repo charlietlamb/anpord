@@ -43,10 +43,8 @@ export const createPrompt = (
       promptInternalId: internalId,
     });
 
-    /* Published to whichever channel the organisation answers a bare request
-       from. The two decisions have to agree: an organisation holding no
-       default is answered from its newest version, so publishing a first
-       version to a channel nobody reads would only hide it. */
+    /* With no default channel a bare request is answered from the newest
+       version, so publishing to a channel nobody reads would only hide it. */
     const fallback = yield* deps.channels.defaultChannel(actor.organizationId);
     const channel = Option.map(fallback, (row) => ChannelName.make(row.name));
     const published = request.publish !== false && Option.isSome(channel);

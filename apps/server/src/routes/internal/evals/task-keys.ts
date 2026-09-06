@@ -7,13 +7,7 @@ export interface KeyedTask {
   readonly provider: string;
 }
 
-/**
- * Whether every task in a start names a distinct column.
- *
- * The profile's name joins the key rather than its content: two profiles of
- * one name on one base are the same column read twice, which is what a run
- * compares across runs, and one run cannot hold both.
- */
+/* Keyed on the profile's name, not its content: one run cannot hold the same column twice. */
 export const tasksAreDistinct = (tasks: readonly KeyedTask[]) => {
   const keys = tasks.map((task) =>
     [task.harness, task.model, task.provider, task.profile?.name ?? ""].join(

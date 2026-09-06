@@ -9,15 +9,7 @@ interface ActivityMarkerProps {
   readonly entry: PromptActivityEntry;
 }
 
-/**
- * What sits in the timeline's column, at one size for every kind of entry.
- *
- * A six-pixel dot beside a twenty-pixel face gave the thread two centres and
- * made it zigzag. Both fill the same slot now: whoever acted, at that size, or
- * a dot held in a ring of the same diameter where nobody is recorded. The ring
- * is opaque so the line behind it is broken by every marker rather than only
- * by the ones that happen to be solid.
- */
+/* Every marker fills the same size-5 slot, or the timeline thread zigzags. */
 export function ActivityMarker({ entry }: ActivityMarkerProps) {
   const channelColor = useChannelColor();
 

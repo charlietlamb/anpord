@@ -8,18 +8,14 @@ type SettledStatus = Extract<TrialStatus, "failed" | "passed" | "void">;
 
 type SettledRow = TrialRow & { readonly status: SettledStatus };
 
-/* The column is free text with no check constraint, so a status this list does
-   not name is a row the code does not understand. Such a row is dropped rather
-   than scored: counting one as a failure lets a status nobody meant to add
-   pull a pass rate down and report a regression that never happened. */
+/* The column is free text, so an unrecognised status is dropped rather than
+   scored: counting one as a failure would report a regression that never happened. */
 const SETTLED: readonly SettledStatus[] = ["passed", "failed", "void"];
 
 const hasSettled = (row: TrialRow): row is SettledRow =>
   SETTLED.some((status) => status === row.status);
 
-/** Rebuilds the outcome a distribution is calculated from. The columns are
- * nullable because a trial is inserted before it runs, and a row that never
- * settled has no verdict to contribute. */
+/* The columns are nullable because a trial is inserted before it runs. */
 const outcomeOf = (row: SettledRow): TrialOutcome => ({
   commandCount: row.commandCount ?? 0,
   exitCode: row.exitCode ?? -1,

@@ -6,11 +6,7 @@ interface ActivitySentenceProps {
   readonly entry: PromptActivityEntry;
 }
 
-/**
- * What the actor did, given that the row has already named them. Exhaustive
- * over the union, so a kind added to the contract fails to compile here rather
- * than rendering as whichever branch happens to fall through.
- */
+/* Exhaustive over the union, so a new entry kind fails to compile here. */
 export function ActivitySentence({ entry }: ActivitySentenceProps) {
   switch (entry._tag) {
     case "saved":

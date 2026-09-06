@@ -2,18 +2,11 @@ import { wait } from "@trigger.dev/sdk";
 import { Duration, Effect, Layer } from "effect";
 import { Suspender } from "../../services/suspender";
 
-/* Below this a suspension costs more than it saves: checkpointing and resuming
-   is not free, and a wait this short is cheaper simply held. */
+/* Below this, checkpointing and resuming costs more than holding the wait. */
 const WORTH_SUSPENDING = Duration.seconds(5);
 
-/**
- * Waits by suspending the task rather than by holding the process.
- *
- * A blocking wait bills for every second a sandbox spends installing, which
- * for a long prepare is most of the run. Suspending hands the machine back and
- * bills for the checkpoint: measured at 90 seconds of wall time for 0.4 of
- * billed time, against 90 for 90.
- */
+/* Suspending hands the machine back: measured at 90s wall time for 0.4s billed,
+   against 90 for 90. */
 export const SuspenderTrigger = Layer.succeed(
   Suspender,
   Suspender.of({
@@ -23,8 +16,7 @@ export const SuspenderTrigger = Layer.succeed(
         : Effect.tryPromise(() =>
             wait.for({ seconds: Math.ceil(Duration.toMillis(duration) / 1000) })
           ).pipe(
-            /* A suspension that cannot be taken is not a reason to lose the
-               run: the wait still has to happen, so it happens here. */
+            /* A suspension that cannot be taken must not lose the run. */
             Effect.catchAll(() =>
               Effect.logWarning("could not suspend, waiting in place").pipe(
                 Effect.andThen(Effect.sleep(duration))

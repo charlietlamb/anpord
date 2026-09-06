@@ -26,11 +26,6 @@ interface VersionRowProps {
   readonly viewing: boolean;
 }
 
-/**
- * One line per version. A dot carries the channel, the number anchors the row,
- * and the message fills what is left — so the list scans down its left edge
- * rather than asking the eye to step over a badge on every row.
- */
 export function VersionRow({
   channels,
   onEditFrom,

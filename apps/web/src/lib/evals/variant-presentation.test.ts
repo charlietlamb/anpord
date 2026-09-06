@@ -17,9 +17,7 @@ describe("naming a variant", () => {
     expect(providerPresentation("vercel").label).toBe("Vercel");
   });
 
-  /** 523 stored cells name a harness this build no longer defines, and one
-   * names `none`. A screen that threw on those could not show the history
-   * that makes a verdict legible. */
+  /* Stored cells name harnesses this build no longer defines, and one names `none`. */
   it("falls back rather than throwing on a value it does not know", () => {
     expect(harnessPresentation("none").label).toBe("none");
     expect(providerPresentation("future").label).toBe("future");
@@ -33,8 +31,7 @@ describe("naming a variant", () => {
     expect(future.Icon).toBe(known.Icon);
   });
 
-  /** The cell key hashes both, so a column naming one without the other
-   * compares against a different identity. */
+  /* The cell key hashes both, so naming one without the other compares a different identity. */
   it("keeps the harness and its version together", () => {
     expect(harnessLabel("codex", "0.144.4")).toBe("Codex 0.144.4");
   });
@@ -48,8 +45,7 @@ describe("naming a variant", () => {
     ).toBe("OpenCode 1.18.21 · house-style@a1b2c3d4");
   });
 
-  /** The command harness installs nothing, so `HarnessVersions.command` is
-   * the literal `profile`; printing it would say less than nothing. */
+  /* `HarnessVersions.command` is the literal `profile`, which says nothing worth printing. */
   it("names only the profile where the base has no version to report", () => {
     expect(
       harnessLabel("command", "profile", {

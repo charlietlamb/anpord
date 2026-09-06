@@ -2,14 +2,7 @@ import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "../auth/users";
 import { prompt } from "./prompts";
 
-/**
- * What a channel points at. A release is either a single version or a rollout
- * that serves two, and it is the unit the channel history records.
- *
- * Append-only, like versions: changing a rollout writes a new row rather than
- * editing one, so "what was production serving on Tuesday" stays answerable
- * and a definition can never be rewritten under a caller mid-request.
- */
+/* Append-only: changing a rollout writes a new row, so history stays answerable and no definition is rewritten under a caller mid-request. */
 export const promptRelease = pgTable(
   "prompt_release",
   {
@@ -17,8 +10,7 @@ export const promptRelease = pgTable(
     promptInternalId: text("prompt_internal_id")
       .notNull()
       .references(() => prompt.internalId, { onDelete: "cascade" }),
-    /** `pinned` or `rollout`. Kept alongside the definition so a query can
-     * filter without reading JSON. */
+    /* Kept alongside the definition so a query can filter without reading JSON. */
     kind: text("kind").notNull(),
     definition: jsonb("definition").notNull(),
     createdBy: text("created_by").references(() => user.id, {

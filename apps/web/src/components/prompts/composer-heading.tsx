@@ -3,7 +3,6 @@ import { useIsClient } from "@/lib/use-is-client";
 
 const WHITESPACE = /\s+/;
 
-/** Only the given name; a full name reads as a form field rather than a greeting. */
 const firstName = (name: string) => name.trim().split(WHITESPACE)[0];
 
 export function ComposerHeading() {

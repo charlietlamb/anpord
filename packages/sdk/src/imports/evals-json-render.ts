@@ -41,9 +41,7 @@ const slug = (value: string, fallback: string) => {
   return cleaned === "" ? fallback : cleaned;
 };
 
-/* The id is carried even when the case has a name, because `slug` is not
-   injective: "Foo: Bar" and "Foo  Bar" reduce to one string, and two cases
-   that read alike in a result table are two cases nobody can tell apart. */
+/* The id is carried even for a named case, because `slug` is not injective. */
 const nameOf = (subject: EvalsJsonCase) =>
   `${slug(subject.name ?? "case", "case")}-${subject.id}`;
 
@@ -67,8 +65,7 @@ const expectationComment = (subject: EvalsJsonCase) =>
         `      /* The file's expected output: ${commentSafe(subject.expected_output)} */`,
       ];
 
-/** The JSON names fixture directories by convention and carries none of their
- * contents, so the author supplies the files the name stood for. */
+/* The JSON names fixture directories but carries none of their contents. */
 const sourceComment = (subject: EvalsJsonCase) =>
   subject.files.length === 0
     ? "      /* This case named no fixture directory. Add the files it starts from. */"
@@ -97,9 +94,7 @@ const caseBlock = (subject: EvalsJsonCase) =>
 const IMPORTS = 'import { defineEval, files } from "anpord";';
 
 /* Emitted into the file rather than imported, so an imported suite is one
-   self-contained module a reader can follow and edit without learning the
-   scorer library first. Matching is case-insensitive, which is what a person
-   writing "Mentions the Dashboard" means. */
+   self-contained module. Matching is case-insensitive. */
 const helpersBlock = [
   "const has = (answer: string, needle: string) =>",
   "  answer.toLowerCase().includes(needle.toLowerCase());",

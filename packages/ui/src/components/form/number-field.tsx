@@ -5,9 +5,6 @@ import { FieldShell } from "@anpord/ui/components/form/field-shell";
 import { useFieldContext } from "@anpord/ui/hooks/form-context";
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
 
-/** A small count with a floor and a ceiling. Stepped rather than typed: the
- * range is short enough that two buttons are fewer keystrokes than a number,
- * and neither button can leave the range. */
 export function NumberField({
   description,
   label,

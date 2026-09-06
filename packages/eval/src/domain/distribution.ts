@@ -13,9 +13,7 @@ export interface Distribution {
   readonly voided: number;
 }
 
-/** How far apart two runs of the same cell may be and still count as
- * agreeing. Deliberately small: the spread is the finding, and a cell that
- * varies by more than a few commands is telling you something. */
+/* Deliberately small: the spread is the finding. */
 const COMMAND_AGREEMENT = 4;
 
 const median = (values: readonly number[]) => {
@@ -31,7 +29,6 @@ const median = (values: readonly number[]) => {
     : (sorted[middle] ?? 0);
 };
 
-/** What gets reported for a cell. */
 export const distributionOf = (
   outcomes: readonly TrialOutcome[]
 ): Distribution => {
@@ -43,14 +40,9 @@ export const distributionOf = (
   const commandMin = commands.length === 0 ? 0 : Math.min(...commands);
   const commandMax = commands.length === 0 ? 0 : Math.max(...commands);
 
-  /** A cell is deterministic when every scored trial agreed and they took
-   * roughly the same number of commands. */
   const agreed = passed.length === scored.length || passed.length === 0;
 
-  /* An absolute window rather than a ratio. A ratio is scale-dependent: at
-     100 commands it permits a 50-command swing, which is not agreement by any
-     reading, while at 2 commands it permits one. What matters is how far
-     apart the runs actually were. */
+  /* Absolute, not a ratio: a ratio would permit a 50-command swing at 100 commands. */
   const tight = commandMax - commandMin <= COMMAND_AGREEMENT;
 
   return {

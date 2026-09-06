@@ -13,14 +13,8 @@ import { setUpOrganization } from "./set-up-organization";
 
 const SLUG_DISAMBIGUATOR_MAX = 1_000_000;
 
-/**
- * Gives a user signing in for the first time somewhere to work.
- *
- * Better Auth has no hook for this -- its plugin creates organisations on
- * request rather than on sign-up -- so the rows are written here, with its
- * generator rather than ours, because that plugin writes the same two tables
- * whenever someone creates an organisation by hand.
- */
+/** Better Auth has no sign-up hook, so these rows are written here with its
+ * generator -- its plugin writes the same two tables. */
 export const provisionPersonalOrganization = (
   db: Database["Type"],
   ids: IdGeneratorShape,

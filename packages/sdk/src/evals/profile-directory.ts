@@ -29,7 +29,7 @@ const SKIPPED_DIRECTORIES = new Set(["node_modules", ".git"]);
 const isMissing = (cause: unknown) =>
   cause instanceof Error && "code" in cause && cause.code === "ENOENT";
 
-/** Every regular file below `current`, as a posix path relative to `dir`. */
+/* Paths come back posix-relative to `dir`, since they name sandbox entries. */
 const walk = async (dir: string, current: string): Promise<string[]> => {
   const entries = await readdir(current, { withFileTypes: true });
   const found = await Promise.all(
@@ -82,7 +82,7 @@ const validPath = (path: string) =>
     Effect.mapError(() => new ProfilePathInvalid({ path }))
   );
 
-/** The file's text, or nothing when it holds a NUL byte and is not text. */
+/** Nothing when the file holds a NUL byte and so is not text. */
 const readShipped = (dir: string, path: string) =>
   Effect.gen(function* () {
     const bytes = yield* Effect.tryPromise({
@@ -138,8 +138,7 @@ const fittingHarness = (base: EvalHarness, profile: HarnessProfile) => {
   return new ProfileStepNotSupported({ base, step: "run" });
 };
 
-/** The task a definition's `{ base, profile }` harness compiles to, with the
- * profile directory read relative to the eval file. */
+/* The profile directory is read relative to the eval file. */
 export const profileTask = (
   entry: string,
   task: {

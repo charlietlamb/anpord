@@ -11,15 +11,6 @@ const ELSEWHERE: readonly { readonly href: string; readonly label: string }[] =
     { href: `${DOCS_URL}/api-reference/introduction`, label: "API reference" },
   ];
 
-/**
- * A 404 that says where to go next.
- *
- * The status was already right; the body was a sentence and a "back home"
- * button. A reader who arrived on a dead link -- a person or a crawler
- * following a stale URL -- learns nothing from that about where the thing
- * they wanted actually lives, so the routes worth trying are named here and
- * rendered on the server where anyone can read them.
- */
 export function RootNotFound() {
   return (
     <SiteLayout center>

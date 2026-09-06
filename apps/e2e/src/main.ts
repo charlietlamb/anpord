@@ -29,8 +29,7 @@ const STATE = resolve(HERE, "../.e2e");
 const say = (message: string) =>
   Effect.sync(() => process.stdout.write(`${message}\n`));
 
-/** Set before anything reads Config, so the harness talks to the test cluster
- * rather than whatever .env points at. */
+/* Must run before anything reads Config, or the harness talks to whatever .env points at. */
 const applyTestEnvironment = () => {
   process.env.DATABASE_URL = DATABASE_URL;
   process.env.BETTER_AUTH_SECRET = AUTH_SECRET;
@@ -38,8 +37,7 @@ const applyTestEnvironment = () => {
   delete process.env.REDIS_URL;
 };
 
-/** A fresh directory per run, so a scenario cannot pass by reading a file an
- * earlier run wrote. */
+/* Fresh per run, so a scenario cannot pass by reading a file an earlier run wrote. */
 const prepareWorkspace = () => {
   const workspace = resolve(STATE, "workspace");
   mkdirSync(STATE, { recursive: true });
@@ -58,11 +56,7 @@ const SURFACES = [
   { name: "cli", scenarios: cliScenarios },
 ] as const;
 
-/**
- * Every resource is acquired inside the scope, so a failure part way through
- * still gives back the cluster, the server and the connection. The cluster is
- * kept running by default because the preserved key points at it.
- */
+/* The cluster is left running by default because the preserved key points at it. */
 const run = Effect.gen(function* () {
   applyTestEnvironment();
 

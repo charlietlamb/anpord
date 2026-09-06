@@ -41,14 +41,8 @@ const decodeManifest = (dir: string, text: string) =>
     )
   );
 
-/**
- * A manifest value that names a regular file is replaced by that file's
- * content; anything else is kept as written. Env values are always literal.
- *
- * A file outside the profile directory is refused rather than read: the
- * manifest is shipped with the profile, and a prompt that only exists on one
- * machine is not part of it.
- */
+/* A value naming a regular file inside the profile directory becomes its
+   content; anything else, including any file outside, stays literal. */
 const inlined = (dir: string, value: string) =>
   Effect.gen(function* () {
     const target = resolve(dir, value);

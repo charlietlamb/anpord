@@ -1,10 +1,6 @@
 const ALGORITHM = { name: "HMAC", hash: "SHA-256" } as const;
 
-/**
- * Better Auth stores the session token in the database but sends it signed, so
- * a seeded row is only usable once the signature is attached the same way the
- * sign-in flow would have attached it.
- */
+/* Better Auth stores the session token unsigned but sends it signed, so a seeded row needs the same signature the sign-in flow attaches. */
 const signSessionCookie = async (token: string, secret: string) => {
   const key = await crypto.subtle.importKey(
     "raw",

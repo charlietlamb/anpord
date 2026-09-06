@@ -2,9 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { dollars, percent, tokens } from "./tokens";
 
 describe("dollars", () => {
-  /* An agent run can cost a twentieth of a cent or several dollars, and one
-     precision cannot serve both: two decimals buries the cheap runs at $0.00
-     and four gives the dear ones a precision the estimate does not have. */
+  /* One precision cannot serve both scales: two decimals buries a sub-cent run at $0.00. */
   it("keeps a sub-cent cost distinct from free", () => {
     expect(dollars(0.0004)).toBe("$0.0004");
   });

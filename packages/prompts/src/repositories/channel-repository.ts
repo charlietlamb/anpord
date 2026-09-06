@@ -23,8 +23,6 @@ export interface ChannelRepositoryShape {
     organizationId: OrganizationId,
     name: ChannelName
   ) => Effect.Effect<Option.Option<ChannelRecord>, PromptStoreError>;
-  /** The channel answering a request that named none, if the organisation
-   * holds one. */
   readonly defaultChannel: (
     organizationId: OrganizationId
   ) => Effect.Effect<Option.Option<ChannelRecord>, PromptStoreError>;
@@ -41,8 +39,8 @@ export interface ChannelRepositoryShape {
   readonly remove: (
     internalId: string
   ) => Effect.Effect<void, PromptStoreError>;
-  /** Clears the organisation's current default before setting this one, so the
-   * partial unique index never sees two. */
+  /* Clears the current default first, so the partial unique index never sees
+     two. */
   readonly setDefault: (
     organizationId: OrganizationId,
     internalId: string

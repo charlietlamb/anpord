@@ -46,8 +46,7 @@ export const findLatestMembership = (db: Db, userId: string) =>
       .limit(1)
   ).pipe(Effect.map(firstRow));
 
-/** Scoped to the organisation as well as the user, because a person can hold a
- * different role in each one and the session names which is active. */
+/** Scoped to the organisation too: a person holds a different role in each. */
 export const findMemberRole = (
   db: Db,
   organizationId: string,
@@ -83,15 +82,10 @@ export const insertOwnerMembership = (db: Db, values: NewOwnerMembership) =>
     db.insert(member).values({ ...values, role: "owner" })
   );
 
-/** The one place a channel is named in code.
- *
- * Every other reader asks which channel an organisation marked default, so
- * this name is a starting point the organisation may rename or point away
- * from rather than a value the product depends on. */
+/** A starting point only; every reader asks which channel is marked default. */
 const SEEDED_CHANNEL = { color: "green", name: "production" } as const;
 
-/** Gives a new organisation a channel to answer requests that name none.
- * Without it a bare `get` falls through to the newest version, which publishes
+/** Without it a bare `get` falls through to the newest version, publishing
  * every edit the moment it is written. */
 export const insertDefaultChannel = (
   db: Db,

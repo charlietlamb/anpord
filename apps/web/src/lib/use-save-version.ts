@@ -4,29 +4,18 @@ import { useDialog } from "@/lib/dialog/dialogs";
 import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";
 import { useUpdatePromptVersion } from "@/lib/query/use-update-prompt-version";
 
-/** Naming the channels is what tells an author whether a correction is a
- * private tidy-up or an immediate change to what callers receive. */
 const listChannels = (names: readonly string[]): string =>
   names.length === 1
     ? names[0]
     : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 
 interface SaveVersionOptions {
-  /** Holds the page on the version that was rewritten, which is what the
-   * author was reading. */
   readonly onOverwritten: (version: number) => void;
-  /** Returns the page to the newest version once a write has landed. */
   readonly onSaved: () => void;
-  /** Where each channel points, so an overwrite can say who it reaches. */
   readonly placements: readonly ChannelPlacement[];
   readonly promptId: string;
 }
 
-/**
- * The two ways a prompt is written: appending a version, and rewriting one in
- * place. The second destroys what was there, so it asks first, and names the
- * channels that would change for callers immediately.
- */
 export function useSaveVersion({
   onOverwritten,
   onSaved,

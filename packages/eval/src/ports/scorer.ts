@@ -12,16 +12,13 @@ export interface ScoreRequest {
   readonly prepared?: Readonly<Record<string, unknown>>;
   readonly sandbox: SandboxHandle;
   readonly validator?: EvalValidator | null;
-  /** Null for a case with no verifier, whose trials are void rather than
-   * passed: nothing decided them. */
+  /* Null for a case with no verifier, whose trials are void rather than passed. */
   readonly verifyCommand: string | null;
   readonly workspace: string;
 }
 
-/** One implementation in the MVP: ground truth, which runs the verifier and
- * reads its exit code. A judge would be another Layer behind this same tag and
- * is deliberately unwritten, because a judge as a gate drifts and the
- * regression signal is the one thing that has to stay stable. */
+/* A judge would be another Layer behind this tag, deliberately unwritten: a judge
+   as a gate drifts, and the regression signal must stay stable. */
 export interface ScorerShape {
   readonly score: (
     request: ScoreRequest

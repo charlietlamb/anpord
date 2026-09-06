@@ -18,8 +18,6 @@ export class CaseFileNotJson extends Data.TaggedError("CaseFileNotJson")<{
   }
 }
 
-/** Names the case rather than the byte offset, because the author fixing it
- * reads the file by case, not by position. */
 export class CaseFileNotEvalsJson extends Data.TaggedError(
   "CaseFileNotEvalsJson"
 )<{ readonly path: string; readonly reason: string }> {

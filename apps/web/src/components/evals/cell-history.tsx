@@ -22,9 +22,6 @@ export function CellHistory({ cellKey }: { readonly cellKey: string }) {
   const { data, isPending } = useQuery(evalQueries.history(cellKey));
   const entries = data ?? [];
 
-  /* Its own query, so the section is still empty after the screen around it
-     has drawn: returning nothing collapsed the rail and expanded it again a
-     moment later. */
   if (isPending) {
     return (
       <div className="flex flex-col gap-2">

@@ -18,13 +18,6 @@ interface PromptSortMenuProps<T extends string> {
   readonly value: T;
 }
 
-/**
- * How the list is ordered.
- *
- * Separate from the tabs beside it: those choose which prompts are shown, and
- * this chooses the order they arrive in. Folding both into one menu made
- * changing the view cost a trip through a setting that was not the view.
- */
 export function PromptSortMenu<T extends string>({
   onChange,
   options,

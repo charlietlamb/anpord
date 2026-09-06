@@ -22,8 +22,7 @@ import {
 
 const SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES = 300;
 
-/* Short enough that a forgotten impersonation expires on its own, rather than
-   leaving a staff member holding someone else's session for a working day. */
+/* Short so a forgotten impersonation expires on its own. */
 const IMPERSONATION_SESSION_SECONDS = 60 * 60;
 
 const makeAuth = Effect.gen(function* () {

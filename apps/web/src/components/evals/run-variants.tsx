@@ -7,9 +7,7 @@ import {
   SandboxLabel,
 } from "@/components/evals/variant-label";
 
-/* The profile takes part because two profiles on one base share a harness and
-   a version, and a row keyed on those alone would show one of them and
-   silently drop the other. */
+/* The profile is part of the key: two profiles on one base share harness and version. */
 const harnessKeyOf = (task: EvalTask) =>
   [
     task.harness,
@@ -28,13 +26,6 @@ const distinct = <T,>(values: readonly T[], keyOf: (value: T) => string) => {
   return [...seen.values()];
 };
 
-/**
- * Several values of one kind, on the line that kind occupies.
- *
- * Each keeps its own mark rather than sharing the row's: a grid comparing an
- * OpenAI model against an Anthropic one has two logos on one line, and a
- * single leading icon would claim they came from the same place.
- */
 const Listed = ({ items }: { readonly items: readonly ReactNode[] }) =>
   items.map((item, index) => (
     // biome-ignore lint/suspicious/noArrayIndexKey: the list is static per render and its items carry no identity of their own
@@ -44,14 +35,6 @@ const Listed = ({ items }: { readonly items: readonly ReactNode[] }) =>
     </span>
   ));
 
-/**
- * What a run was pointed at, one line per kind.
- *
- * A grid comparing two models on one sandbox holds two columns and one
- * sandbox, so a row per column printed `Codex 0.144.4` and `Daytona` twice and
- * buried the one thing that differed. Grouped by kind, the models sit together
- * on the line that names them and the rest states itself once.
- */
 export function RunVariants({
   tasks,
 }: {

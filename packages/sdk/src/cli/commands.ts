@@ -104,12 +104,8 @@ const promote = Command.make(
     })
 ).pipe(Command.withDescription("Point a channel at a version"));
 
-/**
- * Read from the stream rather than by opening `/dev/stdin` as a file. The path
- * only names the pipe, so reading it races whoever is writing: a body arriving
- * in more than one chunk, which is what a pipe does under load, was read as
- * whatever had landed by then.
- */
+/* Read the stream, not `/dev/stdin` as a file: the path only names the pipe,
+   so a multi-chunk body races the writer. */
 const readStdin = Effect.async<string, Error>((resume) => {
   let body = "";
 
@@ -156,8 +152,8 @@ const out = Options.file("out").pipe(
   Options.withDefault("anpord-env.d.ts")
 );
 
-/** Reading one prompt at a time because the list carries no content, bounded
- * so a large organisation does not open a connection per prompt. */
+/* The list carries no content, so each prompt is read separately -- bounded so
+   a large organisation does not open a connection per prompt. */
 const READ_AT_ONCE = 8;
 
 const writeDeclarations = ({ out: path }: { readonly out: string }) =>
@@ -192,8 +188,7 @@ const generate = Command.make("generate", { out }, writeDeclarations).pipe(
   Command.withDescription(DESCRIPTION)
 );
 
-/** A second command rather than an alias, because a command carries one name
- * and the shorter one is what anybody types twice. */
+/* A second command rather than an alias, because a command carries one name. */
 const gen = Command.make("gen", { out }, writeDeclarations).pipe(
   Command.withDescription(DESCRIPTION)
 );

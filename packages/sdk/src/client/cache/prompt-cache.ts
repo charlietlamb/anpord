@@ -20,20 +20,17 @@ interface Held {
 }
 
 export interface PromptCacheShape {
-  /** Fresh enough to serve, or absent. A stale entry starts a refresh and is
-   * still returned, so no caller waits for a value that already exists. */
+  /** A stale entry starts a refresh and is still returned, so no caller waits
+   * for a value that already exists. */
   readonly held: (
     selector: PromptSelector
   ) => Effect.Effect<Option.Option<Held>>;
   readonly invalidate: (id: string) => Effect.Effect<void>;
-  /** Asks the network and keeps the answer. Never serves what is already
-   * held: `held` and `stale` decide that, and a load that quietly returned
-   * an old value would make the order they are tried in meaningless. */
+  /** Never serves what is already held -- `held` and `stale` decide that. */
   readonly load: (
     selector: PromptSelector
   ) => Effect.Effect<PublicPromptWithVersions, unknown>;
-  /** Whatever is held, however old. Only for when the API cannot be reached:
-   * there is no age at which failing outright is the better answer. */
+  /** Whatever is held, however old; only for when the API is unreachable. */
   readonly stale: (
     selector: PromptSelector
   ) => Effect.Effect<Option.Option<Held>>;
@@ -61,14 +58,14 @@ const make = (
     >({
       capacity: settings.capacity,
       lookup: (selector) => fetch(selector),
-      /** A failure is not an answer, so it is not kept: the next call tries
-       * again rather than waiting out a whole window on one bad response. */
+      /* A failure is not kept, so the next call retries rather than waiting
+         out a window on one bad response. */
       timeToLive: (exit) =>
         Exit.isFailure(exit) ? Duration.zero : Duration.infinity,
     });
 
-    /** A pinned version cannot change, so only capacity ever evicts it. A
-     * channel can be repointed at any moment. */
+    /* A pinned version cannot change; a channel can be repointed at any
+       moment. */
     const ttlFor = (selector: CacheKey) =>
       selector.version === undefined
         ? settings.ttlMs
@@ -84,9 +81,8 @@ const make = (
         return Option.some(Math.max(0, now - stats.value.loadedMillis));
       });
 
-    /** Forked into the cache's own scope rather than as a daemon, so a client
-     * that is disposed takes its refreshes with it. A refresh that cannot get
-     * a permit is dropped: the next call will ask again. */
+    /* Forked into the cache's scope, not as a daemon, so a disposed client
+       takes its refreshes with it; a permitless refresh is dropped. */
     const revalidate = (key: CacheKey) =>
       permits
         .withPermitsIfAvailable(1)(cache.refresh(key))

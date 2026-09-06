@@ -1,11 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { looksLikeMarkdown } from "./paste-markdown";
 
-/**
- * Pasting is the fast path into a prompt, so markdown has to arrive as
- * structure. The risk runs the other way too: prose that merely contains a
- * hyphen or an asterisk must paste as itself rather than being reinterpreted.
- */
 describe("looksLikeMarkdown", () => {
   test("recognises block structure", () => {
     expect(looksLikeMarkdown("# Title")).toBe(true);

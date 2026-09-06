@@ -8,7 +8,6 @@ import {
   pushed,
 } from "@/lib/cursor-stack";
 
-/** The cursor stack as a listing holds it: where it is, and how to move. */
 export function useCursorStack<A>() {
   const [stack, setStack] = useState<CursorStack<A>>(firstPage<A>);
 

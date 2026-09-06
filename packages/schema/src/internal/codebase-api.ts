@@ -6,8 +6,7 @@ import { Authentication } from "./authentication";
 
 export class CodebaseGroup extends HttpApiGroup.make("codebase")
   .add(
-    /* Null rather than 404 for a member who has not connected: having no
-       account is the ordinary first state, not a missing resource. */
+    /* Null rather than 404: having no account is the ordinary first state. */
     HttpApiEndpoint.get("account", "/evals/codebase/account").addSuccess(
       Schema.NullOr(SourceControlAccount)
     )
@@ -19,23 +18,18 @@ export class CodebaseGroup extends HttpApiGroup.make("codebase")
     ).addSuccess(Schema.Array(Repository))
   )
   .add(
-    /* The address of GitHub's own install screen, minted here because it
-       carries state the server has to recognise on the way back. */
+    /* Minted here because it carries state the server must recognise on the way back. */
     HttpApiEndpoint.get("installUrl", "/evals/codebase/install").addSuccess(
       Schema.Struct({ url: Schema.String })
     )
   )
   .add(
     HttpApiEndpoint.post("connect", "/evals/codebase/connect")
-      /* Optional: GitHub redirects an install to the app's callback, which
-         is the sign-in route and keeps no query string of ours, so the page
-         usually arrives back with nothing to report and the server finds the
-         installation itself. */
+      /* Optional: GitHub redirects to the sign-in callback keeping no query string of ours, so the server usually finds the installation itself. */
       .setPayload(
         Schema.Struct({ installationId: Schema.optional(Schema.Number) })
       )
-      /* Null where the app is installed nowhere: the caller then sends the
-         reader to GitHub, which is a step rather than a failure. */
+      /* Null where the app is installed nowhere, which is a step rather than a failure. */
       .addSuccess(Schema.NullOr(SourceControlAccount))
   )
   .add(

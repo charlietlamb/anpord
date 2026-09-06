@@ -45,8 +45,6 @@ export function PromptDetails({ created, viewed }: PromptDetailsProps) {
         </time>
       </DetailRow>
 
-      {/* The face is the icon: a person's row does not need a glyph of a
-          person beside their own picture. */}
       {viewed.author ? (
         <DetailRowFrame
           label="Author"

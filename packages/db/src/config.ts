@@ -1,9 +1,7 @@
 import { Config, Context, Duration, Layer } from "effect";
 import type { Redacted } from "effect/Redacted";
 
-/** Long enough for the slowest legitimate query — a keyset page with a search —
- * and short enough that a stuck one gives its pool slot back rather than
- * holding it until every slot is gone. */
+/* Long enough for a keyset page with a search, short enough that a stuck query returns its pool slot. */
 const STATEMENT_TIMEOUT_DEFAULT = Duration.seconds(10);
 
 export interface DatabaseConfigShape {

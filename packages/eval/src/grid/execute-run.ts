@@ -10,36 +10,27 @@ import { projectTask } from "./state";
 
 export const makeExecuteRun = (live: LiveRuns) =>
   Effect.gen(function* () {
-    /* Taken once and provided to the forked run below, so pricing stays a
-       detail of executing a grid rather than something every caller of
-       `start` has to hold. */
+    /* Taken once and provided to the forked run, so no caller of `start` holds it. */
     const prices = yield* ModelPrices;
     const runs = yield* RunRepository;
     const runner = yield* TrialRunner;
     const runCells = yield* makeRunCells(live);
     const registerProfiles = yield* makeRegisterProfiles;
 
-    /* Reopening and publishing belong here rather than beside the dispatch:
-       whoever executes the grid is the process that must claim the run, and
-       when a worker executes it the dispatcher is a different machine that has
-       already returned. */
+    /* Whoever executes the grid must claim the run: the dispatcher may be another
+       machine that has already returned. */
     const claimed = (grid: ResumeGrid) =>
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
 
-        /* Registered again rather than carried through the dispatch, because a
-           worker is handed a run id and rebuilds the grid from stored rows.
-           The version hashes the content, so this finds the same rows. */
+        /* A worker rebuilds from stored rows; the content hash finds the same ones. */
         const profiles = yield* registerProfiles(grid.input);
 
-        /* The row says failed, because the sweep that closed it is why anybody
-           is continuing it. Executing against that leaves a run in flight that
-           every reader sees as finished. */
+        /* The sweep closed this row, and executing against it would leave a live
+           run every reader sees as finished. */
         yield* runs.reopen({ internalId: grid.created.internalId });
 
-        /* Live updates are dropped for an id the map does not hold, so without
-           this every trial's progress goes nowhere, and the guard against
-           continuing a running run never sees one running. */
+        /* Updates for an id the map does not hold are dropped. */
         yield* live.publish({
           cases: grid.input.cases.map((subject) => subject.name),
           cells: [],
@@ -62,9 +53,8 @@ export const makeExecuteRun = (live: LiveRuns) =>
       claimed(grid).pipe(
         Effect.provideService(ModelPrices, prices),
         Effect.annotateLogs({ runId: grid.created.id }),
-        /* Logged before it becomes a defect, for the reason start gives: the
-           tag is lost through orDie, and this runs detached, where nothing is
-           left to report what went wrong. */
+        /* Logged before `orDie` loses the tag: this runs detached, with nothing
+           left to report it. */
         Effect.tapErrorCause((cause) =>
           Effect.logError("grid run could not resume", cause)
         ),

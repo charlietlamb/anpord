@@ -30,8 +30,7 @@ export const evalCell = pgTable(
     harnessCredentialRevision: integer("harness_credential_revision"),
     harnessVersion: text("harness_version").notNull(),
     model: text("model").notNull(),
-    /* Restricted like the task: a profile a cell ran under is part of what
-       the cell measured, and cannot go while the reading stands. */
+    /* Restricted like the task: the profile is part of what the cell measured. */
     profileInternalId: text("profile_internal_id").references(
       () => evalHarnessProfile.internalId,
       { onDelete: "restrict" }

@@ -1,16 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DOCS_URL } from "@/lib/urls";
 
-/**
- * The answer for an /api path nothing else claimed.
- *
- * Without it the router falls through to the SSR handler and returns the app
- * shell: a caller that asked for JSON gets a document, and an agent reading
- * the status alone concludes the endpoint exists. The routes above this one
- * are proxies to the API server, so anything reaching here is a path this
- * origin genuinely does not serve, and it should say so in the shape the
- * caller was already expecting.
- */
+/* Without this catch-all the SSR handler answers /api misses with the HTML app shell. */
 const notFound = ({ request }: { request: Request }) =>
   Response.json(
     {

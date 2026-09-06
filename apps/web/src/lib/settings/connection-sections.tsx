@@ -6,22 +6,12 @@ export interface ConnectionSectionSpec {
   readonly addLabel: string;
   readonly category: CredentialIntegration["category"];
   readonly empty: string;
-  /** What the empty state is titled, which is a sentence rather than the
-   * section name repeated. */
   readonly emptyTitle: string;
   readonly Icon: Icon;
   readonly note: string;
   readonly title: string;
 }
 
-/**
- * The two kinds of connection, and the difference that matters.
- *
- * A harness is required because the model usage is charged to the account
- * behind it; a sandbox is not, because a run without one uses Anpord's. The
- * page said neither, so the only way to learn it was to find the run button
- * disabled -- or, for a sandbox, to be told it was missing when it was not.
- */
 export const CONNECTION_SECTIONS: readonly ConnectionSectionSpec[] = [
   {
     addLabel: "Add harness",

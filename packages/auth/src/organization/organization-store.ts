@@ -11,13 +11,12 @@ import type { OrganizationStoreError } from "./organization-store-error";
 import { provisionPersonalOrganization } from "./provision-personal-organization";
 
 export interface OrganizationStoreShape {
-  /** The organisation a user already belongs to, or none. Creates nothing. */
+  /** Creates nothing. */
   readonly existingActive: (
     userId: string
   ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
-  /** Resolves an organisation, provisioning a personal one when the user has
-   * none. Signing in is the moment that is right; acting as someone else is
-   * not, so impersonation reads {@link existingActive} instead. */
+  /** Provisions a personal organisation when the user has none, so
+   * impersonation reads {@link existingActive} instead. */
   readonly resolveActive: (
     userId: string
   ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;

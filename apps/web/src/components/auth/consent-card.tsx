@@ -29,8 +29,7 @@ export function ConsentCard({
   scopes,
 }: ConsentCardProps) {
   const { data: session } = useSession();
-  /* No success handler: consent ends by leaving for the client that asked
-     for it, so the mutation stays pending until the page is gone. */
+  /* No success handler: consent ends by navigating away, so the mutation stays pending. */
   const decision = useMutation({
     mutationFn: async (accept: boolean) => {
       const { data, error } = await authClient.oauth2.consent({ accept });

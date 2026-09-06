@@ -42,8 +42,7 @@ export const PromptsHandlers = HttpApiBuilder.group(
             return yield* catalog.create(actor, payload);
           }).pipe(withPromptErrors)
       )
-      /** Archiving takes a prompt out of every listing the organisation works
-       * from, so it sits with the destructive acts rather than with authoring. */
+      /* Archiving removes a prompt from every listing, so it sits with the destructive acts, not authoring. */
       .handle(
         "archive",
         { permission: Permissions.Organization.Admin },
@@ -74,8 +73,7 @@ export const PromptsHandlers = HttpApiBuilder.group(
             return yield* authoring.addVersion(actor, path.id, payload);
           }).pipe(withPromptErrors)
       )
-      /** Rewrites a version in place, which can change what callers already
-       * receive, so it asks for publishing rights rather than authoring ones. */
+      /* Rewrites a version in place, changing what callers already receive, so it asks for publishing rights. */
       .handle(
         "updateVersion",
         { permission: Permissions.Channels.Write },

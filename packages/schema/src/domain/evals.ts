@@ -17,11 +17,6 @@ import {
   profileFitsHarness,
 } from "./harness-profile";
 
-/* Sandboxes an eval can run in. There is no local option: it ran a shell on
-   whatever machine the server was on, which is fine on a laptop and an open
-   shell on a shared deployment, and a provider nobody can name is a provider
-   nobody can reach. The adapter survives as a conformance target for the
-   sandbox contract in tests, where the machine is the one running them. */
 export const EvalProvider = Schema.Literal(
   "daytona",
   "e2b",
@@ -34,8 +29,6 @@ export type EvalProvider = typeof EvalProvider.Type;
 
 export const EVAL_PROVIDERS = EvalProvider.literals;
 
-/* `command` is a customer's own process run inside the sandbox from a
-   profile's install and run steps, emitting the event schema on stdout. */
 export const EvalHarness = Schema.Literal(
   "codex",
   "opencode",
@@ -122,17 +115,10 @@ export const EvalVariables = Schema.Record({
 });
 export type EvalVariables = typeof EvalVariables.Type;
 
-/**
- * A directory worth keeping between runs of a case.
- *
- * Declared on the case rather than reported by its prepare, because a restore
- * happens before the prepare runs and so cannot be told where to look by it.
- * The shape CI caches use, for the same reason.
- */
+/* Declared on the case, not reported by its prepare: a restore runs before the prepare. */
 export const CaseCache = Schema.Struct({
   key: Schema.String.pipe(Schema.minLength(1)),
-  /* Relative, and refused otherwise: it is joined onto the workspace before
-     anything is written, so one that climbs out writes somewhere else. */
+  /* Joined onto the workspace, so a path that climbs out writes elsewhere. */
   path: Schema.String.pipe(
     Schema.minLength(1),
     Schema.filter(
@@ -159,8 +145,6 @@ export type EvalCase = typeof EvalCase.Type;
 
 export const EvalTaskProfile = Schema.Struct({
   name: Schema.String,
-  /* The content hash, compared across readings the way the harness version
-     is: an edited profile is a new version on the same cell. */
   version: Schema.String,
 }).annotations({
   description: "The profile a cell's harness ran under, by name and version.",
@@ -217,14 +201,9 @@ export type StartEvalRequest = typeof StartEvalRequest.Type;
 const OccurredAtMillis = Schema.NullOr(Schema.Number);
 
 export const EvalUsage = Schema.Struct({
-  /* A share of the input rather than an addition to it, and priced far
-     cheaper, so these are what separate an expensive run from a repeat of
-     one. Zero where the harness reports no cache: unreported, not unused. */
   cacheReadTokens: Schema.Int,
   cacheWriteTokens: Schema.Int,
-  /* An estimate in dollars, priced at the rates published when the run
-     happened, not a bill: it knows nothing of the discounts or tiers an
-     account is actually on. Absent where the model publishes no rate. */
+  /* Priced at published rates, not billed: no account discounts or tiers. */
   costUsd: Schema.optional(Schema.NullOr(Schema.Number)),
   inputTokens: Schema.Int,
   outputTokens: Schema.Int,
@@ -248,17 +227,13 @@ export const EvalJournalEntry = Schema.Union(
     _tag: Schema.Literal("message"),
     finishedAtMillis: OccurredAtMillis,
     text: Schema.String,
-    /* What this turn spent, where the harness reported it per turn rather
-       than only as a running total. Null is unknown, not free. */
     usage: Schema.optional(Schema.NullOr(EvalUsage)),
   }),
   Schema.Struct({
     _tag: Schema.Literal("toolCall"),
     finishedAtMillis: OccurredAtMillis,
     name: Schema.String,
-    /* Null for a harness that reports only when a call returned, which is
-       most of them: such a call is drawn as the instant it is known to be
-       rather than as a guessed width. */
+    /* Null where the harness reports only completion, which is most of them. */
     startedAtMillis: Schema.optional(OccurredAtMillis),
     status: Schema.NullOr(Schema.String),
   }),
@@ -283,14 +258,7 @@ export const EvalVerifyStep = Schema.Struct({
 });
 export type EvalVerifyStep = typeof EvalVerifyStep.Type;
 
-/**
- * How much of a cost is known, and on what basis.
- *
- * The distinction is the point: a public-rate calculation is not an invoice, a
- * subscription's marginal price is not zero, and a cost the platform absorbs
- * is not one the customer paid. Collapsing any of those into a number produces
- * a total that reads as authoritative and is not.
- */
+/* Kept apart because collapsing an estimate, a charge and an absorbed cost into one number reads as authoritative and is not. */
 export const CostClassification = Schema.Literal(
   "actual",
   "allocated",
@@ -312,13 +280,10 @@ export type CostComponentName = typeof CostComponentName.Type;
 export const EvalCostComponent = Schema.Struct({
   classification: CostClassification,
   component: CostComponentName,
-  /* What this layer measured, which differs by layer: a rate snapshot means
-     nothing to the platform, and eval units mean nothing to the model. */
   detail: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
   explanation: Schema.String,
   source: Schema.String,
-  /* Null where there is no amount to report, never zero: zero reads as free
-     and sums as free, and "we did not price this" is not free. */
+  /* Null, never zero: zero sums as free and unpriced is not free. */
   usd: Schema.NullOr(Schema.Number),
 }).annotations({
   description: "What one layer of a trial cost, and how far that is known.",
@@ -326,19 +291,12 @@ export const EvalCostComponent = Schema.Struct({
 });
 export type EvalCostComponent = typeof EvalCostComponent.Type;
 
-/**
- * What a run, case, or trial cost, kept apart by how it is known.
- *
- * No single total, deliberately. Adding an estimate to an actual charge and an
- * allocated share produces a number that means none of the three.
- */
+/* No single total, deliberately: summing across classifications means none of them. */
 export const EvalCosts = Schema.Struct({
   allocatedUsd: Schema.Number,
   components: Schema.Array(EvalCostComponent),
   estimatedEquivalentUsd: Schema.Number,
-  /* True when something could not be priced at all. Included and managed are
-     known states rather than missing ones, so they do not raise it: a flag
-     that is always on says nothing. */
+  /* Raised only by unknown; included and managed are known states. */
   incomplete: Schema.Boolean,
   knownActualUsd: Schema.Number,
 }).annotations({
@@ -399,13 +357,8 @@ export const EvalVerdict = Schema.Literal(
 export type EvalVerdict = typeof EvalVerdict.Type;
 
 export const EvalComparison = Schema.Struct({
-  /* The harness version is the one dimension a baseline and its candidate
-     can differ on, because everything else is in the cell key. Both are
-     named so a verdict can say what changed. */
   baselineHarnessVersion: Schema.String,
   baselinePassRate: Schema.Number,
-  /* Null where the cell ran without a profile; the profile name is in the
-     cell key, so only its version can move between two readings. */
   baselineProfileVersion: Schema.NullOr(Schema.String),
   candidateHarnessVersion: Schema.String,
   candidatePassRate: Schema.Number,
@@ -502,17 +455,7 @@ export const EvalRunSummary = Schema.Struct({
 });
 export type EvalRunSummary = typeof EvalRunSummary.Type;
 
-/**
- * Where a listing left off.
- *
- * A timestamp alone is not a position -- two runs started in the same
- * millisecond share one -- so the id travels with it and breaks the tie.
- */
-/** How many runs a page holds.
- *
- * Shared so a caller can turn a total into a number of pages, and so a list
- * waiting to load can stand exactly as tall as the one that replaces it,
- * without either guessing what the server chose. */
+/* Shared with clients so a pending list can reserve the height of the one replacing it. */
 export const EVAL_PAGE_SIZE = 20;
 
 export const EvalPageCursor = Schema.Struct({
@@ -521,14 +464,10 @@ export const EvalPageCursor = Schema.Struct({
 });
 export type EvalPageCursor = typeof EvalPageCursor.Type;
 
-/** One page of runs. `next` is null at the end rather than an empty cursor, so
- * a caller stops because there is nothing more rather than because a fetch
- * came back empty. */
+/* `next` is null at the end, so a caller stops on exhaustion rather than an empty fetch. */
 export const EvalRunPage = Schema.Struct({
   next: Schema.NullOr(EvalPageCursor),
   runs: Schema.Array(EvalRunSummary),
-  /** Every run the organization has, so a listing can say how far it goes
-   * rather than only whether there is more. */
   total: Schema.Int,
 });
 export type EvalRunPage = typeof EvalRunPage.Type;
@@ -536,16 +475,10 @@ export type EvalRunPage = typeof EvalRunPage.Type;
 export const EvalCellHistoryEntry = Schema.Struct({
   distribution: EvalDistribution,
   finishedAt: Schema.NullOr(EvalTimestamp),
-  /* The one thing about a reading's variant that can differ from the last:
-     harness, model and provider are in the cell key, the version is not. */
   harnessVersion: Schema.String,
   internalId: Schema.String,
   profileVersion: Schema.NullOr(Schema.String),
   runId: Schema.String,
-  /* Every reading of a cell holds the same case, setup, harness, model,
-     provider and profile name, so the trials and the two versions are the
-     only things that differ between them, and they belong in one table
-     rather than one page each. */
   trials: Schema.Array(EvalTrial),
 }).annotations({
   description: "A previous scored result for the same cell identity.",
@@ -699,8 +632,6 @@ export const CatalogueModel = Schema.Struct({
   displayName: Schema.String,
   id: Schema.String,
   summary: Schema.NullOr(Schema.String),
-  /* Carried rather than parsed out of the id, because a harness that takes a
-     bare slug has no provider in it to parse. */
   vendor: Schema.NullOr(Schema.String),
 }).annotations({
   description: "A model available to the installed harness.",
@@ -711,8 +642,6 @@ export type CatalogueModel = typeof CatalogueModel.Type;
 export const ModelCatalogue = Schema.Struct({
   harness: EvalHarness,
   models: Schema.Array(CatalogueModel),
-  /* What the query left out, so a picker can say a search is narrowed rather
-     than letting a reader believe twenty is all there is. */
   total: Schema.Int,
 }).annotations({
   description: "Models available to the installed harness.",

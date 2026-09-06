@@ -29,8 +29,7 @@ export const asCell = (
   caseName: cell.caseName,
   cellKey: cell.cellKey,
   comparison: asComparison(comparisons, cell.cellKey),
-  /* Rolled up from the trials rather than stored, so a classification rule
-     that is later corrected corrects every run behind it too. */
+  /* Rolled up rather than stored, so a corrected classification rule corrects every run behind it. */
   costs: rollUp(asTrials(cell).map((trial) => trial.costs)),
   distribution: Option.getOrNull(cell.distribution),
   internalId: cell.internalId,

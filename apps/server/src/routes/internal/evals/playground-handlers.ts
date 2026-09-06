@@ -72,9 +72,7 @@ export const savePlayground = (
     const actor = yield* CurrentActor;
     const workbenches = yield* Workbenches;
 
-    /* Checked before writing rather than trusting the path: an update whose
-       filter matches nothing returns no row, and reporting that as a
-       successful save would lose somebody's work silently. */
+    /* Checked before writing: an update matching no row would otherwise report as a successful save and lose the work. */
     const existing = yield* workbenches.find(actor.organizationId, id);
 
     if (Option.isNone(existing)) {
@@ -107,9 +105,7 @@ export const runPlayground = (id: string) =>
       }),
     };
   }).pipe(
-    /* A playground that cannot run yet is a conflict with its own state, and
-       every reason travels at once: fixing one and being told the next is
-       worse than being told all of them now. */
+    /* Every reason travels at once: fixing one and being told the next is worse than being told all now. */
     Effect.catchTag("NotRunnable", (error) =>
       Effect.fail(new Conflict({ message: error.problems.join("; ") }))
     ),

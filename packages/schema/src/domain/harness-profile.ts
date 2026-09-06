@@ -1,8 +1,7 @@
 import { Schema } from "effect";
 
 export const PROFILE_LIMITS = {
-  /* Cloudflare and Daytona hand a file's content to the sandbox inside one
-     shell argument, which caps a file near 128 KiB once encoded. */
+  /* Cloudflare and Daytona pass file content in one shell argument, capping a file near 128 KiB encoded. */
   fileChars: 96_000,
   files: 256,
   totalChars: 2_000_000,
@@ -18,12 +17,7 @@ export const ProfileName = Schema.String.pipe(
 );
 export type ProfileName = typeof ProfileName.Type;
 
-/* The path rules live in the regex, because a Schema.filter on a Record key
-   is lost when the MCP tool schema is generated.
-
-   Every segment is guarded, not just the first and the last: this string is
-   joined onto the sandbox home or workspace and written, so one interior
-   `..` would put a customer's file anywhere on the machine. */
+/* Rules live in the regex because a Schema.filter on a Record key is lost when the MCP tool schema is generated. Every segment is guarded: this is joined onto the sandbox home and written, so one interior `..` escapes it. */
 export const ProfilePath = Schema.String.pipe(
   Schema.pattern(/^(home|workspace)(?:\/(?!\.\.?(?:\/|$))[^/\0]+)+$/),
   Schema.maxLength(512),
@@ -63,10 +57,7 @@ const ProfileFiles = Schema.Record({
 );
 
 export const HarnessProfile = Schema.Struct({
-  /* Stored in the clear, travels in the definition a customer commits, and
-     is readable by anyone who can read the run. A key belongs in an `env`
-     credential, which is sealed; this is for the settings that say where to
-     look and how to behave. */
+  /* Stored in the clear and readable by anyone who can read the run; secrets belong in a sealed `env` credential. */
   env: Schema.optional(Schema.Record({ key: EnvName, value: Schema.String })),
   files: ProfileFiles,
   install: Schema.optional(Schema.String),
@@ -80,8 +71,7 @@ export const HarnessProfile = Schema.Struct({
 });
 export type HarnessProfile = typeof HarnessProfile.Type;
 
-/** The one rule the wire schema cannot express in JSON Schema, so every tool
- * description repeats it. */
+/* Cannot be expressed in JSON Schema, so every tool description repeats it. */
 export const profileFitsHarness = (task: {
   readonly harness: string;
   readonly profile?: HarnessProfile | undefined;

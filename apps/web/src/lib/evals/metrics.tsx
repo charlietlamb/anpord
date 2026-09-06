@@ -8,14 +8,6 @@ import {
   TerminalWindowIcon,
 } from "@phosphor-icons/react";
 
-/**
- * The figures this app reports about a trial, a cell or a variant, and the
- * glyph and words each is known by.
- *
- * One registry because a run, a cell and a trial each show the same numbers
- * at a different depth, and a reader who learns that the brain means model
- * time on one screen should find it meaning that on the next.
- */
 export interface MetricPresentation {
   readonly hint: string;
   readonly Icon: Icon;

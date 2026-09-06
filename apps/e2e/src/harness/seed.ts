@@ -9,18 +9,12 @@ export interface Tenant {
   readonly userId: string;
 }
 
-/** Minting a key needs a signed-in person, and the sign-in itself is a magic
- * link to a mailbox nothing here owns, so a session is seeded directly. */
 const SESSION_DAYS = 7;
 const MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const OWNER = "owner";
 
-/**
- * Seeded straight through SQL rather than the sign-up flow. A magic link needs
- * a mailbox, and the scenarios are about prompts, not about how somebody got
- * their session.
- */
+/* Seeded through SQL rather than the sign-up flow, which needs a mailbox for its magic link. */
 export const seedTenant = async (
   connectionString: string,
   name: string
@@ -53,9 +47,7 @@ export const seedTenant = async (
       [memberId, organizationId, userId, OWNER, now]
     );
 
-    /* The same channel signing up gives a new organisation. Without it the
-       test organisations are a shape no real one has: no default, so nothing
-       exercises the resolution path every customer actually takes. */
+    /* The channel signup gives a new organisation: without it the test orgs have no default, a shape no real one has. */
     await client.query(
       `insert into channel
          (internal_id, organization_id, name, color, is_default, created_at)

@@ -11,14 +11,8 @@ export const tracePath = (home: string) => `${home}/${ANPORD_DIR}/trace.ndjson`;
 const assignment = (name: string, value: string) =>
   `${name}=${shellQuote(value)}`;
 
-/**
- * What the customer's process is started as.
- *
- * `bash -c` rather than the run string spliced into the outer shell, so the
- * recorder's DEBUG trap is armed for it: BASH_ENV is read only by a bash that
- * starts non-interactively. Stdin is closed because a process that blocks on
- * it would hold the trial open to the fifteen-minute cap.
- */
+/* `bash -c` so the recorder's DEBUG trap is armed: BASH_ENV is read only by a
+   non-interactive bash. Stdin is closed so a blocked read cannot hold the trial open. */
 export const commandCommand = (request: RunHarness, run: string) => {
   const home = request.sandbox.home;
 

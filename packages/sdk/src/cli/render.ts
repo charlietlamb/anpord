@@ -12,8 +12,7 @@ export const promptContent = (prompt: PublicPrompt) =>
     }
   });
 
-/** A result the caller may pipe into another tool, so it belongs on stdout
- * alongside the prompt content rather than beside the status messages. */
+/* Stdout, not stderr: a result the caller may pipe into another tool. */
 export const row = (line: string) =>
   Effect.sync(() => {
     process.stdout.write(`${line}\n`);

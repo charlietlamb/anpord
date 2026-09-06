@@ -9,9 +9,7 @@ import {
   RailFactSkeleton,
 } from "@/components/evals/rail-fact-skeleton";
 
-/* A waterfall row is `h-5` and its track sits `h-1.5` centred within it, so
-   the skeleton is that track at the offsets a real trajectory takes: work
-   starts at the left and the bars march right as one step waits on the last. */
+/* Mirrors a waterfall row: h-5 with an h-1.5 track centred within it. */
 const TRACKS = [
   { left: "left-0", width: "w-1/3" },
   { left: "left-[30%]", width: "w-1/4" },
@@ -20,28 +18,17 @@ const TRACKS = [
   { left: "left-[80%]", width: "w-1/12" },
 ];
 
-/** Verdict, exit code, commands. */
 const OUTCOME: readonly RailFactShape[] = [
   { width: "w-14" },
   { width: "w-16" },
   { width: "w-28" },
 ];
 
-/* Duration, then sandbox with the share bar it draws after its value. The two
-   gated on a measured trial are left out: reserving rows for facts half the
-   trials lack leaves a hole on the ones that do not carry them. */
 const TIME: readonly RailFactShape[] = [
   { width: "w-20" },
   { share: true, width: "w-24" },
 ];
 
-/**
- * The trial screen before its trajectory is known.
- *
- * The axis is a fixed `h-4` whatever the timings turn out to be, so it is
- * drawn as a real empty band rather than placeheld, and the rows beneath it
- * keep the height they will settle at.
- */
 export function TrialSkeleton() {
   return (
     <EvalLayout>

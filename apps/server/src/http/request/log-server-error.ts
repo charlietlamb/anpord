@@ -3,11 +3,7 @@ const SERVER_ERROR = 500;
 const describe = (cause: unknown) =>
   cause instanceof Error ? (cause.stack ?? cause.message) : String(cause);
 
-/**
- * The platform encodes a defect as a bare 500 and discards the cause, so a
- * failed write leaves no trace anywhere. Both APIs are routed through here,
- * which makes this the one place that sees every response either produces.
- */
+/* The platform discards the cause behind a bare 500; both APIs route through here, so this is the only place that sees them. */
 export const withServerErrorLog = async (
   request: Request,
   respond: () => Promise<Response>

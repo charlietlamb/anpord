@@ -20,9 +20,7 @@ export function PromptRow({
 }: PromptRowProps) {
   const updated = useRelativeTime(prompt.updatedAt);
 
-  /** The serving version is what a caller of this prompt actually receives, so
-   * it is the one worth showing; the highest version stands in only while
-   * nothing has been published yet. */
+  /* The serving version is what callers receive; the highest stands in until one is published. */
   const version = prompt.productionVersion ?? prompt.latestVersion;
 
   return (
@@ -32,8 +30,6 @@ export function PromptRow({
       meta={
         <>
           {version === null ? null : (
-            /* Quiet enough to read as an annotation on the name rather than a
-               control beside it, which is what the outlined pill looked like. */
             <span className="w-8 text-right text-muted-foreground/70">
               v{version}
             </span>
@@ -47,9 +43,6 @@ export function PromptRow({
       tabIndex={tabIndex}
       to="/prompts/$id"
     >
-      {/* The name leads and the handle trails it, both flush left: the name is
-          what a reader is looking for, and the handle is how they address it
-          once found. */}
       <RowTitle>{prompt.name}</RowTitle>
       <span className="ml-2.5 font-mono text-muted-foreground/60 text-xs">
         {prompt.id}

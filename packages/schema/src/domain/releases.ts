@@ -12,9 +12,7 @@ export const Percent = Schema.Int.pipe(
 });
 export type Percent = typeof Percent.Type;
 
-/** Generated once per rollout and never changed while it runs. Two salts
- * rather than one so that widening a rollout moves only the gate: everyone
- * already served the new version keeps it. */
+/* Two salts, not one, so widening a rollout moves only the gate and nobody is moved back. */
 export const Salt = Schema.String.pipe(
   Schema.minLength(16),
   Schema.maxLength(64),
@@ -27,12 +25,7 @@ export const PinnedRelease = Schema.Struct({
   version: VersionNumber,
 });
 
-/**
- * Two versions at once. `version` goes to callers inside the gate and
- * `previous` to everyone else, including every caller that sends no unit —
- * so a rollout a caller cannot participate in degrades to what they had
- * before it started.
- */
+/* A caller that sends no unit gets `previous`, so a rollout they cannot join degrades to what they had. */
 export const RolloutRelease = Schema.Struct({
   _tag: Schema.Literal("Rollout"),
   assignmentSalt: Salt,
@@ -53,14 +46,11 @@ export const pinned = (version: VersionNumber): Release => ({
   version,
 });
 
-/** Every version a release can serve, which is what the delete guard and the
- * cache warmer both need and neither should derive by hand. */
 export const versionsOf = (release: Release): readonly VersionNumber[] =>
   release._tag === "Pinned"
     ? [release.version]
     : [release.version, release.previous];
 
-/** The single version a release serves, when there is one. A rollout has no
- * answer, which is why the column it denormalises into is nullable. */
+/* Null for a rollout, which is why the column it denormalises into is nullable. */
 export const pinnedVersion = (release: Release): VersionNumber | null =>
   release._tag === "Pinned" ? release.version : null;

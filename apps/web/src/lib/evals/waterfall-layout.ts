@@ -6,7 +6,6 @@ interface WaterfallLead {
   readonly widthPercent: number;
 }
 
-/** An entry a harness reported both ends of, so it has a real width. */
 type TimedEntry = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
 
 interface WaterfallBar {
@@ -45,14 +44,7 @@ interface Span {
   readonly startedAt: number;
 }
 
-/**
- * The entry as a measured span, or none where it is only an instant.
- *
- * A tool call qualifies on the same terms as a command: both ends reported,
- * or nothing. A harness that says only when a call returned leaves it a
- * marker, because a guessed width drawn like a measured one is the same lie
- * as a rate with no denominator.
- */
+/* Both ends must be reported, or the entry stays a marker: a guessed width would draw like a measured one. */
 const spanOf = (entry: EvalJournalEntry): Span | null => {
   if (entry._tag !== "command" && entry._tag !== "toolCall") {
     return null;
@@ -125,9 +117,7 @@ export const waterfallLayout = (
 
       previousEnd = Math.max(previousEnd, span.finishedAt);
 
-      /* Commands only. The rail reads this as time spent running commands in
-         the sandbox, and a tool call the harness handled itself never went
-         near one. */
+      /* Commands only: the rail reads this as sandbox time, and a harness-handled tool call never reached the sandbox. */
       if (span.entry._tag === "command") {
         workingMs += durationMs;
       }

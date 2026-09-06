@@ -5,14 +5,10 @@ import type { Scenario } from "../harness/run";
 import { drafting } from "../harness/surface";
 import type { World } from "../world";
 
-/** An address nothing answers on, so a scenario can ask what the client does
- * when the api cannot be reached at all. */
+/* An address nothing answers on. */
 const UNREACHABLE = "http://127.0.0.1:1";
 
-/**
- * The client is disposed whatever the scenario does, because a leaked one
- * keeps a background refresh fiber alive and the run never ends.
- */
+/* Always disposed: a leaked client keeps a background refresh fiber alive and the run never ends. */
 const withClient = async (
   world: World,
   options: Omit<AnpordOptions, "apiKey">,
@@ -128,9 +124,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
           client.prompts.get({ id: "sdk-no-fallback" })
         );
 
-        /* Carrying no status is what marks it as an availability failure
-           rather than an answer, which is the difference between reaching for
-           a fallback and giving up. */
+        /* No status marks an availability failure rather than an answer, which is what tells a caller to reach for a fallback. */
         equals(
           "as something that never reached the api",
           (failure as { status?: number }).status,
@@ -196,9 +190,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
           "reads disagreed about the content"
         );
 
-        /* Every cold read fetches: the cache is filled by whichever finishes,
-           it does not coalesce them. Asserted rather than assumed, so adding
-           single flight is a change this scenario notices. */
+        /* Cold reads are not coalesced; asserted so adding single flight is a change this scenario notices. */
         equals(
           "none of them was served from the cache",
           cold.filter((prompt) => prompt.anpord.freshness === "cached").length,

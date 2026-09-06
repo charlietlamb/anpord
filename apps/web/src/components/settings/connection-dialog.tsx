@@ -80,13 +80,6 @@ function Choice({
   );
 }
 
-/**
- * A ChatGPT login in progress: the address to open and the code to type.
- *
- * The code is the thing a reader has to carry to another window, so it is
- * set large, in mono, with a copy control beside it rather than buried in a
- * sentence.
- */
 function DeviceChallenge({
   challenge,
 }: {
@@ -119,22 +112,6 @@ function DeviceChallenge({
   );
 }
 
-/**
- * Adds a credential the evals can use.
- *
- * A dialog rather than a card at the top of the list: the list is what the
- * page is for, and a form that sits above it pushes the thing it exists to
- * add below the fold. Opened when asked for, like every other settings form.
- *
- * What a reader is choosing here -- a vendor, then how to authenticate with
- * it, then the secret itself -- is a sequence, and reads down as one. The
- * method is asked about only where there is a choice: a vendor with one way
- * in is not a question.
- */
-/* A device login keeps waiting after the request returns -- the code is on
-   screen and the answer comes from the browser the reader is about to open --
-   so it says so rather than sitting on "Connect ChatGPT" as though nothing
-   had happened. */
 const submitLabel = (device: boolean, pending: boolean, waiting: boolean) => {
   if (waiting) {
     return "Waiting for ChatGPT…";
@@ -152,17 +129,12 @@ export function ConnectionDialog({
   onCreated,
   open,
 }: {
-  /** Which section asked. Null only while the dialog is closed. */
   readonly category: CredentialIntegration["category"] | null;
   readonly integrations: readonly CredentialIntegration[];
   readonly onClose: () => void;
   readonly onCreated: () => void;
   readonly open: boolean;
 }) {
-  /* Scoped to the section that opened it, so "Add sandbox" cannot offer a
-     harness. The dialog is keyed on the category by its caller, so this list
-     and the state below are rebuilt rather than left pointing at the other
-     section's first vendor. */
   const integrations = all.filter((item) => item.category === category);
 
   const [integrationId, setIntegrationId] = useState(integrations[0]?.id ?? "");
@@ -219,9 +191,6 @@ export function ConnectionDialog({
     return () => window.clearInterval(interval);
   }, [challenge, onClose, onCreated]);
 
-  /* Choosing a vendor invalidates everything under it: the methods differ, so
-     the fields differ, and a secret typed for one is not a secret for the
-     next. */
   const chooseIntegration = (id: string) => {
     const selected = integrations.find((item) => item.id === id);
 
@@ -244,8 +213,7 @@ export function ConnectionDialog({
       if (method.kind === "device") {
         setChallenge(
           await credentialsClient.startDevice({
-            /* Device auth is a ChatGPT login, and the schema says so: only
-               codex offers it, so only codex can start one. */
+            /* Only codex offers device auth, so only codex can start one. */
             integrationId: "codex",
             name: name.trim(),
             scope: scope === "personal" ? "personal" : "organization",

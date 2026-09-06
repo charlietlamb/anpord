@@ -10,16 +10,15 @@ import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { isUniqueViolation } from "./postgres-errors";
 import { head, tryStore } from "./query";
 
-/** Three attempts covers the contention a small team produces; beyond that the
- * collision is not transient and the caller should hear about it. */
+/* Beyond three attempts the collision is not transient and the caller should
+   hear about it. */
 const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
   Schedule.jittered,
   Schedule.compose(Schedule.recurs(3))
 );
 
-/** The author comes from a left join onto a nullable actor, so a deleted user
- * arrives as a row of nulls rather than as no row. The name is nullable here
- * because the database says so; `authorOf` is what turns that into no author. */
+/* A left join, so a deleted user arrives as a row of nulls; `authorOf` turns
+   that into no author. */
 export type VersionRow = typeof promptVersion.$inferSelect & {
   readonly author: {
     readonly image: string | null;
@@ -122,9 +121,8 @@ export const PromptVersionRepositoryLive = Layer.effect(
           ]),
           ([internalId, eventId]) =>
             tryStore("promptVersion.append", () =>
-              /* The version and the record of it being written go in together:
-               a version nobody can see the writing of is the gap this log
-               exists to close. */
+              /* The version and the record of its writing go in together, or
+                 the log has a gap. */
               db.transaction(async (tx) => {
                 const [previous] = await tx
                   .select({ version: promptVersion.version })
@@ -188,9 +186,8 @@ export const PromptVersionRepositoryLive = Layer.effect(
       update: (input) =>
         Effect.flatMap(ids.generate("promptEvent"), (eventId) =>
           tryStore("promptVersion.update", () =>
-            /* Overwriting destroys what the version held, and the row it
-               rewrites keeps no sign of having been rewritten. The record goes
-               in with the write, so neither can exist without the other. */
+            /* An overwritten row keeps no sign of it, so the record goes in
+               with the write and neither can exist without the other. */
             db.transaction(async (tx) => {
               const rows = await tx
                 .update(promptVersion)

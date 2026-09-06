@@ -39,12 +39,8 @@ interface JoinedAuthor {
   readonly name: string | null;
 }
 
-/**
- * An author is read through a left join, so a deleted user arrives as a row of
- * nulls rather than as no row at all. Nobody is a truer answer than a person
- * with no name, and without this the whole page fails to decode over one
- * deleted account.
- */
+/* A left join delivers a deleted user as a row of nulls, which would otherwise
+   fail the whole page's decode. */
 const authorOf = (author: JoinedAuthor | null) =>
   author === null || author.name === null
     ? null
@@ -68,8 +64,6 @@ export const toResolved = (
     versionId: row.internalId,
   }).pipe(Effect.mapError(asStoreError("views.toResolved")));
 
-/** Narrower than `ChannelRow`: a placement is what a channel points at, and
- * the internal id of the version behind it is the repository's business. */
 type PlacedRow = Omit<ChannelRow, "versionInternalId">;
 
 export const toPlacement = (
@@ -87,9 +81,8 @@ export const toChannel = (
 ): Effect.Effect<Channel, PromptStoreError> =>
   decodeChannel(row).pipe(Effect.mapError(asStoreError("views.toChannel")));
 
-/** Which way a channel moved, read off the two versions rather than stored, so
- * it cannot disagree with them. A move that repeats the serving version
- * changed nothing for callers, which reads differently from a move forward. */
+/* Read off the two versions rather than stored, so it cannot disagree with
+   them. */
 const moveOf = (row: PromptEventRow): DeploymentKind => {
   if (row.from === null) {
     return "first";
@@ -100,10 +93,8 @@ const moveOf = (row: PromptEventRow): DeploymentKind => {
   return row.version < row.from ? "rollback" : "promotion";
 };
 
-/** The kind is stored as text, so it is decoded rather than asserted: a row
- * written by a later build carrying a kind this one does not know is a store
- * failure, not a value to hand to the page as valid. The union it decodes into
- * gives each kind only the fields it uses. */
+/* Decoded, not asserted: a kind written by a later build is a store failure,
+   not a value to hand the page as valid. */
 export const toActivityEntry = (
   row: PromptEventRow
 ): Effect.Effect<PromptActivityEntry, PromptStoreError> =>

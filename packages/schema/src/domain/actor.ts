@@ -16,24 +16,15 @@ export type OrganizationId = typeof OrganizationId.Type;
 export const Actor = Schema.Struct({
   id: UserId,
   organizationId: OrganizationId,
-  /** Carried on the actor rather than looked up per check, so a handler cannot
-   * forget to load them and authorise against an empty set. */
+  /* Carried on the actor, so a handler cannot authorise against an unloaded empty set. */
   permissions: Schema.Array(Permission),
-  /** An API key acts for an organization, not a person, so there is no row in
-   * `user` to attribute its writes to. Authorship columns carry a foreign key
-   * to that table, so the id must not reach them. */
+  /* False for an API key, whose id has no `user` row and must not reach the authorship foreign keys. */
   isUser: Schema.Boolean,
-  /** The staff member behind an impersonated session. `id` stays the person
-   * being acted as, so data scoping is unchanged; this is who is really at the
-   * keyboard, and the only field an audit can tell the two apart by. */
+  /* `id` stays the person being acted as, so scoping is unchanged; this is the only field an audit can separate them by. */
   impersonatedBy: Schema.optional(UserId),
 });
 export type Actor = typeof Actor.Type;
 
-/**
- * The value authorship columns store. A key has no user to point at and those
- * columns are nullable precisely so authorship can be absent, which is the same
- * state a deleted user leaves behind.
- */
+/* Authorship columns are nullable precisely so a key's absent author matches a deleted user's. */
 export const authorIdOf = (actor: Actor): UserId | null =>
   actor.isUser ? actor.id : null;

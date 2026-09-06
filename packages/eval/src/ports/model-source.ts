@@ -15,18 +15,14 @@ export class AvailableModels extends Context.Tag(
 
 export interface ModelDescription {
   readonly displayName: string;
-  /** Ordered by, not shown: within a vendor the newest model should be
-   * offered first. Null where the catalogue does not say. */
+  /* Ordered by, not shown. */
   readonly releasedAt: string | null;
   readonly summary: string | null;
-  /** The company behind the model, for the mark beside it. */
   readonly vendor: string | null;
 }
 
 export interface ModelDescriptionsShape {
-  /** Keyed by harness rather than by vendor, because a harness that takes
-   * `provider/model` spans every vendor at once and has none of its own to
-   * name. */
+  /* Keyed by harness: one taking `provider/model` spans every vendor at once. */
   readonly forHarness: (
     harness: typeof HarnessName.Type
   ) => Effect.Effect<ReadonlyMap<string, ModelDescription>, ModelsUnreadable>;
@@ -37,14 +33,6 @@ export class ModelDescriptions extends Context.Tag(
 )<ModelDescriptions, ModelDescriptionsShape>() {}
 
 export interface ModelPricesShape {
-  /**
-   * What a model charges, or none where the catalogue does not price it.
-   *
-   * Separate from the descriptions because it answers a different question:
-   * a picker asks what to offer, and a finished trial asks what it spent. A
-   * model can be offered without a published price, and a price can be read
-   * for a model no longer offered.
-   */
   readonly forModel: (
     model: string
   ) => Effect.Effect<Option.Option<ModelPrice>, ModelsUnreadable>;

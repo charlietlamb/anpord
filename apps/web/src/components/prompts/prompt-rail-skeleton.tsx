@@ -19,12 +19,7 @@ const DETAIL_ROWS = [
   { icon: FloppyDiskIcon, label: "Last saved", width: "w-24" },
 ];
 
-/**
- * The rail's labels and spacing are known before the fetch, so only the values
- * inside them are placeheld and the sections keep their final geometry.
- */
 interface PromptRailSkeletonProps {
-  /** Known from the address, so the copy controls work before the fetch. */
   readonly promptId: string;
 }
 

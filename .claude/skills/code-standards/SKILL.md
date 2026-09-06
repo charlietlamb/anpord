@@ -125,6 +125,29 @@ Explain *why*, never *what*. A comment restating the code is noise; a comment
 naming a constraint, an invariant, or a rejected alternative earns its place.
 Prefer clearer names and smaller functions over explanation.
 
+Code is expected to read for itself. Before writing a comment, try a clearer
+name or a smaller function — that is almost always the better fix.
+
+Enforced by `bun run check:comments`, which runs in `pre-commit`:
+
+- **No `//` line comments.** `/* */` only. The exceptions are `biome-ignore`
+  directives and `/// <reference>` pragmas, which are functional.
+- **No comment block longer than three lines.** A rationale essay above a
+  function is the smell this catches; if the reasoning genuinely needs more
+  room, it belongs in a doc or a commit message, not the source.
+
+Write a comment only when the code cannot state the thing itself:
+
+| Earns its place | Delete it |
+| --- | --- |
+| A vendor or protocol quirk (`Anthropic reports cache tokens beside input, not inside it`) | Anything restating the identifier's own name |
+| Why a value must be `null` rather than `0` | `@param`/`@returns` that repeat the types |
+| A CVE or security invariant behind a design | Narrative history of what once broke |
+| A rejected alternative someone would otherwise re-attempt | Design-philosophy essays |
+
+Published SDK API may keep a one-line JSDoc where it aids autocomplete for
+consumers outside this repo. Nothing else does.
+
 ## Validation
 
 After any structural change:

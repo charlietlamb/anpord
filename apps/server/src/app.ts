@@ -9,8 +9,6 @@ import { AppLayer } from "./layer";
 import { ApiLive } from "./routes/internal/api-layer";
 import { PublicApiLive } from "./routes/public/api-layer";
 
-/** Four megabytes: far above any prompt a person writes, far below what would
- * threaten a small instance. */
 const MAX_REQUEST_BODY_BYTES = 4 * 1024 * 1024;
 
 export const main = Effect.gen(function* () {

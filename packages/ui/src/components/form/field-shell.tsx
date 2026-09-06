@@ -4,14 +4,6 @@ import { cn } from "@anpord/ui/lib/utils";
 import type { AnyFieldApi } from "@tanstack/react-form";
 import type { ReactNode } from "react";
 
-/**
- * A label, a control, and what is wrong with it.
- *
- * Every field component had written this three-line grid itself, so a change
- * to how an error sits under a control was four edits. The description sits
- * above the control rather than below it, because a hint that arrives after
- * the answer is a hint nobody read.
- */
 export function FieldShell({
   children,
   className,

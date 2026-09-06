@@ -47,8 +47,7 @@ function EvalsPreview() {
 
         <PreviewScreen name="New eval">
           <div className="mx-auto w-full max-w-3xl px-5 py-5">
-            {/* The form asks the server for models and throws when nobody is
-                signed in, which must not take the other previews with it. */}
+            {/* The form throws when nobody is signed in, which must not take the other previews with it. */}
             <CatchBoundary
               errorComponent={() => (
                 <EmptyNote>Sign in to preview the form.</EmptyNote>
