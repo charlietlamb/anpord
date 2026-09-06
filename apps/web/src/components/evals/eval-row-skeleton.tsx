@@ -22,9 +22,6 @@ function EvalRowSkeleton({ name }: { readonly name: string }) {
       <Skeleton className={cn("h-3", name)} />
 
       <span className="ml-auto flex shrink-0 items-center gap-4">
-        <span className="flex w-20 justify-end">
-          <Skeleton className="h-3 w-12" />
-        </span>
         <span className="flex w-20 items-center justify-end gap-1.5">
           {Array.from({ length: MARKS }, (_mark, index) => (
             <Skeleton
