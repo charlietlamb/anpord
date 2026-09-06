@@ -9,8 +9,23 @@ const trigger = {
 
 test("the run list shows a label without nesting links", () => {
   const html = renderToStaticMarkup(<RunTrigger trigger={trigger} />);
-  expect(html).toContain("CI");
+  expect(html).toContain("GitHub Actions");
+  expect(html).toContain("<svg");
   expect(html).not.toContain("<a ");
+});
+
+test("keeps other CI providers generic", () => {
+  for (const url of [
+    undefined,
+    "https://ci.example.com/123",
+    "https://github.com.example.com/123",
+  ]) {
+    const html = renderToStaticMarkup(
+      <RunTrigger trigger={{ source: "ci", ...(url ? { url } : {}) }} />
+    );
+    expect(html).toContain(">CI</span>");
+    expect(html).not.toContain("GitHub Actions");
+  }
 });
 
 test("run details link to the triggering CI run", () => {

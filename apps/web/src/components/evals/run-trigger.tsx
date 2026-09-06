@@ -1,5 +1,5 @@
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import { triggerLabel } from "@/lib/evals/run-trigger";
+import { triggerPresentation } from "@/lib/evals/run-trigger";
 
 export function RunTrigger({
   trigger,
@@ -8,27 +8,33 @@ export function RunTrigger({
   readonly trigger: EvalTrigger | null;
   readonly linked?: boolean;
 }) {
-  const label = triggerLabel(trigger);
+  const { label, Icon } = triggerPresentation(trigger);
+  const content = (
+    <>
+      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+      <span>{label}</span>
+    </>
+  );
   return linked && trigger?.url ? (
     <a
-      className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+      className="inline-flex items-center gap-1.5 text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
       href={trigger.url}
       rel="noopener noreferrer"
       target="_blank"
       title="Open the triggering run"
     >
-      {label} ↗
+      {content} ↗
     </a>
   ) : (
     <span
-      className="text-muted-foreground"
+      className="inline-flex items-center gap-1.5 text-muted-foreground"
       title={
         trigger == null
           ? "This run predates trigger tracking."
           : `Started via ${label}`
       }
     >
-      {label}
+      {content}
     </span>
   );
 }
