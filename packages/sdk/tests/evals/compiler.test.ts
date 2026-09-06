@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { parse } from "smol-toml";
@@ -110,10 +117,21 @@ export default defineEval({
     expect(
       execFileSync(
         "node",
-        [".anpord/cli/0/cli.mjs", "users", "get", "--id", "user_1"],
-        { cwd: workspace, encoding: "utf8" }
+        [
+          join(workspace, ".anpord/cli/0/cli.mjs"),
+          "users",
+          "get",
+          "--id",
+          "user_1",
+        ],
+        { cwd: join(workspace, "node_modules"), encoding: "utf8" }
       )
     ).toContain('"id": "user_1"');
+    expect(
+      JSON.parse(
+        await readFile(join(workspace, ".anpord/cli-calls.jsonl"), "utf8")
+      )
+    ).toMatchObject({ command: "users get", input: { id: "user_1" } });
 
     const opencode = payload.tasks.find(
       ({ harness }) => harness === "opencode"

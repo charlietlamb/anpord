@@ -121,8 +121,9 @@ if (server === undefined) throw new Error("MCP server ${index} is missing");
 runMcpServer(server);`;
 
 export const cliEntry = (entry: string, index: number) =>
-  `import definition from ${JSON.stringify(entry)};
+  `import { fileURLToPath } from "node:url";
+import definition from ${JSON.stringify(entry)};
 import { runCli } from "anpord/cli/runtime";
 const cli = definition.cli?.[${index}];
 if (cli === undefined) throw new Error("CLI ${index} is missing");
-await runCli(cli);`;
+await runCli(cli, fileURLToPath(new URL("../../cli-calls.jsonl", import.meta.url)));`;

@@ -195,8 +195,8 @@ export const executeCli = (
     return result;
   }).pipe(Effect.withSpan("CliMock.execute"), Effect.runPromise);
 
-export const runCli = async (definition: CliDefinition) => {
-  const result = await executeCli(definition, process.argv.slice(2));
+export const runCli = async (definition: CliDefinition, journal?: string) => {
+  const result = await executeCli(definition, process.argv.slice(2), journal);
   process.stdout.write(result.stdout);
   process.stderr.write(result.stderr);
   process.exitCode = result.exitCode;
