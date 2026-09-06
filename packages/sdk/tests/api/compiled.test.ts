@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   API_JOURNAL,
   API_READY,
@@ -32,7 +33,17 @@ afterEach(async () => {
   }
 });
 
-test("compiled HTTP server and validator preserve request evidence in Node", async () => {
+test("Node cancels handlers and records disconnected requests", async () => {
+  const child = Bun.spawn(
+    ["node", fileURLToPath(new URL("./fixtures/cancel.mjs", import.meta.url))],
+    { stderr: "pipe" }
+  );
+  const error = await new Response(child.stderr).text();
+  expect(error).toBe("");
+  expect(await child.exited).toBe(0);
+});
+
+test("compiled HTTP server, prepare, and validator preserve request evidence in Node", async () => {
   workspace = await mkdtemp(join(tmpdir(), "anpord-http-compiled-"));
   await mkdir(join(workspace, "node_modules"));
   await symlink(
@@ -41,10 +52,19 @@ test("compiled HTTP server and validator preserve request evidence in Node", asy
   );
   const entry = join(workspace, "eval.ts");
   await writeFile(
+    join(workspace, "prepare.ts"),
+    `export async function prepareHttp({ api }) {
+  const url = await api.url("catalog");
+  const response = await fetch(url + "/items/prepare");
+  return { item: await response.json() };
+}`
+  );
+  await writeFile(
     entry,
     `import { defineEval, empty } from "anpord";
 import { api, endpoint } from "anpord/api";
 import { z } from "zod";
+import { prepareHttp } from "./prepare";
 export default defineEval({ name: "http", source: empty, prompt: "Use catalog", trials: 1,
   api: [api({ name: "catalog", endpoints: [endpoint({ method: "GET", path: "/items/:id",
     inputSchema: z.object({ params: z.object({ id: z.string() }) }),
@@ -52,12 +72,12 @@ export default defineEval({ name: "http", source: empty, prompt: "Use catalog", 
     handler: ({ params }, { log }) => { log({ id: params.id }); return { status: 200, body: params }; }
   })] })],
   tasks: [{ harness: "codex", model: "model", sandbox: "e2b" }],
-  cases: [{ name: "read", validate: async function validateHttp({ api }) {
+  cases: [{ name: "read", prepare: prepareHttp, validate: async function validateHttp({ api }) {
     const url = await api.url("catalog");
     await fetch(url + "/items/validator");
     const calls = await api.calls("catalog");
     console.info("HTTP statuses", calls.map(({ status }) => status));
-    return { passed: calls.length === 2 && calls.every(({ status }) => status === 200) };
+    return { passed: calls.length === 3 && calls.every(({ status }) => status === 200) };
   } }]
 });`
   );
@@ -95,6 +115,15 @@ export default defineEval({ name: "http", source: empty, prompt: "Use catalog", 
   if (!url) {
     throw new Error("Missing API URL");
   }
+  const prepare = compiled.cases[0]?.prepare;
+  if (!prepare) {
+    throw new Error("Missing prepare");
+  }
+  await writeFile(join(workspace, "prepare.mjs"), prepare.source);
+  const setup = Bun.spawn(["node", "prepare.mjs"], { cwd: workspace });
+  const prepared = await new Response(setup.stdout).text();
+  expect(await setup.exited).toBe(0);
+  expect(prepared).toContain('ANPORD_PREPARE_RESULT={"item":{"id":"prepare"}}');
   expect(await (await fetch(`${url}/items/agent`)).json()).toEqual({
     id: "agent",
   });
@@ -124,10 +153,11 @@ export default defineEval({ name: "http", source: empty, prompt: "Use catalog", 
     .split("\n")
     .map((line) => Schema.decodeUnknownSync(Schema.parseJson(ApiCall))(line));
   expect(calls.map(({ path }) => path)).toEqual([
+    "/items/prepare",
     "/items/agent",
     "/items/validator",
   ]);
-  expect(calls[0]?.logs[0]?.text).toContain("agent");
+  expect(calls[0]?.logs[0]?.text).toContain("prepare");
   server.kill();
   await server.exited;
   await expect(fetch(url)).rejects.toThrow();
