@@ -1,6 +1,43 @@
 import type { EvalCosts } from "@anpord/schema/domain/evals";
+import { Option } from "effect";
 import { dollarsOf, summaryOf } from "./cost-arithmetic";
-import type { CostClassification, CostComponent } from "./cost-component";
+import {
+  type CostClassification,
+  type CostComponent,
+  type CostComponentName,
+  classificationOf,
+  componentNameOf,
+} from "./cost-component";
+
+/* Unknown, never dropped and never guessed. A classification this build cannot
+   name matches no branch of the summary, so a cast let its amount vanish from
+   every total while `incomplete` stayed false -- a figure short by the whole
+   row, presented as complete. Unknown is the one classification that says so. */
+const storedComponent = (row: {
+  readonly amountNanos: bigint | null;
+  readonly classification: string;
+  readonly component: string;
+  readonly detail: Record<string, unknown>;
+  readonly explanation: string;
+  readonly source: string;
+}): Option.Option<CostComponent> =>
+  Option.map(componentNameOf(row.component), (component) => {
+    const classification = classificationOf(row.classification);
+
+    return {
+      /* An amount whose basis is unreadable is not a figure to sum: keeping it
+         would add it to a total that cannot say what it measures. */
+      amountNanos: Option.isSome(classification) ? row.amountNanos : null,
+      classification: Option.getOrElse(
+        classification,
+        () => "unknown" as const
+      ),
+      component,
+      detail: row.detail,
+      explanation: row.explanation,
+      source: row.source,
+    };
+  });
 
 /**
  * Stored cost rows as a reader sees them.
@@ -24,14 +61,14 @@ export const costsOf = (
     return null;
   }
 
-  const components = rows.map((row) => ({
-    amountNanos: row.amountNanos,
-    classification: row.classification as CostClassification,
-    component: row.component as CostComponent["component"],
-    detail: row.detail,
-    explanation: row.explanation,
-    source: row.source,
-  }));
+  /* A row naming a component this build cannot attribute is dropped: it has
+     nowhere to be shown and nothing to merge with. One naming an unreadable
+     classification is kept and marked unknown, which is what raises
+     `incomplete` -- the reader is told the figure is short rather than shown a
+     total that silently lost it. */
+  const components = rows.flatMap((row) =>
+    Option.toArray(storedComponent(row))
+  );
 
   return {
     ...summaryOf(components),
@@ -66,9 +103,12 @@ export const rollUp = (
     return null;
   }
 
+  /* Keyed and valued by the union rather than by string, so the entries come
+     back out already typed and the map cannot hold a name the wire contract
+     does not have. */
   const merged = new Map<
-    string,
-    { readonly classification: string; usd: number | null }
+    CostComponentName,
+    { readonly classification: CostClassification; usd: number | null }
   >();
 
   for (const one of found) {
@@ -90,8 +130,8 @@ export const rollUp = (
   }
 
   const components = [...merged.entries()].map(([component, part]) => ({
-    classification: part.classification as CostClassification,
-    component: component as CostComponent["component"],
+    classification: part.classification,
+    component,
     detail: {},
     explanation: "",
     source: "aggregate",

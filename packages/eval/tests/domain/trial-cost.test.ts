@@ -258,3 +258,60 @@ describe("a credential that names no model", () => {
     expect(model.explanation).toContain("chose its own model");
   });
 });
+
+/* Both columns are plain text with no check constraint, so a row written by a
+   later deploy names something this build does not. The money must not go
+   quiet: a figure short by a whole row, presented as complete, is the one
+   failure a cost report cannot have. */
+describe("a stored row this build cannot name", () => {
+  const row = (classification: string, component: string) => [
+    {
+      amountNanos: nanosOf(90),
+      classification,
+      component,
+      detail: {},
+      explanation: "",
+      source: "test",
+    },
+  ];
+
+  test("marks the figure incomplete rather than dropping the amount silently", () => {
+    const costs = costsOf(row("amortized", "model"));
+
+    expect(costs?.incomplete).toBe(true);
+    expect(costs?.components).toHaveLength(1);
+  });
+
+  /* Kept as unknown rather than summed: an amount whose basis cannot be read
+     belongs in no total, because no total could say what it measured. */
+  test("keeps the row without pricing it", () => {
+    const part = costsOf(row("amortized", "model"))?.components[0];
+
+    expect(part?.classification).toBe("unknown");
+    expect(part?.usd).toBeNull();
+  });
+
+  test("never counts it toward a known total", () => {
+    const costs = costsOf(row("amortized", "model"));
+
+    expect(costs?.knownActualUsd).toBe(0);
+    expect(costs?.estimatedEquivalentUsd).toBe(0);
+    expect(costs?.allocatedUsd).toBe(0);
+  });
+
+  /* A component has nowhere to be shown and nothing to merge with, unlike a
+     classification, which has `unknown` to fall back to. */
+  test("drops a row naming a layer it cannot attribute", () => {
+    expect(costsOf(row("actual", "quantum"))?.components).toHaveLength(0);
+  });
+
+  test("still reports the rows it could read", () => {
+    const costs = costsOf([
+      ...row("actual", "model"),
+      ...row("amortized", "sandbox"),
+    ]);
+
+    expect(costs?.knownActualUsd).toBe(90);
+    expect(costs?.incomplete).toBe(true);
+  });
+});
