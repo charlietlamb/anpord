@@ -37,8 +37,8 @@ export const Route = createRootRouteWithContext<{
       { property: "og:description", content: DESCRIPTION },
       { property: "og:url", content: SITE_URL },
       { property: "og:image", content: OG_IMAGE },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
+      { property: "og:image:width", content: "1732" },
+      { property: "og:image:height", content: "908" },
       { property: "og:image:alt", content: DESCRIPTION },
 
       { name: "twitter:card", content: "summary_large_image" },
