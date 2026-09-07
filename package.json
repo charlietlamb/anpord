@@ -105,6 +105,7 @@
     "fix": "ultracite fix",
     "knip": "knip --no-config-hints",
     "mint-key": "bun run scripts/mint-api-key.ts",
+    "og": "bun run scripts/generate-og-image.ts",
     "openapi": "bun run packages/schema/scripts/generate-openapi.ts",
     "prepare": "husky",
     "start": "bun --cwd apps/web start",
