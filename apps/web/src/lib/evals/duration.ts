@@ -36,12 +36,6 @@ export const clock = (millis: number) =>
     month: "short",
   });
 
-export const dayOf = (millis: number) =>
-  new Date(millis).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-  });
-
 export const count = (value: number) => value.toLocaleString();
 
 export const NOTHING = "·";

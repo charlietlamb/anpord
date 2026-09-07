@@ -29,6 +29,3 @@ export const triggerPresentation = (trigger: EvalTrigger | null) => {
   }
   return triggers[trigger.source];
 };
-
-export const triggerLabel = (trigger: EvalTrigger | null) =>
-  triggerPresentation(trigger).label;
