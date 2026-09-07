@@ -51,9 +51,14 @@ export const ModelDescriptionsLive = Layer.effect(
           return Effect.succeed(staticDescriptions(harness));
         }
 
+        /* Same fallback as the model list: an absent cache means the server
+           never ran that CLI, not that the harness has no models. */
         return Effect.flatMap(
           selected === "codex" ? codex : opencode,
-          (source) => source.forHarness(harness)
+          (source) =>
+            Effect.map(source.forHarness(harness), (described) =>
+              described.size === 0 ? staticDescriptions(harness) : described
+            )
         );
       },
     });

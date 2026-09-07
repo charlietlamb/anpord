@@ -51,9 +51,15 @@ export const AvailableModelsLive = Layer.effect(
           return Effect.succeed(staticModels[harness] ?? []);
         }
 
+        /* A harness that reads its own cache finds nothing when that cache
+           belongs to a CLI the server never ran, which reads as "this harness
+           has no models" rather than "ask somewhere else". */
         return Effect.flatMap(
           selected === "codex" ? codex : opencode,
-          (source) => source.forHarness(harness)
+          (source) =>
+            Effect.map(source.forHarness(harness), (models) =>
+              models.length === 0 ? (staticModels[harness] ?? []) : models
+            )
         );
       },
     });
