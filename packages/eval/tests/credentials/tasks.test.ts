@@ -13,6 +13,7 @@ const actor = Actor.make({
 });
 
 const missing: CredentialResolverShape = {
+  persist: () => Effect.void,
   resolve: () =>
     Effect.fail(
       new CredentialError({ code: "not-found", message: "not found" })
@@ -84,6 +85,7 @@ describe("task credentials", () => {
 
   it("preserves explicit bindings and revisions", async () => {
     const resolver: CredentialResolverShape = {
+      persist: () => Effect.void,
       resolveBound: () =>
         Effect.fail(
           new CredentialError({ code: "not-found", message: "not used here" })

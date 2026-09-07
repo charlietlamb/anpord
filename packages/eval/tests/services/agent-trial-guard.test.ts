@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Layer, Option, Redacted, Stream } from "effect";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { EvalStoreError } from "../../src/domain/errors";
 import type { TrialOutcome } from "../../src/domain/trial";
 import { Harnesses } from "../../src/ports/harness";
@@ -112,6 +113,7 @@ const runWith = (order: string[], extra: Partial<AgentTrialRequest>) =>
     }).pipe(
       Effect.provide(
         AgentTrialLive.pipe(
+          Layer.provide(layerTestResolver()),
           Layer.provide(
             Layer.mergeAll(
               quietHarness,

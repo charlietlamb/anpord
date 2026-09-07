@@ -22,6 +22,7 @@ const layer = Layer.effect(
   Layer.provide(EvalSandboxLive),
   Layer.provide(
     Layer.succeed(CredentialResolver, {
+      persist: () => Effect.void,
       resolve: () => Effect.fail(connectionNotFound()),
       resolveBound: () => Effect.fail(connectionNotFound()),
     })

@@ -8,6 +8,7 @@ export const layerTestResolver = (
   Layer.succeed(
     CredentialResolver,
     CredentialResolver.of({
+      persist: () => Effect.void,
       resolve: (input) =>
         Effect.succeed(
           Redacted.make({

@@ -2,7 +2,7 @@ import type { Actor } from "@anpord/schema/domain/actor";
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import { Clock, Context, Effect, Layer, Redacted } from "effect";
 import { CredentialCipher } from "./cipher";
-import { openValues } from "./connection-payload";
+import { openValues, sealValues } from "./connection-payload";
 import {
   CredentialConnectionRepository,
   CredentialConnectionRepositoryLive,
@@ -23,7 +23,18 @@ export interface BoundCredential {
   readonly organizationId: string;
 }
 
+export interface PersistCredential {
+  readonly connectionId: string;
+  readonly organizationId: string;
+  readonly values: Readonly<Record<string, string>>;
+}
+
 export interface CredentialResolverShape {
+  /* A harness that refreshes its own token leaves the stored copy spent, so
+     the rotated material has to be written back before the sandbox goes. */
+  readonly persist: (
+    input: PersistCredential
+  ) => Effect.Effect<void, CredentialError>;
   readonly resolve: (
     input: ResolveCredential
   ) => Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>;
@@ -66,6 +77,30 @@ export const CredentialResolverLive = Layer.effect(
       );
 
     return CredentialResolver.of({
+      persist: (input) =>
+        repository.findBound(input.organizationId, input.connectionId).pipe(
+          Effect.flatMap((row) =>
+            sealValues(cipher, input.values, row).pipe(
+              Effect.flatMap((sealedPayload) =>
+                Clock.currentTimeMillis.pipe(
+                  Effect.flatMap((now) =>
+                    repository.reseal(
+                      input.organizationId,
+                      row.id,
+                      sealedPayload,
+                      new Date(now)
+                    )
+                  )
+                )
+              )
+            )
+          ),
+          Effect.withSpan("CredentialResolver.persist"),
+          Effect.annotateLogs({
+            connectionId: input.connectionId,
+            organizationId: input.organizationId,
+          })
+        ),
       resolve: (input) =>
         repository
           .findActive(input.actor, input.integrationId, input.connectionId)

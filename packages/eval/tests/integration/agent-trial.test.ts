@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { Effect, Layer, Option } from "effect";
 import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import type { RequestedProfile } from "../../src/domain/harness-profile";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
@@ -26,6 +27,7 @@ import {
 } from "../fixtures/credentials";
 
 const TestLayer = AgentTrialLive.pipe(
+  Layer.provide(layerTestResolver()),
   Layer.provide(HarnessesLive),
   Layer.provide(SuspenderSleeping),
   Layer.provide(ScorerGroundTruthLive),

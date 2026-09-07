@@ -43,6 +43,11 @@ export interface HarnessSessionShape {
 }
 
 export interface HarnessDriverShape {
+  /* A harness whose credential refreshes itself in the sandbox returns the
+     rotated material here, so the stored copy does not stay spent. */
+  readonly captureRotation?: (
+    input: PrepareHarness
+  ) => Effect.Effect<Option.Option<Readonly<Record<string, string>>>>;
   readonly harness: HarnessName;
   readonly prepare: (
     input: PrepareHarness

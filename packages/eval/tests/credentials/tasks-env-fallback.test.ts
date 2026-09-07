@@ -16,6 +16,7 @@ const notFound = () =>
   Effect.fail(new CredentialError({ code: "not-found", message: "not found" }));
 
 const missing: CredentialResolverShape = {
+  persist: () => Effect.void,
   resolve: notFound,
   resolveBound: notFound,
 };

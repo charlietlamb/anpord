@@ -51,6 +51,7 @@ const complete = (body: unknown, status = 200, authenticated = true) => {
     })
   );
   const credentials = Layer.succeed(CredentialResolver, {
+    persist: () => Effect.void,
     resolve: () =>
       authenticated
         ? Effect.succeed(

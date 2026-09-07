@@ -61,6 +61,14 @@ export interface CredentialConnectionRepositoryShape {
     actor: Actor,
     id: string
   ) => Effect.Effect<void, CredentialError>;
+  /* Scoped by organization rather than actor: a run refreshing its own token
+     has no person behind it. */
+  readonly reseal: (
+    organizationId: string,
+    id: string,
+    sealedPayload: string,
+    now: Date
+  ) => Effect.Effect<void, CredentialError>;
   readonly rotate: (
     actor: Actor,
     row: ConnectionRow,
@@ -163,6 +171,18 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
             rows.length === 0 ? Effect.fail(connectionNotFound()) : Effect.void
           )
         ),
+      reseal: (organizationId, id, sealedPayload, now) =>
+        tryStore("credential.reseal", () =>
+          db
+            .update(credentialConnection)
+            .set({ sealedPayload, updatedAt: now })
+            .where(
+              and(
+                eq(credentialConnection.organizationId, organizationId),
+                eq(credentialConnection.id, id)
+              )
+            )
+        ).pipe(Effect.asVoid, Effect.mapError(storeUnavailable)),
       rotate: (actor, row, sealedPayload, now) =>
         tryStore("credential.rotate", () =>
           db

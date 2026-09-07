@@ -9,6 +9,7 @@ import type {
 } from "../../ports/harness";
 import { decodeCodexLine } from "./codex-events";
 import { authenticateCodex, CODEX_BIN, installCodex } from "./codex-install";
+import { readRotatedAuth } from "./codex-rotation";
 import { noPending, timeLine } from "./codex-timing";
 import { harnessLines, shellQuote } from "./process";
 
@@ -76,6 +77,19 @@ const authOf = (credential: ResolvedCredential) => {
 };
 
 export const CodexDriver: HarnessDriverShape = {
+  captureRotation: (input) => {
+    const credential = Redacted.value(input.credential);
+
+    /* An api-key credential carries no refresh token and cannot rotate. */
+    return credential.authMethodId === "api-key"
+      ? Effect.succeedNone
+      : readRotatedAuth(input.sandbox, input.home).pipe(
+          Effect.map(
+            Option.filter((authJson) => authJson !== credential.values.authJson)
+          ),
+          Effect.map(Option.map((authJson) => ({ authJson })))
+        );
+  },
   harness: "codex",
   prepare: (input) =>
     Effect.gen(function* () {

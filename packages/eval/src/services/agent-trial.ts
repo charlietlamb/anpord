@@ -14,6 +14,7 @@ import {
   Ref,
   Stream,
 } from "effect";
+import { CredentialResolver } from "../credentials/resolver";
 import { cacheKeyOf } from "../domain/cache-key";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import type {
@@ -36,6 +37,7 @@ import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer, type ValidationObserver } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
+import { captureCredentialRotation } from "./credential-rotation";
 import { apiInstructions } from "./mock-apis";
 import { systemPromptPath } from "./profile-files";
 import { Suspender } from "./suspender";
@@ -108,6 +110,7 @@ const voided = (outcome: TrialOutcome): TrialOutcome => ({
 export const AgentTrialLive = Layer.effect(
   AgentTrial,
   Effect.gen(function* () {
+    const credentials = yield* CredentialResolver;
     const harnesses = yield* Harnesses;
     const sandboxes = yield* SandboxProvider;
     const scorer = yield* Scorer;
@@ -161,6 +164,21 @@ export const AgentTrialLive = Layer.effect(
           sourceToken: request.sourceToken,
           workspace: request.workspace,
         }).pipe(Effect.provideService(Suspender, suspender));
+
+        /* Before the sandbox is released, so a token the harness refreshed in
+           there replaces the spent one we stored. */
+        yield* Effect.addFinalizer(() =>
+          captureCredentialRotation({
+            credential: request.harnessCredential,
+            credentials,
+            driver,
+            home: sandbox.home,
+            organizationId: request.organizationId,
+            profile,
+            sandbox,
+            version: request.harnessVersion,
+          })
+        );
 
         yield* Effect.addFinalizer(() =>
           api.collect().pipe(

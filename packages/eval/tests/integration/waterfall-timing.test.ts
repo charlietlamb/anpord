@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Effect, Layer } from "effect";
 import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { EvalSandboxLive } from "../../src/layer";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
 import { SuspenderSleeping } from "../../src/services/suspender";
@@ -14,6 +15,7 @@ const READY = hasDaytona && hasCodex;
 const SLEEP_SECONDS = 5;
 
 const TestLayer = AgentTrialLive.pipe(
+  Layer.provide(layerTestResolver()),
   Layer.provide(HarnessesLive),
   Layer.provide(SuspenderSleeping),
   Layer.provide(ScorerGroundTruthLive),
