@@ -19,7 +19,7 @@ const DESCRIPTION =
   "Evals for harnesses running in sandboxes. Hand a coding agent a repo and a real shell, then score what it built.";
 
 const SITE_URL = "https://www.anpord.com";
-const OG_IMAGE = `${SITE_URL}/og.png`;
+const OG_IMAGE = `${SITE_URL}/og.png?v=chamfer-thin`;
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
