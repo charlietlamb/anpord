@@ -67,7 +67,7 @@ export function LogosPage() {
             className="flex items-center gap-1 font-heading font-medium text-xl tracking-tight"
             to="/home"
           >
-            <Logo className="size-6" />
+            <Logo />
             Anpord
           </Link>
           <div className="flex items-center gap-4">

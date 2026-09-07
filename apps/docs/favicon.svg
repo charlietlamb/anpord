@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-48 -48 96 96">
-  <style>svg{fill:#171816}@media(prefers-color-scheme:dark){svg{fill:#f7f7f7}}</style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-48 -48 96 96" fill="#fff">
   <defs><path id="mark" d="M-9-44H9L19-34L9-28L13-23L8-18H-8L-13-23L-9-28L-19-34Z"/></defs>
   <use href="#mark"/>
   <use href="#mark" transform="rotate(60)"/>
