@@ -1,12 +1,10 @@
-import { appendFile, mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
 import {
   McpServer,
   type StandardSchemaWithJSON,
 } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { Effect } from "effect";
-import type { McpCall } from "./calls";
+import { appendCall, errorOf } from "../mock-journal";
 import type {
   McpServerDefinition,
   ResourceDefinition,
@@ -14,9 +12,6 @@ import type {
 } from "./define";
 
 const JOURNAL = ".anpord/mcp-calls.jsonl";
-
-const errorOf = (cause: unknown) =>
-  cause instanceof Error ? cause : new Error(String(cause));
 
 const decode = <Schema extends StandardSchemaWithJSON>(
   schema: Schema,
@@ -35,15 +30,6 @@ const decode = <Schema extends StandardSchemaWithJSON>(
     },
   });
 
-const append = (path: string, call: McpCall) =>
-  Effect.tryPromise({
-    catch: errorOf,
-    try: async () => {
-      await mkdir(dirname(path), { recursive: true });
-      await appendFile(path, `${JSON.stringify(call)}\n`);
-    },
-  });
-
 const messageOf = (cause: unknown) => errorOf(cause).message;
 
 const toolResult = async (
@@ -59,7 +45,7 @@ const toolResult = async (
       try: () => Promise.resolve(definition.handler(input, { signal })),
     }).pipe(Effect.flatMap((value) => decode(definition.outputSchema, value)));
 
-    yield* append(journal, {
+    yield* appendCall(journal, {
       input,
       kind: "tool",
       name: definition.name,
@@ -73,7 +59,7 @@ const toolResult = async (
     };
   }).pipe(
     Effect.catchAll((cause) =>
-      append(journal, {
+      appendCall(journal, {
         error: messageOf(cause),
         input,
         kind: "tool",
@@ -106,7 +92,7 @@ const readResource = async (
       try: () => Promise.resolve(definition.handler(input, { signal })),
     }).pipe(Effect.flatMap((value) => decode(definition.outputSchema, value)));
 
-    yield* append(journal, {
+    yield* appendCall(journal, {
       input,
       kind: "resource",
       name: definition.name,
@@ -125,7 +111,7 @@ const readResource = async (
     };
   }).pipe(
     Effect.tapError((cause) =>
-      append(journal, {
+      appendCall(journal, {
         error: messageOf(cause),
         input: { uri: uri.href },
         kind: "resource",

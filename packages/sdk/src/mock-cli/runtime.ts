@@ -1,8 +1,5 @@
-import { appendFile, mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { Effect } from "effect";
-import type { CliCall } from "./calls";
+import { appendCall, decodeStandard, errorOf } from "../mock-journal";
 import {
   type CliCommandDefinition,
   type CliDefinition,
@@ -10,33 +7,6 @@ import {
 } from "./define";
 
 const JOURNAL = ".anpord/cli-calls.jsonl";
-
-const errorOf = (cause: unknown) =>
-  cause instanceof Error ? cause : new Error(String(cause));
-
-const decode = <Input, Output>(
-  schema: StandardSchemaV1<Input, Output>,
-  value: unknown
-) =>
-  Effect.tryPromise({
-    catch: errorOf,
-    try: async () => {
-      const result = await schema["~standard"].validate(value);
-      if (result.issues !== undefined) {
-        throw new Error(result.issues.map(({ message }) => message).join("; "));
-      }
-      return result.value;
-    },
-  });
-
-const append = (path: string, call: CliCall) =>
-  Effect.tryPromise({
-    catch: errorOf,
-    try: async () => {
-      await mkdir(dirname(path), { recursive: true });
-      await appendFile(path, `${JSON.stringify(call)}\n`);
-    },
-  });
 
 const commandHelp = (definition: CliDefinition, item: CliCommandDefinition) => {
   const options = Object.entries(item.options).map(
@@ -156,15 +126,17 @@ export const executeCli = (
         catch: errorOf,
         try: () => parseOptions(item, rest),
       });
-      const decoded = yield* decode(item.inputSchema, input);
+      const decoded = yield* decodeStandard(item.inputSchema, input);
       const output = yield* Effect.tryPromise({
         catch: errorOf,
         try: () =>
           Promise.resolve(
             item.handler(decoded, { signal: new AbortController().signal })
           ),
-      }).pipe(Effect.flatMap((value) => decode(item.outputSchema, value)));
-      yield* append(journal, {
+      }).pipe(
+        Effect.flatMap((value) => decodeStandard(item.outputSchema, value))
+      );
+      yield* appendCall(journal, {
         cli: definition.path,
         command: item.path.join(" "),
         input: decoded,
@@ -177,7 +149,7 @@ export const executeCli = (
       };
     }).pipe(
       Effect.catchAll((cause) =>
-        append(journal, {
+        appendCall(journal, {
           cli: definition.path,
           command: item.path.join(" "),
           error: errorOf(cause).message,
