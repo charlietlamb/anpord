@@ -23,7 +23,7 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
   return (
     <TooltipProvider>
       <SidebarProvider className="relative isolate" defaultOpen={sidebarOpen}>
-        <Dither className="fixed inset-0 -z-10 text-foreground/[0.08] opacity-75" />
+        <Dither />
         <Hydrate when={idle()}>
           <ClientOnly>
             <CommandMenu />
