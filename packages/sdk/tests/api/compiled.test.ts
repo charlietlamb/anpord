@@ -41,7 +41,9 @@ test("Node cancels handlers and records disconnected requests", async () => {
   const error = await new Response(child.stderr).text();
   expect(error).toBe("");
   expect(await child.exited).toBe(0);
-});
+  /* Spawning Node and letting it settle takes most of the default five
+     seconds on a laptop, so a slower runner times out on nothing. */
+}, 30_000);
 
 test("compiled HTTP server, prepare, and validator preserve request evidence in Node", async () => {
   workspace = await mkdtemp(join(tmpdir(), "anpord-http-compiled-"));
