@@ -64,7 +64,7 @@ const sourceFor = (
   });
 };
 
-export const compileRefEffect = (ref: DefinitionRef) =>
+const compileRefEffect = (ref: DefinitionRef) =>
   Effect.gen(function* () {
     const entry = ref.entry;
     const loaded = yield* loadDefinition(ref);
@@ -152,7 +152,7 @@ export const compileRefEffect = (ref: DefinitionRef) =>
     });
   }).pipe(Effect.withSpan("Eval.compile"));
 
-export const compileDefinitionEffect = (definition: EvalDefinition) =>
+const compileDefinitionEffect = (definition: EvalDefinition) =>
   Effect.flatMap(locate(definition), compileRefEffect);
 
 export const compileDefinition = (

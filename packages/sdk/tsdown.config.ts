@@ -12,7 +12,7 @@ export default defineConfig({
     cli: "src/mock-cli/index.ts",
     "cli-runtime": "src/mock-cli/runtime.ts",
     config: "src/client/config.ts",
-    eval: "src/evals/compiler.ts",
+    eval: "src/evals/index.ts",
     index: "src/index.ts",
     mcp: "src/mcp/index.ts",
     "mcp-runtime": "src/mcp/runtime.ts",
