@@ -8,9 +8,9 @@ Anpord gives you a declaritve way to run evals against [Claude Code](https://cla
 You write evals, validators, judges and whatever else you need in TypeScript. These are then run in a sandbox environment of your choice. Sandboxes can also be compared against one another.
 
 ```ts hello.eval.ts
-import { defineEval, empty } from "anpord";
+import { suite, empty } from "anpord";
 
-export default defineEval({
+export default suite({
   name: "hello",
   source: empty,
   prompt: "Create hello.txt containing exactly hello",

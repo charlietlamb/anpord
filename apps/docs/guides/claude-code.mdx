@@ -21,9 +21,9 @@ Create an Anpord API key with `evals:read` and `evals:write` in the same organiz
 Install `anpord`, then create `claude.eval.ts`:
 
 ```ts
-import { defineEval, empty } from "anpord";
+import { suite, empty } from "anpord";
 
-export default defineEval({
+export default suite({
   name: "claude-smoke",
   source: empty,
   prompt: "Create hello.txt containing exactly hello.",

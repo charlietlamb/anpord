@@ -59,7 +59,7 @@ const { id } = await anpord.evals.start({
 Validators, preparation, profiles and mock dependencies live in an eval file. Import it and hand it over:
 
 ```ts evals/smoke.eval.ts
-export const smoke = defineEval(import.meta.url, { ... });
+export const smoke = suite(import.meta.url, { ... });
 ```
 
 ```ts

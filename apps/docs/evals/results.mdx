@@ -75,7 +75,7 @@ Code checks record their return value, context arguments and results, logs, and 
 
 Each validator gets a 64,000-character budget, single values cap at 16,000, and at most 64 calls or log entries are kept. Truncation affects the stored evidence, never the score.
 
-Inputs and logs can contain your data. `captureValidation: false` on `defineEval` keeps verdicts and timing but stores no payloads, separately from `captureSource`. Credentials and model reasoning are never collected, but a validator that prints a secret will store it.
+Inputs and logs can contain your data. `captureValidation: false` on `suite` keeps verdicts and timing but stores no payloads, separately from `captureSource`. Credentials and model reasoning are never collected, but a validator that prints a secret will store it.
 
 ## Run origin
 

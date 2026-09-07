@@ -1,4 +1,4 @@
-import { defineEval, type EvalTaskDefinition, empty } from "anpord";
+import { type EvalTaskDefinition, empty, suite } from "anpord";
 import { catalogApi } from "./mocks/api";
 import { catalogCli } from "./mocks/cli";
 import { catalogMcp } from "./mocks/mcp";
@@ -15,7 +15,7 @@ export const comparisonSuite = (
   name: string,
   tasks: readonly EvalTaskDefinition[]
 ) =>
-  defineEval({
+  suite({
     name: `anpord-models/${name}`,
     source: empty,
     mcp: [catalogMcp],

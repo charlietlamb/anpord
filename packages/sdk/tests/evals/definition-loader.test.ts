@@ -10,7 +10,7 @@ const definition = {
 };
 
 describe("isDefinition", () => {
-  test("accepts what defineEval returns", () => {
+  test("accepts what the suite builder returns", () => {
     expect(isDefinition(definition)).toBe(true);
   });
 

@@ -30,9 +30,9 @@ bun add anpord
 Create `smoke.eval.ts`:
 
 ```ts
-import { defineEval, empty } from "anpord";
+import { suite, empty } from "anpord";
 
-export default defineEval({
+export default suite({
   name: "smoke",
   source: empty,
   prompt: "{{task}}",

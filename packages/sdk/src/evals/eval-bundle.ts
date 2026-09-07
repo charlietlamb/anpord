@@ -6,7 +6,7 @@ import { build, type Plugin } from "esbuild";
 import { sourceFiles } from "./source-files";
 
 const authoringExports = [
-  "export const defineEval = (first, second) => typeof first === 'string' ? second : first;",
+  "export const suite = (first, second) => typeof first === 'string' ? second : first;",
   `export { empty, files, repo } from "./source";`,
 ].join("\n");
 

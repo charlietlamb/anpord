@@ -1,6 +1,6 @@
-import { defineEval, empty } from "anpord";
+import { empty, suite } from "anpord";
 
-export default defineEval({
+export default suite({
   name: "anpord-models/claude-smoke",
   source: empty,
   prompt:

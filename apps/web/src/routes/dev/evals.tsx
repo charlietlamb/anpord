@@ -17,6 +17,7 @@ import {
 import { PreviewCellRail } from "@/components/dev/preview-cell-rail";
 import { PreviewRunRail } from "@/components/dev/preview-run-rail";
 import { PreviewScreen } from "@/components/dev/preview-screen";
+import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
@@ -25,7 +26,7 @@ import { RunGrid } from "@/components/evals/run-grid";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialTable } from "@/components/evals/trial-table";
-import { ValidationSource } from "@/components/evals/validation-source";
+import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
@@ -49,12 +50,12 @@ function EvalsPreview() {
 
         <PreviewScreen name="Validation and calls">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5 py-5">
-            <ValidationSource
+            <ValidationInspector
               files={[
                 {
                   path: "evals/catalog.eval.ts",
                   content:
-                    "import { defineEval, empty } from 'anpord';\nimport { catalog } from './catalog';\nimport { validate } from './validate';\n\nexport default defineEval({\n  source: empty,\n  mcp: [catalog],\n  prompt: 'Retrieve the fixture and report its name.',\n  cases: [{ name: 'retrieve-item', validate }],\n});\n",
+                    "import { suite, empty } from 'anpord';\nimport { catalog } from './catalog';\nimport { validate } from './validate';\n\nexport default suite({\n  source: empty,\n  mcp: [catalog],\n  prompt: 'Retrieve the fixture and report its name.',\n  cases: [{ name: 'retrieve-item', validate }],\n});\n",
                 },
                 {
                   path: "evals/validate.ts",
@@ -62,7 +63,9 @@ function EvalsPreview() {
                     "export const validate = async ({ answer }) => ({\n  passed: (await answer()).includes('CI fixture'),\n});\n",
                 },
               ]}
+              trials={VALIDATION_TRIALS.slice(0, 1)}
             />
+            <ValidationInspector trials={VALIDATION_TRIALS} />
             <TrialCalls
               trajectory={[
                 {

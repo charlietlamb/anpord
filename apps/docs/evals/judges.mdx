@@ -6,7 +6,7 @@ description: "Score answers with a model you choose"
 Use code for exact checks. Add a judge for qualities such as correctness, relevance, or clarity that need interpretation.
 
 ```ts
-import { defineEval, empty } from "anpord";
+import { suite, empty } from "anpord";
 import { judge } from "anpord/validators";
 
 const correctness = judge({
@@ -19,7 +19,7 @@ const correctness = judge({
   threshold: 1,
 });
 
-export default defineEval({
+export default suite({
   name: "arithmetic",
   source: empty,
   prompt: "What is 2 + 2? Explain briefly.",

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { compileDefinition } from "../../src/evals/compiler";
-import { defineEval } from "../../src/evals/define";
+import { suite } from "../../src/evals/define";
 import { smoke } from "./fixtures/named.eval";
 
 const NO_LOCATION = /does not know where it was written/;
@@ -25,7 +25,7 @@ describe("compiling an imported definition", () => {
   });
 
   test("says so when the eval does not know where it lives", async () => {
-    const orphan = defineEval({
+    const orphan = suite({
       name: "orphan",
       prompt: "x",
       tasks: [{ harness: "codex", model: "m" }],

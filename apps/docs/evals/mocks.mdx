@@ -90,7 +90,7 @@ The runtime generates help and version output, validates output, prints JSON to 
 For HTTP servers, see [API mocks](/evals/api-mocks). They use the same fixtures and validators below.
 
 ```ts users.eval.ts
-import { defineEval, empty, type Validator } from "anpord";
+import { suite, empty, type Validator } from "anpord";
 import { usersCli } from "./cli/users";
 import { GetUserInput, user } from "./fixtures/users";
 import { usersMcp } from "./mcp/users";
@@ -115,7 +115,7 @@ const validate: Validator = async ({ answer, cli, mcp }) => {
   return { passed: called && text.includes(user.name) };
 };
 
-export default defineEval({
+export default suite({
   name: "users-interface",
   source: empty,
   prompt: "Use an available interface to retrieve user_fixture and report its name.",

@@ -91,7 +91,7 @@ const caseBlock = (subject: EvalsJsonCase) =>
     "    },",
   ].join("\n");
 
-const IMPORTS = 'import { defineEval, files } from "anpord";';
+const IMPORTS = 'import { suite, files } from "anpord";';
 
 /* Emitted into the file rather than imported, so an imported suite is one
    self-contained module. Matching is case-insensitive. */
@@ -119,7 +119,7 @@ export const renderEvalSuite = (file: EvalsJsonFile) => {
     "",
     ...(structured ? [helpersBlock, ""] : []),
     ...(prose ? [placeholderBlock, ""] : []),
-    "export default defineEval({",
+    "export default suite({",
     `  name: ${quoted(slug(file.skill_name, "imported-suite"))},`,
     '  prompt: "{{task}}",',
     "  trials: 3,",

@@ -1,9 +1,9 @@
-import { defineEval } from "../../../src/evals/define";
+import { suite } from "../../../src/evals/define";
 import { empty } from "../../../src/evals/source";
 
 const expected = "hello";
 
-export const smoke = defineEval(import.meta.url, {
+export const smoke = suite(import.meta.url, {
   name: "smoke",
   source: empty,
   prompt: "Create hello.txt",

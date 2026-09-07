@@ -1,10 +1,10 @@
-import { defineEval } from "../../../sdk/src/evals/define";
+import { suite } from "../../../sdk/src/evals/define";
 import { empty } from "../../../sdk/src/evals/source";
 import type { Validator } from "../../../sdk/src/evals/types";
 
 const validate: Validator = () => true;
 
-export default defineEval({
+export default suite({
   name: "source-snapshot",
   source: empty,
   prompt: "Use the fixture",

@@ -2,14 +2,14 @@ import type { EvalDefinition } from "./types";
 
 const SOURCE_URL = Symbol.for("anpord.sourceUrl");
 
-export function defineEval<const Definition extends EvalDefinition>(
+export function suite<const Definition extends EvalDefinition>(
   definition: Definition
 ): Definition;
-export function defineEval<const Definition extends EvalDefinition>(
+export function suite<const Definition extends EvalDefinition>(
   sourceUrl: string,
   definition: Definition
 ): Definition;
-export function defineEval<const Definition extends EvalDefinition>(
+export function suite<const Definition extends EvalDefinition>(
   first: string | Definition,
   second?: Definition
 ): Definition {

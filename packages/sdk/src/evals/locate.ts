@@ -5,7 +5,7 @@ import type { DefinitionRef } from "./runner-source";
 import type { EvalDefinition } from "./types";
 
 const HINT =
-  "Pass import.meta.url as the first argument to defineEval, or compile by path.";
+  "Pass import.meta.url as the first argument to suite, or compile by path.";
 
 const exportHolding = async (entry: string, definition: EvalDefinition) => {
   const module: Record<string, unknown> = await import(entry);

@@ -50,7 +50,7 @@ describe("compileEval", () => {
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
+      `import { suite } from "anpord";
 import { cli, command } from "anpord/cli";
 import { server, tool } from "anpord/mcp";
 import { api as httpApi, endpoint } from "anpord/api";
@@ -76,7 +76,7 @@ const api = server({
     handler: ({ id }) => ({ id }),
   })],
 });
-export default defineEval({
+export default suite({
   cases: [{ name: "case", verify: "true" }],
   cli: [client],
   mcp: [api],
@@ -200,9 +200,9 @@ export const hasGreeting: Validator = async ({ readText }) => ({
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
+      `import { suite } from "anpord";
 import { hasGreeting } from "./validator";
-export default defineEval({
+export default suite({
   cases: [{ variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
   name: "direct-validator",
   prompt: "{{task}}",
@@ -241,8 +241,8 @@ export default defineEval({
     workspace = await mkdtemp(join(tmpdir(), "anpord-source-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval, empty, repo } from "anpord";
-export default defineEval({
+      `import { suite, empty, repo } from "anpord";
+export default suite({
   cases: [
     { variables: { task: "add a test" }, name: "inherits", verify: "true" },
     { variables: { task: "from scratch" }, name: "overrides", source: empty, verify: "true" },
@@ -269,8 +269,8 @@ export default defineEval({
     workspace = await mkdtemp(join(tmpdir(), "anpord-bad-source-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval, repo } from "anpord";
-export default defineEval({
+      `import { suite, repo } from "anpord";
+export default suite({
   cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
@@ -287,8 +287,8 @@ export default defineEval({
     workspace = await mkdtemp(join(tmpdir(), "anpord-bare-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
-export default defineEval({
+      `import { suite } from "anpord";
+export default suite({
   cases: [
     { variables: { task: "add a test" }, name: "inherits", verify: "true" },
     { variables: { task: "fix it" }, name: "own", source: "acme/widgets", verify: "true" },
@@ -319,8 +319,8 @@ export default defineEval({
     workspace = await mkdtemp(join(tmpdir(), "anpord-bare-bad-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
-export default defineEval({
+      `import { suite } from "anpord";
+export default suite({
   cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
@@ -343,8 +343,8 @@ export default defineEval({
 
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
-export default defineEval({
+      `import { suite } from "anpord";
+export default suite({
   cases: [{ variables: { task: "add a test" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
@@ -366,8 +366,8 @@ export default defineEval({
     workspace = await mkdtemp(join(tmpdir(), "anpord-named-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
-export default defineEval({
+      `import { suite } from "anpord";
+export default suite({
   cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
@@ -402,10 +402,10 @@ export const validateRepoImage: Validator = ({ setup }) =>
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { defineEval } from "anpord";
+      `import { suite } from "anpord";
 import { prepareRepoImage, validateRepoImage } from "./prepare";
 
-export default defineEval({
+export default suite({
   cases: [
     {
       name: "renders",

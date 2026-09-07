@@ -6,9 +6,9 @@ description: "Define work and its pass condition"
 An eval suite is a TypeScript object. Its prompt and tasks are shared; each case supplies variables, a workspace, and one pass condition.
 
 ```ts
-import { defineEval, repo } from "anpord";
+import { suite, repo } from "anpord";
 
-export default defineEval({
+export default suite({
   name: "api",
   source: repo("acme/api@8f31c4a"),
   prompt: "{{task}}",
@@ -89,7 +89,7 @@ The dashboard's **Validation** panel shows the original source captured during c
 
 Capture includes TypeScript and JavaScript files present in the bundle, within the eval's nearest `package.json` directory. Without a package file, it uses the eval's directory. Dependencies, generated code, and files outside that directory are excluded. Imported fixtures and other code in those files may be included, not just the selected validator.
 
-Source is uploaded with the eval. Keep secrets out of source files, or set `captureSource: false` on `defineEval` to disable capture. Snapshots are limited to 100 files and 1,000,000 characters in total. Older runs without a snapshot show “Source unavailable.”
+Source is uploaded with the eval. Keep secrets out of source files, or set `captureSource: false` on `suite` to disable capture. Snapshots are limited to 100 files and 1,000,000 characters in total. Older runs without a snapshot show “Source unavailable.”
 
 Use [model judges](/evals/judges) for subjective checks, or combine both with `validate: [hasHealthRoute, correctness]`.
 

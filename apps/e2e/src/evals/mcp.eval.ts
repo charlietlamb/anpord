@@ -1,10 +1,10 @@
-import { defineEval, empty } from "anpord";
+import { empty, suite } from "anpord";
 import { tasks, trials } from "./config";
 import { catalogMcp } from "./mocks/catalog-mcp";
 import { validateMcp } from "./validators/catalog";
 import { correctItem } from "./validators/judges";
 
-export default defineEval({
+export default suite({
   name: "anpord-ci/mcp",
   source: empty,
   mcp: [catalogMcp],

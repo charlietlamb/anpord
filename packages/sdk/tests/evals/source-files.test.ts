@@ -29,9 +29,9 @@ const create = async (captureSource = true) => {
   const entry = join(workspace, "evals/example.eval.ts");
   await writeFile(
     entry,
-    `import { defineEval, empty } from "anpord";
+    `import { suite, empty } from "anpord";
 import { check } from "../check";
-export default defineEval({
+export default suite({
   name: "example", captureSource: ${captureSource}, source: empty,
   prompt: "Answer", trials: 1,
   tasks: [{ harness: "codex", model: "model", provider: "e2b" }],

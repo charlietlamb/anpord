@@ -75,7 +75,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
         ref.exportName === null ? "default export" : `export ${ref.exportName}`;
 
       return yield* Effect.fail(
-        new Error(`${entry} must ${named} defineEval({ ... })`)
+        new Error(`${entry} must ${named} suite({ ... })`)
       );
     }
 

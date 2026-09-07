@@ -1,10 +1,10 @@
-import { defineEval, empty } from "anpord";
+import { empty, suite } from "anpord";
 import { tasks, trials } from "./config";
 import { catalogApi } from "./mocks/catalog-api";
 import { validateApi } from "./validators/api";
 import { correctItem } from "./validators/judges";
 
-export default defineEval({
+export default suite({
   name: "anpord-ci/api",
   source: empty,
   api: [catalogApi],

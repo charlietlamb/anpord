@@ -26,10 +26,10 @@ export const install: Prepare = ({ cached }) => ({ skipped: cached });`
 
   await writeFile(
     join(workspace, "eval.ts"),
-    `import { defineEval } from "anpord";
+    `import { suite } from "anpord";
 import { install } from "./install";
 
-export default defineEval({
+export default suite({
   cases: [${caseBody}],
   name: "prepare-cache",
   prompt: "{{task}}",

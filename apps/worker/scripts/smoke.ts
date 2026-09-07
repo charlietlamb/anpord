@@ -41,7 +41,7 @@ if (ORG === "") {
    that calls it and reports what it returned. Source handed over raw is a
    function nobody calls, and the run reports an empty prepare rather than a
    broken one. */
-const EVAL_FILE = `import { defineEval } from "anpord";
+const EVAL_FILE = `import { suite } from "anpord";
 import type { Prepare } from "anpord";
 
 export const install: Prepare = async ({ cached, exec }) => {
@@ -57,7 +57,7 @@ export const install: Prepare = async ({ cached, exec }) => {
   return { fromCache: false };
 };
 
-export default defineEval({
+export default suite({
   cases: [
     {
       cache: { key: "smoke-lodash-1", path: "vendor" },

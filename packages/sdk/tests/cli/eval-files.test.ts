@@ -32,7 +32,7 @@ const found = (directory: string) =>
     evalFilesIn(directory).pipe(Effect.provide(NodeContext.layer))
   );
 
-describe("finding the suites in a repository", () => {
+describe("finding the eval files in a repository", () => {
   test("takes every eval file, wherever it sits", async () => {
     const cwd = await treeWith([
       "anpord.eval.ts",

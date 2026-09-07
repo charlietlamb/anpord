@@ -15,8 +15,8 @@ const action = resolve(root, ".github/actions/eval/run.mjs");
 const decodeReport = Schema.decodeUnknownSync(
   Schema.parseJson(Schema.Array(EvalOutcome))
 );
-const definition = `import { defineEval, empty } from "anpord";
-export default defineEval({name:"CI",source:empty,prompt:"test",cases:[{name:"fixture",verify:"true"}],tasks:[{harness:"codex",model:"test",provider:"e2b"}],trials:1});`;
+const definition = `import { suite, empty } from "anpord";
+export default suite({name:"CI",source:empty,prompt:"test",cases:[{name:"fixture",verify:"true"}],tasks:[{harness:"codex",model:"test",provider:"e2b"}],trials:1});`;
 
 const execute = async (
   run: EvalRun,

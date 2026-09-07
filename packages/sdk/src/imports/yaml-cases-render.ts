@@ -71,11 +71,11 @@ const suiteName = (files: readonly YamlCaseFile[]) =>
 
 export const renderYamlSuite = (files: readonly YamlCaseFile[]) =>
   `${[
-    'import { defineEval, files } from "anpord";',
+    'import { suite, files } from "anpord";',
     "",
     placeholderBlock,
     "",
-    "export default defineEval({",
+    "export default suite({",
     `  name: ${quoted(suiteName(files))},`,
     '  prompt: "{{task}}",',
     "  trials: 3,",

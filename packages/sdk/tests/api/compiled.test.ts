@@ -61,11 +61,11 @@ test("compiled HTTP server, prepare, and validator preserve request evidence in 
   );
   await writeFile(
     entry,
-    `import { defineEval, empty } from "anpord";
+    `import { suite, empty } from "anpord";
 import { api, endpoint } from "anpord/api";
 import { z } from "zod";
 import { prepareHttp } from "./prepare";
-export default defineEval({ name: "http", source: empty, prompt: "Use catalog", trials: 1,
+export default suite({ name: "http", source: empty, prompt: "Use catalog", trials: 1,
   api: [api({ name: "catalog", endpoints: [endpoint({ method: "GET", path: "/items/:id",
     inputSchema: z.object({ params: z.object({ id: z.string() }) }),
     responses: { 200: z.object({ id: z.string() }) },

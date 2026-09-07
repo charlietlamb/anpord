@@ -36,7 +36,7 @@ Move `item` and `Item` into a shared fixture file to reuse them with [MCP and CL
 ## Run an eval
 
 ```ts catalog.eval.ts
-import { defineEval, empty, type Validator } from "anpord";
+import { suite, empty, type Validator } from "anpord";
 import { catalog } from "./mocks/catalog";
 
 const validate: Validator = async ({ api, answer }) => ({
@@ -45,7 +45,7 @@ const validate: Validator = async ({ api, answer }) => ({
   ) && (await answer()).includes("Test item"),
 });
 
-export default defineEval({
+export default suite({
   name: "catalog/api",
   source: empty,
   api: [catalog],

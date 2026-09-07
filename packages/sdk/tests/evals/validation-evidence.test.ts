@@ -47,8 +47,8 @@ const run = async (checks: string, capture = true) => {
   const entry = join(workspace, "eval.ts");
   await writeFile(
     entry,
-    `import { defineEval, empty } from "anpord";
-export default defineEval({ name: "observability", source: empty, prompt: "Answer", trials: 1, captureValidation: ${capture},
+    `import { suite, empty } from "anpord";
+export default suite({ name: "observability", source: empty, prompt: "Answer", trials: 1, captureValidation: ${capture},
 tasks: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ name: "check", validate: ${checks} }] });`
   );
   const validator = (await compileEval(entry)).cases[0]?.validator;

@@ -58,7 +58,7 @@ describe.if(built)("the published binary", () => {
     expect(code).toBe(0);
   });
 
-  test("eval finds the suites in a directory without being told", async () => {
+  test("eval finds the eval files in a directory without being told", async () => {
     const directory = await mkdtemp(join(tmpdir(), "anpord-cli-"));
     const requests: { pathname: string; payload: unknown }[] = [];
     const server = Bun.serve({
@@ -76,8 +76,8 @@ describe.if(built)("the published binary", () => {
     try {
       const nested = join(directory, "evals");
       const dependencies = join(directory, "node_modules", "fixture");
-      const definition = `import { defineEval } from "anpord";
-export default defineEval({
+      const definition = `import { suite } from "anpord";
+export default suite({
   name: "NAME",
   source: { kind: "empty" },
   prompt: "{{task}}",
