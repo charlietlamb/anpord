@@ -3,10 +3,10 @@ title: "Run evals from code"
 description: "Import an eval and inspect its result"
 ---
 
-Keep the suite in a typed `*.eval.ts` file and pass `import.meta.url` to `suite`, so the eval knows where it was written:
+Export the suite from a typed `*.eval.ts` file and import it:
 
 ```ts evals/smoke.eval.ts
-export const smoke = suite(import.meta.url, { ... });
+export const smoke = suite({ ... });
 ```
 
 Then import it and submit it from application code:

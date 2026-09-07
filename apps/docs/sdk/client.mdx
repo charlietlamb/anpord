@@ -59,7 +59,7 @@ const { id } = await anpord.evals.start({
 Validators, preparation, profiles and mock dependencies live in an eval file. Import it and hand it over:
 
 ```ts evals/smoke.eval.ts
-export const smoke = suite(import.meta.url, { ... });
+export const smoke = suite({ ... });
 ```
 
 ```ts
@@ -68,7 +68,7 @@ import { smoke } from "./evals/smoke.eval";
 const run = await anpord.evals.startAndWait(smoke);
 ```
 
-`import.meta.url` tells Anpord where the eval was written, which is how the validators reach the sandbox with everything they close over. `start` and `startAndWait` compile it for you.
+A suite records the file it was written in, which is how its validators and mock servers reach the sandbox with everything they close over. `start` and `startAndWait` compile it for you.
 
 ## Prompts
 

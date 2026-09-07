@@ -3,7 +3,7 @@ import { compileDefinition } from "../../src/evals/compiler";
 import { suite } from "../../src/evals/define";
 import { smoke } from "./fixtures/named.eval";
 
-const NO_LOCATION = /does not know where it was written/;
+const NOT_EXPORTED = /is not exported from/;
 
 describe("compiling an imported definition", () => {
   test("finds the file and the export it was written in", async () => {
@@ -24,7 +24,9 @@ describe("compiling an imported definition", () => {
     ).toContain("hello");
   });
 
-  test("says so when the eval does not know where it lives", async () => {
+  /* A suite finds its own file, so the remaining failure is a definition
+     that file never exported: there is no name to import it back by. */
+  test("says so when the eval is not exported from its file", async () => {
     const orphan = suite({
       name: "orphan",
       prompt: "x",
@@ -33,6 +35,6 @@ describe("compiling an imported definition", () => {
       cases: [{ name: "a", verify: "true" }],
     });
 
-    await expect(compileDefinition(orphan)).rejects.toThrow(NO_LOCATION);
+    await expect(compileDefinition(orphan)).rejects.toThrow(NOT_EXPORTED);
   });
 });
