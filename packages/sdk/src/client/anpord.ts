@@ -6,6 +6,9 @@ import {
 import { render, type Variables } from "@anpord/template/render";
 import { FetchHttpClient } from "@effect/platform";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
+import { compileDefinition } from "../evals/compiler";
+import { sourceUrlOf } from "../evals/define";
+import type { EvalDefinition } from "../evals/types";
 import { noopLayer } from "./cache/noop";
 import { layer, PromptCache } from "./cache/prompt-cache";
 import { resolvePrompt } from "./cache/resolve";
@@ -44,11 +47,16 @@ type Prompt = Awaited<ReturnType<Prompts["get"]>>;
 
 type Evals = Promised<AnpordClient["evals"]>;
 type StartOptions = Parameters<Evals["start"]>[0];
+type StartInput = StartOptions | EvalDefinition;
 type Run = Awaited<ReturnType<Evals["get"]>>;
 
-export interface EvalsSurface extends Evals {
+export interface EvalsSurface extends Omit<Evals, "start"> {
+  /** Starts a run from a request or an imported eval. */
+  readonly start: (input: StartInput) => ReturnType<Evals["start"]>;
   /** Starts a run and resolves once it finishes. */
-  readonly startAndWait: (options: StartOptions & WaitOptions) => Promise<Run>;
+  readonly startAndWait: (
+    input: StartInput & Partial<WaitOptions>
+  ) => Promise<Run>;
   /** Polls an already-started run until it finishes. */
   readonly wait: (
     options: { readonly id: string } & WaitOptions
@@ -91,8 +99,14 @@ export class Anpord {
     const group = promised(client.prompts);
     const evals = promised(client.evals);
 
+    const requestOf = async (input: StartInput): Promise<StartOptions> =>
+      sourceUrlOf(input as EvalDefinition) === undefined
+        ? (input as StartOptions)
+        : ((await compileDefinition(input as EvalDefinition)) as StartOptions);
+
     this.evals = {
       ...evals,
+      start: async (input) => await evals.start(await requestOf(input)),
       startAndWait: async (options) => {
         const {
           maxIntervalMs,
@@ -100,9 +114,9 @@ export class Anpord {
           pollIntervalMs,
           signal,
           timeoutMs,
-          ...request
-        } = options;
-        const { id } = await evals.start(request as StartOptions);
+          ...input
+        } = options as StartOptions & WaitOptions;
+        const { id } = await evals.start(await requestOf(input as StartInput));
         return await waitForRun(evals.get, id, {
           maxIntervalMs,
           onProgress,
