@@ -11,7 +11,7 @@ export function SiteHeader() {
         className="flex items-center gap-1 font-heading font-medium text-xl tracking-[-0.03em] transition-opacity hover:opacity-70"
         to="/"
       >
-        <Logo />
+        <Logo className="size-[22px]" />
         Anpord
       </Link>
       <nav className="flex items-center gap-1">
