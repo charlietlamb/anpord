@@ -13,6 +13,7 @@ import {
   withMcpServers,
 } from "./mcp-profile";
 import { profileTask } from "./profile-directory";
+import { tooLargeToSubmit } from "./request-size";
 import { type DefinitionRef, prepareEntry } from "./runner-source";
 import { repo } from "./source";
 import type {
@@ -126,13 +127,19 @@ const compileRefEffect = (ref: DefinitionRef) =>
       { concurrency: 4 }
     );
 
-    return yield* Schema.decodeUnknown(PublicStartEvalRequest)({
+    const request = yield* Schema.decodeUnknown(PublicStartEvalRequest)({
       cases,
       name: definition.name,
       prompt: definition.prompt,
       tasks,
       trials: definition.trials,
     });
+
+    const tooLarge = tooLargeToSubmit(request);
+
+    return tooLarge === null
+      ? request
+      : yield* Effect.fail(new Error(tooLarge));
   }).pipe(Effect.withSpan("Eval.compile"));
 
 const compileDefinitionEffect = (definition: EvalDefinition) =>

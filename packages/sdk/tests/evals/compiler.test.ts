@@ -90,7 +90,7 @@ export default suite({
   prompt: "Use the tool",
   source: { kind: "empty" },
   tasks: [
-    ...["claude", "codex", "cursor", "fx", "gemini", "opencode", "pi", "qwen"].map(
+    ...["claude", "codex", "opencode"].map(
       (harness) => ({ harness, model: "model", sandbox: "daytona" })
     ),
   ],
