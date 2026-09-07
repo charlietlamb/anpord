@@ -56,7 +56,7 @@ export function CellSkeleton({
           <RailFactSkeleton facts={VARIANT} />
         </RailSection>
 
-        <RailSection title="History">
+        <RailSection title="Recent runs">
           <CellHistory cellKey={cellKey} runId={runId} />
         </RailSection>
       </aside>

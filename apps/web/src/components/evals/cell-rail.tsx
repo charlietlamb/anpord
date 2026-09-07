@@ -112,7 +112,7 @@ export function CellRail({
         </RailSection>
       ) : null}
 
-      <RailSection title="History">
+      <RailSection title="Recent runs">
         <CellHistory cellKey={cellKey} runId={runId} />
       </RailSection>
     </aside>

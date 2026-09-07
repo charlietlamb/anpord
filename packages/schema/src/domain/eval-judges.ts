@@ -7,7 +7,7 @@ const fields = {
   kind: Schema.Literal("judge"),
   name: text.pipe(Schema.maxLength(100)),
   model: text.pipe(Schema.maxLength(200)),
-  rubric: text.pipe(Schema.maxLength(32_000)),
+  prompt: text.pipe(Schema.maxLength(32_000)),
   expected: Schema.optional(Schema.String.pipe(Schema.maxLength(32_000))),
   choices: Schema.Record({ key: text, value: EvalScore }).pipe(
     Schema.filter(

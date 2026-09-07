@@ -36,7 +36,7 @@ test.skipIf(!enabled)(
       name: "arithmetic",
       harness: "codex",
       model: process.env.EVAL_JUDGE_MODEL ?? "gpt-5.6-sol",
-      rubric:
+      prompt:
         "The answer must give the correct value of 2 + 2. Select correct only for 4, otherwise incorrect.",
       expected: "4",
       choices: { correct: 1, incorrect: 0 },

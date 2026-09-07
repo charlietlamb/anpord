@@ -13,7 +13,7 @@ const correctness = judge({
   name: "correctness",
   harness: "codex",
   model: "gpt-5.6-sol",
-  rubric: "The answer explains why the result is correct, without inventing facts.",
+  prompt: "The answer explains why the result is correct, without inventing facts.",
   expected: "2 + 2 = 4",
   choices: { correct: 1, partial: 0.5, incorrect: 0 },
   threshold: 1,
@@ -48,13 +48,13 @@ Code checks run in the task sandbox. Judges run afterward. A case passes only wh
 | `name` | Unique judge name within the case |
 | `harness` or `provider` | Agent harness, or `provider: "openai"` for a direct model call |
 | `model` | Exact model identifier |
-| `rubric` | Instructions for the judgment |
+| `prompt` | Instructions for the judgment, separate from the task prompt |
 | `expected` | Optional reference answer |
 | `choices` | Labels mapped to scores between 0 and 1 |
 | `threshold` | Inclusive pass threshold; defaults to 1 |
 | `timeoutMs` | Total judging timeout; defaults to 120,000, maximum 300,000 |
 
-A case accepts up to 20 validators. Each judge accepts up to 20 choices. Names, rubrics, and expected answers are checked when the eval compiles.
+A case accepts up to 20 validators. Each judge accepts up to 20 choices. Names, prompts, and expected answers are checked when the eval compiles.
 
 ## Authentication
 
@@ -62,7 +62,7 @@ Agent judges use your organization's connection for that harness. A Codex judge 
 
 For direct OpenAI calls, replace `harness` with `provider: "openai"`. Configure `OPENAI_API_KEY` in the organization's environment connection, or in the server and worker environment for a self-hosted deployment. A ChatGPT subscription is not an OpenAI API key.
 
-Keep credentials out of eval definitions, rubrics, and fixtures.
+Keep credentials out of eval definitions, prompts, and fixtures.
 
 ## Evidence and isolation
 
@@ -78,4 +78,4 @@ Each trial's `judgments` contains `name`, `model`, `evaluator`, `choice`, `score
 
 For the request, raw response, and provider metadata, inspect the judge entry in `trial.validations`. Invalid response text is retained even when no score can be assigned. See [validation evidence](/evals/results#validation-evidence) for capture limits and privacy settings.
 
-Changing a judge changes the case identity used for baselines. Calibrate each rubric against known good and bad answers before trusting its scores. Repeat trials: model judgments can vary, even with the same model and rubric.
+Changing a judge changes the case identity used for baselines. Calibrate each judge prompt against known good and bad answers before trusting its scores. Repeat trials: model judgments can vary, even with the same model and prompt.

@@ -19,7 +19,7 @@ const compile = async (validate: string) => {
     `
 import { defineEval, empty } from "anpord";
 import { judge } from "anpord/validators";
-const correctness = judge({ name: "correctness", harness: "codex", model: "exact-model", rubric: "Matches expected", choices: { correct: 1, incorrect: 0 } });
+const correctness = judge({ name: "correctness", harness: "codex", model: "exact-model", prompt: "Matches expected", choices: { correct: 1, incorrect: 0 } });
 export default defineEval({ name: "judged", source: empty, prompt: "Answer", trials: 1,
   tasks: [{ harness: "codex", model: "task-model", provider: "e2b" }],
   cases: [{ name: "answer", validate: ${validate} }],
@@ -33,7 +33,7 @@ test("compiles a judge without a code check", async () => {
   expect(validator).toMatchObject({
     kind: "judged",
     checks: [],
-    judges: [{ model: "exact-model" }],
+    judges: [{ model: "exact-model", prompt: "Matches expected" }],
   });
   expect(validator?.sourceFiles?.[0]?.path).toBe("eval.ts");
   expect(validator?.sourceFiles?.[0]?.content).toContain(

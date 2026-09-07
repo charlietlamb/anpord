@@ -113,7 +113,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --sidebar: oklch(0.975 0 0);
+  --sidebar: var(--background);
   --sidebar-foreground: oklch(0.32 0 0);
   --sidebar-accent: oklch(0.935 0 0);
   --sidebar-accent-foreground: oklch(0.145 0 0);
@@ -180,7 +180,7 @@
   --foreground: oklch(0.97 0 0);
   --card: oklch(0.185 0.008 248);
   --card-foreground: oklch(0.97 0 0);
-  --sidebar: oklch(0.128 0.008 248);
+  --sidebar: var(--background);
   --sidebar-foreground: oklch(0.86 0.008 248);
   --sidebar-accent: oklch(0.225 0.012 248);
   --sidebar-accent-foreground: oklch(0.97 0 0);

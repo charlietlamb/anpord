@@ -13,7 +13,7 @@ const request = {
     name: "correctness",
     provider: "openai",
     model: "exact-model",
-    rubric: "Be accurate",
+    prompt: "Be accurate",
     choices: { correct: 1, incorrect: 0 },
   }),
   context: {
@@ -43,6 +43,7 @@ const complete = (body: unknown, status = 200, authenticated = true) => {
       });
       expect(sent.text.format.schema.additionalProperties).toBe(false);
       expect(sent.tools).toBeUndefined();
+      expect(sent.instructions).toContain(request.judge.prompt);
       return HttpClientResponse.fromWeb(
         httpRequest,
         Response.json(body, { status })

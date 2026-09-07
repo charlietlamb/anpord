@@ -93,7 +93,7 @@ const correctness = judge({
   name: "correctness",
   harness: "codex",
   model: "gpt-5.6-sol",
-  rubric: "The answer matches the reference without inventing facts.",
+  prompt: "The answer matches the reference without inventing facts.",
   expected: "Ada",
   choices: { correct: 1, incorrect: 0 },
 });

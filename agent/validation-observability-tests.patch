@@ -9,7 +9,7 @@ diff --git a/packages/eval/tests/adapters/openai-judge.test.ts b/packages/eval/t
 +        output: request.output,
 +        expected: null,
 +      });
-+      expect(sent.instructions).toContain(request.judge.rubric);
++      expect(sent.instructions).toContain(request.judge.prompt);
 +      expect(sent.text.format.schema.properties.choice.enum).toEqual([
 +        "correct",
 +        "incorrect",
@@ -19,8 +19,8 @@ diff --git a/packages/eval/tests/services/judged-trial.test.ts b/packages/eval/t
 --- a/packages/eval/tests/services/judged-trial.test.ts
 +++ b/packages/eval/tests/services/judged-trial.test.ts
 @@ -37,1 +37,2 @@
--        rubric: "Matches the expected answer",
-+        rubric: "Matches the expected answer",
+-        prompt: "Matches the expected answer",
++        prompt: "Matches the expected answer",
 +        expected: "4",
 @@ -52,1 +53,4 @@
 -    events: [],
@@ -33,7 +33,7 @@ diff --git a/packages/eval/tests/services/judged-trial.test.ts b/packages/eval/t
 +              expect(input.input).toBe(request.prompt);
 +              expect(input.output).toBe("4");
 +              expect(input.judge.expected).toBe("4");
-+              expect(input.judge.rubric).toBe("Matches the expected answer");
++              expect(input.judge.prompt).toBe("Matches the expected answer");
 diff --git a/packages/sdk/tests/evals/judged-compiler.test.ts b/packages/sdk/tests/evals/judged-compiler.test.ts
 --- a/packages/sdk/tests/evals/judged-compiler.test.ts
 +++ b/packages/sdk/tests/evals/judged-compiler.test.ts

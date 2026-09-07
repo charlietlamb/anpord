@@ -11,7 +11,7 @@ Its [scorer guidance](https://www.braintrust.dev/docs/best-practices/scorers) re
 - `judge({ ... })` is a serializable validator, not a model client or callback. Consumers do not need Effect.
 - `validate` composes code checks and judges. Existing single-function validators still work.
 - The model chooses a label. Anpord maps it to a declared score and compares it with an inclusive threshold.
-- Rubric, reference answer, model, scores, and thresholds participate in case identity. Stored runs retain their original definitions.
+- Judge prompt, reference answer, model, scores, and thresholds participate in case identity. Stored runs retain their original definitions.
 - Failures are unscored, not zero or a pass. A trial with any judge error is void.
 - OpenAI uses the [Responses API's structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), without tools or response storage.
 - Agent judges use the existing harness and sandbox interfaces. Codex uses its [supported subscription authentication](https://learn.chatgpt.com/docs/auth), not an OAuth token passed to the Platform API.

@@ -5,7 +5,7 @@ const options = {
   name: "correctness",
   harness: "codex" as const,
   model: "chosen-model",
-  rubric: "The answer matches the expected result.",
+  prompt: "The answer matches the expected result.",
   choices: { correct: 1, incorrect: 0 },
 };
 
@@ -25,6 +25,9 @@ describe("judge", () => {
     { choices: { correct: 2 } },
     { threshold: 1.1 },
     { model: "" },
+    { prompt: "" },
+    { prompt: undefined },
+    { rubric: "Old field" },
     { timeoutMs: 0 },
     { harness: "command" },
     { provider: "openai" },
@@ -38,5 +41,12 @@ describe("judge", () => {
   test("supports a direct model provider", () => {
     const { harness: _, ...shared } = options;
     expect(judge({ ...shared, provider: "openai" }).model).toBe("chosen-model");
+  });
+
+  test("limits the judge prompt to 32,000 characters", () => {
+    expect(
+      judge({ ...options, prompt: "x".repeat(32_000) }).prompt
+    ).toHaveLength(32_000);
+    expect(() => judge({ ...options, prompt: "x".repeat(32_001) })).toThrow();
   });
 });

@@ -1,118 +1,16 @@
 import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
-import { clock, dayOf } from "@/lib/evals/duration";
-import { shortProfileVersion } from "@/lib/evals/profile-version";
-import { triggerLabel } from "@/lib/evals/run-trigger";
-import { shortId } from "@/lib/evals/short-id";
 
-export type ReadingTone = "critical" | "pending" | "positive" | "running";
-
-export interface Reading {
-  readonly entry: EvalCellHistoryEntry;
-  readonly title: string;
-  readonly tone: ReadingTone;
-}
-
-const toneOf = (entry: EvalCellHistoryEntry): ReadingTone => {
+export const historyResult = (entry: EvalCellHistoryEntry) => {
   if (entry.finishedAt === null) {
-    return "running";
+    return { label: "Running", className: "text-muted-foreground" };
   }
-
-  const { passed, scored } = entry.distribution;
-
+  const { passed, scored, voided } = entry.distribution;
   if (scored === 0) {
-    return "pending";
+    return { label: "Not scored", className: "text-muted-foreground" };
   }
-
-  return passed === scored ? "positive" : "critical";
-};
-
-const rateOf = (entry: EvalCellHistoryEntry) =>
-  entry.distribution.scored === 0
-    ? "nothing scored"
-    : `${entry.distribution.passed}/${entry.distribution.scored} passed`;
-
-const same = (
-  left: EvalCellHistoryEntry,
-  right: EvalCellHistoryEntry
-): boolean =>
-  left.distribution.passed === right.distribution.passed &&
-  left.distribution.scored === right.distribution.scored &&
-  left.distribution.voided === right.distribution.voided;
-
-/* A version is named only where it changed, so the one release that moved the number stands out. */
-const changed = (
-  previous: string | null | undefined,
-  current: string | null
-) =>
-  previous === undefined ||
-  previous === null ||
-  current === null ||
-  previous === current
-    ? null
-    : current;
-
-const versionsOf = (
-  entry: EvalCellHistoryEntry,
-  previous: EvalCellHistoryEntry | undefined
-) => {
-  const harness = changed(previous?.harnessVersion, entry.harnessVersion);
-  const profile = changed(previous?.profileVersion, entry.profileVersion);
-
-  return [harness, profile === null ? null : shortProfileVersion(profile)]
-    .filter((version): version is string => version !== null)
-    .map((version) => ` · ${version}`)
-    .join("");
-};
-
-export const readingsOf = (
-  entries: readonly EvalCellHistoryEntry[]
-): readonly Reading[] => {
-  const ordered = [...entries].reverse();
-
-  return ordered.map((entry, index) => ({
-    entry,
-    title: `Run ${shortId(entry.runId)} · ${triggerLabel(entry.trigger)} · ${
-      entry.finishedAt === null
-        ? "running"
-        : `${clock(entry.finishedAt.epochMillis)} · ${rateOf(entry)}${versionsOf(entry, ordered[index - 1])}`
-    }`,
-    tone: toneOf(entry),
-  }));
-};
-
-export const summaryOf = (readings: readonly Reading[]): string => {
-  const settled = readings.filter((reading) => reading.tone !== "running");
-  const running = readings.length - settled.length;
-  const tail = running > 0 ? `, ${running} running` : "";
-
-  if (settled.length === 0) {
-    return running === 1
-      ? "One run in progress."
-      : `${running} runs in progress.`;
-  }
-
-  const changedAt = settled.findLastIndex(
-    (reading, index) =>
-      index > 0 && !same(reading.entry, settled[index - 1].entry)
-  );
-
-  const from = settled[changedAt === -1 ? 0 : changedAt];
-  const since = from.entry.finishedAt;
-
-  const spansOneDay =
-    since !== null &&
-    settled.at(-1)?.entry.finishedAt !== null &&
-    dayOf(since.epochMillis) ===
-      dayOf(settled.at(-1)?.entry.finishedAt?.epochMillis ?? 0);
-
-  const when =
-    since === null
-      ? ""
-      : ` since ${spansOneDay ? clock(since.epochMillis) : dayOf(since.epochMillis)}`;
-
-  if (changedAt === -1) {
-    return `Steady across ${settled.length} ${settled.length === 1 ? "run" : "runs"}${when}${tail}.`;
-  }
-
-  return `Changed${when}, steady for ${settled.length - changedAt} since${tail}.`;
+  const passingClass = voided > 0 ? "text-muted-foreground" : "text-success";
+  return {
+    label: `${passed}/${scored} passed${voided > 0 ? ` · ${voided} not scored` : ""}`,
+    className: passed < scored ? "text-destructive" : passingClass,
+  };
 };

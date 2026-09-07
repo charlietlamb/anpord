@@ -34,7 +34,7 @@ const request: AgentTrialRequest = {
         name: "correctness",
         provider: "openai",
         model: "judge-model",
-        rubric: "Matches the expected answer",
+        prompt: "Matches the expected answer",
         choices: { correct: 1, incorrect: 0 },
         threshold: 1,
       },

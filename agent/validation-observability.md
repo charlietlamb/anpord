@@ -76,7 +76,7 @@ Initial scope is post-execution inspection, not live line-by-line streaming. Per
 
 Capture the actual submitted request at the adapter boundary:
 
-- Instructions containing the rubric, serialized evidence, expected answer, choice schema, requested model, and generation options.
+- Instructions containing the judge prompt, serialized evidence, expected answer, choice schema, requested model, and generation options.
 - Raw final response text before JSON parsing, including invalid JSON.
 - Parsed choice and reason, mapped score, threshold, and final status.
 - Provider request/response ID, reported model and usage when supplied. For agent judges, harness version and session metadata.

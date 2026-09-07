@@ -1991,7 +1991,7 @@
                         "kind",
                         "name",
                         "model",
-                        "rubric",
+                        "prompt",
                         "choices",
                         "provider"
                       ],
@@ -2016,7 +2016,7 @@
                           "minLength": 1,
                           "maxLength": 200
                         },
-                        "rubric": {
+                        "prompt": {
                           "type": "string",
                           "description": "a string at most 32000 character(s) long",
                           "title": "maxLength(32000)",
@@ -2089,7 +2089,7 @@
                         "kind",
                         "name",
                         "model",
-                        "rubric",
+                        "prompt",
                         "choices",
                         "harness"
                       ],
@@ -2114,7 +2114,7 @@
                           "minLength": 1,
                           "maxLength": 200
                         },
-                        "rubric": {
+                        "prompt": {
                           "type": "string",
                           "description": "a string at most 32000 character(s) long",
                           "title": "maxLength(32000)",

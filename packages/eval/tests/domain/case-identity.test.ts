@@ -27,7 +27,7 @@ describe("case identity", () => {
           name: "correct",
           provider: "openai",
           model: "model",
-          rubric: "Correct answer",
+          prompt: "Correct answer",
           choices: { correct: 1, incorrect: 0 },
         },
       ],
@@ -42,8 +42,8 @@ describe("case identity", () => {
       })
     );
   });
-  it("changes when the judge model or rubric changes", () => {
-    const identity = (model: string, rubric: string) =>
+  it("changes when the judge model or prompt changes", () => {
+    const identity = (model: string, prompt: string) =>
       caseIdentityOf({
         ...base,
         validator: Schema.decodeUnknownSync(EvalValidator)({
@@ -56,7 +56,7 @@ describe("case identity", () => {
               name: "correctness",
               provider: "openai",
               model,
-              rubric,
+              prompt,
               choices: { correct: 1, incorrect: 0 },
             },
           ],

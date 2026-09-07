@@ -23,18 +23,18 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
   return (
     <TooltipProvider>
       <SidebarProvider className="relative isolate" defaultOpen={sidebarOpen}>
-        <Dither className="fixed inset-0 -z-10 text-foreground/[0.08] opacity-50" />
+        <Dither className="fixed inset-0 -z-10 text-foreground/[0.08] opacity-75" />
         <Hydrate when={idle()}>
           <ClientOnly>
             <CommandMenu />
           </ClientOnly>
         </Hydrate>
         <AppSidebar />
-        <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border bg-background md:peer-data-[variant=inset]:shadow-none">
+        <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border bg-background backdrop-blur-md md:peer-data-[variant=inset]:shadow-none">
           <ClientOnly>
             <ImpersonationBanner />
           </ClientOnly>
-          <header className="sticky top-0 z-20 flex h-11 shrink-0 items-center gap-2 border-border-faint border-b bg-background px-4 transition-surface">
+          <header className="sticky top-0 z-20 flex h-11 shrink-0 items-center gap-2 border-border-faint border-b px-4 transition-surface">
             <SidebarTrigger />
             <DashboardBreadcrumbs />
           </header>

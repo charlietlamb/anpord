@@ -1,22 +1,17 @@
 ---
-title: "The evaluation grid"
-sidebarTitle: "Grid"
-description: "How cases and variants become results"
+title: "How evals work"
+description: "Cases, variants, trials and runs"
 ---
 
-An eval is a grid. Cases are rows, variants are columns, and cells contain repeated trials.
+An eval defines what an agent should do and how to check its work.
 
-| Part | Meaning |
-| --- | --- |
-| Case | A task, workspace, preparation, and validator |
-| Variant | An agent, a model, and the sandbox it runs in |
-| Cell | One case run with one variant |
-| Trial | One isolated attempt inside a cell |
+Each run tests your cases using the agents and models you choose. Repeat each test with multiple trials to see how consistently it passes.
 
-Two cases, three variants, and three trials produce six cells and eighteen sandbox sessions.
+- **Case:** the work to do and how to validate it.
+- **Variant:** the agent, model and sandbox configuration.
+- **Trial:** one attempt at a case with a variant.
+- **Run:** all the attempts started together.
 
-Each cell reports pass, fail, and void counts, pass rate, command spread, and determinism. Its first scored result becomes the fixed [baseline](/evals/baselines).
+Two cases, three variants and three trials produce 18 attempts.
 
-Changing the task, source, preparation, validator, agent, model, or sandbox starts a new cell history. Prompt changes and agent releases stay in the same history so their effect can be compared.
-
-A run is `running`, `finished`, or `failed`. Rerunning a cell creates a new run and leaves earlier results unchanged.
+See [results](/evals/results) to inspect a run or [baselines](/evals/baselines) to compare results over time.

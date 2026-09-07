@@ -26,7 +26,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className="[&_[data-slot=sidebar-inner]]:rounded-xl [&_[data-slot=sidebar-inner]]:border [&_[data-slot=sidebar-inner]]:border-sidebar-border"
+      className="[&_[data-slot=sidebar-inner]]:rounded-xl [&_[data-slot=sidebar-inner]]:border [&_[data-slot=sidebar-inner]]:border-sidebar-border [&_[data-slot=sidebar-inner]]:bg-background [&_[data-slot=sidebar-inner]]:backdrop-blur-md"
       collapsible="icon"
       variant="inset"
     >

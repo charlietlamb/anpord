@@ -64,6 +64,23 @@ const prepare = (
 };
 
 describe("an env credential at a driver", () => {
+  it("uses a saved Claude connection without local environment credentials", async () => {
+    const { result, steps } = await prepare(ClaudeDriver, {
+      integrationId: "claude",
+      authMethodId: "api-key",
+      connectionId: "claude-shared",
+      revision: 1,
+      values: { apiKey: "test-anthropic-key" },
+    });
+    expect(Either.getOrThrow(result)).toEqual({
+      ANTHROPIC_API_KEY: "test-anthropic-key",
+      IS_SANDBOX: "1",
+    });
+    expect(
+      steps.some((step) => step.includes("@anthropic-ai/claude-code@1.0.0"))
+    ).toBe(true);
+    expect(steps.join("\n")).not.toContain("test-anthropic-key");
+  });
   it("lets OpenCode install with no auth file", async () => {
     const { result, steps } = await prepare(
       OpencodeDriver,

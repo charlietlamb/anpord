@@ -1,20 +1,4 @@
-import type { EvalCell, EvalComparison } from "@anpord/schema/domain/evals";
-import { shortProfileVersion } from "@/lib/evals/profile-version";
-
-/* The profile name is in the cell key but its version is not, so a version change is reported here. */
-const profileNote = (comparison: EvalComparison) => {
-  const { baselineProfileVersion, candidateProfileVersion } = comparison;
-
-  if (
-    baselineProfileVersion === null ||
-    candidateProfileVersion === null ||
-    baselineProfileVersion === candidateProfileVersion
-  ) {
-    return null;
-  }
-
-  return `profile ${shortProfileVersion(baselineProfileVersion)} → ${shortProfileVersion(candidateProfileVersion)}`;
-};
+import type { EvalCell } from "@anpord/schema/domain/evals";
 
 export function CellVerdictNote({ cell }: { readonly cell: EvalCell }) {
   const comparison = cell.comparison;
@@ -29,7 +13,6 @@ export function CellVerdictNote({ cell }: { readonly cell: EvalCell }) {
     comparison.baselineHarnessVersion === comparison.candidateHarnessVersion
       ? null
       : `harness ${comparison.baselineHarnessVersion} → ${comparison.candidateHarnessVersion}`,
-    profileNote(comparison),
   ].filter((note): note is string => note !== null);
 
   if (notes.length === 0) {

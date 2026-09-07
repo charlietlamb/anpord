@@ -107,7 +107,7 @@ describe("reading a case back from what was stored", () => {
           name: "correctness",
           harness: "codex",
           model: "exact-model",
-          rubric: "Matches expected",
+          prompt: "Matches expected",
           choices: { correct: 1, incorrect: 0 },
           threshold: 1,
           timeoutMs: 120_000,
