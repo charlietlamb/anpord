@@ -11,9 +11,9 @@ npm install anpord
 ## Define an eval
 
 ```ts
-import { defineEval, empty } from "anpord";
+import { suite, empty } from "anpord";
 
-export default defineEval({
+export default suite({
   name: "greeting",
   source: empty,
   prompt: "{{task}}",
