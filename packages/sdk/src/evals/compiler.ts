@@ -1,13 +1,11 @@
-import { dirname, resolve } from "node:path";
-import type { EvalSource } from "@anpord/schema/domain/evals";
+import { resolve } from "node:path";
 import { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { Effect, Option, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { compileApis, withApis } from "./api-profile";
 import { bundledCaseModule } from "./case-modules";
 import { type CompiledCli, compileClis, withClis } from "./cli-profile";
 import { compileValidator } from "./compile-validator";
 import { isDefinition, loadDefinition } from "./definition-loader";
-import { localRepo } from "./local-repo";
 import { locate } from "./locate";
 import {
   type CompiledMcpServer,
@@ -47,21 +45,14 @@ const taskOf = (
     );
   });
 
-const sourceFor = (
-  definition: EvalDefinition,
-  subject: EvalCaseDefinition,
-  fallback: Option.Option<EvalSource>
-) => {
+/* An omitted source is an empty workspace, so a suite runs the same on a
+   laptop as it does in CI. A run that wants the repository names it. */
+const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
   const source = subject.source ?? definition.source;
 
-  if (source !== undefined) {
-    return { source: typeof source === "string" ? repo(source) : source };
-  }
-
-  return Option.match(fallback, {
-    onNone: () => ({}),
-    onSome: (source) => ({ source }),
-  });
+  return source === undefined
+    ? {}
+    : { source: typeof source === "string" ? repo(source) : source };
 };
 
 const compileRefEffect = (ref: DefinitionRef) =>
@@ -82,14 +73,6 @@ const compileRefEffect = (ref: DefinitionRef) =>
     const clis = yield* compileClis(ref, definition.cli ?? []);
     const mcp = yield* compileMcpServers(ref, definition.mcp ?? []);
     const apis = yield* compileApis(ref, definition.api ?? []);
-
-    const needsFallback =
-      definition.source === undefined &&
-      definition.cases.some((subject) => subject.source === undefined);
-
-    const fallback = needsFallback
-      ? yield* localRepo(dirname(entry))
-      : Option.none<EvalSource>();
 
     const cases = yield* Effect.forEach(
       definition.cases,
@@ -128,7 +111,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
             ...(subject.cache === undefined ? {} : { cache: subject.cache }),
             name: subject.name,
             prepare,
-            ...sourceFor(definition, subject, fallback),
+            ...sourceFor(definition, subject),
             validator,
             variables: subject.variables ?? {},
             verify: subject.verify ?? null,

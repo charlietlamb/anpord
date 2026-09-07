@@ -6,7 +6,7 @@ description: "Score answers with a model you choose"
 Use code for exact checks. Add a judge for qualities such as correctness, relevance, or clarity that need interpretation.
 
 ```ts
-import { suite, empty } from "anpord";
+import { suite } from "anpord";
 import { judge } from "anpord/validators";
 
 const correctness = judge({
@@ -21,7 +21,6 @@ const correctness = judge({
 
 export default suite({
   name: "arithmetic",
-  source: empty,
   prompt: "What is 2 + 2? Explain briefly.",
   cases: [{ name: "addition", validate: correctness }],
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],

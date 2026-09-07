@@ -36,7 +36,7 @@ Move `item` and `Item` into a shared fixture file to reuse them with [MCP and CL
 ## Run an eval
 
 ```ts catalog.eval.ts
-import { suite, empty, type Validator } from "anpord";
+import { suite, type Validator } from "anpord";
 import { catalog } from "./mocks/catalog";
 
 const validate: Validator = async ({ api, answer }) => ({
@@ -47,7 +47,6 @@ const validate: Validator = async ({ api, answer }) => ({
 
 export default suite({
   name: "catalog/api",
-  source: empty,
   api: [catalog],
   prompt: "Use the local catalog API to retrieve fixture and report its name.",
   cases: [{ name: "retrieve-item", validate }],

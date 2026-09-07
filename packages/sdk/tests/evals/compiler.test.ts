@@ -333,7 +333,10 @@ export default suite({
     expect(compileFixture(join(workspace, "eval.ts"))).rejects.toThrow();
   });
 
-  test("falls back to the repository the definition sits in", async () => {
+  /* An omitted source used to become whichever repository the file happened to
+     sit in, so the same suite ran against different code on different machines,
+     and against the default branch whenever HEAD was unpushed. */
+  test("leaves the source unset rather than adopting the surrounding repository", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-local-"));
     const git = (...args: string[]) =>
       execFileSync("git", args, { cwd: workspace, stdio: "pipe" });
@@ -355,11 +358,7 @@ export default suite({
 
     const payload = await compileFixture(join(workspace, "eval.ts"));
 
-    expect(payload.cases[0]?.source).toEqual({
-      kind: "repo",
-      ref: null,
-      url: "https://github.com/acme/widgets.git",
-    });
+    expect(payload.cases[0]?.source).toBeUndefined();
   });
 
   test("a named source is not replaced by the surrounding repository", async () => {

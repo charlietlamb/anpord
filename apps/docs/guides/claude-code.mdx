@@ -21,11 +21,10 @@ Create an Anpord API key with `evals:read` and `evals:write` in the same organiz
 Install `anpord`, then create `claude.eval.ts`:
 
 ```ts
-import { suite, empty } from "anpord";
+import { suite } from "anpord";
 
 export default suite({
   name: "claude-smoke",
-  source: empty,
   prompt: "Create hello.txt containing exactly hello.",
   cases: [{ name: "writes-hello", verify: 'test "$(cat hello.txt)" = hello' }],
   tasks: [{ harness: "claude", model: "claude-haiku-4-5-20251001" }],

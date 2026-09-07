@@ -38,12 +38,11 @@ Every case needs exactly one of `verify` or `validate`.
 
 ## Sources
 
-When `source` is omitted, the CLI uses the eval file's Git repository when it can resolve a fetchable remote. Set the source explicitly for reproducible runs:
+`source` is the workspace the agent starts in. Omit it for an empty workspace, so a suite runs the same on a laptop as it does in CI:
 
 ```ts
-import { empty, files, repo } from "anpord";
+import { files, repo } from "anpord";
 
-source: empty;
 source: repo("acme/api@8f31c4a");
 source: files({ "src/add.ts": "export const add = () => 0;" });
 ```
