@@ -1,3 +1,45 @@
 ---
 title: "Introduction"
+description: "What is Anpord?"
 ---
+
+Anpord gives you a declaritve way to run evals against [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/) and any other harness you like.
+
+You write evals, validators, judges and whatever else you need in TypeScript. These are then run in a sandbox environment of your choice. Sandboxes can also be compared against one another.
+
+```ts hello.eval.ts
+import { defineEval, empty } from "anpord";
+
+export default defineEval({
+  name: "hello",
+  source: empty,
+  prompt: "Create hello.txt containing exactly hello",
+  tasks: [{ harness: "codex", model: "gpt-6-astra" }],
+  trials: 1,
+  cases: [
+    {
+      name: "writes hello",
+      validate: async ({ readText }) => ({
+        passed: (await readText("hello.txt")) === "hello",
+      }),
+    },
+  ],
+});
+```
+
+## When to use Anpord
+
+Anpord is great fit if you're building a product where evals are dependent on a harness running in a sandbox. In this case you can't just analyze the request/response passed to a model as there's a lot more to consider. The harness is doing real work in an enviroment and the evals need to be aware of this.
+
+Another common use case would be to compare how harnesses are able to use your product. Lets say you ship a change to your MCP server, you want to be sure that the end user who uses it in claude code won't see any regressions in performance.
+
+These are the problems that Anpord is designed to solve. You write TypeScript and you're easily able to evaluate the performance of your product with modern harnesses.
+
+<Columns cols={2}>
+  <Card title="Write your first eval" icon="play" href="/getting-started">
+    Define and run an eval.
+  </Card>
+  <Card title="Explore the SDK" icon="code" href="/sdk/overview">
+    Compose evals, mocks and validators.
+  </Card>
+</Columns>
