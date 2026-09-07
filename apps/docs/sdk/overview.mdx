@@ -21,7 +21,7 @@ Start with the [quickstart](/getting-started) to define a suite and run it on An
 | `anpord/cli` | [`cli`, `command`](/evals/mocks#cli) |
 | `anpord/api` | [`api`, `endpoint`, `withApi`](/evals/api-mocks) |
 | `anpord/validators` | [`judge`](/evals/judges) |
-| `anpord/eval` | [`compileDefinition`, `compileEval`](/guides/run-from-code) |
+| `anpord/eval` | [`compileEval`, `compileDefinition`](/guides/run-from-code) |
 | `anpord` | [`Anpord` client for runs, results and prompts](/sdk/client) |
 
 Definitions take objects. Handlers use ordinary TypeScript functions and promises. Standard Schema infers mock inputs and checks values at runtime; examples use Zod. You do not need Effect imports or a separate model client.
@@ -34,7 +34,7 @@ Keep suites in `*.eval.ts` files. The CLI compiles them locally, including impor
 npx anpord eval ./smoke.eval.ts
 ```
 
-The [GitHub Action](/guides/ci) runs the same command. To submit from application code, use [`compileEval` with the API client](/guides/run-from-code). Results retain the calls, validator evidence and captured source for that run.
+The [GitHub Action](/guides/ci) runs the same command. To submit from application code, [import the eval and start it](/guides/run-from-code). Results retain the calls, validator evidence and captured source for that run.
 
 ## Connections
 

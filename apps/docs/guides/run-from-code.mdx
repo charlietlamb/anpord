@@ -1,18 +1,22 @@
 ---
 title: "Run evals from code"
-description: "Compile a suite and inspect its result"
+description: "Import an eval and inspect its result"
 ---
 
-Keep the suite in a typed `*.eval.ts` file, then compile and submit it from application code:
+Keep the suite in a typed `*.eval.ts` file and pass `import.meta.url` to `defineEval`, so the eval knows where it was written:
+
+```ts evals/smoke.eval.ts
+export const smoke = defineEval(import.meta.url, { ... });
+```
+
+Then import it and submit it from application code:
 
 ```ts
 import { Anpord } from "anpord";
-import { compileEval } from "anpord/eval";
+import { smoke } from "./evals/smoke.eval";
 
 const anpord = new Anpord();
-const run = await anpord.evals.startAndWait(
-  await compileEval("./evals/smoke.eval.ts")
-);
+const run = await anpord.evals.startAndWait(smoke);
 
 if (run.status === "failed") {
   throw new Error(run.failure ?? "Eval run failed");
@@ -29,6 +33,6 @@ if (regressions.length || unscored.length) process.exitCode = 1;
 await anpord.dispose();
 ```
 
-`compileEval` bundles typed validators, preparation, profiles, and MCP, CLI and HTTP mocks into the serializable API request. `startAndWait` polls until the run finishes; pass `timeoutMs` or `signal` to control waiting.
+Starting bundles the typed validators, preparation, profiles, and MCP, CLI and HTTP mocks into the request. `startAndWait` polls until the run finishes; pass `timeoutMs` or `signal` to control waiting.
 
-Use `anpord.evals.start(request)` only when you already have a compiled request. See the [API client](/sdk/client) for the lower-level API.
+A plain request object still works if you have one. `compileEval("./evals/smoke.eval.ts")` compiles by path and needs no argument to `defineEval`; `compileDefinition` returns the request without sending it. See the [API client](/sdk/client).
