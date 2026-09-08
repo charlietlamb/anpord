@@ -8,6 +8,7 @@ import { FetchHttpClient } from "@effect/platform";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
 import { compileDefinition } from "../evals/compiler";
 import { sourceUrlOf } from "../evals/define";
+import { tooLargeToSubmit } from "../evals/request-size";
 import type { EvalDefinition } from "../evals/types";
 import { noopLayer } from "./cache/noop";
 import { layer, PromptCache } from "./cache/prompt-cache";
@@ -22,7 +23,7 @@ import type {
   PromptMetadata,
   PromptSelector,
 } from "./cache/types";
-import { asAnpordError, MissingApiKey } from "./errors";
+import { AnpordError, asAnpordError, MissingApiKey } from "./errors";
 import { type Promised, promised } from "./promised";
 import type { VariablesFor } from "./variables";
 import { type WaitOptions, waitForRun } from "./wait";
@@ -99,10 +100,23 @@ export class Anpord {
     const group = promised(client.prompts);
     const evals = promised(client.evals);
 
-    const requestOf = async (input: StartInput): Promise<StartOptions> =>
-      sourceUrlOf(input as EvalDefinition) === undefined
-        ? (input as StartOptions)
-        : ((await compileDefinition(input as EvalDefinition)) as StartOptions);
+    /* Checked on the way out rather than at compile time, so a suite too big
+       to submit can still be compiled and inspected. */
+    const requestOf = async (input: StartInput): Promise<StartOptions> => {
+      const request =
+        sourceUrlOf(input as EvalDefinition) === undefined
+          ? (input as StartOptions)
+          : ((await compileDefinition(
+              input as EvalDefinition
+            )) as StartOptions);
+      const tooLarge = tooLargeToSubmit(request);
+
+      if (tooLarge !== null) {
+        throw new AnpordError(tooLarge, { cause: null });
+      }
+
+      return request;
+    };
 
     this.evals = {
       ...evals,
