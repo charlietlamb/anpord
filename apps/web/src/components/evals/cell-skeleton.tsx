@@ -3,6 +3,7 @@ import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { FlaskIcon } from "@phosphor-icons/react";
 import { CellHistory } from "@/components/evals/cell-history";
+import { CellSetupSkeleton } from "@/components/evals/cell-setup-skeleton";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import {
   type RailFactShape,
@@ -10,6 +11,7 @@ import {
 } from "@/components/evals/rail-fact-skeleton";
 import { RerunCellButton } from "@/components/evals/rerun-cell-button";
 import { TrialListSkeleton } from "@/components/evals/trial-row-skeleton";
+import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspector-skeleton";
 
 const READING: readonly RailFactShape[] = [
   { width: "w-20" },
@@ -45,6 +47,10 @@ export function CellSkeleton({
 
           <TrialListSkeleton />
         </section>
+
+        <ValidationInspectorSkeleton />
+
+        <CellSetupSkeleton />
       </EvalMain>
 
       <aside className={RAIL_FRAME}>
@@ -57,7 +63,7 @@ export function CellSkeleton({
         </RailSection>
 
         <RailSection title="Recent runs">
-          <CellHistory cellKey={cellKey} runId={runId} />
+          <CellHistory cellKey={cellKey} quiet runId={runId} />
         </RailSection>
       </aside>
     </EvalLayout>

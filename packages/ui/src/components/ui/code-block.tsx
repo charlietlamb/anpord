@@ -38,7 +38,7 @@ export function CodeBlock({
   const block = (
     <pre
       className={cn(
-        "max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md px-3 py-2.5 font-mono text-xs leading-relaxed",
+        "max-h-64 overflow-auto rounded-md px-3 py-2.5 font-mono text-[0.8125rem] leading-[1.7] [font-variation-settings:'wght'_450] [tab-size:2]",
         tone === "muted" && "bg-muted/50",
         tone === "inverted" && "bg-current/10",
         copyValue !== undefined && "pr-11",

@@ -8,15 +8,22 @@ import { shortId } from "@/lib/evals/short-id";
 
 export function CellHistory({
   cellKey,
+  quiet = false,
   runId,
 }: {
   readonly cellKey: string;
+  /** Set while the page around this is still a skeleton: a failure there is
+   * the page's to report once it has loaded, not a message to raise beside
+   * placeholders that have not resolved either. */
+  readonly quiet?: boolean;
   readonly runId: string;
 }) {
   const { data, isPending, error } = useQuery(evalQueries.history(cellKey));
 
   if (error) {
-    return (
+    return quiet ? (
+      <Skeleton className="h-6 w-full" />
+    ) : (
       <p className="text-muted-foreground text-xs">
         Could not load recent runs.
       </p>
@@ -26,7 +33,11 @@ export function CellHistory({
     return <Skeleton className="h-6 w-full" />;
   }
   if (data.length <= 1) {
-    return <p className="text-muted-foreground text-xs">No previous runs.</p>;
+    return quiet ? (
+      <Skeleton className="h-6 w-full" />
+    ) : (
+      <p className="text-muted-foreground text-xs">No previous runs.</p>
+    );
   }
 
   return (

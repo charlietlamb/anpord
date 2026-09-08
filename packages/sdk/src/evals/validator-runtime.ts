@@ -12,22 +12,15 @@ import {
   validationExecution,
   validationSnapshot,
 } from "@anpord/schema/domain/eval-validations";
-import { Schema } from "effect";
-import { McpCallSchema } from "../mcp/calls";
 import { apiContext } from "../mock-api/context";
-import { CliCallSchema } from "../mock-cli/calls";
 import type { CommandResult, Validator, ValidatorContext } from "./types";
+import {
+  decodeCliCall,
+  decodeMcpCall,
+  decodePrepared,
+  decodeResult,
+} from "./validator-decode";
 
-const Result = Schema.Union(
-  Schema.Boolean,
-  Schema.Struct({
-    passed: Schema.Boolean,
-    message: Schema.optional(Schema.String),
-  })
-);
-const decodeResult = Schema.decodeUnknownSync(Result, {
-  onExcessProperty: "error",
-});
 const local = new AsyncLocalStorage<{
   record: EvalValidation;
   capture: ReturnType<typeof validationCapture>;
@@ -122,15 +115,9 @@ const exec = (command: string) =>
     );
   });
 
-const calls = async <A, I>(path: string, schema: Schema.Schema<A, I>) => {
+const calls = async <A>(path: string, decode: (line: string) => A) => {
   const text = await readOptional(path);
-  const decode = Schema.decodeUnknownSync(Schema.parseJson(schema));
-  return text.trim() === ""
-    ? []
-    : text
-        .trim()
-        .split("\n")
-        .map((line) => decode(line));
+  return text.trim() === "" ? [] : text.trim().split("\n").map(decode);
 };
 
 const context = (): ValidatorContext => ({
@@ -147,11 +134,7 @@ const context = (): ValidatorContext => ({
     observe("transcript", [], () =>
       readOptional(process.env.ANPORD_TRANSCRIPT_FILE)
     ),
-  prepared: Schema.decodeUnknownSync(
-    Schema.parseJson(
-      Schema.Record({ key: Schema.String, value: Schema.Unknown })
-    )
-  )(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
+  prepared: decodePrepared(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
   readText: (path) => observe("readText", [path], () => readFile(path, "utf8")),
   exists: (path) =>
     observe("exists", [path], () =>
@@ -173,7 +156,7 @@ const context = (): ValidatorContext => ({
   cli: {
     calls: (name) =>
       observe("cli.calls", name === undefined ? [] : [name], async () =>
-        (await calls(".anpord/cli-calls.jsonl", CliCallSchema)).filter(
+        (await calls(".anpord/cli-calls.jsonl", decodeCliCall)).filter(
           (call) => name === undefined || call.cli === name
         )
       ),
@@ -181,7 +164,7 @@ const context = (): ValidatorContext => ({
   mcp: {
     calls: (name) =>
       observe("mcp.calls", name === undefined ? [] : [name], async () =>
-        (await calls(".anpord/mcp-calls.jsonl", McpCallSchema)).filter(
+        (await calls(".anpord/mcp-calls.jsonl", decodeMcpCall)).filter(
           (call) => name === undefined || call.server === name
         )
       ),

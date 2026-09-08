@@ -30,7 +30,7 @@ export function CodeCard({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-border-faint bg-muted/40",
+        "group/code overflow-hidden rounded-xl border border-border-faint bg-muted/40",
         className
       )}
     >
@@ -40,7 +40,7 @@ export function CodeCard({
         </span>
 
         <CopyButton
-          className="size-6 shrink-0"
+          className="size-6 shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/code:opacity-100"
           label={`Copy ${label}`}
           value={code}
         />
@@ -65,7 +65,7 @@ export function CodeContent({
   return (
     <div className={cn("overflow-auto", maxHeight)}>
       {html === null ? (
-        <pre className="p-4 font-mono text-muted-foreground text-xs leading-relaxed">
+        <pre className="p-4 font-mono text-[0.8125rem] text-muted-foreground leading-[1.7] [font-variation-settings:'wght'_450]">
           {code}
         </pre>
       ) : (
@@ -73,7 +73,7 @@ export function CodeContent({
            inline and the dark ones as custom properties. */
         <div
           className={cn(
-            "[&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-xs [&_pre]:leading-relaxed",
+            "[&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-[0.8125rem] [&_pre]:leading-[1.7] [&_pre]:[font-variation-settings:'wght'_450] [&_pre]:[tab-size:2]",
             "[.dark_&_.shiki]:![color:var(--shiki-dark)] [.dark_&_.shiki_span]:![color:var(--shiki-dark)]"
           )}
           // biome-ignore lint/security/noDangerouslySetInnerHtml: markup is produced by shiki from a string this app owns

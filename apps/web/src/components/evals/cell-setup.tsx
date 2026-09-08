@@ -16,7 +16,6 @@ import { useState } from "react";
 import { TickedProse } from "@/components/evals/inline-code";
 import { SetupSurface } from "@/components/evals/setup-surface";
 import { VerifySteps } from "@/components/evals/verify-steps";
-import { ValidationSource } from "./validation-source";
 
 const checks = (verdicts: readonly StepVerdict[]) => {
   const total = verdicts.length;
@@ -122,7 +121,7 @@ function Validation({
   readonly trials: readonly EvalTrial[];
 }) {
   if (setup.validatorName !== null) {
-    return <ValidationSource files={setup.validatorFiles ?? []} />;
+    return null;
   }
 
   if (setup.verifyCommand !== null) {

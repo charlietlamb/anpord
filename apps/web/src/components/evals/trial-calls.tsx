@@ -15,6 +15,26 @@ const callStatus = (call: Call) => {
   return call.status ?? "Status not recorded";
 };
 
+/* A tool arrives as `server.tool`. The server repeats down the whole list, so
+   it recedes and the tool -- the one part that differs row to row -- carries
+   the weight the eye is scanning for. */
+function CallName({ name }: { readonly name: string }) {
+  const split = name.lastIndexOf(".");
+
+  if (split <= 0) {
+    return <span className="text-foreground">{name}</span>;
+  }
+
+  return (
+    <>
+      <span className="text-muted-foreground">{name.slice(0, split + 1)}</span>
+      <span className="font-medium text-foreground">
+        {name.slice(split + 1)}
+      </span>
+    </>
+  );
+}
+
 function CallRow({
   call,
   ordinal,
@@ -33,13 +53,13 @@ function CallRow({
     <details className="group/call" open={ordinal === 1}>
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded px-3.5 py-2.5 text-xs hover:bg-muted/40 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <span className="text-muted-foreground tabular-nums">{ordinal}</span>
-        <span className="min-w-0 flex-1 truncate font-mono">
-          {command ? call.command : call.name}
+        <span className="min-w-0 flex-1 truncate font-mono text-[0.8125rem]">
+          {command ? call.command : <CallName name={call.name} />}
         </span>
         <span
           className={cn(
-            "shrink-0 text-muted-foreground",
-            failed && "text-warning"
+            "shrink-0 rounded-md px-1.5 py-0.5 text-muted-foreground",
+            failed && "bg-warning/10 text-warning"
           )}
         >
           {callStatus(call)}
@@ -51,27 +71,28 @@ function CallRow({
           ›
         </span>
       </summary>
-      <dl className="grid gap-2 pb-3 md:grid-cols-2">
-        <EvidenceValue
-          label="Input"
-          truncated={command ? false : call.inputTruncated}
-          value={command ? call.command : call.input}
-        />
-        <EvidenceValue
-          label="Output"
-          truncated={call.outputTruncated}
-          value={call.output}
-        />
-        {!command && call.error !== undefined ? (
-          <div className="md:col-span-2">
+      <div className="space-y-2 px-3.5 pb-3">
+        <dl>
+          <EvidenceValue
+            label="Output"
+            truncated={call.outputTruncated}
+            value={call.output}
+          />
+          {!command && call.error !== undefined ? (
             <EvidenceValue
               label="Error"
               truncated={call.errorTruncated}
               value={call.error}
             />
-          </div>
-        ) : null}
-      </dl>
+          ) : null}
+        </dl>
+        <EvidenceValue
+          disclosure
+          label="Input"
+          truncated={command ? false : call.inputTruncated}
+          value={command ? call.command : call.input}
+        />
+      </div>
     </details>
   );
 }

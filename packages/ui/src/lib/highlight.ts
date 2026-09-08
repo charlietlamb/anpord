@@ -17,7 +17,7 @@ const create = () =>
     ],
     themes: [
       import("shiki/themes/github-light-default.mjs"),
-      import("shiki/themes/catppuccin-mocha.mjs"),
+      import("shiki/themes/github-dark-default.mjs"),
     ],
   });
 
@@ -35,5 +35,5 @@ export const highlight = async (code: string, lang: CodeLanguage) =>
   (await highlighter()).codeToHtml(code, {
     defaultColor: "light",
     lang,
-    themes: { dark: "catppuccin-mocha", light: "github-light-default" },
+    themes: { dark: "github-dark-default", light: "github-light-default" },
   });

@@ -8,7 +8,7 @@ import { TokenBand } from "@/components/evals/token-band";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
-import { TrialValidations } from "@/components/evals/trial-validations";
+import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
@@ -32,7 +32,7 @@ function TrialScreen() {
   );
 
   if (run === undefined) {
-    return <TrialSkeleton />;
+    return <TrialSkeleton ordinal={ordinal} />;
   }
 
   if (trial === undefined) {
@@ -60,7 +60,12 @@ function TrialScreen() {
         </section>
 
         <TrialCalls trajectory={trial.trajectory} />
-        <TrialValidations validations={trial.validations} />
+
+        <ValidationInspector
+          files={cell?.setup?.validatorFiles}
+          key={`${cellKey}:${ordinal}`}
+          trials={[trial]}
+        />
 
         {cell?.setup == null ? null : (
           <CellSetup setup={cell.setup} trials={[trial]} />

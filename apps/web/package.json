@@ -36,6 +36,8 @@
     "posthog-js": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
     "sonner": "catalog:",
     "tw-animate-css": "catalog:",
     "zod": "catalog:"

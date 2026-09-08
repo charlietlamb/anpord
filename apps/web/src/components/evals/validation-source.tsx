@@ -8,9 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anpord/ui/components/ui/select";
-import { CheckSquareIcon } from "@phosphor-icons/react";
 import { useState } from "react";
-import { SetupSurface } from "./setup-surface";
 
 export function ValidationSource({
   files,
@@ -21,20 +19,21 @@ export function ValidationSource({
   const selected = files.find((file) => file.path === path) ?? files[0];
 
   return (
-    <SetupSurface Icon={CheckSquareIcon} title="Validation">
+    <>
       {selected === undefined ? (
         <p className="px-3.5 py-3 text-muted-foreground text-xs">
           Source unavailable for this run.
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border-faint bg-muted/40">
-          <div className="flex min-w-0 items-center gap-2 px-3.5 py-2">
+        <div className="group/source overflow-hidden rounded-xl border border-border-faint bg-muted/40">
+          <div className="flex min-w-0 items-center gap-2 px-2 py-1.5 shadow-[inset_0_-1px_0_0] shadow-border-faint">
             {files.length > 1 ? (
               <Select onValueChange={setPath} value={selected.path}>
                 <SelectTrigger
                   aria-label="Source file"
                   className="min-w-0 flex-1 font-mono text-xs"
                   size="sm"
+                  variant="ghost"
                 >
                   <SelectValue>{selected.path}</SelectValue>
                 </SelectTrigger>
@@ -51,11 +50,12 @@ export function ValidationSource({
                 </SelectContent>
               </Select>
             ) : (
-              <span className="min-w-0 flex-1 truncate font-mono text-muted-foreground text-xs">
+              <span className="min-w-0 flex-1 truncate px-2 font-mono text-muted-foreground text-xs">
                 {selected.path}
               </span>
             )}
             <CopyButton
+              className="shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/source:opacity-100"
               label={`Copy ${selected.path}`}
               size="inline"
               value={selected.content}
@@ -68,6 +68,6 @@ export function ValidationSource({
           />
         </div>
       )}
-    </SetupSurface>
+    </>
   );
 }

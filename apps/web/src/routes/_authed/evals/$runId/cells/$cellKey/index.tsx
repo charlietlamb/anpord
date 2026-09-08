@@ -8,6 +8,7 @@ import { CellSkeleton } from "@/components/evals/cell-skeleton";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { RerunCellButton } from "@/components/evals/rerun-cell-button";
 import { TrialTable } from "@/components/evals/trial-table";
+import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
@@ -55,6 +56,12 @@ function CellScreen() {
 
           <TrialTable cellKey={cellKey} runId={runId} trials={cell.trials} />
         </section>
+
+        <ValidationInspector
+          files={cell.setup?.validatorFiles}
+          key={cellKey}
+          trials={cell.trials}
+        />
 
         {cell.setup === null ? null : (
           <CellSetup setup={cell.setup} trials={cell.trials} />

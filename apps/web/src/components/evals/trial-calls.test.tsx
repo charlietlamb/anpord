@@ -31,10 +31,9 @@ test("shows tool inputs, results, and errors in recorded order", () => {
   expect(html).toContain("Input");
   expect(html).toContain("Output");
   expect(html).toContain("Error");
-  expect(html.match(/<details/g)).toHaveLength(2);
+  expect(html.match(/<details/g)).toHaveLength(4);
   expect(html).toContain("<h3");
   expect(html).not.toContain("aria-expanded=");
-  expect(html).not.toContain("border-border-faint");
   expect(html).not.toContain("divide-");
 });
 
@@ -80,4 +79,24 @@ test("shows CLI command, output, exit status, and explicit truncation", () => {
 
 test("does not render an empty calls section", () => {
   expect(renderToStaticMarkup(<TrialCalls trajectory={[]} />)).toBe("");
+});
+
+test("weights the tool name above the server it came from", () => {
+  const html = renderToStaticMarkup(
+    <TrialCalls
+      trajectory={[
+        {
+          _tag: "toolCall",
+          name: "notra-markdown.get_markdown",
+          input: "{}",
+          output: "ok",
+          status: "completed",
+          finishedAtMillis: 1,
+        },
+      ]}
+    />
+  );
+  expect(html).toContain("notra-markdown.");
+  expect(html).toContain("get_markdown");
+  expect(html).toContain("font-medium text-foreground");
 });

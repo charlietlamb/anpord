@@ -3,11 +3,14 @@ import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { PulseIcon } from "@phosphor-icons/react";
+import { CellSetupSkeleton } from "@/components/evals/cell-setup-skeleton";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import {
   type RailFactShape,
   RailFactSkeleton,
 } from "@/components/evals/rail-fact-skeleton";
+import { TrialCallsSkeleton } from "@/components/evals/trial-calls-skeleton";
+import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspector-skeleton";
 
 /* Mirrors a waterfall row: h-5 with an h-1.5 track centred within it. */
 const TRACKS = [
@@ -29,7 +32,7 @@ const TIME: readonly RailFactShape[] = [
   { share: true, width: "w-24" },
 ];
 
-export function TrialSkeleton() {
+export function TrialSkeleton({ ordinal }: { readonly ordinal?: string }) {
   return (
     <EvalLayout>
       <EvalMain>
@@ -50,6 +53,12 @@ export function TrialSkeleton() {
             </ol>
           </div>
         </section>
+
+        <TrialCallsSkeleton />
+
+        <ValidationInspectorSkeleton />
+
+        <CellSetupSkeleton />
       </EvalMain>
 
       <aside className={RAIL_FRAME}>
@@ -60,6 +69,12 @@ export function TrialSkeleton() {
         <RailSection title="Time">
           <RailFactSkeleton facts={TIME} />
         </RailSection>
+
+        {ordinal === undefined ? null : (
+          <RailSection title="Trial">
+            <span className="text-sm tabular-nums">{ordinal}</span>
+          </RailSection>
+        )}
       </aside>
     </EvalLayout>
   );

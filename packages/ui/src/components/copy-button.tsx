@@ -28,7 +28,7 @@ export function CopyButton({
       onClick={() => copy(value)}
       size="icon-sm"
       type="button"
-      variant="ghost"
+      variant="bare"
     >
       <Glyph className={inline ? "size-3.5" : "size-4"} />
     </Button>

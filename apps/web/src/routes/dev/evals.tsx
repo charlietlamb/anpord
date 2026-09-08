@@ -17,15 +17,20 @@ import {
 import { PreviewCellRail } from "@/components/dev/preview-cell-rail";
 import { PreviewRunRail } from "@/components/dev/preview-run-rail";
 import { PreviewScreen } from "@/components/dev/preview-screen";
+import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 import { CellSetup } from "@/components/evals/cell-setup";
+import { CellSkeleton } from "@/components/evals/cell-skeleton";
 import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { EvalRow } from "@/components/evals/eval-row";
+import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
 import { RunGrid } from "@/components/evals/run-grid";
+import { RunSkeleton } from "@/components/evals/run-skeleton";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
+import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { TrialTable } from "@/components/evals/trial-table";
-import { ValidationSource } from "@/components/evals/validation-source";
+import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
@@ -49,7 +54,7 @@ function EvalsPreview() {
 
         <PreviewScreen name="Validation and calls">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5 py-5">
-            <ValidationSource
+            <ValidationInspector
               files={[
                 {
                   path: "evals/catalog.eval.ts",
@@ -62,9 +67,31 @@ function EvalsPreview() {
                     "export const validate = async ({ answer }) => ({\n  passed: (await answer()).includes('CI fixture'),\n});\n",
                 },
               ]}
+              trials={VALIDATION_TRIALS.slice(0, 1)}
             />
+            <ValidationInspector trials={VALIDATION_TRIALS} />
             <TrialCalls
               trajectory={[
+                {
+                  _tag: "toolCall",
+                  name: "notra-markdown.get_markdown",
+                  input: "{}",
+                  output: JSON.stringify({
+                    content: [
+                      {
+                        type: "text",
+                        text: "# Deploying Notra\n\n1. Set the **environment variables**.\n2. Run `bun run build`.\n3. Deploy and check the health endpoint.",
+                      },
+                    ],
+                    structured_content: {
+                      content:
+                        "# Deploying Notra\n\n1. Set the **environment variables**.\n2. Run `bun run build`.\n3. Deploy and check the health endpoint.",
+                      lineCount: 5,
+                    },
+                  }),
+                  status: "completed",
+                  finishedAtMillis: 0,
+                },
                 {
                   _tag: "toolCall",
                   name: "catalog.items_get",
@@ -192,6 +219,22 @@ function EvalsPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
+
+        <PreviewScreen name="Loading: runs">
+          <EvalListSkeleton />
+        </PreviewScreen>
+
+        <PreviewScreen name="Loading: one run">
+          <RunSkeleton runId="run_preview" />
+        </PreviewScreen>
+
+        <PreviewScreen name="Loading: one cell">
+          <CellSkeleton cellKey="cell_preview" runId="run_preview" />
+        </PreviewScreen>
+
+        <PreviewScreen name="Loading: one trial">
+          <TrialSkeleton ordinal="1" />
+        </PreviewScreen>
       </div>
     </TooltipProvider>
   );

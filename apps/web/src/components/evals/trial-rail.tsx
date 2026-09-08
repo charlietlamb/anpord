@@ -22,7 +22,6 @@ import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { TrialStatusIcon } from "@/components/evals/eval-status-badge";
 import { RunTrigger } from "@/components/evals/run-trigger";
 import { TrialCost } from "@/components/evals/trial-cost";
-import { TrialJudgments } from "@/components/evals/trial-judgments";
 import { VoidReason } from "@/components/evals/void-reason";
 import { seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
@@ -135,8 +134,6 @@ export function TrialRail({
           <VoidReason fields={trial.voidFields} />
         </div>
       </RailSection>
-
-      <TrialJudgments judgments={trial.judgments} />
 
       <RailSection title="Time">
         <div className="flex flex-col">

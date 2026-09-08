@@ -28,22 +28,35 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   )
 }
 
+/* Shared by both variants: the box a trigger occupies and how it responds,
+   with nothing said about how it is painted. */
+const TRIGGER_BASE =
+  "flex w-fit items-center justify-between gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow] duration-150 ease-out outline-none focus-visible:ring-4 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-4 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-[1.875rem] data-[size=sm]:h-7 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+
+/* `ghost` for a trigger that sits against a rule or inside a toolbar, where a
+   second border would read as a seam rather than an edge. */
+const TRIGGER_VARIANTS = {
+  default:
+    "input-bevel-shadow border border-border bg-background px-3 hover:bg-muted focus-visible:border-ring aria-invalid:border-destructive data-[size=sm]:px-3 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+  ghost:
+    "border border-transparent bg-transparent px-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:border-ring data-popup-open:bg-muted/60 data-popup-open:text-foreground data-[size=sm]:px-2",
+} as const
+
 function SelectTrigger({
   className,
   size = "default",
+  variant = "default",
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
   size?: "sm" | "default"
+  variant?: keyof typeof TRIGGER_VARIANTS
 }) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
-      className={cn(
-        "input-bevel-shadow flex w-fit items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow] duration-150 ease-out outline-none hover:bg-muted focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-4 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-[1.875rem] data-[size=sm]:h-7 data-[size=sm]:px-3 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      )}
+      className={cn(TRIGGER_BASE, TRIGGER_VARIANTS[variant], className)}
       {...props}
     >
       {children}
