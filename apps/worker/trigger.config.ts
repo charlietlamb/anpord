@@ -1,16 +1,10 @@
-import { createRequire } from "node:module";
 import { defineConfig } from "@trigger.dev/sdk";
-import { dynamicallyRequired } from "./src/bundling/dynamically-required";
 
 export default defineConfig({
-  build: {
-    extensions: [
-      dynamicallyRequired(
-        "@daytonaio/sdk",
-        createRequire(import.meta.url).resolve("@anpord/eval/package.json")
-      ),
-    ],
-  },
+  /* autoDetectExternal cannot see a dependency reached through require() at
+     runtime, so the Daytona SDK shipped a stub and every sandbox upload failed
+     with "Module form-data is not available". */
+  build: { external: ["form-data"] },
   dirs: ["./src/trigger"],
   maxDuration: 3600,
   /* The project this worker deploys to. An identifier rather than a secret,
