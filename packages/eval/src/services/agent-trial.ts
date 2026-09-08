@@ -25,6 +25,7 @@ import type {
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
+import { HARNESS_RETRY } from "../domain/harness-retry";
 import {
   commandsIn,
   failedCommandsIn,
@@ -207,20 +208,22 @@ export const AgentTrialLive = Layer.effect(
           Stream.runDrain
         );
 
-        const session = yield* driver.run({
-          env,
-          harness: request.harness,
-          harnessVersion: request.harnessVersion,
-          model: request.model,
-          profile,
-          prompt: request.prompt + instructions,
-          sandbox,
-          systemPromptPath: profile.pipe(
-            Option.filter((found) => found.systemPrompt !== null),
-            Option.map(() => systemPromptPath(sandbox.home))
-          ),
-          workspace: request.workspace,
-        });
+        const session = yield* driver
+          .run({
+            env,
+            harness: request.harness,
+            harnessVersion: request.harnessVersion,
+            model: request.model,
+            profile,
+            prompt: request.prompt + instructions,
+            sandbox,
+            systemPromptPath: profile.pipe(
+              Option.filter((found) => found.systemPrompt !== null),
+              Option.map(() => systemPromptPath(sandbox.home))
+            ),
+            workspace: request.workspace,
+          })
+          .pipe(Effect.retry(HARNESS_RETRY));
 
         const agentEvents = Chunk.toReadonlyArray(
           yield* session.events.pipe(sink.through, Stream.runCollect)
