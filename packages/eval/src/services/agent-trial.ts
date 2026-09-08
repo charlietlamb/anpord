@@ -25,7 +25,7 @@ import type {
 } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
-import { HARNESS_RETRY } from "../domain/harness-retry";
+import { waitingOutCapacity } from "../domain/harness-retry";
 import {
   commandsIn,
   failedCommandsIn,
@@ -223,7 +223,7 @@ export const AgentTrialLive = Layer.effect(
             ),
             workspace: request.workspace,
           })
-          .pipe(Effect.retry(HARNESS_RETRY));
+          .pipe(waitingOutCapacity(request.model));
 
         const agentEvents = Chunk.toReadonlyArray(
           yield* session.events.pipe(sink.through, Stream.runCollect)
