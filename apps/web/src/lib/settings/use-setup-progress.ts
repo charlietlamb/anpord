@@ -2,12 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { codebaseQueries } from "@/lib/codebase-queries";
 import { credentialQueries } from "@/lib/credential-queries";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { apiKeyQueries } from "@/lib/query/api-key-queries";
+import { useOrganizations } from "@/lib/use-organizations";
 
 interface SetupStep {
   readonly done: boolean;
   readonly label: string;
   readonly required: boolean;
-  readonly to: "/settings/harnesses" | "/settings/codebase" | "/evals/new";
+  readonly to:
+    | "/settings/harnesses"
+    | "/settings/keys"
+    | "/settings/codebase"
+    | "/evals/new";
 }
 
 export interface SetupProgress {
@@ -21,6 +27,8 @@ export function useSetupProgress(): SetupProgress {
   const integrations = useQuery(credentialQueries.integrations());
   const account = useQuery(codebaseQueries.account());
   const evals = useQuery(evalQueries.list(null));
+  const { activeOrganization } = useOrganizations();
+  const keys = useQuery(apiKeyQueries.list(activeOrganization?.id ?? ""));
 
   const harnesses = new Set(
     (integrations.data ?? [])
@@ -34,7 +42,8 @@ export function useSetupProgress(): SetupProgress {
         connections.isPending ||
         integrations.isPending ||
         account.isPending ||
-        evals.isPending
+        evals.isPending ||
+        keys.isPending
       ) &&
       connections.error === null &&
       integrations.error === null,
@@ -46,6 +55,12 @@ export function useSetupProgress(): SetupProgress {
         label: "Connect a harness",
         required: true,
         to: "/settings/harnesses",
+      },
+      {
+        done: (keys.data ?? []).length > 0,
+        label: "Create an API key",
+        required: true,
+        to: "/settings/keys",
       },
       {
         done: account.data != null,
