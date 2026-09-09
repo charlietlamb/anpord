@@ -45,7 +45,8 @@ function ArtifactFile({
       trial.ordinal,
       artifact.sha256,
     ],
-    queryFn: () => getArtifact({ ...trial, sha256: artifact.sha256 }),
+    queryFn: () =>
+      getArtifact({ ...trial, path: artifact.path, sha256: artifact.sha256 }),
     enabled: open,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: 300_000,
