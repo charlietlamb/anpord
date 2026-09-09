@@ -52,7 +52,9 @@ function ArtifactFile({
   });
   return (
     <div className="overflow-hidden rounded-lg border border-border-faint">
-      <div className="flex items-center gap-2 border-border-faint border-b bg-muted/20 pr-2">
+      <div
+        className={`flex items-center gap-2 border-border-faint bg-muted/20 pr-2 ${open ? "border-b" : ""}`}
+      >
         <button
           aria-expanded={open}
           className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5 text-left text-xs hover:bg-muted/30"
