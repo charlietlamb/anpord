@@ -36,7 +36,7 @@ function ArtifactFile({
   readonly artifact: EvalArtifactMetadata;
   readonly trial: Omit<EvalArtifactRequest, "sha256">;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const { data, isPending, refetch } = useQuery({
     queryKey: [
       "artifact",
@@ -119,7 +119,7 @@ export function TrialArtifacts({
       contentClassName="space-y-2"
       Icon={FilesIcon}
       meta={String(artifacts.length)}
-      title="Output files"
+      title="Generated files"
     >
       {artifacts.map((artifact) => (
         <ArtifactFile
