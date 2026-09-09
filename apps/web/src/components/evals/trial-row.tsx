@@ -52,10 +52,6 @@ export function TrialRow({
       >
         <TrialBadge ordinal={trial.ordinal} status={trial.status} />
       </ListRow>
-      <TrialArtifacts
-        artifacts={trial.artifacts}
-        trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
-      />
     </>
   );
 }

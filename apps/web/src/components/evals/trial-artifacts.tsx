@@ -31,11 +31,9 @@ const language = (path: string): CodeLanguage => {
 
 function ArtifactFile({
   artifact,
-  title = "Generated files",
   trial,
 }: {
   readonly artifact: EvalArtifactMetadata;
-  readonly title?: string;
   readonly trial: Omit<EvalArtifactRequest, "sha256">;
 }) {
   const [open, setOpen] = useState(true);
@@ -106,7 +104,6 @@ function ArtifactFile({
 
 export function TrialArtifacts({
   artifacts = [],
-  title = "Generated files",
   trial,
 }: {
   readonly artifacts?: readonly EvalArtifactMetadata[];
