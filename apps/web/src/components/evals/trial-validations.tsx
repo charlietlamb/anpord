@@ -107,10 +107,10 @@ function ValidationRow({
   const judgment = validation.judgment;
   return (
     <details
-      className="group/validation overflow-hidden rounded-xl border border-border bg-muted/15 transition-colors open:bg-muted/25 hover:border-muted-foreground/40"
+      className="group/validation overflow-hidden rounded-xl border border-border-faint bg-muted/40 transition-colors hover:border-muted-foreground/40"
       open={expanded}
     >
-      <summary className="cursor-pointer list-none p-4 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+      <summary className="cursor-pointer list-none px-3 py-2.5 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <div className="flex items-start gap-2.5 text-xs">
           <SignalTip label={validation.kind}>
             <KindIcon
