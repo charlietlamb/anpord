@@ -254,6 +254,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           id: `run_${suffix}`,
           cellKey: `key_${suffix}`,
           ordinal: 42,
+          path: artifact.path,
           sha256: artifact.sha256,
         };
         expect(yield* getEvalArtifact(organizationId, request)).toEqual(

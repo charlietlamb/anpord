@@ -13,5 +13,5 @@ export const evalTrialArtifact = pgTable(
     path: text("path").notNull(),
     content: text("content").notNull(),
   },
-  (table) => [primaryKey({ columns: [table.trialInternalId, table.sha256] })]
+  (table) => [primaryKey({ columns: [table.trialInternalId, table.path] })]
 );

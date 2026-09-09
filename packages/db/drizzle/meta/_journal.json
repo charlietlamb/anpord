@@ -330,6 +330,13 @@
       "when": 1788944505222,
       "tag": "0046_silent_lord_tyger",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1788987720509,
+      "tag": "0047_young_warbound",
+      "breakpoints": true
     }
   ]
 }

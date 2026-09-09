@@ -376,13 +376,14 @@ export const EvalArtifact = Schema.Struct({
   path: Schema.String,
   content: Schema.String,
   byteSize: Schema.Int.pipe(Schema.nonNegative()),
-  sha256: Schema.String,
+  sha256: Schema.String.pipe(Schema.pattern(/^[a-f0-9]{64}$/)),
 });
 export type EvalArtifact = typeof EvalArtifact.Type;
 
 export const EvalArtifactMetadata = EvalArtifact.omit("content");
 export type EvalArtifactMetadata = typeof EvalArtifactMetadata.Type;
 export const EvalArtifactRequest = Schema.Struct({
+  path: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(512)),
   id: Schema.String,
   cellKey: Schema.String,
   ordinal: Schema.Int.pipe(Schema.positive()),

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
@@ -26,7 +27,10 @@ export const getEvalArtifact = (
           evalTrialArtifact,
           and(
             eq(evalTrialArtifact.trialInternalId, evalTrial.internalId),
-            eq(evalTrialArtifact.sha256, input.sha256)
+            and(
+              eq(evalTrialArtifact.sha256, input.sha256),
+              eq(evalTrialArtifact.path, input.path)
+            )
           )
         )
         .innerJoin(evalCell, eq(evalCell.internalId, evalTrial.cellInternalId))
@@ -49,5 +53,14 @@ export const getEvalArtifact = (
         new NotFound({ message: "Output file not found" })
       );
     }
-    return { ...artifact, content: rows[0]?.content ?? "" };
+    const content = rows[0]?.content;
+    if (
+      content === undefined ||
+      createHash("sha256").update(content).digest("hex") !== artifact.sha256
+    ) {
+      return yield* Effect.fail(
+        new NotFound({ message: "Output file not found" })
+      );
+    }
+    return { ...artifact, content };
   });

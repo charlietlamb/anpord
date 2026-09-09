@@ -1,0 +1,2 @@
+ALTER TABLE "eval_trial_artifact" DROP CONSTRAINT "eval_trial_artifact_trial_internal_id_sha256_pk";--> statement-breakpoint
+ALTER TABLE "eval_trial_artifact" ADD CONSTRAINT "eval_trial_artifact_trial_internal_id_path_pk" PRIMARY KEY("trial_internal_id","path");
