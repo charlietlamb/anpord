@@ -104,6 +104,7 @@ function ArtifactFile({
 
 export function TrialArtifacts({
   artifacts = [],
+  title = "Generated files",
   trial,
 }: {
   readonly artifacts?: readonly EvalArtifactMetadata[];
