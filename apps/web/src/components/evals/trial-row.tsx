@@ -1,7 +1,6 @@
 import type { EvalTrial } from "@anpord/schema/domain/evals";
 import { TrialBadge } from "@/components/evals/eval-status-badge";
 import { Metric } from "@/components/evals/metric";
-import { TrialArtifacts } from "@/components/evals/trial-artifacts";
 import { ListRow } from "@/components/layout/list-row";
 import { count, NOTHING, seconds } from "@/lib/evals/duration";
 

@@ -7,6 +7,7 @@ import { CellSetup } from "@/components/evals/cell-setup";
 import { CellSkeleton } from "@/components/evals/cell-skeleton";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { RerunCellButton } from "@/components/evals/rerun-cell-button";
+import { TrialArtifacts } from "@/components/evals/trial-artifacts";
 import { TrialTable } from "@/components/evals/trial-table";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { ErrorCard } from "@/components/layout/error-card";
@@ -55,6 +56,18 @@ function CellScreen() {
           </div>
 
           <TrialTable cellKey={cellKey} runId={runId} trials={cell.trials} />
+          {(() => {
+            const trial = [...cell.trials]
+              .reverse()
+              .find((entry) => entry.artifacts?.length);
+            return trial ? (
+              <TrialArtifacts
+                artifacts={trial.artifacts}
+                title={`Generated files · Trial ${trial.ordinal}`}
+                trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
+              />
+            ) : null;
+          })()}
         </section>
 
         <ValidationInspector

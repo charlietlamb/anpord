@@ -31,9 +31,11 @@ const language = (path: string): CodeLanguage => {
 
 function ArtifactFile({
   artifact,
+  title = "Generated files",
   trial,
 }: {
   readonly artifact: EvalArtifactMetadata;
+  readonly title?: string;
   readonly trial: Omit<EvalArtifactRequest, "sha256">;
 }) {
   const [open, setOpen] = useState(true);
@@ -104,9 +106,11 @@ function ArtifactFile({
 
 export function TrialArtifacts({
   artifacts = [],
+  title = "Generated files",
   trial,
 }: {
   readonly artifacts?: readonly EvalArtifactMetadata[];
+  readonly title?: string;
   readonly trial: Omit<EvalArtifactRequest, "sha256">;
 }) {
   if (!artifacts.length) {
@@ -117,7 +121,7 @@ export function TrialArtifacts({
       contentClassName="space-y-2"
       Icon={FilesIcon}
       meta={String(artifacts.length)}
-      title="Generated files"
+      title={title}
     >
       {artifacts.map((artifact) => (
         <ArtifactFile
