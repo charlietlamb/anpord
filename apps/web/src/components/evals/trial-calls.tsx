@@ -6,6 +6,15 @@ import { SetupSurface } from "./setup-surface";
 
 type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
 
+const commandLabel = (command: string) => {
+  const unwrapped = command
+    .replace(/^\/bin\/(?:ba)?sh -lc ['"]?/, "")
+    .replace(/['"]$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return unwrapped.length > 120 ? `${unwrapped.slice(0, 117)}…` : unwrapped;
+};
+
 const callStatus = (call: Call) => {
   if (call._tag === "command") {
     return call.exitCode === null
@@ -53,8 +62,11 @@ function CallRow({
     <details className="group/call" open={ordinal === 1}>
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded px-3.5 py-2.5 text-xs hover:bg-muted/40 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <span className="text-muted-foreground tabular-nums">{ordinal}</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-[0.8125rem]">
-          {command ? call.command : <CallName name={call.name} />}
+        <span
+          className="min-w-0 flex-1 truncate font-mono text-[0.8125rem]"
+          title={command ? call.command : call.name}
+        >
+          {command ? commandLabel(call.command) : <CallName name={call.name} />}
         </span>
         <span
           className={cn(
