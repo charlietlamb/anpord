@@ -77,12 +77,12 @@ function NewEvalScreen() {
       {tab === "agent" ? (
         <AgentSetup />
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
           <header className="flex flex-col gap-1">
-            <h2 className="font-heading text-base tracking-tight">
+            <h2 className="font-heading font-medium text-xl tracking-tight">
               Write an eval here
             </h2>
-            <p className="max-w-prose text-muted-foreground text-xs">
+            <p className="max-w-xl text-muted-foreground text-sm leading-6">
               One case, run now. Good for trying a goal out; an eval you mean to
               keep belongs in the repository.
             </p>

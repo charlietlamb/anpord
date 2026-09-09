@@ -67,12 +67,12 @@ export function AgentSetup() {
   const { dismiss, dismissed } = useDismissed("anpord.install-dismissed");
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h2 className="font-heading text-base tracking-tight">
+        <h2 className="font-heading font-medium text-xl tracking-tight">
           Write an eval in code
         </h2>
-        <p className="max-w-prose text-muted-foreground text-xs">
+        <p className="max-w-xl text-muted-foreground text-sm leading-6">
           Install the SDK, then hand the prompt to your coding agent. It carries
           the API, the rules that decide whether a result means anything, and
           where the rest is documented.
