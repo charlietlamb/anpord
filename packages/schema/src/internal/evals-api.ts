@@ -3,6 +3,8 @@ import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
   CreatePlaygroundRequest,
+  EvalArtifact,
+  EvalArtifactRequest,
   EvalCellHistoryEntry,
   EvalHarness,
   EvalRun,
@@ -20,6 +22,11 @@ const RunPath = Schema.Struct({ id: Schema.String });
 const CellPath = Schema.Struct({ cellKey: Schema.String });
 
 export class EvalsGroup extends HttpApiGroup.make("evals")
+  .add(
+    HttpApiEndpoint.post("artifact", "/evals/artifacts")
+      .setPayload(EvalArtifactRequest)
+      .addSuccess(EvalArtifact)
+  )
   .add(
     /* Cursor rather than offset: a run started between two fetches shifts every page after it. */
     HttpApiEndpoint.get("list", "/evals")

@@ -1,5 +1,6 @@
 import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import { EvalValidations } from "@anpord/schema/domain/eval-validations";
+import { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
 import { type Option, Schema } from "effect";
 
 /* `void` is its own status, never a flavour of `failed`: a trial whose commands
@@ -25,6 +26,7 @@ export const VerifyStepResult = Schema.Struct({
 export type VerifyStepResult = typeof VerifyStepResult.Type;
 
 export const TrialOutcome = Schema.Struct({
+  artifacts: Schema.optional(Schema.Array(EvalArtifactMetadata)),
   validations: Schema.optional(EvalValidations),
   judgments: Schema.optional(Schema.Array(EvalJudgment)),
   commandCount: Schema.Int,

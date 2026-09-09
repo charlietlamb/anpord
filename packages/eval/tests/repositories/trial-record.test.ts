@@ -16,6 +16,7 @@ import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer, Option, Redacted } from "effect";
 import type { HarnessEvent } from "../../src/domain/harness-event";
 import type { TrialOutcome } from "../../src/domain/trial";
+import { getEvalArtifact } from "../../src/repositories/trial-artifacts";
 import {
   TrialRecorder,
   TrialRecorderLive,
@@ -222,6 +223,57 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
       outputTokens: 40,
       totalTokens: 160,
     });
+  });
+
+  it("persists output files, denies other tenants, and clears them on retry", async () => {
+    const artifact = {
+      path: "autumn.config.ts",
+      content: "export const x = 1;",
+      byteSize: 19,
+      sha256: "a".repeat(64),
+    };
+    await run(
+      Effect.gen(function* () {
+        const recorder = yield* TrialRecorder;
+        const opened = yield* recorder.open({
+          cellInternalId,
+          ordinal: 42,
+          provider: "daytona",
+          startedAt: new Date(),
+        });
+        yield* recorder.settle({
+          trialInternalId: opened.trialInternalId,
+          finishedAt: new Date(),
+          outcome: { ...outcome, artifacts: [artifact] },
+          artifacts: [artifact],
+          prepared: {},
+          sandboxId: null,
+          usage: null,
+        });
+        const request = {
+          id: `run_${suffix}`,
+          cellKey: `key_${suffix}`,
+          ordinal: 42,
+          sha256: artifact.sha256,
+        };
+        expect(yield* getEvalArtifact(organizationId, request)).toEqual(
+          artifact
+        );
+        const denied = yield* Effect.either(
+          getEvalArtifact("another-org", request)
+        );
+        expect(denied._tag).toBe("Left");
+        yield* recorder.open({
+          cellInternalId,
+          ordinal: 42,
+          provider: "daytona",
+          startedAt: new Date(),
+        });
+        expect(
+          (yield* Effect.either(getEvalArtifact(organizationId, request)))._tag
+        ).toBe("Left");
+      })
+    );
   });
 
   it("ignores a batch it has already written", async () => {

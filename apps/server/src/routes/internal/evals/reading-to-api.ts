@@ -10,6 +10,7 @@ import { DateTime, Schema } from "effect";
 
 /* No trajectory: the journal is fetched per trial, so a history of twenty readings would pull twenty journals to draw a table showing none. */
 const asStoredTrial = (trial: {
+  readonly artifacts?: EvalTrial["artifacts"] | null;
   readonly commandCount: number | null;
   readonly judgments?: unknown;
   readonly costs?: readonly {
@@ -32,6 +33,11 @@ const asStoredTrial = (trial: {
   readonly verifySteps: { command: string; exitCode: number }[] | null;
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
+  artifacts: trial.artifacts?.map(({ path, byteSize, sha256 }) => ({
+    path,
+    byteSize,
+    sha256,
+  })),
   commands: trial.commandCount ?? 0,
   judgments: Schema.decodeUnknownSync(Schema.Array(EvalJudgment))(
     trial.judgments ?? []

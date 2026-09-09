@@ -372,7 +372,26 @@ export const EvalCosts = Schema.Struct({
 });
 export type EvalCosts = typeof EvalCosts.Type;
 
+export const EvalArtifact = Schema.Struct({
+  path: Schema.String,
+  content: Schema.String,
+  byteSize: Schema.Int.pipe(Schema.nonNegative()),
+  sha256: Schema.String,
+});
+export type EvalArtifact = typeof EvalArtifact.Type;
+
+export const EvalArtifactMetadata = EvalArtifact.omit("content");
+export type EvalArtifactMetadata = typeof EvalArtifactMetadata.Type;
+export const EvalArtifactRequest = Schema.Struct({
+  id: Schema.String,
+  cellKey: Schema.String,
+  ordinal: Schema.Int.pipe(Schema.positive()),
+  sha256: Schema.String.pipe(Schema.pattern(/^[a-f0-9]{64}$/)),
+});
+export type EvalArtifactRequest = typeof EvalArtifactRequest.Type;
+
 export const EvalTrial = Schema.Struct({
+  artifacts: Schema.optional(Schema.Array(EvalArtifactMetadata)),
   validations: Schema.optional(EvalValidations),
   judgments: Schema.optional(Schema.Array(EvalJudgment)),
   commands: Schema.Int,

@@ -1,5 +1,6 @@
 export type {
   CatalogueModel,
+  EvalArtifact,
   EvalCell,
   EvalCellHistoryEntry,
   EvalComparison,

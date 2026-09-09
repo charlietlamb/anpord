@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TokenBand } from "@/components/evals/token-band";
+import { TrialArtifacts } from "@/components/evals/trial-artifacts";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
@@ -60,6 +61,11 @@ function TrialScreen() {
         </section>
 
         <TrialCalls trajectory={trial.trajectory} />
+
+        <TrialArtifacts
+          artifacts={trial.artifacts}
+          trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
+        />
 
         <ValidationInspector
           files={cell?.setup?.validatorFiles}

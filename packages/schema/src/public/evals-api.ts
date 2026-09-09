@@ -11,6 +11,8 @@ import {
 import { EvalTrigger } from "../domain/eval-trigger";
 import {
   CaseCache,
+  EvalArtifact,
+  EvalArtifactRequest,
   EvalCellHistoryEntry,
   EvalHarness,
   EvalName,
@@ -135,6 +137,11 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
         OpenApi.Description,
         `Starts the grid and returns its id while trials continue in the background. ${PROFILE_HARNESS_RULE}`
       )
+  )
+  .add(
+    HttpApiEndpoint.post("artifact", "/evals.artifact")
+      .setPayload(EvalArtifactRequest)
+      .addSuccess(EvalArtifact)
   )
   .add(
     HttpApiEndpoint.post("get", "/evals.get")

@@ -1,6 +1,7 @@
 import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { EvalValidations } from "@anpord/schema/domain/eval-validations";
+import { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
 import { Option, Schema } from "effect";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
@@ -18,6 +19,7 @@ const asResult = (input: {
   readonly exitCode: number;
   readonly modelMs: number;
   readonly judgments?: unknown;
+  readonly artifacts?: unknown;
   readonly validations?: unknown;
   readonly finishedAt: number | null;
   readonly passed: boolean;
@@ -35,6 +37,9 @@ const asResult = (input: {
   filesChanged: filesIn(input.events),
   prepared: input.prepared ?? {},
   outcome: {
+    artifacts: Schema.decodeUnknownSync(Schema.Array(EvalArtifactMetadata))(
+      input.artifacts ?? []
+    ),
     validations:
       input.validations == null
         ? undefined
@@ -149,6 +154,7 @@ export const runToState = (
       trials: entry.trials.map((trial) =>
         Option.some(
           asResult({
+            artifacts: trial.artifacts,
             commandCount: trial.commandCount ?? 0,
             events: eventsByTrial.get(trial.internalId) ?? [],
             exitCode: trial.exitCode ?? -1,

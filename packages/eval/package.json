@@ -31,6 +31,7 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./repositories/trial-artifacts": "./src/repositories/trial-artifacts.ts",
     "./adapters/models/codex-available": "./src/adapters/models/codex-available.ts",
     "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
     "./credentials/cipher": "./src/credentials/cipher.ts",

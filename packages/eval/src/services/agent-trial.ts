@@ -2,7 +2,11 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
-import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
+import type {
+  EvalArtifact,
+  EvalPrepare,
+  EvalValidator,
+} from "@anpord/schema/domain/evals";
 import {
   Chunk,
   Clock,
@@ -38,6 +42,7 @@ import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer, type ValidationObserver } from "../ports/scorer";
 import type { TrialProgressShape } from "../ports/trial-progress";
+import { captureArtifacts } from "./capture-artifacts";
 import { captureCredentialRotation } from "./credential-rotation";
 import { apiInstructions } from "./mock-apis";
 import { systemPromptPath } from "./profile-files";
@@ -75,6 +80,7 @@ export interface AgentTrialRequest {
 }
 
 export interface AgentTrialResult {
+  readonly artifactContents?: readonly EvalArtifact[];
   readonly commands: number;
   readonly events: readonly HarnessEvent[];
   readonly failedCommands: number;
@@ -238,6 +244,11 @@ export const AgentTrialLive = Layer.effect(
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
+        const artifacts = yield* captureArtifacts(
+          sandbox,
+          request.workspace,
+          filesIn(events)
+        );
         const scored = yield* scorer.score({
           onValidation: request.onValidation,
           commandCount: commandsIn(events),
@@ -260,12 +271,16 @@ export const AgentTrialLive = Layer.effect(
         const journalLost = yield* Ref.get(sink.lost);
 
         return {
+          artifactContents: artifacts,
           commands: commandsIn(events),
           events: [...events, ...validationApiEvents],
           failedCommands: failedCommandsIn(events),
           filesChanged: filesIn(events),
           outcome: {
             ...(journalLost ? voided(scored) : scored),
+            artifacts: artifacts.map(
+              ({ content: _content, ...metadata }) => metadata
+            ),
 
             sandboxMs: finishedAt - startedAt - (modelFinished - modelStarted),
           },

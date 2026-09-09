@@ -183,6 +183,7 @@ export const runTrial = (input: RunOneTrial) =>
     const usage = yield* priced(result.usage, input.task.model);
 
     yield* input.recorder.settle({
+      artifacts: result.artifactContents,
       finishedAt: new Date(finishedAt),
       outcome: result.outcome,
       prepared: result.prepared,
@@ -212,9 +213,10 @@ export const runTrial = (input: RunOneTrial) =>
       })
       .pipe(Effect.ignoreLogged);
 
-    yield* input.onTrial(input.ordinal, result);
+    const { artifactContents: _artifactContents, ...stored } = result;
+    yield* input.onTrial(input.ordinal, stored);
 
-    return result;
+    return stored;
   }).pipe(
     Effect.scoped,
     Effect.withSpan("GridCell.trial", {

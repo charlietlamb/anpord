@@ -1,5 +1,6 @@
 import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -31,6 +32,7 @@ export const evalTrial = pgTable(
     commandCount: integer("command_count"),
     modelMs: integer("model_ms"),
     sandboxMs: integer("sandbox_ms"),
+    artifacts: jsonb("artifacts").$type<readonly EvalArtifactMetadata[]>(),
     prepared: jsonb("prepared").$type<Record<string, unknown>>(),
     judgments: jsonb("judgments").$type<readonly EvalJudgment[]>(),
     validations: jsonb("validations").$type<readonly EvalValidation[]>(),

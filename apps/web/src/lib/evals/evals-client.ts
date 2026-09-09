@@ -1,4 +1,6 @@
 import {
+  EvalArtifact,
+  type EvalArtifactRequest,
   EvalCellHistoryEntry,
   type EvalHarness,
   type EvalPageCursor,
@@ -111,3 +113,6 @@ export const rerunCell = (runId: string, cellKey: string, trials: number) =>
 
 export const runPlayground = (id: string) =>
   post(StartedEval, `/evals/playgrounds/${encodeURIComponent(id)}/runs`, {});
+
+export const getArtifact = (input: EvalArtifactRequest) =>
+  post(EvalArtifact, "/evals/artifacts", input);

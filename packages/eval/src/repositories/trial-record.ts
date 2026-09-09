@@ -1,9 +1,11 @@
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
+import { evalTrialArtifact } from "@anpord/db/schema/evals/eval-trial-artifacts";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
 import { EvalValidations } from "@anpord/schema/domain/eval-validations";
+import type { EvalArtifact } from "@anpord/schema/domain/evals";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import type { ProviderName } from "../domain/cell";
@@ -34,6 +36,7 @@ export interface AbandonTrial {
 }
 
 export interface SettleTrial {
+  readonly artifacts?: readonly EvalArtifact[];
   readonly finishedAt: Date;
   readonly outcome: TrialOutcome;
   readonly prepared: Readonly<Record<string, unknown>>;
@@ -157,6 +160,7 @@ export const TrialRecorderLive = Layer.effect(
                 startedAt: input.startedAt,
                 status: "running",
                 validations: [],
+                artifacts: [],
               },
               target: [evalTrial.cellInternalId, evalTrial.ordinal],
             })
@@ -168,6 +172,12 @@ export const TrialRecorderLive = Layer.effect(
 
         const trialInternalId = rows[0]?.internalId ?? fresh;
         const priorSandboxId = Option.fromNullable(rows[0]?.sandboxId);
+
+        yield* tryStore("trial.clearArtifacts", () =>
+          db
+            .delete(evalTrialArtifact)
+            .where(eq(evalTrialArtifact.trialInternalId, trialInternalId))
+        );
 
         /* An earlier attempt's journal would otherwise interleave with this one. */
         yield* tryStore("trial.clearEvents", () =>
@@ -217,27 +227,52 @@ export const TrialRecorderLive = Layer.effect(
 
     const settle = (input: SettleTrial) =>
       tryStore("trial.settle", () =>
-        db
-          .update(evalTrial)
-          .set({
-            commandCount: input.outcome.commandCount,
-            exitCode: input.outcome.exitCode,
-            finishedAt: input.finishedAt,
-            modelMs: input.outcome.modelMs,
-            passed: input.outcome.passed,
-            prepared: input.prepared,
-            judgments: input.outcome.judgments ?? [],
-            ...(input.outcome.validations === undefined
-              ? {}
-              : { validations: input.outcome.validations }),
-            sandboxId: input.sandboxId,
-            sandboxMs: input.outcome.sandboxMs,
-            status: input.outcome.status,
-            usage: input.usage === null ? null : { ...input.usage },
-            verifySteps: input.outcome.verifySteps.map((step) => ({ ...step })),
-            voidFields: [...input.outcome.voidFields],
-          })
-          .where(eq(evalTrial.internalId, input.trialInternalId))
+        db.transaction(async (tx) => {
+          await tx
+            .delete(evalTrialArtifact)
+            .where(
+              eq(evalTrialArtifact.trialInternalId, input.trialInternalId)
+            );
+          if (input.artifacts?.length) {
+            await tx
+              .insert(evalTrialArtifact)
+              .values(
+                input.artifacts.map(({ path, sha256, content }) => ({
+                  trialInternalId: input.trialInternalId,
+                  path,
+                  sha256,
+                  content,
+                }))
+              )
+              .onConflictDoNothing();
+          }
+          return tx
+            .update(evalTrial)
+            .set({
+              artifacts: (input.artifacts ?? []).map(
+                ({ content: _content, ...metadata }) => metadata
+              ),
+              commandCount: input.outcome.commandCount,
+              exitCode: input.outcome.exitCode,
+              finishedAt: input.finishedAt,
+              modelMs: input.outcome.modelMs,
+              passed: input.outcome.passed,
+              prepared: input.prepared,
+              judgments: input.outcome.judgments ?? [],
+              ...(input.outcome.validations === undefined
+                ? {}
+                : { validations: input.outcome.validations }),
+              sandboxId: input.sandboxId,
+              sandboxMs: input.outcome.sandboxMs,
+              status: input.outcome.status,
+              usage: input.usage === null ? null : { ...input.usage },
+              verifySteps: input.outcome.verifySteps.map((step) => ({
+                ...step,
+              })),
+              voidFields: [...input.outcome.voidFields],
+            })
+            .where(eq(evalTrial.internalId, input.trialInternalId));
+        })
       ).pipe(
         Effect.asVoid,
         Effect.withSpan("TrialRecorder.settle", {

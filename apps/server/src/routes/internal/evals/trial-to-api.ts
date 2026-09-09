@@ -100,6 +100,9 @@ export const asTrials = (cell: GridCell): readonly EvalTrial[] =>
     Option.match(trial, {
       onNone: () => waiting(index + 1, cell.live.get(index + 1) ?? []),
       onSome: (result) => ({
+        artifacts: result.outcome.artifacts?.map(
+          ({ path, byteSize, sha256 }) => ({ path, byteSize, sha256 })
+        ),
         commands: result.commands,
         judgments: result.outcome.judgments ?? [],
         validations: result.outcome.validations,

@@ -2,6 +2,7 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
+import { getEvalArtifact } from "../../evals/artifacts";
 import {
   getCellHistory,
   getEvalModels,
@@ -16,6 +17,11 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
   "evals",
   (handlers) =>
     authorized(handlers)
+      .handle(
+        "artifact",
+        { permission: Permissions.Evals.Read },
+        ({ payload }) => getEvalArtifact(payload)
+      )
       .handle("list", { permission: Permissions.Evals.Read }, ({ payload }) =>
         listEvalRuns({
           cursorId: payload.cursor?.id,

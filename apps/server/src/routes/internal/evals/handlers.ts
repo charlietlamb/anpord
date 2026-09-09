@@ -13,6 +13,7 @@ import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
+import { getEvalArtifact } from "../../evals/artifacts";
 import { getEvalRun, listEvalRuns } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
 import {
@@ -32,6 +33,11 @@ export const EvalsHandlers = HttpApiBuilder.group(
   "evals",
   (handlers) =>
     authorized(handlers)
+      .handle(
+        "artifact",
+        { permission: Permissions.Evals.Read },
+        ({ payload }) => getEvalArtifact(payload)
+      )
       .handle("list", { permission: Permissions.Evals.Read }, ({ urlParams }) =>
         listEvalRuns(urlParams)
       )

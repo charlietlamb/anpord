@@ -5,6 +5,7 @@ import { distributionFor } from "../../src/repositories/trial-distribution";
 type TrialRow = typeof evalTrial.$inferSelect;
 
 const row = (status: string, passed: boolean | null): TrialRow => ({
+  artifacts: null,
   cellInternalId: "cell_1",
   commandCount: 3,
   createdAt: new Date(0),

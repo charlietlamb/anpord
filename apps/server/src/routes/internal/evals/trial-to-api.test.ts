@@ -84,7 +84,16 @@ test("keeps historical results absent instead of inventing an empty output", () 
   expect(response.trajectory[0]).not.toHaveProperty("output");
 });
 
-test("preserves code and judge evidence through API serialization", () => {
+test("preserves validation and artifact evidence through API serialization", () => {
+  const artifacts = [
+    {
+      path: "output.txt",
+      content: "hello",
+      byteSize: 5,
+      sha256:
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+    },
+  ];
   const capture = validationCapture();
   const validations = [
     {
@@ -142,6 +151,7 @@ test("preserves code and judge evidence through API serialization", () => {
             sandboxMs: 0,
           }),
           validations,
+          artifacts,
         },
       }),
     ],
@@ -150,4 +160,7 @@ test("preserves code and judge evidence through API serialization", () => {
     JSON.parse(JSON.stringify(asTrials(cell)[0]))
   );
   expect(response.validations).toEqual(validations);
+  expect(response.artifacts).toEqual(
+    artifacts.map(({ content: _content, ...metadata }) => metadata)
+  );
 });

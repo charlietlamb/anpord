@@ -22,6 +22,7 @@ import { evalHarnessProfile } from "./schema/evals/eval-harness-profiles";
 import { evalPlayground } from "./schema/evals/eval-playgrounds";
 import { evalRun } from "./schema/evals/eval-runs";
 import { evalTask } from "./schema/evals/eval-tasks";
+import { evalTrialArtifact } from "./schema/evals/eval-trial-artifacts";
 import { evalTrialJournal } from "./schema/evals/eval-trial-journal";
 import { evalTrial } from "./schema/evals/eval-trials";
 import { channel } from "./schema/prompts/channels";
@@ -50,6 +51,7 @@ export const schema = {
   evalRun,
   evalTask,
   evalTrial,
+  evalTrialArtifact,
   evalTrialJournal,
   prompt,
   channel,
