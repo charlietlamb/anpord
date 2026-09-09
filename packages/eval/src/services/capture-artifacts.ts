@@ -6,8 +6,8 @@ import { shellQuote } from "../adapters/harness/process";
 import type { SandboxHandle } from "../ports/sandbox";
 
 export const MAX_ARTIFACT_BYTES = 128 * 1024;
-export const MAX_ARTIFACT_TOTAL_BYTES = 512 * 1024;
-export const MAX_ARTIFACT_FILES = 12;
+const MAX_ARTIFACT_TOTAL_BYTES = 512 * 1024;
+const MAX_ARTIFACT_FILES = 12;
 const MAX_RESPONSE = MAX_ARTIFACT_TOTAL_BYTES * 6 + 32_768;
 const TEXT_FILE =
   /\.(?:[cm]?[jt]sx?|json|mdx?|txt|ya?ml|toml|css|html|py|rs|go|sh|sql)$/i;
@@ -34,7 +34,7 @@ export const artifactPaths = (workspace: string, paths: readonly string[]) =>
 
 /* Open each path component relative to a directory descriptor, refusing symlinks
    and special files. Bound reads before decoding, including growing files. */
-export const artifactReadScript = String.raw`
+const artifactReadScript = String.raw`
 import os, sys, json, stat
 root, paths = sys.argv[1], json.loads(sys.argv[2])
 result, total = [], 0
