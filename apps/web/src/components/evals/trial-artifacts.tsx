@@ -34,7 +34,7 @@ function ArtifactFile({
   trial,
 }: {
   readonly artifact: EvalArtifactMetadata;
-  readonly trial: Omit<EvalArtifactRequest, "sha256">;
+  readonly trial: Omit<EvalArtifactRequest, "sha256" | "path">;
 }) {
   const [open, setOpen] = useState(true);
   const { data, isPending, refetch } = useQuery({
@@ -110,7 +110,7 @@ export function TrialArtifacts({
 }: {
   readonly artifacts?: readonly EvalArtifactMetadata[];
   readonly title?: string;
-  readonly trial: Omit<EvalArtifactRequest, "sha256">;
+  readonly trial: Omit<EvalArtifactRequest, "sha256" | "path">;
 }) {
   if (!artifacts.length) {
     return null;
