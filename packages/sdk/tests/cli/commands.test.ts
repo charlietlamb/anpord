@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { apiOperations, commandNames } from "../../src/cli/coverage";
 
 const OPERATION_COMMANDS: Record<string, readonly string[]> = {
+  "evals.artifact": [],
   "evals.cellHistory": [],
   "evals.get": [],
   "evals.list": [],

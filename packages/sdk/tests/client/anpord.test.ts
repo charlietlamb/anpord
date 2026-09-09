@@ -37,6 +37,7 @@ describe("surface", () => {
   test("every endpoint in the group is reachable", () => {
     const anpord = new Anpord({ apiKey: "k" });
     expect(Object.keys(anpord.evals).toSorted()).toEqual([
+      "artifact",
       "cellHistory",
       "get",
       "list",
