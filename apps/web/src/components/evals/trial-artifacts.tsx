@@ -51,13 +51,11 @@ function ArtifactFile({
     gcTime: 300_000,
   });
   return (
-    <div className="overflow-hidden rounded-lg border border-border-faint">
-      <div
-        className={`flex items-center gap-2 border-border-faint bg-muted/20 pr-2 ${open ? "border-b" : ""}`}
-      >
+    <div className="group/file overflow-hidden rounded-xl border border-border-faint bg-muted/40">
+      <div className="flex min-w-0 items-center gap-2 px-2 py-1.5 shadow-[inset_0_-1px_0_0] shadow-border-faint">
         <button
           aria-expanded={open}
-          className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5 text-left text-xs hover:bg-muted/30"
+          className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left text-xs hover:bg-muted/30"
           onClick={() => setOpen(!open)}
           type="button"
         >
@@ -78,6 +76,7 @@ function ArtifactFile({
         </button>
         {data ? (
           <CopyButton
+            className="shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/file:opacity-100"
             label={`Copy ${artifact.path}`}
             size="inline"
             value={data.content}
