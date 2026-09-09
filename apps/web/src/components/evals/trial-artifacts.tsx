@@ -70,9 +70,6 @@ function ArtifactFile({
           <span className="min-w-0 flex-1 truncate font-mono">
             {artifact.path}
           </span>
-          <span className="shrink-0 text-muted-foreground tabular-nums">
-            {(artifact.byteSize / 1024).toFixed(1)} KB
-          </span>
         </button>
         {data ? (
           <CopyButton
