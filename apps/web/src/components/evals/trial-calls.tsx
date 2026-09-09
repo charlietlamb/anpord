@@ -6,10 +6,13 @@ import { SetupSurface } from "./setup-surface";
 
 type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
 
+const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
+const TRAILING_QUOTE = /['"]$/;
+
 const commandLabel = (command: string) => {
   const unwrapped = command
-    .replace(/^\/bin\/(?:ba)?sh -lc ['"]?/, "")
-    .replace(/['"]$/, "")
+    .replace(SHELL_PREFIX, "")
+    .replace(TRAILING_QUOTE, "")
     .replace(/\s+/g, " ")
     .trim();
   return unwrapped.length > 120 ? `${unwrapped.slice(0, 117)}…` : unwrapped;
