@@ -57,13 +57,17 @@ function CellScreen() {
 
           <TrialTable cellKey={cellKey} runId={runId} trials={cell.trials} />
           {(() => {
-            const trial = [...cell.trials]
-              .reverse()
-              .find((entry) => entry.artifacts?.length);
-            return trial ? (
+            const trial = cell.trials.find((entry) => entry.artifacts?.length);
+            const shared = trial?.artifacts?.filter((file) =>
+              cell.trials.every((entry) =>
+                entry.artifacts?.some(
+                  (candidate) => candidate.sha256 === file.sha256
+                )
+              )
+            );
+            return trial && shared?.length ? (
               <TrialArtifacts
-                artifacts={trial.artifacts}
-                title={`Generated files · Trial ${trial.ordinal}`}
+                artifacts={shared}
                 trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
               />
             ) : null;
