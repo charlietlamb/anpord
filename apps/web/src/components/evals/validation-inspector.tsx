@@ -127,10 +127,12 @@ export function ValidationInspector({
               const passed = results.filter(
                 ({ result }) => result?.status === "passed"
               ).length;
+              /* The same card the row becomes once it is open, so opening one
+                 reads as it expanding rather than being replaced. */
               return (
                 <Button
                   aria-label={`Inspect ${entry.name} results`}
-                  className="h-auto w-full flex-wrap justify-between gap-x-3 gap-y-1.5 rounded-md border-0 px-2 py-3 font-normal text-xs transition-colors hover:bg-muted/25"
+                  className="h-auto w-full flex-wrap justify-between gap-x-3 gap-y-1.5 rounded-xl border border-border-faint bg-muted/40 px-3 py-2.5 font-normal text-xs transition-colors hover:border-muted-foreground/40"
                   key={key}
                   onClick={() => {
                     setOrdinal(String(target?.trial.ordinal));
