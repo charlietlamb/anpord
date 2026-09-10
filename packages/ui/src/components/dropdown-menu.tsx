@@ -2,12 +2,61 @@ import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import type * as React from "react";
 import { cn } from "../lib/utils";
 
+const MENU_ITEM_CLASS =
+  "group/dropdown-menu-item relative flex min-h-7 cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-muted-foreground text-xs/relaxed outline-hidden focus:bg-accent focus:text-foreground focus:**:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-3.5 [&_svg]:pointer-events-none [&_svg]:shrink-0";
+
 export function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root {...props} />;
 }
 
 export function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
   return <MenuPrimitive.Trigger {...props} />;
+}
+
+export function DropdownMenuSub({ ...props }: MenuPrimitive.SubmenuRoot.Props) {
+  return <MenuPrimitive.SubmenuRoot {...props} />;
+}
+
+export function DropdownMenuSubTrigger({
+  className,
+  ...props
+}: MenuPrimitive.SubmenuTrigger.Props) {
+  return (
+    <MenuPrimitive.SubmenuTrigger
+      className={cn(MENU_ITEM_CLASS, className)}
+      {...props}
+    />
+  );
+}
+
+export function DropdownMenuSubContent({
+  align = "start",
+  side = "right",
+  sideOffset = 4,
+  className,
+  ...props
+}: MenuPrimitive.Popup.Props &
+  Pick<MenuPrimitive.Positioner.Props, "align" | "side" | "sideOffset">) {
+  return (
+    <MenuPrimitive.Portal>
+      <MenuPrimitive.Positioner
+        align={align}
+        className="isolate z-50 outline-none"
+        side={side}
+        sideOffset={sideOffset}
+      >
+        <MenuPrimitive.Popup
+          className={cn(
+            "max-h-(--available-height) min-w-48 max-w-(--available-width) origin-(--transform-origin) overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-(--shadow-popover) outline-none duration-100",
+            "data-open:fade-in-0 data-open:zoom-in-95 data-open:animate-in",
+            "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out",
+            className
+          )}
+          {...props}
+        />
+      </MenuPrimitive.Positioner>
+    </MenuPrimitive.Portal>
+  );
 }
 
 export function DropdownMenuContent({
@@ -65,13 +114,7 @@ export function DropdownMenuItem({
   ...props
 }: MenuPrimitive.Item.Props) {
   return (
-    <MenuPrimitive.Item
-      className={cn(
-        "group/dropdown-menu-item relative flex min-h-7 cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-muted-foreground text-xs/relaxed outline-hidden focus:bg-accent focus:text-foreground focus:**:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-3.5 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        className
-      )}
-      {...props}
-    />
+    <MenuPrimitive.Item className={cn(MENU_ITEM_CLASS, className)} {...props} />
   );
 }
 

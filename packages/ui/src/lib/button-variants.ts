@@ -6,11 +6,11 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "primary-button-shadow border-primary-border bg-primary text-primary-foreground hover:bg-primary/90",
+          "border-primary-border bg-primary text-primary-foreground hover:bg-primary/90",
         outline:
-          "input-bevel-shadow border-border bg-background text-foreground hover:bg-muted aria-expanded:bg-muted dark:bg-input/30",
+          "border-border bg-background text-foreground hover:bg-muted aria-expanded:bg-muted dark:bg-input/30",
         secondary:
-          "input-bevel-shadow border-border bg-secondary text-secondary-foreground hover:bg-muted",
+          "border-border bg-secondary text-secondary-foreground hover:bg-muted",
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted dark:hover:bg-muted/50",
         /* No fill in any state; the text brightens instead. */

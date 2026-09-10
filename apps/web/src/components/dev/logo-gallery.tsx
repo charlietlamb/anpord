@@ -160,8 +160,8 @@ export function LogosPage() {
                     className={cn(
                       "group flex aspect-square w-full cursor-pointer items-center justify-center gap-3 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset",
                       inverse
-                        ? "bg-[#191919] text-[#fafafa] hover:bg-[#232323]"
-                        : "bg-[#f5f5f3] text-[#191919] hover:bg-[#eeeeeb]"
+                        ? "bg-foreground text-background hover:bg-foreground/90"
+                        : "bg-card text-foreground hover:bg-muted"
                     )}
                   >
                     <LogoMark
@@ -193,8 +193,8 @@ export function LogosPage() {
                           className={cn(
                             "flex aspect-square items-center justify-center",
                             dark
-                              ? "bg-[#191919] text-[#fafafa]"
-                              : "bg-[#f5f5f3] text-[#191919]"
+                              ? "bg-foreground text-background"
+                              : "bg-card text-foreground"
                           )}
                           key={String(dark)}
                         >

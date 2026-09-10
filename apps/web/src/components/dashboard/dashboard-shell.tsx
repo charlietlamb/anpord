@@ -1,10 +1,9 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { Dither } from "@anpord/ui/components/ui/dither";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@anpord/ui/components/ui/sidebar";
+import { PAGE_WIDTHS } from "@anpord/ui/lib/page-frame";
 import { ClientOnly } from "@tanstack/react-router";
 import { Hydrate } from "@tanstack/react-start";
 import { idle } from "@tanstack/react-start/hydration";
@@ -23,20 +22,20 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
   return (
     <TooltipProvider>
       <SidebarProvider className="relative isolate" defaultOpen={sidebarOpen}>
-        <Dither />
         <Hydrate when={idle()}>
           <ClientOnly>
             <CommandMenu />
           </ClientOnly>
         </Hydrate>
         <AppSidebar />
-        <SidebarInset className="relative isolate overflow-hidden border border-sidebar-border bg-background backdrop-blur-md md:peer-data-[variant=inset]:shadow-none">
+        <SidebarInset className="relative isolate min-w-0 overflow-hidden bg-background">
           <ClientOnly>
             <ImpersonationBanner />
           </ClientOnly>
-          <header className="sticky top-0 z-20 flex h-11 shrink-0 items-center gap-2 border-border-faint border-b px-4 transition-surface">
-            <SidebarTrigger />
-            <DashboardBreadcrumbs />
+          <header className="flex h-14 shrink-0 items-center pb-2">
+            <div className={PAGE_WIDTHS.wide}>
+              <DashboardBreadcrumbs />
+            </div>
           </header>
           {children}
         </SidebarInset>

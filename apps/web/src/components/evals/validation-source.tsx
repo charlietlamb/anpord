@@ -26,7 +26,7 @@ export function ValidationSource({
         </p>
       ) : (
         <div className="group/source overflow-hidden rounded-xl border border-border-faint bg-muted/40">
-          <div className="flex min-w-0 items-center gap-2 px-2 py-1.5 shadow-[inset_0_-1px_0_0] shadow-border-faint">
+          <div className="flex min-w-0 items-center gap-2 border-border-faint border-b px-2 py-1.5">
             {files.length > 1 ? (
               <Select onValueChange={setPath} value={selected.path}>
                 <SelectTrigger

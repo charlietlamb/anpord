@@ -8,6 +8,7 @@ type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
 
 const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
 const TRAILING_QUOTE = /['"]$/;
+const COMMAND_CHAIN = /\s+(?:&&|;)\s+/;
 
 const commandLabel = (command: string) => {
   const unwrapped = command
@@ -15,7 +16,11 @@ const commandLabel = (command: string) => {
     .replace(TRAILING_QUOTE, "")
     .replace(/\s+/g, " ")
     .trim();
-  return unwrapped.length > 120 ? `${unwrapped.slice(0, 117)}…` : unwrapped;
+  const parts = unwrapped.split(COMMAND_CHAIN);
+  const summary = parts[0] ?? unwrapped;
+  const suffix = parts.length > 1 ? ` · +${parts.length - 1} more` : "";
+  const available = Math.max(24, 88 - suffix.length);
+  return `${summary.length > available ? `${summary.slice(0, available - 1)}…` : summary}${suffix}`;
 };
 
 const callStatus = (call: Call) => {
@@ -63,10 +68,10 @@ function CallRow({
 
   return (
     <details className="group/call" open={ordinal === 1}>
-      <summary className="flex cursor-pointer list-none items-center gap-2 rounded px-3.5 py-2.5 text-xs hover:bg-muted/40 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors hover:bg-muted/40 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <span className="text-muted-foreground tabular-nums">{ordinal}</span>
         <span
-          className="min-w-0 flex-1 truncate font-mono text-[0.8125rem]"
+          className="min-w-0 flex-1 truncate font-mono text-label"
           title={command ? call.command : call.name}
         >
           {command ? commandLabel(call.command) : <CallName name={call.name} />}

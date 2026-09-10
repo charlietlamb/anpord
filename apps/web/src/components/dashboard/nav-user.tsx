@@ -5,6 +5,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
 import {
@@ -16,6 +19,8 @@ import {
 import { cn } from "@anpord/ui/lib/utils";
 import {
   BookOpenIcon,
+  CaretRightIcon,
+  CheckIcon,
   DotsThreeVerticalIcon,
   MoonIcon,
   SignOutIcon,
@@ -28,12 +33,14 @@ import {
 } from "@/components/dashboard/sidebar-identity";
 import { DOCS_URL } from "@/lib/urls";
 import { useCurrentUser } from "@/lib/use-current-user";
+import { useOrganizations } from "@/lib/use-organizations";
 import { useSignOut } from "@/lib/use-sign-out";
 
 export function NavUser() {
   const { resolvedTheme, setTheme } = useTheme();
   const { state } = useSidebar();
   const user = useCurrentUser();
+  const { organizations, activeOrganization, setActive } = useOrganizations();
   const onSignOut = useSignOut();
 
   if (!user) {
@@ -80,6 +87,33 @@ export function NavUser() {
               <IdentityLabel subtitle={user.email} title={user.name} />
             </div>
             <DropdownMenuSeparator />
+            {organizations.length > 0 ? (
+              <>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger openOnHover>
+                    <span className="flex-1">Organization</span>
+                    <CaretRightIcon className="size-4" />
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    {organizations.map((organization) => (
+                      <DropdownMenuItem
+                        className="gap-2"
+                        key={organization.id}
+                        onClick={() => setActive(organization.id)}
+                      >
+                        <span className="flex-1 truncate">
+                          {organization.name}
+                        </span>
+                        {organization.id === activeOrganization?.id ? (
+                          <CheckIcon className="size-4 opacity-70" />
+                        ) : null}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
+              </>
+            ) : null}
             <DropdownMenuGroup>
               <DropdownMenuItem className="gap-2">
                 <UserIcon className="size-4" />

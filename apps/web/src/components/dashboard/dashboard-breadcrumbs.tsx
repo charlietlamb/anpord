@@ -11,6 +11,10 @@ import { useBreadcrumbs } from "@/lib/use-breadcrumbs";
 
 export function DashboardBreadcrumbs() {
   const crumbs = useBreadcrumbs();
+  if (crumbs.length < 2) {
+    return null;
+  }
+
   const last = crumbs.length - 1;
 
   return (

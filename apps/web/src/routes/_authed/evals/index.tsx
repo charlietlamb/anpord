@@ -16,8 +16,11 @@ import { useCursorStack } from "@/lib/use-cursor-stack";
 
 export const Route = createFileRoute("/_authed/evals/")({
   ssr: false,
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(evalQueries.list(null)),
+  /* Not returned, so the list paints its skeleton rather than holding the
+     navigation until the first page of runs arrives. */
+  loader: ({ context }) => {
+    context.queryClient.prefetchQuery(evalQueries.list(null));
+  },
   component: EvalsIndex,
 });
 

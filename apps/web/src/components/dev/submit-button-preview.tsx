@@ -39,7 +39,7 @@ export function SubmitButton({
 
 export function OnSurface({ option }: { option: ButtonOption }) {
   return (
-    <div className="rounded-[18px] bg-card p-3 shadow-[inset_0_0_0_1px_oklch(0_0_0/4%),0_2px_6px_oklch(0_0_0/5%),0_12px_32px_-16px_oklch(0_0_0/14%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%),0_2px_6px_oklch(0_0_0/25%),0_12px_32px_-16px_oklch(0_0_0/50%)]">
+    <div className="rounded-xl border border-border-faint bg-card p-3">
       <p className="px-1 pt-1 pb-6 text-muted-foreground text-sm">
         You are a concise support agent.
       </p>

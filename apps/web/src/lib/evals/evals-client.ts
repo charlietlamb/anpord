@@ -7,7 +7,6 @@ import {
   EvalRun,
   EvalRunPage,
   ModelCatalogue,
-  type PlaygroundConfigView,
   PlaygroundView,
   StartedEval,
 } from "@anpord/schema/domain/evals";
@@ -15,8 +14,6 @@ import { Schema } from "effect";
 import { fromWire } from "@/lib/wire";
 
 const BASE = "/api";
-
-type PlaygroundConfig = typeof PlaygroundConfigView.Type;
 
 async function send(path: string, init?: RequestInit): Promise<Response> {
   const response = await fetch(`${BASE}${path}`, {
@@ -79,20 +76,8 @@ function post<A, I>(
   });
 }
 
-export const createPlayground = (name: string) =>
-  post(PlaygroundView, "/evals/playgrounds", { name });
-
 export const getPlayground = (id: string) =>
   request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`);
-
-export const savePlayground = (
-  id: string,
-  input: { readonly config: PlaygroundConfig; readonly name: string }
-) =>
-  request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`, {
-    body: JSON.stringify(input),
-    method: "PUT",
-  });
 
 export const getModelCatalogue = (harness: EvalHarness, query: string) => {
   const params = new URLSearchParams({ harness });
@@ -110,9 +95,6 @@ export const rerunCell = (runId: string, cellKey: string, trials: number) =>
     `/evals/${encodeURIComponent(runId)}/cells/${encodeURIComponent(cellKey)}/runs`,
     { trials }
   );
-
-export const runPlayground = (id: string) =>
-  post(StartedEval, `/evals/playgrounds/${encodeURIComponent(id)}/runs`, {});
 
 export const getArtifact = (input: EvalArtifactRequest) =>
   post(EvalArtifact, "/evals/artifacts", input);

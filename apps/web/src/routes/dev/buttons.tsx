@@ -160,7 +160,7 @@ function ButtonOptions() {
         <h2 className="mt-14 mb-3 font-heading text-lg tracking-tight">
           Shared variants
         </h2>
-        <div className="mb-10 flex flex-wrap items-center gap-3 rounded-[18px] bg-card p-5 shadow-[inset_0_0_0_1px_oklch(0_0_0/4%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
+        <div className="mb-10 flex flex-wrap items-center gap-3 rounded-xl border border-border-faint bg-card p-5">
           <ShortcutButton metaShortcut="enter" size="sm">
             <PlusIcon size={15} />
             Create prompt
@@ -198,7 +198,7 @@ function ButtonOptions() {
         <h2 className="mt-14 mb-3 font-heading text-lg tracking-tight">
           Radius, on the leading candidate
         </h2>
-        <div className="flex flex-wrap items-center gap-4 rounded-[18px] bg-card p-5 shadow-[inset_0_0_0_1px_oklch(0_0_0/4%)] dark:shadow-[inset_0_0_0_1px_oklch(1_0_0/8%)]">
+        <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border-faint bg-card p-5">
           {RADII.map((radius) => (
             <div className="flex flex-col items-center gap-2" key={radius}>
               <SubmitButton

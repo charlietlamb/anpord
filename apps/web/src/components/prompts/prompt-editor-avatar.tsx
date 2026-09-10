@@ -11,7 +11,7 @@ export function PromptEditorAvatar({
     return (
       <span
         aria-label="No editor"
-        className="size-5 shrink-0 rounded-full border border-border-faint border-dashed"
+        className="size-5 shrink-0 rounded-full border border-border-faint"
         role="img"
       />
     );

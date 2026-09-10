@@ -138,7 +138,7 @@ export function ValidationInspector({
                   }}
                   variant="bare"
                 >
-                  <span className="min-w-0 break-words font-medium font-mono text-foreground text-sm">
+                  <span className="min-w-0 break-words font-medium font-mono text-foreground text-xs">
                     {entry.name}
                   </span>
                   <span className="flex shrink-0 items-center gap-2">

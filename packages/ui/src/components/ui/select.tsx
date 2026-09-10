@@ -37,7 +37,7 @@ const TRIGGER_BASE =
    second border would read as a seam rather than an edge. */
 const TRIGGER_VARIANTS = {
   default:
-    "input-bevel-shadow border border-border bg-background px-3 hover:bg-muted focus-visible:border-ring aria-invalid:border-destructive data-[size=sm]:px-3 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+    "border border-border bg-background px-3 hover:bg-muted focus-visible:border-ring aria-invalid:border-destructive data-[size=sm]:px-3 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
   ghost:
     "border border-transparent bg-transparent px-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:border-ring data-popup-open:bg-muted/60 data-popup-open:text-foreground data-[size=sm]:px-2",
 } as const

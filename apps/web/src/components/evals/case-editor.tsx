@@ -25,7 +25,7 @@ export function CaseRow({
       <div className="flex h-10 items-center gap-1 pr-1 pl-1">
         <button
           aria-expanded={open}
-          className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-150 ease-out hover:bg-alpha-4"
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-150 ease-out hover:bg-muted/40"
           onClick={() => setOpen((was) => !was)}
           type="button"
         >

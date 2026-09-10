@@ -120,7 +120,7 @@ function ValidationRow({
             />
           </SignalTip>
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="min-w-0 flex-1 basis-40 break-words font-medium font-mono text-sm">
+            <span className="min-w-0 flex-1 basis-40 break-words font-medium font-mono text-xs">
               {validation.name}
             </span>
             <span className="flex shrink-0 items-center gap-2">

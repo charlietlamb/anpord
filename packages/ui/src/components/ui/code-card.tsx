@@ -65,7 +65,7 @@ export function CodeContent({
   return (
     <div className={cn("overflow-auto", maxHeight)}>
       {html === null ? (
-        <pre className="p-4 font-mono text-[0.8125rem] text-muted-foreground leading-[1.7] [font-variation-settings:'wght'_450]">
+        <pre className="p-4 font-mono text-label text-muted-foreground leading-[1.7] [font-variation-settings:'wght'_450]">
           {code}
         </pre>
       ) : (
@@ -73,7 +73,7 @@ export function CodeContent({
            inline and the dark ones as custom properties. */
         <div
           className={cn(
-            "[&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-[0.8125rem] [&_pre]:leading-[1.7] [&_pre]:[font-variation-settings:'wght'_450] [&_pre]:[tab-size:2]",
+            "[&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-label [&_pre]:leading-[1.7] [&_pre]:[font-variation-settings:'wght'_450] [&_pre]:[tab-size:2]",
             "[.dark_&_.shiki]:![color:var(--shiki-dark)] [.dark_&_.shiki_span]:![color:var(--shiki-dark)]"
           )}
           // biome-ignore lint/security/noDangerouslySetInnerHtml: markup is produced by shiki from a string this app owns

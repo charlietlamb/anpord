@@ -1,4 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
+import { Badge } from "@anpord/ui/components/ui/badge";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { useState } from "react";
 import { z } from "zod";
@@ -36,6 +37,15 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
 
   return (
     <PanelCard
+      badge={
+        <Badge
+          className="border-warning/25 bg-warning/10 text-warning uppercase tracking-[0.08em] shadow-none"
+          size="xs"
+          variant="secondary"
+        >
+          Beta
+        </Badge>
+      }
       description="Pick up where you left off."
       heading="h1"
       title="Sign in"

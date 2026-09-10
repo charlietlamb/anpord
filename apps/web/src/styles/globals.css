@@ -301,70 +301,7 @@
     }
   }
 
-  /* The edge on a filled control comes from light, not a drawn ring: a faint
-     inset hairline defines the perimeter, a top bevel catches light, and a
-     tight shadow lifts it. A ring reads as a gap on dark surfaces. */
-  .primary-button-shadow {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.1),
-      inset 0 1px 0 oklch(1 0 0 / 0.22),
-      0 1px 3px oklch(0 0 0 / 0.18);
-  }
-  /* The darkened border alone reads as a groove against a near-black page, so
-     a faint outer halo separates the perimeter from the background. */
-  .dark .primary-button-shadow {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.16),
-      inset 0 1px 0 oklch(1 0 0 / 0.3),
-      0 0 0 1px oklch(1 0 0 / 0.07),
-      0 2px 7px oklch(0 0 0 / 0.45);
-  }
-
-  /* Pressing removes the lift and darkens the top, so the control reads as
-     depressed rather than merely smaller. */
-  .primary-button-shadow:active:not(:disabled) {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.08),
-      inset 0 1px 2px oklch(0 0 0 / 0.18);
-  }
-
-  /* A card built the way the primary button is: an inset hairline and a top
-     bevel give it a lit edge, and a second hairline a few pixels out, with
-     the page showing through the gap, frames it. Two lines with air between
-     them read as a plate set into the page rather than a box drawn on it. */
-  .panel-card-shadow {
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0),
-      0 0 0 4px var(--background),
-      0 0 0 5px oklch(0 0 0 / 0.08),
-      0 12px 32px -12px oklch(0 0 0 / 0.18);
-  }
-  .dark .panel-card-shadow {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.04),
-      inset 0 1px 0 oklch(1 0 0 / 0.1),
-      0 0 0 4px var(--background),
-      0 0 0 5px oklch(1 0 0 / 0.09),
-      0 24px 60px -24px oklch(0 0 0 / 0.8);
-  }
-
-  /* Neutral counterpart. Same anatomy at lower contrast, so outline and
-     secondary sit in the same material as primary without competing. */
-  .input-bevel-shadow {
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 0.6),
-      0 1px 2px oklch(0 0 0 / 0.06);
-  }
-  .dark .input-bevel-shadow {
-    box-shadow:
-      inset 0 1px 0 oklch(1 0 0 / 0.06),
-      0 1px 2px oklch(0 0 0 / 0.2);
-  }
-
-  .input-bevel-shadow:active:not(:disabled) {
-    box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.1);
-  }
-
+  /* Inputs use the same flat surface language as buttons. */
   /* Same bevel, closer to the page, so secondary surfaces stay subordinate. */
   .shadow-raised {
     box-shadow:
