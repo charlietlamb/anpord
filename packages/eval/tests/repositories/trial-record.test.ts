@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { createHash } from "node:crypto";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
@@ -226,11 +227,14 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
   });
 
   it("persists output files, denies other tenants, and clears them on retry", async () => {
+    /* Reading an artifact verifies the stored bytes hash to what was asked
+       for, so the digest has to be the content's own. */
+    const content = "export const x = 1;";
     const artifact = {
       path: "autumn.config.ts",
-      content: "export const x = 1;",
-      byteSize: 19,
-      sha256: "a".repeat(64),
+      content,
+      byteSize: content.length,
+      sha256: createHash("sha256").update(content).digest("hex"),
     };
     await run(
       Effect.gen(function* () {
