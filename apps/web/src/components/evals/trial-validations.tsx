@@ -97,9 +97,11 @@ function ReadEvidence({ validation }: { readonly validation: EvalValidation }) {
 function ValidationRow({
   validation,
   expanded,
+  onCollapse,
 }: {
   readonly validation: EvalValidation;
   readonly expanded: boolean;
+  readonly onCollapse?: () => void;
 }) {
   const KindIcon = kindIcons[validation.kind];
   const failed =
@@ -108,6 +110,11 @@ function ValidationRow({
   return (
     <details
       className="group/validation overflow-hidden rounded-xl border border-border-faint bg-muted/40 transition-colors hover:border-muted-foreground/40"
+      onToggle={(event) => {
+        if (!event.currentTarget.open) {
+          onCollapse?.();
+        }
+      }}
       open={expanded}
     >
       <summary className="cursor-pointer list-none px-3 py-2.5 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
@@ -228,8 +235,10 @@ function ValidationRow({
 export function TrialValidations({
   validations,
   expandedKey,
+  onCollapse,
 }: {
   readonly expandedKey?: string | null;
+  readonly onCollapse?: () => void;
   readonly validations?: readonly EvalValidation[];
 }) {
   if (!validations?.length) {
@@ -250,6 +259,7 @@ export function TrialValidations({
         <ValidationRow
           expanded={validation === first}
           key={validation.id}
+          onCollapse={validation === first ? onCollapse : undefined}
           validation={validation}
         />
       ))}

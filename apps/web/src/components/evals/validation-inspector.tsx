@@ -97,6 +97,16 @@ export function ValidationInspector({
         <TrialValidations
           expandedKey={expandedKey}
           key={selected.ordinal}
+          /* Closing the card returns to the summary it was opened from, rather
+             than leaving one trial selected with no way back to the rest. */
+          onCollapse={
+            trials.length > 1
+              ? () => {
+                  setOrdinal(null);
+                  setExpandedKey(null);
+                }
+              : undefined
+          }
           validations={validations}
         />
       ) : null}
