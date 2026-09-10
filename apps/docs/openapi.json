@@ -236,6 +236,159 @@
         }
       }
     },
+    "/v1/evals.artifact": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.artifact",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "path",
+                    "content",
+                    "byteSize",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "byteSize": {
+                      "$ref": "#/components/schemas/Int",
+                      "description": "a non-negative number",
+                      "title": "nonNegative",
+                      "minimum": 0
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "description": "a string matching the pattern ^[a-f0-9]{64}$",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "id",
+                  "cellKey",
+                  "ordinal",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "description": "a string at most 512 character(s) long",
+                    "title": "maxLength(512)",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "cellKey": {
+                    "type": "string"
+                  },
+                  "ordinal": {
+                    "$ref": "#/components/schemas/Int",
+                    "description": "a positive number",
+                    "title": "positive",
+                    "exclusiveMinimum": 0
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "description": "a string matching the pattern ^[a-f0-9]{64}$",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/v1/evals.get": {
       "post": {
         "tags": [
@@ -2951,6 +3104,34 @@
           "voidFields"
         ],
         "properties": {
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "path",
+                "byteSize",
+                "sha256"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "byteSize": {
+                  "$ref": "#/components/schemas/Int",
+                  "description": "a non-negative number",
+                  "title": "nonNegative",
+                  "minimum": 0
+                },
+                "sha256": {
+                  "type": "string",
+                  "description": "a string matching the pattern ^[a-f0-9]{64}$",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "validations": {
             "$ref": "#/components/schemas/EvalValidations"
           },
