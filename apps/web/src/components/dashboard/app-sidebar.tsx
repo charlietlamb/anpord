@@ -58,7 +58,7 @@ export function AppSidebar() {
           </SidebarMenuButton>
           <motion.div
             animate={{ opacity: 1 }}
-            className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1/2 group-data-[collapsible=icon]:left-[calc(100%+0.5rem)] group-data-[collapsible=icon]:z-20 group-data-[collapsible=icon]:-translate-y-1/2"
+            className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1/2 group-data-[collapsible=icon]:left-[calc(100%+2rem)] group-data-[collapsible=icon]:z-20 group-data-[collapsible=icon]:-translate-y-1/2"
             initial={
               state === "collapsed" && !reduceMotion ? { opacity: 0 } : false
             }
