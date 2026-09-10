@@ -92,7 +92,7 @@ export function NavUser() {
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger openOnHover>
                     <span className="flex-1">Organization</span>
-                    <CaretRightIcon className="size-4" />
+                    <CaretRightIcon aria-hidden="true" className="size-3" />
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
                     {organizations.map((organization) => (
