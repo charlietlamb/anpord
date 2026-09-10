@@ -28,7 +28,7 @@ export default suite({
 
 ## When to use Anpord
 
-Anpord is great fit if you're building a product where evals are dependent on a harness running in a sandbox. In this case you can't just analyze the request/response passed to a model as there's a lot more to consider. The harness is doing real work in an enviroment and the evals need to be aware of this.
+Anpord is great fit if you're building a product where which uses or will itself be used by harnesses like [Claude Code](https://claude.com/product/claude-code). In this case you can't just analyze the request/response passed to a model as there's a lot more to consider. The harness is doing real work in an enviroment and the evals need to be aware of this.
 
 Another common use case would be to compare how harnesses are able to use your product. Lets say you ship a change to your MCP server, you want to be sure that the end user who uses it in claude code won't see any regressions in performance.
 
