@@ -2,13 +2,12 @@ import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlugsConnectedIcon } from "@phosphor-icons/react";
 import { EvidenceValue } from "./evidence-value";
-import { SetupSurface } from "./setup-surface";
 
 type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
 
 const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
 const TRAILING_QUOTE = /['"]$/;
-const COMMAND_CHAIN = /\s+(?:&&|;)\s+/;
+const COMMAND_CHAIN = /\s*(?:&&|\|\||;)\s+/;
 
 const commandLabel = (command: string) => {
   const unwrapped = command
@@ -19,9 +18,16 @@ const commandLabel = (command: string) => {
   const parts = unwrapped.split(COMMAND_CHAIN);
   const summary = parts[0] ?? unwrapped;
   const suffix = parts.length > 1 ? ` · +${parts.length - 1} more` : "";
-  const available = Math.max(24, 88 - suffix.length);
+  const available = Math.max(24, 52 - suffix.length);
   return `${summary.length > available ? `${summary.slice(0, available - 1)}…` : summary}${suffix}`;
 };
+
+const didFail = (call: Call) =>
+  call._tag === "command"
+    ? call.exitCode !== null && call.exitCode !== 0
+    : call.error !== undefined ||
+      call.status === "failed" ||
+      call.status === "error";
 
 const callStatus = (call: Call) => {
   if (call._tag === "command") {
@@ -60,11 +66,7 @@ function CallRow({
   readonly ordinal: number;
 }) {
   const command = call._tag === "command";
-  const failed = command
-    ? call.exitCode !== null && call.exitCode !== 0
-    : call.error !== undefined ||
-      call.status === "failed" ||
-      call.status === "error";
+  const failed = didFail(call);
 
   return (
     <details className="group/call" open={ordinal === 1}>
@@ -131,16 +133,33 @@ export function TrialCalls({
   if (calls.length === 0) {
     return null;
   }
+
+  const failed = calls.filter(({ call }) => didFail(call)).length;
+
+  /* Closed by default. What an agent ran is evidence for a verdict rather than
+     the verdict itself, and a trial with ten commands would otherwise open on
+     a page of shell rather than on whether it passed. */
   return (
-    <SetupSurface
-      contentClassName="space-y-1"
-      Icon={PlugsConnectedIcon}
-      meta={String(calls.length)}
-      title="Calls"
-    >
-      {calls.map(({ call, ordinal }) => (
-        <CallRow call={call} key={ordinal} ordinal={ordinal} />
-      ))}
-    </SetupSurface>
+    <details className="group/calls">
+      <summary className="flex cursor-pointer list-none items-center gap-2 py-2 text-muted-foreground text-xs hover:text-foreground focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+        <PlugsConnectedIcon aria-hidden="true" className="size-3.5 shrink-0" />
+        <h3>
+          {calls.length} {calls.length === 1 ? "call" : "calls"}
+        </h3>
+        {failed ? <span className="text-warning">{failed} failed</span> : null}
+        <span
+          aria-hidden="true"
+          className="transition-transform group-open/calls:rotate-90"
+        >
+          ›
+        </span>
+      </summary>
+
+      <div className="space-y-1 pt-1">
+        {calls.map(({ call, ordinal }) => (
+          <CallRow call={call} key={ordinal} ordinal={ordinal} />
+        ))}
+      </div>
+    </details>
   );
 }

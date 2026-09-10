@@ -60,8 +60,6 @@ function TrialScreen() {
           />
         </section>
 
-        <TrialCalls trajectory={trial.trajectory} />
-
         <TrialArtifacts
           artifacts={trial.artifacts}
           trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
@@ -76,6 +74,8 @@ function TrialScreen() {
         {cell?.setup == null ? null : (
           <CellSetup setup={cell.setup} trials={[trial]} />
         )}
+
+        <TrialCalls trajectory={trial.trajectory} />
       </EvalMain>
 
       <TrialRail trial={trial} trigger={run.trigger} />

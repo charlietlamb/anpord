@@ -54,11 +54,11 @@ export function TrialSkeleton({ ordinal }: { readonly ordinal?: string }) {
           </div>
         </section>
 
-        <TrialCallsSkeleton />
-
         <ValidationInspectorSkeleton />
 
         <CellSetupSkeleton />
+
+        <TrialCallsSkeleton />
       </EvalMain>
 
       <aside className={RAIL_FRAME}>
