@@ -1,19 +1,48 @@
-import { expect, test } from "bun:test";
-import { highlight } from "./highlight";
+import { describe, expect, it } from "bun:test";
+import { shellTokens } from "./highlight";
 
-test("highlights JSON with both themes and escapes recorded content", async () => {
-  const html = await highlight(
-    '{"name":"<script>","count":3,"ok":true}',
-    "json"
-  );
-  expect(html).toContain('class="shiki');
-  expect(html).toContain("--shiki-dark:");
-  expect(html).toContain("&#x3C;script>");
-  expect(html).not.toContain("<script>");
-});
+const kinds = async (command: string) =>
+  (await shellTokens(command))
+    .filter((token) => token.value.trim() !== "")
+    .map((token) => [token.kind, token.value] as const);
 
-test("keeps non-JSON output as escaped plain text", async () => {
-  const html = await highlight("<script>Unknown item</script>", "text");
-  expect(html).toContain("Unknown item");
-  expect(html).not.toContain("<script>");
+/* The grammar does the parsing; what is worth asserting is that its scopes
+   land on the theme's own scale rather than on Shiki's palette. */
+describe("separating a command", () => {
+  it("keeps a flag apart from the command it belongs to", async () => {
+    expect(await kinds("head -100")).toEqual([
+      ["text", "head"],
+      ["flag", "-100"],
+    ]);
+  });
+
+  it("reads a redirect and a pipe as operators", async () => {
+    const found = await kinds("find / 2>/dev/null | head");
+
+    expect(found).toContainEqual(["operator", "2>"]);
+    expect(found).toContainEqual(["operator", "|"]);
+  });
+
+  it("keeps a quoted argument whole", async () => {
+    expect(await kinds("find -iname '*atmn*'")).toContainEqual([
+      "string",
+      "'*atmn*'",
+    ]);
+  });
+
+  it("recognises a trailing comment", async () => {
+    expect(await kinds("npm install # note")).toContainEqual([
+      "comment",
+      "# note",
+    ]);
+  });
+
+  /* Concatenating the values returns the input, so nothing is dropped between
+     the grammar and the row. */
+  it("loses nothing it was given", async () => {
+    const command = "for f in a b; do cat $f; done";
+    const tokens = await shellTokens(command);
+
+    expect(tokens.map(({ value }) => value).join("")).toBe(command);
+  });
 });

@@ -37,3 +37,52 @@ export const highlight = async (code: string, lang: CodeLanguage) =>
     lang,
     themes: { dark: "github-dark-default", light: "github-light-default" },
   });
+
+export type ShellTokenKind =
+  | "comment"
+  | "flag"
+  | "operator"
+  | "string"
+  | "text";
+
+/* Shiki's own palette is four hues, which would be the loudest thing in a list
+   whose point is a failed command. Its scopes are semantic, so the grammar
+   does the parsing and the theme keeps deciding what things look like. */
+const SCOPES: readonly (readonly [string, ShellTokenKind])[] = [
+  ["comment", "comment"],
+  ["constant.other.option", "flag"],
+  ["keyword.operator", "operator"],
+  ["punctuation.section.function", "operator"],
+  ["entity.name.command", "text"],
+  ["string", "string"],
+];
+
+/* A token carries its scopes outermost first, and the innermost is often only
+   punctuation, so the outermost match is the one that says what this is. */
+const kindOf = (scopes: readonly string[]): ShellTokenKind =>
+  SCOPES.find(([prefix]) =>
+    scopes.some((scope) => scope.startsWith(prefix))
+  )?.[1] ?? "text";
+
+export interface ShellToken {
+  readonly kind: ShellTokenKind;
+  readonly value: string;
+}
+
+/** Bash separated by what each part is, rather than by a pattern of our own. */
+export const shellTokens = async (
+  command: string
+): Promise<readonly ShellToken[]> => {
+  const { tokens } = (await highlighter()).codeToTokens(command, {
+    includeExplanation: true,
+    lang: "bash",
+    theme: "github-dark-default",
+  });
+
+  return tokens.flat().map((token) => ({
+    kind: kindOf(
+      (token.explanation?.[0]?.scopes ?? []).map(({ scopeName }) => scopeName)
+    ),
+    value: token.content,
+  }));
+};

@@ -1,10 +1,12 @@
+"use client";
+
 import { CodeBlock } from "@anpord/ui/components/ui/code-block";
-import { cn } from "@anpord/ui/lib/utils";
 import {
   SHELL_CLASSES,
   SHELL_INVERTED,
+  useShellTokens,
 } from "@anpord/ui/components/ui/shell-text";
-import { shellTokens } from "@anpord/ui/lib/shell-tokens";
+import { cn } from "@anpord/ui/lib/utils";
 
 export function ShellBlock({
   className,
@@ -20,6 +22,7 @@ export function ShellBlock({
   readonly tone?: "inverted" | "muted" | "plain";
 }) {
   const classes = tone === "inverted" ? SHELL_INVERTED : SHELL_CLASSES;
+  const tokens = useShellTokens(command);
 
   return (
     <CodeBlock
@@ -27,11 +30,16 @@ export function ShellBlock({
       copyValue={copyable ? command : undefined}
       tone={tone}
     >
-      {shellTokens(command).map((token, index) => (
-        <span className={classes[token.kind]} key={`${index}-${token.value}`}>
-          {token.value}
-        </span>
-      ))}
+      {tokens === null
+        ? command
+        : tokens.map((token, index) => (
+            <span
+              className={classes[token.kind]}
+              key={`${index}-${token.value}`}
+            >
+              {token.value}
+            </span>
+          ))}
     </CodeBlock>
   );
 }

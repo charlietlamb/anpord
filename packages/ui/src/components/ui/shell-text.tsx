@@ -1,5 +1,12 @@
-import { type ShellTokenKind, shellTokens } from "@anpord/ui/lib/shell-tokens";
+"use client";
+
+import {
+  type ShellToken,
+  type ShellTokenKind,
+  shellTokens,
+} from "@anpord/ui/lib/highlight";
 import { cn } from "@anpord/ui/lib/utils";
+import { useEffect, useState } from "react";
 
 /**
  * Weight and contrast rather than hue.
@@ -31,6 +38,34 @@ export const SHELL_INVERTED: Record<ShellTokenKind, string> = {
   text: "opacity-80",
 };
 
+/** Null until the grammar loads, so callers show the command uncoloured. */
+export function useShellTokens(command: string) {
+  const [tokens, setTokens] = useState<{
+    command: string;
+    tokens: readonly ShellToken[];
+  } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    shellTokens(command)
+      .then((next) => {
+        if (alive) {
+          setTokens({ command, tokens: next });
+        }
+      })
+      .catch(() => {
+        /* An uncoloured command is still a command. */
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [command]);
+
+  return tokens?.command === command ? tokens.tokens : null;
+}
+
 /** The same separation as ShellBlock, for a command that sits in a row rather
  * than on its own ground. */
 export function ShellText({
@@ -42,15 +77,21 @@ export function ShellText({
   readonly command: string;
   readonly tone?: "inverted" | "muted";
 }) {
+  const tokens = useShellTokens(command);
   const classes = tone === "inverted" ? SHELL_INVERTED : SHELL_CLASSES;
 
   return (
     <span className={cn("font-mono", className)}>
-      {shellTokens(command).map((token, index) => (
-        <span className={classes[token.kind]} key={`${index}-${token.value}`}>
-          {token.value}
-        </span>
-      ))}
+      {tokens === null
+        ? command
+        : tokens.map((token, index) => (
+            <span
+              className={classes[token.kind]}
+              key={`${index}-${token.value}`}
+            >
+              {token.value}
+            </span>
+          ))}
     </span>
   );
 }
