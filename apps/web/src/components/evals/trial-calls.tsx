@@ -1,4 +1,5 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import { ShellText } from "@anpord/ui/components/ui/shell-text";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlugsConnectedIcon } from "@phosphor-icons/react";
 import { EvidenceValue } from "./evidence-value";
@@ -76,7 +77,11 @@ function CallRow({
           className="min-w-0 flex-1 truncate font-mono text-label"
           title={command ? call.command : call.name}
         >
-          {command ? commandLabel(call.command) : <CallName name={call.name} />}
+          {command ? (
+            <ShellText command={commandLabel(call.command)} />
+          ) : (
+            <CallName name={call.name} />
+          )}
         </span>
         <span
           className={cn(
