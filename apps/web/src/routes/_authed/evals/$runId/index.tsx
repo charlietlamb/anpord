@@ -5,6 +5,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { RunGrid } from "@/components/evals/run-grid";
 import { RunRail } from "@/components/evals/run-rail";
+import { RunSetup } from "@/components/evals/run-setup";
 import { RunSkeleton } from "@/components/evals/run-skeleton";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { ErrorCard } from "@/components/layout/error-card";
@@ -31,6 +32,8 @@ function EvalRunScreen() {
   return (
     <EvalLayout>
       <EvalMain>
+        <RunSetup cells={run.cells} />
+
         <section className="flex flex-col gap-1.5">
           <PageHeading icon={SquaresFourIcon} title="Cases" />
 
