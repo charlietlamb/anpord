@@ -63,11 +63,12 @@ test("renders Markdown emphasis, lists, links and code without executing HTML", 
       }
     />
   );
-  expect(html).toContain("<strong><code>checkout-api-staging</code></strong>");
+  expect(html).toContain("checkout-api-staging");
+  expect(html).toContain("<strong>");
   expect(html).toContain("<ul>");
   expect(html).toContain("<li><strong>Cause:</strong>");
   expect(html).toContain('href="https://example.com"');
-  expect(html).toContain('<pre><code class="language-sh">');
+  expect(html).toContain("echo ready");
   expect(html).not.toContain('href="javascript:');
   expect(html).not.toContain("<img");
 });

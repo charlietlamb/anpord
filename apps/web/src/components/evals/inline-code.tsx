@@ -1,31 +1,11 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { InlineCode } from "@anpord/ui/components/ui/inline-code";
 import type { ReactNode } from "react";
-
-/* box-decoration-clone keeps the tint and radius on both halves when a long path wraps. */
-export function InlineCode({
-  children,
-  className,
-  title,
-}: {
-  readonly children: ReactNode;
-  readonly className?: string;
-  readonly title?: string;
-}) {
-  return (
-    <code
-      className={cn(
-        "break-words rounded-[4px] bg-foreground/[0.07] box-decoration-clone px-1 py-px font-mono text-[0.92em] text-foreground",
-        className
-      )}
-      title={title}
-    >
-      {children}
-    </code>
-  );
-}
 
 const TICKED = /`([^`\n]+)`/g;
 
+/* A prompt is plain text that happens to use backticks, not markdown: running
+   it through a parser would also turn its hashes into headings and its
+   asterisks into emphasis. This lifts the one convention it does use. */
 export function TickedProse({ text }: { readonly text: string }) {
   const parts: ReactNode[] = [];
   let last = 0;

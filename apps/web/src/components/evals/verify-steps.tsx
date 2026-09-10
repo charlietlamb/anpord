@@ -4,10 +4,10 @@ import {
   stepsOf,
 } from "@anpord/schema/domain/verify-steps";
 import type { StepVerdict } from "@anpord/schema/domain/verify-verdicts";
+import { InlineCode } from "@anpord/ui/components/ui/inline-code";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 import { cn } from "@anpord/ui/lib/utils";
 import { CheckIcon, XIcon } from "@phosphor-icons/react";
-import { InlineCode } from "@/components/evals/inline-code";
 
 function Reading({
   reading,
