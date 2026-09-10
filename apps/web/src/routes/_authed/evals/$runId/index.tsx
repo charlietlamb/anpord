@@ -32,8 +32,6 @@ function EvalRunScreen() {
   return (
     <EvalLayout>
       <EvalMain>
-        <RunSetup cells={run.cells} />
-
         <section className="flex flex-col gap-1.5">
           <PageHeading icon={SquaresFourIcon} title="Cases" />
 
@@ -47,6 +45,8 @@ function EvalRunScreen() {
             <RunGrid run={run} />
           )}
         </section>
+
+        <RunSetup cells={run.cells} />
       </EvalMain>
 
       <RunRail run={run} />
