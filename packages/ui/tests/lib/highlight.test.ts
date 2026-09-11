@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { shellTokens } from "./highlight";
+import { shellTokens } from "../../src/lib/highlight";
 
 const kinds = async (command: string) =>
   (await shellTokens(command))

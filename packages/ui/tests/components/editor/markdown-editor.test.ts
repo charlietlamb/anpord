@@ -15,7 +15,9 @@ beforeAll(async () => {
   const { Editor } = await import("@tiptap/core");
   const { Markdown } = await import("@tiptap/markdown");
   const { StarterKit } = await import("@tiptap/starter-kit");
-  const { Variable } = await import("./variable-node");
+  const { Variable } = await import(
+    "../../../src/components/editor/variable-node"
+  );
 
   const element = view.document.createElement("div");
   view.document.body.appendChild(element);

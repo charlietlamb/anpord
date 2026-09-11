@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { looksLikeMarkdown } from "./paste-markdown";
+import { looksLikeMarkdown } from "../../../src/components/editor/paste-markdown";
 
 describe("looksLikeMarkdown", () => {
   test("recognises block structure", () => {
