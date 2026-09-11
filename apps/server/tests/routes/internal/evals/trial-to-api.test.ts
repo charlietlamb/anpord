@@ -8,7 +8,7 @@ import {
 } from "@anpord/schema/domain/eval-validations";
 import { EvalTrial } from "@anpord/schema/domain/evals";
 import { Option, Schema } from "effect";
-import { asTrials } from "./trial-to-api";
+import { asTrials } from "../../../../src/routes/internal/evals/trial-to-api";
 
 const trial = (events: readonly HarnessEvent[]) => {
   const cell: GridCell = {

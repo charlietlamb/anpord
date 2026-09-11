@@ -1,7 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import type { GridRunState } from "@anpord/eval/grid/state";
 import { Option } from "effect";
-import { detail, summarise } from "./run-to-api";
+import {
+  detail,
+  summarise,
+} from "../../../../src/routes/internal/evals/run-to-api";
 
 const state = (name: string | null): GridRunState => ({
   trigger: {
