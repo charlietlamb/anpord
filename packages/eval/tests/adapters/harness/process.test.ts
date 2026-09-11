@@ -1,8 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Stream } from "effect";
-import { declinesEverything } from "../../../tests/fixtures/declines-everything";
-import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
-import { harnessLines, shellQuote } from "./process";
+import {
+  harnessLines,
+  shellQuote,
+} from "../../../src/adapters/harness/process";
+import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const sandbox = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),

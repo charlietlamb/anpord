@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { FetchHttpClient, FileSystem, Path } from "@effect/platform";
 import { Effect, Layer } from "effect";
-import { AvailableModels } from "../../ports/model-source";
-import { AvailableModelsLive } from "./resolve";
-import { staticModels } from "./static";
+import { AvailableModelsLive } from "../../../src/adapters/models/resolve";
+import { staticModels } from "../../../src/adapters/models/static";
+import { AvailableModels } from "../../../src/ports/model-source";
 
 /* A filesystem holding nothing is a server that never ran the Codex CLI, which
    is where the cache the adapter reads would have been written. */

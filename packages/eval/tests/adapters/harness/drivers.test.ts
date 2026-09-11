@@ -1,17 +1,20 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Option } from "effect";
-import type { HarnessName } from "../../domain/cell";
-import type { RunHarness } from "../../ports/harness";
-import { Harnesses } from "../../ports/harness";
-import { claudeCommand } from "./claude";
-import { codexCommand } from "./codex";
-import { cursorCommand } from "./cursor";
-import { fxCommand } from "./fx";
-import { geminiCommand } from "./gemini";
-import { opencodeCommand, opencodeRunEnv } from "./opencode";
-import { piCommand } from "./pi";
-import { qwenCommand } from "./qwen";
-import { HarnessesLive } from "./resolve";
+import { claudeCommand } from "../../../src/adapters/harness/claude";
+import { codexCommand } from "../../../src/adapters/harness/codex";
+import { cursorCommand } from "../../../src/adapters/harness/cursor";
+import { fxCommand } from "../../../src/adapters/harness/fx";
+import { geminiCommand } from "../../../src/adapters/harness/gemini";
+import {
+  opencodeCommand,
+  opencodeRunEnv,
+} from "../../../src/adapters/harness/opencode";
+import { piCommand } from "../../../src/adapters/harness/pi";
+import { qwenCommand } from "../../../src/adapters/harness/qwen";
+import { HarnessesLive } from "../../../src/adapters/harness/resolve";
+import type { HarnessName } from "../../../src/domain/cell";
+import type { RunHarness } from "../../../src/ports/harness";
+import { Harnesses } from "../../../src/ports/harness";
 
 const harnesses: readonly HarnessName[] = [
   "codex",

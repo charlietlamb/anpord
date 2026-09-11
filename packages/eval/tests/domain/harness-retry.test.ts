@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { HarnessUnavailable } from "./errors";
-import { gaveUpOn, isTransientHarnessFailure } from "./harness-retry";
+import { HarnessUnavailable } from "../../src/domain/errors";
+import {
+  gaveUpOn,
+  isTransientHarnessFailure,
+} from "../../src/domain/harness-retry";
 
 const failing = (reason: string) =>
   new HarnessUnavailable({ harness: "codex", reason });

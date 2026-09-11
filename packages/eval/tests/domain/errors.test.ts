@@ -1,7 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { Cause } from "effect";
-import { EvalStoreError, reasonOf, sandboxUnavailable } from "./errors";
-import { failureOf } from "./failure";
+import {
+  EvalStoreError,
+  reasonOf,
+  sandboxUnavailable,
+} from "../../src/domain/errors";
+import { failureOf } from "../../src/domain/failure";
 
 const wrapped = (...messages: readonly string[]) =>
   messages.reduceRight<Error | undefined>((cause, message) => {

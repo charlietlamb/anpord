@@ -1,12 +1,12 @@
 import { expect, test } from "bun:test";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Layer, Option, Stream } from "effect";
-import { layerTestResolver } from "../credentials/layer-test-resolver";
-import type { WorkspaceSource } from "../domain/workspace-source";
-import { GridRun, type StartGrid } from "../grid/run";
-import { RunQuery } from "../repositories/run-query";
-import type { CellTask } from "../repositories/run-tasks-query";
-import { make } from "./cell-rerun";
+import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
+import type { WorkspaceSource } from "../../src/domain/workspace-source";
+import { GridRun, type StartGrid } from "../../src/grid/run";
+import { RunQuery } from "../../src/repositories/run-query";
+import type { CellTask } from "../../src/repositories/run-tasks-query";
+import { make } from "../../src/services/cell-rerun";
 
 const cellTask = (source: WorkspaceSource | null): CellTask => ({
   trigger: { source: "ci" },

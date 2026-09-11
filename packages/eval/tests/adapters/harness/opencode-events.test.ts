@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Option } from "effect";
-import { decodeOpencodeLine } from "./opencode-events";
+import { decodeOpencodeLine } from "../../../src/adapters/harness/opencode-events";
 
 const SESSION = "ses_fd1994f56ffeMiCm5DmYalA0jU";
 

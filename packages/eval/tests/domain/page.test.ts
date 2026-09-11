@@ -1,5 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, pageOf, pageSizeOf } from "./page";
+import {
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE,
+  pageOf,
+  pageSizeOf,
+} from "../../src/domain/page";
 
 describe("pageOf", () => {
   /** The query asks for one more row than the page holds, so a full page and a

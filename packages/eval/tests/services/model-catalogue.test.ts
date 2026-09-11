@@ -1,12 +1,15 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Layer, Logger } from "effect";
-import { ModelsUnreadable } from "../domain/errors";
+import { ModelsUnreadable } from "../../src/domain/errors";
 import {
   AvailableModels,
   type ModelDescription,
   ModelDescriptions,
-} from "../ports/model-source";
-import { layerWithoutDependencies, ModelCatalogues } from "./model-catalogue";
+} from "../../src/ports/model-source";
+import {
+  layerWithoutDependencies,
+  ModelCatalogues,
+} from "../../src/services/model-catalogue";
 
 const failing = (source: string) =>
   Effect.fail(new ModelsUnreadable({ cause: new Error("nope"), source }));

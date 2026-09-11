@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { decodeClaudeLine } from "./claude-events";
-import { decodeFxLine } from "./fx-events";
-import { decodeGeminiLine } from "./gemini-events";
-import { decodePiLine } from "./pi-events";
+import { decodeClaudeLine } from "../../../src/adapters/harness/claude-events";
+import { decodeFxLine } from "../../../src/adapters/harness/fx-events";
+import { decodeGeminiLine } from "../../../src/adapters/harness/gemini-events";
+import { decodePiLine } from "../../../src/adapters/harness/pi-events";
 
 const line = (value: unknown) => JSON.stringify(value);
 

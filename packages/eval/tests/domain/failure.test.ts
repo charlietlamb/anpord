@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Cause } from "effect";
-import { SandboxUnavailable } from "./errors";
-import { failureOf } from "./failure";
+import { SandboxUnavailable } from "../../src/domain/errors";
+import { failureOf } from "../../src/domain/failure";
 
 describe("failureOf", () => {
   /** The case that prompted this: a provider limit stored as a thousand

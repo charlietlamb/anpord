@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { listedIn } from "./codex-available";
+import { listedIn } from "../../../src/adapters/models/codex-available";
 
 const model = (
   slug: string,

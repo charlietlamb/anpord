@@ -4,7 +4,7 @@ import {
   interleavedByVendor,
   matches,
   type RankedModel,
-} from "./model-ranking";
+} from "../../src/domain/model-ranking";
 
 const model = (
   id: string,
