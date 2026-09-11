@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { tooLargeToSubmit } from "./request-size";
+import { tooLargeToSubmit } from "../../src/evals/request-size";
 
 const requestOf = (cases: number, bytesEach: number) =>
   ({
