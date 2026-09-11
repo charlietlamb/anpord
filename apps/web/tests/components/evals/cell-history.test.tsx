@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CellHistory } from "./cell-history";
+import { CellHistory } from "../../../src/components/evals/cell-history";
 
 const failed = () => {
   const client = new QueryClient({

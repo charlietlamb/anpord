@@ -4,7 +4,7 @@ import {
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TrialValidations } from "./trial-validations";
+import { TrialValidations } from "../../../src/components/evals/trial-validations";
 
 test("shows each validator, exact return, and escaped error", () => {
   const capture = validationCapture();

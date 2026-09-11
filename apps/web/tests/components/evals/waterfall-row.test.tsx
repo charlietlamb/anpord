@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
-import { TimedRow } from "./waterfall-row";
+import { TimedRow } from "../../../src/components/evals/waterfall-row";
 
 const render = (row: WaterfallRow) =>
   renderToStaticMarkup(

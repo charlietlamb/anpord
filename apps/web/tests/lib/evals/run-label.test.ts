@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { runLabel } from "./run-label";
+import { runLabel } from "../../../src/lib/evals/run-label";
 
 describe("runLabel", () => {
   it("uses the eval name when the run has one", () => {

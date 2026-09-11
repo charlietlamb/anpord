@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import { waterfallLayout } from "./waterfall-layout";
+import { waterfallLayout } from "../../../src/lib/evals/waterfall-layout";
 
 const command = (
   startedAtMillis: number | null,

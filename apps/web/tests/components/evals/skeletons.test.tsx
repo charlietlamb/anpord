@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CellSetupSkeleton } from "./cell-setup-skeleton";
-import { TrialCallsSkeleton } from "./trial-calls-skeleton";
-import { TrialSkeleton } from "./trial-skeleton";
-import { ValidationInspectorSkeleton } from "./validation-inspector-skeleton";
+import { CellSetupSkeleton } from "../../../src/components/evals/cell-setup-skeleton";
+import { TrialCallsSkeleton } from "../../../src/components/evals/trial-calls-skeleton";
+import { TrialSkeleton } from "../../../src/components/evals/trial-skeleton";
+import { ValidationInspectorSkeleton } from "../../../src/components/evals/validation-inspector-skeleton";
 
 test("each surface keeps its own heading while its content loads", () => {
   expect(renderToStaticMarkup(<TrialCallsSkeleton />)).toContain("Calls");

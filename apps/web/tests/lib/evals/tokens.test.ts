@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { dollars, percent, tokens } from "./tokens";
+import { dollars, percent, tokens } from "../../../src/lib/evals/tokens";
 
 describe("dollars", () => {
   /* One precision cannot serve both scales: two decimals buries a sub-cent run at $0.00. */

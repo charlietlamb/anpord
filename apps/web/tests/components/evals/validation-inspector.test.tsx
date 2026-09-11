@@ -4,7 +4,7 @@ import {
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ValidationInspector } from "./validation-inspector";
+import { ValidationInspector } from "../../../src/components/evals/validation-inspector";
 
 const capture = validationCapture();
 const validation = {

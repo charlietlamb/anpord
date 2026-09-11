@@ -4,7 +4,7 @@ import {
   harnessPresentation,
   modelPresentation,
   sandboxPresentation,
-} from "./variant-presentation";
+} from "../../../src/lib/evals/variant-presentation";
 
 describe("naming a variant", () => {
   it("names the harnesses and sandboxes the contract defines", () => {

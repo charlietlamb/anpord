@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TRIALS } from "@/components/dev/eval-fixtures";
-import { TrialTable } from "./trial-table";
+import { TrialTable } from "../../../src/components/evals/trial-table";
 
 const renderTrials = async (runId: string, count: number) => {
   const root = createRootRoute({

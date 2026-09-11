@@ -1,5 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { cursorOf, firstPage, pageOf, popped, pushed } from "./cursor-stack";
+import {
+  cursorOf,
+  firstPage,
+  pageOf,
+  popped,
+  pushed,
+} from "../../src/lib/cursor-stack";
 
 describe("cursor stack", () => {
   it("starts before any cursor, on page one", () => {

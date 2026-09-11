@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { parseEnvLines } from "./env-lines";
+import { parseEnvLines } from "../../../src/lib/settings/env-lines";
 
 describe("env lines", () => {
   it("reads KEY=VALUE lines into a map", () => {

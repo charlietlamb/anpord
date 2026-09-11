@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { RunTrigger } from "./run-trigger";
+import { RunTrigger } from "../../../src/components/evals/run-trigger";
 
 const trigger = {
   source: "ci",

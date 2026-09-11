@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TrialBadge } from "./eval-status-badge";
+import { TrialBadge } from "../../../src/components/evals/eval-status-badge";
 
 test.each([
   ["passed", "bg-success/15"],

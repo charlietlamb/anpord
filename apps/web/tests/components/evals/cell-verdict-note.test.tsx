@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import type { EvalComparison } from "@anpord/schema/domain/evals";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CELL } from "@/components/dev/eval-fixtures";
-import { CellVerdictNote } from "./cell-verdict-note";
+import { CellVerdictNote } from "../../../src/components/evals/cell-verdict-note";
 
 const comparison: EvalComparison = {
   baselineHarnessVersion: "1.0",

@@ -11,9 +11,9 @@ import {
 import { DateTime } from "effect";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CellHistory } from "@/components/evals/cell-history";
-import { historyResult } from "./cell-history";
-import { clock } from "./duration";
-import { evalQueries } from "./eval-queries";
+import { historyResult } from "../../../src/lib/evals/cell-history";
+import { clock } from "../../../src/lib/evals/duration";
+import { evalQueries } from "../../../src/lib/evals/eval-queries";
 
 const historyEntry = (
   passed: number,

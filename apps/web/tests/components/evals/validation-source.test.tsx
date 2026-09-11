@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ValidationSource } from "./validation-source";
+import { ValidationSource } from "../../../src/components/evals/validation-source";
 
 test("shows the original TypeScript with the shared file select", () => {
   const html = renderToStaticMarkup(

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { MarkdownProse } from "./markdown-prose";
+import { MarkdownProse } from "../../../src/components/evals/markdown-prose";
 
 /* Markdown used to be styled from outside with descendant selectors, which is
    how its code drifted away from the code everywhere else. These assert it

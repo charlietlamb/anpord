@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { EvalCell, EvalSetup } from "@anpord/schema/domain/evals";
-import { sharedSetupOf } from "./shared-setup";
+import { sharedSetupOf } from "../../../src/lib/evals/shared-setup";
 
 const cellWith = (setup: Partial<EvalSetup> | null): EvalCell =>
   ({

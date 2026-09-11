@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { EvidenceValue } from "./evidence-value";
+import { EvidenceValue } from "../../../src/components/evals/evidence-value";
 
 test("decodes captured text safely and preserves line breaks", () => {
   const html = renderToStaticMarkup(

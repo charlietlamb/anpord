@@ -6,7 +6,7 @@ import {
   normalizeCredentialSelections,
   requiredCredentialIntegrations,
   selectableCredentialIntegrations,
-} from "./credential-selection";
+} from "../../../src/lib/evals/credential-selection";
 
 const connection = (
   id: string,

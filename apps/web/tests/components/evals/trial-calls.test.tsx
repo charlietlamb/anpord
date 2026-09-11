@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TrialCalls } from "./trial-calls";
+import { TrialCalls } from "../../../src/components/evals/trial-calls";
 
 test("shows tool inputs, results, and errors in recorded order", () => {
   const html = renderToStaticMarkup(

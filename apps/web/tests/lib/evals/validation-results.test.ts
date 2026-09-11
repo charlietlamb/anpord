@@ -4,7 +4,10 @@ import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
-import { judgeInput, validationsOf } from "./validation-results";
+import {
+  judgeInput,
+  validationsOf,
+} from "../../../src/lib/evals/validation-results";
 
 const evidence = {
   input: "Original prompt",

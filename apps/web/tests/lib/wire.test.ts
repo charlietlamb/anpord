@@ -7,7 +7,7 @@ import {
 } from "@anpord/schema/domain/prompts";
 import { relativeTime } from "@anpord/ui/lib/relative-time";
 import { DateTime, Schema } from "effect";
-import { fromWire } from "./wire";
+import { fromWire } from "../../src/lib/wire";
 
 const timestamp = "2026-09-06T12:00:00.000Z";
 
