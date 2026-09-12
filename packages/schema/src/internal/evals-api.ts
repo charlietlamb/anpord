@@ -3,18 +3,20 @@ import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import {
   CreatePlaygroundRequest,
+  ModelCatalogue,
+  PlaygroundView,
+  RerunCellRequest,
+  SavePlaygroundRequest,
+  StartedEval,
+} from "../domain/eval-playground";
+import {
   EvalArtifact,
   EvalArtifactRequest,
   EvalCellHistoryEntry,
   EvalHarness,
   EvalRun,
   EvalRunPage,
-  ModelCatalogue,
-  PlaygroundView,
-  RerunCellRequest,
-  SavePlaygroundRequest,
   StartEvalRequest,
-  StartedEval,
 } from "../domain/evals";
 import { Authentication } from "./authentication";
 

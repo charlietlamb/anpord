@@ -3,7 +3,7 @@ import {
   columnsOfDraft,
   draftOfConfig,
   type PlaygroundConfigView,
-} from "../../src/domain/evals";
+} from "../../src/domain/eval-playground";
 
 const config = (
   columns: readonly {

@@ -1,5 +1,8 @@
-import type { EvalDraft, EvalDraftCase } from "@anpord/schema/domain/evals";
-import { EvalDraft as EvalDraftSchema } from "@anpord/schema/domain/evals";
+import type {
+  EvalDraft,
+  EvalDraftCase,
+} from "@anpord/schema/domain/eval-playground";
+import { EvalDraft as EvalDraftSchema } from "@anpord/schema/domain/eval-playground";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { Schema } from "effect";
 import { useId, useRef, useState } from "react";

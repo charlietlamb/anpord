@@ -1,4 +1,9 @@
 import {
+  ModelCatalogue,
+  PlaygroundView,
+  StartedEval,
+} from "@anpord/schema/domain/eval-playground";
+import {
   EvalArtifact,
   type EvalArtifactRequest,
   EvalCellHistoryEntry,
@@ -6,9 +11,6 @@ import {
   type EvalPageCursor,
   EvalRun,
   EvalRunPage,
-  ModelCatalogue,
-  PlaygroundView,
-  StartedEval,
 } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 import { fromWire } from "@/lib/wire";

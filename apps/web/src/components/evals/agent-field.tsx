@@ -1,4 +1,5 @@
-import type { EvalAgent, EvalHarness } from "@anpord/schema/domain/evals";
+import type { EvalAgent } from "@anpord/schema/domain/eval-playground";
+import type { EvalHarness } from "@anpord/schema/domain/evals";
 import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi-select";
 import { useQueries } from "@tanstack/react-query";
 import { parseAsString, useQueryState } from "nuqs";

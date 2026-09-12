@@ -4,7 +4,7 @@ import {
   columnsOfDraft,
   EvalDraft,
   SavePlaygroundRequest,
-} from "../../src/domain/evals";
+} from "../../src/domain/eval-playground";
 
 const validate = (value: unknown) => {
   const std = Schema.standardSchemaV1(EvalDraft) as never as {

@@ -2,7 +2,8 @@ import type {
   CredentialConnection,
   CredentialSelections,
 } from "@anpord/schema/domain/credentials";
-import type { EvalAgent, EvalSandbox } from "@anpord/schema/domain/evals";
+import type { EvalAgent } from "@anpord/schema/domain/eval-playground";
+import type { EvalSandbox } from "@anpord/schema/domain/evals";
 
 export const selectableCredentialIntegrations = (
   agents: readonly EvalAgent[],

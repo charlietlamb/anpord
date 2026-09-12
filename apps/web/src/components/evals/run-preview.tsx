@@ -1,8 +1,5 @@
-import {
-  DEFAULT_SANDBOX,
-  type EvalAgent,
-  type EvalSandbox,
-} from "@anpord/schema/domain/evals";
+import type { EvalAgent } from "@anpord/schema/domain/eval-playground";
+import { DEFAULT_SANDBOX, type EvalSandbox } from "@anpord/schema/domain/evals";
 import { cn } from "@anpord/ui/lib/utils";
 import { WarningIcon } from "@phosphor-icons/react";
 import {

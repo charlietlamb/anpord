@@ -1,5 +1,10 @@
 export type {
   CatalogueModel,
+  ModelCatalogue,
+  RerunCellRequest,
+  StartedEval,
+} from "@anpord/schema/domain/eval-playground";
+export type {
   EvalArtifact,
   EvalCell,
   EvalCellHistoryEntry,
@@ -17,9 +22,6 @@ export type {
   EvalTrialStatus,
   EvalUsage,
   EvalVerdict,
-  ModelCatalogue,
-  RerunCellRequest,
-  StartedEval,
 } from "@anpord/schema/domain/evals";
 export type { AnpordClient, ClientOptions } from "@anpord/schema/public/client";
 export {

@@ -3,6 +3,11 @@ import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { EvalCaseName, EvalPrompt, EvalVerify } from "../domain/eval-limits";
 import {
+  ModelCatalogue,
+  RerunCellRequest,
+  StartedEval,
+} from "../domain/eval-playground";
+import {
   MAX_RUN_TRIALS,
   MAX_START_CASES,
   MAX_START_TASKS,
@@ -24,9 +29,6 @@ import {
   EvalSource,
   EvalValidator,
   EvalVariables,
-  ModelCatalogue,
-  RerunCellRequest,
-  StartedEval,
 } from "../domain/evals";
 import {
   HarnessProfile,

@@ -1,4 +1,5 @@
-import { DEFAULT_SANDBOX, type EvalDraft } from "@anpord/schema/domain/evals";
+import type { EvalDraft } from "@anpord/schema/domain/eval-playground";
+import { DEFAULT_SANDBOX } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi-select";
 import { FlaskIcon, PlayIcon } from "@phosphor-icons/react";
