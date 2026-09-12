@@ -1,5 +1,5 @@
 import type { Option } from "effect";
-import { nanosOf } from "./cost-arithmetic";
+import { toNanos } from "./cost-arithmetic";
 import type { CostComponent } from "./cost-component";
 import type { HarnessUsage } from "./harness-event";
 import { costOf, type ModelPrice } from "./model-price";
@@ -69,7 +69,7 @@ export const modelComponent = (input: {
   /* An estimate even on a subscription, which may charge nothing marginal. */
   return {
     ...base,
-    amountNanos: nanosOf(costOf(input.usage, rate)),
+    amountNanos: toNanos(costOf(input.usage, rate)),
     classification: "estimate",
     detail: { ...tokens, rateSnapshot: rate },
     explanation: subscriptionAuth.has(input.authMethodId ?? "")

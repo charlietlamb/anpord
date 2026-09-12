@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Option } from "effect";
-import { nanosOf, summaryOf } from "../../src/domain/cost-arithmetic";
+import { toNanos, summaryOf } from "../../src/domain/cost-arithmetic";
 import type { CostComponent } from "../../src/domain/cost-component";
 import { costsOf, rollUp } from "../../src/domain/eval-costs";
 import { breakdownOf } from "../../src/domain/trial-cost";
@@ -49,7 +49,7 @@ describe("the model layer", () => {
   });
 
   test("prices a million input tokens at the rate per million", () => {
-    expect(find(breakdown(), "model").amountNanos).toBe(nanosOf(3));
+    expect(find(breakdown(), "model").amountNanos).toBe(toNanos(3));
   });
 
   test("keeps the rate it used, so a later price change cannot rewrite it", () => {
@@ -145,7 +145,7 @@ const priced = (
   classification: CostComponent["classification"],
   usd: number | null
 ): CostComponent => ({
-  amountNanos: usd === null ? null : nanosOf(usd),
+  amountNanos: usd === null ? null : toNanos(usd),
   classification,
   component: "model",
   detail: {},
@@ -201,7 +201,7 @@ describe("what a set of trials cost", () => {
 
 const stored = (classification: string, usd: number | null) => [
   {
-    amountNanos: usd === null ? null : nanosOf(usd),
+    amountNanos: usd === null ? null : toNanos(usd),
     classification,
     component: "model",
     detail: {},
@@ -266,7 +266,7 @@ describe("a credential that names no model", () => {
 describe("a stored row this build cannot name", () => {
   const row = (classification: string, component: string) => [
     {
-      amountNanos: nanosOf(90),
+      amountNanos: toNanos(90),
       classification,
       component,
       detail: {},

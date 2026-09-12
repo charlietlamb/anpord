@@ -13,7 +13,7 @@ import {
   TRANSCRIPT_ENV,
   TRANSCRIPT_PATH,
 } from "../../domain/answer-file";
-import { answerOf, transcriptOf } from "../../domain/journal";
+import { readAnswer, transcriptOf } from "../../domain/journal";
 import { outcomeOf } from "../../domain/trial";
 import {
   stepResultsOf,
@@ -92,7 +92,7 @@ const validatorResultOf = (output: string) => {
 const writeAnswer = (sandbox: SandboxHandle, events: ScoreRequest["events"]) =>
   Effect.all(
     [
-      sandbox.writeFile(ANSWER_PATH(sandbox.home), answerOf(events)),
+      sandbox.writeFile(ANSWER_PATH(sandbox.home), readAnswer(events)),
       sandbox.writeFile(TRANSCRIPT_PATH(sandbox.home), transcriptOf(events)),
     ],
     { discard: true }

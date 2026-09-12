@@ -3,7 +3,7 @@ import { Option } from "effect";
 import {
   outcomeOf,
   type TrialStatus,
-  trialStatusOf,
+  decodeTrialStatus,
 } from "../../src/domain/trial";
 
 const base = {
@@ -183,10 +183,10 @@ const EVERY_STATUS: readonly TrialStatus[] = [
   "void",
 ];
 
-describe("trialStatusOf", () => {
+describe("decodeTrialStatus", () => {
   it("reads back every status the product writes", () => {
     for (const status of EVERY_STATUS) {
-      expect(trialStatusOf(status)).toEqual(Option.some(status));
+      expect(decodeTrialStatus(status)).toEqual(Option.some(status));
     }
   });
 
@@ -196,7 +196,7 @@ describe("trialStatusOf", () => {
    * run holding live trials reported none and could never be resumed. */
   it("refuses a status it does not name", () => {
     for (const status of ["RUNNING", "in_progress", "", "cancelled"]) {
-      expect(trialStatusOf(status)).toEqual(Option.none());
+      expect(decodeTrialStatus(status)).toEqual(Option.none());
     }
   });
 });

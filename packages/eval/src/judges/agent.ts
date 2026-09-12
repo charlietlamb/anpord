@@ -1,7 +1,7 @@
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Chunk, Effect, Option, Redacted, Stream } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
-import { answerOf, sessionIdOf } from "../domain/journal";
+import { readAnswer, sessionIdOf } from "../domain/journal";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { HarnessVersions } from "../services/harness-versions";
@@ -82,7 +82,7 @@ export const makeAgentJudge = Effect.gen(function* () {
       });
       const usage = yield* session.usage;
       return {
-        text: answerOf(events),
+        text: readAnswer(events),
         model,
         harnessVersion: version,
         sessionId: sessionIdOf(events) ?? undefined,

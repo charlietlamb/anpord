@@ -4,7 +4,7 @@ import type { CostClassification, CostComponent } from "./cost-component";
    summed across a run; nanos are exact under addition. */
 const NANOS = 1_000_000_000;
 
-export const nanosOf = (amount: number) => BigInt(Math.round(amount * NANOS));
+export const toNanos = (amount: number) => BigInt(Math.round(amount * NANOS));
 
 /* Lossy above about nine million dollars: sum in nanos and convert once. */
 export const dollarsOf = (nanos: bigint) => Number(nanos) / NANOS;

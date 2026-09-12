@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import type { HarnessEvent } from "../../src/domain/harness-event";
 import {
-  answerOf,
+  readAnswer,
   calledAll,
   calledAny,
   lastToolCallIn,
@@ -84,19 +84,19 @@ const spoken: readonly HarnessEvent[] = [
 
 describe("what the agent said", () => {
   it("is the last assistant message, not the last message", () => {
-    expect(answerOf(spoken)).toBe("There are eight.");
+    expect(readAnswer(spoken)).toBe("There are eight.");
   });
 
   /* A harness that ends on the user's turn, or a case whose agent answered
      only by writing a file. Empty rather than absent, so a validator never has
      to tell "said nothing" from "nothing was written". */
   it("is empty when the agent never spoke", () => {
-    expect(answerOf([])).toBe("");
-    expect(answerOf([said("user", "hello")])).toBe("");
+    expect(readAnswer([])).toBe("");
+    expect(readAnswer([said("user", "hello")])).toBe("");
   });
 
   it("ignores the user's own words", () => {
-    expect(answerOf([said("assistant", "mine"), said("user", "yours")])).toBe(
+    expect(readAnswer([said("assistant", "mine"), said("user", "yours")])).toBe(
       "mine"
     );
   });
@@ -118,6 +118,6 @@ describe("the whole transcript", () => {
   /* The answer is the tail of the transcript, so a case can assert on either
      without the two disagreeing about what was said last. */
   it("ends with the answer", () => {
-    expect(transcriptOf(spoken).endsWith(answerOf(spoken))).toBe(true);
+    expect(transcriptOf(spoken).endsWith(readAnswer(spoken))).toBe(true);
   });
 });

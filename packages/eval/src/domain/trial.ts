@@ -16,7 +16,7 @@ export type TrialStatus = typeof TrialStatus.Type;
 
 /* Decoded, not asserted: the column has no check constraint, so an older deploy's
    row may carry a status this build does not name. */
-export const trialStatusOf: (value: string) => Option.Option<TrialStatus> =
+export const decodeTrialStatus: (value: string) => Option.Option<TrialStatus> =
   Schema.decodeUnknownOption(TrialStatus);
 
 export const VerifyStepResult = Schema.Struct({

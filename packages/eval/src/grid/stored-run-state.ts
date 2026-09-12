@@ -7,7 +7,7 @@ import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { usageOf } from "../domain/harness-event";
 import { failedCommandsIn, filesIn, sessionIdOf } from "../domain/journal";
 import { namesOf } from "../domain/stored-cell";
-import { trialStatusOf, type VerifyStepResult } from "../domain/trial";
+import { decodeTrialStatus, type VerifyStepResult } from "../domain/trial";
 import { interruptedValidation } from "../domain/validation-plan";
 import type { RunDetail } from "../repositories/run-detail";
 import type { AgentTrialResult } from "../services/agent-trial";
@@ -61,7 +61,7 @@ const asResult = (input: {
        a trial it has no way to interpret, and void is the status for a trial
        that is not evidence about anything. */
     status: Option.getOrElse(
-      trialStatusOf(input.status),
+      decodeTrialStatus(input.status),
       () => "void" as const
     ),
     verifySteps: [...input.verifySteps],

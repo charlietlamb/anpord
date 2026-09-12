@@ -4,7 +4,7 @@ import {
 } from "@anpord/schema/domain/eval-validations";
 import { Effect, Layer } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
-import { answerOf } from "../domain/journal";
+import { readAnswer } from "../domain/journal";
 import { evaluateJudge } from "../judges/evaluate";
 import { JudgeModel } from "../judges/model";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
@@ -70,7 +70,7 @@ export const AgentTrialJudgedLive = Layer.effect(
                 judge,
                 context: request,
                 input: request.prompt,
-                output: answerOf(result.events),
+                output: readAnswer(result.events),
               })
           );
           const invalid = judgments.filter(({ error }) => error !== null);

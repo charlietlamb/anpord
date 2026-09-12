@@ -46,7 +46,7 @@ const assistantMessagesIn = (events: readonly HarnessEvent[]) =>
     event._tag === "Message" && event.role === "assistant" ? [event.text] : []
   );
 
-export const answerOf = (events: readonly HarnessEvent[]) =>
+export const readAnswer = (events: readonly HarnessEvent[]) =>
   assistantMessagesIn(events).at(-1) ?? "";
 
 export const transcriptOf = (events: readonly HarnessEvent[]) =>
