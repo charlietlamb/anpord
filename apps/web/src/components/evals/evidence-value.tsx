@@ -61,7 +61,7 @@ const preformatted = (text: string): boolean => {
   return numbered >= Math.max(2, Math.ceil(lines.length / 2));
 };
 
-const asText = (text: string): FormattedValue =>
+const classifyText = (text: string): FormattedValue =>
   preformatted(text)
     ? { code: text, lang: "text", shape: "preformatted" }
     : { code: text, lang: "text", shape: "prose" };
@@ -81,7 +81,7 @@ const unwrap = (text: string): FormattedValue => {
   } catch {
     /* Not JSON, so the text is already the readable form. */
   }
-  return asText(text);
+  return classifyText(text);
 };
 
 const formatValue = (value: string): FormattedValue => {
@@ -92,14 +92,14 @@ const formatValue = (value: string): FormattedValue => {
       return { ...unwrap(readable), raw: JSON.stringify(parsed, null, 2) };
     }
     return typeof parsed === "string"
-      ? asText(parsed)
+      ? classifyText(parsed)
       : {
           code: JSON.stringify(parsed, null, 2),
           lang: "json",
           shape: "json",
         };
   } catch {
-    return asText(value);
+    return classifyText(value);
   }
 };
 
