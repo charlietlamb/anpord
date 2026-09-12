@@ -78,7 +78,7 @@ const messageOf = (error: unknown) => {
   return "The request failed.";
 };
 
-export const asAnpordError = (error: unknown) =>
+export const toAnpordError = (error: unknown) =>
   error instanceof AnpordError
     ? error
     : new AnpordError(messageOf(error), {

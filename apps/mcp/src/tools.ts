@@ -30,7 +30,7 @@ const text = (value: string) => ({
   content: [{ text: value, type: "text" as const }],
 });
 
-const asJson = (value: unknown) => text(JSON.stringify(value, null, 2));
+const decodeJson = (value: unknown) => text(JSON.stringify(value, null, 2));
 
 const ResolvePrompt = GetPromptRequest.pick("channel", "id", "version");
 
@@ -50,7 +50,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
       name: "list_eval_runs",
     },
     (payload, ctx) =>
-      callApi(ctx, (api) => Effect.map(api.evals.list({ payload }), asJson))
+      callApi(ctx, (api) => Effect.map(api.evals.list({ payload }), decodeJson))
   );
 
   server.tool(
@@ -61,7 +61,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
       name: "list_eval_models",
     },
     (payload, ctx) =>
-      callApi(ctx, (api) => Effect.map(api.evals.models({ payload }), asJson))
+      callApi(ctx, (api) => Effect.map(api.evals.models({ payload }), decodeJson))
   );
 
   server.tool(
@@ -79,7 +79,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
           api.evals.start({
             payload: { ...payload, trigger: { source: "mcp" } },
           }),
-          asJson
+          decodeJson
         )
       )
   );
@@ -91,7 +91,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
       name: "get_eval_run",
     },
     (payload, ctx) =>
-      callApi(ctx, (api) => Effect.map(api.evals.get({ payload }), asJson))
+      callApi(ctx, (api) => Effect.map(api.evals.get({ payload }), decodeJson))
   );
 
   server.tool(
@@ -102,7 +102,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
-        Effect.map(api.evals.cellHistory({ payload }), asJson)
+        Effect.map(api.evals.cellHistory({ payload }), decodeJson)
       )
   );
 
@@ -118,7 +118,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
           api.evals.rerunCell({
             payload: { ...payload, trigger: { source: "mcp" } },
           }),
-          asJson
+          decodeJson
         )
       )
   );
@@ -147,7 +147,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
-        Effect.map(api.prompts.list({ payload }), ({ data }) => asJson(data))
+        Effect.map(api.prompts.list({ payload }), ({ data }) => decodeJson(data))
       )
   );
 
@@ -162,7 +162,7 @@ export const register = (server: MCPServer<AnpordUser>) => {
       callApi(ctx, (api) =>
         Effect.map(
           api.prompts.get({ payload: { id, includeVersions: true } }),
-          (prompt) => asJson(prompt.versions ?? [])
+          (prompt) => decodeJson(prompt.versions ?? [])
         )
       )
   );

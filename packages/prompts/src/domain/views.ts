@@ -23,7 +23,7 @@ const decodePlacement = Schema.decodeUnknown(ChannelPlacement);
 const decodeResolved = Schema.decodeUnknown(ResolvedPrompt);
 const decodeSummary = Schema.decodeUnknown(PromptSummary);
 
-const asStoreError = (operation: string) => (issue: ParseResult.ParseError) =>
+const toStoreError = (operation: string) => (issue: ParseResult.ParseError) =>
   new PromptStoreError({
     cause: ParseResult.TreeFormatter.formatErrorSync(issue),
     operation,
@@ -62,7 +62,7 @@ export const toResolved = (
     name: identity.name,
     version: row.version,
     versionId: row.internalId,
-  }).pipe(Effect.mapError(asStoreError("views.toResolved")));
+  }).pipe(Effect.mapError(toStoreError("views.toResolved")));
 
 type PlacedRow = Omit<ChannelRow, "versionInternalId">;
 
@@ -74,12 +74,12 @@ export const toPlacement = (
     updatedAt: row.updatedAt,
     updatedBy: authorOf(row.updatedBy),
     version: row.version,
-  }).pipe(Effect.mapError(asStoreError("views.toPlacement")));
+  }).pipe(Effect.mapError(toStoreError("views.toPlacement")));
 
 export const toChannel = (
   row: ChannelCountRow
 ): Effect.Effect<Channel, PromptStoreError> =>
-  decodeChannel(row).pipe(Effect.mapError(asStoreError("views.toChannel")));
+  decodeChannel(row).pipe(Effect.mapError(toStoreError("views.toChannel")));
 
 /* Read off the two versions rather than stored, so it cannot disagree with
    them. */
@@ -112,7 +112,7 @@ export const toActivityEntry = (
       : { version: row.version }),
     ...(row.kind === "saved" ? { message: row.message } : {}),
     id: row.internalId,
-  }).pipe(Effect.mapError(asStoreError("views.toActivityEntry")));
+  }).pipe(Effect.mapError(toStoreError("views.toActivityEntry")));
 
 export const toSummary = (
   row: PromptListRow
@@ -125,4 +125,4 @@ export const toSummary = (
     name: row.name,
     productionVersion: row.productionVersion,
     updatedAt: row.updatedAt,
-  }).pipe(Effect.mapError(asStoreError("views.toSummary")));
+  }).pipe(Effect.mapError(toStoreError("views.toSummary")));

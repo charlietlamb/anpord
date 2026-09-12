@@ -1,6 +1,6 @@
 import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
 import { Clock, Effect, Option } from "effect";
-import { asAnpordError } from "../errors";
+import { toAnpordError } from "../errors";
 import { isAvailabilityFailure } from "./failure";
 import { fallbackPrompt } from "./fallback";
 import { promptKey } from "./keys";
@@ -41,7 +41,7 @@ export const resolvePrompt = (options: GetPromptOptions) =>
       } satisfies Resolved;
     }
 
-    const error = asAnpordError(loaded.left);
+    const error = toAnpordError(loaded.left);
     if (!isAvailabilityFailure(error)) {
       return yield* Effect.fail(error);
     }
