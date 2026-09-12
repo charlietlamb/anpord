@@ -3,7 +3,7 @@ import {
   SourceControlAccount,
 } from "@anpord/schema/domain/codebase";
 import { Schema } from "effect";
-import { failureOf, fromWire } from "@/lib/wire";
+import { describeCause, fromWire } from "@/lib/wire";
 
 const BASE = "/api/evals/codebase";
 
@@ -18,7 +18,7 @@ const request = async <A, I>(
   });
 
   if (!response.ok) {
-    throw await failureOf(response, "Codebase request failed");
+    throw await describeCause(response, "Codebase request failed");
   }
 
   const payload = response.status === 204 ? undefined : await response.json();

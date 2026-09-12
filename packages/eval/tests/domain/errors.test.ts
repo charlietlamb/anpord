@@ -2,10 +2,10 @@ import { describe, expect, it } from "bun:test";
 import { Cause } from "effect";
 import {
   EvalStoreError,
-  reasonOf,
+  describeFailure,
   sandboxUnavailable,
 } from "../../src/domain/errors";
-import { failureOf } from "../../src/domain/failure";
+import { describeCause } from "../../src/domain/failure";
 
 const wrapped = (...messages: readonly string[]) =>
   messages.reduceRight<Error | undefined>((cause, message) => {
@@ -23,7 +23,7 @@ describe("reading why a store operation failed", () => {
       "Cannot use a pool after calling end on the pool"
     );
 
-    expect(reasonOf(error)).toBe(
+    expect(describeFailure(error)).toBe(
       "Cannot use a pool after calling end on the pool"
     );
   });
@@ -52,7 +52,7 @@ describe("reading why a store operation failed", () => {
       operation: "trial.open",
     });
 
-    const recorded = failureOf(Cause.fail(store));
+    const recorded = describeCause(Cause.fail(store));
 
     expect(recorded).toContain("the pool was closed");
     expect(recorded).not.toContain("node_modules");
@@ -62,7 +62,7 @@ describe("reading why a store operation failed", () => {
     const looping = new Error("round");
     (looping as { cause?: unknown }).cause = looping;
 
-    expect(reasonOf(looping)).toBe("round");
+    expect(describeFailure(looping)).toBe("round");
   });
 });
 

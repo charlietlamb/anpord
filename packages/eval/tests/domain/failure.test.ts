@@ -1,13 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import { Cause } from "effect";
 import { SandboxUnavailable } from "../../src/domain/errors";
-import { failureOf } from "../../src/domain/failure";
+import { describeCause } from "../../src/domain/failure";
 
-describe("failureOf", () => {
+describe("describeCause", () => {
   /** The case that prompted this: a provider limit stored as a thousand
    * characters of stack, rendered under every failed row in the list. */
   it("reads the reason a tagged error already carries", () => {
-    const failure = failureOf(
+    const failure = describeCause(
       Cause.fail(
         new SandboxUnavailable({
           provider: "daytona",
@@ -21,7 +21,7 @@ describe("failureOf", () => {
 
   /** The provider writes several lines; a row is one line high. */
   it("keeps the first line of a reason that runs on", () => {
-    const failure = failureOf(
+    const failure = describeCause(
       Cause.fail(
         new SandboxUnavailable({
           provider: "daytona",
@@ -34,7 +34,7 @@ describe("failureOf", () => {
   });
 
   it("truncates a reason too long for a row", () => {
-    const failure = failureOf(
+    const failure = describeCause(
       Cause.fail(
         new SandboxUnavailable({ provider: "daytona", reason: "x".repeat(400) })
       )
@@ -47,7 +47,7 @@ describe("failureOf", () => {
   /** A defect has no reason to read, so the first line of the rendered cause
    * is the best available, and still one line rather than a stack. */
   it("falls back to one line for a failure carrying no reason", () => {
-    const failure = failureOf(Cause.die(new Error("socket hang up")));
+    const failure = describeCause(Cause.die(new Error("socket hang up")));
 
     expect(failure).toContain("socket hang up");
     expect(failure).not.toContain("\n");
@@ -63,7 +63,7 @@ describe("failureOf", () => {
       "    at /Users/someone/anpord/packages/eval/src/adapters/sandbox.ts:24:9",
     ].join("\n");
 
-    const failure = failureOf(Cause.die(deep));
+    const failure = describeCause(Cause.die(deep));
 
     expect(failure).toContain("ECONNREFUSED");
     expect(failure).not.toContain("\n");

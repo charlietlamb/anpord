@@ -10,7 +10,7 @@ const firstLine = (text: string) => {
 
 /* `String(cause)` prints the whole stack, so a tagged error's own `reason` is
    read out instead. */
-export const failureOf = (cause: Cause.Cause<unknown>): string => {
+export const describeCause = (cause: Cause.Cause<unknown>): string => {
   const error = Cause.failureOption(cause);
 
   if (error._tag === "Some") {

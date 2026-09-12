@@ -1,6 +1,6 @@
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
-import { failureOf } from "../domain/failure";
+import { describeCause } from "../domain/failure";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { costOf, type ModelPrice } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
@@ -98,7 +98,7 @@ export const runTrial = (input: RunOneTrial) =>
         : Clock.currentTimeMillis.pipe(
             Effect.flatMap((finishedAt) =>
               input.recorder.abandon({
-                failure: failureOf(exit.cause),
+                failure: describeCause(exit.cause),
                 finishedAt: new Date(finishedAt),
                 trialInternalId,
               })

@@ -1,7 +1,7 @@
 import { Clock, Effect, Either, Option } from "effect";
 import { SourceTokens } from "../codebase/source-token";
 import { CellKey } from "../domain/cell";
-import { reasonOf } from "../domain/errors";
+import { describeFailure } from "../domain/errors";
 import { RunRepository } from "../repositories/run-repository";
 import { TrialCostRepository } from "../repositories/trial-cost-repository";
 import { TrialRecorder } from "../repositories/trial-record";
@@ -99,7 +99,7 @@ export const makeRunCells = (live: LiveRuns) =>
           failure:
             first === undefined
               ? null
-              : `${failures.length} of ${outcomes.length} cells could not run: ${reasonOf(first)}`,
+              : `${failures.length} of ${outcomes.length} cells could not run: ${describeFailure(first)}`,
           finishedAt: new Date(finishedAt),
           internalId: created.internalId,
           status: first === undefined ? "finished" : "failed",

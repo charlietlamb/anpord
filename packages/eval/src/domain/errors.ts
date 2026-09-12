@@ -5,7 +5,7 @@ import { ProviderName } from "./cell";
 const CAUSE_DEPTH = 5;
 
 /* Drivers wrap: the readable message sits under two or three layers of `cause`. */
-export const reasonOf = (cause: unknown): string => {
+export const describeFailure = (cause: unknown): string => {
   let found = cause;
 
   for (let depth = 0; depth < CAUSE_DEPTH; depth += 1) {
@@ -35,7 +35,7 @@ export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
 export const sandboxUnavailable = (
   provider: typeof ProviderName.Type,
   reason: unknown
-) => new SandboxUnavailable({ provider, reason: reasonOf(reason) });
+) => new SandboxUnavailable({ provider, reason: describeFailure(reason) });
 
 export class HarnessUnavailable extends Schema.TaggedError<HarnessUnavailable>(
   "HarnessUnavailable"
@@ -62,7 +62,7 @@ export class EvalStoreError extends Data.TaggedError("EvalStoreError")<{
   readonly operation: string;
 }> {
   override get message() {
-    return `${this.operation} failed: ${reasonOf(this.cause)}`;
+    return `${this.operation} failed: ${describeFailure(this.cause)}`;
   }
 }
 
