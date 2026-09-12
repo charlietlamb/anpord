@@ -24,7 +24,7 @@ const asConfigView = (config: PlaygroundConfig): ConfigView => ({
   })),
 });
 
-const asStoredConfig = (config: ConfigView): PlaygroundConfig => ({
+const toStoredConfig = (config: ConfigView): PlaygroundConfig => ({
   ...config,
   columns: config.columns.map(({ harness, model, sandbox }) => ({
     harness,
@@ -104,7 +104,7 @@ export const savePlayground = (
 
     return view(
       yield* workbenches.save({
-        config: asStoredConfig(payload.config),
+        config: toStoredConfig(payload.config),
         id,
         name: payload.name,
         organizationId: actor.organizationId,

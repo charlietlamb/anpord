@@ -9,7 +9,7 @@ import type {
 import { DateTime, Schema } from "effect";
 
 /* No trajectory: the journal is fetched per trial, so a history of twenty readings would pull twenty journals to draw a table showing none. */
-const asStoredTrial = (trial: {
+const toStoredTrial = (trial: {
   readonly artifacts?: EvalTrial["artifacts"] | null;
   readonly commandCount: number | null;
   readonly judgments?: unknown;
@@ -61,7 +61,7 @@ const asStoredTrial = (trial: {
 });
 
 /* The cell key hashes case, setup, harness, model, provider and profile, so only trials and versions differ across readings. */
-export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
+export const toReadingView = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
   distribution: entry.distribution,
   finishedAt:
     entry.finishedAt === null
@@ -72,5 +72,5 @@ export const asReading = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
   profileVersion: entry.profileVersion,
   runId: entry.runId,
   trigger: entry.trigger,
-  trials: entry.trials.map(asStoredTrial),
+  trials: entry.trials.map(toStoredTrial),
 });

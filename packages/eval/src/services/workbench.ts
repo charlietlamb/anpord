@@ -67,7 +67,7 @@ const credentialsOf = (
   sandboxConnectionId: connections[column.provider],
 });
 
-const asWorkbench = (row: Row, config: PlaygroundConfig): Workbench => ({
+const toWorkbenchView = (row: Row, config: PlaygroundConfig): Workbench => ({
   config,
   id: row.id,
   lastRunId: row.lastRunId,
@@ -89,7 +89,7 @@ export const WorkbenchesLive = Layer.effect(
       );
 
     const hydrate = (row: Row) =>
-      configOf(row).pipe(Effect.map((config) => asWorkbench(row, config)));
+      configOf(row).pipe(Effect.map((config) => toWorkbenchView(row, config)));
 
     const run = (input: {
       readonly actor: Actor;
@@ -174,7 +174,7 @@ export const WorkbenchesLive = Layer.effect(
     return Workbenches.of({
       create: (input) =>
         store.insert(input).pipe(
-          Effect.map((row) => asWorkbench(row, emptyPlaygroundConfig)),
+          Effect.map((row) => toWorkbenchView(row, emptyPlaygroundConfig)),
           Effect.withSpan("Workbenches.create")
         ),
       find: (organizationId, id) =>
@@ -195,7 +195,7 @@ export const WorkbenchesLive = Layer.effect(
       run,
       save: (input) =>
         store.update(input).pipe(
-          Effect.map((row) => asWorkbench(row, input.config)),
+          Effect.map((row) => toWorkbenchView(row, input.config)),
           Effect.withSpan("Workbenches.save")
         ),
     });

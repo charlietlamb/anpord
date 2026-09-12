@@ -23,7 +23,7 @@ import {
   runPlayground,
   savePlayground,
 } from "./playground-handlers";
-import { asReading } from "./reading-to-api";
+import { toReadingView } from "./reading-to-api";
 import { startEvalFromApp } from "./start-handler";
 
 const HISTORY_LIMIT = 20;
@@ -62,7 +62,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
               organizationId: actor.organizationId,
             });
 
-            return entries.map(asReading);
+            return entries.map(toReadingView);
           }).pipe(Effect.catchTag("EvalStoreError", Effect.die))
       )
 

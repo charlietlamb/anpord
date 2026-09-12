@@ -20,7 +20,7 @@ import { Effect, Option } from "effect";
 import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
 import { meterRun } from "../internal/evals/meter-run";
-import { asReading } from "../internal/evals/reading-to-api";
+import { toReadingView } from "../internal/evals/reading-to-api";
 import { detail, summarise } from "../internal/evals/run-to-api";
 import { admitStart } from "../internal/evals/start-admission";
 
@@ -166,7 +166,7 @@ export const getCellHistory = (cellKey: string) =>
       organizationId: actor.organizationId,
     });
 
-    return entries.map(asReading);
+    return entries.map(toReadingView);
   }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
 
 export const rerunEvalCell = (

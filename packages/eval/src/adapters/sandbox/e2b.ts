@@ -21,7 +21,7 @@ interface CommandResult {
   readonly stdout: string;
 }
 
-const asCommandResult = (rejection: unknown): CommandResult | null => {
+const toCommandResult = (rejection: unknown): CommandResult | null => {
   const carried = (rejection as { result?: unknown })?.result;
   const source = (carried ?? rejection) as {
     exitCode?: number;
@@ -56,7 +56,7 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
               timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
             })
             .catch((rejection: unknown) => {
-              const failed = asCommandResult(rejection);
+              const failed = toCommandResult(rejection);
 
               if (failed === null) {
                 throw rejection;
