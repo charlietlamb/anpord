@@ -13,6 +13,7 @@ import { Authentication } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder, HttpServerRequest } from "@effect/platform";
 import {
   Cache,
+  Config,
   Data,
   Duration,
   Effect,
@@ -24,6 +25,14 @@ import {
 
 const unauthorized = (message: string) => new Unauthorized({ message });
 const ROLE_CACHE_CAPACITY = 4096;
+
+/* withDefault means this cannot fail, so the layer keeps a never error. */
+const roleCacheCapacity = Config.integer("ROLE_CACHE_CAPACITY").pipe(
+  Config.withDefault(ROLE_CACHE_CAPACITY),
+  Effect.orDie
+);
+
+/* Short enough that a revoked role stops working within one page load. */
 const ROLE_CACHE_TTL = Duration.seconds(5);
 
 interface RoleKey {
@@ -38,10 +47,11 @@ interface AdminFields {
 }
 
 export const makeRoleCache = (
-  organizations: Pick<OrganizationStoreShape, "roleOf">
+  organizations: Pick<OrganizationStoreShape, "roleOf">,
+  capacity = ROLE_CACHE_CAPACITY
 ) =>
   Cache.makeWith({
-    capacity: ROLE_CACHE_CAPACITY,
+    capacity,
     lookup: (key: RoleKey) =>
       organizations.roleOf(key.organizationId, key.userId),
     timeToLive: (exit) =>
@@ -53,7 +63,7 @@ export const AuthenticationLive = Layer.effect(
   Effect.gen(function* () {
     const auth = yield* Auth;
     const organizations = yield* OrganizationStore;
-    const roles = yield* makeRoleCache(organizations);
+    const roles = yield* makeRoleCache(organizations, yield* roleCacheCapacity);
 
     return Authentication.of({
       session: () =>
