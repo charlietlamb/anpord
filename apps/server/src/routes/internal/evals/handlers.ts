@@ -6,13 +6,13 @@ import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import { authorIdOf } from "@anpord/schema/domain/actor";
-import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
+import { withEvalErrors } from "../../../http/eval-errors";
 import { getEvalArtifact } from "../../evals/artifacts";
 import { getEvalRun, listEvalRuns } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
@@ -86,19 +86,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
                 trigger: { source: "dashboard" },
                 trials: payload.trials,
               })
-              .pipe(
-                Effect.mapError((problem) =>
-                  problem._tag === "CredentialError"
-                    ? new NotFound({ message: problem.message })
-                    : problem
-                ),
-                Effect.catchTag("EvalStoreError", Effect.die),
-                Effect.catchTag("NotRunnable", (problem) =>
-                  Effect.fail(
-                    new NotFound({ message: problem.problems.join(", ") })
-                  )
-                )
-              );
+              .pipe(withEvalErrors);
 
             return { id };
           })
@@ -120,20 +108,7 @@ export const EvalsHandlers = HttpApiBuilder.group(
               runId: path.id,
               source: { actor, legacyHarnessAuth: credentials.codexAuth },
             }
-          ).pipe(
-            Effect.flatMap(grid.resume),
-            Effect.mapError((problem) =>
-              problem._tag === "CredentialError"
-                ? new NotFound({ message: problem.message })
-                : problem
-            ),
-            Effect.catchTag("EvalStoreError", Effect.die),
-            Effect.catchTag("NotRunnable", (problem) =>
-              Effect.fail(
-                new Conflict({ message: problem.problems.join(", ") })
-              )
-            )
-          );
+          ).pipe(Effect.flatMap(grid.resume), withEvalErrors);
 
           return { id: path.id };
         })

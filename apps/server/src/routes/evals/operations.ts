@@ -6,17 +6,18 @@ import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import { authorIdOf } from "@anpord/schema/domain/actor";
-import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
+import { BadRequest, NotFound } from "@anpord/schema/domain/errors";
+import type { RerunCellRequest } from "@anpord/schema/domain/eval-playground";
 import { trialsRequested } from "@anpord/schema/domain/eval-quota";
 import {
   DEFAULT_SANDBOX,
   EVAL_SANDBOXES,
   type EvalHarness,
-  type RerunCellRequest,
 } from "@anpord/schema/domain/evals";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
+import { withEvalErrors } from "../../http/eval-errors";
 import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
 import { meterRun } from "../internal/evals/meter-run";
@@ -191,17 +192,7 @@ export const rerunEvalCell = (
       trials: input.trials,
     });
     return { id };
-  }).pipe(
-    Effect.mapError((problem) =>
-      problem._tag === "CredentialError"
-        ? new Conflict({ message: problem.message })
-        : problem
-    ),
-    Effect.catchTag("EvalStoreError", Effect.die),
-    Effect.catchTag("NotRunnable", (problem) =>
-      Effect.fail(new Conflict({ message: problem.problems.join(", ") }))
-    )
-  );
+  }).pipe(withEvalErrors);
 
 export const getEvalModels = (harness: EvalHarness, query?: string) =>
   Effect.flatMap(ModelCatalogues, (catalogues) =>

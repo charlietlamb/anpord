@@ -5,13 +5,15 @@ import {
 } from "@anpord/eval/domain/playground-config";
 import type { Workbench } from "@anpord/eval/services/workbench";
 import { Workbenches } from "@anpord/eval/services/workbench";
-import { Conflict, NotFound } from "@anpord/schema/domain/errors";
-import type { PlaygroundView } from "@anpord/schema/domain/evals";
+import { NotFound } from "@anpord/schema/domain/errors";
+import type { PlaygroundView } from "@anpord/schema/domain/eval-playground";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { DateTime, Effect, Option } from "effect";
 import { EvalCredentials } from "./credentials";
 
 type ConfigView = PlaygroundView["config"];
+
+import { withEvalErrors } from "../../../http/eval-errors";
 
 /* The stored config and the wire shape differ in one field: rows written before
    the rename still say `provider`, so translate rather than migrate. */
@@ -127,11 +129,4 @@ export const runPlayground = (id: string) =>
         legacyHarnessAuth: credentials.codexAuth,
       }),
     };
-  }).pipe(
-    /* Every reason travels at once: fixing one and being told the next is worse than being told all now. */
-    Effect.catchTag("NotRunnable", (error) =>
-      Effect.fail(new Conflict({ message: error.problems.join("; ") }))
-    ),
-    Effect.catchTag("EvalStoreError", Effect.die),
-    Effect.orDie
-  );
+  }).pipe(withEvalErrors, Effect.orDie);

@@ -1,4 +1,4 @@
-import type { ModelCatalogue } from "@anpord/schema/domain/evals";
+import type { ModelCatalogue } from "@anpord/schema/domain/eval-playground";
 import { Context, Effect, Layer } from "effect";
 import { ModelDescriptionsLive } from "../adapters/models/descriptions";
 import { AvailableModelsLive } from "../adapters/models/resolve";

@@ -1,4 +1,4 @@
-import { RerunCellRequest } from "@anpord/schema/domain/evals";
+import { RerunCellRequest } from "@anpord/schema/domain/eval-playground";
 import { PROFILE_HARNESS_RULE } from "@anpord/schema/domain/harness-profile";
 import {
   EvalCellRequest,
@@ -61,7 +61,9 @@ export const register = (server: MCPServer<AnpordUser>) => {
       name: "list_eval_models",
     },
     (payload, ctx) =>
-      callApi(ctx, (api) => Effect.map(api.evals.models({ payload }), decodeJson))
+      callApi(ctx, (api) =>
+        Effect.map(api.evals.models({ payload }), decodeJson)
+      )
   );
 
   server.tool(
@@ -147,7 +149,9 @@ export const register = (server: MCPServer<AnpordUser>) => {
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
-        Effect.map(api.prompts.list({ payload }), ({ data }) => decodeJson(data))
+        Effect.map(api.prompts.list({ payload }), ({ data }) =>
+          decodeJson(data)
+        )
       )
   );
 
