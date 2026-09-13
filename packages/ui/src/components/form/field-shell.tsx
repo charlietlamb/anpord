@@ -1,6 +1,5 @@
 import { FieldInfo } from "@anpord/ui/components/form/field-info";
-import { Label } from "@anpord/ui/components/ui/label";
-import { cn } from "@anpord/ui/lib/utils";
+import { LabelledField } from "@anpord/ui/components/form/labelled-field";
 import type { AnyFieldApi } from "@tanstack/react-form";
 import type { ReactNode } from "react";
 
@@ -18,15 +17,14 @@ export function FieldShell({
   readonly label: string;
 }) {
   return (
-    <div className={cn("grid gap-1.5", className)}>
-      <Label htmlFor={field.name}>{label}</Label>
-
-      {description === undefined ? null : (
-        <p className="text-muted-foreground text-xs">{description}</p>
-      )}
-
+    <LabelledField
+      className={className}
+      description={description}
+      htmlFor={field.name}
+      label={label}
+    >
       {children}
       <FieldInfo field={field} />
-    </div>
+    </LabelledField>
   );
 }

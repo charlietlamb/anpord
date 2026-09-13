@@ -2,115 +2,21 @@ import type {
   CredentialIntegration,
   DeviceAuthChallenge,
 } from "@anpord/schema/domain/credentials";
-import { CopyButton } from "@anpord/ui/components/copy-button";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
+import { LabelledField } from "@anpord/ui/components/form/labelled-field";
+import { LabelledSelect } from "@anpord/ui/components/form/labelled-select";
 import { Input } from "@anpord/ui/components/input";
-import { Label } from "@anpord/ui/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@anpord/ui/components/ui/select";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { VariantLabel } from "@/components/evals/variant-label";
 import { CredentialFields } from "@/components/settings/credential-fields";
+import { DeviceChallenge } from "@/components/settings/device-challenge";
 import { credentialsClient } from "@/lib/credentials-client";
 import { incompleteCredential } from "@/lib/settings/credential-values";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
 
 const POLL_MS = 2000;
-
-function Field({
-  children,
-  htmlFor,
-  label,
-}: {
-  readonly children: ReactNode;
-  readonly htmlFor: string;
-  readonly label: string;
-}) {
-  return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
-      {children}
-    </div>
-  );
-}
-
-function Choice({
-  id,
-  label,
-  onChange,
-  options,
-  value,
-}: {
-  readonly id: string;
-  readonly label: string;
-  readonly onChange: (value: string) => void;
-  readonly options: readonly {
-    readonly label: ReactNode;
-    readonly value: string;
-  }[];
-  readonly value: string;
-}) {
-  return (
-    <Field htmlFor={id} label={label}>
-      <Select
-        items={options}
-        onValueChange={(next) => onChange(String(next ?? ""))}
-        value={value}
-      >
-        <SelectTrigger className="w-full" id={id}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </Field>
-  );
-}
-
-function DeviceChallenge({
-  challenge,
-}: {
-  readonly challenge: DeviceAuthChallenge;
-}) {
-  return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border-faint bg-muted/30 p-3.5">
-      <p className="text-muted-foreground text-xs">
-        Open the link below, enter this code, and this window will finish on its
-        own.
-      </p>
-
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-foreground text-lg tracking-[0.2em]">
-          {challenge.code}
-        </span>
-        <CopyButton label="Copy code" value={challenge.code} />
-      </div>
-
-      <a
-        className="inline-flex w-fit items-center gap-1.5 text-foreground text-xs underline decoration-border underline-offset-4 transition-colors duration-150 ease-out hover:decoration-foreground"
-        href={challenge.verificationUrl}
-        rel="noreferrer"
-        target="_blank"
-      >
-        {challenge.verificationUrl}
-        <ArrowSquareOutIcon aria-hidden="true" className="size-3.5" />
-      </a>
-    </div>
-  );
-}
 
 const submitLabel = (device: boolean, pending: boolean, waiting: boolean) => {
   if (waiting) {
@@ -253,7 +159,7 @@ export function ConnectionDialog({
       open={open}
       title={category === "sandbox" ? "Add sandbox" : "Add harness"}
     >
-      <Choice
+      <LabelledSelect
         id="connection-integration"
         label={category === "sandbox" ? "Sandbox" : "Harness"}
         onChange={chooseIntegration}
@@ -265,11 +171,12 @@ export function ConnectionDialog({
             value: item.id,
           };
         })}
+        triggerClassName="w-full"
         value={integrationId}
       />
 
       {(integration?.authMethods.length ?? 0) > 1 ? (
-        <Choice
+        <LabelledSelect
           id="connection-method"
           label="Sign in with"
           onChange={(next) => {
@@ -281,11 +188,12 @@ export function ConnectionDialog({
             label: item.label,
             value: item.id,
           }))}
+          triggerClassName="w-full"
           value={methodId}
         />
       ) : null}
 
-      <Field htmlFor="connection-name" label="Name">
+      <LabelledField htmlFor="connection-name" label="Name">
         <Input
           autoFocus
           id="connection-name"
@@ -293,7 +201,7 @@ export function ConnectionDialog({
           placeholder="Team key, personal key…"
           value={name}
         />
-      </Field>
+      </LabelledField>
 
       {method !== undefined && method.kind !== "device" ? (
         <CredentialFields
@@ -303,7 +211,7 @@ export function ConnectionDialog({
         />
       ) : null}
 
-      <Choice
+      <LabelledSelect
         id="connection-scope"
         label="Available to"
         onChange={setScope}
@@ -311,6 +219,7 @@ export function ConnectionDialog({
           { label: "Everyone in the organization", value: "organization" },
           { label: "Only me", value: "personal" },
         ]}
+        triggerClassName="w-full"
         value={scope}
       />
 
