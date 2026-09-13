@@ -1,4 +1,4 @@
-import { Effect, Option, Stream } from "effect";
+import { Duration, Effect, Option, Stream } from "effect";
 import type { HarnessName } from "../../domain/cell";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
@@ -7,7 +7,7 @@ const TRAILING_RETURN = /\r$/;
 
 const MAX_STDERR = 8192;
 
-const TIMEOUT_MS = 15 * 60 * 1000;
+const TIMEOUT = Duration.minutes(15);
 
 export interface HarnessLine {
   readonly _tag: "line";
@@ -111,7 +111,7 @@ const framedOutput = (
   command: string,
   env: Readonly<Record<string, string>>
 ) =>
-  sandbox.exec(command, { env, timeoutMs: TIMEOUT_MS }).pipe(
+  sandbox.exec(command, { env, timeoutMs: Duration.toMillis(TIMEOUT) }).pipe(
     Stream.mapError(
       (cause) => new HarnessUnavailable({ harness, reason: cause.reason })
     ),

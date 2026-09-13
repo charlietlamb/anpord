@@ -7,7 +7,7 @@ import { DEFAULT_PLATFORM_ROLE } from "@anpord/schema/domain/permissions";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
 import { admin, jwt, magicLink, organization } from "better-auth/plugins";
-import { Context, Effect, Layer, Redacted } from "effect";
+import { Context, Duration, Effect, Layer, Redacted } from "effect";
 import { AuthConfig } from "./config/auth-config";
 import { apiKeyPlugin } from "./credentials/api-key-plugin";
 import { mcpPlugin } from "./oauth/mcp-plugin";
@@ -15,15 +15,12 @@ import { attachOrganizationBeforeWrite } from "./organization/attach-organizatio
 import { OrganizationStore } from "./organization/organization-store";
 import { setUpOrganization } from "./organization/set-up-organization";
 import { COOKIE_PREFIX } from "./session/cookies";
-import {
-  MAGIC_LINK_EXPIRY_SECONDS,
-  sendMagicLink,
-} from "./session/send-magic-link";
+import { MAGIC_LINK_EXPIRY, sendMagicLink } from "./session/send-magic-link";
 
-const SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES = 300;
+const SESSION_CACHE_BEFORE_REVOCATION_APPLIES = Duration.minutes(5);
 
 /* Short so a forgotten impersonation expires on its own. */
-const IMPERSONATION_SESSION_SECONDS = 60 * 60;
+const IMPERSONATION_SESSION = Duration.hours(1);
 
 const makeAuth = Effect.gen(function* () {
   const config = yield* AuthConfig;
@@ -59,7 +56,7 @@ const makeAuth = Effect.gen(function* () {
     plugins: [
       admin({
         defaultRole: DEFAULT_PLATFORM_ROLE,
-        impersonationSessionDuration: IMPERSONATION_SESSION_SECONDS,
+        impersonationSessionDuration: Duration.toSeconds(IMPERSONATION_SESSION),
       }),
       organization({
         organizationHooks: {
@@ -74,7 +71,7 @@ const makeAuth = Effect.gen(function* () {
         },
       }),
       magicLink({
-        expiresIn: MAGIC_LINK_EXPIRY_SECONDS,
+        expiresIn: Duration.toSeconds(MAGIC_LINK_EXPIRY),
         sendMagicLink: ({ email, url }) => deliverMagicLink({ email, url }),
       }),
       apiKeyPlugin(),
@@ -85,7 +82,7 @@ const makeAuth = Effect.gen(function* () {
     session: {
       cookieCache: {
         enabled: true,
-        maxAge: SESSION_CACHE_SECONDS_BEFORE_REVOCATION_APPLIES,
+        maxAge: Duration.toSeconds(SESSION_CACHE_BEFORE_REVOCATION_APPLIES),
       },
     },
     socialProviders,

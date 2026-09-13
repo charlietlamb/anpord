@@ -1,10 +1,8 @@
 import { magicLinkEmail } from "@anpord/notifications/email/magic-link";
 import type { EmailSenderShape } from "@anpord/notifications/email/sender";
-import { Effect } from "effect";
+import { Duration, Effect } from "effect";
 
-export const MAGIC_LINK_EXPIRY_SECONDS = 300;
-
-const SECONDS_PER_MINUTE = 60;
+export const MAGIC_LINK_EXPIRY = Duration.minutes(5);
 
 interface MagicLinkRequest {
   readonly email: string;
@@ -19,7 +17,7 @@ export const sendMagicLink =
         .send(
           magicLinkEmail({
             email,
-            expiresInMinutes: MAGIC_LINK_EXPIRY_SECONDS / SECONDS_PER_MINUTE,
+            expiresInMinutes: Duration.toMinutes(MAGIC_LINK_EXPIRY),
             url,
           })
         )

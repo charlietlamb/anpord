@@ -8,7 +8,7 @@ const endpoint = (name: string) => `${authUrl}/mcp/${name}`;
 export const issuerOf = (url: string) => new URL(url).origin;
 const issuer = issuerOf(authUrl);
 
-const FALLBACK_TTL_SECONDS = 60 * 60;
+const FALLBACK_TTL = Duration.hours(1);
 
 interface McpSession {
   readonly accessTokenExpiresAt?: string | number;
@@ -27,7 +27,7 @@ const secondsUntil = (expiresAt: McpSession["accessTokenExpiresAt"]) => {
   if (expiresAt === undefined) {
     return (
       epochSeconds(Effect.runSync(Clock.currentTimeMillis)) +
-      FALLBACK_TTL_SECONDS
+      Duration.toSeconds(FALLBACK_TTL)
     );
   }
   return epochSeconds(
