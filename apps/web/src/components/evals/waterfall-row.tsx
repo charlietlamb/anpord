@@ -1,162 +1,19 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
-import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
+import { Tooltip, TooltipTrigger } from "@anpord/ui/components/tooltip";
 import { cn } from "@anpord/ui/lib/utils";
-import { StackIcon } from "@phosphor-icons/react";
+import { ExitCode } from "@/components/evals/exit-code";
 import {
   JournalOutput,
   useJournalOutput,
 } from "@/components/evals/journal-output";
-import { seconds } from "@/lib/evals/duration";
+import { RowTooltip } from "@/components/evals/waterfall-tooltip";
+import { Track } from "@/components/evals/waterfall-track";
 import {
   describeRow,
   KIND_COLOURS,
-  KIND_ICONS,
-  KIND_NAMES,
-  kindOf,
   labelOf,
 } from "@/lib/evals/journal-presentation";
-import { dollars, percent, tokens } from "@/lib/evals/tokens";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
-
-function ExitCode({ code }: { readonly code: number | null }) {
-  if (code === null || code === 0) {
-    return null;
-  }
-
-  return (
-    <span className="w-fit shrink-0 rounded bg-warning/20 px-1.5 py-0.5 font-medium text-warning text-xs tabular-nums">
-      exit {code}
-    </span>
-  );
-}
-
-/* Below 6px a real span is unhittable and reads as a zero-duration tick. */
-const MIN_BAR = 6;
-
-const hatched = (colour: string) =>
-  `repeating-linear-gradient(45deg, ${colour} 0 3px, transparent 3px 6px)`;
-
-function Track({ row }: { readonly row: WaterfallRow }) {
-  const background = KIND_COLOURS[kindOf(row)];
-
-  if (row.lead !== null) {
-    return (
-      <span
-        className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px] opacity-70 transition-opacity duration-150 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
-        style={{
-          backgroundColor: `color-mix(in oklch, ${background} 18%, transparent)`,
-          backgroundImage: hatched(background),
-          left: `${row.lead.fromPercent}%`,
-          width: `${row.lead.widthPercent + (row._tag === "bar" ? row.widthPercent : 0)}%`,
-        }}
-      />
-    );
-  }
-
-  return row._tag === "marker" ? (
-    <span
-      className="absolute top-1/2 block h-3 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-[2px] transition-[filter,width] duration-150 ease-out group-hover:w-[5px] group-hover:brightness-125 group-focus-visible:w-[5px] group-focus-visible:brightness-125 motion-reduce:transition-none"
-      style={{ background, left: `${row.leftPercent}%` }}
-    />
-  ) : (
-    <span
-      className="absolute top-1/2 block h-3 -translate-y-1/2 rounded-[3px] transition-[filter,transform] duration-150 ease-out group-hover:brightness-125 group-focus-visible:brightness-125 motion-reduce:transition-none"
-      style={{
-        background,
-        left: `${row.leftPercent}%`,
-        minWidth: MIN_BAR,
-        width: `${row.widthPercent}%`,
-      }}
-    />
-  );
-}
-
-function TurnUsage({ entry }: { readonly entry: EvalJournalEntry }) {
-  if (entry._tag !== "message") {
-    return null;
-  }
-
-  const usage = entry.usage;
-
-  if (usage === null || usage === undefined) {
-    return null;
-  }
-
-  const served =
-    usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
-
-  return (
-    <span className="flex items-center gap-2 text-xs tabular-nums opacity-70">
-      <span className="flex items-center gap-1.5">
-        <StackIcon aria-hidden="true" size={13} />
-        {tokens(usage.totalTokens)}
-      </span>
-
-      {served === 0 || usage.cacheReadTokens === 0 ? null : (
-        <span>{percent(usage.cacheReadTokens / served)} cached</span>
-      )}
-
-      {usage.costUsd === null || usage.costUsd === undefined ? null : (
-        <span>{dollars(usage.costUsd)} est.</span>
-      )}
-    </span>
-  );
-}
-
-function RowTooltip({ row }: { readonly row: WaterfallRow }) {
-  const kind = kindOf(row);
-  const Glyph = KIND_ICONS[kind];
-  const ThinkingGlyph = KIND_ICONS.thinking;
-  const isCommand = row.entry._tag === "command";
-  const { expandable } = useJournalOutput(row.entry);
-
-  return (
-    <TooltipContent className="max-w-md">
-      <span className="flex flex-col gap-1.5">
-        <span className="flex items-center gap-1.5 text-xs opacity-70">
-          <Glyph aria-hidden="true" size={13} />
-          {KIND_NAMES[kind]}
-          {row._tag === "bar" ? ` · ${seconds(row.durationMs)}` : ""}
-        </span>
-
-        {isCommand ? (
-          <ShellBlock
-            className="max-h-40"
-            command={labelOf(row.entry)}
-            copyable={false}
-            tone="inverted"
-          />
-        ) : (
-          <span className="block text-pretty text-xs">
-            {labelOf(row.entry)}
-          </span>
-        )}
-
-        {row.lead === null ? null : (
-          <span className="flex items-center gap-1.5 text-xs opacity-70">
-            <ThinkingGlyph aria-hidden="true" size={13} />
-            {seconds(row.lead.durationMs)} thinking before this
-          </span>
-        )}
-
-        <TurnUsage entry={row.entry} />
-
-        {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
-
-        {expandable ? (
-          <span className="text-xs opacity-70">
-            {isCommand ? "Click to read what it printed" : "Click to read it"}
-          </span>
-        ) : null}
-      </span>
-    </TooltipContent>
-  );
-}
 
 export function TimedRow({ row }: { readonly row: WaterfallRow }) {
   const { expandable, open, output, toggle } = useJournalOutput(row.entry);
