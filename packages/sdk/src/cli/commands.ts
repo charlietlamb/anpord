@@ -30,7 +30,7 @@ const version = Options.integer("at").pipe(
   Options.optional
 );
 
-const decodeJson = Options.boolean("json").pipe(
+const asJson = Options.boolean("json").pipe(
   Options.withDescription("Print the whole prompt as JSON")
 );
 
@@ -42,8 +42,8 @@ const message = Options.text("message").pipe(
 
 const get = Command.make(
   "get",
-  { decodeJson, channel, promptId, version },
-  ({ decodeJson: wantsJson, channel: wantedChannel, promptId: id, version: pin }) =>
+  { asJson, channel, promptId, version },
+  ({ asJson: wantsJson, channel: wantedChannel, promptId: id, version: pin }) =>
     Effect.gen(function* () {
       const api = yield* AnpordApi;
       const prompt = yield* api.prompts.get({
@@ -57,7 +57,7 @@ const get = Command.make(
     })
 ).pipe(Command.withDescription("Print a prompt's content"));
 
-const list = Command.make("list", { decodeJson }, ({ decodeJson: wantsJson }) =>
+const list = Command.make("list", { asJson }, ({ asJson: wantsJson }) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
     const { data } = yield* api.prompts.list({ payload: {} });

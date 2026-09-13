@@ -23,7 +23,7 @@ import type {
   PromptMetadata,
   PromptSelector,
 } from "./cache/types";
-import { AnpordError, toAnpordError, MissingApiKey } from "./errors";
+import { AnpordError, asAnpordError, MissingApiKey } from "./errors";
 import { type Promised, promised } from "./promised";
 import type { VariablesFor } from "./variables";
 import { type WaitOptions, waitForRun } from "./wait";
@@ -168,7 +168,7 @@ export class Anpord {
   private async resolve(options: GetPromptOptions): Promise<PromptResult> {
     const exit = await this.runtime.runPromiseExit(resolvePrompt(options));
     if (Exit.isFailure(exit)) {
-      throw toAnpordError(
+      throw asAnpordError(
         Cause.failureOption(exit.cause).pipe(
           Option.getOrElse(() => Cause.squash(exit.cause))
         )

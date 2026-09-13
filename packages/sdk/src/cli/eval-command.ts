@@ -16,7 +16,7 @@ import { postCheckRun } from "./github-check-client";
 import { githubContext } from "./github-context";
 import { attended, json, note } from "./render";
 
-const decodeJson = Options.boolean("json").pipe(
+const asJson = Options.boolean("json").pipe(
   Options.withDescription("Print each finished run as JSON")
 );
 const evalFile = Args.text({ name: "file" }).pipe(
@@ -114,9 +114,9 @@ const reportToGithub = (outcomes: readonly EvalOutcome[]) =>
 
 export const runEval = Command.make(
   "eval",
-  { decodeJson, evalFile, failOn, noWait, output, timeout },
+  { asJson, evalFile, failOn, noWait, output, timeout },
   ({
-    decodeJson: wantsJson,
+    asJson: wantsJson,
     evalFile: file,
     failOn: gate,
     noWait: skipWait,

@@ -1,6 +1,6 @@
 import type { HttpClientResponse } from "@effect/platform";
 import { type Brand, Cause, Effect, Exit, Option } from "effect";
-import { toAnpordError } from "./errors";
+import { asAnpordError } from "./errors";
 
 type Payload<Method> = Method extends (request: {
   readonly payload: infer P;
@@ -60,7 +60,7 @@ export const promised = <Group extends Record<string, unknown>>(group: Group) =>
         if (Exit.isSuccess(exit)) {
           return exit.value;
         }
-        throw toAnpordError(
+        throw asAnpordError(
           Cause.failureOption(exit.cause).pipe(
             Option.getOrElse(() => Cause.squash(exit.cause))
           )

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Anpord } from "../../src/client/anpord";
 import {
   AnpordError,
-  toAnpordError,
+  asAnpordError,
   MissingApiKey,
 } from "../../src/client/errors";
 
@@ -156,7 +156,7 @@ describe("validation", () => {
 
 describe("errors", () => {
   test("a tagged failure keeps its message and gains a status", () => {
-    const error = toAnpordError({
+    const error = asAnpordError({
       _tag: "NotFound",
       message: 'No prompt with id "missing"',
     });
@@ -167,23 +167,23 @@ describe("errors", () => {
 
   test("a refused permission keeps its forbidden status", () => {
     expect(
-      toAnpordError({ _tag: "Forbidden", message: "no grant" }).status
+      asAnpordError({ _tag: "Forbidden", message: "no grant" }).status
     ).toBe(403);
   });
 
   test("an unrecognised failure still becomes a usable error", () => {
-    const error = toAnpordError({ _tag: "SomethingElse" });
+    const error = asAnpordError({ _tag: "SomethingElse" });
     expect(error.status).toBeUndefined();
     expect(error.message).toBe("SomethingElse");
   });
 
   test("the original failure survives for callers who need it", () => {
     const cause = { _tag: "Conflict", message: "taken" };
-    expect(toAnpordError(cause).cause).toBe(cause);
+    expect(asAnpordError(cause).cause).toBe(cause);
   });
 
   test("an error is not rewrapped", () => {
     const error = new AnpordError("already mapped", { cause: null });
-    expect(toAnpordError(error)).toBe(error);
+    expect(asAnpordError(error)).toBe(error);
   });
 });
