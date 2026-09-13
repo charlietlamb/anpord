@@ -1,211 +1,31 @@
 import {
   type EvalValidation,
-  type ValidationValue,
   validationCapture,
   validationExecution,
   validationSnapshot,
 } from "@anpord/schema/domain/eval-validations";
 import type { EvalCodeValidator } from "@anpord/schema/domain/evals";
-import { Clock, Effect, Layer, Option, Random, Schema } from "effect";
-import {
-  ANSWER_ENV,
-  ANSWER_PATH,
-  TRANSCRIPT_ENV,
-  TRANSCRIPT_PATH,
-} from "../../domain/answer-file";
-import { readAnswer, transcriptOf } from "../../domain/journal";
+import { Clock, Effect, Layer, Random } from "effect";
 import { outcomeOf } from "../../domain/trial";
 import {
   stepResultsOf,
   verifyScriptOf,
   withoutMarks,
 } from "../../domain/verify-script";
-import type { SandboxHandle } from "../../ports/sandbox";
 import {
   type ScoreRequest,
   Scorer,
   type ScorerShape,
 } from "../../ports/scorer";
+import { isUnguardedPipeline, quoted } from "./shell-pipeline";
 import { executeValidation, publishValidation } from "./validation";
-
-const isUnguardedPipeline = (command: string) => {
-  let quote: string | null = null;
-
-  for (let index = 0; index < command.length; index++) {
-    const character = command[index];
-
-    if (quote !== null) {
-      if (character === quote) {
-        quote = null;
-      }
-      continue;
-    }
-
-    if (character === "'" || character === '"') {
-      quote = character;
-      continue;
-    }
-
-    if (character !== "|") {
-      continue;
-    }
-
-    /* `||` is a fallback, not a pipeline. */
-    if (command[index + 1] === "|") {
-      index++;
-      continue;
-    }
-
-    if (command[index - 1] === "|") {
-      continue;
-    }
-
-    /* A pipeline exits with its last command, so `bun test | tail` would record
-       every failure as a pass. Refused unless PIPESTATUS or pipefail is used. */
-    return !(command.includes("PIPESTATUS") || command.includes("pipefail"));
-  }
-
-  return false;
-};
-
-const RESULT = "ANPORD_VALIDATOR_RESULT=";
-const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
-
-const validatorResultOf = (output: string) => {
-  const line = output.split("\n").findLast((entry) => entry.startsWith(RESULT));
-
-  if (line === undefined) {
-    return null;
-  }
-
-  return Schema.decodeUnknownOption(
-    Schema.parseJson(
-      Schema.Struct({
-        passed: Schema.Boolean,
-        message: Schema.optional(Schema.String),
-      })
-    )
-  )(line.slice(RESULT.length)).pipe(Option.getOrNull);
-};
-
-/* Beside the workspace, not in it, so the reply never becomes part of the diff. */
-const writeAnswer = (sandbox: SandboxHandle, events: ScoreRequest["events"]) =>
-  Effect.all(
-    [
-      sandbox.writeFile(ANSWER_PATH(sandbox.home), readAnswer(events)),
-      sandbox.writeFile(TRANSCRIPT_PATH(sandbox.home), transcriptOf(events)),
-    ],
-    { discard: true }
-  );
-
-const answerEnv = (sandbox: SandboxHandle) => ({
-  [ANSWER_ENV]: ANSWER_PATH(sandbox.home),
-  [TRANSCRIPT_ENV]: TRANSCRIPT_PATH(sandbox.home),
-});
-
-const resultStatus = (passed: boolean) =>
-  passed ? ("passed" as const) : ("failed" as const);
-
-const processError = (execution: {
-  invalid: boolean;
-  interrupted: boolean;
-  exitCode: number | null;
-}) => {
-  if (execution.invalid) {
-    return "Invalid validation protocol";
-  }
-  if (execution.interrupted || execution.exitCode === null) {
-    return "Validator execution interrupted before process exit";
-  }
-  if (execution.exitCode !== 0) {
-    return `Validator process exited ${execution.exitCode}`;
-  }
-  return null;
-};
-
-const completeValidations = (
-  records: readonly EvalValidation[],
-  message: string | null,
-  finished: number,
-  error: ValidationValue | null,
-  exitCode: number | null
-) => {
-  const incomplete = records.findIndex(
-    (record) => record.status === "running" || record.status === "queued"
-  );
-  const errorIndex =
-    incomplete >= 0
-      ? incomplete
-      : records.findLastIndex((record) => record.status !== "skipped");
-  const hasError = records.some((record) => record.status === "error");
-  return records
-    .map((record, index): EvalValidation => {
-      if (
-        index === errorIndex &&
-        (incomplete >= 0 || (message !== null && !hasError))
-      ) {
-        return {
-          ...record,
-          status: "error",
-          exitCode,
-          message: message ?? "Validator did not return a complete result",
-          error: record.error ?? error,
-          durationMs:
-            record.startedAt === null
-              ? null
-              : Math.max(0, finished - record.startedAt),
-        };
-      }
-      if (record.status === "queued" || record.status === "running") {
-        return {
-          ...record,
-          status: "skipped",
-          message: "An earlier validator did not complete",
-        };
-      }
-      return record;
-    })
-    .map(validationSnapshot);
-};
-
-const legacyValidation = (
-  record: EvalValidation,
-  execution: {
-    stdout: string;
-    stderr: string;
-    exitCode: number | null;
-    rawTruncated: boolean;
-  },
-  finished: number,
-  capture: ReturnType<typeof validationCapture>
-): EvalValidation => {
-  const raw = validatorResultOf(execution.stdout);
-  return {
-    ...record,
-    status: raw === null ? "error" : resultStatus(raw.passed),
-    message: (
-      raw?.message ?? (raw === null ? "Validator returned no valid result" : "")
-    ).slice(0, 2000),
-    output: raw === null ? record.output : capture(raw),
-    durationMs: Math.max(0, finished - (record.startedAt ?? finished)),
-    exitCode: execution.exitCode,
-    logs: [
-      {
-        index: 0,
-        at: finished,
-        level: "stdout",
-        value: capture(execution.stdout, "text"),
-      },
-      {
-        index: 1,
-        at: finished,
-        level: "stderr",
-        value: capture(execution.stderr, "text"),
-      },
-    ],
-    truncated: execution.rawTruncated,
-  };
-};
+import { completeValidations, legacyValidation } from "./validation-records";
+import {
+  answerEnv,
+  processError,
+  resultStatus,
+  writeAnswer,
+} from "./validator-protocol";
 
 const scoreValidator = (
   request: ScoreRequest & { readonly validator: typeof EvalCodeValidator.Type }
