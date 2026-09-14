@@ -1,11 +1,15 @@
 name: Deploy MCP
 
-# A tag rather than a branch push, following release-sdk: the provider bills
-# for every build, and most pushes that touch packages/schema or packages/sdk
-# change nothing the MCP server exposes.
+# The SDK release tags, which are the only releases this repository cuts. The
+# provider bills for every build, and the path filter this replaced fired on
+# most pushes to main because packages/schema and packages/sdk change often.
+#
+# apps/mcp is private and has no version of its own, so it rides the SDK's
+# releases rather than carrying a second tag nobody would remember to push.
+# Deploying between releases is workflow_dispatch.
 on:
   push:
-    tags: ["mcp-v*"]
+    tags: ["sdk-v*"]
   workflow_dispatch:
 
 concurrency:
