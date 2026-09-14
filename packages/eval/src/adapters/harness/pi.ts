@@ -4,14 +4,15 @@ import { instructionsPrefix } from "./instructions-file";
 import { decodePiLine } from "./pi-events";
 import { shellQuote } from "./process";
 import {
-  resolveCredential,
+  binPath,
   installNpmHarness,
   jsonSession,
   requiredValue,
+  resolveCredential,
   writeHarnessFile,
 } from "./support";
 
-const BIN = "~/.local/bin/pi";
+const BIN = binPath("pi");
 
 export const piCommand = (request: RunHarness) =>
   [

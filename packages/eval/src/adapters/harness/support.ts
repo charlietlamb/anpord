@@ -12,7 +12,11 @@ import type {
 import { runCommand } from "../sandbox/run-command";
 import { harnessLines, shellQuote } from "./process";
 
-const PREFIX = "~/.local";
+export const PREFIX = "~/.local";
+
+/* Where installNpmHarness puts a binary, so the invocation and the install
+   cannot drift apart. */
+export const binPath = (name: string) => `${PREFIX}/bin/${name}`;
 
 export interface DecodedOutput {
   readonly events?: readonly HarnessEvent[];

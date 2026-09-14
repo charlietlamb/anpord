@@ -4,13 +4,14 @@ import { decodeGeminiLine } from "./gemini-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
-  resolveCredential,
+  binPath,
   installNpmHarness,
   jsonSession,
   requiredValue,
+  resolveCredential,
 } from "./support";
 
-const BIN = "~/.local/bin/gemini";
+const BIN = binPath("gemini");
 
 export const geminiCommand = (request: RunHarness) =>
   [

@@ -4,13 +4,14 @@ import { decodeClaudeLine } from "./claude-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
-  resolveCredential,
+  binPath,
   installNpmHarness,
   jsonSession,
   requiredValue,
+  resolveCredential,
 } from "./support";
 
-const BIN = "~/.local/bin/qwen";
+const BIN = binPath("qwen");
 const BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1";
 
 export const qwenCommand = (request: RunHarness) =>

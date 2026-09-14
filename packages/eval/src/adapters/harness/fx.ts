@@ -10,13 +10,14 @@ import { decodeFxLine } from "./fx-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
-  resolveCredential,
+  binPath,
   jsonSession,
   requiredValue,
+  resolveCredential,
   writeHarnessFile,
 } from "./support";
 
-const BIN = "~/.local/bin/fx";
+const BIN = binPath("fx");
 
 const install = (input: PrepareHarness) =>
   runCommand(

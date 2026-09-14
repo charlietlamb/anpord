@@ -3,13 +3,14 @@ import type { HarnessDriverShape, RunHarness } from "../../ports/harness";
 import { decodeClaudeLine } from "./claude-events";
 import { shellQuote } from "./process";
 import {
-  resolveCredential,
+  binPath,
   installNpmHarness,
   jsonSession,
   requiredValue,
+  resolveCredential,
 } from "./support";
 
-const BIN = "~/.local/bin/claude";
+const BIN = binPath("claude");
 
 const shipped = (request: RunHarness, path: string) =>
   Option.match(request.profile, {

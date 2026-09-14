@@ -2,9 +2,9 @@ import { Effect } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { SandboxHandle } from "../../ports/sandbox";
 import { runCommand } from "../sandbox/run-command";
+import { binPath, PREFIX } from "./support";
 
-const PREFIX = "~/.local";
-export const CODEX_BIN = `${PREFIX}/bin/codex`;
+export const CODEX_BIN = binPath("codex");
 
 export const installCodex = (sandbox: SandboxHandle, version: string) =>
   runCommand(

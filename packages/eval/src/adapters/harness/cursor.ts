@@ -9,9 +9,14 @@ import { runCommand } from "../sandbox/run-command";
 import { decodeClaudeLine } from "./claude-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
-import { resolveCredential, jsonSession, requiredValue } from "./support";
+import {
+  binPath,
+  jsonSession,
+  requiredValue,
+  resolveCredential,
+} from "./support";
 
-const BIN = "~/.local/bin/cursor-agent";
+const BIN = binPath("cursor-agent");
 
 const mcpFlags = (request: RunHarness) =>
   Option.match(request.profile, {
