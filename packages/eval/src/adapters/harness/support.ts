@@ -43,7 +43,7 @@ export const installNpmHarness = (
     })
   );
 
-export const credentialOf = (
+export const resolveCredential = (
   input: PrepareHarness,
   harness: RunHarness["harness"]
 ): Effect.Effect<ResolvedCredential, HarnessUnavailable> => {

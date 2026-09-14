@@ -10,7 +10,7 @@ import { decodeFxLine } from "./fx-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
-  credentialOf,
+  resolveCredential,
   jsonSession,
   requiredValue,
   writeHarnessFile,
@@ -57,7 +57,7 @@ export const FxDriver: HarnessDriverShape = {
   harness: "fx",
   prepare: (input) =>
     Effect.gen(function* () {
-      const credential = yield* credentialOf(input, "fx");
+      const credential = yield* resolveCredential(input, "fx");
       yield* install(input);
 
       if (credential.authMethodId === "chatgpt-auth") {

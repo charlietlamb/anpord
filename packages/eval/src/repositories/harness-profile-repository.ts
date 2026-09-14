@@ -35,7 +35,7 @@ export class HarnessProfileRepository extends Context.Tag(
   "@anpord/eval/HarnessProfileRepository"
 )<HarnessProfileRepository, HarnessProfileRepositoryShape>() {}
 
-const storedOf = (row: ProfileRow): StoredProfile => ({
+const toStoredProfile = (row: ProfileRow): StoredProfile => ({
   env: row.env,
   files: row.files,
   install: row.install,
@@ -80,7 +80,7 @@ export const HarnessProfileRepositoryLive = Layer.effect(
                   ])
                 )
             ).pipe(
-              Effect.map((rows) => rows.map(storedOf)),
+              Effect.map((rows) => rows.map(toStoredProfile)),
               Effect.withSpan("HarnessProfileRepository.findByInternalIds")
             ),
 
@@ -118,7 +118,7 @@ export const HarnessProfileRepositoryLive = Layer.effect(
           const row = rows.at(0);
 
           if (row !== undefined) {
-            return storedOf(row);
+            return toStoredProfile(row);
           }
 
           const existing = yield* findByIdentity(input);
@@ -128,7 +128,7 @@ export const HarnessProfileRepositoryLive = Layer.effect(
               Effect.dieMessage(
                 `profile ${input.name}@${input.version} was neither written nor found`
               ),
-            onSome: (found) => Effect.succeed(storedOf(found)),
+            onSome: (found) => Effect.succeed(toStoredProfile(found)),
           });
         }).pipe(Effect.withSpan("HarnessProfileRepository.insertIfAbsent")),
     });

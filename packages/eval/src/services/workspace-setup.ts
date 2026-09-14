@@ -11,7 +11,7 @@ const PREPARED_LIMIT = 16_000;
 
 const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
-export const prepareValueOf = (
+export const readPrepareValue = (
   output: string
 ): Readonly<Record<string, unknown>> => {
   const line = output.split("\n").findLast((entry) => entry.startsWith(MARKER));
@@ -116,7 +116,7 @@ export const runPrepare = (input: {
         );
       }
 
-      const reported = prepareValueOf(outcome.stdout);
+      const reported = readPrepareValue(outcome.stdout);
 
       /* Only on success: caching what a failed install left behind outlives the
          run that made it. */

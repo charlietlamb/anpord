@@ -9,7 +9,7 @@ import { runCommand } from "../sandbox/run-command";
 import { decodeClaudeLine } from "./claude-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
-import { credentialOf, jsonSession, requiredValue } from "./support";
+import { resolveCredential, jsonSession, requiredValue } from "./support";
 
 const BIN = "~/.local/bin/cursor-agent";
 
@@ -64,7 +64,7 @@ export const CursorDriver: HarnessDriverShape = {
   harness: "cursor",
   prepare: (input) =>
     Effect.gen(function* () {
-      const credential = yield* credentialOf(input, "cursor");
+      const credential = yield* resolveCredential(input, "cursor");
       const apiKey = yield* requiredValue(credential, "cursor", "apiKey");
       yield* install(input);
       return { CURSOR_API_KEY: apiKey };

@@ -4,7 +4,7 @@ import { decodeGeminiLine } from "./gemini-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
-  credentialOf,
+  resolveCredential,
   installNpmHarness,
   jsonSession,
   requiredValue,
@@ -26,7 +26,7 @@ export const GeminiDriver: HarnessDriverShape = {
   harness: "gemini",
   prepare: (input) =>
     Effect.gen(function* () {
-      const credential = yield* credentialOf(input, "gemini");
+      const credential = yield* resolveCredential(input, "gemini");
       const apiKey = yield* requiredValue(credential, "gemini", "apiKey");
       yield* installNpmHarness(input, "gemini", "@google/gemini-cli");
       return { GEMINI_API_KEY: apiKey };

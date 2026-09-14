@@ -10,7 +10,7 @@ import {
   decodePlaygroundConfig,
   emptyPlaygroundConfig,
   type PlaygroundConfig,
-  readinessOf,
+  describeUnreadiness,
 } from "../domain/playground-config";
 import { GridRun } from "../grid/run";
 import { WorkbenchRepository } from "../repositories/workbench-repository";
@@ -108,7 +108,7 @@ export const WorkbenchesLive = Layer.effect(
         }
 
         const config = yield* configOf(found.value);
-        const problems = readinessOf(config);
+        const problems = describeUnreadiness(config);
 
         if (problems.length > 0) {
           return yield* Effect.fail(

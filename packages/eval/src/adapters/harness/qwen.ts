@@ -4,7 +4,7 @@ import { decodeClaudeLine } from "./claude-events";
 import { instructionsPrefix } from "./instructions-file";
 import { shellQuote } from "./process";
 import {
-  credentialOf,
+  resolveCredential,
   installNpmHarness,
   jsonSession,
   requiredValue,
@@ -28,7 +28,7 @@ export const QwenDriver: HarnessDriverShape = {
   harness: "qwen",
   prepare: (input) =>
     Effect.gen(function* () {
-      const credential = yield* credentialOf(input, "qwen");
+      const credential = yield* resolveCredential(input, "qwen");
       const apiKey = yield* requiredValue(credential, "qwen", "apiKey");
       yield* installNpmHarness(input, "qwen", "@qwen-code/qwen-code");
       return {

@@ -53,7 +53,7 @@ export const emptyPlaygroundConfig: PlaygroundConfig = {
   trials: 3,
 };
 
-export const readinessOf = (config: PlaygroundConfig): readonly string[] => {
+export const describeUnreadiness = (config: PlaygroundConfig): readonly string[] => {
   const problems: string[] = [];
 
   if (config.cases.length === 0) {

@@ -3,7 +3,7 @@ import type { HarnessDriverShape, RunHarness } from "../../ports/harness";
 import { decodeClaudeLine } from "./claude-events";
 import { shellQuote } from "./process";
 import {
-  credentialOf,
+  resolveCredential,
   installNpmHarness,
   jsonSession,
   requiredValue,
@@ -59,7 +59,7 @@ export const ClaudeDriver: HarnessDriverShape = {
   harness: "claude",
   prepare: (input) =>
     Effect.gen(function* () {
-      const credential = yield* credentialOf(input, "claude");
+      const credential = yield* resolveCredential(input, "claude");
       const apiKey = yield* requiredValue(
         credential,
         "claude",

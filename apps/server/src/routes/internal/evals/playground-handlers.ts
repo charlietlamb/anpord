@@ -1,6 +1,6 @@
 import {
   type PlaygroundConfig,
-  readinessOf,
+  describeUnreadiness,
   ungatedCasesIn,
 } from "@anpord/eval/domain/playground-config";
 import type { Workbench } from "@anpord/eval/services/workbench";
@@ -40,7 +40,7 @@ const view = (workbench: Workbench): PlaygroundView => ({
   id: workbench.id,
   lastRunId: workbench.lastRunId,
   name: workbench.name,
-  problems: readinessOf(workbench.config),
+  problems: describeUnreadiness(workbench.config),
   ungated: ungatedCasesIn(workbench.config),
   updatedAt: DateTime.unsafeMake(workbench.updatedAt.getTime()),
 });

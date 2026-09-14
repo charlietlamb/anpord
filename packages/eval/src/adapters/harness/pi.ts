@@ -4,7 +4,7 @@ import { instructionsPrefix } from "./instructions-file";
 import { decodePiLine } from "./pi-events";
 import { shellQuote } from "./process";
 import {
-  credentialOf,
+  resolveCredential,
   installNpmHarness,
   jsonSession,
   requiredValue,
@@ -27,7 +27,7 @@ export const PiDriver: HarnessDriverShape = {
   harness: "pi",
   prepare: (input) =>
     Effect.gen(function* () {
-      const credential = yield* credentialOf(input, "pi");
+      const credential = yield* resolveCredential(input, "pi");
       const auth = yield* requiredValue(credential, "pi", "authJson");
 
       yield* installNpmHarness(input, "pi", "@earendil-works/pi-coding-agent");
