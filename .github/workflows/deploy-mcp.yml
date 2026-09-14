@@ -1,14 +1,11 @@
 name: Deploy MCP
 
+# A tag rather than a branch push, following release-sdk: the provider bills
+# for every build, and most pushes that touch packages/schema or packages/sdk
+# change nothing the MCP server exposes.
 on:
   push:
-    branches: [main]
-    paths:
-      - "apps/mcp/**"
-      - "packages/sdk/**"
-      - "packages/schema/**"
-      - "bun.lock"
-      - ".github/workflows/deploy-mcp.yml"
+    tags: ["mcp-v*"]
   workflow_dispatch:
 
 concurrency:
