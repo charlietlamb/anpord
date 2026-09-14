@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { Option } from "effect";
 import {
+  decodeTrialStatus,
   outcomeOf,
   type TrialStatus,
-  decodeTrialStatus,
 } from "../../src/domain/trial";
 
 const base = {

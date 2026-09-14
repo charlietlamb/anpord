@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import type { HarnessEvent } from "../../src/domain/harness-event";
 import {
-  readAnswer,
   calledAll,
   calledAny,
   lastToolCallIn,
+  readAnswer,
   toolCallsIn,
   transcriptOf,
 } from "../../src/domain/journal";

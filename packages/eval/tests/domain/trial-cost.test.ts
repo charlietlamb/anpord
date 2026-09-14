@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Option } from "effect";
-import { toNanos, summaryOf } from "../../src/domain/cost-arithmetic";
+import { summaryOf, toNanos } from "../../src/domain/cost-arithmetic";
 import type { CostComponent } from "../../src/domain/cost-component";
 import { costsOf, rollUp } from "../../src/domain/eval-costs";
 import { breakdownOf } from "../../src/domain/trial-cost";

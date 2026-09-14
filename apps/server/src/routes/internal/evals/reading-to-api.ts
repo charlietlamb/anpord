@@ -61,7 +61,9 @@ const toStoredTrial = (trial: {
 });
 
 /* The cell key hashes case, setup, harness, model, provider and profile, so only trials and versions differ across readings. */
-export const toReadingView = (entry: CellHistoryEntry): EvalCellHistoryEntry => ({
+export const toReadingView = (
+  entry: CellHistoryEntry
+): EvalCellHistoryEntry => ({
   distribution: entry.distribution,
   finishedAt:
     entry.finishedAt === null

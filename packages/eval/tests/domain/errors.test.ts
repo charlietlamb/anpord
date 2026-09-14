@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { Cause } from "effect";
 import {
-  EvalStoreError,
   describeFailure,
+  EvalStoreError,
   sandboxUnavailable,
 } from "../../src/domain/errors";
 import { describeCause } from "../../src/domain/failure";
