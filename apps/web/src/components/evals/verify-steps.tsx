@@ -18,7 +18,7 @@ function Reading({
 }) {
   if (reading.kind === "command") {
     return (
-      <span className="line-clamp-2" title={step}>
+      <span className="block truncate whitespace-nowrap" title={step}>
         <InlineCode className="text-foreground/85">{reading.text}</InlineCode>
       </span>
     );

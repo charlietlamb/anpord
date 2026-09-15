@@ -31,6 +31,22 @@ describe("naming a variant", () => {
     expect(future.Icon).toBe(known.Icon);
   });
 
+  it("does not mistake Claude's opus model for an OpenAI o-series model", () => {
+    expect(modelPresentation("opus").Icon).not.toBe(
+      modelPresentation("o3").Icon
+    );
+  });
+
+  it("recognises short aliases and provider model families", () => {
+    expect(modelPresentation("opus").Icon).toBe(
+      modelPresentation("claude-3").Icon
+    );
+    expect(modelPresentation("gemini-2.5-pro").Icon).toBe(
+      modelPresentation("google/gemini-2.5-pro").Icon
+    );
+    expect(modelPresentation("unknown-model").label).toBe("unknown-model");
+  });
+
   /* The cell key hashes both, so naming one without the other compares a different identity. */
   it("keeps the harness and its version together", () => {
     expect(harnessLabel("codex", "0.144.4")).toBe("Codex 0.144.4");

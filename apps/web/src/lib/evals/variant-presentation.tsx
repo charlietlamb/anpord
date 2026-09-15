@@ -1,7 +1,6 @@
 import type { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
 import {
   AlibabaMark,
-  AnthropicMark,
   CerebrasMark,
   ClaudeMark,
   CloudflareMark,
@@ -79,7 +78,7 @@ export const integrationLabel = (integrationId: string): string =>
 
 const VENDOR_MARKS: Record<string, RailIcon> = {
   alibaba: AlibabaMark,
-  anthropic: AnthropicMark,
+  anthropic: ClaudeMark,
   cerebras: CerebrasMark,
   deepseek: DeepseekMark,
   "fireworks-ai": FireworksMark,
@@ -98,21 +97,35 @@ const VENDOR_MARKS: Record<string, RailIcon> = {
   zai: ZaiMark,
   zhipuai: ZaiMark,
 };
+type ModelRule = readonly [pattern: RegExp, Icon: RailIcon];
+
+/* Keep model identity in one ordered registry. Hosted tasks often use short aliases
+   (for example `opus`), while gateways expose provider/model names with a slash. */
+const MODEL_RULES: readonly ModelRule[] = [
+  [/^(?:gpt-|o\d(?:-|$)|chatgpt)/, OpenAiMark],
+  [/^(?:claude|opus|sonnet|haiku)(?:-|$)/, ClaudeMark],
+  [/^gemini(?:-|$)/, GoogleMark],
+  [/^deepseek(?:-|$)/, DeepseekMark],
+  [/^(?:mistral|codestral)(?:-|$)/, MistralMark],
+  [/^(?:llama|meta-llama)(?:-|$)/, MetaMark],
+  [/^qwen(?:-|$)/, QwenMark],
+  [/^grok(?:-|$)/, XaiMark],
+];
 
 export const modelPresentation = (model: string): Presentation => {
-  const slash = model.indexOf("/");
+  const normalized = model.trim().toLowerCase();
+  const slash = normalized.indexOf("/");
 
   if (slash > 0) {
-    const Icon = VENDOR_MARKS[model.slice(0, slash)];
+    const Icon = VENDOR_MARKS[normalized.slice(0, slash)];
 
     return Icon === undefined
       ? unknown(model)
       : { Icon, label: model.slice(slash + 1) };
   }
 
-  return model.startsWith("gpt-") || model.startsWith("o")
-    ? { Icon: OpenAiMark, label: model }
-    : unknown(model);
+  const rule = MODEL_RULES.find(([pattern]) => pattern.test(normalized));
+  return rule === undefined ? unknown(model) : { Icon: rule[1], label: model };
 };
 
 export interface LabelledProfile {
