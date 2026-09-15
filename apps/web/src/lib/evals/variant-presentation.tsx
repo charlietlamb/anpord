@@ -20,6 +20,7 @@ import {
   OpenAiMark,
   OpencodeMark,
   PiMark,
+  QwenMark,
   UpstashMark,
   VercelMark,
   XaiMark,
@@ -45,7 +46,7 @@ const HARNESSES: Record<EvalHarness, Presentation> = {
   gemini: { Icon: GoogleMark, label: "Gemini CLI" },
   opencode: { Icon: OpencodeMark, label: "OpenCode" },
   pi: { Icon: PiMark, label: "Pi" },
-  qwen: { Icon: AlibabaMark, label: "Qwen Code" },
+  qwen: { Icon: QwenMark, label: "Qwen Code" },
 };
 
 const SANDBOX_MARKS: Record<EvalSandbox, Presentation> = {

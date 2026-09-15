@@ -21,15 +21,10 @@ export function VariantLabel({
   readonly size?: "compact" | "default";
 }) {
   return (
-    <span
-      className={cn(
-        "inline-flex min-w-0 items-center gap-1.5 text-foreground",
-        className
-      )}
-    >
+    <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
       <Icon
         className={cn(
-          "shrink-0 text-muted-foreground",
+          "shrink-0 opacity-70",
           size === "compact" ? "size-3" : "size-3.5"
         )}
       />

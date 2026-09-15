@@ -18,6 +18,11 @@ import { integrationPresentation } from "@/lib/settings/integration-presentation
 
 const POLL_MS = 2000;
 
+/* Neither is an account to sign in to: env hands a run the variables the
+   customer names, and command runs the customer's own process. They are
+   chosen on the run, not connected here. */
+const CREDENTIAL_ONLY = new Set(["command", "env"]);
+
 const submitLabel = (device: boolean, pending: boolean, waiting: boolean) => {
   if (waiting) {
     return "Waiting for ChatGPT…";
@@ -41,7 +46,9 @@ export function ConnectionDialog({
   readonly onCreated: () => void;
   readonly open: boolean;
 }) {
-  const integrations = all.filter((item) => item.category === category);
+  const integrations = all.filter(
+    (item) => item.category === category && !CREDENTIAL_ONLY.has(item.id)
+  );
 
   const [integrationId, setIntegrationId] = useState(integrations[0]?.id ?? "");
   const integration = integrations.find((item) => item.id === integrationId);
