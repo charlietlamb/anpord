@@ -1,5 +1,4 @@
 import { Logo } from "@anpord/ui/components/logo";
-import { Skeleton } from "@anpord/ui/components/skeleton";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +22,7 @@ import {
   isNavItemActive,
 } from "@/components/dashboard/dashboard-nav";
 import { NavUser } from "@/components/dashboard/nav-user";
+import { NavUserSkeleton } from "@/components/dashboard/nav-user-skeleton";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
@@ -113,7 +113,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <ClientOnly fallback={<Skeleton className="h-12 w-full rounded-md" />}>
+        <ClientOnly fallback={<NavUserSkeleton />}>
           <NavUser />
         </ClientOnly>
       </SidebarFooter>
