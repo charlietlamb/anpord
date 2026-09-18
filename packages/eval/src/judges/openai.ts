@@ -56,19 +56,21 @@ export const makeOpenAIJudge = Effect.gen(function* () {
         isUser: false,
         permissions: [],
       });
-      const resolved = yield* credentials
-        .resolve({ actor, integrationId: "env" })
-        .pipe(
+      const stored = (integrationId: string, field: string) =>
+        credentials.resolve({ actor, integrationId }).pipe(
           Effect.map((value) =>
-            Option.fromNullable(Redacted.value(value).values.OPENAI_API_KEY)
+            Option.fromNullable(Redacted.value(value).values[field])
           ),
           Effect.catchIf(
             (error) => error.code === "not-found",
             () => Effect.succeed(Option.none<string>())
           )
         );
-      const key = Option.orElse(resolved, () =>
-        Option.map(platformKey, Redacted.value)
+      const connected = yield* stored("openai", "apiKey");
+      const fromEnv = yield* stored("env", "OPENAI_API_KEY");
+      const key = connected.pipe(
+        Option.orElse(() => fromEnv),
+        Option.orElse(() => Option.map(platformKey, Redacted.value))
       );
       if (Option.isNone(key)) {
         return yield* Effect.fail(

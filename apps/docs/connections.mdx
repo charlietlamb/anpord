@@ -10,14 +10,30 @@ A run needs a credential for its [agent](/evals/variants), because model usage i
 | Anpord CLI and SDK | `ANPORD_API_KEY` |
 | Agent model | Saved harness connection |
 | Hosted sandbox | None. Runs on Anpord's account unless you add one |
+| Judge or classifier | Saved judge connection, for direct provider calls |
 | Mock product MCP or CLI | None |
 | [Anpord MCP](/tools/mcp) | OAuth 2.1 |
 
 ## Add one
 
-Choose **Add harness** or **Add sandbox**, pick the integration, paste the key. Secrets are encrypted on arrival and never shown again. The [variants](/evals/variants) page lists what you can connect.
+Choose **Add harness**, **Add judge** or **Add sandbox**, pick the integration, paste the key. Secrets are encrypted on arrival and never shown again. The [variants](/evals/variants) page lists what you can connect.
 
 The first connection for an integration becomes its default. **Verify** checks a stored credential against the integration without revealing it.
+
+## Judges
+
+A [judge](/evals/judges) that names a `harness` runs an agent and uses that harness connection. One that calls a provider directly, and every [classifier](/evals/classifiers), needs its own credential instead. Add it under **Settings > Judges**.
+
+| Integration | Used by |
+| --- | --- |
+| OpenAI | Judges declared with `provider: "openai"` |
+| TypeSafe | Classifiers |
+
+For a self-hosted deployment, `OPENAI_API_KEY` and `TYPESAFE_API_KEY` in the server and worker environment serve the same purpose.
+
+A missing credential is not a startup error. The judge or classifier that needs it fails when a case reaches it, naming what was missing.
+
+A ChatGPT subscription is not an OpenAI API key.
 
 ## Personal or shared
 

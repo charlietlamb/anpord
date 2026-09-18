@@ -129,7 +129,9 @@ const CONNECTIONS: readonly CredentialConnection[] = [
 const noop = () => undefined;
 
 function ConnectionsPreview() {
-  const [open, setOpen] = useState<"harness" | "sandbox" | null>(null);
+  const [open, setOpen] = useState<CredentialIntegration["category"] | null>(
+    null
+  );
   const integrationOf = (connection: CredentialConnection) =>
     INTEGRATIONS.find((item) => item.id === connection.integrationId);
 

@@ -1,6 +1,6 @@
 import type { CredentialIntegration } from "@anpord/schema/domain/credentials";
 import type { Icon } from "@phosphor-icons/react";
-import { CubeIcon, RobotIcon } from "@phosphor-icons/react";
+import { CubeIcon, GavelIcon, RobotIcon } from "@phosphor-icons/react";
 
 export interface ConnectionSectionSpec {
   readonly addLabel: string;
@@ -21,6 +21,15 @@ export const CONNECTION_SECTIONS: readonly ConnectionSectionSpec[] = [
     Icon: RobotIcon,
     note: "Required. The agent runs on your account, and the model usage is charged there.",
     title: "Harnesses",
+  },
+  {
+    addLabel: "Add judge",
+    category: "judge",
+    empty: "Connect one to score cases with a judge or a classifier.",
+    emptyTitle: "No judges connected",
+    Icon: GavelIcon,
+    note: "Optional. Only needed for judges and classifiers that call a provider directly.",
+    title: "Judges",
   },
   {
     addLabel: "Add sandbox",

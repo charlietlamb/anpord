@@ -23,6 +23,27 @@ const POLL_MS = 2000;
    chosen on the run, not connected here. */
 const CREDENTIAL_ONLY = new Set(["command", "env"]);
 
+const COPY = {
+  harness: {
+    description:
+      "The account the agent runs on. Secret values are encrypted and never shown again.",
+    field: "Harness",
+    title: "Add harness",
+  },
+  judge: {
+    description:
+      "The provider a judge or classifier calls directly. Secret values are encrypted and never shown again.",
+    field: "Judge",
+    title: "Add judge",
+  },
+  sandbox: {
+    description:
+      "Run sandboxes on your own account instead of Anpord's. Secret values are encrypted and never shown again.",
+    field: "Sandbox",
+    title: "Add sandbox",
+  },
+} as const;
+
 const submitLabel = (device: boolean, pending: boolean, waiting: boolean) => {
   if (waiting) {
     return "Waiting for ChatGPT…";
@@ -46,6 +67,7 @@ export function ConnectionDialog({
   readonly onCreated: () => void;
   readonly open: boolean;
 }) {
+  const copy = COPY[category ?? "harness"];
   const integrations = all.filter(
     (item) => item.category === category && !CREDENTIAL_ONLY.has(item.id)
   );
@@ -156,19 +178,15 @@ export function ConnectionDialog({
 
   return (
     <FormDialog
-      description={
-        category === "sandbox"
-          ? "Run sandboxes on your own account instead of Anpord's. Secret values are encrypted and never shown again."
-          : "The account the agent runs on. Secret values are encrypted and never shown again."
-      }
+      description={copy.description}
       onClose={close}
       onSubmit={submit}
       open={open}
-      title={category === "sandbox" ? "Add sandbox" : "Add harness"}
+      title={copy.title}
     >
       <LabelledSelect
         id="connection-integration"
-        label={category === "sandbox" ? "Sandbox" : "Harness"}
+        label={copy.field}
         onChange={chooseIntegration}
         options={integrations.map((item) => {
           const own = integrationPresentation(item);

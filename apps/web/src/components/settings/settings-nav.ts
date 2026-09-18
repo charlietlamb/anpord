@@ -1,6 +1,7 @@
 import {
   BroadcastIcon,
   CubeIcon,
+  GavelIcon,
   GearIcon,
   GitBranchIcon,
   type Icon,
@@ -34,6 +35,7 @@ export const SETTINGS_NAV: SettingsNavSection[] = [
     label: "Connections",
     items: [
       { label: "Harnesses", to: "/settings/harnesses", icon: RobotIcon },
+      { label: "Judges", to: "/settings/judges", icon: GavelIcon },
       { label: "Sandboxes", to: "/settings/sandboxes", icon: CubeIcon },
       { label: "Codebase", to: "/settings/codebase", icon: GitBranchIcon },
     ],

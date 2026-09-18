@@ -101,6 +101,19 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     id: "cursor",
     label: "Cursor Agent",
   },
+  /* Classifies rather than runs, so it needs no sandbox and no harness. */
+  {
+    authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
+    category: "judge",
+    id: "typesafe",
+    label: "TypeSafe",
+  },
+  {
+    authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
+    category: "judge",
+    id: "openai",
+    label: "OpenAI",
+  },
   /* One credential any harness can run on: a map of variables the customer
      names, handed to the sandbox as they are. */
   {
