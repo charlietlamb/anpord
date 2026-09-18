@@ -60,6 +60,7 @@
     "./grid/rebuild-run": "./src/grid/rebuild-run.ts",
     "./grid/run": "./src/grid/run.ts",
     "./grid/state": "./src/grid/state.ts",
+    "./judges/classifier": "./src/judges/classifier.ts",
     "./layer": "./src/layer.ts",
     "./ports/model-source": "./src/ports/model-source.ts",
     "./ports/scorer": "./src/ports/scorer.ts",

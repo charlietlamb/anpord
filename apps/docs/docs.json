@@ -72,7 +72,8 @@
               "evals/cases",
               "evals/mocks",
               "evals/api-mocks",
-              "evals/judges"
+              "evals/judges",
+              "evals/classifiers"
             ]
           },
           {

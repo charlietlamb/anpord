@@ -1,0 +1,89 @@
+---
+title: "Classifiers"
+description: "Decide between labelled options with a calibrated probability"
+---
+
+Use a classifier when the answer is one of a fixed set of labels and you want to know how sure the model is. A classifier returns a distribution over your options rather than prose, so it is faster and cheaper than a judge, and it cannot invent a label you did not declare.
+
+```ts
+import { suite } from "anpord";
+import { classify } from "anpord/validators";
+
+const routed = classify({
+  name: "routed correctly",
+  model: "jev-latest",
+  prompt: "Which team should handle this request?",
+  options: {
+    returns: "Exchanges, refunds, wrong or damaged items",
+    shipping: "Delivery status, delays, lost packages",
+    billing: "Charges, invoices, payment problems",
+  },
+  expect: "returns",
+  minConfidence: 0.8,
+});
+
+export default suite({
+  name: "support routing",
+  prompt: "My shoes arrived in the wrong size. Route this request.",
+  cases: [{ name: "wrong size", validate: routed }],
+  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],
+  trials: 3,
+});
+```
+
+## Classifier or judge
+
+Both interpret an answer, and they fail in different ways.
+
+| | Classifier | Judge |
+| --- | --- | --- |
+| Answers with | A label and a probability for every option | A label, a score, and a written reason |
+| Fails when | The wrong label wins, or the right one wins weakly | The score falls under the threshold |
+| Explains itself | The distribution over your options | A sentence you can read |
+| Costs | One classification | One model call, or a sandboxed agent run |
+
+Reach for a classifier when the label settles the question: which route was taken, whether the agent attempted or refused, which of three shapes an output has. Reach for a judge when you need to read why, because a classifier returns no prose and the failure row shows the distribution in its place.
+
+## Deciding
+
+A case passes when the winning label is the one you expect **and** its confidence is at least `minConfidence`.
+
+The two failures mean different things, and the distribution tells them apart. A different label winning is disagreement. The expected label winning below the floor is the model reporting that it could not separate your options, which usually means two of them overlap.
+
+`minConfidence` defaults to `0`, so a bare classifier accepts whichever label wins. Raise it when a near-tie should not count as agreement.
+
+## Configuration
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Unique classifier name within the case |
+| `model` | Exact model identifier, such as `jev-latest` |
+| `prompt` | The question the model answers |
+| `options` | Labels mapped to a description, or to `null` when the label speaks for itself |
+| `expect` | The label a passing case produces; must be one of `options` |
+| `minConfidence` | Inclusive confidence floor between 0 and 1; defaults to 0 |
+| `timeoutMs` | Classification timeout; defaults to 30,000, maximum 300,000 |
+
+A classifier accepts between 2 and 255 options. One option decides nothing, and an `expect` outside `options` is rejected when the eval compiles.
+
+Descriptions earn their place when labels are close. `{ returns: null, billing: null }` leaves the model to infer what each means from the name alone; a sentence each removes the ambiguity that produces low-confidence answers.
+
+## Authentication
+
+Classifiers call TypeSafe directly. Configure `TYPESAFE_API_KEY` in the organization's environment connection, or in the server and worker environment for a self-hosted deployment. No harness or sandbox is involved, so no harness connection is consulted.
+
+Keep credentials out of eval definitions, prompts, and fixtures.
+
+## Evidence and isolation
+
+A classifier receives the rendered task prompt and the final answer. It does not receive the task workspace, transcript, MCP or CLI configuration, or task environment.
+
+Evidence travels as state rather than as instructions, so an agent's own output cannot redirect the classification. The model generates no text, so there is no schema to violate and no refusal to parse.
+
+A classifier that cannot be reached records the failure and does not pass. A case that was never classified has not agreed with anything.
+
+## Results
+
+Each classification carries `name`, `model`, `choice`, `expected`, `probabilities`, `confidence`, `minConfidence`, `durationMs`, and `error`. The dashboard shows the distribution where a judge would show its reason.
+
+Changing a classifier's prompt, options, or expectation changes the case identity used for baselines. Calibrate against known inputs before trusting a floor: a threshold set above the model's usual confidence fails every case, including the correct ones.
