@@ -27,5 +27,13 @@ const health = pingDatabase.pipe(
 export const HealthHandlers = HttpApiBuilder.group(
   AnpordApi,
   "health",
-  (handlers) => handlers.handle("health", () => health)
+  (handlers) =>
+    handlers
+      .handle("live", () =>
+        Effect.sync(() => ({
+          ok: true,
+          revision: process.env.BUILD_REVISION ?? "development",
+        }))
+      )
+      .handle("health", () => health)
 );

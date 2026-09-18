@@ -38,6 +38,7 @@ describe("naming a variant", () => {
   });
 
   it("recognises short aliases and provider model families", () => {
+    expect(modelPresentation("opus").label).toBe("Opus (alias)");
     expect(modelPresentation("opus").Icon).toBe(
       modelPresentation("claude-3").Icon
     );
@@ -45,6 +46,10 @@ describe("naming a variant", () => {
       modelPresentation("google/gemini-2.5-pro").Icon
     );
     expect(modelPresentation("unknown-model").label).toBe("unknown-model");
+    expect(modelPresentation("claude-opus-5").label).toBe("Opus 5");
+    expect(modelPresentation("claude-haiku-4-5-20251001").label).toBe(
+      "Haiku 4.5"
+    );
   });
 
   /* The cell key hashes both, so naming one without the other compares a different identity. */

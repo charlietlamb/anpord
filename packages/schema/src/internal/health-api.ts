@@ -13,8 +13,10 @@ export class Unhealthy extends Schema.TaggedError<Unhealthy>()(
   HttpApiSchema.annotations({ status: 503 })
 ) {}
 
-export class HealthGroup extends HttpApiGroup.make("health").add(
-  HttpApiEndpoint.get("health", "/healthz")
-    .addSuccess(HealthResponse)
-    .addError(Unhealthy)
-) {}
+export class HealthGroup extends HttpApiGroup.make("health")
+  .add(HttpApiEndpoint.get("live", "/livez").addSuccess(HealthResponse))
+  .add(
+    HttpApiEndpoint.get("health", "/healthz")
+      .addSuccess(HealthResponse)
+      .addError(Unhealthy)
+  ) {}

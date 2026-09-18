@@ -111,6 +111,25 @@ const MODEL_RULES: readonly ModelRule[] = [
   [/^qwen(?:-|$)/, QwenMark],
   [/^grok(?:-|$)/, XaiMark],
 ];
+const MODEL_LABELS: Record<string, string> = {
+  haiku: "Haiku (alias)",
+  opus: "Opus (alias)",
+  sonnet: "Sonnet (alias)",
+};
+const EXACT_CLAUDE_MODEL = /^(?:[^/]+\/)?claude-(opus|sonnet|haiku)-([\d-]+)/i;
+
+const exactClaudeLabel = (model: string) => {
+  const match = EXACT_CLAUDE_MODEL.exec(model);
+  if (!match) {
+    return;
+  }
+
+  const version = match[2]
+    .split("-")
+    .filter((part) => part.length < 4)
+    .join(".");
+  return `${match[1][0].toUpperCase()}${match[1].slice(1)} ${version}`;
+};
 
 export const modelPresentation = (model: string): Presentation => {
   const normalized = model.trim().toLowerCase();
@@ -121,11 +140,20 @@ export const modelPresentation = (model: string): Presentation => {
 
     return Icon === undefined
       ? unknown(model)
-      : { Icon, label: model.slice(slash + 1) };
+      : {
+          Icon,
+          label: exactClaudeLabel(normalized) ?? model.slice(slash + 1),
+        };
   }
 
   const rule = MODEL_RULES.find(([pattern]) => pattern.test(normalized));
-  return rule === undefined ? unknown(model) : { Icon: rule[1], label: model };
+  return rule === undefined
+    ? unknown(model)
+    : {
+        Icon: rule[1],
+        label:
+          exactClaudeLabel(normalized) ?? MODEL_LABELS[normalized] ?? model,
+      };
 };
 
 export interface LabelledProfile {
