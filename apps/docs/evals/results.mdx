@@ -60,7 +60,7 @@ Read the distribution first, then compare a passing and a failing trajectory fro
 
 ## Validation evidence
 
-Each trial's `validations` holds the code checks, judges, and command verifier that scored it:
+Each trial's `validations` holds the code checks, judges, classifiers, and command verifier that scored it:
 
 ```ts
 for (const validation of run.cells[0].trials[0].validations) {
@@ -69,7 +69,7 @@ for (const validation of run.cells[0].trials[0].validations) {
 }
 ```
 
-Code checks record their return value, context arguments and results, logs, and exceptions. Judges record the prompt, raw response, provider metadata, and parsed judgment. Command verifiers record the command, stdout, stderr, and exit code.
+Code checks record their return value, context arguments and results, logs, and exceptions. Judges record the prompt, raw response, provider metadata, and parsed judgment. Classifiers record the label they chose, the label expected, and the probability the model gave every option. Command verifiers record the command, stdout, stderr, and exit code.
 
 `failed` is a check that completed and did not pass. `error` is one that could not finish. `skipped` is one that never ran. Earlier checks stay visible when a later one crashes, and a run that predates capture cannot recover it.
 
