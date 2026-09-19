@@ -1810,6 +1810,78 @@
           "source": {
             "$ref": "#/components/schemas/EvalSource"
           },
+          "user": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "goal",
+                      "prompt"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "simulated"
+                        ]
+                      },
+                      "goal": {
+                        "type": "string",
+                        "description": "a string at most 2000 character(s) long",
+                        "title": "maxLength(2000)",
+                        "minLength": 1,
+                        "maxLength": 2000
+                      },
+                      "prompt": {
+                        "type": "string",
+                        "description": "a string at most 8000 character(s) long",
+                        "title": "maxLength(8000)",
+                        "minLength": 1,
+                        "maxLength": 8000
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "replies"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "scripted"
+                        ]
+                      },
+                      "replies": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "a string at most 4000 character(s) long",
+                          "title": "maxLength(4000)",
+                          "minLength": 1,
+                          "maxLength": 4000
+                        },
+                        "description": "an array of at most 24 item(s)",
+                        "title": "maxItems(24)",
+                        "minItems": 1,
+                        "maxItems": 24
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "validator": {
             "anyOf": [
               {
@@ -3610,6 +3682,7 @@
             "enum": [
               "answer",
               "transcript",
+              "turns",
               "readText",
               "exists",
               "exec",
