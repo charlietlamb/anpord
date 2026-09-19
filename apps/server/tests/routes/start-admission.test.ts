@@ -111,17 +111,28 @@ describe("what a start is admitted for", () => {
     ).toContain("unique");
   });
 
+  /* A conflict rather than a bad request: the payload is correct, and what
+     stops the run is the organization not having connected a user yet. */
   it("refuses a human nobody is configured to play", () => {
-    expect(
-      refusalOf(
+    const refusal = Effect.runSync(
+      admitStart(
+        "org_1",
         start({
           cases: 1,
           tasks: [task("a")],
           trials: 1,
           user: { kind: "simulated" },
         })
+      ).pipe(
+        Effect.provide(withRunning(0)),
+        Effect.provide(unconnected),
+        Effect.map(() => null),
+        Effect.catchAll((found) => Effect.succeed(found))
       )
-    ).toContain("OpenAI credential");
+    );
+
+    expect(refusal?._tag).toBe("Conflict");
+    expect(refusal?.message).toContain("needs a model to play them");
   });
 
   it("admits a scripted user with no credential", () => {

@@ -25,7 +25,7 @@ export type CredentialAuthMethod = typeof CredentialAuthMethod.Type;
 
 export const CredentialIntegration = Schema.Struct({
   authMethods: Schema.Array(CredentialAuthMethod),
-  category: Schema.Literal("harness", "judge", "sandbox"),
+  category: Schema.Literal("harness", "model", "sandbox"),
   id: Schema.String,
   label: Schema.String,
 });

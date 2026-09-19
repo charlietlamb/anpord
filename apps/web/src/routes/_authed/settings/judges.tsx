@@ -1,12 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CredentialPage } from "@/components/settings/credential-page";
-import { CONNECTION_SECTIONS } from "@/lib/settings/connection-sections";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-const SPEC = CONNECTION_SECTIONS.find(
-  (section) => section.category === "judge"
-);
-
+/* Kept so already-published links to Settings > Judges still resolve. */
 export const Route = createFileRoute("/_authed/settings/judges")({
-  component: () => (SPEC === undefined ? null : <CredentialPage spec={SPEC} />),
-  staticData: { title: "Judges" },
+  beforeLoad: () => {
+    throw redirect({ to: "/settings/models" });
+  },
 });

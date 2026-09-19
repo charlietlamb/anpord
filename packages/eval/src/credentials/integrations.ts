@@ -104,13 +104,13 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
   /* Classifies rather than runs, so it needs no sandbox and no harness. */
   {
     authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
-    category: "judge",
+    category: "model",
     id: "typesafe",
     label: "TypeSafe",
   },
   {
     authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
-    category: "judge",
+    category: "model",
     id: "openai",
     label: "OpenAI",
   },

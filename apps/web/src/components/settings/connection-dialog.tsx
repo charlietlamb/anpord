@@ -30,11 +30,11 @@ const COPY = {
     field: "Harness",
     title: "Add harness",
   },
-  judge: {
+  model: {
     description:
-      "The provider a judge or classifier calls directly. Secret values are encrypted and never shown again.",
-    field: "Judge",
-    title: "Add judge",
+      "The provider a judge calls, or the model that plays a case's human. Secret values are encrypted and never shown again.",
+    field: "Model",
+    title: "Add model",
   },
   sandbox: {
     description:

@@ -21,7 +21,7 @@ describe("credential integrations", () => {
     expect(result).toEqual({ apiKey: "key" });
   });
 
-  it("declares every supported harness, judge and hosted sandbox", () => {
+  it("declares every supported harness, model and hosted sandbox", () => {
     expect(credentialIntegrations.map(({ id }) => id)).toEqual([
       "codex",
       "opencode",
@@ -44,9 +44,9 @@ describe("credential integrations", () => {
     ]);
   });
 
-  /* A judge credential is not a harness: it buys a classification, never a
+  /* A model credential is not a harness: it buys a judgment or a reply, never a
      sandbox, so it must not appear in the list a run picks an agent from. */
-  it("keeps judge integrations out of the harness list", () => {
+  it("keeps model integrations out of the harness list", () => {
     const harnesses = credentialIntegrations
       .filter(({ category }) => category === "harness")
       .map(({ id }) => id);
@@ -55,13 +55,13 @@ describe("credential integrations", () => {
     expect(harnesses).not.toContain("openai");
   });
 
-  it("gives every judge integration an api key method", async () => {
-    const judges = credentialIntegrations.filter(
-      ({ category }) => category === "judge"
+  it("gives every model integration an api key method", async () => {
+    const models = credentialIntegrations.filter(
+      ({ category }) => category === "model"
     );
-    expect(judges.length).toBeGreaterThan(0);
+    expect(models.length).toBeGreaterThan(0);
 
-    for (const integration of judges) {
+    for (const integration of models) {
       const result = await Effect.runPromise(
         validateCredential(integration.id, "api-key", { apiKey: "key" })
       );

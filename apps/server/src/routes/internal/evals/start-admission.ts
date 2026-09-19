@@ -37,9 +37,9 @@ export const admitStart = (
 
       if (Option.isNone(key)) {
         return yield* Effect.fail(
-          new BadRequest({
+          new Conflict({
             message:
-              "A case in this run states a human, which needs an OpenAI credential to play them. Connect one with `anpord connectors add openai`.",
+              "A case in this run states a human, which needs a model to play them. Connect one under settings, models, or with `anpord connectors add openai`.",
           })
         );
       }
