@@ -13,9 +13,7 @@ import {
 } from "@/lib/evals/journal-presentation";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
-/* The output belongs beside the chart rather than inside it: opening a step
-   used to push every row below it down, so the timeline moved under the
-   cursor that was reading it. */
+/* Beside the chart, not inside it: opening a step moved the timeline. */
 export function WaterfallDetail({
   onClose,
   row,
@@ -29,7 +27,7 @@ export function WaterfallDetail({
   const output = readableOf(row.entry);
 
   return (
-    <aside className="flex min-h-0 flex-col gap-3 rounded-lg border bg-card p-3">
+    <aside className="flex min-h-0 flex-col gap-2 rounded-md border bg-card p-2.5">
       <header className="flex items-start gap-2">
         <Glyph aria-hidden="true" className="mt-0.5 shrink-0" size={13} />
 
@@ -41,7 +39,11 @@ export function WaterfallDetail({
           </span>
 
           {isCommand ? (
-            <ShellBlock command={labelOf(row.entry)} copyable={true} />
+            <ShellBlock
+              className="text-[11px] leading-[1.45]"
+              command={labelOf(row.entry)}
+              copyable={true}
+            />
           ) : (
             <span className="text-pretty text-xs">{labelOf(row.entry)}</span>
           )}
@@ -58,7 +60,10 @@ export function WaterfallDetail({
       </header>
 
       {output === "" ? null : (
-        <JournalOutput className="min-h-0 flex-1" output={output} />
+        <JournalOutput
+          className="max-h-72 min-h-0 flex-1 text-[11px] leading-[1.45]"
+          output={output}
+        />
       )}
     </aside>
   );

@@ -2,8 +2,7 @@ import { useState } from "react";
 import { LABEL_WIDTH } from "@/components/evals/waterfall-scale";
 import { seconds } from "@/lib/evals/duration";
 
-/* Reads the pointer against the track area alone, so the gutter holding the
-   names does not report a time the chart never spans. */
+/* Measured against the track alone; the name gutter spans no time. */
 export function useCrosshair() {
   const [percent, setPercent] = useState<number | null>(null);
 

@@ -54,7 +54,7 @@ export function RowTooltip({ row }: { readonly row: WaterfallRow }) {
   const { expandable } = useJournalOutput(row.entry);
 
   return (
-    <TooltipContent className="max-w-md">
+    <TooltipContent className="max-w-sm">
       <span className="flex flex-col gap-1.5">
         <span className="flex items-center gap-1.5 text-xs opacity-70">
           <Glyph aria-hidden="true" size={13} />
@@ -64,7 +64,7 @@ export function RowTooltip({ row }: { readonly row: WaterfallRow }) {
 
         {isCommand ? (
           <ShellBlock
-            className="max-h-40"
+            className="max-h-32 text-[11px] leading-[1.45]"
             command={labelOf(row.entry)}
             copyable={false}
             tone="inverted"

@@ -32,7 +32,7 @@ test("a tool's wait is tinted with its own colour, not the thinking colour", () 
   expect(html).not.toContain("repeating-linear-gradient");
 });
 
-test("a bar keeps its own width, and its wait is drawn beside it", () => {
+test("a waited-for step draws one bar covering the wait and the work", () => {
   const html = render({
     _tag: "bar",
     durationMs: 12,
@@ -48,9 +48,8 @@ test("a bar keeps its own width, and its wait is drawn beside it", () => {
     widthPercent: 0.2,
   });
 
-  /* The wait runs up to the bar; the bar is not widened to swallow it. */
-  expect(html).toContain("width:50%");
-  expect(html).toContain("width:0.2%");
+  expect(html).toContain("left:0%");
+  expect(html).toContain("width:50.2%");
 });
 
 test("an event without a lead remains a single marker", () => {
@@ -65,7 +64,7 @@ test("an event without a lead remains a single marker", () => {
   expect(html).not.toContain("repeating-linear-gradient");
 });
 
-test("a message that was waited for keeps its marker", () => {
+test("a message that was waited for spans the wait it ended", () => {
   const html = render({
     _tag: "marker",
     entry: { _tag: "message", text: "Ready", finishedAtMillis: 6000 },
@@ -73,7 +72,7 @@ test("a message that was waited for keeps its marker", () => {
     leftPercent: 100,
   });
 
-  /* The wait no longer replaces the moment it led to. */
   expect(html).toContain("background:var(--trace-message)");
-  expect(html).toContain("left:50%;width:50%");
+  expect(html).toContain("left:50%");
+  expect(html).toContain("width:50%");
 });
