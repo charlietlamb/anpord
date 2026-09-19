@@ -38,6 +38,32 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      # The worker reads the same rows the server writes, so it reads them from
+      # the same place. Set by hand once, it pointed at a database the server
+      # had already moved off, and every run died on the old project's quota
+      # with nothing on the run to say so.
+      - name: Point the worker at the server's database
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+        run: |
+          PROJECT="$(grep -oE 'proj_[a-z0-9]+' apps/worker/trigger.config.ts | head -1)"
+          DB="$(aws secretsmanager get-secret-value \
+            --secret-id anpord/server/DATABASE_URL \
+            --query SecretString --output text)"
+          curl -sf -X PUT \
+            -H "Authorization: Bearer $TRIGGER_ACCESS_TOKEN" \
+            -H "content-type: application/json" \
+            --data-binary "$(node -p 'JSON.stringify({ value: process.argv[1] })' "$DB")" \
+            "https://api.trigger.dev/api/v1/projects/$PROJECT/envvars/prod/DATABASE_URL" \
+            > /dev/null
+          echo "worker database set from anpord/server/DATABASE_URL"
+
       # An access token, not the environment secret key the server runs with:
       # tr_prod_sk_ triggers runs, and creating a version is a different right
       # the cli refuses it for. Either prefix the cli accepts works, and an
