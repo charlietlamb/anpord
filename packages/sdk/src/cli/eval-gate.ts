@@ -4,6 +4,7 @@ import type {
   EvalRun,
 } from "@anpord/schema/domain/evals";
 import { Data, Effect, Schema } from "effect";
+import { undecidedIn, verdictLines } from "./eval-verdict";
 
 export const EvalGate = Schema.Literal(
   "strict",
@@ -86,11 +87,22 @@ export const problemsWith = (
           `${cell.caseName}: expected ${expected.trials} trials, received ${cell.trials.length}.`,
         ];
       }
-      return cell.trials.flatMap((trial) =>
-        trial.status === "passed" && trial.passed
-          ? []
-          : [`${cell.caseName}, trial ${trial.ordinal}: ${trial.status}.`]
-      );
+      return cell.trials.flatMap((trial) => {
+        if (trial.status === "passed" && trial.passed) {
+          return [];
+        }
+
+        const undecided = undecidedIn(trial);
+        const why =
+          undecided.length === 0
+            ? ""
+            : ` (${undecided.length} validator${undecided.length === 1 ? "" : "s"} never decided)`;
+
+        return [
+          `${cell.caseName}, trial ${trial.ordinal}: ${trial.status}.${why}`,
+          ...verdictLines(trial),
+        ];
+      });
     });
   }
 
