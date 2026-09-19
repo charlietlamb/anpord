@@ -70,19 +70,29 @@ export interface ShellToken {
 }
 
 /** Bash separated by what each part is, rather than by a pattern of our own. */
+/* The grammar decides the colours; a command it cannot tokenise is still a
+   command worth showing, so a failure reads as unhighlighted text rather than
+   taking the surface that renders it. */
+const plain = (command: string): readonly ShellToken[] =>
+  command === "" ? [] : [{ kind: "text", value: command }];
+
 export const shellTokens = async (
   command: string
 ): Promise<readonly ShellToken[]> => {
-  const { tokens } = (await highlighter()).codeToTokens(command, {
-    includeExplanation: true,
-    lang: "bash",
-    theme: "github-dark-default",
-  });
+  try {
+    const { tokens } = (await highlighter()).codeToTokens(command, {
+      includeExplanation: true,
+      lang: "bash",
+      theme: "github-dark-default",
+    });
 
-  return tokens.flat().map((token) => ({
-    kind: kindOf(
-      (token.explanation?.[0]?.scopes ?? []).map(({ scopeName }) => scopeName)
-    ),
-    value: token.content,
-  }));
+    return tokens.flat().map((token) => ({
+      kind: kindOf(
+        (token.explanation?.[0]?.scopes ?? []).map(({ scopeName }) => scopeName)
+      ),
+      value: token.content,
+    }));
+  } catch {
+    return plain(command);
+  }
 };

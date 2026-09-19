@@ -46,3 +46,17 @@ describe("separating a command", () => {
     expect(tokens.map(({ value }) => value).join("")).toBe(command);
   });
 });
+
+/* Shiki's tokeniser can throw on input its grammar mishandles, and a command
+   it cannot colour is still a command worth reading. */
+describe("a command the grammar cannot tokenise", () => {
+  it("reads as plain text rather than taking the surface with it", async () => {
+    const odd = `${String.fromCodePoint(0)} rm -rf ${String.fromCodePoint(65_534)}`;
+
+    expect(await shellTokens(odd)).not.toHaveLength(0);
+  });
+
+  it("holds nothing for an empty command", async () => {
+    expect(await shellTokens("")).toHaveLength(0);
+  });
+});
