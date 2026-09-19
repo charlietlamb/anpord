@@ -1,9 +1,8 @@
 import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
-import { Context, type Effect, type Option } from "effect";
+import { Context, Effect, Layer, type Option } from "effect";
 import type { UserUnavailable } from "../domain/errors";
 
 export interface UserTurnRequest {
-  /* Empty on the opening turn, which the case states rather than generates. */
   readonly agentText: string;
   readonly organizationId: string;
   readonly spoken: readonly string[];
@@ -22,3 +21,7 @@ export class SimulatedUser extends Context.Tag("@anpord/eval/SimulatedUser")<
   SimulatedUser,
   SimulatedUserShape
 >() {}
+
+export const SimulatedUserSilent = Layer.succeed(SimulatedUser, {
+  reply: () => Effect.succeedNone,
+});

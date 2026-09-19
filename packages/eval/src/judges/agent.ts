@@ -60,8 +60,6 @@ export const makeAgentJudge = Effect.gen(function* () {
       const session = yield* driver.run({
         env,
         harness,
-        /* A judge asks once and reads the answer, so there is no session to
-           continue. */
         resume: Option.none(),
         harnessVersion: version,
         model,

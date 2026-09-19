@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Layer, Option, Schema } from "effect";
 import { JudgeModel } from "../../src/judges/model";
+import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import {
   AgentTrial,
   type AgentTrialRequest,
@@ -68,6 +69,7 @@ const run = (
     },
   };
   const layer = AgentTrialJudgedLive.pipe(
+    Layer.provide(SimulatedUserSilent),
     Layer.provide(
       Layer.mergeAll(
         Layer.succeed(AgentTrial, {

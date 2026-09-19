@@ -25,6 +25,7 @@ import { HarnessUnavailable } from "../../src/domain/errors";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive, EvalSandboxLive } from "../../src/layer";
 import { Harnesses } from "../../src/ports/harness";
+import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import { TrialRunnerInProcess } from "../../src/ports/trial-runner";
 import { RunQuery } from "../../src/repositories/run-query";
 import { AgentTrialLive } from "../../src/services/agent-trial";
@@ -119,11 +120,13 @@ const layerFor = (provider: ProviderName) =>
           Layer.mergeAll(
             oneCommandHarness,
             ScorerGroundTruthLive,
+            SimulatedUserSilent,
             SuspenderSleeping
           )
         )
       )
     ),
+    Layer.provide(SimulatedUserSilent),
     Layer.provideMerge(EvalRepositoriesLive),
     Layer.provide(EvalSandboxLive),
     Layer.provide(SourceTokensNone),

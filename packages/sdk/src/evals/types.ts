@@ -1,5 +1,6 @@
 import type { ApiCall } from "@anpord/schema/domain/api-mocks";
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import type { McpCall } from "../mcp/calls";
@@ -105,6 +106,7 @@ interface EvalCaseBase {
   readonly name: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;
+  readonly user?: EvalUser;
   readonly variables?: Readonly<Record<string, string>>;
 }
 

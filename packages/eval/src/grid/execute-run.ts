@@ -1,5 +1,6 @@
 import { Clock, Effect, Option } from "effect";
 import { ModelPrices } from "../ports/model-source";
+import { SimulatedUser } from "../ports/simulated-user";
 import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
 import type { LiveRuns } from "./live-runs";
@@ -12,6 +13,7 @@ export const makeExecuteRun = (live: LiveRuns) =>
   Effect.gen(function* () {
     /* Taken once and provided to the forked run, so no caller of `start` holds it. */
     const prices = yield* ModelPrices;
+    const human = yield* SimulatedUser;
     const runs = yield* RunRepository;
     const runner = yield* TrialRunner;
     const runCells = yield* makeRunCells(live);
@@ -53,6 +55,7 @@ export const makeExecuteRun = (live: LiveRuns) =>
     const execute = (grid: ResumeGrid) =>
       claimed(grid).pipe(
         Effect.provideService(ModelPrices, prices),
+        Effect.provideService(SimulatedUser, human),
         Effect.annotateLogs({ runId: grid.created.id }),
         /* Logged before `orDie` loses the tag: this runs detached, with nothing
            left to report it. */

@@ -4,6 +4,7 @@ import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { EvalSandboxLive } from "../../src/layer";
+import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import { AgentTrial, AgentTrialLive } from "../../src/services/agent-trial";
 import { SuspenderSleeping } from "../../src/services/suspender";
 import { codexCredential, hasCodex, hasDaytona } from "../fixtures/credentials";
@@ -19,6 +20,7 @@ const TestLayer = AgentTrialLive.pipe(
   Layer.provide(HarnessesLive),
   Layer.provide(SuspenderSleeping),
   Layer.provide(ScorerGroundTruthLive),
+  Layer.provide(SimulatedUserSilent),
   Layer.provideMerge(EvalSandboxLive)
 );
 

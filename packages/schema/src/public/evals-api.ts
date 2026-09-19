@@ -14,6 +14,7 @@ import {
   MAX_START_TRIALS,
 } from "../domain/eval-quota";
 import { EvalTrigger } from "../domain/eval-trigger";
+import { EvalUser } from "../domain/eval-turns";
 import {
   CaseCache,
   EvalArtifact,
@@ -71,6 +72,7 @@ const PublicEvalCase = Schema.Struct({
   name: EvalCaseName,
   prepare: Schema.optional(Schema.NullOr(EvalPrepare)),
   source: Schema.optional(EvalSource),
+  user: Schema.optional(Schema.NullOr(EvalUser)),
   validator: Schema.optional(Schema.NullOr(EvalValidator)),
   variables: Schema.optional(EvalVariables),
   verify: Schema.NullOr(EvalVerify),

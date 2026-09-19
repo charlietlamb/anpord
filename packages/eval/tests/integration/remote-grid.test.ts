@@ -22,6 +22,7 @@ import { SourceTokensNone } from "../../src/codebase/source-token";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive } from "../../src/layer";
 import { ModelPrices } from "../../src/ports/model-source";
+import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import { TrialRunner } from "../../src/ports/trial-runner";
 import { RunRepository } from "../../src/repositories/run-repository";
 import { AgentTrial } from "../../src/services/agent-trial";
@@ -31,6 +32,7 @@ import definition from "../fixtures/source-snapshot";
 
 const TestLayer = GridRunLive.pipe(
   Layer.provide(BaselinesLive),
+  Layer.provide(SimulatedUserSilent),
   Layer.provideMerge(EvalRepositoriesLive),
   Layer.provide(SourceTokensNone),
   Layer.provide(

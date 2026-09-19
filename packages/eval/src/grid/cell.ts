@@ -12,6 +12,7 @@ import type {
 import { renderPrompt } from "../domain/prompt";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import type { ModelPrices } from "../ports/model-source";
+import type { SimulatedUser } from "../ports/simulated-user";
 import type { RunRepositoryShape } from "../repositories/run-repository";
 import type { TaskProfile } from "./state";
 import { runTrial, type TrialInputs } from "./trial";
@@ -24,7 +25,6 @@ export interface GridCase {
   readonly name: string;
   readonly prepare: EvalPrepare | null;
   readonly source: WorkspaceSource;
-  /** Null for a case that is one prompt and one answer. */
   readonly user?: EvalUser | null;
 
   readonly validator?: EvalValidator | null;
@@ -56,7 +56,7 @@ export const runGridCell = (
   | SandboxUnavailable
   | PrepareFailed
   | SourceUnavailable,
-  ModelPrices
+  ModelPrices | SimulatedUser
 > =>
   Effect.gen(function* () {
     const harnessCredential = Redacted.value(input.task.credentials.harness);
@@ -70,7 +70,7 @@ export const runGridCell = (
       profile: input.profile?.name ?? null,
       provider: input.task.provider,
       taskId: input.taskPublicId,
-      userModel: userModelOf(input.user, conductedBy),
+      userModel: userModelOf(input.subject.user, conductedBy),
       taskVersion: input.taskInternalId,
     });
 

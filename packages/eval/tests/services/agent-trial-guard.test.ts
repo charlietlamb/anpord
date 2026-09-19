@@ -7,6 +7,7 @@ import { Harnesses } from "../../src/ports/harness";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import { Scorer } from "../../src/ports/scorer";
+import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import {
   AgentTrial,
   AgentTrialLive,
@@ -113,6 +114,7 @@ const runWith = (order: string[], extra: Partial<AgentTrialRequest>) =>
     }).pipe(
       Effect.provide(
         AgentTrialLive.pipe(
+          Layer.provide(SimulatedUserSilent),
           Layer.provide(layerTestResolver()),
           Layer.provide(
             Layer.mergeAll(

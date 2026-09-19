@@ -2,6 +2,7 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type {
   EvalArtifact,
   EvalPrepare,
@@ -41,8 +42,10 @@ import type { WorkspaceSource } from "../domain/workspace-source";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer, type ValidationObserver } from "../ports/scorer";
+import { SimulatedUser } from "../ports/simulated-user";
 import type { TrialProgressShape } from "../ports/trial-progress";
 import { captureArtifacts } from "./capture-artifacts";
+import { converse } from "./conversation";
 import { captureCredentialRotation } from "./credential-rotation";
 import { apiInstructions } from "./mock-apis";
 import { systemPromptPath } from "./profile-files";
@@ -73,6 +76,7 @@ export interface AgentTrialRequest {
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
+  readonly user?: EvalUser | null;
 
   readonly validator?: EvalValidator | null;
   readonly verifyCommand: string | null;
@@ -117,6 +121,7 @@ const voided = (outcome: TrialOutcome): TrialOutcome => ({
 export const AgentTrialLive = Layer.effect(
   AgentTrial,
   Effect.gen(function* () {
+    const human = yield* SimulatedUser;
     const credentials = yield* CredentialResolver;
     const harnesses = yield* Harnesses;
     const sandboxes = yield* SandboxProvider;
@@ -214,27 +219,56 @@ export const AgentTrialLive = Layer.effect(
           Stream.runDrain
         );
 
-        const session = yield* driver
-          .run({
-            env,
-            harness: request.harness,
-            harnessVersion: request.harnessVersion,
-            resume: Option.none(),
-            model: request.model,
-            profile,
-            prompt: request.prompt + instructions,
-            sandbox,
-            systemPromptPath: profile.pipe(
-              Option.filter((found) => found.systemPrompt !== null),
-              Option.map(() => systemPromptPath(sandbox.home))
-            ),
-            workspace: request.workspace,
-          })
-          .pipe(waitingOutCapacity(request.model));
+        const tallied = yield* Ref.make(Option.none<HarnessUsage>());
+        const turn = (prompt: string, resume: Option.Option<string>) =>
+          driver
+            .run({
+              env,
+              harness: request.harness,
+              harnessVersion: request.harnessVersion,
+              resume,
+              model: request.model,
+              profile,
+              prompt,
+              sandbox,
+              systemPromptPath: profile.pipe(
+                Option.filter((found) => found.systemPrompt !== null),
+                Option.map(() => systemPromptPath(sandbox.home))
+              ),
+              workspace: request.workspace,
+            })
+            .pipe(
+              waitingOutCapacity(request.model),
+              Effect.flatMap((session) =>
+                session.events
+                  .pipe(sink.through, Stream.runCollect)
+                  .pipe(
+                    Effect.tap(() =>
+                      Effect.flatMap(session.usage, (usage) =>
+                        Ref.update(tallied, (carried) =>
+                          Option.isSome(usage) ? usage : carried
+                        )
+                      )
+                    )
+                  )
+              ),
+              Effect.map(Chunk.toReadonlyArray)
+            );
 
-        const agentEvents = Chunk.toReadonlyArray(
-          yield* session.events.pipe(sink.through, Stream.runCollect)
-        );
+        const opening = request.prompt + instructions;
+        const conversation =
+          request.user == null
+            ? null
+            : yield* converse({
+                opening,
+                organizationId: request.organizationId,
+                run: turn,
+                user: request.user,
+              }).pipe(Effect.provideService(SimulatedUser, human));
+        const agentEvents =
+          conversation === null
+            ? yield* turn(opening, Option.none())
+            : conversation.events;
         const apiEvents = yield* api.collect();
         yield* Stream.fromIterable(apiEvents).pipe(
           sink.through,
@@ -288,7 +322,7 @@ export const AgentTrialLive = Layer.effect(
           prepared,
           sandboxId: sandbox.id,
           sessionId: sessionIdOf(events),
-          usage: yield* session.usage,
+          usage: yield* Ref.get(tallied),
         } satisfies AgentTrialResult;
       }).pipe(
         Effect.scoped,

@@ -112,6 +112,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
             name: subject.name,
             prepare,
             ...sourceFor(definition, subject),
+            user: subject.user ?? null,
             validator,
             variables: subject.variables ?? {},
             verify: subject.verify ?? null,

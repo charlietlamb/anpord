@@ -7,6 +7,7 @@ import { ModelPricesLive } from "./adapters/models/prices";
 import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
+import { SimulatedUserLive } from "./adapters/user/llm-user";
 import { GridRunLive } from "./grid/run";
 import { JudgeModelLive } from "./judges/layer";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
@@ -63,7 +64,10 @@ const agentWith = (suspender: Layer.Layer<Suspender>) =>
         Layer.provide(
           ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
         ),
-        Layer.provide(suspender)
+        Layer.provide(suspender),
+        Layer.provide(
+          SimulatedUserLive.pipe(Layer.provide(FetchHttpClient.layer))
+        )
       )
     ),
     Layer.provide(JudgeModelLive.pipe(Layer.provide(FetchHttpClient.layer))),
@@ -99,6 +103,7 @@ export const evalGridWith = (
     CellRerunsLive.pipe(Layer.provide(grid))
   ).pipe(
     Layer.provide(agentWith(suspender)),
+    Layer.provide(SimulatedUserLive.pipe(Layer.provide(FetchHttpClient.layer))),
     Layer.provideMerge(EvalRepositoriesLive)
   );
 };

@@ -16,8 +16,6 @@ import {
 
 const ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
-/* The user says this rather than trailing off, so a conversation ends because
-   the person is satisfied rather than because the agent stopped talking. */
 const DONE = "<<DONE>>";
 
 const responseSchema = Schema.Struct({
@@ -28,24 +26,16 @@ const responseSchema = Schema.Struct({
   ),
 });
 
-const approvalRule = (user: EvalSimulatedUser) =>
-  user.approves.includes("push")
-    ? "- If the agent asks whether to push, apply, or go live with the config, say yes. If it pushed without asking, say so once and move on."
-    : "- If the agent offers to push, apply, or deploy the config, decline: the written file is all you need. If it already pushed, do not dwell on it.";
-
-/* A busy founder on Slack, not an operator: the agent cannot delegate its own
-   work back to the person who asked for it. */
 const systemPrompt = (user: EvalSimulatedUser) =>
   [
     "You are playing a HUMAN CUSTOMER talking to an AI coding agent. Stay in character; never reveal you are simulated.",
     `Your goal: ${user.goal}`,
-    `Facts you know (your private brief — the agent must ask to learn them):\n${user.facts.join("\n")}`,
+    `What you know (your private brief — the agent must ask to learn it):\n${user.prompt}`,
     [
       "Rules:",
-      "- Answer what the agent just asked. A broad question deserves every fact that answers it. Do not volunteer facts about what it has not asked.",
+      "- Answer what the agent just asked. A broad question deserves everything in your brief that answers it. Do not volunteer what it has not asked about.",
       "- Never invent prices, limits, or features that are not in your brief.",
       "- You are non-technical: you cannot approve tool permissions, run commands, or edit files. If asked, say so and tell the agent to do its best without it.",
-      approvalRule(user),
       "- Keep replies to one or two sentences.",
       `- When the agent has finished, or is only waiting on something you cannot do, reply with exactly ${DONE}`,
     ].join("\n"),
@@ -59,7 +49,7 @@ const messagesFor = (request: UserTurnRequest) => [
   { role: "user", content: request.agentText },
 ];
 
-export const makeLlmUser = Effect.gen(function* () {
+const makeLlmUser = Effect.gen(function* () {
   const client = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
   const credentials = yield* CredentialResolver;
   const platformKey = yield* Config.option(Config.redacted("OPENAI_API_KEY"));
