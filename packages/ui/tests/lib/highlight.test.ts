@@ -9,10 +9,11 @@ const kinds = async (command: string) =>
 /* The grammar does the parsing; what is worth asserting is that its scopes
    land on the theme's own scale rather than on Shiki's palette. */
 describe("separating a command", () => {
-  /* Asserted by containment, not equality: the grammar is a dependency, and a
-     build that resolves it differently still has to keep the flag separate. */
   it("keeps a flag apart from the command it belongs to", async () => {
-    expect(await kinds("head -100")).toContainEqual(["flag", "-100"]);
+    expect(await kinds("head -100")).toEqual([
+      ["text", "head"],
+      ["flag", "-100"],
+    ]);
   });
 
   it("reads a redirect and a pipe as operators", async () => {

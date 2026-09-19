@@ -80,7 +80,11 @@ export const shellTokens = async (
   command: string
 ): Promise<readonly ShellToken[]> => {
   try {
-    const { tokens } = (await highlighter()).codeToTokens(command, {
+    const shiki = await highlighter();
+
+    await shiki.loadLanguage(import("shiki/langs/bash.mjs"));
+
+    const { tokens } = shiki.codeToTokens(command, {
       includeExplanation: true,
       lang: "bash",
       theme: "github-dark-default",
