@@ -1,4 +1,4 @@
-import { Clock, Effect, Option } from "effect";
+import { type Cause, Clock, Effect, Option } from "effect";
 import { ModelPrices } from "../ports/model-source";
 import { SimulatedUser } from "../ports/simulated-user";
 import { TrialRunner } from "../ports/trial-runner";
@@ -7,6 +7,7 @@ import type { LiveRuns } from "./live-runs";
 import { makeRegisterProfiles } from "./register-profiles";
 import type { ResumeGrid } from "./run";
 import { makeRunCells } from "./run-cells";
+import { settleFailedRun } from "./settle-failed-run";
 import { projectTask } from "./state";
 
 export const makeExecuteRun = (live: LiveRuns) =>
@@ -52,6 +53,9 @@ export const makeExecuteRun = (live: LiveRuns) =>
         yield* runCells(grid, profiles);
       });
 
+    const settle = (grid: ResumeGrid, cause: Cause.Cause<unknown>) =>
+      settleFailedRun({ cause, created: grid.created, live, runs });
+
     const execute = (grid: ResumeGrid) =>
       claimed(grid).pipe(
         Effect.provideService(ModelPrices, prices),
@@ -60,7 +64,9 @@ export const makeExecuteRun = (live: LiveRuns) =>
         /* Logged before `orDie` loses the tag: this runs detached, with nothing
            left to report it. */
         Effect.tapErrorCause((cause) =>
-          Effect.logError("grid run could not resume", cause)
+          Effect.logError("grid run could not resume", cause).pipe(
+            Effect.zipRight(settle(grid, cause))
+          )
         ),
         Effect.orDie
       );
