@@ -42,6 +42,8 @@ Write the brief the way the person would say it, one fact per line. Facts that a
 
 A model, pinned apart from the agent under test. `ANPORD_USER_MODEL` overrides it for a whole run.
 
+It speaks through an OpenAI credential connected under settings, connections. Without one a run that states a human is refused before a sandbox opens, rather than conducting a conversation of one turn that reads like a person who approved immediately.
+
 It is pinned rather than chosen per case because the person is measurement apparatus. A weak simulator approves a summary that contradicts its own brief, and the case then passes for the wrong reason.
 
 That model is part of the cell key, so a run conducted by one person is never compared against a baseline conducted by another. Changing it starts a new history rather than corrupting the old one.
@@ -51,6 +53,8 @@ That model is part of the cell key, so a run conducted by one person is never co
 A conversation ends when the person has nothing left to say, which they decide from the agent's reply rather than from a turn count. It also ends at a ceiling of eight turns, and immediately when the harness reports no session to continue.
 
 That last case ends the run at one turn rather than starting over. A second opening prompt would be scored as though a reply had been read, so a base that cannot continue a session is refused instead.
+
+A person who cannot be reached at all is not an ending but a failure. It fails the trial rather than scoring it, because a conversation that never happened would otherwise read as one the agent finished on its first reply.
 
 `codex` and `claude` continue sessions. Any other base runs a conversation of one turn.
 

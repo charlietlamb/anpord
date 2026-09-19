@@ -1,8 +1,10 @@
 import { Effect } from "effect";
+import { CredentialResolver } from "../credentials/resolver";
 import { cellKeyOf, userModel, userModelOf } from "../domain/cell";
 import { renderPrompt } from "../domain/prompt";
 import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
+import { assertUserReachable } from "./assert-user-reachable";
 import { makeRegisterCases } from "./register-cases";
 import { makeRegisterProfiles } from "./register-profiles";
 import type { ResumeGrid, StartGrid } from "./run";
@@ -15,6 +17,7 @@ export const makeStartRun = (
     const runner = yield* TrialRunner;
     const registerCases = yield* makeRegisterCases;
     const registerProfiles = yield* makeRegisterProfiles;
+    const credentials = yield* CredentialResolver;
 
     return (input: StartGrid) =>
       Effect.gen(function* () {
@@ -30,6 +33,9 @@ export const makeStartRun = (
         });
 
         const conductedBy = yield* userModel;
+
+        yield* assertUserReachable(credentials, input);
+
         const registered = yield* registerCases(input);
         const profiles = yield* registerProfiles(input);
 

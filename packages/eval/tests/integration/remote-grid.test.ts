@@ -19,6 +19,8 @@ import {
 } from "effect";
 import { compileEval } from "../../../sdk/src/evals/compiler";
 import { SourceTokensNone } from "../../src/codebase/source-token";
+import { connectionNotFound } from "../../src/credentials/errors";
+import { CredentialResolver } from "../../src/credentials/resolver";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive } from "../../src/layer";
 import { ModelPrices } from "../../src/ports/model-source";
@@ -33,6 +35,13 @@ import definition from "../fixtures/source-snapshot";
 const TestLayer = GridRunLive.pipe(
   Layer.provide(BaselinesLive),
   Layer.provide(SimulatedUserSilent),
+  Layer.provide(
+    Layer.succeed(CredentialResolver, {
+      persist: () => Effect.void,
+      resolve: () => Effect.fail(connectionNotFound()),
+      resolveBound: () => Effect.fail(connectionNotFound()),
+    })
+  ),
   Layer.provideMerge(EvalRepositoriesLive),
   Layer.provide(SourceTokensNone),
   Layer.provide(
