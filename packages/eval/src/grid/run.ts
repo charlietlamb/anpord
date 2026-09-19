@@ -64,7 +64,7 @@ export const GridRunLive = Layer.scoped(
   Effect.gen(function* () {
     const live = yield* makeLiveRuns;
     const { execute, resume } = yield* makeExecuteRun(live);
-    const start = yield* makeStartRun(execute);
+    const start = yield* makeStartRun(execute, live);
     const { get, list } = yield* makeReadRuns(live);
 
     return GridRun.of({

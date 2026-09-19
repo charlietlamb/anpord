@@ -5,12 +5,15 @@ import { renderPrompt } from "../domain/prompt";
 import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
 import { assertUserReachable } from "./assert-user-reachable";
+import type { LiveRuns } from "./live-runs";
 import { makeRegisterCases } from "./register-cases";
 import { makeRegisterProfiles } from "./register-profiles";
 import type { ResumeGrid, StartGrid } from "./run";
+import { settleFailedRun } from "./settle-failed-run";
 
 export const makeStartRun = (
-  execute: (grid: ResumeGrid) => Effect.Effect<void>
+  execute: (grid: ResumeGrid) => Effect.Effect<void>,
+  live: LiveRuns
 ) =>
   Effect.gen(function* () {
     const runs = yield* RunRepository;
@@ -23,6 +26,8 @@ export const makeStartRun = (
       Effect.gen(function* () {
         const cellCount = input.cases.length * input.tasks.length;
 
+        yield* assertUserReachable(credentials, input);
+
         const created = yield* runs.insert({
           cellCount,
           name: input.name,
@@ -32,64 +37,69 @@ export const makeStartRun = (
           trialCount: cellCount * input.trials,
         });
 
-        const conductedBy = yield* userModel;
+        const prepared = Effect.gen(function* () {
+          const conductedBy = yield* userModel;
+          const registered = yield* registerCases(input);
+          const profiles = yield* registerProfiles(input);
 
-        yield* assertUserReachable(credentials, input);
-
-        const registered = yield* registerCases(input);
-        const profiles = yield* registerProfiles(input);
-
-        /* Written before handover, because an out-of-process runner rebuilds the
+          /* Written before handover, because an out-of-process runner rebuilds the
            grid from these rows. Idempotent, so creating them again is the same rows. */
-        yield* runs.insertCells(
-          input.tasks.flatMap((task, taskIndex) =>
-            input.cases.flatMap((subject, caseIndex) => {
-              const row = registered[caseIndex];
+          yield* runs.insertCells(
+            input.tasks.flatMap((task, taskIndex) =>
+              input.cases.flatMap((subject, caseIndex) => {
+                const row = registered[caseIndex];
 
-              return row === undefined
-                ? []
-                : [
-                    {
-                      cellKey: cellKeyOf({
+                return row === undefined
+                  ? []
+                  : [
+                      {
+                        cellKey: cellKeyOf({
+                          harness: task.harness,
+                          model: task.model,
+                          profile: task.profile?.name ?? null,
+                          provider: task.provider,
+                          taskId: row.id,
+                          userModel: userModelOf(subject.user, conductedBy),
+                          taskVersion: row.internalId,
+                        }),
                         harness: task.harness,
+                        harnessCredentialConnectionId:
+                          task.bindings?.harnessConnectionId,
+                        harnessVersion: task.harnessVersion,
                         model: task.model,
-                        profile: task.profile?.name ?? null,
+                        profileInternalId:
+                          profiles[taskIndex]?.internalId ?? null,
+                        prompt: renderPrompt(input.prompt, subject.variables),
+                        validatorFiles: subject.validator?.sourceFiles,
                         provider: task.provider,
-                        taskId: row.id,
-                        userModel: userModelOf(subject.user, conductedBy),
-                        taskVersion: row.internalId,
-                      }),
-                      harness: task.harness,
-                      harnessCredentialConnectionId:
-                        task.bindings?.harnessConnectionId,
-                      harnessVersion: task.harnessVersion,
-                      model: task.model,
-                      profileInternalId:
-                        profiles[taskIndex]?.internalId ?? null,
-                      prompt: renderPrompt(input.prompt, subject.variables),
-                      validatorFiles: subject.validator?.sourceFiles,
-                      provider: task.provider,
-                      runInternalId: created.internalId,
-                      sandboxCredentialConnectionId:
-                        task.bindings?.sandboxConnectionId,
-                      taskInternalId: row.internalId,
-                    },
-                  ];
-            })
+                        runInternalId: created.internalId,
+                        sandboxCredentialConnectionId:
+                          task.bindings?.sandboxConnectionId,
+                        taskInternalId: row.internalId,
+                      },
+                    ];
+              })
+            )
+          );
+
+          yield* runner.dispatch({
+            organizationId: input.organizationId,
+            runId: created.id,
+            work: execute({ created, input, registered }),
+          });
+        });
+
+        yield* prepared.pipe(
+          Effect.onError((cause) =>
+            settleFailedRun({ cause, created, live, runs })
           )
         );
 
-        yield* runner.dispatch({
-          organizationId: input.organizationId,
-          runId: created.id,
-          work: execute({ created, input, registered }),
-        });
-
         return created.id;
       }).pipe(
-        /* Logged before it is turned into a defect: a start that fails takes
-           its tag with it through orDie, and a run row saying only "failed"
-           is the whole of what anybody could see. */
+        /* The row is settled from here as well as from execute: everything
+           between the insert and the handover can fail, and orDie takes the
+           tag with it, leaving a row saying running with nobody to correct it. */
         Effect.tapErrorCause((cause) =>
           Effect.logError("grid run could not start", cause)
         ),
