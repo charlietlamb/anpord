@@ -7,7 +7,7 @@ A run needs three kinds of credential: a harness to drive the agent, a sandbox t
 
 ```bash
 anpord connectors integrations
-anpord connectors add openai
+anpord connectors add anthropic
 anpord connectors list
 ```
 
@@ -16,9 +16,9 @@ anpord connectors list
 `add` takes the integration and prompts for the secret:
 
 ```bash
-$ anpord connectors add openai
+$ anpord connectors add anthropic
 API key: ········
-Connected openai as con_9EKR3ZHZF24TFM16N0WJ
+Connected anthropic as con_9EKR3ZHZF24TFM16N0WJ
 ```
 
 There is no `--key` option, and that is deliberate. A secret in a flag is kept in shell history and readable from the process list by anyone on the machine for as long as the command runs. It is prompted for instead.
@@ -26,10 +26,16 @@ There is no `--key` option, and that is deliberate. A secret in a flag is kept i
 In a script, pipe it:
 
 ```bash
-echo "$OPENAI_API_KEY" | anpord connectors add openai --name ci
+echo "$ANTHROPIC_API_KEY" | anpord connectors add anthropic --name ci
 ```
 
 The value is encrypted when it arrives and is never returned. `list` states that a connection exists, not what is in it.
+
+## Model providers
+
+`openai`, `anthropic`, `google`, `xai`, `moonshotai`, `deepseek`, `groq` and `openrouter` all speak the same chat-completions shape, so a case's human runs on whichever one you connect. The first connected provider is the one it uses.
+
+A model judge calls OpenAI's responses API, which the others do not serve, so a case scored by one needs `openai` specifically.
 
 ## Choosing the auth method
 

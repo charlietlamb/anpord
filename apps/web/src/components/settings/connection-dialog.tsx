@@ -32,7 +32,7 @@ const COPY = {
   },
   model: {
     description:
-      "The provider a judge calls, or the model that plays a case's human. Secret values are encrypted and never shown again.",
+      "The provider that scores a case or plays its human. Secret values are encrypted and never shown again.",
     field: "Model",
     title: "Add model",
   },

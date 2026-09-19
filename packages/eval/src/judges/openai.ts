@@ -4,7 +4,7 @@ import {
   HttpClientResponse,
 } from "@effect/platform";
 import { Effect, Option, Redacted, Schema } from "effect";
-import { openAiKeyFor } from "../credentials/openai-key";
+import { modelAccessFor } from "../credentials/model-key";
 import { CredentialResolver } from "../credentials/resolver";
 import { JudgeFailed, type JudgeRequest } from "./model";
 import { judgeEvidence, judgeInstructions, judgmentJsonSchema } from "./prompt";
@@ -49,12 +49,12 @@ export const makeOpenAIJudge = Effect.gen(function* () {
   return (request: JudgeRequest) =>
     Effect.gen(function* () {
       const organizationId = request.context.organizationId;
-      const key = yield* openAiKeyFor(credentials, organizationId);
+      const access = yield* modelAccessFor(credentials, organizationId);
 
-      if (Option.isNone(key)) {
+      if (Option.isNone(access)) {
         return yield* Effect.fail(
           new JudgeFailed({
-            message: "No OpenAI judge credential is configured",
+            message: "No model credential is configured",
           })
         );
       }
@@ -79,7 +79,7 @@ export const makeOpenAIJudge = Effect.gen(function* () {
       const httpRequest = yield* HttpClientRequest.post(
         "https://api.openai.com/v1/responses"
       ).pipe(
-        HttpClientRequest.bearerToken(Redacted.make(key.value)),
+        HttpClientRequest.bearerToken(Redacted.make(access.value.key)),
         HttpClientRequest.bodyJson(body)
       );
       const response = yield* client

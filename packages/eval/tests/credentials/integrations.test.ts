@@ -32,7 +32,6 @@ describe("credential integrations", () => {
       "qwen",
       "cursor",
       "typesafe",
-      "openai",
       "env",
       "command",
       "daytona",
@@ -41,6 +40,14 @@ describe("credential integrations", () => {
       "modal",
       "cloudflare",
       "vercel",
+      "openai",
+      "anthropic",
+      "google",
+      "xai",
+      "moonshotai",
+      "deepseek",
+      "groq",
+      "openrouter",
     ]);
   });
 

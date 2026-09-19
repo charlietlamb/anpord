@@ -3,6 +3,7 @@ import type {
   CredentialIntegration,
 } from "@anpord/schema/domain/credentials";
 import { Effect } from "effect";
+import { MODEL_PROVIDERS } from "../domain/model-providers";
 import { CredentialError } from "./errors";
 
 const field = (
@@ -27,7 +28,16 @@ const secret = (
   fields: CredentialAuthMethod["fields"]
 ): CredentialAuthMethod => ({ fields, id, kind: "secret", label });
 
-export const credentialIntegrations: readonly CredentialIntegration[] = [
+const modelIntegrations: readonly CredentialIntegration[] = MODEL_PROVIDERS.map(
+  (provider) => ({
+    authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
+    category: "model",
+    id: provider.id,
+    label: provider.label,
+  })
+);
+
+const declaredIntegrations: readonly CredentialIntegration[] = [
   {
     authMethods: [
       secret("api-key", "API key", [field("apiKey", "API key")]),
@@ -108,12 +118,6 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     id: "typesafe",
     label: "TypeSafe",
   },
-  {
-    authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
-    category: "model",
-    id: "openai",
-    label: "OpenAI",
-  },
   /* One credential any harness can run on: a map of variables the customer
      names, handed to the sandbox as they are. */
   {
@@ -192,6 +196,11 @@ export const credentialIntegrations: readonly CredentialIntegration[] = [
     id: "vercel",
     label: "Vercel",
   },
+];
+
+export const credentialIntegrations: readonly CredentialIntegration[] = [
+  ...declaredIntegrations,
+  ...modelIntegrations,
 ];
 
 export const credentialMethod = (integrationId: string, methodId: string) => {

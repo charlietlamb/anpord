@@ -26,10 +26,10 @@ export const CONNECTION_SECTIONS: readonly ConnectionSectionSpec[] = [
     addLabel: "Add model",
     category: "model",
     empty:
-      "Connect one to score cases with a judge, or to play the human in a conversation.",
+      "Connect one to score cases, or to play the human in a conversation.",
     emptyTitle: "No models connected",
     Icon: BrainIcon,
-    note: "Optional. Needed for judges and classifiers that call a provider directly, and for a case that states a human.",
+    note: "Optional. Needed to score a case with a model, and for a case that states a human.",
     title: "Models",
   },
   {

@@ -5,7 +5,7 @@ import {
   HttpClientResponse,
 } from "@effect/platform";
 import { Effect, Layer, Option, Redacted, Schema } from "effect";
-import { openAiKeyFor } from "../../credentials/openai-key";
+import { modelAccessFor } from "../../credentials/model-key";
 import { CredentialResolver } from "../../credentials/resolver";
 import { userModel } from "../../domain/cell";
 import { UserUnavailable } from "../../domain/errors";
@@ -13,8 +13,6 @@ import {
   SimulatedUser,
   type UserTurnRequest,
 } from "../../ports/simulated-user";
-
-const ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
 const DONE = "<<DONE>>";
 
@@ -57,16 +55,18 @@ const makeLlmUser = Effect.gen(function* () {
   const reply = Effect.fn("SimulatedUser.reply")(function* (
     request: UserTurnRequest
   ) {
-    const key = yield* openAiKeyFor(credentials, request.organizationId);
+    const access = yield* modelAccessFor(credentials, request.organizationId);
 
-    if (Option.isNone(key)) {
+    if (Option.isNone(access)) {
       return yield* Effect.fail(
-        new UserUnavailable({ reason: "no OpenAI credential is configured" })
+        new UserUnavailable({ reason: "no model credential is configured" })
       );
     }
 
-    const httpRequest = yield* HttpClientRequest.post(ENDPOINT).pipe(
-      HttpClientRequest.bearerToken(Redacted.make(key.value)),
+    const httpRequest = yield* HttpClientRequest.post(
+      `${access.value.provider.baseUrl}/chat/completions`
+    ).pipe(
+      HttpClientRequest.bearerToken(Redacted.make(access.value.key)),
       HttpClientRequest.bodyJson({
         model,
         messages: messagesFor(request),

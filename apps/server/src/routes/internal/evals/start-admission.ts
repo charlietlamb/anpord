@@ -1,4 +1,4 @@
-import { openAiKeyFor } from "@anpord/eval/credentials/openai-key";
+import { modelAccessFor } from "@anpord/eval/credentials/model-key";
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { BadRequest, Conflict } from "@anpord/schema/domain/errors";
@@ -33,13 +33,13 @@ export const admitStart = (
   Effect.gen(function* () {
     if (payload.cases.some((subject) => subject.user?.kind === "simulated")) {
       const credentials = yield* CredentialResolver;
-      const key = yield* openAiKeyFor(credentials, organizationId);
+      const access = yield* modelAccessFor(credentials, organizationId);
 
-      if (Option.isNone(key)) {
+      if (Option.isNone(access)) {
         return yield* Effect.fail(
           new Conflict({
             message:
-              "A case in this run states a human, which needs a model to play them. Connect one under settings, models, or with `anpord connectors add openai`.",
+              "A case in this run states a human, which needs a model to play them. Connect one under settings, models, or with `anpord connectors add <provider>`.",
           })
         );
       }
