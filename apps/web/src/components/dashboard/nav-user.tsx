@@ -23,6 +23,7 @@ import {
   CheckIcon,
   DotsThreeVerticalIcon,
   MoonIcon,
+  PlusIcon,
   SignOutIcon,
   UserIcon,
 } from "@phosphor-icons/react";
@@ -31,6 +32,7 @@ import {
   IdentityAvatar,
   IdentityLabel,
 } from "@/components/dashboard/sidebar-identity";
+import { useDialog } from "@/lib/dialog/dialogs";
 import { DOCS_URL } from "@/lib/urls";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { useOrganizations } from "@/lib/use-organizations";
@@ -42,6 +44,7 @@ export function NavUser() {
   const user = useCurrentUser();
   const { organizations, activeOrganization, setActive } = useOrganizations();
   const onSignOut = useSignOut();
+  const { open: openDialog } = useDialog();
 
   if (!user) {
     return null;
@@ -109,6 +112,14 @@ export function NavUser() {
                         ) : null}
                       </DropdownMenuItem>
                     ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="gap-2"
+                      onClick={() => openDialog("createOrganization", {})}
+                    >
+                      <PlusIcon className="size-4" />
+                      Create organization
+                    </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
                 <DropdownMenuSeparator />

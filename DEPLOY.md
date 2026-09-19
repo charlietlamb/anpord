@@ -42,7 +42,7 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 
 | Variable | Notes |
 | --- | --- |
-| `DATABASE_URL` | *secret*. Neon. Include `?sslmode=require` |
+| `DATABASE_URL` | *secret*. Neon. Include `?sslmode=verify-full` |
 | `REDIS_URL` | *secret*. Upstash TCP endpoint, unquoted |
 | `BETTER_AUTH_SECRET` | *secret*. 48 random bytes, base64url |
 | `BETTER_AUTH_URL` | The App Runner URL, once known |

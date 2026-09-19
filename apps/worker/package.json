@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_NO_WARNINGS=1 trigger dev",
+    "dev": "NODE_NO_WARNINGS=1 trigger dev --profile anpord",
     "smoke": "bun --env-file=.env run scripts/smoke.ts",
     "deploy": "trigger deploy",
     "typecheck": "tsc --project tsconfig.json --noEmit",
