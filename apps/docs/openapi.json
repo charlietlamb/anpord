@@ -97,7 +97,7 @@
                         "type": "string",
                         "enum": [
                           "harness",
-                          "judge",
+                          "model",
                           "sandbox"
                         ]
                       },

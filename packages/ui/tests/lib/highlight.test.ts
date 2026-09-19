@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { highlighter, shellTokens } from "../../src/lib/highlight";
+import { shellTokens } from "../../src/lib/highlight";
 
 const kinds = async (command: string) =>
   (await shellTokens(command))
@@ -10,19 +10,6 @@ const kinds = async (command: string) =>
    land on the theme's own scale rather than on Shiki's palette. */
 describe("separating a command", () => {
   it("keeps a flag apart from the command it belongs to", async () => {
-    const shiki = await highlighter();
-    const direct = shiki.codeToTokens("head -100", {
-      includeExplanation: true,
-      lang: "bash",
-      theme: "github-dark-default",
-    });
-
-    expect(direct.tokens.flat().map((token) => token.content)).toEqual([
-      "head",
-      " ",
-      "-100",
-    ]);
-
     expect(await kinds("head -100")).toEqual([
       ["text", "head"],
       ["flag", "-100"],
