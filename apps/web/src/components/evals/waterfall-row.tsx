@@ -6,17 +6,36 @@ import {
   JournalOutput,
   useJournalOutput,
 } from "@/components/evals/journal-output";
+import { LABEL_WIDTH } from "@/components/evals/waterfall-scale";
 import { RowTooltip } from "@/components/evals/waterfall-tooltip";
 import { Track } from "@/components/evals/waterfall-track";
+import { seconds } from "@/lib/evals/duration";
 import {
   describeRow,
   KIND_COLOURS,
+  KIND_ICONS,
+  kindOf,
   labelOf,
 } from "@/lib/evals/journal-presentation";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
-export function TimedRow({ row }: { readonly row: WaterfallRow }) {
-  const { expandable, open, output, toggle } = useJournalOutput(row.entry);
+/* A bar past this point would run off the chart, so its duration is set
+   inside the bar rather than after it. */
+const LABEL_FLIP_PERCENT = 72;
+
+export function TimedRow({
+  onSelect,
+  row,
+  selected,
+}: {
+  readonly onSelect: () => void;
+  readonly row: WaterfallRow;
+  readonly selected: boolean;
+}) {
+  const kind = kindOf(row);
+  const Glyph = KIND_ICONS[kind];
+  const isCommand = row.entry._tag === "command";
+  const flipped = row.leftPercent > LABEL_FLIP_PERCENT;
 
   return (
     <li>
@@ -24,27 +43,63 @@ export function TimedRow({ row }: { readonly row: WaterfallRow }) {
         <TooltipTrigger
           render={
             <button
-              aria-expanded={expandable ? open : undefined}
               aria-label={describeRow(row)}
+              aria-pressed={selected}
               className={cn(
-                "group relative block h-6 w-full rounded-sm text-left transition-colors duration-150 ease-out focus-visible:bg-alpha-4 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-
-                expandable
-                  ? "cursor-pointer hover:bg-alpha-8"
-                  : "cursor-default hover:bg-alpha-4"
+                "group flex h-6 w-full cursor-pointer items-center rounded-sm text-left transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                selected ? "bg-alpha-8" : "hover:bg-alpha-4"
               )}
-              onClick={toggle}
+              onClick={onSelect}
               type="button"
             />
           }
         >
-          <Track row={row} />
+          <span
+            className="flex shrink-0 items-center gap-1.5 pr-3 pl-1"
+            style={{ width: LABEL_WIDTH }}
+          >
+            <Glyph
+              aria-hidden="true"
+              className="shrink-0"
+              size={11}
+              style={{ color: KIND_COLOURS[kind] }}
+            />
+
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate text-[11px] leading-none",
+                isCommand
+                  ? "font-mono text-foreground/80"
+                  : "text-muted-foreground"
+              )}
+            >
+              {labelOf(row.entry)}
+            </span>
+
+            {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
+          </span>
+
+          <span className="relative h-full min-w-0 flex-1">
+            <Track row={row} />
+
+            {row._tag === "bar" ? (
+              <span
+                className={cn(
+                  "absolute top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/70 tabular-nums transition-colors duration-150 ease-out group-hover:text-foreground motion-reduce:transition-none",
+                  flipped ? "-translate-x-full pr-1.5" : "pl-1.5"
+                )}
+                style={{
+                  left: `${flipped ? row.leftPercent : row.leftPercent + row.widthPercent}%`,
+                }}
+              >
+                {seconds(row.durationMs)}
+              </span>
+            ) : null}
+          </span>
         </TooltipTrigger>
 
         <RowTooltip row={row} />
       </Tooltip>
-
-      {open ? <JournalOutput className="mt-1 mb-2" output={output} /> : null}
     </li>
   );
 }

@@ -88,7 +88,7 @@ export function RowTooltip({ row }: { readonly row: WaterfallRow }) {
 
         {expandable ? (
           <span className="text-xs opacity-70">
-            {isCommand ? "Click to read what it printed" : "Click to read it"}
+            {isCommand ? "Click to open what it printed" : "Click to open it"}
           </span>
         ) : null}
       </span>

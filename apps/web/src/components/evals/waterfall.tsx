@@ -1,5 +1,11 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import { useState } from "react";
 import { Axis, Gridlines } from "@/components/evals/waterfall-axis";
+import {
+  Crosshair,
+  useCrosshair,
+} from "@/components/evals/waterfall-crosshair";
+import { WaterfallDetail } from "@/components/evals/waterfall-detail";
 import { OrderedRow, TimedRow } from "@/components/evals/waterfall-row";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
@@ -44,6 +50,11 @@ export function Waterfall({
   readonly trajectory: readonly EvalJournalEntry[];
 }) {
   const { rows, spanMs } = waterfallLayout(trajectory);
+  const crosshair = useCrosshair();
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const openRow =
+    rows.find((row, index) => keyOf(row.entry, index) === selected) ?? null;
 
   if (trajectory.length === 0) {
     return running ? (
@@ -74,15 +85,33 @@ export function Waterfall({
     <div className="flex flex-col gap-2">
       <Axis spanMs={spanMs} />
 
-      <div className="relative">
+      <div
+        className="relative"
+        onPointerLeave={crosshair.clear}
+        onPointerMove={crosshair.track}
+      >
         <Gridlines />
+        <Crosshair percent={crosshair.percent} spanMs={spanMs} />
 
         <ol className="flex flex-col">
-          {rows.map((row, index) => (
-            <TimedRow key={keyOf(row.entry, index)} row={row} />
-          ))}
+          {rows.map((row, index) => {
+            const key = keyOf(row.entry, index);
+
+            return (
+              <TimedRow
+                key={key}
+                onSelect={() => setSelected(selected === key ? null : key)}
+                row={row}
+                selected={selected === key}
+              />
+            );
+          })}
         </ol>
       </div>
+
+      {openRow === null ? null : (
+        <WaterfallDetail onClose={() => setSelected(null)} row={openRow} />
+      )}
     </div>
   );
 }

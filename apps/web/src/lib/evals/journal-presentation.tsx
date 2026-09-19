@@ -40,6 +40,15 @@ export const KIND_ICONS: Record<JournalKind, Icon> = {
 
 export const kindOf = (row: WaterfallRow): JournalKind => row.entry._tag;
 
+/* What a step printed, where it printed anything at all. */
+export const readableOf = (entry: EvalJournalEntry) => {
+  if (entry._tag === "command") {
+    return entry.output;
+  }
+
+  return entry._tag === "message" ? entry.text : "";
+};
+
 export const labelOf = (entry: EvalJournalEntry) => {
   if (entry._tag === "command") {
     return entry.command;
