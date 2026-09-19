@@ -18,6 +18,8 @@
     "effect": "catalog:"
   },
   "devDependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.1136.0",
+    "@trigger.dev/build": "4.5.15",
     "trigger.dev": "4.5.15",
     "typescript": "catalog:"
   }
