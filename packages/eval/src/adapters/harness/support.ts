@@ -1,5 +1,5 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import { Effect, Redacted, Ref, Stream } from "effect";
+import { Effect, Option, Redacted, Ref, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 import { reportsModel } from "../../domain/harness-models";
@@ -102,6 +102,21 @@ export const jsonSession = (
   verifyModel = false
 ) =>
   Effect.gen(function* () {
+    /* A base whose command ignores the session would start over, scoring the
+       opening prompt twice and reading as the agent ignoring the reply. Only
+       a command that carries the session may continue one. */
+    if (
+      Option.isSome(request.resume) &&
+      !command.includes(request.resume.value)
+    ) {
+      return yield* Effect.fail(
+        new HarnessUnavailable({
+          harness: request.harness,
+          reason: `${request.harness} cannot continue a session`,
+        })
+      );
+    }
+
     const usage = yield* Ref.make(EMPTY_TALLY);
     const started = yield* Ref.make(false);
 

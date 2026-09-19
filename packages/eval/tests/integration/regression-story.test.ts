@@ -44,6 +44,8 @@ const cellKey = cellKeyOf({
   provider: "daytona",
   taskId: `task_story_${suffix}`,
   taskVersion: taskInternalId,
+
+  userModel: null,
 });
 
 const recordCell = (input: {

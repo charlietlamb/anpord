@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { cellKeyOf } from "../domain/cell";
+import { cellKeyOf, userModel, userModelOf } from "../domain/cell";
 import { renderPrompt } from "../domain/prompt";
 import { TrialRunner } from "../ports/trial-runner";
 import { RunRepository } from "../repositories/run-repository";
@@ -29,6 +29,7 @@ export const makeStartRun = (
           trialCount: cellCount * input.trials,
         });
 
+        const conductedBy = yield* userModel;
         const registered = yield* registerCases(input);
         const profiles = yield* registerProfiles(input);
 
@@ -49,6 +50,7 @@ export const makeStartRun = (
                         profile: task.profile?.name ?? null,
                         provider: task.provider,
                         taskId: row.id,
+                        userModel: userModelOf(subject.user, conductedBy),
                         taskVersion: row.internalId,
                       }),
                       harness: task.harness,

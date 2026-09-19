@@ -151,6 +151,8 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
               provider: "daytona",
               taskId,
               taskVersion: taskInternalId,
+
+              userModel: null,
             }),
             harness: "opencode" as const,
             harnessVersion: "1.18.21",

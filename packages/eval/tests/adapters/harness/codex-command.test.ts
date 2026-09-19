@@ -10,6 +10,7 @@ const request = (overrides: Partial<RunHarness> = {}): RunHarness =>
     harnessVersion: "0.144.4",
     model: "gpt-5.6-sol",
     profile: Option.none(),
+    resume: Option.none(),
     prompt: "add a footer",
     sandbox: {} as RunHarness["sandbox"],
     systemPromptPath: Option.none(),

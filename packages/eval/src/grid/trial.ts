@@ -1,3 +1,4 @@
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
 import { describeCause } from "../domain/failure";
@@ -61,6 +62,8 @@ export interface TrialInputs {
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly subject: GridCase;
   readonly task: GridExecutionTask;
+  /** The conversation the agent is judged on, when the case states one. */
+  readonly user?: EvalUser | null;
 }
 
 export const WORKSPACE = "/tmp/anpord-task";

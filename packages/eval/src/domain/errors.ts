@@ -80,3 +80,12 @@ export class ModelsUnreadable extends Data.TaggedError("ModelsUnreadable")<{
   readonly cause: unknown;
   readonly source: string;
 }> {}
+
+/* `message` is overridden because the default renders as "An error has occurred". */
+export class UserUnavailable extends Data.TaggedError("UserUnavailable")<{
+  readonly reason: string;
+}> {
+  override get message() {
+    return `The simulated user could not reply: ${this.reason}`;
+  }
+}

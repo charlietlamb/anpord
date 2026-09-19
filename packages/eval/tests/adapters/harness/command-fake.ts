@@ -78,6 +78,7 @@ export const request = (
   harnessVersion: "profile",
   model: "vendor/model",
   profile: Option.some(found),
+  resume: Option.none(),
   prompt: PROMPT,
   sandbox,
   systemPromptPath: Option.none(),

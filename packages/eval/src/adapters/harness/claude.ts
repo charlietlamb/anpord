@@ -49,6 +49,10 @@ export const claudeCommand = (request: RunHarness) =>
     `cd ${shellQuote(request.workspace)}`,
     "&&",
     `${BIN} -p ${shellQuote(request.prompt)}`,
+    ...Option.match(request.resume, {
+      onNone: (): string[] => [],
+      onSome: (session) => [`--resume ${shellQuote(session)}`],
+    }),
     "--output-format stream-json --verbose",
     `--model ${shellQuote(request.model)}`,
     "--bare --dangerously-skip-permissions",

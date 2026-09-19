@@ -3,6 +3,7 @@ import { CredentialBindings } from "./credentials";
 import { EvalJudge, EvalJudgment } from "./eval-judges";
 import { EvalSourceFiles } from "./eval-source-files";
 import { EvalTrigger } from "./eval-trigger";
+import { EvalUser } from "./eval-turns";
 import { EvalValidations } from "./eval-validations";
 import { EvalHarness as Harness } from "./harness";
 
@@ -189,6 +190,9 @@ export type CaseCache = typeof CaseCache.Type;
 export const EvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
   name: EvalCaseName,
+  /* Absent for a case that is one prompt and one answer, which is most of
+     them. Present when the agent is judged on a conversation. */
+  user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
   prepare: Schema.NullOr(EvalPrepare),
   source: EvalSource,
   variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),

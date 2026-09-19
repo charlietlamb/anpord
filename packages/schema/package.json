@@ -17,6 +17,7 @@
     "./domain/eval-quota": "./src/domain/eval-quota.ts",
     "./domain/eval-source-files": "./src/domain/eval-source-files.ts",
     "./domain/eval-trigger": "./src/domain/eval-trigger.ts",
+    "./domain/eval-turns": "./src/domain/eval-turns.ts",
     "./domain/eval-validations": "./src/domain/eval-validations.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",

@@ -20,6 +20,9 @@ export interface RunHarness {
   readonly model: string;
   readonly profile: Option.Option<RequestedProfile>;
   readonly prompt: string;
+  /** The session this turn continues. None opens a new conversation, which is
+   * every trial's first turn. */
+  readonly resume: Option.Option<string>;
   readonly sandbox: SandboxHandle;
   /** Where the materialiser left the profile's system prompt, for a base that
    * names a file rather than taking the text. */

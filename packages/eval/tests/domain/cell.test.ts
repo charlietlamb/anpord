@@ -9,6 +9,7 @@ const parts: CellParts = {
   provider: "daytona",
   taskId: "fix-parser",
   taskVersion: "abc123",
+  userModel: null,
 };
 
 describe("cellKeyOf", () => {
@@ -48,6 +49,39 @@ describe("cellKeyOf", () => {
     expect(cellKeyOf({ ...parts, profile: "sample" })).not.toBe(
       cellKeyOf(parts)
     );
+  });
+
+  /* The seventh part, so a run led by one simulated user is not compared
+     against a run led by another. */
+  it("appends the user model, leaving keys without one untouched", () => {
+    const expected = createHash("sha256")
+      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona\ngpt-5.4-mini")
+      .digest("hex")
+      .slice(0, 32);
+
+    expect<string>(cellKeyOf({ ...parts, userModel: "gpt-5.4-mini" })).toBe(
+      expected
+    );
+    expect(cellKeyOf({ ...parts, userModel: "gpt-5.4-mini" })).not.toBe(
+      cellKeyOf(parts)
+    );
+  });
+
+  it("separates two user models on one case", () => {
+    expect(cellKeyOf({ ...parts, userModel: "gpt-5.4-mini" })).not.toBe(
+      cellKeyOf({ ...parts, userModel: "gpt-5.6-sol" })
+    );
+  });
+
+  it("orders the profile before the user model", () => {
+    const expected = createHash("sha256")
+      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona\nsample\nmini")
+      .digest("hex")
+      .slice(0, 32);
+
+    expect<string>(
+      cellKeyOf({ ...parts, profile: "sample", userModel: "mini" })
+    ).toBe(expected);
   });
 
   it("separates two profiles on one base", () => {

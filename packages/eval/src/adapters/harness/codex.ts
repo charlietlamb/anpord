@@ -31,10 +31,18 @@ export const codexCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
-    `${CODEX_BIN} exec --json --skip-git-repo-check`,
+    /* `exec resume [OPTIONS] <SESSION_ID> <PROMPT>`: the subcommand sits
+       directly after exec, and the session directly before the prompt. */
+    `${CODEX_BIN} exec`,
+    ...(Option.isSome(request.resume) ? ["resume"] : []),
+    "--json --skip-git-repo-check",
     "--dangerously-bypass-approvals-and-sandbox",
     ...developerInstructions(request),
     ...(request.model === "" ? [] : [`--model ${shellQuote(request.model)}`]),
+    ...Option.match(request.resume, {
+      onNone: (): string[] => [],
+      onSome: (session) => [shellQuote(session)],
+    }),
     shellQuote(request.prompt),
     "< /dev/null",
   ].join(" ");

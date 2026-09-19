@@ -219,6 +219,7 @@ export const AgentTrialLive = Layer.effect(
             env,
             harness: request.harness,
             harnessVersion: request.harnessVersion,
+            resume: Option.none(),
             model: request.model,
             profile,
             prompt: request.prompt + instructions,

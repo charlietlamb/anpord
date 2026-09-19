@@ -1,6 +1,7 @@
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Either, Redacted } from "effect";
-import { cellKeyOf } from "../domain/cell";
+import { cellKeyOf, userModel, userModelOf } from "../domain/cell";
 import type {
   EvalStoreError,
   HarnessUnavailable,
@@ -23,6 +24,8 @@ export interface GridCase {
   readonly name: string;
   readonly prepare: EvalPrepare | null;
   readonly source: WorkspaceSource;
+  /** Null for a case that is one prompt and one answer. */
+  readonly user?: EvalUser | null;
 
   readonly validator?: EvalValidator | null;
   readonly variables: Readonly<Record<string, string>>;
@@ -60,12 +63,14 @@ export const runGridCell = (
     const sandboxCredential = input.task.credentials.sandbox;
     const harnessConnectionId = input.task.bindings?.harnessConnectionId;
     const sandboxConnectionId = input.task.bindings?.sandboxConnectionId;
+    const conductedBy = yield* userModel;
     const cellKey = cellKeyOf({
       harness: input.task.harness,
       model: input.task.model,
       profile: input.profile?.name ?? null,
       provider: input.task.provider,
       taskId: input.taskPublicId,
+      userModel: userModelOf(input.user, conductedBy),
       taskVersion: input.taskInternalId,
     });
 

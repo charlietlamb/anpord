@@ -32,6 +32,7 @@ const request = {
   harnessVersion: "1",
   model: "vendor/model'; touch /tmp/model",
   profile: Option.none(),
+  resume: Option.none(),
   prompt: "fix it's broken; touch /tmp/prompt",
   systemPromptPath: Option.none(),
   workspace: "/tmp/work space",
@@ -87,6 +88,7 @@ const withProfile = (
       run: null,
       systemPrompt,
     }),
+    resume: Option.none(),
     systemPromptPath:
       systemPrompt === null ? Option.none() : Option.some(PROMPT_PATH),
   }) as RunHarness;
