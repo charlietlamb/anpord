@@ -69,7 +69,7 @@ function StatusMark({
                 TONE_CLASSES[tone],
                 label === "running" && "animate-spin motion-reduce:animate-none"
               )}
-              weight={label === "running" ? "bold" : "fill"}
+              weight="bold"
             />
             <span className="sr-only">{label}</span>
           </span>
