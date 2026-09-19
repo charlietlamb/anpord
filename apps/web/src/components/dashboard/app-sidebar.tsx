@@ -39,7 +39,7 @@ export function AppSidebar() {
         <div className="relative flex h-11 items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link
             aria-label="Home"
-            className="shrink-0 cursor-pointer text-foreground transition-colors hover:text-muted-foreground"
+            className="shrink-0 cursor-pointer text-foreground transition-colors hover:text-muted-foreground group-data-[collapsible=icon]:hidden"
             to="/home"
           >
             <Logo className="size-5" />
@@ -58,7 +58,7 @@ export function AppSidebar() {
           </SidebarMenuButton>
           <motion.div
             animate={{ opacity: 1 }}
-            className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:top-1/2 group-data-[collapsible=icon]:left-[calc(100%+0.75rem)] group-data-[collapsible=icon]:z-20 group-data-[collapsible=icon]:-translate-y-1/2"
+            className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:z-20 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
             initial={
               state === "collapsed" && !reduceMotion ? { opacity: 0 } : false
             }
