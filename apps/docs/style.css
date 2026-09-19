@@ -25,13 +25,13 @@ h1 {
   letter-spacing: -0.035em;
 }
 
-#content-area h2 {
+#content-area h2:not(.not-prose) {
   padding-bottom: 0.5rem;
   margin-top: 2.75rem;
   border-bottom: 1px solid var(--anpord-border);
 }
 
-#content-area h3 {
+#content-area h3:not(.not-prose) {
   margin-top: 2rem;
 }
 
