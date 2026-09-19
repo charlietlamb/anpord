@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "almond",
   "name": "Anpord",
   "description": "Evals for coding agents",
   "colors": {
@@ -33,6 +33,7 @@
     "tabs": [
       {
         "tab": "Documentation",
+        "icon": "book",
         "groups": [
           {
             "group": "Fundamentals",
@@ -61,6 +62,7 @@
       },
       {
         "tab": "SDK",
+        "icon": "code",
         "groups": [
           {
             "group": "Getting started",
@@ -94,6 +96,7 @@
       },
       {
         "tab": "API reference",
+        "icon": "rectangle-terminal",
         "groups": [
           {
             "group": "Overview",
@@ -143,17 +146,16 @@
     }
   ],
   "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/charlietlamb/anpord"
+    },
     "links": [
       {
-        "label": "GitHub",
-        "href": "https://github.com/charlietlamb/anpord"
+        "label": "Dashboard",
+        "href": "https://www.anpord.com"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://www.anpord.com"
-    }
+    ]
   },
   "footer": {
     "socials": {

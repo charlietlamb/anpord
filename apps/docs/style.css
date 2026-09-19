@@ -64,3 +64,64 @@ h1 {
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 }
+
+@media (min-width: 1024px) {
+  #navbar .flex-1:has(> a .nav-logo) {
+    flex: none !important;
+    width: calc(17rem - 1.75rem - 1rem);
+  }
+
+  #navbar .justify-end:has(.nav-tabs),
+  #navbar .ustify-end:has(.nav-tabs) {
+    justify-content: space-between !important;
+    margin-left: 0 !important;
+  }
+
+  #navbar .flex:has(> .justify-end),
+  #navbar .flex:has(> .ustify-end) {
+    flex: 1 !important;
+  }
+
+  #navbar .nav-tabs {
+    white-space: nowrap;
+  }
+}
+
+#footer a[href*="mintlify.com"] {
+  display: none;
+}
+
+#footer a[href*="github.com"] svg {
+  background-color: var(--anpord-muted) !important;
+}
+
+#navbar ul:has(.navbar-link) {
+  column-gap: 1.25rem;
+}
+
+#navbar .navbar-link {
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+#navbar .navbar-link a {
+  font-weight: 500;
+  color: rgb(var(--gray-700));
+}
+
+.dark #navbar .navbar-link a {
+  color: rgb(var(--gray-300));
+}
+
+#navbar .navbar-link a:hover {
+  color: rgb(var(--gray-900));
+}
+
+.dark #navbar .navbar-link a:hover {
+  color: rgb(var(--gray-100));
+}
+
+#navbar .navbar-link a:hover {
+  color: var(--anpord-accent);
+}
