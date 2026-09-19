@@ -10,7 +10,10 @@ export const openAiKeyFor = (
   organizationId: string
 ) =>
   Effect.gen(function* () {
-    const platformKey = yield* Config.option(Config.string("OPENAI_API_KEY"));
+    const platformKey = yield* Config.string("OPENAI_API_KEY").pipe(
+      Config.option,
+      Effect.orDie
+    );
     const actor = Actor.make({
       id: UserId.make(organizationId),
       organizationId: OrganizationId.make(organizationId),

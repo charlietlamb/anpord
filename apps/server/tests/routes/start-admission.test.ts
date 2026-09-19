@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import { connectionNotFound } from "@anpord/eval/credentials/errors";
+import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import {
   MAX_ORGANIZATION_RUNS_IN_FLIGHT,
@@ -6,6 +8,12 @@ import {
 } from "@anpord/schema/domain/eval-quota";
 import { Effect, Layer, Option } from "effect";
 import { admitStart } from "../../src/routes/internal/evals/start-admission";
+
+const unconnected = Layer.succeed(CredentialResolver, {
+  persist: () => Effect.void,
+  resolve: () => Effect.fail(connectionNotFound()),
+  resolveBound: () => Effect.fail(connectionNotFound()),
+} as never);
 
 const task = (model: string) => ({
   harness: "codex",
@@ -17,8 +25,9 @@ const start = (input: {
   readonly cases: number;
   readonly tasks: readonly ReturnType<typeof task>[];
   readonly trials: number;
+  readonly user?: { readonly kind: string };
 }) => ({
-  cases: Array.from({ length: input.cases }, () => ({})),
+  cases: Array.from({ length: input.cases }, () => ({ user: input.user })),
   tasks: input.tasks,
   trials: input.trials,
 });
@@ -45,6 +54,7 @@ const refusalOf = (payload: ReturnType<typeof start>, running = 0) =>
   Effect.runSync(
     admitStart("org_1", payload).pipe(
       Effect.provide(withRunning(running)),
+      Effect.provide(unconnected),
       Effect.map(() => null),
       Effect.catchAll((refusal) => Effect.succeed(refusal.message))
     )
@@ -99,5 +109,31 @@ describe("what a start is admitted for", () => {
     expect(
       refusalOf(start({ cases: 1, tasks: [task("a"), task("a")], trials: 1 }))
     ).toContain("unique");
+  });
+
+  it("refuses a human nobody is configured to play", () => {
+    expect(
+      refusalOf(
+        start({
+          cases: 1,
+          tasks: [task("a")],
+          trials: 1,
+          user: { kind: "simulated" },
+        })
+      )
+    ).toContain("OpenAI credential");
+  });
+
+  it("admits a scripted user with no credential", () => {
+    expect(
+      refusalOf(
+        start({
+          cases: 1,
+          tasks: [task("a")],
+          trials: 1,
+          user: { kind: "scripted" },
+        })
+      )
+    ).toBe(null);
   });
 });

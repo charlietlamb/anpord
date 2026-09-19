@@ -45,6 +45,7 @@
     "./credentials/device-auth": "./src/credentials/device-auth.ts",
     "./credentials/errors": "./src/credentials/errors.ts",
     "./credentials/integrations": "./src/credentials/integrations.ts",
+    "./credentials/openai-key": "./src/credentials/openai-key.ts",
     "./credentials/resolver": "./src/credentials/resolver.ts",
     "./credentials/tasks": "./src/credentials/tasks.ts",
     "./domain/distribution": "./src/domain/distribution.ts",

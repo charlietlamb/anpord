@@ -69,15 +69,6 @@ const start = (input: {
 };
 
 describe("starting a run", () => {
-  it("writes no row when the human it states cannot be reached", async () => {
-    const { exit, inserted } = await Effect.runPromise(
-      start({ user: { kind: "simulated" } })
-    );
-
-    expect(exit._tag).toBe("Failure");
-    expect(inserted).toHaveLength(0);
-  });
-
   /* Everything between the insert and the handover can fail, and the row is
      already visible by then, so it is settled rather than left running. */
   it("settles the row when the handover fails", async () => {

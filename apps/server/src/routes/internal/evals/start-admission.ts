@@ -1,3 +1,5 @@
+import { openAiKeyFor } from "@anpord/eval/credentials/openai-key";
+import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { BadRequest, Conflict } from "@anpord/schema/domain/errors";
 import {
@@ -6,11 +8,13 @@ import {
   type StartSize,
   trialsRequested,
 } from "@anpord/schema/domain/eval-quota";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { type KeyedTask, tasksAreDistinct } from "./task-keys";
 
 interface StartPayload {
-  readonly cases: readonly unknown[];
+  readonly cases: readonly {
+    readonly user?: { readonly kind: string } | null;
+  }[];
   readonly tasks: readonly KeyedTask[];
   readonly trials: number;
 }
@@ -25,8 +29,22 @@ const sizeOf = (payload: StartPayload): StartSize => ({
 export const admitStart = (
   organizationId: string,
   payload: StartPayload
-): Effect.Effect<void, BadRequest | Conflict, RunQuery> =>
+): Effect.Effect<void, BadRequest | Conflict, CredentialResolver | RunQuery> =>
   Effect.gen(function* () {
+    if (payload.cases.some((subject) => subject.user?.kind === "simulated")) {
+      const credentials = yield* CredentialResolver;
+      const key = yield* openAiKeyFor(credentials, organizationId);
+
+      if (Option.isNone(key)) {
+        return yield* Effect.fail(
+          new BadRequest({
+            message:
+              "A case in this run states a human, which needs an OpenAI credential to play them. Connect one with `anpord connectors add openai`.",
+          })
+        );
+      }
+    }
+
     if (!tasksAreDistinct(payload.tasks)) {
       return yield* Effect.fail(
         new BadRequest({ message: "Each eval task must be unique" })
