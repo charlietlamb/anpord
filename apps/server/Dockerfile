@@ -39,6 +39,13 @@ FROM oven/bun:1.3.14-alpine AS release
 
 WORKDIR /app
 
+# A ChatGPT connection is made by running `codex login --device-auth` here and
+# reading back the code, so the binary is part of the server rather than
+# something a sandbox installs.
+RUN apk add --no-cache nodejs npm \
+  && npm i -g --no-fund --no-audit @openai/codex \
+  && npm cache clean --force
+
 ENV NODE_ENV=production
 ARG BUILD_REVISION=development
 ENV BUILD_REVISION=$BUILD_REVISION
