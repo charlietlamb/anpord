@@ -76,7 +76,7 @@ export const integrationLabel = (integrationId: string): string =>
     unknown(integrationId)
   ).label;
 
-const VENDOR_MARKS: Record<string, RailIcon> = {
+export const VENDOR_MARKS: Record<string, RailIcon> = {
   alibaba: AlibabaMark,
   anthropic: ClaudeMark,
   cerebras: CerebrasMark,

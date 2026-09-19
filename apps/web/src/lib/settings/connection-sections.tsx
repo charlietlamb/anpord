@@ -23,7 +23,7 @@ export const CONNECTION_SECTIONS: readonly ConnectionSectionSpec[] = [
     title: "Harnesses",
   },
   {
-    addLabel: "Add model",
+    addLabel: "Add provider",
     category: "model",
     empty:
       "Connect one to score cases, or to play the human in a conversation.",

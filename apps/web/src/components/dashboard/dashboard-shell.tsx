@@ -32,7 +32,7 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
           <ClientOnly>
             <ImpersonationBanner />
           </ClientOnly>
-          <header className="flex h-14 shrink-0 items-center pb-2">
+          <header className="flex h-14 shrink-0 items-center border-b">
             <div className={PAGE_WIDTHS.wide}>
               <DashboardBreadcrumbs />
             </div>

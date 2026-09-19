@@ -33,8 +33,8 @@ const COPY = {
   model: {
     description:
       "The provider that scores a case or plays its human. Secret values are encrypted and never shown again.",
-    field: "Model",
-    title: "Add model",
+    field: "Provider",
+    title: "Add provider",
   },
   sandbox: {
     description:

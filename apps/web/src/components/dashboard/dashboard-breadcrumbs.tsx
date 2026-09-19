@@ -6,16 +6,18 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@anpord/ui/components/ui/breadcrumb";
+import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useBreadcrumbs } from "@/lib/use-breadcrumbs";
 
 export function DashboardBreadcrumbs() {
   const crumbs = useBreadcrumbs();
-  if (crumbs.length < 2) {
+  if (crumbs.length === 0) {
     return null;
   }
 
   const last = crumbs.length - 1;
+  const isRoot = crumbs.length === 1;
 
   return (
     <Breadcrumb>
@@ -26,7 +28,12 @@ export function DashboardBreadcrumbs() {
             : []),
           <BreadcrumbItem key={crumb.href}>
             {index === last ? (
-              <BreadcrumbPage className="font-heading tracking-[-0.02em]">
+              <BreadcrumbPage
+                className={cn(
+                  "font-heading tracking-[-0.02em]",
+                  isRoot && "text-muted-foreground"
+                )}
+              >
                 {crumb.label}
               </BreadcrumbPage>
             ) : (

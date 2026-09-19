@@ -1,15 +1,10 @@
 import type { CredentialIntegration } from "@anpord/schema/domain/credentials";
-import { OpenAiMark } from "@anpord/ui/components/brand/provider-marks";
-import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
 import { BracketsCurlyIcon, BrainIcon } from "@phosphor-icons/react";
 import {
   harnessPresentation,
   sandboxPresentation,
+  VENDOR_MARKS,
 } from "@/lib/evals/variant-presentation";
-
-/* TypeSafe ships no mark, so the category stands in for one rather than the
-   generic fallback that reads as an unknown integration. */
-const MODEL_MARKS: Record<string, RailIcon> = { openai: OpenAiMark };
 
 /* The env integration is no harness, so it names itself. */
 export const integrationPresentation = (integration: CredentialIntegration) => {
@@ -19,7 +14,7 @@ export const integrationPresentation = (integration: CredentialIntegration) => {
 
   if (integration.category === "model") {
     return {
-      Icon: MODEL_MARKS[integration.id] ?? BrainIcon,
+      Icon: VENDOR_MARKS[integration.id] ?? BrainIcon,
       label: integration.label,
     };
   }

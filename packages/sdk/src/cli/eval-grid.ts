@@ -57,6 +57,57 @@ const formatPassRate = (cell: EvalCell) => {
   return paint(rate === 1 ? GREEN : RED, shown);
 };
 
+const TAIL = 56;
+
+const clip = (text: string) => {
+  const flat = text.replace(/\s+/g, " ").trim();
+
+  return flat.length > TAIL ? `${flat.slice(0, TAIL - 1)}…` : flat;
+};
+
+const latestOf = (cell: EvalCell) => {
+  const running = cell.trials.find((trial) => trial.status === "running");
+  const entry = running?.trajectory.at(-1);
+
+  if (entry === undefined) {
+    return;
+  }
+
+  if (entry._tag === "command") {
+    return clip(entry.command);
+  }
+
+  if (entry._tag === "toolCall") {
+    return clip(entry.name);
+  }
+
+  return entry._tag === "fileChange"
+    ? clip(entry.paths.join(" "))
+    : clip(entry.text);
+};
+
+/* A trial runs for minutes behind one pip, so without what the agent is doing
+   the grid reads as a hang. */
+const formatActivity = (cell: EvalCell) => {
+  const running = cell.trials.find((trial) => trial.status === "running");
+
+  if (running === undefined) {
+    return [];
+  }
+
+  const latest = latestOf(cell);
+  const counts = [
+    `${running.commands} cmd`,
+    ...(running.filesChanged.length === 0
+      ? []
+      : [`${running.filesChanged.length} files`]),
+  ].join(", ");
+
+  return [
+    paint(DIM, `      ${counts}${latest === undefined ? "" : `  ${latest}`}`),
+  ];
+};
+
 export const formatVariant = (run: EvalRun, cell: EvalCell) => {
   const task = run.tasks[cell.taskIndex];
 
@@ -80,6 +131,7 @@ export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
       lines.push(
         `    ${formatStatus(cell)} ${formatVariant(run, cell).padEnd(width)}  ${formatTrialProgress(cell, trials)}  ${formatPassRate(cell)}`
       );
+      lines.push(...formatActivity(cell));
     }
 
     lines.push("");
