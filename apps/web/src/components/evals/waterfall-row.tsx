@@ -19,9 +19,16 @@ import {
 } from "@/lib/evals/journal-presentation";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
-/* A bar past this point would run off the chart, so its duration is set
-   inside the bar rather than after it. */
-const LABEL_FLIP_PERCENT = 72;
+/* Past this the duration would run off the chart, so it is set inside. */
+const LABEL_FLIP_PERCENT = 82;
+
+const endOf = (row: WaterfallRow) => {
+  const start = row.lead?.fromPercent ?? row.leftPercent;
+  const width =
+    (row.lead?.widthPercent ?? 0) + (row._tag === "bar" ? row.widthPercent : 0);
+
+  return start + width;
+};
 
 export function TimedRow({
   onSelect,
@@ -35,7 +42,8 @@ export function TimedRow({
   const kind = kindOf(row);
   const Glyph = KIND_ICONS[kind];
   const isCommand = row.entry._tag === "command";
-  const flipped = row.leftPercent > LABEL_FLIP_PERCENT;
+  const ends = endOf(row);
+  const flipped = ends > LABEL_FLIP_PERCENT;
 
   return (
     <li>
@@ -46,7 +54,7 @@ export function TimedRow({
               aria-label={describeRow(row)}
               aria-pressed={selected}
               className={cn(
-                "group flex h-6 w-full cursor-pointer items-center rounded-sm text-left transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "group flex h-7 w-full cursor-pointer items-center rounded-[3px] text-left transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                 selected ? "bg-alpha-8" : "hover:bg-alpha-4"
               )}
               onClick={onSelect}
@@ -89,7 +97,7 @@ export function TimedRow({
                   flipped ? "-translate-x-full pr-1.5" : "pl-1.5"
                 )}
                 style={{
-                  left: `${flipped ? row.leftPercent : row.leftPercent + row.widthPercent}%`,
+                  left: `${flipped ? (row.lead?.fromPercent ?? row.leftPercent) : ends}%`,
                 }}
               >
                 {seconds(row.durationMs)}

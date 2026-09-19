@@ -4,7 +4,7 @@ export function ExitCode({ code }: { readonly code: number | null }) {
   }
 
   return (
-    <span className="w-fit shrink-0 rounded bg-warning/20 px-1.5 py-0.5 font-medium text-warning text-xs tabular-nums">
+    <span className="w-fit shrink-0 rounded-[2px] bg-warning/20 px-1.5 py-0.5 font-medium text-warning text-xs tabular-nums">
       exit {code}
     </span>
   );
