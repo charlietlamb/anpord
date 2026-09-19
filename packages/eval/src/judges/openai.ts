@@ -1,10 +1,10 @@
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
 } from "@effect/platform";
-import { Config, Effect, Option, Redacted, Schema } from "effect";
+import { Effect, Option, Redacted, Schema } from "effect";
+import { openAiKeyFor } from "../credentials/openai-key";
 import { CredentialResolver } from "../credentials/resolver";
 import { JudgeFailed, type JudgeRequest } from "./model";
 import { judgeEvidence, judgeInstructions, judgmentJsonSchema } from "./prompt";
@@ -45,33 +45,12 @@ const responseSchema = Schema.Struct({
 export const makeOpenAIJudge = Effect.gen(function* () {
   const client = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
   const credentials = yield* CredentialResolver;
-  const platformKey = yield* Config.option(Config.redacted("OPENAI_API_KEY"));
 
   return (request: JudgeRequest) =>
     Effect.gen(function* () {
       const organizationId = request.context.organizationId;
-      const actor = Actor.make({
-        id: UserId.make(organizationId),
-        organizationId: OrganizationId.make(organizationId),
-        isUser: false,
-        permissions: [],
-      });
-      const stored = (integrationId: string, field: string) =>
-        credentials.resolve({ actor, integrationId }).pipe(
-          Effect.map((value) =>
-            Option.fromNullable(Redacted.value(value).values[field])
-          ),
-          Effect.catchIf(
-            (error) => error.code === "not-found",
-            () => Effect.succeed(Option.none<string>())
-          )
-        );
-      const connected = yield* stored("openai", "apiKey");
-      const fromEnv = yield* stored("env", "OPENAI_API_KEY");
-      const key = connected.pipe(
-        Option.orElse(() => fromEnv),
-        Option.orElse(() => Option.map(platformKey, Redacted.value))
-      );
+      const key = yield* openAiKeyFor(credentials, organizationId);
+
       if (Option.isNone(key)) {
         return yield* Effect.fail(
           new JudgeFailed({

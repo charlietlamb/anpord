@@ -1,5 +1,5 @@
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
-import { Config, Effect, Option, Redacted } from "effect";
+import { Effect, Option } from "effect";
+import { openAiKeyFor } from "../credentials/openai-key";
 import type { CredentialResolverShape } from "../credentials/resolver";
 import { UserUnavailable } from "../domain/errors";
 import type { StartGrid } from "./run";
@@ -20,30 +20,9 @@ export const assertUserReachable = (
       return;
     }
 
-    /* An empty variable is set but unusable, and passing preflight on one
-       moves the failure back to where it cost a sandbox to discover. */
-    const platformKey = yield* Config.option(Config.string("OPENAI_API_KEY"));
+    const key = yield* openAiKeyFor(credentials, input.organizationId);
 
-    if (Option.exists(platformKey, (key) => key.trim() !== "")) {
-      return;
-    }
-
-    const actor = Actor.make({
-      id: UserId.make(input.organizationId),
-      organizationId: OrganizationId.make(input.organizationId),
-      isUser: false,
-      permissions: [],
-    });
-    const stored = yield* credentials
-      .resolve({ actor, integrationId: "openai" })
-      .pipe(
-        Effect.map((value) =>
-          Option.fromNullable(Redacted.value(value).values.apiKey)
-        ),
-        Effect.catchAll(() => Effect.succeed(Option.none<string>()))
-      );
-
-    if (Option.isNone(stored)) {
+    if (Option.isNone(key)) {
       return yield* Effect.fail(
         new UserUnavailable({
           reason:

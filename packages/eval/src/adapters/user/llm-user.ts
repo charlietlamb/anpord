@@ -1,11 +1,11 @@
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
 } from "@effect/platform";
-import { Config, Effect, Layer, Option, Redacted, Schema } from "effect";
+import { Effect, Layer, Option, Redacted, Schema } from "effect";
+import { openAiKeyFor } from "../../credentials/openai-key";
 import { CredentialResolver } from "../../credentials/resolver";
 import { userModel } from "../../domain/cell";
 import { UserUnavailable } from "../../domain/errors";
@@ -52,32 +52,12 @@ const messagesFor = (request: UserTurnRequest) => [
 const makeLlmUser = Effect.gen(function* () {
   const client = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
   const credentials = yield* CredentialResolver;
-  const platformKey = yield* Config.option(Config.redacted("OPENAI_API_KEY"));
   const model = yield* userModel;
 
   const reply = Effect.fn("SimulatedUser.reply")(function* (
     request: UserTurnRequest
   ) {
-    const actor = Actor.make({
-      id: UserId.make(request.organizationId),
-      organizationId: OrganizationId.make(request.organizationId),
-      isUser: false,
-      permissions: [],
-    });
-    const stored = (integrationId: string, field: string) =>
-      credentials.resolve({ actor, integrationId }).pipe(
-        Effect.map((value) =>
-          Option.fromNullable(Redacted.value(value).values[field])
-        ),
-        Effect.catchIf(
-          (error) => error.code === "not-found",
-          () => Effect.succeed(Option.none<string>())
-        )
-      );
-    const key = (yield* stored("openai", "apiKey")).pipe(
-      Option.orElse(() => Option.map(platformKey, Redacted.value)),
-      Option.filter((found) => found.trim() !== "")
-    );
+    const key = yield* openAiKeyFor(credentials, request.organizationId);
 
     if (Option.isNone(key)) {
       return yield* Effect.fail(
