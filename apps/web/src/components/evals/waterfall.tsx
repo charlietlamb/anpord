@@ -6,7 +6,8 @@ import {
   useCrosshair,
 } from "@/components/evals/waterfall-crosshair";
 import { WaterfallDetail } from "@/components/evals/waterfall-detail";
-import { OrderedRow, TimedRow } from "@/components/evals/waterfall-row";
+import { OrderedRow } from "@/components/evals/waterfall-ordered-row";
+import { TimedRow } from "@/components/evals/waterfall-row";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";

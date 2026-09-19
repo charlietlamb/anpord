@@ -1,6 +1,6 @@
 import { cn } from "@anpord/ui/lib/utils";
 import { KIND_COLOURS, kindOf } from "@/lib/evals/journal-presentation";
-import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
+import { spanOfRow, type WaterfallRow } from "@/lib/evals/waterfall-layout";
 
 /* Below 3px a real span is unhittable and reads as a zero-duration tick. */
 const MIN_BAR = 3;
@@ -11,10 +11,7 @@ const BAR = "h-2.5 rounded-[2px]";
 export function Track({ row }: { readonly row: WaterfallRow }) {
   const background = KIND_COLOURS[kindOf(row)];
 
-  /* One bar for the wait and the work: a step is the whole stretch it held. */
-  const left = row.lead === null ? row.leftPercent : row.lead.fromPercent;
-  const width =
-    (row.lead?.widthPercent ?? 0) + (row._tag === "bar" ? row.widthPercent : 0);
+  const { from, width } = spanOfRow(row);
 
   if (row._tag === "marker" && row.lead === null) {
     return (
@@ -36,7 +33,7 @@ export function Track({ row }: { readonly row: WaterfallRow }) {
       )}
       style={{
         background,
-        left: `${left}%`,
+        left: `${from}%`,
         minWidth: MIN_BAR,
         width: `${width}%`,
       }}

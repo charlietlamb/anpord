@@ -28,29 +28,15 @@ export function WaterfallDetail({
 
   return (
     <aside className="flex min-h-0 flex-col gap-2 rounded-md border bg-card p-2.5">
-      <header className="flex items-start gap-2">
-        <Glyph aria-hidden="true" className="mt-0.5 shrink-0" size={13} />
-
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex items-center gap-2 text-muted-foreground text-xs">
-            {KIND_NAMES[kind]}
-            {row._tag === "bar" ? <span>{seconds(row.durationMs)}</span> : null}
-            {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
-          </span>
-
-          {isCommand ? (
-            <ShellBlock
-              className="text-[11px] leading-[1.45]"
-              command={labelOf(row.entry)}
-              copyable={true}
-            />
-          ) : (
-            <span className="text-pretty text-xs">{labelOf(row.entry)}</span>
-          )}
-        </span>
+      <header className="flex items-center gap-2 text-muted-foreground text-xs">
+        <Glyph aria-hidden="true" className="shrink-0" size={13} />
+        {KIND_NAMES[kind]}
+        {row._tag === "bar" ? <span>{seconds(row.durationMs)}</span> : null}
+        {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
 
         <Button
           aria-label="Close"
+          className="ml-auto"
           onClick={onClose}
           size="icon-sm"
           variant="ghost"
@@ -58,6 +44,16 @@ export function WaterfallDetail({
           <XIcon size={13} />
         </Button>
       </header>
+
+      {isCommand ? (
+        <ShellBlock
+          className="text-[11px] leading-[1.45]"
+          command={labelOf(row.entry)}
+          copyable={true}
+        />
+      ) : (
+        <span className="text-pretty text-xs">{labelOf(row.entry)}</span>
+      )}
 
       {output === "" ? null : (
         <JournalOutput

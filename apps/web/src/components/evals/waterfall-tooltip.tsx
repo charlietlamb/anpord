@@ -64,7 +64,7 @@ export function RowTooltip({ row }: { readonly row: WaterfallRow }) {
 
         {isCommand ? (
           <ShellBlock
-            className="max-h-32 text-[11px] leading-[1.45]"
+            className="max-h-32 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] leading-[1.45]"
             command={labelOf(row.entry)}
             copyable={false}
             tone="inverted"
