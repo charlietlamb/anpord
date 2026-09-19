@@ -1,3 +1,4 @@
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { sql } from "drizzle-orm";
 import {
@@ -31,6 +32,7 @@ export const evalTask = pgTable(
     validatorName: text("validator_name"),
     validatorSource: text("validator_source"),
     validatorConfig: jsonb("validator_config").$type<EvalValidator>(),
+    user: jsonb("user").$type<EvalUser>(),
     /* Stored because a worker rebuilds the case from here, never from the request. */
     cacheKey: text("cache_key"),
     cachePath: text("cache_path"),

@@ -1,6 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { IdGenerator } from "@anpord/ids/id";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
@@ -18,6 +19,7 @@ interface TaskDefinition {
   readonly prepare: EvalPrepare | null;
   readonly prompt: string;
   readonly source: WorkspaceSource;
+  readonly user?: EvalUser | null;
   readonly validator: EvalValidator | null;
   readonly verifyCommand: string | null;
   readonly workspace: string;
@@ -65,6 +67,7 @@ const definitionOf = (input: TaskDefinition) => ({
     input.validator != null && "source" in input.validator
       ? input.validator.source
       : null,
+  user: input.user ?? null,
   validatorConfig: input.validator,
   verifyCommand: input.verifyCommand,
   workspace: input.workspace,

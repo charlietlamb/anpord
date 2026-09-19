@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalValidator } from "@anpord/schema/domain/evals";
 import type { WorkspaceSource } from "./workspace-source";
 
@@ -6,6 +7,7 @@ export interface CaseDefinition {
   readonly name: string;
   readonly prepare: { readonly source: string } | null;
   readonly source: WorkspaceSource;
+  readonly user?: EvalUser | null;
   readonly validator?: EvalValidator | null;
   readonly variables: Readonly<Record<string, string>>;
   readonly verifyCommand: string | null;
@@ -28,6 +30,11 @@ const validatorOf = (validator: EvalValidator | null | undefined) => {
   const { sourceFiles, ...execution } = validator;
   return JSON.stringify(execution);
 };
+
+/* Last, and empty when absent, so a case that states no human keeps the
+   identity it had before one could. */
+const userOf = (user: EvalUser | null | undefined) =>
+  user == null ? "" : JSON.stringify(user);
 
 const sourceOf = (source: WorkspaceSource) => {
   if (source.kind === "empty") {
@@ -57,6 +64,7 @@ export const caseIdentityOf = (input: CaseDefinition): string =>
         input.verifyCommand ?? "",
         input.workspace,
         sourceOf(input.source),
+        userOf(input.user),
       ].join(" ")
     )
     .digest("hex")

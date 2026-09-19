@@ -1,3 +1,4 @@
+import { EvalUser } from "@anpord/schema/domain/eval-turns";
 import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Option, Schema } from "effect";
 import type { RequestedProfile } from "../domain/harness-profile";
@@ -21,6 +22,10 @@ export const caseFrom = (subject: CellTask): GridCase => ({
   name: subject.name,
   prepare: pairOf(subject.prepareName, subject.prepareSource),
   source: subject.source ?? { kind: "empty" },
+  user:
+    subject.user == null
+      ? null
+      : Schema.decodeUnknownSync(EvalUser)(subject.user),
   validator:
     subject.validatorConfig == null
       ? pairOf(subject.validatorName, subject.validatorSource)

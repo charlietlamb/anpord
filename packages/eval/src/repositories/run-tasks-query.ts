@@ -51,6 +51,7 @@ export interface CellTask {
   readonly source: WorkspaceSource | null;
   readonly trialsPerCell: number;
   readonly trigger: EvalTrigger | null;
+  readonly user?: unknown;
   readonly validatorConfig?: unknown;
   readonly validatorName?: string | null;
   readonly validatorSource?: string | null;
@@ -87,6 +88,7 @@ const CELL_TASK_COLUMNS = {
   trialsPerCell: sql<number>`${evalRun.trialCount} / ${evalRun.cellCount}`,
   validatorName: evalTask.validatorName,
   validatorSource: evalTask.validatorSource,
+  user: evalTask.user,
   validatorConfig: evalTask.validatorConfig,
   verifyCommand: evalTask.verifyCommand,
 };
