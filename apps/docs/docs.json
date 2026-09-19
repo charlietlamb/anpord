@@ -73,7 +73,8 @@
               "evals/mocks",
               "evals/api-mocks",
               "evals/judges",
-              "evals/classifiers"
+              "evals/classifiers",
+              "evals/conversations"
             ]
           },
           {
