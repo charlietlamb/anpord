@@ -35,8 +35,8 @@ export function AppSidebar() {
       collapsible="icon"
       variant="sidebar"
     >
-      <SidebarHeader className="gap-1 p-2">
-        <div className="relative flex h-9 items-center gap-2 px-2">
+      <SidebarHeader className="gap-1 px-2 py-0">
+        <div className="relative flex h-11 items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <Link
             aria-label="Home"
             className="shrink-0 cursor-pointer text-foreground transition-colors hover:text-muted-foreground"
