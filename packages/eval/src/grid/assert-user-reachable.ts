@@ -26,7 +26,7 @@ export const assertUserReachable = (
       return yield* Effect.fail(
         new UserUnavailable({
           reason:
-            "this run states a human, which needs an OpenAI credential to play them. Connect one under settings, connections",
+            "this run states a human, which needs an OpenAI credential to play them. Connect one with `anpord connectors add openai`",
         })
       );
     }

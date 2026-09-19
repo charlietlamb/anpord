@@ -2,6 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { apiOperations, commandNames } from "../../src/cli/coverage";
 
 const OPERATION_COMMANDS: Record<string, readonly string[]> = {
+  /* `connectors` is one command with subcommands, and getNames reports the
+     parent, so the four operations it covers share that one name. */
+  "connectors.add": ["connectors"],
+  "connectors.integrations": [],
+  "connectors.list": [],
+  "connectors.remove": [],
   "evals.artifact": [],
   "evals.cellHistory": [],
   "evals.get": [],

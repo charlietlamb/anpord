@@ -9,6 +9,7 @@ import { Args, Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { ClientLayer } from "../client/config";
+import { connectors } from "./connector-command";
 import { declarationFile } from "./declarations";
 import { runEval } from "./eval-command";
 import { json, note, promptContent, row } from "./render";
@@ -201,6 +202,7 @@ const withClient = <Name extends string, R, E, A>(
 
 export const commands = [
   runEval,
+  withClient(connectors),
   withClient(gen),
   withClient(generate),
   withClient(get),

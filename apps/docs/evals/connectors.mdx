@@ -1,0 +1,58 @@
+---
+title: "Connectors"
+description: "Connect the credentials a run needs, from the terminal"
+---
+
+A run needs three kinds of credential: a harness to drive the agent, a sandbox to run it in, and, for a case that states a human, a model to play them. Each one is a connector.
+
+```bash
+anpord connectors integrations
+anpord connectors add openai
+anpord connectors list
+```
+
+## Adding one
+
+`add` takes the integration and prompts for the secret:
+
+```bash
+$ anpord connectors add openai
+API key: ········
+Connected openai as con_9EKR3ZHZF24TFM16N0WJ
+```
+
+There is no `--key` option, and that is deliberate. A secret in a flag is kept in shell history and readable from the process list by anyone on the machine for as long as the command runs. It is prompted for instead.
+
+In a script, pipe it:
+
+```bash
+echo "$OPENAI_API_KEY" | anpord connectors add openai --name ci
+```
+
+The value is encrypted when it arrives and is never returned. `list` states that a connection exists, not what is in it.
+
+## Choosing the auth method
+
+An integration that accepts more than one way in takes `--auth`:
+
+```bash
+anpord connectors add codex --auth api-key
+```
+
+Run `anpord connectors integrations` to see the methods each one accepts and the fields they need. A method that signs in through a browser cannot be completed from the terminal, and the command says so rather than failing.
+
+## Which connector a run uses
+
+`--default` marks the one runs reach for:
+
+```bash
+anpord connectors add e2b --default
+```
+
+## Removing one
+
+```bash
+anpord connectors remove con_9EKR3ZHZF24TFM16N0WJ
+```
+
+A run already holding the credential finishes; the next one cannot start without another connector for that integration.

@@ -52,7 +52,12 @@
           },
           {
             "group": "Advanced evals",
-            "pages": ["evals/profiles", "evals/command-harness", "evals/import"]
+            "pages": [
+              "evals/connectors",
+              "evals/profiles",
+              "evals/command-harness",
+              "evals/import"
+            ]
           },
           {
             "group": "Tools",

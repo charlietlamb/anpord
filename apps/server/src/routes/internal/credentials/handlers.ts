@@ -1,31 +1,13 @@
 import { CredentialConnections } from "@anpord/eval/credentials/connections";
 import { DeviceAuth } from "@anpord/eval/credentials/device-auth";
-import type { CredentialError } from "@anpord/eval/credentials/errors";
 import { credentialIntegrations } from "@anpord/eval/credentials/integrations";
-import {
-  BadRequest,
-  InternalError,
-  NotFound,
-} from "@anpord/schema/domain/errors";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
-
-const apiError = (error: CredentialError) => {
-  if (error.code === "not-found") {
-    return new NotFound({ message: error.message });
-  }
-  if (error.code === "internal") {
-    return new InternalError({ message: "Credential operation failed" });
-  }
-  return new BadRequest({ message: error.message });
-};
-
-const handled = <A, R>(effect: Effect.Effect<A, CredentialError, R>) =>
-  effect.pipe(Effect.mapError(apiError));
+import { handledCredential } from "./errors";
 
 export const CredentialsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -41,13 +23,13 @@ export const CredentialsHandlers = HttpApiBuilder.group(
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           return yield* (yield* CredentialConnections).awareness(actor);
-        }).pipe(handled)
+        }).pipe(handledCredential)
       )
       .handle("list", { permission: Permissions.Credentials.Read }, () =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           return yield* (yield* CredentialConnections).list(actor);
-        }).pipe(handled)
+        }).pipe(handledCredential)
       )
       .handle(
         "create",
@@ -56,7 +38,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* CredentialConnections).create(actor, payload);
-          }).pipe(handled)
+          }).pipe(handledCredential)
       )
       .handle(
         "remove",
@@ -65,7 +47,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* CredentialConnections).remove(actor, path.id);
-          }).pipe(handled)
+          }).pipe(handledCredential)
       )
       .handle(
         "setDefault",
@@ -77,7 +59,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
               actor,
               path.id
             );
-          }).pipe(handled)
+          }).pipe(handledCredential)
       )
       .handle(
         "rotate",
@@ -90,7 +72,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
               path.id,
               payload.values
             );
-          }).pipe(handled)
+          }).pipe(handledCredential)
       )
       .handle(
         "verify",
@@ -99,7 +81,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* CredentialConnections).verify(actor, path.id);
-          }).pipe(handled)
+          }).pipe(handledCredential)
       )
       .handle(
         "startDevice",
@@ -108,7 +90,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* DeviceAuth).start(actor, payload);
-          }).pipe(handled)
+          }).pipe(handledCredential)
       )
       .handle(
         "deviceStatus",
@@ -117,6 +99,6 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* DeviceAuth).status(actor, path.id);
-          }).pipe(handled)
+          }).pipe(handledCredential)
       ).done
 );
