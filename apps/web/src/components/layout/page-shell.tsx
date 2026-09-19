@@ -21,9 +21,11 @@ export function PageShell({
   leading,
   width = "prose",
 }: PageShellProps) {
+  const hasBar = Boolean(actions || leading);
+
   return (
     <div className={PAGE_FRAME}>
-      {actions || leading ? (
+      {hasBar ? (
         <div className="sticky top-0 z-10 shrink-0 bg-background">
           <div
             className={cn(PAGE_WIDTHS[width], "flex h-11 items-center gap-2")}
@@ -37,7 +39,11 @@ export function PageShell({
       ) : null}
 
       <div
-        className={cn(PAGE_WIDTHS[width], "flex min-h-0 flex-1 flex-col pb-24")}
+        className={cn(
+          PAGE_WIDTHS[width],
+          "flex min-h-0 flex-1 flex-col pb-24",
+          !hasBar && "pt-6"
+        )}
       >
         {description ? (
           <p className="mb-5 max-w-prose text-muted-foreground text-sm">
