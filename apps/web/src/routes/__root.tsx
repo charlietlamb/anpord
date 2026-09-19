@@ -1,8 +1,6 @@
 /// <reference types="vite/client" />
-import "@fontsource-variable/funnel-display";
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
-import headingFont from "@fontsource-variable/funnel-display/files/funnel-display-latin-wght-normal.woff2?url";
 import bodyFont from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
@@ -53,13 +51,6 @@ export const Route = createRootRouteWithContext<{
         as: "font",
         type: "font/woff2",
         href: bodyFont,
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "preload",
-        as: "font",
-        type: "font/woff2",
-        href: headingFont,
         crossOrigin: "anonymous",
       },
     ],

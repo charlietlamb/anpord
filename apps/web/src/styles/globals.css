@@ -52,7 +52,7 @@
 }
 
 @theme inline {
-  --font-heading: "Funnel Display Variable", ui-sans-serif, sans-serif;
+  --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
   --color-ring: var(--ring);
@@ -360,7 +360,7 @@
 
 @layer base {
   .font-heading {
-    font-weight: 350;
+    font-weight: 450;
   }
 }
 

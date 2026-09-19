@@ -69,7 +69,7 @@ export function AgentSetup() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h2 className="font-heading font-medium text-xl tracking-tight">
+        <h2 className="font-heading text-xl tracking-tight">
           Write an eval in code
         </h2>
         <p className="max-w-xl text-muted-foreground text-sm leading-6">

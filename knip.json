@@ -33,7 +33,8 @@
         "vite.config.ts"
       ],
       "project": "src/**",
-      "ignore": ["src/routeTree.gen.ts"]
+      "ignore": ["src/routeTree.gen.ts"],
+      "ignoreDependencies": ["@fontsource-variable/funnel-display"]
     },
     "packages/auth": {
       "entry": [
