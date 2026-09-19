@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Layer, Option } from "effect";
+import { UserUnavailable } from "../../src/domain/errors";
 import type { HarnessEvent } from "../../src/domain/harness-event";
 import { SimulatedUser } from "../../src/ports/simulated-user";
 import { converse } from "../../src/services/conversation";
@@ -84,6 +85,24 @@ describe("a conversation", () => {
     );
 
     expect(result.ended).toBe("failed");
+    expect(result.turns).toHaveLength(1);
+  });
+
+  /* A person who cannot speak is a broken setup, not a satisfied customer.
+     Scored as "user-done" the case passes on the agent's opening turn. */
+  it("separates a user it could not reach from a user who is finished", async () => {
+    const result = await Effect.runPromise(
+      run(["asked?"]).pipe(
+        Effect.provide(
+          Layer.succeed(SimulatedUser, {
+            reply: () =>
+              Effect.fail(new UserUnavailable({ reason: "no credential" })),
+          })
+        )
+      )
+    );
+
+    expect(result.ended).toBe("no-user");
     expect(result.turns).toHaveLength(1);
   });
 

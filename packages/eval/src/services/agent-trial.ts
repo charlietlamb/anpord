@@ -28,6 +28,7 @@ import type {
   SandboxUnavailable,
   SourceUnavailable,
 } from "../domain/errors";
+import { UserUnavailable } from "../domain/errors";
 import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
 import { waitingOutCapacity } from "../domain/harness-retry";
@@ -101,7 +102,11 @@ export interface AgentTrialShape {
     request: AgentTrialRequest
   ) => Effect.Effect<
     AgentTrialResult,
-    HarnessUnavailable | SandboxUnavailable | PrepareFailed | SourceUnavailable
+    | HarnessUnavailable
+    | SandboxUnavailable
+    | PrepareFailed
+    | SourceUnavailable
+    | UserUnavailable
   >;
 }
 
@@ -265,6 +270,18 @@ export const AgentTrialLive = Layer.effect(
                 run: turn,
                 user: request.user,
               }).pipe(Effect.provideService(SimulatedUser, human));
+
+        /* A case that states a human and then holds no conversation measured
+           nothing: scoring it would report the setup failure as a verdict. */
+        if (conversation?.ended === "no-user") {
+          return yield* Effect.fail(
+            new UserUnavailable({
+              reason:
+                "no OpenAI credential is configured for this organization",
+            })
+          );
+        }
+
         const agentEvents =
           conversation === null
             ? yield* turn(opening, Option.none())

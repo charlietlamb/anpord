@@ -75,7 +75,8 @@ const makeLlmUser = Effect.gen(function* () {
         )
       );
     const key = (yield* stored("openai", "apiKey")).pipe(
-      Option.orElse(() => Option.map(platformKey, Redacted.value))
+      Option.orElse(() => Option.map(platformKey, Redacted.value)),
+      Option.filter((found) => found.trim() !== "")
     );
 
     if (Option.isNone(key)) {

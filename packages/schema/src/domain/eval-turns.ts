@@ -36,9 +36,13 @@ export const EvalTurn = Schema.Struct({
 });
 export type EvalTurn = typeof EvalTurn.Type;
 
+/* `user-done` is a measurement: the person judged the agent finished.
+   `no-user` is a broken setup that would otherwise be indistinguishable
+   from it, and a case scored as though a silent person had approved. */
 export const EvalTurnsEnded = Schema.Literal(
   "user-done",
   "max-turns",
+  "no-user",
   "failed"
 );
 export type EvalTurnsEnded = typeof EvalTurnsEnded.Type;

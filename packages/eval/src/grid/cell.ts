@@ -8,6 +8,7 @@ import type {
   PrepareFailed,
   SandboxUnavailable,
   SourceUnavailable,
+  UserUnavailable,
 } from "../domain/errors";
 import { renderPrompt } from "../domain/prompt";
 import type { WorkspaceSource } from "../domain/workspace-source";
@@ -55,7 +56,8 @@ export const runGridCell = (
   | HarnessUnavailable
   | SandboxUnavailable
   | PrepareFailed
-  | SourceUnavailable,
+  | SourceUnavailable
+  | UserUnavailable,
   ModelPrices | SimulatedUser
 > =>
   Effect.gen(function* () {

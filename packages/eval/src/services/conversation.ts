@@ -1,4 +1,8 @@
-import type { EvalTurn, EvalUser } from "@anpord/schema/domain/eval-turns";
+import type {
+  EvalTurn,
+  EvalTurnsEnded,
+  EvalUser,
+} from "@anpord/schema/domain/eval-turns";
 import { MAX_USER_TURNS } from "@anpord/schema/domain/eval-turns";
 import { Effect, Option } from "effect";
 import type { HarnessEvent } from "../domain/harness-event";
@@ -6,7 +10,7 @@ import { commandsIn, readAnswer, sessionIdOf } from "../domain/journal";
 import { SimulatedUser } from "../ports/simulated-user";
 
 interface Conversation {
-  readonly ended: "user-done" | "max-turns" | "failed";
+  readonly ended: EvalTurnsEnded;
   readonly events: readonly HarnessEvent[];
   readonly turns: readonly EvalTurn[];
 }
@@ -22,20 +26,36 @@ const turnOf = (
   userText,
 });
 
+type Said =
+  | { readonly _tag: "said"; readonly text: string }
+  | { readonly _tag: "done" }
+  | { readonly _tag: "absent"; readonly reason: string };
+
 const nextText = (
   user: EvalUser,
   spoken: readonly string[],
   agentText: string,
   organizationId: string
-) =>
+): Effect.Effect<Said, never, SimulatedUser> =>
   user.kind === "scripted"
-    ? Effect.succeed(Option.fromNullable(user.replies[spoken.length - 1]))
+    ? Effect.succeed(
+        Option.match(Option.fromNullable(user.replies[spoken.length - 1]), {
+          onNone: (): Said => ({ _tag: "done" }),
+          onSome: (text): Said => ({ _tag: "said", text }),
+        })
+      )
     : SimulatedUser.pipe(
         Effect.flatMap((simulated) =>
           simulated.reply({ agentText, organizationId, spoken, user })
         ),
-        Effect.catchTag("UserUnavailable", () =>
-          Effect.succeed(Option.none<string>())
+        Effect.map(
+          Option.match({
+            onNone: (): Said => ({ _tag: "done" }),
+            onSome: (text): Said => ({ _tag: "said", text }),
+          })
+        ),
+        Effect.catchTag("UserUnavailable", (error) =>
+          Effect.succeed<Said>({ _tag: "absent", reason: error.reason })
         )
       );
 
@@ -69,15 +89,23 @@ export const converse = <E, R>(input: {
         input.organizationId
       );
 
-      if (Option.isNone(said)) {
+      if (said._tag === "done") {
         ended = "user-done";
         break;
       }
 
-      const replied = yield* input.run(said.value, session);
+      if (said._tag === "absent") {
+        yield* Effect.logWarning("the simulated user could not speak").pipe(
+          Effect.annotateLogs({ reason: said.reason, turns: turns.length })
+        );
+        ended = "no-user";
+        break;
+      }
 
-      spoken.push(said.value);
-      turns.push(turnOf(turns.length, said.value, replied));
+      const replied = yield* input.run(said.text, session);
+
+      spoken.push(said.text);
+      turns.push(turnOf(turns.length, said.text, replied));
       events.push(...replied);
     }
 
