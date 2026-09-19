@@ -51,6 +51,7 @@ export const evidenceContext = (
   return {
     answer: async () => answer,
     transcript: async () => answer,
+    turns: async () => [],
     mcp: { calls: async () => (transport === "mcp" ? calls.mcp : []) },
     cli: { calls: async () => (transport === "cli" ? calls.cli : []) },
     api: {

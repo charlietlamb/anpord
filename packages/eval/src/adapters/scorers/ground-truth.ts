@@ -218,7 +218,7 @@ export const ScorerGroundTruthLive = Layer.succeed(
   Scorer,
   Scorer.of({
     score: (request: ScoreRequest) =>
-      writeAnswer(request.sandbox, request.events).pipe(
+      writeAnswer(request.sandbox, request.events, request.turns).pipe(
         Effect.flatMap(() =>
           request.validator != null && "source" in request.validator
             ? scoreValidator({ ...request, validator: request.validator })

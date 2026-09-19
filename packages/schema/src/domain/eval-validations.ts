@@ -19,6 +19,7 @@ export const ValidationCall = Schema.Struct({
   method: Schema.Literal(
     "answer",
     "transcript",
+    "turns",
     "readText",
     "exists",
     "exec",

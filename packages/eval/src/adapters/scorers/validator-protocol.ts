@@ -4,6 +4,8 @@ import {
   ANSWER_PATH,
   TRANSCRIPT_ENV,
   TRANSCRIPT_PATH,
+  TURNS_ENV,
+  TURNS_PATH,
 } from "../../domain/answer-file";
 import { readAnswer, transcriptOf } from "../../domain/journal";
 import type { SandboxHandle } from "../../ports/sandbox";
@@ -31,12 +33,14 @@ export const validatorResultOf = (output: string) => {
 /* Beside the workspace, not in it, so the reply never becomes part of the diff. */
 export const writeAnswer = (
   sandbox: SandboxHandle,
-  events: ScoreRequest["events"]
+  events: ScoreRequest["events"],
+  turns: ScoreRequest["turns"]
 ) =>
   Effect.all(
     [
       sandbox.writeFile(ANSWER_PATH(sandbox.home), readAnswer(events)),
       sandbox.writeFile(TRANSCRIPT_PATH(sandbox.home), transcriptOf(events)),
+      sandbox.writeFile(TURNS_PATH(sandbox.home), JSON.stringify(turns ?? [])),
     ],
     { discard: true }
   );
@@ -44,6 +48,7 @@ export const writeAnswer = (
 export const answerEnv = (sandbox: SandboxHandle) => ({
   [ANSWER_ENV]: ANSWER_PATH(sandbox.home),
   [TRANSCRIPT_ENV]: TRANSCRIPT_PATH(sandbox.home),
+  [TURNS_ENV]: TURNS_PATH(sandbox.home),
 });
 
 export const resultStatus = (passed: boolean) =>

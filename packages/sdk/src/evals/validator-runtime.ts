@@ -134,6 +134,16 @@ const context = (): ValidatorContext => ({
     observe("transcript", [], () =>
       readOptional(process.env.ANPORD_TRANSCRIPT_FILE)
     ),
+  turns: () =>
+    observe("turns", [], async () => {
+      const read = await readOptional(process.env.ANPORD_TURNS_FILE);
+
+      try {
+        return JSON.parse(read || "[]");
+      } catch {
+        return [];
+      }
+    }),
   prepared: decodePrepared(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
   readText: (path) => observe("readText", [path], () => readFile(path, "utf8")),
   exists: (path) =>

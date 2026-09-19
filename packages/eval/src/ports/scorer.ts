@@ -1,3 +1,4 @@
+import type { EvalTurn } from "@anpord/schema/domain/eval-turns";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import type { EvalValidator } from "@anpord/schema/domain/evals";
 import { Context, type Effect } from "effect";
@@ -13,6 +14,7 @@ export interface ScoreRequest {
   readonly onValidation?: ValidationObserver;
   readonly prepared?: Readonly<Record<string, unknown>>;
   readonly sandbox: SandboxHandle;
+  readonly turns?: readonly EvalTurn[];
   readonly validationPrefix?: string;
   readonly validator?: EvalValidator | null;
   /* Null for a case with no verifier, whose trials are void rather than passed. */

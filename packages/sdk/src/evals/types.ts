@@ -1,6 +1,6 @@
 import type { ApiCall } from "@anpord/schema/domain/api-mocks";
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
+import type { EvalTurn, EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import type { McpCall } from "../mcp/calls";
@@ -87,6 +87,7 @@ export interface ValidatorContext {
   readonly readText: (path: string) => Promise<string>;
   /** Every reply, oldest first, separated by a blank line. */
   readonly transcript: () => Promise<string>;
+  readonly turns: () => Promise<readonly EvalTurn[]>;
 }
 
 export interface ValidatorResult {

@@ -290,6 +290,7 @@ export const AgentTrialLive = Layer.effect(
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,
+          turns: conversation?.turns,
           prepared,
           validator: request.validator,
           verifyCommand: request.verifyCommand,
