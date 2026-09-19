@@ -36,7 +36,7 @@ export function RowTitle({
   return (
     <span
       className={cn(
-        "truncate font-heading font-normal text-foreground text-label tracking-[-0.01em]",
+        "truncate font-normal text-foreground text-label",
         className
       )}
     >
