@@ -82,8 +82,6 @@ export const shellTokens = async (
   try {
     const shiki = await highlighter();
 
-    await shiki.loadLanguage(import("shiki/langs/bash.mjs"));
-
     const { tokens } = shiki.codeToTokens(command, {
       includeExplanation: true,
       lang: "bash",
@@ -97,9 +95,9 @@ export const shellTokens = async (
       value: token.content,
     }));
   } catch (error) {
-    if (process.env.ANPORD_HIGHLIGHT_DEBUG !== undefined) {
-      process.stderr.write(`shellTokens fell back: ${String(error)}\n`);
-    }
+    /* Loud rather than silent: a command that renders unhighlighted still
+       reads, so this failed six releases before anyone could see it. */
+    console.warn("shellTokens fell back", error);
 
     return plain(command);
   }
