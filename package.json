@@ -61,6 +61,7 @@
     "@upstash/box": "^0.7.0",
     "@vercel/sandbox": "3.1.0",
     "@vitejs/plugin-react": "5.0.4",
+    "atmn": "^1.1.21",
     "autumn-js": "^1.2.53",
     "better-auth": "1.6.29",
     "class-variance-authority": "0.7.1",
@@ -108,7 +109,10 @@
   },
   "resolutions": {
     "@shikijs/core": "4.4.3",
-    "@shikijs/types": "4.4.3"
+    "@shikijs/transformers": "4.4.3",
+    "@shikijs/twoslash": "4.4.3",
+    "@shikijs/types": "4.4.3",
+    "shiki": "4.4.3"
   },
   "scripts": {
     "build": "turbo run build",
@@ -139,7 +143,7 @@
     "@biomejs/biome": "catalog:",
     "@types/bun": "catalog:",
     "@types/pg": "catalog:",
-    "atmn": "^1.1.21",
+    "atmn": "catalog:",
     "husky": "catalog:",
     "knip": "catalog:",
     "pg": "catalog:",
