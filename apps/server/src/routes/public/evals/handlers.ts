@@ -3,6 +3,7 @@ import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { getEvalArtifact } from "../../evals/artifacts";
+import { leaseCredentials } from "../../evals/credential-lease";
 import {
   getCellHistory,
   getEvalModels,
@@ -36,6 +37,11 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
       )
       .handle("get", { permission: Permissions.Evals.Read }, ({ payload }) =>
         getEvalRun(payload.id)
+      )
+      .handle(
+        "credentials",
+        { permission: Permissions.Evals.Write },
+        ({ payload }) => leaseCredentials(payload)
       )
       .handle(
         "reportTrial",

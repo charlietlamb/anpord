@@ -6,6 +6,7 @@ import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { SimulatedUserLive } from "./adapters/user/llm-user";
 import { CredentialResolverFromEnv } from "./credentials/env-resolver";
+import type { CredentialResolver } from "./credentials/resolver";
 import { JudgeModelLive } from "./judges/layer";
 import { SandboxAdapters } from "./ports/sandbox";
 import { AgentTrialLive } from "./services/agent-trial";
@@ -32,24 +33,29 @@ const LocalAdaptersLive = Layer.effect(
 /* One trial on the machine that asked for it. The grid's repositories are
    absent rather than stubbed: a local run has no cell to compare against and
    nothing to persist, so it needs no database at all. */
-export const EvalLocalLive = LocalTrialsLive.pipe(
-  Layer.provide(
-    AgentTrialJudgedLive.pipe(
-      Layer.provide(
-        AgentTrialLive.pipe(
-          Layer.provide(
-            ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
-          ),
-          Layer.provide(SuspenderSleeping),
-          Layer.provide(
-            SimulatedUserLive.pipe(Layer.provide(FetchHttpClient.layer))
+export const evalLocalWith = (credentials: Layer.Layer<CredentialResolver>) =>
+  LocalTrialsLive.pipe(
+    Layer.provide(
+      AgentTrialJudgedLive.pipe(
+        Layer.provide(
+          AgentTrialLive.pipe(
+            Layer.provide(
+              ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
+            ),
+            Layer.provide(SuspenderSleeping),
+            Layer.provide(
+              SimulatedUserLive.pipe(Layer.provide(FetchHttpClient.layer))
+            )
           )
-        )
-      ),
-      Layer.provide(JudgeModelLive.pipe(Layer.provide(FetchHttpClient.layer))),
-      Layer.provide(Layer.mergeAll(HarnessesLive, HarnessVersionsLive))
-    )
-  ),
-  Layer.provide(CredentialResolverFromEnv),
-  Layer.provide(SandboxProviderLive.pipe(Layer.provide(LocalAdaptersLive)))
-);
+        ),
+        Layer.provide(
+          JudgeModelLive.pipe(Layer.provide(FetchHttpClient.layer))
+        ),
+        Layer.provide(Layer.mergeAll(HarnessesLive, HarnessVersionsLive))
+      )
+    ),
+    Layer.provide(credentials),
+    Layer.provide(SandboxProviderLive.pipe(Layer.provide(LocalAdaptersLive)))
+  );
+
+export const EvalLocalLive = evalLocalWith(CredentialResolverFromEnv);

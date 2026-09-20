@@ -128,6 +128,26 @@ export const PublicStartEvalRequest = Schema.Struct({
 });
 export type PublicStartEvalRequest = typeof PublicStartEvalRequest.Type;
 
+export const CredentialLeaseRequest = Schema.Struct({
+  harness: EvalHarness,
+  id: Schema.String,
+}).annotations({
+  description:
+    "Ask for the credentials a run the caller is executing needs, for the harness it names.",
+  identifier: "CredentialLeaseRequest",
+});
+export type CredentialLeaseRequest = typeof CredentialLeaseRequest.Type;
+
+export const CredentialLease = Schema.Struct({
+  expiresAt: Schema.DateTimeUtc,
+  values: Schema.Record({ key: Schema.String, value: Schema.String }),
+}).annotations({
+  description:
+    "Credentials for one run, held in memory and never written down. Short-lived: start another run rather than keeping these.",
+  identifier: "CredentialLease",
+});
+export type CredentialLease = typeof CredentialLease.Type;
+
 export const ReportedTrial = Schema.Struct({
   caseName: EvalCaseName,
   events: Schema.Array(HarnessEvent),
@@ -170,6 +190,16 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
       .annotate(
         OpenApi.Description,
         `Starts the grid and returns its id while trials continue in the background. ${PROFILE_HARNESS_RULE}`
+      )
+  )
+  .add(
+    HttpApiEndpoint.post("credentials", "/evals.credentials")
+      .setPayload(CredentialLeaseRequest)
+      .addSuccess(CredentialLease)
+      .annotate(OpenApi.Summary, "Lease the credentials a local run needs")
+      .annotate(
+        OpenApi.Description,
+        "For a run started with executeLocally, so the machine running it holds no credentials of its own. Returns the organization credential for one harness, expiring in minutes. Sandbox credentials are never leased: a local run opens no cloud sandbox."
       )
   )
   .add(

@@ -37,17 +37,19 @@ Addresses, and nothing else. A variable is given to a case when its name ends in
 
 Both halves matter. `DATABASE_URL=postgres://user:password@host/db` is named like an address but carries a password inside it, so it is withheld. A local sandbox is a shell on your machine, and a value handed to it reaches the agent's context and the journal the run writes down.
 
-An agent that needs a model key still reads it from your environment directly, as it does outside Anpord.
+An agent that needs a model key does not read one from your machine. When you have an API key set, the run leases the credential your organization already connected, for the one harness it names, expiring in fifteen minutes. It is held in memory and never written down, so nothing has to be kept locally.
 
-## What a local run is not
+Sandbox credentials are never leased: a local run opens no cloud sandbox. A lease is only issued for a run you started with `--local` and are executing yourself.
 
-A local run is not recorded. It has no run in the dashboard, no history, and no baseline to compare against, so `--fail-on regressed` and `--fail-on unscored` have nothing to read. The exit code still reflects the result, so CI can gate on it:
+## What a local run is
+
+A local run with an API key set is recorded like any other: it appears in the dashboard with its journal, marked as having run on your machine. What it does not get is a baseline. Its results were produced somewhere nobody else can inspect, so they never become the bar a later run is measured against, and `--fail-on regressed` has nothing to compare. The exit code reflects the result, so CI can gate on it:
 
 ```bash
 anpord eval --local ./checkout.eval.ts || exit 1
 ```
 
-Use a hosted sandbox when you want the run kept. Because the sandbox is part of the cell key, a local run would start a separate history in any case.
+Without an API key nothing is sent anywhere, and the results only print.
 
 ## Requirements
 

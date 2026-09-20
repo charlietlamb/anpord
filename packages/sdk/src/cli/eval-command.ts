@@ -132,11 +132,27 @@ const recordedLocally = (file: string) =>
 
     yield* reportStarted(file, started.id);
 
-    const cases = yield* runLocally(payload, (trial) =>
-      api.evals
-        .reportTrial({ payload: { id: started.id, trial } })
-        .pipe(Effect.ignore)
-    );
+    const leased = yield* api.evals
+      .credentials({
+        payload: {
+          harness: payload.tasks[0]?.harness ?? "codex",
+          id: started.id,
+        },
+      })
+      .pipe(
+        Effect.map(
+          (lease): Readonly<Record<string, string>> | undefined => lease.values
+        ),
+        Effect.catchAll(() => Effect.succeed(undefined))
+      );
+
+    const cases = yield* runLocally(payload, {
+      credentials: leased,
+      onTrial: (trial) =>
+        api.evals
+          .reportTrial({ payload: { id: started.id, trial } })
+          .pipe(Effect.ignore),
+    });
 
     yield* api.evals
       .finishRun({ payload: { id: started.id } })

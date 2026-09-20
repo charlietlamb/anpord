@@ -6,7 +6,7 @@ import type { ReportTrialRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Option } from "effect";
 import { getEvalRun } from "./operations";
 
-const reportedRun = (id: string) =>
+export const reportedRun = (id: string) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
     const grid = yield* GridRun;

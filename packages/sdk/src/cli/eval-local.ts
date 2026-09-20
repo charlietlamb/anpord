@@ -1,5 +1,6 @@
+import { credentialResolverFrom } from "@anpord/eval/credentials/env-resolver";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
-import { EvalLocalLive } from "@anpord/eval/local-layer";
+import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
 import type {
   PublicStartEvalRequest,
@@ -17,9 +18,14 @@ export interface LocalCase {
 
 /* Everything a local run needs is on this machine, so one trial per case is
    the whole grid: there is no baseline here to be repeatable against. */
+export interface LocalRunOptions {
+  readonly credentials?: Readonly<Record<string, string>>;
+  readonly onTrial?: (trial: ReportedTrial) => Effect.Effect<void>;
+}
+
 export const runLocally = (
   request: PublicStartEvalRequest,
-  onTrial?: (trial: ReportedTrial) => Effect.Effect<void>
+  options: LocalRunOptions = {}
 ) =>
   Effect.gen(function* () {
     const trials = yield* LocalTrials;
@@ -51,7 +57,7 @@ export const runLocally = (
           .pipe(
             Effect.tap(
               (outcome) =>
-                onTrial?.({
+                options.onTrial?.({
                   caseName: subject.name,
                   events: outcome.events,
                   ordinal: 0,
@@ -72,7 +78,11 @@ export const runLocally = (
       { concurrency: 1 }
     );
   }).pipe(
-    Effect.provide(EvalLocalLive),
+    Effect.provide(
+      options.credentials === undefined
+        ? EvalLocalLive
+        : evalLocalWith(credentialResolverFrom(options.credentials))
+    ),
     Effect.scoped,
     /* Passing the flag is the opt-in the adapter's gate asks for: whoever runs
        the command is the person whose machine it runs on. The environment can

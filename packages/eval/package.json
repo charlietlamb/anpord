@@ -43,6 +43,7 @@
     "./credentials/cipher": "./src/credentials/cipher.ts",
     "./credentials/connections": "./src/credentials/connections.ts",
     "./credentials/device-auth": "./src/credentials/device-auth.ts",
+    "./credentials/env-resolver": "./src/credentials/env-resolver.ts",
     "./credentials/errors": "./src/credentials/errors.ts",
     "./credentials/integrations": "./src/credentials/integrations.ts",
     "./credentials/model-key": "./src/credentials/model-key.ts",
