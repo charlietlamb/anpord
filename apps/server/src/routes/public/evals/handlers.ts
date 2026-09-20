@@ -7,6 +7,7 @@ import {
   getCellHistory,
   getEvalModels,
   getEvalRun,
+  getRunSubscription,
   listEvalRuns,
   rerunEvalCell,
   startEvalRun,
@@ -34,6 +35,11 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
       )
       .handle("get", { permission: Permissions.Evals.Read }, ({ payload }) =>
         getEvalRun(payload.id)
+      )
+      .handle(
+        "subscription",
+        { permission: Permissions.Evals.Read },
+        ({ payload }) => getRunSubscription(payload.id)
       )
       .handle(
         "cellHistory",

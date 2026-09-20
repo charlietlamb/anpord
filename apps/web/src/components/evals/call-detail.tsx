@@ -56,7 +56,7 @@ export function CallDetail({
       {/* Output is what a terminal printed, so it keeps its own lines. */}
       {call.output === undefined || call.output === "" ? null : (
         <JournalOutput
-          className="max-h-72 min-h-0 flex-1 text-[11px] leading-[1.45]"
+          className="max-h-72 min-h-0 flex-1 whitespace-pre-wrap break-words text-[11px] leading-[1.45]"
           output={call.output}
         />
       )}

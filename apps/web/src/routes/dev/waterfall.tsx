@@ -37,6 +37,28 @@ const RUNNING_TRAJECTORY = [
   },
 ];
 
+const LONG_CALLS = [
+  {
+    _tag: "command" as const,
+    command:
+      "/bin/bash -lc \"ls -la && printf '\\\\n--- files ---\\\\n' && rg --files -g '!node_modules' | head -80 && printf '\\\\n--- atmn ---' && cat package.json\"",
+    exitCode: 0,
+    finishedAtMillis: 2000,
+    output: "a".repeat(400),
+    startedAtMillis: 1000,
+  },
+  {
+    _tag: "command" as const,
+    command:
+      "/bin/bash -lc 'npx atmn skills autumn-concepts --ref references/feature.md; npx atmn skills autumn-catalog --ref references/billing-controls.md'",
+    exitCode: 1,
+    finishedAtMillis: 4000,
+    output:
+      "line one that is quite long and keeps going past the edge of the panel it sits inside\\nline two",
+    startedAtMillis: 3000,
+  },
+];
+
 const SAMPLE = VALIDATION_TRIALS[0]?.validations?.[0];
 
 const QUEUED_TRIALS =
@@ -89,6 +111,12 @@ function WaterfallPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
+
+        <PreviewScreen name="Long calls">
+          <div className="mx-auto w-full max-w-3xl px-5">
+            <TrialCalls trajectory={LONG_CALLS} />
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="File marks">
           <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-4 px-5">

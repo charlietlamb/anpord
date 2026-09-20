@@ -1,10 +1,9 @@
+import { runTagOf } from "@anpord/schema/domain/evals";
 import { auth, configure } from "@trigger.dev/sdk";
 import { Config, Effect, Redacted } from "effect";
 
 const TTL = "1h";
 const TTL_MILLIS = 60 * 60 * 1000;
-
-const tagOf = (runId: string) => `run_${runId}`;
 
 const secretKey = Config.redacted("TRIGGER_SECRET_KEY").pipe(
   Config.orElse(() => Config.redacted("TRIGGER_API_KEY"))
@@ -13,7 +12,7 @@ const secretKey = Config.redacted("TRIGGER_SECRET_KEY").pipe(
 export const mintRunSubscription = (runId: string) =>
   Effect.gen(function* () {
     const key = yield* secretKey.pipe(Effect.orDie);
-    const tag = tagOf(runId);
+    const tag = runTagOf(runId);
 
     configure({ secretKey: Redacted.value(key) });
 

@@ -589,6 +589,8 @@ export const EvalCellHistoryEntry = Schema.Struct({
 });
 export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
 
+export const runTagOf = (runId: string) => `run_${runId}`;
+
 export const RunSubscription = Schema.Struct({
   expiresAtMillis: Schema.Number,
   tag: Schema.String,

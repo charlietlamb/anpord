@@ -13,13 +13,12 @@ import {
 } from "@/lib/query/use-channel-mutations";
 
 export const Route = createFileRoute("/_authed/settings/channels")({
+  ssr: false,
   beforeLoad: () => {
     if (!PROMPTS_ENABLED) {
       throw notFound();
     }
   },
-  /* Client-only: the relative API URL has no base on the server, and the session cookie is the browser's to send. */
-  ssr: false,
   loader: async ({ context }) => {
     const { channelQueries: queries } = await import(
       "@/lib/query/channel-queries"

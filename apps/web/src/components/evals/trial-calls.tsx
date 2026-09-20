@@ -23,7 +23,6 @@ export function TrialCalls({
   }
 
   const failed = calls.filter((entry) => didFail(entry.call)).length;
-  const open = calls.find((entry) => entry.ordinal === selected) ?? null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -35,7 +34,7 @@ export function TrialCalls({
         {failed ? <span className="text-warning">{failed} failed</span> : null}
       </div>
 
-      <ol className="flex flex-col">
+      <ol className="flex flex-col gap-0.5">
         {calls.map(({ call, ordinal }) => (
           <CallRow
             call={call}
@@ -43,17 +42,17 @@ export function TrialCalls({
             onSelect={() => setSelected(selected === ordinal ? null : ordinal)}
             ordinal={ordinal}
             selected={selected === ordinal}
-          />
+          >
+            {selected === ordinal ? (
+              <CallDetail
+                call={call}
+                onClose={() => setSelected(null)}
+                ordinal={ordinal}
+              />
+            ) : null}
+          </CallRow>
         ))}
       </ol>
-
-      {open === null ? null : (
-        <CallDetail
-          call={open.call}
-          onClose={() => setSelected(null)}
-          ordinal={open.ordinal}
-        />
-      )}
     </div>
   );
 }

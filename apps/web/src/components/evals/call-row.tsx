@@ -6,6 +6,7 @@ import {
   TerminalWindowIcon,
   WrenchIcon,
 } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 
 export type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
 
@@ -46,11 +47,13 @@ function CallName({ name }: { readonly name: string }) {
 
 export function CallRow({
   call,
+  children,
   onSelect,
   ordinal,
   selected,
 }: {
   readonly call: Call;
+  readonly children?: ReactNode;
   readonly onSelect: () => void;
   readonly ordinal: number;
   readonly selected: boolean;
@@ -104,6 +107,8 @@ export function CallRow({
           )}
         />
       </button>
+
+      {children}
     </li>
   );
 }

@@ -30,6 +30,7 @@ import {
   EvalSource,
   EvalValidator,
   EvalVariables,
+  RunSubscription,
 } from "../domain/evals";
 import {
   HarnessProfile,
@@ -152,6 +153,16 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
       .setPayload(EvalRunRequest)
       .addSuccess(EvalRun)
       .annotate(OpenApi.Summary, "Get an eval run")
+  )
+  .add(
+    HttpApiEndpoint.post("subscription", "/evals.subscription")
+      .setPayload(EvalRunRequest)
+      .addSuccess(RunSubscription)
+      .annotate(OpenApi.Summary, "Watch an eval run as it moves")
+      .annotate(
+        OpenApi.Description,
+        "Returns a read-only token scoped to this run, for following it in real time. Short-lived: request another when it expires."
+      )
   )
   .add(
     HttpApiEndpoint.post("cellHistory", "/evals.cellHistory")

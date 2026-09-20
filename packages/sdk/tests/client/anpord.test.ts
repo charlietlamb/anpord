@@ -45,6 +45,7 @@ describe("surface", () => {
       "rerunCell",
       "start",
       "startAndWait",
+      "subscription",
       "wait",
     ]);
     expect(Object.keys(anpord.prompts).toSorted()).toEqual([
