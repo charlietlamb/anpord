@@ -7,3 +7,9 @@ export const FRACTIONS = Array.from(
   { length: TICKS + 1 },
   (_, index) => index / TICKS
 );
+
+/* Square ends say where a step began and ended; a pill rounds that away. */
+export const BAR = "h-2.5 rounded-[2px]";
+
+/* One row of the chart, label gutter included. */
+export const WATERFALL_ROW = "h-7";

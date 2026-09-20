@@ -28,5 +28,5 @@ test("the trial skeleton composes one skeleton per surface", () => {
   expect(html).toContain("Trajectory");
   expect(html).toContain("Calls");
   expect(html).toContain("Validation");
-  expect(html).toContain("Prompt");
+  expect(html).toContain("Setup");
 });

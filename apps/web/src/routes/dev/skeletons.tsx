@@ -10,6 +10,7 @@ import { RunGridSkeleton } from "@/components/evals/run-grid-skeleton";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialCallsSkeleton } from "@/components/evals/trial-calls-skeleton";
 import { TrialListSkeleton } from "@/components/evals/trial-row-skeleton";
+import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { TrialTable } from "@/components/evals/trial-table";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspector-skeleton";
@@ -99,6 +100,14 @@ function SkeletonsPreview() {
           name="Prompt list (shared SkeletonRows)"
           skeleton={<PromptListSkeleton />}
         />
+
+        {TRIAL ? (
+          <PreviewScreen name="Trial page">
+            <div data-probe="skeleton">
+              <TrialSkeleton ordinal="1" />
+            </div>
+          </PreviewScreen>
+        ) : null}
 
         {TRIAL ? (
           <Pair
