@@ -6,21 +6,13 @@ import { useLiveRun } from "@/lib/evals/use-live-run";
 
 export const Route = createFileRoute("/_authed/evals/$runId")({
   ssr: false,
-  /* Prefetch without awaiting so each screen can render its own skeleton.
-     The breadcrumb uses the run id until the query resolves. */
+  /* Prefetch without awaiting so each screen can render its own skeleton. */
   loader: ({ context, params }) => {
     context.queryClient.prefetchQuery(evalQueries.detail(params.runId));
   },
   component: RunLayout,
   staticData: {
-    crumb: (params, queryClient) => {
-      const run = queryClient.getQueryData(
-        evalQueries.detail(params.runId).queryKey
-      );
-
-      const label = `Run ${shortId(params.runId)}`;
-      return run?.name ? `${run.name} · ${label}` : label;
-    },
+    crumb: (params) => `Run ${shortId(params.runId)}`,
     title: "Run",
   },
 });
