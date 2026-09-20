@@ -1,9 +1,10 @@
 import { Button } from "@anpord/ui/components/button";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 import { XIcon } from "@phosphor-icons/react";
-import { type Call, commandText, didFail } from "@/components/evals/call-row";
+import { type Call, didFail } from "@/components/evals/call-row";
 import { EvidenceValue } from "@/components/evals/evidence-value";
 import { JournalOutput } from "@/components/evals/journal-output";
+import { commandText } from "@/lib/evals/journal-presentation";
 
 /* Beside the list rather than inside it: a row that grew in place pushed every
    call below it down the page. */

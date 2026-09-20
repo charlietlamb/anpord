@@ -1,4 +1,5 @@
 import { Tooltip, TooltipTrigger } from "@anpord/ui/components/tooltip";
+import { ShellText } from "@anpord/ui/components/ui/shell-text";
 import { cn } from "@anpord/ui/lib/utils";
 import { ExitCode } from "@/components/evals/exit-code";
 import { LABEL_WIDTH } from "@/components/evals/waterfall-scale";
@@ -63,16 +64,16 @@ export function TimedRow({
               style={{ color: KIND_COLOURS[kind] }}
             />
 
-            <span
-              className={cn(
-                "min-w-0 flex-1 truncate text-[11px] leading-none",
-                isCommand
-                  ? "font-mono text-foreground/80"
-                  : "text-muted-foreground"
-              )}
-            >
-              {labelOf(row.entry)}
-            </span>
+            {isCommand ? (
+              <ShellText
+                className="min-w-0 flex-1 truncate text-[11px] leading-none"
+                command={labelOf(row.entry)}
+              />
+            ) : (
+              <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground leading-none">
+                {labelOf(row.entry)}
+              </span>
+            )}
 
             {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
           </span>

@@ -7,16 +7,9 @@ import {
   WrenchIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { commandText } from "@/lib/evals/journal-presentation";
 
 export type Call = Extract<EvalJournalEntry, { _tag: "command" | "toolCall" }>;
-
-const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
-const TRAILING_QUOTE = /['"]$/;
-
-/* A command arrives wrapped in the shell that ran it. The wrapper is the same
-   on every row, so it is unwrapped rather than read. */
-export const commandText = (command: string) =>
-  command.replace(SHELL_PREFIX, "").replace(TRAILING_QUOTE, "").trim();
 
 export const didFail = (call: Call) =>
   call._tag === "command"

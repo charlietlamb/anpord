@@ -49,9 +49,17 @@ export const readableOf = (entry: EvalJournalEntry) => {
   return entry._tag === "message" ? entry.text : "";
 };
 
+const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
+const TRAILING_QUOTE = /['"]$/;
+
+/* A command arrives wrapped in the shell that ran it. The wrapper is the same
+   on every row, so it is unwrapped rather than read. */
+export const commandText = (command: string) =>
+  command.replace(SHELL_PREFIX, "").replace(TRAILING_QUOTE, "").trim();
+
 export const labelOf = (entry: EvalJournalEntry) => {
   if (entry._tag === "command") {
-    return entry.command;
+    return commandText(entry.command);
   }
 
   if (entry._tag === "toolCall") {
