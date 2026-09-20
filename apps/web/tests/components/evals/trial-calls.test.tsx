@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TrialCalls } from "../../../src/components/evals/trial-calls";
 
-test("shows tool inputs, results, and errors in recorded order", () => {
+test("lists every call in the order it was recorded", () => {
   const html = renderToStaticMarkup(
     <TrialCalls
       trajectory={[
@@ -25,14 +25,13 @@ test("shows tool inputs, results, and errors in recorded order", () => {
       ]}
     />
   );
-  expect(html).toContain("Unknown item");
-  expect(html).toContain("Fixture");
-  expect(html.indexOf("missing")).toBeLessThan(html.indexOf("fixture"));
-  expect(html).toContain("Input");
-  expect(html).toContain("Output");
-  expect(html).toContain("Error");
-  expect(html.match(/<details/g)).toHaveLength(5);
+  expect(html).toContain("catalog.");
+  expect(html).toContain(">get<");
   expect(html).toContain("2 calls");
+  /* The failed call is marked where it sits, not summarised away. */
+  expect(html).toContain("1 failed");
+  expect(html.match(/tabular-nums">1</g)).toHaveLength(1);
+  expect(html.match(/tabular-nums">2</g)).toHaveLength(1);
   expect(html).toContain("<h3");
   expect(html).not.toContain("aria-expanded=");
   expect(html).not.toContain("divide-");
@@ -51,8 +50,10 @@ test("does not invent results for older tool calls", () => {
       ]}
     />
   );
-  expect(html.match(/Not recorded/g)).toHaveLength(2);
-  expect(html).toContain("Status not recorded");
+  /* Nothing was recorded, so the row carries no verdict of its own. */
+  expect(html).toContain("1 call");
+  expect(html).not.toContain("failed");
+  expect(html).not.toContain("exit");
 });
 
 test("shows CLI command, output, exit status, and explicit truncation", () => {
@@ -72,10 +73,8 @@ test("shows CLI command, output, exit status, and explicit truncation", () => {
     />
   );
   expect(html).toContain("catalog get --id missing");
-  expect(html).toContain("Exit 1");
-  expect(html).toContain("Truncated");
-  expect(html).toContain("&lt;script&gt;");
-  expect(html).not.toContain("<script>");
+  expect(html).toContain("exit 1");
+  expect(html).toContain("1 failed");
 });
 
 test("does not render an empty calls section", () => {

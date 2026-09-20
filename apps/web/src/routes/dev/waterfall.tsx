@@ -10,6 +10,7 @@ import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSections } from "@/components/evals/trial-sections";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
@@ -67,9 +68,7 @@ function WaterfallPreview() {
                 },
                 {
                   Icon: SquaresFourIcon,
-                  content: (
-                    <p className="text-muted-foreground text-xs">No calls.</p>
-                  ),
+                  content: <TrialCalls trajectory={TRIAL?.trajectory ?? []} />,
                   label: "Calls",
                   value: "calls",
                 },
