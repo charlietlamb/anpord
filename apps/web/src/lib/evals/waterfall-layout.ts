@@ -14,6 +14,7 @@ interface WaterfallBar {
   readonly entry: TimedEntry;
   readonly lead: WaterfallLead | null;
   readonly leftPercent: number;
+  readonly running?: boolean;
   readonly widthPercent: number;
 }
 
@@ -129,6 +130,30 @@ export const waterfallLayout = (
           entry: span.entry,
           lead,
           leftPercent: percentOf(span.startedAt),
+          widthPercent: (durationMs / spanMs) * 100,
+        },
+      ];
+    }
+
+    const started =
+      (entry._tag === "command" || entry._tag === "toolCall"
+        ? entry.startedAtMillis
+        : null) ?? null;
+
+    if (entry.finishedAtMillis === null && started !== null) {
+      const lead = leadUpTo(started);
+      const durationMs = Math.max(end - started, 0);
+
+      previousEnd = Math.max(previousEnd, started);
+
+      return [
+        {
+          _tag: "bar",
+          durationMs,
+          entry: entry as TimedEntry,
+          lead,
+          leftPercent: percentOf(started),
+          running: true,
           widthPercent: (durationMs / spanMs) * 100,
         },
       ];

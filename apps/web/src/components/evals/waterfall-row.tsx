@@ -29,7 +29,7 @@ export function TimedRow({
   const kind = kindOf(row);
   const Glyph = KIND_ICONS[kind];
   const isCommand = row.entry._tag === "command";
-  const { from, to } = spanOfRow(row);
+  const { to } = spanOfRow(row);
   const flipped = to > LABEL_FLIP_PERCENT;
 
   return (
@@ -77,15 +77,15 @@ export function TimedRow({
           <span className="relative h-full min-w-0 flex-1">
             <Track row={row} />
 
-            {row._tag === "bar" ? (
+            {row._tag === "bar" && row.running !== true ? (
               <span
                 className={cn(
-                  "absolute top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/70 tabular-nums transition-colors duration-150 ease-out group-hover:text-foreground motion-reduce:transition-none",
-                  flipped ? "-translate-x-full pr-1.5" : "pl-1.5"
+                  "absolute top-1/2 -translate-y-1/2 text-[10px] tabular-nums transition-colors duration-150 ease-out motion-reduce:transition-none",
+                  flipped
+                    ? "-translate-x-full pr-1.5 font-medium text-background"
+                    : "pl-1.5 text-muted-foreground/70 group-hover:text-foreground"
                 )}
-                style={{
-                  left: `${flipped ? from : to}%`,
-                }}
+                style={{ left: `${to}%` }}
               >
                 {seconds(row.durationMs)}
               </span>

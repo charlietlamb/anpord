@@ -27,7 +27,10 @@ export function Track({ row }: { readonly row: WaterfallRow }) {
     <span
       className={cn(
         "absolute top-1/2 block -translate-y-1/2 transition-[filter] duration-150 ease-out group-hover:brightness-125 group-focus-visible:brightness-125 motion-reduce:transition-none",
-        BAR
+        BAR,
+        row._tag === "bar" &&
+          row.running === true &&
+          "animate-pulse motion-reduce:animate-none"
       )}
       style={{
         background,

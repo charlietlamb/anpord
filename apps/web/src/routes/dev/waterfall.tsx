@@ -23,6 +23,19 @@ export const Route = createFileRoute("/dev/waterfall")({
 
 const TRIAL = TRIALS.find((candidate) => candidate.trajectory.length > 0);
 
+const RUNNING_TRAJECTORY = [
+  ...(TRIAL?.trajectory ?? []).slice(0, 3),
+  {
+    _tag: "command" as const,
+    command:
+      "/bin/bash -lc \"ls -la && printf '\\\\n--- package ---' && cat package.json\"",
+    exitCode: null,
+    finishedAtMillis: null,
+    output: "",
+    startedAtMillis: (TRIAL?.trajectory[0]?.finishedAtMillis ?? 0) + 500,
+  },
+];
+
 const SAMPLE = VALIDATION_TRIALS[0]?.validations?.[0];
 
 const QUEUED_TRIALS =
@@ -75,6 +88,16 @@ function WaterfallPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
+
+        <PreviewScreen name="A step still running">
+          <div className="mx-auto w-full max-w-5xl px-5">
+            <Waterfall
+              running={true}
+              timed={true}
+              trajectory={RUNNING_TRAJECTORY}
+            />
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="Pending validators">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5">
