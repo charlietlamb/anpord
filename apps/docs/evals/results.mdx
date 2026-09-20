@@ -58,6 +58,8 @@ for (const event of run.cells[0].trials[0].trajectory) {
 
 Trials also record command counts, changed files, model and sandbox time, sandbox id, and token counts where the harness reports them. Output and tool payloads cap at 4,000 characters, and truncation is marked.
 
+Usage carries a warning when a trial read a large context on every turn, or when nothing came from cache. Both mean the trial paid repeatedly for something it read once: see [what a trial costs](/guides/ci#what-a-trial-costs).
+
 Read the distribution first, then compare a passing and a failing trajectory from the same cell. The pass rate says what happened. The command counts say how the attempts differed.
 
 ## Validation evidence

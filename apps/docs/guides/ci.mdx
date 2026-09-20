@@ -107,3 +107,12 @@ A cell runs between 1 and 10 trials. The [API reference](/api-reference/introduc
 The CLI records run IDs before polling and does not retry submissions. A remote
 run continues if CI times out or is cancelled. Open its dashboard link before
 starting another run.
+
+## What a trial costs
+
+An agent re-sends its whole conversation every turn, so whatever it reads early is paid for again on every turn after it. Pulling a large skill or reading a dependency to work out its API is the usual reason a trial costs ten times its neighbour on the same number of turns.
+
+Tell the agent the interface rather than letting it go looking. A short reference in the workspace is cheaper than the file tree it would otherwise read, and steadier: the trials that explore are the ones whose cost varies most.
+
+Each trial reports its token counts, and the dashboard flags two readings worth acting on -- a context that grew fast, and nothing served from cache. A grid multiplies both: thirty sessions each carrying a large context is thirty times the bill.
+
