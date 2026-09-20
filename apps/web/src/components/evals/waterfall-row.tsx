@@ -14,6 +14,9 @@ import {
 } from "@/lib/evals/journal-presentation";
 import { spanOfRow, type WaterfallRow } from "@/lib/evals/waterfall-layout";
 
+/* A bar narrower than this cannot hold its own duration, so the number sits after it. */
+const INSIDE_LABEL_PERCENT = 14;
+
 /* Past this the duration would run off the chart, so it is set inside. */
 const LABEL_FLIP_PERCENT = 82;
 
@@ -29,8 +32,8 @@ export function TimedRow({
   const kind = kindOf(row);
   const Glyph = KIND_ICONS[kind];
   const isCommand = row.entry._tag === "command";
-  const { to } = spanOfRow(row);
-  const flipped = to > LABEL_FLIP_PERCENT;
+  const { to, width } = spanOfRow(row);
+  const flipped = width > INSIDE_LABEL_PERCENT || to > LABEL_FLIP_PERCENT;
 
   return (
     <li>

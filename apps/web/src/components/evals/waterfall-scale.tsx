@@ -8,8 +8,9 @@ export const FRACTIONS = Array.from(
   (_, index) => index / TICKS
 );
 
-/* Square ends say where a step began and ended; a pill rounds that away. */
-export const BAR = "h-2.5 rounded-[2px]";
+/* Square ends say where a step began and ended; a pill rounds that away.
+   Full row height so the bars read as a block of work, not a thread through it. */
+export const BAR = "h-[1.375rem] rounded-[3px]";
 
 /* One row of the chart, label gutter included. */
 export const WATERFALL_ROW = "h-7";

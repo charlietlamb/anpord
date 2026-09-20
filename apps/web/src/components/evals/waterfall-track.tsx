@@ -16,7 +16,8 @@ export function Track({ row }: { readonly row: WaterfallRow }) {
       <span
         className={cn(
           "absolute top-1/2 block w-[3px] -translate-x-1/2 -translate-y-1/2 transition-[width] duration-150 ease-out group-hover:w-[5px] group-focus-visible:w-[5px] motion-reduce:transition-none",
-          BAR
+          BAR,
+          "rounded-full"
         )}
         style={{ background, left: `${row.leftPercent}%` }}
       />
