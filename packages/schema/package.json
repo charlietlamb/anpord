@@ -31,6 +31,7 @@
     "./domain/repo-spec": "./src/domain/repo-spec.ts",
     "./domain/scopes": "./src/domain/scopes.ts",
     "./domain/trial": "./src/domain/trial.ts",
+    "./domain/usage-health": "./src/domain/usage-health.ts",
     "./domain/variant-comparison": "./src/domain/variant-comparison.ts",
     "./domain/verify-steps": "./src/domain/verify-steps.ts",
     "./domain/verify-verdicts": "./src/domain/verify-verdicts.ts",

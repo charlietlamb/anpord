@@ -185,7 +185,7 @@ export function TrialRail({
 
       {trial.usage === null ? null : (
         <RailSection title="Usage">
-          <TrialCost usage={trial.usage} />
+          <TrialCost turns={trial.commands} usage={trial.usage} />
         </RailSection>
       )}
 
