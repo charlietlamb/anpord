@@ -2,11 +2,23 @@ import type { EvalPageCursor } from "@anpord/schema/domain/evals";
 import { EVAL_PAGE_SIZE } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { FlaskIcon, PlusIcon } from "@phosphor-icons/react";
+import {
+  type PageTabOption,
+  PageTabs,
+} from "@anpord/ui/components/ui/page-tabs";
+import {
+  ClockCounterClockwiseIcon,
+  FlaskIcon,
+  ListChecksIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { CaseRow } from "@/components/evals/case-row";
 import { EvalRow } from "@/components/evals/eval-row";
 import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
+import { TagFilter } from "@/components/evals/tag-filter";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
@@ -24,12 +36,20 @@ export const Route = createFileRoute("/_authed/evals/")({
   component: EvalsIndex,
 });
 
+const VIEWS: readonly PageTabOption<"cases" | "runs">[] = [
+  { Icon: ListChecksIcon, label: "Cases", value: "cases" },
+  { Icon: ClockCounterClockwiseIcon, label: "Runs", value: "runs" },
+];
+
 /* Matches the detail screens, so opening a row does not change the page width. */
 function EvalsIndex() {
+  const [view, setView] = useState<"cases" | "runs">("cases");
+  const [tag, setTag] = useState<string | null>(null);
   const { cursor, page, pop, push } = useCursorStack<EvalPageCursor>();
   const { data, error, isFetching, isPending } = useQuery(
     evalQueries.list(cursor)
   );
+  const cases = useQuery(evalQueries.cases(tag));
 
   const runs = data?.runs ?? [];
   const next = data?.next ?? null;
@@ -58,34 +78,67 @@ function EvalsIndex() {
     <PageShell
       actions={
         <span className="flex items-center gap-2">
-          {pagination}
+          {view === "runs" ? pagination : null}
           {newEval}
         </span>
       }
       leading={<PageHeading icon={FlaskIcon} title="Evals" />}
       width="wide"
     >
-      <ListState
-        action={
-          <Button render={<Link to="/evals/new" />} size="sm" variant="outline">
-            <PlusIcon className="size-3.5" />
-            New eval
-          </Button>
-        }
-        description="Run one to see how a harness behaves on a case you care about."
-        empty={runs.length === 0}
-        error={error}
-        icon={<FlaskIcon size={20} />}
-        isPending={isPending}
-        skeleton={<EvalListSkeleton />}
-        title="No evals yet"
-      >
-        <RowList>
-          {runs.map((run) => (
-            <EvalRow key={run.id} run={run} />
-          ))}
-        </RowList>
-      </ListState>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageTabs onChange={setView} options={VIEWS} value={view} />
+        {view === "cases" ? (
+          <TagFilter
+            onSelect={setTag}
+            selected={tag}
+            tags={cases.data?.tags ?? []}
+          />
+        ) : null}
+      </div>
+
+      {view === "cases" ? (
+        <ListState
+          description="Run an eval and the cases it measures appear here."
+          empty={(cases.data?.cases.length ?? 0) === 0}
+          error={cases.error}
+          icon={<FlaskIcon size={20} />}
+          isPending={cases.isPending}
+          skeleton={<EvalListSkeleton />}
+          title={tag === null ? "No cases yet" : `Nothing tagged ${tag}`}
+        >
+          <RowList>
+            {(cases.data?.cases ?? []).map((subject) => (
+              <CaseRow key={subject.cellKey} subject={subject} />
+            ))}
+          </RowList>
+        </ListState>
+      ) : (
+        <ListState
+          action={
+            <Button
+              render={<Link to="/evals/new" />}
+              size="sm"
+              variant="outline"
+            >
+              <PlusIcon className="size-3.5" />
+              New eval
+            </Button>
+          }
+          description="Run one to see how a harness behaves on a case you care about."
+          empty={runs.length === 0}
+          error={error}
+          icon={<FlaskIcon size={20} />}
+          isPending={isPending}
+          skeleton={<EvalListSkeleton />}
+          title="No evals yet"
+        >
+          <RowList>
+            {runs.map((run) => (
+              <EvalRow key={run.id} run={run} />
+            ))}
+          </RowList>
+        </ListState>
+      )}
     </PageShell>
   );
 }

@@ -13,6 +13,9 @@ export const evalKeys = {
 
   subscription: (id: string) => [...evalKeys.all, "subscription", id] as const,
 
+  cases: (tag: string | null) =>
+    [...evalKeys.all, "cases", tag ?? "all"] as const,
+
   history: (cellKey: string) =>
     [...evalKeys.all, "cell", cellKey, "history"] as const,
 } as const;

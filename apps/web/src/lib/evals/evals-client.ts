@@ -6,6 +6,7 @@ import {
 import {
   EvalArtifact,
   type EvalArtifactRequest,
+  EvalCasePage,
   EvalCellHistoryEntry,
   type EvalHarness,
   type EvalPageCursor,
@@ -57,6 +58,12 @@ export const listRuns = (cursor: EvalPageCursor | null) => {
   const query = params.toString();
 
   return request(EvalRunPage, query === "" ? "/evals" : `/evals?${query}`);
+};
+
+export const listCases = (tag: string | null) => {
+  const query = tag === null ? "" : `?tag=${encodeURIComponent(tag)}`;
+
+  return request(EvalCasePage, `/evals/cases${query}`);
 };
 
 export const getRun = (id: string) =>

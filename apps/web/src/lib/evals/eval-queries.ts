@@ -9,6 +9,7 @@ import {
   getModelCatalogue,
   getPlayground,
   getRun,
+  listCases,
   listCellHistory,
   listRuns,
 } from "@/lib/evals/evals-client";
@@ -35,6 +36,13 @@ export const evalQueries = {
       queryKey: evalKeys.list(cursor),
       queryFn: () => listRuns(cursor),
       refetchInterval: (query) => pollWhileRunning(query.state.data),
+      ...LIVE,
+    }),
+
+  cases: (tag: string | null) =>
+    queryOptions({
+      queryKey: evalKeys.cases(tag),
+      queryFn: () => listCases(tag),
       ...LIVE,
     }),
 
