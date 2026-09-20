@@ -1,14 +1,11 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
+import { LINE, TRACKS } from "@/components/evals/run-grid-columns";
 
-/* Must match RunGrid's tracks so the skeleton columns land on the real ones. */
-const TRACKS =
-  "grid grid-cols-[auto_minmax(0,1fr)_repeat(4,auto)_auto] gap-x-4 gap-y-0";
-
-const LINE = "col-span-full grid grid-cols-subgrid items-center";
-
-const METRICS = ["w-8", "w-8", "w-6", "w-10"];
+/* Widths track RunGrid's own columns: the grid sizes to content, so a
+   wider placeholder pushes every track after it. */
+const METRICS = ["w-[34px]", "w-[34px]", "w-2", "w-[50px]"];
 
 const VARIANTS = ["w-28", "w-36"];
 
@@ -28,14 +25,16 @@ function CellLineSkeleton({ name }: { readonly name: string }) {
         </span>
       ))}
 
-      <span className="flex min-w-5 justify-end" />
+      <span className="flex min-w-5 justify-end">
+        <Skeleton className="h-3 w-[49px]" />
+      </span>
     </div>
   );
 }
 
 export function RunGridSkeleton() {
   return (
-    <div className={TRACKS}>
+    <div className={cn("grid", TRACKS)}>
       <div className="col-span-full flex h-9 items-center gap-2.5 pt-2">
         <Skeleton className="h-3.5 w-32" />
         <Skeleton className="h-3 w-6" />
