@@ -40,7 +40,6 @@
             "pages": [
               "introduction",
               "connections",
-              "concepts",
               "evals/variants",
               "evals/results",
               "evals/baselines"
@@ -53,7 +52,6 @@
           {
             "group": "Advanced evals",
             "pages": [
-              "evals/connectors",
               "evals/profiles",
               "evals/command-harness",
               "evals/local",
@@ -134,11 +132,6 @@
     {
       "source": "/evals/harnesses",
       "destination": "/evals/variants",
-      "permanent": true
-    },
-    {
-      "source": "/guides/publishing",
-      "destination": "/prompts/overview",
       "permanent": true
     }
   ],

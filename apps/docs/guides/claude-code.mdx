@@ -54,7 +54,7 @@ Use [exact model IDs](https://platform.claude.com/docs/en/models/overview) avail
 
 Add [MCP and CLI mocks](/evals/mocks) or [HTTP mocks](/evals/api-mocks) to test tool use. The same definitions work with Claude; Anpord configures them in each sandbox.
 
-For repeatability, use at least three trials per case and model. A run is limited to 100 total trials: `cases × tasks × trials`. Split larger matrices into separate suites. Use the [shared GitHub Action](/guides/ci) with the same organization API key.
+For repeatability, use at least three trials per case and model. Split matrices past the [run limit](/api-reference/introduction) into separate suites. Use the [shared GitHub Action](/guides/ci) with the same organization API key.
 
 ## If setup fails
 

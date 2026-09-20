@@ -116,8 +116,6 @@ if (comparison?.verdict === "regressed") {
 
 ## Comparing fairly
 
-Compare one change at a time.
-
 Ship the same skills to every column. Skills usually live in agent-specific directories such as `.claude/skills` and `.agents/skills`. If only one column has them, the grid measures the skills instead of the harness. Write them into every directory the selected harnesses read through `workspace/`.
 
 Hold the model constant. Cells are not comparable when a profile requires an unavailable provider or the model ids do not overlap. State that beside the grid instead of interpreting the delta.

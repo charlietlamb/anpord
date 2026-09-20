@@ -90,7 +90,7 @@ bunx --no-install anpord eval --fail-on strict --timeout 1200 --output results.j
 
 ## Keep comparisons stable
 
-When testing a prompt change, keep the task, source, preparation, validator, harness, model, and sandbox unchanged. Those fields form the cell identity. Pin fixture repositories to a commit. A harness release is compared against the existing baseline rather than starting a new one, and a regression names both versions.
+When testing one change, keep everything in the [cell key](/evals/baselines) unchanged so the comparison holds. Pin fixture repositories to a commit. A harness release is compared against the existing baseline rather than starting a new one, and a regression names both versions.
 
 Use at least three trials for a gating check. One trial measures an outcome, not repeatability.
 
@@ -102,7 +102,7 @@ total trials = cases x tasks x trials per cell
 
 Five cases, two tasks, and three trials open thirty sandbox sessions. Keep pull request grids small and run larger comparisons on a schedule.
 
-A cell runs between 1 and 10 trials, and one request can contain at most 100 in total. Starting a run is not idempotent. If the response is lost, check recent runs before retrying.
+A cell runs between 1 and 10 trials. The [API reference](/api-reference/introduction) covers the request limits and what to do when a response is lost.
 
 The CLI records run IDs before polling and does not retry submissions. A remote
 run continues if CI times out or is cancelled. Open its dashboard link before

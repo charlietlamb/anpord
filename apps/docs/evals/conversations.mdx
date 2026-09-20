@@ -34,7 +34,7 @@ The two fields reach different halves of the person's instructions, and the diff
 
 `goal` is what they are trying to get done. They pursue it every turn, and it is why they push back when the agent stalls.
 
-`prompt` is the brief they answer *from*. They do not volunteer it. A broad question earns everything in the brief that answers it; a question never asked earns nothing. An agent that guesses rather than asks will contradict a fact it was never told.
+`prompt` is the brief they answer *from*. They do not volunteer it. A broad question earns everything in the brief that answers it. A question never asked earns nothing. An agent that guesses rather than asks will contradict a fact it was never told.
 
 Write the brief the way the person would say it, one fact per line. Facts that are not in it do not exist: a person who invents a price is not measuring anything.
 
@@ -42,7 +42,7 @@ Write the brief the way the person would say it, one fact per line. Facts that a
 
 A model, pinned apart from the agent under test. `ANPORD_USER_MODEL` overrides it for a whole run.
 
-It speaks through a model credential, connected under settings, models or with `anpord connectors add openai`. Without one a run that states a human is refused when it is started, rather than conducting a conversation of one turn that reads like a person who approved immediately.
+It speaks through a model [connection](/connections). Without one, a run that states a human is refused when it starts rather than conducting a one-turn conversation that reads like a person who approved immediately.
 
 It is pinned rather than chosen per case because the person is measurement apparatus. A weak simulator approves a summary that contradicts its own brief, and the case then passes for the wrong reason.
 

@@ -20,6 +20,22 @@ Choose **Add harness**, **Add judge** or **Add sandbox**, pick the integration, 
 
 The first connection for an integration becomes its default. **Verify** checks a stored credential against the integration without revealing it.
 
+## From the terminal
+
+```bash
+anpord connectors integrations
+anpord connectors add anthropic
+anpord connectors list
+```
+
+`add` prompts for the secret rather than taking a flag, because a flag is kept in shell history and readable from the process list while the command runs. In a script, pipe it instead:
+
+```bash
+echo "$ANTHROPIC_API_KEY" | anpord connectors add anthropic --name ci
+```
+
+`--auth` picks the method where an integration accepts more than one, and `--default` marks the connector runs reach for. A method that signs in through a browser cannot be completed from the terminal, and the command says so. `anpord connectors remove <id>` deletes one. A run already holding the credential finishes.
+
 ## Judges
 
 A [judge](/evals/judges) that names a `harness` runs an agent and uses that harness connection. One that calls a provider directly, and every [classifier](/evals/classifiers), needs its own credential instead. Add it under **Settings > Judges**.
@@ -29,11 +45,15 @@ A [judge](/evals/judges) that names a `harness` runs an agent and uses that harn
 | OpenAI | Judges declared with `provider: "openai"` |
 | TypeSafe | Classifiers |
 
+A case that states a [human](/evals/conversations) needs a model to play them. `openai`, `anthropic`, `google`, `xai`, `moonshotai`, `deepseek`, `groq` and `openrouter` all serve the same chat-completions shape, so the human runs on whichever you connect first. A judge calls OpenAI's responses API, which the others do not serve, so a case scored by one needs `openai`.
+
 For a self-hosted deployment, `OPENAI_API_KEY` and `TYPESAFE_API_KEY` in the server and worker environment serve the same purpose.
 
 A missing credential is not a startup error. The judge or classifier that needs it fails when a case reaches it, naming what was missing.
 
 A ChatGPT subscription is not an OpenAI API key.
+
+Keep credentials out of eval definitions and fixtures. Everything a run needs is resolved from a stored connection.
 
 ## Personal or shared
 

@@ -41,7 +41,7 @@ Model ids vary by agent. Use the catalogue when choosing one:
 const { models } = await anpord.evals.models({ harness: "codex" });
 ```
 
-Model discovery is not required before a run. Available ids depend on the harness.
+Model discovery is not required before a run. Available ids depend on the harness. Catalogues come from Anpord's Codex cache, models.dev, or a fixed list, so an empty result means that source is unavailable rather than that the harness has no models.
 
 ## Sandboxes
 

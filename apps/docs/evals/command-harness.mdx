@@ -15,7 +15,7 @@ tasks: [
 ]
 ```
 
-The profile's `run` is the command line; its `install` step runs once while the sandbox is prepared. The profile directory ships everything else the process needs.
+The profile's `run` is the command line. Its `install` step runs once while the sandbox is prepared. The profile directory ships everything else the process needs.
 
 ## Environment
 
@@ -34,7 +34,7 @@ Anything in the profile's `env` is present too. Stdin is closed.
 
 ## Events
 
-Print one JSON object per line on stdout. A line with a known `_tag` is recorded; every other line is ignored, so ordinary logging is harmless. `at` is epoch milliseconds and optional; a line without it takes the moment it was read.
+Print one JSON object per line on stdout. A line with a known `_tag` is recorded and every other line is ignored, so ordinary logging is harmless. `at` is epoch milliseconds and optional. A line without it takes the moment it was read.
 
 ```json
 {"_tag":"Started","sessionId":"run-42","model":"openai/gpt-5.5"}

@@ -42,6 +42,8 @@ Pass rate counts only scored trials. When `scored` is zero the pass rate seriali
 
 `voidFields` names the missing evidence where scoring can identify it. Keep void trials out of pass rates in reports and CI: a trial that never ran is not a failure.
 
+A run that stays `running` is usually still working, since coding trials take minutes. A server restart does not resume active work, and the reconciler marks abandoned runs failed after six hours.
+
 ## Trajectory
 
 Each trial carries an ordered `trajectory` of commands, messages, tool calls, and file changes:
@@ -56,7 +58,7 @@ for (const event of run.cells[0].trials[0].trajectory) {
 
 Trials also record command counts, changed files, model and sandbox time, sandbox id, and token counts where the harness reports them. Output and tool payloads cap at 4,000 characters, and truncation is marked.
 
-Read the distribution first, then compare a passing and a failing trajectory from the same cell. The pass rate says what happened; the command counts say how the attempts differed.
+Read the distribution first, then compare a passing and a failing trajectory from the same cell. The pass rate says what happened. The command counts say how the attempts differed.
 
 ## Validation evidence
 

@@ -28,7 +28,7 @@ export default suite({
 });
 ```
 
-No Effect imports or model client setup are needed in the eval file. The judge model is independent of the task model. Anpord requests the exact model you specify; an unavailable model produces an unscored judgment, not a fallback.
+No Effect imports or model client setup are needed in the eval file. The judge model is independent of the task model. Anpord requests the exact model you specify. An unavailable model produces an unscored judgment rather than a fallback.
 
 ## Combine checks
 
@@ -57,17 +57,15 @@ A case accepts up to 20 validators. Each judge accepts up to 20 choices. Names, 
 
 ## Authentication
 
-Agent judges use your organization's connection for that harness. A Codex judge can use a ChatGPT subscription connection; it does not need an OpenAI API key. When the task uses the same harness, the judge reuses its bound connection.
+Agent judges use your organization's connection for that harness. A Codex judge can use a ChatGPT subscription connection and does not need an OpenAI API key. When the task uses the same harness, the judge reuses its bound connection.
 
-For direct OpenAI calls, replace `harness` with `provider: "openai"`. Add an OpenAI credential under **Settings > Judges**, or set `OPENAI_API_KEY` in the server and worker environment for a self-hosted deployment. A ChatGPT subscription is not an OpenAI API key.
-
-Keep credentials out of eval definitions, prompts, and fixtures.
+For direct OpenAI calls, replace `harness` with `provider: "openai"`. That path needs its own OpenAI credential, which [connections](/connections) covers.
 
 ## Evidence and isolation
 
 Judges receive the rendered task prompt, final answer, and optional expected answer. They do not receive the task workspace, transcript, MCP or CLI configuration, or task environment.
 
-Agent judges start in a fresh sandbox after the task sandbox closes. They are instructed to grade only the supplied evidence. Tool use invalidates the judgment; it is detected, not prevented by a network firewall. For tool-use assertions, keep a code validator that inspects the mock call log.
+Agent judges start in a fresh sandbox after the task sandbox closes. They are instructed to grade only the supplied evidence. Tool use invalidates the judgment. It is detected rather than prevented by a network firewall. For tool-use assertions, keep a code validator that inspects the mock call log.
 
 Direct OpenAI judges use structured outputs with storage disabled. Both backends validate the response against the declared choices and require a short explanation. Timeouts, refusals, invalid responses, and provider failures produce `score: null` and make the trial `void`.
 

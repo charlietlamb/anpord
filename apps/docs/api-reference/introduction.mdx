@@ -10,8 +10,7 @@ Every operation is a `POST` with a JSON body, including reads:
 ```text
 POST /v1/evals.start
 POST /v1/evals.get
-POST /v1/prompts.get
-POST /v1/prompts.promote
+POST /v1/evals.list
 ```
 
 There are no path or query parameters.
@@ -27,7 +26,7 @@ curl https://api.anpord.com/v1/evals.list \
   -d '{"limit":20}'
 ```
 
-Keys belong to one organization. OAuth access tokens are also accepted. Eval reads use `evals:read`; starts and reruns use `evals:write`. Prompt reads use `prompts:read`, prompt writes use `prompts:write`, and promotion uses `channels:write`.
+Keys belong to one organization. OAuth access tokens are also accepted. Eval reads use `evals:read`, and starts and reruns use `evals:write`.
 
 ## Asynchronous evals
 

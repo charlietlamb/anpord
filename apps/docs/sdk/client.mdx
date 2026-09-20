@@ -1,21 +1,6 @@
+---title: "API client"
+description: "Submit evals and read results from TypeScript"
 ---
-title: "API client"
-description: "Submit evals, read results and manage prompts from TypeScript"
----
-
-## Install
-
-<CodeGroup>
-
-```bash npm
-npm install anpord
-```
-
-```bash bun
-bun add anpord
-```
-
-</CodeGroup>
 
 ## Create a client
 
@@ -69,18 +54,6 @@ const run = await anpord.evals.startAndWait(smoke);
 ```
 
 A suite records the file it was written in, which is how its validators and mock servers reach the sandbox with everything they close over. `start` and `startAndWait` compile it for you.
-
-## Prompts
-
-| Method | Purpose |
-| --- | --- |
-| `prompts.create(request)` | Create a prompt and its first version |
-| `prompts.list()` | List up to 100 prompts without content |
-| `prompts.get({ id, ...selector })` | Resolve a channel or version |
-| `prompts.update(request)` | Append a version |
-| `prompts.promote(request)` | Point a channel at a version |
-
-`prompts.get` uses the SDK cache. Other prompt methods and all eval methods call the API.
 
 ## Errors and cleanup
 
