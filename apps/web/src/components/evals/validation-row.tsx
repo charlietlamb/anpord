@@ -6,15 +6,12 @@ import {
   CodeIcon,
   TerminalIcon,
 } from "@phosphor-icons/react";
-import { MarkdownProse } from "@/components/evals/markdown-prose";
 import { SignalTip } from "@/components/evals/signal-tip";
-import { ReadEvidence, Value } from "@/components/evals/validation-evidence";
+import { ValidationDetail } from "@/components/evals/validation-detail";
 import { seconds } from "@/lib/evals/duration";
 import { validationSummary } from "@/lib/evals/validation-results";
 
 const kindIcons = { code: CodeIcon, judge: BrainIcon, command: TerminalIcon };
-const DISCLOSURE =
-  "cursor-pointer py-2 text-muted-foreground text-xs hover:text-foreground focus-visible:outline-ring";
 
 export function ValidationRow({
   validation,
@@ -83,72 +80,8 @@ export function ValidationRow({
           {validationSummary(validation)}
         </p>
       </summary>
-      <div className="border-border-faint border-t bg-background/50 p-4">
-        <div className="flex flex-col gap-4">
-          <div className="min-w-0">
-            {judgment ? (
-              <h4 className="pt-2 font-medium text-muted-foreground text-xs">
-                Judge result
-              </h4>
-            ) : null}
-            {judgment ? (
-              <div className="space-y-3 py-2 text-sm leading-relaxed [overflow-wrap:anywhere]">
-                <p className="text-muted-foreground text-xs">
-                  {judgment.score === null
-                    ? "Unscored"
-                    : `Score ${judgment.score}`}{" "}
-                  · required ≥ {judgment.threshold} · {judgment.model}
-                  {judgment.choice === null ? "" : ` · ${judgment.choice}`}
-                </p>
-                <MarkdownProse
-                  className={
-                    judgment.error === null
-                      ? "text-foreground/90"
-                      : "text-destructive"
-                  }
-                  text={judgment.error ?? judgment.reason}
-                />
-              </div>
-            ) : (
-              <dl>
-                <Value label="Return value" value={validation.output} />
-              </dl>
-            )}
-            {validation.error ? (
-              <dl>
-                <Value label="Error" value={validation.error} />
-              </dl>
-            ) : null}
-          </div>
-          <div className="min-w-0 border-border-faint border-t pt-3">
-            <ReadEvidence validation={validation} />
-          </div>
-        </div>
-        <details className="mt-3 border-border-faint border-t pt-1">
-          <summary className={DISCLOSURE}>Execution details</summary>
-          <div className="space-y-1">
-            {[
-              { label: "Invocation input", value: validation.input },
-              ...(judgment
-                ? [{ label: "Raw response", value: validation.output }]
-                : []),
-              ...(validation.metadata
-                ? [{ label: "Provider metadata", value: validation.metadata }]
-                : []),
-              ...validation.logs.map((log) => ({
-                label: `${log.level} · ${new Date(log.at).toISOString()} · ${log.index + 1}`,
-                value: log.value,
-              })),
-            ].map(({ label, value }) => (
-              <Value disclosure key={label} label={label} value={value} />
-            ))}
-          </div>
-        </details>
-        {validation.truncated ? (
-          <p className="pt-2 text-warning text-xs">
-            Some evidence was truncated.
-          </p>
-        ) : null}
+      <div className="border-border-faint border-t bg-background/50 p-3">
+        <ValidationDetail validation={validation} />
       </div>
     </details>
   );

@@ -1,11 +1,18 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { PulseIcon } from "@phosphor-icons/react";
+import {
+  CheckSquareIcon,
+  PulseIcon,
+  SquaresFourIcon,
+} from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
+import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialRail } from "@/components/evals/trial-rail";
+import { TrialSections } from "@/components/evals/trial-sections";
+import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
@@ -42,6 +49,34 @@ function WaterfallPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
+
+        <PreviewScreen name="Sections as tabs">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5">
+            <TrialSections
+              sections={[
+                {
+                  Icon: CheckSquareIcon,
+                  content: (
+                    <ValidationInspector
+                      titled={false}
+                      trials={VALIDATION_TRIALS}
+                    />
+                  ),
+                  label: "Validation",
+                  value: "validation",
+                },
+                {
+                  Icon: SquaresFourIcon,
+                  content: (
+                    <p className="text-muted-foreground text-xs">No calls.</p>
+                  ),
+                  label: "Calls",
+                  value: "calls",
+                },
+              ]}
+            />
+          </div>
+        </PreviewScreen>
       </div>
     </TooltipProvider>
   );

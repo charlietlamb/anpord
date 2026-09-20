@@ -9,6 +9,8 @@ export function SetupSurface({
   Icon: Glyph,
   meta,
   title,
+  /* A tab above already names the section; a heading would say it twice. */
+  titled = true,
 }: {
   readonly children: ReactNode;
   readonly contentClassName?: string;
@@ -16,13 +18,16 @@ export function SetupSurface({
   readonly Icon: Icon;
   readonly meta?: string;
   readonly title: string;
+  readonly titled?: boolean;
 }) {
   return (
     <section className="flex min-w-0 flex-col gap-2">
-      <div className="flex h-7 items-center gap-2">
-        <h3>
-          <PageHeading icon={Glyph} title={title} />
-        </h3>
+      <div className="flex h-7 items-center gap-2 empty:hidden">
+        {titled ? (
+          <h3>
+            <PageHeading icon={Glyph} title={title} />
+          </h3>
+        ) : null}
         {meta === undefined ? null : (
           <span className="text-muted-foreground text-xs tabular-nums">
             {meta}

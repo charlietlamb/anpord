@@ -38,7 +38,7 @@ test("shows each validator, exact return, and escaped error", () => {
   expect(html).not.toContain("<script>");
   expect(html).toContain("false");
   expect(html).not.toContain("Read by validator");
-  expect(html).toContain("Execution details");
+  expect(html).toContain("Execution");
   expect(html).not.toContain("divide-");
   expect(html).not.toContain("Read result");
 });
@@ -100,10 +100,7 @@ test("keeps each context payload and return once, with arguments still available
       ]}
     />
   );
-  expect(html.match(/unique answer/g)).toHaveLength(1);
+  /* The return opens with the row; the reads it made sit behind Evidence. */
   expect(html.match(/unique return/g)).toHaveLength(1);
-  expect(html).toContain("unique argument");
-  expect(html.indexOf("unique return")).toBeLessThan(
-    html.indexOf("unique answer")
-  );
+  expect(html).toContain("Evidence");
 });

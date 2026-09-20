@@ -27,7 +27,7 @@ const validation = {
   ],
 };
 
-test("shows actual context reads alongside the return, with source secondary", () => {
+test("opens on the return, with reads and source each a step away", () => {
   const html = renderToStaticMarkup(
     <ValidationInspector
       files={[
@@ -36,9 +36,8 @@ test("shows actual context reads alongside the return, with source secondary", (
       trials={[{ ordinal: 1, validations: [validation] }]}
     />
   );
-  expect(html).toContain("Unique trial one answer");
-  expect(html).toContain("answer()");
   expect(html).toContain("Return value");
+  expect(html).toContain("Evidence");
   expect(html).toContain("1/1 passed");
   expect(html).not.toContain("source must start hidden");
   expect(html).not.toContain('aria-label="Validation trial"');

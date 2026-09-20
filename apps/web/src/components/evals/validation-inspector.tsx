@@ -9,7 +9,12 @@ import {
   SelectValue,
 } from "@anpord/ui/components/ui/select";
 import { cn } from "@anpord/ui/lib/utils";
-import { CaretRightIcon, CheckSquareIcon } from "@phosphor-icons/react";
+import {
+  CaretRightIcon,
+  CheckSquareIcon,
+  FileCodeIcon,
+  ListChecksIcon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import {
   type ValidationTrial,
@@ -23,9 +28,11 @@ import { ValidationSource } from "./validation-source";
 export function ValidationInspector({
   trials,
   files = [],
+  titled = true,
 }: {
   readonly trials: readonly ValidationTrial[];
   readonly files?: readonly EvalSourceFile[];
+  readonly titled?: boolean;
 }) {
   const [source, setSource] = useState(false);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
@@ -53,13 +60,14 @@ export function ValidationInspector({
           : undefined
       }
       title="Validation"
+      titled={titled}
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-border-faint border-b">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <PageTabs
           onChange={(value) => setSource(value === "source")}
           options={[
-            { label: "Results", value: "results" },
-            { label: "Source", value: "source" },
+            { Icon: ListChecksIcon, label: "Results", value: "results" },
+            { Icon: FileCodeIcon, label: "Source", value: "source" },
           ]}
           value={source ? "source" : "results"}
         />

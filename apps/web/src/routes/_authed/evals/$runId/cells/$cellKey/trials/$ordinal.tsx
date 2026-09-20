@@ -1,5 +1,11 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { PulseIcon } from "@phosphor-icons/react";
+import {
+  CheckSquareIcon,
+  FilesIcon,
+  PulseIcon,
+  SlidersHorizontalIcon,
+  SquaresFourIcon,
+} from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
@@ -8,6 +14,7 @@ import { TokenBand } from "@/components/evals/token-band";
 import { TrialArtifacts } from "@/components/evals/trial-artifacts";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
+import { TrialSections } from "@/components/evals/trial-sections";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
@@ -60,22 +67,54 @@ function TrialScreen() {
           />
         </section>
 
-        <TrialArtifacts
-          artifacts={trial.artifacts}
-          trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
+        <TrialSections
+          sections={[
+            ...(trial.artifacts?.length
+              ? [
+                  {
+                    Icon: FilesIcon,
+                    content: (
+                      <TrialArtifacts
+                        artifacts={trial.artifacts}
+                        trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
+                      />
+                    ),
+                    label: "Files",
+                    value: "files",
+                  },
+                ]
+              : []),
+            {
+              Icon: CheckSquareIcon,
+              content: (
+                <ValidationInspector
+                  files={cell?.setup?.validatorFiles}
+                  key={`${cellKey}:${ordinal}`}
+                  titled={false}
+                  trials={[trial]}
+                />
+              ),
+              label: "Validation",
+              value: "validation",
+            },
+            ...(cell?.setup == null
+              ? []
+              : [
+                  {
+                    Icon: SlidersHorizontalIcon,
+                    content: <CellSetup setup={cell.setup} trials={[trial]} />,
+                    label: "Setup",
+                    value: "setup",
+                  },
+                ]),
+            {
+              Icon: SquaresFourIcon,
+              content: <TrialCalls trajectory={trial.trajectory} />,
+              label: "Calls",
+              value: "calls",
+            },
+          ]}
         />
-
-        <ValidationInspector
-          files={cell?.setup?.validatorFiles}
-          key={`${cellKey}:${ordinal}`}
-          trials={[trial]}
-        />
-
-        {cell?.setup == null ? null : (
-          <CellSetup setup={cell.setup} trials={[trial]} />
-        )}
-
-        <TrialCalls trajectory={trial.trajectory} />
       </EvalMain>
 
       <TrialRail trial={trial} trigger={run.trigger} />
