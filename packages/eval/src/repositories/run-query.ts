@@ -2,6 +2,11 @@ import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import {
+  type CaseSummary,
+  caseListQuery,
+  type ListCasesInput,
+} from "./case-list-query";
+import {
   type CellHistoryEntry,
   type CellHistoryInput,
   cellHistoryQuery,
@@ -45,9 +50,15 @@ export interface RunQueryShape {
   readonly hydrateRuns: (
     runs: readonly RunRow[]
   ) => Effect.Effect<readonly RunDetail[], EvalStoreError>;
+  readonly listCases: (
+    input: ListCasesInput
+  ) => Effect.Effect<readonly CaseSummary[], EvalStoreError>;
   readonly listRuns: (
     input: ListRunsInput
   ) => Effect.Effect<readonly RunRow[], EvalStoreError>;
+  readonly listTags: (
+    organizationId: string
+  ) => Effect.Effect<readonly string[], EvalStoreError>;
 }
 
 export class RunQuery extends Context.Tag("@anpord/eval/RunQuery")<
@@ -62,6 +73,7 @@ export const RunQueryLive = Layer.effect(
     const detail = yield* runDetailQuery;
     const history = yield* cellHistoryQuery;
     const tasks = yield* runTasksQuery;
+    const cases = yield* caseListQuery;
 
     return RunQuery.of({
       countRunning: list.countRunning,
@@ -69,6 +81,8 @@ export const RunQueryLive = Layer.effect(
       findCellHistory: history.findCellHistory,
       findCellTask: tasks.findCellTask,
       findRunTasks: tasks.findRunTasks,
+      listCases: cases.listCases,
+      listTags: cases.listTags,
       findRun: detail.findRun,
       hydrateRuns: detail.hydrateRuns,
       listRuns: list.listRuns,

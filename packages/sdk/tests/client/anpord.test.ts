@@ -38,6 +38,7 @@ describe("surface", () => {
     const anpord = new Anpord({ apiKey: "k" });
     expect(Object.keys(anpord.evals).toSorted()).toEqual([
       "artifact",
+      "cases",
       "cellHistory",
       "credentials",
       "finishRun",

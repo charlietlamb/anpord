@@ -17,6 +17,7 @@ import { getEvalArtifact } from "../../evals/artifacts";
 import {
   getEvalRun,
   getRunSubscription,
+  listEvalCases,
   listEvalRuns,
 } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
@@ -41,6 +42,11 @@ export const EvalsHandlers = HttpApiBuilder.group(
         "artifact",
         { permission: Permissions.Evals.Read },
         ({ payload }) => getEvalArtifact(payload)
+      )
+      .handle(
+        "cases",
+        { permission: Permissions.Evals.Read },
+        ({ urlParams }) => listEvalCases(urlParams)
       )
       .handle("list", { permission: Permissions.Evals.Read }, ({ urlParams }) =>
         listEvalRuns(urlParams)

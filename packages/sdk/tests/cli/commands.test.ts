@@ -9,6 +9,7 @@ const OPERATION_COMMANDS: Record<string, readonly string[]> = {
   "connectors.list": [],
   "connectors.remove": [],
   "evals.artifact": [],
+  "evals.cases": [],
   "evals.cellHistory": [],
   "evals.credentials": [],
   "evals.finishRun": [],

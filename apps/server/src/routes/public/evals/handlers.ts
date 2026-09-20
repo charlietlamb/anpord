@@ -9,6 +9,7 @@ import {
   getEvalModels,
   getEvalRun,
   getRunSubscription,
+  listEvalCases,
   listEvalRuns,
   rerunEvalCell,
   startEvalRun,
@@ -31,6 +32,9 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
           cursorStartedAt: payload.cursor?.startedAtMillis,
           limit: payload.limit,
         })
+      )
+      .handle("cases", { permission: Permissions.Evals.Read }, ({ payload }) =>
+        listEvalCases(payload)
       )
       .handle("start", { permission: Permissions.Evals.Write }, ({ payload }) =>
         startEvalRun(payload)

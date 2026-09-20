@@ -106,5 +106,25 @@ export const makeReadRuns = (live: LiveRuns) =>
         };
       }).pipe(Effect.orDie, Effect.withSpan("GridRun.list"));
 
-    return { get, list };
+    /* The tag list comes back with the page rather than from its own call: the
+       filter is drawn beside the rows it filters, so one without the other is
+       a half-rendered screen. */
+    const cases = (input: {
+      readonly limit: number | undefined;
+      readonly organizationId: string;
+      readonly tag: string | null;
+    }) =>
+      Effect.all(
+        {
+          cases: query.listCases({
+            limit: pageSizeOf(input.limit),
+            organizationId: input.organizationId,
+            tag: input.tag,
+          }),
+          tags: query.listTags(input.organizationId),
+        },
+        { concurrency: 2 }
+      ).pipe(Effect.orDie, Effect.withSpan("GridRun.cases"));
+
+    return { cases, get, list };
   });

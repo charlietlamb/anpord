@@ -1,5 +1,5 @@
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { EvalExecutor } from "@anpord/schema/domain/evals";
+import type { EvalCasePage, EvalExecutor } from "@anpord/schema/domain/evals";
 import { Context, Effect, Layer, type Option, type Stream } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import type { PageCursor } from "../domain/page";
@@ -40,6 +40,11 @@ export interface GridRunPage {
 }
 
 export interface GridRunShape {
+  readonly cases: (input: {
+    readonly limit: number | undefined;
+    readonly organizationId: string;
+    readonly tag: string | null;
+  }) => Effect.Effect<EvalCasePage>;
   readonly changes: Stream.Stream<GridRunState>;
 
   /* What a runner is handed, not what asks for one: a worker calling resume
@@ -48,7 +53,6 @@ export interface GridRunShape {
   readonly finishReported: (
     input: FinishReported
   ) => Effect.Effect<boolean, EvalStoreError>;
-
   readonly get: (
     organizationId: string,
     id: string
@@ -75,12 +79,13 @@ export const GridRunLive = Layer.scoped(
     const { execute, resume } = yield* makeExecuteRun(live);
     const start = yield* makeStartRun(execute, live);
     const reporting = yield* makeReportRun;
-    const { get, list } = yield* makeReadRuns(live);
+    const { cases, get, list } = yield* makeReadRuns(live);
 
     return GridRun.of({
       changes: live.changes,
       execute,
       finishReported: reporting.finishReported,
+      cases,
       get,
       list,
       report: reporting.report,

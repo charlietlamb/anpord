@@ -12,6 +12,7 @@ import {
 import {
   EvalArtifact,
   EvalArtifactRequest,
+  EvalCasePage,
   EvalCellHistoryEntry,
   EvalHarness,
   EvalRun,
@@ -41,6 +42,16 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
         })
       )
       .addSuccess(EvalRunPage)
+  )
+  .add(
+    HttpApiEndpoint.get("cases", "/evals/cases")
+      .setUrlParams(
+        Schema.Struct({
+          limit: Schema.optional(Schema.NumberFromString),
+          tag: Schema.optional(Schema.String),
+        })
+      )
+      .addSuccess(EvalCasePage)
   )
 
   .add(

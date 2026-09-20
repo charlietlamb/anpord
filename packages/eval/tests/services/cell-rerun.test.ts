@@ -45,6 +45,8 @@ const layer = (
         finishReported: () => Effect.succeed(true),
         report: () => Effect.void,
         get: () => Effect.succeed(Option.none()),
+        cases: () => Effect.succeed({ cases: [], tags: [] }),
+
         list: () => Effect.succeed({ next: null, runs: [], total: 0 }),
         resume: () => Effect.void,
         start: (input) =>
@@ -64,7 +66,11 @@ const layer = (
         findRunTasks: () => Effect.succeed([]),
         findRun: () => Effect.succeed(Option.none()),
         hydrateRuns: () => Effect.succeed([]),
+        listCases: () => Effect.succeed([]),
+
         listRuns: () => Effect.succeed([]),
+
+        listTags: () => Effect.succeed([]),
       })
     )
   );

@@ -45,7 +45,11 @@ const withRunning = (running: number) =>
       findRun: () => Effect.succeed(Option.none()),
       findRunTasks: () => Effect.succeed([]),
       hydrateRuns: () => Effect.succeed([]),
+      listCases: () => Effect.succeed([]),
+
       listRuns: () => Effect.succeed([]),
+
+      listTags: () => Effect.succeed([]),
     })
   );
 

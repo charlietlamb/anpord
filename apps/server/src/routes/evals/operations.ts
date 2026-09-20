@@ -55,6 +55,21 @@ export const listEvalRuns = (params: {
     };
   });
 
+export const listEvalCases = (params: {
+  readonly limit?: number | undefined;
+  readonly tag?: string | null | undefined;
+}) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const grid = yield* GridRun;
+
+    return yield* grid.cases({
+      limit: params.limit,
+      organizationId: actor.organizationId,
+      tag: params.tag ?? null,
+    });
+  });
+
 export const startEvalRun = (payload: PublicStartEvalRequest) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;

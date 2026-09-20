@@ -589,6 +589,35 @@ export const EvalRunPage = Schema.Struct({
 });
 export type EvalRunPage = typeof EvalRunPage.Type;
 
+/* A case as the list shows it: one row per cell key, carrying its newest
+   sighting rather than a run. `runCount` is how many runs have reached it,
+   which is what makes a rarely-run case legible beside a daily one. */
+export const EvalCaseSummary = Schema.Struct({
+  cellKey: Schema.String,
+  distribution: EvalDistribution,
+  harness: Schema.String,
+  lastRunAtMillis: Schema.Int,
+  lastRunId: Schema.String,
+  model: Schema.String,
+  name: Schema.String,
+  runCount: Schema.Int,
+  suite: Schema.NullOr(Schema.String),
+  tags: Schema.Array(Schema.String),
+}).annotations({
+  description: "A case as the list shows it, with its newest run.",
+  identifier: "EvalCaseSummary",
+});
+export type EvalCaseSummary = typeof EvalCaseSummary.Type;
+
+export const EvalCasePage = Schema.Struct({
+  cases: Schema.Array(EvalCaseSummary),
+  tags: Schema.Array(Schema.String),
+}).annotations({
+  description: "Cases and every tag they carry between them.",
+  identifier: "EvalCasePage",
+});
+export type EvalCasePage = typeof EvalCasePage.Type;
+
 export const EvalCellHistoryEntry = Schema.Struct({
   trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
     default: () => null,
