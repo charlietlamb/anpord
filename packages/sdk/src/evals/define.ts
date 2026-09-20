@@ -1,5 +1,9 @@
 import { pathToFileURL } from "node:url";
-import type { EvalDefinition } from "./types";
+import type {
+  EvalCaseDefinition,
+  EvalDefinition,
+  SingleCaseDefinition,
+} from "./types";
 
 const SOURCE_URL = Symbol.for("anpord.sourceUrl");
 
@@ -63,6 +67,21 @@ export function suite<const Definition extends EvalDefinition>(
         enumerable: false,
         value: file,
       });
+}
+
+/* Most evals measure one thing, and wrapping that in a suite asks for two
+   names and an array to say it. A suite is what shares a prompt template or a
+   set of mocks across several cases, so it stays for the cases that do. */
+export function evalCase(definition: SingleCaseDefinition): EvalDefinition {
+  const { prompt, tasks, trials, ...subject } = definition;
+
+  return suite({
+    cases: [subject as EvalCaseDefinition],
+    name: subject.name,
+    prompt,
+    tasks,
+    trials,
+  });
 }
 
 export const sourceUrlOf = (definition: EvalDefinition): string | undefined =>

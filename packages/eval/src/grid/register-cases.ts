@@ -34,6 +34,7 @@ export const makeRegisterCases = Effect.gen(function* () {
           prompt,
           prepare: subject.prepare ?? null,
           source: subject.source,
+          tags: subject.tags,
           user: subject.user,
           validator: subject.validator ?? null,
           verifyCommand: subject.verify,

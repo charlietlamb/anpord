@@ -33,6 +33,9 @@ export const evalTask = pgTable(
     validatorSource: text("validator_source"),
     validatorConfig: jsonb("validator_config").$type<EvalValidator>(),
     user: jsonb("user").$type<EvalUser>(),
+    /* Deliberately outside the case identity: a case retagged is the same
+       measurement, and hashing these would orphan every baseline behind it. */
+    tags: jsonb("tags").$type<readonly string[]>(),
     /* Stored because a worker rebuilds the case from here, never from the request. */
     cacheKey: text("cache_key"),
     cachePath: text("cache_path"),

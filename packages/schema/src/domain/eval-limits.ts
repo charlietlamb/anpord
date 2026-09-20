@@ -7,6 +7,8 @@ const VERIFY_LIMIT = 8192;
 
 /* Read in a table cell and a cell key, never executed, so bounded by display rather than by the shell. */
 const NAME_LIMIT = 200;
+const TAG_LIMIT = 40;
+const TAGS_PER_CASE = 12;
 
 /* Substituted into the prompt before quoting, so eight of the longest still fit its budget. */
 const VARIABLE_VALUE_LIMIT = 2048;
@@ -37,6 +39,20 @@ export const EvalCaseName = Schema.String.pipe(
     description: "What a case is called.",
     identifier: "EvalCaseName",
     message: () => `A case name must be at most ${NAME_LIMIT} characters.`,
+  })
+);
+
+/* Grouping is many to many, so a case carries several. Capped because these
+   are read back as filters, not as content. */
+export const EvalCaseTags = Schema.Array(
+  Schema.String.pipe(Schema.minLength(1), Schema.maxLength(TAG_LIMIT))
+).pipe(
+  Schema.maxItems(TAGS_PER_CASE),
+  Schema.annotations({
+    description: "What a case is grouped under.",
+    identifier: "EvalCaseTags",
+    message: () =>
+      `A case may carry at most ${TAGS_PER_CASE} tags of ${TAG_LIMIT} characters.`,
   })
 );
 

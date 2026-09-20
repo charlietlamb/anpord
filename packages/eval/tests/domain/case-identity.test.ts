@@ -130,4 +130,16 @@ describe("case identity", () => {
 
     expect(second).toBe(first);
   });
+
+  /* Grouping is not measurement. If tags reached the hash, retagging a case
+     would orphan the baseline behind it. */
+  it("does not change when a case is retagged", () => {
+    const untagged = caseIdentityOf(base);
+    const tagged = caseIdentityOf({
+      ...base,
+      tags: ["billing", "regression"],
+    } as CaseDefinition);
+
+    expect(tagged).toBe(untagged);
+  });
 });

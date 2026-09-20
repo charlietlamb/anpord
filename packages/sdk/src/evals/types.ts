@@ -107,6 +107,9 @@ interface EvalCaseBase {
   readonly name: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;
+  /** How this case is grouped. A case may carry several, and retagging one
+   * keeps its baseline, because tags are not part of its identity. */
+  readonly tags?: readonly string[];
   readonly user?: EvalUser;
   readonly variables?: Readonly<Record<string, string>>;
 }
@@ -122,6 +125,13 @@ export type EvalCaseDefinition = EvalCaseBase &
       }
     | { readonly validate?: never; readonly verify: string }
   );
+
+/** One case and what to run it on, for an eval that measures a single thing. */
+export type SingleCaseDefinition = EvalCaseDefinition & {
+  readonly prompt: string;
+  readonly tasks: readonly EvalTaskDefinition[];
+  readonly trials: number;
+};
 
 export interface EvalDefinition {
   readonly api?: readonly ApiDefinition[];

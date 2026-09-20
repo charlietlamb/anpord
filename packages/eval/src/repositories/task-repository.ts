@@ -19,6 +19,7 @@ interface TaskDefinition {
   readonly prepare: EvalPrepare | null;
   readonly prompt: string;
   readonly source: WorkspaceSource;
+  readonly tags?: readonly string[] | null;
   readonly user?: EvalUser | null;
   readonly validator: EvalValidator | null;
   readonly verifyCommand: string | null;
@@ -67,6 +68,7 @@ const definitionOf = (input: TaskDefinition) => ({
     input.validator != null && "source" in input.validator
       ? input.validator.source
       : null,
+  tags: input.tags ?? null,
   user: input.user ?? null,
   validatorConfig: input.validator,
   verifyCommand: input.verifyCommand,

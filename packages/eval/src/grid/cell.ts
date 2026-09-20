@@ -26,6 +26,7 @@ export interface GridCase {
   readonly name: string;
   readonly prepare: EvalPrepare | null;
   readonly source: WorkspaceSource;
+  readonly tags?: readonly string[] | null;
   readonly user?: EvalUser | null;
 
   readonly validator?: EvalValidator | null;

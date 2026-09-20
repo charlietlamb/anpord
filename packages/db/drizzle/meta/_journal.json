@@ -351,6 +351,13 @@
       "when": 1789925851915,
       "tag": "0049_a_client_ran_it",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1789930157211,
+      "tag": "0050_a_case_carries_tags",
+      "breakpoints": true
     }
   ]
 }
