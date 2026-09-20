@@ -13,10 +13,9 @@ test("each surface keeps its own heading while its content loads", () => {
   expect(renderToStaticMarkup(<CellSetupSkeleton />)).toContain("Prompt");
 });
 
-test("static tabs render immediately rather than as placeholders", () => {
+test("the surface names itself while its rows load", () => {
   const html = renderToStaticMarkup(<ValidationInspectorSkeleton />);
-  expect(html).toContain("Results");
-  expect(html).toContain("Source");
+  expect(html).toContain("Validation");
 });
 
 test("the trial skeleton shows the ordinal the route already knows", () => {

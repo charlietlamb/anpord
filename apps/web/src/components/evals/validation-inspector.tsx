@@ -1,6 +1,5 @@
 import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
 import { Button } from "@anpord/ui/components/button";
-import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 import {
   Select,
   SelectContent,
@@ -9,12 +8,7 @@ import {
   SelectValue,
 } from "@anpord/ui/components/ui/select";
 import { cn } from "@anpord/ui/lib/utils";
-import {
-  CaretRightIcon,
-  CheckSquareIcon,
-  FileCodeIcon,
-  ListChecksIcon,
-} from "@phosphor-icons/react";
+import { CaretRightIcon, CheckSquareIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import {
   type ValidationTrial,
@@ -29,12 +23,14 @@ export function ValidationInspector({
   trials,
   files = [],
   titled = true,
+  view = "results",
 }: {
   readonly trials: readonly ValidationTrial[];
   readonly files?: readonly EvalSourceFile[];
   readonly titled?: boolean;
+  readonly view?: "results" | "source";
 }) {
-  const [source, setSource] = useState(false);
+  const source = view === "source";
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [ordinal, setOrdinal] = useState<string | null>(null);
   const selected =
@@ -62,15 +58,7 @@ export function ValidationInspector({
       title="Validation"
       titled={titled}
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <PageTabs
-          onChange={(value) => setSource(value === "source")}
-          options={[
-            { Icon: ListChecksIcon, label: "Results", value: "results" },
-            { Icon: FileCodeIcon, label: "Source", value: "source" },
-          ]}
-          value={source ? "source" : "results"}
-        />
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-2 empty:hidden">
         {!source && trials.length > 1 ? (
           <Select
             onValueChange={(value) => {

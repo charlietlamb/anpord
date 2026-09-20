@@ -2,6 +2,7 @@ import type { EvalCell } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import {
   CheckSquareIcon,
+  FileCodeIcon,
   FilesIcon,
   FlaskIcon,
   SlidersHorizontalIcon,
@@ -110,6 +111,23 @@ function CellScreen() {
               label: "Validation",
               value: "validation",
             },
+            ...(cell?.setup?.validatorFiles?.length
+              ? [
+                  {
+                    Icon: FileCodeIcon,
+                    content: (
+                      <ValidationInspector
+                        files={cell.setup.validatorFiles}
+                        titled={false}
+                        trials={cell.trials}
+                        view="source"
+                      />
+                    ),
+                    label: "Source",
+                    value: "source",
+                  },
+                ]
+              : []),
             ...(cell.setup === null
               ? []
               : [

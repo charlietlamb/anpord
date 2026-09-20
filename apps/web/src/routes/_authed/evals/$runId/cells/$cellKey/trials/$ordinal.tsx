@@ -1,6 +1,7 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import {
   CheckSquareIcon,
+  FileCodeIcon,
   FilesIcon,
   PulseIcon,
   SlidersHorizontalIcon,
@@ -98,6 +99,23 @@ function TrialScreen() {
               label: "Validation",
               value: "validation",
             },
+            ...(cell?.setup?.validatorFiles?.length
+              ? [
+                  {
+                    Icon: FileCodeIcon,
+                    content: (
+                      <ValidationInspector
+                        files={cell.setup.validatorFiles}
+                        titled={false}
+                        trials={[trial]}
+                        view="source"
+                      />
+                    ),
+                    label: "Source",
+                    value: "source",
+                  },
+                ]
+              : []),
             ...(cell?.setup == null
               ? []
               : [
