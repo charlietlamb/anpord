@@ -23,7 +23,7 @@ export function ErrorCard({
       <PanelCard description={description} heading="h1" title={title}>
         {detail ? (
           <CodeBlock
-            className="mt-4 max-h-48 border text-muted-foreground"
+            className="mt-4 max-h-48 whitespace-pre-wrap break-words border text-muted-foreground"
             copyValue={detail}
           >
             {detail}

@@ -111,7 +111,7 @@ export function Landing() {
   return (
     <SiteLayout>
       <section className="flex flex-1 flex-col justify-center pb-24">
-        <h1 className="fade-in-0 slide-in-from-bottom-2 animate-in text-balance fill-mode-both font-heading text-5xl tracking-tight ease-out [animation-duration:500ms] sm:text-6xl">
+        <h1 className="fade-in-0 slide-in-from-bottom-2 animate-in text-balance fill-mode-both font-heading text-5xl tracking-[-0.035em] ease-out [animation-duration:500ms] sm:text-6xl">
           Evals for harnesses running in sandboxes.
         </h1>
         <p className="fade-in-0 slide-in-from-bottom-2 mt-5 max-w-lg animate-in text-balance fill-mode-both text-muted-foreground ease-out [animation-delay:75ms] [animation-duration:500ms] sm:text-lg">

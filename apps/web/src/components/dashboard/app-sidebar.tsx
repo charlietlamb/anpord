@@ -11,12 +11,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarTrigger,
-  useSidebar,
 } from "@anpord/ui/components/ui/sidebar";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { ClientOnly, Link, useLocation } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "motion/react";
 import {
   DASHBOARD_NAV,
   isNavItemActive,
@@ -26,20 +23,14 @@ import { NavUserSkeleton } from "@/components/dashboard/nav-user-skeleton";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
-  const { state } = useSidebar();
-  const reduceMotion = useReducedMotion();
 
   return (
-    <Sidebar
-      className="border-sidebar-border border-r"
-      collapsible="icon"
-      variant="sidebar"
-    >
+    <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader className="gap-1 px-2 py-0">
-        <div className="relative flex h-11 items-center gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+        <div className="relative flex h-11 items-center gap-2 px-2">
           <Link
             aria-label="Home"
-            className="shrink-0 cursor-pointer text-foreground transition-colors hover:text-muted-foreground group-data-[collapsible=icon]:hidden"
+            className="shrink-0 cursor-pointer text-foreground transition-colors hover:text-muted-foreground"
             to="/home"
           >
             <Logo className="size-5" />
@@ -56,20 +47,6 @@ export function AppSidebar() {
           >
             <MagnifyingGlassIcon />
           </SidebarMenuButton>
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:inset-0 group-data-[collapsible=icon]:z-20 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
-            initial={
-              state === "collapsed" && !reduceMotion ? { opacity: 0 } : false
-            }
-            transition={{
-              delay: state === "collapsed" && !reduceMotion ? 0.16 : 0,
-              duration: reduceMotion ? 0 : 0.15,
-              ease: "easeOut",
-            }}
-          >
-            <SidebarTrigger className="size-7 text-muted-foreground hover:bg-transparent hover:text-foreground active:bg-transparent" />
-          </motion.div>
         </div>
       </SidebarHeader>
 

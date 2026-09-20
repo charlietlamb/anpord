@@ -110,7 +110,6 @@
         "better-auth": "catalog:",
         "date-fns": "catalog:",
         "effect": "catalog:",
-        "motion": "^13.2.0",
         "next-themes": "catalog:",
         "nitro": "catalog:",
         "nuqs": "catalog:",

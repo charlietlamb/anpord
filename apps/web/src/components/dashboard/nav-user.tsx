@@ -27,6 +27,7 @@ import {
   SignOutIcon,
   UserIcon,
 } from "@phosphor-icons/react";
+import { Link } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import {
   IdentityAvatar,
@@ -94,7 +95,9 @@ export function NavUser() {
               <>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger openOnHover>
-                    <span className="flex-1">Organization</span>
+                    <span className="flex-1 truncate">
+                      {activeOrganization?.name ?? "Organization"}
+                    </span>
                     <CaretRightIcon aria-hidden="true" className="size-3" />
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
@@ -126,10 +129,15 @@ export function NavUser() {
               </>
             ) : null}
             <DropdownMenuGroup>
-              <DropdownMenuItem className="gap-2">
-                <UserIcon className="size-4" />
-                Account
-              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="gap-2"
+                render={
+                  <Link to="/settings">
+                    <UserIcon className="size-4" />
+                    Account
+                  </Link>
+                }
+              />
               <DropdownMenuItem
                 className="gap-2"
                 render={

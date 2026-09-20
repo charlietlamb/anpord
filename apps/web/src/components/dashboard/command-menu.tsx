@@ -63,6 +63,10 @@ export function CommandMenu() {
     onTrigger: () => (open ? close() : setOpen(true)),
   });
 
+  useShortcut("t", {
+    onTrigger: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
+  });
+
   /* Only while the menu is open, so the shortcut cannot reach a staff-only page from anywhere. */
   useShortcut("i", {
     disabled: !(open && impersonation.allowed) || page === "impersonate",

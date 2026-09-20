@@ -1,5 +1,18 @@
 import { useEffect } from "react";
 
+const isTyping = (target: EventTarget | null) => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return (
+    target.isContentEditable ||
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT"
+  );
+};
+
 interface UseShortcutOptions {
   disabled?: boolean;
   meta?: boolean;
@@ -21,6 +34,11 @@ export function useShortcut(
         return;
       }
       if (!meta && metaPressed) {
+        return;
+      }
+      /* An unmodified letter is a character while someone is typing one, so a
+         bare shortcut yields to whatever field has the caret. */
+      if (!meta && isTyping(event.target)) {
         return;
       }
       if (event.key.toLowerCase() !== key.toLowerCase()) {
