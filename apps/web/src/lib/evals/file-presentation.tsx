@@ -1,34 +1,55 @@
 import {
+  SiCss,
+  SiGo,
+  SiHtml5,
+  SiJavascript,
+  SiJson,
+  SiMarkdown,
+  SiPython,
+  SiReact,
+  SiRust,
+  SiTypescript,
+  SiYaml,
+} from "@icons-pack/react-simple-icons";
+import {
   FileCodeIcon,
-  FileCssIcon,
-  FileHtmlIcon,
   FileImageIcon,
-  FileMdIcon,
   FileTextIcon,
   type Icon,
 } from "@phosphor-icons/react";
 
-/* Pictorial marks only: Phosphor's lettered file icons are illegible at the 14px these render at. */
-const BY_EXTENSION: Record<string, Icon> = {
-  css: FileCssIcon,
+type FileGlyph = Icon | typeof SiTypescript;
+
+/* The language a file is written in, drawn as the mark that language uses.
+   Phosphor's lettered file icons are illegible at the 14px these render at. */
+const BY_EXTENSION: Record<string, FileGlyph> = {
+  cjs: SiJavascript,
+  cts: SiTypescript,
+  css: SiCss,
   gif: FileImageIcon,
-  htm: FileHtmlIcon,
-  html: FileHtmlIcon,
+  go: SiGo,
+  htm: SiHtml5,
+  html: SiHtml5,
   jpeg: FileImageIcon,
   jpg: FileImageIcon,
-  js: FileCodeIcon,
-  jsx: FileCodeIcon,
-  md: FileMdIcon,
-  mdx: FileMdIcon,
-  mjs: FileCodeIcon,
+  js: SiJavascript,
+  json: SiJson,
+  jsx: SiReact,
+  md: SiMarkdown,
+  mdx: SiMarkdown,
+  mjs: SiJavascript,
+  mts: SiTypescript,
   png: FileImageIcon,
-  py: FileCodeIcon,
-  scss: FileCssIcon,
+  py: SiPython,
+  rs: SiRust,
+  scss: SiCss,
   svg: FileImageIcon,
-  ts: FileCodeIcon,
-  tsx: FileCodeIcon,
+  ts: SiTypescript,
+  tsx: SiReact,
   txt: FileTextIcon,
   webp: FileImageIcon,
+  yaml: SiYaml,
+  yml: SiYaml,
 };
 
 /* A dotfile is all extension and no name, so `.gitignore` must not read as a gitignore file. */
@@ -39,5 +60,5 @@ const extensionOf = (path: string): string => {
   return dot <= 0 ? "" : name.slice(dot + 1).toLowerCase();
 };
 
-export const fileIcon = (path: string): Icon =>
+export const fileIcon = (path: string): FileGlyph =>
   BY_EXTENSION[extensionOf(path)] ?? FileCodeIcon;

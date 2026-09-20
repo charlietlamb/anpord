@@ -42,8 +42,7 @@ function FileRow({ path }: { readonly path: string }) {
             >
               <Glyph
                 aria-hidden="true"
-                className="shrink-0 text-muted-foreground"
-                size={14}
+                className="size-3.5 shrink-0 text-muted-foreground"
               />
               <span className="min-w-0 flex-1 truncate font-mono text-xs">
                 {name}

@@ -6,10 +6,11 @@ import { CopyButton } from "@anpord/ui/components/copy-button";
 import { CodeContent } from "@anpord/ui/components/ui/code-card";
 import type { CodeLanguage } from "@anpord/ui/lib/highlight";
 import { cn } from "@anpord/ui/lib/utils";
-import { FileCodeIcon, FilesIcon } from "@phosphor-icons/react";
+import { FilesIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getArtifact } from "@/lib/evals/evals-client";
+import { fileIcon } from "@/lib/evals/file-presentation";
 import { SetupSurface } from "./setup-surface";
 
 const TYPESCRIPT = /\.[cm]?[jt]sx?$/;
@@ -38,6 +39,7 @@ function ArtifactFile({
   readonly trial: Omit<EvalArtifactRequest, "sha256" | "path">;
 }) {
   const [open, setOpen] = useState(true);
+  const Glyph = fileIcon(artifact.path);
   const { data, isPending, refetch } = useQuery({
     queryKey: [
       "artifact",
@@ -69,7 +71,7 @@ function ArtifactFile({
           onClick={() => setOpen(!open)}
           type="button"
         >
-          <FileCodeIcon
+          <Glyph
             aria-hidden
             className="size-4 shrink-0 text-muted-foreground"
           />

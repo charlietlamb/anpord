@@ -16,6 +16,7 @@ import { TrialSections } from "@/components/evals/trial-sections";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { fileIcon } from "@/lib/evals/file-presentation";
 
 export const Route = createFileRoute("/dev/waterfall")({
   component: WaterfallPreview,
@@ -88,6 +89,33 @@ function WaterfallPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
+
+        <PreviewScreen name="File marks">
+          <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-4 px-5">
+            {[
+              "autumn.config.ts",
+              "app.tsx",
+              "index.js",
+              "main.py",
+              "notes.md",
+              "style.css",
+              "logo.svg",
+              "data.json",
+            ].map((path) => {
+              const Glyph = fileIcon(path);
+
+              return (
+                <span className="flex items-center gap-2 text-xs" key={path}>
+                  <Glyph
+                    aria-hidden="true"
+                    className="size-3.5 shrink-0 text-muted-foreground"
+                  />
+                  <span className="font-mono">{path}</span>
+                </span>
+              );
+            })}
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="A step still running">
           <div className="mx-auto w-full max-w-5xl px-5">

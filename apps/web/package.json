@@ -20,6 +20,7 @@
     "@fontsource-variable/funnel-display": "catalog:",
     "@fontsource-variable/geist": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",
+    "@icons-pack/react-simple-icons": "^13.15.1",
     "@phosphor-icons/react": "catalog:",
     "@posthog/react": "catalog:",
     "@tanstack/react-query": "catalog:",
