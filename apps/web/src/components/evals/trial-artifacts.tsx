@@ -5,7 +5,8 @@ import type {
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { CodeContent } from "@anpord/ui/components/ui/code-card";
 import type { CodeLanguage } from "@anpord/ui/lib/highlight";
-import { CaretRightIcon, FileCodeIcon, FilesIcon } from "@phosphor-icons/react";
+import { cn } from "@anpord/ui/lib/utils";
+import { FileCodeIcon, FilesIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getArtifact } from "@/lib/evals/evals-client";
@@ -53,17 +54,21 @@ function ArtifactFile({
   });
   return (
     <div className="group/file overflow-hidden rounded-xl border border-border-faint bg-muted/40">
-      <div className="flex min-w-0 items-center gap-2 px-2 py-1.5 shadow-[inset_0_-1px_0_0] shadow-border-faint">
+      <div
+        className={cn(
+          "flex min-w-0 items-center gap-2 px-2 py-1.5 transition-colors hover:bg-muted/30",
+          /* With nothing below it, the rule would sit under nothing. */
+          open &&
+            (data || isPending) &&
+            "shadow-[inset_0_-1px_0_0] shadow-border-faint"
+        )}
+      >
         <button
           aria-expanded={open}
-          className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left text-xs hover:bg-muted/30"
+          className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left text-xs"
           onClick={() => setOpen(!open)}
           type="button"
         >
-          <CaretRightIcon
-            aria-hidden
-            className={`size-3 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
-          />
           <FileCodeIcon
             aria-hidden
             className="size-4 shrink-0 text-muted-foreground"
