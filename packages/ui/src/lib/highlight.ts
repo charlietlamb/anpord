@@ -96,7 +96,11 @@ export const shellTokens = async (
       ),
       value: token.content,
     }));
-  } catch {
+  } catch (error) {
+    if (process.env.ANPORD_HIGHLIGHT_DEBUG !== undefined) {
+      process.stderr.write(`shellTokens fell back: ${String(error)}\n`);
+    }
+
     return plain(command);
   }
 };
