@@ -40,11 +40,9 @@ Write the brief the way the person would say it, one fact per line. Facts that a
 
 ## Who plays the person
 
-A model, pinned apart from the agent under test. `ANPORD_USER_MODEL` overrides it for a whole run.
+A model, pinned apart from the agent under test rather than chosen per case, because the person is measurement apparatus. A weak simulator approves a summary that contradicts its own brief, and the case then passes for the wrong reason. `ANPORD_USER_MODEL` overrides it for a whole run.
 
 It speaks through a model [connection](/connections). Without one, a run that states a human is refused when it starts rather than conducting a one-turn conversation that reads like a person who approved immediately.
-
-It is pinned rather than chosen per case because the person is measurement apparatus. A weak simulator approves a summary that contradicts its own brief, and the case then passes for the wrong reason.
 
 That model is part of the cell key, so a run conducted by one person is never compared against a baseline conducted by another. Changing it starts a new history rather than corrupting the old one.
 

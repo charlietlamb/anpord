@@ -75,7 +75,7 @@ Code checks record their return value, context arguments and results, logs, and 
 
 `failed` is a check that completed and did not pass. `error` is one that could not finish. `skipped` is one that never ran. Earlier checks stay visible when a later one crashes, and a run that predates capture cannot recover it.
 
-Each validator gets a 64,000-character budget, single values cap at 16,000, and at most 64 calls or log entries are kept. Truncation affects the stored evidence, never the score.
+Each validator gets a 64,000-character budget, single values cap at 16,000, and at most 64 calls or log entries are kept. Source snapshots cap at 100 files and 1,000,000 characters, and older runs without one show “Source unavailable.” Truncation affects the stored evidence, never the score.
 
 Inputs and logs can contain your data. `captureValidation: false` on `suite` keeps verdicts and timing but stores no payloads, separately from `captureSource`. Credentials and model reasoning are never collected, but a validator that prints a secret will store it.
 

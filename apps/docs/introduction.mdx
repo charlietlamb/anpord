@@ -3,7 +3,7 @@ title: "Introduction"
 description: "What is Anpord?"
 ---
 
-Anpord gives you a declaritve way to run evals against [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/) and any other harness you like.
+Anpord gives you a declarative way to run evals against [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/) and any other harness you like.
 
 You write evals, validators, judges, classifiers and whatever else you need in TypeScript. These are then run in a sandbox environment of your choice. Sandboxes can also be compared against one another.
 
@@ -28,7 +28,7 @@ export default suite({
 
 ## When to use Anpord
 
-Anpord is great fit if you're building a product which uses or will itself be used by harnesses like [Claude Code](https://claude.com/product/claude-code). In this case you can't just analyze the request/response passed to a model as there's a lot more to consider. The harness is doing real work in an enviroment and the evals need to be aware of this.
+Anpord is a great fit if you're building a product which uses or will itself be used by harnesses like [Claude Code](https://claude.com/product/claude-code). In this case you can't just analyze the request/response passed to a model as there's a lot more to consider. The harness is doing real work in an environment and the evals need to be aware of this.
 
 Another common use case would be to compare how harnesses are able to use your product. Lets say you ship a change to your MCP server, you want to be sure that the end user who uses it in claude code won't see any regressions in performance.
 
