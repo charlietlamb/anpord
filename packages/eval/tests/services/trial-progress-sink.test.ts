@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Chunk, Effect, Ref, Stream } from "effect";
 import { EvalStoreError } from "../../src/domain/errors";
-import type { HarnessEvent } from "../../src/domain/harness-event";
 import { progressSink } from "../../src/services/trial-progress-sink";
 
 const events: readonly HarnessEvent[] = [

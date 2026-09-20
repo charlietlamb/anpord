@@ -1,6 +1,6 @@
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import type { TrialOutcome, TrialStatus } from "@anpord/schema/domain/trial";
 import { type Distribution, distributionOf } from "../domain/distribution";
-import type { TrialOutcome, TrialStatus } from "../domain/trial";
 
 type TrialRow = typeof evalTrial.$inferSelect;
 

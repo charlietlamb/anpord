@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { distributionOf } from "../../src/domain/distribution";
-import type { TrialOutcome } from "../../src/domain/trial";
 
 const outcome = (
   status: TrialOutcome["status"],

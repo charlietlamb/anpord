@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { HarnessEvent } from "../../../src/domain/harness-event";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { FINISHED, journal, line, WORKSPACE } from "./command-fake";
 
 describe("a command harness process that exits non-zero", () => {

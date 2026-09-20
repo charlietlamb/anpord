@@ -1,5 +1,8 @@
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 
 const CommandItem = Schema.Struct({
   aggregated_output: Schema.optional(Schema.String),

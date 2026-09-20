@@ -13,10 +13,10 @@ import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer, Option, Redacted } from "effect";
-import type { HarnessEvent } from "../../src/domain/harness-event";
-import type { TrialOutcome } from "../../src/domain/trial";
 import { getEvalArtifact } from "../../src/repositories/trial-artifacts";
 import {
   TrialRecorder,

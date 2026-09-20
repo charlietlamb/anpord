@@ -1,5 +1,5 @@
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option } from "effect";
-import type { HarnessEvent } from "../../domain/harness-event";
 import type { DecodedLine } from "./codex-events";
 
 export type Pending = ReadonlyMap<string, number>;

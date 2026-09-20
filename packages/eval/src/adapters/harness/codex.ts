@@ -1,7 +1,7 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Effect, Option, Redacted, Ref, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
-import type { HarnessUsage } from "../../domain/harness-event";
 import type {
   HarnessDriverShape,
   HarnessSessionShape,

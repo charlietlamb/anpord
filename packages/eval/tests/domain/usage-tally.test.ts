@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Option } from "effect";
-import { type HarnessUsage, usageOf } from "../../src/domain/harness-event";
+import { usageOf } from "../../src/domain/harness-event";
 import {
   EMPTY_TALLY,
   NO_USAGE,

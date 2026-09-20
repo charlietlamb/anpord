@@ -1,5 +1,5 @@
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { HarnessEvent } from "../../domain/harness-event";
 
 /* Only bash and zsh have a DEBUG trap, so `sh -c`, dash, and shells Node or
    Python spawn leave no line here. */

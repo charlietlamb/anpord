@@ -1,7 +1,7 @@
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import type { Option } from "effect";
 import { toNanos } from "./cost-arithmetic";
 import type { CostComponent } from "./cost-component";
-import type { HarnessUsage } from "./harness-event";
 import { costOf, type ModelPrice } from "./model-price";
 
 /* Failures included: a trial that ran and failed consumed what a passing one did. */

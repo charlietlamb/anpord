@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import {
   COMMAND_RECORDER,
   traceToEvents,
   withoutReported,
 } from "../../../src/adapters/harness/command-recorder";
-import type { HarnessEvent } from "../../../src/domain/harness-event";
 
 /* Verbatim lines the recorder wrote in node:20-bookworm when sourced through
    BASH_ENV into `bash -c '…'`. The nested bash body is traced line by line;

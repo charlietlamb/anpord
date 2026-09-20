@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { HarnessUsage } from "../../src/domain/harness-event";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import {
   cacheHitOf,
   costOf,

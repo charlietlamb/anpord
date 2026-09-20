@@ -3,8 +3,8 @@ import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
+import type { TrialStatus } from "@anpord/schema/domain/trial";
 import { Option } from "effect";
-import type { TrialStatus } from "../../src/domain/trial";
 import { runToState } from "../../src/grid/stored-run-state";
 import type { RunDetail } from "../../src/repositories/run-detail";
 

@@ -1,4 +1,8 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import {
   Context,
   type Effect,
@@ -9,7 +13,6 @@ import {
 } from "effect";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable } from "../domain/errors";
-import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { SandboxHandle } from "./sandbox";
 

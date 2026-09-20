@@ -1,5 +1,5 @@
 import type { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import type { HarnessEvent } from "../domain/harness-event";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
 type EventRow = typeof evalEvent.$inferSelect;
 

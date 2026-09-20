@@ -1,5 +1,8 @@
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 import type { DecodedOutput } from "./support";
 
 const Stats = Schema.Struct({

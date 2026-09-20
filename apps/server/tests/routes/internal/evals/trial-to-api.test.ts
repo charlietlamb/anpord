@@ -1,5 +1,4 @@
 import { expect, test } from "bun:test";
-import { HarnessEvent } from "@anpord/eval/domain/harness-event";
 import { outcomeOf } from "@anpord/eval/domain/trial";
 import type { GridCell } from "@anpord/eval/grid/state";
 import {
@@ -7,6 +6,7 @@ import {
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
 import { EvalTrial } from "@anpord/schema/domain/evals";
+import { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import { asTrials } from "../../../../src/routes/internal/evals/trial-to-api";
 

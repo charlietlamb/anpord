@@ -1,4 +1,4 @@
-import type { TrialOutcome } from "./trial";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 
 export interface Distribution {
   readonly commandMax: number;

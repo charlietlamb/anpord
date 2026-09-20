@@ -1,11 +1,11 @@
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
 import type { HarnessName } from "../domain/cell";
-import type { HarnessEvent } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
-import type { TrialOutcome } from "../domain/trial";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
 import { forwardedEnv } from "./forwarded-env";

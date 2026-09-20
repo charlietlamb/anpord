@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Effect, Stream } from "effect";
 import { ScorerGroundTruthLive } from "../../../src/adapters/scorers/ground-truth";
 import { ANSWER_PATH, TRANSCRIPT_PATH } from "../../../src/domain/answer-file";
-import type { HarnessEvent } from "../../../src/domain/harness-event";
 import type { ExecOptions, SandboxHandle } from "../../../src/ports/sandbox";
 import { Scorer } from "../../../src/ports/scorer";
 import { declinesEverything } from "../../fixtures/declines-everything";

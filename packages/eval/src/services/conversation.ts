@@ -4,8 +4,8 @@ import type {
   EvalUser,
 } from "@anpord/schema/domain/eval-turns";
 import { MAX_USER_TURNS } from "@anpord/schema/domain/eval-turns";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Effect, Option } from "effect";
-import type { HarnessEvent } from "../domain/harness-event";
 import { commandsIn, readAnswer, sessionIdOf } from "../domain/journal";
 import { SimulatedUser } from "../ports/simulated-user";
 

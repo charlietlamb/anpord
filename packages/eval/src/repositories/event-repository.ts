@@ -1,9 +1,9 @@
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { asc, inArray } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
-import type { HarnessEvent } from "../domain/harness-event";
 import { groupByTrial } from "./event-row";
 import { JournalArchive } from "./journal-archive";
 import { tryStore } from "./query";

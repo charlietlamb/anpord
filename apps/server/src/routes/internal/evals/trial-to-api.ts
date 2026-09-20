@@ -1,4 +1,3 @@
-import type { HarnessEvent } from "@anpord/eval/domain/harness-event";
 import {
   commandsIn,
   failedCommandsIn,
@@ -6,6 +5,7 @@ import {
 } from "@anpord/eval/domain/journal";
 import type { GridCell } from "@anpord/eval/grid/state";
 import type { EvalJournalEntry, EvalTrial } from "@anpord/schema/domain/evals";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option } from "effect";
 
 const JOURNAL_OUTPUT_LIMIT = 4000;

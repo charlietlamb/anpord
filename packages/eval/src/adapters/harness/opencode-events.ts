@@ -1,5 +1,8 @@
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 
 const ToolTime = Schema.Struct({
   end: Schema.optional(Schema.Number),

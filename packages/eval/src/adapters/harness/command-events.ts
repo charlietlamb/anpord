@@ -1,6 +1,9 @@
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import { CommandLine, type CommandUsageLine } from "../../domain/command-line";
-import type { HarnessEvent, HarnessUsage } from "../../domain/harness-event";
 import type { HarnessExit } from "./process";
 import type { DecodedOutput } from "./support";
 

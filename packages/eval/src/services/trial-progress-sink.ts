@@ -1,5 +1,5 @@
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Chunk, Effect, Ref, Schedule, Stream } from "effect";
-import type { HarnessEvent } from "../domain/harness-event";
 import type { TrialProgressShape } from "../ports/trial-progress";
 
 const PROGRESS_BATCH = 32;

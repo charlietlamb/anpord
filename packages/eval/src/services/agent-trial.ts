@@ -8,6 +8,11 @@ import type {
   EvalPrepare,
   EvalValidator,
 } from "@anpord/schema/domain/evals";
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import {
   Chunk,
   Clock,
@@ -29,7 +34,6 @@ import type {
   SourceUnavailable,
 } from "../domain/errors";
 import { UserUnavailable } from "../domain/errors";
-import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
 import { waitingOutCapacity } from "../domain/harness-retry";
 import {
@@ -38,7 +42,6 @@ import {
   filesIn,
   sessionIdOf,
 } from "../domain/journal";
-import type { TrialOutcome } from "../domain/trial";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";

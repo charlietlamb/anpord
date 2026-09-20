@@ -1,5 +1,5 @@
+import { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Schema } from "effect";
-import { HarnessEvent } from "./harness-event";
 
 /* The version is pinned: a format change is a migration that rewrites the rows,
    not a branch on read. */

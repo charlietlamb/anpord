@@ -1,5 +1,5 @@
+import type { VerifyStepResult } from "@anpord/schema/domain/trial";
 import { stepsOf } from "@anpord/schema/domain/verify-steps";
-import type { VerifyStepResult } from "./trial";
 
 /* `a && b && c` reports one exit code, so a failure never says which condition
    failed; the rewrite keeps one shell, so a `cd` or `export` still carries across. */

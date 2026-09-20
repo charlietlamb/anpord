@@ -4,10 +4,10 @@ import type {
 } from "@anpord/schema/domain/credentials";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { EvalSetup } from "@anpord/schema/domain/evals";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
 import { type Distribution, distributionOf } from "../domain/distribution";
-import type { HarnessEvent } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { AgentTrialResult } from "../services/agent-trial";
 

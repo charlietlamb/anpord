@@ -1,5 +1,5 @@
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Schema } from "effect";
-import type { HarnessUsage } from "./harness-event";
 
 /* Published rates are quoted per million tokens. */
 const PER = 1_000_000;

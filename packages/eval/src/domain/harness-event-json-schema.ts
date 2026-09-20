@@ -1,6 +1,6 @@
+import { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { JSONSchema } from "effect";
 import { CommandLine } from "./command-line";
-import { HarnessEvent } from "./harness-event";
 
 /** The event union as JSON Schema, for a customer validating their own output. */
 export const harnessEventJsonSchema = JSONSchema.make(HarnessEvent);

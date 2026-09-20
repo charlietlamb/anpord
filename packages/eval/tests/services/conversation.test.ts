@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Effect, Layer, Option } from "effect";
 import { UserUnavailable } from "../../src/domain/errors";
-import type { HarnessEvent } from "../../src/domain/harness-event";
 import { SimulatedUser } from "../../src/ports/simulated-user";
 import { converse } from "../../src/services/conversation";
 

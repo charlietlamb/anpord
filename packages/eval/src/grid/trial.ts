@@ -1,7 +1,10 @@
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
 import { describeCause } from "../domain/failure";
-import type { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import { costOf, type ModelPrice } from "../domain/model-price";
 import { renderPrompt } from "../domain/prompt";
 import { breakdownOf } from "../domain/trial-cost";

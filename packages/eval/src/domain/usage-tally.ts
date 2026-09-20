@@ -1,5 +1,5 @@
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Option } from "effect";
-import type { HarnessUsage } from "./harness-event";
 
 export const NO_USAGE: HarnessUsage = {
   cacheReadTokens: 0,

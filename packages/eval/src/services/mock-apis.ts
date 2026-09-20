@@ -6,6 +6,7 @@ import {
   ApiManifest,
   ApiProgram,
 } from "@anpord/schema/domain/api-mocks";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import {
   Deferred,
   Effect,
@@ -17,7 +18,6 @@ import {
   Stream,
 } from "effect";
 import { PrepareFailed } from "../domain/errors";
-import type { HarnessEvent } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { SandboxHandle } from "../ports/sandbox";
 

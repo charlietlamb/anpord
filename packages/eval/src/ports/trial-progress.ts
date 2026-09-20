@@ -1,6 +1,6 @@
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { Effect } from "effect";
 import type { EvalStoreError } from "../domain/errors";
-import type { HarnessEvent } from "../domain/harness-event";
 
 export interface TrialProgressShape {
   readonly append: (

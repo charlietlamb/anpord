@@ -1,4 +1,4 @@
-import type { HarnessEvent } from "../domain/harness-event";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
 export const commandsIn = (events: readonly HarnessEvent[]) =>
   events.filter((event) => event._tag === "Command").length;

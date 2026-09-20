@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option } from "effect";
 import { decodeCodexLine } from "../../../src/adapters/harness/codex-events";
 import {
@@ -6,7 +7,6 @@ import {
   type Pending,
   timeLine,
 } from "../../../src/adapters/harness/codex-timing";
-import type { HarnessEvent } from "../../../src/domain/harness-event";
 
 /* Verbatim lines from a real `codex exec --json` run of a prompt asking for
    one `sleep 5`, with the arrival time each line was observed at. The command

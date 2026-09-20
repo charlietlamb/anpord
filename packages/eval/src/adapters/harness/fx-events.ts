@@ -1,5 +1,5 @@
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { HarnessEvent } from "../../domain/harness-event";
 import type { DecodedOutput } from "./support";
 
 const ToolCall = Schema.Struct({

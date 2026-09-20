@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Effect, Layer, Option, Redacted, Stream } from "effect";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { EvalStoreError } from "../../src/domain/errors";
-import type { TrialOutcome } from "../../src/domain/trial";
 import { Harnesses } from "../../src/ports/harness";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";

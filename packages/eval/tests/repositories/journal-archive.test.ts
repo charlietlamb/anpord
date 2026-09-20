@@ -8,10 +8,10 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { IdGeneratorLive } from "@anpord/ids/layer";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer, Redacted } from "effect";
-import type { HarnessEvent } from "../../src/domain/harness-event";
-import type { TrialOutcome } from "../../src/domain/trial";
 import {
   EventRepository,
   EventRepositoryLive,

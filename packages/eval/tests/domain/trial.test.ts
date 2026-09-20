@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import { Option } from "effect";
 import {
   decodeTrialStatus,
-  outcomeOf,
   type TrialStatus,
-} from "../../src/domain/trial";
+} from "@anpord/schema/domain/trial";
+import { Option } from "effect";
+import { outcomeOf } from "../../src/domain/trial";
 
 const base = {
   commandCount: 9,

@@ -1,4 +1,5 @@
 import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import type { Option } from "effect";
 import type { CostComponent } from "./cost-component";
 import {
@@ -7,7 +8,6 @@ import {
   platformComponent,
   sandboxComponent,
 } from "./cost-layers";
-import type { HarnessUsage } from "./harness-event";
 import type { ModelPrice } from "./model-price";
 
 /* Pure over values the caller holds, so every classification rule is testable as

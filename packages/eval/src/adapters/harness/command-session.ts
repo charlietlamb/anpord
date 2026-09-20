@@ -1,5 +1,5 @@
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Effect, Option, Ref, Stream } from "effect";
-import type { HarnessEvent } from "../../domain/harness-event";
 import { EMPTY_TALLY, tallied, totalOf } from "../../domain/usage-tally";
 import type { HarnessSessionShape, RunHarness } from "../../ports/harness";
 import { runCommandForOutcome } from "../sandbox/run-command";
