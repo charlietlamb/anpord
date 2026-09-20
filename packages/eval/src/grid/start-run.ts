@@ -25,6 +25,7 @@ export const makeStartRun = (
 
         const created = yield* runs.insert({
           cellCount,
+          executedBy: input.executedBy ?? null,
           name: input.name,
           organizationId: input.organizationId,
           startedBy: input.startedBy,
@@ -77,11 +78,13 @@ export const makeStartRun = (
             )
           );
 
-          yield* runner.dispatch({
-            organizationId: input.organizationId,
-            runId: created.id,
-            work: execute({ created, input, registered }),
-          });
+          if (input.executedBy == null) {
+            yield* runner.dispatch({
+              organizationId: input.organizationId,
+              runId: created.id,
+              work: execute({ created, input, registered }),
+            });
+          }
         });
 
         yield* prepared.pipe(

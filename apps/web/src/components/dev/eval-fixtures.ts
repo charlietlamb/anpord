@@ -332,6 +332,7 @@ const rivalOf = (cell: EvalCell, key: string): EvalCell => ({
 });
 
 export const RUN: EvalRun = {
+  executedBy: null,
   trigger: {
     source: "ci",
     url: "https://github.com/acme/app/actions/runs/123",

@@ -74,6 +74,7 @@ export const detail = (
     cases: [...state.cases],
     cells,
     costs: rollUp(cells.map((cell) => cell.costs)),
+    executedBy: state.executedBy,
     failure: Option.getOrNull(state.failure),
     finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
       Option.getOrNull

@@ -42,6 +42,8 @@ const layer = (
       GridRun.of({
         changes: Stream.empty,
         execute: () => Effect.void,
+        finishReported: () => Effect.succeed(true),
+        report: () => Effect.void,
         get: () => Effect.succeed(Option.none()),
         list: () => Effect.succeed({ next: null, runs: [], total: 0 }),
         resume: () => Effect.void,

@@ -1,10 +1,14 @@
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import type { EvalExecutor } from "@anpord/schema/domain/evals";
 import { Context, Effect, Layer, type Option, type Stream } from "effect";
+import type { EvalStoreError } from "../domain/errors";
 import type { PageCursor } from "../domain/page";
 import type { GridCase } from "./cell";
 import { makeExecuteRun } from "./execute-run";
 import { makeLiveRuns } from "./live-runs";
 import { makeReadRuns } from "./read-runs";
+import type { FinishReported, ReportTrial } from "./report-run";
+import { makeReportRun } from "./report-run";
 import { makeStartRun } from "./start-run";
 import type { GridExecutionTask, GridRunState } from "./state";
 
@@ -19,6 +23,7 @@ export interface ResumeGrid {
 
 export interface StartGrid {
   readonly cases: readonly GridCase[];
+  readonly executedBy?: EvalExecutor | null;
   readonly name: string | null;
   readonly organizationId: string;
   readonly prompt: string;
@@ -40,6 +45,9 @@ export interface GridRunShape {
   /* What a runner is handed, not what asks for one: a worker calling resume
      would dispatch the run to itself forever. */
   readonly execute: (grid: ResumeGrid) => Effect.Effect<void>;
+  readonly finishReported: (
+    input: FinishReported
+  ) => Effect.Effect<boolean, EvalStoreError>;
 
   readonly get: (
     organizationId: string,
@@ -50,6 +58,7 @@ export interface GridRunShape {
     readonly limit: number | undefined;
     readonly organizationId: string;
   }) => Effect.Effect<GridRunPage>;
+  readonly report: (input: ReportTrial) => Effect.Effect<void, EvalStoreError>;
   readonly resume: (grid: ResumeGrid) => Effect.Effect<void>;
   readonly start: (input: StartGrid) => Effect.Effect<string>;
 }
@@ -65,13 +74,16 @@ export const GridRunLive = Layer.scoped(
     const live = yield* makeLiveRuns;
     const { execute, resume } = yield* makeExecuteRun(live);
     const start = yield* makeStartRun(execute, live);
+    const reporting = yield* makeReportRun;
     const { get, list } = yield* makeReadRuns(live);
 
     return GridRun.of({
       changes: live.changes,
       execute,
+      finishReported: reporting.finishReported,
       get,
       list,
+      report: reporting.report,
       resume,
       start,
     });

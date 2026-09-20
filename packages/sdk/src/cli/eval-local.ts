@@ -1,8 +1,11 @@
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { EvalLocalLive } from "@anpord/eval/local-layer";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { ConfigProvider, Effect } from "effect";
+import type {
+  PublicStartEvalRequest,
+  ReportedTrial,
+} from "@anpord/schema/public/evals-api";
+import { ConfigProvider, Effect, Option } from "effect";
 import { localEnv } from "./local-env";
 import { note } from "./render";
 
@@ -14,7 +17,10 @@ export interface LocalCase {
 
 /* Everything a local run needs is on this machine, so one trial per case is
    the whole grid: there is no baseline here to be repeatable against. */
-export const runLocally = (request: PublicStartEvalRequest) =>
+export const runLocally = (
+  request: PublicStartEvalRequest,
+  onTrial?: (trial: ReportedTrial) => Effect.Effect<void>
+) =>
   Effect.gen(function* () {
     const trials = yield* LocalTrials;
     const forwarded = localEnv(process.cwd());
@@ -43,6 +49,18 @@ export const runLocally = (request: PublicStartEvalRequest) =>
             verifyCommand: subject.verify,
           })
           .pipe(
+            Effect.tap(
+              (outcome) =>
+                onTrial?.({
+                  caseName: subject.name,
+                  events: outcome.events,
+                  ordinal: 0,
+                  outcome: outcome.outcome,
+                  sandboxId: outcome.result.sandboxId,
+                  taskIndex: 0,
+                  usage: Option.getOrNull(outcome.result.usage),
+                }) ?? Effect.void
+            ),
             Effect.map(
               (outcome): LocalCase => ({
                 durationMs: outcome.durationMs,

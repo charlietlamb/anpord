@@ -93,6 +93,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     );
 
     const id = yield* grid.start({
+      executedBy: payload.executeLocally === true ? "client" : null,
       cases: payload.cases.map((evalCase) => ({
         ...evalCase,
         prepare: evalCase.prepare ?? null,

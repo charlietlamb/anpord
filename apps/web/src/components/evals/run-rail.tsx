@@ -3,7 +3,12 @@ import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
-import { ClockIcon, GridFourIcon, TimerIcon } from "@phosphor-icons/react";
+import {
+  ClockIcon,
+  DesktopTowerIcon,
+  GridFourIcon,
+  TimerIcon,
+} from "@phosphor-icons/react";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { RunTrigger } from "@/components/evals/run-trigger";
 import { RunVariants } from "@/components/evals/run-variants";
@@ -29,6 +34,16 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
             tone={status.tone}
             value={run.status}
           />
+
+          {run.executedBy === null ? null : (
+            <RailFact
+              hint="The trials ran on the machine that started this run, so their results were reported rather than measured here. A baseline is not kept from them."
+              Icon={DesktopTowerIcon}
+              label="ran on"
+              layout="stated"
+              value="this machine"
+            />
+          )}
 
           <RailFact
             Icon={ClockIcon}

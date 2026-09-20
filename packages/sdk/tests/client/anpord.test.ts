@@ -39,9 +39,11 @@ describe("surface", () => {
     expect(Object.keys(anpord.evals).toSorted()).toEqual([
       "artifact",
       "cellHistory",
+      "finishRun",
       "get",
       "list",
       "models",
+      "reportTrial",
       "rerunCell",
       "start",
       "startAndWait",

@@ -13,6 +13,7 @@ const state = (name: string | null): GridRunState => ({
   },
   cases: ["cold-start", "data-rich"],
   cells: [],
+  executedBy: null,
   failure: Option.none(),
   finishedAt: Option.none(),
   id: "run_123",

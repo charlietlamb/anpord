@@ -1,7 +1,10 @@
 import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { EvalValidations } from "@anpord/schema/domain/eval-validations";
-import { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
+import {
+  EvalArtifactMetadata,
+  EvalExecutor,
+} from "@anpord/schema/domain/evals";
 import type {
   HarnessEvent,
   HarnessUsage,
@@ -185,6 +188,9 @@ export const runToState = (
   return {
     cases: caseNames,
     cells,
+    executedBy: Schema.decodeUnknownOption(EvalExecutor)(
+      detail.run.executedBy
+    ).pipe(Option.getOrNull),
     failure: Option.fromNullable(detail.run.failure),
     finishedAt: Option.fromNullable(detail.run.finishedAt).pipe(
       Option.map((date) => date.getTime())

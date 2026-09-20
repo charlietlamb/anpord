@@ -4,6 +4,7 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import type { EvalExecutor } from "@anpord/schema/domain/evals";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { CellKey, HarnessName, ProviderName } from "../domain/cell";
@@ -43,6 +44,7 @@ export interface RunRepositoryShape {
   }) => Effect.Effect<void, EvalStoreError>;
   readonly insert: (input: {
     readonly cellCount: number;
+    readonly executedBy?: EvalExecutor | null;
     readonly name: string | null;
     readonly organizationId: string;
     readonly startedBy: string | null;
@@ -122,6 +124,7 @@ export const RunRepositoryLive = Layer.effect(
               .insert(evalRun)
               .values({
                 cellCount: input.cellCount,
+                executedBy: input.executedBy ?? null,
                 id,
                 internalId,
                 name: input.name,

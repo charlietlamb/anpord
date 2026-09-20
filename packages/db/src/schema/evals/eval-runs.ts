@@ -29,6 +29,7 @@ export const evalRun = pgTable(
     }),
     /* Persisted because the in-memory copy is evicted on restart, leaving a crashed grid indistinguishable from a clean one. */
     failure: text("failure"),
+    executedBy: text("executed_by"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     finishedAt: timestamp("finished_at"),
   },

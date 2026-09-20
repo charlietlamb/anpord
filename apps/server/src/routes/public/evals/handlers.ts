@@ -12,6 +12,7 @@ import {
   rerunEvalCell,
   startEvalRun,
 } from "../../evals/operations";
+import { finishReportedRun, reportTrial } from "../../evals/reported-trials";
 
 export const PublicEvalsHandlers = HttpApiBuilder.group(
   PublicApi,
@@ -35,6 +36,16 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
       )
       .handle("get", { permission: Permissions.Evals.Read }, ({ payload }) =>
         getEvalRun(payload.id)
+      )
+      .handle(
+        "reportTrial",
+        { permission: Permissions.Evals.Write },
+        ({ payload }) => reportTrial(payload)
+      )
+      .handle(
+        "finishRun",
+        { permission: Permissions.Evals.Write },
+        ({ payload }) => finishReportedRun(payload.id)
       )
       .handle(
         "subscription",

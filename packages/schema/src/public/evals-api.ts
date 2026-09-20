@@ -32,11 +32,13 @@ import {
   HOSTED_SANDBOXES,
   RunSubscription,
 } from "../domain/evals";
+import { HarnessEvent, HarnessUsage } from "../domain/harness-event";
 import {
   HarnessProfile,
   PROFILE_HARNESS_RULE,
   profileFitsHarness,
 } from "../domain/harness-profile";
+import { TrialOutcome } from "../domain/trial";
 import { ApiKeyAuthentication } from "./authentication";
 
 export const EvalRunRequest = Schema.Struct({ id: Schema.String }).annotations({
@@ -112,6 +114,7 @@ export const PublicStartEvalRequest = Schema.Struct({
     Schema.minItems(1),
     Schema.maxItems(MAX_START_CASES)
   ),
+  executeLocally: Schema.optional(Schema.Boolean),
   name: Schema.optional(EvalName),
   prompt: EvalPrompt,
   tasks: Schema.Array(PublicEvalTask).pipe(
@@ -124,6 +127,29 @@ export const PublicStartEvalRequest = Schema.Struct({
   identifier: "StartEvalRequest",
 });
 export type PublicStartEvalRequest = typeof PublicStartEvalRequest.Type;
+
+export const ReportedTrial = Schema.Struct({
+  caseName: EvalCaseName,
+  events: Schema.Array(HarnessEvent),
+  ordinal: Schema.Int.pipe(Schema.nonNegative()),
+  outcome: TrialOutcome,
+  sandboxId: Schema.optional(Schema.NullOr(Schema.String)),
+  taskIndex: Schema.Int.pipe(Schema.nonNegative()),
+  usage: Schema.optional(Schema.NullOr(HarnessUsage)),
+}).annotations({
+  description: "One trial a client ran and is reporting the result of.",
+  identifier: "ReportedTrial",
+});
+export type ReportedTrial = typeof ReportedTrial.Type;
+
+export const ReportTrialRequest = Schema.Struct({
+  id: Schema.String,
+  trial: ReportedTrial,
+}).annotations({
+  description: "A trial the caller ran, named by the run it belongs to.",
+  identifier: "ReportTrialRequest",
+});
+export type ReportTrialRequest = typeof ReportTrialRequest.Type;
 
 export class PublicEvalsGroup extends HttpApiGroup.make("evals")
   .add(
@@ -144,6 +170,26 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
       .annotate(
         OpenApi.Description,
         `Starts the grid and returns its id while trials continue in the background. ${PROFILE_HARNESS_RULE}`
+      )
+  )
+  .add(
+    HttpApiEndpoint.post("reportTrial", "/evals.reportTrial")
+      .setPayload(ReportTrialRequest)
+      .addSuccess(Schema.Void)
+      .annotate(OpenApi.Summary, "Report a trial run outside the platform")
+      .annotate(
+        OpenApi.Description,
+        "For a run started with executeLocally. The result is recorded as reported: it was produced somewhere the platform cannot inspect, so it is marked and kept out of baselines."
+      )
+  )
+  .add(
+    HttpApiEndpoint.post("finishRun", "/evals.finishRun")
+      .setPayload(EvalRunRequest)
+      .addSuccess(EvalRun)
+      .annotate(OpenApi.Summary, "Settle a run whose trials the caller ran")
+      .annotate(
+        OpenApi.Description,
+        "Settles the run from the trials reported so far. A run left unsettled is swept like any other abandoned work."
       )
   )
   .add(

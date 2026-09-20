@@ -1,7 +1,7 @@
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Args, Command, Options } from "@effect/cli";
 import { Effect, Option, Schema } from "effect";
-import { ClientLayer, webUrlConfig } from "../client/config";
+import { apiKeyConfig, ClientLayer, webUrlConfig } from "../client/config";
 import { compileEvalEffect } from "../evals/compiler";
 import { evalFilesIn } from "./eval-files";
 import { EvalGate, failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
@@ -120,13 +120,49 @@ const reportToGithub = (outcomes: readonly EvalOutcome[]) =>
 
 /* Compiled and decided here rather than sent: nothing about a run on this
    machine is the hosted grid's to record. */
+const recordedLocally = (file: string) =>
+  Effect.gen(function* () {
+    const api = yield* AnpordApi;
+    const payload = yield* compileEvalEffect(file);
+    const trigger = yield* evalTrigger;
+
+    const started = yield* api.evals.start({
+      payload: { ...payload, executeLocally: true, trigger },
+    });
+
+    yield* reportStarted(file, started.id);
+
+    const cases = yield* runLocally(payload, (trial) =>
+      api.evals
+        .reportTrial({ payload: { id: started.id, trial } })
+        .pipe(Effect.ignore)
+    );
+
+    yield* api.evals
+      .finishRun({ payload: { id: started.id } })
+      .pipe(Effect.ignore);
+
+    return cases;
+  }).pipe(Effect.provide(ClientLayer));
+
+const runOneEvalLocally = (file: string) =>
+  apiKeyConfig.pipe(
+    Effect.matchEffect({
+      onFailure: () =>
+        compileEvalEffect(file).pipe(
+          Effect.flatMap((payload) => runLocally(payload))
+        ),
+      onSuccess: () => recordedLocally(file),
+    })
+  );
+
 const runEveryEvalLocally = (files: readonly string[], gate: EvalGate) =>
   Effect.gen(function* () {
     const problems: string[] = [];
 
     yield* Effect.forEach(files, (one) =>
       Effect.gen(function* () {
-        const cases = yield* runLocally(yield* compileEvalEffect(one));
+        const cases = yield* runOneEvalLocally(one);
 
         yield* reportLocal(one, cases);
         problems.push(...localProblems(cases));

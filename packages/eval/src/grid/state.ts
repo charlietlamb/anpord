@@ -3,7 +3,7 @@ import type {
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { EvalSetup } from "@anpord/schema/domain/evals";
+import type { EvalExecutor, EvalSetup } from "@anpord/schema/domain/evals";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, type Redacted } from "effect";
 import type { HarnessName, ProviderName } from "../domain/cell";
@@ -73,6 +73,7 @@ export interface GridCell {
 export interface GridRunState {
   readonly cases: readonly string[];
   readonly cells: readonly GridCell[];
+  readonly executedBy: EvalExecutor | null;
   readonly failure: Option.Option<string>;
   readonly finishedAt: Option.Option<number>;
   readonly id: string;

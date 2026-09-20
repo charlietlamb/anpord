@@ -66,6 +66,9 @@ export type EvalTrialStatus = typeof EvalTrialStatus.Type;
 export const EvalRunStatus = Schema.Literal("running", "finished", "failed");
 export type EvalRunStatus = typeof EvalRunStatus.Type;
 
+export const EvalExecutor = Schema.Literal("client");
+export type EvalExecutor = typeof EvalExecutor.Type;
+
 export const EvalSource = Schema.Union(
   Schema.Struct({ kind: Schema.Literal("empty") }),
   Schema.Struct({
@@ -526,6 +529,9 @@ export const EvalRun = Schema.Struct({
   cases: Schema.Array(Schema.String),
   cells: Schema.Array(EvalCell),
   costs: Schema.NullOr(EvalCosts),
+  executedBy: Schema.optionalWith(Schema.NullOr(EvalExecutor), {
+    default: () => null,
+  }),
   failure: Schema.NullOr(Schema.String),
   finishedAt: Schema.NullOr(EvalTimestamp),
   id: Schema.String,

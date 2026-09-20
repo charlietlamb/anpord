@@ -37,6 +37,7 @@ export const makeExecuteRun = (live: LiveRuns) =>
         yield* live.publish({
           cases: grid.input.cases.map((subject) => subject.name),
           cells: [],
+          executedBy: null,
           failure: Option.none(),
           finishedAt: Option.none(),
           id: grid.created.id,
