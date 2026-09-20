@@ -92,7 +92,13 @@ export function ValidationDetail({
       {pane === "execution" ? (
         <div className="min-w-0 space-y-1">
           {executionRows(validation).map(({ label, value }) => (
-            <Value disclosure key={label} label={label} value={value} />
+            <Value
+              disclosure
+              key={label}
+              label={label}
+              open={false}
+              value={value}
+            />
           ))}
         </div>
       ) : null}
