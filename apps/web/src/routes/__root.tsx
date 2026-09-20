@@ -15,7 +15,7 @@ const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
 
 const TITLE = "Anpord";
 const DESCRIPTION =
-  "Evals for harnesses running in sandboxes. Hand a coding agent a repo and a real shell, then score what it built.";
+  "Evals for Claude Code and Codex. Hand a coding agent a repo and a real shell, then score what it built.";
 
 const SITE_URL = "https://www.anpord.com";
 const OG_IMAGE = `${SITE_URL}/og.png?v=funnel-display`;
