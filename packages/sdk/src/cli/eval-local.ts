@@ -1,6 +1,7 @@
 import { credentialResolverFrom } from "@anpord/eval/credentials/env-resolver";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
+import { HarnessVersions } from "@anpord/eval/services/harness-versions";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
 import type {
   PublicStartEvalRequest,
@@ -29,12 +30,15 @@ export const runLocally = (
 ) =>
   Effect.gen(function* () {
     const trials = yield* LocalTrials;
+    const versions = yield* HarnessVersions;
     const forwarded = localEnv(process.cwd());
     const task = request.tasks[0];
 
     if (task === undefined) {
       return [] as readonly LocalCase[];
     }
+
+    const harnessVersion = yield* versions.version(task.harness);
 
     return yield* Effect.forEach(
       request.cases,
@@ -44,12 +48,12 @@ export const runLocally = (
             caseName: subject.name,
             forwarded,
             harness: task.harness,
-            harnessVersion: "local",
+            harnessVersion,
             model: task.model,
             prepare: subject.prepare ?? null,
             profile: profileOfRequest(task.profile),
             prompt: request.prompt,
-            source: { kind: "empty" },
+            source: subject.source ?? { kind: "empty" },
             user: subject.user ?? null,
             validator: subject.validator ?? null,
             verifyCommand: subject.verify,

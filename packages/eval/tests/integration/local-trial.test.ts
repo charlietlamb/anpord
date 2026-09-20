@@ -112,3 +112,14 @@ describe("a trial that runs on this machine", () => {
     }
   }, 180_000);
 });
+
+describe("what a local trial is given", () => {
+  it("seeds the workspace from the case's source", async () => {
+    const outcome = await runCase("test -f AGENTS.md && test -f package.json", {
+      "AGENTS.md": "# seeded",
+      "package.json": "{}",
+    });
+
+    expect(outcome.outcome.status).toBe("passed");
+  }, 180_000);
+});

@@ -132,6 +132,10 @@ const recordedLocally = (file: string) =>
 
     yield* reportStarted(file, started.id);
 
+    yield* Effect.addFinalizer(() =>
+      api.evals.finishRun({ payload: { id: started.id } }).pipe(Effect.ignore)
+    );
+
     const leased = yield* api.evals
       .credentials({
         payload: {
@@ -154,12 +158,8 @@ const recordedLocally = (file: string) =>
           .pipe(Effect.ignore),
     });
 
-    yield* api.evals
-      .finishRun({ payload: { id: started.id } })
-      .pipe(Effect.ignore);
-
     return cases;
-  }).pipe(Effect.provide(ClientLayer));
+  }).pipe(Effect.scoped, Effect.provide(ClientLayer));
 
 const runOneEvalLocally = (file: string) =>
   apiKeyConfig.pipe(

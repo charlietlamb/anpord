@@ -61,7 +61,7 @@ The command waits for the run and fails unless every expected trial passes. In a
 | `--output` | Write a JSON report containing run IDs, results, and gate failures |
 | `--no-wait` | Start the run and print its id |
 | `--json` | Print the finished run instead of the grid |
-| `--local` | Run every case on this machine instead of a cloud sandbox, so a verifier can reach a service on `localhost`. Needs no API key and is not recorded. See [local runs](/evals/local) |
+| `--local` | Run every case on this machine instead of a cloud sandbox, so a verifier can reach a service on `localhost`. With an API key the run is recorded and its credentials are leased from your organization; without one it prints and sends nothing. See [local runs](/evals/local) |
 
 A run that fails outright is reported whatever the gate, because that is the
 sandbox rather than the result.

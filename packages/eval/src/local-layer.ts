@@ -55,7 +55,8 @@ export const evalLocalWith = (credentials: Layer.Layer<CredentialResolver>) =>
       )
     ),
     Layer.provide(credentials),
-    Layer.provide(SandboxProviderLive.pipe(Layer.provide(LocalAdaptersLive)))
+    Layer.provide(SandboxProviderLive.pipe(Layer.provide(LocalAdaptersLive))),
+    Layer.provideMerge(HarnessVersionsLive)
   );
 
 export const EvalLocalLive = evalLocalWith(CredentialResolverFromEnv);
