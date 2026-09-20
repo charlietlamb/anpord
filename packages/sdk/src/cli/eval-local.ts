@@ -3,11 +3,13 @@ import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
 import { HarnessVersions } from "@anpord/eval/services/harness-versions";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
+import type { TokenCounts } from "@anpord/schema/domain/usage-health";
 import type {
   PublicStartEvalRequest,
   ReportedTrial,
 } from "@anpord/schema/public/evals-api";
 import { ConfigProvider, Effect, Option } from "effect";
+import { localUsageLines } from "./eval-usage";
 import { localEnv } from "./local-env";
 import { note } from "./render";
 
@@ -15,6 +17,8 @@ export interface LocalCase {
   readonly durationMs: number;
   readonly name: string;
   readonly status: string;
+  readonly turns: number;
+  readonly usage: TokenCounts | null;
 }
 
 /* Everything a local run needs is on this machine, so one trial per case is
@@ -76,6 +80,8 @@ export const runLocally = (
                 durationMs: outcome.durationMs,
                 name: subject.name,
                 status: outcome.outcome.status,
+                turns: outcome.outcome.commandCount,
+                usage: Option.getOrNull(outcome.result.usage),
               })
             )
           ),
@@ -109,6 +115,7 @@ export const reportLocal = (file: string, cases: readonly LocalCase[]) =>
       ...cases.map(
         (one) => `  ${one.status} ${one.name} ${seconds(one.durationMs)}`
       ),
+      ...localUsageLines(cases),
     ],
     note
   );

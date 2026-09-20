@@ -1,5 +1,6 @@
 import type { EvalCell, EvalRun } from "@anpord/schema/domain/evals";
 import { Effect, Ref } from "effect";
+import { runUsage, usageLines } from "./eval-usage";
 import { note } from "./render";
 
 const DIM = "[2m";
@@ -137,7 +138,21 @@ export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
     lines.push("");
   }
 
-  lines.push(paint(DIM, `  ${formatElapsed(elapsedMs)} elapsed`));
+  const usage = runUsage(run);
+  const [spend, ...concerns] = usageLines(usage);
+
+  lines.push(
+    paint(
+      DIM,
+      spend === undefined
+        ? `  ${formatElapsed(elapsedMs)} elapsed`
+        : `  ${formatElapsed(elapsedMs)} elapsed  ·  ${spend}`
+    )
+  );
+
+  for (const concern of concerns) {
+    lines.push(paint(YELLOW, `  ${concern}`));
+  }
 
   return lines;
 };
