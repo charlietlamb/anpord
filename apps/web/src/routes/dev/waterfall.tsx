@@ -23,6 +23,31 @@ export const Route = createFileRoute("/dev/waterfall")({
 
 const TRIAL = TRIALS.find((candidate) => candidate.trajectory.length > 0);
 
+const SAMPLE = VALIDATION_TRIALS[0]?.validations?.[0];
+
+const QUEUED_TRIALS =
+  SAMPLE === undefined
+    ? []
+    : [
+        {
+          ordinal: 1,
+          validations: [
+            {
+              ...SAMPLE,
+              durationMs: null,
+              status: "queued" as const,
+            },
+            {
+              ...SAMPLE,
+              durationMs: null,
+              id: "code:running",
+              name: "proPlanLive",
+              status: "running" as const,
+            },
+          ],
+        },
+      ];
+
 function WaterfallPreview() {
   return (
     <TooltipProvider>
@@ -50,6 +75,12 @@ function WaterfallPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
+
+        <PreviewScreen name="Pending validators">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5">
+            <ValidationInspector titled={false} trials={QUEUED_TRIALS} />
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="Sections as tabs">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5">

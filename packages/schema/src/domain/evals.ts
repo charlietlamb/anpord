@@ -588,3 +588,14 @@ export const EvalCellHistoryEntry = Schema.Struct({
   identifier: "EvalCellHistoryEntry",
 });
 export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
+
+export const RunSubscription = Schema.Struct({
+  expiresAtMillis: Schema.Number,
+  tag: Schema.String,
+  token: Schema.String,
+}).annotations({
+  description: "A scoped, read-only token for watching one run in real time.",
+  identifier: "RunSubscription",
+});
+
+export type RunSubscription = typeof RunSubscription.Type;

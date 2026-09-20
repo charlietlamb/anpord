@@ -11,6 +11,8 @@ export const evalKeys = {
   playground: (id: string) => [...evalKeys.all, "playground", id] as const,
   playgrounds: () => [...evalKeys.all, "playground"] as const,
 
+  subscription: (id: string) => [...evalKeys.all, "subscription", id] as const,
+
   history: (cellKey: string) =>
     [...evalKeys.all, "cell", cellKey, "history"] as const,
 } as const;

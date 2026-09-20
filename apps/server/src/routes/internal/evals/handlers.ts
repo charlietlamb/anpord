@@ -14,7 +14,11 @@ import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withEvalErrors } from "../../../http/eval-errors";
 import { getEvalArtifact } from "../../evals/artifacts";
-import { getEvalRun, listEvalRuns } from "../../evals/operations";
+import {
+  getEvalRun,
+  getRunSubscription,
+  listEvalRuns,
+} from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
 import {
   createPlayground,
@@ -47,6 +51,11 @@ export const EvalsHandlers = HttpApiBuilder.group(
       )
       .handle("get", { permission: Permissions.Evals.Read }, ({ path }) =>
         getEvalRun(path.id)
+      )
+      .handle(
+        "subscription",
+        { permission: Permissions.Evals.Read },
+        ({ path }) => getRunSubscription(path.id)
       )
       .handle(
         "cellHistory",

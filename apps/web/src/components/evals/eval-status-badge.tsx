@@ -37,11 +37,16 @@ export function TrialStatusIcon({
   readonly status: EvalTrialStatus;
 }) {
   const Glyph = trialGlyph(status);
+  const moving = status === "running";
 
   return (
     <Glyph
-      className={cn("size-3.5 shrink-0", TONE_CLASSES[trialTone(status)])}
-      weight="fill"
+      className={cn(
+        "size-3.5 shrink-0",
+        TONE_CLASSES[trialTone(status)],
+        moving && "animate-spin motion-reduce:animate-none"
+      )}
+      weight={moving ? "bold" : "fill"}
     />
   );
 }

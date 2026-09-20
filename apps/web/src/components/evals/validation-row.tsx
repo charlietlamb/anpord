@@ -6,6 +6,7 @@ import {
   CodeIcon,
   TerminalIcon,
 } from "@phosphor-icons/react";
+import { PendingDot } from "@/components/evals/pending-dot";
 import { SignalTip } from "@/components/evals/signal-tip";
 import { ValidationDetail } from "@/components/evals/validation-detail";
 import { seconds } from "@/lib/evals/duration";
@@ -25,6 +26,8 @@ export function ValidationRow({
   const KindIcon = kindIcons[validation.kind];
   const failed =
     validation.status === "failed" || validation.status === "error";
+  const pending =
+    validation.status === "queued" || validation.status === "running";
   const judgment = validation.judgment;
   return (
     <details
@@ -62,11 +65,14 @@ export function ValidationRow({
               )}
               <span
                 className={cn(
-                  "shrink-0 rounded-md px-1.5 py-0.5 text-muted-foreground",
+                  "flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-muted-foreground",
                   failed && "bg-destructive/10 text-destructive",
-                  validation.status === "passed" && "bg-success/10 text-success"
+                  validation.status === "passed" &&
+                    "bg-success/10 text-success",
+                  pending && "bg-warning/10 text-warning"
                 )}
               >
+                {pending ? <PendingDot /> : null}
                 {validation.status}
               </span>
             </span>

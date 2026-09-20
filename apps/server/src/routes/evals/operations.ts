@@ -22,6 +22,7 @@ import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
 import { meterRun } from "../internal/evals/meter-run";
 import { toReadingView } from "../internal/evals/reading-to-api";
+import { mintRunSubscription } from "../internal/evals/run-subscription";
 import { detail, summarise } from "../internal/evals/run-to-api";
 import { admitStart } from "../internal/evals/start-admission";
 
@@ -115,6 +116,21 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     });
 
     return { id };
+  });
+
+export const getRunSubscription = (id: string) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const grid = yield* GridRun;
+    const found = yield* grid.get(actor.organizationId, id);
+
+    if (Option.isNone(found)) {
+      return yield* Effect.fail(
+        new NotFound({ message: `No eval run with id "${id}"` })
+      );
+    }
+
+    return yield* mintRunSubscription(id);
   });
 
 export const getEvalRun = (id: string) =>

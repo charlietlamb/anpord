@@ -27,6 +27,7 @@
     "@tanstack/react-router-ssr-query": "catalog:",
     "@tanstack/react-start": "catalog:",
     "@tanstack/start-server-core": "catalog:",
+    "@trigger.dev/react-hooks": "4.5.15",
     "better-auth": "catalog:",
     "date-fns": "catalog:",
     "effect": "catalog:",

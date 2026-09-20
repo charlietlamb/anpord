@@ -11,6 +11,7 @@ import {
   type EvalPageCursor,
   EvalRun,
   EvalRunPage,
+  RunSubscription,
 } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 import { fromWire } from "@/lib/wire";
@@ -60,6 +61,9 @@ export const listRuns = (cursor: EvalPageCursor | null) => {
 
 export const getRun = (id: string) =>
   request(EvalRun, `/evals/${encodeURIComponent(id)}`);
+
+export const getRunSubscription = (id: string) =>
+  request(RunSubscription, `/evals/${encodeURIComponent(id)}/subscription`);
 
 export const listCellHistory = (cellKey: string) =>
   request(

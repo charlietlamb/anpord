@@ -22,6 +22,7 @@
     "@anpord/schema": "workspace:*",
     "@effect/platform": "catalog:",
     "@effect/platform-bun": "catalog:",
+    "@trigger.dev/sdk": "4.5.15",
     "effect": "catalog:"
   },
   "devDependencies": {

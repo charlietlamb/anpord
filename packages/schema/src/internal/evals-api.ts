@@ -16,6 +16,7 @@ import {
   EvalHarness,
   EvalRun,
   EvalRunPage,
+  RunSubscription,
   StartEvalRequest,
 } from "../domain/evals";
 import { Authentication } from "./authentication";
@@ -51,6 +52,12 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
     HttpApiEndpoint.get("get", "/evals/:id")
       .setPath(RunPath)
       .addSuccess(EvalRun)
+  )
+
+  .add(
+    HttpApiEndpoint.get("subscription", "/evals/:id/subscription")
+      .setPath(RunPath)
+      .addSuccess(RunSubscription)
   )
 
   .add(
