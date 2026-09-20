@@ -23,7 +23,11 @@ interface DashboardShellProps {
 export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
   return (
     <TooltipProvider>
-      <SidebarProvider className="relative isolate" defaultOpen={sidebarOpen}>
+      <SidebarProvider
+        className="relative isolate"
+        data-dashboard=""
+        defaultOpen={sidebarOpen}
+      >
         <Hydrate when={idle()}>
           <ClientOnly>
             <CommandMenu />
