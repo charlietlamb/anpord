@@ -87,15 +87,6 @@
           {
             "group": "Run evals",
             "pages": ["guides/run-from-code", "sdk/client"]
-          },
-          {
-            "group": "Prompts",
-            "pages": [
-              "prompts/overview",
-              "guides/resolving-prompts",
-              "variables",
-              "freshness"
-            ]
           }
         ]
       },

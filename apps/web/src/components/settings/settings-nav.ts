@@ -1,3 +1,4 @@
+import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import {
   BrainIcon,
   BroadcastIcon,
@@ -43,7 +44,15 @@ export const SETTINGS_NAV: SettingsNavSection[] = [
   {
     label: "Developer",
     items: [
-      { label: "Channels", to: "/settings/channels", icon: BroadcastIcon },
+      ...(PROMPTS_ENABLED
+        ? [
+            {
+              label: "Channels",
+              to: "/settings/channels",
+              icon: BroadcastIcon,
+            },
+          ]
+        : []),
       { label: "API keys", to: "/settings/keys", icon: KeyIcon },
     ],
   },

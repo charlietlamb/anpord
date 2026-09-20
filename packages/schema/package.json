@@ -20,6 +20,7 @@
     "./domain/eval-turns": "./src/domain/eval-turns.ts",
     "./domain/eval-validations": "./src/domain/eval-validations.ts",
     "./domain/evals": "./src/domain/evals.ts",
+    "./domain/features": "./src/domain/features.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",
     "./domain/permissions": "./src/domain/permissions.ts",
     "./domain/prompt-activity": "./src/domain/prompt-activity.ts",

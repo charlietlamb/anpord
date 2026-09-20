@@ -1,6 +1,7 @@
 import type { Channel } from "@anpord/schema/domain/channels";
+import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ChannelsScreen } from "@/components/channels/channels-screen";
 import { useDialog } from "@/lib/dialog/dialogs";
@@ -12,6 +13,11 @@ import {
 } from "@/lib/query/use-channel-mutations";
 
 export const Route = createFileRoute("/_authed/settings/channels")({
+  beforeLoad: () => {
+    if (!PROMPTS_ENABLED) {
+      throw notFound();
+    }
+  },
   /* Client-only: the relative API URL has no base on the server, and the session cookie is the browser's to send. */
   ssr: false,
   loader: async ({ context }) => {

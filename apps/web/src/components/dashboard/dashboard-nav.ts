@@ -1,3 +1,4 @@
+import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import {
   ChatTextIcon,
   FlaskIcon,
@@ -21,7 +22,9 @@ export interface NavSection {
 
 export const DASHBOARD_NAV: NavSection[] = [
   { items: [{ label: "Evals", icon: FlaskIcon, to: "/evals" }] },
-  { items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] },
+  ...(PROMPTS_ENABLED
+    ? [{ items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] }]
+    : []),
   { items: [{ label: "Settings", icon: GearIcon, to: "/settings" }] },
 ];
 
