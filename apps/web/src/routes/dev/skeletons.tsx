@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CELL, RUN, RUNS, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
+import { CellSkeleton } from "@/components/evals/cell-skeleton";
 import { EvalRow } from "@/components/evals/eval-row";
 import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
 import { RunGrid } from "@/components/evals/run-grid";
@@ -113,6 +114,12 @@ function SkeletonsPreview() {
           name="Connection list"
           skeleton={<ConnectionListSkeleton />}
         />
+
+        <PreviewScreen name="Cell page">
+          <div data-probe="skeleton">
+            <CellSkeleton cellKey="cell" runId="run_1" />
+          </div>
+        </PreviewScreen>
 
         {TRIAL ? (
           <PreviewScreen name="Trial page">

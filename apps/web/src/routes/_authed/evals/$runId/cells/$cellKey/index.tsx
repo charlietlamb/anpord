@@ -1,5 +1,11 @@
+import type { EvalCell } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { FlaskIcon } from "@phosphor-icons/react";
+import {
+  CheckSquareIcon,
+  FilesIcon,
+  FlaskIcon,
+  SlidersHorizontalIcon,
+} from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CellRail } from "@/components/evals/cell-rail";
@@ -8,10 +14,24 @@ import { CellSkeleton } from "@/components/evals/cell-skeleton";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { RerunCellButton } from "@/components/evals/rerun-cell-button";
 import { TrialArtifacts } from "@/components/evals/trial-artifacts";
+import { TrialSections } from "@/components/evals/trial-sections";
 import { TrialTable } from "@/components/evals/trial-table";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
+
+/* A file every trial produced identically belongs to the cell rather than to
+   one of its trials. */
+const sharedArtifacts = (trials: EvalCell["trials"]) => {
+  const source = trials.find((entry) => entry.artifacts?.length);
+  const files = source?.artifacts?.filter((file) =>
+    trials.every((entry) =>
+      entry.artifacts?.some((candidate) => candidate.sha256 === file.sha256)
+    )
+  );
+
+  return source && files?.length ? { files, ordinal: source.ordinal } : null;
+};
 
 export const Route = createFileRoute("/_authed/evals/$runId/cells/$cellKey/")({
   component: CellScreen,
@@ -28,6 +48,7 @@ function CellScreen() {
   const { data: run } = useQuery(evalQueries.detail(runId));
 
   const cell = run?.cells.find((candidate) => candidate.cellKey === cellKey);
+  const shared = cell ? sharedArtifacts(cell.trials) : null;
 
   if (run === undefined) {
     return <CellSkeleton cellKey={cellKey} runId={runId} />;
@@ -56,33 +77,53 @@ function CellScreen() {
           </div>
 
           <TrialTable cellKey={cellKey} runId={runId} trials={cell.trials} />
-          {(() => {
-            const trial = cell.trials.find((entry) => entry.artifacts?.length);
-            const shared = trial?.artifacts?.filter((file) =>
-              cell.trials.every((entry) =>
-                entry.artifacts?.some(
-                  (candidate) => candidate.sha256 === file.sha256
-                )
-              )
-            );
-            return trial && shared?.length ? (
-              <TrialArtifacts
-                artifacts={shared}
-                trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
-              />
-            ) : null;
-          })()}
         </section>
 
-        <ValidationInspector
-          files={cell.setup?.validatorFiles}
-          key={cellKey}
-          trials={cell.trials}
+        <TrialSections
+          sections={[
+            ...(shared
+              ? [
+                  {
+                    Icon: FilesIcon,
+                    content: (
+                      <TrialArtifacts
+                        artifacts={shared.files}
+                        titled={false}
+                        trial={{ id: runId, cellKey, ordinal: shared.ordinal }}
+                      />
+                    ),
+                    label: "Files",
+                    value: "files",
+                  },
+                ]
+              : []),
+            {
+              Icon: CheckSquareIcon,
+              content: (
+                <ValidationInspector
+                  files={cell.setup?.validatorFiles}
+                  key={cellKey}
+                  titled={false}
+                  trials={cell.trials}
+                />
+              ),
+              label: "Validation",
+              value: "validation",
+            },
+            ...(cell.setup === null
+              ? []
+              : [
+                  {
+                    Icon: SlidersHorizontalIcon,
+                    content: (
+                      <CellSetup setup={cell.setup} trials={cell.trials} />
+                    ),
+                    label: "Setup",
+                    value: "setup",
+                  },
+                ]),
+          ]}
         />
-
-        {cell.setup === null ? null : (
-          <CellSetup setup={cell.setup} trials={cell.trials} />
-        )}
       </EvalMain>
 
       <CellRail

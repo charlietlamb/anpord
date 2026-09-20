@@ -24,15 +24,19 @@ export function SetupSurface({
     <section className="flex min-w-0 flex-col gap-2">
       <div className="flex h-7 items-center gap-2 empty:hidden">
         {titled ? (
-          <h3>
-            <PageHeading icon={Glyph} title={title} />
-          </h3>
+          <>
+            <h3>
+              <PageHeading icon={Glyph} title={title} />
+            </h3>
+
+            {/* The count belongs to the heading, so it goes where it goes. */}
+            {meta === undefined ? null : (
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {meta}
+              </span>
+            )}
+          </>
         ) : null}
-        {meta === undefined ? null : (
-          <span className="text-muted-foreground text-xs tabular-nums">
-            {meta}
-          </span>
-        )}
         {controls ? (
           <span className="ml-auto flex items-center gap-1">{controls}</span>
         ) : null}

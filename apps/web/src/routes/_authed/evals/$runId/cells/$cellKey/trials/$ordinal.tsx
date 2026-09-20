@@ -76,6 +76,7 @@ function TrialScreen() {
                     content: (
                       <TrialArtifacts
                         artifacts={trial.artifacts}
+                        titled={false}
                         trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
                       />
                     ),

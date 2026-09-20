@@ -1,7 +1,11 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
-import { FlaskIcon } from "@phosphor-icons/react";
+import {
+  CheckSquareIcon,
+  FlaskIcon,
+  SlidersHorizontalIcon,
+} from "@phosphor-icons/react";
 import { CellHistory } from "@/components/evals/cell-history";
 import { CellSetupSkeleton } from "@/components/evals/cell-setup-skeleton";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
@@ -11,6 +15,7 @@ import {
 } from "@/components/evals/rail-fact-skeleton";
 import { RerunCellButton } from "@/components/evals/rerun-cell-button";
 import { TrialListSkeleton } from "@/components/evals/trial-row-skeleton";
+import { TrialSections } from "@/components/evals/trial-sections";
 import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspector-skeleton";
 
 const READING: readonly RailFactShape[] = [
@@ -48,9 +53,22 @@ export function CellSkeleton({
           <TrialListSkeleton />
         </section>
 
-        <ValidationInspectorSkeleton />
-
-        <CellSetupSkeleton />
+        <TrialSections
+          sections={[
+            {
+              Icon: CheckSquareIcon,
+              content: <ValidationInspectorSkeleton titled={false} />,
+              label: "Validation",
+              value: "validation",
+            },
+            {
+              Icon: SlidersHorizontalIcon,
+              content: <CellSetupSkeleton />,
+              label: "Setup",
+              value: "setup",
+            },
+          ]}
+        />
       </EvalMain>
 
       <aside className={RAIL_FRAME}>
