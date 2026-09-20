@@ -1,6 +1,6 @@
 {
   "name": "anpord",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "TypeScript SDK and CLI for coding agent evals and prompt management.",
   "license": "MIT",
   "type": "module",
