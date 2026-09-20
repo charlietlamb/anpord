@@ -14,13 +14,13 @@
     "@anpord/db": "workspace:*",
     "@anpord/eval": "workspace:*",
     "@anpord/ids": "workspace:*",
-    "@trigger.dev/sdk": "4.5.15",
+    "@trigger.dev/sdk": "catalog:",
     "effect": "catalog:"
   },
   "devDependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1136.0",
-    "@trigger.dev/build": "4.5.15",
-    "trigger.dev": "4.5.15",
+    "@aws-sdk/client-secrets-manager": "catalog:",
+    "@trigger.dev/build": "catalog:",
+    "trigger.dev": "catalog:",
     "typescript": "catalog:"
   }
 }

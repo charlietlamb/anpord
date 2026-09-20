@@ -29,7 +29,7 @@
     "cmdk": "catalog:",
     "date-fns": "catalog:",
     "next-themes": "catalog:",
-    "shiki": "^4.4.3",
+    "shiki": "catalog:",
     "sonner": "catalog:",
     "tailwind-merge": "catalog:"
   },
