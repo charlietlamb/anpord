@@ -140,6 +140,7 @@
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
+    "@anpord/eval": "workspace:*",
     "@anpord/schema": "workspace:*",
     "@anpord/template": "workspace:*",
     "@modelcontextprotocol/client": "catalog:",

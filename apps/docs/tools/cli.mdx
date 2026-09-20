@@ -26,7 +26,7 @@ Set `ANPORD_API_KEY` before commands that call Anpord. Help, version, and `eval 
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval [file] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval suite and wait for it |
+| `anpord eval [file] [--local] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval suite and wait for it |
 | `anpord eval import --format <format> <file> [--out <path>]` | Turn a case file a team already wrote into a suite |
 | `anpord list [--json]` | List up to 100 prompts |
 | `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
@@ -61,6 +61,7 @@ The command waits for the run and fails unless every expected trial passes. In a
 | `--output` | Write a JSON report containing run IDs, results, and gate failures |
 | `--no-wait` | Start the run and print its id |
 | `--json` | Print the finished run instead of the grid |
+| `--local` | Run every case on this machine instead of a cloud sandbox, so a verifier can reach a service on `localhost`. Needs no API key and is not recorded. See [local runs](/evals/local) |
 
 A run that fails outright is reported whatever the gate, because that is the
 sandbox rather than the result.

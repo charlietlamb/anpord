@@ -56,6 +56,7 @@
               "evals/connectors",
               "evals/profiles",
               "evals/command-harness",
+              "evals/local",
               "evals/import"
             ]
           },

@@ -7,6 +7,7 @@ import { evalFilesIn } from "./eval-files";
 import { EvalGate, failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
 import { formatGridSummary, liveGrid } from "./eval-grid";
 import { importEval } from "./eval-import";
+import { localProblems, reportLocal, runLocally } from "./eval-local";
 import type { EvalOutcome } from "./eval-outcome";
 import { reportFinished, reportStarted, writeReport } from "./eval-report";
 import { waitForRun } from "./eval-run";
@@ -36,6 +37,11 @@ const timeout = Options.integer("timeout").pipe(
   Options.withDescription("Maximum seconds to wait per run"),
   Options.withSchema(Schema.Int.pipe(Schema.positive())),
   Options.withDefault(1200)
+);
+const local = Options.boolean("local").pipe(
+  Options.withDescription(
+    "Run every case on this machine instead of a cloud sandbox"
+  )
 );
 const output = Options.text("output").pipe(
   Options.withDescription("Write a JSON report to this file"),
@@ -112,13 +118,67 @@ const reportToGithub = (outcomes: readonly EvalOutcome[]) =>
     )
   );
 
+/* Compiled and decided here rather than sent: nothing about a run on this
+   machine is the hosted grid's to record. */
+const runEveryEvalLocally = (files: readonly string[], gate: EvalGate) =>
+  Effect.gen(function* () {
+    const problems: string[] = [];
+
+    yield* Effect.forEach(files, (one) =>
+      Effect.gen(function* () {
+        const cases = yield* runLocally(yield* compileEvalEffect(one));
+
+        yield* reportLocal(one, cases);
+        problems.push(...localProblems(cases));
+      })
+    );
+
+    return yield* failWhen(gate === "never" ? [] : problems);
+  });
+
+const runEveryEvalHosted = (
+  files: readonly string[],
+  options: {
+    readonly gate: EvalGate;
+    readonly path: Option.Option<string>;
+    readonly skipWait: boolean;
+    readonly timeoutSeconds: number;
+    readonly wantsJson: boolean;
+  }
+) =>
+  Effect.gen(function* () {
+    const { gate, path, skipWait, timeoutSeconds, wantsJson } = options;
+    const outcomes: EvalOutcome[] = [];
+    yield* Effect.forEach(files, (one, index) =>
+      Effect.gen(function* () {
+        const save = (outcome: EvalOutcome) =>
+          Effect.gen(function* () {
+            outcomes[index] = outcome;
+            yield* writeReport(outcomes, path);
+          });
+        const outcome = yield* runOneEval(
+          one,
+          { gate, skipWait, timeoutSeconds, wantsJson },
+          save
+        );
+        yield* save(outcome);
+      })
+    );
+    yield* reportFinished(outcomes);
+    if (!skipWait) {
+      yield* reportToGithub(outcomes);
+    }
+    return yield* failWhen(outcomes.flatMap((outcome) => outcome.problems));
+  }).pipe(Effect.provide(ClientLayer));
+
 export const runEval = Command.make(
   "eval",
-  { asJson, evalFile, failOn, noWait, output, timeout },
+  { asJson, evalFile, failOn, local, noWait, output, timeout },
   ({
     asJson: wantsJson,
     evalFile: file,
     failOn: gate,
+    local: onThisMachine,
     noWait: skipWait,
     output: path,
     timeout: timeoutSeconds,
@@ -128,31 +188,21 @@ export const runEval = Command.make(
         onNone: () => evalFilesIn("."),
         onSome: (one) => Effect.succeed([one] as readonly string[]),
       });
+
       if (files.length === 0) {
         return yield* Effect.fail(new NoEvalFiles());
       }
-      const outcomes: EvalOutcome[] = [];
-      yield* Effect.forEach(files, (one, index) =>
-        Effect.gen(function* () {
-          const save = (outcome: EvalOutcome) =>
-            Effect.gen(function* () {
-              outcomes[index] = outcome;
-              yield* writeReport(outcomes, path);
-            });
-          const outcome = yield* runOneEval(
-            one,
-            { gate, skipWait, timeoutSeconds, wantsJson },
-            save
-          );
-          yield* save(outcome);
-        })
-      );
-      yield* reportFinished(outcomes);
-      if (!skipWait) {
-        yield* reportToGithub(outcomes);
-      }
-      return yield* failWhen(outcomes.flatMap((outcome) => outcome.problems));
-    }).pipe(Effect.provide(ClientLayer))
+
+      return yield* onThisMachine
+        ? runEveryEvalLocally(files, gate)
+        : runEveryEvalHosted(files, {
+            gate,
+            path,
+            skipWait,
+            timeoutSeconds,
+            wantsJson,
+          });
+    })
 ).pipe(
   Command.withDescription("Compile and run an eval from TypeScript"),
   Command.withSubcommands([importEval])

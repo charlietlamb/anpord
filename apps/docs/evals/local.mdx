@@ -1,0 +1,56 @@
+---
+title: "Local runs"
+description: "Run an eval against services on your own machine"
+---
+
+A cloud sandbox cannot reach `localhost`. When the thing you are changing runs on your machine, `--local` runs the eval there instead:
+
+```bash
+anpord eval --local ./checkout.eval.ts
+```
+
+No API key is needed, because nothing is sent anywhere. Every case runs on this machine and the results print in the terminal.
+
+## Reaching a local service
+
+Variables in `.env.local` and `.env` beside the eval file are given to the case, so a verifier can reach a service you are already running:
+
+```bash
+# .env
+API_BASE=http://localhost:1234
+```
+
+```ts
+cases: [
+  {
+    name: "the checkout completes",
+    verify: 'test "$(curl -s $API_BASE/health)" = ok',
+  },
+]
+```
+
+`.env.local` wins over `.env`, and anything already set in your shell wins over both.
+
+## What is forwarded
+
+Addresses, and nothing else. A variable is given to a case when its name ends in `URL`, `URI`, `HOST`, `PORT`, `ENDPOINT`, `ORIGIN`, or `BASE`, **and** its value is a plain `http(s)` address, a hostname, or a port.
+
+Both halves matter. `DATABASE_URL=postgres://user:password@host/db` is named like an address but carries a password inside it, so it is withheld. A local sandbox is a shell on your machine, and a value handed to it reaches the agent's context and the journal the run writes down.
+
+An agent that needs a model key still reads it from your environment directly, as it does outside Anpord.
+
+## What a local run is not
+
+A local run is not recorded. It has no run in the dashboard, no history, and no baseline to compare against, so `--fail-on regressed` and `--fail-on unscored` have nothing to read. The exit code still reflects the result, so CI can gate on it:
+
+```bash
+anpord eval --local ./checkout.eval.ts || exit 1
+```
+
+Use a hosted sandbox when you want the run kept. Because the sandbox is part of the cell key, a local run would start a separate history in any case.
+
+## Requirements
+
+The agent runs as you, on your machine, in a temporary workspace with its own `HOME`. It is not a container: a case can read and write what you can. Run evals you wrote or trust.
+
+Harnesses install into `~/.anpord/local` and are reused, so the first local run of a harness is slower than the rest.

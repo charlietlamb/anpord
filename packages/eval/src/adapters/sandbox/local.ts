@@ -3,13 +3,14 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Config, Effect, Option, type Stream } from "effect";
-import { SandboxUnavailable } from "../../domain/errors";
+import { SandboxUnavailable, sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecChunk,
   OpenSandbox,
   SandboxAdapterShape,
   SandboxHandle,
 } from "../../ports/sandbox";
+import { noCache } from "./capabilities";
 import { execStream } from "./exec-stream";
 import { localCache } from "./local-cache";
 import { localDetached } from "./local-detached";
@@ -20,8 +21,7 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 const unavailable = (reason: string) =>
   new SandboxUnavailable({ provider: "local", reason });
 
-const failed = (reason: unknown) =>
-  unavailable(reason instanceof Error ? reason.message : String(reason));
+const failed = (reason: unknown) => sandboxUnavailable("local", reason);
 
 const execute = (
   root: string,
@@ -56,7 +56,12 @@ const execute = (
         }
       };
 
-      const timer = setTimeout(killTree, timeoutMs);
+      let timedOut = false;
+
+      const timer = setTimeout(() => {
+        timedOut = true;
+        killTree();
+      }, timeoutMs);
 
       child.stdout.on("data", (data: Buffer) => {
         sink.stdout(data.toString());
@@ -71,10 +76,16 @@ const execute = (
         resume(Effect.fail(failed(cause)));
       });
 
+      /* A killed command exits like any other, so without this a timeout
+         would be scored as a verdict rather than reported as one. */
       child.on("close", (code) => {
         clearTimeout(timer);
 
-        resume(Effect.succeed(code ?? 137));
+        resume(
+          timedOut
+            ? Effect.fail(unavailable(`timed out after ${timeoutMs}ms`))
+            : Effect.succeed(code ?? 137)
+        );
       });
 
       return Effect.sync(() => {
@@ -146,7 +157,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
           return {
             cache:
               request.cache === undefined
-                ? Option.none()
+                ? noCache
                 : Option.some(localCache(roots.cache)),
             exec: (command, options) =>
               execute(

@@ -12,13 +12,13 @@ const opted = ConfigProvider.fromMap(
 const runCase = (
   verify: string,
   files: Readonly<Record<string, string>> = {},
-  forwardEnv: readonly string[] = []
+  forwarded: Readonly<Record<string, string>> = {}
 ) =>
   LocalTrials.pipe(
     Effect.flatMap((trials) =>
       trials.run({
         caseName: "a local case",
-        forwardEnv,
+        forwarded,
         harness: "command",
         harnessVersion: "1",
         model: "none",
@@ -87,19 +87,16 @@ describe("a trial that runs on this machine", () => {
   it("gives the verifier the variables the run forwarded", async () => {
     const server = Bun.serve({ fetch: () => new Response("ready"), port: 0 });
 
-    process.env.ANPORD_TEST_BASE = `http://localhost:${server.port}`;
-
     try {
       const outcome = await runCase(
         'test "$(curl -s $ANPORD_TEST_BASE)" = ready',
         {},
-        ["ANPORD_TEST_BASE"]
+        { ANPORD_TEST_BASE: `http://localhost:${server.port}` }
       );
 
       expect(outcome.outcome.status).toBe("passed");
     } finally {
       server.stop(true);
-      process.env.ANPORD_TEST_BASE = undefined;
     }
   }, 180_000);
 
