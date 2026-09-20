@@ -1,5 +1,5 @@
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
-import { EvalLocalLive } from "@anpord/eval/layer";
+import { EvalLocalLive } from "@anpord/eval/local-layer";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
 import { Effect, ManagedRuntime } from "effect";
 import { compileEvalEffect } from "../../../packages/sdk/src/evals/compiler";

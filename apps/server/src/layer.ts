@@ -17,7 +17,7 @@ import { SourceTokensLive } from "@anpord/eval/codebase/source-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import { CredentialConnectionsLive } from "@anpord/eval/credentials/connections";
 import { DeviceAuthLive } from "@anpord/eval/credentials/device-auth";
-import { CredentialResolverLive } from "@anpord/eval/credentials/resolver";
+import { CredentialResolverLive } from "@anpord/eval/credentials/resolver-live";
 import {
   EvalHarnessVersionsLive,
   EvalModelCatalogueLive,

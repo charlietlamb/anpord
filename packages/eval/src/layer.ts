@@ -8,7 +8,6 @@ import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { SimulatedUserLive } from "./adapters/user/llm-user";
-import { CredentialResolverFromEnv } from "./credentials/env-resolver";
 import { GridRunLive } from "./grid/run";
 import { JudgeModelLive } from "./judges/layer";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
@@ -32,7 +31,6 @@ import { ExpirySweepScheduleLive } from "./services/expiry-sweep";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { JournalRetentionScheduleLive } from "./services/journal-retention";
 import { AgentTrialJudgedLive } from "./services/judged-trial";
-import { LocalTrialsLive } from "./services/local-trial";
 import { layer as ModelCatalogueLive } from "./services/model-catalogue";
 import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
 import { SandboxProviderLive } from "./services/sandbox-provider";
@@ -132,14 +130,4 @@ export const SandboxReaperSweepLive = SandboxReaperScheduleLive.pipe(
 
 export const ExpirySweepLive = ExpirySweepScheduleLive.pipe(
   Layer.provide(ExpiredRowsLive)
-);
-
-/* One trial on the machine that asked for it. The grid's repositories are
-   absent rather than stubbed: a local run has no cell to compare against and
-   nothing to persist, so it needs no database at all. */
-export const EvalLocalLive = LocalTrialsLive.pipe(
-  Layer.provide(agentWith(SuspenderSleeping)),
-  Layer.provide(CredentialResolverFromEnv),
-  Layer.provide(EvalSandboxLive),
-  Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer)))
 );

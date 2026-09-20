@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { ConfigProvider, Effect } from "effect";
-import { EvalLocalLive } from "../../src/layer";
+import { EvalLocalLive } from "../../src/local-layer";
 import { LocalTrials } from "../../src/services/local-trial";
 
 /* The point of the local provider: no database, no grid, no cloud credential.
