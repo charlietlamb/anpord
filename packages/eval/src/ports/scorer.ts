@@ -9,6 +9,9 @@ import type { SandboxHandle } from "./sandbox";
 
 export interface ScoreRequest {
   readonly commandCount: number;
+  /* What the run forwarded from the machine, so a verifier can reach the same
+     service the agent was pointed at. */
+  readonly env?: Readonly<Record<string, string>>;
   readonly events: readonly HarnessEvent[];
   readonly modelMs: number;
   readonly onValidation?: ValidationObserver;

@@ -308,6 +308,7 @@ export const AgentTrialLive = Layer.effect(
         const scored = yield* scorer.score({
           onValidation: request.onValidation,
           commandCount: commandsIn(events),
+          env: request.forwarded,
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,

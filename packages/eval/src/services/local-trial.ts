@@ -1,7 +1,7 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
-import { Clock, Context, Effect, Layer, type Redacted } from "effect";
+import { Clock, Context, Effect, Layer } from "effect";
+import { CredentialResolver } from "../credentials/resolver";
 import type { HarnessName } from "../domain/cell";
 import type { HarnessEvent } from "../domain/harness-event";
 import type { RequestedProfile } from "../domain/harness-profile";
@@ -19,7 +19,6 @@ export interface LocalTrialRequest {
   readonly caseName: string;
   readonly forwardEnv?: readonly string[];
   readonly harness: HarnessName;
-  readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly harnessVersion: string;
   readonly model: string;
   readonly onProgress?: (
@@ -63,16 +62,24 @@ export const LocalTrialsLive = Layer.effect(
   LocalTrials,
   Effect.gen(function* () {
     const agent = yield* AgentTrial;
+    const credentials = yield* CredentialResolver;
 
     const run = (request: LocalTrialRequest) =>
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
 
+        const harnessCredential = yield* credentials
+          .resolve({
+            actor: { kind: "local" } as never,
+            integrationId: request.harness,
+          })
+          .pipe(Effect.orDie);
+
         const result = yield* agent.run({
           autoStopMinutes: AUTO_STOP_MINUTES,
           forwarded: forwardedEnv(request.forwardEnv ?? [], process.env),
           harness: request.harness,
-          harnessCredential: request.harnessCredential,
+          harnessCredential,
           harnessVersion: request.harnessVersion,
           model: request.model,
           organizationId: "local",

@@ -72,6 +72,7 @@
     "./services/baselines": "./src/services/baselines.ts",
     "./services/cell-rerun": "./src/services/cell-rerun.ts",
     "./services/harness-versions": "./src/services/harness-versions.ts",
+    "./services/local-trial": "./src/services/local-trial.ts",
     "./services/model-catalogue": "./src/services/model-catalogue.ts",
     "./services/reconciler": "./src/services/reconciler.ts",
     "./services/workbench": "./src/services/workbench.ts",

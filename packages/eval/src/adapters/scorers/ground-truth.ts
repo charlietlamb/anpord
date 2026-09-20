@@ -56,6 +56,7 @@ const scoreValidator = (
         cwd: request.workspace,
         timeoutMs: 300_000,
         env: {
+          ...request.env,
           ...answerEnv(request.sandbox),
           ANPORD_PREPARE_VALUE: JSON.stringify(request.prepared ?? {}),
         },
@@ -162,7 +163,7 @@ const scoreCommand: ScorerShape["score"] = (request) =>
       command: script.command,
       options: {
         cwd: request.workspace,
-        env: answerEnv(request.sandbox),
+        env: { ...request.env, ...answerEnv(request.sandbox) },
         timeoutMs: 300_000,
       },
       records: [record],
