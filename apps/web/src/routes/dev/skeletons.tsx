@@ -17,6 +17,7 @@ import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspe
 import { RowList } from "@/components/layout/row-list";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
+import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
@@ -99,6 +100,18 @@ function SkeletonsPreview() {
           }
           name="Prompt list (shared SkeletonRows)"
           skeleton={<PromptListSkeleton />}
+        />
+
+        <Pair
+          loaded={
+            <RowList>
+              {RUNS.slice(0, 2).map((run) => (
+                <EvalRow key={run.id} run={run} />
+              ))}
+            </RowList>
+          }
+          name="Connection list"
+          skeleton={<ConnectionListSkeleton />}
         />
 
         {TRIAL ? (

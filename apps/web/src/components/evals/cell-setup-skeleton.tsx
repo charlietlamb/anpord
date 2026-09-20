@@ -6,9 +6,13 @@ import { SetupSurface } from "./setup-surface";
    skeleton reads as a paragraph rather than a stack of equal bars. */
 const LINES = ["w-full", "w-full", "w-4/5", "w-2/3"];
 
-export function CellSetupSkeleton() {
+export function CellSetupSkeleton({
+  titled = true,
+}: {
+  readonly titled?: boolean;
+}) {
   return (
-    <SetupSurface Icon={TextAlignLeftIcon} title="Prompt">
+    <SetupSurface Icon={TextAlignLeftIcon} title="Prompt" titled={titled}>
       <div className="flex max-w-prose flex-col gap-2.5">
         {LINES.map((width, index) => (
           <Skeleton
