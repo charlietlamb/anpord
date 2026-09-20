@@ -5,6 +5,7 @@ import type { RequestedProfile } from "../domain/harness-profile";
 export interface ProfileEnv {
   readonly credential: Redacted.Redacted<ResolvedCredential>;
   readonly driverEnv: Readonly<Record<string, string>>;
+  readonly forwarded: Readonly<Record<string, string>>;
   readonly home: string;
   readonly model: string;
   readonly profile: RequestedProfile | null;
@@ -21,18 +22,20 @@ const credentialValues = (
   return resolved.integrationId === "env" ? resolved.values : {};
 };
 
-/* Precedence, lowest first: the driver's prepare, the profile's own variables,
-   then the env credential the run was bound to. */
+/* Precedence, lowest first: the driver's prepare, what the machine forwarded,
+   the profile's own variables, then the env credential the run was bound to.
+   Forwarded values reach a task with no profile, which most tasks are. */
 export const profileEnv = (
   input: ProfileEnv
 ): Readonly<Record<string, string>> =>
   input.profile == null
-    ? input.driverEnv
+    ? { ...input.driverEnv, ...input.forwarded }
     : {
         ...input.driverEnv,
         ANPORD_HOME: input.home,
         ANPORD_MODEL: input.model,
         ANPORD_WORKSPACE: input.workspace,
+        ...input.forwarded,
         ...(input.profile.env ?? {}),
         ...credentialValues(input.credential),
       };

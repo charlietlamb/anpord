@@ -15,6 +15,9 @@ const concurrencyConfig = Config.all({
     Config.withDefault(5)
   ),
   e2b: Config.integer("EVAL_E2B_CONCURRENCY").pipe(Config.withDefault(5)),
+  /* Cloud permits bound a bill; this one bounds a laptop, which has to keep
+     serving the thing being evaluated. */
+  local: Config.integer("EVAL_LOCAL_CONCURRENCY").pipe(Config.withDefault(2)),
   upstash: Config.integer("EVAL_UPSTASH_CONCURRENCY").pipe(
     Config.withDefault(5)
   ),
@@ -38,6 +41,7 @@ export const SandboxProviderLive = Layer.effect(
       cloudflare: yield* Effect.makeSemaphore(concurrency.cloudflare),
       daytona: yield* Effect.makeSemaphore(concurrency.daytona),
       e2b: yield* Effect.makeSemaphore(concurrency.e2b),
+      local: yield* Effect.makeSemaphore(concurrency.local),
       upstash: yield* Effect.makeSemaphore(concurrency.upstash),
       modal: yield* Effect.makeSemaphore(concurrency.modal),
       vercel: yield* Effect.makeSemaphore(concurrency.vercel),

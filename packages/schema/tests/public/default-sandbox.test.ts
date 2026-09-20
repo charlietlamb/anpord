@@ -1,6 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
-import { DEFAULT_SANDBOX, EVAL_SANDBOXES } from "../../src/domain/evals";
+import {
+  DEFAULT_SANDBOX,
+  EVAL_SANDBOXES,
+  HOSTED_SANDBOXES,
+} from "../../src/domain/evals";
 import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
 const request = {
@@ -36,9 +40,16 @@ describe("a task's sandbox", () => {
     expect(() =>
       decode({
         ...request,
-        tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "local" }],
+        tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "nowhere" }],
       })
     ).toThrow();
+  });
+
+  /* The domain knows `local` so a developer can run one on their own machine.
+     The hosted contract is where that stops, so the two lists differ by it. */
+  it("offers every sandbox but the local one", () => {
+    expect(EVAL_SANDBOXES).toContain("local");
+    expect(HOSTED_SANDBOXES).not.toContain("local");
   });
 
   /* The default is hashed into the cell key of every task that omits one, so

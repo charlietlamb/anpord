@@ -26,10 +26,10 @@ import {
   EvalPrepare,
   EvalRun,
   EvalRunPage,
-  EvalSandbox,
   EvalSource,
   EvalValidator,
   EvalVariables,
+  HOSTED_SANDBOXES,
   RunSubscription,
 } from "../domain/evals";
 import {
@@ -56,7 +56,10 @@ export const EvalModelsRequest = Schema.Struct({
   description: "Select a harness whose available models should be listed.",
   identifier: "EvalModelsRequest",
 });
-const PublicEvalSandbox = EvalSandbox.annotations({
+/* `local` runs on whatever machine serves the request, so the hosted API
+   never offers it: a caller must not be able to ask someone else's server
+   for a shell. A developer names it from their own CLI instead. */
+const PublicEvalSandbox = Schema.Literal(...HOSTED_SANDBOXES).annotations({
   description: "The hosted sandbox a task runs in.",
   identifier: "PublicEvalSandbox",
 });

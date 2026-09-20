@@ -67,6 +67,7 @@ const prepare = (
       prepare: () =>
         Effect.sync(() => ({ DRIVER_ONLY: "yes", SHARED: "driver" })),
     } as never,
+    forwarded: {},
     harness: "opencode" as never,
     harnessVersion: "1",
     home: HOME,

@@ -1,12 +1,12 @@
 import { cp, mkdir, rm, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { Effect } from "effect";
-import { SandboxUnavailable } from "../../src/domain/errors";
-import type { SandboxCache } from "../../src/ports/sandbox";
+import { SandboxUnavailable } from "../../domain/errors";
+import type { SandboxCache } from "../../ports/sandbox";
 
 const failed = (reason: unknown) =>
   new SandboxUnavailable({
-    provider: "daytona",
+    provider: "local",
     reason: reason instanceof Error ? reason.message : String(reason),
   });
 
@@ -24,13 +24,9 @@ const exists = async (path: string) => {
   }
 };
 
-/**
- * Somewhere a prepare can leave what it built, on the machine running the
- * tests.
- *
- * Write-once like every provider's, so the conformance suite proves the same
- * contract against it as against a real volume.
- */
+/* Somewhere a prepare can leave what it built, on the machine running the
+   eval. Write-once like every provider's, so the same conformance suite
+   proves it. */
 export const localCache = (store: string): SandboxCache => ({
   has: (key) =>
     Effect.tryPromise({

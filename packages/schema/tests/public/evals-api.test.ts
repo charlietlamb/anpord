@@ -39,6 +39,8 @@ describe("the public eval task contract", () => {
     });
   }
 
+  /* The domain knows `local`, so the guard has to live on the public contract:
+     a caller reaching a machine they do not own must never ask it for a shell. */
   it("continues to reject the unisolated local sandbox", () => {
     expect(() =>
       Schema.decodeUnknownSync(PublicStartEvalRequest)({

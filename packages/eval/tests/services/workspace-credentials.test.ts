@@ -41,6 +41,7 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
   prepareWorkspaceWith({
     credential: Redacted.make({} as never),
     driver: { prepare: () => Effect.succeed({}) } as never,
+    forwarded: {},
     harness: "codex" as never,
     harnessVersion: "1",
     home: HOME,

@@ -60,6 +60,9 @@ export interface AgentTrialRequest {
    * saved after it succeeds. */
   readonly caseCache?: { readonly key: string; readonly path: string };
 
+  /** Host variables to forward, already read: the machine is read where the
+   * run is started, never from inside a trial. */
+  readonly forwarded?: Readonly<Record<string, string>>;
   readonly harness: HarnessName;
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly harnessVersion: string;
@@ -170,6 +173,7 @@ export const AgentTrialLive = Layer.effect(
           caseCache: request.caseCache,
           credential: request.harnessCredential,
           driver,
+          forwarded: request.forwarded ?? {},
           harness: request.harness,
           harnessVersion: request.harnessVersion,
           home: sandbox.home,

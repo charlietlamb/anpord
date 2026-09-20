@@ -26,7 +26,11 @@ import {
   ZaiMark,
 } from "@anpord/ui/components/brand/provider-marks";
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { CpuIcon, TerminalWindowIcon } from "@phosphor-icons/react";
+import {
+  CpuIcon,
+  DesktopTowerIcon,
+  TerminalWindowIcon,
+} from "@phosphor-icons/react";
 import { shortProfileVersion } from "@/lib/evals/profile-version";
 
 interface Presentation {
@@ -52,6 +56,8 @@ const SANDBOX_MARKS: Record<EvalSandbox, Presentation> = {
   cloudflare: { Icon: CloudflareMark, label: "Cloudflare" },
   daytona: { Icon: DaytonaMark, label: "Daytona" },
   e2b: { Icon: E2bMark, label: "E2B" },
+  /* No vendor mark: the machine running the eval is the sandbox. */
+  local: { Icon: DesktopTowerIcon, label: "Local" },
   upstash: { Icon: UpstashMark, label: "Upstash Box" },
   modal: { Icon: ModalMark, label: "Modal" },
   vercel: { Icon: VercelMark, label: "Vercel" },

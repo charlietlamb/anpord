@@ -8,6 +8,7 @@ import {
 } from "./cloudflare";
 import { makeConfiguredDaytonaAdapter, makeDaytonaAdapter } from "./daytona";
 import { makeConfiguredE2BAdapter, makeE2BAdapter } from "./e2b";
+import { makeLocalAdapter } from "./local";
 import { makeConfiguredModalAdapter, makeModalAdapter } from "./modal";
 import { makeConfiguredUpstashAdapter, makeUpstashAdapter } from "./upstash";
 import { makeConfiguredVercelAdapter, makeVercelAdapter } from "./vercel";
@@ -19,6 +20,7 @@ export const SandboxAdaptersLive = Layer.effect(
       cloudflare: yield* Effect.cached(makeCloudflareAdapter),
       daytona: yield* Effect.cached(makeDaytonaAdapter),
       e2b: yield* Effect.cached(makeE2BAdapter),
+      local: yield* Effect.cached(makeLocalAdapter),
       upstash: yield* Effect.cached(makeUpstashAdapter),
       modal: yield* Effect.cached(makeModalAdapter),
       vercel: yield* Effect.cached(makeVercelAdapter),
@@ -32,6 +34,8 @@ export const SandboxAdaptersLive = Layer.effect(
         cloudflare: makeConfiguredCloudflareAdapter,
         daytona: makeConfiguredDaytonaAdapter,
         e2b: makeConfiguredE2BAdapter,
+        /* Nothing to configure: the machine is the credential. */
+        local: () => makeLocalAdapter,
         modal: makeConfiguredModalAdapter,
         upstash: makeConfiguredUpstashAdapter,
         vercel: makeConfiguredVercelAdapter,

@@ -51,6 +51,9 @@ export const HARNESS_OPTIONS: readonly VariantOption<EvalHarness>[] = [
 
 export const DEFAULT_HARNESS: EvalHarness = "codex";
 
+/* `local` is missing on purpose: it opens only where the deployment opted in,
+   which the dashboard cannot know, and an option that always fails is worse
+   than no option. A developer names it from the SDK or the CLI instead. */
 export const SANDBOX_OPTIONS: readonly VariantOption<EvalSandbox>[] = [
   {
     description: "Cloud sandboxes that reattach",

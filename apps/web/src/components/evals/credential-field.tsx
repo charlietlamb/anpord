@@ -2,6 +2,7 @@ import type {
   CredentialConnection,
   CredentialSelections,
 } from "@anpord/schema/domain/credentials";
+import { EVAL_SANDBOXES } from "@anpord/schema/domain/evals";
 import {
   Select,
   SelectContent,
@@ -21,14 +22,7 @@ import {
   sandboxPresentation,
 } from "@/lib/evals/variant-presentation";
 
-const SANDBOXES = new Set([
-  "daytona",
-  "e2b",
-  "upstash",
-  "modal",
-  "cloudflare",
-  "vercel",
-]);
+const SANDBOXES: ReadonlySet<string> = new Set(EVAL_SANDBOXES);
 
 const presentationOf = (id: string) =>
   SANDBOXES.has(id) ? sandboxPresentation(id) : harnessPresentation(id);

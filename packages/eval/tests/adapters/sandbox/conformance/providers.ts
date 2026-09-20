@@ -1,7 +1,8 @@
-import type { Effect } from "effect";
+import { ConfigProvider, Effect } from "effect";
 import { makeCloudflareAdapter } from "../../../../src/adapters/sandbox/cloudflare";
 import { makeDaytonaAdapter } from "../../../../src/adapters/sandbox/daytona";
 import { makeE2BAdapter } from "../../../../src/adapters/sandbox/e2b";
+import { makeLocalAdapter } from "../../../../src/adapters/sandbox/local";
 import { makeModalAdapter } from "../../../../src/adapters/sandbox/modal";
 import { makeUpstashAdapter } from "../../../../src/adapters/sandbox/upstash";
 import { makeVercelAdapter } from "../../../../src/adapters/sandbox/vercel";
@@ -14,7 +15,6 @@ import {
   hasUpstash,
   hasVercel,
 } from "../../../fixtures/credentials";
-import { makeLocalAdapter } from "../../../support/local-sandbox";
 
 /**
  * Every provider the product offers, and what each needs before it can be
@@ -37,9 +37,17 @@ export interface ProviderUnderTest {
 
 export const PROVIDERS: readonly ProviderUnderTest[] = [
   {
-    adapter: makeLocalAdapter,
     /* The control: a real shell on the machine running the tests, so the suite
-       proves the contract itself even with no credential at all. */
+       proves the contract itself even with no credential at all. The opt-in is
+       supplied here rather than by the environment, so the suite exercises the
+       same adapter a developer runs and never depends on how a shell is set up. */
+    adapter: makeLocalAdapter.pipe(
+      Effect.withConfigProvider(
+        ConfigProvider.fromMap(new Map([["ANPORD_LOCAL_SANDBOX", "true"]]), {
+          pathDelim: ".",
+        }).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()))
+      )
+    ),
     credentialled: true,
     name: "local",
     needs: "nothing",

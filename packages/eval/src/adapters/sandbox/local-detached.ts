@@ -2,12 +2,12 @@ import { spawn } from "node:child_process";
 import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Effect, Random } from "effect";
-import { SandboxUnavailable } from "../../src/domain/errors";
-import type { ResumableCommands } from "../../src/ports/sandbox";
+import { SandboxUnavailable } from "../../domain/errors";
+import type { ResumableCommands } from "../../ports/sandbox";
 
-const unavailable = (provider: "daytona") => (reason: unknown) =>
+const failed = (reason: unknown) =>
   new SandboxUnavailable({
-    provider,
+    provider: "local",
     reason: reason instanceof Error ? reason.message : String(reason),
   });
 
@@ -19,21 +19,14 @@ const read = async (path: string) => {
   }
 };
 
-/**
- * A command that outlives the call which started it, on the machine running
- * the tests.
- *
- * The child is detached and its streams are redirected to files, so polling
- * reads what has been written so far exactly as a provider's log endpoint
- * does. This is what lets the conformance suite exercise the polling path
- * without holding a cloud credential.
- */
+/* A command that outlives the call which started it. Its streams redirect to
+   files, so polling reads what has been written so far exactly as a
+   provider's log endpoint does. */
 export const localDetached = (
   root: string,
   path: string,
-  provider: "daytona"
+  env: Readonly<Record<string, string>>
 ): ResumableCommands => {
-  const failed = unavailable(provider);
   const runs = join(root, ".anpord-runs");
 
   return {
@@ -73,7 +66,7 @@ export const localDetached = (
               {
                 cwd: options?.cwd ?? root,
                 detached: true,
-                env: { HOME: root, PATH: path, ...options?.env },
+                env: { ...env, PATH: path, ...options?.env },
                 shell: "/bin/bash",
                 stdio: "ignore",
               }

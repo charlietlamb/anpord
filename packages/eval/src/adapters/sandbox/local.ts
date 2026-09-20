@@ -3,39 +3,31 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Config, Effect, Option, type Stream } from "effect";
-import { execStream } from "../../src/adapters/sandbox/exec-stream";
-import { SandboxUnavailable } from "../../src/domain/errors";
+import { SandboxUnavailable } from "../../domain/errors";
 import type {
   ExecChunk,
   OpenSandbox,
   SandboxAdapterShape,
   SandboxHandle,
-} from "../../src/ports/sandbox";
+} from "../../ports/sandbox";
+import { execStream } from "./exec-stream";
 import { localCache } from "./local-cache";
 import { localDetached } from "./local-detached";
-
-/* A real shell on the machine running the tests, used to prove the sandbox
-   streaming contract without holding a cloud credential. It is not a provider
-   the product offers: an eval that ran on the server itself would be an open
-   shell for anyone with an account.
-
-   It reports under a real provider name because the error type names one, and
-   nothing reads it here beyond the assertions below. */
-const STANDS_IN_FOR = "daytona" as const;
+import { localRoots } from "./local-home";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 
-const unavailable = (reason: unknown) =>
-  new SandboxUnavailable({
-    provider: STANDS_IN_FOR,
-    reason: reason instanceof Error ? reason.message : String(reason),
-  });
+const unavailable = (reason: string) =>
+  new SandboxUnavailable({ provider: "local", reason });
+
+const failed = (reason: unknown) =>
+  unavailable(reason instanceof Error ? reason.message : String(reason));
 
 const execute = (
   root: string,
   command: string,
   timeoutMs: number,
-  path: string,
+  base: Readonly<Record<string, string>>,
   options: Readonly<Record<string, string>>
 ): Stream.Stream<ExecChunk, SandboxUnavailable> =>
   execStream((sink) =>
@@ -45,7 +37,7 @@ const execute = (
 
         detached: true,
 
-        env: { HOME: root, PATH: path, ...options },
+        env: { ...base, ...options },
         shell: "/bin/bash",
       });
 
@@ -76,7 +68,7 @@ const execute = (
 
       child.on("error", (cause) => {
         clearTimeout(timer);
-        resume(Effect.fail(unavailable(cause)));
+        resume(Effect.fail(failed(cause)));
       });
 
       child.on("close", (code) => {
@@ -92,63 +84,86 @@ const execute = (
     })
   );
 
+/* Naming `local` is always allowed so the refusal can say why. Opening one is
+   not: a shell on the server is a shell for whoever can reach it, which is
+   only ever acceptable when the operator and the machine are the same person. */
+const refusing = (reason: string): SandboxAdapterShape => ({
+  attach: () => Effect.fail(unavailable(reason)),
+  destroy: () => Effect.void,
+  open: () => Effect.fail(unavailable(reason)),
+  provider: "local",
+});
+
+const OFF =
+  "the local sandbox runs commands on this machine, so it opens only where ANPORD_LOCAL_SANDBOX is set";
+
 export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
   function* () {
+    const enabled = yield* Config.boolean("ANPORD_LOCAL_SANDBOX").pipe(
+      Config.withDefault(false),
+      Effect.orDie
+    );
+
+    if (!enabled) {
+      return refusing(OFF);
+    }
+
     const path = yield* Config.string("PATH").pipe(
       Config.withDefault(""),
       Effect.orDie
     );
 
+    const roots = yield* localRoots;
+
     return {
       attach: (id: string) =>
         Effect.fail(
-          new SandboxUnavailable({
-            provider: STANDS_IN_FOR,
-            reason: `a local sandbox does not outlive its process, so ${id} cannot be reattached`,
-          })
+          unavailable(
+            `a local sandbox does not outlive its process, so ${id} cannot be reattached`
+          )
         ),
       destroy: (handle: Pick<SandboxHandle, "id">) =>
         Effect.tryPromise({
-          catch: unavailable,
+          catch: failed,
           try: () => rm(handle.id, { force: true, recursive: true }),
         }).pipe(Effect.asVoid),
       open: (request: OpenSandbox) =>
         Effect.gen(function* () {
           const root = yield* Effect.tryPromise({
-            catch: unavailable,
+            catch: failed,
             try: () => mkdtemp(join(tmpdir(), "anpord-local-")),
           });
-
-          const store = join(root, ".anpord-cache");
 
           /* Every real adapter makes the workspace as it opens, and a command
              whose cwd does not exist fails before it runs. */
           yield* Effect.tryPromise({
-            catch: unavailable,
+            catch: failed,
             try: () => mkdir(request.workspace, { recursive: true }),
           });
+
+          const base = { HOME: roots.home, PATH: path };
 
           return {
             cache:
               request.cache === undefined
                 ? Option.none()
-                : Option.some(localCache(store)),
+                : Option.some(localCache(roots.cache)),
             exec: (command, options) =>
               execute(
                 options?.cwd ?? root,
                 command,
                 options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-                path,
+                base,
 
                 options?.env ?? {}
               ),
+            home: roots.home,
             id: root,
-            home: root,
-            provider: STANDS_IN_FOR,
-            resumable: Option.some(localDetached(root, path, STANDS_IN_FOR)),
+            provider: "local",
+            resumable: Option.some(localDetached(root, path, base)),
             writeFile: (target, content) =>
               Effect.tryPromise({
-                catch: unavailable,
+                catch: failed,
                 try: async () => {
                   const file = target.startsWith("/")
                     ? target
@@ -160,7 +175,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
               }),
           } satisfies SandboxHandle;
         }),
-      provider: STANDS_IN_FOR,
+      provider: "local",
     };
   }
 );

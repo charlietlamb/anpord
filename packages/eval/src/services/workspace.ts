@@ -23,6 +23,8 @@ export interface PrepareWorkspace {
   readonly caseCache?: { readonly key: string; readonly path: string };
   readonly credential: Redacted.Redacted<ResolvedCredential>;
   readonly driver: HarnessDriverShape;
+  /** Host variables the run was told to forward, already read. */
+  readonly forwarded: Readonly<Record<string, string>>;
   readonly harness: HarnessName;
   readonly harnessVersion: string;
   readonly home: string;
@@ -192,6 +194,7 @@ export const prepareWorkspace = (
       env: profileEnv({
         credential: input.credential,
         driverEnv,
+        forwarded: input.forwarded,
         home: input.home,
         model: input.model,
         profile: input.profile,

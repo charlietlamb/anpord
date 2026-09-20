@@ -27,17 +27,28 @@ import {
   profileFitsHarness,
 } from "./harness-profile";
 
+/* `local` runs on the machine the server runs on, so the adapter opens one
+   only where a deployment has opted in. Naming it is always allowed: a request
+   the product refuses is clearer than a name the schema pretends not to know. */
 export const EvalSandbox = Schema.Literal(
   "daytona",
   "e2b",
   "upstash",
   "modal",
   "cloudflare",
-  "vercel"
+  "vercel",
+  "local"
 );
 export type EvalSandbox = typeof EvalSandbox.Type;
 
 export const EVAL_SANDBOXES = EvalSandbox.literals;
+
+/* Every sandbox a hosted deployment can open for a caller who is not the
+   operator. `local` is the one that is not: it is a shell on whichever machine
+   serves the request, which is only ever the caller's own from their own CLI. */
+export const HOSTED_SANDBOXES = EVAL_SANDBOXES.filter(
+  (sandbox) => sandbox !== "local"
+);
 
 /* Conformance passes cleanly here and both client milestones ran on it, so a
    task that names no sandbox gets one that works rather than an error. */
