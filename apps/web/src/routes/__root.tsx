@@ -9,7 +9,7 @@ import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { RootDocument } from "@/components/layout/root-document";
 import { RootErrorComponent } from "@/components/layout/root-error";
 import { RootNotFound } from "@/components/layout/root-not-found";
-import "../styles/globals.css";
+import appCss from "../styles/globals.css?url";
 
 const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
 
@@ -46,6 +46,7 @@ export const Route = createRootRouteWithContext<{
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/svg+xml", href: FAVICON },
       {
         rel: "preload",

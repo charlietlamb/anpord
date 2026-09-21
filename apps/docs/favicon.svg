@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-48 -48 96 96" fill="#fff">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <style>.tile{fill:#171816}.mark{fill:#f7f7f7}@media(prefers-color-scheme:dark){.tile{fill:#f7f7f7}.mark{fill:#171816}}</style>
   <defs><path id="mark" d="M-9-44H9L19-34L9-28L13-23L8-18H-8L-13-23L-9-28L-19-34Z"/></defs>
-  <use href="#mark"/>
-  <use href="#mark" transform="rotate(60)"/>
-  <use href="#mark" transform="rotate(120)"/>
-  <use href="#mark" transform="rotate(180)"/>
-  <use href="#mark" transform="rotate(240)"/>
-  <use href="#mark" transform="rotate(300)"/>
+  <rect class="tile" width="96" height="96" rx="26"/>
+  <g class="mark" transform="translate(48 48) scale(0.46)">
+    <use href="#mark"/>
+    <use href="#mark" transform="rotate(60)"/>
+    <use href="#mark" transform="rotate(120)"/>
+    <use href="#mark" transform="rotate(180)"/>
+    <use href="#mark" transform="rotate(240)"/>
+    <use href="#mark" transform="rotate(300)"/>
+  </g>
 </svg>
