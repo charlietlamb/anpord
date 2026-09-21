@@ -61,6 +61,20 @@ describe("a conversation", () => {
     ]);
   });
 
+  /* The journal is the evidence a conversation case is read from, and one
+     holding only the agent's replies reads as the agent talking to itself. */
+  it("writes what the person said into the journal", async () => {
+    const result = await Effect.runPromise(
+      run(["shall I push?", "pushed"]).pipe(Effect.provide(replies(["yes"])))
+    );
+
+    const said = result.events.flatMap((event) =>
+      event._tag === "Message" && event.role === "user" ? [event.text] : []
+    );
+
+    expect(said).toEqual(["open", "yes"]);
+  });
+
   it("stops at the ceiling rather than talking forever", async () => {
     const result = await Effect.runPromise(
       run([]).pipe(

@@ -5,7 +5,7 @@ import type {
 } from "@anpord/schema/domain/eval-turns";
 import { MAX_USER_TURNS } from "@anpord/schema/domain/eval-turns";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { Effect, Option } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { commandsIn, readAnswer, sessionIdOf } from "../domain/journal";
 import { SimulatedUser } from "../ports/simulated-user";
 
@@ -69,10 +69,14 @@ export const converse = <E, R>(input: {
   readonly user: EvalUser;
 }) =>
   Effect.gen(function* () {
+    const openedAt = yield* Clock.currentTimeMillis;
     const first = yield* input.run(input.opening, Option.none());
     const session = Option.fromNullable(sessionIdOf(first));
     const turns: EvalTurn[] = [turnOf(0, input.opening, first)];
-    const events: HarnessEvent[] = [...first];
+    const events: HarnessEvent[] = [
+      { _tag: "Message", at: openedAt, role: "user", text: input.opening },
+      ...first,
+    ];
     const spoken: string[] = [input.opening];
 
     if (Option.isNone(session)) {
@@ -102,11 +106,17 @@ export const converse = <E, R>(input: {
         break;
       }
 
+      const spokenAt = yield* Clock.currentTimeMillis;
       const replied = yield* input.run(said.text, session);
 
       spoken.push(said.text);
       turns.push(turnOf(turns.length, said.text, replied));
-      events.push(...replied);
+      /* Recorded where it was said, so a journal reads as the conversation it
+         was rather than as the agent talking to itself. */
+      events.push(
+        { _tag: "Message", at: spokenAt, role: "user", text: said.text },
+        ...replied
+      );
     }
 
     return { ended, events, turns } satisfies Conversation;

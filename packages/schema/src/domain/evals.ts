@@ -304,6 +304,9 @@ export const EvalJournalEntry = Schema.Union(
   Schema.Struct({
     _tag: Schema.Literal("message"),
     finishedAtMillis: OccurredAtMillis,
+    role: Schema.optionalWith(Schema.Literal("assistant", "user"), {
+      default: () => "assistant" as const,
+    }),
     text: Schema.String,
     usage: Schema.optional(Schema.NullOr(EvalUsage)),
   }),

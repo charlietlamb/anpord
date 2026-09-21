@@ -58,6 +58,7 @@ const asTrajectory = (
         {
           _tag: "message" as const,
           finishedAtMillis: millisOrNull(event.at),
+          role: event.role,
           text: event.text,
           usage: event.usage ?? null,
         },

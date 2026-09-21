@@ -37,6 +37,7 @@ const TRAJECTORY = [
   {
     _tag: "message" as const,
     finishedAtMillis: START + 6924,
+    role: "assistant" as const,
     text: "I'll inspect the existing logo assets and footer usage first, then add the GitHub mark in the same format and naming convention.",
   },
   command({
@@ -66,6 +67,7 @@ const TRAJECTORY = [
   {
     _tag: "message" as const,
     finishedAtMillis: START + 21_050,
+    role: "assistant" as const,
     text: "The repository's convention is a paired 24x24 SVG under public/logos. I'll preserve that convention.",
   },
   command({
