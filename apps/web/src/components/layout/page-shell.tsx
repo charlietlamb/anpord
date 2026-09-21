@@ -11,6 +11,10 @@ interface PageShellProps {
   readonly children: ReactNode;
   readonly description?: ReactNode;
   readonly leading?: ReactNode;
+  /* Below the bar rather than inside it, spaced as the trial screen spaces
+     its own: the bar is a row of chrome, and a control that chooses what the
+     page shows belongs with the page. */
+  readonly tabs?: ReactNode;
   readonly width?: PageWidth;
 }
 
@@ -19,6 +23,7 @@ export function PageShell({
   children,
   description,
   leading,
+  tabs,
   width = "prose",
 }: PageShellProps) {
   const hasBar = Boolean(actions || leading);
@@ -41,15 +46,16 @@ export function PageShell({
       <div
         className={cn(
           PAGE_WIDTHS[width],
-          "flex min-h-0 flex-1 flex-col pb-24",
-          !hasBar && "pt-6"
+          "flex min-h-0 flex-1 flex-col gap-5 pb-24",
+          hasBar ? "pt-4" : "pt-6"
         )}
       >
         {description ? (
-          <p className="mb-5 max-w-prose text-muted-foreground text-sm">
+          <p className="max-w-prose text-muted-foreground text-sm">
             {description}
           </p>
         ) : null}
+        {tabs}
         {children}
       </div>
     </div>

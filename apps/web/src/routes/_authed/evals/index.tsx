@@ -93,25 +93,26 @@ function EvalsIndex() {
         </span>
       }
       leading={<PageHeading icon={FlaskIcon} title="Evals" />}
+      tabs={
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <PageTabs
+            onChange={(next) => navigate({ search: { view: next } })}
+            options={VIEWS}
+            value={view}
+          />
+          {view === "cases" ? (
+            <TagFilter
+              onSelect={(next) =>
+                navigate({ search: { tag: next ?? undefined, view } })
+              }
+              selected={tag}
+              tags={cases.data?.tags ?? []}
+            />
+          ) : null}
+        </div>
+      }
       width="wide"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageTabs
-          onChange={(next) => navigate({ search: { view: next } })}
-          options={VIEWS}
-          value={view}
-        />
-        {view === "cases" ? (
-          <TagFilter
-            onSelect={(next) =>
-              navigate({ search: { tag: next ?? undefined, view } })
-            }
-            selected={tag}
-            tags={cases.data?.tags ?? []}
-          />
-        ) : null}
-      </div>
-
       {view === "cases" ? (
         <ListState
           description="Run an eval and the cases it measures appear here."
