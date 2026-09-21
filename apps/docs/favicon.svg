@@ -2,7 +2,7 @@
   <style>.tile{fill:#171816}.mark{fill:#f7f7f7}@media(prefers-color-scheme:dark){.tile{fill:#f7f7f7}.mark{fill:#171816}}</style>
   <defs><path id="mark" d="M-9-44H9L19-34L9-28L13-23L8-18H-8L-13-23L-9-28L-19-34Z"/></defs>
   <rect class="tile" width="96" height="96" rx="26"/>
-  <g class="mark" transform="translate(48 48) scale(0.66)">
+  <g class="mark" transform="translate(48 48) scale(0.7)">
     <use href="#mark"/>
     <use href="#mark" transform="rotate(60)"/>
     <use href="#mark" transform="rotate(120)"/>
