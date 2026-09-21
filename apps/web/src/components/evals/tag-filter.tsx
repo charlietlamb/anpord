@@ -50,7 +50,7 @@ function TagChip({
     <button
       aria-pressed={active}
       className={cn(
-        "rounded-[4px] px-2 py-1 text-xs transition-colors",
+        "rounded-[4px] px-2 py-1 text-xs transition-surface",
         active
           ? "bg-alpha-8 text-foreground"
           : "text-muted-foreground hover:bg-alpha-4 hover:text-foreground"

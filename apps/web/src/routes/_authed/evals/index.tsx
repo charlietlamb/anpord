@@ -14,7 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+
 import { CaseRow } from "@/components/evals/case-row";
 import { EvalRow } from "@/components/evals/eval-row";
 import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
@@ -26,6 +26,8 @@ import { RowList } from "@/components/layout/row-list";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import { useCursorStack } from "@/lib/use-cursor-stack";
 
+type EvalsView = "cases" | "runs";
+
 export const Route = createFileRoute("/_authed/evals/")({
   ssr: false,
   /* Not returned, so the list paints its skeleton rather than holding the
@@ -34,17 +36,25 @@ export const Route = createFileRoute("/_authed/evals/")({
     context.queryClient.prefetchQuery(evalQueries.list(null));
   },
   component: EvalsIndex,
+  /* In the url rather than in state: which view and which tag is what a
+     reader shares and returns to, and a refresh should not lose it. */
+  validateSearch: (search): { tag?: string; view?: EvalsView } => ({
+    ...(typeof search.tag === "string" && search.tag !== ""
+      ? { tag: search.tag }
+      : {}),
+    ...(search.view === "runs" ? { view: "runs" as const } : {}),
+  }),
 });
 
-const VIEWS: readonly PageTabOption<"cases" | "runs">[] = [
+const VIEWS: readonly PageTabOption<EvalsView>[] = [
   { Icon: ListChecksIcon, label: "Cases", value: "cases" },
   { Icon: ClockCounterClockwiseIcon, label: "Runs", value: "runs" },
 ];
 
 /* Matches the detail screens, so opening a row does not change the page width. */
 function EvalsIndex() {
-  const [view, setView] = useState<"cases" | "runs">("cases");
-  const [tag, setTag] = useState<string | null>(null);
+  const navigate = Route.useNavigate();
+  const { tag = null, view = "cases" } = Route.useSearch();
   const { cursor, page, pop, push } = useCursorStack<EvalPageCursor>();
   const { data, error, isFetching, isPending } = useQuery(
     evalQueries.list(cursor)
@@ -86,10 +96,16 @@ function EvalsIndex() {
       width="wide"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageTabs onChange={setView} options={VIEWS} value={view} />
+        <PageTabs
+          onChange={(next) => navigate({ search: { view: next } })}
+          options={VIEWS}
+          value={view}
+        />
         {view === "cases" ? (
           <TagFilter
-            onSelect={setTag}
+            onSelect={(next) =>
+              navigate({ search: { tag: next ?? undefined, view } })
+            }
             selected={tag}
             tags={cases.data?.tags ?? []}
           />
