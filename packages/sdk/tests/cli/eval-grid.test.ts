@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { EvalRun } from "@anpord/schema/domain/evals";
-import { PLAIN } from "../../src/cli/eval-activity";
-import { formatGrid, logLines } from "../../src/cli/eval-grid";
+import { formatGrid } from "../../src/cli/eval-grid";
 
 const COLOUR = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
 
@@ -60,39 +59,5 @@ describe("the grid a reader watches", () => {
   test("reads elapsed time in minutes once there are minutes", () => {
     expect(bare(formatGrid(run, 3, 45_000).at(-1) ?? "")).toContain("45s");
     expect(bare(formatGrid(run, 3, 134_000).at(-1) ?? "")).toContain("2m14s");
-  });
-});
-
-describe("the log above the grid", () => {
-  const said = (seq: number, text: string) =>
-    ({
-      cell: "c1",
-      entry: {
-        _tag: "message",
-        finishedAtMillis: null,
-        role: "user",
-        text,
-        usage: null,
-      },
-      ordinal: 1,
-      seq,
-    }) as const;
-
-  test("breaks at each turn for a reader, and never in a log", () => {
-    const events = [said(0, "open"), said(1, "yes")];
-
-    expect(logLines(events, null, 1, PLAIN)).toHaveLength(2);
-    expect(logLines(events, null, 1, { colour: true, width: 80 })).toHaveLength(
-      4
-    );
-  });
-
-  test("names the trial only when several run at once", () => {
-    const alone = { ...run, cells: run.cells.slice(0, 1) } as EvalRun;
-
-    expect(logLines([said(0, "open")], alone, 1, PLAIN)).toEqual([
-      "  › user open",
-    ]);
-    expect(logLines([said(0, "open")], run, 3, PLAIN)[0]).toContain("#1");
   });
 });

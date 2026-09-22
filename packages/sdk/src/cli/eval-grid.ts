@@ -1,14 +1,16 @@
 import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
 import type { EvalCell, EvalRun } from "@anpord/schema/domain/evals";
 import { Effect, Ref } from "effect";
-import {
-  type EntryStyle,
-  formatEntry,
-  opensTurn,
-  PLAIN,
-} from "./eval-activity";
 import { runUsage, usageLines } from "./eval-usage";
 import { note } from "./render";
+import {
+  EMPTY_TRANSCRIPT,
+  PLAIN,
+  type Spoken,
+  settle,
+  type TranscriptStyle,
+  transcribe,
+} from "./transcript";
 
 const DIM = "[2m";
 const BOLD = "[1m";
@@ -134,49 +136,52 @@ export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
 
 const up = (rows: number) => `[${rows}A[0J`;
 
-const whereOf = (run: EvalRun | null, event: EvalTailEvent) => {
-  const cell = run?.cells.find((one) => one.internalId === event.cell);
-
-  return run == null || cell === undefined
-    ? `#${event.ordinal}`
-    : `${cell.caseName} ${formatVariant(run, cell)} #${event.ordinal}`;
-};
-
 export type GridMode = "grid" | "lines" | "silent";
 
-const INDENT = 2;
 const NARROWEST = 40;
 const UNKNOWN_WIDTH = 100;
 
-const styleFor = (mode: GridMode): EntryStyle =>
-  mode === "grid" && process.env.NO_COLOR === undefined
+export const terminalStyle = (colour: boolean): TranscriptStyle =>
+  colour && process.env.NO_COLOR === undefined
     ? {
         colour: true,
-        width: Math.max(
-          NARROWEST,
-          (process.stderr.columns ?? UNKNOWN_WIDTH) - INDENT
-        ),
+        width: Math.max(NARROWEST, process.stderr.columns ?? UNKNOWN_WIDTH),
       }
     : PLAIN;
 
-const crowded = (run: EvalRun | null, trials: number) =>
-  run === null || run.cells.length * trials > 1;
+const trialKey = (cell: string, ordinal: number) => `${cell}#${ordinal}`;
 
-export const logLines = (
+const spokenOf = (
   events: readonly EvalTailEvent[],
   run: EvalRun | null,
-  trials: number,
-  style: EntryStyle
-) => {
-  const named = crowded(run, trials);
+  trials: number
+): readonly Spoken[] =>
+  events.map((event) => {
+    const cell = run?.cells.find((one) => one.internalId === event.cell);
 
-  return events.flatMap((event) => {
-    const where = named ? `${paint(DIM, whereOf(run, event))}  ` : "";
-    const line = `  ${where}${formatEntry(event.entry, style)}`;
-
-    return style.colour && opensTurn(event.entry) ? ["", line] : [line];
+    return {
+      entry: event.entry,
+      speaker: {
+        caseName: cell?.caseName ?? "trial",
+        key: trialKey(event.cell, event.ordinal),
+        ordinal: trials > 1 ? event.ordinal : null,
+        variant:
+          run == null || cell === undefined ? "" : formatVariant(run, cell),
+      },
+    };
   });
-};
+
+const hasSettled = (trial: EvalCell["trials"][number]) =>
+  trial.status !== "queued" && trial.status !== "running";
+
+const settledTrials = (run: EvalRun) =>
+  run.cells.flatMap(({ internalId, trials }) =>
+    internalId === null
+      ? []
+      : trials
+          .filter(hasSettled)
+          .map((trial) => trialKey(internalId, trial.ordinal))
+  );
 
 export const liveGrid = (trials: number, mode: GridMode) =>
   Effect.gen(function* () {
@@ -185,7 +190,8 @@ export const liveGrid = (trials: number, mode: GridMode) =>
       readonly elapsedMs: number;
       readonly run: EvalRun;
     } | null>(null);
-    const style = styleFor(mode);
+    const style = terminalStyle(mode === "grid");
+    const transcript = yield* Ref.make(EMPTY_TRANSCRIPT);
 
     const writing = yield* Effect.makeSemaphore(1);
 
@@ -205,7 +211,20 @@ export const liveGrid = (trials: number, mode: GridMode) =>
       }).pipe(writing.withPermits(1));
 
     const draw = (run: EvalRun, elapsedMs: number) =>
-      Ref.set(latest, { elapsedMs, run }).pipe(Effect.zipRight(print([])));
+      Effect.gen(function* () {
+        yield* Ref.set(latest, { elapsedMs, run });
+
+        const closed =
+          mode === "silent"
+            ? []
+            : yield* Ref.modify(transcript, (held) => {
+                const next = settle(held, settledTrials(run), style);
+
+                return [next.lines, next.transcript];
+              });
+
+        yield* print(closed);
+      });
 
     const hear = (events: readonly EvalTailEvent[]) =>
       Effect.gen(function* () {
@@ -214,8 +233,13 @@ export const liveGrid = (trials: number, mode: GridMode) =>
         }
 
         const run = (yield* Ref.get(latest))?.run ?? null;
+        const lines = yield* Ref.modify(transcript, (held) => {
+          const next = transcribe(held, spokenOf(events, run, trials), style);
 
-        yield* print(logLines(events, run, trials, style));
+          return [next.lines, next.transcript];
+        });
+
+        yield* print(lines);
       });
 
     return { draw, hear };

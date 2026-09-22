@@ -9,11 +9,12 @@ import type {
   PublicStartEvalRequest,
   ReportedTrial,
 } from "@anpord/schema/public/evals-api";
-import { ConfigProvider, Effect, Option } from "effect";
-import { formatEntry } from "./eval-activity";
+import { ConfigProvider, Effect, Option, Ref } from "effect";
+import { terminalStyle } from "./eval-grid";
 import { localUsageLines } from "./eval-usage";
 import { localEnv } from "./local-env";
 import { note } from "./render";
+import { EMPTY_TRANSCRIPT, settle, transcribe } from "./transcript";
 
 export interface LocalCase {
   readonly durationMs: number;
@@ -45,11 +46,22 @@ export const runLocally = (
     }
 
     const harnessVersion = yield* versions.version(task.harness);
+    const style = terminalStyle(process.stderr.isTTY === true);
+    const transcript = yield* Ref.make(EMPTY_TRANSCRIPT);
+    const printed = (lines: readonly string[]) =>
+      lines.length === 0 ? Effect.void : note(lines.join("\n"));
 
     return yield* Effect.forEach(
       request.cases,
-      (subject) =>
-        trials
+      (subject) => {
+        const speaker = {
+          caseName: subject.name,
+          key: subject.name,
+          ordinal: null,
+          variant: `${task.harness}/${task.model}`,
+        };
+
+        return trials
           .run({
             caseName: subject.name,
             forwarded,
@@ -57,9 +69,17 @@ export const runLocally = (
             harnessVersion,
             model: task.model,
             onProgress: (events) =>
-              Effect.forEach(events.flatMap(asEntries), (entry) =>
-                note(`  ${subject.name}  ${formatEntry(entry)}`)
-              ).pipe(Effect.asVoid),
+              Ref.modify(transcript, (held) => {
+                const next = transcribe(
+                  held,
+                  events
+                    .flatMap(asEntries)
+                    .map((entry) => ({ entry, speaker })),
+                  style
+                );
+
+                return [next.lines, next.transcript];
+              }).pipe(Effect.flatMap(printed)),
             prepare: subject.prepare ?? null,
             profile: profileOfRequest(task.profile),
             prompt: request.prompt,
@@ -81,6 +101,13 @@ export const runLocally = (
                   usage: Option.getOrNull(outcome.result.usage),
                 }) ?? Effect.void
             ),
+            Effect.tap(() =>
+              Ref.modify(transcript, (held) => {
+                const next = settle(held, [speaker.key], style);
+
+                return [next.lines, next.transcript];
+              }).pipe(Effect.flatMap(printed))
+            ),
             Effect.map(
               (outcome): LocalCase => ({
                 durationMs: outcome.durationMs,
@@ -90,7 +117,8 @@ export const runLocally = (
                 usage: Option.getOrNull(outcome.result.usage),
               })
             )
-          ),
+          );
+      },
       { concurrency: 1 }
     );
   }).pipe(
