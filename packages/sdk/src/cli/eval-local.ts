@@ -10,11 +10,15 @@ import type {
   ReportedTrial,
 } from "@anpord/schema/public/evals-api";
 import { ConfigProvider, Effect, Option, Ref } from "effect";
-import { terminalStyle } from "./eval-grid";
 import { localUsageLines } from "./eval-usage";
 import { localEnv } from "./local-env";
 import { note } from "./render";
-import { EMPTY_TRANSCRIPT, settle, transcribe } from "./transcript";
+import {
+  EMPTY_TRANSCRIPT,
+  settle,
+  terminalStyle,
+  transcribe,
+} from "./transcript";
 
 export interface LocalCase {
   readonly durationMs: number;

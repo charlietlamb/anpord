@@ -1,5 +1,6 @@
 import { Either, Schema } from "effect";
 import type { EvalJournalEntry } from "./evals";
+import { shellWordOf } from "./shell-word";
 
 export type EntryKind = EvalJournalEntry["_tag"] | "said";
 
@@ -14,11 +15,19 @@ export const ENTRY_NAMES: Record<EntryKind, string> = {
   toolCall: "Tool call",
 };
 
-const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
+const SHELL = /^\/bin\/(?:ba|z)?sh -l?c /;
+const SHELL_PREFIX = /^\/bin\/(?:ba|z)?sh -l?c ['"]?/;
 const TRAILING_QUOTE = /['"]$/;
 
-export const commandText = (command: string) =>
-  command.replace(SHELL_PREFIX, "").replace(TRAILING_QUOTE, "").trim();
+export const commandText = (command: string) => {
+  const script = SHELL.test(command)
+    ? shellWordOf(command.replace(SHELL, ""))
+    : null;
+
+  return (
+    script ?? command.replace(SHELL_PREFIX, "").replace(TRAILING_QUOTE, "")
+  ).trim();
+};
 
 const SUBJECT_KEYS = [
   "skill",

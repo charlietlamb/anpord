@@ -5,10 +5,9 @@ import { runUsage, usageLines } from "./eval-usage";
 import { note } from "./render";
 import {
   EMPTY_TRANSCRIPT,
-  PLAIN,
   type Spoken,
   settle,
-  type TranscriptStyle,
+  terminalStyle,
   transcribe,
 } from "./transcript";
 
@@ -137,17 +136,6 @@ export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
 const up = (rows: number) => `[${rows}A[0J`;
 
 export type GridMode = "grid" | "lines" | "silent";
-
-const NARROWEST = 40;
-const UNKNOWN_WIDTH = 100;
-
-export const terminalStyle = (colour: boolean): TranscriptStyle =>
-  colour && process.env.NO_COLOR === undefined
-    ? {
-        colour: true,
-        width: Math.max(NARROWEST, process.stderr.columns ?? UNKNOWN_WIDTH),
-      }
-    : PLAIN;
 
 const trialKey = (cell: string, ordinal: number) => `${cell}#${ordinal}`;
 

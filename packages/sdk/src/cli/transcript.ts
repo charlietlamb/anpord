@@ -17,6 +17,17 @@ export interface TranscriptStyle {
 
 export const PLAIN: TranscriptStyle = { colour: false, width: 80 };
 
+const NARROWEST = 40;
+const UNKNOWN_WIDTH = 100;
+
+export const terminalStyle = (colour: boolean): TranscriptStyle =>
+  colour && process.env.NO_COLOR === undefined
+    ? {
+        colour: true,
+        width: Math.max(NARROWEST, process.stderr.columns ?? UNKNOWN_WIDTH),
+      }
+    : PLAIN;
+
 export interface Spoken {
   readonly entry: EvalJournalEntry;
   readonly speaker: Speaker;
