@@ -1,3 +1,4 @@
+import { cn } from "@anpord/ui/lib/utils";
 import {
   FRACTIONS,
   LABEL_WIDTH,
@@ -22,7 +23,7 @@ export function Axis({ spanMs }: { readonly spanMs: number }) {
       <div className="relative h-4 min-w-0 flex-1">
         {FRACTIONS.map((fraction, index) => (
           <span
-            className="absolute top-0 text-[10px] text-muted-foreground tabular-nums"
+            className="absolute top-0 font-medium text-[11px] text-muted-foreground tabular-nums"
             key={fraction}
             style={{
               left: `${fraction * 100}%`,
@@ -48,7 +49,10 @@ export function Gridlines() {
       <div className="relative min-w-0 flex-1">
         {FRACTIONS.map((fraction) => (
           <span
-            className="absolute top-0 bottom-0 w-px bg-border"
+            className={cn(
+              "absolute top-0 bottom-0 w-px",
+              fraction === 0 ? "bg-border" : "bg-border/50"
+            )}
             key={fraction}
             style={{ left: `${fraction * 100}%` }}
           />

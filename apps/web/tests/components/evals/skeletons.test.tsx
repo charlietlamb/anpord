@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CellSetupSkeleton } from "../../../src/components/evals/cell-setup-skeleton";
 import { TrialCallsSkeleton } from "../../../src/components/evals/trial-calls-skeleton";
@@ -19,11 +20,21 @@ test("the surface names itself while its rows load", () => {
 });
 
 test("the trial skeleton shows the ordinal the route already knows", () => {
-  expect(renderToStaticMarkup(<TrialSkeleton ordinal="7" />)).toContain("7");
+  expect(
+    renderToStaticMarkup(
+      <NuqsTestingAdapter>
+        <TrialSkeleton ordinal="7" />
+      </NuqsTestingAdapter>
+    )
+  ).toContain("7");
 });
 
 test("the trial skeleton composes one skeleton per surface", () => {
-  const html = renderToStaticMarkup(<TrialSkeleton ordinal="1" />);
+  const html = renderToStaticMarkup(
+    <NuqsTestingAdapter>
+      <TrialSkeleton ordinal="1" />
+    </NuqsTestingAdapter>
+  );
   expect(html).toContain("Trajectory");
   expect(html).toContain("Calls");
   expect(html).toContain("Validation");

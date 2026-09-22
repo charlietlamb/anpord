@@ -4,8 +4,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@anpord/ui/components/ui/sidebar";
-import { PAGE_WIDTHS } from "@anpord/ui/lib/page-frame";
-import { cn } from "@anpord/ui/lib/utils";
 import { ClientOnly } from "@tanstack/react-router";
 import { Hydrate } from "@tanstack/react-start";
 import { idle } from "@tanstack/react-start/hydration";
@@ -39,7 +37,7 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
             <ImpersonationBanner />
           </ClientOnly>
           <header className="flex h-11 shrink-0 items-center border-b">
-            <div className={cn(PAGE_WIDTHS.wide, "flex items-center gap-1")}>
+            <div className="flex w-full items-center gap-1 px-5 xl:px-6">
               <SidebarTrigger className="-ml-1 size-7 shrink-0 text-muted-foreground hover:bg-transparent hover:text-foreground active:bg-transparent" />
               <DashboardBreadcrumbs />
             </div>

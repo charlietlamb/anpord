@@ -2,7 +2,6 @@ import type { EvalRun } from "@anpord/schema/domain/evals";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
   ClockIcon,
   DesktopTowerIcon,
@@ -10,6 +9,7 @@ import {
   TimerIcon,
 } from "@phosphor-icons/react";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";
+import { EvalRail } from "@/components/evals/eval-layout";
 import { RunTrigger } from "@/components/evals/run-trigger";
 import { RunVariants } from "@/components/evals/run-variants";
 import { clock, elapsed } from "@/lib/evals/duration";
@@ -23,7 +23,7 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
   );
 
   return (
-    <aside className={RAIL_FRAME}>
+    <EvalRail>
       <RailSection title="Run">
         <RunTrigger linked trigger={run.trigger} />
         <div className="flex flex-col gap-1">
@@ -94,6 +94,6 @@ export function RunRail({ run }: { readonly run: EvalRun }) {
       <RailSection title="Id">
         <CopyableId className="text-muted-foreground text-xs" value={run.id} />
       </RailSection>
-    </aside>
+    </EvalRail>
   );
 }

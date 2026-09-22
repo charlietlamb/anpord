@@ -11,7 +11,7 @@ test("shows the original TypeScript with the shared file select", () => {
       ]}
     />
   );
-  expect(html).toContain('data-slot="select-trigger"');
+  expect(html).toContain('aria-haspopup="dialog"');
   expect(html).toContain('aria-label="Source file"');
   expect(html).not.toContain("<select");
   expect(html).toContain("const valid: boolean = true;\n");

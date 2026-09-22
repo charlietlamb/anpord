@@ -6,9 +6,12 @@ import {
   SquaresFourIcon,
 } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
+import { CONVERSATION } from "@/components/dev/conversation-fixture";
 import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
+import { Conversation } from "@/components/evals/conversation";
+import { ConversationStep } from "@/components/evals/conversation-step";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
@@ -91,6 +94,43 @@ function WaterfallPreview() {
         <div className="mx-auto flex w-full max-w-7xl justify-end px-5">
           <ThemeToggle />
         </div>
+
+        <PreviewScreen name="Conversation">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5">
+            <Conversation
+              running={false}
+              trajectory={CONVERSATION}
+              written={{
+                artifacts: [],
+                trial: { cellKey: "dev", id: "run_dev", ordinal: 1 },
+              }}
+            />
+          </div>
+        </PreviewScreen>
+
+        <PreviewScreen name="Tool calls, open">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 px-5">
+            {CONVERSATION.flatMap((entry) =>
+              entry._tag === "command" || entry._tag === "toolCall"
+                ? [entry]
+                : []
+            )
+              .slice(0, 3)
+              .map((call, index) => (
+                <ConversationStep
+                  call={call}
+                  defaultOpen={index > 0}
+                  key={call.startedAtMillis}
+                />
+              ))}
+          </div>
+        </PreviewScreen>
+
+        <PreviewScreen name="Conversation as a timeline">
+          <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-5">
+            <Waterfall running={false} timed={true} trajectory={CONVERSATION} />
+          </div>
+        </PreviewScreen>
 
         {TRIAL ? (
           <PreviewScreen name="Trajectory">

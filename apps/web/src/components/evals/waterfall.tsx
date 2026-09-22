@@ -1,16 +1,20 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import { useState } from "react";
 import { Axis, Gridlines } from "@/components/evals/waterfall-axis";
 import {
   Crosshair,
   useCrosshair,
 } from "@/components/evals/waterfall-crosshair";
-import { WaterfallDetail } from "@/components/evals/waterfall-detail";
+import { StepDetail } from "@/components/evals/waterfall-detail";
 import { OrderedRow } from "@/components/evals/waterfall-ordered-row";
 import { TimedRow } from "@/components/evals/waterfall-row";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
-import { waterfallLayout } from "@/lib/evals/waterfall-layout";
+import { selectedStepOf } from "@/lib/evals/selected-step";
+import { useSelectedStep } from "@/lib/evals/use-selected-step";
+import {
+  type WaterfallRow,
+  waterfallLayout,
+} from "@/lib/evals/waterfall-layout";
 
 const keyOf = (entry: EvalJournalEntry, index: number) =>
   [index, entry._tag, entry.finishedAtMillis ?? "unknown"].join("-");
@@ -52,10 +56,10 @@ export function Waterfall({
 }) {
   const { rows, spanMs } = waterfallLayout(trajectory);
   const crosshair = useCrosshair();
-  const [selected, setSelected] = useState<string | null>(null);
-
-  const openRow =
-    rows.find((row, index) => keyOf(row.entry, index) === selected) ?? null;
+  const [step, setStep] = useSelectedStep();
+  const open = selectedStepOf(trajectory, rows, step);
+  const at = (row: WaterfallRow) => trajectory.indexOf(row.entry);
+  const selectedAt = (row: WaterfallRow) => open?.entry === row.entry;
 
   if (trajectory.length === 0) {
     return running ? (
@@ -83,35 +87,39 @@ export function Waterfall({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <Axis spanMs={spanMs} />
+    <div className="flex flex-col gap-3">
+      <div className="flex min-w-0 flex-col gap-2">
+        <Axis spanMs={spanMs} />
 
-      <div
-        className="relative"
-        onPointerLeave={crosshair.clear}
-        onPointerMove={crosshair.track}
-      >
-        <Gridlines />
-        <Crosshair percent={crosshair.percent} spanMs={spanMs} />
+        <div
+          className="relative"
+          onPointerLeave={crosshair.clear}
+          onPointerMove={crosshair.track}
+        >
+          <Gridlines />
+          <Crosshair percent={crosshair.percent} spanMs={spanMs} />
 
-        <ol className="flex flex-col">
-          {rows.map((row, index) => {
-            const key = keyOf(row.entry, index);
+          <ol className="flex flex-col">
+            {rows.map((row, index) => {
+              const key = keyOf(row.entry, index);
 
-            return (
-              <TimedRow
-                key={key}
-                onSelect={() => setSelected(selected === key ? null : key)}
-                row={row}
-                selected={selected === key}
-              />
-            );
-          })}
-        </ol>
+              return (
+                <TimedRow
+                  key={key}
+                  onSelect={() => setStep(selectedAt(row) ? null : at(row))}
+                  row={row}
+                  selected={selectedAt(row)}
+                />
+              );
+            })}
+          </ol>
+        </div>
       </div>
 
-      {openRow === null ? null : (
-        <WaterfallDetail onClose={() => setSelected(null)} row={openRow} />
+      {open === null ? null : (
+        <aside className="sticky bottom-3 z-20 max-h-[60vh] overflow-auto rounded-lg border bg-card p-4 shadow-xl lg:hidden">
+          <StepDetail onClose={() => setStep(null)} step={open} />
+        </aside>
       )}
     </div>
   );

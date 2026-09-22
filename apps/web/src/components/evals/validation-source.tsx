@@ -1,14 +1,20 @@
 import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { CodeContent } from "@anpord/ui/components/ui/code-card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@anpord/ui/components/ui/select";
+import { SearchableSelect } from "@anpord/ui/components/ui/searchable-select";
 import { useState } from "react";
+import { fileIcon } from "@/lib/evals/file-presentation";
+
+function FileGlyph({ path }: { readonly path: string }) {
+  const Glyph = fileIcon(path);
+
+  return (
+    <Glyph
+      aria-hidden="true"
+      className="size-3.5 shrink-0 text-muted-foreground"
+    />
+  );
+}
 
 export function ValidationSource({
   files,
@@ -28,27 +34,18 @@ export function ValidationSource({
         <div className="group/source overflow-hidden rounded-xl border border-border-faint bg-muted/40">
           <div className="flex min-w-0 items-center gap-2 border-border-faint border-b px-2 py-1.5">
             {files.length > 1 ? (
-              <Select onValueChange={setPath} value={selected.path}>
-                <SelectTrigger
-                  aria-label="Source file"
-                  className="min-w-0 flex-1 font-mono text-xs"
-                  size="sm"
-                  variant="ghost"
-                >
-                  <SelectValue>{selected.path}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {files.map((file) => (
-                    <SelectItem
-                      className="font-mono"
-                      key={file.path}
-                      value={file.path}
-                    >
-                      {file.path}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                className="min-w-0 flex-1 border-transparent bg-transparent font-mono text-xs"
+                label="Source file"
+                onChange={setPath}
+                options={files.map((file) => ({
+                  label: file.path,
+                  value: file.path,
+                }))}
+                renderOption={(option) => <FileGlyph path={option.value} />}
+                searchPlaceholder="Search files"
+                value={selected.path}
+              />
             ) : (
               <span className="min-w-0 flex-1 truncate px-2 font-mono text-muted-foreground text-xs">
                 {selected.path}
@@ -65,6 +62,7 @@ export function ValidationSource({
             code={selected.content}
             key={selected.path}
             lang="typescript"
+            maxHeight=""
           />
         </div>
       )}

@@ -8,7 +8,6 @@ import {
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { ShareBar } from "@anpord/ui/components/ui/share-bar";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
   BrainIcon,
   CubeIcon,
@@ -19,12 +18,16 @@ import {
 import type { ReactNode } from "react";
 import { CommandsHint } from "@/components/evals/commands-hint";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";
+import { EvalRail } from "@/components/evals/eval-layout";
 import { TrialStatusIcon } from "@/components/evals/eval-status-badge";
 import { RunTrigger } from "@/components/evals/run-trigger";
 import { TrialCost } from "@/components/evals/trial-cost";
 import { VoidReason } from "@/components/evals/void-reason";
+import { StepDetail } from "@/components/evals/waterfall-detail";
 import { seconds } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
+import { selectedStepOf } from "@/lib/evals/selected-step";
+import { useSelectedStep } from "@/lib/evals/use-selected-step";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 
 function FileRow({ path }: { readonly path: string }) {
@@ -88,7 +91,9 @@ export function TrialRail({
   readonly trial: EvalTrial;
   readonly trigger?: EvalTrigger | null;
 }) {
-  const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
+  const { rows, thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
+  const [step, setStep] = useSelectedStep();
+  const selected = selectedStepOf(trial.trajectory, rows, step);
   const measured = trial.timed && thinkingMs + workingMs > 0;
   const trialTotalMs =
     trial.modelMs +
@@ -98,8 +103,16 @@ export function TrialRail({
       0
     );
 
+  if (selected !== null) {
+    return (
+      <EvalRail swapKey={`step-${step}`}>
+        <StepDetail onClose={() => setStep(null)} step={selected} />
+      </EvalRail>
+    );
+  }
+
   return (
-    <aside className={RAIL_FRAME}>
+    <EvalRail>
       <RunTrigger linked trigger={trigger} />
       <RailSection title="Outcome">
         <div className="flex flex-col gap-2">
@@ -198,6 +211,6 @@ export function TrialRail({
           </ul>
         </RailSection>
       )}
-    </aside>
+    </EvalRail>
   );
 }

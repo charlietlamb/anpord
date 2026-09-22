@@ -1,7 +1,6 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { cn } from "@anpord/ui/lib/utils";
 import {
   CheckSquareIcon,
@@ -10,7 +9,7 @@ import {
   SquaresFourIcon,
 } from "@phosphor-icons/react";
 import { CellSetupSkeleton } from "@/components/evals/cell-setup-skeleton";
-import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { EvalLayout, EvalMain, EvalRail } from "@/components/evals/eval-layout";
 import {
   type RailFactShape,
   RailFactSkeleton,
@@ -134,7 +133,7 @@ export function TrialSkeleton({ ordinal }: { readonly ordinal?: string }) {
         />
       </EvalMain>
 
-      <aside className={RAIL_FRAME}>
+      <EvalRail>
         <RailSection title="Outcome">
           <RailFactSkeleton className="gap-2" facts={OUTCOME} />
         </RailSection>
@@ -148,7 +147,7 @@ export function TrialSkeleton({ ordinal }: { readonly ordinal?: string }) {
             <span className="text-sm tabular-nums">{ordinal}</span>
           </RailSection>
         )}
-      </aside>
+      </EvalRail>
     </EvalLayout>
   );
 }

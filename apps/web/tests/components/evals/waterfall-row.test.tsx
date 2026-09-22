@@ -32,7 +32,7 @@ test("a tool's wait is tinted with its own colour, not the thinking colour", () 
   expect(html).not.toContain("repeating-linear-gradient");
 });
 
-test("a waited-for step draws one bar covering the wait and the work", () => {
+test("a waited-for step draws the wait as a line and the work as a bar", () => {
   const html = render({
     _tag: "bar",
     durationMs: 12,
@@ -48,8 +48,8 @@ test("a waited-for step draws one bar covering the wait and the work", () => {
     widthPercent: 0.2,
   });
 
-  expect(html).toContain("left:0%");
-  expect(html).toContain("width:50.2%");
+  expect(html).toContain("left:0%;width:50%");
+  expect(html).toContain("left:50%;min-width:3px;width:0.2%");
 });
 
 test("an event without a lead remains a single marker", () => {

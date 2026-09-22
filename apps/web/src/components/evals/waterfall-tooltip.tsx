@@ -1,3 +1,4 @@
+import { labelOf } from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import { TooltipContent } from "@anpord/ui/components/tooltip";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
@@ -9,7 +10,6 @@ import {
   KIND_ICONS,
   KIND_NAMES,
   kindOf,
-  labelOf,
 } from "@/lib/evals/journal-presentation";
 import { dollars, percent, tokens } from "@/lib/evals/tokens";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";

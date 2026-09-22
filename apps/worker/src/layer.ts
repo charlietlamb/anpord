@@ -1,6 +1,7 @@
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
 import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
+import { RunBellTrigger } from "@anpord/eval/adapters/runner/trigger-bell";
 import { SuspenderTrigger } from "@anpord/eval/adapters/runner/trigger-suspender";
 import {
   GithubAppConfigLive,
@@ -38,7 +39,10 @@ const CodebaseLayer = Layer.mergeAll(
 );
 
 /* In-process runner because a dispatched run arrives here; handing it on again would be a task dispatching to itself. The suspender is Trigger's, because a wait held here is a wait billed here. */
-const GridLayer = evalGridWith(TrialRunnerInProcess, SuspenderTrigger).pipe(
+const GridLayer = evalGridWith(TrialRunnerInProcess, {
+  bell: RunBellTrigger,
+  suspender: SuspenderTrigger,
+}).pipe(
   Layer.provide(EvalSandboxLive),
   /* Merged, not provided: the task yields the resolver itself to resolve a stored run's credentials. */
   Layer.provideMerge(

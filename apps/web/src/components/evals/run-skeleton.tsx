@@ -1,9 +1,8 @@
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import { SquaresFourIcon } from "@phosphor-icons/react";
-import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { EvalLayout, EvalMain, EvalRail } from "@/components/evals/eval-layout";
 import {
   type RailFactShape,
   RailFactSkeleton,
@@ -32,7 +31,7 @@ export function RunSkeleton({ runId }: { readonly runId: string }) {
         </section>
       </EvalMain>
 
-      <aside className={RAIL_FRAME}>
+      <EvalRail>
         <RailSection title="Run">
           <RailFactSkeleton className="gap-1" facts={RUN_FACTS} />
         </RailSection>
@@ -44,7 +43,7 @@ export function RunSkeleton({ runId }: { readonly runId: string }) {
         <RailSection title="Id">
           <CopyableId value={runId} />
         </RailSection>
-      </aside>
+      </EvalRail>
     </EvalLayout>
   );
 }

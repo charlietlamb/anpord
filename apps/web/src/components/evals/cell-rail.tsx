@@ -2,7 +2,6 @@ import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { EvalCell, EvalTask } from "@anpord/schema/domain/evals";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
   ArrowsLeftRightIcon,
   CheckCircleIcon,
@@ -10,6 +9,7 @@ import {
   TerminalWindowIcon,
 } from "@phosphor-icons/react";
 import { CellHistory } from "@/components/evals/cell-history";
+import { EvalRail } from "@/components/evals/eval-layout";
 import { RunTrigger } from "@/components/evals/run-trigger";
 import { RunVariants } from "@/components/evals/run-variants";
 import { VerdictLine } from "@/components/evals/verdict-line";
@@ -45,7 +45,7 @@ export function CellRail({
   ];
 
   return (
-    <aside className={RAIL_FRAME}>
+    <EvalRail>
       <RunTrigger linked trigger={trigger} />
       <RailSection title="Result">
         <div className="flex flex-col gap-2">
@@ -115,6 +115,6 @@ export function CellRail({
       <RailSection title="Recent runs">
         <CellHistory cellKey={cellKey} runId={runId} />
       </RailSection>
-    </aside>
+    </EvalRail>
   );
 }

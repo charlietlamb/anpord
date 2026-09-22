@@ -1,38 +1,105 @@
-import { Button } from "@anpord/ui/components/button";
-import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
-import { XIcon } from "@phosphor-icons/react";
-import { ExitCode } from "@/components/evals/exit-code";
-import { JournalOutput } from "@/components/evals/journal-output";
-import { seconds } from "@/lib/evals/duration";
+import { entryKindOf, labelOf } from "@anpord/schema/domain/eval-journal";
+import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import {
-  KIND_ICONS,
-  KIND_NAMES,
-  kindOf,
-  labelOf,
-  readableOf,
-} from "@/lib/evals/journal-presentation";
-import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
+  ToolInput,
+  ToolOutput,
+  ToolSection,
+} from "@anpord/ui/components/ai-elements/tool";
+import { Button } from "@anpord/ui/components/button";
+import { ShellText } from "@anpord/ui/components/ui/shell-text";
+import { XIcon } from "@phosphor-icons/react";
+import { KindIcon } from "@/components/evals/kind-icon";
+import { MarkdownProse } from "@/components/evals/markdown-prose";
+import { seconds } from "@/lib/evals/duration";
+import { KIND_NAMES } from "@/lib/evals/journal-presentation";
+import type { SelectedStep } from "@/lib/evals/selected-step";
 
-/* Beside the chart, not inside it: opening a step moved the timeline. */
-export function WaterfallDetail({
-  onClose,
-  row,
-}: {
-  readonly onClose: () => void;
-  readonly row: WaterfallRow;
-}) {
-  const kind = kindOf(row);
-  const Glyph = KIND_ICONS[kind];
-  const isCommand = row.entry._tag === "command";
-  const output = readableOf(row.entry);
+const failureOf = (entry: EvalJournalEntry) => {
+  if (entry._tag === "command") {
+    return entry.exitCode !== null && entry.exitCode !== 0
+      ? `Exit ${entry.exitCode}`
+      : null;
+  }
+
+  return entry._tag === "toolCall" && entry.error !== undefined
+    ? "Failed"
+    : null;
+};
+
+function DetailBody({ entry }: { readonly entry: EvalJournalEntry }) {
+  if (entry._tag === "message") {
+    return <MarkdownProse text={entry.text} />;
+  }
+
+  if (entry._tag === "command") {
+    const command = labelOf(entry);
+
+    return (
+      <>
+        <ToolSection copy={command} label="Command">
+          <ShellText command={command} />
+        </ToolSection>
+        <ToolOutput output={entry.output} truncated={entry.outputTruncated} />
+      </>
+    );
+  }
+
+  if (entry._tag === "toolCall") {
+    return (
+      <>
+        <ToolInput input={entry.input} truncated={entry.inputTruncated} />
+        <ToolOutput
+          errorText={entry.error}
+          output={entry.output}
+          truncated={entry.outputTruncated}
+        />
+      </>
+    );
+  }
 
   return (
-    <aside className="flex min-h-0 flex-col gap-2 rounded-md border bg-card p-2.5">
-      <header className="flex items-center gap-2 text-muted-foreground text-xs">
-        <Glyph aria-hidden="true" className="shrink-0" size={13} />
-        {KIND_NAMES[kind]}
-        {row._tag === "bar" ? <span>{seconds(row.durationMs)}</span> : null}
-        {isCommand ? <ExitCode code={row.entry.exitCode} /> : null}
+    <ToolSection copy={entry.paths.join("\n")} label="Files">
+      {entry.paths.join("\n")}
+    </ToolSection>
+  );
+}
+
+function Timing({
+  label,
+  value,
+}: {
+  readonly label: string;
+  readonly value: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 text-[13px]">
+      <dt className="font-medium text-foreground">{label}</dt>
+      <dd className="text-muted-foreground tabular-nums">{value}</dd>
+    </div>
+  );
+}
+
+export function StepDetail({
+  onClose,
+  step: { entry, row },
+}: {
+  readonly onClose: () => void;
+  readonly step: SelectedStep;
+}) {
+  const kind = entryKindOf(entry);
+  const failure = failureOf(entry);
+  const lead = row?.lead ?? null;
+
+  return (
+    <div className="flex min-h-0 min-w-0 flex-col gap-4">
+      <header className="flex h-7 shrink-0 items-center gap-2">
+        <KindIcon failed={failure !== null} kind={kind} />
+        <h3 className="min-w-0 truncate font-medium text-sm">
+          {entry._tag === "toolCall" ? entry.name : KIND_NAMES[kind]}
+        </h3>
+        {failure === null ? null : (
+          <span className="font-medium text-sm text-warning">{failure}</span>
+        )}
 
         <Button
           aria-label="Close"
@@ -41,26 +108,22 @@ export function WaterfallDetail({
           size="icon-sm"
           variant="ghost"
         >
-          <XIcon size={13} />
+          <XIcon size={14} />
         </Button>
       </header>
 
-      {isCommand ? (
-        <ShellBlock
-          className="text-[11px] leading-[1.45]"
-          command={labelOf(row.entry)}
-          copyable={true}
-        />
-      ) : (
-        <span className="text-pretty text-xs">{labelOf(row.entry)}</span>
-      )}
+      {lead !== null || row?._tag === "bar" ? (
+        <dl className="flex flex-col gap-1.5">
+          {lead === null ? null : (
+            <Timing label="Thinking" value={seconds(lead.durationMs)} />
+          )}
+          {row?._tag === "bar" ? (
+            <Timing label="Ran" value={seconds(row.durationMs)} />
+          ) : null}
+        </dl>
+      ) : null}
 
-      {output === "" ? null : (
-        <JournalOutput
-          className="max-h-72 min-h-0 flex-1 text-[11px] leading-[1.45]"
-          output={output}
-        />
-      )}
-    </aside>
+      <DetailBody entry={entry} />
+    </div>
   );
 }

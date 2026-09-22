@@ -1,8 +1,10 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import {
+  ChatsCircleIcon,
   CheckSquareIcon,
   FileCodeIcon,
   FilesIcon,
+  FlaskIcon,
   PulseIcon,
   SlidersHorizontalIcon,
   SquaresFourIcon,
@@ -10,6 +12,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CellSetup } from "@/components/evals/cell-setup";
+import { Conversation } from "@/components/evals/conversation";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TokenBand } from "@/components/evals/token-band";
 import { TrialArtifacts } from "@/components/evals/trial-artifacts";
@@ -56,20 +59,42 @@ function TrialScreen() {
   return (
     <EvalLayout>
       <EvalMain>
-        <section className="flex flex-col gap-1.5">
-          <PageHeading icon={PulseIcon} title="Trajectory" />
+        <PageHeading
+          icon={FlaskIcon}
+          title={cell?.caseName ?? `Trial ${ordinal}`}
+        />
 
-          {trial.usage === null ? null : <TokenBand usage={trial.usage} />}
-
-          <Waterfall
-            running={trial.status === "running"}
-            timed={trial.timed}
-            trajectory={trial.trajectory}
-          />
-        </section>
+        {trial.usage === null ? null : <TokenBand usage={trial.usage} />}
 
         <TrialSections
           sections={[
+            {
+              Icon: PulseIcon,
+              content: (
+                <Waterfall
+                  running={trial.status === "running"}
+                  timed={trial.timed}
+                  trajectory={trial.trajectory}
+                />
+              ),
+              label: "Timeline",
+              value: "timeline",
+            },
+            {
+              Icon: ChatsCircleIcon,
+              content: (
+                <Conversation
+                  running={trial.status === "running"}
+                  trajectory={trial.trajectory}
+                  written={{
+                    artifacts: trial.artifacts ?? [],
+                    trial: { cellKey, id: runId, ordinal: trial.ordinal },
+                  }}
+                />
+              ),
+              label: "Conversation",
+              value: "conversation",
+            },
             ...(trial.artifacts?.length
               ? [
                   {

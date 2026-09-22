@@ -1,3 +1,4 @@
+import { labelOf } from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import { cn } from "@anpord/ui/lib/utils";
 import { ExitCode } from "@/components/evals/exit-code";
@@ -5,7 +6,7 @@ import {
   JournalOutput,
   useJournalOutput,
 } from "@/components/evals/journal-output";
-import { KIND_COLOURS, labelOf } from "@/lib/evals/journal-presentation";
+import { KIND_COLOURS } from "@/lib/evals/journal-presentation";
 
 export function OrderedRow({ entry }: { readonly entry: EvalJournalEntry }) {
   const { open, output, toggle } = useJournalOutput(entry);

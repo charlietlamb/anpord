@@ -1,29 +1,32 @@
 import { expect, test } from "bun:test";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TrialCalls } from "../../../src/components/evals/trial-calls";
 
 test("lists every call in the order it was recorded", () => {
   const html = renderToStaticMarkup(
-    <TrialCalls
-      trajectory={[
-        {
-          _tag: "toolCall",
-          name: "catalog.get",
-          input: '{"id":"missing"}',
-          error: "Unknown item",
-          status: "failed",
-          finishedAtMillis: 1,
-        },
-        {
-          _tag: "toolCall",
-          name: "catalog.get",
-          input: '{"id":"fixture"}',
-          output: '{"name":"Fixture"}',
-          status: "completed",
-          finishedAtMillis: 2,
-        },
-      ]}
-    />
+    <NuqsTestingAdapter>
+      <TrialCalls
+        trajectory={[
+          {
+            _tag: "toolCall",
+            name: "catalog.get",
+            input: '{"id":"missing"}',
+            error: "Unknown item",
+            status: "failed",
+            finishedAtMillis: 1,
+          },
+          {
+            _tag: "toolCall",
+            name: "catalog.get",
+            input: '{"id":"fixture"}',
+            output: '{"name":"Fixture"}',
+            status: "completed",
+            finishedAtMillis: 2,
+          },
+        ]}
+      />
+    </NuqsTestingAdapter>
   );
   expect(html).toContain("catalog.");
   expect(html).toContain(">get<");
@@ -39,16 +42,18 @@ test("lists every call in the order it was recorded", () => {
 
 test("does not invent results for older tool calls", () => {
   const html = renderToStaticMarkup(
-    <TrialCalls
-      trajectory={[
-        {
-          _tag: "toolCall",
-          name: "catalog.get",
-          status: null,
-          finishedAtMillis: null,
-        },
-      ]}
-    />
+    <NuqsTestingAdapter>
+      <TrialCalls
+        trajectory={[
+          {
+            _tag: "toolCall",
+            name: "catalog.get",
+            status: null,
+            finishedAtMillis: null,
+          },
+        ]}
+      />
+    </NuqsTestingAdapter>
   );
   /* Nothing was recorded, so the row carries no verdict of its own. */
   expect(html).toContain("1 call");
@@ -58,19 +63,21 @@ test("does not invent results for older tool calls", () => {
 
 test("shows CLI command, output, exit status, and explicit truncation", () => {
   const html = renderToStaticMarkup(
-    <TrialCalls
-      trajectory={[
-        {
-          _tag: "command",
-          command: "catalog get --id missing",
-          output: "<script>Unknown item</script>",
-          outputTruncated: true,
-          exitCode: 1,
-          startedAtMillis: 0,
-          finishedAtMillis: 1,
-        },
-      ]}
-    />
+    <NuqsTestingAdapter>
+      <TrialCalls
+        trajectory={[
+          {
+            _tag: "command",
+            command: "catalog get --id missing",
+            output: "<script>Unknown item</script>",
+            outputTruncated: true,
+            exitCode: 1,
+            startedAtMillis: 0,
+            finishedAtMillis: 1,
+          },
+        ]}
+      />
+    </NuqsTestingAdapter>
   );
   expect(html).toContain("catalog get --id missing");
   expect(html).toContain("exit 1");
@@ -78,23 +85,31 @@ test("shows CLI command, output, exit status, and explicit truncation", () => {
 });
 
 test("does not render an empty calls section", () => {
-  expect(renderToStaticMarkup(<TrialCalls trajectory={[]} />)).toBe("");
+  const html = renderToStaticMarkup(
+    <NuqsTestingAdapter>
+      <TrialCalls trajectory={[]} />
+    </NuqsTestingAdapter>
+  );
+
+  expect(html).toBe("");
 });
 
 test("weights the tool name above the server it came from", () => {
   const html = renderToStaticMarkup(
-    <TrialCalls
-      trajectory={[
-        {
-          _tag: "toolCall",
-          name: "notra-markdown.get_markdown",
-          input: "{}",
-          output: "ok",
-          status: "completed",
-          finishedAtMillis: 1,
-        },
-      ]}
-    />
+    <NuqsTestingAdapter>
+      <TrialCalls
+        trajectory={[
+          {
+            _tag: "toolCall",
+            name: "notra-markdown.get_markdown",
+            input: "{}",
+            output: "ok",
+            status: "completed",
+            finishedAtMillis: 1,
+          },
+        ]}
+      />
+    </NuqsTestingAdapter>
   );
   expect(html).toContain("notra-markdown.");
   expect(html).toContain("get_markdown");

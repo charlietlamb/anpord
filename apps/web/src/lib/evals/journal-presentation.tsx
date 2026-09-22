@@ -1,3 +1,9 @@
+import {
+  ENTRY_NAMES,
+  type EntryKind,
+  entryKindOf,
+  labelOf,
+} from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import {
   BrainIcon,
@@ -12,7 +18,7 @@ import { seconds } from "@/lib/evals/duration";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
 /* `thinking` is not a journal entry but the gap between two, and it is presented like the rest. */
-export type JournalKind = EvalJournalEntry["_tag"] | "said" | "thinking";
+export type JournalKind = EntryKind | "thinking";
 
 /* Theme tokens, not literals: an inline style cannot answer a media query, so hard-coded hues break contrast when the theme flips. */
 export const KIND_COLOURS: Record<JournalKind, string> = {
@@ -25,12 +31,8 @@ export const KIND_COLOURS: Record<JournalKind, string> = {
 };
 
 export const KIND_NAMES: Record<JournalKind, string> = {
-  command: "Command",
-  fileChange: "Wrote files",
-  message: "Message",
-  said: "Said",
+  ...ENTRY_NAMES,
   thinking: "Thinking",
-  toolCall: "Tool call",
 };
 
 export const KIND_ICONS: Record<JournalKind, Icon> = {
@@ -42,12 +44,8 @@ export const KIND_ICONS: Record<JournalKind, Icon> = {
   toolCall: WrenchIcon,
 };
 
-/* The person a case states is not the agent, and a trajectory that draws both
-   the same way reads as the agent talking to itself. */
 export const kindOf = (row: WaterfallRow): JournalKind =>
-  row.entry._tag === "message" && row.entry.role === "user"
-    ? "said"
-    : row.entry._tag;
+  entryKindOf(row.entry);
 
 /* What a step printed, where it printed anything at all. */
 export const readableOf = (entry: EvalJournalEntry) => {
@@ -56,30 +54,6 @@ export const readableOf = (entry: EvalJournalEntry) => {
   }
 
   return entry._tag === "message" ? entry.text : "";
-};
-
-const SHELL_PREFIX = /^\/bin\/(?:ba)?sh -lc ['"]?/;
-const TRAILING_QUOTE = /['"]$/;
-
-/* A command arrives wrapped in the shell that ran it. The wrapper is the same
-   on every row, so it is unwrapped rather than read. */
-export const commandText = (command: string) =>
-  command.replace(SHELL_PREFIX, "").replace(TRAILING_QUOTE, "").trim();
-
-export const labelOf = (entry: EvalJournalEntry) => {
-  if (entry._tag === "command") {
-    return commandText(entry.command);
-  }
-
-  if (entry._tag === "toolCall") {
-    return entry.name;
-  }
-
-  if (entry._tag === "fileChange") {
-    return `wrote ${entry.paths.join(", ")}`;
-  }
-
-  return entry.text;
 };
 
 /* Without this every row announces as "button": its only text lives in a tooltip a screen reader never opens. */

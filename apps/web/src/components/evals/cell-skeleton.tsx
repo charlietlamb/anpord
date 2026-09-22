@@ -1,6 +1,5 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
 import {
   CheckSquareIcon,
   FlaskIcon,
@@ -8,7 +7,7 @@ import {
 } from "@phosphor-icons/react";
 import { CellHistory } from "@/components/evals/cell-history";
 import { CellSetupSkeleton } from "@/components/evals/cell-setup-skeleton";
-import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { EvalLayout, EvalMain, EvalRail } from "@/components/evals/eval-layout";
 import {
   type RailFactShape,
   RailFactSkeleton,
@@ -71,7 +70,7 @@ export function CellSkeleton({
         />
       </EvalMain>
 
-      <aside className={RAIL_FRAME}>
+      <EvalRail>
         <RailSection title="Result">
           <RailFactSkeleton className="gap-2" facts={READING} />
         </RailSection>
@@ -83,7 +82,7 @@ export function CellSkeleton({
         <RailSection title="Recent runs">
           <CellHistory cellKey={cellKey} quiet runId={runId} />
         </RailSection>
-      </aside>
+      </EvalRail>
     </EvalLayout>
   );
 }
