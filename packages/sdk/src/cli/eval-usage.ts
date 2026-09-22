@@ -82,7 +82,7 @@ export interface LocalReading {
   readonly usage: TokenCounts | null;
 }
 
-export const localUsage = (cases: readonly LocalReading[]): RunUsage => {
+const localUsage = (cases: readonly LocalReading[]): RunUsage => {
   const concerns = new Set<UsageConcern>();
   let inputTokens = 0;
   let outputTokens = 0;

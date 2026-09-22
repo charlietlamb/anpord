@@ -40,6 +40,7 @@ const withRunning = (running: number) =>
     RunQuery.of({
       countRunning: () => Effect.succeed(running),
       countRuns: () => Effect.succeed(running),
+      findCase: () => Effect.succeed(Option.none()),
       findCellHistory: () => Effect.succeed([]),
       findCellTask: () => Effect.succeed(Option.none()),
       findRun: () => Effect.succeed(Option.none()),
@@ -50,6 +51,7 @@ const withRunning = (running: number) =>
       listRuns: () => Effect.succeed([]),
 
       listTags: () => Effect.succeed([]),
+      readTail: () => Effect.succeedNone,
     })
   );
 

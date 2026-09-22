@@ -5,9 +5,31 @@ import type {
 } from "@anpord/schema/domain/eval-turns";
 import { MAX_USER_TURNS } from "@anpord/schema/domain/eval-turns";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { Clock, Effect, Option } from "effect";
+import { Chunk, Clock, Effect, Option, Stream } from "effect";
 import { commandsIn, readAnswer, sessionIdOf } from "../domain/journal";
 import { SimulatedUser } from "../ports/simulated-user";
+import type { ProgressSink } from "./trial-progress-sink";
+
+type Turn<E, R> = (
+  prompt: string,
+  resume: Option.Option<string>
+) => Effect.Effect<readonly HarnessEvent[], E, R>;
+
+export const spokenThrough =
+  <E, R>(sink: ProgressSink, turn: Turn<E, R>): Turn<E, R> =>
+  (prompt, resume) =>
+    Effect.gen(function* () {
+      const at = yield* Clock.currentTimeMillis;
+      const said = yield* Stream.make<[HarnessEvent]>({
+        _tag: "Message",
+        at,
+        role: "user",
+        text: prompt,
+      }).pipe(sink.through, Stream.runCollect);
+      const replied = yield* turn(prompt, resume);
+
+      return [...Chunk.toReadonlyArray(said), ...replied];
+    });
 
 interface Conversation {
   readonly ended: EvalTurnsEnded;
@@ -61,22 +83,15 @@ const nextText = (
 
 export const converse = <E, R>(input: {
   readonly organizationId: string;
-  readonly run: (
-    turn: string,
-    resume: Option.Option<string>
-  ) => Effect.Effect<readonly HarnessEvent[], E, R>;
+  readonly run: Turn<E, R>;
   readonly opening: string;
   readonly user: EvalUser;
 }) =>
   Effect.gen(function* () {
-    const openedAt = yield* Clock.currentTimeMillis;
     const first = yield* input.run(input.opening, Option.none());
     const session = Option.fromNullable(sessionIdOf(first));
     const turns: EvalTurn[] = [turnOf(0, input.opening, first)];
-    const events: HarnessEvent[] = [
-      { _tag: "Message", at: openedAt, role: "user", text: input.opening },
-      ...first,
-    ];
+    const events: HarnessEvent[] = [...first];
     const spoken: string[] = [input.opening];
 
     if (Option.isNone(session)) {
@@ -106,17 +121,11 @@ export const converse = <E, R>(input: {
         break;
       }
 
-      const spokenAt = yield* Clock.currentTimeMillis;
       const replied = yield* input.run(said.text, session);
 
       spoken.push(said.text);
       turns.push(turnOf(turns.length, said.text, replied));
-      /* Recorded where it was said, so a journal reads as the conversation it
-         was rather than as the agent talking to itself. */
-      events.push(
-        { _tag: "Message", at: spokenAt, role: "user", text: said.text },
-        ...replied
-      );
+      events.push(...replied);
     }
 
     return { ended, events, turns } satisfies Conversation;

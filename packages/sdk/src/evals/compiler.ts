@@ -109,6 +109,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
 
           return {
             ...(subject.cache === undefined ? {} : { cache: subject.cache }),
+            id: subject.id,
             name: subject.name,
             prepare,
             ...sourceFor(definition, subject),

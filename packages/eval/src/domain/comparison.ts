@@ -18,6 +18,7 @@ export interface VersionedComparison extends Comparison {
   readonly baselineProfileVersion: string | null;
   readonly candidateHarnessVersion: string;
   readonly candidateProfileVersion: string | null;
+  readonly definitionChanged: boolean;
 }
 
 const MATERIAL_DELTA = 0.2;

@@ -60,10 +60,11 @@ const toStoredTrial = (trial: {
   voidFields: trial.voidFields ?? [],
 });
 
-/* The cell key hashes case, setup, harness, model, provider and profile, so only trials and versions differ across readings. */
+/* The cell key hashes the case, harness, model, provider and profile, so readings differ by trials, versions and which definition they measured. */
 export const toReadingView = (
   entry: CellHistoryEntry
 ): EvalCellHistoryEntry => ({
+  definitionHash: entry.definitionHash,
   distribution: entry.distribution,
   finishedAt:
     entry.finishedAt === null

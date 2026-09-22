@@ -26,6 +26,7 @@ export interface CellComparison {
 export interface CellReading {
   readonly cellInternalId: string;
   readonly cellKey: string;
+  readonly definitionHash: string;
   readonly distribution: Distribution;
   readonly harnessVersion: string;
   readonly profileVersion: string | null;
@@ -110,6 +111,7 @@ export const BaselinesLive = Layer.effect(
               distribution: distributionFor(
                 byTrialCell.get(row.baseline.cellInternalId) ?? []
               ),
+              definitionHash: row.definitionHash,
               harnessVersion: row.harnessVersion,
               profileVersion: row.profileVersion,
             },
@@ -131,6 +133,8 @@ export const BaselinesLive = Layer.effect(
                     baselineProfileVersion: baseline.profileVersion,
                     candidateHarnessVersion: cell.harnessVersion,
                     candidateProfileVersion: cell.profileVersion,
+                    definitionChanged:
+                      baseline.definitionHash !== cell.definitionHash,
                   }),
           };
         });
@@ -177,6 +181,7 @@ export const BaselinesLive = Layer.effect(
           found.value.cells.map((cell) => ({
             cellInternalId: cell.cell.internalId,
             cellKey: cell.cell.cellKey,
+            definitionHash: cell.definitionHash,
             distribution: cell.distribution,
             harnessVersion: cell.cell.harnessVersion,
             profileVersion: cell.profile?.version ?? null,

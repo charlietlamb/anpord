@@ -21,7 +21,7 @@ describe("isDefinition", () => {
     expect(
       isDefinition({
         ...definition,
-        cases: [{ name: "a", validate: () => ({ passed: true }) }],
+        cases: [{ id: "a", name: "a", validate: () => ({ passed: true }) }],
         tasks: [{ harness: "claude" }],
       })
     ).toBe(true);

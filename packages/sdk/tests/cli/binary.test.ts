@@ -81,7 +81,7 @@ export default suite({
   name: "NAME",
   source: { kind: "empty" },
   prompt: "{{task}}",
-  cases: [{ name: "case", variables: { task: "Do nothing" }, verify: "true" }],
+  cases: [{ id: "case", name: "case", variables: { task: "Do nothing" }, verify: "true" }],
   tasks: [{ harness: "codex", model: "test", provider: "daytona" }],
   trials: 1,
 });`;

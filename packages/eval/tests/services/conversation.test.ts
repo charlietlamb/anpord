@@ -1,9 +1,10 @@
 import { describe, expect, it } from "bun:test";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { Effect, Layer, Option } from "effect";
+import { Chunk, Effect, Layer, Option, Stream } from "effect";
 import { UserUnavailable } from "../../src/domain/errors";
 import { SimulatedUser } from "../../src/ports/simulated-user";
-import { converse } from "../../src/services/conversation";
+import { converse, spokenThrough } from "../../src/services/conversation";
+import { progressSink } from "../../src/services/trial-progress-sink";
 
 const said = (text: string, session = "s-1"): HarnessEvent[] => [
   { _tag: "Started", at: 0, model: "m", sessionId: session },
@@ -63,16 +64,44 @@ describe("a conversation", () => {
 
   /* The journal is the evidence a conversation case is read from, and one
      holding only the agent's replies reads as the agent talking to itself. */
-  it("writes what the person said into the journal", async () => {
+  it("stores what the person said, before the reply to it", async () => {
+    const stored: HarnessEvent[] = [];
+
     const result = await Effect.runPromise(
-      run(["shall I push?", "pushed"]).pipe(Effect.provide(replies(["yes"])))
+      Effect.gen(function* () {
+        const sink = yield* progressSink((events) =>
+          Effect.sync(() => {
+            stored.push(...events);
+          })
+        );
+
+        return yield* converse({
+          opening: "open",
+          organizationId: "org",
+          run: spokenThrough(sink, (turn) =>
+            Stream.fromIterable(said(`re: ${turn}`)).pipe(
+              sink.through,
+              Stream.runCollect,
+              Effect.map(Chunk.toReadonlyArray)
+            )
+          ),
+          user: human,
+        });
+      }).pipe(Effect.provide(replies(["yes"])))
     );
 
-    const said = result.events.flatMap((event) =>
-      event._tag === "Message" && event.role === "user" ? [event.text] : []
-    );
+    const texts = (events: readonly HarnessEvent[]) =>
+      events.flatMap((event) =>
+        event._tag === "Message" ? [`${event.role}: ${event.text}`] : []
+      );
 
-    expect(said).toEqual(["open", "yes"]);
+    expect(texts(stored)).toEqual([
+      "user: open",
+      "assistant: re: open",
+      "user: yes",
+      "assistant: re: yes",
+    ]);
+    expect(texts(result.events)).toEqual(texts(stored));
   });
 
   it("stops at the ceiling rather than talking forever", async () => {

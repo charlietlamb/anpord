@@ -60,7 +60,14 @@ export const SandboxProviderLive = Layer.effect(
         );
 
         return yield* Effect.acquireRelease(adapter.open(request), (handle) =>
-          adapter.destroy(handle).pipe(Effect.retry(TEARDOWN), Effect.orDie)
+          adapter.destroy(handle).pipe(
+            Effect.retry(TEARDOWN),
+            Effect.catchAll((cause) =>
+              Effect.logWarning("sandbox left for the reaper", cause).pipe(
+                Effect.annotateLogs({ sandboxId: handle.id })
+              )
+            )
+          )
         );
       }).pipe(
         Effect.withSpan("SandboxProvider.open", {

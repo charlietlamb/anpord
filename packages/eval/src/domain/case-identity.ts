@@ -52,9 +52,7 @@ const sourceOf = (source: WorkspaceSource) => {
     .join("")}`;
 };
 
-/** Content addressed, so the same case resolves to the same row and a
- * baseline survives across runs. */
-export const caseIdentityOf = (input: CaseDefinition): string =>
+export const definitionHashOf = (input: CaseDefinition): string =>
   createHash("sha256")
     .update(
       [

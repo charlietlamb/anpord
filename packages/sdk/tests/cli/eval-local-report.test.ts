@@ -9,7 +9,7 @@ const decodeStart = Schema.decodeUnknownSync(PublicStartEvalRequest);
 const decodeReport = Schema.decodeUnknownSync(ReportTrialRequest);
 
 const start = {
-  cases: [{ name: "a case", verify: "true" }],
+  cases: [{ id: "a-case", name: "a case", verify: "true" }],
   prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol" }],
   trials: 1,

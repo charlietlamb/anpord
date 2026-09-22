@@ -77,7 +77,7 @@ const api = server({
   })],
 });
 export default suite({
-  cases: [{ name: "case", verify: "true" }],
+  cases: [{ id: "case", name: "case", verify: "true" }],
   cli: [client],
   mcp: [api],
   api: [httpApi({ name: "example", endpoints: [endpoint({
@@ -203,7 +203,7 @@ export const hasGreeting: Validator = async ({ readText }) => ({
       `import { suite } from "anpord";
 import { hasGreeting } from "./validator";
 export default suite({
-  cases: [{ variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
+  cases: [{ id: "a-case", variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
   name: "direct-validator",
   prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5", sandbox: "daytona" }],
@@ -244,8 +244,8 @@ export default suite({
       `import { suite, empty, repo } from "anpord";
 export default suite({
   cases: [
-    { variables: { task: "add a test" }, name: "inherits", verify: "true" },
-    { variables: { task: "from scratch" }, name: "overrides", source: empty, verify: "true" },
+    { id: "inherits", variables: { task: "add a test" }, name: "inherits", verify: "true" },
+    { id: "overrides", variables: { task: "from scratch" }, name: "overrides", source: empty, verify: "true" },
   ],
   name: "suite",
   prompt: "{{task}}",
@@ -271,7 +271,7 @@ export default suite({
       join(workspace, "eval.ts"),
       `import { suite, repo } from "anpord";
 export default suite({
-  cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
+  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
   source: repo("acme"),
@@ -290,8 +290,8 @@ export default suite({
       `import { suite } from "anpord";
 export default suite({
   cases: [
-    { variables: { task: "add a test" }, name: "inherits", verify: "true" },
-    { variables: { task: "fix it" }, name: "own", source: "acme/widgets", verify: "true" },
+    { id: "inherits", variables: { task: "add a test" }, name: "inherits", verify: "true" },
+    { id: "own", variables: { task: "fix it" }, name: "own", source: "acme/widgets", verify: "true" },
   ],
   name: "suite",
   prompt: "{{task}}",
@@ -321,7 +321,7 @@ export default suite({
       join(workspace, "eval.ts"),
       `import { suite } from "anpord";
 export default suite({
-  cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
+  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
   source: "nonsense",
@@ -348,7 +348,7 @@ export default suite({
       join(workspace, "eval.ts"),
       `import { suite } from "anpord";
 export default suite({
-  cases: [{ variables: { task: "add a test" }, name: "c", verify: "true" }],
+  cases: [{ id: "a-case", variables: { task: "add a test" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
   tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
@@ -367,7 +367,7 @@ export default suite({
       join(workspace, "eval.ts"),
       `import { suite } from "anpord";
 export default suite({
-  cases: [{ variables: { task: "g" }, name: "c", verify: "true" }],
+  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
   source: "acme/widgets",
@@ -407,6 +407,7 @@ import { prepareRepoImage, validateRepoImage } from "./prepare";
 export default suite({
   cases: [
     {
+      id: "renders",
       name: "renders",
       prepare: prepareRepoImage,
       validate: validateRepoImage,

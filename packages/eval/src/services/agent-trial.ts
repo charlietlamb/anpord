@@ -49,7 +49,7 @@ import { Scorer, type ValidationObserver } from "../ports/scorer";
 import { SimulatedUser } from "../ports/simulated-user";
 import type { TrialProgressShape } from "../ports/trial-progress";
 import { captureArtifacts } from "./capture-artifacts";
-import { converse } from "./conversation";
+import { converse, spokenThrough } from "./conversation";
 import { captureCredentialRotation } from "./credential-rotation";
 import { apiInstructions } from "./mock-apis";
 import { systemPromptPath } from "./profile-files";
@@ -274,7 +274,7 @@ export const AgentTrialLive = Layer.effect(
             : yield* converse({
                 opening,
                 organizationId: request.organizationId,
-                run: turn,
+                run: spokenThrough(sink, turn),
                 user: request.user,
               }).pipe(Effect.provideService(SimulatedUser, human));
 

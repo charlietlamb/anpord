@@ -5,6 +5,7 @@ import { StartEvalRequest } from "../../src/domain/evals";
 import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
 const evalCase = {
+  id: "a-case",
   name: "case",
   prepare: null,
   source: { kind: "empty" as const },
@@ -80,7 +81,14 @@ describe("what a start may carry to a sandbox", () => {
 
   it("bounds the public intake the same way", () => {
     const decoded = Schema.decodeUnknownEither(PublicStartEvalRequest)({
-      cases: [{ name: "case", variables: { task: "go" }, verify: "true" }],
+      cases: [
+        {
+          id: "a-case",
+          name: "case",
+          variables: { task: "go" },
+          verify: "true",
+        },
+      ],
       prompt: "a".repeat(100_000),
       tasks: [task],
       trials: 1,

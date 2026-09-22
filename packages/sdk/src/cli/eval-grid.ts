@@ -1,5 +1,12 @@
+import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
 import type { EvalCell, EvalRun } from "@anpord/schema/domain/evals";
 import { Effect, Ref } from "effect";
+import {
+  type EntryStyle,
+  formatEntry,
+  opensTurn,
+  PLAIN,
+} from "./eval-activity";
 import { runUsage, usageLines } from "./eval-usage";
 import { note } from "./render";
 
@@ -58,35 +65,6 @@ const formatPassRate = (cell: EvalCell) => {
   return paint(rate === 1 ? GREEN : RED, shown);
 };
 
-const TAIL = 56;
-
-const clip = (text: string) => {
-  const flat = text.replace(/\s+/g, " ").trim();
-
-  return flat.length > TAIL ? `${flat.slice(0, TAIL - 1)}…` : flat;
-};
-
-const latestOf = (cell: EvalCell) => {
-  const running = cell.trials.find((trial) => trial.status === "running");
-  const entry = running?.trajectory.at(-1);
-
-  if (entry === undefined) {
-    return;
-  }
-
-  if (entry._tag === "command") {
-    return clip(entry.command);
-  }
-
-  if (entry._tag === "toolCall") {
-    return clip(entry.name);
-  }
-
-  return entry._tag === "fileChange"
-    ? clip(entry.paths.join(" "))
-    : clip(entry.text);
-};
-
 /* A trial runs for minutes behind one pip, so without what the agent is doing
    the grid reads as a hang. */
 const formatActivity = (cell: EvalCell) => {
@@ -96,7 +74,6 @@ const formatActivity = (cell: EvalCell) => {
     return [];
   }
 
-  const latest = latestOf(cell);
   const counts = [
     `${running.commands} cmd`,
     ...(running.filesChanged.length === 0
@@ -104,9 +81,7 @@ const formatActivity = (cell: EvalCell) => {
       : [`${running.filesChanged.length} files`]),
   ].join(", ");
 
-  return [
-    paint(DIM, `      ${counts}${latest === undefined ? "" : `  ${latest}`}`),
-  ];
+  return [paint(DIM, `      ${counts}`)];
 };
 
 export const formatVariant = (run: EvalRun, cell: EvalCell) => {
@@ -159,22 +134,91 @@ export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
 
 const up = (rows: number) => `[${rows}A[0J`;
 
-export const liveGrid = (trials: number, interactive: boolean) =>
+const whereOf = (run: EvalRun | null, event: EvalTailEvent) => {
+  const cell = run?.cells.find((one) => one.internalId === event.cell);
+
+  return run == null || cell === undefined
+    ? `#${event.ordinal}`
+    : `${cell.caseName} ${formatVariant(run, cell)} #${event.ordinal}`;
+};
+
+export type GridMode = "grid" | "lines" | "silent";
+
+const INDENT = 2;
+const NARROWEST = 40;
+const UNKNOWN_WIDTH = 100;
+
+const styleFor = (mode: GridMode): EntryStyle =>
+  mode === "grid" && process.env.NO_COLOR === undefined
+    ? {
+        colour: true,
+        width: Math.max(
+          NARROWEST,
+          (process.stderr.columns ?? UNKNOWN_WIDTH) - INDENT
+        ),
+      }
+    : PLAIN;
+
+const crowded = (run: EvalRun | null, trials: number) =>
+  run === null || run.cells.length * trials > 1;
+
+export const logLines = (
+  events: readonly EvalTailEvent[],
+  run: EvalRun | null,
+  trials: number,
+  style: EntryStyle
+) => {
+  const named = crowded(run, trials);
+
+  return events.flatMap((event) => {
+    const where = named ? `${paint(DIM, whereOf(run, event))}  ` : "";
+    const line = `  ${where}${formatEntry(event.entry, style)}`;
+
+    return style.colour && opensTurn(event.entry) ? ["", line] : [line];
+  });
+};
+
+export const liveGrid = (trials: number, mode: GridMode) =>
   Effect.gen(function* () {
     const drawn = yield* Ref.make(0);
+    const latest = yield* Ref.make<{
+      readonly elapsedMs: number;
+      readonly run: EvalRun;
+    } | null>(null);
+    const style = styleFor(mode);
 
-    return (run: EvalRun, elapsedMs: number) =>
+    const writing = yield* Effect.makeSemaphore(1);
+
+    const print = (above: readonly string[]) =>
       Effect.gen(function* () {
-        if (!interactive) {
+        const held = yield* Ref.get(latest);
+        const footer =
+          mode === "grid" && held !== null
+            ? ["", ...formatGrid(held.run, trials, held.elapsedMs)]
+            : [];
+        const rows = yield* Ref.getAndSet(drawn, footer.length);
+        const lines = [...above, ...footer];
+
+        if (lines.length > 0) {
+          yield* note(`${rows === 0 ? "" : up(rows)}${lines.join("\n")}`);
+        }
+      }).pipe(writing.withPermits(1));
+
+    const draw = (run: EvalRun, elapsedMs: number) =>
+      Ref.set(latest, { elapsedMs, run }).pipe(Effect.zipRight(print([])));
+
+    const hear = (events: readonly EvalTailEvent[]) =>
+      Effect.gen(function* () {
+        if (mode === "silent") {
           return;
         }
 
-        const rows = yield* Ref.getAndSet(drawn, 0);
-        const lines = formatGrid(run, trials, elapsedMs);
+        const run = (yield* Ref.get(latest))?.run ?? null;
 
-        yield* note(`${rows === 0 ? "" : up(rows)}${lines.join("\n")}`);
-        yield* Ref.set(drawn, lines.length);
+        yield* print(logLines(events, run, trials, style));
       });
+
+    return { draw, hear };
   });
 
 export const formatGridSummary = (

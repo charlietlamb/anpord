@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
@@ -23,6 +24,7 @@ import {
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
 import { skipWithoutDatabase } from "../fixtures/database";
+import { caseFixture, taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -98,15 +100,21 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
             })
             .onConflictDoNothing();
 
-          await db.insert(evalTask).values({
-            id: `task_${suffix}`,
-            internalId: `taskint_${suffix}`,
-            name: "recorder",
-            organizationId,
-            prompt: "do the thing",
-            verifyCommand: "true",
-            workspace: "/tmp/x",
-          });
+          await db.insert(evalCase).values(
+            caseFixture.values({
+              id: `task_${suffix}`,
+              internalId: `taskint_${suffix}`,
+              organizationId,
+            })
+          );
+
+          await db.insert(evalTask).values(
+            taskFixture.values({
+              id: `task_${suffix}`,
+              internalId: `taskint_${suffix}`,
+              organizationId,
+            })
+          );
 
           await db.insert(evalRun).values({
             cellCount: 1,

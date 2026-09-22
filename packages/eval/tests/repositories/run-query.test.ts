@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
@@ -11,6 +12,7 @@ import { Duration, Effect, Layer, Option, Redacted } from "effect";
 import { CellKey } from "../../src/domain/cell";
 import { RunQuery, RunQueryLive } from "../../src/repositories/run-query";
 import { skipWithoutDatabase } from "../fixtures/database";
+import { caseFixture, taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -52,15 +54,21 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
           })
           .onConflictDoNothing();
 
-        await db.insert(evalTask).values({
-          id: `task_${tag}`,
-          internalId: `taskint_${tag}`,
-          name: tag,
-          organizationId,
-          prompt: "p",
-          verifyCommand: "true",
-          workspace: "/tmp/x",
-        });
+        await db.insert(evalCase).values(
+          caseFixture.values({
+            id: `task_${tag}`,
+            internalId: `taskint_${tag}`,
+            organizationId,
+          })
+        );
+
+        await db.insert(evalTask).values(
+          taskFixture.values({
+            id: `task_${tag}`,
+            internalId: `taskint_${tag}`,
+            organizationId,
+          })
+        );
 
         await db.insert(evalRun).values({
           cellCount: 1,

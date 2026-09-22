@@ -22,7 +22,7 @@ export interface GridCase {
   /** A directory worth keeping between runs of this case, restored before its
    * prepare and saved after. */
   readonly cache?: { readonly key: string; readonly path: string };
-  readonly identity?: string;
+  readonly id: string;
   readonly name: string;
   readonly prepare: EvalPrepare | null;
   readonly source: WorkspaceSource;
@@ -35,12 +35,12 @@ export interface GridCase {
 }
 
 export interface RunGridCell extends TrialInputs {
+  readonly caseInternalId: string;
   /** The row the task profile was registered as, null where there is none. */
   readonly profile: TaskProfile | null;
   readonly runInternalId: string;
   readonly runs: RunRepositoryShape;
   readonly taskInternalId: string;
-  readonly taskPublicId: string;
   readonly trials: number;
 }
 
@@ -68,13 +68,12 @@ export const runGridCell = (
     const sandboxConnectionId = input.task.bindings?.sandboxConnectionId;
     const conductedBy = yield* userModel;
     const cellKey = cellKeyOf({
+      caseInternalId: input.caseInternalId,
       harness: input.task.harness,
       model: input.task.model,
       profile: input.profile?.name ?? null,
       provider: input.task.provider,
-      taskId: input.taskPublicId,
       userModel: userModelOf(input.subject.user, conductedBy),
-      taskVersion: input.taskInternalId,
     });
 
     const cell = yield* input.runs.insertCell({

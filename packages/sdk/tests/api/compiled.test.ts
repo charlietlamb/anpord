@@ -74,7 +74,7 @@ export default suite({ name: "http", source: empty, prompt: "Use catalog", trial
     handler: ({ params }, { log }) => { log({ id: params.id }); return { status: 200, body: params }; }
   })] })],
   tasks: [{ harness: "codex", model: "model", sandbox: "e2b" }],
-  cases: [{ name: "read", prepare: prepareHttp, validate: async function validateHttp({ api }) {
+  cases: [{ id: "read", name: "read", prepare: prepareHttp, validate: async function validateHttp({ api }) {
     const url = await api.url("catalog");
     await fetch(url + "/items/validator");
     const calls = await api.calls("catalog");

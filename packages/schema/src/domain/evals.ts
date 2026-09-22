@@ -11,6 +11,7 @@ export const EvalHarness = Harness;
 export type EvalHarness = typeof EvalHarness.Type;
 
 import {
+  EvalCaseId,
   EvalCaseName,
   EvalPrompt,
   EvalVariableValue,
@@ -203,6 +204,7 @@ export type CaseCache = typeof CaseCache.Type;
 
 export const EvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
+  id: EvalCaseId,
   name: EvalCaseName,
   /* Absent for a case that is one prompt and one answer, which is most of
      them. Present when the agent is judged on a conversation. */
@@ -473,6 +475,7 @@ export const EvalComparison = Schema.Struct({
   candidateHarnessVersion: Schema.String,
   candidatePassRate: Schema.Number,
   candidateProfileVersion: Schema.NullOr(Schema.String),
+  definitionChanged: Schema.Boolean,
   delta: Schema.Number,
 
   determinismLost: Schema.Boolean,
@@ -596,6 +599,7 @@ export type EvalRunPage = typeof EvalRunPage.Type;
    sighting rather than a run. `runCount` is how many runs have reached it,
    which is what makes a rarely-run case legible beside a daily one. */
 export const EvalCaseSummary = Schema.Struct({
+  caseId: EvalCaseId,
   cellKey: Schema.String,
   distribution: EvalDistribution,
   harness: Schema.String,
@@ -625,6 +629,7 @@ export const EvalCellHistoryEntry = Schema.Struct({
   trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
     default: () => null,
   }),
+  definitionHash: Schema.String,
   distribution: EvalDistribution,
   finishedAt: Schema.NullOr(EvalTimestamp),
   harnessVersion: Schema.String,
@@ -637,6 +642,22 @@ export const EvalCellHistoryEntry = Schema.Struct({
   identifier: "EvalCellHistoryEntry",
 });
 export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
+
+export const EvalCaseDetail = Schema.Struct({
+  cellKey: Schema.String,
+  harness: Schema.String,
+  history: Schema.Array(EvalCellHistoryEntry),
+  id: EvalCaseId,
+  lastRunId: Schema.String,
+  model: Schema.String,
+  name: Schema.String,
+  suite: Schema.NullOr(Schema.String),
+  tags: Schema.Array(Schema.String),
+}).annotations({
+  description: "A case, its newest reading, and every reading before it.",
+  identifier: "EvalCaseDetail",
+});
+export type EvalCaseDetail = typeof EvalCaseDetail.Type;
 
 export const runTagOf = (runId: string) => `run_${runId}`;
 

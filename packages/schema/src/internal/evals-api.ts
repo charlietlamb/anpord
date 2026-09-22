@@ -9,9 +9,11 @@ import {
   SavePlaygroundRequest,
   StartedEval,
 } from "../domain/eval-playground";
+import { EvalRunTail, EvalTailMark } from "../domain/eval-tail";
 import {
   EvalArtifact,
   EvalArtifactRequest,
+  EvalCaseDetail,
   EvalCasePage,
   EvalCellHistoryEntry,
   EvalHarness,
@@ -69,6 +71,20 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
     HttpApiEndpoint.get("subscription", "/evals/:id/subscription")
       .setPath(RunPath)
       .addSuccess(RunSubscription)
+  )
+
+  .add(
+    HttpApiEndpoint.post("tail", "/evals/:id/tail")
+      .setPath(RunPath)
+      .setPayload(Schema.Struct({ after: Schema.Array(EvalTailMark) }))
+      .addSuccess(EvalRunTail)
+  )
+
+  .add(
+    HttpApiEndpoint.get("case", "/evals/cases/:id")
+      .setPath(Schema.Struct({ id: Schema.String }))
+      .addSuccess(EvalCaseDetail)
+      .addError(NotFound)
   )
 
   .add(

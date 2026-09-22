@@ -99,6 +99,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
             cases: [
               {
                 variables: { task: "the tests already pass, change nothing" },
+                id: "already-passing",
                 name: "already-passing",
                 prepare: null,
                 source: fixedSource,

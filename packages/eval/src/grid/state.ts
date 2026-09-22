@@ -59,6 +59,7 @@ export type GridSetup = EvalSetup;
 export interface GridCell {
   readonly caseName: string;
   readonly cellKey: string | null;
+  readonly definitionHash: string | null;
   readonly distribution: Option.Option<Distribution>;
   readonly internalId: string | null;
 
@@ -128,7 +129,11 @@ export const advanceTrial = (
 export const completeCell = (
   run: GridRunState,
   position: { readonly caseName: string; readonly taskIndex: number },
-  identity: { readonly cellKey: string; readonly internalId: string }
+  identity: {
+    readonly cellKey: string;
+    readonly definitionHash: string;
+    readonly internalId: string;
+  }
 ): GridRunState => ({
   ...run,
   cells: run.cells.map((cell) => {
@@ -146,6 +151,7 @@ export const completeCell = (
     return {
       ...cell,
       cellKey: identity.cellKey,
+      definitionHash: identity.definitionHash,
       distribution: Option.some(distributionOf(outcomes)),
       internalId: identity.internalId,
       status: "finished" as const,

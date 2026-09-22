@@ -7,6 +7,7 @@ import { sourceFiles } from "./source-files";
 
 const authoringExports = [
   "export const suite = (first, second) => typeof first === 'string' ? second : first;",
+  "export const evalCase = ({ prompt, tasks, trials, ...subject }) => ({ cases: [subject], name: subject.name, prompt, tasks, trials });",
   `export { empty, files, repo } from "./source";`,
 ].join("\n");
 

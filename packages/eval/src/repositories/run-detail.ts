@@ -23,6 +23,7 @@ interface TrialWithCosts extends TrialRow {
 interface CellTaskRow extends Omit<EvalSetup, "validatorFiles"> {
   readonly caseName: string;
   readonly cell: CellRow;
+  readonly definitionHash: string;
   readonly profile: ProfileRow | null;
   readonly validatorFiles?: unknown;
 }
@@ -57,6 +58,7 @@ export const detailOf = (
 
     return {
       caseName: row.caseName,
+      definitionHash: row.definitionHash,
       cell: row.cell,
       distribution: distributionFor(own),
       prompt: row.prompt,

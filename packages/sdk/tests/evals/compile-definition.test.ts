@@ -32,7 +32,7 @@ describe("compiling an imported definition", () => {
       prompt: "x",
       tasks: [{ harness: "codex", model: "m" }],
       trials: 1,
-      cases: [{ name: "a", verify: "true" }],
+      cases: [{ id: "a", name: "a", verify: "true" }],
     });
 
     await expect(compileDefinition(orphan)).rejects.toThrow(NOT_EXPORTED);

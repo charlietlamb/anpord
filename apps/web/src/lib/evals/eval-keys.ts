@@ -11,10 +11,14 @@ export const evalKeys = {
   playground: (id: string) => [...evalKeys.all, "playground", id] as const,
   playgrounds: () => [...evalKeys.all, "playground"] as const,
 
+  tail: (id: string) => [...evalKeys.all, "tail", id] as const,
+
   subscription: (id: string) => [...evalKeys.all, "subscription", id] as const,
 
   cases: (tag: string | null) =>
     [...evalKeys.all, "cases", tag ?? "all"] as const,
+
+  case: (id: string) => [...evalKeys.all, "case", id] as const,
 
   history: (cellKey: string) =>
     [...evalKeys.all, "cell", cellKey, "history"] as const,

@@ -50,7 +50,7 @@ describe("starting from an imported eval", () => {
     try {
       const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
       await anpord.evals.start({
-        cases: [{ name: "a", verify: "true" }],
+        cases: [{ id: "a", name: "a", verify: "true" }],
         prompt: "{{task}}",
         tasks: [{ harness: "codex", model: "m" }],
         trials: 1,

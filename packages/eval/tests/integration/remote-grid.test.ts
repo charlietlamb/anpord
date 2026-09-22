@@ -24,6 +24,7 @@ import { CredentialResolver } from "../../src/credentials/resolver";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive } from "../../src/layer";
 import { ModelPrices } from "../../src/ports/model-source";
+import { RunBellSilent } from "../../src/ports/run-bell";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import { TrialRunner } from "../../src/ports/trial-runner";
 import { RunRepository } from "../../src/repositories/run-repository";
@@ -53,6 +54,7 @@ const TestLayer = GridRunLive.pipe(
     Layer.succeed(ModelPrices, { forModel: () => Effect.succeedNone })
   ),
   Layer.provide(Layer.succeed(TrialRunner, { dispatch: () => Effect.void })),
+  Layer.provide(RunBellSilent),
   Layer.provide(IdGeneratorLive),
   Layer.provideMerge(DatabaseLive),
   Layer.provide(
@@ -97,6 +99,7 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
         const id = yield* grid.start({
           cases: [
             {
+              id: "fixture",
               name: "fixture",
               prepare: null,
               source: { kind: "empty" },

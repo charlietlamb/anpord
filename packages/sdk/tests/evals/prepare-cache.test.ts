@@ -55,7 +55,7 @@ describe("what a case says it keeps", () => {
      and so cannot be told where to look by it. */
   test("reaches the payload the runner is given", async () => {
     const payload = await compiled(
-      `{ cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
+      `{ id: "c", cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
 
     expect(payload.cases[0]?.cache).toEqual({
@@ -66,7 +66,7 @@ describe("what a case says it keeps", () => {
 
   test("is absent when the case keeps nothing", async () => {
     const payload = await compiled(
-      `{ name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
+      `{ id: "c", name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
 
     expect(payload.cases[0]?.cache).toBeUndefined();
@@ -76,7 +76,7 @@ describe("what a case says it keeps", () => {
 describe("what a prepare is told", () => {
   test("knows the runner restored what the case keeps", async () => {
     const payload = await compiled(
-      `{ cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
+      `{ id: "c", cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
     const script = join(workspace as string, "prepare.mjs");
     await writeFile(script, payload.cases[0]?.prepare?.source ?? "");
@@ -88,7 +88,7 @@ describe("what a prepare is told", () => {
 
   test("knows when it did not", async () => {
     const payload = await compiled(
-      `{ cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
+      `{ id: "c", cache: { key: "deps-v1", path: "node_modules" }, name: "c", prepare: install, variables: { task: "x" }, verify: "true" }`
     );
     const script = join(workspace as string, "prepare.mjs");
     await writeFile(script, payload.cases[0]?.prepare?.source ?? "");

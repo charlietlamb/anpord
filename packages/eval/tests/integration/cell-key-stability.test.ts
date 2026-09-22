@@ -60,6 +60,7 @@ const startOne = () =>
         cases: [
           {
             variables: { task: "the tests already pass, change nothing" },
+            id: "stable-case",
             name: "stable-case",
             prepare: null,
             source: fixedSource,

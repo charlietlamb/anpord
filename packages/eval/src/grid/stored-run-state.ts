@@ -145,6 +145,7 @@ export const runToState = (
     return {
       caseName,
       cellKey: entry.cell.cellKey,
+      definitionHash: entry.definitionHash,
       live: new Map(),
       distribution: Option.some(entry.distribution),
       internalId: entry.cell.internalId,

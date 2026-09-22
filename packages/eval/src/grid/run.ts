@@ -16,7 +16,8 @@ export interface ResumeGrid {
   readonly created: { readonly id: string; readonly internalId: string };
   readonly input: StartGrid;
   readonly registered: readonly {
-    readonly id: string;
+    readonly caseInternalId: string;
+    readonly definitionHash: string;
     readonly internalId: string;
   }[];
 }

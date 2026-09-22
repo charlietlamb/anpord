@@ -10,6 +10,7 @@ export const conversation = suite({
   trials: 1,
   cases: [
     {
+      id: "asks-before-it-pushes",
       name: "asks before it pushes",
       user: human({
         goal: "Get Pro live, not just written to a file.",

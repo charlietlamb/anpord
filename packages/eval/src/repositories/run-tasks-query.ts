@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
@@ -38,7 +39,9 @@ type CellProfile = typeof evalHarnessProfile.$inferSelect;
 export interface CellTask {
   readonly cacheKey: string | null;
   readonly cachePath: string | null;
+  readonly caseInternalId: string;
   readonly cell: CellRow;
+  readonly definitionHash: string;
   readonly identity: string;
   readonly name: string;
   readonly prepareName: string | null;
@@ -73,8 +76,10 @@ const CELL_TASK_COLUMNS = {
   trigger: evalRun.trigger,
   cacheKey: evalTask.cacheKey,
   cachePath: evalTask.cachePath,
+  caseInternalId: evalTask.caseInternalId,
   cell: evalCell,
-  identity: evalTask.id,
+  definitionHash: evalTask.definitionHash,
+  identity: evalCase.id,
   name: evalTask.name,
   prepareName: evalTask.prepareName,
   prepareSource: evalTask.prepareSource,
@@ -100,6 +105,7 @@ export const runTasksQuery = Effect.map(Database, (db) => {
         .select(CELL_TASK_COLUMNS)
         .from(evalCell)
         .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
+        .innerJoin(evalCase, eq(evalTask.caseInternalId, evalCase.internalId))
         .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
         .leftJoin(
           evalHarnessProfile,

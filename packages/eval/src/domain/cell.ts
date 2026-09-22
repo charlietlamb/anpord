@@ -15,27 +15,25 @@ export type CellKey = typeof CellKey.Type;
 /* The harness version and the profile version are compared across readings,
    never part of the key. The profile name is. */
 export interface CellParts {
+  readonly caseInternalId: string;
   readonly harness: HarnessName;
   readonly model: string;
   readonly profile: string | null;
   readonly provider: ProviderName;
-  readonly taskId: string;
-  readonly taskVersion: string;
   /* A simulated user conducts the conversation the agent is judged on, so two
      runs led by different users are not the same cell. */
   readonly userModel: string | null;
 }
 
 /* Newline-joined so SQL can recompute it: Postgres text cannot hold NUL. The
-   profile name is a sixth part only when there is one and the user model a
-   seventh, so every key from before either existed is byte-identical. */
+   profile name is a fourth part only when there is one and the user model a
+   fifth, so a key is byte-identical whether or not either exists. */
 export const cellKeyOf = (parts: CellParts): CellKey =>
   CellKey.make(
     createHash("sha256")
       .update(
         [
-          parts.taskId,
-          parts.taskVersion,
+          parts.caseInternalId,
           parts.harness,
           parts.model,
           parts.provider,

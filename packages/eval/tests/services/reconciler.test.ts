@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
@@ -12,7 +13,7 @@ import { Duration, Effect, Layer, Redacted } from "effect";
 import { AbandonedWorkLive } from "../../src/repositories/abandoned-work";
 import { Reconciler, ReconcilerLive } from "../../src/services/reconciler";
 import { skipWithoutDatabase } from "../fixtures/database";
-import { taskFixture } from "../fixtures/eval-rows";
+import { caseFixture, taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -108,6 +109,14 @@ describe.skipIf(skipWithoutDatabase())("Reconciler", () => {
               slug: `rec2-${suffix}`,
             })
             .onConflictDoNothing();
+
+          await db.insert(evalCase).values(
+            caseFixture.values({
+              id: `task_${suffix}`,
+              internalId: `taskint_${suffix}`,
+              organizationId,
+            })
+          );
 
           await db.insert(evalTask).values(
             taskFixture.values({

@@ -126,6 +126,7 @@ describe("validation", () => {
         cases: [
           {
             variables: { task: "Write hello.txt" },
+            id: "writes-a-file",
             name: "writes a file",
             verify: "test -f hello.txt",
           },
@@ -147,6 +148,7 @@ describe("validation", () => {
         cases: [
           {
             variables: { task: "Write hello.txt" },
+            id: "writes-a-file",
             name: "writes a file",
             verify: "test -f hello.txt",
           },

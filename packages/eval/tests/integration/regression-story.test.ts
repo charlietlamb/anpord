@@ -29,6 +29,7 @@ const TestLayer = EvalBaselinesLive.pipe(
 const suffix = Date.now();
 const organizationId = `org_story_${suffix}`;
 const taskInternalId = `taskint_story_${suffix}`;
+const caseInternalId = `ecas_${taskInternalId}`;
 
 type Tags = Baselines | Database | RunRepository | TrialRecorder;
 
@@ -42,9 +43,7 @@ const cellKey = cellKeyOf({
   model: "gpt-5",
   profile: null,
   provider: "daytona",
-  taskId: `task_story_${suffix}`,
-  taskVersion: taskInternalId,
-
+  caseInternalId,
   userModel: null,
 });
 

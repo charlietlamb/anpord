@@ -39,6 +39,7 @@ export const runDetailQuery = Effect.gen(function* () {
         db
           .select({
             caseName: evalTask.name,
+            definitionHash: evalTask.definitionHash,
             cell: cellColumns,
             prompt: evalCell.prompt,
             repoRef: evalTask.repoRef,
@@ -92,6 +93,7 @@ export const runDetailQuery = Effect.gen(function* () {
             db
               .select({
                 caseName: evalTask.name,
+                definitionHash: evalTask.definitionHash,
                 cell: cellColumns,
                 prompt: evalCell.prompt,
                 repoRef: evalTask.repoRef,

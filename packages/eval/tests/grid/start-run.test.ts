@@ -4,6 +4,7 @@ import { connectionNotFound } from "../../src/credentials/errors";
 import { CredentialResolver } from "../../src/credentials/resolver";
 import { makeStartRun } from "../../src/grid/start-run";
 import { TrialRunner } from "../../src/ports/trial-runner";
+import { CaseRepository } from "../../src/repositories/case-repository";
 import { HarnessProfileRepository } from "../../src/repositories/harness-profile-repository";
 import { RunRepository } from "../../src/repositories/run-repository";
 import { TaskRepository } from "../../src/repositories/task-repository";
@@ -40,8 +41,12 @@ const start = (input: {
   } as never);
 
   const tasks = Layer.succeed(TaskRepository, {
-    upsertByIdentity: () =>
-      Effect.succeed({ id: "tsk_1", internalId: "tin_1" }),
+    upsertByDefinition: () =>
+      Effect.succeed({ caseInternalId: "ecas_1", internalId: "tin_1" }),
+  } as never);
+
+  const cases = Layer.succeed(CaseRepository, {
+    resolve: () => Effect.succeed({ id: "a-case", internalId: "ecas_1" }),
   } as never);
 
   const profiles = Layer.succeed(HarnessProfileRepository, {
@@ -53,7 +58,14 @@ const start = (input: {
   return makeStartRun(() => Effect.void, live).pipe(
     Effect.flatMap((run) =>
       run({
-        cases: [{ source: { kind: "empty" }, user: input.user, variables: {} }],
+        cases: [
+          {
+            id: "a-case",
+            source: { kind: "empty" },
+            user: input.user,
+            variables: {},
+          },
+        ],
         name: "s",
         organizationId: "org_1",
         prompt: "p",
@@ -62,7 +74,9 @@ const start = (input: {
         trials: 1,
       } as never)
     ),
-    Effect.provide(Layer.mergeAll(runs, runner, unconnected, tasks, profiles)),
+    Effect.provide(
+      Layer.mergeAll(runs, runner, unconnected, tasks, cases, profiles)
+    ),
     Effect.exit,
     Effect.map((exit) => ({ exit, finished, inserted }))
   );

@@ -11,6 +11,7 @@ export const smoke = suite({
   trials: 1,
   cases: [
     {
+      id: "writes-hello",
       name: "writes hello",
       validate: async ({ readText }) => ({
         passed: (await readText("hello.txt")) === expected,

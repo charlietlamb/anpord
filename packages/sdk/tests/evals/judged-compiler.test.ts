@@ -22,7 +22,7 @@ import { judge } from "anpord/validators";
 const correctness = judge({ name: "correctness", harness: "codex", model: "exact-model", prompt: "Matches expected", choices: { correct: 1, incorrect: 0 } });
 export default suite({ name: "judged", source: empty, prompt: "Answer", trials: 1,
   tasks: [{ harness: "codex", model: "task-model", provider: "e2b" }],
-  cases: [{ name: "answer", validate: ${validate} }],
+  cases: [{ id: "answer", name: "answer", validate: ${validate} }],
 });`
   );
   return (await compileEval(entry)).cases[0]?.validator;

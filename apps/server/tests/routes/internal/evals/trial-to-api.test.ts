@@ -14,6 +14,7 @@ const trial = (events: readonly HarnessEvent[]) => {
   const cell: GridCell = {
     caseName: "lookup",
     cellKey: null,
+    definitionHash: null,
     distribution: Option.none(),
     internalId: null,
     live: new Map([[1, events]]),
@@ -126,6 +127,7 @@ test("preserves validation and artifact evidence through API serialization", () 
   const cell: GridCell = {
     caseName: "lookup",
     cellKey: null,
+    definitionHash: null,
     distribution: Option.none(),
     internalId: null,
     live: new Map(),

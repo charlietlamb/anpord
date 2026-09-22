@@ -10,7 +10,13 @@ export default suite({
   api: [catalogApi],
   prompt:
     "Use the local catalog HTTP API. First request item missing. If it does not exist, list the items and retrieve ci_fixture. Report its name. Do not install tools or contact external APIs.",
-  cases: [{ name: "retrieve-item", validate: [validateApi, correctItem] }],
+  cases: [
+    {
+      id: "api-retrieve-item",
+      name: "retrieve-item",
+      validate: [validateApi, correctItem],
+    },
+  ],
   tasks,
   trials,
 });

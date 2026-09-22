@@ -37,7 +37,7 @@ describe("a suite too large to submit", () => {
      harnesses rather than its cases, and splitting by case would not help. */
   it("blames the tasks when they carry the weight", () => {
     const request = {
-      cases: [{ name: "c", validator: { source: "x" } }],
+      cases: [{ id: "c", name: "c", validator: { source: "x" } }],
       name: "grid",
       prompt: "p",
       tasks: Array.from({ length: 8 }, () => ({

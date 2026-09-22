@@ -25,6 +25,7 @@ import { HarnessUnavailable } from "../../src/domain/errors";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive, EvalSandboxLive } from "../../src/layer";
 import { Harnesses } from "../../src/ports/harness";
+import { RunBellSilent } from "../../src/ports/run-bell";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import { TrialRunnerInProcess } from "../../src/ports/trial-runner";
 import { RunQuery } from "../../src/repositories/run-query";
@@ -100,6 +101,7 @@ const oneCommandHarness = Layer.succeed(
 
 const grid = GridRunLive.pipe(
   Layer.provide(TrialRunnerInProcess),
+  Layer.provide(RunBellSilent),
   Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
   Layer.provide(BaselinesLive),
   Layer.provideMerge(BaselinesLive)
@@ -262,6 +264,7 @@ const wave = (provider: ProviderName, ready: boolean) =>
               return yield* grid.start({
                 cases: [
                   {
+                    id: "say-hello",
                     name: "say-hello",
                     prepare: null,
                     source: { kind: "empty" },

@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
@@ -12,6 +13,7 @@ import { CellKey } from "../../src/domain/cell";
 import { EvalBaselinesLive } from "../../src/layer";
 import { Baselines } from "../../src/services/baselines";
 import { skipWithoutDatabase } from "../fixtures/database";
+import { caseFixture, taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -125,15 +127,21 @@ describe.skipIf(skipWithoutDatabase())("Baselines", () => {
             })
             .onConflictDoNothing();
 
-          await db.insert(evalTask).values({
-            id: `task_${suffix}`,
-            internalId: `taskint_${suffix}`,
-            name: "baseline",
-            organizationId,
-            prompt: "p",
-            verifyCommand: "true",
-            workspace: "/tmp/x",
-          });
+          await db.insert(evalCase).values(
+            caseFixture.values({
+              id: `task_${suffix}`,
+              internalId: `taskint_${suffix}`,
+              organizationId,
+            })
+          );
+
+          await db.insert(evalTask).values(
+            taskFixture.values({
+              id: `task_${suffix}`,
+              internalId: `taskint_${suffix}`,
+              organizationId,
+            })
+          );
         });
       })
     );

@@ -1,7 +1,9 @@
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
+import { asEntries } from "@anpord/eval/domain/journal-entries";
 import { GridRun } from "@anpord/eval/grid/run";
+import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
@@ -9,6 +11,7 @@ import { authorIdOf } from "@anpord/schema/domain/actor";
 import { BadRequest, NotFound } from "@anpord/schema/domain/errors";
 import type { RerunCellRequest } from "@anpord/schema/domain/eval-playground";
 import { trialsRequested } from "@anpord/schema/domain/eval-quota";
+import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import {
   DEFAULT_SANDBOX,
   EVAL_SANDBOXES,
@@ -149,6 +152,30 @@ export const getRunSubscription = (id: string) =>
     return yield* mintRunSubscription(id);
   });
 
+export const readRunTail = (id: string, after: readonly EvalTailMark[]) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const query = yield* RunQuery;
+    const found = yield* query
+      .readTail({ after, organizationId: actor.organizationId, runId: id })
+      .pipe(Effect.orDie);
+
+    if (Option.isNone(found)) {
+      return yield* Effect.fail(
+        new NotFound({ message: `No eval run with id "${id}"` })
+      );
+    }
+
+    return {
+      events: found.value.events.flatMap(({ event, ...address }) =>
+        asEntries(event).map((entry) => ({ ...address, entry }))
+      ),
+      next: found.value.next,
+      running: found.value.running,
+      settled: found.value.settled,
+    };
+  }).pipe(Effect.withSpan("Evals.readRunTail", { attributes: { runId: id } }));
+
 export const getEvalRun = (id: string) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
@@ -169,6 +196,7 @@ export const getEvalRun = (id: string) =>
           const task = found.value.tasks[cell.taskIndex];
 
           return cell.cellKey === null ||
+            cell.definitionHash === null ||
             cell.internalId === null ||
             task === undefined ||
             Option.isNone(cell.distribution)
@@ -177,6 +205,7 @@ export const getEvalRun = (id: string) =>
                 {
                   cellInternalId: cell.internalId,
                   cellKey: cell.cellKey,
+                  definitionHash: cell.definitionHash,
                   distribution: cell.distribution.value,
                   harnessVersion: task.harnessVersion,
                   profileVersion: task.profile?.version ?? null,
@@ -200,6 +229,41 @@ export const getCellHistory = (cellKey: string) =>
     });
 
     return entries.map(toReadingView);
+  }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
+
+export const getCase = (id: string) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const baselines = yield* Baselines;
+    const query = yield* RunQuery;
+    const found = yield* query.findCase({
+      id,
+      organizationId: actor.organizationId,
+    });
+
+    if (Option.isNone(found)) {
+      return yield* Effect.fail(
+        new NotFound({ message: `No eval case with id "${id}"` })
+      );
+    }
+
+    const entries = yield* baselines.history({
+      cellKey: found.value.cellKey,
+      limit: HISTORY_LIMIT,
+      organizationId: actor.organizationId,
+    });
+
+    return {
+      cellKey: found.value.cellKey,
+      harness: found.value.harness,
+      history: entries.map(toReadingView),
+      id,
+      lastRunId: found.value.lastRunId,
+      model: found.value.model,
+      name: found.value.name,
+      suite: found.value.suite,
+      tags: found.value.tags,
+    };
   }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
 
 export const rerunEvalCell = (

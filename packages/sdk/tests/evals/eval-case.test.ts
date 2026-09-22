@@ -6,6 +6,7 @@ const tasks = [{ harness: "codex" as const, model: "m" }];
 describe("a single case", () => {
   it("reads as a suite of one", () => {
     const definition = evalCase({
+      id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
       tasks,
@@ -23,6 +24,7 @@ describe("a single case", () => {
      carries a field the other owns. */
   it("keeps the prompt out of the case it wraps", () => {
     const definition = evalCase({
+      id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
       tasks,
@@ -36,6 +38,7 @@ describe("a single case", () => {
 
   it("carries tags to the case", () => {
     const definition = evalCase({
+      id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
       tags: ["billing"],
@@ -51,6 +54,7 @@ describe("a single case", () => {
      report its caller rather than the module it is defined in. */
   it("records the file that declared it", () => {
     const definition = evalCase({
+      id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
       tasks,

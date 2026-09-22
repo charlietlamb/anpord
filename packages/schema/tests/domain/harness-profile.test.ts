@@ -6,7 +6,14 @@ import { PublicStartEvalRequest } from "../../src/public/evals-api";
 const path = Schema.decodeUnknownSync(ProfilePath);
 
 const requestWith = (task: Record<string, unknown>) => ({
-  cases: [{ name: "case", variables: { task: "Fix it" }, verify: "true" }],
+  cases: [
+    {
+      id: "a-case",
+      name: "case",
+      variables: { task: "Fix it" },
+      verify: "true",
+    },
+  ],
   prompt: "{{task}}",
   tasks: [task],
   trials: 1,

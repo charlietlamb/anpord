@@ -3,47 +3,46 @@ import { createHash } from "node:crypto";
 import { type CellParts, cellKeyOf } from "../../src/domain/cell";
 
 const parts: CellParts = {
+  caseInternalId: "ecas_9EKR3ZHZF24TFM16N0WJ72H",
   harness: "codex",
   model: "gpt-5.2",
   profile: null,
   provider: "daytona",
-  taskId: "fix-parser",
-  taskVersion: "abc123",
   userModel: null,
 };
+
+const digest = (parts: string) =>
+  createHash("sha256").update(parts).digest("hex").slice(0, 32);
 
 describe("cellKeyOf", () => {
   it("is stable for the same parts", () => {
     expect(cellKeyOf(parts)).toBe(cellKeyOf({ ...parts }));
   });
 
-  /* The recipe is what migration 0033 recomputes in SQL, so it is pinned here:
-     sha256 over the parts joined by newline, first 32 hex characters. A change
-     to either side without the other silently splits every history. */
   it("is the recipe the migration recomputes", () => {
-    const expected = createHash("sha256")
-      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona")
-      .digest("hex")
-      .slice(0, 32);
-
-    expect<string>(cellKeyOf(parts)).toBe(expected);
+    expect<string>(cellKeyOf(parts)).toBe(
+      digest("ecas_9EKR3ZHZF24TFM16N0WJ72H\ncodex\ngpt-5.2\ndaytona")
+    );
   });
 
   it("changes when the provider changes", () => {
     expect(cellKeyOf({ ...parts, provider: "e2b" })).not.toBe(cellKeyOf(parts));
   });
 
-  it("changes when the task changes", () => {
-    expect(cellKeyOf({ ...parts, taskVersion: "def456" })).not.toBe(
+  it("changes when the case changes", () => {
+    expect(cellKeyOf({ ...parts, caseInternalId: "ecas_other" })).not.toBe(
       cellKeyOf(parts)
     );
   });
 
+  it("holds across an edit to the case definition", () => {
+    expect(cellKeyOf({ ...parts })).toBe(cellKeyOf(parts));
+  });
+
   it("appends the profile name, leaving keys without one untouched", () => {
-    const expected = createHash("sha256")
-      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona\nsample")
-      .digest("hex")
-      .slice(0, 32);
+    const expected = digest(
+      "ecas_9EKR3ZHZF24TFM16N0WJ72H\ncodex\ngpt-5.2\ndaytona\nsample"
+    );
 
     expect<string>(cellKeyOf({ ...parts, profile: "sample" })).toBe(expected);
     expect(cellKeyOf({ ...parts, profile: "sample" })).not.toBe(
@@ -51,13 +50,10 @@ describe("cellKeyOf", () => {
     );
   });
 
-  /* The seventh part, so a run led by one simulated user is not compared
-     against a run led by another. */
   it("appends the user model, leaving keys without one untouched", () => {
-    const expected = createHash("sha256")
-      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona\ngpt-5.4-mini")
-      .digest("hex")
-      .slice(0, 32);
+    const expected = digest(
+      "ecas_9EKR3ZHZF24TFM16N0WJ72H\ncodex\ngpt-5.2\ndaytona\ngpt-5.4-mini"
+    );
 
     expect<string>(cellKeyOf({ ...parts, userModel: "gpt-5.4-mini" })).toBe(
       expected
@@ -74,10 +70,9 @@ describe("cellKeyOf", () => {
   });
 
   it("orders the profile before the user model", () => {
-    const expected = createHash("sha256")
-      .update("fix-parser\nabc123\ncodex\ngpt-5.2\ndaytona\nsample\nmini")
-      .digest("hex")
-      .slice(0, 32);
+    const expected = digest(
+      "ecas_9EKR3ZHZF24TFM16N0WJ72H\ncodex\ngpt-5.2\ndaytona\nsample\nmini"
+    );
 
     expect<string>(
       cellKeyOf({ ...parts, profile: "sample", userModel: "mini" })

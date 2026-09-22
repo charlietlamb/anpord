@@ -1,7 +1,12 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
-import { EvalCaseName, EvalPrompt, EvalVerify } from "../domain/eval-limits";
+import {
+  EvalCaseId,
+  EvalCaseName,
+  EvalPrompt,
+  EvalVerify,
+} from "../domain/eval-limits";
 import {
   ModelCatalogue,
   RerunCellRequest,
@@ -13,6 +18,7 @@ import {
   MAX_START_TASKS,
   MAX_START_TRIALS,
 } from "../domain/eval-quota";
+import { EvalRunTail, EvalRunTailRequest } from "../domain/eval-tail";
 import { EvalTrigger } from "../domain/eval-trigger";
 import { EvalUser } from "../domain/eval-turns";
 import {
@@ -84,6 +90,7 @@ export const ListEvalsRequest = Schema.Struct({
 
 const PublicEvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
+  id: EvalCaseId,
   name: EvalCaseName,
   prepare: Schema.optional(Schema.NullOr(EvalPrepare)),
   source: Schema.optional(EvalSource),
@@ -261,6 +268,12 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
         OpenApi.Description,
         "Returns a read-only token scoped to this run, for following it in real time. Short-lived: request another when it expires."
       )
+  )
+  .add(
+    HttpApiEndpoint.post("tail", "/evals.tail")
+      .setPayload(EvalRunTailRequest)
+      .addSuccess(EvalRunTail)
+      .annotate(OpenApi.Exclude, true)
   )
   .add(
     HttpApiEndpoint.post("cellHistory", "/evals.cellHistory")

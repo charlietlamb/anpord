@@ -10,7 +10,9 @@ import { make } from "../../src/services/cell-rerun";
 
 const cellTask = (source: WorkspaceSource | null): CellTask => ({
   trigger: { source: "ci" },
+  caseInternalId: "ecas_fixture",
   cacheKey: null,
+  definitionHash: "def_fixture",
   cachePath: null,
   cell: {
     harness: "codex",
@@ -61,6 +63,7 @@ const layer = (
       RunQuery.of({
         countRunning: () => Effect.succeed(0),
         countRuns: () => Effect.succeed(0),
+        findCase: () => Effect.succeed(Option.none()),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
         findRunTasks: () => Effect.succeed([]),
@@ -71,6 +74,7 @@ const layer = (
         listRuns: () => Effect.succeed([]),
 
         listTags: () => Effect.succeed([]),
+        readTail: () => Effect.succeedNone,
       })
     )
   );
@@ -118,7 +122,7 @@ test("cell reruns preserve file workspaces", async () => {
   );
 
   expect(id).toBe("run_new");
-  expect(started?.cases[0]?.identity).toBe("task_identity");
+  expect(started?.cases[0]?.id).toBe("task_identity");
   expect(started?.name).toBe("planner-core");
   expect(started?.prompt).toBe("Fix the browser task");
   expect(started?.cases[0]?.source).toEqual(source);

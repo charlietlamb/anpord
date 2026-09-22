@@ -83,7 +83,8 @@ export const rebuildRun = (
       /* Indexed by case, because that is how the grid reads it: one entry per
          case, not per cell. */
       registered: rebuilt.cases.map((subject) => ({
-        id: subject.identity,
+        caseInternalId: subject.caseInternalId,
+        definitionHash: subject.definitionHash,
         internalId: subject.cell.taskInternalId,
       })),
     } satisfies ResumeGrid;

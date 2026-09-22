@@ -1,6 +1,6 @@
 import { Sandbox as E2BSandbox } from "e2b";
 import { Effect } from "effect";
-import { sandboxUnavailable } from "../../domain/errors";
+import { describeFailure, sandboxUnavailable } from "../../domain/errors";
 import type {
   ExecOptions,
   OpenSandbox,
@@ -38,14 +38,20 @@ const toCommandResult = (rejection: unknown): CommandResult | null => {
     : null;
 };
 
-const unavailable = (reason: unknown) => sandboxUnavailable("e2b", reason);
+const NAMED = 80;
+
+const unavailable = (during: string) => (reason: unknown) =>
+  sandboxUnavailable(
+    "e2b",
+    `${during.slice(0, NAMED)}: ${describeFailure(reason)}`
+  );
 
 const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
   cache: noCache,
   exec: (command, options?: ExecOptions) =>
     execStream((sink) =>
       Effect.tryPromise({
-        catch: unavailable,
+        catch: unavailable(`exec ${command}`),
         try: () =>
           sandbox.commands
             .run(command, {
@@ -72,7 +78,7 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
   resumable: noResumableCommands,
   writeFile: (path, content) =>
     Effect.tryPromise({
-      catch: unavailable,
+      catch: unavailable(`write ${path}`),
       try: () => sandbox.files.write(path, content),
     }).pipe(Effect.asVoid),
 });
@@ -84,17 +90,17 @@ export const makeConfiguredE2BAdapter = (
     (): SandboxAdapterShape => ({
       attach: (id) =>
         Effect.tryPromise({
-          catch: unavailable,
+          catch: unavailable("attach"),
           try: () => E2BSandbox.connect(id, { apiKey: values?.apiKey }),
         }).pipe(Effect.map((sandbox) => handleFor(sandbox, "/tmp/anpord"))),
       destroy: (handle) =>
         Effect.tryPromise({
-          catch: unavailable,
+          catch: unavailable("destroy"),
           try: () => E2BSandbox.kill(handle.id, { apiKey: values?.apiKey }),
         }).pipe(Effect.asVoid),
       open: (request: OpenSandbox) =>
         Effect.tryPromise({
-          catch: unavailable,
+          catch: unavailable("create"),
           try: () =>
             E2BSandbox.create({
               apiKey: values?.apiKey,
@@ -104,7 +110,7 @@ export const makeConfiguredE2BAdapter = (
           Effect.flatMap((sandbox) =>
             settingUp(
               Effect.tryPromise({
-                catch: unavailable,
+                catch: unavailable("create workspace"),
                 try: () =>
                   sandbox.commands.run(
                     `mkdir -p ${shellQuote(request.workspace)}`

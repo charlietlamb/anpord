@@ -1,5 +1,6 @@
 import { credentialResolverFrom } from "@anpord/eval/credentials/env-resolver";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
+import { asEntries } from "@anpord/eval/domain/journal-entries";
 import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
 import { HarnessVersions } from "@anpord/eval/services/harness-versions";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
@@ -9,6 +10,7 @@ import type {
   ReportedTrial,
 } from "@anpord/schema/public/evals-api";
 import { ConfigProvider, Effect, Option } from "effect";
+import { formatEntry } from "./eval-activity";
 import { localUsageLines } from "./eval-usage";
 import { localEnv } from "./local-env";
 import { note } from "./render";
@@ -54,6 +56,10 @@ export const runLocally = (
             harness: task.harness,
             harnessVersion,
             model: task.model,
+            onProgress: (events) =>
+              Effect.forEach(events.flatMap(asEntries), (entry) =>
+                note(`  ${subject.name}  ${formatEntry(entry)}`)
+              ).pipe(Effect.asVoid),
             prepare: subject.prepare ?? null,
             profile: profileOfRequest(task.profile),
             prompt: request.prompt,

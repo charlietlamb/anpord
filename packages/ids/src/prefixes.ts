@@ -6,6 +6,7 @@ export const ID_PREFIXES = {
   credentialAuthAttempt: "caa",
   credentialConnection: "con",
   evalBaseline: "bas",
+  evalCase: "ecas",
   evalCell: "cel",
   evalEvent: "evt",
   evalHarnessProfile: "hpf",

@@ -4,8 +4,13 @@ import {
   StartedEval,
 } from "@anpord/schema/domain/eval-playground";
 import {
+  EvalRunTail,
+  type EvalTailMark,
+} from "@anpord/schema/domain/eval-tail";
+import {
   EvalArtifact,
   type EvalArtifactRequest,
+  EvalCaseDetail,
   EvalCasePage,
   EvalCellHistoryEntry,
   type EvalHarness,
@@ -71,6 +76,12 @@ export const getRun = (id: string) =>
 
 export const getRunSubscription = (id: string) =>
   request(RunSubscription, `/evals/${encodeURIComponent(id)}/subscription`);
+
+export const readRunTail = (id: string, after: readonly EvalTailMark[]) =>
+  post(EvalRunTail, `/evals/${encodeURIComponent(id)}/tail`, { after });
+
+export const getCase = (id: string) =>
+  request(EvalCaseDetail, `/evals/cases/${encodeURIComponent(id)}`);
 
 export const listCellHistory = (cellKey: string) =>
   request(

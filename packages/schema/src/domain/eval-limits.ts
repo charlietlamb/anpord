@@ -7,6 +7,7 @@ const VERIFY_LIMIT = 8192;
 
 /* Read in a table cell and a cell key, never executed, so bounded by display rather than by the shell. */
 const NAME_LIMIT = 200;
+const ID_LIMIT = 100;
 const TAG_LIMIT = 40;
 const TAGS_PER_CASE = 12;
 
@@ -41,6 +42,19 @@ export const EvalCaseName = Schema.String.pipe(
     message: () => `A case name must be at most ${NAME_LIMIT} characters.`,
   })
 );
+
+export const EvalCaseId = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(ID_LIMIT),
+  Schema.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  Schema.annotations({
+    description: "The stable handle an author gives a case.",
+    identifier: "EvalCaseId",
+    message: () =>
+      `A case id must be at most ${ID_LIMIT} lowercase characters, digits and single hyphens, because it is the handle a case keeps across every edit.`,
+  })
+);
+export type EvalCaseId = typeof EvalCaseId.Type;
 
 /* Grouping is many to many, so a case carries several. Capped because these
    are read back as filters, not as content. */

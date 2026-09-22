@@ -24,6 +24,7 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
       taskInternalId: `internal-${name}`,
       ...over,
     },
+    caseInternalId: `ecas-${name}`,
     identity: `id-${name}`,
     name,
     prepareName: null,
@@ -129,7 +130,7 @@ describe("reading a case back from what was stored", () => {
   });
 
   test("keeps the identity the cell was registered under", () => {
-    expect(caseFrom(cell()).identity).toBe("id-a");
+    expect(caseFrom(cell()).id).toBe("id-a");
   });
 
   test("carries the connections a caller will resolve for itself", () => {
@@ -173,9 +174,9 @@ describe("rebuilding the grid a run was", () => {
   test("names each case once, so the grid can index them", async () => {
     const outcome = await rebuilding(square);
 
-    expect(outcome.right?.registered.map((row) => row.id)).toEqual([
-      "id-a",
-      "id-b",
+    expect(outcome.right?.registered.map((row) => row.caseInternalId)).toEqual([
+      "ecas-a",
+      "ecas-b",
     ]);
   });
 

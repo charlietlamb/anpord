@@ -25,6 +25,7 @@ export const comparisonSuite = (
       "{{transport}}\n\n{{instruction}}\n\nReturn only JSON. Do not install tools, inspect mock implementation files, or contact external APIs.",
     cases: transports.flatMap((transport) =>
       scenarios.map((scenario) => ({
+        id: `catalog-${transport}-${scenario.name}`,
         name: `${transport}/${scenario.name}`,
         variables: {
           transport: instructions[transport],

@@ -8,7 +8,7 @@ import {
 import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
 const request = {
-  cases: [{ name: "a case", verify: "true" }],
+  cases: [{ id: "a-case", name: "a case", verify: "true" }],
   prompt: "{{task}}",
   trials: 1,
 };

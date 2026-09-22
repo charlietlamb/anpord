@@ -34,6 +34,7 @@ const suffix = Date.now();
 const organizationId = `org_profile_${suffix}`;
 const taskId = `task_profile_${suffix}`;
 const taskInternalId = `taskint_profile_${suffix}`;
+const caseInternalId = `ecas_${taskInternalId}`;
 
 type Tags = Database | HarnessProfileRepository | RunQuery | RunRepository;
 
@@ -149,9 +150,7 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
               model: "anthropic/claude-sonnet-4.6",
               profile: row.name,
               provider: "daytona",
-              taskId,
-              taskVersion: taskInternalId,
-
+              caseInternalId,
               userModel: null,
             }),
             harness: "opencode" as const,

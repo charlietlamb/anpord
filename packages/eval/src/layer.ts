@@ -10,9 +10,11 @@ import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { SimulatedUserLive } from "./adapters/user/llm-user";
 import { GridRunLive } from "./grid/run";
 import { JudgeModelLive } from "./judges/layer";
+import { type RunBell, RunBellSilent } from "./ports/run-bell";
 import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { AbandonedWorkLive } from "./repositories/abandoned-work";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
+import { CaseRepositoryLive } from "./repositories/case-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { ExpiredRowsLive } from "./repositories/expired-rows";
 import { HarnessProfileRepositoryLive } from "./repositories/harness-profile-repository";
@@ -43,6 +45,7 @@ import { WorkbenchesLive } from "./services/workbench";
 
 export const EvalRepositoriesLive = Layer.mergeAll(
   BaselineRepositoryLive,
+  CaseRepositoryLive,
   EventRepositoryLive,
   HarnessProfileRepositoryLive,
   RunQueryLive,
@@ -80,21 +83,32 @@ export const EvalBaselinesLive = BaselinesLive.pipe(
 
 /* The runner is not provided here: where a run executes is a deployment decision
    this package cannot see, so the composition root passes one in. */
-const gridWith = (runner: Layer.Layer<TrialRunner, ConfigError>) =>
+const gridWith = (
+  runner: Layer.Layer<TrialRunner, ConfigError>,
+  bell: Layer.Layer<RunBell>
+) =>
   GridRunLive.pipe(
     Layer.provide(runner),
+    Layer.provide(bell),
     Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
     Layer.provide(BaselinesLive),
     Layer.provideMerge(BaselinesLive)
   );
 
 /* A sleeping suspender holds the process; a durable runner passes one that
-   suspends instead and stops paying for the wait. */
+   suspends instead and stops paying for the wait. A silent bell leaves readers
+   to their poll; a runner that can be subscribed to passes one that wakes them. */
 export const evalGridWith = (
   runner: Layer.Layer<TrialRunner, ConfigError>,
-  suspender: Layer.Layer<Suspender> = SuspenderSleeping
+  {
+    bell = RunBellSilent,
+    suspender = SuspenderSleeping,
+  }: {
+    readonly bell?: Layer.Layer<RunBell>;
+    readonly suspender?: Layer.Layer<Suspender>;
+  } = {}
 ) => {
-  const grid = gridWith(runner);
+  const grid = gridWith(runner, bell);
 
   return Layer.mergeAll(
     grid,

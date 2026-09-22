@@ -11,6 +11,7 @@ import {
   getRunSubscription,
   listEvalCases,
   listEvalRuns,
+  readRunTail,
   rerunEvalCell,
   startEvalRun,
 } from "../../evals/operations";
@@ -61,6 +62,9 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
         "subscription",
         { permission: Permissions.Evals.Read },
         ({ payload }) => getRunSubscription(payload.id)
+      )
+      .handle("tail", { permission: Permissions.Evals.Read }, ({ payload }) =>
+        readRunTail(payload.id, payload.after)
       )
       .handle(
         "cellHistory",

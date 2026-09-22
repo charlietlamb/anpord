@@ -3,7 +3,14 @@ import { Schema } from "effect";
 import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
 const request = {
-  cases: [{ variables: { task: "Fix it" }, name: "case", verify: "true" }],
+  cases: [
+    {
+      id: "a-case",
+      variables: { task: "Fix it" },
+      name: "case",
+      verify: "true",
+    },
+  ],
   name: "planner-core",
   prompt: "{{task}}",
   tasks: [
@@ -57,6 +64,7 @@ describe("TypeScript validators", () => {
       ...request,
       cases: [
         {
+          id: "a-case",
           variables: { task: "Fix it" },
           name: "case",
           validator: { name: "validateFix", source: "bundled JavaScript" },
@@ -76,6 +84,7 @@ describe("TypeScript validators", () => {
         ...request,
         cases: [
           {
+            id: "a-case",
             variables: { task: "Fix it" },
             name: "case",
             validator: { name: "validateFix", source: "bundled JavaScript" },

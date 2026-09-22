@@ -35,7 +35,7 @@ export default suite({
   name: "example", captureSource: ${captureSource}, source: empty,
   prompt: "Answer", trials: 1,
   tasks: [{ harness: "codex", model: "model", provider: "e2b" }],
-  cases: [{ name: "answer", validate: check }],
+  cases: [{ id: "answer", name: "answer", validate: check }],
 });
 `
   );

@@ -46,7 +46,7 @@ const resolveApiKey = (provided: string | undefined) => {
 type Prompts = Promised<AnpordClient["prompts"]>;
 type Prompt = Awaited<ReturnType<Prompts["get"]>>;
 
-type Evals = Promised<AnpordClient["evals"]>;
+type Evals = Omit<Promised<AnpordClient["evals"]>, "tail">;
 type StartOptions = Parameters<Evals["start"]>[0];
 type StartInput = StartOptions | EvalDefinition;
 type Run = Awaited<ReturnType<Evals["get"]>>;
@@ -98,7 +98,7 @@ export class Anpord {
     );
 
     const group = promised(client.prompts);
-    const evals = promised(client.evals);
+    const { tail: _tail, ...evals } = promised(client.evals);
 
     /* Checked on the way out rather than at compile time, so a suite too big
        to submit can still be compiled and inspected. */

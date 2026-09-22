@@ -15,10 +15,12 @@ import { authorized } from "../../../http/authorization/authorized-group";
 import { withEvalErrors } from "../../../http/eval-errors";
 import { getEvalArtifact } from "../../evals/artifacts";
 import {
+  getCase,
   getEvalRun,
   getRunSubscription,
   listEvalCases,
   listEvalRuns,
+  readRunTail,
 } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
 import {
@@ -62,6 +64,14 @@ export const EvalsHandlers = HttpApiBuilder.group(
         "subscription",
         { permission: Permissions.Evals.Read },
         ({ path }) => getRunSubscription(path.id)
+      )
+      .handle(
+        "tail",
+        { permission: Permissions.Evals.Read },
+        ({ path, payload }) => readRunTail(path.id, payload.after)
+      )
+      .handle("case", { permission: Permissions.Evals.Read }, ({ path }) =>
+        getCase(path.id)
       )
       .handle(
         "cellHistory",

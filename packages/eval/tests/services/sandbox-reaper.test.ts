@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
@@ -17,7 +18,7 @@ import {
   SandboxReaperLive,
 } from "../../src/services/sandbox-reaper";
 import { skipWithoutDatabase } from "../fixtures/database";
-import { taskFixture } from "../fixtures/eval-rows";
+import { caseFixture, taskFixture } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -81,6 +82,14 @@ describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
               slug: `reap-${suffix}`,
             })
             .onConflictDoNothing();
+
+          await db.insert(evalCase).values(
+            caseFixture.values({
+              id: `task_reap_${suffix}`,
+              internalId: `taskint_reap_${suffix}`,
+              organizationId,
+            })
+          );
 
           await db.insert(evalTask).values(
             taskFixture.values({

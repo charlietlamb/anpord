@@ -1,6 +1,12 @@
 import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
+import type { RunTail } from "../domain/tail";
+import {
+  type CaseDetail,
+  type CaseDetailInput,
+  caseDetailQuery,
+} from "./case-detail-query";
 import {
   type CaseSummary,
   caseListQuery,
@@ -14,6 +20,7 @@ import {
 import type { RunDetail } from "./run-detail";
 import { runDetailQuery } from "./run-detail-query";
 import { type ListRunsInput, runListQuery } from "./run-list-query";
+import { type RunTailInput, runTailQuery } from "./run-tail-query";
 import {
   type CellTask,
   type CellTaskInput,
@@ -33,6 +40,9 @@ export interface RunQueryShape {
   readonly countRuns: (
     organizationId: string
   ) => Effect.Effect<number, EvalStoreError>;
+  readonly findCase: (
+    input: CaseDetailInput
+  ) => Effect.Effect<Option.Option<CaseDetail>, EvalStoreError>;
   readonly findCellHistory: (
     input: CellHistoryInput
   ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
@@ -59,6 +69,9 @@ export interface RunQueryShape {
   readonly listTags: (
     organizationId: string
   ) => Effect.Effect<readonly string[], EvalStoreError>;
+  readonly readTail: (
+    input: RunTailInput
+  ) => Effect.Effect<Option.Option<RunTail>, EvalStoreError>;
 }
 
 export class RunQuery extends Context.Tag("@anpord/eval/RunQuery")<
@@ -74,10 +87,13 @@ export const RunQueryLive = Layer.effect(
     const history = yield* cellHistoryQuery;
     const tasks = yield* runTasksQuery;
     const cases = yield* caseListQuery;
+    const subject = yield* caseDetailQuery;
+    const tail = yield* runTailQuery;
 
     return RunQuery.of({
       countRunning: list.countRunning,
       countRuns: list.countRuns,
+      findCase: subject.findCase,
       findCellHistory: history.findCellHistory,
       findCellTask: tasks.findCellTask,
       findRunTasks: tasks.findRunTasks,
@@ -86,6 +102,7 @@ export const RunQueryLive = Layer.effect(
       findRun: detail.findRun,
       hydrateRuns: detail.hydrateRuns,
       listRuns: list.listRuns,
+      readTail: tail.readTail,
     });
   })
 );

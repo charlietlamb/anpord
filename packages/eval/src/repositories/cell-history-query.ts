@@ -2,6 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
+import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { and, desc, eq } from "drizzle-orm";
@@ -15,6 +16,7 @@ import { distributionFor, groupByCell } from "./trial-distribution";
 type TrialRow = typeof evalTrial.$inferSelect;
 
 export interface CellHistoryEntry {
+  readonly definitionHash: string;
   readonly distribution: Distribution;
   readonly finishedAt: Date | null;
   readonly harnessVersion: string;
@@ -43,11 +45,13 @@ export const cellHistoryQuery = Effect.gen(function* () {
         db
           .select({
             cell: evalCell,
+            definitionHash: evalTask.definitionHash,
             profileVersion: evalHarnessProfile.version,
             run: evalRun,
           })
           .from(evalCell)
           .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
+          .innerJoin(evalTask, eq(evalTask.internalId, evalCell.taskInternalId))
           .leftJoin(
             evalHarnessProfile,
             eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
@@ -70,6 +74,7 @@ export const cellHistoryQuery = Effect.gen(function* () {
 
       return cells.map(
         (row): CellHistoryEntry => ({
+          definitionHash: row.definitionHash,
           distribution: distributionFor(byCell.get(row.cell.internalId) ?? []),
           finishedAt: row.run.finishedAt,
           harnessVersion: row.cell.harnessVersion,

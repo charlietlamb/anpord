@@ -8,7 +8,7 @@ export default suite({
   name: "source-snapshot",
   source: empty,
   prompt: "Use the fixture",
-  cases: [{ name: "fixture", validate }],
+  cases: [{ id: "fixture", name: "fixture", validate }],
   tasks: [{ harness: "codex", model: "test", provider: "e2b" }],
   trials: 1,
 });

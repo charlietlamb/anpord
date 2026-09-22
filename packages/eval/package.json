@@ -33,6 +33,7 @@
   "exports": {
     "./adapters/models/codex-available": "./src/adapters/models/codex-available.ts",
     "./adapters/runner/trigger": "./src/adapters/runner/trigger.ts",
+    "./adapters/runner/trigger-bell": "./src/adapters/runner/trigger-bell.ts",
     "./adapters/runner/trigger-suspender": "./src/adapters/runner/trigger-suspender.ts",
     "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
     "./codebase/errors": "./src/codebase/errors.ts",
@@ -55,6 +56,7 @@
     "./domain/eval-costs": "./src/domain/eval-costs.ts",
     "./domain/harness-event": "./src/domain/harness-event.ts",
     "./domain/harness-profile": "./src/domain/harness-profile.ts",
+    "./domain/journal-entries": "./src/domain/journal-entries.ts",
     "./domain/journal": "./src/domain/journal.ts",
     "./domain/page": "./src/domain/page.ts",
     "./domain/playground-config": "./src/domain/playground-config.ts",

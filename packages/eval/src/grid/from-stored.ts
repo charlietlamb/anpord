@@ -18,7 +18,7 @@ export const caseFrom = (subject: CellTask): GridCase => ({
     subject.cacheKey === null || subject.cachePath === null
       ? undefined
       : { key: subject.cacheKey, path: subject.cachePath },
-  identity: subject.identity,
+  id: subject.identity,
   name: subject.name,
   prepare: pairOf(subject.prepareName, subject.prepareSource),
   source: subject.source ?? { kind: "empty" },

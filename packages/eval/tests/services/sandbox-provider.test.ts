@@ -1,5 +1,14 @@
 import { describe, expect, it } from "bun:test";
-import { Effect, Layer, Redacted, Ref, Stream } from "effect";
+import {
+  Effect,
+  Fiber,
+  Layer,
+  Redacted,
+  Ref,
+  Stream,
+  TestClock,
+  TestContext,
+} from "effect";
 import { SandboxUnavailable } from "../../src/domain/errors";
 import type { SandboxHandle } from "../../src/ports/sandbox";
 import { SandboxAdapters, SandboxProvider } from "../../src/ports/sandbox";
@@ -243,5 +252,42 @@ describe("SandboxProviderLive", () => {
 
     expect(state.destroyed).toBe(1);
     expect(state.now).toBe(0);
+  });
+
+  it("keeps the result when the sandbox will not be destroyed", async () => {
+    const refusing = Layer.succeed(
+      SandboxAdapters,
+      SandboxAdapters.of({
+        resolve: (provider) =>
+          Effect.succeed({
+            attach: (id) => Effect.succeed({ id } as SandboxHandle),
+            destroy: () =>
+              Effect.fail(
+                new SandboxUnavailable({ provider, reason: "destroy: 400" })
+              ),
+            open: () => Effect.succeed({ id: "sbx-1" } as SandboxHandle),
+            provider,
+          }),
+      })
+    );
+
+    const scored = await Effect.runPromise(
+      Effect.gen(function* () {
+        const used = yield* Effect.fork(
+          SandboxProvider.pipe(
+            Effect.flatMap((sandboxes) => sandboxes.open(openSandbox)),
+            Effect.as("scored"),
+            Effect.scoped,
+            Effect.provide(SandboxProviderLive.pipe(Layer.provide(refusing)))
+          )
+        );
+
+        yield* TestClock.adjust("1 minute");
+
+        return yield* Fiber.join(used);
+      }).pipe(Effect.provide(TestContext.TestContext))
+    );
+
+    expect(scored).toBe("scored");
   });
 });

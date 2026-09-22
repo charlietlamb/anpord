@@ -259,6 +259,7 @@ export const CELL: EvalCell = {
     candidatePassRate: 0.667,
     candidateProfileVersion: null,
     delta: -0.333,
+    definitionChanged: false,
     determinismLost: true,
     reason: null,
     verdict: "regressed",

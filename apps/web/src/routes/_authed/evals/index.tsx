@@ -29,13 +29,6 @@ import { useCursorStack } from "@/lib/use-cursor-stack";
 type EvalsView = "cases" | "runs";
 
 export const Route = createFileRoute("/_authed/evals/")({
-  ssr: false,
-  /* Not returned, so the list paints its skeleton rather than holding the
-     navigation until the first page of runs arrives. */
-  loader: ({ context }) => {
-    context.queryClient.prefetchQuery(evalQueries.list(null));
-  },
-  component: EvalsIndex,
   /* In the url rather than in state: which view and which tag is what a
      reader shares and returns to, and a refresh should not lose it. */
   validateSearch: (search): { tag?: string; view?: EvalsView } => ({
@@ -44,6 +37,13 @@ export const Route = createFileRoute("/_authed/evals/")({
       : {}),
     ...(search.view === "runs" ? { view: "runs" as const } : {}),
   }),
+  ssr: false,
+  /* Not returned, so the list paints its skeleton rather than holding the
+     navigation until the first page of runs arrives. */
+  loader: ({ context }) => {
+    context.queryClient.prefetchQuery(evalQueries.list(null));
+  },
+  component: EvalsIndex,
 });
 
 const VIEWS: readonly PageTabOption<EvalsView>[] = [

@@ -5,7 +5,7 @@ import { apiKeyConfig, ClientLayer, webUrlConfig } from "../client/config";
 import { compileEvalEffect } from "../evals/compiler";
 import { evalFilesIn } from "./eval-files";
 import { EvalGate, failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
-import { formatGridSummary, liveGrid } from "./eval-grid";
+import { formatGridSummary, type GridMode, liveGrid } from "./eval-grid";
 import { importEval } from "./eval-import";
 import { localProblems, reportLocal, runLocally } from "./eval-local";
 import type { EvalOutcome } from "./eval-outcome";
@@ -47,6 +47,14 @@ const output = Options.text("output").pipe(
   Options.withDescription("Write a JSON report to this file"),
   Options.optional
 );
+const gridModeOf = (wantsJson: boolean, live: boolean): GridMode => {
+  if (wantsJson) {
+    return "silent";
+  }
+
+  return live ? "grid" : "lines";
+};
+
 const describe = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
@@ -78,8 +86,11 @@ const runOneEval = (
         return pending;
       }
       const live = !options.wantsJson && (yield* attended);
-      const draw = yield* liveGrid(payload.trials, live);
-      const run = yield* waitForRun(runId, draw, options.timeoutSeconds);
+      const watcher = yield* liveGrid(
+        payload.trials,
+        gridModeOf(options.wantsJson, live)
+      );
+      const run = yield* waitForRun(runId, watcher, options.timeoutSeconds);
       yield* options.wantsJson
         ? json(run)
         : note(formatGridSummary(run, payload.trials, live));

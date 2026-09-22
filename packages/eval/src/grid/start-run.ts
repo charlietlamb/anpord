@@ -50,13 +50,12 @@ export const makeStartRun = (
                   : [
                       {
                         cellKey: cellKeyOf({
+                          caseInternalId: row.caseInternalId,
                           harness: task.harness,
                           model: task.model,
                           profile: task.profile?.name ?? null,
                           provider: task.provider,
-                          taskId: row.id,
                           userModel: userModelOf(subject.user, conductedBy),
-                          taskVersion: row.internalId,
                         }),
                         harness: task.harness,
                         harnessCredentialConnectionId:

@@ -10,7 +10,13 @@ export default suite({
   cli: [catalogCli],
   prompt:
     "Use the installed catalog CLI. Discover its commands with --help. First try to get item missing. If it does not exist, list the items and retrieve ci_fixture. Report its name. Do not install tools or contact external APIs.",
-  cases: [{ name: "retrieve-item", validate: [validateCli, correctItem] }],
+  cases: [
+    {
+      id: "cli-retrieve-item",
+      name: "retrieve-item",
+      validate: [validateCli, correctItem],
+    },
+  ],
   tasks,
   trials,
 });

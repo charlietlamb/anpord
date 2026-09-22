@@ -1,12 +1,25 @@
+import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
 import type { EvalRun } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Clock, Data, Duration, Effect, Fiber, Ref, Stream } from "effect";
+import { tailRun } from "./eval-tail";
 
 const TICK = 1000;
 
 const FLOOR_POLL = 15_000;
 
 const running = (run: EvalRun) => run.status === "running";
+
+const settledIn = (run: EvalRun) =>
+  run.cells
+    .flatMap((cell) => cell.trials)
+    .filter((trial) => trial.status !== "queued" && trial.status !== "running")
+    .length;
+
+export interface RunWatcher {
+  readonly draw: (run: EvalRun, elapsedMs: number) => Effect.Effect<void>;
+  readonly hear: (events: readonly EvalTailEvent[]) => Effect.Effect<void>;
+}
 
 class EvalWaitTimeout extends Data.TaggedError("EvalWaitTimeout")<{
   readonly runId: string;
@@ -19,7 +32,7 @@ class EvalWaitTimeout extends Data.TaggedError("EvalWaitTimeout")<{
 
 export const waitForRun = (
   id: string,
-  onProgress: (run: EvalRun, elapsedMs: number) => Effect.Effect<void>,
+  watcher: RunWatcher,
   timeoutSeconds: number
 ) =>
   Effect.gen(function* () {
@@ -36,7 +49,7 @@ export const waitForRun = (
       const run = yield* Ref.get(latest);
 
       if (run !== null) {
-        yield* onProgress(run, yield* elapsed);
+        yield* watcher.draw(run, yield* elapsed);
       }
     });
 
@@ -44,7 +57,7 @@ export const waitForRun = (
       const run = yield* api.evals.get({ payload: { id } });
 
       yield* Ref.set(latest, run);
-      yield* onProgress(run, yield* elapsed);
+      yield* watcher.draw(run, yield* elapsed);
 
       return run;
     });
@@ -60,8 +73,17 @@ export const waitForRun = (
     );
 
     const watching = yield* Effect.forkScoped(
-      watchRun(id, api).pipe(
-        Stream.runForEach(() => read),
+      tailRun(id, api).pipe(
+        Stream.runFoldEffect(settledIn(first), (seen, tail) =>
+          watcher
+            .hear(tail.events)
+            .pipe(
+              Effect.zipRight(
+                tail.settled === seen && tail.running ? Effect.void : read
+              ),
+              Effect.as(tail.settled)
+            )
+        ),
         Effect.catchAll(() => Effect.void)
       )
     );
@@ -83,26 +105,4 @@ export const waitForRun = (
         new EvalWaitTimeout({ runId: id, seconds: timeoutSeconds }),
     }),
     Effect.withSpan("Cli.waitForRun", { attributes: { runId: id } })
-  );
-
-const watchRun = (id: string, api: typeof AnpordApi.Service) =>
-  Stream.unwrap(
-    Effect.gen(function* () {
-      const { tag, token } = yield* api.evals.subscription({
-        payload: { id },
-      });
-
-      const subscription = yield* Effect.promise(async () => {
-        const { auth, runs } = await import("@trigger.dev/sdk");
-
-        return await auth.withAuth({ accessToken: token }, async () =>
-          runs.subscribeToRunsWithTag(tag)
-        );
-      });
-
-      return Stream.fromAsyncIterable(
-        subscription,
-        () => new Error("the run subscription ended")
-      );
-    })
   );

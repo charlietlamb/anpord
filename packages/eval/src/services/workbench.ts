@@ -4,6 +4,7 @@ import { Context, Effect, Layer, Option } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
 import { resolveTaskCredentials } from "../credentials/tasks";
+import { caseSlugOf } from "../domain/case-slug";
 import type { EvalStoreError } from "../domain/errors";
 import { NotRunnable } from "../domain/errors";
 import {
@@ -139,7 +140,8 @@ export const WorkbenchesLive = Layer.effect(
         );
 
         const runId = yield* grid.start({
-          cases: config.cases.map((subject) => ({
+          cases: config.cases.map((subject, index) => ({
+            id: `${found.value.id}-${caseSlugOf(subject.name, `case-${index + 1}`)}`,
             name: subject.name,
             prepare: null,
             source: subject.source,

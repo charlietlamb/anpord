@@ -1,4 +1,19 @@
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
+
+export const caseFixture = {
+  table: evalCase,
+  values: (input: {
+    readonly id: string;
+    readonly internalId: string;
+    readonly organizationId: string;
+  }) => ({
+    id: `case-${input.id}`,
+    internalId: `ecas_${input.internalId}`,
+    name: "fixture",
+    organizationId: input.organizationId,
+  }),
+};
 
 /** The task row every persistence test needs, in one place rather than
  * repeated in each file with its own spelling of the same columns. */
@@ -9,7 +24,8 @@ export const taskFixture = {
     readonly internalId: string;
     readonly organizationId: string;
   }) => ({
-    id: input.id,
+    caseInternalId: `ecas_${input.internalId}`,
+    definitionHash: input.id,
     internalId: input.internalId,
     name: "fixture",
     organizationId: input.organizationId,

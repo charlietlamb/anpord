@@ -2,6 +2,7 @@ import { Clock, Effect, Either, Option } from "effect";
 import { SourceTokens } from "../codebase/source-token";
 import { CellKey } from "../domain/cell";
 import { describeFailure } from "../domain/errors";
+import { RunBell } from "../ports/run-bell";
 import { RunRepository } from "../repositories/run-repository";
 import { TrialCostRepository } from "../repositories/trial-cost-repository";
 import { TrialRecorder } from "../repositories/trial-record";
@@ -23,6 +24,7 @@ export const makeRunCells = (live: LiveRuns) =>
   Effect.gen(function* () {
     const agent = yield* AgentTrial;
     const baselines = yield* Baselines;
+    const bell = yield* RunBell;
     const costs = yield* TrialCostRepository;
     const recorder = yield* TrialRecorder;
     const runs = yield* RunRepository;
@@ -54,13 +56,17 @@ export const makeRunCells = (live: LiveRuns) =>
                 agent,
                 costs,
                 onProgress: (ordinal, journal) =>
-                  live.update(created.id, (state) =>
-                    advanceTrial(state, position, ordinal, journal)
-                  ),
+                  live
+                    .update(created.id, (state) =>
+                      advanceTrial(state, position, ordinal, journal)
+                    )
+                    .pipe(Effect.zipRight(bell.ring)),
                 onTrial: (ordinal, trial) =>
-                  live.update(created.id, (state) =>
-                    settleTrial(state, position, ordinal, trial)
-                  ),
+                  live
+                    .update(created.id, (state) =>
+                      settleTrial(state, position, ordinal, trial)
+                    )
+                    .pipe(Effect.zipRight(bell.ring)),
                 organizationId: input.organizationId,
                 profile: profiles[taskIndex] ?? null,
                 prompt: input.prompt,
@@ -71,12 +77,15 @@ export const makeRunCells = (live: LiveRuns) =>
                 subject,
                 task,
                 taskInternalId: row.internalId,
-                taskPublicId: row.id,
+                caseInternalId: row.caseInternalId,
                 trials: input.trials,
               });
 
               yield* live.update(created.id, (state) =>
-                completeCell(state, position, result)
+                completeCell(state, position, {
+                  ...result,
+                  definitionHash: row.definitionHash,
+                })
               );
 
               yield* baselines

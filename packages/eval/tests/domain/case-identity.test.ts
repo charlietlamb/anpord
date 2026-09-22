@@ -3,7 +3,7 @@ import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 import {
   type CaseDefinition,
-  caseIdentityOf,
+  definitionHashOf,
 } from "../../src/domain/case-identity";
 
 const base: CaseDefinition = {
@@ -32,8 +32,8 @@ describe("case identity", () => {
         },
       ],
     });
-    expect(caseIdentityOf({ ...base, validator })).toBe(
-      caseIdentityOf({
+    expect(definitionHashOf({ ...base, validator })).toBe(
+      definitionHashOf({
         ...base,
         validator: {
           ...validator,
@@ -44,7 +44,7 @@ describe("case identity", () => {
   });
   it("changes when the judge model or prompt changes", () => {
     const identity = (model: string, prompt: string) =>
-      caseIdentityOf({
+      definitionHashOf({
         ...base,
         validator: Schema.decodeUnknownSync(EvalValidator)({
           kind: "judged",
@@ -66,7 +66,7 @@ describe("case identity", () => {
     expect(identity("one", "accurate")).not.toBe(identity("one", "concise"));
   });
   it("is stable for the same case", () => {
-    expect(caseIdentityOf(base)).toBe(caseIdentityOf({ ...base }));
+    expect(definitionHashOf(base)).toBe(definitionHashOf({ ...base }));
   });
 
   /** The property the whole comparison rests on. A prompt is the thing under
@@ -80,13 +80,13 @@ describe("case identity", () => {
       prompt: "work fast, read nothing",
     } as typeof withPrompt;
 
-    expect(caseIdentityOf(other)).toBe(caseIdentityOf(withPrompt));
+    expect(definitionHashOf(other)).toBe(definitionHashOf(withPrompt));
   });
 
   it("changes when the goal changes", () => {
     expect(
-      caseIdentityOf({ ...base, variables: { task: "something else" } })
-    ).not.toBe(caseIdentityOf(base));
+      definitionHashOf({ ...base, variables: { task: "something else" } })
+    ).not.toBe(definitionHashOf(base));
   });
 
   /** Editing a verifier means measuring a different thing, so the old
@@ -94,36 +94,36 @@ describe("case identity", () => {
    * across a moved goalpost. */
   it("changes when the verifier changes", () => {
     expect(
-      caseIdentityOf({ ...base, verifyCommand: "test -f other.svg" })
-    ).not.toBe(caseIdentityOf(base));
+      definitionHashOf({ ...base, verifyCommand: "test -f other.svg" })
+    ).not.toBe(definitionHashOf(base));
   });
 
   it("changes when the validator changes", () => {
     expect(
-      caseIdentityOf({
+      definitionHashOf({
         ...base,
         validator: { name: "validate", source: "new source" },
       })
-    ).not.toBe(caseIdentityOf(base));
+    ).not.toBe(definitionHashOf(base));
   });
 
   it("changes when the source changes", () => {
     expect(
-      caseIdentityOf({
+      definitionHashOf({
         ...base,
         source: { files: { "a.txt": "two" }, kind: "files" },
       })
-    ).not.toBe(caseIdentityOf(base));
+    ).not.toBe(definitionHashOf(base));
   });
 
   /** Two identical fixtures written in a different order are one case. */
   it("ignores the order files were written in", () => {
-    const first = caseIdentityOf({
+    const first = definitionHashOf({
       ...base,
       source: { files: { "a.txt": "one", "b.txt": "two" }, kind: "files" },
     });
 
-    const second = caseIdentityOf({
+    const second = definitionHashOf({
       ...base,
       source: { files: { "b.txt": "two", "a.txt": "one" }, kind: "files" },
     });
@@ -134,12 +134,18 @@ describe("case identity", () => {
   /* Grouping is not measurement. If tags reached the hash, retagging a case
      would orphan the baseline behind it. */
   it("does not change when a case is retagged", () => {
-    const untagged = caseIdentityOf(base);
-    const tagged = caseIdentityOf({
+    const untagged = definitionHashOf(base);
+    const tagged = definitionHashOf({
       ...base,
       tags: ["billing", "regression"],
     } as CaseDefinition);
 
     expect(tagged).toBe(untagged);
+  });
+
+  it("is unchanged by the name a case carries", () => {
+    expect(definitionHashOf({ ...base, name: "renamed" })).toBe(
+      definitionHashOf(base)
+    );
   });
 });

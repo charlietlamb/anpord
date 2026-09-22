@@ -41,8 +41,8 @@ export function CaseRow({ subject }: { readonly subject: EvalCaseSummary }) {
           </span>
         </>
       }
-      params={{ cellKey: subject.cellKey, runId: subject.lastRunId }}
-      to="/evals/$runId/cells/$cellKey"
+      params={{ caseId: subject.caseId }}
+      to="/evals/cases/$caseId"
     >
       <RowTitle>{subject.name}</RowTitle>
 

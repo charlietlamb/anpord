@@ -3,17 +3,18 @@ import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
-import { and, eq } from "drizzle-orm";
-import { Context, Effect, Layer, type Option } from "effect";
+import { eq } from "drizzle-orm";
+import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 type TaskRow = typeof evalTask.$inferSelect;
 
 interface TaskDefinition {
   /** What a prepare builds that is worth keeping between runs of this case. */
   readonly cache?: { readonly key: string; readonly path: string };
+  readonly caseInternalId: string;
   readonly name: string;
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
@@ -27,22 +28,13 @@ interface TaskDefinition {
 }
 
 export interface TaskRepositoryShape {
-  readonly findById: (
-    organizationId: string,
-    id: string
-  ) => Effect.Effect<Option.Option<TaskRow>, EvalStoreError>;
-  readonly insert: (
-    input: TaskDefinition & {
-      readonly id: string;
-    }
-  ) => Effect.Effect<TaskRow, EvalStoreError>;
   readonly list: (
     organizationId: string
   ) => Effect.Effect<readonly TaskRow[], EvalStoreError>;
 
-  readonly upsertByIdentity: (
+  readonly upsertByDefinition: (
     input: TaskDefinition & {
-      readonly identity: string;
+      readonly definitionHash: string;
     }
   ) => Effect.Effect<TaskRow, EvalStoreError>;
 }
@@ -82,72 +74,36 @@ export const TaskRepositoryLive = Layer.effect(
     const ids = yield* IdGenerator;
 
     return TaskRepository.of({
-      findById: (organizationId, id) =>
-        tryStore("task.findById", () =>
-          db
-            .select()
-            .from(evalTask)
-            .where(
-              and(
-                eq(evalTask.organizationId, organizationId),
-                eq(evalTask.id, id)
-              )
-            )
-        ).pipe(Effect.map(head), Effect.withSpan("TaskRepository.findById")),
-
-      insert: (input) =>
+      upsertByDefinition: (input) =>
         Effect.gen(function* () {
           const internalId = yield* ids.generate("evalTask");
 
-          const rows = yield* tryStore("task.insert", () =>
+          const rows = yield* tryStore("task.upsertByDefinition", () =>
             db
               .insert(evalTask)
               .values({
                 ...definitionOf(input),
-                id: input.id,
-                internalId,
-                organizationId: input.organizationId,
-              })
-              .returning()
-          );
-
-          return rows[0] as TaskRow;
-        }).pipe(Effect.withSpan("TaskRepository.insert")),
-
-      upsertByIdentity: (input) =>
-        Effect.gen(function* () {
-          const internalId = yield* ids.generate("evalTask");
-
-          const rows = yield* tryStore("task.upsertByIdentity", () =>
-            db
-              .insert(evalTask)
-              .values({
-                ...definitionOf(input),
-                id: input.identity,
+                caseInternalId: input.caseInternalId,
+                definitionHash: input.definitionHash,
                 internalId,
                 organizationId: input.organizationId,
               })
 
-              /* Updated, not left alone: an identity names which case this is, not
-                 what it contained, so an edited case must not run its old definition. */
               .onConflictDoUpdate({
-                set: definitionOf(input),
-                target: [evalTask.organizationId, evalTask.id],
+                set: { name: input.name },
+                target: [evalTask.caseInternalId, evalTask.definitionHash],
               })
               .returning()
           );
 
           const row = rows.at(0);
 
-          /* An update always returns its row, unlike the do-nothing this
-             replaced, so a second read is no longer how the existing one is
-             found. */
           return row === undefined
             ? yield* Effect.dieMessage(
-                `task ${input.identity} was neither written nor found`
+                `task ${input.definitionHash} was neither written nor found`
               )
             : row;
-        }).pipe(Effect.withSpan("TaskRepository.upsertByIdentity")),
+        }).pipe(Effect.withSpan("TaskRepository.upsertByDefinition")),
 
       list: (organizationId) =>
         tryStore("task.list", () =>

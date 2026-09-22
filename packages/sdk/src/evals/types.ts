@@ -104,6 +104,7 @@ type DeclaredSource = EvalSource | string;
 interface EvalCaseBase {
   /** Restored before the prepare runs, saved after it succeeds. */
   readonly cache?: CaseCache;
+  readonly id: string;
   readonly name: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;

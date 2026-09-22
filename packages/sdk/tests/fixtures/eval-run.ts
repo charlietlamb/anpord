@@ -36,6 +36,7 @@ export const createComparison = (
   candidateHarnessVersion: "1.0.0",
   candidatePassRate: 1,
   candidateProfileVersion: null,
+  definitionChanged: false,
   delta: 0,
   determinismLost: false,
   reason: null,
