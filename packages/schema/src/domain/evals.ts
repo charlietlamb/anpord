@@ -645,14 +645,13 @@ export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
 
 export const EvalCaseDetail = Schema.Struct({
   cellKey: Schema.String,
-  harness: Schema.String,
   history: Schema.Array(EvalCellHistoryEntry),
   id: EvalCaseId,
   lastRunId: Schema.String,
-  model: Schema.String,
   name: Schema.String,
   suite: Schema.NullOr(Schema.String),
   tags: Schema.Array(Schema.String),
+  task: EvalTask,
 }).annotations({
   description: "A case, its newest reading, and every reading before it.",
   identifier: "EvalCaseDetail",

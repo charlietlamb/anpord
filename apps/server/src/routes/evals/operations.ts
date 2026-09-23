@@ -254,15 +254,9 @@ export const getCase = (id: string) =>
     });
 
     return {
-      cellKey: found.value.cellKey,
-      harness: found.value.harness,
+      ...found.value,
       history: entries.map(toReadingView),
       id,
-      lastRunId: found.value.lastRunId,
-      model: found.value.model,
-      name: found.value.name,
-      suite: found.value.suite,
-      tags: found.value.tags,
     };
   }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
 

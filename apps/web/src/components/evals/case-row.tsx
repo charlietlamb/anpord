@@ -1,7 +1,9 @@
 import type { EvalCaseSummary } from "@anpord/schema/domain/evals";
 import { OutcomeSummary } from "@/components/evals/outcome-summary";
 import { SignalTip } from "@/components/evals/signal-tip";
+import { TagChip } from "@/components/evals/tag-chip";
 import { ListRow, RowTitle } from "@/components/layout/list-row";
+import { counted } from "@/lib/evals/conversation";
 import { useShortAge } from "@/lib/use-relative-time";
 
 export function CaseRow({ subject }: { readonly subject: EvalCaseSummary }) {
@@ -23,7 +25,7 @@ export function CaseRow({ subject }: { readonly subject: EvalCaseSummary }) {
           <span className="flex w-12 justify-end">
             <SignalTip
               className="whitespace-nowrap tabular-nums"
-              label={`${subject.runCount} ${subject.runCount === 1 ? "run" : "runs"}`}
+              label={counted(subject.runCount, "run", "runs")}
             >
               ×{subject.runCount}
             </SignalTip>
@@ -54,14 +56,13 @@ export function CaseRow({ subject }: { readonly subject: EvalCaseSummary }) {
         </span>
       )}
 
-      {subject.tags.map((tag) => (
-        <span
-          className="ml-1.5 rounded-[3px] bg-alpha-4 px-1.5 py-0.5 text-[11px] text-muted-foreground"
-          key={tag}
-        >
-          {tag}
+      {subject.tags.length === 0 ? null : (
+        <span className="ml-1.5 flex gap-1.5">
+          {subject.tags.map((tag) => (
+            <TagChip key={tag} tag={tag} />
+          ))}
         </span>
-      ))}
+      )}
     </ListRow>
   );
 }

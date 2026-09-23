@@ -86,7 +86,7 @@ export const ToolHeader = ({
     {...props}
   >
     {icon}
-    <span className="min-w-0 flex-1 truncate font-medium text-[13px] text-foreground">
+    <span className="min-w-0 flex-1 truncate font-medium text-foreground text-label">
       {title}
     </span>
     {meta === undefined ? null : (

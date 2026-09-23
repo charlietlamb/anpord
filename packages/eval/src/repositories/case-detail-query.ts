@@ -3,19 +3,20 @@ import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
+import type { EvalTask } from "@anpord/schema/domain/evals";
 import { and, desc, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
-import type { CellKey } from "../domain/cell";
+import { CellKey } from "../domain/cell";
+import { namesOf } from "../domain/stored-cell";
 import { head, tryStore } from "./query";
 
 export interface CaseDetail {
   readonly cellKey: CellKey;
-  readonly harness: string;
   readonly lastRunId: string;
-  readonly model: string;
   readonly name: string;
   readonly suite: string | null;
   readonly tags: readonly string[];
+  readonly task: EvalTask;
 }
 
 export interface CaseDetailInput {
@@ -32,9 +33,11 @@ export const caseDetailQuery = Effect.gen(function* () {
         .select({
           cellKey: evalCell.cellKey,
           harness: evalCell.harness,
+          harnessVersion: evalCell.harnessVersion,
           lastRunId: evalRun.id,
           model: evalCell.model,
           name: evalCase.name,
+          provider: evalCell.provider,
           suite: evalRun.name,
           tags: evalTask.tags,
         })
@@ -51,18 +54,24 @@ export const caseDetailQuery = Effect.gen(function* () {
         .orderBy(desc(evalCell.createdAt))
         .limit(1)
     ).pipe(
-      Effect.map(head),
-      Effect.map(
-        Option.map(
-          (row): CaseDetail => ({
-            cellKey: row.cellKey as CellKey,
-            harness: row.harness,
-            lastRunId: row.lastRunId,
-            model: row.model,
-            name: row.name,
-            suite: row.suite,
-            tags: row.tags ?? [],
-          })
+      Effect.map((rows) =>
+        Option.flatMap(head(rows), (row) =>
+          Option.map(
+            namesOf(row),
+            ({ harness, provider }): CaseDetail => ({
+              cellKey: CellKey.make(row.cellKey),
+              lastRunId: row.lastRunId,
+              name: row.name,
+              suite: row.suite,
+              tags: row.tags ?? [],
+              task: {
+                harness,
+                harnessVersion: row.harnessVersion,
+                model: row.model,
+                sandbox: provider,
+              },
+            })
+          )
         )
       ),
       Effect.withSpan("RunQuery.findCase")

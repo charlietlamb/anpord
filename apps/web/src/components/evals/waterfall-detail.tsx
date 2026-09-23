@@ -8,23 +8,13 @@ import {
 import { Button } from "@anpord/ui/components/button";
 import { ShellText } from "@anpord/ui/components/ui/shell-text";
 import { XIcon } from "@phosphor-icons/react";
+import { CallName } from "@/components/evals/call-name";
 import { KindIcon } from "@/components/evals/kind-icon";
 import { MarkdownProse } from "@/components/evals/markdown-prose";
+import { failureLabel } from "@/lib/evals/conversation";
 import { seconds } from "@/lib/evals/duration";
 import { KIND_NAMES } from "@/lib/evals/journal-presentation";
 import type { SelectedStep } from "@/lib/evals/selected-step";
-
-const failureOf = (entry: EvalJournalEntry) => {
-  if (entry._tag === "command") {
-    return entry.exitCode !== null && entry.exitCode !== 0
-      ? `Exit ${entry.exitCode}`
-      : null;
-  }
-
-  return entry._tag === "toolCall" && entry.error !== undefined
-    ? "Failed"
-    : null;
-};
 
 function DetailBody({ entry }: { readonly entry: EvalJournalEntry }) {
   if (entry._tag === "message") {
@@ -72,7 +62,7 @@ function Timing({
   readonly value: string;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 text-[13px]">
+    <div className="flex items-baseline justify-between gap-3 text-label">
       <dt className="font-medium text-foreground">{label}</dt>
       <dd className="text-muted-foreground tabular-nums">{value}</dd>
     </div>
@@ -87,7 +77,7 @@ export function StepDetail({
   readonly step: SelectedStep;
 }) {
   const kind = entryKindOf(entry);
-  const failure = failureOf(entry);
+  const failure = entry._tag === "message" ? null : failureLabel(entry);
   const lead = row?.lead ?? null;
 
   return (
@@ -95,7 +85,11 @@ export function StepDetail({
       <header className="flex h-7 shrink-0 items-center gap-2">
         <KindIcon failed={failure !== null} kind={kind} />
         <h3 className="min-w-0 truncate font-medium text-sm">
-          {entry._tag === "toolCall" ? entry.name : KIND_NAMES[kind]}
+          {entry._tag === "toolCall" ? (
+            <CallName name={entry.name} />
+          ) : (
+            KIND_NAMES[kind]
+          )}
         </h3>
         {failure === null ? null : (
           <span className="font-medium text-sm text-warning">{failure}</span>

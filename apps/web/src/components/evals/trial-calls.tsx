@@ -6,7 +6,12 @@ import {
   StepLabel,
   stepRowTone,
 } from "@/components/evals/step-label";
-import { type Call, durationOf, stepFailed } from "@/lib/evals/conversation";
+import {
+  type Call,
+  counted,
+  durationOf,
+  stepFailed,
+} from "@/lib/evals/conversation";
 import { seconds } from "@/lib/evals/duration";
 import { useSelectedStep } from "@/lib/evals/use-selected-step";
 
@@ -35,7 +40,7 @@ export function TrialCalls({
       <div className="flex h-6 items-center gap-2 px-2.5 text-muted-foreground text-sm">
         <PlugsConnectedIcon aria-hidden="true" className="size-4 shrink-0" />
         <h3>
-          {calls.length} {calls.length === 1 ? "call" : "calls"}
+          {counted(calls.length, "call", "calls")}
           {failed === 0 ? "" : `, ${failed} failed`}
         </h3>
       </div>

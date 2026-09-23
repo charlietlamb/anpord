@@ -1,10 +1,7 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { historyResult } from "@/lib/evals/cell-history";
-import { clock } from "@/lib/evals/duration";
+import { HistoryRow } from "@/components/evals/history-row";
 import { evalQueries } from "@/lib/evals/eval-queries";
-import { shortId } from "@/lib/evals/short-id";
 
 export function CellHistory({
   cellKey,
@@ -42,32 +39,16 @@ export function CellHistory({
 
   return (
     <ul className="flex flex-col gap-1">
-      {data.slice(0, 5).map((entry) => {
-        const result = historyResult(entry);
-        const current = entry.runId === runId;
-        return (
-          <li key={entry.internalId}>
-            <Link
-              aria-current={current ? "page" : undefined}
-              className="-mx-2 flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
-              params={{ cellKey, runId: entry.runId }}
-              to="/evals/$runId/cells/$cellKey"
-            >
-              <span className="flex flex-col gap-0.5">
-                <span className="whitespace-nowrap">
-                  {entry.finishedAt === null
-                    ? `Run ${shortId(entry.runId)}`
-                    : clock(entry.finishedAt.epochMillis)}
-                </span>
-                {current ? (
-                  <span className="text-muted-foreground">Current</span>
-                ) : null}
-              </span>
-              <span className={result.className}>{result.label}</span>
-            </Link>
-          </li>
-        );
-      })}
+      {data.slice(0, 5).map((entry) => (
+        <li key={entry.internalId}>
+          <HistoryRow
+            cellKey={cellKey}
+            current={entry.runId === runId}
+            dense
+            entry={entry}
+          />
+        </li>
+      ))}
     </ul>
   );
 }

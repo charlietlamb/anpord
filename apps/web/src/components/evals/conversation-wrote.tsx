@@ -3,7 +3,7 @@ import type {
   EvalArtifactRequest,
 } from "@anpord/schema/domain/evals";
 import { ArtifactFile } from "@/components/evals/artifact-file";
-import { KindIcon } from "@/components/evals/kind-icon";
+import { WroteLine } from "@/components/evals/wrote-line";
 import { artifactFor } from "@/lib/evals/conversation";
 
 export type TrialRef = Omit<EvalArtifactRequest, "path" | "sha256">;
@@ -23,15 +23,8 @@ export function ConversationWrote({
         const artifact = artifactFor(path, artifacts);
 
         return artifact === undefined ? (
-          <li
-            className="flex items-center gap-2 text-muted-foreground text-sm"
-            key={path}
-          >
-            <KindIcon kind="fileChange" />
-            <span className="shrink-0">Wrote</span>
-            <span className="min-w-0 truncate font-mono text-foreground text-xs">
-              {path}
-            </span>
+          <li key={path}>
+            <WroteLine paths={[path]} />
           </li>
         ) : (
           <li key={path}>

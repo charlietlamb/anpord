@@ -31,7 +31,7 @@ export function StepLabel({ entry }: { readonly entry: EvalJournalEntry }) {
       ) : (
         <span
           className={cn(
-            "min-w-0 flex-1 truncate font-medium text-[13px] leading-none",
+            "min-w-0 flex-1 truncate font-medium text-label leading-none",
             kind === "said" ? "text-foreground" : "text-foreground/80"
           )}
         >

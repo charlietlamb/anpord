@@ -7,7 +7,7 @@ import {
 } from "@anpord/ui/components/ai-elements/task";
 import { CirclesFourIcon } from "@phosphor-icons/react";
 import { ConversationStep } from "@/components/evals/conversation-step";
-import { KindIcon } from "@/components/evals/kind-icon";
+import { WroteLine } from "@/components/evals/wrote-line";
 import {
   type ConversationStep as Step,
   stepFailed,
@@ -19,15 +19,7 @@ function WorkItem({ step }: { readonly step: Step }) {
     return <ConversationStep call={step} />;
   }
 
-  return (
-    <span className="flex items-center gap-2 text-muted-foreground text-sm">
-      <KindIcon kind="fileChange" />
-      <span className="shrink-0">Wrote</span>
-      <span className="min-w-0 truncate font-mono text-foreground text-xs">
-        {step.paths.join(", ")}
-      </span>
-    </span>
-  );
+  return <WroteLine paths={step.paths} />;
 }
 
 const titleOf = (steps: readonly Step[], live: boolean) => {
