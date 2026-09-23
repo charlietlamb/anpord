@@ -1,13 +1,11 @@
 import { expect, test } from "bun:test";
+import { validationsOf } from "@anpord/schema/domain/eval-validation-results";
 import {
   unavailableValue,
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
-import {
-  judgeInput,
-  validationsOf,
-} from "../../../src/lib/evals/validation-results";
+import { judgeInput } from "../../../src/lib/evals/validation-results";
 
 const evidence = {
   input: "Original prompt",

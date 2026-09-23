@@ -1,7 +1,6 @@
-import {
-  type EvalValidation,
-  type ValidationValue,
-  validationExecution,
+import type {
+  EvalValidation,
+  ValidationValue,
 } from "@anpord/schema/domain/eval-validations";
 import type { EvalTrial } from "@anpord/schema/domain/evals";
 
@@ -10,58 +9,8 @@ export type ValidationTrial = Pick<
   "ordinal" | "validations" | "judgments"
 >;
 
-export const validationsOf = (
-  trial: ValidationTrial
-): readonly EvalValidation[] => {
-  const validations = [...(trial.validations ?? [])];
-  for (const [index, judgment] of (trial.judgments ?? []).entries()) {
-    if (
-      validations.some(
-        (entry) => entry.kind === "judge" && entry.name === judgment.name
-      )
-    ) {
-      continue;
-    }
-    const verdict =
-      judgment.score !== null && judgment.score >= judgment.threshold
-        ? "passed"
-        : "failed";
-    validations.push({
-      ...validationExecution(
-        {
-          id: `legacy-judge:${index}`,
-          index,
-          name: judgment.name,
-          kind: "judge",
-        },
-        null
-      ),
-      status: judgment.error === null ? verdict : "error",
-      judgment,
-      durationMs: judgment.durationMs,
-      message: judgment.error ?? judgment.reason,
-    });
-  }
-  return validations;
-};
-
 export const validationKey = (validation: EvalValidation) =>
   `${validation.kind}:${validation.index}:${validation.name}`;
-
-export const validationSummary = (validation: EvalValidation) => {
-  if (validation.judgment) {
-    return validation.judgment.error ?? validation.judgment.reason;
-  }
-  if (validation.message) {
-    return validation.message;
-  }
-  if (validation.output.state === "captured") {
-    return `Returned ${validation.output.text.slice(0, 160)}${validation.output.truncated || validation.output.text.length > 160 ? "…" : ""}`;
-  }
-  return validation.status === "running" || validation.status === "queued"
-    ? "Waiting for a result"
-    : "Return value not recorded";
-};
 
 const object = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)

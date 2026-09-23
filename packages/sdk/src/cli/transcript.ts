@@ -1,7 +1,6 @@
-import { callSubjectOf, commandText } from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import { type Paint, paletteFor } from "./paint";
-import { wrapText } from "./text-wrap";
+import type { Paint } from "./paint";
+import { stepLine } from "./transcript-step";
 import {
   openedTurn,
   repliedTurn,
@@ -9,184 +8,153 @@ import {
   type Turn,
   turnFacts,
 } from "./transcript-turn";
-
-export interface TranscriptStyle {
-  readonly colour: boolean;
-  readonly width: number;
-}
-
-export const PLAIN: TranscriptStyle = { colour: false, width: 80 };
-
-const NARROWEST = 40;
-const UNKNOWN_WIDTH = 100;
-
-export const terminalStyle = (colour: boolean): TranscriptStyle =>
-  colour && process.env.NO_COLOR === undefined
-    ? {
-        colour: true,
-        width: Math.max(NARROWEST, process.stderr.columns ?? UNKNOWN_WIDTH),
-      }
-    : PLAIN;
+import { type Verdict, verdictLines } from "./transcript-verdict";
+import {
+  type TranscriptStyle,
+  type Writer,
+  writerFor,
+} from "./transcript-writer";
 
 export interface Spoken {
   readonly entry: EvalJournalEntry;
   readonly speaker: Speaker;
 }
 
+export interface Settled {
+  readonly speaker: Speaker;
+  readonly verdict: Verdict;
+}
+
 export interface Transcript {
+  readonly closed: ReadonlySet<string>;
   readonly current: string | null;
+  readonly printed: boolean;
   readonly turns: ReadonlyMap<string, Turn>;
 }
 
-export const EMPTY_TRANSCRIPT: Transcript = { current: null, turns: new Map() };
-
-const MARGIN = 2;
-const RAIL_WIDTH = 2;
-const BODY_INDENT = "  ";
-const WHITESPACE = /\s+/g;
-
-const flat = (text: string) => text.replace(WHITESPACE, " ").trim();
-
-const clipped = (text: string, width: number) =>
-  text.length > width ? `${text.slice(0, Math.max(1, width - 1))}…` : text;
-
-const writer = (style: TranscriptStyle) => {
-  const paint = paletteFor(style.colour);
-  const room = Math.max(1, style.width - MARGIN - RAIL_WIDTH);
-  const rail = paint.dim("│");
-  const line = (text: string) => `  ${rail} ${text}`;
-  const blank = `  ${rail}`;
-
-  const header = ({ caseName, ordinal, variant }: Speaker) => {
-    const facts = [variant, ordinal === null ? null : `trial ${ordinal}`]
-      .filter((fact): fact is string => fact !== null && fact !== "")
-      .map((fact) => ` · ${fact}`)
-      .join("");
-
-    return `  ${paint.dim("┌")} ${paint.bold(caseName)}${paint.dim(facts)}`;
-  };
-
-  const block = (label: string, tone: Paint, text: string) => [
-    blank,
-    line(paint.bold(tone(label))),
-    ...wrapText(text, room - BODY_INDENT.length).map((row) =>
-      row === "" ? blank : line(`${BODY_INDENT}${row}`)
-    ),
-  ];
-
-  const footer = (turn: Turn) => [
-    blank,
-    line(
-      turn.replied
-        ? `${paint.green("✓")} ${paint.dim(turnFacts(turn))}`
-        : paint.dim(`· ${turnFacts(turn)} · no reply`)
-    ),
-  ];
-
-  return { block, footer, header, line, paint, room };
+export const EMPTY_TRANSCRIPT: Transcript = {
+  closed: new Set(),
+  current: null,
+  printed: false,
+  turns: new Map(),
 };
 
-type Writer = ReturnType<typeof writer>;
+class Draft {
+  readonly closed: Set<string>;
+  current: string | null;
+  readonly lines: string[] = [];
+  readonly turns: Map<string, Turn>;
+  readonly write: Writer;
+  private readonly printed: boolean;
 
-const stepOf = (
-  entry: Exclude<EvalJournalEntry, { readonly _tag: "message" }>,
-  { line, paint, room }: Writer
-) => {
-  const width = room - RAIL_WIDTH;
+  constructor(transcript: Transcript, style: TranscriptStyle) {
+    this.closed = new Set(transcript.closed);
+    this.current = transcript.current;
+    this.printed = transcript.printed;
+    this.turns = new Map(transcript.turns);
+    this.write = writerFor(style);
+  }
 
-  if (entry._tag === "command") {
-    const failed = entry.exitCode !== null && entry.exitCode !== 0;
+  enter(speaker: Speaker) {
+    if (speaker.key !== this.current) {
+      if (this.printed || this.lines.length > 0) {
+        this.lines.push("");
+      }
 
-    return line(
-      `${paint.yellow("$")} ${paint.dim(clipped(flat(commandText(entry.command)), width))}${failed ? paint.red(` exit ${entry.exitCode}`) : ""}`
+      this.lines.push(this.write.header(speaker));
+      this.current = speaker.key;
+    }
+  }
+
+  say(label: string, tone: Paint, text: string) {
+    this.lines.push(
+      ...this.write.heading(label, tone),
+      ...this.write.indented(text, 1)
     );
   }
 
-  if (entry._tag === "fileChange") {
-    return line(
-      `${paint.green("+")} ${paint.dim(clipped(`wrote ${entry.paths.join(", ")}`, width))}`
-    );
+  closeTurn(key: string) {
+    const turn = this.turns.get(key);
+
+    if (turn?.open === true) {
+      const { blank, line, paint } = this.write;
+
+      this.lines.push(
+        blank,
+        line(
+          turn.replied
+            ? `${paint.green("✓")} ${paint.dim(turnFacts(turn))}`
+            : paint.dim(`· ${turnFacts(turn)} · no reply`)
+        )
+      );
+      this.turns.set(key, { ...turn, open: false });
+    }
   }
 
-  const subject = callSubjectOf(entry.input);
-  const detail =
-    subject === null
-      ? ""
-      : ` ${paint.dim(clipped(flat(subject), Math.max(1, width - entry.name.length - 1)))}`;
-
-  return line(
-    `${paint.blue("●")} ${entry.name}${detail}${entry.error === undefined ? "" : paint.red(" failed")}`
-  );
-};
+  done() {
+    return {
+      lines: this.lines,
+      transcript: {
+        closed: this.closed,
+        current: this.current,
+        printed: this.printed || this.lines.length > 0,
+        turns: this.turns,
+      } satisfies Transcript,
+    };
+  }
+}
 
 export const transcribe = (
   transcript: Transcript,
   spoken: readonly Spoken[],
   style: TranscriptStyle
 ) => {
-  const write = writer(style);
-  const turns = new Map(transcript.turns);
-  const lines: string[] = [];
-  let current = transcript.current;
+  const draft = new Draft(transcript, style);
+  const { paint } = draft.write;
 
   for (const { entry, speaker } of spoken) {
-    if (speaker.key !== current) {
-      lines.push(...(current === null ? [] : [""]), write.header(speaker));
-      current = speaker.key;
-    }
-
-    const turn = turns.get(speaker.key);
+    draft.enter(speaker);
 
     if (entry._tag !== "message") {
-      lines.push(stepOf(entry, write));
+      draft.lines.push(stepLine(entry, draft.write));
     } else if (entry.role === "user") {
-      lines.push(...(turn?.open === true ? write.footer(turn) : []));
-      turns.set(
+      draft.closeTurn(speaker.key);
+      draft.turns.set(
         speaker.key,
-        openedTurn(turn, speaker, entry.finishedAtMillis ?? null)
+        openedTurn(draft.turns.get(speaker.key), entry.finishedAtMillis ?? null)
       );
-      lines.push(...write.block("user", write.paint.cyan, entry.text));
+      draft.say("user", paint.cyan, entry.text);
     } else {
-      turns.set(
+      draft.turns.set(
         speaker.key,
-        repliedTurn(turn, speaker, {
+        repliedTurn(draft.turns.get(speaker.key), {
           costUsd: entry.usage?.costUsd ?? null,
           finishedAtMillis: entry.finishedAtMillis ?? null,
         })
       );
-      lines.push(...write.block("agent", write.paint.magenta, entry.text));
+      draft.say("agent", paint.magenta, entry.text);
     }
   }
 
-  return { lines, transcript: { current, turns } };
+  return draft.done();
 };
 
 export const settle = (
   transcript: Transcript,
-  keys: readonly string[],
+  settled: readonly Settled[],
   style: TranscriptStyle
 ) => {
-  const write = writer(style);
-  const turns = new Map(transcript.turns);
-  const lines: string[] = [];
-  let current = transcript.current;
+  const draft = new Draft(transcript, style);
 
-  for (const key of keys) {
-    const turn = turns.get(key);
-
-    if (turn?.open === true) {
-      if (key !== current) {
-        lines.push(
-          ...(current === null ? [] : [""]),
-          write.header(turn.speaker)
-        );
-        current = key;
-      }
-
-      lines.push(...write.footer(turn));
-      turns.set(key, { ...turn, open: false });
+  for (const { speaker, verdict } of settled) {
+    if (!draft.closed.has(speaker.key)) {
+      draft.enter(speaker);
+      draft.closeTurn(speaker.key);
+      draft.lines.push(...verdictLines(verdict, draft.write));
+      draft.closed.add(speaker.key);
+      draft.current = null;
     }
   }
 
-  return { lines, transcript: { current, turns } };
+  return draft.done();
 };

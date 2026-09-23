@@ -1,11 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { validationExecution } from "@anpord/schema/domain/eval-validations";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import {
-  EMPTY_TRANSCRIPT,
-  PLAIN,
-  settle,
-  transcribe,
-} from "../../src/cli/transcript";
+import { EMPTY_TRANSCRIPT, settle, transcribe } from "../../src/cli/transcript";
+import { PLAIN } from "../../src/cli/transcript-writer";
 
 const speaker = {
   caseName: "asks before it pushes",
@@ -53,6 +50,26 @@ const tool = (name: string, input: string): EvalJournalEntry => ({
   name,
   status: null,
 });
+
+const check = (
+  name: string,
+  status: "passed" | "failed",
+  message: string,
+  durationMs: number
+) => ({
+  ...validationExecution(
+    { id: name, index: 0, kind: "code" as const, name },
+    null
+  ),
+  durationMs,
+  message,
+  status,
+});
+
+const verdict = (
+  status: string,
+  validations: ReturnType<typeof check>[] = []
+) => ({ status, validations, verifySteps: [], voidFields: [] });
 
 const run = (entries: readonly EvalJournalEntry[], who = speaker) =>
   transcribe(
@@ -105,17 +122,30 @@ describe("the transcript a reader follows", () => {
 
   test("closes the last turn once the trial settles", () => {
     const opened = run([said("hey", 0), replied("done", 5000)]);
-    const { lines } = settle(opened.transcript, [speaker.key], PLAIN);
+    const { lines } = settle(
+      opened.transcript,
+      [{ speaker, verdict: verdict("passed") }],
+      PLAIN
+    );
 
-    expect(lines).toEqual(["  │", "  │ ✓ turn 1 · 5.0s"]);
+    expect(lines).toEqual([
+      "  │",
+      "  │ ✓ turn 1 · 5.0s",
+      "  │",
+      "  └ ✓ passed",
+    ]);
     expect(settle(opened.transcript, [], PLAIN).lines).toEqual([]);
   });
 
   test("says when a turn ended without a reply", () => {
     const opened = run([said("hey", 0)]);
-    const { lines } = settle(opened.transcript, [speaker.key], PLAIN);
+    const { lines } = settle(
+      opened.transcript,
+      [{ speaker, verdict: verdict("failed") }],
+      PLAIN
+    );
 
-    expect(lines.at(-1)).toBe("  │ · turn 1 · no reply");
+    expect(lines).toContain("  │ · turn 1 · no reply");
   });
 
   test("names the trial again whenever the speaker changes", () => {
@@ -140,5 +170,81 @@ describe("the transcript a reader follows", () => {
         width: 80,
       }).lines.join("")
     ).toContain(ansi);
+  });
+});
+
+describe("the verdict a trial closes with", () => {
+  const settled = (status: string, checks: ReturnType<typeof check>[]) =>
+    settle(
+      run([said("hey", 0)]).transcript,
+      [{ speaker, verdict: verdict(status, checks) }],
+      PLAIN
+    ).lines;
+
+  test("lists every check with its mark, time and why", () => {
+    const lines = settled("failed", [
+      check("asked before applying", "passed", "asked first", 2),
+      check("pushed with --yes", "failed", "never ran atmn push", 157),
+    ]);
+
+    expect(lines).toContain("  │ checks");
+    expect(lines).toContain("  │   ✓ asked before applying · 2ms");
+    expect(lines).toContain("  │       asked first");
+    expect(lines).toContain("  │   ✗ pushed with --yes · 157ms");
+    expect(lines).toContain("  │       never ran atmn push");
+    expect(lines.at(-1)).toBe("  └ ✗ failed · 1 of 2 checks passed");
+  });
+
+  test("falls back to the verifier's steps when no check was recorded", () => {
+    const lines = settle(
+      run([said("hey", 0)]).transcript,
+      [
+        {
+          speaker,
+          verdict: {
+            status: "passed",
+            verifySteps: [{ command: "test -f pricing.md", exitCode: 0 }],
+            voidFields: [],
+          },
+        },
+      ],
+      PLAIN
+    ).lines;
+
+    expect(lines).toContain("  │   ✓ test -f pricing.md");
+    expect(lines.at(-1)).toBe("  └ ✓ passed · 1 of 1 checks passed");
+  });
+
+  test("says why a trial was void", () => {
+    const lines = settle(
+      EMPTY_TRANSCRIPT,
+      [
+        {
+          speaker,
+          verdict: {
+            status: "void",
+            verifySteps: [],
+            voidFields: ["sandbox"],
+          },
+        },
+      ],
+      PLAIN
+    ).lines;
+
+    expect(lines.at(0)).toBe("  ┌ asks before it pushes · codex/gpt-5.6-terra");
+    expect(lines.at(-1)).toBe("  └ ○ void · sandbox");
+  });
+
+  test("closes a trial once however often it is reported settled", () => {
+    const first = settle(
+      run([said("hey", 0)]).transcript,
+      [{ speaker, verdict: verdict("passed") }],
+      PLAIN
+    );
+
+    expect(
+      settle(first.transcript, [{ speaker, verdict: verdict("passed") }], PLAIN)
+        .lines
+    ).toEqual([]);
   });
 });

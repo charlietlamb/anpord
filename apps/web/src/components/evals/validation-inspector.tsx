@@ -1,4 +1,5 @@
 import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
+import { validationsOf } from "@anpord/schema/domain/eval-validation-results";
 import { Button } from "@anpord/ui/components/button";
 import {
   Select,
@@ -13,7 +14,6 @@ import { useState } from "react";
 import {
   type ValidationTrial,
   validationKey,
-  validationsOf,
 } from "@/lib/evals/validation-results";
 import { SetupSurface } from "./setup-surface";
 import { TrialValidations } from "./trial-validations";

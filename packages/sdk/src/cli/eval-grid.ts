@@ -3,13 +3,9 @@ import type { EvalCell, EvalRun } from "@anpord/schema/domain/evals";
 import { Effect, Ref } from "effect";
 import { runUsage, usageLines } from "./eval-usage";
 import { note } from "./render";
-import {
-  EMPTY_TRANSCRIPT,
-  type Spoken,
-  settle,
-  terminalStyle,
-  transcribe,
-} from "./transcript";
+import { makeTranscriber } from "./transcriber";
+import type { Speaker } from "./transcript-turn";
+import { terminalStyle } from "./transcript-writer";
 
 const DIM = "[2m";
 const BOLD = "[1m";
@@ -137,38 +133,33 @@ const up = (rows: number) => `[${rows}A[0J`;
 
 export type GridMode = "grid" | "lines" | "silent";
 
-const trialKey = (cell: string, ordinal: number) => `${cell}#${ordinal}`;
-
-const spokenOf = (
-  events: readonly EvalTailEvent[],
+const speakerOf = (
   run: EvalRun | null,
+  cellId: string,
+  ordinal: number,
   trials: number
-): readonly Spoken[] =>
-  events.map((event) => {
-    const cell = run?.cells.find((one) => one.internalId === event.cell);
+): Speaker => {
+  const cell = run?.cells.find((one) => one.internalId === cellId);
 
-    return {
-      entry: event.entry,
-      speaker: {
-        caseName: cell?.caseName ?? "trial",
-        key: trialKey(event.cell, event.ordinal),
-        ordinal: trials > 1 ? event.ordinal : null,
-        variant:
-          run == null || cell === undefined ? "" : formatVariant(run, cell),
-      },
-    };
-  });
+  return {
+    caseName: cell?.caseName ?? "trial",
+    key: `${cellId}#${ordinal}`,
+    ordinal: trials > 1 ? ordinal : null,
+    variant: run == null || cell === undefined ? "" : formatVariant(run, cell),
+  };
+};
 
 const hasSettled = (trial: EvalCell["trials"][number]) =>
   trial.status !== "queued" && trial.status !== "running";
 
-const settledTrials = (run: EvalRun) =>
-  run.cells.flatMap(({ internalId, trials }) =>
+const settledTrials = (run: EvalRun, trials: number) =>
+  run.cells.flatMap(({ internalId, trials: ran }) =>
     internalId === null
       ? []
-      : trials
-          .filter(hasSettled)
-          .map((trial) => trialKey(internalId, trial.ordinal))
+      : ran.filter(hasSettled).map((trial) => ({
+          speaker: speakerOf(run, internalId, trial.ordinal, trials),
+          verdict: trial,
+        }))
   );
 
 export const liveGrid = (trials: number, mode: GridMode) =>
@@ -178,8 +169,7 @@ export const liveGrid = (trials: number, mode: GridMode) =>
       readonly elapsedMs: number;
       readonly run: EvalRun;
     } | null>(null);
-    const style = terminalStyle(mode === "grid");
-    const transcript = yield* Ref.make(EMPTY_TRANSCRIPT);
+    const transcript = yield* makeTranscriber(terminalStyle(mode === "grid"));
 
     const writing = yield* Effect.makeSemaphore(1);
 
@@ -202,16 +192,11 @@ export const liveGrid = (trials: number, mode: GridMode) =>
       Effect.gen(function* () {
         yield* Ref.set(latest, { elapsedMs, run });
 
-        const closed =
+        yield* print(
           mode === "silent"
             ? []
-            : yield* Ref.modify(transcript, (held) => {
-                const next = settle(held, settledTrials(run), style);
-
-                return [next.lines, next.transcript];
-              });
-
-        yield* print(closed);
+            : yield* transcript.settle(settledTrials(run, trials))
+        );
       });
 
     const hear = (events: readonly EvalTailEvent[]) =>
@@ -221,13 +206,15 @@ export const liveGrid = (trials: number, mode: GridMode) =>
         }
 
         const run = (yield* Ref.get(latest))?.run ?? null;
-        const lines = yield* Ref.modify(transcript, (held) => {
-          const next = transcribe(held, spokenOf(events, run, trials), style);
 
-          return [next.lines, next.transcript];
-        });
-
-        yield* print(lines);
+        yield* print(
+          yield* transcript.transcribe(
+            events.map((event) => ({
+              entry: event.entry,
+              speaker: speakerOf(run, event.cell, event.ordinal, trials),
+            }))
+          )
+        );
       });
 
     return { draw, hear };

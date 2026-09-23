@@ -1,3 +1,4 @@
+import { validationSummary } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { cn } from "@anpord/ui/lib/utils";
 import {
@@ -10,7 +11,6 @@ import { PendingDot } from "@/components/evals/pending-dot";
 import { SignalTip } from "@/components/evals/signal-tip";
 import { ValidationDetail } from "@/components/evals/validation-detail";
 import { seconds } from "@/lib/evals/duration";
-import { validationSummary } from "@/lib/evals/validation-results";
 
 const kindIcons = { code: CodeIcon, judge: BrainIcon, command: TerminalIcon };
 

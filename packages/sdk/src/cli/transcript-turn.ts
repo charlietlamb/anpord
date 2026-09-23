@@ -1,3 +1,5 @@
+import { formatDuration } from "./duration";
+
 export interface Speaker {
   readonly caseName: string;
   readonly key: string;
@@ -11,7 +13,6 @@ export interface Turn {
   readonly number: number;
   readonly open: boolean;
   readonly replied: boolean;
-  readonly speaker: Speaker;
   readonly startedAt: number | null;
 }
 
@@ -20,13 +21,10 @@ interface Reply {
   readonly finishedAtMillis: number | null;
 }
 
-const SECOND = 1000;
-const MINUTE = 60;
 const CENT = 0.01;
 
 export const openedTurn = (
   previous: Turn | undefined,
-  speaker: Speaker,
   startedAt: number | null
 ): Turn => ({
   costUsd: null,
@@ -34,16 +32,11 @@ export const openedTurn = (
   number: (previous?.number ?? 0) + 1,
   open: true,
   replied: false,
-  speaker,
   startedAt,
 });
 
-export const repliedTurn = (
-  previous: Turn | undefined,
-  speaker: Speaker,
-  reply: Reply
-): Turn => {
-  const turn = previous ?? openedTurn(undefined, speaker, null);
+export const repliedTurn = (previous: Turn | undefined, reply: Reply): Turn => {
+  const turn = previous ?? openedTurn(undefined, null);
 
   return {
     ...turn,
@@ -57,17 +50,10 @@ export const repliedTurn = (
   };
 };
 
-const durationOf = (turn: Turn) => {
-  if (turn.startedAt === null || turn.endedAt === null) {
-    return null;
-  }
-
-  const seconds = Math.max(0, turn.endedAt - turn.startedAt) / SECOND;
-
-  return seconds < MINUTE
-    ? `${seconds.toFixed(1)}s`
-    : `${Math.floor(seconds / MINUTE)}m${String(Math.round(seconds % MINUTE)).padStart(2, "0")}s`;
-};
+const durationOf = (turn: Turn) =>
+  turn.startedAt === null || turn.endedAt === null
+    ? null
+    : formatDuration(Math.max(0, turn.endedAt - turn.startedAt));
 
 const costOf = (turn: Turn) => {
   if (turn.costUsd === null) {
