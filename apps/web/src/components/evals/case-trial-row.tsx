@@ -7,12 +7,10 @@ import { CaretRightIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { AgeCell } from "@/components/evals/age-cell";
 import { TrialStatusPill } from "@/components/evals/eval-status-badge";
+import { VariantCell } from "@/components/evals/variant-cell";
 import { triggerPresentation } from "@/lib/evals/run-trigger";
 import { trialVerdict } from "@/lib/evals/trial-verdict";
-import {
-  harnessPresentation,
-  sandboxPresentation,
-} from "@/lib/evals/variant-presentation";
+import { placePresentation } from "@/lib/evals/variant-presentation";
 
 export function CaseTrialRow({
   caseId,
@@ -23,11 +21,8 @@ export function CaseTrialRow({
   readonly entry: EvalCellHistoryEntry;
   readonly trial: EvalTrial;
 }) {
-  const harness = harnessPresentation(entry.harness);
   const trigger = triggerPresentation(entry.trigger);
-  const where = entry.local
-    ? "Local"
-    : sandboxPresentation(entry.sandbox).label;
+  const where = placePresentation(entry).label;
 
   return (
     <DataTableRow
@@ -40,13 +35,7 @@ export function CaseTrialRow({
         )
       }
     >
-      <span className="flex min-w-0 items-center gap-2.5 text-foreground">
-        <harness.Icon
-          aria-label={harness.label}
-          className="size-4 shrink-0 text-muted-foreground"
-        />
-        <span className="truncate">{entry.model}</span>
-      </span>
+      <VariantCell harness={entry.harness} model={entry.model} />
 
       <span className="truncate text-foreground">{trialVerdict(trial)}</span>
 

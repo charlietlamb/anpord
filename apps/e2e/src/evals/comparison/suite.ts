@@ -1,4 +1,4 @@
-import { type EvalTaskDefinition, empty, suite } from "anpord";
+import { type EvalVariantDefinition, empty, suite } from "anpord";
 import { catalogApi } from "./mocks/api";
 import { catalogCli } from "./mocks/cli";
 import { catalogMcp } from "./mocks/mcp";
@@ -13,7 +13,7 @@ const instructions = {
 
 export const comparisonSuite = (
   name: string,
-  tasks: readonly EvalTaskDefinition[]
+  variants: readonly EvalVariantDefinition[]
 ) =>
   suite({
     name: `anpord-models/${name}`,
@@ -34,6 +34,6 @@ export const comparisonSuite = (
         validate: validateCatalog(transport, scenario),
       }))
     ),
-    tasks,
+    variants,
     trials: 1,
   });

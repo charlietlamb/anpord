@@ -272,6 +272,6 @@ export const CELL: EvalCell = {
     workspace: "/tmp/anpord-task",
   },
   status: "finished",
-  taskIndex: 0,
+  variantIndex: 0,
   trials: TRIALS,
 };

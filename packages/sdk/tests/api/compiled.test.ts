@@ -73,7 +73,7 @@ export default suite({ name: "http", source: empty, prompt: "Use catalog", trial
     responses: { 200: z.object({ id: z.string() }) },
     handler: ({ params }, { log }) => { log({ id: params.id }); return { status: 200, body: params }; }
   })] })],
-  tasks: [{ harness: "codex", model: "model", sandbox: "e2b" }],
+  variants: [{ harness: "codex", model: "model", sandbox: "e2b" }],
   cases: [{ id: "read", name: "read", prepare: prepareHttp, validate: async function validateHttp({ api }) {
     const url = await api.url("catalog");
     await fetch(url + "/items/validator");
@@ -85,7 +85,7 @@ export default suite({ name: "http", source: empty, prompt: "Use catalog", trial
   );
   const compiled = await compileFixture(entry);
   for (const [path, source] of Object.entries(
-    compiled.tasks[0]?.profile?.files ?? {}
+    compiled.variants[0]?.profile?.files ?? {}
   )) {
     if (!path.startsWith("workspace/")) {
       continue;

@@ -9,7 +9,11 @@ export const Route = createFileRoute("/_authed/evals/new")({
 
 function NewEvalScreen() {
   return (
-    <PageShell title="New eval" width="wide">
+    <PageShell
+      description="Install the SDK, then give the prompt to your coding agent. It covers the API, the rules that make a result meaningful, and where the docs are."
+      title="New eval"
+      width="wide"
+    >
       <AgentSetup />
     </PageShell>
   );

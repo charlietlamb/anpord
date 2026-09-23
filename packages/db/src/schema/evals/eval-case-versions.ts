@@ -14,8 +14,8 @@ import { organization } from "../auth/organizations";
 import { user } from "../auth/users";
 import { evalCase } from "./eval-cases";
 
-export const evalTask = pgTable(
-  "eval_task",
+export const evalCaseVersion = pgTable(
+  "eval_case_version",
   {
     internalId: text("internal_id").primaryKey(),
     caseInternalId: text("case_internal_id")
@@ -51,14 +51,14 @@ export const evalTask = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [
-    index("eval_task_created_by_idx").on(table.createdBy),
-    uniqueIndex("eval_task_case_internal_id_definition_hash_idx").on(
+    index("eval_case_version_created_by_idx").on(table.createdBy),
+    uniqueIndex("eval_case_version_case_internal_id_definition_hash_idx").on(
       table.caseInternalId,
       table.definitionHash
     ),
-    index("eval_task_case_internal_id_idx").on(table.caseInternalId),
+    index("eval_case_version_case_internal_id_idx").on(table.caseInternalId),
     check(
-      "eval_task_source_kind_check",
+      "eval_case_version_source_kind_check",
       sql`${table.sourceKind} in ('empty', 'files', 'repo')`
     ),
   ]

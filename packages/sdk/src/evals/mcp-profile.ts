@@ -7,7 +7,7 @@ import { applyMcpHarness } from "./mcp-harness";
 import { packageProgram } from "./program-package";
 import { type DefinitionRef, mcpEntry } from "./runner-source";
 
-type EvalTask = PublicStartEvalRequest["tasks"][number];
+type EvalVariant = PublicStartEvalRequest["variants"][number];
 
 export interface CompiledMcpServer {
   readonly entry: string;
@@ -49,14 +49,14 @@ export const compileMcpServers = (
   });
 
 export const withMcpServers = (
-  task: EvalTask,
+  variant: EvalVariant,
   servers: readonly CompiledMcpServer[]
-): EvalTask => {
+): EvalVariant => {
   if (servers.length === 0) {
-    return task;
+    return variant;
   }
 
-  const profile: HarnessProfile = task.profile ?? {
+  const profile: HarnessProfile = variant.profile ?? {
     files: {},
     name: "anpord-mcp",
   };
@@ -72,7 +72,7 @@ export const withMcpServers = (
   }
 
   return {
-    ...task,
-    profile: applyMcpHarness(task.harness, { ...profile, files }, servers),
+    ...variant,
+    profile: applyMcpHarness(variant.harness, { ...profile, files }, servers),
   };
 };

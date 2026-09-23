@@ -9,7 +9,7 @@ import type { CredentialError } from "./errors";
 import { CredentialError as CredentialFailure } from "./errors";
 import type { CredentialResolverShape } from "./resolver";
 
-export interface RequestedTask {
+export interface RequestedVariant {
   readonly credentials?: CredentialBindings;
   readonly harness: GridExecutionTask["harness"];
   readonly harnessVersion: string;
@@ -60,13 +60,13 @@ const emptyEnv = () =>
 const resolveHarness = (
   resolver: CredentialResolverShape,
   actor: Actor,
-  task: RequestedTask
+  variant: RequestedVariant
 ) => {
-  const connectionId = task.credentials?.harnessConnectionId;
+  const connectionId = variant.credentials?.harnessConnectionId;
   const resolve = (integrationId: string) =>
     resolver.resolve({ actor, connectionId, integrationId });
 
-  return resolve(task.harness).pipe(
+  return resolve(variant.harness).pipe(
     Effect.catchIf(
       (error) => error.code === "not-found",
       () => resolve("env")
@@ -87,37 +87,37 @@ const bindingsOf = (
   sandboxConnectionId: sandbox === undefined ? undefined : bindingOf(sandbox),
 });
 
-export const resolveTaskCredentials = (
+export const resolveVariantCredentials = (
   resolver: CredentialResolverShape,
   actor: Actor,
-  tasks: readonly RequestedTask[],
+  variants: readonly RequestedVariant[],
   legacyHarnessAuth: string
 ) =>
-  Effect.forEach(tasks, (task) =>
+  Effect.forEach(variants, (variant) =>
     Effect.gen(function* () {
       const harness = yield* optional(
-        resolveHarness(resolver, actor, task),
-        task.credentials?.harnessConnectionId
+        resolveHarness(resolver, actor, variant),
+        variant.credentials?.harnessConnectionId
       );
       const sandbox = yield* optional(
         resolver.resolve({
           actor,
-          connectionId: task.credentials?.sandboxConnectionId,
-          integrationId: task.provider,
+          connectionId: variant.credentials?.sandboxConnectionId,
+          integrationId: variant.provider,
         }),
-        task.credentials?.sandboxConnectionId
+        variant.credentials?.sandboxConnectionId
       );
       const resolvedHarness = yield* Option.match(harness, {
         onNone: () => {
-          if (task.harness === "codex" && legacyHarnessAuth) {
+          if (variant.harness === "codex" && legacyHarnessAuth) {
             return Effect.succeed(legacyCodex(legacyHarnessAuth));
           }
-          if (KEYLESS_HARNESSES.has(task.harness)) {
+          if (KEYLESS_HARNESSES.has(variant.harness)) {
             return Effect.succeed(emptyEnv());
           }
           return Effect.fail(
             new CredentialFailure({
-              message: `No credential configured for ${task.harness}`,
+              message: `No credential configured for ${variant.harness}`,
             })
           );
         },
@@ -133,17 +133,17 @@ export const resolveTaskCredentials = (
             ? {}
             : { sandbox: resolvedSandbox }),
         },
-        harness: task.harness,
-        harnessVersion: task.harnessVersion,
-        model: task.model,
-        profile: task.profile,
-        provider: task.provider,
+        harness: variant.harness,
+        harnessVersion: variant.harnessVersion,
+        model: variant.model,
+        profile: variant.profile,
+        provider: variant.provider,
       } satisfies GridExecutionTask;
     })
   ).pipe(
     Effect.withSpan("EvalCredentials.resolveTasks"),
     Effect.annotateLogs({
       organizationId: actor.organizationId,
-      taskCount: tasks.length,
+      taskCount: variants.length,
     })
   );

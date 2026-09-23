@@ -19,19 +19,21 @@ describe("a task's sandbox", () => {
   it("may be left out", () => {
     const decoded = decode({
       ...request,
-      tasks: [{ harness: "codex", model: "gpt-5.6-sol" }],
+      variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
     });
 
-    expect(decoded.tasks[0]?.sandbox).toBeUndefined();
+    expect(decoded.variants[0]?.sandbox).toBeUndefined();
   });
 
   it("is kept when the caller names one", () => {
     const decoded = decode({
       ...request,
-      tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+      variants: [
+        { harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" },
+      ],
     });
 
-    expect(decoded.tasks[0]?.sandbox).toBe("daytona");
+    expect(decoded.variants[0]?.sandbox).toBe("daytona");
   });
 
   /* Optional must not mean unchecked: a name outside the set is still a
@@ -40,7 +42,9 @@ describe("a task's sandbox", () => {
     expect(() =>
       decode({
         ...request,
-        tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "nowhere" }],
+        variants: [
+          { harness: "codex", model: "gpt-5.6-sol", sandbox: "nowhere" },
+        ],
       })
     ).toThrow();
   });

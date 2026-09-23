@@ -1,12 +1,10 @@
 import { Database } from "@anpord/db/client";
 import { user } from "@anpord/db/schema/auth/users";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
-import { CellKey } from "../domain/cell";
 import { changesBetween } from "../domain/definition-changes";
 import { head, tryStore } from "./query";
 
@@ -18,10 +16,7 @@ export interface CaseVersion {
 }
 
 export interface CaseDetail {
-  readonly cellKey: CellKey;
-  readonly lastRunId: string;
   readonly name: string;
-  readonly suite: string | null;
   readonly tags: readonly string[];
   readonly versions: readonly CaseVersion[];
 }
@@ -33,17 +28,17 @@ export interface CaseDetailInput {
 
 const VERSION_COLUMNS = {
   author: user.name,
-  createdAt: evalTask.createdAt,
-  definitionHash: evalTask.definitionHash,
-  prepareSource: evalTask.prepareSource,
-  repoRef: evalTask.repoRef,
-  repoUrl: evalTask.repoUrl,
-  sourceFiles: evalTask.sourceFiles,
-  sourceKind: evalTask.sourceKind,
-  user: evalTask.user,
-  validatorConfig: evalTask.validatorConfig,
-  validatorSource: evalTask.validatorSource,
-  verifyCommand: evalTask.verifyCommand,
+  createdAt: evalCaseVersion.createdAt,
+  definitionHash: evalCaseVersion.definitionHash,
+  prepareSource: evalCaseVersion.prepareSource,
+  repoRef: evalCaseVersion.repoRef,
+  repoUrl: evalCaseVersion.repoUrl,
+  sourceFiles: evalCaseVersion.sourceFiles,
+  sourceKind: evalCaseVersion.sourceKind,
+  user: evalCaseVersion.user,
+  validatorConfig: evalCaseVersion.validatorConfig,
+  validatorSource: evalCaseVersion.validatorSource,
+  verifyCommand: evalCaseVersion.verifyCommand,
 };
 
 export const caseDetailQuery = Effect.gen(function* () {
@@ -59,16 +54,18 @@ export const caseDetailQuery = Effect.gen(function* () {
     tryStore("runQuery.findCase", () =>
       db
         .select({
-          cellKey: evalCell.cellKey,
-          lastRunId: evalRun.id,
           name: evalCase.name,
-          suite: evalRun.name,
-          tags: evalTask.tags,
+          tags: evalCaseVersion.tags,
         })
         .from(evalCase)
-        .innerJoin(evalTask, eq(evalTask.caseInternalId, evalCase.internalId))
-        .innerJoin(evalCell, eq(evalCell.taskInternalId, evalTask.internalId))
-        .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCaseVersion.caseInternalId, evalCase.internalId)
+        )
+        .innerJoin(
+          evalCell,
+          eq(evalCell.caseVersionInternalId, evalCaseVersion.internalId)
+        )
         .where(ownedBy(input))
         .orderBy(desc(evalCell.createdAt))
         .limit(1)
@@ -79,10 +76,13 @@ export const caseDetailQuery = Effect.gen(function* () {
       db
         .select(VERSION_COLUMNS)
         .from(evalCase)
-        .innerJoin(evalTask, eq(evalTask.caseInternalId, evalCase.internalId))
-        .leftJoin(user, eq(user.id, evalTask.createdBy))
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCaseVersion.caseInternalId, evalCase.internalId)
+        )
+        .leftJoin(user, eq(user.id, evalCaseVersion.createdBy))
         .where(ownedBy(input))
-        .orderBy(asc(evalTask.createdAt))
+        .orderBy(asc(evalCaseVersion.createdAt))
     ).pipe(
       Effect.map((rows) =>
         rows.map(
@@ -109,10 +109,7 @@ export const caseDetailQuery = Effect.gen(function* () {
       const versions = yield* versionsOf(input);
 
       return Option.some<CaseDetail>({
-        cellKey: CellKey.make(row.cellKey),
-        lastRunId: row.lastRunId,
         name: row.name,
-        suite: row.suite,
         tags: row.tags ?? [],
         versions,
       });

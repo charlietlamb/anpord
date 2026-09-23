@@ -126,7 +126,7 @@ export const renderEvalSuite = (file: EvalsJsonFile) => {
     "  cases: [",
     file.evals.map(caseBlock).join("\n"),
     "  ],",
-    "  tasks: [",
+    "  variants: [",
     "    /* Name the harness, model and sandbox this suite runs on. */",
     '    { harness: "codex", model: "gpt-5.6-sol" },',
     "  ],",

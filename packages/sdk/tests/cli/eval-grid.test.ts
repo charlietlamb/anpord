@@ -8,7 +8,7 @@ const bare = (text: string) => text.replaceAll(COLOUR, "");
 
 const cell = (
   caseName: string,
-  taskIndex: number,
+  variantIndex: number,
   status: string,
   settled: number,
   passRate: number | null
@@ -17,7 +17,7 @@ const cell = (
     caseName,
     distribution: passRate === null ? null : { passRate, scored: settled },
     status,
-    taskIndex,
+    variantIndex,
     trials: Array.from({ length: settled }, () => ({ status: "passed" })),
   }) as never;
 
@@ -27,7 +27,7 @@ const run = {
     cell("adds a test", 0, "finished", 3, 1),
     cell("adds a test", 1, "running", 1, null),
   ],
-  tasks: [
+  variants: [
     { harness: "codex", model: "gpt-5.6-sol" },
     { harness: "claude", model: "opus" },
   ],

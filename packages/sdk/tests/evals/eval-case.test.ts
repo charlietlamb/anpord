@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { evalCase, sourceUrlOf } from "../../src/evals/define";
 
-const tasks = [{ harness: "codex" as const, model: "m" }];
+const variants = [{ harness: "codex" as const, model: "m" }];
 
 describe("a single case", () => {
   it("reads as a suite of one", () => {
@@ -9,7 +9,7 @@ describe("a single case", () => {
       id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
-      tasks,
+      variants,
       trials: 3,
       verify: "test -f hello.txt",
     });
@@ -27,7 +27,7 @@ describe("a single case", () => {
       id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
-      tasks,
+      variants,
       trials: 1,
       verify: "test -f hello.txt",
     });
@@ -42,7 +42,7 @@ describe("a single case", () => {
       name: "writes hello",
       prompt: "Create hello.txt",
       tags: ["billing"],
-      tasks,
+      variants,
       trials: 1,
       verify: "test -f hello.txt",
     });
@@ -57,7 +57,7 @@ describe("a single case", () => {
       id: "writes-hello",
       name: "writes hello",
       prompt: "Create hello.txt",
-      tasks,
+      variants,
       trials: 1,
       verify: "test -f hello.txt",
     });

@@ -39,7 +39,7 @@ export const runLocally = (
     const trials = yield* LocalTrials;
     const versions = yield* HarnessVersions;
     const forwarded = localEnv(process.cwd());
-    const task = request.tasks[0];
+    const task = request.variants[0];
 
     if (task === undefined) {
       return [] as readonly LocalCase[];
@@ -92,7 +92,7 @@ export const runLocally = (
                   ordinal: 0,
                   outcome: outcome.outcome,
                   sandboxId: outcome.result.sandboxId,
-                  taskIndex: 0,
+                  variantIndex: 0,
                   usage: Option.getOrNull(outcome.result.usage),
                 }) ?? Effect.void
             ),

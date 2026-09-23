@@ -21,7 +21,7 @@ import { suite, empty } from "anpord";
 import { judge } from "anpord/validators";
 const correctness = judge({ name: "correctness", harness: "codex", model: "exact-model", prompt: "Matches expected", choices: { correct: 1, incorrect: 0 } });
 export default suite({ name: "judged", source: empty, prompt: "Answer", trials: 1,
-  tasks: [{ harness: "codex", model: "task-model", provider: "e2b" }],
+  variants: [{ harness: "codex", model: "task-model", provider: "e2b" }],
   cases: [{ id: "answer", name: "answer", validate: ${validate} }],
 });`
   );

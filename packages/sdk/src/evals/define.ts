@@ -73,13 +73,13 @@ export function suite<const Definition extends EvalDefinition>(
    names and an array to say it. A suite is what shares a prompt template or a
    set of mocks across several cases, so it stays for the cases that do. */
 export function evalCase(definition: SingleCaseDefinition): EvalDefinition {
-  const { prompt, tasks, trials, ...subject } = definition;
+  const { prompt, variants, trials, ...subject } = definition;
 
   return suite({
     cases: [subject as EvalCaseDefinition],
     name: subject.name,
     prompt,
-    tasks,
+    variants,
     trials,
   });
 }

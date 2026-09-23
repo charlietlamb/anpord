@@ -35,6 +35,6 @@ export const asCell = (
   internalId: cell.internalId,
   setup: Option.getOrNull(cell.setup),
   status: cell.status,
-  taskIndex: cell.taskIndex,
+  variantIndex: cell.variantIndex,
   trials: asTrials(cell),
 });

@@ -11,7 +11,7 @@ export const makeRegisterProfiles = Effect.gen(function* () {
 
   return (input: StartGrid) =>
     Effect.forEach(
-      input.tasks,
+      input.variants,
       (task) =>
         /* Nullish: a caller rebuilding a task from names omits the key entirely. */
         task.profile == null

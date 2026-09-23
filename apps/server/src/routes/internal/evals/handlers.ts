@@ -23,6 +23,7 @@ import {
   listEvalRuns,
   listRunAddresses,
   readRunTail,
+  rerunEvalCase,
 } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
 import {
@@ -103,6 +104,11 @@ export const EvalsHandlers = HttpApiBuilder.group(
           }).pipe(Effect.catchTag("EvalStoreError", Effect.die))
       )
 
+      .handle(
+        "rerunCase",
+        { permission: Permissions.Evals.Write },
+        ({ path, payload }) => rerunEvalCase({ ...payload, id: path.id })
+      )
       .handle(
         "rerunCell",
         { permission: Permissions.Evals.Write },

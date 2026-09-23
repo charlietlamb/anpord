@@ -11,7 +11,7 @@ const decodeReport = Schema.decodeUnknownSync(ReportTrialRequest);
 const start = {
   cases: [{ id: "a-case", name: "a case", verify: "true" }],
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
   trials: 1,
 };
 
@@ -42,7 +42,7 @@ describe("what a client reports", () => {
       verifySteps: [],
       voidFields: [],
     },
-    taskIndex: 0,
+    variantIndex: 0,
   };
 
   it("names the run and the cell within it", () => {
@@ -50,7 +50,7 @@ describe("what a client reports", () => {
 
     expect(decoded.id).toBe("run_1");
     expect(decoded.trial.caseName).toBe("a case");
-    expect(decoded.trial.taskIndex).toBe(0);
+    expect(decoded.trial.variantIndex).toBe(0);
   });
 
   it("carries the verdict the verifier reached", () => {
@@ -61,7 +61,7 @@ describe("what a client reports", () => {
 
   it("refuses a cell it cannot address", () => {
     expect(() =>
-      decodeReport({ id: "run_1", trial: { ...trial, taskIndex: -1 } })
+      decodeReport({ id: "run_1", trial: { ...trial, variantIndex: -1 } })
     ).toThrow();
   });
 

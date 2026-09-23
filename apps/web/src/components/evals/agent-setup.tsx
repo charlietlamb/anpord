@@ -2,6 +2,7 @@ import { CodeCard } from "@anpord/ui/components/ui/code-card";
 import type { SnippetCommand } from "@anpord/ui/components/ui/snippet";
 import { Snippet } from "@anpord/ui/components/ui/snippet";
 import { useDismissed } from "@anpord/ui/hooks/use-dismissed";
+import { PageSection } from "@/components/layout/page-section";
 import { DOCS_URL } from "@/lib/urls";
 
 const INSTALL: readonly SnippetCommand[] = [
@@ -36,7 +37,7 @@ const run = await anpord.evals.startAndWait({
     },
   ],
   prompt: "Read the repository. Make the smallest correct change. {{task}}",
-  tasks: [
+  variants: [
     { harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" },
     { harness: "claude", model: "opus", sandbox: "daytona" },
     { harness: "gemini", model: "gemini-2.5-pro", sandbox: "daytona" },
@@ -67,21 +68,16 @@ export function AgentSetup() {
   const { dismiss, dismissed } = useDismissed("anpord.install-dismissed");
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h2 className="font-heading text-xl tracking-tight">
-          Write an eval in code
-        </h2>
-        <p className="max-w-xl text-muted-foreground text-sm leading-6">
-          Install the SDK, then hand the prompt to your coding agent. It carries
-          the API, the rules that decide whether a result means anything, and
-          where the rest is documented.
-        </p>
-      </header>
+    <div className="flex flex-col gap-10">
+      {dismissed ? null : (
+        <PageSection title="Install the SDK">
+          <Snippet commands={INSTALL} onDismiss={dismiss} />
+        </PageSection>
+      )}
 
-      {dismissed ? null : <Snippet commands={INSTALL} onDismiss={dismiss} />}
-
-      <CodeCard code={PROMPT} label="PROMPT.md" lang="markdown" />
+      <PageSection title="Hand this to your coding agent">
+        <CodeCard code={PROMPT} label="PROMPT.md" lang="markdown" />
+      </PageSection>
     </div>
   );
 }

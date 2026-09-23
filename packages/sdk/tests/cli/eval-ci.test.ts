@@ -16,7 +16,7 @@ const decodeReport = Schema.decodeUnknownSync(
   Schema.parseJson(Schema.Array(EvalOutcome))
 );
 const definition = `import { suite, empty } from "anpord";
-export default suite({name:"CI",source:empty,prompt:"test",cases:[{id:"fixture",name:"fixture",verify:"true"}],tasks:[{harness:"codex",model:"test",provider:"e2b"}],trials:1});`;
+export default suite({name:"CI",source:empty,prompt:"test",cases:[{id:"fixture",name:"fixture",verify:"true"}],variants:[{harness:"codex",model:"test",provider:"e2b"}],trials:1});`;
 
 const execute = async (
   run: EvalRun,

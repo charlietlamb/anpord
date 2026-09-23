@@ -88,7 +88,7 @@ describe("the eval gate", () => {
 
   test("names both harness and profile versions when they change", () => {
     const run = createRun({
-      tasks: [
+      variants: [
         {
           harness: "codex",
           harnessVersion: "2.0.0",

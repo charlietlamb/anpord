@@ -49,7 +49,7 @@ const run = async (checks: string, capture = true) => {
     entry,
     `import { suite, empty } from "anpord";
 export default suite({ name: "observability", source: empty, prompt: "Answer", trials: 1, captureValidation: ${capture},
-tasks: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: "check", name: "check", validate: ${checks} }] });`
+variants: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: "check", name: "check", validate: ${checks} }] });`
   );
   const validator = (await compileEval(entry)).cases[0]?.validator;
   if (!(validator && "source" in validator)) {

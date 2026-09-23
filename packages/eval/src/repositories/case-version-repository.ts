@@ -1,5 +1,5 @@
 import { Database } from "@anpord/db/client";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
@@ -9,10 +9,9 @@ import type { EvalStoreError } from "../domain/errors";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { tryStore } from "./query";
 
-type TaskRow = typeof evalTask.$inferSelect;
+type CaseVersionRow = typeof evalCaseVersion.$inferSelect;
 
-interface TaskDefinition {
-  /** What a prepare builds that is worth keeping between runs of this case. */
+interface CaseVersionDefinition {
   readonly cache?: { readonly key: string; readonly path: string };
   readonly caseInternalId: string;
   readonly createdBy: string | null;
@@ -28,24 +27,23 @@ interface TaskDefinition {
   readonly workspace: string;
 }
 
-export interface TaskRepositoryShape {
+export interface CaseVersionRepositoryShape {
   readonly list: (
     organizationId: string
-  ) => Effect.Effect<readonly TaskRow[], EvalStoreError>;
+  ) => Effect.Effect<readonly CaseVersionRow[], EvalStoreError>;
 
   readonly upsertByDefinition: (
-    input: TaskDefinition & {
+    input: CaseVersionDefinition & {
       readonly definitionHash: string;
     }
-  ) => Effect.Effect<TaskRow, EvalStoreError>;
+  ) => Effect.Effect<CaseVersionRow, EvalStoreError>;
 }
 
-export class TaskRepository extends Context.Tag("@anpord/eval/TaskRepository")<
-  TaskRepository,
-  TaskRepositoryShape
->() {}
+export class CaseVersionRepository extends Context.Tag(
+  "@anpord/eval/CaseVersionRepository"
+)<CaseVersionRepository, CaseVersionRepositoryShape>() {}
 
-const definitionOf = (input: TaskDefinition) => ({
+const definitionOf = (input: CaseVersionDefinition) => ({
   cacheKey: input.cache?.key ?? null,
   cachePath: input.cache?.path ?? null,
   name: input.name,
@@ -68,20 +66,20 @@ const definitionOf = (input: TaskDefinition) => ({
   workspace: input.workspace,
 });
 
-export const TaskRepositoryLive = Layer.effect(
-  TaskRepository,
+export const CaseVersionRepositoryLive = Layer.effect(
+  CaseVersionRepository,
   Effect.gen(function* () {
     const db = yield* Database;
     const ids = yield* IdGenerator;
 
-    return TaskRepository.of({
+    return CaseVersionRepository.of({
       upsertByDefinition: (input) =>
         Effect.gen(function* () {
-          const internalId = yield* ids.generate("evalTask");
+          const internalId = yield* ids.generate("evalCaseVersion");
 
-          const rows = yield* tryStore("task.upsertByDefinition", () =>
+          const rows = yield* tryStore("caseVersion.upsertByDefinition", () =>
             db
-              .insert(evalTask)
+              .insert(evalCaseVersion)
               .values({
                 ...definitionOf(input),
                 caseInternalId: input.caseInternalId,
@@ -93,7 +91,10 @@ export const TaskRepositoryLive = Layer.effect(
 
               .onConflictDoUpdate({
                 set: { name: input.name },
-                target: [evalTask.caseInternalId, evalTask.definitionHash],
+                target: [
+                  evalCaseVersion.caseInternalId,
+                  evalCaseVersion.definitionHash,
+                ],
               })
               .returning()
           );
@@ -102,18 +103,18 @@ export const TaskRepositoryLive = Layer.effect(
 
           return row === undefined
             ? yield* Effect.dieMessage(
-                `task ${input.definitionHash} was neither written nor found`
+                `case version ${input.definitionHash} was neither written nor found`
               )
             : row;
-        }).pipe(Effect.withSpan("TaskRepository.upsertByDefinition")),
+        }).pipe(Effect.withSpan("CaseVersionRepository.upsertByDefinition")),
 
       list: (organizationId) =>
-        tryStore("task.list", () =>
+        tryStore("caseVersion.list", () =>
           db
             .select()
-            .from(evalTask)
-            .where(eq(evalTask.organizationId, organizationId))
-        ).pipe(Effect.withSpan("TaskRepository.list")),
+            .from(evalCaseVersion)
+            .where(eq(evalCaseVersion.organizationId, organizationId))
+        ).pipe(Effect.withSpan("CaseVersionRepository.list")),
     });
   })
 );

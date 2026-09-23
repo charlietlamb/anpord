@@ -12,7 +12,7 @@ export default suite({
       verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  tasks: [
+  variants: [
     { harness: "claude", model: "claude-haiku-4-5-20251001", sandbox: "e2b" },
   ],
   trials: 1,

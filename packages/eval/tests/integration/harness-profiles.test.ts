@@ -33,8 +33,8 @@ const TestLayer = EvalRepositoriesLive.pipe(
 const suffix = Date.now();
 const organizationId = `org_profile_${suffix}`;
 const taskId = `task_profile_${suffix}`;
-const taskInternalId = `taskint_profile_${suffix}`;
-const caseInternalId = `ecas_${taskInternalId}`;
+const caseVersionInternalId = `taskint_profile_${suffix}`;
+const caseInternalId = `ecas_${caseVersionInternalId}`;
 
 type Tags = Database | HarnessProfileRepository | RunQuery | RunRepository;
 
@@ -86,7 +86,7 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
             .values(
               taskFixture.values({
                 id: taskId,
-                internalId: taskInternalId,
+                internalId: caseVersionInternalId,
                 organizationId,
               })
             )
@@ -160,13 +160,13 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
             prompt: "fix the failing test",
             provider: "daytona" as const,
             runInternalId: created.internalId,
-            taskInternalId,
+            caseVersionInternalId,
           }))
         );
 
         return yield* Effect.all({
           detail: query.findRun(organizationId, created.id),
-          tasks: query.findRunTasks({ organizationId, runId: created.id }),
+          variants: query.findRunTasks({ organizationId, runId: created.id }),
         });
       })
     );
@@ -188,25 +188,24 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
     /* Sorted rather than read in query order: the stored read has no ORDER
        BY, and what matters is that both profiles survived as their own
        column rather than which of them Postgres returned first. */
-    expect(state.tasks).toHaveLength(2);
-    expect(state.tasks.map((task) => task.profile?.name).toSorted()).toEqual([
-      "alpha",
-      "beta",
-    ]);
-    expect(state.cells.map((cell) => cell.taskIndex).toSorted()).toEqual([
+    expect(state.variants).toHaveLength(2);
+    expect(state.variants.map((task) => task.profile?.name).toSorted()).toEqual(
+      ["alpha", "beta"]
+    );
+    expect(state.cells.map((cell) => cell.variantIndex).toSorted()).toEqual([
       0, 1,
     ]);
 
     /* A rebuilt grid squares its cases against its tasks, so two profiles that
        collapsed into one column here would run the wrong pairing on resume. */
-    expect(gridOf(stored.tasks).tasks).toHaveLength(2);
-    expect(stored.tasks.map((task) => task.trialsPerCell)).toEqual([3, 3]);
-    expect(stored.tasks.map((task) => task.trigger)).toEqual([
+    expect(gridOf(stored.variants).variants).toHaveLength(2);
+    expect(stored.variants.map((task) => task.trialsPerCell)).toEqual([3, 3]);
+    expect(stored.variants.map((task) => task.trigger)).toEqual([
       { source: "ci", url: "https://github.com/acme/app/actions/runs/123" },
       { source: "ci", url: "https://github.com/acme/app/actions/runs/123" },
     ]);
     expect(
-      stored.tasks
+      stored.variants
         .map((cell) => cell.profile?.files["workspace/AGENTS.md"])
         .toSorted()
     ).toEqual(["# Alpha\n", "# Beta\n"]);

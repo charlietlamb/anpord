@@ -8,7 +8,10 @@ import { RunQuery } from "../../src/repositories/run-query";
 import type { CellTask } from "../../src/repositories/run-tasks-query";
 import { make } from "../../src/services/cell-rerun";
 
-const cellTask = (source: WorkspaceSource | null): CellTask => ({
+const cellTask = (
+  source: WorkspaceSource | null,
+  model = "gpt-5.2"
+): CellTask => ({
   trigger: { source: "ci" },
   caseInternalId: "ecas_fixture",
   cacheKey: null,
@@ -17,7 +20,7 @@ const cellTask = (source: WorkspaceSource | null): CellTask => ({
   cell: {
     harness: "codex",
     harnessVersion: "0.144.4",
-    model: "gpt-5.2",
+    model,
     provider: "daytona",
   } as CellTask["cell"],
   identity: "task_identity",
@@ -67,6 +70,13 @@ const layer = (
         findRunAddresses: () => Effect.succeed([]),
         findTrial: () => Effect.succeed(Option.none()),
         findCaseHistory: () => Effect.succeed([]),
+        findCaseTasks: () =>
+          Effect.succeed([
+            cellTask(source, "gpt-6"),
+            cellTask(source),
+            cellTask(source, "gpt-6"),
+          ]),
+        findCaseVariants: () => Effect.succeed([]),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
         findRunTasks: () => Effect.succeed([]),
@@ -131,6 +141,40 @@ test("cell reruns preserve file workspaces", async () => {
   expect(started?.cases[0]?.source).toEqual(source);
   expect(started?.trials).toBe(2);
   expect(started?.trigger).toEqual({ source: "dashboard" });
+});
+
+test("a case reruns every variant it has run on in one run", async () => {
+  const source = { kind: "empty" } as const;
+  let started: StartGrid | undefined;
+
+  await Effect.runPromise(
+    Effect.gen(function* () {
+      const service = yield* make;
+      return yield* service.acrossVariants({
+        actor,
+        caseId: "task_identity",
+        legacyHarnessAuth: "credentials",
+        organizationId: "org_id",
+        startedBy: "user_id",
+        trials: 1,
+      });
+    }).pipe(
+      Effect.provide(
+        layer(source, (input) => {
+          started = input;
+        })
+      ),
+      Effect.provide(layerTestResolver())
+    )
+  );
+
+  expect(started?.cases.map((subject) => subject.id)).toEqual([
+    "task_identity",
+  ]);
+  expect(started?.variants.map((task) => task.model)).toEqual([
+    "gpt-6",
+    "gpt-5.2",
+  ]);
 });
 
 test("cell reruns refuse legacy rows without a workspace snapshot", async () => {

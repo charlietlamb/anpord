@@ -1,8 +1,8 @@
 import { Database } from "@anpord/db/client";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { and, eq, type SQL } from "drizzle-orm";
 import { Effect, type Option } from "effect";
@@ -41,8 +41,14 @@ export const trialAddressQuery = Effect.gen(function* () {
         .from(evalTrial)
         .innerJoin(evalCell, eq(evalCell.internalId, evalTrial.cellInternalId))
         .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
-        .innerJoin(evalTask, eq(evalTask.internalId, evalCell.taskInternalId))
-        .innerJoin(evalCase, eq(evalCase.internalId, evalTask.caseInternalId))
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCaseVersion.internalId, evalCell.caseVersionInternalId)
+        )
+        .innerJoin(
+          evalCase,
+          eq(evalCase.internalId, evalCaseVersion.caseInternalId)
+        )
         .where(condition)
     );
 

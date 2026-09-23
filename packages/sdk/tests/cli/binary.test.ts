@@ -82,7 +82,7 @@ export default suite({
   source: { kind: "empty" },
   prompt: "{{task}}",
   cases: [{ id: "case", name: "case", variables: { task: "Do nothing" }, verify: "true" }],
-  tasks: [{ harness: "codex", model: "test", provider: "daytona" }],
+  variants: [{ harness: "codex", model: "test", provider: "daytona" }],
   trials: 1,
 });`;
       await Promise.all([

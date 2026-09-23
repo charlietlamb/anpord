@@ -9,19 +9,19 @@ import {
   trialsRequested,
 } from "@anpord/schema/domain/eval-quota";
 import { Effect, Option } from "effect";
-import { type KeyedTask, tasksAreDistinct } from "./task-keys";
+import { type KeyedVariant, variantsAreDistinct } from "./variant-keys";
 
 interface StartPayload {
   readonly cases: readonly {
     readonly user?: { readonly kind: string } | null;
   }[];
-  readonly tasks: readonly KeyedTask[];
   readonly trials: number;
+  readonly variants: readonly KeyedVariant[];
 }
 
 const sizeOf = (payload: StartPayload): StartSize => ({
   cases: payload.cases.length,
-  tasks: payload.tasks.length,
+  variants: payload.variants.length,
   trials: payload.trials,
 });
 
@@ -45,7 +45,7 @@ export const admitStart = (
       }
     }
 
-    if (!tasksAreDistinct(payload.tasks)) {
+    if (!variantsAreDistinct(payload.variants)) {
       return yield* Effect.fail(
         new BadRequest({ message: "Each eval task must be unique" })
       );
@@ -77,7 +77,7 @@ export const admitStart = (
     Effect.withSpan("StartAdmission.admit", {
       attributes: {
         cases: payload.cases.length,
-        tasks: payload.tasks.length,
+        variants: payload.variants.length,
         trials: payload.trials,
       },
     })

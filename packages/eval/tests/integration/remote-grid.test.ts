@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EvalSetup } from "@anpord/schema/domain/evals";
 import { eq } from "drizzle-orm";
@@ -112,7 +112,7 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
           organizationId,
           prompt: "Use the fixture",
           startedBy: null,
-          tasks: [
+          variants: [
             {
               credentials: {
                 harness: Redacted.make({
@@ -146,7 +146,7 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
 
         yield* Effect.promise(() =>
           db
-            .update(evalTask)
+            .update(evalCaseVersion)
             .set({
               validatorConfig: {
                 name: "changed",
@@ -154,7 +154,7 @@ describe.skipIf(skipWithoutDatabase())("remote grid reads", () => {
                 sourceFiles: [],
               },
             })
-            .where(eq(evalTask.organizationId, organizationId))
+            .where(eq(evalCaseVersion.organizationId, organizationId))
         );
         expect(setupOf(yield* read()).validatorFiles).toEqual(sourceFiles);
 

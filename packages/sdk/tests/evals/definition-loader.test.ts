@@ -5,7 +5,7 @@ const definition = {
   cases: [],
   name: "release notes",
   prompt: "Do the work.",
-  tasks: [],
+  variants: [],
   trials: 3,
 };
 
@@ -14,7 +14,7 @@ describe("isDefinition", () => {
     expect(isDefinition(definition)).toBe(true);
   });
 
-  /** The author's own functions live in the cases and tasks, so the guard
+  /** The author's own functions live in the cases and variants, so the guard
    * checks that a definition was exported at all and leaves what is in it to
    * the compiler, which can name what is wrong. */
   test("accepts a definition carrying its author's functions", () => {
@@ -22,7 +22,7 @@ describe("isDefinition", () => {
       isDefinition({
         ...definition,
         cases: [{ id: "a", name: "a", validate: () => ({ passed: true }) }],
-        tasks: [{ harness: "claude" }],
+        variants: [{ harness: "claude" }],
       })
     ).toBe(true);
   });
@@ -34,13 +34,13 @@ describe("isDefinition", () => {
   });
 
   test("refuses a definition missing a required field", () => {
-    const { cases, name, prompt, tasks, trials } = definition;
+    const { cases, name, prompt, variants, trials } = definition;
 
-    expect(isDefinition({ name, prompt, tasks, trials })).toBe(false);
-    expect(isDefinition({ cases, prompt, tasks, trials })).toBe(false);
-    expect(isDefinition({ cases, name, tasks, trials })).toBe(false);
+    expect(isDefinition({ name, prompt, variants, trials })).toBe(false);
+    expect(isDefinition({ cases, prompt, variants, trials })).toBe(false);
+    expect(isDefinition({ cases, name, variants, trials })).toBe(false);
     expect(isDefinition({ cases, name, prompt, trials })).toBe(false);
-    expect(isDefinition({ cases, name, prompt, tasks })).toBe(false);
+    expect(isDefinition({ cases, name, prompt, variants })).toBe(false);
   });
 
   /** Trials is a count of runs, and a fraction of a run is not one. */

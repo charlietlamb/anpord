@@ -6,7 +6,7 @@ description: "Version the configuration you layer on a harness"
 Profiles version the files and settings layered onto a harness:
 
 ```ts
-tasks: [
+variants: [
   { harness: "opencode", model: "anthropic/claude-sonnet-4.6" },
   {
     harness: { base: "opencode", profile: { name: "docs-writer", dir: "./profile" } },

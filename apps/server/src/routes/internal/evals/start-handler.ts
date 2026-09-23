@@ -1,5 +1,5 @@
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
-import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { resolveVariantCredentials } from "@anpord/eval/credentials/variants";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { GridRun } from "@anpord/eval/grid/run";
 import { authorIdOf } from "@anpord/schema/domain/actor";
@@ -27,7 +27,7 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
     const grid = yield* GridRun;
     const credentials = yield* EvalCredentials;
 
-    const requested = yield* Effect.forEach(payload.tasks, (task) =>
+    const requested = yield* Effect.forEach(payload.variants, (task) =>
       harnessVersion(task.harness).pipe(
         Effect.map((harnessVersion) => ({
           ...task,
@@ -38,7 +38,7 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
       )
     );
     /* Reported rather than died on: a missing or revoked connection is something the caller can fix. */
-    const tasks = yield* resolveTaskCredentials(
+    const variants = yield* resolveVariantCredentials(
       credentialResolver,
       actor,
       requested,
@@ -63,7 +63,7 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
       prompt: payload.prompt,
       startedBy: authorIdOf(actor),
       trigger: { source: "dashboard" },
-      tasks,
+      variants,
       trials: payload.trials,
     });
 
@@ -72,7 +72,7 @@ export const startEvalFromApp = (payload: StartEvalRequest) =>
       runId: id,
       trials: trialsRequested({
         cases: payload.cases.length,
-        tasks: payload.tasks.length,
+        variants: payload.variants.length,
         trials: payload.trials,
       }),
     });

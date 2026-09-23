@@ -82,7 +82,7 @@ const formatActivity = (cell: EvalCell) => {
 };
 
 export const formatVariant = (run: EvalRun, cell: EvalCell) => {
-  const task = run.tasks[cell.taskIndex];
+  const task = run.variants[cell.variantIndex];
 
   return task === undefined ? "?" : `${task.harness}/${task.model}`;
 };

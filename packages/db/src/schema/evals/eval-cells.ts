@@ -9,9 +9,9 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { credentialConnection } from "../credentials/connections";
+import { evalCaseVersion } from "./eval-case-versions";
 import { evalHarnessProfile } from "./eval-harness-profiles";
 import { evalRun } from "./eval-runs";
-import { evalTask } from "./eval-tasks";
 
 export const evalCell = pgTable(
   "eval_cell",
@@ -20,9 +20,9 @@ export const evalCell = pgTable(
     runInternalId: text("run_internal_id")
       .notNull()
       .references(() => evalRun.internalId, { onDelete: "cascade" }),
-    taskInternalId: text("task_internal_id")
+    caseVersionInternalId: text("case_version_internal_id")
       .notNull()
-      .references(() => evalTask.internalId, { onDelete: "restrict" }),
+      .references(() => evalCaseVersion.internalId, { onDelete: "restrict" }),
     cellKey: text("cell_key").notNull(),
     harness: text("harness").notNull(),
     harnessCredentialConnectionId: text(
@@ -31,7 +31,7 @@ export const evalCell = pgTable(
     harnessCredentialRevision: integer("harness_credential_revision"),
     harnessVersion: text("harness_version").notNull(),
     model: text("model").notNull(),
-    /* Restricted like the task: the profile is part of what the cell measured. */
+    /* Restricted like the case version: the profile is part of what the cell measured. */
     profileInternalId: text("profile_internal_id").references(
       () => evalHarnessProfile.internalId,
       { onDelete: "restrict" }
@@ -62,7 +62,9 @@ export const evalCell = pgTable(
       table.cellKey,
       table.createdAt.desc()
     ),
-    index("eval_cell_task_internal_id_idx").on(table.taskInternalId),
+    index("eval_cell_case_version_internal_id_idx").on(
+      table.caseVersionInternalId
+    ),
     index("eval_cell_profile_internal_id_idx")
       .on(table.profileInternalId)
       .where(sql`"profile_internal_id" IS NOT NULL`),

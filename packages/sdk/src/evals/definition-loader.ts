@@ -40,7 +40,7 @@ const DefinitionShape = Schema.Struct({
   cases: Schema.Array(Schema.Unknown),
   name: Schema.String,
   prompt: Schema.String,
-  tasks: Schema.Array(Schema.Unknown),
+  variants: Schema.Array(Schema.Unknown),
   trials: Schema.Int,
 });
 

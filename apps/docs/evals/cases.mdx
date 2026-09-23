@@ -3,7 +3,7 @@ title: "Suites and cases"
 description: "Define work and its pass condition"
 ---
 
-An eval suite is a TypeScript object. Its prompt and tasks are shared; each case supplies variables, a workspace, and one pass condition.
+An eval suite is a TypeScript object. Its prompt and variants are shared; each case supplies variables, a workspace, and one pass condition.
 
 ```ts
 import { suite, repo } from "anpord";
@@ -19,7 +19,7 @@ export default suite({
       verify: "bun test test/health.test.ts",
     },
   ],
-  tasks: [{ harness: "codex", model: "model-id" }],
+  variants: [{ harness: "codex", model: "model-id" }],
   trials: 3,
 });
 ```
@@ -93,4 +93,4 @@ Use [model judges](/evals/judges) for subjective checks, [classifiers](/evals/cl
 
 Run every discovered `*.eval.ts` suite with `anpord eval`, or pass one file with `anpord eval ./smoke.eval.ts`.
 
-See [agents and sandboxes](/evals/variants) for tasks and [profiles](/evals/profiles) for custom harness configuration.
+See [variants](/evals/variants) for agents and sandboxes and [profiles](/evals/profiles) for custom harness configuration.

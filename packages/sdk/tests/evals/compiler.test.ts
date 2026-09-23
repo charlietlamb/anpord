@@ -89,7 +89,7 @@ export default suite({
   name: "mcp",
   prompt: "Use the tool",
   source: { kind: "empty" },
-  tasks: [
+  variants: [
     ...["claude", "codex", "opencode"].map(
       (harness) => ({ harness, model: "model", sandbox: "daytona" })
     ),
@@ -100,7 +100,7 @@ export default suite({
 
     const payload = await compileFixture(join(workspace, "eval.ts"));
 
-    for (const task of payload.tasks) {
+    for (const task of payload.variants) {
       expect(task.profile?.files["workspace/.anpord/api/server.mjs"]).toContain(
         "gunzipSync"
       );
@@ -116,7 +116,7 @@ export default suite({
       );
     }
 
-    const first = payload.tasks[0];
+    const first = payload.variants[0];
     for (const [path, source] of Object.entries(first?.profile?.files ?? {})) {
       if (path.startsWith("workspace/")) {
         const target = join(workspace, path.slice("workspace/".length));
@@ -143,7 +143,7 @@ export default suite({
       )
     ).toMatchObject({ command: "users get", input: { id: "user_1" } });
 
-    const opencode = payload.tasks.find(
+    const opencode = payload.variants.find(
       ({ harness }) => harness === "opencode"
     );
     expect(
@@ -206,7 +206,7 @@ export default suite({
   cases: [{ id: "a-case", variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
   name: "direct-validator",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -250,7 +250,7 @@ export default suite({
   name: "suite",
   prompt: "{{task}}",
   source: repo("acme/widgets@a1b2c3d"),
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -275,7 +275,7 @@ export default suite({
   name: "suite",
   prompt: "{{task}}",
   source: repo("acme"),
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -296,7 +296,7 @@ export default suite({
   name: "suite",
   prompt: "{{task}}",
   source: "charlietlamb/strudel@main",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -325,7 +325,7 @@ export default suite({
   name: "suite",
   prompt: "{{task}}",
   source: "nonsense",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -351,7 +351,7 @@ export default suite({
   cases: [{ id: "a-case", variables: { task: "add a test" }, name: "c", verify: "true" }],
   name: "suite",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -371,7 +371,7 @@ export default suite({
   name: "suite",
   prompt: "{{task}}",
   source: "acme/widgets",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );
@@ -416,7 +416,7 @@ export default suite({
   ],
   name: "suite",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
   trials: 1,
 });`
     );

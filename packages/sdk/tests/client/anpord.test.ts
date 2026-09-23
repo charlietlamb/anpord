@@ -132,7 +132,9 @@ describe("validation", () => {
           },
         ],
         prompt: "{{task}}",
-        tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "local" }],
+        variants: [
+          { harness: "codex", model: "gpt-5.6-sol", sandbox: "local" },
+        ],
         trials: 1,
       } as never)
     ).rejects.toThrow(SANDBOX_ERROR);
@@ -154,7 +156,7 @@ describe("validation", () => {
           },
         ],
         prompt: "{{task}}",
-        tasks: [{ harness: "codex", model: "", sandbox: "daytona" }],
+        variants: [{ harness: "codex", model: "", sandbox: "daytona" }],
         trials: 1,
       })
     ).rejects.toThrow(MODEL_ERROR);

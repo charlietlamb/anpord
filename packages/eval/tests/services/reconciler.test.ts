@@ -2,10 +2,10 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { eq } from "drizzle-orm";
@@ -86,7 +86,7 @@ const seedRun = async (tag: string, createdAt: Date) => {
           provider: "daytona",
           runInternalId: `runint_${tag}`,
           status: "running",
-          taskInternalId: `taskint_${suffix}`,
+          caseVersionInternalId: `taskint_${suffix}`,
         });
       });
     })
@@ -118,7 +118,7 @@ describe.skipIf(skipWithoutDatabase())("Reconciler", () => {
             })
           );
 
-          await db.insert(evalTask).values(
+          await db.insert(evalCaseVersion).values(
             taskFixture.values({
               id: `task_${suffix}`,
               internalId: `taskint_${suffix}`,

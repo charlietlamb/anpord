@@ -1,8 +1,9 @@
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
-import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { resolveVariantCredentials } from "@anpord/eval/credentials/variants";
 import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
 import { asEntries } from "@anpord/eval/domain/journal-entries";
 import { GridRun } from "@anpord/eval/grid/run";
+import { setupOf } from "@anpord/eval/repositories/case-setup";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
@@ -83,7 +84,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
 
     const totalTrials = trialsRequested({
       cases: payload.cases.length,
-      tasks: payload.tasks.length,
+      variants: payload.variants.length,
       trials: payload.trials,
     });
 
@@ -93,7 +94,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
     /* The sandbox is resolved here rather than defaulted in the schema: the
        cell key hashes the name, so it has to be a real one before a cell is
        identified. */
-    const requested = yield* Effect.forEach(payload.tasks, (task) =>
+    const requested = yield* Effect.forEach(payload.variants, (task) =>
       harnessVersion(task.harness).pipe(
         Effect.map((harnessVersion) => ({
           ...task,
@@ -103,7 +104,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
         }))
       )
     );
-    const tasks = yield* resolveTaskCredentials(
+    const variants = yield* resolveVariantCredentials(
       credentialResolver,
       actor,
       requested,
@@ -126,7 +127,7 @@ export const startEvalRun = (payload: PublicStartEvalRequest) =>
       prompt: payload.prompt,
       startedBy: authorIdOf(actor),
       trigger: payload.trigger ?? { source: "api" },
-      tasks,
+      variants,
       trials: payload.trials,
     });
 
@@ -195,7 +196,7 @@ export const getEvalRun = (id: string) =>
       .compareCells(
         actor.organizationId,
         found.value.cells.flatMap((cell) => {
-          const task = found.value.tasks[cell.taskIndex];
+          const task = found.value.variants[cell.variantIndex];
 
           return cell.cellKey === null ||
             cell.definitionHash === null ||
@@ -248,16 +249,29 @@ export const getCase = (id: string) =>
       );
     }
 
-    const entries = yield* query.findCaseHistory({
-      caseId: id,
-      limit: HISTORY_LIMIT,
-      organizationId: actor.organizationId,
-    });
+    const scope = { caseId: id, organizationId: actor.organizationId };
+    const [entries, variants, tasks] = yield* Effect.all(
+      [
+        query.findCaseHistory({ ...scope, limit: HISTORY_LIMIT }),
+        query.findCaseVariants(scope),
+        query.findCaseTasks(scope),
+      ],
+      { concurrency: "unbounded" }
+    );
+    const [newest] = tasks;
+
+    if (newest === undefined) {
+      return yield* Effect.fail(
+        new NotFound({ message: `Eval case "${id}" has never run` })
+      );
+    }
 
     return {
       ...found.value,
       history: entries.map(toReadingView),
       id,
+      setup: setupOf(newest),
+      variants: variants.map(toReadingView),
       versions: found.value.versions.map((version) => ({
         ...version,
         createdAt: DateTime.unsafeMake(version.createdAt.getTime()),
@@ -319,6 +333,26 @@ export const rerunEvalCell = (
       trigger: input.trigger ?? { source: "api" },
       trials: input.trials,
     });
+    return { id };
+  }).pipe(withEvalErrors);
+
+export const rerunEvalCase = (
+  input: RerunCellRequest & { readonly id: string }
+) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const reruns = yield* CellReruns;
+    const credentials = yield* EvalCredentials;
+    const id = yield* reruns.acrossVariants({
+      actor,
+      caseId: input.id,
+      legacyHarnessAuth: credentials.codexAuth,
+      organizationId: actor.organizationId,
+      startedBy: authorIdOf(actor),
+      trigger: input.trigger ?? { source: "dashboard" },
+      trials: input.trials,
+    });
+
     return { id };
   }).pipe(withEvalErrors);
 

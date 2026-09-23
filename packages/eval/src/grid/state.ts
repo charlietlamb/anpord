@@ -67,8 +67,8 @@ export interface GridCell {
 
   readonly setup: Option.Option<GridSetup>;
   readonly status: "running" | "finished" | "failed";
-  readonly taskIndex: number;
   readonly trials: readonly Option.Option<AgentTrialResult>[];
+  readonly variantIndex: number;
 }
 
 export interface GridRunState {
@@ -82,26 +82,26 @@ export interface GridRunState {
   readonly organizationId: string;
   readonly startedAt: number;
   readonly status: "running" | "finished" | "failed";
-  readonly tasks: readonly GridTask[];
   readonly trigger: EvalTrigger | null;
+  readonly variants: readonly GridTask[];
 }
 
-export const cellKeyOfPosition = (taskIndex: number, caseName: string) =>
-  `${taskIndex}:${caseName}`;
+export const cellKeyOfPosition = (variantIndex: number, caseName: string) =>
+  `${variantIndex}:${caseName}`;
 
-const at = (cell: GridCell, taskIndex: number, caseName: string) =>
-  cellKeyOfPosition(cell.taskIndex, cell.caseName) ===
-  cellKeyOfPosition(taskIndex, caseName);
+const at = (cell: GridCell, variantIndex: number, caseName: string) =>
+  cellKeyOfPosition(cell.variantIndex, cell.caseName) ===
+  cellKeyOfPosition(variantIndex, caseName);
 
 export const settleTrial = (
   run: GridRunState,
-  position: { readonly caseName: string; readonly taskIndex: number },
+  position: { readonly caseName: string; readonly variantIndex: number },
   ordinal: number,
   result: AgentTrialResult
 ): GridRunState => ({
   ...run,
   cells: run.cells.map((cell) =>
-    at(cell, position.taskIndex, position.caseName)
+    at(cell, position.variantIndex, position.caseName)
       ? {
           ...cell,
           trials: cell.trials.map((trial, index) =>
@@ -114,13 +114,13 @@ export const settleTrial = (
 
 export const advanceTrial = (
   run: GridRunState,
-  position: { readonly caseName: string; readonly taskIndex: number },
+  position: { readonly caseName: string; readonly variantIndex: number },
   ordinal: number,
   events: readonly HarnessEvent[]
 ): GridRunState => ({
   ...run,
   cells: run.cells.map((cell) =>
-    at(cell, position.taskIndex, position.caseName)
+    at(cell, position.variantIndex, position.caseName)
       ? { ...cell, live: new Map(cell.live).set(ordinal, events) }
       : cell
   ),
@@ -128,7 +128,7 @@ export const advanceTrial = (
 
 export const completeCell = (
   run: GridRunState,
-  position: { readonly caseName: string; readonly taskIndex: number },
+  position: { readonly caseName: string; readonly variantIndex: number },
   identity: {
     readonly cellKey: string;
     readonly definitionHash: string;
@@ -137,7 +137,7 @@ export const completeCell = (
 ): GridRunState => ({
   ...run,
   cells: run.cells.map((cell) => {
-    if (!at(cell, position.taskIndex, position.caseName)) {
+    if (!at(cell, position.variantIndex, position.caseName)) {
       return cell;
     }
 

@@ -12,33 +12,36 @@ import {
   compileMcpServers,
   withMcpServers,
 } from "./mcp-profile";
-import { profileTask } from "./profile-directory";
+import { profileVariant } from "./profile-directory";
 import { type DefinitionRef, prepareEntry } from "./runner-source";
 import { repo } from "./source";
 import type {
   EvalCaseDefinition,
   EvalDefinition,
-  EvalTaskDefinition,
+  EvalVariantDefinition,
 } from "./types";
 
-type PublicEvalTask = PublicStartEvalRequest["tasks"][number];
+type PublicEvalVariant = PublicStartEvalRequest["variants"][number];
 
-const taskOf = (
+const variantOf = (
   entry: string,
-  task: EvalTaskDefinition,
+  variant: EvalVariantDefinition,
   clis: readonly CompiledCli[],
   mcp: readonly CompiledMcpServer[],
   apis: Readonly<Record<string, string>>
 ) =>
   Effect.gen(function* () {
-    const compiled: PublicEvalTask =
-      typeof task.harness === "string"
+    const compiled: PublicEvalVariant =
+      typeof variant.harness === "string"
         ? {
-            harness: task.harness,
-            model: task.model,
-            sandbox: task.sandbox,
+            harness: variant.harness,
+            model: variant.model,
+            sandbox: variant.sandbox,
           }
-        : yield* profileTask(entry, { ...task, harness: task.harness });
+        : yield* profileVariant(entry, {
+            ...variant,
+            harness: variant.harness,
+          });
 
     return yield* Effect.try(() =>
       withApis(withClis(withMcpServers(compiled, mcp), clis), apis)
@@ -123,9 +126,9 @@ const compileRefEffect = (ref: DefinitionRef) =>
       { concurrency: 4 }
     );
 
-    const tasks = yield* Effect.forEach(
-      definition.tasks,
-      (task) => taskOf(entry, task, clis, mcp, apis),
+    const variants = yield* Effect.forEach(
+      definition.variants,
+      (variant) => variantOf(entry, variant, clis, mcp, apis),
       { concurrency: 4 }
     );
 
@@ -133,7 +136,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
       cases,
       name: definition.name,
       prompt: definition.prompt,
-      tasks,
+      variants,
       trials: definition.trials,
     });
   }).pipe(Effect.withSpan("Eval.compile"));

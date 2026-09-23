@@ -19,8 +19,8 @@ import {
 } from "./eval-limits";
 import {
   MAX_START_CASES,
-  MAX_START_TASKS,
   MAX_START_TRIALS,
+  MAX_START_VARIANTS,
 } from "./eval-quota";
 import {
   HarnessProfile,
@@ -52,7 +52,7 @@ export const HOSTED_SANDBOXES = EVAL_SANDBOXES.filter(
 );
 
 /* Conformance passes cleanly here and both client milestones ran on it, so a
-   task that names no sandbox gets one that works rather than an error. */
+   variant that names no sandbox gets one that works rather than an error. */
 export const DEFAULT_SANDBOX: EvalSandbox = "e2b";
 
 export const EvalTrialStatus = Schema.Literal(
@@ -220,32 +220,32 @@ export const EvalCase = Schema.Struct({
 });
 export type EvalCase = typeof EvalCase.Type;
 
-export const EvalTaskProfile = Schema.Struct({
+export const EvalVariantProfile = Schema.Struct({
   name: Schema.String,
   version: Schema.String,
 }).annotations({
   description: "The profile a cell's harness ran under, by name and version.",
-  identifier: "EvalTaskProfile",
+  identifier: "EvalVariantProfile",
 });
-export type EvalTaskProfile = typeof EvalTaskProfile.Type;
+export type EvalVariantProfile = typeof EvalVariantProfile.Type;
 
-export const EvalTask = Schema.Struct({
+export const EvalVariant = Schema.Struct({
   harness: EvalHarness,
 
   harnessVersion: Schema.String,
   model: Schema.String,
-  profile: Schema.optional(Schema.NullOr(EvalTaskProfile)),
+  profile: Schema.optional(Schema.NullOr(EvalVariantProfile)),
   /* Resolved, never optional: a cell that ran has a sandbox, whether or not
      the request named one. */
   sandbox: EvalSandbox,
 }).annotations({
   description:
     "The harness, installed version, profile, model, and sandbox for a cell.",
-  identifier: "EvalTask",
+  identifier: "EvalVariant",
 });
-export type EvalTask = typeof EvalTask.Type;
+export type EvalVariant = typeof EvalVariant.Type;
 
-export const EvalTaskRequest = Schema.Struct({
+export const EvalVariantRequest = Schema.Struct({
   credentials: Schema.optional(CredentialBindings),
   harness: EvalHarness,
   model: Schema.String,
@@ -254,7 +254,7 @@ export const EvalTaskRequest = Schema.Struct({
 }).pipe(
   Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
 );
-export type EvalTaskRequest = typeof EvalTaskRequest.Type;
+export type EvalVariantRequest = typeof EvalVariantRequest.Type;
 
 export const EvalName = Schema.String.pipe(
   Schema.minLength(1),
@@ -269,9 +269,9 @@ export const StartEvalRequest = Schema.Struct({
   ),
   name: Schema.optional(EvalName),
   prompt: EvalPrompt,
-  tasks: Schema.Array(EvalTaskRequest).pipe(
+  variants: Schema.Array(EvalVariantRequest).pipe(
     Schema.minItems(1),
-    Schema.maxItems(MAX_START_TASKS)
+    Schema.maxItems(MAX_START_VARIANTS)
   ),
   trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),
 });
@@ -515,10 +515,10 @@ export const EvalCell = Schema.Struct({
 
   setup: Schema.NullOr(EvalSetup),
   status: EvalRunStatus,
-  taskIndex: Schema.Int,
+  variantIndex: Schema.Int,
   trials: Schema.Array(EvalTrial),
 }).annotations({
-  description: "One case and task combination in an eval grid.",
+  description: "One case and variant combination in an eval grid.",
   identifier: "EvalCell",
 });
 
@@ -545,7 +545,7 @@ export const EvalRun = Schema.Struct({
   name: Schema.NullOr(EvalName),
   startedAt: EvalTimestamp,
   status: EvalRunStatus,
-  tasks: Schema.Array(EvalTask),
+  variants: Schema.Array(EvalVariant),
 }).annotations({
   description: "A complete eval run with its cells and trials.",
   identifier: "EvalRun",
@@ -558,7 +558,7 @@ export const EvalRunSummary = Schema.Struct({
   }),
   caseCount: Schema.Int,
 
-  columns: Schema.Array(EvalTask),
+  columns: Schema.Array(EvalVariant),
   commandMax: Schema.NullOr(Schema.Int),
   commandMin: Schema.NullOr(Schema.Int),
   failure: Schema.NullOr(Schema.String),
@@ -609,7 +609,6 @@ export const EvalCaseSummary = Schema.Struct({
   model: Schema.String,
   name: Schema.String,
   runCount: Schema.Int,
-  suite: Schema.NullOr(Schema.String),
   tags: Schema.Array(Schema.String),
 }).annotations({
   description: "A case as the list shows it, with its newest run.",
@@ -628,6 +627,7 @@ export const EvalCasePage = Schema.Struct({
 export type EvalCasePage = typeof EvalCasePage.Type;
 
 export const EvalCellHistoryEntry = Schema.Struct({
+  cellKey: Schema.String,
   trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
     default: () => null,
   }),
@@ -672,17 +672,46 @@ export const EvalCaseVersion = Schema.Struct({
 });
 export type EvalCaseVersion = typeof EvalCaseVersion.Type;
 
+export const EvalCaseWorkspace = Schema.Union(
+  Schema.Struct({ kind: Schema.Literal("empty") }),
+  Schema.Struct({
+    kind: Schema.Literal("repo"),
+    ref: Schema.NullOr(Schema.String),
+    url: Schema.String,
+  }),
+  Schema.Struct({
+    kind: Schema.Literal("files"),
+    paths: Schema.Array(Schema.String),
+  })
+).annotations({
+  description: "What the sandbox starts from, without the file contents.",
+  identifier: "EvalCaseWorkspace",
+});
+export type EvalCaseWorkspace = typeof EvalCaseWorkspace.Type;
+
+export const EvalCaseSetup = Schema.Struct({
+  checks: Schema.Array(Schema.String),
+  prepare: Schema.NullOr(Schema.String),
+  prompt: Schema.String,
+  verify: Schema.NullOr(Schema.String),
+  workspace: EvalCaseWorkspace,
+}).annotations({
+  description: "How the case's newest run was set up and judged.",
+  identifier: "EvalCaseSetup",
+});
+export type EvalCaseSetup = typeof EvalCaseSetup.Type;
+
 export const EvalCaseDetail = Schema.Struct({
-  cellKey: Schema.String,
   history: Schema.Array(EvalCellHistoryEntry),
   id: EvalCaseId,
-  lastRunId: Schema.String,
   name: Schema.String,
-  suite: Schema.NullOr(Schema.String),
+  setup: EvalCaseSetup,
   tags: Schema.Array(Schema.String),
+  variants: Schema.Array(EvalCellHistoryEntry),
   versions: Schema.Array(EvalCaseVersion),
 }).annotations({
-  description: "A case, its newest reading, and every reading before it.",
+  description:
+    "A case, the newest reading on each variant it has run on, and its recent history.",
   identifier: "EvalCaseDetail",
 });
 export type EvalCaseDetail = typeof EvalCaseDetail.Type;

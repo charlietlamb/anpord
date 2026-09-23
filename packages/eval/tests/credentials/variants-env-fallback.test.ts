@@ -3,7 +3,7 @@ import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Redacted } from "effect";
 import { CredentialError } from "../../src/credentials/errors";
 import type { CredentialResolverShape } from "../../src/credentials/resolver";
-import { resolveTaskCredentials } from "../../src/credentials/tasks";
+import { resolveVariantCredentials } from "../../src/credentials/variants";
 
 const actor = Actor.make({
   id: UserId.make("user"),
@@ -48,7 +48,7 @@ const task = {
 describe("the env fallback", () => {
   it("finds an env connection when the harness has none", async () => {
     const [resolved] = await Effect.runPromise(
-      resolveTaskCredentials(envOnly, actor, [task], "")
+      resolveVariantCredentials(envOnly, actor, [task], "")
     );
 
     expect(Redacted.value(resolved.credentials.harness)).toMatchObject({
@@ -60,7 +60,7 @@ describe("the env fallback", () => {
 
   it("follows an explicit binding to an env connection", async () => {
     const [resolved] = await Effect.runPromise(
-      resolveTaskCredentials(
+      resolveVariantCredentials(
         envOnly,
         actor,
         [{ ...task, credentials: { harnessConnectionId: "shared-env" } }],
@@ -83,7 +83,7 @@ describe("the env fallback", () => {
         ),
     };
     const failure = await Effect.runPromise(
-      resolveTaskCredentials(
+      resolveVariantCredentials(
         down,
         actor,
         [{ ...task, credentials: { harnessConnectionId: "shared-env" } }],
@@ -96,7 +96,7 @@ describe("the env fallback", () => {
 
   it("hands a keyless command harness an empty env credential", async () => {
     const [resolved] = await Effect.runPromise(
-      resolveTaskCredentials(
+      resolveVariantCredentials(
         missing,
         actor,
         [{ ...task, harness: "command" as never }],

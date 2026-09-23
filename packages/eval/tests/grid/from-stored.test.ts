@@ -21,7 +21,7 @@ const cell = (over: Partial<CellTask["cell"]> = {}, name = "a") =>
       provider: "daytona",
       runInternalId: "run-internal",
       sandboxCredentialConnectionId: null,
-      taskInternalId: `internal-${name}`,
+      caseVersionInternalId: `internal-${name}`,
       ...over,
     },
     caseInternalId: `ecas-${name}`,
@@ -168,7 +168,7 @@ describe("rebuilding the grid a run was", () => {
     const outcome = await rebuilding(square);
 
     expect(outcome.right?.input.cases).toHaveLength(2);
-    expect(outcome.right?.input.tasks).toHaveLength(2);
+    expect(outcome.right?.input.variants).toHaveLength(2);
   });
 
   test("names each case once, so the grid can index them", async () => {

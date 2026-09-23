@@ -9,7 +9,7 @@ import type { ApiDefinition } from "../mock-api/define";
 import type { CliCall } from "../mock-cli/calls";
 import type { CliDefinition } from "../mock-cli/define";
 
-type EvalTaskRequest = PublicStartEvalRequest["tasks"][number];
+type EvalVariantRequest = PublicStartEvalRequest["variants"][number];
 
 /** A profile directory beside the eval file; `dir` resolves against it. */
 export interface ProfileRef {
@@ -21,10 +21,10 @@ export type HarnessRef =
   | EvalHarness
   | { readonly base: EvalHarness; readonly profile: ProfileRef };
 
-export interface EvalTaskDefinition {
+export interface EvalVariantDefinition {
   readonly harness: HarnessRef;
-  readonly model: EvalTaskRequest["model"];
-  readonly sandbox?: EvalTaskRequest["sandbox"];
+  readonly model: EvalVariantRequest["model"];
+  readonly sandbox?: EvalVariantRequest["sandbox"];
 }
 
 export interface CommandResult {
@@ -130,7 +130,7 @@ export type EvalCaseDefinition = EvalCaseBase &
 /** One case and what to run it on, for an eval that measures a single thing. */
 export type SingleCaseDefinition = EvalCaseDefinition & {
   readonly prompt: string;
-  readonly tasks: readonly EvalTaskDefinition[];
+  readonly variants: readonly EvalVariantDefinition[];
   readonly trials: number;
 };
 
@@ -144,6 +144,6 @@ export interface EvalDefinition {
   readonly name: string;
   readonly prompt: string;
   readonly source?: DeclaredSource;
-  readonly tasks: readonly EvalTaskDefinition[];
   readonly trials: number;
+  readonly variants: readonly EvalVariantDefinition[];
 }

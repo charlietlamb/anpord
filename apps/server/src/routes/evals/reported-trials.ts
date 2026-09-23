@@ -28,10 +28,10 @@ export const reportedRun = (id: string) =>
 export const reportTrial = ({ id, trial }: ReportTrialRequest) =>
   Effect.gen(function* () {
     const run = yield* reportedRun(id);
-    const position = cellKeyOfPosition(trial.taskIndex, trial.caseName);
+    const position = cellKeyOfPosition(trial.variantIndex, trial.caseName);
 
     const cell = run.cells.find(
-      (one) => cellKeyOfPosition(one.taskIndex, one.caseName) === position
+      (one) => cellKeyOfPosition(one.variantIndex, one.caseName) === position
     );
 
     if (cell?.internalId == null) {

@@ -91,25 +91,29 @@ export function TrialStatusPill({
 
 export function DistributionPill({
   distribution,
+  size,
 }: {
   readonly distribution: Pick<EvalDistribution, "passed" | "scored">;
+  readonly size?: "sm" | "xs";
 }) {
   const { passed, scored } = distribution;
 
   if (scored === 0) {
     return (
-      <StatusBadge icon={MinusCircleIcon} tone="neutral">
+      <StatusBadge icon={MinusCircleIcon} size={size} tone="neutral">
         Not scored
       </StatusBadge>
     );
   }
 
-  return passed === scored ? (
-    <StatusBadge icon={CheckCircleIcon} tone="positive">
-      {passed}/{scored} passed
-    </StatusBadge>
-  ) : (
-    <StatusBadge icon={XCircleIcon} tone="critical">
+  const clean = passed === scored;
+
+  return (
+    <StatusBadge
+      icon={clean ? CheckCircleIcon : XCircleIcon}
+      size={size}
+      tone={clean ? "positive" : "critical"}
+    >
       {passed}/{scored} passed
     </StatusBadge>
   );

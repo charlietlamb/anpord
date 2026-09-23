@@ -1,5 +1,10 @@
 import { Button } from "@anpord/ui/components/button";
 import { CopyButton } from "@anpord/ui/components/copy-button";
+import {
+  SURFACE_BODY,
+  SURFACE_FRAME,
+  SURFACE_HEAD,
+} from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 import { Tabs } from "@base-ui/react/tabs";
 import { XIcon } from "@phosphor-icons/react";
@@ -39,25 +44,20 @@ export function Snippet({
     commands.find((command) => command.label === value) ?? commands[0];
 
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-xl bg-muted/40",
-        className
-      )}
-    >
+    <div className={cn("relative", SURFACE_FRAME, className)}>
       <Tabs.Root onValueChange={(next) => setValue(String(next))} value={value}>
-        {/* The rule under the tab row is an inset shadow rather than a border,
-            so it sits inside the rounded corners instead of cutting across
-            them. */}
-        <Tabs.List className="relative flex h-10 max-w-full items-center justify-start gap-1 pr-10 pl-4 shadow-[inset_0_-1px_0_0] shadow-border-faint">
+        <Tabs.List
+          className={cn(
+            SURFACE_HEAD,
+            "flex max-w-full items-center justify-start gap-1 pr-16 pl-1.5"
+          )}
+        >
           {commands.map((command) => (
             <Tabs.Tab
               className={cn(
-                "h-7 rounded-lg px-2 font-mono text-muted-foreground text-sm",
-                /* 120ms: a tab is pressed and read in the same moment, so the
-                   colour has to arrive by the time the eye does. */
+                "h-6 rounded-md px-2 font-mono",
                 "transition-colors duration-[120ms] ease-out",
-                "hover:text-foreground data-[selected]:text-foreground"
+                "hover:text-foreground data-[active]:bg-alpha-8 data-[active]:text-foreground"
               )}
               key={command.label}
               value={command.label}
@@ -66,16 +66,14 @@ export function Snippet({
             </Tabs.Tab>
           ))}
 
-          {/* Slides between tabs rather than cutting, which is the one place
-              movement helps: it says the two are the same control. */}
-          <Tabs.Indicator
-            className="absolute bottom-0 left-0 h-0.5 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] bg-foreground transition-[translate,width] duration-[120ms] ease-out"
-            renderBeforeHydration
-          />
         </Tabs.List>
 
         {commands.map((command) => (
-          <Tabs.Panel key={command.label} value={command.label}>
+          <Tabs.Panel
+            className={SURFACE_BODY}
+            key={command.label}
+            value={command.label}
+          >
             <pre className="overflow-x-auto p-4 leading-6">
               <code className="font-mono text-muted-foreground text-sm/none">
                 {/* Unselectable, so a copy by hand leaves the prompt behind
@@ -93,7 +91,7 @@ export function Snippet({
       {/* One button rather than one per panel: it copies whatever is showing,
           and a row of identical buttons would only ever have one visible. */}
       {active ? (
-        <span className="absolute top-2 right-2 z-10 flex items-center gap-0.5">
+        <span className="absolute top-2.5 right-2 z-10 flex items-center gap-0.5">
           <CopyButton
             className="size-6"
             label={`Copy ${active.label} command`}

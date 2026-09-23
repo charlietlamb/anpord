@@ -276,7 +276,7 @@ const wave = (provider: ProviderName, ready: boolean) =>
                 organizationId,
                 prompt: "say hello",
                 startedBy: null,
-                tasks: [
+                variants: [
                   {
                     credentials: { harness: harnessCredential },
                     harness: "codex",

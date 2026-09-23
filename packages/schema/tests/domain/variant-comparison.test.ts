@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import type { EvalCell, EvalTask, EvalTrial } from "../../src/domain/evals";
+import type { EvalCell, EvalTrial, EvalVariant } from "../../src/domain/evals";
 import {
   casesOf,
   leadersOn,
   variantsOf,
 } from "../../src/domain/variant-comparison";
 
-const task = (model: string): EvalTask => ({
+const variant = (model: string): EvalVariant => ({
   harness: "codex",
   harnessVersion: "1",
   model,
@@ -34,13 +34,13 @@ const trial = (over: Partial<EvalTrial>): EvalTrial =>
   }) as EvalTrial;
 
 const cell = (
-  taskIndex: number,
+  variantIndex: number,
   trials: readonly EvalTrial[],
   caseName = "c"
 ): EvalCell =>
   ({
     caseName,
-    cellKey: `${caseName}-k${taskIndex}`,
+    cellKey: `${caseName}-k${variantIndex}`,
     comparison: null,
     distribution: {
       commandMax: 0,
@@ -57,7 +57,7 @@ const cell = (
     internalId: null,
     setup: null,
     status: "finished",
-    taskIndex,
+    variantIndex,
     trials,
   }) as EvalCell;
 
@@ -65,16 +65,16 @@ describe("reading a run as variants", () => {
   it("gives one row per variant that ran", () => {
     const variants = variantsOf({
       cells: [cell(0, [trial({})]), cell(1, [trial({})])],
-      tasks: [task("a"), task("b")],
+      variants: [variant("a"), variant("b")],
     });
 
-    expect(variants.map((v) => v.task.model)).toEqual(["a", "b"]);
+    expect(variants.map((v) => v.variant.model)).toEqual(["a", "b"]);
   });
 
   it("leaves out a variant with no cells", () => {
     const variants = variantsOf({
       cells: [cell(0, [trial({})])],
-      tasks: [task("a"), task("b")],
+      variants: [variant("a"), variant("b")],
     });
 
     expect(variants).toHaveLength(1);
@@ -83,7 +83,7 @@ describe("reading a run as variants", () => {
   it("reads the pass rate across every case", () => {
     const variants = variantsOf({
       cells: [cell(0, [trial({}), trial({ passed: false, status: "failed" })])],
-      tasks: [task("a")],
+      variants: [variant("a")],
     });
 
     expect(variants[0]?.passRate).toBe(0.5);
@@ -99,7 +99,7 @@ describe("reading a run as variants", () => {
           trial({ modelMs: 0, status: "void" }),
         ]),
       ],
-      tasks: [task("a")],
+      variants: [variant("a")],
     });
 
     expect(variants[0]?.modelMs).toBe(900);
@@ -112,7 +112,7 @@ describe("naming the leader", () => {
       cell(0, [trial({ modelMs: 100 })]),
       cell(1, [trial({ modelMs: 300, passed: false, status: "failed" })]),
     ],
-    tasks: [task("fast"), task("slow")],
+    variants: [variant("fast"), variant("slow")],
   });
 
   it("takes the highest pass rate", () => {
@@ -129,7 +129,7 @@ describe("naming the leader", () => {
         cell(0, [trial({ modelMs: 100 })]),
         cell(1, [trial({ modelMs: 100 })]),
       ],
-      tasks: [task("a"), task("b")],
+      variants: [variant("a"), variant("b")],
     });
 
     expect(leadersOn(tied, "modelMs")).toEqual(new Set([0, 1]));
@@ -140,7 +140,7 @@ describe("naming the leader", () => {
   it("names nobody when only one variant ran", () => {
     const alone = variantsOf({
       cells: [cell(0, [trial({})])],
-      tasks: [task("a")],
+      variants: [variant("a")],
     });
 
     expect(leadersOn(alone, "passRate").size).toBe(0);
@@ -156,19 +156,19 @@ describe("reading a run as cases", () => {
         cell(0, [trial({})], "first"),
         cell(1, [trial({})], "first"),
       ],
-      tasks: [task("a"), task("b")],
+      variants: [variant("a"), variant("b")],
     });
 
     expect(cases.map((entry) => entry.name)).toEqual(["first", "second"]);
-    expect(cases[0]?.results.map((r) => r.taskIndex)).toEqual([0, 1]);
-    expect(cases[1]?.results.map((r) => r.taskIndex)).toEqual([1]);
+    expect(cases[0]?.results.map((r) => r.variantIndex)).toEqual([0, 1]);
+    expect(cases[1]?.results.map((r) => r.variantIndex)).toEqual([1]);
   });
 
   it("reads each cell as a result of one case", () => {
     const [entry] = casesOf({
       cases: ["c"],
       cells: [cell(0, [trial({ modelMs: 300 }), trial({ modelMs: 100 })])],
-      tasks: [task("a")],
+      variants: [variant("a")],
     });
 
     expect(entry?.results[0]?.cases).toBe(1);
@@ -180,7 +180,7 @@ describe("reading a run as cases", () => {
     const cases = casesOf({
       cases: [],
       cells: [cell(0, [trial({})], "stray")],
-      tasks: [task("a")],
+      variants: [variant("a")],
     });
 
     expect(cases.map((entry) => entry.name)).toEqual(["stray"]);
@@ -190,7 +190,7 @@ describe("reading a run as cases", () => {
     const cases = casesOf({
       cases: ["pending"],
       cells: [],
-      tasks: [task("a")],
+      variants: [variant("a")],
     });
 
     expect(cases).toEqual([]);

@@ -2,11 +2,11 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
@@ -170,7 +170,7 @@ describe.skipIf(skipWithoutDatabase())("JournalArchive", () => {
             })
           );
 
-          await db.insert(evalTask).values(
+          await db.insert(evalCaseVersion).values(
             taskFixture.values({
               id: `task_arc_${suffix}`,
               internalId: `taskint_arc_${suffix}`,
@@ -197,7 +197,7 @@ describe.skipIf(skipWithoutDatabase())("JournalArchive", () => {
             provider: "daytona",
             runInternalId: `runint_arc_${suffix}`,
             status: "running",
-            taskInternalId: `taskint_arc_${suffix}`,
+            caseVersionInternalId: `taskint_arc_${suffix}`,
           });
         });
       })

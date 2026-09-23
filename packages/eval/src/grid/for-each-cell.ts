@@ -5,23 +5,24 @@ import { Effect, type Either } from "effect";
 const CELLS_AT_ONCE = 8;
 
 /* Collected, not failed fast: one refused cell must not abandon the run. */
-export const forEachGridCell = <Subject, Task, A, E, R>(
+export const forEachGridCell = <Subject, Variant, A, E, R>(
   cases: readonly Subject[],
-  tasks: readonly Task[],
+  variants: readonly Variant[],
   evaluate: (
     subject: Subject,
-    task: Task,
+    variant: Variant,
     caseIndex: number,
-    taskIndex: number
+    variantIndex: number
   ) => Effect.Effect<A, E, R>
 ): Effect.Effect<readonly Either.Either<A, E>[], never, R> =>
   Effect.forEach(
-    tasks.flatMap((task, taskIndex) =>
+    variants.flatMap((variant, variantIndex) =>
       cases.map(
-        (subject, caseIndex) => [subject, task, caseIndex, taskIndex] as const
+        (subject, caseIndex) =>
+          [subject, variant, caseIndex, variantIndex] as const
       )
     ),
-    ([subject, task, caseIndex, taskIndex]) =>
-      Effect.either(evaluate(subject, task, caseIndex, taskIndex)),
+    ([subject, variant, caseIndex, variantIndex]) =>
+      Effect.either(evaluate(subject, variant, caseIndex, variantIndex)),
     { concurrency: CELLS_AT_ONCE }
   );

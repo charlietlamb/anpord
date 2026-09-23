@@ -20,7 +20,7 @@ const trial = (events: readonly HarnessEvent[]) => {
     live: new Map([[1, events]]),
     setup: Option.none(),
     status: "running",
-    taskIndex: 0,
+    variantIndex: 0,
     trials: [Option.none()],
   };
   return Schema.decodeUnknownSync(EvalTrial)(
@@ -133,7 +133,7 @@ test("preserves validation and artifact evidence through API serialization", () 
     live: new Map(),
     setup: Option.none(),
     status: "finished",
-    taskIndex: 0,
+    variantIndex: 0,
     trials: [
       Option.some({
         commands: 0,

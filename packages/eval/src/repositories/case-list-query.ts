@@ -1,8 +1,8 @@
 import { Database } from "@anpord/db/client";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import type { Distribution } from "../domain/distribution";
@@ -21,7 +21,6 @@ export interface CaseSummary {
   readonly model: string;
   readonly name: string;
   readonly runCount: number;
-  readonly suite: string | null;
   readonly tags: readonly string[];
 }
 
@@ -54,14 +53,20 @@ export const caseListQuery = Effect.gen(function* () {
           runCount: sql<number>`count(*)::int`,
         })
         .from(evalCase)
-        .innerJoin(evalTask, eq(evalTask.caseInternalId, evalCase.internalId))
-        .innerJoin(evalCell, eq(evalCell.taskInternalId, evalTask.internalId))
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCaseVersion.caseInternalId, evalCase.internalId)
+        )
+        .innerJoin(
+          evalCell,
+          eq(evalCell.caseVersionInternalId, evalCaseVersion.internalId)
+        )
         .where(
           and(
             eq(evalCase.organizationId, input.organizationId),
             input.tag === null
               ? undefined
-              : sql`exists (select 1 from ${evalTask} tagged where tagged.case_internal_id = ${evalCase.internalId} and tagged.tags @> ${JSON.stringify([input.tag])}::jsonb)`
+              : sql`exists (select 1 from ${evalCaseVersion} tagged where tagged.case_internal_id = ${evalCase.internalId} and tagged.tags @> ${JSON.stringify([input.tag])}::jsonb)`
           )
         )
         .groupBy(evalCase.internalId, evalCase.id, evalCase.name)
@@ -77,21 +82,23 @@ export const caseListQuery = Effect.gen(function* () {
   const newestCells = (caseInternalIds: readonly string[]) =>
     tryStore("runQuery.caseNewestCells", () =>
       db
-        .selectDistinctOn([evalTask.caseInternalId], {
-          caseInternalId: evalTask.caseInternalId,
+        .selectDistinctOn([evalCaseVersion.caseInternalId], {
+          caseInternalId: evalCaseVersion.caseInternalId,
           cellInternalId: evalCell.internalId,
           cellKey: evalCell.cellKey,
           harness: evalCell.harness,
           model: evalCell.model,
           runId: evalRun.id,
-          suite: evalRun.name,
-          tags: evalTask.tags,
+          tags: evalCaseVersion.tags,
         })
         .from(evalCell)
-        .innerJoin(evalTask, eq(evalTask.internalId, evalCell.taskInternalId))
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCaseVersion.internalId, evalCell.caseVersionInternalId)
+        )
         .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
-        .where(inArray(evalTask.caseInternalId, [...caseInternalIds]))
-        .orderBy(evalTask.caseInternalId, desc(evalCell.createdAt))
+        .where(inArray(evalCaseVersion.caseInternalId, [...caseInternalIds]))
+        .orderBy(evalCaseVersion.caseInternalId, desc(evalCell.createdAt))
     );
 
   const listCases = (input: ListCasesInput) =>
@@ -130,7 +137,6 @@ export const caseListQuery = Effect.gen(function* () {
                 model: cell.model,
                 name: row.name,
                 runCount: row.runCount,
-                suite: cell.suite,
                 tags: cell.tags ?? [],
               },
             ];
@@ -151,9 +157,9 @@ export const caseListQuery = Effect.gen(function* () {
   const listTags = (organizationId: string) =>
     tryStore("runQuery.listTags", () =>
       db
-        .selectDistinct({ tags: evalTask.tags })
-        .from(evalTask)
-        .where(eq(evalTask.organizationId, organizationId))
+        .selectDistinct({ tags: evalCaseVersion.tags })
+        .from(evalCaseVersion)
+        .where(eq(evalCaseVersion.organizationId, organizationId))
     ).pipe(
       Effect.map((rows) =>
         [...new Set(rows.flatMap((row) => row.tags ?? []))].sort()

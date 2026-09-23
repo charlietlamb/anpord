@@ -10,7 +10,7 @@ describe("compiling an imported definition", () => {
     const request = await compileDefinition(smoke);
 
     expect(request.prompt).toBe("Create hello.txt");
-    expect(request.tasks[0]?.harness).toBe("codex");
+    expect(request.variants[0]?.harness).toBe("codex");
     expect(request.cases[0]?.name).toBe("writes hello");
   });
 
@@ -30,7 +30,7 @@ describe("compiling an imported definition", () => {
     const orphan = suite({
       name: "orphan",
       prompt: "x",
-      tasks: [{ harness: "codex", model: "m" }],
+      variants: [{ harness: "codex", model: "m" }],
       trials: 1,
       cases: [{ id: "a", name: "a", verify: "true" }],
     });

@@ -754,7 +754,7 @@
             }
           }
         },
-        "description": "One row per case, carrying its newest run. Pass `tag` to read only the cases carrying it.",
+        "description": "One row per case, newest run first, carrying its newest run. Pass `tag` to read only the cases carrying it, and the `next` cursor from a response to read the page after it; a null `next` means there are no more.",
         "summary": "List cases",
         "requestBody": {
           "content": {
@@ -2599,7 +2599,7 @@
           "columns": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EvalTask"
+              "$ref": "#/components/schemas/EvalVariant"
             }
           },
           "commandMax": {
@@ -2718,7 +2718,7 @@
         "additionalProperties": false,
         "description": "What started this run. Client-reported context, not authorization."
       },
-      "EvalTask": {
+      "EvalVariant": {
         "type": "object",
         "required": [
           "harness",
@@ -2750,7 +2750,7 @@
           "profile": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/EvalTaskProfile"
+                "$ref": "#/components/schemas/EvalVariantProfile"
               },
               {
                 "type": "null"
@@ -2773,7 +2773,7 @@
         "additionalProperties": false,
         "description": "The harness, installed version, profile, model, and sandbox for a cell."
       },
-      "EvalTaskProfile": {
+      "EvalVariantProfile": {
         "type": "object",
         "required": [
           "name",
@@ -2818,6 +2818,29 @@
         "type": "object",
         "required": [],
         "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "limit": {
             "$ref": "#/components/schemas/Int"
           },
@@ -2833,12 +2856,13 @@
           }
         },
         "additionalProperties": false,
-        "description": "Which cases to read."
+        "description": "Which cases to read, where to read from, and how much."
       },
       "EvalCasePage": {
         "type": "object",
         "required": [
           "cases",
+          "next",
           "tags"
         ],
         "properties": {
@@ -2847,6 +2871,29 @@
             "items": {
               "$ref": "#/components/schemas/EvalCaseSummary"
             }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "tags": {
             "type": "array",
@@ -2861,6 +2908,7 @@
       "EvalCaseSummary": {
         "type": "object",
         "required": [
+          "caseId",
           "cellKey",
           "distribution",
           "harness",
@@ -2872,6 +2920,9 @@
           "tags"
         ],
         "properties": {
+          "caseId": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          },
           "cellKey": {
             "type": "string"
           },
@@ -2905,6 +2956,14 @@
         },
         "additionalProperties": false,
         "description": "A case as the list shows it, with its newest run."
+      },
+      "EvalCaseId": {
+        "type": "string",
+        "description": "The stable handle an author gives a case.",
+        "title": "maxLength(100)",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       },
       "EvalDistribution": {
         "type": "object",
@@ -2960,7 +3019,7 @@
         "required": [
           "cases",
           "prompt",
-          "tasks",
+          "variants",
           "trials"
         ],
         "properties": {
@@ -2990,10 +3049,10 @@
           "prompt": {
             "$ref": "#/components/schemas/EvalPrompt"
           },
-          "tasks": {
+          "variants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StartEvalTask"
+              "$ref": "#/components/schemas/StartEvalVariant"
             },
             "description": "an array of at most 20 item(s)",
             "title": "maxItems(20)",
@@ -3009,17 +3068,21 @@
           }
         },
         "additionalProperties": false,
-        "description": "Start a grid with at most 100 total case, task, and trial combinations."
+        "description": "Start a grid with at most 100 total case, variant, and trial combinations."
       },
       "StartEvalCase": {
         "type": "object",
         "required": [
+          "id",
           "name",
           "verify"
         ],
         "properties": {
           "cache": {
             "$ref": "#/components/schemas/CaseCache"
+          },
+          "id": {
+            "$ref": "#/components/schemas/EvalCaseId"
           },
           "name": {
             "$ref": "#/components/schemas/EvalCaseName"
@@ -3715,7 +3778,7 @@
         "title": "maxLength(16384)",
         "maxLength": 16384
       },
-      "StartEvalTask": {
+      "StartEvalVariant": {
         "type": "object",
         "required": [
           "harness",
@@ -3830,7 +3893,7 @@
           "cloudflare",
           "vercel"
         ],
-        "description": "The hosted sandbox a task runs in."
+        "description": "The hosted sandbox a variant runs in."
       },
       "StartedEval": {
         "type": "object",
@@ -3919,7 +3982,7 @@
           "events",
           "ordinal",
           "outcome",
-          "taskIndex"
+          "variantIndex"
         ],
         "properties": {
           "caseName": {
@@ -4352,7 +4415,7 @@
               }
             ]
           },
-          "taskIndex": {
+          "variantIndex": {
             "$ref": "#/components/schemas/Int",
             "description": "a non-negative number",
             "title": "nonNegative",
@@ -4764,7 +4827,7 @@
           "name",
           "startedAt",
           "status",
-          "tasks"
+          "variants"
         ],
         "properties": {
           "trigger": {
@@ -4860,10 +4923,10 @@
               "failed"
             ]
           },
-          "tasks": {
+          "variants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EvalTask"
+              "$ref": "#/components/schemas/EvalVariant"
             }
           }
         },
@@ -4881,7 +4944,7 @@
           "internalId",
           "setup",
           "status",
-          "taskIndex",
+          "variantIndex",
           "trials"
         ],
         "properties": {
@@ -4956,7 +5019,7 @@
               "failed"
             ]
           },
-          "taskIndex": {
+          "variantIndex": {
             "$ref": "#/components/schemas/Int"
           },
           "trials": {
@@ -4967,7 +5030,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "One case and task combination in an eval grid."
+        "description": "One case and variant combination in an eval grid."
       },
       "EvalCosts": {
         "type": "object",
@@ -5071,6 +5134,7 @@
           "candidateHarnessVersion",
           "candidatePassRate",
           "candidateProfileVersion",
+          "definitionChanged",
           "delta",
           "determinismLost",
           "reason",
@@ -5108,6 +5172,9 @@
                 "type": "null"
               }
             ]
+          },
+          "definitionChanged": {
+            "type": "boolean"
           },
           "delta": {
             "type": "number"
@@ -5261,6 +5328,9 @@
           "voidFields"
         ],
         "properties": {
+          "id": {
+            "type": "string"
+          },
           "artifacts": {
             "type": "array",
             "items": {
@@ -5565,6 +5635,13 @@
                   }
                 ]
               },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "assistant",
+                  "user"
+                ]
+              },
               "text": {
                 "type": "string"
               },
@@ -5779,6 +5856,8 @@
       "EvalCellHistoryEntry": {
         "type": "object",
         "required": [
+          "cellKey",
+          "definitionHash",
           "distribution",
           "finishedAt",
           "harnessVersion",
@@ -5788,6 +5867,9 @@
           "trials"
         ],
         "properties": {
+          "cellKey": {
+            "type": "string"
+          },
           "trigger": {
             "anyOf": [
               {
@@ -5797,6 +5879,9 @@
                 "type": "null"
               }
             ]
+          },
+          "definitionHash": {
+            "type": "string"
           },
           "distribution": {
             "$ref": "#/components/schemas/EvalDistribution"
@@ -5811,10 +5896,19 @@
               }
             ]
           },
+          "harness": {
+            "type": "string"
+          },
           "harnessVersion": {
             "type": "string"
           },
           "internalId": {
+            "type": "string"
+          },
+          "local": {
+            "type": "boolean"
+          },
+          "model": {
             "type": "string"
           },
           "profileVersion": {
@@ -5828,6 +5922,9 @@
             ]
           },
           "runId": {
+            "type": "string"
+          },
+          "sandbox": {
             "type": "string"
           },
           "trials": {

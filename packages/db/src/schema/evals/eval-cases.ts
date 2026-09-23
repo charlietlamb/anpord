@@ -7,8 +7,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
 
-/* The case itself, which outlives every edit to its definition. An eval_task
-   row is one version of what this case contained; this row is which case it is. */
+/* The case itself, which outlives every edit to its definition. An
+   eval_case_version row is one version of what this case contained; this row
+   is which case it is. */
 export const evalCase = pgTable(
   "eval_case",
   {

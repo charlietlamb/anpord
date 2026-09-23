@@ -2,6 +2,11 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import type { CSSProperties, ComponentProps, ReactNode } from "react";
 import { Skeleton } from "@anpord/ui/components/skeleton";
+import {
+  SURFACE_BODY,
+  SURFACE_FRAME,
+  SURFACE_HEAD,
+} from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 
 const COLUMNS =
@@ -21,7 +26,7 @@ export function DataTable({
   return (
     <section
       aria-label={label}
-      className={cn("rounded-xl bg-muted p-1 dark:bg-card", className)}
+      className={cn(SURFACE_FRAME, className)}
       style={{ "--data-table-columns": columns } as CSSProperties}
     >
       {children}
@@ -37,7 +42,7 @@ export function DataTableHead({
   return (
     <div
       aria-hidden="true"
-      className={cn(COLUMNS, "h-10 text-label text-muted-foreground")}
+      className={cn(COLUMNS, SURFACE_HEAD)}
     >
       {headings.map((heading) => (
         <span className="truncate" key={heading}>
@@ -53,13 +58,7 @@ export function DataTableBody({
   ...props
 }: ComponentProps<"ul">) {
   return (
-    <ul
-      className={cn(
-        "overflow-hidden rounded-lg border border-border bg-card shadow-sm dark:bg-muted",
-        className
-      )}
-      {...props}
-    />
+<ul className={cn(SURFACE_BODY, className)} {...props} />
   );
 }
 

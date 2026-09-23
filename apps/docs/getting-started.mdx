@@ -42,7 +42,7 @@ export default suite({
       verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
   trials: 3,
 });
 ```
@@ -58,11 +58,12 @@ Anpord compiles the TypeScript locally, then runs each trial in an isolated host
 ## Vocabulary
 
 - **Case:** the work to do and how to validate it.
-- **Task:** the agent, model and sandbox configuration.
-- **Trial:** one attempt at a case with a task.
+- **Variant:** the agent, model and sandbox configuration.
+- **Cell:** one case measured on one variant. This is what carries a baseline and a history.
+- **Trial:** one attempt at a cell.
 - **Run:** all the attempts started together.
 
-The eval above is one case, one task and three trials, so it makes three attempts. Two cases, three tasks and three trials would make 18.
+The eval above is one case, one variant and three trials, so it makes three attempts. Two cases, three variants and three trials would make 18.
 
 <CardGroup cols={2}>
   <Card title="Write cases" icon="list-check" href="/evals/cases">

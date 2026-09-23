@@ -15,7 +15,7 @@ const requestWith = (task: Record<string, unknown>) => ({
     },
   ],
   prompt: "{{task}}",
-  tasks: [task],
+  variants: [task],
   trials: 1,
 });
 
@@ -73,7 +73,7 @@ describe("which harness a profile fits", () => {
       profile: { files: { "workspace/AGENTS.md": "# Sample" }, name: "sample" },
     };
 
-    expect(decode(task).tasks[0]).toEqual(task);
+    expect(decode(task).variants[0]).toEqual(task);
   });
 
   it("rejects the command harness without a run command", () => {

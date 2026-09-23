@@ -103,7 +103,7 @@ export const HarnessProfileRepositoryLive = Layer.effect(
                 systemPrompt: input.systemPrompt,
                 version: input.version,
               })
-              /* Left alone on conflict, unlike tasks: the version hashes the
+              /* Left alone on conflict, unlike variants: the version hashes the
                  content, so an existing row holds exactly this profile. */
               .onConflictDoNothing({
                 target: [

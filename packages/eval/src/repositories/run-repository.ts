@@ -15,6 +15,7 @@ type RunRow = typeof evalRun.$inferSelect;
 type CellRow = typeof evalCell.$inferSelect;
 
 interface InsertCell {
+  readonly caseVersionInternalId: string;
   readonly cellKey: CellKey;
   readonly harness: HarnessName;
   readonly harnessCredentialConnectionId?: string;
@@ -27,7 +28,6 @@ interface InsertCell {
   readonly runInternalId: string;
   readonly sandboxCredentialConnectionId?: string;
   readonly sandboxCredentialRevision?: number;
-  readonly taskInternalId: string;
   readonly validatorFiles?: readonly EvalSourceFile[];
 }
 
@@ -174,7 +174,7 @@ export const RunRepositoryLive = Layer.effect(
                   cell.sandboxCredentialConnectionId,
                 sandboxCredentialRevision: cell.sandboxCredentialRevision,
                 status: "running",
-                taskInternalId: cell.taskInternalId,
+                caseVersionInternalId: cell.caseVersionInternalId,
               }))
             )
           );
@@ -209,7 +209,7 @@ export const RunRepositoryLive = Layer.effect(
                   input.sandboxCredentialConnectionId,
                 sandboxCredentialRevision: input.sandboxCredentialRevision,
                 status: "running",
-                taskInternalId: input.taskInternalId,
+                caseVersionInternalId: input.caseVersionInternalId,
               })
               .onConflictDoUpdate({
                 set: { status: "running" },

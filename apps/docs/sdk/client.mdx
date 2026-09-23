@@ -36,7 +36,7 @@ const anpord = new Anpord({
 const { id } = await anpord.evals.start({
   cases,
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model }],
+  variants: [{ harness: "codex", model }],
   trials: 3,
 });
 ```

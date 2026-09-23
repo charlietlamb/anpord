@@ -5,16 +5,14 @@ import { Link } from "@tanstack/react-router";
 import { AgeCell } from "@/components/evals/age-cell";
 import { DistributionPill } from "@/components/evals/eval-status-badge";
 import { TagChip } from "@/components/evals/tag-chip";
+import { VariantCell } from "@/components/evals/variant-cell";
 import { counted } from "@/lib/evals/conversation";
-import { harnessPresentation } from "@/lib/evals/variant-presentation";
 
 export function CaseListRow({
   subject,
 }: {
   readonly subject: EvalCaseSummary;
 }) {
-  const harness = harnessPresentation(subject.harness);
-
   return (
     <DataTableRow
       render={
@@ -28,13 +26,7 @@ export function CaseListRow({
         ))}
       </span>
 
-      <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
-        <harness.Icon
-          aria-label={harness.label}
-          className="size-3.5 shrink-0"
-        />
-        <span className="truncate">{subject.model}</span>
-      </span>
+      <VariantCell harness={subject.harness} model={subject.model} />
 
       <span>
         <DistributionPill distribution={subject.distribution} />

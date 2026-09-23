@@ -17,10 +17,10 @@ export type {
   EvalRunSummary,
   EvalSandbox,
   EvalSource,
-  EvalTask,
   EvalTrial,
   EvalTrialStatus,
   EvalUsage,
+  EvalVariant,
   EvalVerdict,
 } from "@anpord/schema/domain/evals";
 export type { AnpordClient, ClientOptions } from "@anpord/schema/public/client";
@@ -35,7 +35,7 @@ import type { EvalsSurface as PublicEvalsSurface } from "./client/anpord";
 export type StartEvalRequest = Parameters<PublicEvalsSurface["start"]>[0];
 export type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 export type EvalCase = StartEvalRequest["cases"][number];
-export type EvalTaskRequest = StartEvalRequest["tasks"][number];
+export type EvalVariantRequest = StartEvalRequest["variants"][number];
 export type {
   EvalValidation,
   ValidationCall,
@@ -70,7 +70,7 @@ export type {
   CommandResult,
   EvalCaseDefinition,
   EvalDefinition,
-  EvalTaskDefinition,
+  EvalVariantDefinition,
   ExecOptions,
   HarnessRef,
   Prepare,

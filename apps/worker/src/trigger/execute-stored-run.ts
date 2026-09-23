@@ -38,7 +38,7 @@ export const executeStoredRun = (run: StoredRun): Promise<number> =>
 
       yield* grid.execute(rebuilt);
 
-      return rebuilt.input.cases.length * rebuilt.input.tasks.length;
+      return rebuilt.input.cases.length * rebuilt.input.variants.length;
     }).pipe(
       Effect.tapErrorCause((cause) =>
         Effect.logError("worker could not run the grid", cause)

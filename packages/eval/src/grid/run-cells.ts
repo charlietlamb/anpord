@@ -41,8 +41,8 @@ export const makeRunCells = (live: LiveRuns) =>
 
         const outcomes = yield* forEachGridCell(
           input.cases,
-          input.tasks,
-          (subject, task, caseIndex, taskIndex) =>
+          input.variants,
+          (subject, task, caseIndex, variantIndex) =>
             Effect.gen(function* () {
               const row = registered[caseIndex];
 
@@ -50,7 +50,7 @@ export const makeRunCells = (live: LiveRuns) =>
                 return;
               }
 
-              const position = { caseName: subject.name, taskIndex };
+              const position = { caseName: subject.name, variantIndex };
 
               const result = yield* runGridCell({
                 agent,
@@ -68,7 +68,7 @@ export const makeRunCells = (live: LiveRuns) =>
                     )
                     .pipe(Effect.zipRight(bell.ring)),
                 organizationId: input.organizationId,
-                profile: profiles[taskIndex] ?? null,
+                profile: profiles[variantIndex] ?? null,
                 prompt: input.prompt,
                 recorder,
                 runInternalId: created.internalId,
@@ -76,7 +76,7 @@ export const makeRunCells = (live: LiveRuns) =>
                 sourceToken,
                 subject,
                 task,
-                taskInternalId: row.internalId,
+                caseVersionInternalId: row.internalId,
                 caseInternalId: row.caseInternalId,
                 trials: input.trials,
               });

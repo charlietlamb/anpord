@@ -96,11 +96,11 @@ export const runToState = (
   eventsByTrial: ReadonlyMap<string, readonly HarnessEvent[]> = new Map()
 ): GridRunState => {
   const caseNames: string[] = [];
-  const taskKeys: string[] = [];
-  const tasks: GridTask[] = [];
+  const variantKeys: string[] = [];
+  const variants: GridTask[] = [];
 
   for (const entry of detail.cells) {
-    const taskKey = [
+    const variantKey = [
       entry.cell.harness,
       entry.cell.model,
       entry.cell.provider,
@@ -109,9 +109,9 @@ export const runToState = (
 
     const names = namesOf(entry.cell);
 
-    if (!taskKeys.includes(taskKey) && Option.isSome(names)) {
-      taskKeys.push(taskKey);
-      tasks.push({
+    if (!variantKeys.includes(variantKey) && Option.isSome(names)) {
+      variantKeys.push(variantKey);
+      variants.push({
         harness: names.value.harness,
         harnessVersion: entry.cell.harnessVersion,
         model: entry.cell.model,
@@ -129,7 +129,7 @@ export const runToState = (
   }
 
   const cells = detail.cells.map((entry): GridCell => {
-    const taskKey = [
+    const variantKey = [
       entry.cell.harness,
       entry.cell.model,
       entry.cell.provider,
@@ -160,7 +160,7 @@ export const runToState = (
         workspace: entry.workspace,
       }),
       status: statusOf(entry.cell.status),
-      taskIndex: taskKeys.indexOf(taskKey),
+      variantIndex: variantKeys.indexOf(variantKey),
       trials: entry.trials.map((trial) =>
         Option.some(
           asResult({
@@ -204,6 +204,6 @@ export const runToState = (
     organizationId: detail.run.organizationId,
     startedAt: detail.run.createdAt.getTime(),
     status: statusOf(detail.run.status),
-    tasks,
+    variants,
   };
 };

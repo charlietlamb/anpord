@@ -141,5 +141,10 @@ export const rerunCell = (runId: string, cellKey: string, trials: number) =>
     { trials }
   );
 
+export const rerunCase = (caseId: string, trials: number) =>
+  post(StartedEval, `/evals/cases/${encodeURIComponent(caseId)}/runs`, {
+    trials,
+  });
+
 export const getArtifact = (input: EvalArtifactRequest) =>
   post(EvalArtifact, "/evals/artifacts", input);

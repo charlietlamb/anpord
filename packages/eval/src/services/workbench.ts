@@ -3,7 +3,7 @@ import type { Actor } from "@anpord/schema/domain/actor";
 import { Context, Effect, Layer, Option } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
-import { resolveTaskCredentials } from "../credentials/tasks";
+import { resolveVariantCredentials } from "../credentials/variants";
 import { caseSlugOf } from "../domain/case-slug";
 import type { EvalStoreError } from "../domain/errors";
 import { NotRunnable } from "../domain/errors";
@@ -132,7 +132,7 @@ export const WorkbenchesLive = Layer.effect(
             ),
           { concurrency: 4 }
         );
-        const tasks = yield* resolveTaskCredentials(
+        const variants = yield* resolveVariantCredentials(
           credentials,
           input.actor,
           requested,
@@ -154,7 +154,7 @@ export const WorkbenchesLive = Layer.effect(
           prompt: config.prompt,
           startedBy: input.startedBy,
           trigger: { source: "dashboard" },
-          tasks,
+          variants,
           trials: config.trials,
         });
 

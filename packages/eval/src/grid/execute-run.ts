@@ -46,8 +46,8 @@ export const makeExecuteRun = (live: LiveRuns) =>
           organizationId: grid.input.organizationId,
           startedAt,
           status: "running",
-          tasks: grid.input.tasks.map((task, taskIndex) =>
-            projectTask(task, profiles[taskIndex] ?? null)
+          variants: grid.input.variants.map((task, variantIndex) =>
+            projectTask(task, profiles[variantIndex] ?? null)
           ),
         });
 

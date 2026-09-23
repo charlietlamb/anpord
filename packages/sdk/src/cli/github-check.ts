@@ -39,7 +39,7 @@ const formatComparison = (run: EvalRun, cell: EvalCell) => {
   const changed =
     before === after
       ? ""
-      : ` (${run.tasks[cell.taskIndex]?.harness} ${before} → ${after})`;
+      : ` (${run.variants[cell.variantIndex]?.harness} ${before} → ${after})`;
   return `${comparison.verdict}${changed}`;
 };
 

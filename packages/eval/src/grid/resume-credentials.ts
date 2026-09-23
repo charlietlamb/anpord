@@ -1,7 +1,7 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import { Effect, Option } from "effect";
 import type { CredentialResolverShape } from "../credentials/resolver";
-import { resolveTaskCredentials } from "../credentials/tasks";
+import { resolveVariantCredentials } from "../credentials/variants";
 import { NotRunnable } from "../domain/errors";
 import { namesOf } from "../domain/stored-cell";
 import type { CellTask } from "../repositories/run-tasks-query";
@@ -74,7 +74,7 @@ export const tasksWithCredentials = (
 ) =>
   "bound" in source
     ? Effect.forEach(cells, boundTask(credentials, organizationId))
-    : resolveTaskCredentials(
+    : resolveVariantCredentials(
         credentials,
         source.actor,
         /* Dropping an unknown harness lets the rest of the run resume. */

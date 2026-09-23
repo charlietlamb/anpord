@@ -50,7 +50,7 @@ export default suite({
   api: [catalog],
   prompt: "Use the local catalog API to retrieve fixture and report its name.",
   cases: [{ name: "retrieve-item", validate }],
-  tasks: [{ harness: "codex", model: "model-id" }],
+  variants: [{ harness: "codex", model: "model-id" }],
   trials: 1,
 });
 ```

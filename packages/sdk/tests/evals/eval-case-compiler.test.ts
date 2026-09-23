@@ -19,7 +19,7 @@ test("compiles a case that stands without a suite", async () => {
     `
 import { evalCase, empty } from "anpord";
 export default evalCase({ id: "answers", name: "answers", source: empty, prompt: "Answer", trials: 1,
-  tasks: [{ harness: "codex", model: "task-model" }],
+  variants: [{ harness: "codex", model: "task-model" }],
   validate: () => true,
 });`
   );

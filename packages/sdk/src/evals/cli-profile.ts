@@ -7,7 +7,7 @@ import { appendInstall } from "./profile-compose";
 import { packageProgram } from "./program-package";
 import { cliEntry, type DefinitionRef } from "./runner-source";
 
-type EvalTask = PublicStartEvalRequest["tasks"][number];
+type EvalVariant = PublicStartEvalRequest["variants"][number];
 
 export interface CompiledCli {
   readonly entry: string;
@@ -46,14 +46,14 @@ export const compileClis = (
   });
 
 export const withClis = (
-  task: EvalTask,
+  variant: EvalVariant,
   clis: readonly CompiledCli[]
-): EvalTask => {
+): EvalVariant => {
   if (clis.length === 0) {
-    return task;
+    return variant;
   }
 
-  const profile: HarnessProfile = task.profile ?? {
+  const profile: HarnessProfile = variant.profile ?? {
     files: {},
     name: "anpord-cli",
   };
@@ -80,7 +80,7 @@ export const withClis = (
   ].join(" && ");
 
   return {
-    ...task,
+    ...variant,
     profile: appendInstall({ ...profile, files }, install),
   };
 };

@@ -99,7 +99,7 @@ const runOneEval = (
         runId,
         run,
         problems: problemsWith(run, options.gate, {
-          cells: payload.cases.length * payload.tasks.length,
+          cells: payload.cases.length * payload.variants.length,
           trials: payload.trials,
         }),
       } satisfies EvalOutcome;
@@ -150,7 +150,7 @@ const recordedLocally = (file: string) =>
     const leased = yield* api.evals
       .credentials({
         payload: {
-          harness: payload.tasks[0]?.harness ?? "codex",
+          harness: payload.variants[0]?.harness ?? "codex",
           id: started.id,
         },
       })

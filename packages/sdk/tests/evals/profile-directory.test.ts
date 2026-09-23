@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PROFILE_LIMITS } from "@anpord/schema/domain/harness-profile";
 import { Effect } from "effect";
-import { profileTask } from "../../src/evals/profile-directory";
+import { profileVariant } from "../../src/evals/profile-directory";
 
 const FIXTURE = join(import.meta.dir, "../fixtures/sample-profile");
 
@@ -40,7 +40,7 @@ const compiled = (
   name = "sample"
 ) =>
   Effect.runPromise(
-    profileTask(join(dir, "..", "suite.eval.ts"), {
+    profileVariant(join(dir, "..", "suite.eval.ts"), {
       harness: { base, profile: { dir: "./profile", name } },
       model: "anthropic/claude-sonnet-4.6",
       sandbox: "daytona",

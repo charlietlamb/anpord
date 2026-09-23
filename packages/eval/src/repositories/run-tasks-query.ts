@@ -1,18 +1,19 @@
 import { Database } from "@anpord/db/client";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { and, eq, type SQL, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import type { WorkspaceSource } from "../domain/workspace-source";
+import { type CaseScope, newestCellPerVariant } from "./case-variants";
 import { head, tryStore } from "./query";
 
 type CellRow = typeof evalCell.$inferSelect;
 type TaskSource = Pick<
-  typeof evalTask.$inferSelect,
+  typeof evalCaseVersion.$inferSelect,
   "repoRef" | "repoUrl" | "sourceFiles" | "sourceKind"
 >;
 
@@ -74,28 +75,28 @@ export interface CellTaskInput {
 
 const CELL_TASK_COLUMNS = {
   trigger: evalRun.trigger,
-  cacheKey: evalTask.cacheKey,
-  cachePath: evalTask.cachePath,
-  caseInternalId: evalTask.caseInternalId,
+  cacheKey: evalCaseVersion.cacheKey,
+  cachePath: evalCaseVersion.cachePath,
+  caseInternalId: evalCaseVersion.caseInternalId,
   cell: evalCell,
-  definitionHash: evalTask.definitionHash,
+  definitionHash: evalCaseVersion.definitionHash,
   identity: evalCase.id,
-  name: evalTask.name,
-  prepareName: evalTask.prepareName,
-  prepareSource: evalTask.prepareSource,
+  name: evalCaseVersion.name,
+  prepareName: evalCaseVersion.prepareName,
+  prepareSource: evalCaseVersion.prepareSource,
   profile: evalHarnessProfile,
   prompt: evalCell.prompt,
-  repoRef: evalTask.repoRef,
-  repoUrl: evalTask.repoUrl,
+  repoRef: evalCaseVersion.repoRef,
+  repoUrl: evalCaseVersion.repoUrl,
   runName: evalRun.name,
-  sourceFiles: evalTask.sourceFiles,
-  sourceKind: evalTask.sourceKind,
+  sourceFiles: evalCaseVersion.sourceFiles,
+  sourceKind: evalCaseVersion.sourceKind,
   trialsPerCell: sql<number>`${evalRun.trialCount} / ${evalRun.cellCount}`,
-  validatorName: evalTask.validatorName,
-  validatorSource: evalTask.validatorSource,
-  user: evalTask.user,
-  validatorConfig: evalTask.validatorConfig,
-  verifyCommand: evalTask.verifyCommand,
+  validatorName: evalCaseVersion.validatorName,
+  validatorSource: evalCaseVersion.validatorSource,
+  user: evalCaseVersion.user,
+  validatorConfig: evalCaseVersion.validatorConfig,
+  verifyCommand: evalCaseVersion.verifyCommand,
 };
 
 export const runTasksQuery = Effect.map(Database, (db) => {
@@ -104,8 +105,14 @@ export const runTasksQuery = Effect.map(Database, (db) => {
       db
         .select(CELL_TASK_COLUMNS)
         .from(evalCell)
-        .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
-        .innerJoin(evalCase, eq(evalTask.caseInternalId, evalCase.internalId))
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCell.caseVersionInternalId, evalCaseVersion.internalId)
+        )
+        .innerJoin(
+          evalCase,
+          eq(evalCaseVersion.caseInternalId, evalCase.internalId)
+        )
         .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
         .leftJoin(
           evalHarnessProfile,
@@ -119,6 +126,16 @@ export const runTasksQuery = Effect.map(Database, (db) => {
     );
 
   return {
+    findCaseTasks: (scope: CaseScope) =>
+      cellTasksWhere(newestCellPerVariant(db, scope)).pipe(
+        Effect.map((rows) =>
+          [...rows].sort(
+            (left, right) =>
+              right.cell.createdAt.getTime() - left.cell.createdAt.getTime()
+          )
+        ),
+        Effect.withSpan("RunQuery.findCaseTasks")
+      ),
     findCellTask: (input: CellTaskInput) =>
       cellTasksWhere(
         and(

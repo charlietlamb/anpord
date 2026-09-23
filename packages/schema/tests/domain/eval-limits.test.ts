@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
-import { MAX_START_CASES, MAX_START_TASKS } from "../../src/domain/eval-quota";
+import {
+  MAX_START_CASES,
+  MAX_START_VARIANTS,
+} from "../../src/domain/eval-quota";
 import { StartEvalRequest } from "../../src/domain/evals";
 import { PublicStartEvalRequest } from "../../src/public/evals-api";
 
@@ -22,7 +25,7 @@ const task = {
 const request = {
   cases: [evalCase],
   prompt: "{{task}}",
-  tasks: [task],
+  variants: [task],
   trials: 1,
 };
 
@@ -90,7 +93,7 @@ describe("what a start may carry to a sandbox", () => {
         },
       ],
       prompt: "a".repeat(100_000),
-      tasks: [task],
+      variants: [task],
       trials: 1,
     });
 
@@ -114,7 +117,7 @@ describe("how large a grid a start may name", () => {
 
   it("refuses more tasks than the wire allows", () => {
     expect(
-      decode({ ...request, tasks: many(task, MAX_START_TASKS + 1) })._tag
+      decode({ ...request, variants: many(task, MAX_START_VARIANTS + 1) })._tag
     ).toBe("Left");
   });
 

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
+import { SURFACE_FILL } from "@anpord/ui/lib/surface"
 import { cn } from "@anpord/ui/lib/utils"
 import { CaretDownIcon, CheckIcon, CaretUpIcon } from "@phosphor-icons/react"
 
@@ -36,8 +37,7 @@ const TRIGGER_BASE =
 /* `ghost` for a trigger that sits against a rule or inside a toolbar, where a
    second border would read as a seam rather than an edge. */
 const TRIGGER_VARIANTS = {
-  default:
-    "border border-border bg-background px-3 hover:bg-muted focus-visible:border-ring aria-invalid:border-destructive data-[size=sm]:px-3 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+  default: `${SURFACE_FILL} px-3 hover:bg-alpha-4 focus-visible:border-ring aria-invalid:border-destructive data-[size=sm]:px-3 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40`,
   ghost:
     "border border-transparent bg-transparent px-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:border-ring data-popup-open:bg-muted/60 data-popup-open:text-foreground data-[size=sm]:px-2",
 } as const
@@ -96,7 +96,7 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
-          className={cn("relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-(--shadow-popover) duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
+          className={cn("relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-(--shadow-popover) duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
           {...props}
         >
           <SelectScrollUpButton />

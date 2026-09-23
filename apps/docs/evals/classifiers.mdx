@@ -26,7 +26,7 @@ export default suite({
   name: "support routing",
   prompt: "My shoes arrived in the wrong size. Route this request.",
   cases: [{ name: "wrong size", validate: routed }],
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],
   trials: 3,
 });
 ```
@@ -74,7 +74,7 @@ Classifiers call TypeSafe directly and need their own credential, which [connect
 
 ## Evidence and isolation
 
-A classifier receives the rendered task prompt and the final answer. It does not receive the task workspace, transcript, MCP or CLI configuration, or task environment.
+A classifier receives the rendered case prompt and the final answer. It does not receive the case workspace, transcript, MCP or CLI configuration, or sandbox environment.
 
 Evidence travels as state rather than as instructions, so an agent's own output cannot redirect the classification. The model generates no text, so there is no schema to violate and no refusal to parse.
 

@@ -36,11 +36,11 @@ export interface GridCase {
 
 export interface RunGridCell extends TrialInputs {
   readonly caseInternalId: string;
+  readonly caseVersionInternalId: string;
   /** The row the task profile was registered as, null where there is none. */
   readonly profile: TaskProfile | null;
   readonly runInternalId: string;
   readonly runs: RunRepositoryShape;
-  readonly taskInternalId: string;
   readonly trials: number;
 }
 
@@ -96,7 +96,7 @@ export const runGridCell = (
         sandboxCredential === undefined || sandboxConnectionId === undefined
           ? undefined
           : Redacted.value(sandboxCredential).revision,
-      taskInternalId: input.taskInternalId,
+      caseVersionInternalId: input.caseVersionInternalId,
     });
 
     yield* Effect.addFinalizer((exit) =>

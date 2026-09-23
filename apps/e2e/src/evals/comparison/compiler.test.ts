@@ -13,7 +13,7 @@ test("Claude setup starts with a single hosted smoke trial", async () => {
     fileURLToPath(new URL("./claude-smoke.eval.ts", import.meta.url))
   );
   expect(compiled.cases).toHaveLength(1);
-  expect(compiled.tasks).toEqual([
+  expect(compiled.variants).toEqual([
     { harness: "claude", model: "claude-haiku-4-5-20251001", sandbox: "e2b" },
   ]);
   expect(compiled.trials).toBe(1);
@@ -28,10 +28,10 @@ test.each([
     fileURLToPath(new URL(`./${agent}.eval.ts`, import.meta.url))
   );
   expect(compiled.cases).toHaveLength(18);
-  expect(compiled.tasks).toHaveLength(agent === "claude" ? 3 : 2);
+  expect(compiled.variants).toHaveLength(agent === "claude" ? 3 : 2);
   expect(compiled.trials).toBe(1);
   expect(new Set(compiled.cases.map(({ name }) => name)).size).toBe(18);
-  for (const task of compiled.tasks) {
+  for (const task of compiled.variants) {
     expect(task.harness).toBe(agent);
     expect(
       task.profile?.files["workspace/.anpord/api/program.json"]

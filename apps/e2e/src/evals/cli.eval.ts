@@ -1,5 +1,5 @@
 import { empty, suite } from "anpord";
-import { tasks, trials } from "./config";
+import { trials, variants } from "./config";
 import { catalogCli } from "./mocks/catalog-cli";
 import { validateCli } from "./validators/catalog";
 import { correctItem } from "./validators/judges";
@@ -17,6 +17,6 @@ export default suite({
       validate: [validateCli, correctItem],
     },
   ],
-  tasks,
+  variants,
   trials,
 });

@@ -23,12 +23,12 @@ const task = (model: string) => ({
 
 const start = (input: {
   readonly cases: number;
-  readonly tasks: readonly ReturnType<typeof task>[];
+  readonly variants: readonly ReturnType<typeof task>[];
   readonly trials: number;
   readonly user?: { readonly kind: string };
 }) => ({
   cases: Array.from({ length: input.cases }, () => ({ user: input.user })),
-  tasks: input.tasks,
+  variants: input.variants,
   trials: input.trials,
 });
 
@@ -44,6 +44,8 @@ const withRunning = (running: number) =>
       findRunAddresses: () => Effect.succeed([]),
       findTrial: () => Effect.succeed(Option.none()),
       findCaseHistory: () => Effect.succeed([]),
+      findCaseTasks: () => Effect.succeed([]),
+      findCaseVariants: () => Effect.succeed([]),
       findCellHistory: () => Effect.succeed([]),
       findCellTask: () => Effect.succeed(Option.none()),
       findRun: () => Effect.succeed(Option.none()),
@@ -71,9 +73,9 @@ const refusalOf = (payload: ReturnType<typeof start>, running = 0) =>
 
 describe("what a start is admitted for", () => {
   it("accepts a grid inside every limit", () => {
-    expect(refusalOf(start({ cases: 2, tasks: [task("a")], trials: 3 }))).toBe(
-      null
-    );
+    expect(
+      refusalOf(start({ cases: 2, variants: [task("a")], trials: 3 }))
+    ).toBe(null);
   });
 
   /* Cells run eight at a time and each cell runs up to ten trials, so an
@@ -81,7 +83,11 @@ describe("what a start is admitted for", () => {
      `grid.start`, so nothing is opened and no run row is written. */
   it("refuses a start asking for more trials than a run may hold", () => {
     const refusal = refusalOf(
-      start({ cases: MAX_RUN_TRIALS, tasks: [task("a"), task("b")], trials: 1 })
+      start({
+        cases: MAX_RUN_TRIALS,
+        variants: [task("a"), task("b")],
+        trials: 1,
+      })
     );
 
     expect(refusal).toContain(String(MAX_RUN_TRIALS));
@@ -90,7 +96,9 @@ describe("what a start is admitted for", () => {
 
   it("accepts a start sitting exactly on the trial cap", () => {
     expect(
-      refusalOf(start({ cases: MAX_RUN_TRIALS, tasks: [task("a")], trials: 1 }))
+      refusalOf(
+        start({ cases: MAX_RUN_TRIALS, variants: [task("a")], trials: 1 })
+      )
     ).toBe(null);
   });
 
@@ -99,7 +107,7 @@ describe("what a start is admitted for", () => {
   it("refuses a start when the organization already has its runs going", () => {
     expect(
       refusalOf(
-        start({ cases: 1, tasks: [task("a")], trials: 1 }),
+        start({ cases: 1, variants: [task("a")], trials: 1 }),
         MAX_ORGANIZATION_RUNS_IN_FLIGHT
       )
     ).toContain(String(MAX_ORGANIZATION_RUNS_IN_FLIGHT));
@@ -108,7 +116,7 @@ describe("what a start is admitted for", () => {
   it("admits again once one of those runs has settled", () => {
     expect(
       refusalOf(
-        start({ cases: 1, tasks: [task("a")], trials: 1 }),
+        start({ cases: 1, variants: [task("a")], trials: 1 }),
         MAX_ORGANIZATION_RUNS_IN_FLIGHT - 1
       )
     ).toBe(null);
@@ -116,7 +124,9 @@ describe("what a start is admitted for", () => {
 
   it("still refuses two tasks naming the same column", () => {
     expect(
-      refusalOf(start({ cases: 1, tasks: [task("a"), task("a")], trials: 1 }))
+      refusalOf(
+        start({ cases: 1, variants: [task("a"), task("a")], trials: 1 })
+      )
     ).toContain("unique");
   });
 
@@ -128,7 +138,7 @@ describe("what a start is admitted for", () => {
         "org_1",
         start({
           cases: 1,
-          tasks: [task("a")],
+          variants: [task("a")],
           trials: 1,
           user: { kind: "simulated" },
         })
@@ -149,7 +159,7 @@ describe("what a start is admitted for", () => {
       refusalOf(
         start({
           cases: 1,
-          tasks: [task("a")],
+          variants: [task("a")],
           trials: 1,
           user: { kind: "scripted" },
         })

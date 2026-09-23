@@ -1,15 +1,16 @@
 import { Database } from "@anpord/db/client";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import type { CellKey } from "../domain/cell";
 import type { Distribution } from "../domain/distribution";
+import { type CaseScope, newestCellPerVariant } from "./case-variants";
 import { cellTrialsQuery } from "./cell-trials-query";
 import { tryStore } from "./query";
 import { distributionFor, groupByCell } from "./trial-distribution";
@@ -17,6 +18,7 @@ import { distributionFor, groupByCell } from "./trial-distribution";
 type TrialRow = typeof evalTrial.$inferSelect;
 
 export interface CellHistoryEntry {
+  readonly cellKey: string;
   readonly definitionHash: string;
   readonly distribution: Distribution;
   readonly finishedAt: Date | null;
@@ -34,11 +36,11 @@ export interface CellHistoryEntry {
   readonly trigger: EvalTrigger | null;
 }
 
-export interface CaseHistoryInput {
-  readonly caseId: string;
+export interface CaseHistoryInput extends CaseScope {
   readonly limit: number;
-  readonly organizationId: string;
 }
+
+const MAX_VARIANTS = 100;
 
 export interface CellHistoryInput {
   readonly cellKey: CellKey;
@@ -56,14 +58,20 @@ export const cellHistoryQuery = Effect.gen(function* () {
         db
           .select({
             cell: evalCell,
-            definitionHash: evalTask.definitionHash,
+            definitionHash: evalCaseVersion.definitionHash,
             profileVersion: evalHarnessProfile.version,
             run: evalRun,
           })
           .from(evalCell)
           .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
-          .innerJoin(evalTask, eq(evalTask.internalId, evalCell.taskInternalId))
-          .innerJoin(evalCase, eq(evalCase.internalId, evalTask.caseInternalId))
+          .innerJoin(
+            evalCaseVersion,
+            eq(evalCaseVersion.internalId, evalCell.caseVersionInternalId)
+          )
+          .innerJoin(
+            evalCase,
+            eq(evalCase.internalId, evalCaseVersion.caseInternalId)
+          )
           .leftJoin(
             evalHarnessProfile,
             eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
@@ -81,6 +89,7 @@ export const cellHistoryQuery = Effect.gen(function* () {
 
       return cells.map(
         (row): CellHistoryEntry => ({
+          cellKey: row.cell.cellKey,
           definitionHash: row.definitionHash,
           distribution: distributionFor(byCell.get(row.cell.internalId) ?? []),
           finishedAt: row.run.finishedAt,
@@ -118,5 +127,10 @@ export const cellHistoryQuery = Effect.gen(function* () {
       input.limit
     ).pipe(Effect.withSpan("RunQuery.findCaseHistory"));
 
-  return { findCaseHistory, findCellHistory };
+  const findCaseVariants = (scope: CaseScope) =>
+    historyWhere(newestCellPerVariant(db, scope), MAX_VARIANTS).pipe(
+      Effect.withSpan("RunQuery.findCaseVariants")
+    );
+
+  return { findCaseHistory, findCaseVariants, findCellHistory };
 });

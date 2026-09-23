@@ -15,8 +15,8 @@ import {
 import {
   MAX_RUN_TRIALS,
   MAX_START_CASES,
-  MAX_START_TASKS,
   MAX_START_TRIALS,
+  MAX_START_VARIANTS,
 } from "../domain/eval-quota";
 import { EvalRunTail, EvalRunTailRequest } from "../domain/eval-tail";
 import { EvalTrigger } from "../domain/eval-trigger";
@@ -69,7 +69,7 @@ export const EvalModelsRequest = Schema.Struct({
    never offers it: a caller must not be able to ask someone else's server
    for a shell. A developer names it from their own CLI instead. */
 const PublicEvalSandbox = Schema.Literal(...HOSTED_SANDBOXES).annotations({
-  description: "The hosted sandbox a task runs in.",
+  description: "The hosted sandbox a variant runs in.",
   identifier: "PublicEvalSandbox",
 });
 export const ListCasesRequest = Schema.Struct({
@@ -108,11 +108,11 @@ const PublicEvalCase = Schema.Struct({
     )
   )
   .annotations({
-    description: "A task, workspace source, setup command, and verifier.",
+    description: "A case, workspace source, setup command, and verifier.",
     identifier: "StartEvalCase",
   });
 /* The generated JSON Schema drops the struct filter, so tool and endpoint descriptions repeat the harness rule. */
-const PublicEvalTask = Schema.Struct({
+const PublicEvalVariant = Schema.Struct({
   harness: EvalHarness,
   model: Schema.String.pipe(Schema.minLength(1)),
   profile: Schema.optional(HarnessProfile),
@@ -123,7 +123,7 @@ const PublicEvalTask = Schema.Struct({
   )
   .annotations({
     description: `A harness and model, with an optional sandbox and an optional profile layered on the harness. Omit the sandbox to use the default. ${PROFILE_HARNESS_RULE}`,
-    identifier: "StartEvalTask",
+    identifier: "StartEvalVariant",
   });
 export const PublicStartEvalRequest = Schema.Struct({
   trigger: Schema.optional(EvalTrigger),
@@ -134,13 +134,13 @@ export const PublicStartEvalRequest = Schema.Struct({
   executeLocally: Schema.optional(Schema.Boolean),
   name: Schema.optional(EvalName),
   prompt: EvalPrompt,
-  tasks: Schema.Array(PublicEvalTask).pipe(
+  variants: Schema.Array(PublicEvalVariant).pipe(
     Schema.minItems(1),
-    Schema.maxItems(MAX_START_TASKS)
+    Schema.maxItems(MAX_START_VARIANTS)
   ),
   trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),
 }).annotations({
-  description: `Start a grid with at most ${MAX_RUN_TRIALS} total case, task, and trial combinations.`,
+  description: `Start a grid with at most ${MAX_RUN_TRIALS} total case, variant, and trial combinations.`,
   identifier: "StartEvalRequest",
 });
 export type PublicStartEvalRequest = typeof PublicStartEvalRequest.Type;
@@ -171,7 +171,7 @@ export const ReportedTrial = Schema.Struct({
   ordinal: Schema.Int.pipe(Schema.nonNegative()),
   outcome: TrialOutcome,
   sandboxId: Schema.optional(Schema.NullOr(Schema.String)),
-  taskIndex: Schema.Int.pipe(Schema.nonNegative()),
+  variantIndex: Schema.Int.pipe(Schema.nonNegative()),
   usage: Schema.optional(Schema.NullOr(HarnessUsage)),
 }).annotations({
   description: "One trial a client ran and is reporting the result of.",

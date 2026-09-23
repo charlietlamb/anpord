@@ -2,10 +2,10 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { inArray } from "drizzle-orm";
 import { Duration, Effect, Layer, Redacted } from "effect";
@@ -91,7 +91,7 @@ describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
             })
           );
 
-          await db.insert(evalTask).values(
+          await db.insert(evalCaseVersion).values(
             taskFixture.values({
               id: `task_reap_${suffix}`,
               internalId: `taskint_reap_${suffix}`,
@@ -119,7 +119,7 @@ describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
             provider: "daytona",
             runInternalId: `runint_reap_${suffix}`,
             status: "running",
-            taskInternalId: `taskint_reap_${suffix}`,
+            caseVersionInternalId: `taskint_reap_${suffix}`,
           });
 
           /* Three trials under one twelve-hour-old run, which is what a

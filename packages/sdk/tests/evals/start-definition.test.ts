@@ -52,7 +52,7 @@ describe("starting from an imported eval", () => {
       await anpord.evals.start({
         cases: [{ id: "a", name: "a", verify: "true" }],
         prompt: "{{task}}",
-        tasks: [{ harness: "codex", model: "m" }],
+        variants: [{ harness: "codex", model: "m" }],
         trials: 1,
       });
 

@@ -2,10 +2,10 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Duration, Effect, Layer, Option, Redacted } from "effect";
@@ -62,7 +62,7 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
           })
         );
 
-        await db.insert(evalTask).values(
+        await db.insert(evalCaseVersion).values(
           taskFixture.values({
             id: `task_${tag}`,
             internalId: `taskint_${tag}`,
@@ -91,7 +91,7 @@ const seed = async (organizationId: string, tag: string, passed: boolean) => {
           provider: "daytona",
           runInternalId: `runint_${tag}`,
           status: "finished",
-          taskInternalId: `taskint_${tag}`,
+          caseVersionInternalId: `taskint_${tag}`,
         });
 
         await db.insert(evalTrial).values(

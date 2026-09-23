@@ -1,4 +1,4 @@
-import type { EvalCell, EvalTask, EvalTrial } from "./evals";
+import type { EvalCell, EvalTrial, EvalVariant } from "./evals";
 
 /* Shared between one case and all of them: only the cells fed in differ. */
 export interface VariantResult {
@@ -9,9 +9,9 @@ export interface VariantResult {
   readonly passed: number;
   readonly passRate: number | null;
   readonly scored: number;
-  readonly task: EvalTask;
-  readonly taskIndex: number;
   readonly tokens: number | null;
+  readonly variant: EvalVariant;
+  readonly variantIndex: number;
 }
 
 export interface CellResult extends VariantResult {
@@ -57,8 +57,8 @@ const scoredIn = (cells: readonly EvalCell[]): readonly EvalTrial[] =>
 
 const variantOf = (
   cells: readonly EvalCell[],
-  task: EvalTask,
-  taskIndex: number
+  variant: EvalVariant,
+  variantIndex: number
 ): VariantResult => {
   const trials = scoredIn(cells);
   const usage = trials.flatMap((trial) =>
@@ -81,8 +81,8 @@ const variantOf = (
     passRate: scored === 0 ? null : passed / scored,
     passed,
     scored,
-    task,
-    taskIndex,
+    variant,
+    variantIndex,
     tokens: median(usage),
   };
 };
@@ -90,17 +90,19 @@ const variantOf = (
 interface Grid {
   readonly cases: readonly string[];
   readonly cells: readonly EvalCell[];
-  readonly tasks: readonly EvalTask[];
+  readonly variants: readonly EvalVariant[];
 }
 
 export const variantsOf = (run: {
   readonly cells: readonly EvalCell[];
-  readonly tasks: readonly EvalTask[];
+  readonly variants: readonly EvalVariant[];
 }): readonly VariantResult[] =>
-  run.tasks.flatMap((task, taskIndex) => {
-    const cells = run.cells.filter((cell) => cell.taskIndex === taskIndex);
+  run.variants.flatMap((variant, variantIndex) => {
+    const cells = run.cells.filter(
+      (cell) => cell.variantIndex === variantIndex
+    );
 
-    return cells.length === 0 ? [] : [variantOf(cells, task, taskIndex)];
+    return cells.length === 0 ? [] : [variantOf(cells, variant, variantIndex)];
   });
 
 /* A cell for a case the run did not list is appended rather than dropped. */
@@ -110,12 +112,12 @@ export const casesOf = (run: Grid): readonly CaseResult[] => {
   ];
 
   return names.flatMap((name) => {
-    const results = run.tasks.flatMap((task, taskIndex) =>
+    const results = run.variants.flatMap((variant, variantIndex) =>
       run.cells
         .filter(
-          (cell) => cell.caseName === name && cell.taskIndex === taskIndex
+          (cell) => cell.caseName === name && cell.variantIndex === variantIndex
         )
-        .map((cell) => ({ ...variantOf([cell], task, taskIndex), cell }))
+        .map((cell) => ({ ...variantOf([cell], variant, variantIndex), cell }))
     );
 
     return results.length === 0 ? [] : [{ name, results }];
@@ -134,7 +136,9 @@ export const leadersOn = (
   const scored = variants.flatMap((variant) => {
     const value = variant[metric];
 
-    return value === null ? [] : [{ taskIndex: variant.taskIndex, value }];
+    return value === null
+      ? []
+      : [{ variantIndex: variant.variantIndex, value }];
   });
 
   if (scored.length === 0) {
@@ -151,6 +155,6 @@ export const leadersOn = (
   return new Set(
     scored
       .filter((entry) => entry.value === best)
-      .map((entry) => entry.taskIndex)
+      .map((entry) => entry.variantIndex)
   );
 };

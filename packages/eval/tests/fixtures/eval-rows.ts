@@ -1,5 +1,5 @@
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 
 export const caseFixture = {
   table: evalCase,
@@ -18,7 +18,7 @@ export const caseFixture = {
 /** The task row every persistence test needs, in one place rather than
  * repeated in each file with its own spelling of the same columns. */
 export const taskFixture = {
-  table: evalTask,
+  table: evalCaseVersion,
   values: (input: {
     readonly id: string;
     readonly internalId: string;

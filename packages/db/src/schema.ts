@@ -16,13 +16,15 @@ import { credentialAuthAttempt } from "./schema/credentials/auth-attempts";
 import { credentialConnection } from "./schema/credentials/connections";
 import { githubInstallation } from "./schema/credentials/installations";
 import { evalBaseline } from "./schema/evals/eval-baselines";
+import { evalCaseVersion } from "./schema/evals/eval-case-versions";
+import { evalCase } from "./schema/evals/eval-cases";
 import { evalCell } from "./schema/evals/eval-cells";
 import { evalEvent } from "./schema/evals/eval-events";
 import { evalHarnessProfile } from "./schema/evals/eval-harness-profiles";
 import { evalPlayground } from "./schema/evals/eval-playgrounds";
 import { evalRun } from "./schema/evals/eval-runs";
-import { evalTask } from "./schema/evals/eval-tasks";
 import { evalTrialArtifact } from "./schema/evals/eval-trial-artifacts";
+import { evalTrialCost } from "./schema/evals/eval-trial-costs";
 import { evalTrialJournal } from "./schema/evals/eval-trial-journal";
 import { evalTrial } from "./schema/evals/eval-trials";
 import { channel } from "./schema/prompts/channels";
@@ -44,14 +46,16 @@ export const schema = {
   oauthConsent,
   organization,
   evalBaseline,
+  evalCase,
+  evalCaseVersion,
   evalCell,
   evalEvent,
   evalHarnessProfile,
   evalPlayground,
   evalRun,
-  evalTask,
   evalTrial,
   evalTrialArtifact,
+  evalTrialCost,
   evalTrialJournal,
   prompt,
   channel,

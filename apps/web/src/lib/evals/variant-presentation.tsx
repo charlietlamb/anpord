@@ -74,6 +74,11 @@ export const harnessPresentation = (harness: string): Presentation =>
 export const sandboxPresentation = (sandbox: string): Presentation =>
   SANDBOX_MARKS[sandbox as EvalSandbox] ?? unknown(sandbox);
 
+export const placePresentation = (entry: {
+  readonly local: boolean;
+  readonly sandbox: string;
+}): Presentation => sandboxPresentation(entry.local ? "local" : entry.sandbox);
+
 /* An integration id names either side of a run and the two sets do not overlap, so either order is correct. */
 export const integrationLabel = (integrationId: string): string =>
   (

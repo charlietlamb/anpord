@@ -6,7 +6,7 @@ description: "Read outcomes and inspect each attempt"
 `evals.start` returns a run id while trials continue on the server. `startAndWait` runs and resolves once the grid stops:
 
 ```ts
-const run = await anpord.evals.startAndWait({ cases, prompt, tasks, trials: 3 });
+const run = await anpord.evals.startAndWait({ cases, prompt, variants, trials: 3 });
 ```
 
 To wait on a run you started earlier, pass its id to `evals.wait({ id })`. Both poll `evals.get`, widening the gap as the run goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs`, and `maxIntervalMs`.

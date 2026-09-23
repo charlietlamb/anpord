@@ -1,5 +1,5 @@
 import { suite } from "anpord";
-import { tasks, trials } from "./config";
+import { trials, variants } from "./config";
 import { prepareSdk, validateSdk } from "./validators/sdk";
 
 export default suite({
@@ -14,6 +14,6 @@ export default suite({
       validate: validateSdk,
     },
   ],
-  tasks,
+  variants,
   trials,
 });

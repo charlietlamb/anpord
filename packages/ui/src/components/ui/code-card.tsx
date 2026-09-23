@@ -3,6 +3,11 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { useHighlighted } from "@anpord/ui/hooks/use-highlighted";
 import type { CodeLanguage } from "@anpord/ui/lib/highlight";
+import {
+  SURFACE_BODY,
+  SURFACE_FRAME,
+  SURFACE_HEAD,
+} from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 
 /**
@@ -28,16 +33,14 @@ export function CodeCard({
   readonly maxHeight?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "group/code overflow-hidden rounded-xl border border-border-faint bg-muted/40",
-        className
-      )}
-    >
-      <div className="flex h-10 items-center justify-between gap-2 pr-2 pl-4 shadow-[inset_0_-1px_0_0] shadow-border-faint">
-        <span className="truncate font-mono text-muted-foreground text-xs">
-          {label}
-        </span>
+    <div className={cn("group/code", SURFACE_FRAME, className)}>
+      <div
+        className={cn(
+          SURFACE_HEAD,
+          "flex items-center justify-between gap-2 pr-1 pl-3"
+        )}
+      >
+        <span className="truncate font-mono">{label}</span>
 
         <CopyButton
           className="size-6 shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/code:opacity-100"
@@ -46,7 +49,9 @@ export function CodeCard({
         />
       </div>
 
-      <CodeContent code={code} lang={lang} maxHeight={maxHeight} />
+      <div className={SURFACE_BODY}>
+        <CodeContent code={code} lang={lang} maxHeight={maxHeight} />
+      </div>
     </div>
   );
 }

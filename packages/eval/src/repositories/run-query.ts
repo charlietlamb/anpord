@@ -12,6 +12,7 @@ import {
   caseListQuery,
   type ListCasesInput,
 } from "./case-list-query";
+import type { CaseScope } from "./case-variants";
 import {
   type CaseHistoryInput,
   type CellHistoryEntry,
@@ -51,6 +52,12 @@ export interface RunQueryShape {
   ) => Effect.Effect<Option.Option<CaseDetail>, EvalStoreError>;
   readonly findCaseHistory: (
     input: CaseHistoryInput
+  ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
+  readonly findCaseTasks: (
+    scope: CaseScope
+  ) => Effect.Effect<readonly CellTask[], EvalStoreError>;
+  readonly findCaseVariants: (
+    scope: CaseScope
   ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
   readonly findCellHistory: (
     input: CellHistoryInput
@@ -101,7 +108,7 @@ export const RunQueryLive = Layer.effect(
     const list = yield* runListQuery;
     const detail = yield* runDetailQuery;
     const history = yield* cellHistoryQuery;
-    const tasks = yield* runTasksQuery;
+    const variants = yield* runTasksQuery;
     const cases = yield* caseListQuery;
     const subject = yield* caseDetailQuery;
     const tail = yield* runTailQuery;
@@ -112,9 +119,11 @@ export const RunQueryLive = Layer.effect(
       countRuns: list.countRuns,
       findCase: subject.findCase,
       findCaseHistory: history.findCaseHistory,
+      findCaseTasks: variants.findCaseTasks,
+      findCaseVariants: history.findCaseVariants,
       findCellHistory: history.findCellHistory,
-      findCellTask: tasks.findCellTask,
-      findRunTasks: tasks.findRunTasks,
+      findCellTask: variants.findCellTask,
+      findRunTasks: variants.findRunTasks,
       listCases: cases.listCases,
       listTags: cases.listTags,
       findRun: detail.findRun,

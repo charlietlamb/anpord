@@ -2,7 +2,7 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CredentialResolver } from "@anpord/eval/credentials/resolver";
-import { resolveTaskCredentials } from "@anpord/eval/credentials/tasks";
+import { resolveVariantCredentials } from "@anpord/eval/credentials/variants";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
 import {
@@ -69,7 +69,7 @@ export default suite({
   ],
   name: "smoke",
   prompt: "Reply with the single word done. Change nothing.",
-  tasks: [{ harness: "codex", model: "gpt-5.1-codex", provider: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5.1-codex", provider: "daytona" }],
   trials: 1,
 });`;
 
@@ -107,7 +107,7 @@ const started = Effect.gen(function* () {
     return yield* Effect.die("the eval compiled to no cases");
   }
 
-  const tasks = yield* resolveTaskCredentials(
+  const variants = yield* resolveVariantCredentials(
     resolver,
     {
       id: "smoke",
@@ -115,11 +115,11 @@ const started = Effect.gen(function* () {
       organizationId: ORG,
       permissions: [],
     } as never,
-    payload.tasks.map((task) => ({
-      harness: task.harness,
-      harnessVersion: task.harnessVersion ?? "latest",
-      model: task.model,
-      provider: task.provider,
+    payload.variants.map((variant) => ({
+      harness: variant.harness,
+      harnessVersion: variant.harnessVersion ?? "latest",
+      model: variant.model,
+      provider: variant.provider,
     })),
     ""
   );
@@ -140,7 +140,7 @@ const started = Effect.gen(function* () {
     organizationId: ORG,
     prompt: payload.prompt,
     startedBy: null,
-    tasks,
+    variants,
     trials: payload.trials,
   });
 });

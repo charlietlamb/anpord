@@ -13,7 +13,7 @@ import { suite } from "anpord";
 export default suite({
   name: "hello",
   prompt: "Create hello.txt containing exactly hello",
-  tasks: [{ harness: "codex", model: "gpt-6-astra" }],
+  variants: [{ harness: "codex", model: "gpt-6-astra" }],
   trials: 1,
   cases: [
     {

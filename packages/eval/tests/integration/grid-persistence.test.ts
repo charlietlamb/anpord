@@ -113,7 +113,7 @@ describe.skipIf(!READY)("a grid persists and compares", () => {
             /* A case that already passes, so the agent has nothing to do and
                the cell is deterministic. The test measures the machinery
                around a trial rather than whether a model can fix a bug. */
-            tasks: [
+            variants: [
               {
                 credentials: { harness: codexCredential },
                 harness: "codex",

@@ -64,7 +64,7 @@ export const createCell = (overrides: Partial<EvalCell> = {}): EvalCell => ({
   internalId: null,
   setup: null,
   status: "finished",
-  taskIndex: 0,
+  variantIndex: 0,
   trials: [createTrial()],
   ...overrides,
 });
@@ -81,7 +81,7 @@ export const createRun = (overrides: Partial<EvalRun> = {}): EvalRun => ({
   name: "CI fixture",
   startedAt: DateTime.unsafeMake("2026-09-06T10:00:00Z"),
   status: "finished",
-  tasks: [
+  variants: [
     {
       harness: "codex",
       harnessVersion: "1.0.0",

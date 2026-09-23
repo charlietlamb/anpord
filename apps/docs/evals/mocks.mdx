@@ -121,13 +121,13 @@ export default suite({
   mcp: [usersMcp],
   cli: [usersCli],
   cases: [{ name: "gets user", validate }],
-  tasks: [{ harness: "codex", model: "model-id" }],
+  variants: [{ harness: "codex", model: "model-id" }],
   trials: 1,
 });
 ```
 
-Validators should check both the recorded call and the task outcome. Journal inputs and outputs are `unknown`, so parse them with the shared schema before asserting values.
+Validators should check both the recorded call and the case outcome. Journal inputs and outputs are `unknown`, so parse them with the shared schema before asserting values.
 
-Definitions apply to every task in the suite. Split tasks into separate eval files when they need different interfaces. Anpord installs CLI mocks into every harness profile. It configures MCP mocks for every [built-in agent](/evals/variants), not the custom command harness.
+Definitions apply to every variant in the suite. Split variants into separate eval files when they need different interfaces. Anpord installs CLI mocks into every harness profile. It configures MCP mocks for every [built-in agent](/evals/variants), not the custom command harness.
 
 Mock handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox and must contain no secrets. Running the hosted eval still requires `ANPORD_API_KEY` and a model connection.

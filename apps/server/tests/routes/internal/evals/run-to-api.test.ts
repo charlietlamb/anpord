@@ -21,7 +21,7 @@ const state = (name: string | null): GridRunState => ({
   organizationId: "org_123",
   startedAt: 1,
   status: "running",
-  tasks: [],
+  variants: [],
 });
 
 describe("eval run names", () => {

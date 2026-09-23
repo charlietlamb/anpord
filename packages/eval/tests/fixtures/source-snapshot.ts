@@ -9,6 +9,6 @@ export default suite({
   source: empty,
   prompt: "Use the fixture",
   cases: [{ id: "fixture", name: "fixture", validate }],
-  tasks: [{ harness: "codex", model: "test", provider: "e2b" }],
+  variants: [{ harness: "codex", model: "test", provider: "e2b" }],
   trials: 1,
 });

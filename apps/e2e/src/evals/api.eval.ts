@@ -1,5 +1,5 @@
 import { empty, suite } from "anpord";
-import { tasks, trials } from "./config";
+import { trials, variants } from "./config";
 import { catalogApi } from "./mocks/catalog-api";
 import { validateApi } from "./validators/api";
 import { correctItem } from "./validators/judges";
@@ -17,6 +17,6 @@ export default suite({
       validate: [validateApi, correctItem],
     },
   ],
-  tasks,
+  variants,
   trials,
 });

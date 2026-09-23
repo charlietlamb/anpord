@@ -1,8 +1,8 @@
 import { Database } from "@anpord/db/client";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import { and, eq, getTableColumns, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
@@ -38,21 +38,24 @@ export const runDetailQuery = Effect.gen(function* () {
       const cells = yield* tryStore("runQuery.cells", () =>
         db
           .select({
-            caseName: evalTask.name,
-            definitionHash: evalTask.definitionHash,
+            caseName: evalCaseVersion.name,
+            definitionHash: evalCaseVersion.definitionHash,
             cell: cellColumns,
             prompt: evalCell.prompt,
-            repoRef: evalTask.repoRef,
-            repoUrl: evalTask.repoUrl,
-            prepareName: evalTask.prepareName,
-            prepareSource: evalTask.prepareSource,
+            repoRef: evalCaseVersion.repoRef,
+            repoUrl: evalCaseVersion.repoUrl,
+            prepareName: evalCaseVersion.prepareName,
+            prepareSource: evalCaseVersion.prepareSource,
             profile: evalHarnessProfile,
-            validatorName: evalTask.validatorName,
-            verifyCommand: evalTask.verifyCommand,
-            workspace: evalTask.workspace,
+            validatorName: evalCaseVersion.validatorName,
+            verifyCommand: evalCaseVersion.verifyCommand,
+            workspace: evalCaseVersion.workspace,
           })
           .from(evalCell)
-          .innerJoin(evalTask, eq(evalCell.taskInternalId, evalTask.internalId))
+          .innerJoin(
+            evalCaseVersion,
+            eq(evalCell.caseVersionInternalId, evalCaseVersion.internalId)
+          )
           .leftJoin(
             evalHarnessProfile,
             eq(evalCell.profileInternalId, evalHarnessProfile.internalId)
@@ -92,23 +95,23 @@ export const runDetailQuery = Effect.gen(function* () {
           cells: tryStore("runQuery.cells", () =>
             db
               .select({
-                caseName: evalTask.name,
-                definitionHash: evalTask.definitionHash,
+                caseName: evalCaseVersion.name,
+                definitionHash: evalCaseVersion.definitionHash,
                 cell: cellColumns,
                 prompt: evalCell.prompt,
-                repoRef: evalTask.repoRef,
-                repoUrl: evalTask.repoUrl,
-                prepareName: evalTask.prepareName,
+                repoRef: evalCaseVersion.repoRef,
+                repoUrl: evalCaseVersion.repoUrl,
+                prepareName: evalCaseVersion.prepareName,
                 profile: evalHarnessProfile,
-                validatorName: evalTask.validatorName,
+                validatorName: evalCaseVersion.validatorName,
                 validatorFiles,
-                verifyCommand: evalTask.verifyCommand,
-                workspace: evalTask.workspace,
+                verifyCommand: evalCaseVersion.verifyCommand,
+                workspace: evalCaseVersion.workspace,
               })
               .from(evalCell)
               .innerJoin(
-                evalTask,
-                eq(evalCell.taskInternalId, evalTask.internalId)
+                evalCaseVersion,
+                eq(evalCell.caseVersionInternalId, evalCaseVersion.internalId)
               )
               .innerJoin(
                 evalRun,

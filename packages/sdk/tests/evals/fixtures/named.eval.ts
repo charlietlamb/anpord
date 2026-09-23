@@ -7,7 +7,7 @@ export const smoke = suite({
   name: "smoke",
   source: empty,
   prompt: "Create hello.txt",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
   trials: 1,
   cases: [
     {

@@ -21,7 +21,7 @@ import {
 import { readProfileManifest } from "./profile-manifest";
 import type { ProfileRef } from "./types";
 
-type PublicEvalTask = PublicStartEvalRequest["tasks"][number];
+type PublicEvalVariant = PublicStartEvalRequest["variants"][number];
 
 const SHIPPED_ROOTS = ["home", "workspace"] as const;
 const SKIPPED_DIRECTORIES = new Set(["node_modules", ".git"]);
@@ -139,19 +139,19 @@ const fittingHarness = (base: EvalHarness, profile: HarnessProfile) => {
 };
 
 /* The profile directory is read relative to the eval file. */
-export const profileTask = (
+export const profileVariant = (
   entry: string,
-  task: {
+  variant: {
     readonly harness: {
       readonly base: EvalHarness;
       readonly profile: ProfileRef;
     };
     readonly model: string;
-    readonly sandbox?: PublicEvalTask["sandbox"];
+    readonly sandbox?: PublicEvalVariant["sandbox"];
   }
 ) =>
   Effect.gen(function* () {
-    const dir = resolve(dirname(entry), task.harness.profile.dir);
+    const dir = resolve(dirname(entry), variant.harness.profile.dir);
 
     yield* Effect.tryPromise({
       catch: (cause) => new ProfileDirectoryUnreadable({ cause, dir }),
@@ -163,20 +163,20 @@ export const profileTask = (
       readProfileManifest(dir),
     ]);
 
-    const profile = yield* fittingHarness(task.harness.base, {
+    const profile = yield* fittingHarness(variant.harness.base, {
       ...manifest,
       files,
-      name: task.harness.profile.name,
+      name: variant.harness.profile.name,
     });
 
     return {
-      harness: task.harness.base,
-      model: task.model,
+      harness: variant.harness.base,
+      model: variant.model,
       profile,
-      sandbox: task.sandbox,
-    } satisfies PublicEvalTask;
+      sandbox: variant.sandbox,
+    } satisfies PublicEvalVariant;
   }).pipe(
-    Effect.withSpan("Eval.profileTask", {
-      attributes: { profile: task.harness.profile.name },
+    Effect.withSpan("Eval.profileVariant", {
+      attributes: { profile: variant.harness.profile.name },
     })
   );

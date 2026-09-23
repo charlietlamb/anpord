@@ -28,8 +28,8 @@ const TestLayer = EvalBaselinesLive.pipe(
 
 const suffix = Date.now();
 const organizationId = `org_story_${suffix}`;
-const taskInternalId = `taskint_story_${suffix}`;
-const caseInternalId = `ecas_${taskInternalId}`;
+const caseVersionInternalId = `taskint_story_${suffix}`;
+const caseInternalId = `ecas_${caseVersionInternalId}`;
 
 type Tags = Baselines | Database | RunRepository | TrialRecorder;
 
@@ -73,7 +73,7 @@ const recordCell = (input: {
       prompt: "do the thing",
       provider: "daytona",
       runInternalId: created.internalId,
-      taskInternalId,
+      caseVersionInternalId,
     });
 
     yield* Effect.forEach(
@@ -156,7 +156,7 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
           await db.insert(taskFixture.table).values(
             taskFixture.values({
               id: `task_story_${suffix}`,
-              internalId: taskInternalId,
+              internalId: caseVersionInternalId,
               organizationId,
             })
           );

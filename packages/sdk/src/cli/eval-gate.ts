@@ -27,7 +27,7 @@ const rate = (value: number) => `${Math.round(value * 100) / 100}`;
 const versionClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) =>
   found.baselineHarnessVersion === found.candidateHarnessVersion
     ? ""
-    : `${run.tasks[cell.taskIndex]?.harness ?? "harness"} ${found.baselineHarnessVersion} → ${found.candidateHarnessVersion}, `;
+    : `${run.variants[cell.variantIndex]?.harness ?? "harness"} ${found.baselineHarnessVersion} → ${found.candidateHarnessVersion}, `;
 
 const profileClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) => {
   const { baselineProfileVersion, candidateProfileVersion } = found;
@@ -40,7 +40,7 @@ const profileClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) => {
     return "";
   }
 
-  const name = run.tasks[cell.taskIndex]?.profile?.name ?? "profile";
+  const name = run.variants[cell.variantIndex]?.profile?.name ?? "profile";
 
   return `${name} ${baselineProfileVersion} → ${candidateProfileVersion}, `;
 };

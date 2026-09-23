@@ -21,7 +21,7 @@ const distinctBy = <A>(
    handing the cells to both squares them. */
 export const gridOf = (cells: readonly CellTask[]) => ({
   cases: distinctBy(cells, (subject) => subject.identity),
-  tasks: distinctBy(
+  variants: distinctBy(
     cells,
     (subject) =>
       `${subject.cell.harness} ${subject.cell.model} ${subject.cell.provider} ${subject.profile?.name ?? ""}`

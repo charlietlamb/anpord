@@ -27,7 +27,7 @@ export function PopoverContent({
       >
         <PopoverPrimitive.Popup
           className={cn(
-            "max-h-(--available-height) max-w-(--available-width) origin-(--transform-origin) rounded-xl bg-popover p-4 text-popover-foreground shadow-(--shadow-popover) outline-none duration-100",
+            "max-h-(--available-height) max-w-(--available-width) origin-(--transform-origin) rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-(--shadow-popover) outline-none duration-100",
             "data-open:fade-in-0 data-open:zoom-in-95 data-open:animate-in",
             "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out",
             className

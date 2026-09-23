@@ -33,7 +33,7 @@ export default suite({
   cases: [${caseBody}],
   name: "prepare-cache",
   prompt: "{{task}}",
-  tasks: [{ harness: "codex", model: "gpt-5", provider: "daytona" }],
+  variants: [{ harness: "codex", model: "gpt-5", provider: "daytona" }],
   trials: 1,
 });`
   );

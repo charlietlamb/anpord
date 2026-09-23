@@ -13,7 +13,7 @@ const request = {
   ],
   name: "planner-core",
   prompt: "{{task}}",
-  tasks: [
+  variants: [
     { harness: "codex" as const, model: "gpt-5.6-sol", sandbox: "upstash" },
   ],
   trials: 1,
@@ -38,7 +38,7 @@ describe("the public eval task contract", () => {
     it(`accepts ${sandbox}`, () => {
       const value = {
         ...request,
-        tasks: [{ ...request.tasks[0], sandbox }],
+        variants: [{ ...request.variants[0], sandbox }],
       };
       expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(value)).toEqual(
         value
@@ -52,7 +52,7 @@ describe("the public eval task contract", () => {
     expect(() =>
       Schema.decodeUnknownSync(PublicStartEvalRequest)({
         ...request,
-        tasks: [{ ...request.tasks[0], sandbox: "local" }],
+        variants: [{ ...request.variants[0], sandbox: "local" }],
       })
     ).toThrow();
   });

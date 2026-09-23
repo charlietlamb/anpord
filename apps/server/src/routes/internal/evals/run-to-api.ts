@@ -4,12 +4,12 @@ import type { CellComparison } from "@anpord/eval/services/baselines";
 import type {
   EvalRun,
   EvalRunSummary,
-  EvalTask,
+  EvalVariant,
 } from "@anpord/schema/domain/evals";
 import { DateTime, Option } from "effect";
 import { asCell } from "./cell-to-api";
 
-const asTask = (task: GridRunState["tasks"][number]): EvalTask => ({
+const asTask = (task: GridRunState["variants"][number]): EvalVariant => ({
   harness: task.harness,
   harnessVersion: task.harnessVersion,
   model: task.model,
@@ -48,7 +48,7 @@ const outcomeOf = (state: GridRunState) => {
 
 export const summarise = (state: GridRunState): EvalRunSummary => ({
   caseCount: state.cases.length,
-  columns: state.tasks.map(asTask),
+  columns: state.variants.map(asTask),
   ...outcomeOf(state),
   failure: Option.getOrNull(state.failure),
   finishedAt: Option.map(state.finishedAt, DateTime.unsafeMake).pipe(
@@ -61,7 +61,7 @@ export const summarise = (state: GridRunState): EvalRunSummary => ({
   trigger: state.trigger,
   startedAt: DateTime.unsafeMake(state.startedAt),
   status: state.status,
-  taskCount: state.tasks.length,
+  taskCount: state.variants.length,
 });
 
 export const detail = (
@@ -85,6 +85,6 @@ export const detail = (
     startedAt: DateTime.unsafeMake(state.startedAt),
     status: state.status,
 
-    tasks: state.tasks.map(asTask),
+    variants: state.variants.map(asTask),
   };
 };

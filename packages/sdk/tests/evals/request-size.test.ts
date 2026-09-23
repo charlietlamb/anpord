@@ -10,7 +10,7 @@ const requestOf = (cases: number, bytesEach: number) =>
     })),
     name: "suite",
     prompt: "p",
-    tasks: [],
+    variants: [],
     trials: 1,
   }) as unknown as PublicStartEvalRequest;
 
@@ -35,17 +35,17 @@ describe("a suite too large to submit", () => {
 
   /* Mocks are bundled once per task, so a wide grid is too big because of its
      harnesses rather than its cases, and splitting by case would not help. */
-  it("blames the tasks when they carry the weight", () => {
+  it("blames the variants when they carry the weight", () => {
     const request = {
       cases: [{ id: "c", name: "c", validator: { source: "x" } }],
       name: "grid",
       prompt: "p",
-      tasks: Array.from({ length: 8 }, () => ({
+      variants: Array.from({ length: 8 }, () => ({
         profile: { files: { mock: "y".repeat(600_000) } },
       })),
       trials: 1,
     } as unknown as PublicStartEvalRequest;
 
-    expect(tooLargeToSubmit(request)).toContain("8 tasks");
+    expect(tooLargeToSubmit(request)).toContain("8 variants");
   });
 });

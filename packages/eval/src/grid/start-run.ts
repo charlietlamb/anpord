@@ -21,7 +21,7 @@ export const makeStartRun = (
 
     return (input: StartGrid) =>
       Effect.gen(function* () {
-        const cellCount = input.cases.length * input.tasks.length;
+        const cellCount = input.cases.length * input.variants.length;
 
         const created = yield* runs.insert({
           cellCount,
@@ -41,7 +41,7 @@ export const makeStartRun = (
           /* Written before handover, because an out-of-process runner rebuilds the
            grid from these rows. Idempotent, so creating them again is the same rows. */
           yield* runs.insertCells(
-            input.tasks.flatMap((task, taskIndex) =>
+            input.variants.flatMap((task, variantIndex) =>
               input.cases.flatMap((subject, caseIndex) => {
                 const row = registered[caseIndex];
 
@@ -63,14 +63,14 @@ export const makeStartRun = (
                         harnessVersion: task.harnessVersion,
                         model: task.model,
                         profileInternalId:
-                          profiles[taskIndex]?.internalId ?? null,
+                          profiles[variantIndex]?.internalId ?? null,
                         prompt: renderPrompt(input.prompt, subject.variables),
                         validatorFiles: subject.validator?.sourceFiles,
                         provider: task.provider,
                         runInternalId: created.internalId,
                         sandboxCredentialConnectionId:
                           task.bindings?.sandboxConnectionId,
-                        taskInternalId: row.internalId,
+                        caseVersionInternalId: row.internalId,
                       },
                     ];
               })
@@ -104,7 +104,7 @@ export const makeStartRun = (
         Effect.withSpan("GridRun.start", {
           attributes: {
             cases: input.cases.length,
-            tasks: input.tasks.length,
+            variants: input.variants.length,
             trials: input.trials,
           },
         })

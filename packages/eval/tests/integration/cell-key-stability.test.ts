@@ -71,7 +71,7 @@ const startOne = () =>
         organizationId,
         prompt: "{{task}}",
         startedBy: null,
-        tasks: [
+        variants: [
           {
             credentials: { harness: codexCredential },
             harness: "codex",

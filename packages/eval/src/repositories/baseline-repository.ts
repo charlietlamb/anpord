@@ -1,8 +1,8 @@
 import { Database } from "@anpord/db/client";
 import { evalBaseline } from "@anpord/db/schema/evals/eval-baselines";
+import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
-import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { and, eq, inArray } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
@@ -71,7 +71,7 @@ export const BaselineRepositoryLive = Layer.effect(
               db
                 .select({
                   baseline: evalBaseline,
-                  definitionHash: evalTask.definitionHash,
+                  definitionHash: evalCaseVersion.definitionHash,
                   harnessVersion: evalCell.harnessVersion,
                   profileVersion: evalHarnessProfile.version,
                   trial: evalTrial,
@@ -82,8 +82,8 @@ export const BaselineRepositoryLive = Layer.effect(
                   eq(evalBaseline.cellInternalId, evalCell.internalId)
                 )
                 .innerJoin(
-                  evalTask,
-                  eq(evalCell.taskInternalId, evalTask.internalId)
+                  evalCaseVersion,
+                  eq(evalCell.caseVersionInternalId, evalCaseVersion.internalId)
                 )
                 .innerJoin(
                   evalTrial,

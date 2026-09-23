@@ -39,20 +39,20 @@ runApiServers(definition.api ?? []);`,
   });
 
 export const withApis = (
-  task: PublicStartEvalRequest["tasks"][number],
+  variant: PublicStartEvalRequest["variants"][number],
   files: Readonly<Record<string, string>>
-): PublicStartEvalRequest["tasks"][number] => {
+): PublicStartEvalRequest["variants"][number] => {
   if (Object.keys(files).length === 0) {
-    return task;
+    return variant;
   }
-  const profile = task.profile ?? { name: "anpord-api", files: {} };
+  const profile = variant.profile ?? { name: "anpord-api", files: {} };
   for (const path of Object.keys(files)) {
     if (profile.files[path] !== undefined) {
       throw new Error(`Profile file ${path} is reserved for API mocks`);
     }
   }
   return {
-    ...task,
+    ...variant,
     profile: { ...profile, files: { ...profile.files, ...files } },
   };
 };

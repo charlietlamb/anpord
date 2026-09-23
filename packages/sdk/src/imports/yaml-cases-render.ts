@@ -82,7 +82,7 @@ export const renderYamlSuite = (files: readonly YamlCaseFile[]) =>
     "  cases: [",
     files.map(caseBlock).join("\n"),
     "  ],",
-    "  tasks: [",
+    "  variants: [",
     "    /* Name the harness, model and sandbox this suite runs on. */",
     '    { harness: "codex", model: "gpt-5.6-sol" },',
     "  ],",

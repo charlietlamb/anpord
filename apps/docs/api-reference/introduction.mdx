@@ -43,7 +43,7 @@ curl https://api.anpord.com/v1/evals.start \
       "verify": "test \"$(cat hello.txt)\" = hello"
     }],
     "prompt": "{{task}}",
-    "tasks": [{
+    "variants": [{
       "harness": "codex",
       "model": "gpt-5.6-sol",
       "sandbox": "daytona"

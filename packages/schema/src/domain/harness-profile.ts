@@ -72,13 +72,13 @@ export const HarnessProfile = Schema.Struct({
 export type HarnessProfile = typeof HarnessProfile.Type;
 
 /* Cannot be expressed in JSON Schema, so every tool description repeats it. */
-export const profileFitsHarness = (task: {
+export const profileFitsHarness = (variant: {
   readonly harness: string;
   readonly profile?: HarnessProfile | undefined;
 }): boolean =>
-  task.harness === "command"
-    ? task.profile?.run !== undefined
-    : task.profile?.run === undefined;
+  variant.harness === "command"
+    ? variant.profile?.run !== undefined
+    : variant.profile?.run === undefined;
 
 export const PROFILE_HARNESS_RULE =
   "The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.";

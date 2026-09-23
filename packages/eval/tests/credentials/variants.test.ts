@@ -3,7 +3,7 @@ import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Redacted } from "effect";
 import { CredentialError } from "../../src/credentials/errors";
 import type { CredentialResolverShape } from "../../src/credentials/resolver";
-import { resolveTaskCredentials } from "../../src/credentials/tasks";
+import { resolveVariantCredentials } from "../../src/credentials/variants";
 
 const actor = Actor.make({
   id: UserId.make("user"),
@@ -49,7 +49,7 @@ describe("task credentials", () => {
           : missing.resolve(input),
     };
     const failure = await Effect.runPromise(
-      resolveTaskCredentials(resolver, actor, [task], "legacy").pipe(
+      resolveVariantCredentials(resolver, actor, [task], "legacy").pipe(
         Effect.flip
       )
     );
@@ -62,7 +62,7 @@ describe("task credentials", () => {
 
   it("keeps the legacy fallback only for Codex", async () => {
     const [resolved] = await Effect.runPromise(
-      resolveTaskCredentials(missing, actor, [task], '{"tokens":{}}')
+      resolveVariantCredentials(missing, actor, [task], '{"tokens":{}}')
     );
 
     expect(Redacted.value(resolved.credentials.harness)).toMatchObject({
@@ -72,7 +72,7 @@ describe("task credentials", () => {
     });
 
     const failure = await Effect.runPromise(
-      resolveTaskCredentials(
+      resolveVariantCredentials(
         missing,
         actor,
         [{ ...task, harness: "claude" }],
@@ -102,7 +102,7 @@ describe("task credentials", () => {
         ),
     };
     const [resolved] = await Effect.runPromise(
-      resolveTaskCredentials(
+      resolveVariantCredentials(
         resolver,
         actor,
         [
@@ -138,7 +138,7 @@ describe("task credentials", () => {
 
   it("does not hide an invalid explicit binding", async () => {
     const failure = await Effect.runPromise(
-      resolveTaskCredentials(
+      resolveVariantCredentials(
         missing,
         actor,
         [

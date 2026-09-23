@@ -29,9 +29,9 @@ export interface StartGrid {
   readonly organizationId: string;
   readonly prompt: string;
   readonly startedBy: string | null;
-  readonly tasks: readonly GridExecutionTask[];
   readonly trials: number;
   readonly trigger?: EvalTrigger | null;
+  readonly variants: readonly GridExecutionTask[];
 }
 
 export interface GridRunPage {

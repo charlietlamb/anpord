@@ -15,6 +15,7 @@ import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
 import { AbandonedWorkLive } from "./repositories/abandoned-work";
 import { BaselineRepositoryLive } from "./repositories/baseline-repository";
 import { CaseRepositoryLive } from "./repositories/case-repository";
+import { CaseVersionRepositoryLive } from "./repositories/case-version-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { ExpiredRowsLive } from "./repositories/expired-rows";
 import { HarnessProfileRepositoryLive } from "./repositories/harness-profile-repository";
@@ -22,7 +23,6 @@ import { JournalArchiveLive } from "./repositories/journal-archive";
 import { LiveSandboxesLive } from "./repositories/live-sandboxes";
 import { RunQueryLive } from "./repositories/run-query";
 import { RunRepositoryLive } from "./repositories/run-repository";
-import { TaskRepositoryLive } from "./repositories/task-repository";
 import { TrialCostRepositoryLive } from "./repositories/trial-cost-repository";
 import { TrialRecorderLive } from "./repositories/trial-record";
 import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
@@ -50,7 +50,7 @@ export const EvalRepositoriesLive = Layer.mergeAll(
   HarnessProfileRepositoryLive,
   RunQueryLive,
   RunRepositoryLive,
-  TaskRepositoryLive,
+  CaseVersionRepositoryLive,
   TrialCostRepositoryLive,
   TrialRecorderLive,
   WorkbenchRepositoryLive

@@ -1,9 +1,9 @@
 import { DataTableSkeleton } from "@anpord/ui/components/ui/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { CaseActions } from "@/components/evals/case-actions";
+import { CaseActivity } from "@/components/evals/case-activity";
 import { CaseMeta } from "@/components/evals/case-meta";
-import { CaseReadings } from "@/components/evals/case-readings";
-import { RerunCellButton } from "@/components/evals/rerun-cell-button";
 import { ErrorCard } from "@/components/layout/error-card";
 import { PageShell } from "@/components/layout/page-shell";
 import { CASE_HISTORY_TABLE } from "@/lib/evals/case-tables";
@@ -26,16 +26,7 @@ function CaseScreen() {
 
   return (
     <PageShell
-      actions={
-        data === undefined ? null : (
-          <RerunCellButton
-            caseId={caseId}
-            cellKey={data.cellKey}
-            runId={data.lastRunId}
-            trials={1}
-          />
-        )
-      }
+      actions={data === undefined ? null : <CaseActions detail={data} />}
       description={data === undefined ? undefined : <CaseMeta subject={data} />}
       title={data?.name ?? caseId}
       width="wide"
@@ -43,11 +34,7 @@ function CaseScreen() {
       {data === undefined ? (
         <DataTableSkeleton {...CASE_HISTORY_TABLE} />
       ) : (
-        <CaseReadings
-          caseId={caseId}
-          entries={data.history}
-          versions={data.versions}
-        />
+        <CaseActivity detail={data} />
       )}
     </PageShell>
   );

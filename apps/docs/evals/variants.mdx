@@ -1,10 +1,9 @@
 ---
-title: "Agents and sandboxes"
-sidebarTitle: "Variants"
+title: "Variants"
 description: "Choose what runs a case and where it runs"
 ---
 
-Each task defines one grid column:
+Each variant defines one grid column:
 
 ```ts
 { harness: "codex", model: "gpt-5.6-sol" }
@@ -45,10 +44,10 @@ Model discovery is not required before a run. Available ids depend on the harnes
 
 ## Sandboxes
 
-`sandbox` is optional. A task that omits it runs on `e2b`:
+`sandbox` is optional. A variant that omits it runs on `e2b`:
 
 ```ts
-tasks: [{ harness: "codex", model: "gpt-5.6-sol" }]
+variants: [{ harness: "codex", model: "gpt-5.6-sol" }]
 ```
 
 The rest are `daytona`, `upstash`, `modal`, `cloudflare`, and `vercel`. Every trial gets an isolated workspace.
@@ -62,7 +61,7 @@ The sandbox is part of the cell key, so adding or removing it starts a new histo
 Change one field at a time:
 
 ```ts
-tasks: [
+variants: [
   { harness: "codex", model: "gpt-5.6-sol" },
   { harness: "codex", model: "gpt-5.6-terra" },
 ]

@@ -6,7 +6,7 @@ export const conversation = suite({
   name: "conversation",
   source: empty,
   prompt: "Model the pricing",
-  tasks: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
   trials: 1,
   cases: [
     {

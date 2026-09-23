@@ -61,11 +61,11 @@ export const rebuildRun = (
 
     const rebuilt = gridOf(cells);
 
-    const tasks = yield* tasksWithCredentials(
+    const variants = yield* tasksWithCredentials(
       services.credentials,
       input.organizationId,
       input.source,
-      rebuilt.tasks
+      rebuilt.variants
     );
 
     return {
@@ -77,7 +77,7 @@ export const rebuildRun = (
         prompt: first.prompt,
         startedBy: null,
         trigger: first.trigger,
-        tasks,
+        variants,
         trials: first.trialsPerCell,
       },
       /* Indexed by case, because that is how the grid reads it: one entry per
@@ -85,7 +85,7 @@ export const rebuildRun = (
       registered: rebuilt.cases.map((subject) => ({
         caseInternalId: subject.caseInternalId,
         definitionHash: subject.definitionHash,
-        internalId: subject.cell.taskInternalId,
+        internalId: subject.cell.caseVersionInternalId,
       })),
     } satisfies ResumeGrid;
   }).pipe(

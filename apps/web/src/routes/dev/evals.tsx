@@ -5,8 +5,10 @@ import { CASE_DETAIL } from "@/components/dev/case-fixtures";
 import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
+import { AgentSetup } from "@/components/evals/agent-setup";
+import { CaseActions } from "@/components/evals/case-actions";
+import { CaseActivity } from "@/components/evals/case-activity";
 import { CaseMeta } from "@/components/evals/case-meta";
-import { CaseReadings } from "@/components/evals/case-readings";
 import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialCalls } from "@/components/evals/trial-calls";
@@ -124,17 +126,20 @@ function EvalsPreview() {
           </div>
         </PreviewScreen>
 
+        <PreviewScreen name="Eval in code">
+          <PageShell title="New eval" width="wide">
+            <AgentSetup />
+          </PageShell>
+        </PreviewScreen>
+
         <PreviewScreen name="One case">
           <PageShell
+            actions={<CaseActions detail={CASE_DETAIL} />}
             description={<CaseMeta subject={CASE_DETAIL} />}
             title={CASE_DETAIL.name}
             width="wide"
           >
-            <CaseReadings
-              caseId={CASE_DETAIL.id}
-              entries={CASE_DETAIL.history}
-              versions={CASE_DETAIL.versions}
-            />
+            <CaseActivity detail={CASE_DETAIL} />
           </PageShell>
         </PreviewScreen>
 

@@ -2,13 +2,13 @@ import { Effect } from "effect";
 import { definitionHashOf } from "../domain/case-identity";
 import { renderPrompt } from "../domain/prompt";
 import { CaseRepository } from "../repositories/case-repository";
-import { TaskRepository } from "../repositories/task-repository";
+import { CaseVersionRepository } from "../repositories/case-version-repository";
 import type { StartGrid } from "./run";
 import { WORKSPACE } from "./trial";
 
 export const makeRegisterCases = Effect.gen(function* () {
   const cases = yield* CaseRepository;
-  const tasks = yield* TaskRepository;
+  const caseVersions = yield* CaseVersionRepository;
 
   return (input: StartGrid) =>
     Effect.forEach(
@@ -23,7 +23,7 @@ export const makeRegisterCases = Effect.gen(function* () {
             organizationId: input.organizationId,
           });
 
-          return yield* tasks.upsertByDefinition({
+          return yield* caseVersions.upsertByDefinition({
             cache: subject.cache,
             caseInternalId: owner.internalId,
             createdBy: input.startedBy,

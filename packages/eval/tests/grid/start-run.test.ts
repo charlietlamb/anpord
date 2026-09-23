@@ -5,9 +5,9 @@ import { CredentialResolver } from "../../src/credentials/resolver";
 import { makeStartRun } from "../../src/grid/start-run";
 import { TrialRunner } from "../../src/ports/trial-runner";
 import { CaseRepository } from "../../src/repositories/case-repository";
+import { CaseVersionRepository } from "../../src/repositories/case-version-repository";
 import { HarnessProfileRepository } from "../../src/repositories/harness-profile-repository";
 import { RunRepository } from "../../src/repositories/run-repository";
-import { TaskRepository } from "../../src/repositories/task-repository";
 
 const unconnected = Layer.succeed(CredentialResolver, {
   persist: () => Effect.void,
@@ -40,7 +40,7 @@ const start = (input: {
     dispatch: () => input.dispatch ?? Effect.void,
   } as never);
 
-  const tasks = Layer.succeed(TaskRepository, {
+  const caseVersions = Layer.succeed(CaseVersionRepository, {
     upsertByDefinition: () =>
       Effect.succeed({ caseInternalId: "ecas_1", internalId: "tin_1" }),
   } as never);
@@ -70,12 +70,12 @@ const start = (input: {
         organizationId: "org_1",
         prompt: "p",
         startedBy: "usr_1",
-        tasks: [{ harness: "codex", model: "m", provider: "e2b" }],
+        variants: [{ harness: "codex", model: "m", provider: "e2b" }],
         trials: 1,
       } as never)
     ),
     Effect.provide(
-      Layer.mergeAll(runs, runner, unconnected, tasks, cases, profiles)
+      Layer.mergeAll(runs, runner, unconnected, caseVersions, cases, profiles)
     ),
     Effect.exit,
     Effect.map((exit) => ({ exit, finished, inserted }))

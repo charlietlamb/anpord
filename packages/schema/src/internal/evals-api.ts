@@ -110,6 +110,13 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
   )
 
   .add(
+    HttpApiEndpoint.post("rerunCase", "/evals/cases/:id/runs")
+      .setPath(Schema.Struct({ id: Schema.String }))
+      .setPayload(RerunCellRequest)
+      .addSuccess(StartedEval)
+  )
+
+  .add(
     HttpApiEndpoint.get("cellHistory", "/evals/cells/:cellKey/history")
       .setPath(CellPath)
       .addSuccess(Schema.Array(EvalCellHistoryEntry))

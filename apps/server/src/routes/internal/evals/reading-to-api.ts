@@ -71,6 +71,7 @@ const toStoredTrial = (trial: {
 export const toReadingView = (
   entry: CellHistoryEntry
 ): EvalCellHistoryEntry => ({
+  cellKey: entry.cellKey,
   definitionHash: entry.definitionHash,
   distribution: entry.distribution,
   finishedAt:

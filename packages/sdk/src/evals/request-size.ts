@@ -14,7 +14,7 @@ const fitting = (total: number, count: number) =>
   Math.max(1, Math.floor(LIMIT / Math.ceil(total / count)));
 
 /* Weight comes from bundled code, and it sits in two places: a validator per
-   case, and the mocks a task carries for its harness. Splitting the wrong one
+   case, and the mocks a variant carries for its harness. Splitting the wrong one
    does not help, so the advice follows whichever is larger. */
 export const tooLargeToSubmit = (request: PublicStartEvalRequest) => {
   const size = sizeOf(request);
@@ -24,10 +24,10 @@ export const tooLargeToSubmit = (request: PublicStartEvalRequest) => {
   }
 
   const cases = sizeOf(request.cases);
-  const tasks = sizeOf(request.tasks);
+  const variants = sizeOf(request.variants);
   const over = `${request.name} compiles to ${megabytes(size)}, over the ${megabytes(LIMIT)} a run may submit.`;
 
-  return tasks > cases
-    ? `${over} Its ${request.tasks.length} tasks each carry the mocks the suite declares, so give it at most ${fitting(tasks, request.tasks.length)}.`
+  return variants > cases
+    ? `${over} Its ${request.variants.length} variants each carry the mocks the suite declares, so give it at most ${fitting(variants, request.variants.length)}.`
     : `${over} Its ${request.cases.length} cases carry a bundled validator each, so split it into suites of at most ${fitting(cases, request.cases.length)}.`;
 };
