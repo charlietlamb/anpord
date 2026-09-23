@@ -31,7 +31,9 @@ export function PageTabs<T extends string>({
       render={<div />}
       value={value}
     >
-      <Tabs.List className={cn("relative flex items-center gap-0.5", className)}>
+      <Tabs.List
+        className={cn("relative isolate flex items-center gap-0.5", className)}
+      >
         {options.map(({ Icon, label, value: option }) => (
           <Tabs.Tab
             className={cn(
