@@ -22,6 +22,6 @@ export const evalKeys = {
 
   trialAddress: (id: string) => [...evalKeys.all, "trial-address", id] as const,
 
-  history: (cellKey: string) =>
-    [...evalKeys.all, "cell", cellKey, "history"] as const,
+  caseHistory: (caseId: string, cellKey: string | null, page: number) =>
+    [...evalKeys.case(caseId), "history", cellKey ?? "all", page] as const,
 } as const;

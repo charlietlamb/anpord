@@ -14,8 +14,8 @@ import {
   EvalArtifact,
   EvalArtifactRequest,
   EvalCaseDetail,
+  EvalCaseHistoryPage,
   EvalCasePage,
-  EvalCellHistoryEntry,
   EvalHarness,
   EvalRun,
   EvalRunPage,
@@ -26,7 +26,6 @@ import {
 import { Authentication } from "./authentication";
 
 const RunPath = Schema.Struct({ id: Schema.String });
-const CellPath = Schema.Struct({ cellKey: Schema.String });
 
 export class EvalsGroup extends HttpApiGroup.make("evals")
   .add(
@@ -110,16 +109,22 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
   )
 
   .add(
+    HttpApiEndpoint.get("caseHistory", "/evals/cases/:id/history")
+      .setPath(Schema.Struct({ id: Schema.String }))
+      .setUrlParams(
+        Schema.Struct({
+          cellKey: Schema.optional(Schema.String),
+          page: Schema.optional(Schema.NumberFromString),
+        })
+      )
+      .addSuccess(EvalCaseHistoryPage)
+  )
+
+  .add(
     HttpApiEndpoint.post("rerunCase", "/evals/cases/:id/runs")
       .setPath(Schema.Struct({ id: Schema.String }))
       .setPayload(RerunCellRequest)
       .addSuccess(StartedEval)
-  )
-
-  .add(
-    HttpApiEndpoint.get("cellHistory", "/evals/cells/:cellKey/history")
-      .setPath(CellPath)
-      .addSuccess(Schema.Array(EvalCellHistoryEntry))
   )
 
   .add(

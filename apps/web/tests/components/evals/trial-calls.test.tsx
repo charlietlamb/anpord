@@ -35,7 +35,7 @@ test("lists every call in the order it was recorded", () => {
   expect(html).toContain("1 failed");
   expect(html.match(/tabular-nums">1</g)).toHaveLength(1);
   expect(html.match(/tabular-nums">2</g)).toHaveLength(1);
-  expect(html).toContain("<h3");
+  expect(html).toContain('aria-label="Calls in this trial"');
   expect(html).not.toContain("aria-expanded=");
   expect(html).not.toContain("divide-");
 });

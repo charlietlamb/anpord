@@ -8,12 +8,12 @@ export function RerunButton({
   label,
   rerun,
   started,
-  variant = "outline",
+  variant = "default",
 }: {
   readonly label: string;
   readonly rerun: CaseRerun;
   readonly started: string;
-  readonly variant?: "ghost" | "outline";
+  readonly variant?: "default" | "ghost" | "outline";
 }) {
   const start = async () => {
     try {

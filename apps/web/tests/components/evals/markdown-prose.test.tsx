@@ -21,7 +21,7 @@ describe("code inside markdown", () => {
       <MarkdownProse text={"```sh\nbun test\n```"} />
     );
 
-    expect(html).toContain("bg-muted/50");
+    expect(html).toContain("border-border bg-card");
     expect(html).toContain("bun test");
   });
 

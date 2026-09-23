@@ -1,5 +1,3 @@
-export const LABEL_WIDTH = "19rem";
-
 export const TICKS = 4;
 
 export const FRACTIONS = Array.from(
@@ -7,6 +5,6 @@ export const FRACTIONS = Array.from(
   (_, index) => index / TICKS
 );
 
-export const BAR = "h-5 rounded-[4px]";
+export const BAR = "h-4 rounded-[4px]";
 
-export const WATERFALL_ROW = "h-9";
+export const TIMELINE_COLUMNS = "minmax(0,5fr) minmax(0,9fr)";

@@ -5,6 +5,9 @@ import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
 const MIN_BAR = 3;
 
+const THINKING =
+  "repeating-linear-gradient(135deg, var(--muted-foreground) 0 1px, transparent 1px 4px)";
+
 const CENTRED = "absolute top-1/2 block -translate-y-1/2";
 
 const LIT =
@@ -16,19 +19,14 @@ export function Track({ row }: { readonly row: WaterfallRow }) {
   return (
     <>
       {row.lead === null ? null : (
-        <>
-          <span
-            className={cn(CENTRED, "h-px bg-muted-foreground/40")}
-            style={{
-              left: `${row.lead.fromPercent}%`,
-              width: `${row.lead.widthPercent}%`,
-            }}
-          />
-          <span
-            className={cn(CENTRED, "h-2 w-px bg-muted-foreground/40")}
-            style={{ left: `${row.lead.fromPercent}%` }}
-          />
-        </>
+        <span
+          className={cn(CENTRED, "h-2 rounded-sm opacity-40")}
+          style={{
+            background: THINKING,
+            left: `${row.lead.fromPercent}%`,
+            width: `${row.lead.widthPercent}%`,
+          }}
+        />
       )}
 
       {row._tag === "bar" ? (

@@ -174,12 +174,3 @@ export const waterfallLayout = (
 
   return { rows, spanMs, thinkingMs, workingMs };
 };
-
-/* A row spans its wait and its work as one interval. */
-export const spanOfRow = (row: WaterfallRow) => {
-  const from = row.lead?.fromPercent ?? row.leftPercent;
-  const width =
-    (row.lead?.widthPercent ?? 0) + (row._tag === "bar" ? row.widthPercent : 0);
-
-  return { from, to: from + width, width };
-};

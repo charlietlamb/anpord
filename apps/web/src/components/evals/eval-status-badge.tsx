@@ -1,3 +1,4 @@
+import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import type {
   EvalDistribution,
   EvalTrialStatus,
@@ -6,7 +7,11 @@ import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { cn } from "@anpord/ui/lib/utils";
 import {
   CheckCircleIcon,
+  CircleDashedIcon,
+  CircleNotchIcon,
+  type Icon,
   MinusCircleIcon,
+  WarningCircleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { type EvalTone, trialGlyph, trialTone } from "@/lib/evals/eval-status";
@@ -24,26 +29,6 @@ const BADGE_BACKGROUNDS: Record<EvalTone, string> = {
   pending: "bg-warning/15",
   positive: "bg-success/15",
 };
-
-export function TrialStatusIcon({
-  status,
-}: {
-  readonly status: EvalTrialStatus;
-}) {
-  const Glyph = trialGlyph(status);
-  const moving = status === "running";
-
-  return (
-    <Glyph
-      className={cn(
-        "size-3.5 shrink-0",
-        TONE_CLASSES[trialTone(status)],
-        moving && "animate-spin motion-reduce:animate-none"
-      )}
-      weight={moving ? "bold" : "fill"}
-    />
-  );
-}
 
 export function TrialBadge({
   ordinal,
@@ -115,6 +100,32 @@ export function DistributionPill({
       tone={clean ? "positive" : "critical"}
     >
       {passed}/{scored} passed
+    </StatusBadge>
+  );
+}
+
+const VALIDATION_BADGES: Record<
+  EvalValidation["status"],
+  { readonly icon: Icon; readonly label: string; readonly tone: EvalTone }
+> = {
+  error: { icon: WarningCircleIcon, label: "Errored", tone: "critical" },
+  failed: { icon: XCircleIcon, label: "Failed", tone: "critical" },
+  passed: { icon: CheckCircleIcon, label: "Passed", tone: "positive" },
+  queued: { icon: CircleDashedIcon, label: "Queued", tone: "pending" },
+  running: { icon: CircleNotchIcon, label: "Running", tone: "pending" },
+  skipped: { icon: MinusCircleIcon, label: "Skipped", tone: "neutral" },
+};
+
+export function ValidationStatusPill({
+  status,
+}: {
+  readonly status: EvalValidation["status"];
+}) {
+  const { icon, label, tone } = VALIDATION_BADGES[status];
+
+  return (
+    <StatusBadge icon={icon} tone={tone}>
+      {label}
     </StatusBadge>
   );
 }

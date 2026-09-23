@@ -24,7 +24,7 @@ export const TaskTrigger = ({
 }) => (
   <Collapsible.Trigger
     className={cn(
-      "flex w-fit max-w-full cursor-pointer items-center gap-2 text-left text-muted-foreground text-sm transition-colors hover:text-foreground",
+      "-mx-2 flex h-8 w-fit max-w-full cursor-pointer items-center gap-2 rounded-md px-2 text-left text-muted-foreground text-sm transition-colors hover:bg-alpha-4 hover:text-foreground data-[panel-open]:text-foreground",
       className
     )}
     {...props}

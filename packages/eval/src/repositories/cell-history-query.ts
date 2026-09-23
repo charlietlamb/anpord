@@ -6,7 +6,7 @@ import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profile
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import { and, desc, eq, type SQL } from "drizzle-orm";
+import { and, desc, eq, type SQL, sql } from "drizzle-orm";
 import { Effect, Schema } from "effect";
 import type { CellKey } from "../domain/cell";
 import type { Distribution } from "../domain/distribution";
@@ -37,7 +37,14 @@ export interface CellHistoryEntry {
 }
 
 export interface CaseHistoryInput extends CaseScope {
+  readonly cellKey: string | null;
   readonly limit: number;
+  readonly offset: number;
+}
+
+export interface CaseHistoryPage {
+  readonly entries: readonly CellHistoryEntry[];
+  readonly total: number;
 }
 
 const MAX_VARIANTS = 100;
@@ -52,7 +59,11 @@ export const cellHistoryQuery = Effect.gen(function* () {
   const db = yield* Database;
   const trialsForCells = yield* cellTrialsQuery;
 
-  const historyWhere = (condition: SQL | undefined, limit: number) =>
+  const historyWhere = (
+    condition: SQL | undefined,
+    limit: number,
+    offset = 0
+  ) =>
     Effect.gen(function* () {
       const cells = yield* tryStore("runQuery.history", () =>
         db
@@ -79,6 +90,7 @@ export const cellHistoryQuery = Effect.gen(function* () {
           .where(condition)
           .orderBy(desc(evalCell.createdAt))
           .limit(limit)
+          .offset(offset)
       );
 
       const trials = yield* trialsForCells(
@@ -118,14 +130,39 @@ export const cellHistoryQuery = Effect.gen(function* () {
       input.limit
     ).pipe(Effect.withSpan("RunQuery.findCellHistory"));
 
+  const countWhere = (condition: SQL | undefined) =>
+    tryStore("runQuery.historyCount", () =>
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(evalCell)
+        .innerJoin(
+          evalCaseVersion,
+          eq(evalCaseVersion.internalId, evalCell.caseVersionInternalId)
+        )
+        .innerJoin(
+          evalCase,
+          eq(evalCase.internalId, evalCaseVersion.caseInternalId)
+        )
+        .where(condition)
+    ).pipe(Effect.map((rows) => rows[0]?.total ?? 0));
+
   const findCaseHistory = (input: CaseHistoryInput) =>
-    historyWhere(
-      and(
+    Effect.gen(function* () {
+      const condition = and(
         eq(evalCase.id, input.caseId),
-        eq(evalCase.organizationId, input.organizationId)
-      ),
-      input.limit
-    ).pipe(Effect.withSpan("RunQuery.findCaseHistory"));
+        eq(evalCase.organizationId, input.organizationId),
+        input.cellKey === null ? undefined : eq(evalCell.cellKey, input.cellKey)
+      );
+      const [entries, total] = yield* Effect.all(
+        [
+          historyWhere(condition, input.limit, input.offset),
+          countWhere(condition),
+        ],
+        { concurrency: "unbounded" }
+      );
+
+      return { entries, total } satisfies CaseHistoryPage;
+    }).pipe(Effect.withSpan("RunQuery.findCaseHistory"));
 
   const findCaseVariants = (scope: CaseScope) =>
     historyWhere(newestCellPerVariant(db, scope), MAX_VARIANTS).pipe(

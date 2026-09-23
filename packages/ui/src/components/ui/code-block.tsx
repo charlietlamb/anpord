@@ -1,4 +1,5 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
+import { SURFACE_FILL } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
@@ -38,8 +39,8 @@ export function CodeBlock({
   const block = (
     <pre
       className={cn(
-        "max-h-64 overflow-auto rounded-md px-3 py-2.5 font-mono text-label leading-[1.7] [font-variation-settings:'wght'_450] [tab-size:2]",
-        tone === "muted" && "bg-muted/50",
+        "max-h-64 overflow-auto rounded-lg px-3 py-2.5 font-mono text-label leading-[1.7] [font-variation-settings:'wght'_450] [tab-size:2]",
+        tone === "muted" && SURFACE_FILL,
         tone === "inverted" && "bg-current/10",
         copyValue !== undefined && "pr-11",
         className

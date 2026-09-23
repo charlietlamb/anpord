@@ -11,7 +11,7 @@ const render = (row: WaterfallRow) =>
     </TooltipProvider>
   );
 
-test("a tool's wait is tinted with its own colour, not the thinking colour", () => {
+test("a tool's work keeps its own colour while its wait is a neutral hatch", () => {
   const html = render({
     _tag: "bar",
     durationMs: 12,
@@ -29,10 +29,10 @@ test("a tool's wait is tinted with its own colour, not the thinking colour", () 
 
   expect(html).toContain("var(--trace-tool)");
   expect(html).not.toContain("--trace-thinking");
-  expect(html).not.toContain("repeating-linear-gradient");
+  expect(html).toContain("repeating-linear-gradient");
 });
 
-test("a waited-for step draws the wait as a line and the work as a bar", () => {
+test("a waited-for step draws the wait as a hatch and the work as a bar", () => {
   const html = render({
     _tag: "bar",
     durationMs: 12,

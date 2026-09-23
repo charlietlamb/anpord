@@ -1,16 +1,4 @@
-import type {
-  EvalValidation,
-  ValidationValue,
-} from "@anpord/schema/domain/eval-validations";
-import type { EvalTrial } from "@anpord/schema/domain/evals";
-
-export type ValidationTrial = Pick<
-  EvalTrial,
-  "ordinal" | "validations" | "judgments"
->;
-
-export const validationKey = (validation: EvalValidation) =>
-  `${validation.kind}:${validation.index}:${validation.name}`;
+import type { ValidationValue } from "@anpord/schema/domain/eval-validations";
 
 const object = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)

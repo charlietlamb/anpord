@@ -7,7 +7,7 @@ export function RunVariantButton({
   entry,
 }: {
   readonly caseId: string;
-  readonly entry: EvalCellHistoryEntry;
+  readonly entry: Pick<EvalCellHistoryEntry, "cellKey" | "model" | "runId">;
 }) {
   return (
     <RerunButton

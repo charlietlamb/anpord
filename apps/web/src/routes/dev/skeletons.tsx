@@ -3,16 +3,18 @@ import { DataTableSkeleton } from "@anpord/ui/components/ui/data-table";
 import { createFileRoute } from "@tanstack/react-router";
 import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
-import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
+import {
+  VALIDATED_SETUP,
+  VALIDATED_TRIAL,
+} from "@/components/dev/trial-fixtures";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialCallsSkeleton } from "@/components/evals/trial-calls-skeleton";
+import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
-import { ValidationInspector } from "@/components/evals/validation-inspector";
-import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspector-skeleton";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
-import { CASES_TABLE } from "@/lib/evals/case-tables";
+import { CASES_TABLE, CHECKS_TABLE } from "@/lib/evals/case-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
@@ -50,9 +52,11 @@ function SkeletonsPreview() {
         </div>
 
         <Pair
-          loaded={<ValidationInspector trials={VALIDATION_TRIALS} />}
-          name="Validation"
-          skeleton={<ValidationInspectorSkeleton />}
+          loaded={
+            <TrialChecks setup={VALIDATED_SETUP} trial={VALIDATED_TRIAL} />
+          }
+          name="Checks"
+          skeleton={<DataTableSkeleton {...CHECKS_TABLE} rows={2} />}
         />
 
         <PreviewScreen name="Cases table">
@@ -76,7 +80,7 @@ function SkeletonsPreview() {
         {TRIAL ? (
           <PreviewScreen name="Trial page">
             <div data-probe="skeleton">
-              <TrialSkeleton ordinal="1" />
+              <TrialSkeleton />
             </div>
           </PreviewScreen>
         ) : null}

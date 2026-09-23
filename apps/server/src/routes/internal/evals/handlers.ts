@@ -2,7 +2,6 @@ import { CredentialResolver } from "@anpord/eval/credentials/resolver";
 import { rebuildRun } from "@anpord/eval/grid/rebuild-run";
 import { GridRun } from "@anpord/eval/grid/run";
 import { RunQuery } from "@anpord/eval/repositories/run-query";
-import { Baselines } from "@anpord/eval/services/baselines";
 import { CellReruns } from "@anpord/eval/services/cell-rerun";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import { authorIdOf } from "@anpord/schema/domain/actor";
@@ -16,6 +15,7 @@ import { withEvalErrors } from "../../../http/eval-errors";
 import { getEvalArtifact } from "../../evals/artifacts";
 import {
   getCase,
+  getCaseHistory,
   getEvalRun,
   getRunSubscription,
   getTrialAddress,
@@ -33,10 +33,7 @@ import {
   runPlayground,
   savePlayground,
 } from "./playground-handlers";
-import { toReadingView } from "./reading-to-api";
 import { startEvalFromApp } from "./start-handler";
-
-const HISTORY_LIMIT = 20;
 
 export const EvalsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -77,6 +74,11 @@ export const EvalsHandlers = HttpApiBuilder.group(
         getCase(path.id)
       )
       .handle(
+        "caseHistory",
+        { permission: Permissions.Evals.Read },
+        ({ path, urlParams }) => getCaseHistory(path.id, urlParams)
+      )
+      .handle(
         "trialAddress",
         { permission: Permissions.Evals.Read },
         ({ path }) => getTrialAddress(path.id)
@@ -86,24 +88,6 @@ export const EvalsHandlers = HttpApiBuilder.group(
         { permission: Permissions.Evals.Read },
         ({ path, payload }) => listRunAddresses({ ...payload, runId: path.id })
       )
-      .handle(
-        "cellHistory",
-        { permission: Permissions.Evals.Read },
-        ({ path }) =>
-          Effect.gen(function* () {
-            const actor = yield* CurrentActor;
-            const baselines = yield* Baselines;
-
-            const entries = yield* baselines.history({
-              cellKey: path.cellKey,
-              limit: HISTORY_LIMIT,
-              organizationId: actor.organizationId,
-            });
-
-            return entries.map(toReadingView);
-          }).pipe(Effect.catchTag("EvalStoreError", Effect.die))
-      )
-
       .handle(
         "rerunCase",
         { permission: Permissions.Evals.Write },

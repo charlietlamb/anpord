@@ -14,6 +14,7 @@ import type { RerunCellRequest } from "@anpord/schema/domain/eval-playground";
 import { trialsRequested } from "@anpord/schema/domain/eval-quota";
 import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import {
+  CASE_HISTORY_PAGE_SIZE,
   DEFAULT_SANDBOX,
   EVAL_SANDBOXES,
   type EvalHarness,
@@ -250,12 +251,8 @@ export const getCase = (id: string) =>
     }
 
     const scope = { caseId: id, organizationId: actor.organizationId };
-    const [entries, variants, tasks] = yield* Effect.all(
-      [
-        query.findCaseHistory({ ...scope, limit: HISTORY_LIMIT }),
-        query.findCaseVariants(scope),
-        query.findCaseTasks(scope),
-      ],
+    const [variants, tasks] = yield* Effect.all(
+      [query.findCaseVariants(scope), query.findCaseTasks(scope)],
       { concurrency: "unbounded" }
     );
     const [newest] = tasks;
@@ -268,7 +265,6 @@ export const getCase = (id: string) =>
 
     return {
       ...found.value,
-      history: entries.map(toReadingView),
       id,
       setup: setupOf(newest),
       variants: variants.map(toReadingView),
@@ -276,6 +272,30 @@ export const getCase = (id: string) =>
         ...version,
         createdAt: DateTime.unsafeMake(version.createdAt.getTime()),
       })),
+    };
+  }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
+
+export const getCaseHistory = (
+  id: string,
+  params: { readonly cellKey?: string; readonly page?: number }
+) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const query = yield* RunQuery;
+    const page = Math.max(1, Math.floor(params.page ?? 1));
+    const history = yield* query.findCaseHistory({
+      caseId: id,
+      cellKey: params.cellKey ?? null,
+      limit: CASE_HISTORY_PAGE_SIZE,
+      offset: (page - 1) * CASE_HISTORY_PAGE_SIZE,
+      organizationId: actor.organizationId,
+    });
+
+    return {
+      entries: history.entries.map(toReadingView),
+      page,
+      pageSize: CASE_HISTORY_PAGE_SIZE,
+      total: history.total,
     };
   }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
 

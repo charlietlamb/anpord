@@ -43,11 +43,12 @@ function TrialRoute() {
   }
 
   if (address === undefined) {
-    return <TrialSkeleton ordinal="" />;
+    return <TrialSkeleton />;
   }
 
   return (
     <TrialScreen
+      caseId={address.caseId}
       cellKey={address.cellKey}
       ordinal={String(address.ordinal)}
       runId={address.runId}

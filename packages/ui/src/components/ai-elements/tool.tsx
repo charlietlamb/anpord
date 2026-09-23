@@ -1,4 +1,6 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
+import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
+import { SURFACE_FILL } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 import { Collapsible } from "@base-ui/react/collapsible";
 import {
@@ -20,25 +22,27 @@ export const Tool = ({
   ...props
 }: ComponentProps<typeof Collapsible.Root>) => (
   <Collapsible.Root
-    className={cn("group/tool w-full rounded-lg border bg-card", className)}
+    className={cn("group/tool w-full rounded-lg", SURFACE_FILL, className)}
     {...props}
   />
 );
 
 const STATES: Record<
   ToolState,
-  { readonly Glyph: Icon; readonly label: string; readonly tone: string }
+  {
+    readonly className?: string;
+    readonly Glyph: Icon;
+    readonly label: string;
+    readonly tone: "neutral" | "pending" | "positive";
+  }
 > = {
-  completed: {
-    Glyph: CheckCircleIcon,
-    label: "Completed",
-    tone: "text-success",
-  },
-  error: { Glyph: XCircleIcon, label: "Error", tone: "text-warning" },
+  completed: { Glyph: CheckCircleIcon, label: "Completed", tone: "positive" },
+  error: { Glyph: XCircleIcon, label: "Error", tone: "pending" },
   running: {
+    className: "[&>svg]:animate-spin motion-reduce:[&>svg]:animate-none",
     Glyph: CircleNotchIcon,
     label: "Running",
-    tone: "animate-spin text-muted-foreground motion-reduce:animate-none",
+    tone: "neutral",
   },
 };
 
@@ -49,17 +53,12 @@ export function ToolStatus({
   readonly label?: string;
   readonly state: ToolState;
 }) {
-  const { Glyph, label: named, tone } = STATES[state];
+  const { className, Glyph, label: named, tone } = STATES[state];
 
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 font-medium font-sans text-secondary-foreground text-xs tabular-nums">
-      <Glyph
-        aria-hidden="true"
-        className={cn("size-3.5", tone)}
-        weight="fill"
-      />
+    <StatusBadge className={className} icon={Glyph} tone={tone}>
       {label ?? named}
-    </span>
+    </StatusBadge>
   );
 }
 
@@ -139,7 +138,8 @@ export function ToolSection({
       </header>
       <pre
         className={cn(
-          "max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted/50 p-3 font-mono text-xs leading-relaxed [scrollbar-width:thin]",
+          "max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-lg p-3 font-mono text-xs leading-relaxed [scrollbar-width:thin]",
+          SURFACE_FILL,
           tone === "warning" ? "text-warning" : "text-foreground"
         )}
       >

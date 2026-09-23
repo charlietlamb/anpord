@@ -37,15 +37,15 @@ export function DataTable({
 export function DataTableHead({
   headings,
 }: {
-  readonly headings: readonly string[];
+  readonly headings: readonly ReactNode[];
 }) {
   return (
     <div
       aria-hidden="true"
       className={cn(COLUMNS, SURFACE_HEAD)}
     >
-      {headings.map((heading) => (
-        <span className="truncate" key={heading}>
+      {headings.map((heading, column) => (
+        <span className="min-w-0 truncate" key={`column-${column satisfies number}`}>
           {heading}
         </span>
       ))}
@@ -73,7 +73,7 @@ export function DataTableRow({
       {
         className: cn(
           COLUMNS,
-          "h-11 text-label",
+          "h-10 text-label",
           render !== undefined &&
             "transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4 focus-visible:outline-none",
           className

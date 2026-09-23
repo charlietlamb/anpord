@@ -1,5 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
-import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
 
 export function CursorPagination({
   canGoNext,
@@ -16,27 +16,26 @@ export function CursorPagination({
   readonly onNext: () => void;
   readonly onPrev: () => void;
   readonly page: number;
-  /* Only where the listing paid for a count; a keyset page has none. */
   readonly pages?: number;
 }) {
-  if (!(canGoNext || canGoPrev)) {
+  if (pages === undefined && !(canGoNext || canGoPrev)) {
     return null;
   }
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1">
       <Button
         aria-label="Previous page"
         disabled={disabled || !canGoPrev}
         onClick={onPrev}
         size="icon-sm"
-        variant="outline"
+        variant="ghost"
       >
-        <CaretLeftIcon className="size-3.5" />
+        <ArrowLeftIcon />
       </Button>
 
-      <span className="min-w-5 text-center text-muted-foreground/70 text-xs tabular-nums">
-        {pages === undefined ? page : `${page}/${pages}`}
+      <span className="min-w-10 text-center text-muted-foreground text-xs tabular-nums">
+        {pages === undefined ? page : `${page} / ${pages}`}
       </span>
 
       <Button
@@ -44,9 +43,9 @@ export function CursorPagination({
         disabled={disabled || !canGoNext}
         onClick={onNext}
         size="icon-sm"
-        variant="outline"
+        variant="ghost"
       >
-        <CaretRightIcon className="size-3.5" />
+        <ArrowRightIcon />
       </Button>
     </div>
   );

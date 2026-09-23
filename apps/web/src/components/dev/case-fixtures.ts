@@ -1,5 +1,6 @@
 import type {
   EvalCaseDetail,
+  EvalCaseHistoryPage,
   EvalCellHistoryEntry,
   EvalDistribution,
   EvalTrial,
@@ -55,34 +56,42 @@ const CLAUDE = {
   model: "claude-sonnet-5",
 } as const;
 
+const HISTORY: readonly EvalCellHistoryEntry[] = [
+  reading(0, {
+    distribution: distribution(0, 0, 1),
+    local: true,
+    sandbox: "local",
+    trials: [{ ...FAILED_TRIAL, status: "void", voidFields: ["sandbox"] }],
+  }),
+  reading(8, { ...CLAUDE, distribution: distribution(1, 1, 0) }),
+  reading(9, {
+    distribution: distribution(0, 1, 0),
+    trials: [FAILED_TRIAL],
+    trigger: {
+      source: "ci",
+      url: "https://github.com/useautumn/autumn/actions/runs/1",
+    },
+  }),
+  reading(9.2, {
+    definitionHash: "v1",
+    trials: [{ ...TRIALS[0], ...VALIDATION_TRIALS[0] } as EvalTrial],
+    trigger: { source: "dashboard" },
+  }),
+  reading(15, {
+    definitionHash: "v1",
+    distribution: distribution(2, 3, 1),
+    trials: TRIALS,
+  }),
+];
+
+export const CASE_HISTORY: EvalCaseHistoryPage = {
+  entries: HISTORY,
+  page: 1,
+  pageSize: 4,
+  total: 11,
+};
+
 export const CASE_DETAIL: EvalCaseDetail = {
-  history: [
-    reading(0, {
-      distribution: distribution(0, 0, 1),
-      local: true,
-      sandbox: "local",
-      trials: [{ ...FAILED_TRIAL, status: "void", voidFields: ["sandbox"] }],
-    }),
-    reading(8, { ...CLAUDE, distribution: distribution(1, 1, 0) }),
-    reading(9, {
-      distribution: distribution(0, 1, 0),
-      trials: [FAILED_TRIAL],
-      trigger: {
-        source: "ci",
-        url: "https://github.com/useautumn/autumn/actions/runs/1",
-      },
-    }),
-    reading(9.2, {
-      definitionHash: "v1",
-      trials: [{ ...TRIALS[0], ...VALIDATION_TRIALS[0] } as EvalTrial],
-      trigger: { source: "dashboard" },
-    }),
-    reading(15, {
-      definitionHash: "v1",
-      distribution: distribution(2, 3, 1),
-      trials: TRIALS,
-    }),
-  ],
   id: "asks-before-it-pushes",
   name: "asks before it pushes",
   setup: {

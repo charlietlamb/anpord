@@ -1,4 +1,7 @@
+import { Badge } from "@anpord/ui/components/ui/badge";
 import { harnessPresentation } from "@/lib/evals/variant-presentation";
+
+const UNNAMED = "none";
 
 export function VariantCell({
   harness,
@@ -10,12 +13,12 @@ export function VariantCell({
   const { Icon, label } = harnessPresentation(harness);
 
   return (
-    <span className="flex min-w-0 items-center gap-2.5 text-foreground">
-      <Icon
-        aria-label={label}
-        className="size-4 shrink-0 text-muted-foreground"
-      />
-      <span className="truncate">{model}</span>
-    </span>
+    <Badge className="min-w-0 max-w-full" size="sm" variant="secondary">
+      <Icon aria-hidden="true" />
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      {model === UNNAMED || model === "" ? null : (
+        <span className="truncate">{model}</span>
+      )}
+    </Badge>
   );
 }

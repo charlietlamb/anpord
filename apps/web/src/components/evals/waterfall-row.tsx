@@ -1,20 +1,13 @@
-import { Tooltip, TooltipTrigger } from "@anpord/ui/components/tooltip";
+import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { cn } from "@anpord/ui/lib/utils";
-import {
-  STEP_ROW,
-  StepLabel,
-  stepRowTone,
-} from "@/components/evals/step-label";
-import { LABEL_WIDTH } from "@/components/evals/waterfall-scale";
-import { RowTooltip } from "@/components/evals/waterfall-tooltip";
+import { StepLabel } from "@/components/evals/step-label";
+import { Gridlines } from "@/components/evals/waterfall-axis";
 import { Track } from "@/components/evals/waterfall-track";
 import { seconds } from "@/lib/evals/duration";
 import { describeRow } from "@/lib/evals/journal-presentation";
-import { spanOfRow, type WaterfallRow } from "@/lib/evals/waterfall-layout";
+import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
-const LABEL_FLIP_PERCENT = 86;
-
-const INSIDE_PERCENT = 9;
+const FLIP_PERCENT = 85;
 
 export function TimedRow({
   onSelect,
@@ -25,53 +18,37 @@ export function TimedRow({
   readonly row: WaterfallRow;
   readonly selected: boolean;
 }) {
-  const { to } = spanOfRow(row);
-  const inside = row._tag === "bar" && row.widthPercent > INSIDE_PERCENT;
-  const flipped = !inside && to > LABEL_FLIP_PERCENT;
+  const settled = row._tag === "bar" && row.running !== true;
+  const end = row.leftPercent + (row._tag === "bar" ? row.widthPercent : 0);
+  const start = row.lead?.fromPercent ?? row.leftPercent;
+  const flipped = end > FLIP_PERCENT;
 
   return (
-    <li>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <button
-              aria-label={describeRow(row)}
-              aria-pressed={selected}
-              className={cn(STEP_ROW, stepRowTone(selected))}
-              onClick={onSelect}
-              type="button"
-            />
-          }
-        >
+    <DataTableRow
+      aria-label={describeRow(row)}
+      aria-pressed={selected}
+      className={cn("group w-full text-left", selected && "bg-alpha-4")}
+      render={<button onClick={onSelect} type="button" />}
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <StepLabel entry={row.entry} />
+      </span>
+
+      <span className="relative self-stretch">
+        <Gridlines />
+        <Track row={row} />
+        {settled ? (
           <span
-            className="flex shrink-0 items-center gap-2.5 pr-4 pl-2.5"
-            style={{ width: LABEL_WIDTH }}
+            className={cn(
+              "absolute top-1/2 -translate-y-1/2 text-muted-foreground text-xs tabular-nums",
+              flipped ? "-translate-x-full pr-2" : "pl-2"
+            )}
+            style={{ left: `${flipped ? start : end}%` }}
           >
-            <StepLabel entry={row.entry} />
+            {seconds(row.durationMs)}
           </span>
-
-          <span className="relative h-full min-w-0 flex-1">
-            <Track row={row} />
-
-            {row._tag === "bar" && row.running !== true ? (
-              <span
-                className={cn(
-                  "absolute top-1/2 -translate-y-1/2 font-medium text-[11px] tabular-nums",
-                  inside ? "pl-1.5 text-white" : "text-foreground/80",
-                  !inside && (flipped ? "-translate-x-full pr-1.5" : "pl-1.5")
-                )}
-                style={{
-                  left: `${inside || flipped ? row.leftPercent : to}%`,
-                }}
-              >
-                {seconds(row.durationMs)}
-              </span>
-            ) : null}
-          </span>
-        </TooltipTrigger>
-
-        <RowTooltip row={row} />
-      </Tooltip>
-    </li>
+        ) : null}
+      </span>
+    </DataTableRow>
   );
 }

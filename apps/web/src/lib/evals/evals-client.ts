@@ -11,8 +11,8 @@ import {
   EvalArtifact,
   type EvalArtifactRequest,
   EvalCaseDetail,
+  EvalCaseHistoryPage,
   EvalCasePage,
-  EvalCellHistoryEntry,
   type EvalHarness,
   type EvalPageCursor,
   EvalRun,
@@ -104,11 +104,22 @@ export const listRunAddresses = (
 export const getCase = (id: string) =>
   request(EvalCaseDetail, `/evals/cases/${encodeURIComponent(id)}`);
 
-export const listCellHistory = (cellKey: string) =>
-  request(
-    Schema.Array(EvalCellHistoryEntry),
-    `/evals/cells/${encodeURIComponent(cellKey)}/history`
+export const listCaseHistory = (
+  caseId: string,
+  cellKey: string | null,
+  page: number
+) => {
+  const params = new URLSearchParams({ page: String(page) });
+
+  if (cellKey !== null) {
+    params.set("cellKey", cellKey);
+  }
+
+  return request(
+    EvalCaseHistoryPage,
+    `/evals/cases/${encodeURIComponent(caseId)}/history?${params}`
   );
+};
 
 function post<A, I>(
   schema: Schema.Schema<A, I>,

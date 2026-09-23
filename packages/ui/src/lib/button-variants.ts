@@ -1,4 +1,4 @@
-import { SURFACE_FILL } from "@anpord/ui/lib/surface";
+import { SURFACE_FILL, SURFACE_RING } from "@anpord/ui/lib/surface";
 import { cva } from "class-variance-authority";
 
 export const buttonVariants = cva(
@@ -6,8 +6,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "border-primary-border bg-primary text-primary-foreground hover:bg-primary/90",
+        default: `border-background/15 bg-foreground text-background shadow-sm ${SURFACE_RING} hover:bg-foreground/90`,
         outline: `${SURFACE_FILL} text-foreground hover:bg-alpha-4 aria-expanded:bg-alpha-4`,
         secondary:
           "border-border bg-secondary text-secondary-foreground hover:bg-muted",

@@ -1,18 +1,20 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { CheckSquareIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CONVERSATION } from "@/components/dev/conversation-fixture";
-import { TRIALS } from "@/components/dev/eval-fixtures";
+import { CELL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
+import {
+  VALIDATED_SETUP,
+  VALIDATED_TRIAL,
+} from "@/components/dev/trial-fixtures";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 import { Conversation } from "@/components/evals/conversation";
 import { ConversationStep } from "@/components/evals/conversation-step";
-import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
 import { TrialCalls } from "@/components/evals/trial-calls";
-import { TrialRail } from "@/components/evals/trial-rail";
+import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSections } from "@/components/evals/trial-sections";
-import { ValidationInspector } from "@/components/evals/validation-inspector";
+import { TrialView } from "@/components/evals/trial-view";
 import { Waterfall } from "@/components/evals/waterfall";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { fileIcon } from "@/lib/evals/file-presentation";
@@ -130,21 +132,7 @@ function WaterfallPreview() {
 
         {TRIAL ? (
           <PreviewScreen name="Trajectory">
-            <EvalLayout>
-              <EvalMain>
-                <section className="flex flex-col gap-1.5">
-                  <PageHeading title="Trajectory" />
-
-                  <Waterfall
-                    running={false}
-                    timed={TRIAL.timed}
-                    trajectory={TRIAL.trajectory}
-                  />
-                </section>
-              </EvalMain>
-
-              <TrialRail trial={TRIAL} />
-            </EvalLayout>
+            <TrialView caseId="fixture" cell={CELL} run={RUN} trial={TRIAL} />
           </PreviewScreen>
         ) : null}
 
@@ -193,7 +181,13 @@ function WaterfallPreview() {
 
         <PreviewScreen name="Pending validators">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5">
-            <ValidationInspector titled={false} trials={QUEUED_TRIALS} />
+            <TrialChecks
+              setup={VALIDATED_SETUP}
+              trial={{
+                ...VALIDATED_TRIAL,
+                validations: QUEUED_TRIALS[0]?.validations,
+              }}
+            />
           </div>
         </PreviewScreen>
 
@@ -204,13 +198,13 @@ function WaterfallPreview() {
                 {
                   Icon: CheckSquareIcon,
                   content: (
-                    <ValidationInspector
-                      titled={false}
-                      trials={VALIDATION_TRIALS}
+                    <TrialChecks
+                      setup={VALIDATED_SETUP}
+                      trial={VALIDATED_TRIAL}
                     />
                   ),
-                  label: "Validation",
-                  value: "validation",
+                  label: "Checks",
+                  value: "checks",
                 },
                 {
                   Icon: SquaresFourIcon,

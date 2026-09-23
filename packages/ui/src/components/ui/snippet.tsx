@@ -91,7 +91,7 @@ export function Snippet({
       {/* One button rather than one per panel: it copies whatever is showing,
           and a row of identical buttons would only ever have one visible. */}
       {active ? (
-        <span className="absolute top-2.5 right-2 z-10 flex items-center gap-0.5">
+        <span className="absolute top-2 right-2 z-10 flex items-center gap-0.5">
           <CopyButton
             className="size-6"
             label={`Copy ${active.label} command`}

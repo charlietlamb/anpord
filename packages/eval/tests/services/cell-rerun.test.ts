@@ -69,7 +69,7 @@ const layer = (
         findCase: () => Effect.succeed(Option.none()),
         findRunAddresses: () => Effect.succeed([]),
         findTrial: () => Effect.succeed(Option.none()),
-        findCaseHistory: () => Effect.succeed([]),
+        findCaseHistory: () => Effect.succeed({ entries: [], total: 0 }),
         findCaseTasks: () =>
           Effect.succeed([
             cellTask(source, "gpt-6"),

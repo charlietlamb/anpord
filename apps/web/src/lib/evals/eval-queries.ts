@@ -13,8 +13,8 @@ import {
   getPlayground,
   getRun,
   getTrialAddress,
+  listCaseHistory,
   listCases,
-  listCellHistory,
   listRuns,
   readRunTail,
 } from "@/lib/evals/evals-client";
@@ -116,10 +116,11 @@ export const evalQueries = {
       staleTime: Number.POSITIVE_INFINITY,
     }),
 
-  history: (cellKey: string) =>
+  caseHistory: (caseId: string, cellKey: string | null, page: number) =>
     queryOptions({
-      queryKey: evalKeys.history(cellKey),
-      queryFn: () => listCellHistory(cellKey),
+      queryKey: evalKeys.caseHistory(caseId, cellKey, page),
+      queryFn: () => listCaseHistory(caseId, cellKey, page),
+      placeholderData: keepPreviousData,
     }),
 
   playground: (id: string) =>

@@ -9,12 +9,6 @@ import { stepFailed } from "@/lib/evals/conversation";
 
 const MARKUP = /[*`#>]+/g;
 
-export const STEP_ROW =
-  "group flex h-9 w-full cursor-pointer items-center rounded-lg text-left transition-surface focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
-
-export const stepRowTone = (selected: boolean) =>
-  selected ? "bg-alpha-8" : "hover:bg-alpha-4";
-
 export function StepLabel({ entry }: { readonly entry: EvalJournalEntry }) {
   const kind = entryKindOf(entry);
   const failed = entry._tag !== "message" && stepFailed(entry);

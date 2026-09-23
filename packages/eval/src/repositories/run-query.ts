@@ -15,6 +15,7 @@ import {
 import type { CaseScope } from "./case-variants";
 import {
   type CaseHistoryInput,
+  type CaseHistoryPage,
   type CellHistoryEntry,
   type CellHistoryInput,
   cellHistoryQuery,
@@ -52,7 +53,7 @@ export interface RunQueryShape {
   ) => Effect.Effect<Option.Option<CaseDetail>, EvalStoreError>;
   readonly findCaseHistory: (
     input: CaseHistoryInput
-  ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
+  ) => Effect.Effect<CaseHistoryPage, EvalStoreError>;
   readonly findCaseTasks: (
     scope: CaseScope
   ) => Effect.Effect<readonly CellTask[], EvalStoreError>;

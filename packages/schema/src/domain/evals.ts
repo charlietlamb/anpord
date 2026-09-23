@@ -701,8 +701,20 @@ export const EvalCaseSetup = Schema.Struct({
 });
 export type EvalCaseSetup = typeof EvalCaseSetup.Type;
 
+export const CASE_HISTORY_PAGE_SIZE = 20;
+
+export const EvalCaseHistoryPage = Schema.Struct({
+  entries: Schema.Array(EvalCellHistoryEntry),
+  page: Schema.Int,
+  pageSize: Schema.Int,
+  total: Schema.Int,
+}).annotations({
+  description: "One page of a case's runs, newest first.",
+  identifier: "EvalCaseHistoryPage",
+});
+export type EvalCaseHistoryPage = typeof EvalCaseHistoryPage.Type;
+
 export const EvalCaseDetail = Schema.Struct({
-  history: Schema.Array(EvalCellHistoryEntry),
   id: EvalCaseId,
   name: Schema.String,
   setup: EvalCaseSetup,
@@ -711,7 +723,7 @@ export const EvalCaseDetail = Schema.Struct({
   versions: Schema.Array(EvalCaseVersion),
 }).annotations({
   description:
-    "A case, the newest reading on each variant it has run on, and its recent history.",
+    "A case, how its newest run was set up, and the newest reading on each variant it has run on.",
   identifier: "EvalCaseDetail",
 });
 export type EvalCaseDetail = typeof EvalCaseDetail.Type;

@@ -1,4 +1,5 @@
-import type { EvalCell, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalCell, EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
+import { DateTime } from "effect";
 
 const START = 1_787_000_000_000;
 
@@ -274,4 +275,26 @@ export const CELL: EvalCell = {
   status: "finished",
   variantIndex: 0,
   trials: TRIALS,
+};
+
+export const RUN: EvalRun = {
+  cases: [CELL.caseName],
+  cells: [CELL],
+  costs: null,
+  executedBy: null,
+  failure: null,
+  finishedAt: DateTime.unsafeMake(START + 180_000),
+  id: "run_fixture",
+  name: null,
+  startedAt: DateTime.unsafeMake(START),
+  status: "finished",
+  trigger: { source: "cli" },
+  variants: [
+    {
+      harness: "codex",
+      harnessVersion: "0.145.0",
+      model: "gpt-5-codex",
+      sandbox: "e2b",
+    },
+  ],
 };

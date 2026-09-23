@@ -1,3 +1,4 @@
+import { SURFACE_FILL } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 import { Tabs } from "@base-ui/react/tabs";
 import type { ComponentType } from "react";
@@ -32,7 +33,10 @@ export function PageTabs<T extends string>({
       value={value}
     >
       <Tabs.List
-        className={cn("relative isolate flex items-center gap-0.5", className)}
+        className={cn(
+          "relative isolate flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-muted p-1 dark:bg-card",
+          className
+        )}
       >
         {options.map(({ Icon, label, value: option }) => (
           <Tabs.Tab
@@ -41,7 +45,7 @@ export function PageTabs<T extends string>({
               /* 120ms, matching every other tab in the app: pressed and read
                  in the same moment, so the colour lands with the eye. */
               "transition-colors duration-[120ms] ease-out",
-              "hover:text-foreground data-[selected]:text-foreground"
+              "hover:text-foreground data-[active]:text-foreground"
             )}
             key={option}
             value={option}
@@ -51,7 +55,12 @@ export function PageTabs<T extends string>({
           </Tabs.Tab>
         ))}
 
-        <Tabs.Indicator className="absolute top-0 left-0 h-7 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] rounded-md bg-alpha-8 transition-[translate,width] duration-[120ms] ease-out" />
+        <Tabs.Indicator
+          className={cn(
+            "absolute top-1 left-0 h-7 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] rounded-md transition-[translate,width] duration-[120ms] ease-out",
+            SURFACE_FILL
+          )}
+        />
       </Tabs.List>
     </Tabs.Root>
   );

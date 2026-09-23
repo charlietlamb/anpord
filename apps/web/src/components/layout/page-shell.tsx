@@ -27,7 +27,7 @@ export function PageShell({
       <div
         className={cn(
           PAGE_WIDTHS[width],
-          "flex min-h-0 flex-1 flex-col gap-5 pt-4 pb-24"
+          "flex flex-1 flex-col gap-5 pt-4 pb-8"
         )}
       >
         <PageHeader actions={actions} description={description} title={title} />

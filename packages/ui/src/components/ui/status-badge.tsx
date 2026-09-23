@@ -18,19 +18,12 @@ const dotVariants = cva("size-1.5 shrink-0 rounded-full", {
   },
 });
 
-const tintVariants = cva("border-transparent shadow-none", {
-  defaultVariants: {
-    tone: "neutral",
-  },
-  variants: {
-    tone: {
-      neutral: "bg-alpha-8 text-muted-foreground",
-      pending: "bg-warning/10 text-warning",
-      positive: "bg-success/10 text-success",
-      critical: "bg-destructive/10 text-destructive",
-    },
-  },
-});
+const TONE_VARIANTS = {
+  critical: "destructive",
+  neutral: "secondary",
+  pending: "pending",
+  positive: "positive",
+} as const;
 
 interface StatusBadgeProps extends VariantProps<typeof dotVariants> {
   readonly children: ReactNode;
@@ -52,9 +45,9 @@ export function StatusBadge({
   if (Glyph) {
     return (
       <Badge
-        className={cn(tintVariants({ tone }), className)}
+        className={className}
         size={size}
-        variant="secondary"
+        variant={TONE_VARIANTS[tone ?? "neutral"]}
       >
         <Glyph aria-hidden="true" weight="fill" />
         {children}

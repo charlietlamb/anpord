@@ -10,3 +10,6 @@ export const clock = (millis: number) =>
   });
 
 export const count = (value: number) => value.toLocaleString();
+
+export const bytes = (size: number) =>
+  size < 1024 ? `${size} B` : `${(size / 1024).toFixed(1)} KB`;

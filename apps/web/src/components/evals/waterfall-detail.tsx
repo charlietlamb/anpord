@@ -73,7 +73,7 @@ export function StepDetail({
   onClose,
   step: { entry, row },
 }: {
-  readonly onClose: () => void;
+  readonly onClose?: () => void;
   readonly step: SelectedStep;
 }) {
   const kind = entryKindOf(entry);
@@ -95,15 +95,17 @@ export function StepDetail({
           <span className="font-medium text-sm text-warning">{failure}</span>
         )}
 
-        <Button
-          aria-label="Close"
-          className="ml-auto"
-          onClick={onClose}
-          size="icon-sm"
-          variant="ghost"
-        >
-          <XIcon size={14} />
-        </Button>
+        {onClose === undefined ? null : (
+          <Button
+            aria-label="Close"
+            className="ml-auto"
+            onClick={onClose}
+            size="icon-sm"
+            variant="ghost"
+          >
+            <XIcon size={14} />
+          </Button>
+        )}
       </header>
 
       {lead !== null || row?._tag === "bar" ? (

@@ -1,12 +1,14 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import { Axis, Gridlines } from "@/components/evals/waterfall-axis";
 import {
-  Crosshair,
-  useCrosshair,
-} from "@/components/evals/waterfall-crosshair";
-import { StepDetail } from "@/components/evals/waterfall-detail";
+  DataTable,
+  DataTableBody,
+  DataTableHead,
+} from "@anpord/ui/components/ui/data-table";
+import { Surface } from "@anpord/ui/components/ui/surface";
+import { Axis } from "@/components/evals/waterfall-axis";
 import { OrderedRow } from "@/components/evals/waterfall-ordered-row";
 import { TimedRow } from "@/components/evals/waterfall-row";
+import { TIMELINE_COLUMNS } from "@/components/evals/waterfall-scale";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { RowList } from "@/components/layout/row-list";
 import { selectedStepOf } from "@/lib/evals/selected-step";
@@ -55,23 +57,26 @@ export function Waterfall({
   readonly trajectory: readonly EvalJournalEntry[];
 }) {
   const { rows, spanMs } = waterfallLayout(trajectory);
-  const crosshair = useCrosshair();
   const [step, setStep] = useSelectedStep();
   const open = selectedStepOf(trajectory, rows, step);
   const at = (row: WaterfallRow) => trajectory.indexOf(row.entry);
   const selectedAt = (row: WaterfallRow) => open?.entry === row.entry;
 
   if (trajectory.length === 0) {
-    return running ? (
-      <Waiting />
-    ) : (
-      <EmptyNote>This trial recorded no journal.</EmptyNote>
+    return (
+      <Surface className="px-4">
+        {running ? (
+          <Waiting />
+        ) : (
+          <EmptyNote>This trial recorded no journal.</EmptyNote>
+        )}
+      </Surface>
     );
   }
 
   if (!timed || rows.length === 0) {
     return (
-      <div className="flex flex-col gap-2">
+      <Surface className="flex flex-col gap-2 p-4">
         <p className="px-2 text-muted-foreground text-xs">
           Durations are unknown for this trial, so this is the order that was
           recorded rather than a timeline.
@@ -82,45 +87,24 @@ export function Waterfall({
             <OrderedRow entry={entry} key={keyOf(entry, index)} />
           ))}
         </RowList>
-      </div>
+      </Surface>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex min-w-0 flex-col gap-2">
-        <Axis spanMs={spanMs} />
+    <DataTable columns={TIMELINE_COLUMNS} label="Timeline">
+      <DataTableHead headings={["Step", <Axis key="axis" spanMs={spanMs} />]} />
 
-        <div
-          className="relative"
-          onPointerLeave={crosshair.clear}
-          onPointerMove={crosshair.track}
-        >
-          <Gridlines />
-          <Crosshair percent={crosshair.percent} spanMs={spanMs} />
-
-          <ol className="flex flex-col">
-            {rows.map((row, index) => {
-              const key = keyOf(row.entry, index);
-
-              return (
-                <TimedRow
-                  key={key}
-                  onSelect={() => setStep(selectedAt(row) ? null : at(row))}
-                  row={row}
-                  selected={selectedAt(row)}
-                />
-              );
-            })}
-          </ol>
-        </div>
-      </div>
-
-      {open === null ? null : (
-        <aside className="sticky bottom-3 z-20 max-h-[60vh] overflow-auto rounded-lg border bg-card p-4 shadow-xl lg:hidden">
-          <StepDetail onClose={() => setStep(null)} step={open} />
-        </aside>
-      )}
-    </div>
+      <DataTableBody>
+        {rows.map((row, index) => (
+          <TimedRow
+            key={keyOf(row.entry, index)}
+            onSelect={() => setStep(selectedAt(row) ? null : at(row))}
+            row={row}
+            selected={selectedAt(row)}
+          />
+        ))}
+      </DataTableBody>
+    </DataTable>
   );
 }

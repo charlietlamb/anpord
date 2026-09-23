@@ -1,20 +1,26 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { CatchBoundary, createFileRoute } from "@tanstack/react-router";
-import { CASE_DETAIL } from "@/components/dev/case-fixtures";
-import { TRIALS } from "@/components/dev/eval-fixtures";
+import { CASE_DETAIL, CASE_HISTORY } from "@/components/dev/case-fixtures";
+import { CELL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
-import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
+import {
+  LOCAL_RUN,
+  LOCAL_TRIAL,
+  VALIDATED_RUN,
+  VALIDATED_SETUP,
+  VALIDATED_TRIAL,
+} from "@/components/dev/trial-fixtures";
 import { AgentSetup } from "@/components/evals/agent-setup";
 import { CaseActions } from "@/components/evals/case-actions";
-import { CaseActivity } from "@/components/evals/case-activity";
 import { CaseMeta } from "@/components/evals/case-meta";
+import { CaseReadings } from "@/components/evals/case-readings";
 import { EvalForm } from "@/components/evals/eval-form";
-import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
+import { EvalMain } from "@/components/evals/eval-layout";
 import { TrialCalls } from "@/components/evals/trial-calls";
-import { TrialRail } from "@/components/evals/trial-rail";
+import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
-import { ValidationInspector } from "@/components/evals/validation-inspector";
+import { TrialView } from "@/components/evals/trial-view";
 import { Waterfall } from "@/components/evals/waterfall";
 import { EmptyNote } from "@/components/layout/empty-note";
 import { PageShell } from "@/components/layout/page-shell";
@@ -38,22 +44,7 @@ function EvalsPreview() {
 
         <PreviewScreen name="Validation and calls">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5 py-5">
-            <ValidationInspector
-              files={[
-                {
-                  path: "evals/catalog.eval.ts",
-                  content:
-                    "import { suite, empty } from 'anpord';\nimport { catalog } from './catalog';\nimport { validate } from './validate';\n\nexport default suite({\n  source: empty,\n  mcp: [catalog],\n  prompt: 'Retrieve the fixture and report its name.',\n  cases: [{ name: 'retrieve-item', validate }],\n});\n",
-                },
-                {
-                  path: "evals/validate.ts",
-                  content:
-                    "export const validate = async ({ answer }) => ({\n  passed: (await answer()).includes('CI fixture'),\n});\n",
-                },
-              ]}
-              trials={VALIDATION_TRIALS.slice(0, 1)}
-            />
-            <ValidationInspector trials={VALIDATION_TRIALS} />
+            <TrialChecks setup={VALIDATED_SETUP} trial={VALIDATED_TRIAL} />
             <TrialCalls
               trajectory={[
                 {
@@ -139,7 +130,11 @@ function EvalsPreview() {
             title={CASE_DETAIL.name}
             width="wide"
           >
-            <CaseActivity detail={CASE_DETAIL} />
+            <CaseReadings
+              caseId={CASE_DETAIL.id}
+              history={CASE_HISTORY}
+              onPage={() => undefined}
+            />
           </PageShell>
         </PreviewScreen>
 
@@ -154,25 +149,35 @@ function EvalsPreview() {
 
         {TRIAL ? (
           <PreviewScreen name="One trial">
-            <EvalLayout>
-              <EvalMain>
-                <section className="flex flex-col gap-1.5">
-                  <PageHeading title="Trajectory" />
-                  <Waterfall
-                    running={false}
-                    timed={TRIAL.timed}
-                    trajectory={TRIAL.trajectory}
-                  />
-                </section>
-              </EvalMain>
-
-              <TrialRail trial={TRIAL} />
-            </EvalLayout>
+            <TrialView
+              caseId={CASE_DETAIL.id}
+              cell={CELL}
+              run={RUN}
+              trial={TRIAL}
+            />
           </PreviewScreen>
         ) : null}
 
+        <PreviewScreen name="Trial judged by validators">
+          <TrialView
+            caseId={CASE_DETAIL.id}
+            cell={VALIDATED_RUN.cells[0] ?? CELL}
+            run={VALIDATED_RUN}
+            trial={VALIDATED_TRIAL}
+          />
+        </PreviewScreen>
+
+        <PreviewScreen name="Local trial that reported nothing">
+          <TrialView
+            caseId={CASE_DETAIL.id}
+            cell={LOCAL_RUN.cells[0] ?? CELL}
+            run={LOCAL_RUN}
+            trial={LOCAL_TRIAL}
+          />
+        </PreviewScreen>
+
         <PreviewScreen name="Loading: one trial">
-          <TrialSkeleton ordinal="1" />
+          <TrialSkeleton />
         </PreviewScreen>
       </div>
     </TooltipProvider>
