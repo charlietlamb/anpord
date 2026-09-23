@@ -1,5 +1,4 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
-import { TextAlignLeftIcon } from "@phosphor-icons/react";
 import { SetupSurface } from "./setup-surface";
 
 /* Prose settles into a block of full lines with a short last one, so the
@@ -12,7 +11,7 @@ export function CellSetupSkeleton({
   readonly titled?: boolean;
 }) {
   return (
-    <SetupSurface Icon={TextAlignLeftIcon} title="Prompt" titled={titled}>
+    <SetupSurface title="Prompt" titled={titled}>
       <div className="flex max-w-prose flex-col gap-2.5">
         {LINES.map((width, index) => (
           <Skeleton

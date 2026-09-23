@@ -1,3 +1,4 @@
+import type { EvalPageCursor } from "@anpord/schema/domain/evals";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
@@ -17,6 +18,11 @@ import {
 } from "../../evals/operations";
 import { finishReportedRun, reportTrial } from "../../evals/reported-trials";
 
+const pageParams = (cursor: EvalPageCursor | null | undefined) => ({
+  cursorId: cursor?.id,
+  cursorStartedAt: cursor?.startedAtMillis,
+});
+
 export const PublicEvalsHandlers = HttpApiBuilder.group(
   PublicApi,
   "evals",
@@ -28,14 +34,14 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
         ({ payload }) => getEvalArtifact(payload)
       )
       .handle("list", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        listEvalRuns({
-          cursorId: payload.cursor?.id,
-          cursorStartedAt: payload.cursor?.startedAtMillis,
-          limit: payload.limit,
-        })
+        listEvalRuns({ ...pageParams(payload.cursor), limit: payload.limit })
       )
       .handle("cases", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        listEvalCases(payload)
+        listEvalCases({
+          ...pageParams(payload.cursor),
+          limit: payload.limit,
+          tag: payload.tag,
+        })
       )
       .handle("start", { permission: Permissions.Evals.Write }, ({ payload }) =>
         startEvalRun(payload)

@@ -1,32 +1,23 @@
 import { cn } from "@anpord/ui/lib/utils";
-import type { Icon } from "@phosphor-icons/react";
 
-interface PageHeadingProps {
-  readonly className?: string;
-  readonly icon: Icon;
-  readonly title: string;
-}
+const SIZES = {
+  page: "font-heading text-xl tracking-tight",
+  section: "font-medium text-sm",
+} as const;
 
-/**
- * What page this is, at the top left of its bar.
- *
- * The breadcrumb above names it too, but it is chrome the eye skips past on
- * the way in. Said once more where the content starts, the page has a corner
- * to begin at rather than a control floating at the far end of an empty rule.
- */
 export function PageHeading({
   className,
-  icon: Icon,
+  size = "page",
   title,
-}: PageHeadingProps) {
+}: {
+  readonly className?: string;
+  readonly size?: keyof typeof SIZES;
+  readonly title: string;
+}) {
   return (
     <span
-      className={cn(
-        "flex shrink-0 items-center gap-1.5 font-heading text-[0.9375rem] text-foreground tracking-tight [&>svg]:text-muted-foreground",
-        className
-      )}
+      className={cn("shrink-0 truncate text-foreground", SIZES[size], className)}
     >
-      <Icon className="size-4 shrink-0" weight="fill" />
       {title}
     </span>
   );

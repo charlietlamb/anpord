@@ -5,13 +5,14 @@ import type {
   EvalRun,
   EvalRunPage,
 } from "@anpord/schema/domain/evals";
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {
   getCase,
   getModelCatalogue,
   getPlayground,
   getRun,
+  getTrialAddress,
   listCases,
   listCellHistory,
   listRuns,
@@ -58,10 +59,11 @@ export const evalQueries = {
       ...LIVE,
     }),
 
-  cases: (tag: string | null) =>
+  cases: (tag: string | null, cursor: EvalPageCursor | null = null) =>
     queryOptions({
-      queryKey: evalKeys.cases(tag),
-      queryFn: () => listCases(tag),
+      queryKey: evalKeys.cases(tag, cursor),
+      queryFn: () => listCases(tag, cursor),
+      placeholderData: keepPreviousData,
       ...LIVE,
     }),
 
@@ -105,6 +107,13 @@ export const evalQueries = {
     queryOptions({
       queryKey: evalKeys.case(id),
       queryFn: () => getCase(id),
+    }),
+
+  trialAddress: (id: string) =>
+    queryOptions({
+      queryKey: evalKeys.trialAddress(id),
+      queryFn: () => getTrialAddress(id),
+      staleTime: Number.POSITIVE_INFINITY,
     }),
 
   history: (cellKey: string) =>

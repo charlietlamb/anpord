@@ -17,6 +17,7 @@ import {
   type EvalPageCursor,
   EvalRun,
   EvalRunPage,
+  EvalTrialAddress,
   RunSubscription,
 } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
@@ -52,8 +53,12 @@ async function request<A, I>(
   return fromWire(schema, await response.json());
 }
 
-export const listRuns = (cursor: EvalPageCursor | null) => {
-  const params = new URLSearchParams();
+const pagePath = (
+  path: string,
+  cursor: EvalPageCursor | null,
+  extra: Record<string, string> = {}
+) => {
+  const params = new URLSearchParams(extra);
 
   if (cursor !== null) {
     params.set("cursorId", cursor.id);
@@ -62,14 +67,17 @@ export const listRuns = (cursor: EvalPageCursor | null) => {
 
   const query = params.toString();
 
-  return request(EvalRunPage, query === "" ? "/evals" : `/evals?${query}`);
+  return query === "" ? path : `${path}?${query}`;
 };
 
-export const listCases = (tag: string | null) => {
-  const query = tag === null ? "" : `?tag=${encodeURIComponent(tag)}`;
+export const listRuns = (cursor: EvalPageCursor | null) =>
+  request(EvalRunPage, pagePath("/evals", cursor));
 
-  return request(EvalCasePage, `/evals/cases${query}`);
-};
+export const listCases = (tag: string | null, cursor: EvalPageCursor | null) =>
+  request(
+    EvalCasePage,
+    pagePath("/evals/cases", cursor, tag === null ? {} : { tag })
+  );
 
 export const getRun = (id: string) =>
   request(EvalRun, `/evals/${encodeURIComponent(id)}`);
@@ -79,6 +87,19 @@ export const getRunSubscription = (id: string) =>
 
 export const readRunTail = (id: string, after: readonly EvalTailMark[]) =>
   post(EvalRunTail, `/evals/${encodeURIComponent(id)}/tail`, { after });
+
+export const getTrialAddress = (id: string) =>
+  request(EvalTrialAddress, `/evals/trials/${encodeURIComponent(id)}`);
+
+export const listRunAddresses = (
+  runId: string,
+  within: { readonly cellKey?: string; readonly ordinal?: number } = {}
+) =>
+  post(
+    Schema.Array(EvalTrialAddress),
+    `/evals/${encodeURIComponent(runId)}/addresses`,
+    within
+  );
 
 export const getCase = (id: string) =>
   request(EvalCaseDetail, `/evals/cases/${encodeURIComponent(id)}`);

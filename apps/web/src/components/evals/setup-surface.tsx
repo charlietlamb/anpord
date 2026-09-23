@@ -1,12 +1,10 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import type { Icon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 export function SetupSurface({
   children,
   contentClassName,
   controls,
-  Icon: Glyph,
   meta,
   title,
   /* A tab above already names the section; a heading would say it twice. */
@@ -15,7 +13,6 @@ export function SetupSurface({
   readonly children: ReactNode;
   readonly contentClassName?: string;
   readonly controls?: ReactNode;
-  readonly Icon: Icon;
   readonly meta?: string;
   readonly title: string;
   readonly titled?: boolean;
@@ -26,7 +23,7 @@ export function SetupSurface({
         {titled ? (
           <>
             <h3>
-              <PageHeading icon={Glyph} title={title} />
+              <PageHeading size="section" title={title} />
             </h3>
 
             {/* The count belongs to the heading, so it goes where it goes. */}

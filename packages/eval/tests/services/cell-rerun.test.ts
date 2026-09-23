@@ -47,7 +47,7 @@ const layer = (
         finishReported: () => Effect.succeed(true),
         report: () => Effect.void,
         get: () => Effect.succeed(Option.none()),
-        cases: () => Effect.succeed({ cases: [], tags: [] }),
+        cases: () => Effect.succeed({ cases: [], next: null, tags: [] }),
 
         list: () => Effect.succeed({ next: null, runs: [], total: 0 }),
         resume: () => Effect.void,
@@ -64,12 +64,15 @@ const layer = (
         countRunning: () => Effect.succeed(0),
         countRuns: () => Effect.succeed(0),
         findCase: () => Effect.succeed(Option.none()),
+        findRunAddresses: () => Effect.succeed([]),
+        findTrial: () => Effect.succeed(Option.none()),
+        findCaseHistory: () => Effect.succeed([]),
         findCellHistory: () => Effect.succeed([]),
         findCellTask: () => Effect.succeed(Option.some(cellTask(source))),
         findRunTasks: () => Effect.succeed([]),
         findRun: () => Effect.succeed(Option.none()),
         hydrateRuns: () => Effect.succeed([]),
-        listCases: () => Effect.succeed([]),
+        listCases: () => Effect.succeed({ cases: [], next: null }),
 
         listRuns: () => Effect.succeed([]),
 

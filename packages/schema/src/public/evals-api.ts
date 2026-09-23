@@ -73,10 +73,11 @@ const PublicEvalSandbox = Schema.Literal(...HOSTED_SANDBOXES).annotations({
   identifier: "PublicEvalSandbox",
 });
 export const ListCasesRequest = Schema.Struct({
+  cursor: Schema.optional(Schema.NullOr(EvalPageCursor)),
   limit: Schema.optional(Schema.Int),
   tag: Schema.optional(Schema.NullOr(Schema.String)),
 }).annotations({
-  description: "Which cases to read.",
+  description: "Which cases to read, where to read from, and how much.",
   identifier: "ListCasesRequest",
 });
 
@@ -205,7 +206,7 @@ export class PublicEvalsGroup extends HttpApiGroup.make("evals")
       .annotate(OpenApi.Summary, "List cases")
       .annotate(
         OpenApi.Description,
-        "One row per case, carrying its newest run. Pass `tag` to read only the cases carrying it."
+        "One row per case, newest run first, carrying its newest run. Pass `tag` to read only the cases carrying it, and the `next` cursor from a response to read the page after it; a null `next` means there are no more."
       )
   )
   .add(

@@ -15,10 +15,12 @@ export const evalKeys = {
 
   subscription: (id: string) => [...evalKeys.all, "subscription", id] as const,
 
-  cases: (tag: string | null) =>
-    [...evalKeys.all, "cases", tag ?? "all"] as const,
+  cases: (tag: string | null, cursor: { readonly id: string } | null) =>
+    [...evalKeys.all, "cases", tag ?? "all", cursor?.id ?? "first"] as const,
 
   case: (id: string) => [...evalKeys.all, "case", id] as const,
+
+  trialAddress: (id: string) => [...evalKeys.all, "trial-address", id] as const,
 
   history: (cellKey: string) =>
     [...evalKeys.all, "cell", cellKey, "history"] as const,

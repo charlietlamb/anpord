@@ -415,6 +415,7 @@ export const EvalArtifactRequest = Schema.Struct({
 export type EvalArtifactRequest = typeof EvalArtifactRequest.Type;
 
 export const EvalTrial = Schema.Struct({
+  id: Schema.optional(Schema.String),
   artifacts: Schema.optional(Schema.Array(EvalArtifactMetadata)),
   validations: Schema.optional(EvalValidations),
   judgments: Schema.optional(Schema.Array(EvalJudgment)),
@@ -618,6 +619,7 @@ export type EvalCaseSummary = typeof EvalCaseSummary.Type;
 
 export const EvalCasePage = Schema.Struct({
   cases: Schema.Array(EvalCaseSummary),
+  next: Schema.NullOr(EvalPageCursor),
   tags: Schema.Array(Schema.String),
 }).annotations({
   description: "Cases and every tag they carry between them.",
@@ -632,16 +634,43 @@ export const EvalCellHistoryEntry = Schema.Struct({
   definitionHash: Schema.String,
   distribution: EvalDistribution,
   finishedAt: Schema.NullOr(EvalTimestamp),
+  harness: Schema.optionalWith(Schema.String, { default: () => "" }),
   harnessVersion: Schema.String,
   internalId: Schema.String,
+  local: Schema.optionalWith(Schema.Boolean, { default: () => false }),
+  model: Schema.optionalWith(Schema.String, { default: () => "" }),
   profileVersion: Schema.NullOr(Schema.String),
   runId: Schema.String,
+  sandbox: Schema.optionalWith(Schema.String, { default: () => "" }),
   trials: Schema.Array(EvalTrial),
 }).annotations({
   description: "A previous scored result for the same cell identity.",
   identifier: "EvalCellHistoryEntry",
 });
 export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
+
+export const EvalTrialAddress = Schema.Struct({
+  caseId: Schema.String,
+  cellKey: Schema.String,
+  ordinal: Schema.Int,
+  runId: Schema.String,
+  trialId: Schema.String,
+}).annotations({
+  description: "Where a trial sits: its case, run, cell and ordinal.",
+  identifier: "EvalTrialAddress",
+});
+export type EvalTrialAddress = typeof EvalTrialAddress.Type;
+
+export const EvalCaseVersion = Schema.Struct({
+  author: Schema.NullOr(Schema.String),
+  changes: Schema.Array(Schema.String),
+  createdAt: EvalTimestamp,
+  definitionHash: Schema.String,
+}).annotations({
+  description: "One definition a case held, who wrote it, and what it changed.",
+  identifier: "EvalCaseVersion",
+});
+export type EvalCaseVersion = typeof EvalCaseVersion.Type;
 
 export const EvalCaseDetail = Schema.Struct({
   cellKey: Schema.String,
@@ -651,7 +680,7 @@ export const EvalCaseDetail = Schema.Struct({
   name: Schema.String,
   suite: Schema.NullOr(Schema.String),
   tags: Schema.Array(Schema.String),
-  task: EvalTask,
+  versions: Schema.Array(EvalCaseVersion),
 }).annotations({
   description: "A case, its newest reading, and every reading before it.",
   identifier: "EvalCaseDetail",

@@ -1,4 +1,3 @@
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import {
@@ -104,7 +103,7 @@ function PromptsPage() {
           </Link>
         </>
       }
-      leading={<PageHeading icon={ChatTextIcon} title="Prompts" />}
+      title="Prompts"
       width="wide"
     >
       <ListState

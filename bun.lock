@@ -109,7 +109,6 @@
         "@tanstack/start-server-core": "catalog:",
         "@trigger.dev/react-hooks": "catalog:",
         "better-auth": "catalog:",
-        "date-fns": "catalog:",
         "effect": "catalog:",
         "motion": "catalog:",
         "next-themes": "catalog:",

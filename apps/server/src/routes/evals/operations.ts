@@ -19,7 +19,7 @@ import {
 } from "@anpord/schema/domain/evals";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
-import { Effect, Option } from "effect";
+import { DateTime, Effect, Option } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { EvalCredentials } from "../internal/evals/credentials";
 import { harnessVersion } from "../internal/evals/harness-version";
@@ -31,22 +31,24 @@ import { admitStart } from "../internal/evals/start-admission";
 
 const HISTORY_LIMIT = 20;
 
-export const listEvalRuns = (params: {
+interface PageParams {
   readonly cursorId?: string | undefined;
   readonly cursorStartedAt?: number | undefined;
   readonly limit?: number | undefined;
-}) =>
+}
+
+const cursorOf = (params: PageParams) =>
+  params.cursorId === undefined || params.cursorStartedAt === undefined
+    ? null
+    : { id: params.cursorId, startedAtMillis: params.cursorStartedAt };
+
+export const listEvalRuns = (params: PageParams) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
     const grid = yield* GridRun;
 
-    const cursor =
-      params.cursorId === undefined || params.cursorStartedAt === undefined
-        ? null
-        : { id: params.cursorId, startedAtMillis: params.cursorStartedAt };
-
     const page = yield* grid.list({
-      cursor,
+      cursor: cursorOf(params),
       limit: params.limit,
       organizationId: actor.organizationId,
     });
@@ -58,15 +60,15 @@ export const listEvalRuns = (params: {
     };
   });
 
-export const listEvalCases = (params: {
-  readonly limit?: number | undefined;
-  readonly tag?: string | null | undefined;
-}) =>
+export const listEvalCases = (
+  params: PageParams & { readonly tag?: string | null | undefined }
+) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
     const grid = yield* GridRun;
 
     return yield* grid.cases({
+      cursor: cursorOf(params),
       limit: params.limit,
       organizationId: actor.organizationId,
       tag: params.tag ?? null,
@@ -234,7 +236,6 @@ export const getCellHistory = (cellKey: string) =>
 export const getCase = (id: string) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
-    const baselines = yield* Baselines;
     const query = yield* RunQuery;
     const found = yield* query.findCase({
       id,
@@ -247,8 +248,8 @@ export const getCase = (id: string) =>
       );
     }
 
-    const entries = yield* baselines.history({
-      cellKey: found.value.cellKey,
+    const entries = yield* query.findCaseHistory({
+      caseId: id,
       limit: HISTORY_LIMIT,
       organizationId: actor.organizationId,
     });
@@ -257,7 +258,44 @@ export const getCase = (id: string) =>
       ...found.value,
       history: entries.map(toReadingView),
       id,
+      versions: found.value.versions.map((version) => ({
+        ...version,
+        createdAt: DateTime.unsafeMake(version.createdAt.getTime()),
+      })),
     };
+  }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
+
+export const getTrialAddress = (trialId: string) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const query = yield* RunQuery;
+    const found = yield* query.findTrial({
+      organizationId: actor.organizationId,
+      trialId,
+    });
+
+    if (Option.isNone(found)) {
+      return yield* Effect.fail(
+        new NotFound({ message: `No trial with id "${trialId}"` })
+      );
+    }
+
+    return found.value;
+  }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
+
+export const listRunAddresses = (input: {
+  readonly cellKey?: string | undefined;
+  readonly ordinal?: number | undefined;
+  readonly runId: string;
+}) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const query = yield* RunQuery;
+
+    return yield* query.findRunAddresses({
+      ...input,
+      organizationId: actor.organizationId,
+    });
   }).pipe(Effect.catchTag("EvalStoreError", Effect.die));
 
 export const rerunEvalCell = (

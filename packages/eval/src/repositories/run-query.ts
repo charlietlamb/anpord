@@ -8,11 +8,12 @@ import {
   caseDetailQuery,
 } from "./case-detail-query";
 import {
-  type CaseSummary,
+  type CasePageResult,
   caseListQuery,
   type ListCasesInput,
 } from "./case-list-query";
 import {
+  type CaseHistoryInput,
   type CellHistoryEntry,
   type CellHistoryInput,
   cellHistoryQuery,
@@ -27,6 +28,11 @@ import {
   type RunTasksInput,
   runTasksQuery,
 } from "./run-tasks-query";
+import {
+  type RunAddressInput,
+  type TrialAddress,
+  trialAddressQuery,
+} from "./trial-address-query";
 
 type RunRow = typeof evalRun.$inferSelect;
 
@@ -43,6 +49,9 @@ export interface RunQueryShape {
   readonly findCase: (
     input: CaseDetailInput
   ) => Effect.Effect<Option.Option<CaseDetail>, EvalStoreError>;
+  readonly findCaseHistory: (
+    input: CaseHistoryInput
+  ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
   readonly findCellHistory: (
     input: CellHistoryInput
   ) => Effect.Effect<readonly CellHistoryEntry[], EvalStoreError>;
@@ -53,16 +62,23 @@ export interface RunQueryShape {
     organizationId: string,
     runId: string
   ) => Effect.Effect<Option.Option<RunDetail>, EvalStoreError>;
+  readonly findRunAddresses: (
+    input: RunAddressInput
+  ) => Effect.Effect<readonly TrialAddress[], EvalStoreError>;
 
   readonly findRunTasks: (
     input: RunTasksInput
   ) => Effect.Effect<readonly CellTask[], EvalStoreError>;
+  readonly findTrial: (input: {
+    readonly organizationId: string;
+    readonly trialId: string;
+  }) => Effect.Effect<Option.Option<TrialAddress>, EvalStoreError>;
   readonly hydrateRuns: (
     runs: readonly RunRow[]
   ) => Effect.Effect<readonly RunDetail[], EvalStoreError>;
   readonly listCases: (
     input: ListCasesInput
-  ) => Effect.Effect<readonly CaseSummary[], EvalStoreError>;
+  ) => Effect.Effect<CasePageResult, EvalStoreError>;
   readonly listRuns: (
     input: ListRunsInput
   ) => Effect.Effect<readonly RunRow[], EvalStoreError>;
@@ -89,17 +105,21 @@ export const RunQueryLive = Layer.effect(
     const cases = yield* caseListQuery;
     const subject = yield* caseDetailQuery;
     const tail = yield* runTailQuery;
+    const addresses = yield* trialAddressQuery;
 
     return RunQuery.of({
       countRunning: list.countRunning,
       countRuns: list.countRuns,
       findCase: subject.findCase,
+      findCaseHistory: history.findCaseHistory,
       findCellHistory: history.findCellHistory,
       findCellTask: tasks.findCellTask,
       findRunTasks: tasks.findRunTasks,
       listCases: cases.listCases,
       listTags: cases.listTags,
       findRun: detail.findRun,
+      findRunAddresses: addresses.findRunAddresses,
+      findTrial: addresses.findTrial,
       hydrateRuns: detail.hydrateRuns,
       listRuns: list.listRuns,
       readTail: tail.readTail,

@@ -2,7 +2,6 @@ import type {
   EvalArtifactMetadata,
   EvalArtifactRequest,
 } from "@anpord/schema/domain/evals";
-import { FilesIcon } from "@phosphor-icons/react";
 import { ArtifactFile } from "@/components/evals/artifact-file";
 import { SetupSurface } from "./setup-surface";
 
@@ -23,7 +22,6 @@ export function TrialArtifacts({
   return (
     <SetupSurface
       contentClassName="space-y-2"
-      Icon={FilesIcon}
       meta={String(artifacts.length)}
       title={title}
       titled={titled}

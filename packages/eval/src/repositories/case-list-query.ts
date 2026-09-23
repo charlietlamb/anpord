@@ -3,17 +3,16 @@ import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTask } from "@anpord/db/schema/evals/eval-tasks";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect } from "effect";
 import type { Distribution } from "../domain/distribution";
+import { type PageCursor, pageOf } from "../domain/page";
 import { cellTrialsQuery } from "./cell-trials-query";
 import { tryStore } from "./query";
 import { distributionFor, groupByCell } from "./trial-distribution";
 
 export interface CaseSummary {
-  /** The handle its author gave it, stable across every edit. */
   readonly caseId: string;
-  /** The newest cell, which is what its history and rerun are read by. */
   readonly cellKey: string;
   readonly distribution: Distribution;
   readonly harness: string;
@@ -27,163 +26,128 @@ export interface CaseSummary {
 }
 
 export interface ListCasesInput {
+  readonly cursor: PageCursor | null;
   readonly limit: number;
   readonly organizationId: string;
   readonly tag: string | null;
 }
 
-/* Bounded because a case seen once long ago would otherwise never surface
-   behind ones run every day. */
-const SCAN_LIMIT = 2000;
-
-interface Sighting {
-  readonly caseId: string;
-  readonly cellInternalId: string;
-  readonly cellKey: string;
-  readonly harness: string;
-  readonly lastRunAtMillis: number;
-  readonly lastRunId: string;
-  readonly model: string;
-  readonly name: string;
-  runCount: number;
-  readonly suite: string | null;
-  readonly tags: readonly string[];
+export interface CasePageResult {
+  readonly cases: readonly CaseSummary[];
+  readonly next: PageCursor | null;
 }
 
-/* Named column by column: these rows also hold validator bundles and prepare
-   sources, and reading them whole for every cell scanned moved megabytes to
-   fold a dozen short strings. */
-const SIGHTED = {
-  caseId: evalCase.id,
-  caseInternalId: evalTask.caseInternalId,
-  cellCreatedAt: evalCell.createdAt,
-  cellInternalId: evalCell.internalId,
-  cellKey: evalCell.cellKey,
-  harness: evalCell.harness,
-  model: evalCell.model,
-  name: evalTask.name,
-  runId: evalRun.id,
-  suite: evalRun.name,
-  tags: evalTask.tags,
-} as const;
-
-interface Row {
-  readonly caseId: string;
-  readonly caseInternalId: string;
-  readonly cellCreatedAt: Date;
-  readonly cellInternalId: string;
-  readonly cellKey: string;
-  readonly harness: string;
-  readonly model: string;
-  readonly name: string;
-  readonly runId: string;
-  readonly suite: string | null;
-  readonly tags: readonly string[] | null;
-}
-
-/* Rows arrive newest first, so the first sighting of a case is the one shown
-   and every later one only raises its count. */
-const foldByCase = (rows: readonly Row[]) => {
-  const seen = new Map<string, Sighting>();
-  const order: string[] = [];
-
-  for (const row of rows) {
-    const existing = seen.get(row.caseInternalId);
-
-    if (existing === undefined) {
-      seen.set(row.caseInternalId, {
-        caseId: row.caseId,
-        cellInternalId: row.cellInternalId,
-        cellKey: row.cellKey,
-        harness: row.harness,
-        lastRunAtMillis: row.cellCreatedAt.getTime(),
-        lastRunId: row.runId,
-        model: row.model,
-        name: row.name,
-        runCount: 1,
-        suite: row.suite,
-        tags: row.tags ?? [],
-      });
-      order.push(row.caseInternalId);
-      continue;
-    }
-
-    existing.runCount += 1;
-  }
-
-  return { order, seen };
-};
+const lastRun = sql<Date>`date_trunc('milliseconds', max(${evalCell.createdAt}))`;
 
 export const caseListQuery = Effect.gen(function* () {
   const db = yield* Database;
   const trialsForCells = yield* cellTrialsQuery;
 
+  const casePage = (input: ListCasesInput) =>
+    tryStore("runQuery.casePage", () =>
+      db
+        .select({
+          caseId: evalCase.id,
+          caseInternalId: evalCase.internalId,
+          lastRunAt: lastRun,
+          name: evalCase.name,
+          runCount: sql<number>`count(*)::int`,
+        })
+        .from(evalCase)
+        .innerJoin(evalTask, eq(evalTask.caseInternalId, evalCase.internalId))
+        .innerJoin(evalCell, eq(evalCell.taskInternalId, evalTask.internalId))
+        .where(
+          and(
+            eq(evalCase.organizationId, input.organizationId),
+            input.tag === null
+              ? undefined
+              : sql`exists (select 1 from ${evalTask} tagged where tagged.case_internal_id = ${evalCase.internalId} and tagged.tags @> ${JSON.stringify([input.tag])}::jsonb)`
+          )
+        )
+        .groupBy(evalCase.internalId, evalCase.id, evalCase.name)
+        .having(
+          input.cursor === null
+            ? undefined
+            : sql`(${lastRun}, ${evalCase.id}) < (${new Date(input.cursor.startedAtMillis)}, ${input.cursor.id})`
+        )
+        .orderBy(desc(lastRun), desc(evalCase.id))
+        .limit(input.limit + 1)
+    );
+
+  const newestCells = (caseInternalIds: readonly string[]) =>
+    tryStore("runQuery.caseNewestCells", () =>
+      db
+        .selectDistinctOn([evalTask.caseInternalId], {
+          caseInternalId: evalTask.caseInternalId,
+          cellInternalId: evalCell.internalId,
+          cellKey: evalCell.cellKey,
+          harness: evalCell.harness,
+          model: evalCell.model,
+          runId: evalRun.id,
+          suite: evalRun.name,
+          tags: evalTask.tags,
+        })
+        .from(evalCell)
+        .innerJoin(evalTask, eq(evalTask.internalId, evalCell.taskInternalId))
+        .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
+        .where(inArray(evalTask.caseInternalId, [...caseInternalIds]))
+        .orderBy(evalTask.caseInternalId, desc(evalCell.createdAt))
+    );
+
   const listCases = (input: ListCasesInput) =>
     Effect.gen(function* () {
-      const rows = yield* tryStore("runQuery.listCases", () =>
-        db
-          .select(SIGHTED)
-          .from(evalCell)
-          .innerJoin(evalRun, eq(evalCell.runInternalId, evalRun.internalId))
-          .innerJoin(evalTask, eq(evalTask.internalId, evalCell.taskInternalId))
-          .innerJoin(evalCase, eq(evalCase.internalId, evalTask.caseInternalId))
-          .where(eq(evalRun.organizationId, input.organizationId))
-          .orderBy(desc(evalCell.createdAt))
-          .limit(SCAN_LIMIT)
+      const { hasMore, items: page } = pageOf(
+        yield* casePage(input),
+        input.limit
       );
+      const last = page.at(-1);
 
-      const { order, seen } = foldByCase(rows);
-
-      if (order.length === 0) {
-        return [];
+      if (page.length === 0) {
+        return { cases: [], next: null } satisfies CasePageResult;
       }
 
-      /* Only the newest cell of each case is scored. The ones behind it are
-         earlier edits, and folding them in would report a case as worse than
-         the version that exists. */
-      const trials = yield* trialsForCells(
-        order.flatMap((caseInternalId) => {
-          const sighting = seen.get(caseInternalId);
-
-          return sighting === undefined ? [] : [sighting.cellInternalId];
-        })
+      const newest = yield* newestCells(page.map((row) => row.caseInternalId));
+      const byCase = new Map(newest.map((cell) => [cell.caseInternalId, cell]));
+      const trials = groupByCell(
+        yield* trialsForCells(newest.map((cell) => cell.cellInternalId))
       );
-      const byCell = groupByCell(trials);
 
-      return order
-        .flatMap((caseInternalId): CaseSummary[] => {
-          const sighting = seen.get(caseInternalId);
+      const cases = page.flatMap((row): CaseSummary[] => {
+        const cell = byCase.get(row.caseInternalId);
 
-          if (
-            sighting === undefined ||
-            (input.tag !== null && !sighting.tags.includes(input.tag))
-          ) {
-            return [];
-          }
+        return cell === undefined
+          ? []
+          : [
+              {
+                caseId: row.caseId,
+                cellKey: cell.cellKey,
+                distribution: distributionFor(
+                  trials.get(cell.cellInternalId) ?? []
+                ),
+                harness: cell.harness,
+                lastRunAtMillis: new Date(row.lastRunAt).getTime(),
+                lastRunId: cell.runId,
+                model: cell.model,
+                name: row.name,
+                runCount: row.runCount,
+                suite: cell.suite,
+                tags: cell.tags ?? [],
+              },
+            ];
+      });
 
-          return [
-            {
-              caseId: sighting.caseId,
-              cellKey: sighting.cellKey,
-              distribution: distributionFor(
-                byCell.get(sighting.cellInternalId) ?? []
-              ),
-              harness: sighting.harness,
-              lastRunAtMillis: sighting.lastRunAtMillis,
-              lastRunId: sighting.lastRunId,
-              model: sighting.model,
-              name: sighting.name,
-              runCount: sighting.runCount,
-              suite: sighting.suite,
-              tags: sighting.tags,
-            },
-          ];
-        })
-        .slice(0, input.limit);
+      return {
+        cases,
+        next:
+          hasMore && last !== undefined
+            ? {
+                id: last.caseId,
+                startedAtMillis: new Date(last.lastRunAt).getTime(),
+              }
+            : null,
+      } satisfies CasePageResult;
     }).pipe(Effect.withSpan("RunQuery.listCases"));
 
-  /* Read from the cases themselves rather than kept as a table: a tag exists
-     while a case carries it, so removing the last one removes the tag. */
   const listTags = (organizationId: string) =>
     tryStore("runQuery.listTags", () =>
       db

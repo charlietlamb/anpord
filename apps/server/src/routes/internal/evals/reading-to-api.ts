@@ -2,11 +2,14 @@ import { costsOf } from "@anpord/eval/domain/eval-costs";
 import { usageOf } from "@anpord/eval/domain/harness-event";
 import type { CellHistoryEntry } from "@anpord/eval/repositories/cell-history-query";
 import { EvalJudgment } from "@anpord/schema/domain/eval-judges";
+import { EvalValidations } from "@anpord/schema/domain/eval-validations";
 import type {
   EvalCellHistoryEntry,
   EvalTrial,
 } from "@anpord/schema/domain/evals";
-import { DateTime, Schema } from "effect";
+import { DateTime, Option, Schema } from "effect";
+
+const decodeValidations = Schema.decodeUnknownOption(EvalValidations);
 
 /* No trajectory: the journal is fetched per trial, so a history of twenty readings would pull twenty journals to draw a table showing none. */
 const toStoredTrial = (trial: {
@@ -22,6 +25,7 @@ const toStoredTrial = (trial: {
     readonly source: string;
   }[];
   readonly exitCode: number | null;
+  readonly internalId: string;
   readonly modelMs: number | null;
   readonly ordinal: number;
   readonly passed: boolean | null;
@@ -30,6 +34,7 @@ const toStoredTrial = (trial: {
   readonly status: string;
   readonly usage: Record<string, number> | null;
   readonly prepared: Record<string, unknown> | null;
+  readonly validations?: unknown;
   readonly verifySteps: { command: string; exitCode: number }[] | null;
   readonly voidFields: string[] | null;
 }): EvalTrial => ({
@@ -46,6 +51,7 @@ const toStoredTrial = (trial: {
   prepared: trial.prepared,
   exitCode: trial.exitCode ?? -1,
   failedCommands: 0,
+  id: trial.internalId,
   filesChanged: [],
   modelMs: trial.modelMs ?? 0,
   ordinal: trial.ordinal,
@@ -56,6 +62,7 @@ const toStoredTrial = (trial: {
   timed: false,
   trajectory: [],
   usage: usageOf(trial.usage),
+  validations: Option.getOrUndefined(decodeValidations(trial.validations)),
   verifySteps: trial.verifySteps ?? [],
   voidFields: trial.voidFields ?? [],
 });
@@ -70,10 +77,14 @@ export const toReadingView = (
     entry.finishedAt === null
       ? null
       : DateTime.unsafeMake(entry.finishedAt.getTime()),
+  harness: entry.harness,
   harnessVersion: entry.harnessVersion,
   internalId: entry.internalId,
+  local: entry.local,
+  model: entry.model,
   profileVersion: entry.profileVersion,
   runId: entry.runId,
+  sandbox: entry.sandbox,
   trigger: entry.trigger,
   trials: entry.trials.map(toStoredTrial),
 });

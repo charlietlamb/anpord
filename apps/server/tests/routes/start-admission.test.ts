@@ -41,12 +41,15 @@ const withRunning = (running: number) =>
       countRunning: () => Effect.succeed(running),
       countRuns: () => Effect.succeed(running),
       findCase: () => Effect.succeed(Option.none()),
+      findRunAddresses: () => Effect.succeed([]),
+      findTrial: () => Effect.succeed(Option.none()),
+      findCaseHistory: () => Effect.succeed([]),
       findCellHistory: () => Effect.succeed([]),
       findCellTask: () => Effect.succeed(Option.none()),
       findRun: () => Effect.succeed(Option.none()),
       findRunTasks: () => Effect.succeed([]),
       hydrateRuns: () => Effect.succeed([]),
-      listCases: () => Effect.succeed([]),
+      listCases: () => Effect.succeed({ cases: [], next: null }),
 
       listRuns: () => Effect.succeed([]),
 

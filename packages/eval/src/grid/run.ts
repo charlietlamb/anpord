@@ -42,6 +42,7 @@ export interface GridRunPage {
 
 export interface GridRunShape {
   readonly cases: (input: {
+    readonly cursor: PageCursor | null;
     readonly limit: number | undefined;
     readonly organizationId: string;
     readonly tag: string | null;

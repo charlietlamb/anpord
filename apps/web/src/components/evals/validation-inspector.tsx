@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@anpord/ui/components/ui/select";
 import { cn } from "@anpord/ui/lib/utils";
-import { CaretRightIcon, CheckSquareIcon } from "@phosphor-icons/react";
+import { CaretRightIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import {
   type ValidationTrial,
@@ -49,7 +49,6 @@ export function ValidationInspector({
   );
   return (
     <SetupSurface
-      Icon={CheckSquareIcon}
       meta={
         selected && validations.length
           ? `${validations.filter((entry) => entry.status === "passed").length}/${validations.length} passed`

@@ -1,5 +1,4 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
-import { CheckSquareIcon } from "@phosphor-icons/react";
 import { SetupSurface } from "./setup-surface";
 
 const ROWS = ["w-36", "w-28"];
@@ -10,7 +9,7 @@ export function ValidationInspectorSkeleton({
   readonly titled?: boolean;
 }) {
   return (
-    <SetupSurface Icon={CheckSquareIcon} title="Validation" titled={titled}>
+    <SetupSurface title="Validation" titled={titled}>
       <div className="space-y-3">
         {ROWS.map((width, index) => (
           <div

@@ -1,24 +1,18 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { DataTableSkeleton } from "@anpord/ui/components/ui/data-table";
 import { createFileRoute } from "@tanstack/react-router";
-import { CELL, RUN, RUNS, TRIALS } from "@/components/dev/eval-fixtures";
+import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
-import { CellSkeleton } from "@/components/evals/cell-skeleton";
-import { EvalRow } from "@/components/evals/eval-row";
-import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
-import { RunGrid } from "@/components/evals/run-grid";
-import { RunGridSkeleton } from "@/components/evals/run-grid-skeleton";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialCallsSkeleton } from "@/components/evals/trial-calls-skeleton";
-import { TrialListSkeleton } from "@/components/evals/trial-row-skeleton";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
-import { TrialTable } from "@/components/evals/trial-table";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { ValidationInspectorSkeleton } from "@/components/evals/validation-inspector-skeleton";
-import { RowList } from "@/components/layout/row-list";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
+import { CASES_TABLE } from "@/lib/evals/case-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
@@ -56,68 +50,26 @@ function SkeletonsPreview() {
         </div>
 
         <Pair
-          loaded={
-            <RowList>
-              {RUNS.slice(0, 5).map((run) => (
-                <EvalRow key={run.id} run={run} />
-              ))}
-            </RowList>
-          }
-          name="Eval list"
-          skeleton={<EvalListSkeleton />}
-        />
-
-        <Pair
-          loaded={
-            <TrialTable
-              cellKey={CELL.cellKey ?? "cell"}
-              runId={RUN.id}
-              trials={CELL.trials}
-            />
-          }
-          name="Trial list"
-          skeleton={<TrialListSkeleton />}
-        />
-
-        <Pair
-          loaded={<RunGrid run={RUN} />}
-          name="Run grid"
-          skeleton={<RunGridSkeleton />}
-        />
-
-        <Pair
           loaded={<ValidationInspector trials={VALIDATION_TRIALS} />}
           name="Validation"
           skeleton={<ValidationInspectorSkeleton />}
         />
 
-        <Pair
-          loaded={
-            <RowList>
-              {RUNS.slice(0, 3).map((run) => (
-                <EvalRow key={run.id} run={run} />
-              ))}
-            </RowList>
-          }
-          name="Prompt list (shared SkeletonRows)"
-          skeleton={<PromptListSkeleton />}
-        />
+        <PreviewScreen name="Cases table">
+          <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
+            <DataTableSkeleton {...CASES_TABLE} />
+          </div>
+        </PreviewScreen>
 
-        <Pair
-          loaded={
-            <RowList>
-              {RUNS.slice(0, 2).map((run) => (
-                <EvalRow key={run.id} run={run} />
-              ))}
-            </RowList>
-          }
-          name="Connection list"
-          skeleton={<ConnectionListSkeleton />}
-        />
+        <PreviewScreen name="Prompt list">
+          <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
+            <PromptListSkeleton />
+          </div>
+        </PreviewScreen>
 
-        <PreviewScreen name="Cell page">
-          <div data-probe="skeleton">
-            <CellSkeleton cellKey="cell" runId="run_1" />
+        <PreviewScreen name="Connection list">
+          <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
+            <ConnectionListSkeleton />
           </div>
         </PreviewScreen>
 

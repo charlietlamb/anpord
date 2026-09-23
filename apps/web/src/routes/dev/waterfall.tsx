@@ -1,10 +1,6 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import {
-  CheckSquareIcon,
-  PulseIcon,
-  SquaresFourIcon,
-} from "@phosphor-icons/react";
+import { CheckSquareIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CONVERSATION } from "@/components/dev/conversation-fixture";
 import { TRIALS } from "@/components/dev/eval-fixtures";
@@ -137,7 +133,7 @@ function WaterfallPreview() {
             <EvalLayout>
               <EvalMain>
                 <section className="flex flex-col gap-1.5">
-                  <PageHeading icon={PulseIcon} title="Trajectory" />
+                  <PageHeading title="Trajectory" />
 
                   <Waterfall
                     running={false}

@@ -18,8 +18,10 @@ import {
   getCase,
   getEvalRun,
   getRunSubscription,
+  getTrialAddress,
   listEvalCases,
   listEvalRuns,
+  listRunAddresses,
   readRunTail,
 } from "../../evals/operations";
 import { EvalCredentials } from "./credentials";
@@ -72,6 +74,16 @@ export const EvalsHandlers = HttpApiBuilder.group(
       )
       .handle("case", { permission: Permissions.Evals.Read }, ({ path }) =>
         getCase(path.id)
+      )
+      .handle(
+        "trialAddress",
+        { permission: Permissions.Evals.Read },
+        ({ path }) => getTrialAddress(path.id)
+      )
+      .handle(
+        "runAddresses",
+        { permission: Permissions.Evals.Read },
+        ({ path, payload }) => listRunAddresses({ ...payload, runId: path.id })
       )
       .handle(
         "cellHistory",

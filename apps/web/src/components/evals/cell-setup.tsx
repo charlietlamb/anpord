@@ -10,7 +10,6 @@ import {
   GitBranchIcon,
   type Icon,
   TerminalWindowIcon,
-  TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { TickedProse } from "@/components/evals/inline-code";
@@ -104,7 +103,6 @@ function Verify({
           />
         </>
       }
-      Icon={CheckSquareIcon}
       meta={checks(verdicts)}
       title="Verify"
     >
@@ -151,7 +149,6 @@ export function CellSetup({
         controls={
           <CopyButton label="Copy prompt" size="inline" value={setup.prompt} />
         }
-        Icon={TextAlignLeftIcon}
         title="Prompt"
       >
         <p className="max-w-prose whitespace-pre-wrap text-pretty text-foreground/90 text-sm leading-7">

@@ -19,6 +19,7 @@ import {
   EvalHarness,
   EvalRun,
   EvalRunPage,
+  EvalTrialAddress,
   RunSubscription,
   StartEvalRequest,
 } from "../domain/evals";
@@ -49,6 +50,8 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
     HttpApiEndpoint.get("cases", "/evals/cases")
       .setUrlParams(
         Schema.Struct({
+          cursorId: Schema.optional(Schema.String),
+          cursorStartedAt: Schema.optional(Schema.NumberFromString),
           limit: Schema.optional(Schema.NumberFromString),
           tag: Schema.optional(Schema.String),
         })
@@ -78,6 +81,25 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
       .setPath(RunPath)
       .setPayload(Schema.Struct({ after: Schema.Array(EvalTailMark) }))
       .addSuccess(EvalRunTail)
+  )
+
+  .add(
+    HttpApiEndpoint.get("trialAddress", "/evals/trials/:id")
+      .setPath(Schema.Struct({ id: Schema.String }))
+      .addSuccess(EvalTrialAddress)
+      .addError(NotFound)
+  )
+
+  .add(
+    HttpApiEndpoint.post("runAddresses", "/evals/:id/addresses")
+      .setPath(Schema.Struct({ id: Schema.String }))
+      .setPayload(
+        Schema.Struct({
+          cellKey: Schema.optional(Schema.String),
+          ordinal: Schema.optional(Schema.Int),
+        })
+      )
+      .addSuccess(Schema.Array(EvalTrialAddress))
   )
 
   .add(

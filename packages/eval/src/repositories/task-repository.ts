@@ -15,6 +15,7 @@ interface TaskDefinition {
   /** What a prepare builds that is worth keeping between runs of this case. */
   readonly cache?: { readonly key: string; readonly path: string };
   readonly caseInternalId: string;
+  readonly createdBy: string | null;
   readonly name: string;
   readonly organizationId: string;
   readonly prepare: EvalPrepare | null;
@@ -84,6 +85,7 @@ export const TaskRepositoryLive = Layer.effect(
               .values({
                 ...definitionOf(input),
                 caseInternalId: input.caseInternalId,
+                createdBy: input.createdBy,
                 definitionHash: input.definitionHash,
                 internalId,
                 organizationId: input.organizationId,

@@ -1,45 +1,66 @@
-import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
-import { HistoryRow } from "@/components/evals/history-row";
+import type {
+  EvalCaseVersion,
+  EvalCellHistoryEntry,
+} from "@anpord/schema/domain/evals";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableFooter,
+  DataTableHead,
+} from "@anpord/ui/components/ui/data-table";
+import { CaseEditRow } from "@/components/evals/case-edit-row";
+import { CaseTrialRow } from "@/components/evals/case-trial-row";
 import { EmptyNote } from "@/components/layout/empty-note";
-
-const definitionChangedAfter = (
-  entries: readonly EvalCellHistoryEntry[],
-  index: number
-) => {
-  const earlier = entries[index + 1];
-
-  return (
-    earlier !== undefined &&
-    earlier.definitionHash !== entries[index]?.definitionHash
-  );
-};
+import { CASE_HISTORY_TABLE } from "@/lib/evals/case-tables";
+import { timelineOf } from "@/lib/evals/case-timeline";
+import { counted } from "@/lib/evals/conversation";
 
 export function CaseReadings({
-  cellKey,
+  caseId,
   entries,
+  versions,
 }: {
-  readonly cellKey: string;
+  readonly caseId: string;
   readonly entries: readonly EvalCellHistoryEntry[];
+  readonly versions: readonly EvalCaseVersion[];
 }) {
   if (entries.length === 0) {
     return <EmptyNote>No runs of this case yet.</EmptyNote>;
   }
 
-  return (
-    <ul className="flex flex-col">
-      {entries.map((entry, index) => (
-        <li key={entry.internalId}>
-          <HistoryRow cellKey={cellKey} entry={entry} />
+  const trials = entries.reduce((sum, entry) => sum + entry.trials.length, 0);
 
-          {definitionChangedAfter(entries, index) ? (
-            <p className="flex items-center gap-2 py-1.5 text-muted-foreground text-xs">
-              <span className="h-px flex-1 bg-border-faint" />
-              The case was edited here
-              <span className="h-px flex-1 bg-border-faint" />
-            </p>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+  return (
+    <DataTable
+      columns={CASE_HISTORY_TABLE.columns}
+      label={CASE_HISTORY_TABLE.label}
+    >
+      <DataTableHead headings={CASE_HISTORY_TABLE.headings} />
+
+      <DataTableBody>
+        {timelineOf(entries, versions).flatMap((item) =>
+          item.kind === "reading"
+            ? item.entry.trials.map((trial) => (
+                <CaseTrialRow
+                  caseId={caseId}
+                  entry={item.entry}
+                  key={`${item.entry.internalId}-${trial.ordinal}`}
+                  trial={trial}
+                />
+              ))
+            : [
+                <CaseEditRow
+                  created={item.created}
+                  key={`edit-${item.version.definitionHash}`}
+                  version={item.version}
+                />,
+              ]
+        )}
+      </DataTableBody>
+
+      <DataTableFooter>
+        Showing {counted(trials, "trial", "trials")}
+      </DataTableFooter>
+    </DataTable>
   );
 }

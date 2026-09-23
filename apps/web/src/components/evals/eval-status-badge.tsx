@@ -1,21 +1,15 @@
 import type {
-  EvalRunStatus,
+  EvalDistribution,
   EvalTrialStatus,
 } from "@anpord/schema/domain/evals";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
+import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { cn } from "@anpord/ui/lib/utils";
-import type { Icon } from "@phosphor-icons/react";
 import {
-  type EvalTone,
-  runGlyph,
-  runTone,
-  trialGlyph,
-  trialTone,
-} from "@/lib/evals/eval-status";
+  CheckCircleIcon,
+  MinusCircleIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react";
+import { type EvalTone, trialGlyph, trialTone } from "@/lib/evals/eval-status";
 
 const TONE_CLASSES: Record<EvalTone, string> = {
   critical: "text-destructive",
@@ -51,69 +45,6 @@ export function TrialStatusIcon({
   );
 }
 
-function StatusMark({
-  detail,
-  Glyph,
-  label,
-  tone,
-}: {
-  readonly detail?: string | null;
-  readonly Glyph: Icon;
-  readonly label: string;
-  readonly tone: EvalTone;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <span className="flex size-4 shrink-0 items-center justify-center">
-            <Glyph
-              aria-hidden="true"
-              className={cn(
-                "size-3.5",
-                TONE_CLASSES[tone],
-                label === "running" && "animate-spin motion-reduce:animate-none"
-              )}
-              weight="bold"
-            />
-            <span className="sr-only">{label}</span>
-          </span>
-        }
-      />
-
-      <TooltipContent className="max-w-sm" side="right">
-        {detail === null || detail === undefined ? (
-          label
-        ) : (
-          <span className="flex flex-col gap-1">
-            <span>{label}</span>
-            <span className="block whitespace-pre-wrap break-words opacity-70">
-              {detail}
-            </span>
-          </span>
-        )}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
-export function RunStatusIcon({
-  failure,
-  status,
-}: {
-  readonly failure?: string | null;
-  readonly status: EvalRunStatus;
-}) {
-  return (
-    <StatusMark
-      detail={failure}
-      Glyph={runGlyph(status)}
-      label={status}
-      tone={runTone(status)}
-    />
-  );
-}
-
 export function TrialBadge({
   ordinal,
   status,
@@ -135,5 +66,51 @@ export function TrialBadge({
       {ordinal}
       <span className="sr-only">: {status}</span>
     </span>
+  );
+}
+
+const TRIAL_LABELS: Record<EvalTrialStatus, string> = {
+  failed: "Failed",
+  passed: "Passed",
+  queued: "Queued",
+  running: "Running",
+  void: "Not scored",
+};
+
+export function TrialStatusPill({
+  status,
+}: {
+  readonly status: EvalTrialStatus;
+}) {
+  return (
+    <StatusBadge icon={trialGlyph(status)} tone={trialTone(status)}>
+      {TRIAL_LABELS[status]}
+    </StatusBadge>
+  );
+}
+
+export function DistributionPill({
+  distribution,
+}: {
+  readonly distribution: Pick<EvalDistribution, "passed" | "scored">;
+}) {
+  const { passed, scored } = distribution;
+
+  if (scored === 0) {
+    return (
+      <StatusBadge icon={MinusCircleIcon} tone="neutral">
+        Not scored
+      </StatusBadge>
+    );
+  }
+
+  return passed === scored ? (
+    <StatusBadge icon={CheckCircleIcon} tone="positive">
+      {passed}/{scored} passed
+    </StatusBadge>
+  ) : (
+    <StatusBadge icon={XCircleIcon} tone="critical">
+      {passed}/{scored} passed
+    </StatusBadge>
   );
 }

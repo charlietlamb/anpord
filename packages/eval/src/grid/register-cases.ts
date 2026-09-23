@@ -26,6 +26,7 @@ export const makeRegisterCases = Effect.gen(function* () {
           return yield* tasks.upsertByDefinition({
             cache: subject.cache,
             caseInternalId: owner.internalId,
+            createdBy: input.startedBy,
             definitionHash: definitionHashOf({
               name: subject.name,
               prepare: subject.prepare,

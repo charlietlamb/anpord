@@ -118,7 +118,7 @@
   --sidebar-foreground: oklch(0.32 0 0);
   --sidebar-accent: oklch(0.935 0 0);
   --sidebar-accent-foreground: oklch(0.145 0 0);
-  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-border: var(--border);
   --sidebar-ring: oklch(0.68 0.1 220);
   --primary: oklch(0.58 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
@@ -139,11 +139,9 @@
   /* Three weights of edge, lightest to loudest. A divider between rows of the
      same list is quieter than the one edge that bounds a region, which is in
      turn quieter than an edge asked to carry emphasis on its own. */
-  --border-faint: oklch(0.945 0 0);
+  --border-faint: var(--border);
   --border-loud: oklch(0.875 0 0);
-  /* Outer edge of a raised surface. A shade past --border, enough for the
-     inner highlight to sit against without the edge drawing attention. */
-  --border-surface: oklch(0.895 0 0);
+  --border-surface: var(--border);
   --alpha-4: oklch(0 0 0 / 4%);
   /* The step above --alpha-4, for a row that responds to the pointer rather
      than merely accepting it: a trace row is hovered to read one bar out of
@@ -186,7 +184,7 @@
   --sidebar-foreground: oklch(0.86 0.008 248);
   --sidebar-accent: oklch(0.225 0.012 248);
   --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-border: var(--border);
   --sidebar-ring: oklch(0.779 0.117 213.7);
   /* One step above the page, not five. A menu has to read as lifted, but at
      the old value it was the lightest thing on screen and matched --muted
@@ -208,12 +206,10 @@
   --accent: oklch(0.262 0.004 248);
   --accent-foreground: oklch(0.955 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 17%);
-  --border-faint: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 10%);
+  --border-faint: var(--border);
   --border-loud: oklch(1 0 0 / 26%);
-  /* Inverted here: the edge lifts off a dark page rather than cutting into a
-     light one, so it sits above --border rather than below it. */
-  --border-surface: oklch(1 0 0 / 21%);
+  --border-surface: var(--border);
   --alpha-4: oklch(1 0 0 / 4%);
   --alpha-8: oklch(1 0 0 / 9%);
   --success: oklch(0.72 0.15 155);

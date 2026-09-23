@@ -1,33 +1,32 @@
 import { Button } from "@anpord/ui/components/button";
 import { cn } from "@anpord/ui/lib/utils";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
-import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useRerunCell } from "@/lib/evals/eval-mutations";
 
 const AT_LEAST = 1;
 
 export function RerunCellButton({
+  caseId,
   cellKey,
   runId,
   trials,
 }: {
+  readonly caseId: string;
   readonly cellKey: string;
   readonly runId: string;
 
   readonly trials: number;
 }) {
-  const navigate = useNavigate();
-  const rerun = useRerunCell(cellKey);
+  const rerun = useRerunCell(caseId, cellKey);
 
   const start = async () => {
     try {
-      const started = await rerun.mutateAsync({
+      await rerun.mutateAsync({
         runId,
         trials: Math.max(trials, AT_LEAST),
       });
-
-      navigate({ params: { runId: started.id }, to: "/evals/$runId" });
+      toast.success("Running this case again");
     } catch (error) {
       toast.error("Couldn't run this case again", {
         description: error instanceof Error ? error.message : undefined,

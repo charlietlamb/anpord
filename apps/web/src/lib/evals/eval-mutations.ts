@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import { rerunCell } from "@/lib/evals/evals-client";
 
-export const useRerunCell = (cellKey: string) => {
+export const useRerunCell = (caseId: string, cellKey: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -10,7 +10,7 @@ export const useRerunCell = (cellKey: string) => {
       rerunCell(input.runId, cellKey, input.trials),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: evalKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: evalKeys.history(cellKey) });
+      queryClient.invalidateQueries({ queryKey: evalKeys.case(caseId) });
     },
   });
 };

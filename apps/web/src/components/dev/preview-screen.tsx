@@ -15,7 +15,9 @@ export function PreviewScreen({
         </span>
         <span className="h-px flex-1 bg-border-faint" />
       </div>
-      {children}
+      <div className="flex h-[760px] flex-col border-border-faint border-y">
+        {children}
+      </div>
     </section>
   );
 }

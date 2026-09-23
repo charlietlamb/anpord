@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authed/evals/new")({
 
 function NewEvalScreen() {
   return (
-    <PageShell width="wide">
+    <PageShell title="New eval" width="wide">
       <AgentSetup />
     </PageShell>
   );

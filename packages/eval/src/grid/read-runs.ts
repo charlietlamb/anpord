@@ -110,13 +110,18 @@ export const makeReadRuns = (live: LiveRuns) =>
        filter is drawn beside the rows it filters, so one without the other is
        a half-rendered screen. */
     const cases = (input: {
+      readonly cursor: {
+        readonly id: string;
+        readonly startedAtMillis: number;
+      } | null;
       readonly limit: number | undefined;
       readonly organizationId: string;
       readonly tag: string | null;
     }) =>
       Effect.all(
         {
-          cases: query.listCases({
+          page: query.listCases({
+            cursor: input.cursor,
             limit: pageSizeOf(input.limit),
             organizationId: input.organizationId,
             tag: input.tag,
@@ -124,7 +129,11 @@ export const makeReadRuns = (live: LiveRuns) =>
           tags: query.listTags(input.organizationId),
         },
         { concurrency: 2 }
-      ).pipe(Effect.orDie, Effect.withSpan("GridRun.cases"));
+      ).pipe(
+        Effect.map(({ page, tags }) => ({ ...page, tags })),
+        Effect.orDie,
+        Effect.withSpan("GridRun.cases")
+      );
 
     return { cases, get, list };
   });

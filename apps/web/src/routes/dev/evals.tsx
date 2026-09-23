@@ -1,39 +1,21 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import {
-  FlaskIcon,
-  PulseIcon,
-  SlidersHorizontalIcon,
-  SquaresFourIcon,
-} from "@phosphor-icons/react";
 import { CatchBoundary, createFileRoute } from "@tanstack/react-router";
-import {
-  CELL,
-  FAILED_TRIAL,
-  RUN,
-  RUNS,
-  TRIALS,
-} from "@/components/dev/eval-fixtures";
-import { PreviewCellRail } from "@/components/dev/preview-cell-rail";
-import { PreviewRunRail } from "@/components/dev/preview-run-rail";
+import { CASE_DETAIL } from "@/components/dev/case-fixtures";
+import { TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
-import { CellSetup } from "@/components/evals/cell-setup";
-import { CellSkeleton } from "@/components/evals/cell-skeleton";
+import { CaseMeta } from "@/components/evals/case-meta";
+import { CaseReadings } from "@/components/evals/case-readings";
 import { EvalForm } from "@/components/evals/eval-form";
 import { EvalLayout, EvalMain } from "@/components/evals/eval-layout";
-import { EvalRow } from "@/components/evals/eval-row";
-import { EvalListSkeleton } from "@/components/evals/eval-row-skeleton";
-import { RunGrid } from "@/components/evals/run-grid";
-import { RunSkeleton } from "@/components/evals/run-skeleton";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialRail } from "@/components/evals/trial-rail";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
-import { TrialTable } from "@/components/evals/trial-table";
 import { ValidationInspector } from "@/components/evals/validation-inspector";
 import { Waterfall } from "@/components/evals/waterfall";
 import { EmptyNote } from "@/components/layout/empty-note";
-import { RowList } from "@/components/layout/row-list";
+import { PageShell } from "@/components/layout/page-shell";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export const Route = createFileRoute("/dev/evals")({
@@ -142,60 +124,24 @@ function EvalsPreview() {
           </div>
         </PreviewScreen>
 
-        <PreviewScreen name="Runs">
-          <div className="mx-auto w-full max-w-3xl px-5 xl:px-6">
-            <RowList>
-              {RUNS.map((run) => (
-                <EvalRow key={run.id} run={run} />
-              ))}
-            </RowList>
-          </div>
-        </PreviewScreen>
-
-        <PreviewScreen name="One run">
-          <EvalLayout>
-            <EvalMain>
-              <section className="flex flex-col gap-1.5">
-                <PageHeading icon={SquaresFourIcon} title="Cases" />
-                <RunGrid run={RUN} />
-              </section>
-            </EvalMain>
-
-            <PreviewRunRail />
-          </EvalLayout>
-        </PreviewScreen>
-
-        <PreviewScreen name="One cell">
-          <EvalLayout>
-            <EvalMain>
-              <section className="flex flex-col gap-1.5">
-                <PageHeading icon={FlaskIcon} title={CELL.caseName} />
-                <TrialTable
-                  cellKey={CELL.cellKey ?? ""}
-                  runId={RUN.id}
-                  trials={TRIALS}
-                />
-              </section>
-
-              {CELL.setup === null ? null : (
-                <section className="flex flex-col gap-1.5">
-                  <PageHeading icon={SlidersHorizontalIcon} title="Setup" />
-                  <CellSetup
-                    setup={CELL.setup}
-                    trials={[...CELL.trials, FAILED_TRIAL]}
-                  />
-                </section>
-              )}
-            </EvalMain>
-
-            <PreviewCellRail />
-          </EvalLayout>
+        <PreviewScreen name="One case">
+          <PageShell
+            description={<CaseMeta subject={CASE_DETAIL} />}
+            title={CASE_DETAIL.name}
+            width="wide"
+          >
+            <CaseReadings
+              caseId={CASE_DETAIL.id}
+              entries={CASE_DETAIL.history}
+              versions={CASE_DETAIL.versions}
+            />
+          </PageShell>
         </PreviewScreen>
 
         <PreviewScreen name="A trial that has not reported yet">
           <EvalMain>
             <section className="flex flex-col gap-1.5">
-              <PageHeading icon={PulseIcon} title="Trajectory" />
+              <PageHeading title="Trajectory" />
               <Waterfall running={true} timed={false} trajectory={[]} />
             </section>
           </EvalMain>
@@ -206,7 +152,7 @@ function EvalsPreview() {
             <EvalLayout>
               <EvalMain>
                 <section className="flex flex-col gap-1.5">
-                  <PageHeading icon={PulseIcon} title="Trajectory" />
+                  <PageHeading title="Trajectory" />
                   <Waterfall
                     running={false}
                     timed={TRIAL.timed}
@@ -219,18 +165,6 @@ function EvalsPreview() {
             </EvalLayout>
           </PreviewScreen>
         ) : null}
-
-        <PreviewScreen name="Loading: runs">
-          <EvalListSkeleton />
-        </PreviewScreen>
-
-        <PreviewScreen name="Loading: one run">
-          <RunSkeleton runId="run_preview" />
-        </PreviewScreen>
-
-        <PreviewScreen name="Loading: one cell">
-          <CellSkeleton cellKey="cell_preview" runId="run_preview" />
-        </PreviewScreen>
 
         <PreviewScreen name="Loading: one trial">
           <TrialSkeleton ordinal="1" />

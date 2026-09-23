@@ -4,7 +4,6 @@ import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { cn } from "@anpord/ui/lib/utils";
 import {
   CheckSquareIcon,
-  PulseIcon,
   SlidersHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
@@ -55,7 +54,7 @@ export function TrialSkeleton({ ordinal }: { readonly ordinal?: string }) {
     <EvalLayout>
       <EvalMain>
         <section className="flex flex-col gap-1.5">
-          <PageHeading icon={PulseIcon} title="Trajectory" />
+          <PageHeading title="Trajectory" />
 
           <div className="flex flex-col gap-2">
             {/* The axis stands where its ticks will, so the chart does not lift. */}

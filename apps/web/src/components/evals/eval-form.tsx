@@ -2,7 +2,6 @@ import type { EvalDraft } from "@anpord/schema/domain/eval-playground";
 import { DEFAULT_SANDBOX } from "@anpord/schema/domain/evals";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { SearchableMultiSelect } from "@anpord/ui/components/ui/searchable-multi-select";
-import { FlaskIcon, PlayIcon } from "@phosphor-icons/react";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { AgentField } from "@/components/evals/agent-field";
 import { BlockedNote } from "@/components/evals/blocked-note";
@@ -64,7 +63,7 @@ export function EvalForm({
       }}
     >
       <section className="flex flex-col gap-2">
-        <PageHeading icon={FlaskIcon} title="Cases" />
+        <PageHeading size="section" title="Cases" />
 
         <form.Subscribe selector={(state) => state.values.cases.length}>
           {(caseCount) => (
@@ -161,7 +160,7 @@ export function EvalForm({
       </section>
 
       <section className="flex flex-col gap-3">
-        <PageHeading icon={PlayIcon} title="Variants" />
+        <PageHeading size="section" title="Variants" />
 
         <div className="grid gap-3 sm:grid-cols-3 [&>*]:min-w-0">
           <form.Field name="agents">
