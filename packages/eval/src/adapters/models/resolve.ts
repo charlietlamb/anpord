@@ -1,12 +1,15 @@
 import { FileSystem, HttpClient, Path } from "@effect/platform";
 import { Context, Effect, Layer } from "effect";
 import type { HarnessName } from "../../domain/cell";
+import type { ModelsUnreadable } from "../../domain/errors";
 import { AvailableModels } from "../../ports/model-source";
-import { layer as CodexAvailableLive } from "./codex-available";
-import { layer as OpencodeAvailableLive } from "./opencode-available";
+import { codexModels } from "./codex-available";
+import { type ModelsDevCatalogue, modelsDev } from "./models-dev";
 import { staticModels } from "./static";
 
-const sourceOf: Record<HarnessName, "codex" | "opencode" | "static"> = {
+type Source = "codex" | "opencode" | "static";
+
+const sourceOf: Record<HarnessName, Source> = {
   claude: "static",
   codex: "codex",
   command: "static",
@@ -18,50 +21,66 @@ const sourceOf: Record<HarnessName, "codex" | "opencode" | "static"> = {
   qwen: "static",
 };
 
-/* The runtime is taken once and handed to whichever branch runs: building both
-   adapters up front made asking for one demand the other's dependencies. */
-export const AvailableModelsLive = Layer.effect(
-  AvailableModels,
+type CodexModels = Effect.Effect.Success<typeof codexModels>;
+
+interface HarnessCatalogue<A> {
+  readonly codex: (models: CodexModels) => A;
+  readonly isEmpty: (value: A) => boolean;
+  readonly known: (harness: HarnessName) => A;
+  readonly opencode: (catalogue: ModelsDevCatalogue) => A;
+}
+
+export const perHarness = <A>(catalogue: HarnessCatalogue<A>) =>
   Effect.gen(function* () {
     const runtime = Context.empty().pipe(
       Context.add(FileSystem.FileSystem, yield* FileSystem.FileSystem),
       Context.add(HttpClient.HttpClient, yield* HttpClient.HttpClient),
       Context.add(Path.Path, yield* Path.Path)
     );
+    const opencode = yield* modelsDev;
 
-    const codex = yield* Effect.cached(
-      AvailableModels.pipe(
-        Effect.provide(CodexAvailableLive),
-        Effect.provide(runtime)
-      )
-    );
+    return (harness: HarnessName): Effect.Effect<A, ModelsUnreadable> => {
+      const source = sourceOf[harness];
 
-    const opencode = yield* Effect.cached(
-      AvailableModels.pipe(
-        Effect.provide(OpencodeAvailableLive),
-        Effect.provide(runtime)
-      )
-    );
+      if (source === "static") {
+        return Effect.succeed(catalogue.known(harness));
+      }
 
-    return AvailableModels.of({
-      forHarness: (harness) => {
-        const selected = sourceOf[harness];
+      const read: Effect.Effect<
+        A,
+        ModelsUnreadable,
+        FileSystem.FileSystem | HttpClient.HttpClient | Path.Path
+      > =
+        source === "codex"
+          ? Effect.map(codexModels, catalogue.codex)
+          : Effect.map(opencode, catalogue.opencode);
 
-        if (selected === "static") {
-          return Effect.succeed(staticModels[harness] ?? []);
-        }
+      return read.pipe(
+        Effect.provide(runtime),
+        Effect.map((found) =>
+          catalogue.isEmpty(found) ? catalogue.known(harness) : found
+        )
+      );
+    };
+  });
 
-        /* A harness that reads its own cache finds nothing when that cache
-           belongs to a CLI the server never ran, which reads as "this harness
-           has no models" rather than "ask somewhere else". */
-        return Effect.flatMap(
-          selected === "codex" ? codex : opencode,
-          (source) =>
-            Effect.map(source.forHarness(harness), (models) =>
-              models.length === 0 ? (staticModels[harness] ?? []) : models
-            )
-        );
-      },
-    });
-  })
+export const AvailableModelsLive = Layer.effect(
+  AvailableModels,
+  Effect.map(
+    perHarness<readonly string[]>({
+      codex: (models) => models.map((model) => model.slug),
+      isEmpty: (models) => models.length === 0,
+      known: (harness) => staticModels[harness] ?? [],
+      opencode: ({ ids }) => ids,
+    }),
+    (forHarness) =>
+      AvailableModels.of({
+        forHarness: (harness) =>
+          forHarness(harness).pipe(
+            Effect.withSpan("AvailableModels.forHarness", {
+              attributes: { harness },
+            })
+          ),
+      })
+  )
 );
