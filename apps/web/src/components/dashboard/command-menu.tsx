@@ -28,9 +28,7 @@ import { useDialog } from "@/lib/dialog/dialogs";
 import { useImpersonation } from "@/lib/use-impersonation";
 import { useSignOut } from "@/lib/use-sign-out";
 
-const NAV_ITEMS = DASHBOARD_NAV.flatMap((section) =>
-  section.items.filter((item) => !item.comingSoon)
-);
+const NAV_ITEMS = DASHBOARD_NAV.flatMap((section) => section.items);
 
 const SEARCH_SETTLE_MS = 200;
 
@@ -67,7 +65,6 @@ export function CommandMenu() {
     onTrigger: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
   });
 
-  /* Only while the menu is open, so the shortcut cannot reach a staff-only page from anywhere. */
   useShortcut("i", {
     disabled: !(open && impersonation.allowed) || page === "impersonate",
     meta: true,
@@ -84,7 +81,6 @@ export function CommandMenu() {
       onOpenChange={(next) => (next ? setOpen(true) : close())}
       open={open}
     >
-      {/* Impersonate results are already chosen by the server; cmdk filtering them again would hide matches. */}
       <Command shouldFilter={page === "main"}>
         <CommandInput
           onKeyDown={(event) => {

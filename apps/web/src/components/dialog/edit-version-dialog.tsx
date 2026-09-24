@@ -41,7 +41,7 @@ export function EditVersionDialog({
           variant="outline"
         >
           <span className="flex items-center gap-2 font-medium">
-            <ArrowCounterClockwiseIcon size={15} />
+            <ArrowCounterClockwiseIcon />
             Edit from v{version}
           </span>
           <span className="w-full font-normal text-muted-foreground text-xs leading-snug">
@@ -55,7 +55,7 @@ export function EditVersionDialog({
           variant="outline"
         >
           <span className="flex items-center gap-2 font-medium">
-            <PencilSimpleIcon size={15} />
+            <PencilSimpleIcon />
             Overwrite v{version}
           </span>
           <span className="w-full font-normal text-muted-foreground text-xs leading-snug">

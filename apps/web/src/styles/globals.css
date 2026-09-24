@@ -36,10 +36,6 @@
   }
 }
 
-/* A resize cannot be tweened: the browser repaints each frame, so a transition
-   on width or height stutters rather than smooths. What is worth easing are the
-   discrete moves either side of it — a surface changing colour, a panel
-   arriving once the layout has settled. */
 @utility transition-surface {
   transition-timing-function: var(--ease-emphasised);
   transition-duration: 200ms;
@@ -83,8 +79,6 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
-  /* The step between xs and sm the interface kept reaching for as an arbitrary
-     value. Named so a row and the label beside it cannot drift apart. */
   --text-label: 0.8125rem;
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
@@ -125,23 +119,11 @@
   --radius: 0.625rem;
   --background: oklch(0.99 0 0);
   --foreground: oklch(0.145 0 0);
-  /* Three weights of edge, lightest to loudest. A divider between rows of the
-     same list is quieter than the one edge that bounds a region, which is in
-     turn quieter than an edge asked to carry emphasis on its own. */
   --alpha-4: oklch(0 0 0 / 4%);
-  /* The step above --alpha-4, for a row that responds to the pointer rather
-     than merely accepting it: a trace row is hovered to read one bar out of
-     a dense stack, and 4% does not separate it from its neighbours. */
   --alpha-8: oklch(0 0 0 / 8%);
-  /* Named for what they report, not the hue they happen to use, so a status
-     that changes colour does not have to change every call site. */
   --success: oklch(0.6 0.14 155);
   --warning: oklch(0.72 0.15 75);
 
-  /* One trajectory reads as a sequence of kinds, which is the only place this
-     theme uses hue for category rather than for meaning. Held away from the
-     semantic hues on purpose: a file change drawn at the success green read
-     as a passing trial. */
   --trace-command: oklch(0.55 0.19 255);
   --trace-file: oklch(0.6 0.14 195);
   --trace-message: oklch(0.6 0.11 230);
@@ -149,10 +131,6 @@
   --trace-thinking: oklch(0.6 0.14 295);
   --trace-tool: oklch(0.58 0.18 330);
 
-  /* Tokens the model was given, split by where they came from. One hue at two
-     strengths rather than two hues: cached and fresh are the same quantity
-     measured twice, and a second hue would read as a second thing. Fresh is
-     the stronger of the pair because it is what a run actually pays for. */
   --trace-fresh: oklch(0.55 0.13 285);
   --trace-cached: oklch(0.78 0.06 285);
 
@@ -171,18 +149,10 @@
   --sidebar-accent-foreground: oklch(0.97 0 0);
   --sidebar-border: var(--border);
   --sidebar-ring: oklch(0.779 0.117 213.7);
-  /* One step above the page, not five. A menu has to read as lifted, but at
-     the old value it was the lightest thing on screen and matched --muted
-     exactly, so its own hover state had nothing to move to.
-     Chroma falls as the surfaces rise: a blue cast the page carries as depth
-     reads as a wash once it is lit, so the lifted surfaces trend to neutral. */
   --popover: oklch(0.207 0.006 248);
   --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.62 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
-  /* The surfaces climb in even steps from the page: background, muted and
-     accent, then popover above all three. A hover that outweighs the menu it
-     sits in reads as the menu flashing rather than the row lighting up. */
   --secondary: oklch(0.222 0.005 248);
   --secondary-foreground: oklch(0.955 0 0);
   --muted: oklch(0.222 0.005 248);
@@ -203,14 +173,9 @@
   --trace-thinking: oklch(0.62 0.13 295);
   --trace-tool: oklch(0.68 0.19 330);
 
-  /* Inverted against the dark ground: fresh stays the brighter of the pair,
-     so the same reading holds in either theme. */
   --trace-fresh: oklch(0.72 0.15 285);
   --trace-cached: oklch(0.45 0.06 285);
 
-  /* A menu opens over the cards rather than beside them, so its edge has to
-     read against a raised surface, not the page. The ring matches the border
-     those cards carry and the shadow is deepened to seat it above them. */
   --shadow-popover:
     0 0 0 1px var(--border), 0 1px 0 oklch(1 0 0 / 6%) inset,
     0 16px 32px oklch(0 0 0 / 40%), 0 4px 10px oklch(0 0 0 / 30%);
@@ -249,30 +214,12 @@
       animation: none;
     }
 
-    /* Reduced motion means gentler, not none: an element that fades in still
-       explains that it arrived, while one that slides does it by moving,
-       which is the part that causes trouble. */
     .animate-in {
       --tw-enter-translate-x: 0;
       --tw-enter-translate-y: 0;
       --tw-enter-scale: 1;
       animation-duration: 120ms;
     }
-  }
-
-  /* Inputs use the same flat surface language as buttons. */
-  /* Same bevel, closer to the page, so secondary surfaces stay subordinate. */
-  .shadow-raised {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.7),
-      inset 0 1px 0 oklch(1 0 0),
-      0 1px 2px oklch(0 0 0 / 0.04);
-  }
-  .dark .shadow-raised {
-    box-shadow:
-      inset 0 0 0 1px oklch(1 0 0 / 0.06),
-      inset 0 1px 0 oklch(1 0 0 / 0.1),
-      0 1px 2px oklch(0 0 0 / 0.2);
   }
 }
 
@@ -286,8 +233,6 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Overscroll and the rubber band beyond it show the document, not the shell
-     painted inside it, so the dashboard's ground has to reach this far. */
   html:has([data-dashboard]),
   body:has([data-dashboard]) {
     @apply bg-sidebar;
@@ -307,8 +252,6 @@
   ::-webkit-scrollbar-track {
     background: transparent;
   }
-  /* The border is the gutter: it keeps the thumb off the content edge while
-     the track stays the full width the pointer expects to hit. */
   ::-webkit-scrollbar-thumb {
     background-color: var(--border);
     background-clip: padding-box;
@@ -328,8 +271,6 @@
     font-weight: 450;
   }
 
-  /* The wordmark keeps the face the docs set it in, which the rest of the app
-     no longer uses. One rule, so the mark reads the same on every surface. */
   .font-logo {
     font-family: "Funnel Display Variable", ui-sans-serif, sans-serif;
     font-weight: 500;
@@ -349,15 +290,10 @@
 }
 
 @layer components {
-  /**
-   * Editor typography. A prompt reads as one voice, so headings step down
-   * gently rather than dominating the way document headings do.
-   */
   .prompt-prose .tiptap {
     min-height: 100%;
     outline: none;
   }
-  /* A full-width page would otherwise run the line past a readable measure. */
   .prompt-prose-wide .tiptap {
     max-width: 78ch;
   }
@@ -414,7 +350,6 @@
     border-left: 2px solid var(--border);
   }
 
-  /** Interpolated at runtime, so it reads as a slot rather than prose. */
   .prompt-prose .prompt-variable {
     font-weight: 500;
     color: var(--primary);
