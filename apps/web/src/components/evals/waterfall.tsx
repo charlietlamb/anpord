@@ -6,7 +6,7 @@ import {
 } from "@anpord/ui/components/ui/data-table";
 import { Surface } from "@anpord/ui/components/ui/surface";
 import { UntimedSteps } from "@/components/evals/untimed-steps";
-import { Axis } from "@/components/evals/waterfall-axis";
+import { WaterfallAxis } from "@/components/evals/waterfall-axis";
 import { TimedRow } from "@/components/evals/waterfall-row";
 import { TIMELINE_COLUMNS } from "@/components/evals/waterfall-scale";
 import { EmptyNote } from "@/components/layout/empty-note";
@@ -51,7 +51,9 @@ export function Waterfall({
 
   return (
     <DataTable columns={TIMELINE_COLUMNS} label="Timeline">
-      <DataTableHead headings={["Step", <Axis key="axis" spanMs={spanMs} />]} />
+      <DataTableHead
+        headings={["Step", <WaterfallAxis key="axis" spanMs={spanMs} />]}
+      />
 
       <DataTableBody>
         {rows.map((row, index) => (

@@ -1,5 +1,5 @@
 import type { EvalTrial } from "@anpord/schema/domain/evals";
-import { StepDetail } from "@/components/evals/waterfall-detail";
+import { StepDetail } from "@/components/evals/step-detail";
 import { SideSheet } from "@/components/layout/side-sheet";
 import { selectedStepOf } from "@/lib/evals/selected-step";
 import { useSelectedStep } from "@/lib/evals/use-selected-step";

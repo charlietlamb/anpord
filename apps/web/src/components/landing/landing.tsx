@@ -10,11 +10,6 @@ import {
   UpstashMark,
   VercelMark,
 } from "@anpord/ui/components/brand/provider-marks";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
 import { Kbd } from "@anpord/ui/components/ui/kbd";
 import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
@@ -22,15 +17,10 @@ import { cn } from "@anpord/ui/lib/utils";
 import { FlaskIcon } from "@phosphor-icons/react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
+import { type Vendor, VendorMarks } from "@/components/landing/vendor-marks";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { REPO_URL } from "@/lib/urls";
 import { useIsClient } from "@/lib/use-is-client";
-
-interface Vendor {
-  readonly href: string;
-  readonly Mark: (props: { readonly className?: string }) => React.ReactElement;
-  readonly name: string;
-}
 
 const HARNESSES: readonly Vendor[] = [
   {
@@ -67,36 +57,6 @@ const SANDBOXES: readonly Vendor[] = [
     name: "Vercel",
   },
 ];
-
-function MarkRow({ items }: { readonly items: readonly Vendor[] }) {
-  return (
-    <span className="inline-flex items-center gap-2">
-      {items.map(({ Mark, href, name }) => (
-        <Tooltip key={name}>
-          <TooltipTrigger
-            render={
-              <a
-                className={cn(
-                  "rounded-sm text-muted-foreground/80",
-                  "transition-colors duration-200 ease-out hover:text-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                )}
-                href={href}
-                rel="noreferrer"
-                target="_blank"
-              >
-                {/* Must sit inside the anchor: the trigger renders the element it is given and drops its own children. */}
-                <Mark className="size-4 shrink-0" />
-                <span className="sr-only">{name}</span>
-              </a>
-            }
-          />
-          <TooltipContent>{name}</TooltipContent>
-        </Tooltip>
-      ))}
-    </span>
-  );
-}
 
 export function Landing() {
   const navigate = useNavigate();
@@ -145,8 +105,8 @@ export function Landing() {
         </div>
 
         <p className="fade-in-0 slide-in-from-bottom-2 mt-9 flex animate-in flex-wrap items-center gap-x-2.5 gap-y-3 fill-mode-both text-muted-foreground/80 text-sm leading-normal ease-out [animation-delay:225ms] [animation-duration:500ms]">
-          Works with <MarkRow items={HARNESSES} /> across{" "}
-          <MarkRow items={SANDBOXES} />
+          Works with <VendorMarks items={HARNESSES} /> across{" "}
+          <VendorMarks items={SANDBOXES} />
         </p>
       </section>
     </SiteLayout>

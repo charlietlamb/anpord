@@ -32,7 +32,6 @@ export function TrialOutcome({ trial }: { readonly trial: EvalTrial }) {
               hint="What the verify script returned. Zero is a pass; anything else is the check saying no."
               Icon={SignOutIcon}
               label="exit code"
-              layout="stated"
               value={`exit ${trial.exitCode}`}
             />
           ) : null}
@@ -41,7 +40,6 @@ export function TrialOutcome({ trial }: { readonly trial: EvalTrial }) {
               hint={<CommandsHint trial={trial} />}
               Icon={TerminalWindowIcon}
               label="commands"
-              layout="stated"
               value={commandsValue(trial)}
             />
           ) : null}

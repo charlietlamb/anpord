@@ -34,7 +34,6 @@ export function TrialTime({ trial }: { readonly trial: EvalTrial }) {
             hint="The agent, its sandbox, and any model judges."
             Icon={TimerIcon}
             label="duration"
-            layout="stated"
             value={`took ${seconds(trialTotalMs)}`}
           />
         )}
@@ -45,7 +44,6 @@ export function TrialTime({ trial }: { readonly trial: EvalTrial }) {
             hint="Between one recorded event and the next, so harness overhead is inside it as well as the model. The rest of the agent phase is the journal's own gaps."
             Icon={BrainIcon}
             label="thinking"
-            layout="stated"
             value={`${seconds(thinkingMs)} thinking`}
           />
         ) : null}
@@ -56,7 +54,6 @@ export function TrialTime({ trial }: { readonly trial: EvalTrial }) {
             hint="Commands running in the sandbox, measured end to end."
             Icon={TerminalWindowIcon}
             label="running commands"
-            layout="stated"
             value={`${seconds(workingMs)} running`}
           />
         ) : null}
@@ -67,7 +64,6 @@ export function TrialTime({ trial }: { readonly trial: EvalTrial }) {
             hint="Creating and tearing down the sandbox, outside the agent run."
             Icon={CubeIcon}
             label="sandbox"
-            layout="stated"
             value={`${seconds(trial.sandboxMs)} sandbox`}
           />
         )}

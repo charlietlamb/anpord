@@ -6,21 +6,12 @@ import {
   TaskTrigger,
 } from "@anpord/ui/components/ai-elements/task";
 import { CirclesFourIcon } from "@phosphor-icons/react";
-import { ConversationStep } from "@/components/evals/conversation-step";
-import { WroteLine } from "@/components/evals/wrote-line";
+import { ConversationWorkItem } from "@/components/evals/conversation-work-item";
 import {
   type ConversationStep as Step,
   stepFailed,
   summaryOf,
 } from "@/lib/evals/conversation";
-
-function WorkItem({ step }: { readonly step: Step }) {
-  if (step._tag !== "fileChange") {
-    return <ConversationStep call={step} />;
-  }
-
-  return <WroteLine paths={step.paths} />;
-}
 
 const titleOf = (steps: readonly Step[], live: boolean) => {
   const failed = steps.filter(stepFailed).length;
@@ -52,7 +43,7 @@ export function ConversationWork({
       <TaskContent>
         {steps.map((step, index) => (
           <TaskItem key={`${step._tag}-${index.toString()}`}>
-            <WorkItem step={step} />
+            <ConversationWorkItem step={step} />
           </TaskItem>
         ))}
       </TaskContent>

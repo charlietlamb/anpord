@@ -4,17 +4,45 @@ import {
   TooltipTrigger,
 } from "@anpord/ui/components/tooltip";
 import { cn } from "@anpord/ui/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentType, ReactNode } from "react";
 
 export type RailIcon = ComponentType<{ readonly className?: string }>;
 
-interface RailFactProps {
+const railIconVariants = cva("size-3.5 shrink-0", {
+  variants: {
+    tone: {
+      critical: "text-destructive",
+      muted: "text-muted-foreground/80",
+      neutral: "text-muted-foreground/80",
+      positive: "text-success",
+      warning: "text-warning",
+    },
+  },
+  defaultVariants: { tone: "neutral" },
+});
+
+const railValueVariants = cva(
+  "flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 tabular-nums",
+  {
+    variants: {
+      tone: {
+        critical: "text-foreground",
+        muted: "text-muted-foreground",
+        neutral: "text-foreground",
+        positive: "text-foreground",
+        warning: "text-warning",
+      },
+    },
+    defaultVariants: { tone: "neutral" },
+  }
+);
+
+interface RailFactProps extends VariantProps<typeof railIconVariants> {
   readonly detail?: ReactNode;
   readonly hint?: ReactNode;
   readonly Icon?: RailIcon;
   readonly label: string;
-  readonly layout?: "spread" | "stated";
-  readonly tone?: "critical" | "muted" | "positive" | "warning";
   readonly value: ReactNode;
 }
 
@@ -23,18 +51,14 @@ export function RailFact({
   hint,
   Icon,
   label,
-  layout = "spread",
   tone,
   value,
 }: RailFactProps) {
-  const stated = layout === "stated";
-
   const row = (
     <div
-      aria-label={stated ? label : undefined}
+      aria-label={label}
       className={cn(
         "flex h-6 items-center gap-2 rounded-sm text-xs",
-        Icon === undefined && !stated && "pl-[1.375rem]",
         hint !== undefined &&
           "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
       )}
@@ -42,36 +66,10 @@ export function RailFact({
       tabIndex={hint === undefined ? undefined : 0}
     >
       {Icon === undefined ? null : (
-        <Icon
-          className={cn(
-            "size-3.5 shrink-0",
-            tone === "critical" && "text-destructive",
-            tone === "warning" && "text-warning",
-            tone === "positive" && "text-success",
-            (tone === undefined || tone === "muted") &&
-              "text-muted-foreground/80"
-          )}
-        />
+        <Icon className={railIconVariants({ tone })} />
       )}
-
-      {stated ? null : (
-        <span className="shrink-0 text-muted-foreground/80">{label}</span>
-      )}
-
-      {stated ? null : detail}
-
-      <span
-        className={cn(
-          "flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 tabular-nums",
-          stated ? "text-foreground" : "ml-auto",
-          tone === "warning" && "text-warning",
-          tone === "muted" && "text-muted-foreground"
-        )}
-      >
-        {value}
-      </span>
-
-      {stated ? detail : null}
+      <span className={railValueVariants({ tone })}>{value}</span>
+      {detail}
     </div>
   );
 

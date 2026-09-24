@@ -7,7 +7,8 @@ import {
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { MarkdownProse } from "@/components/evals/markdown-prose";
-import { ReadEvidence, Value } from "@/components/evals/validation-evidence";
+import { ReadEvidence } from "@/components/evals/read-evidence";
+import { ValidationValue } from "@/components/evals/validation-value";
 
 type Pane = "result" | "evidence" | "execution";
 
@@ -71,13 +72,13 @@ export function ValidationDetail({
             </div>
           ) : (
             <dl>
-              <Value label="Return value" value={validation.output} />
+              <ValidationValue label="Return value" value={validation.output} />
             </dl>
           )}
 
           {validation.error ? (
             <dl>
-              <Value label="Error" value={validation.error} />
+              <ValidationValue label="Error" value={validation.error} />
             </dl>
           ) : null}
         </div>
@@ -92,7 +93,7 @@ export function ValidationDetail({
       {pane === "execution" ? (
         <div className="min-w-0 space-y-1">
           {executionRows(validation).map(({ label, value }) => (
-            <Value
+            <ValidationValue
               disclosure
               key={label}
               label={label}

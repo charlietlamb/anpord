@@ -1,29 +1,8 @@
-import type {
-  EvalValidation,
-  ValidationValue,
-} from "@anpord/schema/domain/eval-validations";
-import type { ComponentProps } from "react";
+import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { EvidenceValue } from "@/components/evals/evidence-value";
+import { ValidationValue } from "@/components/evals/validation-value";
 import { seconds } from "@/lib/evals/duration";
 import { judgeInput } from "@/lib/evals/validation-results";
-
-export function Value({
-  value,
-  ...props
-}: Omit<ComponentProps<typeof EvidenceValue>, "value"> & {
-  readonly value: ValidationValue;
-}) {
-  return (
-    <EvidenceValue
-      {...props}
-      truncated={value.state === "captured" && value.truncated}
-      unavailable={
-        value.state === "disabled" ? "Capture disabled" : "Not recorded"
-      }
-      value={value.state === "captured" ? value.text : undefined}
-    />
-  );
-}
 
 export function ReadEvidence({
   validation,
@@ -54,7 +33,7 @@ export function ReadEvidence({
       );
     }
     return validation.calls.map((call, index) => (
-      <Value
+      <ValidationValue
         disclosure
         key={call.index}
         label={`${call.method}() · ${call.durationMs === null ? "Incomplete" : seconds(call.durationMs)}`}
@@ -63,17 +42,17 @@ export function ReadEvidence({
       >
         {call.error ? (
           <dl>
-            <Value label="Error" value={call.error} />
+            <ValidationValue label="Error" value={call.error} />
           </dl>
         ) : null}
-        <Value disclosure label="Arguments" value={call.input} />
-      </Value>
+        <ValidationValue disclosure label="Arguments" value={call.input} />
+      </ValidationValue>
     ));
   }
 
   return (
     <dl>
-      <Value
+      <ValidationValue
         label={validation.kind === "judge" ? "Request" : "Invocation input"}
         value={validation.input}
       />

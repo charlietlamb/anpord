@@ -34,7 +34,6 @@ export function TrialCost({
           hint="The share of everything the model was given that came from cache. A cached read costs about a tenth of fresh input, so this is most of the difference between a first run and a repeat. Nothing cached means every turn paid full price for the turns before it."
           Icon={LightningIcon}
           label="cache hit rate"
-          layout="stated"
           value={`${percent(usage.cacheReadTokens / served)} cached`}
         />
       )}
@@ -43,7 +42,6 @@ export function TrialCost({
         hint="Everything the model read and wrote across the trial."
         Icon={StackIcon}
         label="tokens"
-        layout="stated"
         value={`${count(usage.totalTokens)} tokens`}
       />
       <RailFact
@@ -51,7 +49,6 @@ export function TrialCost({
         hint="The prompt and everything the agent read back: files, command output, its own earlier turns."
         Icon={ArrowDownIcon}
         label="input tokens"
-        layout="stated"
         value={`${count(usage.inputTokens)} in`}
       />
       <RailFact
@@ -59,7 +56,6 @@ export function TrialCost({
         hint="What the model wrote: its reasoning, its messages and the commands it chose to run."
         Icon={ArrowUpIcon}
         label="output tokens"
-        layout="stated"
         value={`${count(usage.outputTokens)} out`}
       />
 
@@ -69,7 +65,6 @@ export function TrialCost({
           Icon={WarningIcon}
           key={concern}
           label="spend"
-          layout="stated"
           tone="warning"
           value={
             concern === "nothing-cached"

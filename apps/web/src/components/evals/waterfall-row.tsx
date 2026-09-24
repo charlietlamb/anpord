@@ -1,7 +1,7 @@
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { cn } from "@anpord/ui/lib/utils";
 import { StepLabel } from "@/components/evals/step-label";
-import { Gridlines } from "@/components/evals/waterfall-axis";
+import { WaterfallGridlines } from "@/components/evals/waterfall-gridlines";
 import { Track } from "@/components/evals/waterfall-track";
 import { seconds } from "@/lib/evals/duration";
 import { describeRow } from "@/lib/evals/journal-presentation";
@@ -36,7 +36,7 @@ export function TimedRow({
       </span>
 
       <span className="relative self-stretch">
-        <Gridlines />
+        <WaterfallGridlines />
         <Track row={row} />
         {settled ? (
           <span

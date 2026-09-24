@@ -60,9 +60,7 @@ const spanOf = (entry: EvalJournalEntry): Span | null => {
     : { entry, finishedAt: finishedAtMillis, startedAt: startedAtMillis };
 };
 
-export const waterfallLayout = (
-  trajectory: readonly EvalJournalEntry[]
-): WaterfallLayout => {
+const layoutOf = (trajectory: readonly EvalJournalEntry[]): WaterfallLayout => {
   const moments: number[] = [];
 
   for (const entry of trajectory) {
@@ -171,4 +169,21 @@ export const waterfallLayout = (
   });
 
   return { rows, spanMs, thinkingMs, workingMs };
+};
+
+const layouts = new WeakMap<readonly EvalJournalEntry[], WaterfallLayout>();
+
+export const waterfallLayout = (
+  trajectory: readonly EvalJournalEntry[]
+): WaterfallLayout => {
+  const cached = layouts.get(trajectory);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const layout = layoutOf(trajectory);
+  layouts.set(trajectory, layout);
+
+  return layout;
 };
