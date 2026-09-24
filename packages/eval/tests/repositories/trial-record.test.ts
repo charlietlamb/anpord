@@ -1,86 +1,93 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { createHash } from "node:crypto";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import {
+  type EvalValidation,
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { eq } from "drizzle-orm";
-import { Duration, Effect, Layer, Option, Redacted } from "effect";
-import { getEvalArtifact } from "../../src/repositories/trial-artifacts";
+import { Effect, Layer, Option } from "effect";
+import { judgmentsIn } from "../../src/domain/judgments";
+import { trialArtifactQuery } from "../../src/repositories/trial-artifacts";
 import {
   TrialRecorder,
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
-import { skipWithoutDatabase } from "../fixtures/database";
-import { caseFixture, taskFixture } from "../fixtures/eval-rows";
-
-const URL = process.env.EVAL_TEST_DATABASE_URL;
+import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
+import { seedOrganization, seedRun } from "../fixtures/eval-rows";
 
 const TestLayer = TrialRecorderLive.pipe(
   Layer.provide(IdGeneratorLive),
-  Layer.provideMerge(DatabaseLive),
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 4,
-      statementTimeout: Duration.seconds(30),
-      url: Redacted.make(URL ?? ""),
-    })
-  )
+  Layer.provideMerge(testDatabase())
 );
 
 const suffix = Date.now();
-const organizationId = `org_rec_${suffix}`;
-const cellInternalId = `cell_rec_${suffix}`;
+const organizationId = `org_record_${suffix}`;
+const runInternalId = `erun_record_${suffix}`;
+
+const judged: EvalValidation = {
+  ...validationExecution(
+    { id: "judge:0", index: 0, kind: "judge", name: "correctness" },
+    1000
+  ),
+  judgment: {
+    choice: "correct",
+    durationMs: 10,
+    error: null,
+    evaluator: "codex",
+    model: "judge-model",
+    name: "correctness",
+    reason: "Matches expected",
+    score: 1,
+    threshold: 1,
+  },
+  status: "passed",
+};
 
 const outcome: TrialOutcome = {
-  judgments: [
-    {
-      name: "correctness",
-      model: "judge-model",
-      evaluator: "codex",
-      score: 1,
-      choice: "correct",
-      reason: "Matches expected",
-      threshold: 1,
-      durationMs: 10,
-      error: null,
-    },
-  ],
+  artifacts: [],
   commandCount: 3,
   exitCode: 0,
   modelMs: 1000,
-  passed: true,
   sandboxMs: 500,
   status: "passed",
+  validations: [judged],
   verifySteps: [],
   voidFields: [],
 };
 
 const events: readonly HarnessEvent[] = [
   { _tag: "Started", model: "gpt-5", sessionId: "session_1" },
-  {
-    _tag: "Command",
-    command: "bun test",
-    exitCode: 0,
-    output: "ok",
-  },
+  { _tag: "Command", command: "bun test", exitCode: 0, output: "ok" },
 ];
 
 const run = <A, E>(effect: Effect.Effect<A, E, TrialRecorder | Database>) =>
-  Effect.runPromise(
-    effect.pipe(Effect.provide(TestLayer), Effect.scoped) as Effect.Effect<A, E>
+  Effect.runPromise(effect.pipe(Effect.provide(TestLayer)));
+
+const trialRow = (trialInternalId: string) =>
+  Database.pipe(
+    Effect.flatMap((db) =>
+      Effect.promise(() =>
+        db
+          .select()
+          .from(evalTrial)
+          .where(eq(evalTrial.internalId, trialInternalId))
+      )
+    ),
+    Effect.map((rows) => rows[0])
+  );
+
+const opened = (ordinal: number) =>
+  TrialRecorder.pipe(
+    Effect.flatMap((recorder) =>
+      recorder.open({ ordinal, runInternalId, startedAt: new Date() })
+    )
   );
 
 describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
@@ -90,70 +97,23 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
         const db = yield* Database;
 
         yield* Effect.promise(async () => {
-          await db
-            .insert(organization)
-            .values({
-              createdAt: new Date(),
-              id: organizationId,
-              name: "recorder test",
-              slug: `rec-${suffix}`,
-            })
-            .onConflictDoNothing();
-
-          await db.insert(evalCase).values(
-            caseFixture.values({
-              id: `task_${suffix}`,
-              internalId: `taskint_${suffix}`,
-              organizationId,
-            })
-          );
-
-          await db.insert(evalCaseVersion).values(
-            taskFixture.values({
-              id: `task_${suffix}`,
-              internalId: `taskint_${suffix}`,
-              organizationId,
-            })
-          );
-
-          await db.insert(evalRun).values({
-            cellCount: 1,
-            id: `run_${suffix}`,
-            internalId: `runint_${suffix}`,
+          await seedOrganization(db, organizationId);
+          await seedRun(db, {
             organizationId,
-            status: "running",
-            trialCount: 1,
-          });
-
-          await db.insert(evalCell).values({
-            cellKey: `key_${suffix}`,
-            harness: "codex",
-            harnessVersion: "0.144.4",
-            internalId: cellInternalId,
-            model: "gpt-5",
-            prompt: "do the thing",
-            provider: "daytona",
-            runInternalId: `runint_${suffix}`,
-            status: "running",
-            caseVersionInternalId: `taskint_${suffix}`,
+            tag: `record_${suffix}`,
+            trialCount: 5,
           });
         });
       })
     );
   });
 
-  it("shows the journal before the trial settles", async () => {
+  it("shows the journal and validations before the trial settles", async () => {
     const seen = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
         const db = yield* Database;
-
-        const { trialInternalId } = yield* recorder.open({
-          cellInternalId,
-          ordinal: 1,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
+        const { trialInternalId } = yield* opened(1);
 
         yield* recorder.append({ events, from: 0, trialInternalId });
         yield* recorder.recordValidations({
@@ -161,33 +121,31 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           validations: [
             {
               ...validationExecution(
-                { id: "code:0", index: 0, name: "check", kind: "code" },
+                { id: "code:0", index: 0, kind: "code", name: "check" },
                 1000
               ),
-              status: "passed",
               output: validationCapture()({
-                passed: true,
                 message: "Exact evidence",
+                passed: true,
               }),
+              status: "passed",
             },
           ],
         });
 
-        const midFlight = yield* Effect.promise(async () => ({
-          events: await db
-            .select()
-            .from(evalEvent)
-            .where(eq(evalEvent.trialInternalId, trialInternalId)),
-          trial: await db
-            .select()
-            .from(evalTrial)
-            .where(eq(evalTrial.internalId, trialInternalId)),
-        }));
+        const midFlight = {
+          events: yield* Effect.promise(() =>
+            db
+              .select()
+              .from(evalEvent)
+              .where(eq(evalEvent.trialInternalId, trialInternalId))
+          ),
+          trial: yield* trialRow(trialInternalId),
+        };
 
         yield* recorder.settle({
           finishedAt: new Date(),
           outcome,
-          prepared: {},
           sandboxId: "sbx_1",
           trialInternalId,
           usage: {
@@ -199,33 +157,24 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           },
         });
 
-        const settled = yield* Effect.promise(() =>
-          db
-            .select()
-            .from(evalTrial)
-            .where(eq(evalTrial.internalId, trialInternalId))
-        );
-
-        return { midFlight, settled };
+        return { midFlight, settled: yield* trialRow(trialInternalId) };
       })
     );
 
     expect(seen.midFlight.events).toHaveLength(2);
-    expect(seen.midFlight.trial[0]?.status).toBe("running");
-    expect(seen.midFlight.trial[0]?.validations?.[0]?.output.text).toBe(
-      '{"passed":true,"message":"Exact evidence"}'
-    );
-    expect(seen.settled[0]?.validations).toEqual(
-      seen.midFlight.trial[0]?.validations
+    expect(seen.midFlight.trial?.status).toBe("running");
+    expect(seen.midFlight.trial?.validations?.[0]?.output.text).toBe(
+      '{"message":"Exact evidence","passed":true}'
     );
 
-    expect(seen.midFlight.trial[0]?.passed).toBeNull();
-
-    expect(seen.settled[0]?.status).toBe("passed");
-    expect(seen.settled[0]?.passed).toBe(true);
-    expect(seen.settled[0]?.judgments).toEqual(outcome.judgments ?? []);
-
-    expect(seen.settled[0]?.usage).toEqual({
+    expect(seen.settled?.status).toBe("passed");
+    expect(seen.settled?.commandCount).toBe(3);
+    expect(seen.settled?.sandboxId).toBe("sbx_1");
+    expect(seen.settled?.finishedAt).not.toBeNull();
+    expect(judgmentsIn(seen.settled?.validations ?? [])).toEqual(
+      judgmentsIn([judged])
+    );
+    expect(seen.settled?.usage).toEqual({
       cacheReadTokens: 0,
       cacheWriteTokens: 0,
       inputTokens: 120,
@@ -235,72 +184,67 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
   });
 
   it("persists output files, denies other tenants, and clears them on retry", async () => {
-    /* Reading an artifact verifies the stored bytes hash to what was asked
-       for, so the digest has to be the content's own. */
     const content = "export const x = 1;";
     const artifact = {
-      path: "autumn.config.ts",
-      content,
       byteSize: content.length,
+      content,
+      path: "autumn.config.ts",
       sha256: createHash("sha256").update(content).digest("hex"),
     };
-    await run(
+
+    const seen = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
-        const opened = yield* recorder.open({
-          cellInternalId,
-          ordinal: 42,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
+        const find = yield* trialArtifactQuery;
+        const { trialInternalId } = yield* opened(2);
+
         yield* recorder.settle({
-          trialInternalId: opened.trialInternalId,
-          finishedAt: new Date(),
-          outcome: { ...outcome, artifacts: [artifact] },
           artifacts: [artifact],
-          prepared: {},
+          finishedAt: new Date(),
+          outcome,
           sandboxId: null,
+          trialInternalId,
           usage: null,
         });
+
         const request = {
-          id: `run_${suffix}`,
-          cellKey: `key_${suffix}`,
-          ordinal: 42,
           path: artifact.path,
           sha256: artifact.sha256,
+          trialId: trialInternalId,
         };
-        expect(yield* getEvalArtifact(organizationId, request)).toEqual(
-          artifact
-        );
-        const denied = yield* Effect.either(
-          getEvalArtifact("another-org", request)
-        );
-        expect(denied._tag).toBe("Left");
-        yield* recorder.open({
-          cellInternalId,
-          ordinal: 42,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
-        expect(
-          (yield* Effect.either(getEvalArtifact(organizationId, request)))._tag
-        ).toBe("Left");
+        const stored = yield* find(organizationId, request);
+        const denied = yield* find("another-org", request);
+        const metadata = (yield* trialRow(trialInternalId))?.artifacts;
+
+        yield* opened(2);
+
+        return {
+          afterRetry: yield* find(organizationId, request),
+          denied,
+          metadata,
+          stored,
+        };
       })
     );
+
+    expect(Option.getOrNull(seen.stored)).toEqual(artifact);
+    expect(seen.metadata).toEqual([
+      {
+        byteSize: artifact.byteSize,
+        path: artifact.path,
+        sha256: artifact.sha256,
+      },
+    ]);
+    expect(Option.isNone(seen.denied)).toBe(true);
+    expect(Option.isNone(seen.afterRetry)).toBe(true);
   });
 
-  it("ignores a batch it has already written", async () => {
+  it("ignores events it has already written", async () => {
     const written = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
         const db = yield* Database;
-
-        const { trialInternalId } = yield* recorder.open({
-          cellInternalId,
-          ordinal: 2,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
+        const { trialInternalId } = yield* opened(3);
 
         yield* recorder.append({ events, from: 0, trialInternalId });
         yield* recorder.append({ events, from: 0, trialInternalId });
@@ -321,89 +265,89 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     const closed = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
-        const db = yield* Database;
+        const { trialInternalId } = yield* opened(4);
 
-        const { trialInternalId } = yield* recorder.open({
-          cellInternalId,
-          ordinal: 3,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
-
+        yield* recorder.attach({ sandboxId: "sbx-open", trialInternalId });
         yield* recorder.recordValidations({
           trialInternalId,
           validations: [
             {
               ...validationExecution(
-                { id: "code:0", index: 0, name: "completed", kind: "code" },
+                { id: "code:0", index: 0, kind: "code", name: "completed" },
                 1000
               ),
-              status: "passed",
               output: validationCapture()(true),
+              status: "passed",
             },
             validationExecution(
-              { id: "code:1", index: 1, name: "interrupted", kind: "code" },
+              { id: "code:1", index: 1, kind: "code", name: "interrupted" },
               1000
             ),
             {
               ...validationExecution(
-                { id: "judge:0", index: 0, name: "not started", kind: "judge" },
+                { id: "judge:0", index: 0, kind: "judge", name: "not started" },
                 null
               ),
               status: "queued",
             },
           ],
         });
-        yield* recorder.abandon({ finishedAt: new Date(), trialInternalId });
+        yield* recorder.abandon({
+          failure: "the sandbox went away",
+          finishedAt: new Date(),
+          trialInternalId,
+        });
 
-        return yield* Effect.promise(() =>
-          db
-            .select()
-            .from(evalTrial)
-            .where(eq(evalTrial.internalId, trialInternalId))
-        );
+        return yield* trialRow(trialInternalId);
       })
     );
 
-    expect(closed[0]?.status).toBe("void");
-    expect(closed[0]?.validations?.map((record) => record.status)).toEqual([
+    expect(closed?.status).toBe("void");
+    expect(closed?.failure).toBe("the sandbox went away");
+    expect(closed?.sandboxId).toBeNull();
+    expect(closed?.finishedAt).not.toBeNull();
+    expect(closed?.validations?.map((record) => record.status)).toEqual([
       "passed",
       "error",
       "skipped",
     ]);
-    expect(closed[0]?.validations?.[0]?.output.text).toBe("true");
-
-    expect(closed[0]?.passed).toBeNull();
-    expect(closed[0]?.finishedAt).not.toBeNull();
+    expect(closed?.validations?.[0]?.output.text).toBe("true");
   });
 
-  /* A process that died mid-trial left its sandbox id on the row. The next
-     attempt is told about it so it can destroy it before opening its own. */
+  it("leaves a settled trial alone when asked to abandon it", async () => {
+    const settled = await run(
+      Effect.gen(function* () {
+        const recorder = yield* TrialRecorder;
+        const { trialInternalId } = yield* opened(5);
+
+        yield* recorder.settle({
+          finishedAt: new Date(),
+          outcome,
+          sandboxId: null,
+          trialInternalId,
+          usage: null,
+        });
+        yield* recorder.abandon({ finishedAt: new Date(), trialInternalId });
+
+        return yield* trialRow(trialInternalId);
+      })
+    );
+
+    expect(settled?.status).toBe("passed");
+  });
+
   it("hands the next attempt the sandbox the last one left behind", async () => {
     const seen = await run(
       Effect.gen(function* () {
         const recorder = yield* TrialRecorder;
-
-        const first = yield* recorder.open({
-          cellInternalId,
-          ordinal: 4,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
+        const first = yield* opened(6);
 
         yield* recorder.attach({
           sandboxId: "sbx-left-behind",
           trialInternalId: first.trialInternalId,
         });
 
-        const second = yield* recorder.open({
-          cellInternalId,
-          ordinal: 4,
-          provider: "daytona",
-          startedAt: new Date(),
-        });
-
-        return { first, second };
+        return { first, second: yield* opened(6) };
       })
     );
 

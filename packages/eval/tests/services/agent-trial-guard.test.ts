@@ -17,12 +17,13 @@ import { SuspenderSleeping } from "../../src/services/suspender";
 import { declinesEverything } from "../fixtures/declines-everything";
 
 const passed: TrialOutcome = {
+  artifacts: [],
   commandCount: 1,
   exitCode: 0,
   modelMs: 1,
-  passed: true,
   sandboxMs: 1,
   status: "passed",
+  validations: [],
   verifySteps: [],
   voidFields: [],
 };
@@ -130,8 +131,6 @@ const runWith = (order: string[], extra: Partial<AgentTrialRequest>) =>
   );
 
 describe("AgentTrial guards", () => {
-  /* A resumed attempt is told which sandbox the dead one held. It goes before
-     the new one opens, so a trial never holds two at once. */
   it("destroys the prior sandbox before opening a new one", async () => {
     const order: string[] = [];
 
@@ -150,9 +149,6 @@ describe("AgentTrial guards", () => {
     expect(order).toEqual(["open sbx-new"]);
   });
 
-  /* The journal is the instrument. A trial whose record is missing events
-     settles void with the field named, rather than passing on a journal
-     shorter than what happened. */
   it("settles void when the journal could not be recorded", async () => {
     const order: string[] = [];
 
@@ -166,7 +162,6 @@ describe("AgentTrial guards", () => {
     });
 
     expect(result.outcome.status).toBe("void");
-    expect(result.outcome.passed).toBe(false);
     expect(result.outcome.voidFields).toContain("journal");
     expect(result.events).toHaveLength(1);
   });

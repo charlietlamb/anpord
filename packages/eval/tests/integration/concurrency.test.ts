@@ -1,69 +1,43 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { IdGeneratorLive } from "@anpord/ids/layer";
+import { Database } from "@anpord/db/client";
 import { Daytona } from "@daytonaio/sdk";
-import { FetchHttpClient } from "@effect/platform";
 import {
   ConfigProvider,
-  Duration,
   Effect,
   Layer,
   ManagedRuntime,
   Option,
-  Redacted,
   Stream,
 } from "effect";
-import { ModelPricesLive } from "../../src/adapters/models/prices";
 import { runCommandForOutcome } from "../../src/adapters/sandbox/run-command";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
-import { SourceTokensNone } from "../../src/codebase/source-token";
-import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
-import type { SandboxName } from "../../src/domain/cell";
+import { CredentialError } from "../../src/credentials/errors";
+import { CredentialResolver } from "../../src/credentials/resolver";
 import { HarnessUnavailable } from "../../src/domain/errors";
-import { GridRun, GridRunLive } from "../../src/grid/run";
-import { EvalRepositoriesLive, EvalSandboxLive } from "../../src/layer";
+import type { SandboxName } from "../../src/domain/variant";
+import { Batches } from "../../src/grid/batches";
+import { EvalSandboxLive } from "../../src/layer";
 import { Harnesses } from "../../src/ports/harness";
-import { RunBellSilent } from "../../src/ports/run-bell";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";
-import { TrialRunnerInProcess } from "../../src/ports/trial-runner";
-import { RunQuery } from "../../src/repositories/run-query";
 import { AgentTrialLive } from "../../src/services/agent-trial";
-import { BaselinesLive } from "../../src/services/baselines";
-import { HarnessVersionsLive } from "../../src/services/harness-versions";
+import { EvalReads } from "../../src/services/eval-reads";
 import { SuspenderSleeping } from "../../src/services/suspender";
-import { hasDatabase, hasDaytona } from "../fixtures/credentials";
-
-/**
- * Many sandboxes in one wave, on a real provider.
- *
- * The only throttle in the system is the per-provider semaphore, and five was
- * the tested ceiling. This opens a wave at once with no model in the loop: a
- * harness that runs one shell command and reports it, so what is measured is
- * the provider, the pool, and the journal path, not an agent.
- *
- * The wave is `EVAL_CONCURRENCY_TRIALS`, default fifty, because the number a
- * provider admits is a fact about the account rather than the code. Measured
- * on 3 September 2026 from a laptop:
- *
- *   daytona, 50: 2 passed, 48 void in 8s. The organisation's tier caps the
- *   whole account at 10 CPUs, 10 GiB and 30 GiB of disk, and every sandbox
- *   past that is refused at open. Each refusal voided its own trial and the
- *   rest ran, which is the isolation this wave exists to prove.
- *   daytona, 4: see the numbers printed by the run.
- *   e2b, 20: see the numbers printed by the run.
- *
- * Run with `bun --env-file=../../.env test tests/integration/concurrency.test.ts`
- * from `packages/eval`; `bun run test` strips the provider keys.
- */
+import { hasDaytona, hasE2b } from "../fixtures/credentials";
+import { skipWithoutDatabase } from "../fixtures/database";
+import { seedOrganization } from "../fixtures/eval-rows";
+import {
+  actorOf,
+  capturingRunner,
+  caseOf,
+  evalStack,
+  requestOf,
+  variantOf,
+} from "../fixtures/eval-stack";
 
 const TRIALS = Number(process.env.EVAL_CONCURRENCY_TRIALS ?? "50");
-const URL = process.env.EVAL_TEST_DATABASE_URL;
-const hasE2B = Boolean(process.env.E2B_API_KEY);
+const LOCAL_TRIALS = 8;
+const suffix = Date.now();
 
-/* A harness whose whole session is one command in the sandbox. Enough to
-   prove the sandbox ran something and the journal recorded it. */
 const oneCommandHarness = Layer.succeed(
   Harnesses,
   Harnesses.of({
@@ -84,10 +58,7 @@ const oneCommandHarness = Layer.succeed(
                 })),
                 Effect.mapError(
                   (error) =>
-                    new HarnessUnavailable({
-                      harness,
-                      reason: error.reason,
-                    })
+                    new HarnessUnavailable({ harness, reason: error.reason })
                 )
               )
             ),
@@ -99,108 +70,49 @@ const oneCommandHarness = Layer.succeed(
   })
 );
 
-const grid = GridRunLive.pipe(
-  Layer.provide(TrialRunnerInProcess),
-  Layer.provide(RunBellSilent),
-  Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
-  Layer.provide(BaselinesLive),
-  Layer.provideMerge(BaselinesLive)
+const nothingConnected = Layer.succeed(
+  CredentialResolver,
+  CredentialResolver.of({
+    persist: () => Effect.void,
+    resolve: () =>
+      Effect.fail(
+        new CredentialError({ code: "not-found", message: "not connected" })
+      ),
+    resolveBound: () =>
+      Effect.fail(
+        new CredentialError({ code: "not-found", message: "not connected" })
+      ),
+  })
 );
 
-const concurrencyOf = (provider: SandboxName) =>
-  Layer.setConfigProvider(
-    ConfigProvider.fromMap(
-      new Map([[`EVAL_${provider.toUpperCase()}_CONCURRENCY`, `${TRIALS}`]])
-    ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()))
-  );
+const configFor = (provider: SandboxName, trials: number) =>
+  ConfigProvider.fromMap(
+    new Map([
+      [`EVAL_${provider.toUpperCase()}_CONCURRENCY`, `${trials}`],
+      ["ANPORD_LOCAL_SANDBOX", "true"],
+    ])
+  ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()));
 
-const layerFor = (provider: SandboxName) =>
-  grid.pipe(
-    Layer.provide(
-      AgentTrialLive.pipe(
-        Layer.provide(
-          Layer.mergeAll(
-            oneCommandHarness,
-            ScorerGroundTruthLive,
-            SimulatedUserSilent,
-            SuspenderSleeping
-          )
+const layerFor = (provider: SandboxName, trials: number) =>
+  evalStack({
+    agent: AgentTrialLive.pipe(
+      Layer.provide(
+        Layer.mergeAll(
+          oneCommandHarness,
+          ScorerGroundTruthLive,
+          SimulatedUserSilent,
+          SuspenderSleeping,
+          nothingConnected
         )
-      )
+      ),
+      Layer.provide(EvalSandboxLive)
     ),
-    Layer.provide(SimulatedUserSilent),
-    Layer.provideMerge(EvalRepositoriesLive),
-    Layer.provide(EvalSandboxLive),
-    Layer.provide(SourceTokensNone),
-    Layer.provide(layerTestResolver()),
-    Layer.provide(HarnessVersionsLive),
-    Layer.provide(IdGeneratorLive),
-    Layer.provideMerge(DatabaseLive),
-    Layer.provide(
-      Layer.succeed(DatabaseConfig, {
-        poolMax: 24,
-        statementTimeout: Duration.seconds(60),
-        url: Redacted.make(URL ?? ""),
-      })
-    ),
-    Layer.provide(concurrencyOf(provider))
+    resolver: nothingConnected,
+    runner: capturingRunner([]),
+  }).pipe(
+    Layer.provideMerge(Layer.setConfigProvider(configFor(provider, trials)))
   );
 
-const suffix = Date.now();
-
-type Tags = Database | GridRun | RunQuery;
-
-const harnessCredential = Redacted.make({
-  authMethodId: "test",
-  connectionId: "test",
-  integrationId: "codex",
-  revision: 1,
-  values: {},
-});
-
-interface Settled {
-  readonly cells: readonly {
-    readonly cell: { readonly status: string };
-    readonly trials: readonly {
-      readonly failure: string | null;
-      readonly sandboxId: string | null;
-      readonly status: string;
-    }[];
-  }[];
-  readonly run: { readonly status: string };
-}
-
-const settledRun = (organizationId: string, id: string) =>
-  Effect.gen(function* () {
-    const query = yield* RunQuery;
-
-    return yield* Effect.iterate(
-      { attempts: 0, detail: Option.none<Settled>() },
-      {
-        body: (state) =>
-          query.findRun(organizationId, id).pipe(
-            Effect.flatMap((found) =>
-              Option.isSome(found) && found.value.run.status !== "running"
-                ? Effect.succeed({
-                    attempts: state.attempts,
-                    detail: Option.some(found.value as unknown as Settled),
-                  })
-                : Effect.sleep("2 seconds").pipe(
-                    Effect.as({
-                      attempts: state.attempts + 1,
-                      detail: Option.none<Settled>(),
-                    })
-                  )
-            )
-          ),
-        while: (state) => Option.isNone(state.detail) && state.attempts < 300,
-      }
-    );
-  });
-
-/* The provider is the witness for leaks: every id the run recorded must be
-   gone. Daytona's `get` on a deleted sandbox rejects. Other providers have no
-   cheap equivalent and are judged on the run alone. */
 const leftBehind = async (provider: SandboxName, ids: readonly string[]) => {
   if (provider !== "daytona") {
     return [];
@@ -219,36 +131,33 @@ const leftBehind = async (provider: SandboxName, ids: readonly string[]) => {
   return found.filter((id): id is string => id !== null);
 };
 
-const wave = (provider: SandboxName, ready: boolean) =>
-  describe.skipIf(!(ready && hasDatabase))(
-    `${TRIALS} trials at once on ${provider}`,
+const wave = (provider: SandboxName, trials: number, ready: boolean) =>
+  describe.skipIf(!ready || skipWithoutDatabase())(
+    `${trials} trials at once on ${provider}`,
     () => {
-      const organizationId = `org_conc_${provider}_${suffix}`;
-      const runtime = ManagedRuntime.make(layerFor(provider));
-      const run = <A, E>(effect: Effect.Effect<A, E, Tags>) =>
-        runtime.runPromise(effect as Effect.Effect<A, E, never>);
+      const organizationId = `org_wave_${provider}_${suffix}`;
+      const runtime = ManagedRuntime.make(layerFor(provider, trials));
+      const perCase = Math.min(trials, 10);
+      const cases = Array.from(
+        { length: Math.ceil(trials / perCase) },
+        (_, index) =>
+          caseOf(`say-hello-${index}`, {
+            variables: { task: "say hello" },
+            verify: "echo verified",
+          })
+      );
 
       afterAll(async () => {
         await runtime.dispose();
       });
 
       beforeAll(async () => {
-        await run(
-          Effect.gen(function* () {
-            const db = yield* Database;
-
-            yield* Effect.promise(() =>
-              db
-                .insert(organization)
-                .values({
-                  createdAt: new Date(),
-                  id: organizationId,
-                  name: "concurrency",
-                  slug: `conc-${provider}-${suffix}`,
-                })
-                .onConflictDoNothing()
-            );
-          })
+        await runtime.runPromise(
+          Database.pipe(
+            Effect.flatMap((db) =>
+              Effect.promise(() => seedOrganization(db, organizationId))
+            )
+          )
         );
       });
 
@@ -256,81 +165,56 @@ const wave = (provider: SandboxName, ready: boolean) =>
         "completes every trial, voids none, and leaves no sandbox behind",
         async () => {
           const startedAt = Date.now();
-
-          const id = await run(
+          const batch = await runtime.runPromise(
             Effect.gen(function* () {
-              const grid = yield* GridRun;
-
-              return yield* grid.start({
-                cases: [
-                  {
-                    id: "say-hello",
-                    name: "say-hello",
-                    prepare: null,
-                    source: { kind: "empty" },
-                    variables: {},
-                    verify: "echo verified",
-                  },
-                ],
-                name: `concurrency-${TRIALS}`,
+              const batches = yield* Batches;
+              const started = yield* batches.start(
+                actorOf(organizationId),
+                requestOf({
+                  cases,
+                  trials: perCase,
+                  variants: [
+                    variantOf({
+                      harness: "command",
+                      model: "none",
+                      sandbox: provider,
+                    }),
+                  ],
+                })
+              );
+              yield* batches.execute(started.id);
+              return yield* (yield* EvalReads).batch(
                 organizationId,
-                prompt: "say hello",
-                startedBy: null,
-                variants: [
-                  {
-                    credentials: { harness: harnessCredential },
-                    harness: "codex",
-                    harnessVersion: "0.0.0-test",
-                    profile: null,
-                    model: "none",
-                    provider,
-                  },
-                ],
-                trials: TRIALS,
-              });
+                started.id
+              );
             })
           );
-
-          const settled = await run(settledRun(organizationId, id));
           const elapsedMs = Date.now() - startedAt;
-
-          expect(Option.isSome(settled.detail)).toBe(true);
-
-          if (Option.isNone(settled.detail)) {
-            return;
-          }
-
-          const detail = settled.detail.value;
-          const trials = detail.cells.flatMap((cell) => cell.trials);
-          const statuses = trials.map((trial) => trial.status);
-          const passed = statuses.filter((status) => status === "passed");
-          const voided = trials.filter((trial) => trial.status === "void");
-          const ids = trials.flatMap((trial) =>
-            trial.sandboxId === null ? [] : [trial.sandboxId]
+          const trialsRun = batch.runs.flatMap((entry) => entry.trials);
+          const passed = trialsRun.filter((trial) => trial.status === "passed");
+          const voided = trialsRun.filter((trial) => trial.status === "void");
+          const stillThere = await leftBehind(
+            provider,
+            trialsRun.flatMap((trial) =>
+              trial.sandboxId === null ? [] : [trial.sandboxId]
+            )
           );
-          const stillThere = await leftBehind(provider, ids);
 
           console.log(
-            [
-              `${TRIALS} trials on ${provider}: ${Math.round(elapsedMs / 1000)}s wall clock,`,
-              `${passed.length} passed, ${voided.length} void,`,
-              `${stillThere.length} sandboxes left behind`,
-              voided[0]?.failure === null || voided[0] === undefined
-                ? ""
-                : `\n  first void: ${voided[0].failure?.slice(0, 160)}`,
-            ].join(" ")
+            `${trialsRun.length} trials on ${provider}: ${Math.round(elapsedMs / 1000)}s wall clock, ${passed.length} passed, ${voided.length} void, ${stillThere.length} sandboxes left behind`
           );
 
-          expect(detail.run.status).toBe("finished");
-          expect(trials).toHaveLength(TRIALS);
+          expect(batch.status).toBe("finished");
+          expect(trialsRun).toHaveLength(cases.length * perCase);
           expect(stillThere).toEqual([]);
           expect(voided).toHaveLength(0);
-          expect(passed).toHaveLength(TRIALS);
+          expect(passed).toHaveLength(cases.length * perCase);
         },
         20 * 60 * 1000
       );
     }
   );
 
-wave("daytona", hasDaytona);
-wave("e2b", hasE2B);
+wave("local", LOCAL_TRIALS, true);
+wave("daytona", TRIALS, hasDaytona);
+wave("e2b", TRIALS, hasE2b);

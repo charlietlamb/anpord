@@ -2,8 +2,16 @@ import { describe, expect, it } from "bun:test";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Redacted } from "effect";
 import { CredentialError } from "../../src/credentials/errors";
-import type { CredentialResolverShape } from "../../src/credentials/resolver";
-import { resolveVariantCredentials } from "../../src/credentials/variants";
+import type {
+  CredentialResolverShape,
+  ResolveCredential,
+} from "../../src/credentials/resolver";
+import {
+  type BindVariant,
+  bindCredentials,
+  KEYLESS_HARNESSES,
+  unkeyed,
+} from "../../src/credentials/variants";
 
 const actor = Actor.make({
   id: UserId.make("user"),
@@ -12,145 +20,178 @@ const actor = Actor.make({
   permissions: [],
 });
 
-const missing: CredentialResolverShape = {
+const notFound = () =>
+  Effect.fail(new CredentialError({ code: "not-found", message: "not found" }));
+
+const resolved = (input: ResolveCredential, revision: number) =>
+  Effect.succeed(
+    Redacted.make({
+      authMethodId: "api-key",
+      connectionId: input.connectionId ?? `default-${input.integrationId}`,
+      integrationId: input.integrationId,
+      revision,
+      values: { apiKey: "secret" },
+    })
+  );
+
+const resolverOf = (
+  resolve: CredentialResolverShape["resolve"]
+): CredentialResolverShape => ({
   persist: () => Effect.void,
-  resolve: () =>
-    Effect.fail(
-      new CredentialError({ code: "not-found", message: "not found" })
-    ),
-  resolveBound: () =>
-    Effect.fail(
-      new CredentialError({ code: "not-found", message: "not used here" })
-    ),
-};
+  resolve,
+  resolveBound: notFound,
+});
 
-const task = {
-  harness: "codex" as const,
-  harnessVersion: "1",
-  model: "gpt-5.6-sol",
-  profile: null,
-  provider: "daytona" as const,
-};
+const connected = (integrations: readonly string[], revision = 3) =>
+  resolverOf((input) =>
+    integrations.includes(input.integrationId)
+      ? resolved(input, revision)
+      : notFound()
+  );
 
-describe("task credentials", () => {
-  it.each([
-    "codex",
-    "daytona",
-  ])("preserves default %s credential failures", async (integration) => {
-    const error = new CredentialError({
-      code: "internal",
-      message: "Credential could not be decrypted",
-    });
-    const resolver: CredentialResolverShape = {
-      ...missing,
-      resolve: (input) =>
-        input.integrationId === integration
-          ? Effect.fail(error)
-          : missing.resolve(input),
-    };
-    const failure = await Effect.runPromise(
-      resolveVariantCredentials(resolver, actor, [task], "legacy").pipe(
-        Effect.flip
-      )
-    );
+const variant: BindVariant = { harness: "codex", sandbox: "daytona" };
 
-    expect(failure).toMatchObject({
-      code: error.code,
-      message: error.message,
+const bind = (
+  resolver: CredentialResolverShape,
+  variants: readonly BindVariant[]
+) => Effect.runPromise(bindCredentials(resolver, actor, variants));
+
+const refusal = (
+  resolver: CredentialResolverShape,
+  variants: readonly BindVariant[]
+) =>
+  Effect.runPromise(
+    bindCredentials(resolver, actor, variants).pipe(Effect.flip)
+  );
+
+describe("binding credentials to variants", () => {
+  it("records the default harness and sandbox connections with their revisions", async () => {
+    const [bound] = await bind(connected(["codex", "daytona"]), [variant]);
+
+    expect(bound).toEqual({
+      harnessCredentialConnectionId: "default-codex",
+      harnessCredentialRevision: 3,
+      sandboxCredentialConnectionId: "default-daytona",
+      sandboxCredentialRevision: 3,
     });
   });
 
-  it("keeps the legacy fallback only for Codex", async () => {
-    const [resolved] = await Effect.runPromise(
-      resolveVariantCredentials(missing, actor, [task], '{"tokens":{}}')
-    );
+  it("follows explicit bindings", async () => {
+    const [bound] = await bind(connected(["codex", "daytona"]), [
+      {
+        ...variant,
+        credentials: {
+          harnessConnectionId: "harness",
+          sandboxConnectionId: "sandbox",
+        },
+      },
+    ]);
 
-    expect(Redacted.value(resolved.credentials.harness)).toMatchObject({
-      integrationId: "codex",
-      revision: 0,
-      values: { authJson: '{"tokens":{}}' },
-    });
+    expect(bound?.harnessCredentialConnectionId).toBe("harness");
+    expect(bound?.sandboxCredentialConnectionId).toBe("sandbox");
+  });
 
-    const failure = await Effect.runPromise(
-      resolveVariantCredentials(
-        missing,
-        actor,
-        [{ ...task, harness: "claude" }],
-        '{"tokens":{}}'
-      ).pipe(Effect.flip)
-    );
+  it("binds each variant on its own", async () => {
+    const bound = await bind(connected(["codex", "claude", "e2b"]), [
+      variant,
+      { harness: "claude", sandbox: "e2b" },
+    ]);
 
+    expect(bound.map((entry) => entry.harnessCredentialConnectionId)).toEqual([
+      "default-codex",
+      "default-claude",
+    ]);
+    expect(bound.map((entry) => entry.sandboxCredentialConnectionId)).toEqual([
+      null,
+      "default-e2b",
+    ]);
+  });
+
+  it("falls back to an env connection when the harness has none", async () => {
+    const [bound] = await bind(connected(["env"]), [
+      { harness: "opencode", sandbox: "daytona" },
+    ]);
+
+    expect(bound?.harnessCredentialConnectionId).toBe("default-env");
+    expect(bound?.sandboxCredentialConnectionId).toBeNull();
+  });
+
+  it("refuses a keyed harness with no credential at all", async () => {
+    const failure = await refusal(connected([]), [
+      { harness: "claude", sandbox: "daytona" },
+    ]);
+
+    expect(failure.code).toBe("not-found");
     expect(failure.message).toBe("No credential configured for claude");
   });
 
-  it("preserves explicit bindings and revisions", async () => {
-    const resolver: CredentialResolverShape = {
-      persist: () => Effect.void,
-      resolveBound: () =>
-        Effect.fail(
-          new CredentialError({ code: "not-found", message: "not used here" })
-        ),
-      resolve: ({ connectionId, integrationId }) =>
-        Effect.succeed(
-          Redacted.make({
-            authMethodId: "api-key",
-            connectionId: connectionId ?? "default",
-            integrationId,
-            revision: 4,
-            values: { apiKey: "secret" },
-          })
-        ),
-    };
-    const [resolved] = await Effect.runPromise(
-      resolveVariantCredentials(
-        resolver,
-        actor,
-        [
-          {
-            ...task,
-            credentials: {
-              harnessConnectionId: "harness",
-              sandboxConnectionId: "sandbox",
-            },
-            provider: "daytona",
-          },
-        ],
-        ""
-      )
-    );
+  it("lets a keyless command harness run with nothing bound", async () => {
+    const [bound] = await bind(connected([]), [
+      { harness: "command", sandbox: "daytona" },
+    ]);
 
-    expect(resolved.bindings).toEqual({
-      harnessConnectionId: "harness",
-      sandboxConnectionId: "sandbox",
-    });
-    expect(Redacted.value(resolved.credentials.harness)).toMatchObject({
-      connectionId: "harness",
-      revision: 4,
-    });
-    if (resolved.credentials.sandbox === undefined) {
-      throw new Error("Expected sandbox credentials");
-    }
-    expect(Redacted.value(resolved.credentials.sandbox)).toMatchObject({
-      connectionId: "sandbox",
-      revision: 4,
+    expect(bound).toEqual({
+      harnessCredentialConnectionId: null,
+      harnessCredentialRevision: null,
+      sandboxCredentialConnectionId: null,
+      sandboxCredentialRevision: null,
     });
   });
 
-  it("does not hide an invalid explicit binding", async () => {
-    const failure = await Effect.runPromise(
-      resolveVariantCredentials(
-        missing,
-        actor,
-        [
-          {
-            ...task,
-            credentials: { harnessConnectionId: "removed" },
-          },
-        ],
-        '{"tokens":{}}'
-      ).pipe(Effect.flip)
-    );
+  it("stores no binding for a local credential that has no stored revision", async () => {
+    const [bound] = await bind(connected(["codex", "daytona"], 0), [variant]);
+
+    expect(bound?.harnessCredentialConnectionId).toBeNull();
+    expect(bound?.harnessCredentialRevision).toBeNull();
+    expect(bound?.sandboxCredentialConnectionId).toBeNull();
+  });
+
+  it("does not hide an explicit harness binding that is gone", async () => {
+    const failure = await refusal(connected([]), [
+      { ...variant, credentials: { harnessConnectionId: "removed" } },
+    ]);
 
     expect(failure.code).toBe("not-found");
+  });
+
+  it("does not hide an explicit sandbox binding that is gone", async () => {
+    const failure = await refusal(connected(["codex"]), [
+      { ...variant, credentials: { sandboxConnectionId: "removed" } },
+    ]);
+
+    expect(failure.code).toBe("not-found");
+  });
+
+  it.each([
+    "codex",
+    "daytona",
+  ])("reports a %s store failure instead of treating it as missing", async (integration) => {
+    const down = resolverOf((input) =>
+      input.integrationId === integration
+        ? Effect.fail(
+            new CredentialError({ code: "internal", message: "store down" })
+          )
+        : resolved(input, 1)
+    );
+    const failure = await refusal(down, [variant]);
+
+    expect(failure.code).toBe("internal");
+    expect(failure.message).toBe("store down");
+  });
+});
+
+describe("the keyless credential", () => {
+  it("covers only the command harness", () => {
+    expect([...KEYLESS_HARNESSES]).toEqual(["command"]);
+  });
+
+  it("carries no values and no stored revision", () => {
+    expect(Redacted.value(unkeyed())).toEqual({
+      authMethodId: "env",
+      connectionId: "env-none",
+      integrationId: "env",
+      revision: 0,
+      values: {},
+    });
   });
 });

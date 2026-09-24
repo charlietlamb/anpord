@@ -1,19 +1,14 @@
 import { describe, expect, it } from "bun:test";
-import {
-  changesBetween,
-  type DefinitionFields,
-} from "../../src/domain/definition-changes";
+import { changesBetween } from "../../src/domain/definition-changes";
 
-const base: DefinitionFields = {
-  prepareSource: null,
-  repoRef: null,
-  repoUrl: null,
-  sourceFiles: { "a.txt": "one" },
-  sourceKind: "files",
+const base = {
+  cache: null,
+  prepare: null,
+  prompt: "fix the failing test",
+  source: { files: { "a.txt": "one" }, kind: "files" as const },
   user: null,
-  validatorConfig: { name: "validate", source: "v1" },
-  validatorSource: "v1",
-  verifyCommand: null,
+  validator: { name: "validate", source: "v1" },
+  verify: null,
 };
 
 describe("what changed between two versions of a case", () => {
@@ -25,20 +20,31 @@ describe("what changed between two versions of a case", () => {
     expect(
       changesBetween(base, {
         ...base,
-        sourceFiles: { "a.txt": "two" },
-        validatorConfig: { name: "validate", source: "v2" },
-        validatorSource: "v2",
+        prompt: "fix it faster",
+        source: { files: { "a.txt": "two" }, kind: "files" },
+        validator: { name: "validate", source: "v2" },
       })
-    ).toEqual(["source", "validator"]);
+    ).toEqual(["prompt", "source", "validator"]);
   });
 
-  it("names the simulated user and the setup", () => {
+  it("names the simulated user, the setup, the verifier and the cache", () => {
     expect(
       changesBetween(base, {
         ...base,
-        prepareSource: "install()",
+        cache: { key: "deps", path: "node_modules" },
+        prepare: { name: "prepare", source: "install()" },
         user: { goal: "go live", kind: "simulated", prompt: "p" },
+        verify: "npm test",
       })
-    ).toEqual(["setup", "simulated user"]);
+    ).toEqual(["setup", "verifier", "simulated user", "cache"]);
+  });
+
+  it("ignores a setup whose name changed but whose source did not", () => {
+    expect(
+      changesBetween(
+        { ...base, prepare: { name: "one", source: "install()" } },
+        { ...base, prepare: { name: "two", source: "install()" } }
+      )
+    ).toEqual([]);
   });
 });

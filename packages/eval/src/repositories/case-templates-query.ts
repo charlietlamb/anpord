@@ -1,5 +1,4 @@
 import { Database } from "@anpord/db/client";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
@@ -40,14 +39,18 @@ export const caseTemplatesQuery = Effect.gen(function* () {
 
       const [version] = yield* tryStore("caseTemplates.version", () =>
         db
-          .select({ internalId: evalCaseVersion.internalId })
-          .from(evalCaseVersion)
+          .select({ internalId: evalRun.caseVersionInternalId })
+          .from(evalRun)
+          .innerJoin(
+            evalVariant,
+            eq(evalVariant.internalId, evalRun.variantInternalId)
+          )
           .innerJoin(
             evalCase,
-            eq(evalCase.internalId, evalCaseVersion.caseInternalId)
+            eq(evalCase.internalId, evalVariant.caseInternalId)
           )
           .where(scope)
-          .orderBy(desc(evalCaseVersion.createdAt))
+          .orderBy(desc(evalRun.createdAt), desc(evalRun.internalId))
           .limit(1)
       );
 

@@ -43,9 +43,6 @@ for (const [provider, ready] of [
   ["vercel", hasVercel && hasCodex],
 ] as const) {
   describe.skipIf(!ready)(`an agent trial against ${provider}`, () => {
-    /* The whole product in one test: an agent is given a broken repository, it
-     works inside a sandbox, and the verdict comes from running the verifier
-     ourselves rather than from what the agent said it achieved. */
     it("lets Codex fix a broken task and scores it from ground truth", async () => {
       const result = await Effect.runPromise(
         Effect.gen(function* () {
@@ -68,23 +65,16 @@ for (const [provider, ready] of [
         }).pipe(Effect.provide(TestLayer))
       );
       expect(result.outcome.status).toBe("passed");
-      expect(result.outcome.passed).toBe(true);
       expect(result.outcome.voidFields).toEqual([]);
-      /* The columns an eval platform reading a tool-call string cannot have. */
       expect(result.commands).toBeGreaterThan(0);
       expect(result.filesChanged.length).toBeGreaterThan(0);
       expect(Option.isSome(result.usage)).toBe(true);
-      /* Model time is separated from sandbox time, or a slow provider reads as
-         a slow model and the third axis becomes unreadable. */
       expect(result.outcome.modelMs).toBeGreaterThan(0);
       expect(result.outcome.sandboxMs).toBeGreaterThan(0);
     }, 900_000);
   });
 }
 
-/* The fixture agent is handed over as the profile's run rather than as one of
-   its files: what this row measures is the driver, not the materialiser that
-   writes a profile into the sandbox. */
 const commandProfile = (script: string): RequestedProfile => ({
   env: null,
   files: {},
@@ -123,12 +113,9 @@ describe.skipIf(!hasE2b)("a command trial against e2b", () => {
     const result = await trial("command-agent.sh");
 
     expect(result.outcome.status).toBe("passed");
-    expect(result.outcome.passed).toBe(true);
     expect(result.outcome.voidFields).toEqual([]);
     expect(result.filesChanged.length).toBeGreaterThan(0);
     expect(Option.isSome(result.usage)).toBe(true);
-    /* The recorder's own account of what ran, which no reporting could fake:
-       a Command with no exit code is one the DEBUG trap saw. */
     expect(
       result.events.filter(
         (event) => event._tag === "Command" && event.exitCode === null
@@ -139,8 +126,7 @@ describe.skipIf(!hasE2b)("a command trial against e2b", () => {
   it("fails the same verifier for an agent that only says it is done", async () => {
     const result = await trial("command-agent-lying.sh");
 
-    expect(result.outcome.passed).toBe(false);
-    /* Its own Finished is honoured; the verdict simply does not come from it. */
+    expect(result.outcome.status).not.toBe("passed");
     expect(result.events.some((event) => event._tag === "Finished")).toBe(true);
   }, 900_000);
 });

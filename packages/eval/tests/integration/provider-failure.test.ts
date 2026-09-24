@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { Chunk, Effect, Stream } from "effect";
-import type { SandboxName } from "../../src/domain/cell";
+import type { SandboxName } from "../../src/domain/variant";
 import { EvalSandboxLive } from "../../src/layer";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import {
@@ -55,11 +55,6 @@ const failingVerify = (provider: SandboxName) =>
   );
 
 describe("a failing command keeps its own words", () => {
-  /* The regression: E2B rejects on a non-zero exit and carries the output on
-     the rejection's `result`. Folding the failure back after the rejection had
-     already been mapped to SandboxUnavailable read that field off an error
-     which never has it, so the exit code survived and the failing test's
-     output did not. The journal exists to keep exactly those words. */
   const providers = [
     ["daytona", Boolean(process.env.DAYTONA_API_KEY)],
     ["e2b", Boolean(process.env.E2B_API_KEY)],

@@ -1,16 +1,12 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { eq } from "drizzle-orm";
-import { Duration, Effect, Layer, Redacted } from "effect";
+import { Duration, Effect, Layer } from "effect";
 import {
   EventRepository,
   EventRepositoryLive,
@@ -23,42 +19,31 @@ import {
   TrialRecorder,
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
-import { skipWithoutDatabase } from "../fixtures/database";
-import { seedCaseVersion } from "../fixtures/eval-rows";
-
-const URL = process.env.EVAL_TEST_DATABASE_URL;
+import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
+import { seedOrganization, seedRun } from "../fixtures/eval-rows";
 
 const TestLayer = Layer.mergeAll(
   JournalArchiveLive,
   EventRepositoryLive.pipe(Layer.provide(JournalArchiveLive)),
   TrialRecorderLive
-).pipe(
-  Layer.provide(IdGeneratorLive),
-  Layer.provideMerge(DatabaseLive),
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 4,
-      statementTimeout: Duration.seconds(30),
-      url: Redacted.make(URL ?? ""),
-    })
-  )
-);
+).pipe(Layer.provide(IdGeneratorLive), Layer.provideMerge(testDatabase()));
 
 const suffix = Date.now();
 const organizationId = `org_arc_${suffix}`;
-const cellInternalId = `cell_arc_${suffix}`;
+const runInternalId = `erun_arc_${suffix}`;
 
 const DAY = Duration.toMillis(Duration.days(1));
 const cutoff = new Date(suffix - 30 * DAY);
 const cold = new Date(suffix - 40 * DAY);
 
 const outcome: TrialOutcome = {
+  artifacts: [],
   commandCount: 1,
   exitCode: 0,
   modelMs: 1000,
-  passed: true,
   sandboxMs: 500,
   status: "passed",
+  validations: [],
   verifySteps: [],
   voidFields: [],
 };
@@ -98,9 +83,8 @@ const journalled = (input: {
     const db = yield* Database;
 
     const { trialInternalId } = yield* recorder.open({
-      cellInternalId,
       ordinal: input.ordinal,
-      provider: "daytona",
+      runInternalId,
       startedAt: new Date(),
     });
 
@@ -110,7 +94,6 @@ const journalled = (input: {
       yield* recorder.settle({
         finishedAt: new Date(),
         outcome,
-        prepared: {},
         sandboxId: null,
         trialInternalId,
         usage: null,
@@ -150,42 +133,11 @@ describe.skipIf(skipWithoutDatabase())("JournalArchive", () => {
         const db = yield* Database;
 
         yield* Effect.promise(async () => {
-          await db
-            .insert(organization)
-            .values({
-              createdAt: new Date(),
-              id: organizationId,
-              name: "archive test",
-              slug: `arc-${suffix}`,
-            })
-            .onConflictDoNothing();
-
-          await seedCaseVersion(db, {
-            id: `task_arc_${suffix}`,
-            internalId: `taskint_arc_${suffix}`,
+          await seedOrganization(db, organizationId);
+          await seedRun(db, {
             organizationId,
-          });
-
-          await db.insert(evalRun).values({
-            cellCount: 1,
-            id: `run_arc_${suffix}`,
-            internalId: `runint_arc_${suffix}`,
-            organizationId,
-            status: "running",
+            tag: `arc_${suffix}`,
             trialCount: 4,
-          });
-
-          await db.insert(evalCell).values({
-            cellKey: `key_arc_${suffix}`,
-            harness: "codex",
-            harnessVersion: "0.144.4",
-            internalId: cellInternalId,
-            model: "gpt-5",
-            prompt: "do the thing",
-            provider: "daytona",
-            runInternalId: `runint_arc_${suffix}`,
-            status: "running",
-            caseVersionInternalId: `taskint_arc_${suffix}`,
           });
         });
       })
@@ -285,9 +237,8 @@ describe.skipIf(skipWithoutDatabase())("JournalArchive", () => {
         const archived = yield* stored(trialInternalId);
 
         yield* recorder.open({
-          cellInternalId,
           ordinal: 4,
-          provider: "daytona",
+          runInternalId,
           startedAt: new Date(),
         });
 

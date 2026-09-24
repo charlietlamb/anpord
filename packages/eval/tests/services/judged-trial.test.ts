@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Layer, Option, Schema } from "effect";
+import { judgmentsIn } from "../../src/domain/judgments";
 import { JudgeModel } from "../../src/judges/model";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import {
@@ -58,14 +59,15 @@ const run = (
     sessionId: null,
     usage: Option.none(),
     outcome: {
+      artifacts: [],
       commandCount: 0,
       exitCode: 0,
       modelMs: 1,
       sandboxMs: 1,
+      validations: [],
       verifySteps: [],
       voidFields: [],
       status,
-      passed: status === "passed",
     },
   };
   const layer = AgentTrialJudgedLive.pipe(
@@ -106,7 +108,7 @@ test("judges after task cleanup and passes at the threshold", async () => {
   );
   expect(order).toEqual(["task open", "task closed", "judge"]);
   expect(result.outcome.status).toBe("passed");
-  expect(result.outcome.judgments?.[0]?.score).toBe(1);
+  expect(judgmentsIn(result.outcome.validations)[0]?.score).toBe(1);
 });
 
 test("a passing judge cannot override a failed code check", async () => {
