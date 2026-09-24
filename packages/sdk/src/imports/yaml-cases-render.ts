@@ -1,3 +1,4 @@
+import { distinct, slug } from "./case-handle";
 import type { ImportTally } from "./evals-json-render";
 import { commentSafe, quoted, templated } from "./typescript-literal";
 import { placeholderBlock, proseLine } from "./unwritten-check";
@@ -7,15 +8,6 @@ export interface YamlCaseFile {
   readonly path: string;
   readonly subject: YamlCase;
 }
-
-const slug = (value: string, fallback: string) => {
-  const cleaned = value
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/^-+|-+$/g, "");
-
-  return cleaned === "" ? fallback : cleaned;
-};
 
 /* Judge context is prose for a model, so none of it converts; a case with no
    lines still owes one. */
@@ -41,9 +33,10 @@ const judgeLines = (subject: YamlCase) =>
     .map((line) => proseLine(line))
     .join("\n");
 
-const caseBlock = (file: YamlCaseFile) =>
+const caseBlock = (file: YamlCaseFile, id: string) =>
   [
     "    {",
+    `      id: ${quoted(id)},`,
     `      name: ${quoted(slug(file.subject.name, "case"))},`,
     `      /* Imported from ${commentSafe(file.path)}. */`,
     budgetComment(file.subject),
@@ -61,6 +54,13 @@ const caseBlock = (file: YamlCaseFile) =>
     "      },",
     "    },",
   ].join("\n");
+
+const caseBlocks = (files: readonly YamlCaseFile[]) => {
+  const ids = distinct(files.map((file) => slug(file.subject.name, "case")));
+  return files
+    .map((file, index) => caseBlock(file, ids[index] ?? "case"))
+    .join("\n");
+};
 
 /* The files carry no directory name, so a multi-file suite is named
    generically for the author to rename. */
@@ -80,7 +80,7 @@ export const renderYamlSuite = (files: readonly YamlCaseFile[]) =>
     '  prompt: "{{task}}",',
     "  trials: 3,",
     "  cases: [",
-    files.map(caseBlock).join("\n"),
+    caseBlocks(files),
     "  ],",
     "  variants: [",
     "    /* Name the harness, model and sandbox this suite runs on. */",

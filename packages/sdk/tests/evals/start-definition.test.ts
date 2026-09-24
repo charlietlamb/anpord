@@ -46,6 +46,20 @@ describe("starting from an imported eval", () => {
     }
   });
 
+  test("waiting on an imported eval still sends the compiled request", async () => {
+    const { restore, sent } = capture();
+
+    try {
+      const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
+      await anpord.evals.startAndWait(smoke).catch(() => undefined);
+
+      const body = (await sent[0]?.json()) as { suite: { prompt: string } };
+      expect(body.suite.prompt).toBe("Create hello.txt");
+    } finally {
+      restore();
+    }
+  });
+
   test("still accepts a plain request object", async () => {
     const { restore, sent } = capture();
 

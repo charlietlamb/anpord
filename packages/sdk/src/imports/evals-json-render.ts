@@ -1,3 +1,4 @@
+import { slug } from "./case-handle";
 import type {
   EvalsJsonCase,
   EvalsJsonFile,
@@ -30,15 +31,6 @@ export const tallyOf = (file: EvalsJsonFile): ImportTally => {
     converted: assertions.filter(isStructured).length,
     needsAuthor: assertions.filter((one) => !isStructured(one)).length,
   };
-};
-
-const slug = (value: string, fallback: string) => {
-  const cleaned = value
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, "-")
-    .replaceAll(/^-+|-+$/g, "");
-
-  return cleaned === "" ? fallback : cleaned;
 };
 
 /* The id is carried even for a named case, because `slug` is not injective. */
@@ -74,6 +66,7 @@ const sourceComment = (subject: EvalsJsonCase) =>
 const caseBlock = (subject: EvalsJsonCase) =>
   [
     "    {",
+    `      id: ${quoted(nameOf(subject))},`,
     `      name: ${quoted(nameOf(subject))},`,
     ...expectationComment(subject),
     "      variables: {",

@@ -138,22 +138,8 @@ export class Anpord {
       ...evals,
       start: async (input) => await evals.start(await submittable(input)),
       startAndWait: async (options) => {
-        const {
-          maxIntervalMs,
-          onProgress,
-          pollIntervalMs,
-          signal,
-          timeoutMs,
-          ...input
-        } = options;
-        const { id } = await evals.start(await submittable(input));
-        return await waitForBatch(evals.get, id, {
-          maxIntervalMs,
-          onProgress,
-          pollIntervalMs,
-          signal,
-          timeoutMs,
-        });
+        const { id } = await evals.start(await submittable(options));
+        return await waitForBatch(evals.get, id, options);
       },
       wait: ({ id, ...options }) => waitForBatch(evals.get, id, options),
     };

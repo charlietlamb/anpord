@@ -39,6 +39,12 @@ describe("the generated suite", () => {
     expect(source).toContain('containsNone(answer, ["d"])');
   });
 
+  test("gives every case the id a case requires", () => {
+    const source = renderEvalSuite(oneCase([], { name: "Release notes" }));
+
+    expect(source).toContain('id: "release-notes-1"');
+  });
+
   test("carries its own checks rather than importing them", () => {
     const source = renderEvalSuite(
       oneCase([{ kind: "content_contains_any", needles: ["a"], text: "any" }])

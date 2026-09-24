@@ -135,6 +135,22 @@ describe("the generated suite", () => {
     expect(parseErrorsIn(source)).toHaveLength(0);
   });
 
+  test("gives every case the id a case requires", () => {
+    expect(renderYamlSuite(oneCase({ name: "Checkout Flow" }))).toContain(
+      'id: "checkout-flow"'
+    );
+  });
+
+  test("keeps case ids distinct when two files share a name", () => {
+    const source = renderYamlSuite([
+      ...oneCase({ name: "Checkout" }, "cases/one.yaml"),
+      ...oneCase({ name: "Checkout" }, "cases/two.yaml"),
+    ]);
+
+    expect(source).toContain('id: "checkout",');
+    expect(source).toContain('id: "checkout-2",');
+  });
+
   test("names a suite of several files generically", () => {
     const source = renderYamlSuite([
       ...oneCase({ name: "One" }, "cases/one.yaml"),
