@@ -1,12 +1,12 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import type { EvalPrepare } from "@anpord/schema/domain/evals";
+import type { EvalPrepare, EvalSource } from "@anpord/schema/domain/evals";
 import { Effect, Option, Redacted, type Scope } from "effect";
+import { shellQuote } from "../adapters/harness/process";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";
 import type { HarnessUnavailable, SandboxUnavailable } from "../domain/errors";
 import { type PrepareFailed, SourceUnavailable } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { HarnessName } from "../domain/variant";
-import type { WorkspaceSource } from "../domain/workspace-source";
 import type { HarnessDriverShape } from "../ports/harness";
 import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
@@ -32,14 +32,12 @@ export interface PrepareWorkspace {
   readonly prepare: EvalPrepare | null;
   readonly profile: RequestedProfile | null;
   readonly sandbox: SandboxHandle;
-  readonly source: WorkspaceSource;
+  readonly source: EvalSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly workspace: string;
 }
 
 const CLONE_TIMEOUT_MS = 300_000;
-
-const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
 const CREDENTIAL_FILE = ".anpord-git-credentials";
 
@@ -57,7 +55,7 @@ const credentialFile = (
         `https://x-access-token:${Redacted.value(token)}@${new URL(url).host}\n`
       )
       .pipe(Effect.as(path)),
-    () => Effect.ignore(runCommand(input.sandbox, `rm -f ${quoted(path)}`))
+    () => Effect.ignore(runCommand(input.sandbox, `rm -f ${shellQuote(path)}`))
   );
 };
 
@@ -67,12 +65,12 @@ const clone = (input: PrepareWorkspace, url: string, ref: string | null) => {
   const checkout =
     ref === null
       ? ""
-      : ` && git -C ${quoted(workspace)} fetch --depth 1 origin ${quoted(ref)} && git -C ${quoted(workspace)} checkout --detach FETCH_HEAD`;
+      : ` && git -C ${shellQuote(workspace)} fetch --depth 1 origin ${shellQuote(ref)} && git -C ${shellQuote(workspace)} checkout --detach FETCH_HEAD`;
 
   const run = (helper: string) =>
     runCommandOrFail(
       sandbox,
-      `git ${helper}clone --depth 1 ${quoted(url)} ${quoted(workspace)}${checkout}`,
+      `git ${helper}clone --depth 1 ${shellQuote(url)} ${shellQuote(workspace)}${checkout}`,
       (outcome) =>
         new SourceUnavailable({
           reason: cloneFailureReason(
@@ -95,7 +93,7 @@ const clone = (input: PrepareWorkspace, url: string, ref: string | null) => {
       const path = yield* credentialFile(input, url, sourceToken);
 
       return yield* run(
-        `-c credential.helper=${quoted(`store --file=${path}`)} `
+        `-c credential.helper=${shellQuote(`store --file=${path}`)} `
       );
     })
   );

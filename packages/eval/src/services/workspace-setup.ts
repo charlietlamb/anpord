@@ -1,5 +1,6 @@
 import type { EvalPrepare } from "@anpord/schema/domain/evals";
 import { Effect, Option } from "effect";
+import { shellQuote } from "../adapters/harness/process";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";
 import { PrepareFailed } from "../domain/errors";
 import type { SandboxHandle } from "../ports/sandbox";
@@ -8,8 +9,6 @@ import { runLongCommand } from "./long-command";
 const MARKER = "ANPORD_PREPARE_RESULT=";
 const SETUP_TIMEOUT_MS = 1_800_000;
 const PREPARED_LIMIT = 16_000;
-
-const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
 export const readPrepareValue = (
   output: string
@@ -48,7 +47,7 @@ const scriptIn = (sandbox: SandboxHandle, source: string) =>
       return path;
     }),
     (path) =>
-      Effect.ignore(runCommandForOutcome(sandbox, `rm -f ${quoted(path)}`))
+      Effect.ignore(runCommandForOutcome(sandbox, `rm -f ${shellQuote(path)}`))
   );
 
 export const runPrepare = (input: {
@@ -89,7 +88,7 @@ export const runPrepare = (input: {
 
       const outcome = yield* runLongCommand(
         input.sandbox,
-        `node ${quoted(path)}`,
+        `node ${shellQuote(path)}`,
         {
           cwd: input.workspace,
           env: restored ? { ANPORD_CACHE_RESTORED: "1" } : undefined,

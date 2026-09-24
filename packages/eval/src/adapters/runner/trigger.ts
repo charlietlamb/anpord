@@ -5,14 +5,14 @@ import { TrialRunner } from "../../ports/trial-runner";
 
 const EVAL_RUN = "eval-run";
 
-const secretKey = Config.redacted("TRIGGER_SECRET_KEY").pipe(
+export const triggerSecretKey = Config.redacted("TRIGGER_SECRET_KEY").pipe(
   Config.orElse(() => Config.redacted("TRIGGER_API_KEY"))
 );
 
 export const TrialRunnerTrigger = Layer.effect(
   TrialRunner,
   Effect.gen(function* () {
-    const key = yield* secretKey;
+    const key = yield* triggerSecretKey;
 
     configure({ secretKey: Redacted.value(key) });
 

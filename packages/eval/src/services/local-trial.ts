@@ -7,7 +7,11 @@ import {
   UserId,
 } from "@anpord/schema/domain/actor";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { EvalPrepare, EvalValidator } from "@anpord/schema/domain/evals";
+import type {
+  EvalPrepare,
+  EvalSource,
+  EvalValidator,
+} from "@anpord/schema/domain/evals";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";
@@ -22,7 +26,6 @@ import type {
 } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { HarnessName } from "../domain/variant";
-import type { WorkspaceSource } from "../domain/workspace-source";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
 
 const AUTO_STOP_MINUTES = 15;
@@ -59,7 +62,7 @@ export interface LocalTrialRequest {
   readonly prepare?: EvalPrepare | null;
   readonly profile?: RequestedProfile | null;
   readonly prompt: string;
-  readonly source: WorkspaceSource;
+  readonly source: EvalSource;
   readonly user?: EvalUser | null;
   readonly validator?: EvalValidator | null;
   readonly verifyCommand: string | null;

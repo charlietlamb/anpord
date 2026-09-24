@@ -17,13 +17,13 @@ import {
   type Scope,
   Stream,
 } from "effect";
+import { shellQuote } from "../adapters/harness/process";
 import { PrepareFailed } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { SandboxHandle } from "../ports/sandbox";
 
 const failure = (reason: string) =>
   new PrepareFailed({ name: "API mocks", reason });
-const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;
 
 interface MockApis {
   readonly check: Effect.Effect<void, PrepareFailed>;
@@ -73,7 +73,7 @@ export const startMockApis = (input: {
         }
       }).pipe(Effect.mapError(() => failure("Invalid API runtime evidence")));
     const process = yield* input.sandbox
-      .exec(`node ${quoted(program.entry)}`, {
+      .exec(`node ${shellQuote(program.entry)}`, {
         cwd: input.workspace,
         timeoutMs: 3_600_000,
       })
@@ -105,7 +105,7 @@ export const startMockApis = (input: {
     const collect = () =>
       Effect.gen(function* () {
         const recorded = yield* input.sandbox
-          .exec(`cat ${quoted(API_JOURNAL)}`, {
+          .exec(`cat ${shellQuote(API_JOURNAL)}`, {
             cwd: input.workspace,
             timeoutMs: 30_000,
           })

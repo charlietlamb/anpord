@@ -60,7 +60,6 @@
     "./domain/journal": "./src/domain/journal.ts",
     "./domain/page": "./src/domain/page.ts",
     "./domain/trial": "./src/domain/trial.ts",
-    "./domain/workspace-source": "./src/domain/workspace-source.ts",
     "./grid/batches": "./src/grid/batches.ts",
     "./judges/classifier": "./src/judges/classifier.ts",
     "./layer": "./src/layer.ts",

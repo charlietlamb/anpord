@@ -1,13 +1,14 @@
 import { batchTagOf } from "@anpord/schema/domain/evals";
+import { triggerSecretKey } from "@anpord/eval/adapters/runner/trigger";
 import { auth, configure } from "@trigger.dev/sdk";
-import { Clock, Config, Effect, Redacted } from "effect";
+import { Clock, Effect, Redacted } from "effect";
 
 const TTL = "1h";
 const TTL_MILLIS = 60 * 60 * 1000;
 
 export const mintBatchSubscription = (batchId: string) =>
   Effect.gen(function* () {
-    const key = yield* Config.redacted("TRIGGER_SECRET_KEY").pipe(Effect.orDie);
+    const key = yield* triggerSecretKey.pipe(Effect.orDie);
     const tag = batchTagOf(batchId);
 
     configure({ secretKey: Redacted.value(key) });

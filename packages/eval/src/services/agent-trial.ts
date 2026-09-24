@@ -6,6 +6,7 @@ import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type {
   EvalArtifact,
   EvalPrepare,
+  EvalSource,
   EvalValidator,
 } from "@anpord/schema/domain/evals";
 import type {
@@ -42,7 +43,6 @@ import {
   sessionIdOf,
 } from "../domain/journal";
 import type { HarnessName, SandboxName } from "../domain/variant";
-import type { WorkspaceSource } from "../domain/workspace-source";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
 import { Scorer, type ValidationObserver } from "../ports/scorer";
@@ -81,7 +81,7 @@ export interface AgentTrialRequest {
   readonly prompt: string;
   readonly provider: SandboxName;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
-  readonly source: WorkspaceSource;
+  readonly source: EvalSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly user?: EvalUser | null;
 
