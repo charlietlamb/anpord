@@ -8,7 +8,7 @@ export function DeviceChallenge({
   readonly challenge: DeviceAuthChallenge;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border-faint bg-muted/30 p-3.5">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3.5">
       <p className="text-muted-foreground text-xs">
         Open the link below, enter this code, and this window will finish on its
         own.

@@ -15,7 +15,7 @@ export function PromptSearch({ onChange, value }: PromptSearchProps) {
       />
       <input
         aria-label="Search prompts"
-        className="h-8 w-44 rounded-md border border-border-faint bg-alpha-4 pr-7 pl-7 text-label outline-none transition-colors placeholder:text-muted-foreground focus:w-56 focus:border-border [&::-webkit-search-cancel-button]:hidden"
+        className="h-8 w-44 rounded-md border border-border bg-alpha-4 pr-7 pl-7 text-label outline-none transition-colors placeholder:text-muted-foreground focus:w-56 focus:border-border [&::-webkit-search-cancel-button]:hidden"
         onChange={(event) => onChange(event.target.value)}
         placeholder="Search…"
         type="search"

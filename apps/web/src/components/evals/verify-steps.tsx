@@ -114,8 +114,8 @@ export function VerifySteps({
               className={cn(
                 "absolute top-[18px] bottom-0 left-[7px] w-px",
                 fading
-                  ? "bg-gradient-to-b from-border-faint to-transparent"
-                  : "bg-border-faint"
+                  ? "bg-gradient-to-b from-border to-transparent"
+                  : "bg-border"
               )}
             />
             <Mark verdict={verdict} />

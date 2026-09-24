@@ -31,7 +31,7 @@ export function ComposerToolbar({
   return (
     <div
       className={cn(
-        "mt-1 flex items-center gap-1 border-border-faint border-t px-1 pt-2 pb-1 text-muted-foreground",
+        "mt-1 flex items-center gap-1 border-border border-t px-1 pt-2 pb-1 text-muted-foreground",
         className
       )}
       {...props}

@@ -95,7 +95,7 @@ export function TokenBand({ usage }: { readonly usage: EvalUsage }) {
         </span>
       </div>
 
-      <div className="flex h-3 w-full gap-px overflow-hidden rounded-[3px] bg-border-faint">
+      <div className="flex h-3 w-full gap-px overflow-hidden rounded-[3px] bg-border">
         <Segment
           hatch
           hint="Served from the provider's cache, billed at a fraction of fresh input."

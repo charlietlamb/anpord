@@ -59,7 +59,7 @@ export function ArtifactFile({
   return (
     <div
       className={cn(
-        "group/file overflow-hidden rounded-xl border border-border-faint bg-muted/40",
+        "group/file overflow-hidden rounded-xl border border-border bg-muted/40",
         className
       )}
     >
@@ -69,7 +69,7 @@ export function ArtifactFile({
           /* With nothing below it, the rule would sit under nothing. */
           open &&
             (data || isPending) &&
-            "shadow-[inset_0_-1px_0_0] shadow-border-faint"
+            "shadow-[inset_0_-1px_0_0] shadow-border"
         )}
       >
         <button

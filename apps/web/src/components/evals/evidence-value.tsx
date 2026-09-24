@@ -144,17 +144,17 @@ export function EvidenceValue({
         </div>
       ) : null}
       {formatted?.shape === "preformatted" ? (
-        <div className="my-2 overflow-hidden rounded-lg border border-border-faint bg-muted/30">
+        <div className="my-2 overflow-hidden rounded-lg border border-border bg-muted/30">
           <CodeContent code={formatted.code} lang="text" maxHeight="max-h-80" />
         </div>
       ) : null}
       {formatted?.shape === "json" ? (
-        <div className="my-2 overflow-hidden rounded-lg border border-border-faint bg-muted/30">
+        <div className="my-2 overflow-hidden rounded-lg border border-border bg-muted/30">
           <CodeContent code={formatted.code} lang="json" maxHeight="max-h-80" />
         </div>
       ) : null}
       {formatted?.raw ? (
-        <details className="group/raw ml-3 border-border-faint border-l pl-3 [&[open]>summary>svg]:rotate-90">
+        <details className="group/raw ml-3 border-border border-l pl-3 [&[open]>summary>svg]:rotate-90">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 text-[0.6875rem] text-muted-foreground/80 transition-colors hover:text-foreground focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
             <CaretRightIcon
               aria-hidden="true"
@@ -162,7 +162,7 @@ export function EvidenceValue({
             />
             Raw value
           </summary>
-          <div className="mb-2 overflow-hidden rounded-lg border border-border-faint bg-muted/30">
+          <div className="mb-2 overflow-hidden rounded-lg border border-border bg-muted/30">
             <CodeContent
               code={formatted.raw}
               lang="json"

@@ -68,7 +68,7 @@ export function ConsentCard({
       </div>
 
       {organizationName ? (
-        <div className="overflow-hidden rounded-xl border border-border-surface bg-card shadow-raised">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-raised">
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <span className="shrink-0 text-muted-foreground text-sm">
               Organization
@@ -80,7 +80,7 @@ export function ConsentCard({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-border-surface bg-card shadow-raised">
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-raised">
         <div className="border-border border-b bg-muted px-4 py-3">
           <p className="font-medium text-muted-foreground text-xs">
             Permissions for {clientName}

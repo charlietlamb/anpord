@@ -31,8 +31,8 @@ export function ValidationSource({
           Source unavailable for this run.
         </p>
       ) : (
-        <div className="group/source overflow-hidden rounded-xl border border-border-faint bg-muted/40">
-          <div className="flex min-w-0 items-center gap-2 border-border-faint border-b px-2 py-1.5">
+        <div className="group/source overflow-hidden rounded-xl border border-border bg-muted/40">
+          <div className="flex min-w-0 items-center gap-2 border-border border-b px-2 py-1.5">
             {files.length > 1 ? (
               <SearchableSelect
                 className="min-w-0 flex-1 border-transparent bg-transparent font-mono text-xs"

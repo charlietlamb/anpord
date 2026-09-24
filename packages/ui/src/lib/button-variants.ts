@@ -16,7 +16,7 @@ export const buttonVariants = cva(
         /* No fill in any state; the text brightens instead. */
         bare: "text-muted-foreground hover:text-foreground aria-expanded:text-foreground",
         subtle:
-          "border-border-faint bg-alpha-4 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
+          "border-border bg-alpha-4 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
       },

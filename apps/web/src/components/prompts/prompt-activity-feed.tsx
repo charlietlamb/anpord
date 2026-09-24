@@ -13,10 +13,10 @@ export function PromptActivityFeed({ promptId }: PromptActivityFeedProps) {
   const entries = activity.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
-    <section className="mt-10 border-border-faint border-t pt-6">
+    <section className="mt-10 border-border border-t pt-6">
       <SectionLabel className="mb-3">Activity</SectionLabel>
 
-      <ul className="relative flex flex-col before:absolute before:top-3 before:bottom-3 before:left-2.5 before:w-px before:bg-border-faint">
+      <ul className="relative flex flex-col before:absolute before:top-3 before:bottom-3 before:left-2.5 before:w-px before:bg-border">
         {entries.map((entry) => (
           <ActivityRow entry={entry} key={entry.id} />
         ))}

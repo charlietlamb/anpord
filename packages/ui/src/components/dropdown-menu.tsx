@@ -100,7 +100,7 @@ export function DropdownMenuLabel({
   return (
     <MenuPrimitive.GroupLabel
       className={cn(
-        "-mx-1 mt-1 mb-0.5 border-border-faint border-t px-3 pt-2 pb-1 font-medium text-[0.6875rem] text-muted-foreground/70 tracking-wide",
+        "-mx-1 mt-1 mb-0.5 border-border border-t px-3 pt-2 pb-1 font-medium text-[0.6875rem] text-muted-foreground/70 tracking-wide",
         "first:mt-0 first:border-t-0 first:pt-1",
         className
       )}

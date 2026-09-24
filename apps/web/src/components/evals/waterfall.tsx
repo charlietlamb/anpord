@@ -33,7 +33,7 @@ function Waiting() {
       <div aria-hidden="true" className="flex flex-col gap-2">
         {WAITING_ROWS.map((row) => (
           <div
-            className="h-4 animate-pulse rounded-sm bg-border-faint motion-reduce:animate-none"
+            className="h-4 animate-pulse rounded-sm bg-border motion-reduce:animate-none"
             key={row.width}
             style={{ animationDelay: row.delay, width: row.width }}
           />

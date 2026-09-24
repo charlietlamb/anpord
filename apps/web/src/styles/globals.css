@@ -65,12 +65,10 @@
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
-  --color-primary-border: var(--primary-border);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -85,22 +83,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
-  --color-border-faint: var(--border-faint);
-  --color-border-loud: var(--border-loud);
-  --color-border-surface: var(--border-surface);
   /* The step between xs and sm the interface kept reaching for as an arbitrary
      value. Named so a row and the label beside it cannot drift apart. */
   --text-label: 0.8125rem;
   --text-label--line-height: 1.25rem;
   --color-success: var(--success);
-  --color-trace-cached: var(--trace-cached);
-  --color-trace-command: var(--trace-command);
-  --color-trace-file: var(--trace-file);
-  --color-trace-fresh: var(--trace-fresh);
-  --color-trace-message: var(--trace-message);
-  --color-trace-said: var(--trace-said);
-  --color-trace-thinking: var(--trace-thinking);
-  --color-trace-tool: var(--trace-tool);
   --color-warning: var(--warning);
   --color-alpha-4: var(--alpha-4);
   --color-alpha-8: var(--alpha-8);
@@ -111,7 +98,6 @@
 
 :root {
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --sidebar: oklch(0.965 0 0);
@@ -122,7 +108,6 @@
   --sidebar-ring: oklch(0.68 0.1 220);
   --primary: oklch(0.58 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
-  --primary-border: color-mix(in oklab, var(--primary), black 18%);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -139,9 +124,6 @@
   /* Three weights of edge, lightest to loudest. A divider between rows of the
      same list is quieter than the one edge that bounds a region, which is in
      turn quieter than an edge asked to carry emphasis on its own. */
-  --border-faint: var(--border);
-  --border-loud: oklch(0.875 0 0);
-  --border-surface: var(--border);
   --alpha-4: oklch(0 0 0 / 4%);
   /* The step above --alpha-4, for a row that responds to the pointer rather
      than merely accepting it: a trace row is hovered to read one bar out of
@@ -171,7 +153,7 @@
   --trace-cached: oklch(0.78 0.06 285);
 
   --shadow-popover:
-    0 0 0 1px var(--border-surface), 0 16px 32px oklch(0 0 0 / 10%),
+    0 0 0 1px var(--border), 0 16px 32px oklch(0 0 0 / 10%),
     0 4px 10px oklch(0 0 0 / 8%);
 }
 
@@ -179,7 +161,6 @@
   --background: oklch(0.152 0.008 248);
   --foreground: oklch(0.97 0 0);
   --card: oklch(0.185 0.008 248);
-  --card-foreground: oklch(0.97 0 0);
   --sidebar: oklch(0.178 0.007 248);
   --sidebar-foreground: oklch(0.86 0.008 248);
   --sidebar-accent: oklch(0.225 0.012 248);
@@ -195,7 +176,6 @@
   --popover-foreground: oklch(0.97 0 0);
   --primary: oklch(0.62 0.13 220);
   --primary-foreground: oklch(0.99 0 0);
-  --primary-border: color-mix(in oklab, var(--primary), black 22%);
   /* The surfaces climb in even steps from the page: background, muted and
      accent, then popover above all three. A hover that outweighs the menu it
      sits in reads as the menu flashing rather than the row lighting up. */
@@ -207,9 +187,6 @@
   --accent-foreground: oklch(0.955 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --border-faint: var(--border);
-  --border-loud: oklch(1 0 0 / 26%);
-  --border-surface: var(--border);
   --alpha-4: oklch(1 0 0 / 4%);
   --alpha-8: oklch(1 0 0 / 9%);
   --success: oklch(0.72 0.15 155);
@@ -231,7 +208,7 @@
      read against a raised surface, not the page. The ring matches the border
      those cards carry and the shadow is deepened to seat it above them. */
   --shadow-popover:
-    0 0 0 1px var(--border-surface), 0 1px 0 oklch(1 0 0 / 6%) inset,
+    0 0 0 1px var(--border), 0 1px 0 oklch(1 0 0 / 6%) inset,
     0 16px 32px oklch(0 0 0 / 40%), 0 4px 10px oklch(0 0 0 / 30%);
   --input: oklch(1 0 0 / 20%);
   --ring: oklch(0.72 0 0);

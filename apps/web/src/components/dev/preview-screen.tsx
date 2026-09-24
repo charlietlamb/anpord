@@ -13,9 +13,9 @@ export function PreviewScreen({
         <span className="font-medium text-muted-foreground text-xs">
           {name}
         </span>
-        <span className="h-px flex-1 bg-border-faint" />
+        <span className="h-px flex-1 bg-border" />
       </div>
-      <div className="flex h-[760px] flex-col border-border-faint border-y">
+      <div className="flex h-[760px] flex-col border-border border-y">
         {children}
       </div>
     </section>
