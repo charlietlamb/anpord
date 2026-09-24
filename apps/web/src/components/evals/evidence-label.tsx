@@ -7,9 +7,6 @@ import {
   WarningIcon,
 } from "@phosphor-icons/react";
 
-/* A slot's name is scanned, not read: at this depth the eye is looking for
-   which of input, output and error it has landed on, so each carries a shape
-   and a tone rather than one more line of muted text. */
 const SLOTS: Record<string, { Glyph: Icon; tone: string }> = {
   Arguments: { Glyph: ArrowUpIcon, tone: "text-muted-foreground" },
   Error: { Glyph: WarningIcon, tone: "text-destructive" },

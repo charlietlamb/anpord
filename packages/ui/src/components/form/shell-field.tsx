@@ -6,8 +6,6 @@ import { useFieldContext } from "@anpord/ui/hooks/form-context";
 import { FIELD_SURFACE } from "@anpord/ui/lib/field";
 import { cn } from "@anpord/ui/lib/utils";
 
-/* A transparent textarea over a `ShellBlock`; the two layers must share font,
-   size and line height to keep the caret over its own character. */
 export function ShellField({
   description,
   label,

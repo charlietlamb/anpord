@@ -1,5 +1,3 @@
-/* Token names, not hex, so a channel survives a theme change. Swatches below
-   are full class strings, never interpolated, so Tailwind can see them. */
 export const CHANNEL_COLORS = [
   "slate",
   "blue",

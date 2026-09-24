@@ -20,8 +20,6 @@ import {
 
 type FileGlyph = Icon | typeof SiTypescript;
 
-/* The language a file is written in, drawn as the mark that language uses.
-   Phosphor's lettered file icons are illegible at the 14px these render at. */
 const BY_EXTENSION: Record<string, FileGlyph> = {
   cjs: SiJavascript,
   cts: SiTypescript,
@@ -52,7 +50,6 @@ const BY_EXTENSION: Record<string, FileGlyph> = {
   yml: SiYaml,
 };
 
-/* A dotfile is all extension and no name, so `.gitignore` must not read as a gitignore file. */
 const extensionOf = (path: string): string => {
   const name = path.slice(path.lastIndexOf("/") + 1);
   const dot = name.lastIndexOf(".");

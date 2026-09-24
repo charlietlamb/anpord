@@ -16,8 +16,6 @@ export function ShellBlock({
 }: {
   readonly className?: string;
   readonly command: string;
-  /** Off inside a tooltip: it closes when the pointer leaves its trigger, so
-   * a control within it can never be reached. */
   readonly copyable?: boolean;
   readonly tone?: "inverted" | "muted" | "plain";
 }) {

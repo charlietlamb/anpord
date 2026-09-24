@@ -2,8 +2,6 @@
 
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
-/* The overflow counter takes room of its own, so it is measured too and the
-   last chip yields to it rather than being overlapped. */
 export function useFittedCount(total: number) {
   const rowRef = useRef<HTMLElement | null>(null);
   const overflowRef = useRef<HTMLElement | null>(null);

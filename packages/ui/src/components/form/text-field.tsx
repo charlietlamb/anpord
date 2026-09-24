@@ -8,7 +8,6 @@ import { cn } from "@anpord/ui/lib/utils";
 
 interface TextFieldProps {
   autoComplete?: string;
-  /** Visually hidden only; the label still reaches a screen reader. */
   hideLabel?: boolean;
   label: string;
   onValueChange?: (value: string) => void;

@@ -41,10 +41,8 @@ interface Presentation {
 const HARNESSES: Record<EvalHarness, Presentation> = {
   claude: { Icon: ClaudeMark, label: "Claude Code" },
   codex: { Icon: OpenAiMark, label: "Codex" },
-  /* No vendor mark: the process is the customer's own, named by the profile beside it. */
   command: { Icon: TerminalWindowIcon, label: "Command" },
   cursor: { Icon: CursorMark, label: "Cursor" },
-  /* Vercel Labs ships fx, and the gateway key it takes is a Vercel key. */
   fx: { Icon: VercelMark, label: "FX" },
   gemini: { Icon: GoogleMark, label: "Gemini CLI" },
   opencode: { Icon: OpencodeMark, label: "OpenCode" },
@@ -56,7 +54,6 @@ const SANDBOX_MARKS: Record<EvalSandbox, Presentation> = {
   cloudflare: { Icon: CloudflareMark, label: "Cloudflare" },
   daytona: { Icon: DaytonaMark, label: "Daytona" },
   e2b: { Icon: E2bMark, label: "E2B" },
-  /* No vendor mark: the machine running the eval is the sandbox. */
   local: { Icon: DesktopTowerIcon, label: "Local" },
   upstash: { Icon: UpstashMark, label: "Upstash Box" },
   modal: { Icon: ModalMark, label: "Modal" },
@@ -79,7 +76,6 @@ export const placePresentation = (entry: {
   readonly sandbox: string;
 }): Presentation => sandboxPresentation(entry.local ? "local" : entry.sandbox);
 
-/* An integration id names either side of a run and the two sets do not overlap, so either order is correct. */
 export const integrationLabel = (integrationId: string): string =>
   (
     HARNESSES[integrationId as EvalHarness] ??
@@ -110,8 +106,6 @@ export const VENDOR_MARKS: Record<string, RailIcon> = {
 };
 type ModelRule = readonly [pattern: RegExp, Icon: RailIcon];
 
-/* Keep model identity in one ordered registry. Hosted tasks often use short aliases
-   (for example `opus`), while gateways expose provider/model names with a slash. */
 const MODEL_RULES: readonly ModelRule[] = [
   [/^(?:gpt-|o\d(?:-|$)|chatgpt)/, OpenAiMark],
   [/^(?:claude|opus|sonnet|haiku)(?:-|$)/, ClaudeMark],
@@ -177,7 +171,6 @@ const profileLabel = (profile: LabelledProfile) =>
     ? ""
     : `${profile.name}@${shortProfileVersion(profile.version)}`;
 
-/* The command harness stores the literal `profile` as its version, so only the profile beside it says what ran. */
 const baseLabel = (
   harness: string,
   version: string | undefined,

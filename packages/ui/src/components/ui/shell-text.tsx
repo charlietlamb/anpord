@@ -8,18 +8,6 @@ import {
 import { cn } from "@anpord/ui/lib/utils";
 import { useEffect, useState } from "react";
 
-/**
- * Weight and contrast rather than hue.
- *
- * The theme is near-monochrome and spends colour on meaning: primary for what
- * acts, success and warning for what happened. A palette of violet flags and
- * green strings would be the loudest thing on a screen where a failed command
- * is the only thing that should be loud.
- *
- * So a command is separated the way prose is: the parts that carry it sit at
- * full contrast, the scaffolding recedes, and the one hue is the operator,
- * which is what a reader traces to see where one stage hands to the next.
- */
 export const SHELL_CLASSES: Record<ShellTokenKind, string> = {
   comment: "text-muted-foreground/70 italic",
   flag: "text-muted-foreground",
@@ -28,8 +16,6 @@ export const SHELL_CLASSES: Record<ShellTokenKind, string> = {
   text: "text-foreground/80",
 };
 
-/* On an inverted surface the theme's own tokens are the wrong way round, so
-   the scale is drawn from the container's text colour instead. */
 export const SHELL_INVERTED: Record<ShellTokenKind, string> = {
   comment: "opacity-50 italic",
   flag: "opacity-60",
@@ -38,7 +24,6 @@ export const SHELL_INVERTED: Record<ShellTokenKind, string> = {
   text: "opacity-80",
 };
 
-/** Null until the grammar loads, so callers show the command uncoloured. */
 export function useShellTokens(command: string) {
   const [tokens, setTokens] = useState<{
     command: string;
@@ -54,9 +39,7 @@ export function useShellTokens(command: string) {
           setTokens({ command, tokens: next });
         }
       })
-      .catch(() => {
-        /* An uncoloured command is still a command. */
-      });
+      .catch(() => undefined);
 
     return () => {
       alive = false;
@@ -66,8 +49,6 @@ export function useShellTokens(command: string) {
   return tokens?.command === command ? tokens.tokens : null;
 }
 
-/** The same separation as ShellBlock, for a command that sits in a row rather
- * than on its own ground. */
 export function ShellText({
   className,
   command,

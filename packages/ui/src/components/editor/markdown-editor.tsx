@@ -16,7 +16,6 @@ interface MarkdownEditorProps {
   readonly value: string;
 }
 
-/** setContent defaults to HTML, so every write states its type. */
 const MARKDOWN = { contentType: "markdown" as const };
 
 export function MarkdownEditor({

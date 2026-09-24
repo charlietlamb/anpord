@@ -15,7 +15,6 @@ import {
 import { count } from "@/lib/evals/duration";
 import { percent } from "@/lib/evals/tokens";
 
-/* Tokens, not money: costs have four different bases and live in CostBreakdown. */
 export function TrialCost({
   turns,
   usage,

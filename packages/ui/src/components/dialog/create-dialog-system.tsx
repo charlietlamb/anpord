@@ -19,7 +19,6 @@ export interface DialogContextValue<TMap extends DialogComponentMap> {
   close: () => void;
   closeAll: () => void;
   open: <K extends keyof TMap>(key: K, props: TMap[K]) => void;
-  /** One update, so the overlay is not torn down and rebuilt between steps. */
   replace: <K extends keyof TMap>(key: K, props: TMap[K]) => void;
   stack: DialogEntry<TMap>[];
 }

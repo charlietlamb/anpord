@@ -4,21 +4,13 @@ import type { KeyboardEvent } from "react";
 interface InlineEditProps {
   readonly ariaLabel: string;
   readonly className?: string;
-  /** Shown when the value is empty, so the field never collapses to nothing. */
   readonly placeholder?: string;
   readonly onBlur: () => void;
   readonly onChange: (value: string) => void;
-  /** Abandons the edit, for Escape. */
   readonly onCancel: () => void;
   readonly value: string;
 }
 
-/**
- * A value edited where it is read. It draws nothing of its own — the caret
- * says it is editable and the text keeps the weight it had — so the page
- * shows a heading rather than a form, while still being a real input for
- * anyone arriving by keyboard.
- */
 export function InlineEdit({
   ariaLabel,
   className,

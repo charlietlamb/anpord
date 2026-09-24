@@ -1,12 +1,8 @@
 import { VARIABLE_PATTERN, variableAtStart } from "@anpord/template/syntax";
 import { Node, nodeInputRule } from "@tiptap/core";
 
-/* nodeInputRule replaces exactly what it matched, so the whole `{{name}}` must
-   be inside it or the leftover braces read as an escape. */
 const TYPED_VARIABLE = new RegExp(`(?:^|[^{])(${VARIABLE_PATTERN})$`);
 
-/* Round-trips verbatim: the markdown escaper would turn `{{customer_name}}`
-   into `{{customer\_name}}`, which never interpolates. */
 export const Variable = Node.create({
   name: "variable",
   group: "inline",

@@ -11,7 +11,6 @@ import {
 import { seconds } from "@/lib/evals/duration";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 
-/* The time breakdown deliberately does not sum to the total: the journal records fewer ms than the phase took. */
 export function TrialTime({ trial }: { readonly trial: EvalTrial }) {
   const { thinkingMs, workingMs } = waterfallLayout(trial.trajectory);
   const measured = trial.timed && thinkingMs + workingMs > 0;

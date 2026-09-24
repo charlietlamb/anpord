@@ -16,7 +16,6 @@ export function ComposerContext({
   );
 }
 
-/* Deliberately frameless: the caret already says where you are typing. */
 export function ComposerSurface({
   className,
   ...props

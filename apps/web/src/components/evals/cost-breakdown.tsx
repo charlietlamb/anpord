@@ -28,7 +28,6 @@ const LABELS = {
 const units = (detail: Readonly<Record<string, unknown>>, key: string) =>
   typeof detail[key] === "number" ? (detail[key] as number) : null;
 
-/* An unpriced layer states words, never zero: zero would claim it was free. */
 const statedAs = (part: EvalCostComponent) => {
   if (part.usd !== null) {
     return part.classification === "estimate"
@@ -71,7 +70,6 @@ const ORDER: readonly EvalCostComponent["component"][] = [
   "platform",
 ];
 
-/* Layers stay separate rather than totalled: the model estimate is not the bill for all four. */
 export function CostBreakdown({ costs }: { readonly costs: EvalCosts }) {
   const byComponent = new Map(
     costs.components.map((part) => [part.component, part])

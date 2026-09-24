@@ -17,10 +17,8 @@ import {
 import { seconds } from "@/lib/evals/duration";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
-/* `thinking` is not a journal entry but the gap between two, and it is presented like the rest. */
 export type JournalKind = EntryKind | "thinking";
 
-/* Theme tokens, not literals: an inline style cannot answer a media query, so hard-coded hues break contrast when the theme flips. */
 export const KIND_COLOURS: Record<JournalKind, string> = {
   command: "var(--trace-command)",
   fileChange: "var(--trace-file)",

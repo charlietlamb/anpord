@@ -1,6 +1,5 @@
 export const percent = (rate: number) => `${Math.round(rate * 100)}%`;
 
-/* Agent runs span a tenth of a cent to a few dollars, so precision varies with scale rather than being fixed. */
 export const dollars = (value: number) => {
   if (value === 0) {
     return "$0";

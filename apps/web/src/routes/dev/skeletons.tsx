@@ -23,8 +23,6 @@ export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
 });
 
-/* Each skeleton sits directly above the thing it stands in for, so a row that
-   settles when data lands shows up as a step between the two. */
 function Pair({
   loaded,
   name,

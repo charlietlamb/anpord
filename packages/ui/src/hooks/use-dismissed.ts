@@ -1,27 +1,40 @@
-"use client";
+import { useCallback, useSyncExternalStore } from "react";
 
-import { useCallback, useEffect, useState } from "react";
+const DISMISSED = "1";
+const listeners = new Set<() => void>();
 
-/* Starts false so server and first client render agree; storage access is
-   guarded because a private window or blocked site data throws. */
+const readDismissed = (key: string) => {
+  try {
+    return window.localStorage.getItem(key) === DISMISSED;
+  } catch {
+    return false;
+  }
+};
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  window.addEventListener("storage", listener);
+
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+};
+
 export function useDismissed(key: string) {
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    try {
-      setDismissed(window.localStorage.getItem(key) === "1");
-    } catch {
-      /* Storage is unavailable, so nothing was ever put away. */
-    }
-  }, [key]);
+  const dismissed = useSyncExternalStore(
+    subscribe,
+    () => readDismissed(key),
+    () => false
+  );
 
   const dismiss = useCallback(() => {
-    setDismissed(true);
-
     try {
-      window.localStorage.setItem(key, "1");
-    } catch {
-      /* It stays dismissed for this visit, which is the useful half. */
+      window.localStorage.setItem(key, DISMISSED);
+    } finally {
+      for (const listener of listeners) {
+        listener();
+      }
     }
   }, [key]);
 

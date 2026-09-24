@@ -3,37 +3,15 @@ import { SURFACE_FILL } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
-/**
- * Preformatted text on its own ground.
- *
- * One component because five screens had each written their own: same idea,
- * different padding, radius and max height, so a stack trace and a shell
- * script looked like they came from different applications.
- *
- * Takes children rather than a string, so a caller that has tokenised its
- * content can hand over coloured spans and one that has not can pass text.
- * `copyValue` is separate for the same reason: the text to copy is the source,
- * not whatever the children happen to render.
- *
- * The copy button stays mounted and is revealed on hover rather than rendered
- * on it, because a button that only exists while the pointer is over the block
- * is a button no keyboard can reach.
- */
 export function CodeBlock({
   children,
   className,
-  /** The text a copy button puts on the clipboard. Absent means no button:
-   * a block with nothing worth taking away should not offer to give it. */
   copyValue,
   tone = "muted",
 }: {
   readonly children: ReactNode;
   readonly className?: string;
   readonly copyValue?: string;
-  /** `muted` for content the reader chose to open; `plain` for content that
-   * is the point of the surface it sits on and needs no second background;
-   * `inverted` for a surface already painted in the foreground colour, like a
-   * tooltip, where every theme token means its opposite. */
   readonly tone?: "inverted" | "muted" | "plain";
 }) {
   const block = (

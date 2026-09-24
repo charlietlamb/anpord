@@ -3,7 +3,6 @@
 import { type CodeLanguage, highlight } from "@anpord/ui/lib/highlight";
 import { useEffect, useState } from "react";
 
-/** Null until the wasm highlighter loads, so callers show plain text. */
 export function useHighlighted(code: string, lang: CodeLanguage) {
   const [result, setResult] = useState<{
     code: string;
@@ -20,9 +19,7 @@ export function useHighlighted(code: string, lang: CodeLanguage) {
           setResult({ code, lang, html: next });
         }
       })
-      .catch(() => {
-        /* Uncoloured code is still code. */
-      });
+      .catch(() => undefined);
 
     return () => {
       alive = false;

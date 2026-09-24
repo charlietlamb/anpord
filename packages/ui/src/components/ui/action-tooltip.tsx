@@ -8,18 +8,11 @@ import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
 import type { ReactElement, ReactNode } from "react";
 
 interface ActionTooltipProps {
-  /** The control itself, rendered as the trigger. */
   readonly children: ReactElement;
   readonly label: ReactNode;
-  /** Pressed with the platform's meta key, when the action has a shortcut. */
   readonly metaShortcut?: string;
 }
 
-/**
- * Names an action whose control shows only an icon, and states its shortcut
- * where it has one — so the keystroke is discoverable without a label taking
- * up room on the page.
- */
 export function ActionTooltip({
   children,
   label,

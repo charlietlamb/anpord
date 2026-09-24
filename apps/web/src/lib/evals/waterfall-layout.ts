@@ -45,7 +45,6 @@ interface Span {
   readonly startedAt: number;
 }
 
-/* Both ends must be reported, or the entry stays a marker: a guessed width would draw like a measured one. */
 const spanOf = (entry: EvalJournalEntry): Span | null => {
   if (entry._tag !== "command" && entry._tag !== "toolCall") {
     return null;
@@ -118,7 +117,6 @@ export const waterfallLayout = (
 
       previousEnd = Math.max(previousEnd, span.finishedAt);
 
-      /* Commands only: the rail reads this as sandbox time, and a harness-handled tool call never reached the sandbox. */
       if (span.entry._tag === "command") {
         workingMs += durationMs;
       }

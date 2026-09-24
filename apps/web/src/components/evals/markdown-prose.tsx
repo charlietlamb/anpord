@@ -5,8 +5,6 @@ import { isValidElement, type ReactNode } from "react";
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-/* A fenced block reaches pre as a code element wrapping its text, so the
-   string to copy is read back rather than tracked alongside. */
 const textOf = (node: ReactNode): string => {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);
@@ -26,9 +24,6 @@ const textOf = (node: ReactNode): string => {
 const unwrapped = (node: ReactNode): ReactNode =>
   isValidElement<{ children?: ReactNode }>(node) ? node.props.children : node;
 
-/* Code renders through the same components as the rest of the interface, so a
-   snippet inside a judge's answer looks like one anywhere else. Everything
-   markdown adds beyond that is styled here. */
 export type FileOpener = (path: string) => (() => void) | null;
 
 const opening = (open: () => void, children: ReactNode) => (

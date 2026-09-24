@@ -1,8 +1,6 @@
 import { Extension } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 
-/* Code fences and backticks are deliberately absent: a pasted snippet keeps
-   whatever markdown-like punctuation it contains. */
 const MARKDOWN_PATTERNS = [
   /^#{1,6}\s/m,
   /^\s*[-*+]\s+/m,
@@ -14,11 +12,9 @@ const MARKDOWN_PATTERNS = [
   /^\|.*\|$/m,
 ];
 
-/** A lone emphasis pair reads as prose more often than as markup. */
 export const looksLikeMarkdown = (text: string): boolean =>
   MARKDOWN_PATTERNS.some((pattern) => pattern.test(text));
 
-/** Tiptap parses markdown on setContent but not on paste. */
 export const PasteMarkdown = Extension.create({
   name: "pasteMarkdown",
 

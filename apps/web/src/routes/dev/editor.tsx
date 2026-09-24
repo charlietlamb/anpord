@@ -26,7 +26,6 @@ const BODY = Array.from(
   (_, line) => `Line ${line + 1} of a prompt about {{topic}} for {{audience}}.`
 ).join("\n\n");
 
-/* Fixed so the server and the client render the same timestamps. */
 const EPOCH = Date.parse("2026-08-16T09:00:00.000Z");
 
 const version = (number: number): ResolvedPrompt =>

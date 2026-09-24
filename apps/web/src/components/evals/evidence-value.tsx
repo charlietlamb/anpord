@@ -38,8 +38,6 @@ const readableText = (parsed: unknown): string | null => {
   return null;
 };
 
-/* `prose` renders as Markdown; `preformatted` keeps its own line breaks, which
-   Markdown would fold away; the rest are highlighted as code. */
 type ValueShape = "json" | "preformatted" | "prose";
 
 interface FormattedValue {
@@ -49,9 +47,6 @@ interface FormattedValue {
   shape: ValueShape;
 }
 
-/* Log and file output arrives one record per line -- numbered gutters, stack
-   frames, key/value pairs. Markdown joins those lines into one paragraph, so
-   the shape has to be read before a renderer is chosen. */
 const NUMBERED_LINE = /^\s*\d+[:\t|]/;
 
 const preformatted = (text: string): boolean => {
@@ -68,8 +63,6 @@ const classifyText = (text: string): FormattedValue =>
     ? { code: text, lang: "text", shape: "preformatted" }
     : { code: text, lang: "text", shape: "prose" };
 
-/* Tool responses often nest JSON inside the text block of an envelope, which
-   arrives double-escaped. Reading the payload out beats showing \" to a human. */
 const unwrap = (text: string): FormattedValue => {
   try {
     const inner: unknown = JSON.parse(text);
@@ -81,7 +74,7 @@ const unwrap = (text: string): FormattedValue => {
       };
     }
   } catch {
-    /* Not JSON, so the text is already the readable form. */
+    return classifyText(text);
   }
   return classifyText(text);
 };

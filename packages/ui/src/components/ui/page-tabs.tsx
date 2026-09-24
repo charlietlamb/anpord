@@ -9,12 +9,6 @@ export interface PageTabOption<T extends string> {
   readonly value: T;
 }
 
-/**
- * The tabs a page or panel is divided into, standing where its title would.
- *
- * A panel whose sections are named in a tab strip does not also need a heading
- * repeating one of those names: each panel names itself.
- */
 export function PageTabs<T extends string>({
   className,
   onChange,
@@ -42,8 +36,6 @@ export function PageTabs<T extends string>({
           <Tabs.Tab
             className={cn(
               "relative z-10 flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 font-medium text-muted-foreground text-xs",
-              /* 120ms, matching every other tab in the app: pressed and read
-                 in the same moment, so the colour lands with the eye. */
               "transition-colors duration-[120ms] ease-out",
               "hover:text-foreground data-[active]:text-foreground"
             )}

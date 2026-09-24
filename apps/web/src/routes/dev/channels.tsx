@@ -9,7 +9,6 @@ export const Route = createFileRoute("/dev/channels")({
   component: ChannelsPreview,
 });
 
-/* Fixed so the preview renders identically on every visit. */
 const EPOCH = new Date("2026-08-16T12:00:00.000Z");
 
 const SEED = [

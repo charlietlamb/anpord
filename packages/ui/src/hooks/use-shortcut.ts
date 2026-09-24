@@ -36,8 +36,6 @@ export function useShortcut(
       if (!meta && metaPressed) {
         return;
       }
-      /* An unmodified letter is a character while someone is typing one, so a
-         bare shortcut yields to whatever field has the caret. */
       if (!meta && isTyping(event.target)) {
         return;
       }

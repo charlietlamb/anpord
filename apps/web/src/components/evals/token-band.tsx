@@ -7,7 +7,6 @@ import {
 import { count } from "@/lib/evals/duration";
 import { percent } from "@/lib/evals/tokens";
 
-/* A present share is never drawn thinner than this; below it reads as a rendering fault. */
 const FLOOR = 1.5;
 
 const widthOf = (part: number, whole: number) => {
@@ -72,7 +71,6 @@ function Segment({
   );
 }
 
-/* Output tokens are deliberately excluded: a rounding error beside context on an agent run. */
 export function TokenBand({ usage }: { readonly usage: EvalUsage }) {
   const served =
     usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
