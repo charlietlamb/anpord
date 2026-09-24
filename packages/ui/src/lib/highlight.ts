@@ -18,6 +18,8 @@ const create = () =>
     ],
   });
 
+const UNBOUNDED = { tokenizeTimeLimit: 0 } as const;
+
 export const highlighter = () => {
   pending ??= create();
   return pending;
@@ -27,6 +29,7 @@ export type CodeLanguage = "bash" | "json" | "markdown" | "text" | "typescript";
 
 export const highlight = async (code: string, lang: CodeLanguage) =>
   (await highlighter()).codeToHtml(code, {
+    ...UNBOUNDED,
     defaultColor: "light",
     lang,
     themes: { dark: "github-dark-default", light: "github-light-default" },
@@ -68,6 +71,7 @@ export const shellTokens = async (
     const shiki = await highlighter();
 
     const { tokens } = shiki.codeToTokens(command, {
+      ...UNBOUNDED,
       includeExplanation: "scopeName",
       lang: "bash",
       theme: "github-dark-default",
