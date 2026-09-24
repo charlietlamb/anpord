@@ -27,8 +27,6 @@ export const CredentialResolverLive = Layer.effect(
         )
       );
 
-    /* The organisation comes from the caller, so this checks the row rather than
-       restating it. */
     const touch = (organizationId: string) => (row: ConnectionRow) =>
       Clock.currentTimeMillis.pipe(
         Effect.flatMap((now) =>
@@ -39,23 +37,21 @@ export const CredentialResolverLive = Layer.effect(
 
     return CredentialResolver.of({
       persist: (input) =>
-        repository.findBound(input.organizationId, input.connectionId).pipe(
-          Effect.flatMap((row) =>
-            sealValues(cipher, input.values, row).pipe(
-              Effect.flatMap((sealedPayload) =>
-                Clock.currentTimeMillis.pipe(
-                  Effect.flatMap((now) =>
-                    repository.reseal(
-                      input.organizationId,
-                      row.id,
-                      sealedPayload,
-                      new Date(now)
-                    )
-                  )
-                )
-              )
-            )
-          ),
+        Effect.gen(function* () {
+          const row = yield* repository.findBound(
+            input.organizationId,
+            input.connectionId
+          );
+          const sealedPayload = yield* sealValues(cipher, input.values, row);
+          const now = yield* Clock.currentTimeMillis;
+
+          yield* repository.reseal(
+            input.organizationId,
+            row.id,
+            sealedPayload,
+            new Date(now)
+          );
+        }).pipe(
           Effect.withSpan("CredentialResolver.persist"),
           Effect.annotateLogs({
             connectionId: input.connectionId,

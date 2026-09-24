@@ -7,9 +7,6 @@ const ENV_KEY = /^[A-Z_][A-Z0-9_]*$/;
 const invalid = (message: string) =>
   Effect.fail(new CredentialError({ message }));
 
-/* Declared fields cannot describe an env map: the customer names the keys.
-   Validated as a whole before any field projection, which would otherwise
-   reduce every map to nothing. */
 const validateEnv = (values: Readonly<Record<string, string>>) => {
   const entries = Object.entries(values).map(
     ([key, value]) => [key, value.trim()] as const

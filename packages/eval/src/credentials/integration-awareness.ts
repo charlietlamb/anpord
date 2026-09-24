@@ -1,6 +1,5 @@
 import type { IntegrationAwareness } from "@anpord/schema/domain/credentials";
 
-/** Rows arrive sorted by integration then name, so one pass groups them. */
 export const groupOwners = (
   rows: readonly { integrationId: string; owner: string }[]
 ): readonly IntegrationAwareness[] => {

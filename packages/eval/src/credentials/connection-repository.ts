@@ -4,7 +4,7 @@ import type { Actor } from "@anpord/schema/domain/actor";
 import type { IntegrationAwareness } from "@anpord/schema/domain/credentials";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { tryStore } from "../repositories/query";
+import { head, tryStore } from "../repositories/query";
 import {
   insertClaimingDefault,
   type NewConnection,
@@ -61,8 +61,6 @@ export interface CredentialConnectionRepositoryShape {
     actor: Actor,
     id: string
   ) => Effect.Effect<void, CredentialError>;
-  /* Scoped by organization rather than actor: a run refreshing its own token
-     has no person behind it. */
   readonly reseal: (
     organizationId: string,
     id: string,
@@ -92,11 +90,13 @@ export class CredentialConnectionRepository extends Context.Tag(
 )<CredentialConnectionRepository, CredentialConnectionRepositoryShape>() {}
 
 const firstOrNotFound = (rows: readonly ConnectionRow[]) =>
-  rows[0] === undefined
-    ? Effect.fail(connectionNotFound())
-    : Effect.succeed(rows[0]);
+  Effect.mapError(head(rows), connectionNotFound);
 
-const first = (rows: readonly ConnectionRow[]) => rows[0] as ConnectionRow;
+const stored = <A>(method: string, run: () => Promise<A>) =>
+  tryStore(`CredentialConnectionRepository.${method}`, run).pipe(
+    Effect.mapError(storeUnavailable),
+    Effect.withSpan(`CredentialConnectionRepository.${method}`)
+  );
 
 export const CredentialConnectionRepositoryLive = Layer.effect(
   CredentialConnectionRepository,
@@ -105,38 +105,28 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
 
     return CredentialConnectionRepository.of({
       awareness: (actor) =>
-        tryStore("credential.awareness", () =>
-          selectPersonalOwners(db, actor)
-        ).pipe(Effect.map(groupOwners), Effect.mapError(storeUnavailable)),
+        stored("awareness", () => selectPersonalOwners(db, actor)).pipe(
+          Effect.map(groupOwners)
+        ),
       find: (actor, id) =>
-        tryStore("credential.find", () => selectVisible(db, actor, id)).pipe(
-          Effect.mapError(storeUnavailable),
+        stored("find", () => selectVisible(db, actor, id)).pipe(
           Effect.flatMap(firstOrNotFound)
         ),
       findActive: (actor, integrationId, connectionId) =>
-        tryStore("credential.resolve", () =>
+        stored("findActive", () =>
           selectActive(db, actor, integrationId, connectionId)
-        ).pipe(
-          Effect.mapError(storeUnavailable),
-          Effect.flatMap(firstOrNotFound)
-        ),
+        ).pipe(Effect.flatMap(firstOrNotFound)),
       findBound: (organizationId, connectionId) =>
-        tryStore("credential.resolveBound", () =>
+        stored("findBound", () =>
           selectBound(db, organizationId, connectionId)
-        ).pipe(
-          Effect.mapError(storeUnavailable),
-          Effect.flatMap(firstOrNotFound)
-        ),
+        ).pipe(Effect.flatMap(firstOrNotFound)),
       insert: (actor, row, wantsDefault) =>
-        tryStore("credential.create", () =>
+        stored("insert", () =>
           insertClaimingDefault(db, actor, row, wantsDefault)
-        ).pipe(Effect.mapError(storeUnavailable), Effect.map(first)),
-      list: (actor) =>
-        tryStore("credential.list", () => selectAllVisible(db, actor)).pipe(
-          Effect.mapError(storeUnavailable)
-        ),
+        ).pipe(Effect.flatMap(firstOrNotFound)),
+      list: (actor) => stored("list", () => selectAllVisible(db, actor)),
       recordVerification: (actor, id, verified, now) =>
-        tryStore("credential.verify", () =>
+        stored("recordVerification", () =>
           db
             .update(credentialConnection)
             .set({
@@ -150,12 +140,9 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
               )
             )
             .returning()
-        ).pipe(
-          Effect.mapError(storeUnavailable),
-          Effect.flatMap(firstOrNotFound)
-        ),
+        ).pipe(Effect.flatMap(firstOrNotFound)),
       remove: (actor, id) =>
-        tryStore("credential.remove", () =>
+        stored("remove", () =>
           db
             .delete(credentialConnection)
             .where(
@@ -166,13 +153,12 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
             )
             .returning({ id: credentialConnection.id })
         ).pipe(
-          Effect.mapError(storeUnavailable),
           Effect.flatMap((rows) =>
             rows.length === 0 ? Effect.fail(connectionNotFound()) : Effect.void
           )
         ),
       reseal: (organizationId, id, sealedPayload, now) =>
-        tryStore("credential.reseal", () =>
+        stored("reseal", () =>
           db
             .update(credentialConnection)
             .set({ sealedPayload, updatedAt: now })
@@ -182,9 +168,9 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
                 eq(credentialConnection.id, id)
               )
             )
-        ).pipe(Effect.asVoid, Effect.mapError(storeUnavailable)),
+        ).pipe(Effect.asVoid),
       rotate: (actor, row, sealedPayload, now) =>
-        tryStore("credential.rotate", () =>
+        stored("rotate", () =>
           db
             .update(credentialConnection)
             .set({
@@ -200,22 +186,13 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
               )
             )
             .returning()
-        ).pipe(
-          Effect.mapError(storeUnavailable),
-          Effect.flatMap(firstOrNotFound)
-        ),
+        ).pipe(Effect.flatMap(firstOrNotFound)),
       setDefault: (actor, row, now) =>
-        tryStore("credential.setDefault", () =>
-          promoteToDefault(db, actor, row, now)
-        ).pipe(
-          Effect.mapError(storeUnavailable),
+        stored("setDefault", () => promoteToDefault(db, actor, row, now)).pipe(
           Effect.flatMap(firstOrNotFound)
         ),
-      /* Scoped by organisation rather than by visibility, because a run
-         resolving a credential it was already bound to has an organisation
-         and no person. */
       touch: (organizationId, id, now) =>
-        tryStore("credential.touch", () =>
+        stored("touch", () =>
           db
             .update(credentialConnection)
             .set({ lastUsedAt: now })
@@ -225,7 +202,7 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
                 eq(credentialConnection.id, id)
               )
             )
-        ).pipe(Effect.asVoid, Effect.mapError(storeUnavailable)),
+        ).pipe(Effect.asVoid),
     });
   })
 );

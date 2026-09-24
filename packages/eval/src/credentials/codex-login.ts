@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Effect } from "effect";
+import { Deferred, Effect, Exit } from "effect";
 import {
   type DeviceChallenge,
   parseDeviceChallenge,
@@ -52,10 +52,11 @@ export const startCodexLogin = (
       Effect.ignore
     );
     let output = "";
-    const completed = new Promise<number>((resolve) => {
-      child.once("error", () => resolve(1));
-      child.once("exit", (code) => resolve(code ?? 1));
-    });
+    const exited = yield* Deferred.make<number>();
+    child.once("error", () => Deferred.unsafeDone(exited, Exit.succeed(1)));
+    child.once("exit", (code) =>
+      Deferred.unsafeDone(exited, Exit.succeed(code ?? 1))
+    );
     const challenge = Effect.async<DeviceChallenge, CredentialError>(
       (resume) => {
         const read = (chunk: Buffer) => {
@@ -80,15 +81,17 @@ export const startCodexLogin = (
     ).pipe(
       Effect.timeoutFail({ duration: "10 seconds", onTimeout: noDeviceCode })
     );
-    const authJson = Effect.tryPromise({
-      catch: () => new CredentialError({ message: "Codex login failed" }),
-      try: async () => {
-        if ((await completed) !== 0) {
-          throw new Error("Codex login failed");
-        }
-        return readFile(join(home, "auth.json"), "utf8");
-      },
-    });
+    const loginFailed = () =>
+      new CredentialError({ message: "Codex login failed" });
+    const authJson = Deferred.await(exited).pipe(
+      Effect.filterOrFail((code) => code === 0, loginFailed),
+      Effect.zipRight(
+        Effect.tryPromise({
+          catch: loginFailed,
+          try: () => readFile(join(home, "auth.json"), "utf8"),
+        })
+      )
+    );
 
     return { authJson, challenge, cleanup };
   });

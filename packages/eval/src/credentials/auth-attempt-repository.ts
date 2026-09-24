@@ -3,7 +3,7 @@ import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attemp
 import type { Actor } from "@anpord/schema/domain/actor";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { tryStore } from "../repositories/query";
+import { head, tryStore } from "../repositories/query";
 import { CredentialError, storeUnavailable } from "./errors";
 
 type AttemptRow = typeof credentialAuthAttempt.$inferSelect;
@@ -32,26 +32,24 @@ const attemptNotFound = () =>
     message: "Login attempt not found",
   });
 
+const stored = <A>(method: string, run: () => Promise<A>) =>
+  tryStore(`CredentialAuthAttemptRepository.${method}`, run).pipe(
+    Effect.mapError(storeUnavailable),
+    Effect.withSpan(`CredentialAuthAttemptRepository.${method}`)
+  );
+
 export const CredentialAuthAttemptRepositoryLive = Layer.effect(
   CredentialAuthAttemptRepository,
   Effect.gen(function* () {
     const db = yield* Database;
 
-    const update = (id: string, values: Partial<NewAttempt>) =>
-      tryStore("credential.device.update", () =>
-        db
-          .update(credentialAuthAttempt)
-          .set(values)
-          .where(eq(credentialAuthAttempt.id, id))
-      ).pipe(Effect.asVoid, Effect.mapError(storeUnavailable));
-
     return CredentialAuthAttemptRepository.of({
       create: (row) =>
-        tryStore("credential.device.create", () =>
+        stored("create", () =>
           db.insert(credentialAuthAttempt).values(row)
-        ).pipe(Effect.asVoid, Effect.mapError(storeUnavailable)),
+        ).pipe(Effect.asVoid),
       find: (actor, id) =>
-        tryStore("credential.device.status", () =>
+        stored("find", () =>
           db
             .select()
             .from(credentialAuthAttempt)
@@ -64,14 +62,15 @@ export const CredentialAuthAttemptRepositoryLive = Layer.effect(
             )
             .limit(1)
         ).pipe(
-          Effect.mapError(storeUnavailable),
-          Effect.flatMap((rows) =>
-            rows[0] === undefined
-              ? Effect.fail(attemptNotFound())
-              : Effect.succeed(rows[0])
-          )
+          Effect.flatMap((rows) => Effect.mapError(head(rows), attemptNotFound))
         ),
-      finish: (id, values) => update(id, values),
+      finish: (id, values) =>
+        stored("finish", () =>
+          db
+            .update(credentialAuthAttempt)
+            .set(values)
+            .where(eq(credentialAuthAttempt.id, id))
+        ).pipe(Effect.asVoid),
     });
   })
 );

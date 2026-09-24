@@ -2,17 +2,11 @@ import { Database } from "@anpord/db/client";
 import { githubInstallation } from "@anpord/db/schema/credentials/installations";
 import type { Actor } from "@anpord/schema/domain/actor";
 import { eq } from "drizzle-orm";
-import { Clock, Context, Effect, Layer, Option } from "effect";
-import { tryStore } from "../repositories/query";
+import { Clock, Context, Effect, Layer, type Option } from "effect";
+import { head, tryStore } from "../repositories/query";
 import { CodebaseError } from "./errors";
 
 export interface Installation {
-  readonly accountLogin: string;
-  readonly id: number;
-  readonly repositorySelection: string;
-}
-
-export interface RecordInstallation {
   readonly accountLogin: string;
   readonly id: number;
   readonly repositorySelection: string;
@@ -24,7 +18,7 @@ export interface InstallationsShape {
   ) => Effect.Effect<Option.Option<Installation>, CodebaseError>;
   readonly record: (
     actor: Actor,
-    input: RecordInstallation
+    input: Installation
   ) => Effect.Effect<void, CodebaseError>;
   readonly remove: (actor: Actor) => Effect.Effect<void, CodebaseError>;
 }
@@ -56,7 +50,7 @@ export const InstallationsLive = Layer.effect(
             .limit(1)
         ).pipe(
           Effect.mapError(unavailable),
-          Effect.map((rows) => Option.fromNullable(rows[0])),
+          Effect.map(head),
           Effect.withSpan("Installations.forOrganization"),
           Effect.annotateLogs({ organizationId })
         ),
@@ -64,10 +58,6 @@ export const InstallationsLive = Layer.effect(
       record: (actor, input) =>
         Effect.gen(function* () {
           const now = new Date(yield* Clock.currentTimeMillis);
-
-          /* Upsert on GitHub's id: reinstalling the app on the same account
-             returns the same installation, and a second row for it would
-             leave the organization with two answers to which one clones. */
           yield* tryStore("codebase.installation.record", () =>
             db
               .insert(githubInstallation)

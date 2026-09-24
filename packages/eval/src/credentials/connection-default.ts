@@ -15,7 +15,6 @@ export type NewConnection = Omit<
   "isDefault"
 >;
 
-/** The first connection for an integration and scope is the default unasked. */
 export const insertClaimingDefault = (
   db: Db,
   actor: Owner,
@@ -78,8 +77,6 @@ export const promoteToDefault = (
           selected.scope
         )
       );
-    /* The clearing statement above is scoped and this one was not, so the two
-       halves of one promotion disagreed about which rows they could reach. */
     return tx
       .update(credentialConnection)
       .set({ isDefault: true, updatedAt: now })

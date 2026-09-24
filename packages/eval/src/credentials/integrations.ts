@@ -111,23 +111,18 @@ const declaredIntegrations: readonly CredentialIntegration[] = [
     id: "cursor",
     label: "Cursor Agent",
   },
-  /* Classifies rather than runs, so it needs no sandbox and no harness. */
   {
     authMethods: [secret("api-key", "API key", [field("apiKey", "API key")])],
     category: "model",
     id: "typesafe",
     label: "TypeSafe",
   },
-  /* One credential any harness can run on: a map of variables the customer
-     names, handed to the sandbox as they are. */
   {
     authMethods: [{ fields: [], id: "env", kind: "env", label: "Variables" }],
     category: "harness",
     id: "env",
     label: "Environment",
   },
-  /* The customer owns the process, so there is nothing of ours to
-     authenticate: the variables it needs are all it can be given. */
   {
     authMethods: [{ fields: [], id: "env", kind: "env", label: "Variables" }],
     category: "harness",
