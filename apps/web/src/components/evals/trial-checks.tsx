@@ -6,7 +6,6 @@ import {
   DataTableFooter,
   DataTableHead,
 } from "@anpord/ui/components/ui/data-table";
-import { Surface } from "@anpord/ui/components/ui/surface";
 import { FileCodeIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CheckRow } from "@/components/evals/check-row";
@@ -31,11 +30,7 @@ export function TrialChecks({
   const passed = validations.filter((entry) => entry.status === "passed");
 
   if (setup?.validatorName == null && setup?.verifyCommand != null) {
-    return (
-      <Surface className="p-4">
-        <VerifyResults command={setup.verifyCommand} trials={[trial]} />
-      </Surface>
-    );
+    return <VerifyResults command={setup.verifyCommand} trials={[trial]} />;
   }
 
   if (validations.length === 0) {

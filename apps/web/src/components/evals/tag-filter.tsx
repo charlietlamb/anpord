@@ -1,7 +1,7 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 
-/* Rendered only where there is a choice to make: one tag filters nothing, and
-   none at all is the common case until someone starts grouping. */
+const ALL = "all";
+
 export function TagFilter({
   onSelect,
   selected,
@@ -16,49 +16,13 @@ export function TagFilter({
   }
 
   return (
-    <nav
-      aria-label="Filter by tag"
-      className="flex flex-wrap items-center gap-1"
-    >
-      <TagChip
-        active={selected === null}
-        label="All"
-        onSelect={() => onSelect(null)}
-      />
-      {tags.map((tag) => (
-        <TagChip
-          active={selected === tag}
-          key={tag}
-          label={tag}
-          onSelect={() => onSelect(tag)}
-        />
-      ))}
-    </nav>
-  );
-}
-
-function TagChip({
-  active,
-  label,
-  onSelect,
-}: {
-  readonly active: boolean;
-  readonly label: string;
-  readonly onSelect: () => void;
-}) {
-  return (
-    <button
-      aria-pressed={active}
-      className={cn(
-        "rounded-[4px] px-2 py-1 text-xs transition-surface",
-        active
-          ? "bg-alpha-8 text-foreground"
-          : "text-muted-foreground hover:bg-alpha-4 hover:text-foreground"
-      )}
-      onClick={onSelect}
-      type="button"
-    >
-      {label}
-    </button>
+    <PageTabs
+      onChange={(value) => onSelect(value === ALL ? null : value)}
+      options={[
+        { label: "All", value: ALL },
+        ...tags.map((tag) => ({ label: tag, value: tag })),
+      ]}
+      value={selected ?? ALL}
+    />
   );
 }

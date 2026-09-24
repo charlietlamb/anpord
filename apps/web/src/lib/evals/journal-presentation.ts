@@ -47,16 +47,6 @@ export const KIND_ICONS: Record<JournalKind, Icon> = {
 export const kindOf = (row: WaterfallRow): JournalKind =>
   entryKindOf(row.entry);
 
-/* What a step printed, where it printed anything at all. */
-export const readableOf = (entry: EvalJournalEntry) => {
-  if (entry._tag === "command") {
-    return entry.output;
-  }
-
-  return entry._tag === "message" ? entry.text : "";
-};
-
-/* Without this every row announces as "button": its only text lives in a tooltip a screen reader never opens. */
 export const describeRow = (row: WaterfallRow): string => {
   const took = row._tag === "bar" ? `, ${seconds(row.durationMs)}` : "";
   const after =
@@ -64,3 +54,6 @@ export const describeRow = (row: WaterfallRow): string => {
 
   return `${KIND_NAMES[kindOf(row)]}${took}${after}: ${labelOf(row.entry)}`;
 };
+
+export const journalKey = (entry: EvalJournalEntry, index: number) =>
+  [index, entry._tag, entry.finishedAtMillis ?? "unknown"].join("-");

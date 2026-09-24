@@ -27,3 +27,15 @@ export const FILES_TABLE = {
   headings: ["File", "Size", "Contents"],
   label: "Files this trial changed",
 } as const;
+
+export const VERIFY_TABLE = {
+  columns: "minmax(0,1fr) 7.5rem",
+  headings: ["Step", "Status"],
+  label: "Verify steps",
+} as const;
+
+export const STEPS_TABLE = {
+  columns: "minmax(0,1fr)",
+  headings: ["Step"],
+  label: "Steps in the order they were recorded",
+} as const;

@@ -3,6 +3,7 @@ import type {
   EvalDistribution,
   EvalTrialStatus,
 } from "@anpord/schema/domain/evals";
+import type { StepVerdict } from "@anpord/schema/domain/verify-verdicts";
 import type { StatusTone } from "@anpord/ui/components/ui/status-badge";
 import {
   CheckCircleIcon,
@@ -14,6 +15,7 @@ import {
   WarningCircleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
+import { counted } from "@/lib/evals/conversation";
 
 export interface PresentedStatus {
   readonly icon: Icon;
@@ -62,4 +64,22 @@ export const distributionStatus = ({
         label: `${passed}/${scored} passed`,
         tone: "destructive",
       };
+};
+
+const VERDICT: Record<StepVerdict, PresentedStatus> = {
+  failed: { icon: XCircleIcon, label: "Failed", tone: "destructive" },
+  passed: { icon: CheckCircleIcon, label: "Passed", tone: "positive" },
+  unknown: { icon: CircleDashedIcon, label: "Not recorded", tone: "secondary" },
+  unreached: { icon: MinusCircleIcon, label: "Not reached", tone: "secondary" },
+};
+
+export const verdictStatus = (verdict: StepVerdict) => VERDICT[verdict];
+
+export const verdictSummary = (verdicts: readonly StepVerdict[]) => {
+  const judged = verdicts.filter((verdict) => verdict !== "unknown").length;
+  const passed = verdicts.filter((verdict) => verdict === "passed").length;
+
+  return judged === 0
+    ? counted(verdicts.length, "check", "checks")
+    : `${passed}/${verdicts.length} passed`;
 };
