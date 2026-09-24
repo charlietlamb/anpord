@@ -1,5 +1,4 @@
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { Surface } from "@anpord/ui/components/ui/surface";
 import type { ReactNode } from "react";
 
 export function PanelCard({
@@ -14,20 +13,17 @@ export function PanelCard({
   readonly title: string;
 }) {
   return (
-    <div className="w-full max-w-sm text-left">
-      <Surface className="p-7">
-        <div className="flex items-center">
-          <h1>
+    <div className="flex w-full max-w-sm flex-col gap-6 text-left">
+      <header className="flex flex-col gap-1.5 px-1">
+        <div className="flex items-center gap-2">
+          <h1 className="flex min-w-0">
             <PageHeading title={title} />
           </h1>
-          {badge === undefined ? null : (
-            <span className="ml-auto">{badge}</span>
-          )}
+          {badge}
         </div>
-
-        <p className="mt-2 text-muted-foreground text-sm">{description}</p>
-        {children}
-      </Surface>
+        <p className="text-muted-foreground text-sm">{description}</p>
+      </header>
+      {children}
     </div>
   );
 }

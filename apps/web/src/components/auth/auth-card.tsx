@@ -1,9 +1,11 @@
 import { Button } from "@anpord/ui/components/button";
 import { Badge } from "@anpord/ui/components/ui/badge";
+import { Surface } from "@anpord/ui/components/ui/surface";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { useState } from "react";
 import { z } from "zod";
 import { MagicLinkSent } from "@/components/auth/magic-link-sent";
+import { OrDivider } from "@/components/auth/or-divider";
 import { sendMagicLink, signInWithGithub } from "@/components/auth/sign-in";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { PanelCard } from "@/components/layout/panel-card";
@@ -45,45 +47,47 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
       description="Pick up where you left off."
       title="Sign in"
     >
-      <Button
-        className="mt-6 w-full"
-        onClick={() => signInWithGithub(redirect)}
-        type="button"
-        variant="outline"
-      >
-        <GithubIcon />
-        Sign in with GitHub
-      </Button>
+      <Surface className="flex flex-col gap-4 p-4">
+        <Button
+          className="w-full"
+          onClick={() => signInWithGithub(redirect)}
+          size="lg"
+          type="button"
+          variant="outline"
+        >
+          <GithubIcon />
+          Sign in with GitHub
+        </Button>
 
-      <div className="my-6 flex items-center gap-3">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-muted-foreground text-xs">or</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
+        <OrDivider />
 
-      <form
-        className="flex flex-col gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          form.handleSubmit();
-        }}
-      >
-        <form.AppField name="email">
-          {(field) => (
-            <field.TextField
-              autoComplete="email"
-              hideLabel
-              label="Email address"
-              placeholder="you@example.com"
-              type="email"
+        <form
+          className="flex flex-col gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            form.handleSubmit();
+          }}
+        >
+          <form.AppField name="email">
+            {(field) => (
+              <field.TextField
+                autoComplete="email"
+                hideLabel
+                label="Email address"
+                placeholder="you@example.com"
+                type="email"
+              />
+            )}
+          </form.AppField>
+
+          <form.AppForm>
+            <form.SubmitButton
+              label="Send magic link"
+              loadingLabel="Sending…"
             />
-          )}
-        </form.AppField>
-
-        <form.AppForm>
-          <form.SubmitButton label="Send magic link" loadingLabel="Sending…" />
-        </form.AppForm>
-      </form>
+          </form.AppForm>
+        </form>
+      </Surface>
     </PanelCard>
   );
 }

@@ -20,8 +20,9 @@ export function MagicLinkSent({
       title="Check your email"
     >
       <Button
-        className="mt-6 w-full"
+        className="w-full"
         onClick={onBack}
+        size="lg"
         type="button"
         variant="outline"
       >
