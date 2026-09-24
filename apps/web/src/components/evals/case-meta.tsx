@@ -1,5 +1,4 @@
 import type { EvalCaseDetail } from "@anpord/schema/domain/evals";
-import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";
 import { AgeCell } from "@/components/layout/age-cell";
 
@@ -8,13 +7,7 @@ export function CaseMeta({ subject }: { readonly subject: EvalCaseDetail }) {
 
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-muted-foreground text-sm">
-      <Link
-        className="text-foreground hover:underline"
-        search={{ suite: subject.suite.id }}
-        to="/evals"
-      >
-        {subject.suite.name}
-      </Link>
+      <span className="text-foreground">{subject.suite.name}</span>
 
       <span className="font-mono text-xs">{subject.id}</span>
 

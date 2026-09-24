@@ -4,7 +4,6 @@ import { GaugeIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CasesTable } from "@/components/evals/cases-table";
-import { SuiteTabs } from "@/components/evals/suite-tabs";
 import { TagSelect } from "@/components/evals/tag-select";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { ListState } from "@/components/layout/list-state";
@@ -14,10 +13,7 @@ import { evalQueries } from "@/lib/evals/eval-queries";
 import { useCursorStack } from "@/lib/use-cursor-stack";
 
 export const Route = createFileRoute("/_authed/evals/")({
-  validateSearch: (search): { suite?: string; tag?: string } => ({
-    ...(typeof search.suite === "string" && search.suite !== ""
-      ? { suite: search.suite }
-      : {}),
+  validateSearch: (search): { tag?: string } => ({
     ...(typeof search.tag === "string" && search.tag !== ""
       ? { tag: search.tag }
       : {}),
@@ -33,10 +29,10 @@ export const Route = createFileRoute("/_authed/evals/")({
 
 function EvalsIndex() {
   const navigate = Route.useNavigate();
-  const { suite = null, tag = null } = Route.useSearch();
+  const { tag = null } = Route.useSearch();
   const pages = useCursorStack<EvalPageCursor>();
   const { data, error, isPending, isPlaceholderData } = useQuery(
-    evalQueries.cases({ suite, tag }, pages.cursor)
+    evalQueries.cases({ suite: null, tag }, pages.cursor)
   );
   const page = data ?? PLACEHOLDER_CASE_PAGE;
   const { cases, next } = page;
@@ -63,21 +59,6 @@ function EvalsIndex() {
             New eval
           </Button>
         </>
-      }
-      tabs={
-        <SuiteTabs
-          onSelect={(selected) => {
-            pages.reset();
-            navigate({
-              search: (current) => ({
-                ...current,
-                suite: selected ?? undefined,
-              }),
-            });
-          }}
-          selected={suite}
-          suites={page.suites}
-        />
       }
       title="Evals"
       width="wide"
