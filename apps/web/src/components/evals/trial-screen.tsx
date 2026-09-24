@@ -1,6 +1,6 @@
 import type { EvalTrialAddress } from "@anpord/schema/domain/evals";
 import { useQuery } from "@tanstack/react-query";
-import { TrialSkeleton } from "@/components/evals/trial-skeleton";
+import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialView } from "@/components/evals/trial-view";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
@@ -20,7 +20,7 @@ export function TrialScreen({
   });
 
   if (run === undefined) {
-    return <TrialSkeleton />;
+    return <TrialPlaceholder />;
   }
 
   const trial = run.trials.find(

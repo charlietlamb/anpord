@@ -28,7 +28,7 @@ export function PageTabs<T extends string>({
     >
       <Tabs.List
         className={cn(
-          "relative isolate flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-muted p-1 dark:bg-card",
+          "skeleton-static relative isolate flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-muted p-1 dark:bg-card",
           className
         )}
       >

@@ -2,11 +2,11 @@ import {
   DataTable,
   DataTableBody,
   DataTableHead,
-  DataTableSkeleton,
 } from "@anpord/ui/components/ui/data-table";
 import { KeyIcon } from "@phosphor-icons/react";
 import { ListState } from "@/components/layout/list-state";
 import { ApiKeyRow } from "@/components/settings/api-key-row";
+import { PLACEHOLDER_API_KEYS } from "@/lib/settings/settings-placeholders";
 import { API_KEYS_TABLE } from "@/lib/settings/settings-tables";
 
 interface ApiKeyListRow {
@@ -18,12 +18,12 @@ interface ApiKeyListRow {
 
 export function ApiKeyList({
   error,
-  isPending,
+  loading,
   onRevoke,
   rows,
 }: {
   readonly error: Error | null;
-  readonly isPending: boolean;
+  readonly loading: boolean;
   readonly onRevoke: (id: string, name: string) => void;
   readonly rows: readonly ApiKeyListRow[];
 }) {
@@ -33,14 +33,13 @@ export function ApiKeyList({
       empty={rows.length === 0}
       error={error}
       icon={<KeyIcon />}
-      isPending={isPending}
-      skeleton={<DataTableSkeleton {...API_KEYS_TABLE} rows={3} />}
+      loading={loading}
       title="No keys yet"
     >
       <DataTable columns={API_KEYS_TABLE.columns} label={API_KEYS_TABLE.label}>
         <DataTableHead headings={API_KEYS_TABLE.headings} />
         <DataTableBody>
-          {rows.map((row) => {
+          {(loading ? PLACEHOLDER_API_KEYS : rows).map((row) => {
             const name = row.name ?? "Unnamed key";
 
             return (

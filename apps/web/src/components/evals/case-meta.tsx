@@ -24,8 +24,9 @@ export function CaseMeta({ subject }: { readonly subject: EvalCaseDetail }) {
 
       {latest === undefined ? null : (
         <span className="flex items-center gap-1">
-          Edited <AgeCell at={latest.createdAt.epochMillis} />
-          {latest.author === null ? null : `by ${latest.author}`}
+          <span>Edited</span>
+          <AgeCell at={latest.createdAt.epochMillis} />
+          {latest.author === null ? null : <span>by {latest.author}</span>}
         </span>
       )}
     </span>

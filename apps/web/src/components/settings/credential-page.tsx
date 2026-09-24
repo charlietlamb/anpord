@@ -7,7 +7,6 @@ import {
   DataTable,
   DataTableBody,
   DataTableHead,
-  DataTableSkeleton,
 } from "@anpord/ui/components/ui/data-table";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +20,10 @@ import { RotateConnectionDialog } from "@/components/settings/rotate-connection-
 import { credentialQueries } from "@/lib/credential-queries";
 import { credentialsClient } from "@/lib/credentials-client";
 import type { ConnectionSectionSpec } from "@/lib/settings/connection-sections";
+import {
+  PLACEHOLDER_CONNECTIONS,
+  PLACEHOLDER_INTEGRATION,
+} from "@/lib/settings/settings-placeholders";
 import { CONNECTIONS_TABLE } from "@/lib/settings/settings-tables";
 import { useCredentialMutation } from "@/lib/settings/use-credential-mutation";
 
@@ -61,6 +64,16 @@ export function CredentialPage({
   const rows = (connections.data ?? []).filter((connection) =>
     inCategory(connection.integrationId)
   );
+  const loading = connections.isPending || integrations.isPending;
+  const listed = loading
+    ? PLACEHOLDER_CONNECTIONS.map((connection) => ({
+        connection,
+        integration: PLACEHOLDER_INTEGRATION,
+      }))
+    : rows.flatMap((connection) => {
+        const integration = integrationOf(connection.integrationId);
+        return integration === undefined ? [] : [{ connection, integration }];
+      });
   const connected = new Set(rows.map((row) => row.integrationId));
   const elsewhere = (awareness.data ?? []).filter(
     (entry) =>
@@ -85,8 +98,7 @@ export function CredentialPage({
         empty={rows.length === 0}
         error={connections.error ?? integrations.error}
         icon={<spec.Icon />}
-        isPending={connections.isPending || integrations.isPending}
-        skeleton={<DataTableSkeleton {...CONNECTIONS_TABLE} rows={2} />}
+        loading={loading}
         title={spec.emptyTitle}
       >
         <DataTable
@@ -95,25 +107,21 @@ export function CredentialPage({
         >
           <DataTableHead headings={CONNECTIONS_TABLE.headings} />
           <DataTableBody>
-            {rows.map((connection) => {
-              const integration = integrationOf(connection.integrationId);
-
-              return integration ? (
-                <ConnectionRow
-                  connection={connection}
-                  integration={integration}
-                  key={connection.id}
-                  onDefault={() => setDefault.mutate(connection.id)}
-                  onRemove={() => remove.mutate(connection.id)}
-                  onRotate={
-                    rotatableMethodOf(integration, connection) === null
-                      ? undefined
-                      : () => setRotating(connection)
-                  }
-                  onVerify={() => verify.mutate(connection.id)}
-                />
-              ) : null;
-            })}
+            {listed.map(({ connection, integration }) => (
+              <ConnectionRow
+                connection={connection}
+                integration={integration}
+                key={connection.id}
+                onDefault={() => setDefault.mutate(connection.id)}
+                onRemove={() => remove.mutate(connection.id)}
+                onRotate={
+                  rotatableMethodOf(integration, connection) === null
+                    ? undefined
+                    : () => setRotating(connection)
+                }
+                onVerify={() => verify.mutate(connection.id)}
+              />
+            ))}
           </DataTableBody>
         </DataTable>
       </ListState>

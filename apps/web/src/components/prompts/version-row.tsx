@@ -67,7 +67,7 @@ export function VersionRow({
         />
         <span className="min-w-0 flex-1 truncate text-left">
           <span className="mr-2 tabular-nums">v{version.version}</span>
-          {label}
+          <span>{label}</span>
         </span>
         <time
           className="shrink-0 text-muted-foreground text-xs tabular-nums"

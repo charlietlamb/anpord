@@ -19,7 +19,7 @@ import {
   isNavItemActive,
 } from "@/components/dashboard/dashboard-nav";
 import { NavUser } from "@/components/dashboard/nav-user";
-import { NavUserSkeleton } from "@/components/dashboard/nav-user-skeleton";
+import { NavUserPlaceholder } from "@/components/dashboard/nav-user-placeholder";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
@@ -88,7 +88,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <ClientOnly fallback={<NavUserSkeleton />}>
+        <ClientOnly fallback={<NavUserPlaceholder />}>
           <NavUser />
         </ClientOnly>
       </SidebarFooter>

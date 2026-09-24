@@ -2,13 +2,13 @@ import {
   DataTable,
   DataTableBody,
   DataTableHead,
-  DataTableSkeleton,
 } from "@anpord/ui/components/ui/data-table";
 import { UsersThreeIcon } from "@phosphor-icons/react";
 import { ListState } from "@/components/layout/list-state";
 import { PageSection } from "@/components/layout/page-section";
 import { InvitationRow } from "@/components/organization/invitation-row";
 import { MemberRow } from "@/components/organization/member-row";
+import { PLACEHOLDER_MEMBERS } from "@/lib/settings/settings-placeholders";
 import {
   INVITATIONS_TABLE,
   MEMBERS_TABLE,
@@ -25,14 +25,13 @@ export function OrganizationMembers() {
         empty={members.length === 0}
         error={error}
         icon={<UsersThreeIcon />}
-        isPending={isPending}
-        skeleton={<DataTableSkeleton {...MEMBERS_TABLE} rows={3} />}
+        loading={isPending}
         title="No members yet"
       >
         <DataTable columns={MEMBERS_TABLE.columns} label={MEMBERS_TABLE.label}>
           <DataTableHead headings={MEMBERS_TABLE.headings} />
           <DataTableBody>
-            {members.map((member) => (
+            {(isPending ? PLACEHOLDER_MEMBERS : members).map((member) => (
               <MemberRow key={member.id} member={member} />
             ))}
           </DataTableBody>

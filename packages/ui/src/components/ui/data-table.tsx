@@ -2,7 +2,6 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { useRender } from "@base-ui/react/use-render";
 import type { CSSProperties, ComponentProps, ReactNode } from "react";
-import { Skeleton } from "@anpord/ui/components/skeleton";
 import {
   SURFACE_BODY,
   SURFACE_FOOTER,
@@ -44,7 +43,7 @@ export function DataTableHead({
   return (
     <div
       aria-hidden="true"
-      className={cn(COLUMNS, SURFACE_HEAD)}
+      className={cn(COLUMNS, SURFACE_HEAD, "skeleton-static")}
     >
       {headings.map((heading, column) => (
         <span className="min-w-0 truncate" key={`column-${column satisfies number}`}>
@@ -143,32 +142,5 @@ export function DataTableFooter({
       <p>{children}</p>
       {actions === undefined ? null : <div className="ml-auto">{actions}</div>}
     </div>
-  );
-}
-
-export function DataTableSkeleton({
-  columns,
-  headings,
-  label,
-  rows = 6,
-}: {
-  readonly columns: string;
-  readonly headings: readonly string[];
-  readonly label: string;
-  readonly rows?: number;
-}) {
-  return (
-    <DataTable columns={columns} label={label}>
-      <DataTableHead headings={headings} />
-      <DataTableBody aria-busy="true">
-        {Array.from({ length: rows }, (_, row) => (
-          <DataTableRow key={`row-${row satisfies number}`}>
-            {headings.map((heading) => (
-              <Skeleton className="h-3 w-3/5" key={heading} />
-            ))}
-          </DataTableRow>
-        ))}
-      </DataTableBody>
-    </DataTable>
   );
 }

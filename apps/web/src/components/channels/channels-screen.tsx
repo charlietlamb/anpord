@@ -4,12 +4,12 @@ import {
   DataTable,
   DataTableBody,
   DataTableHead,
-  DataTableSkeleton,
 } from "@anpord/ui/components/ui/data-table";
 import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
 import { ChannelListRow } from "@/components/channels/channel-list-row";
 import { ListState } from "@/components/layout/list-state";
 import { PageHeader } from "@/components/layout/page-header";
+import { PLACEHOLDER_CHANNELS } from "@/lib/settings/settings-placeholders";
 import { CHANNELS_TABLE } from "@/lib/settings/settings-tables";
 
 const DESCRIPTION =
@@ -49,8 +49,7 @@ export function ChannelsScreen({
         empty={rows.length === 0}
         error={error}
         icon={<BroadcastIcon />}
-        isPending={isPending}
-        skeleton={<DataTableSkeleton {...CHANNELS_TABLE} rows={3} />}
+        loading={isPending}
         title="No channels yet"
       >
         <DataTable
@@ -59,7 +58,7 @@ export function ChannelsScreen({
         >
           <DataTableHead headings={CHANNELS_TABLE.headings} />
           <DataTableBody>
-            {rows.map((channel) => (
+            {(isPending ? PLACEHOLDER_CHANNELS : rows).map((channel) => (
               <ChannelListRow
                 channel={channel}
                 key={channel.name}

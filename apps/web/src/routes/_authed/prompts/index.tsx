@@ -1,5 +1,4 @@
 import { Button } from "@anpord/ui/components/button";
-import { DataTableSkeleton } from "@anpord/ui/components/ui/data-table";
 import {
   ChatTextIcon,
   MagnifyingGlassIcon,
@@ -13,7 +12,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { PromptList } from "@/components/prompts/prompt-list";
 import { PromptSearch } from "@/components/prompts/prompt-search";
 import { PromptSortMenu } from "@/components/prompts/prompt-sort-menu";
-import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";
+import { PLACEHOLDER_PROMPTS } from "@/lib/prompts/prompt-placeholders";
 import {
   loadPromptListFilters,
   PROMPT_SORT_OPTIONS,
@@ -80,14 +79,13 @@ function PromptsPage() {
         {...emptyCopy(filters.q)}
         empty={prompts.length === 0}
         error={query.error}
-        isPending={query.isPending}
-        skeleton={<DataTableSkeleton {...PROMPTS_TABLE} />}
+        loading={query.isPending}
       >
         <PromptList
           hasMore={query.hasNextPage}
           loadingMore={query.isFetchingNextPage}
           onLoadMore={() => query.fetchNextPage()}
-          prompts={prompts}
+          prompts={query.isPending ? PLACEHOLDER_PROMPTS : prompts}
         />
       </ListState>
     </PageShell>

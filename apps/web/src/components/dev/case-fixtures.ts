@@ -38,16 +38,25 @@ const CLAUDE = {
   model: "claude-sonnet-5",
 } as const;
 
-const run = (hoursAgo: number, overrides: Partial<EvalRun>): EvalRun => ({
-  ...RUN,
-  case: { id: "asks-before-it-pushes", name: "asks before it pushes" },
-  distribution: distribution(1, 1, 0),
-  finishedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR),
-  id: `run_${hoursAgo}`,
-  startedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR - HOUR / 10),
-  trials: TRIALS.slice(0, 1),
-  ...overrides,
-});
+const run = (hoursAgo: number, overrides: Partial<EvalRun>): EvalRun => {
+  const base: EvalRun = {
+    ...RUN,
+    case: { id: "asks-before-it-pushes", name: "asks before it pushes" },
+    distribution: distribution(1, 1, 0),
+    finishedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR),
+    id: `run_${hoursAgo}`,
+    startedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR - HOUR / 10),
+    trials: TRIALS.slice(0, 1),
+    ...overrides,
+  };
+  return {
+    ...base,
+    trials: base.trials.map((trial) => ({
+      ...trial,
+      id: `${trial.id}_${hoursAgo}`,
+    })),
+  };
+};
 
 const RUNS: readonly EvalRun[] = [
   run(0, {

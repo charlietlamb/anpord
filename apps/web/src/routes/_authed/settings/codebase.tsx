@@ -1,6 +1,5 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
-import { DetailListSkeleton } from "@anpord/ui/components/ui/detail-list";
 import { GitBranchIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -9,6 +8,7 @@ import { ListState } from "@/components/layout/list-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { InstalledAccount } from "@/components/settings/installed-account";
 import { codebaseQueries } from "@/lib/codebase-queries";
+import { PLACEHOLDER_ACCOUNT } from "@/lib/settings/settings-placeholders";
 import { useCodebaseInstall } from "@/lib/use-codebase-install";
 
 export const Route = createFileRoute("/_authed/settings/codebase")({
@@ -67,21 +67,15 @@ function CodebasePage() {
         empty={installed === null}
         error={account.error}
         icon={<GitBranchIcon />}
-        isPending={loading}
-        skeleton={<DetailListSkeleton label="GitHub installation" />}
+        loading={loading}
         title="GitHub not connected"
       >
-        {installed === null ? null : (
-          <InstalledAccount
-            account={installed}
-            onRefresh={() => repositories.refetch()}
-            refreshing={repositories.isFetching}
-            summary={repositoryCount(
-              repositories.isFetching,
-              repositories.data
-            )}
-          />
-        )}
+        <InstalledAccount
+          account={installed ?? PLACEHOLDER_ACCOUNT}
+          onRefresh={() => repositories.refetch()}
+          refreshing={repositories.isFetching}
+          summary={repositoryCount(repositories.isFetching, repositories.data)}
+        />
       </ListState>
     </>
   );

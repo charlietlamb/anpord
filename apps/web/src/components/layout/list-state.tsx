@@ -1,4 +1,5 @@
 import { EmptyState } from "@anpord/ui/components/ui/empty-state";
+import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
 import type { ReactNode } from "react";
 
 interface ListStateProps {
@@ -8,8 +9,7 @@ interface ListStateProps {
   readonly empty: boolean;
   readonly error: Error | null;
   readonly icon?: ReactNode;
-  readonly isPending: boolean;
-  readonly skeleton: ReactNode;
+  readonly loading: boolean;
   readonly title: string;
 }
 
@@ -18,14 +18,13 @@ export function ListState({
   children,
   description,
   empty,
-  icon,
   error,
-  isPending,
-  skeleton,
+  icon,
+  loading,
   title,
 }: ListStateProps) {
-  if (isPending) {
-    return <>{skeleton}</>;
+  if (loading) {
+    return <SkeletonScope>{children}</SkeletonScope>;
   }
 
   if (error) {
@@ -45,5 +44,5 @@ export function ListState({
     );
   }
 
-  return <>{children}</>;
+  return children;
 }

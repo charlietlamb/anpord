@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Skeleton } from "@anpord/ui/components/skeleton";
 import {
   SURFACE_BODY,
   SURFACE_FOOTER,
@@ -61,7 +60,7 @@ export function DetailRow({
 }) {
   return (
     <div className="grid items-center gap-x-8 gap-y-1.5 px-4 py-3 @xl:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
-      <dt className="flex flex-col gap-0.5">
+      <dt className="skeleton-static flex flex-col gap-0.5">
         <span className="text-label text-muted-foreground">{label}</span>
         {description === undefined ? null : (
           <span className="text-muted-foreground/70 text-xs">
@@ -78,27 +77,5 @@ export function DetailRow({
         )}
       </dd>
     </div>
-  );
-}
-
-export function DetailListSkeleton({
-  label,
-  rows = 2,
-}: {
-  readonly label: string;
-  readonly rows?: number;
-}) {
-  return (
-    <DetailList label={label}>
-      {Array.from({ length: rows }, (_, row) => (
-        <div
-          className="grid gap-x-8 gap-y-1.5 px-4 py-3 @xl:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]"
-          key={`row-${row satisfies number}`}
-        >
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-40" />
-        </div>
-      ))}
-    </DetailList>
   );
 }

@@ -6,7 +6,7 @@ import { SURFACE_RING } from "@anpord/ui/lib/surface"
 import { cn } from "@anpord/ui/lib/utils"
 
 const badgeVariants = cva(
-  `group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden border border-border whitespace-nowrap shadow-sm transition-surface ${SURFACE_RING} focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3`,
+  `skeleton:skeleton-block group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden border border-border whitespace-nowrap shadow-sm transition-surface ${SURFACE_RING} focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3`,
   {
     variants: {
       variant: {

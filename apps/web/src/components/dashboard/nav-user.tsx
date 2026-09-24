@@ -21,7 +21,6 @@ import {
   BookOpenIcon,
   CaretRightIcon,
   CheckIcon,
-  DotsThreeVerticalIcon,
   MoonIcon,
   PlusIcon,
   SignOutIcon,
@@ -31,6 +30,8 @@ import { Link } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { IdentityLabel } from "@/components/dashboard/identity-label";
+import { NAV_USER_BUTTON } from "@/components/dashboard/nav-user-button";
+import { NavUserIdentity } from "@/components/dashboard/nav-user-identity";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { DOCS_URL } from "@/lib/urls";
@@ -55,25 +56,9 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={
-              <SidebarMenuButton
-                className="data-[popup-open]:bg-sidebar-accent data-[popup-open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
-                size="lg"
-              />
-            }
+            render={<SidebarMenuButton className={NAV_USER_BUTTON} size="lg" />}
           >
-            <IdentityAvatar
-              className="size-7"
-              image={user.image}
-              label={user.name}
-              text={user.initials}
-            />
-            <IdentityLabel
-              className="group-data-[collapsible=icon]:hidden"
-              subtitle={user.email}
-              title={user.name}
-            />
-            <DotsThreeVerticalIcon className="ml-1 size-4 shrink-0 opacity-60 group-data-[collapsible=icon]:hidden" />
+            <NavUserIdentity user={user} />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"

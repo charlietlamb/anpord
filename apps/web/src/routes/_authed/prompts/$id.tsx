@@ -1,8 +1,9 @@
+import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { PromptEditor } from "@/components/prompts/prompt-editor";
-import { PromptEditorSkeleton } from "@/components/prompts/prompt-editor-skeleton";
 import { PromptUnavailable } from "@/components/prompts/prompt-unavailable";
+import { placeholderVersions } from "@/lib/prompts/prompt-placeholders";
 import { activityQueries } from "@/lib/query/activity-queries";
 import { channelQueries } from "@/lib/query/channel-queries";
 import { promptQueries } from "@/lib/query/prompt-queries";
@@ -29,7 +30,12 @@ function PromptDetailPage() {
   const latest = rows?.at(0) ?? null;
 
   if (versions.isPending) {
-    return <PromptEditorSkeleton promptId={id} />;
+    const shown = placeholderVersions(id);
+    return (
+      <SkeletonScope>
+        <PromptEditor id={id} latest={shown[0] ?? null} versions={shown} />
+      </SkeletonScope>
+    );
   }
   if (!(rows && latest)) {
     return <PromptUnavailable failed={versions.error !== null} />;

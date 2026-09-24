@@ -1,99 +1,239 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { DataTableSkeleton } from "@anpord/ui/components/ui/data-table";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableHead,
+} from "@anpord/ui/components/ui/data-table";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "@anpord/ui/components/ui/sidebar";
 import { createFileRoute } from "@tanstack/react-router";
-import { TRIALS } from "@/components/dev/eval-fixtures";
-import { PreviewScreen } from "@/components/dev/preview-screen";
+import { ChannelsScreen } from "@/components/channels/channels-screen";
+import { NavUserIdentity } from "@/components/dashboard/nav-user-identity";
+import { CASE_DETAIL, CASE_RUNS } from "@/components/dev/case-fixtures";
+import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
+import {
+  CODEX,
+  CONNECTIONS,
+  KEYS,
+  MEMBERS,
+} from "@/components/dev/settings-fixtures";
+import { SkeletonPair } from "@/components/dev/skeleton-pair";
 import {
   VALIDATED_SETUP,
   VALIDATED_TRIAL,
 } from "@/components/dev/trial-fixtures";
+import { CaseActions } from "@/components/evals/case-actions";
+import { CaseMeta } from "@/components/evals/case-meta";
+import { CaseRuns } from "@/components/evals/case-runs";
+import { CasesTable } from "@/components/evals/cases-table";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
-import { TrialSkeleton } from "@/components/evals/trial-skeleton";
+import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
+import { TrialView } from "@/components/evals/trial-view";
+import { CursorPagination } from "@/components/layout/cursor-pagination";
+import { PageShell } from "@/components/layout/page-shell";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { MemberRow } from "@/components/organization/member-row";
+import { PromptEditor } from "@/components/prompts/prompt-editor";
+import { PromptList } from "@/components/prompts/prompt-list";
+import { ApiKeyList } from "@/components/settings/api-key-list";
+import { ConnectionRow } from "@/components/settings/connection-row";
+import { InstalledAccount } from "@/components/settings/installed-account";
+import { OrganizationForm } from "@/components/settings/organization-form";
+import { PLACEHOLDER_CASE_PAGE } from "@/lib/evals/eval-placeholders";
 import {
-  CALLS_TABLE,
-  CASES_TABLE,
-  CHECKS_TABLE,
-} from "@/lib/evals/case-tables";
-import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";
-import { CONNECTIONS_TABLE } from "@/lib/settings/settings-tables";
+  PLACEHOLDER_PROMPTS,
+  placeholderVersions,
+} from "@/lib/prompts/prompt-placeholders";
+import { PLACEHOLDER_CHANNELS } from "@/lib/settings/settings-placeholders";
+import {
+  CONNECTIONS_TABLE,
+  MEMBERS_TABLE,
+} from "@/lib/settings/settings-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
+  ssr: false,
 });
 
-function Pair({
-  loaded,
-  name,
-  skeleton,
-}: {
-  readonly loaded: React.ReactNode;
-  readonly name: string;
-  readonly skeleton: React.ReactNode;
-}) {
-  return (
-    <PreviewScreen name={name}>
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 pb-6 xl:px-6">
-        <div data-probe="skeleton">{skeleton}</div>
-        <div data-probe="loaded">{loaded}</div>
-      </div>
-    </PreviewScreen>
-  );
-}
-
-const TRIAL = TRIALS.find((candidate) => candidate.trajectory.length > 0);
+const NOTHING = () => undefined;
+const [TRIAL] = TRIALS;
+const VERSIONS = placeholderVersions("placeholder");
 
 function SkeletonsPreview() {
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-4 py-6">
-        <div className="mx-auto flex w-full max-w-5xl justify-end px-5">
-          <ThemeToggle />
-        </div>
+      <SidebarProvider>
+        <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-12 px-6 py-6">
+          <div className="flex justify-end">
+            <ThemeToggle />
+          </div>
 
-        <Pair
-          loaded={
+          <SkeletonPair name="Cases">
+            <CasesTable
+              cases={PLACEHOLDER_CASE_PAGE.cases}
+              pagination={
+                <CursorPagination
+                  canGoNext
+                  canGoPrev={false}
+                  disabled={false}
+                  onNext={NOTHING}
+                  onPrev={NOTHING}
+                  page={1}
+                />
+              }
+            />
+          </SkeletonPair>
+
+          <SkeletonPair name="Case header">
+            <PageShell
+              actions={<CaseActions detail={CASE_DETAIL} />}
+              description={<CaseMeta subject={CASE_DETAIL} />}
+              title={CASE_DETAIL.name}
+              width="wide"
+            >
+              <CaseRuns
+                caseId={CASE_DETAIL.id}
+                onPage={NOTHING}
+                page={CASE_RUNS}
+              />
+            </PageShell>
+          </SkeletonPair>
+
+          {TRIAL === undefined ? null : (
+            <SkeletonPair name="Trial">
+              <TrialView run={RUN} trial={TRIAL} />
+            </SkeletonPair>
+          )}
+
+          <SkeletonPair name="Checks">
             <TrialChecks setup={VALIDATED_SETUP} trial={VALIDATED_TRIAL} />
-          }
-          name="Checks"
-          skeleton={<DataTableSkeleton {...CHECKS_TABLE} rows={2} />}
-        />
+          </SkeletonPair>
 
-        <PreviewScreen name="Cases table">
-          <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
-            <DataTableSkeleton {...CASES_TABLE} />
-          </div>
-        </PreviewScreen>
+          {TRIAL === undefined ? null : (
+            <SkeletonPair name="Calls">
+              <TrialCalls trajectory={TRIAL.trajectory} />
+            </SkeletonPair>
+          )}
 
-        <PreviewScreen name="Prompt list">
-          <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
-            <DataTableSkeleton {...PROMPTS_TABLE} />
-          </div>
-        </PreviewScreen>
+          <SkeletonPair name="Members">
+            <DataTable
+              columns={MEMBERS_TABLE.columns}
+              label={MEMBERS_TABLE.label}
+            >
+              <DataTableHead headings={MEMBERS_TABLE.headings} />
+              <DataTableBody>
+                {MEMBERS.map((member) => (
+                  <MemberRow key={member.id} member={member} />
+                ))}
+              </DataTableBody>
+            </DataTable>
+          </SkeletonPair>
 
-        <PreviewScreen name="Connection list">
-          <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
-            <DataTableSkeleton {...CONNECTIONS_TABLE} rows={2} />
-          </div>
-        </PreviewScreen>
+          <SkeletonPair name="API keys">
+            <ApiKeyList
+              error={null}
+              loading={false}
+              onRevoke={NOTHING}
+              rows={KEYS}
+            />
+          </SkeletonPair>
 
-        {TRIAL ? (
-          <PreviewScreen name="Trial page">
-            <div data-probe="skeleton">
-              <TrialSkeleton />
-            </div>
-          </PreviewScreen>
-        ) : null}
+          <SkeletonPair name="Connections">
+            <DataTable
+              columns={CONNECTIONS_TABLE.columns}
+              label={CONNECTIONS_TABLE.label}
+            >
+              <DataTableHead headings={CONNECTIONS_TABLE.headings} />
+              <DataTableBody>
+                {CONNECTIONS.map((row) => (
+                  <ConnectionRow
+                    connection={row}
+                    integration={CODEX}
+                    key={row.id}
+                    onDefault={NOTHING}
+                    onRemove={NOTHING}
+                    onVerify={NOTHING}
+                  />
+                ))}
+              </DataTableBody>
+            </DataTable>
+          </SkeletonPair>
 
-        {TRIAL ? (
-          <Pair
-            loaded={<TrialCalls trajectory={TRIAL.trajectory} />}
-            name="Calls"
-            skeleton={<DataTableSkeleton {...CALLS_TABLE} rows={4} />}
-          />
-        ) : null}
-      </div>
+          <SkeletonPair name="Channels">
+            <ChannelsScreen
+              error={null}
+              isPending={false}
+              onDelete={NOTHING}
+              onEdit={NOTHING}
+              onNew={NOTHING}
+              rows={PLACEHOLDER_CHANNELS}
+            />
+          </SkeletonPair>
+
+          <SkeletonPair name="Codebase">
+            <InstalledAccount
+              account={{
+                installationId: 1,
+                login: "charlietlamb",
+                manageUrl: "https://github.com",
+                repositorySelection: "selected",
+              }}
+              onRefresh={NOTHING}
+              refreshing={false}
+              summary="12 repositories"
+            />
+          </SkeletonPair>
+
+          <SkeletonPair name="Organization">
+            <OrganizationForm name="Anpord" slug="anpord" />
+          </SkeletonPair>
+
+          <SkeletonPair name="Prompts">
+            <PromptList
+              hasMore={false}
+              loadingMore={false}
+              onLoadMore={NOTHING}
+              prompts={PLACEHOLDER_PROMPTS}
+            />
+          </SkeletonPair>
+
+          <SkeletonPair name="Prompt editor">
+            <PromptEditor
+              id="placeholder"
+              latest={VERSIONS[0] ?? null}
+              versions={VERSIONS}
+            />
+          </SkeletonPair>
+
+          <section className="flex flex-col gap-3" data-loading="Trial">
+            <span className="font-medium text-muted-foreground text-xs">
+              Trial while loading
+            </span>
+            <TrialPlaceholder />
+          </section>
+
+          <SkeletonPair name="Account">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton size="lg">
+                  <NavUserIdentity
+                    user={{
+                      email: "charlie@anpord.com",
+                      initials: "CL",
+                      name: "Charlie Lamb",
+                    }}
+                  />
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SkeletonPair>
+        </div>
+      </SidebarProvider>
     </TooltipProvider>
   );
 }

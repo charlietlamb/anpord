@@ -4,7 +4,7 @@ type ActiveOrganization = NonNullable<
   ReturnType<typeof authClient.useActiveOrganization>["data"]
 >;
 
-export type OrganizationMember = ActiveOrganization["members"][number];
+type OrganizationMember = ActiveOrganization["members"][number];
 export type OrganizationInvitation = ActiveOrganization["invitations"][number];
 
 interface UseOrganizationMembers {

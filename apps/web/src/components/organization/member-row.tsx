@@ -4,9 +4,19 @@ import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { IdentityLabel } from "@/components/dashboard/identity-label";
 import { AgeCell } from "@/components/layout/age-cell";
 import { MemberRole } from "@/components/organization/member-role";
-import type { OrganizationMember } from "@/lib/use-organization-members";
 
-export function MemberRow({ member }: { readonly member: OrganizationMember }) {
+export interface MemberSummary {
+  readonly createdAt: Date | string;
+  readonly id: string;
+  readonly role: string;
+  readonly user: {
+    readonly email: string;
+    readonly image?: string | null;
+    readonly name: string;
+  };
+}
+
+export function MemberRow({ member }: { readonly member: MemberSummary }) {
   const { user } = member;
   const name = user.name || user.email;
 

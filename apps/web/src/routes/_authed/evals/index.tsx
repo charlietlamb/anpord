@@ -1,23 +1,15 @@
 import type { EvalPageCursor } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
-import {
-  DataTable,
-  DataTableBody,
-  DataTableFooter,
-  DataTableHead,
-  DataTableSkeleton,
-} from "@anpord/ui/components/ui/data-table";
 import { FlaskIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CaseListRow } from "@/components/evals/case-list-row";
+import { CasesTable } from "@/components/evals/cases-table";
 import { SuiteTabs } from "@/components/evals/suite-tabs";
 import { TagSelect } from "@/components/evals/tag-select";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
-import { CASES_TABLE } from "@/lib/evals/case-tables";
-import { counted } from "@/lib/evals/conversation";
+import { PLACEHOLDER_CASE_PAGE } from "@/lib/evals/eval-placeholders";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import { useCursorStack } from "@/lib/use-cursor-stack";
 
@@ -46,8 +38,8 @@ function EvalsIndex() {
   const { data, error, isPending, isPlaceholderData } = useQuery(
     evalQueries.cases({ suite, tag }, pages.cursor)
   );
-  const cases = data?.cases ?? [];
-  const next = data?.next ?? null;
+  const page = data ?? PLACEHOLDER_CASE_PAGE;
+  const { cases, next } = page;
 
   return (
     <PageShell
@@ -64,7 +56,7 @@ function EvalsIndex() {
               });
             }}
             selected={tag}
-            tags={data?.tags ?? []}
+            tags={page.tags}
           />
           <Button render={<Link to="/evals/new" />} size="sm">
             <PlusIcon />
@@ -84,7 +76,7 @@ function EvalsIndex() {
             });
           }}
           selected={suite}
-          suites={data?.suites ?? []}
+          suites={page.suites}
         />
       }
       title="Evals"
@@ -95,38 +87,26 @@ function EvalsIndex() {
         empty={cases.length === 0}
         error={error}
         icon={<FlaskIcon />}
-        isPending={isPending}
-        skeleton={<DataTableSkeleton {...CASES_TABLE} />}
+        loading={isPending}
         title={tag === null ? "No cases yet" : `Nothing tagged ${tag}`}
       >
-        <DataTable columns={CASES_TABLE.columns} label={CASES_TABLE.label}>
-          <DataTableHead headings={CASES_TABLE.headings} />
-
-          <DataTableBody>
-            {cases.map((subject) => (
-              <CaseListRow key={subject.id} subject={subject} />
-            ))}
-          </DataTableBody>
-
-          <DataTableFooter
-            actions={
-              <CursorPagination
-                canGoNext={next !== null}
-                canGoPrev={pages.page > 1}
-                disabled={isPlaceholderData}
-                onNext={() => {
-                  if (next !== null) {
-                    pages.push(next);
-                  }
-                }}
-                onPrev={pages.pop}
-                page={pages.page}
-              />
-            }
-          >
-            Showing {counted(cases.length, "case", "cases")}
-          </DataTableFooter>
-        </DataTable>
+        <CasesTable
+          cases={cases}
+          pagination={
+            <CursorPagination
+              canGoNext={next !== null}
+              canGoPrev={pages.page > 1}
+              disabled={isPlaceholderData}
+              onNext={() => {
+                if (next !== null) {
+                  pages.push(next);
+                }
+              }}
+              onPrev={pages.pop}
+              page={pages.page}
+            />
+          }
+        />
       </ListState>
     </PageShell>
   );

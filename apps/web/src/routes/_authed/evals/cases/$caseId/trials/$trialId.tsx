@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialScreen } from "@/components/evals/trial-screen";
-import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
@@ -43,7 +43,7 @@ function TrialRoute() {
   }
 
   if (address === undefined) {
-    return <TrialSkeleton />;
+    return <TrialPlaceholder />;
   }
 
   return <TrialScreen address={address} />;

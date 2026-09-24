@@ -37,7 +37,7 @@ export function InstalledAccount({
       title={
         <>
           <GithubIcon className="size-3.5 shrink-0" />
-          {account.login}
+          <span>{account.login}</span>
         </>
       }
     >

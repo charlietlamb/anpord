@@ -33,7 +33,7 @@ function ApiKeysPage() {
       />
       <ApiKeyList
         error={keys.error}
-        isPending={keys.isLoading}
+        loading={keys.isLoading}
         onRevoke={onRevoke}
         rows={keys.data ?? []}
       />

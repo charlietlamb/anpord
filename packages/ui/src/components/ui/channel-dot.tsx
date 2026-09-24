@@ -11,7 +11,7 @@ export function ChannelDot({ color, className }: ChannelDotProps) {
     <span
       aria-hidden="true"
       className={cn(
-        "size-1.5 shrink-0 rounded-full",
+        "skeleton:skeleton-block size-1.5 shrink-0 rounded-full",
         color ? CHANNEL_SWATCHES[color] : "bg-transparent",
         className
       )}

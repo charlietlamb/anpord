@@ -17,7 +17,7 @@ import { CaseMeta } from "@/components/evals/case-meta";
 import { CaseRuns } from "@/components/evals/case-runs";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
-import { TrialSkeleton } from "@/components/evals/trial-skeleton";
+import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialView } from "@/components/evals/trial-view";
 import { PageShell } from "@/components/layout/page-shell";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -130,7 +130,7 @@ function EvalsPreview() {
         </PreviewScreen>
 
         <PreviewScreen name="Loading: one trial">
-          <TrialSkeleton />
+          <TrialPlaceholder />
         </PreviewScreen>
       </div>
     </TooltipProvider>

@@ -25,8 +25,64 @@
   [data-state="active"],
   [data-active]:not([data-active="false"])
 ));
+@custom-variant skeleton (&:where([data-skeleton] *):not(
+  :where(.skeleton-static, .skeleton-static *)
+));
 @custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
 @custom-variant data-vertical (&:where([data-orientation="vertical"]));
+
+@utility skeleton-paint {
+  color: transparent !important;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 30%,
+      color-mix(in oklch, var(--foreground) 5%, transparent) 50%,
+      transparent 70%
+    )
+    0 0 / 300% 100%,
+    color-mix(in oklch, var(--foreground) 8%, transparent) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  animation: skeleton-shimmer 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@utility skeleton-block {
+  @apply skeleton-paint;
+
+  & > * {
+    visibility: hidden;
+  }
+}
+
+@utility skeleton-text {
+  mask-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 0.15lh,
+    #000 0.15lh 0.85lh,
+    transparent 0.85lh 1lh
+  );
+  mask-clip: content-box;
+  mask-origin: content-box;
+  @apply skeleton-paint;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position:
+      100% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      0 0,
+      0 0;
+  }
+}
 
 @utility no-scrollbar {
   scrollbar-width: none;
@@ -184,36 +240,7 @@
 }
 
 @layer utilities {
-  .skeleton-shimmer {
-    overflow: hidden;
-  }
-  :where(.skeleton-shimmer) {
-    position: relative;
-  }
-  .skeleton-shimmer::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: linear-gradient(
-      90deg,
-      transparent,
-      oklch(1 0 0 / 4%),
-      transparent
-    );
-    transform: translateX(-100%);
-    animation: skeleton-shimmer 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
-  }
-  @keyframes skeleton-shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .skeleton-shimmer::after {
-      animation: none;
-    }
-
     .animate-in {
       --tw-enter-translate-x: 0;
       --tw-enter-translate-y: 0;

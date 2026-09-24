@@ -1,9 +1,9 @@
-import { Skeleton } from "@anpord/ui/components/skeleton";
 import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
 } from "@anpord/ui/components/ui/command";
+import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { staffQueries } from "@/lib/query/staff-queries";
 
@@ -12,7 +12,11 @@ interface ImpersonatePageProps {
   readonly search: string;
 }
 
-const PLACEHOLDER_ROWS = [0, 1, 2];
+const PLACEHOLDER_PEOPLE = [0, 1, 2].map((row) => ({
+  email: `placeholder${row}@example.com`,
+  id: `placeholder-${row}`,
+  name: "Placeholder name",
+}));
 
 export function ImpersonatePage({ onSelect, search }: ImpersonatePageProps) {
   const { data, isFetching } = useQuery(staffQueries.users(search, true));
@@ -23,36 +27,31 @@ export function ImpersonatePage({ onSelect, search }: ImpersonatePageProps) {
     );
   }
 
-  if (isFetching && !data) {
-    return (
-      <div className="flex flex-col gap-2 p-2">
-        {PLACEHOLDER_ROWS.map((row) => (
-          <Skeleton className="h-7 w-full" key={row} />
-        ))}
-      </div>
-    );
-  }
+  const loading = isFetching && !data;
+  const people = loading ? PLACEHOLDER_PEOPLE : (data ?? []);
 
-  if (!data || data.length === 0) {
+  if (people.length === 0) {
     return <CommandEmpty>Nobody matches “{search}”.</CommandEmpty>;
   }
 
   return (
-    <CommandGroup heading="Impersonate">
-      {data.map((person) => (
-        <CommandItem
-          key={person.id}
-          onSelect={() => onSelect(person.id)}
-          value={person.id}
-        >
-          <span className="truncate">{person.name || person.email}</span>
-          {person.name ? (
-            <span className="ml-auto truncate text-muted-foreground">
-              {person.email}
-            </span>
-          ) : null}
-        </CommandItem>
-      ))}
-    </CommandGroup>
+    <SkeletonScope loading={loading}>
+      <CommandGroup heading="Impersonate">
+        {people.map((person) => (
+          <CommandItem
+            key={person.id}
+            onSelect={() => onSelect(person.id)}
+            value={person.id}
+          >
+            <span className="truncate">{person.name || person.email}</span>
+            {person.name ? (
+              <span className="ml-auto truncate text-muted-foreground">
+                {person.email}
+              </span>
+            ) : null}
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </SkeletonScope>
   );
 }

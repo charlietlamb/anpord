@@ -62,7 +62,7 @@ export function ShellText({
   const classes = tone === "inverted" ? SHELL_INVERTED : SHELL_CLASSES;
 
   return (
-    <span className={cn("font-mono", className)}>
+    <span className={cn("skeleton:skeleton-block font-mono", className)}>
       {tokens === null
         ? command
         : tokens.map((token, index) => (
