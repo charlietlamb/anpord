@@ -14,6 +14,10 @@ export const buttonVariants = cva(
         bare: "text-muted-foreground hover:text-foreground aria-expanded:text-foreground",
         subtle:
           "skeleton:skeleton-block border-border bg-alpha-4 text-muted-foreground hover:bg-alpha-8 hover:text-foreground aria-expanded:bg-alpha-8",
+        raised:
+          "skeleton:skeleton-block border-0 bg-[linear-gradient(to_bottom,var(--foreground),color-mix(in_oklch,var(--foreground)_93%,var(--background)))] text-background shadow-[inset_0_1px_0_0_rgb(255_255_255/0.16),0_1px_2px_0_rgb(0_0_0/0.2),0_6px_16px_-6px_rgb(0_0_0/0.45)] transition-[filter,transform,box-shadow] hover:brightness-110 active:translate-y-px dark:shadow-[inset_0_1px_0_0_rgb(255_255_255),inset_0_-1px_0_0_rgb(0_0_0/0.18),0_0_0_1px_rgb(0_0_0/0.7),0_0_20px_0_rgb(255_255_255/0.14)] dark:hover:shadow-[inset_0_1px_0_0_rgb(255_255_255),inset_0_-1px_0_0_rgb(0_0_0/0.18),0_0_0_1px_rgb(0_0_0/0.7),0_0_28px_0_rgb(255_255_255/0.24)]",
+        glass:
+          "skeleton:skeleton-block border-0 bg-[linear-gradient(to_bottom,color-mix(in_oklch,var(--foreground)_9%,transparent),color-mix(in_oklch,var(--foreground)_4%,transparent))] text-foreground shadow-[inset_0_1px_0_0_rgb(255_255_255/0.6),inset_0_0_0_1px_color-mix(in_oklch,var(--foreground)_12%,transparent),0_1px_2px_0_rgb(0_0_0/0.08)] backdrop-blur-md transition-[filter,transform,box-shadow] hover:brightness-125 active:translate-y-px dark:shadow-[inset_0_1px_0_0_rgb(255_255_255/0.12),inset_0_0_0_1px_rgb(255_255_255/0.08),0_1px_3px_0_rgb(0_0_0/0.5)]",
         destructive:
           "skeleton:skeleton-block border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/15 focus-visible:ring-destructive/20",
       },

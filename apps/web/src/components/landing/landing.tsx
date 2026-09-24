@@ -30,7 +30,10 @@ export function Landing() {
           )}
         >
           <Link
-            className={cn(buttonVariants({ size: "xl" }), "group/start")}
+            className={cn(
+              buttonVariants({ size: "xl", variant: "raised" }),
+              "group/start"
+            )}
             to="/login"
           >
             Get started

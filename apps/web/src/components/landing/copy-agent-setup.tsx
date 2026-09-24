@@ -8,10 +8,7 @@ export function CopyAgentSetup() {
 
   return (
     <button
-      className={cn(
-        buttonVariants({ size: "xl", variant: "subtle" }),
-        "text-foreground"
-      )}
+      className={cn(buttonVariants({ size: "xl", variant: "glass" }))}
       onClick={() => copy(AGENT_PROMPT)}
       type="button"
     >
