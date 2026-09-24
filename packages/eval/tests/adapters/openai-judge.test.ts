@@ -25,7 +25,12 @@ const request = {
   output: "4",
 };
 
-const complete = (body: unknown, status = 200, authenticated = true) => {
+const complete = (
+  body: unknown,
+  status = 200,
+  authenticated = true,
+  connected: Readonly<Record<string, string>> = {}
+) => {
   let calls = 0;
   const client = HttpClient.make((httpRequest) =>
     Effect.sync(() => {
@@ -52,15 +57,26 @@ const complete = (body: unknown, status = 200, authenticated = true) => {
   );
   const credentials = Layer.succeed(CredentialResolver, {
     persist: () => Effect.void,
-    resolve: () =>
-      authenticated
+    resolve: ({ integrationId }) => {
+      const apiKey = connected[integrationId];
+      if (apiKey !== undefined) {
+        return Effect.succeed(
+          Redacted.make({
+            ...Redacted.value(emptyEnvCredential),
+            integrationId,
+            values: { apiKey },
+          })
+        );
+      }
+      return authenticated
         ? Effect.succeed(
             Redacted.make({
               ...Redacted.value(emptyEnvCredential),
               values: { OPENAI_API_KEY: "test-secret" },
             })
           )
-        : Effect.fail(connectionNotFound()),
+        : Effect.fail(connectionNotFound());
+    },
     resolveBound: () => Effect.fail(connectionNotFound()),
   });
   return Effect.runPromise(
@@ -118,6 +134,14 @@ test("does not expose provider response bodies in errors", async () => {
   const { result } = await complete({ error: "test-secret" }, 401);
   expect(result._tag).toBe("Left");
   expect(JSON.stringify(result)).not.toContain("test-secret");
+});
+
+test("never sends an OpenAI judge request with another provider's key", async () => {
+  const { result, calls } = await complete({}, 200, false, {
+    anthropic: "anthropic-secret",
+  });
+  expect(result._tag).toBe("Left");
+  expect(calls).toBe(0);
 });
 
 test("fails without credentials before making a request", async () => {

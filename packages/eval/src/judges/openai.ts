@@ -4,6 +4,7 @@ import {
   HttpClientResponse,
 } from "@effect/platform";
 import { Effect, Option, Redacted, Schema } from "effect";
+import { keepTagged } from "../adapters/keep-tagged";
 import { modelAccessFor } from "../credentials/model-key";
 import { CredentialResolver } from "../credentials/resolver";
 import { JudgeFailed, type JudgeRequest } from "./model";
@@ -48,13 +49,16 @@ export const makeOpenAIJudge = Effect.gen(function* () {
 
   return (request: JudgeRequest) =>
     Effect.gen(function* () {
-      const organizationId = request.context.organizationId;
-      const access = yield* modelAccessFor(credentials, organizationId);
+      const access = yield* modelAccessFor(
+        credentials,
+        request.context.organizationId,
+        request.judge.provider
+      );
 
       if (Option.isNone(access)) {
         return yield* Effect.fail(
           new JudgeFailed({
-            message: "No model credential is configured",
+            message: `No ${request.judge.provider} model credential is configured`,
           })
         );
       }
@@ -77,7 +81,7 @@ export const makeOpenAIJudge = Effect.gen(function* () {
         yield* request.onRequest(body);
       }
       const httpRequest = yield* HttpClientRequest.post(
-        "https://api.openai.com/v1/responses"
+        `${access.value.provider.baseUrl}/responses`
       ).pipe(
         HttpClientRequest.bearerToken(Redacted.make(access.value.key)),
         HttpClientRequest.bodyJson(body)
@@ -109,10 +113,10 @@ export const makeOpenAIJudge = Effect.gen(function* () {
       };
     }).pipe(
       Effect.scoped,
-      Effect.mapError((error) =>
-        error._tag === "JudgeFailed"
-          ? error
-          : new JudgeFailed({ message: "The OpenAI judge could not complete" })
+      keepTagged(
+        "JudgeFailed",
+        () =>
+          new JudgeFailed({ message: "The OpenAI judge could not complete" })
       ),
       Effect.withSpan("OpenAIJudge.complete")
     );
