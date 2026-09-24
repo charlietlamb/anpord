@@ -1,73 +1,63 @@
-import { Effect } from "effect";
+import { Effect, Option, Stream } from "effect";
 import { ModalClient, type ModalReadStream, type Sandbox } from "modal";
-import { sandboxUnavailable } from "../../domain/errors";
-import type {
-  OpenSandbox,
-  SandboxAdapterShape,
-  SandboxHandle,
-} from "../../ports/sandbox";
-import { settingUp } from "./after-create";
-import { noCache, noResumableCommands } from "./capabilities";
+import type { SandboxHandle } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
+import {
+  DEFAULT_TIMEOUT_MS,
+  type MakeAdapter,
+  providerAdapter,
+  providerCall,
+  unavailableFor,
+} from "./provider-adapter";
 
 const APP = "anpord-evals";
 const HOME = "/root";
 const IMAGE = "node:22-bookworm";
-const WORKSPACE = "/tmp/anpord";
-const DEFAULT_TIMEOUT_MS = 120_000;
 
-const unavailable = (reason: unknown) => sandboxUnavailable("modal", reason);
+const call = providerCall("modal");
 
-const drain = async (
+const drain = (
   stream: ModalReadStream<string>,
   emit: (chunk: string) => void
-) => {
-  const reader = stream.getReader();
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      return;
-    }
-    emit(value);
-  }
-};
+) =>
+  Stream.fromReadableStream(() => stream, unavailableFor("modal")).pipe(
+    Stream.runForEach((chunk) => Effect.sync(() => emit(chunk)))
+  );
 
 const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
-  cache: noCache,
+  cache: Option.none(),
   exec: (command, options) =>
     execStream((sink) =>
-      Effect.tryPromise({
-        catch: unavailable,
-        try: async () => {
-          const process = await sandbox.exec(["bash", "-lc", command], {
-            env: options?.env ? { ...options.env } : undefined,
-            timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-            workdir: options?.cwd ?? workspace,
-          });
-          const [, , exitCode] = await Promise.all([
-            drain(process.stdout, sink.stdout),
-            drain(process.stderr, sink.stderr),
-            process.wait(),
-          ]);
-          return exitCode;
-        },
-      })
+      call(() =>
+        sandbox.exec(["bash", "-lc", command], {
+          env: options?.env && { ...options.env },
+          timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+          workdir: options?.cwd ?? workspace,
+        })
+      ).pipe(
+        Effect.flatMap((process) =>
+          Effect.all(
+            [
+              drain(process.stdout, sink.stdout),
+              drain(process.stderr, sink.stderr),
+              call(() => process.wait()),
+            ],
+            { concurrency: "unbounded" }
+          )
+        ),
+        Effect.map(([, , exitCode]) => exitCode)
+      )
     ),
   home: HOME,
   id: sandbox.sandboxId,
   provider: "modal",
-  resumable: noResumableCommands,
+  resumable: Option.none(),
   writeFile: (path, content) =>
-    Effect.tryPromise({
-      catch: unavailable,
-      try: () => sandbox.filesystem.writeText(content, path),
-    }),
+    call(() => sandbox.filesystem.writeText(content, path)),
 });
 
-export const makeConfiguredModalAdapter = (
-  values?: Readonly<Record<string, string>>
-) =>
-  Effect.sync<SandboxAdapterShape>(() => {
+export const modalAdapter: MakeAdapter = (values) =>
+  Effect.sync(() => {
     const modal = new ModalClient(
       values?.tokenId && values.tokenSecret
         ? { tokenId: values.tokenId, tokenSecret: values.tokenSecret }
@@ -75,49 +65,28 @@ export const makeConfiguredModalAdapter = (
     );
     const image = modal.images.fromRegistry(IMAGE);
 
-    return {
-      attach: (id) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () => modal.sandboxes.fromId(id),
-        }).pipe(Effect.map((sandbox) => handleFor(sandbox, WORKSPACE))),
-      destroy: (handle) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: async () => {
-            const sandbox = await modal.sandboxes.fromId(handle.id);
-            await sandbox.terminate({ wait: true });
-          },
+    return providerAdapter({
+      connect: (id) => call(() => modal.sandboxes.fromId(id)),
+      create: (request) =>
+        call(async () => {
+          const app = await modal.apps.fromName(APP, { createIfMissing: true });
+          return modal.sandboxes.create(app, image, {
+            idleTimeoutMs: request.autoStopMinutes * 60_000,
+            timeoutMs: request.autoStopMinutes * 60_000,
+          });
         }),
-      open: (request: OpenSandbox) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: async () => {
-            const app = await modal.apps.fromName(APP, {
-              createIfMissing: true,
-            });
-            return modal.sandboxes.create(app, image, {
-              idleTimeoutMs: request.autoStopMinutes * 60_000,
-              timeoutMs: request.autoStopMinutes * 60_000,
-            });
-          },
-        }).pipe(
-          Effect.flatMap((sandbox) =>
-            settingUp(
-              Effect.tryPromise({
-                catch: unavailable,
-                try: () =>
-                  sandbox.filesystem.makeDirectory(request.workspace, {
-                    createParents: true,
-                  }),
-              }),
-              handleFor(sandbox, request.workspace),
-              () => sandbox.terminate()
-            )
-          )
+      destroy: (id) =>
+        call(async () => {
+          const sandbox = await modal.sandboxes.fromId(id);
+          await sandbox.terminate({ wait: true });
+        }),
+      discard: (sandbox) => call(() => sandbox.terminate()),
+      handleFor,
+      home: HOME,
+      makeWorkspace: (sandbox, workspace) =>
+        call(() =>
+          sandbox.filesystem.makeDirectory(workspace, { createParents: true })
         ),
       provider: "modal",
-    };
+    });
   });
-
-export const makeModalAdapter = makeConfiguredModalAdapter();

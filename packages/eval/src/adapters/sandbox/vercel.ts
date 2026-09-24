@@ -1,70 +1,70 @@
 import { dirname } from "node:path";
 import { Writable } from "node:stream";
+import type { CredentialValues } from "@anpord/schema/domain/credentials";
 import { Sandbox } from "@vercel/sandbox";
-import { Config, Effect } from "effect";
-import { sandboxUnavailable } from "../../domain/errors";
-import type {
-  ExecOptions,
-  OpenSandbox,
-  SandboxAdapterShape,
-  SandboxHandle,
-} from "../../ports/sandbox";
-import { settingUp } from "./after-create";
-import { noCache, noResumableCommands } from "./capabilities";
+import { Config, Effect, Option } from "effect";
+import {
+  type SandboxUnavailable,
+  sandboxUnavailable,
+} from "../../domain/errors";
+import type { SandboxHandle } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
+import {
+  DEFAULT_TIMEOUT_MS,
+  type MakeAdapter,
+  providerAdapter,
+  providerCall,
+} from "./provider-adapter";
 
-const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/vercel";
-const WORKSPACE = "/vercel/sandbox";
 
-interface Environment {
-  readonly oidcToken: string;
-  readonly projectId: string;
-  readonly teamId: string;
-  readonly token: string;
-}
+const call = providerCall("vercel");
+
+const optional = (name: string) =>
+  Config.string(name).pipe(Config.withDefault(""));
 
 const environment = Config.all({
-  oidcToken: Config.string("VERCEL_OIDC_TOKEN").pipe(Config.withDefault("")),
-  projectId: Config.string("VERCEL_PROJECT_ID").pipe(Config.withDefault("")),
-  teamId: Config.string("VERCEL_TEAM_ID").pipe(Config.withDefault("")),
-  token: Config.string("VERCEL_TOKEN").pipe(Config.withDefault("")),
+  oidcToken: optional("VERCEL_OIDC_TOKEN"),
+  projectId: optional("VERCEL_PROJECT_ID"),
+  teamId: optional("VERCEL_TEAM_ID"),
+  token: optional("VERCEL_TOKEN"),
 });
 
-const unavailable = (reason: unknown) => sandboxUnavailable("vercel", reason);
+type Environment = Config.Config.Success<typeof environment>;
+
+interface Credentials {
+  readonly projectId?: string;
+  readonly teamId?: string;
+  readonly token?: string;
+}
 
 const credentials = (
-  values: Readonly<Record<string, string>> | undefined,
+  values: CredentialValues | undefined,
   env: Environment
-) => {
+): Effect.Effect<Credentials, SandboxUnavailable> => {
   if (values?.token && values.teamId && values.projectId) {
-    return {
+    return Effect.succeed({
       projectId: values.projectId,
       teamId: values.teamId,
       token: values.token,
-    };
-  }
-
-  if (env.oidcToken) {
-    return {};
+    });
   }
 
   const { projectId, teamId, token } = env;
   const configured = [projectId, teamId, token].filter(Boolean).length;
 
-  if (configured === 0) {
-    return {};
+  if (env.oidcToken || configured === 0) {
+    return Effect.succeed({});
   }
-  if (configured !== 3) {
-    throw new Error(
-      "VERCEL_TOKEN, VERCEL_TEAM_ID, and VERCEL_PROJECT_ID must be set together"
-    );
-  }
-  return {
-    projectId: projectId as string,
-    teamId: teamId as string,
-    token: token as string,
-  };
+
+  return configured === 3
+    ? Effect.succeed({ projectId, teamId, token })
+    : Effect.fail(
+        sandboxUnavailable(
+          "vercel",
+          "VERCEL_TOKEN, VERCEL_TEAM_ID, and VERCEL_PROJECT_ID must be set together"
+        )
+      );
 };
 
 const writable = (write: (data: string) => void) =>
@@ -76,92 +76,71 @@ const writable = (write: (data: string) => void) =>
   });
 
 const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
-  cache: noCache,
-  exec: (command, options?: ExecOptions) =>
+  cache: Option.none(),
+  exec: (command, options) =>
     execStream((sink) =>
-      Effect.tryPromise({
-        catch: unavailable,
-        try: async () => {
-          const result = await sandbox.runCommand({
-            args: ["-lc", command],
-            cmd: "bash",
-            cwd: options?.cwd ?? workspace,
-            env: options?.env ? { ...options.env } : undefined,
-            stderr: writable(sink.stderr),
-            stdout: writable(sink.stdout),
-            timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-          });
-          return result.exitCode;
-        },
-      })
+      call(() =>
+        sandbox.runCommand({
+          args: ["-lc", command],
+          cmd: "bash",
+          cwd: options?.cwd ?? workspace,
+          env: options?.env && { ...options.env },
+          stderr: writable(sink.stderr),
+          stdout: writable(sink.stdout),
+          timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+        })
+      ).pipe(Effect.map((result) => result.exitCode))
     ),
   home: HOME,
   id: sandbox.name,
   provider: "vercel",
-  resumable: noResumableCommands,
+  resumable: Option.none(),
   writeFile: (path, content) =>
-    Effect.tryPromise({
-      catch: unavailable,
-      try: async () => {
-        await sandbox.fs.mkdir(dirname(path), { recursive: true });
-        await sandbox.fs.writeFile(path, content);
-      },
+    call(async () => {
+      await sandbox.fs.mkdir(dirname(path), { recursive: true });
+      await sandbox.fs.writeFile(path, content);
     }),
 });
 
-export const makeConfiguredVercelAdapter = (
-  values?: Readonly<Record<string, string>>
-) =>
+export const vercelAdapter: MakeAdapter = (values) =>
   Effect.gen(function* () {
-    const env = yield* environment;
-    return {
-      attach: (id) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () =>
-            Sandbox.get({
-              ...credentials(values, env),
-              name: id,
-              resume: true,
-            }),
-        }).pipe(Effect.map((sandbox) => handleFor(sandbox, WORKSPACE))),
-      destroy: (handle) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: async () => {
-            const sandbox = await Sandbox.get({
-              ...credentials(values, env),
-              name: handle.id,
-            });
-            await sandbox.delete();
-          },
-        }),
-      open: (request: OpenSandbox) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () =>
-            Sandbox.create({
-              ...credentials(values, env),
-              image: "vercel/sandbox/universal:latest",
-              persistent: false,
-              tags: { purpose: "eval", service: "anpord" },
-              timeout: request.autoStopMinutes * 60_000,
-            }),
-        }).pipe(
-          Effect.flatMap((sandbox) =>
-            settingUp(
-              Effect.tryPromise({
-                catch: unavailable,
-                try: () =>
-                  sandbox.fs.mkdir(request.workspace, { recursive: true }),
-              }),
-              handleFor(sandbox, request.workspace),
-              () => sandbox.delete()
+    const auth = credentials(values, yield* environment);
+
+    return providerAdapter({
+      connect: (id) =>
+        auth.pipe(
+          Effect.flatMap((found) =>
+            call(() => Sandbox.get({ ...found, name: id, resume: true }))
+          )
+        ),
+      create: (request) =>
+        auth.pipe(
+          Effect.flatMap((found) =>
+            call(() =>
+              Sandbox.create({
+                ...found,
+                image: "vercel/sandbox/universal:latest",
+                persistent: false,
+                tags: { purpose: "eval", service: "anpord" },
+                timeout: request.autoStopMinutes * 60_000,
+              })
             )
           )
         ),
+      destroy: (id) =>
+        auth.pipe(
+          Effect.flatMap((found) =>
+            call(async () => {
+              const sandbox = await Sandbox.get({ ...found, name: id });
+              await sandbox.delete();
+            })
+          )
+        ),
+      discard: (sandbox) => call(() => sandbox.delete()),
+      handleFor,
+      home: HOME,
+      makeWorkspace: (sandbox, workspace) =>
+        call(() => sandbox.fs.mkdir(workspace, { recursive: true })),
       provider: "vercel",
-    } satisfies SandboxAdapterShape;
+    });
   }).pipe(Effect.orDie);
-
-export const makeVercelAdapter = makeConfiguredVercelAdapter();

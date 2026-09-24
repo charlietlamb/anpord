@@ -5,7 +5,7 @@ import {
   DaytonaNotFoundError,
 } from "@daytonaio/sdk";
 import { Effect } from "effect";
-import { makeConfiguredDaytonaAdapter } from "../../../src/adapters/sandbox/daytona";
+import { daytonaAdapter } from "../../../src/adapters/sandbox/daytona";
 
 const get = spyOn(Daytona.prototype, "get");
 afterEach(() => get.mockReset());
@@ -14,7 +14,7 @@ afterAll(() => get.mockRestore());
 const destroy = () =>
   Effect.runPromise(
     Effect.gen(function* () {
-      const adapter = yield* makeConfiguredDaytonaAdapter({ apiKey: "mock" });
+      const adapter = yield* daytonaAdapter({ apiKey: "mock" });
       return yield* adapter.destroy({ id: "mock-sandbox" });
     }).pipe(Effect.either)
   );

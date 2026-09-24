@@ -1,45 +1,73 @@
-import { Daytona, DaytonaNotFoundError } from "@daytonaio/sdk";
-import { Effect } from "effect";
-import type { OpenSandbox, SandboxAdapterShape } from "../../ports/sandbox";
-import { settingUp } from "./after-create";
-import { CACHE_PATH, readyVolume } from "./daytona-cache";
-import { handleFor } from "./daytona-handle";
-import { HOME, unavailable } from "./daytona-shell";
+import {
+  Daytona,
+  DaytonaNotFoundError,
+  type Sandbox as DaytonaSandbox,
+} from "@daytonaio/sdk";
+import { Effect, Option } from "effect";
+import type { SandboxHandle } from "../../ports/sandbox";
+import { shellQuote } from "../harness/process";
+import {
+  CACHE_PATH,
+  CACHE_SECONDS,
+  cacheOn,
+  readyVolume,
+} from "./daytona-cache";
+import { detachedCommands } from "./daytona-detached";
+import { sessionExec } from "./daytona-session";
+import { call, HOME, unavailable } from "./daytona-shell";
+import { type MakeAdapter, providerAdapter } from "./provider-adapter";
 
-/* The default snapshot gives three gigabytes and takes no resource request
-   alongside it; this one is built by scripts/daytona-snapshot.ts. */
 const SNAPSHOT = "anpord-eval:4";
 const AUTO_DELETE_FACTOR = 6;
+const MKDIR_SECONDS = 30;
 
-export const makeConfiguredDaytonaAdapter = (
-  values?: Readonly<Record<string, string>>
-) =>
-  Effect.sync((): SandboxAdapterShape => {
+const handleFor = (
+  sandbox: DaytonaSandbox,
+  workspace: string,
+  cached: boolean
+): SandboxHandle => {
+  const shellOut = (command: string) =>
+    call(() =>
+      sandbox.process.executeCommand(command, HOME, undefined, CACHE_SECONDS)
+    ).pipe(
+      Effect.map((reply) => ({
+        exitCode: reply.exitCode ?? 1,
+        result: String(reply.result ?? ""),
+      }))
+    );
+
+  return {
+    cache: cached ? Option.some(cacheOn(shellOut)) : Option.none(),
+    exec: sessionExec(sandbox, workspace),
+    home: HOME,
+    id: sandbox.id,
+    provider: "daytona",
+    resumable: Option.some(detachedCommands(sandbox, workspace)),
+    writeFile: (path, content) =>
+      call(() =>
+        sandbox.process.executeCommand(
+          `mkdir -p "$(dirname ${shellQuote(path)})"`,
+          HOME,
+          undefined,
+          MKDIR_SECONDS
+        )
+      ).pipe(
+        Effect.zipRight(
+          call(() => sandbox.fs.uploadFile(Buffer.from(content), path))
+        )
+      ),
+  };
+};
+
+export const daytonaAdapter: MakeAdapter = (values) =>
+  Effect.sync(() => {
     const daytona = new Daytona(
       values?.apiKey ? { apiKey: values.apiKey } : undefined
     );
 
-    return {
-      attach: (id) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: () => daytona.get(id),
-        }).pipe(Effect.map((sandbox) => handleFor(sandbox, "/tmp/anpord"))),
-      destroy: (handle) =>
-        Effect.tryPromise({
-          catch: (cause) => cause,
-          try: async () => {
-            const sandbox = await daytona.get(handle.id);
-            await sandbox.delete();
-          },
-        }).pipe(
-          Effect.catchIf(
-            (cause) => cause instanceof DaytonaNotFoundError,
-            () => Effect.void
-          ),
-          Effect.mapError(unavailable)
-        ),
-      open: (request: OpenSandbox) =>
+    return providerAdapter({
+      connect: (id) => call(() => daytona.get(id)),
+      create: (request) =>
         Effect.gen(function* () {
           const volumes =
             request.cache === undefined
@@ -51,41 +79,39 @@ export const makeConfiguredDaytonaAdapter = (
                   },
                 ];
 
-          return yield* Effect.tryPromise({
-            catch: unavailable,
-            try: () =>
-              daytona.create({
-                autoDeleteInterval:
-                  request.autoStopMinutes * AUTO_DELETE_FACTOR,
-                autoStopInterval: request.autoStopMinutes,
-                snapshot: SNAPSHOT,
-                volumes,
-              }),
-          });
+          return yield* call(() =>
+            daytona.create({
+              autoDeleteInterval: request.autoStopMinutes * AUTO_DELETE_FACTOR,
+              autoStopInterval: request.autoStopMinutes,
+              snapshot: SNAPSHOT,
+              volumes,
+            })
+          );
+        }),
+      destroy: (id) =>
+        Effect.tryPromise(async () => {
+          const sandbox = await daytona.get(id);
+          await sandbox.delete();
         }).pipe(
-          Effect.flatMap((sandbox) =>
-            settingUp(
-              Effect.tryPromise({
-                catch: unavailable,
-                try: () =>
-                  sandbox.process.executeCommand(
-                    `mkdir -p ${request.workspace}`,
-                    HOME,
-                    undefined,
-                    30
-                  ),
-              }),
-              handleFor(
-                sandbox,
-                request.workspace,
-                request.cache !== undefined
-              ),
-              () => sandbox.delete()
-            )
+          Effect.catchIf(
+            ({ error }) => error instanceof DaytonaNotFoundError,
+            () => Effect.void
+          ),
+          Effect.mapError(({ error }) => unavailable(error))
+        ),
+      discard: (sandbox) => call(() => sandbox.delete()),
+      handleFor: (sandbox, workspace, request) =>
+        handleFor(sandbox, workspace, request?.cache !== undefined),
+      home: HOME,
+      makeWorkspace: (sandbox, workspace) =>
+        call(() =>
+          sandbox.process.executeCommand(
+            `mkdir -p ${shellQuote(workspace)}`,
+            HOME,
+            undefined,
+            MKDIR_SECONDS
           )
         ),
       provider: "daytona",
-    };
+    });
   });
-
-export const makeDaytonaAdapter = makeConfiguredDaytonaAdapter();

@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, spyOn, test } from "bun:test";
 import { Sandbox } from "e2b";
 import { Effect } from "effect";
-import { makeConfiguredE2BAdapter } from "../../../src/adapters/sandbox/e2b";
+import { e2bAdapter } from "../../../src/adapters/sandbox/e2b";
 
 const kill = spyOn(Sandbox, "kill");
 afterEach(() => kill.mockReset());
@@ -10,7 +10,7 @@ afterAll(() => kill.mockRestore());
 const destroy = () =>
   Effect.runPromise(
     Effect.gen(function* () {
-      const adapter = yield* makeConfiguredE2BAdapter({ apiKey: "mock" });
+      const adapter = yield* e2bAdapter({ apiKey: "mock" });
       return yield* adapter.destroy({ id: "mock-sandbox" });
     }).pipe(Effect.either)
   );

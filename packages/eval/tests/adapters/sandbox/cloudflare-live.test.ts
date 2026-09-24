@@ -1,13 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { Chunk, Effect, Stream } from "effect";
-import { makeCloudflareAdapter } from "../../../src/adapters/sandbox/cloudflare";
+import { cloudflareAdapter } from "../../../src/adapters/sandbox/cloudflare";
 import type { ExecChunk } from "../../../src/ports/sandbox";
 import { hasCloudflare } from "../../fixtures/credentials";
-
-/* What the conformance suite cannot cover: Cloudflare reaches its sandboxes
-   through a worker this repo deploys, and the id that worker mints is the
-   handle every later call uses. The rest of the adapter's behaviour is
-   asserted for every provider in ./conformance. */
 
 const SANDBOX_ID = /^[a-z2-7]+$/;
 const WORKSPACE = "/tmp/anpord-bridge";
@@ -25,7 +20,7 @@ describe.skipIf(!hasCloudflare)("the Cloudflare bridge worker", () => {
     const { id, reattached } = await Effect.runPromise(
       Effect.scoped(
         Effect.gen(function* () {
-          const adapter = yield* makeCloudflareAdapter;
+          const adapter = yield* cloudflareAdapter();
 
           const sandbox = yield* Effect.acquireRelease(
             adapter.open({

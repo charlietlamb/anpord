@@ -3,9 +3,6 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { Config, Effect } from "effect";
 
-/* A harness reinstalls itself every trial, so what it downloads lives here
-   rather than in the workspace that is deleted with the trial. The workspace
-   stays per-trial: only the download is shared. */
 export interface LocalRoots {
   readonly cache: string;
   readonly home: string;

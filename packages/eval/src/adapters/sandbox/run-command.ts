@@ -18,8 +18,6 @@ export type CommandWatcher = (
 
 const OUTPUT_LIMIT = 8000;
 
-/** The tail, because a command explains itself at the end: the error it
- * stopped on, not the banner it started with. */
 export const lastOf = (output: string) => output.slice(-OUTPUT_LIMIT);
 const WATCH_BATCH = 64;
 const WATCH_WINDOW = Duration.seconds(2);

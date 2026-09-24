@@ -1,33 +1,47 @@
 import type { Sandbox as DaytonaSandbox } from "@daytonaio/sdk";
 import { Clock, Effect, Random } from "effect";
-import { sandboxUnavailable } from "../../domain/errors";
-import { type EnvFile, quoted } from "./env-file";
+import type { ExecOptions } from "../../ports/sandbox";
+import { shellQuote } from "../harness/process";
+import { envFileFor, sourcing } from "./env-file";
+import { providerCall, unavailableFor } from "./provider-adapter";
 
 export const HOME = "/home/daytona";
-export const DEFAULT_TIMEOUT_MS = 120_000;
 
-export const cdInto = (workspace: string, command: string) =>
-  `cd ${quoted(workspace)} && ${command}`;
+export const call = providerCall("daytona");
+export const unavailable = unavailableFor("daytona");
 
-export const unavailable = (reason: unknown) =>
-  sandboxUnavailable("daytona", reason);
+const cdInto = (workspace: string, command: string) =>
+  `cd ${shellQuote(workspace)} && ${command}`;
 
-/* Uploaded rather than echoed into place, because the session API retains
-   every command it is given and an echo would put the values there. */
-export const uploadedEnv = (sandbox: DaytonaSandbox, file: EnvFile | null) =>
-  file === null
-    ? Effect.void
-    : Effect.tryPromise({
-        catch: unavailable,
-        try: () => sandbox.fs.uploadFile(Buffer.from(file.contents), file.path),
-      });
-
-/* The clock alone is not enough: trials run concurrently and two commands
-   starting in the same millisecond would name one session, where the second
-   createSession either fails or attaches to the first and polls its logs. */
 export const sessionName = Effect.gen(function* () {
   const at = yield* Clock.currentTimeMillis;
   const salt = yield* Random.nextIntBetween(0, 1_000_000);
 
   return `anpord-${at}-${salt}`;
 });
+
+export const startSessionCommand = (
+  sandbox: DaytonaSandbox,
+  workspace: string,
+  sessionId: string,
+  command: string,
+  options?: ExecOptions
+) =>
+  Effect.gen(function* () {
+    const envFile = yield* envFileFor(options?.env);
+
+    if (envFile !== null) {
+      yield* call(() =>
+        sandbox.fs.uploadFile(Buffer.from(envFile.contents), envFile.path)
+      );
+    }
+
+    const started = yield* call(() =>
+      sandbox.process.executeSessionCommand(sessionId, {
+        command: cdInto(options?.cwd ?? workspace, sourcing(envFile, command)),
+        runAsync: true,
+      })
+    );
+
+    return started.cmdId ?? "";
+  });

@@ -1,6 +1,14 @@
 import { createHash } from "node:crypto";
-import { Config, Schema } from "effect";
-import { sandboxUnavailable } from "../../domain/errors";
+import type { CredentialValues } from "@anpord/schema/domain/credentials";
+import {
+  type HttpClient,
+  type HttpClientRequest,
+  type HttpClientResponse,
+  HttpClientRequest as Request,
+} from "@effect/platform";
+import { Config, Effect, Schema } from "effect";
+import type { SandboxUnavailable } from "../../domain/errors";
+import { unavailableFor } from "./provider-adapter";
 
 const WORKER = "anpord-sandbox-bridge";
 const ERROR_BODY_LIMIT = 300;
@@ -19,80 +27,117 @@ export interface BridgeConfiguration {
   readonly url: string;
 }
 
-interface Environment {
-  readonly apiToken: string;
-  readonly sandboxApiKey: string;
-  readonly sandboxUrl: string;
-}
+const optional = (name: string) =>
+  Config.string(name).pipe(Config.withDefault(""));
 
 export const environment = Config.all({
-  apiToken: Config.string("CLOUDFLARE_API_TOKEN").pipe(Config.withDefault("")),
-  sandboxApiKey: Config.string("CLOUDFLARE_SANDBOX_API_KEY").pipe(
-    Config.withDefault("")
-  ),
-  sandboxUrl: Config.string("CLOUDFLARE_SANDBOX_URL").pipe(
-    Config.withDefault("")
-  ),
+  apiToken: optional("CLOUDFLARE_API_TOKEN"),
+  sandboxApiKey: optional("CLOUDFLARE_SANDBOX_API_KEY"),
+  sandboxUrl: optional("CLOUDFLARE_SANDBOX_URL"),
 });
 
-export const unavailable = (reason: unknown) =>
-  sandboxUnavailable("cloudflare", reason);
+type Environment = Config.Config.Success<typeof environment>;
 
-export const ensure = async (response: Response) => {
-  if (!response.ok) {
-    const body = (await response.text())
-      .replace(WHITESPACE, " ")
-      .trim()
-      .slice(0, ERROR_BODY_LIMIT);
-    throw new Error(`${response.status}: ${body || response.statusText}`);
-  }
-  return response;
-};
+export const unavailable = unavailableFor("cloudflare");
 
-const cloudflare = async (path: string, token: string) =>
-  ensure(
-    await fetch(`https://api.cloudflare.com/client/v4${path}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-  ).then((response) => response.json() as Promise<{ result: unknown }>);
+export const send = (
+  client: HttpClient.HttpClient,
+  request: HttpClientRequest.HttpClientRequest
+): Effect.Effect<HttpClientResponse.HttpClientResponse, SandboxUnavailable> =>
+  client.execute(request).pipe(
+    Effect.flatMap((response) =>
+      response.status >= 200 && response.status < 300
+        ? Effect.succeed(response)
+        : response.text.pipe(
+            Effect.orElseSucceed(() => ""),
+            Effect.flatMap((body) =>
+              Effect.fail(
+                new Error(
+                  `${response.status}: ${body.replace(WHITESPACE, " ").trim().slice(0, ERROR_BODY_LIMIT)}`
+                )
+              )
+            )
+          )
+    ),
+    Effect.mapError(unavailable)
+  );
 
-export const configuration = async (
-  values: Readonly<Record<string, string>> | undefined,
-  env: Environment
-): Promise<BridgeConfiguration> => {
-  const token = values?.apiToken || env.apiToken || undefined;
-  const key =
-    values?.sandboxApiKey ||
-    env.sandboxApiKey ||
-    (token === undefined
-      ? undefined
-      : createHash("sha256")
-          .update(`anpord-cloudflare-sandbox:${token}`)
-          .digest("hex"));
-  let url = values?.sandboxUrl || env.sandboxUrl || undefined;
+export const decoded =
+  <A, I>(schema: Schema.Schema<A, I>) =>
+  (response: HttpClientResponse.HttpClientResponse) =>
+    response.json.pipe(
+      Effect.flatMap(Schema.decodeUnknown(schema)),
+      Effect.mapError(unavailable)
+    );
 
-  if (url === undefined && token !== undefined) {
-    const accounts = values?.accountId
-      ? [{ id: values.accountId }]
-      : Schema.decodeUnknownSync(AccountsResponse)(
-          await cloudflare("/accounts", token)
-        ).result;
-    if (accounts.length !== 1) {
-      throw new Error("Set CLOUDFLARE_SANDBOX_URL for a multi-account token");
-    }
-    const account = accounts[0];
+const cloudflare =
+  (client: HttpClient.HttpClient, token: string) =>
+  <A, I>(path: string, schema: Schema.Schema<A, I>) =>
+    send(
+      client,
+      Request.get(`https://api.cloudflare.com/client/v4${path}`).pipe(
+        Request.bearerToken(token)
+      )
+    ).pipe(Effect.flatMap(decoded(schema)));
+
+const bridgeUrl = (
+  client: HttpClient.HttpClient,
+  token: string,
+  accountId: string | undefined
+) =>
+  Effect.gen(function* () {
+    const api = cloudflare(client, token);
+    const accounts = accountId
+      ? [{ id: accountId }]
+      : (yield* api("/accounts", AccountsResponse)).result;
+    const [account, ...others] = accounts;
+
     if (account === undefined) {
-      throw new Error("The Cloudflare token has no account");
+      return yield* Effect.fail(
+        unavailable("The Cloudflare token has no account")
+      );
     }
-    const subdomain = Schema.decodeUnknownSync(SubdomainResponse)(
-      await cloudflare(`/accounts/${account.id}/workers/subdomain`, token)
-    ).result;
-    url = `https://${WORKER}.${subdomain.subdomain}.workers.dev`;
-  }
+    if (others.length > 0) {
+      return yield* Effect.fail(
+        unavailable("Set CLOUDFLARE_SANDBOX_URL for a multi-account token")
+      );
+    }
 
-  if (key === undefined || url === undefined) {
-    throw new Error("Cloudflare Sandbox bridge credentials are not configured");
-  }
+    const { result } = yield* api(
+      `/accounts/${account.id}/workers/subdomain`,
+      SubdomainResponse
+    );
 
-  return { key, url: url.replace(TRAILING_SLASH, "") };
-};
+    return `https://${WORKER}.${result.subdomain}.workers.dev`;
+  });
+
+export const configuration = (
+  client: HttpClient.HttpClient,
+  values: CredentialValues | undefined,
+  env: Environment
+): Effect.Effect<BridgeConfiguration, SandboxUnavailable> =>
+  Effect.gen(function* () {
+    const token = values?.apiToken || env.apiToken || undefined;
+    const key =
+      values?.sandboxApiKey ||
+      env.sandboxApiKey ||
+      (token === undefined
+        ? undefined
+        : createHash("sha256")
+            .update(`anpord-cloudflare-sandbox:${token}`)
+            .digest("hex"));
+    const url =
+      values?.sandboxUrl ||
+      env.sandboxUrl ||
+      (token === undefined
+        ? undefined
+        : yield* bridgeUrl(client, token, values?.accountId));
+
+    if (key === undefined || url === undefined) {
+      return yield* Effect.fail(
+        unavailable("Cloudflare Sandbox bridge credentials are not configured")
+      );
+    }
+
+    return { key, url: url.replace(TRAILING_SLASH, "") };
+  });

@@ -1,60 +1,70 @@
-import { Schema } from "effect";
+import type { HttpClientResponse } from "@effect/platform";
+import { Effect, Option, Schema, Stream } from "effect";
+import { unavailable } from "./cloudflare-bridge";
+import type { ExecSink } from "./exec-stream";
 
-const ExitEvent = Schema.Struct({ exit_code: Schema.Number });
-const ErrorEvent = Schema.Struct({ error: Schema.String });
+const ExitEvent = Schema.parseJson(Schema.Struct({ exit_code: Schema.Number }));
+const ErrorEvent = Schema.parseJson(Schema.Struct({ error: Schema.String }));
 
-export interface ExecSink {
-  readonly stderr: (data: string) => void;
-  readonly stdout: (data: string) => void;
+const NO_LINES: readonly string[] = [];
+
+interface ServerEvent {
+  readonly data: string;
+  readonly event: string | undefined;
 }
 
-export const readEvents = async (response: Response, sink: ExecSink) => {
-  if (response.body === null) {
-    throw new Error("Cloudflare returned no command stream");
-  }
+const eventOf = (lines: readonly string[]): ServerEvent => ({
+  data: lines
+    .filter((line) => line.startsWith("data: "))
+    .map((line) => line.slice(6))
+    .join("\n"),
+  event: lines.find((line) => line.startsWith("event: "))?.slice(7),
+});
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  let exitCode: number | undefined;
+const decoded = <A>(schema: Schema.Schema<A, string>, data: string) =>
+  Schema.decode(schema)(data).pipe(Effect.mapError(unavailable));
 
-  while (true) {
-    const chunk = await reader.read();
-    buffer += decoder.decode(chunk.value, { stream: !chunk.done });
-
-    for (
-      let end = buffer.indexOf("\n\n");
-      end >= 0;
-      end = buffer.indexOf("\n\n")
-    ) {
-      const lines = buffer.slice(0, end).split("\n");
-      buffer = buffer.slice(end + 2);
-      const event = lines.find((line) => line.startsWith("event: "))?.slice(7);
-      const data = lines
-        .filter((line) => line.startsWith("data: "))
-        .map((line) => line.slice(6))
-        .join("\n");
-
-      if (event === "stdout" || event === "stderr") {
-        sink[event](Buffer.from(data, "base64").toString());
-      } else if (event === "exit") {
-        exitCode = Schema.decodeUnknownSync(ExitEvent)(
-          JSON.parse(data)
-        ).exit_code;
-      } else if (event === "error") {
-        throw new Error(
-          Schema.decodeUnknownSync(ErrorEvent)(JSON.parse(data)).error
-        );
-      }
+const applied =
+  (sink: ExecSink) =>
+  (exitCode: Option.Option<number>, { data, event }: ServerEvent) => {
+    if (event === "stdout" || event === "stderr") {
+      return Effect.sync(() =>
+        sink[event](Buffer.from(data, "base64").toString())
+      ).pipe(Effect.as(exitCode));
     }
-
-    if (chunk.done) {
-      break;
+    if (event === "exit") {
+      return decoded(ExitEvent, data).pipe(
+        Effect.map((exit) => Option.some(exit.exit_code))
+      );
     }
-  }
+    if (event === "error") {
+      return decoded(ErrorEvent, data).pipe(
+        Effect.flatMap((failure) => Effect.fail(unavailable(failure.error)))
+      );
+    }
+    return Effect.succeed(exitCode);
+  };
 
-  if (exitCode === undefined) {
-    throw new Error("Cloudflare command stream ended without an exit code");
-  }
-  return exitCode;
-};
+export const readEvents = (
+  response: HttpClientResponse.HttpClientResponse,
+  sink: ExecSink
+) =>
+  response.stream.pipe(
+    Stream.mapError(unavailable),
+    Stream.decodeText(),
+    Stream.splitLines,
+    Stream.mapAccum(NO_LINES, (pending, line) =>
+      line === "" ? [NO_LINES, [eventOf(pending)]] : [[...pending, line], []]
+    ),
+    Stream.flattenIterables,
+    Stream.runFoldEffect(Option.none<number>(), applied(sink)),
+    Effect.flatMap(
+      Option.match({
+        onNone: () =>
+          Effect.fail(
+            unavailable("Cloudflare command stream ended without an exit code")
+          ),
+        onSome: Effect.succeed,
+      })
+    )
+  );
