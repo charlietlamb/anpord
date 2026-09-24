@@ -7,7 +7,7 @@ export function Dither() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[90svh] opacity-[0.16] invert [mask-image:radial-gradient(ellipse_55%_70%_at_88%_35%,black,transparent_75%)] dark:opacity-[0.18] dark:invert-0"
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[90svh] opacity-[0.16] invert [mask-image:radial-gradient(ellipse_60%_50%_at_6%_0%,black,transparent_75%)] dark:opacity-[0.18] dark:invert-0"
     >
       <Dithering
         className="size-full"

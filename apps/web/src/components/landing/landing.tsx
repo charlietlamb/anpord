@@ -14,7 +14,7 @@ import { ShortcutKeys } from "@anpord/ui/components/ui/shortcut-keys";
 import { useShortcutClick } from "@anpord/ui/hooks/use-shortcut-click";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
-import { FlaskIcon } from "@phosphor-icons/react";
+import { GaugeIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { type Vendor, VendorMarks } from "@/components/landing/vendor-marks";
@@ -94,7 +94,7 @@ export function Landing() {
             ref={start}
             to="/login"
           >
-            <FlaskIcon />
+            <GaugeIcon />
             Start optimizing
             <ShortcutKeys meta shortcut="enter" />
           </Link>

@@ -1,7 +1,7 @@
 import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import {
   ChatTextIcon,
-  FlaskIcon,
+  GaugeIcon,
   GearIcon,
   type Icon,
 } from "@phosphor-icons/react";
@@ -18,7 +18,7 @@ interface NavSection {
 }
 
 export const DASHBOARD_NAV: NavSection[] = [
-  { items: [{ label: "Evals", icon: FlaskIcon, to: "/evals" }] },
+  { items: [{ label: "Evals", icon: GaugeIcon, to: "/evals" }] },
   ...(PROMPTS_ENABLED
     ? [{ items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] }]
     : []),

@@ -1,6 +1,6 @@
 import type { EvalPageCursor } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
-import { FlaskIcon, PlusIcon } from "@phosphor-icons/react";
+import { GaugeIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CasesTable } from "@/components/evals/cases-table";
@@ -86,7 +86,7 @@ function EvalsIndex() {
         description="Run an eval and the cases it measures appear here."
         empty={cases.length === 0}
         error={error}
-        icon={<FlaskIcon />}
+        icon={<GaugeIcon />}
         loading={isPending}
         title={tag === null ? "No cases yet" : `Nothing tagged ${tag}`}
       >
