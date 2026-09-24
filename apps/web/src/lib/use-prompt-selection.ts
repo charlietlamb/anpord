@@ -35,7 +35,6 @@ export function usePromptSelection(
       ? latest
       : (versions.find((row) => row.version === selection.version) ?? latest);
 
-  /* A correction rewrites the version being read; a draft continues from the newest. */
   const base = correcting ? viewed : latest;
   const content = editing ? (draft ?? base.content) : viewed.content;
   const submitted = content.trim();

@@ -3,7 +3,6 @@ import { signIn } from "@/lib/auth-client";
 
 const UNREACHABLE = "Can't reach the server. Please try again.";
 
-/* Better Auth returns a rejected request in `error` rather than throwing, so the catch is transport failures only. */
 export async function signInWithGithub(callbackURL: string) {
   try {
     const { error } = await signIn.social({ provider: "github", callbackURL });

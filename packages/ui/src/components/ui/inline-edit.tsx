@@ -5,7 +5,7 @@ interface InlineEditProps {
   readonly ariaLabel: string;
   readonly className?: string;
   readonly placeholder?: string;
-  readonly onBlur: () => void;
+  readonly onBlur?: () => void;
   readonly onChange: (value: string) => void;
   readonly onCancel: () => void;
   readonly value: string;

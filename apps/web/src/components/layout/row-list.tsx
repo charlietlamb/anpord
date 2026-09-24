@@ -10,7 +10,6 @@ export function RowList({
   onKeyDown,
   role,
 }: {
-  /* `ol` where the order carries meaning, as it does in a trajectory. */
   readonly as?: "div" | "ol";
   readonly children: ReactNode;
   readonly className?: string;

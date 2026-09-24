@@ -2,8 +2,6 @@ import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 
 const SERVED = /(^|,)\s*(\*\/\*|text\/html)/;
 
-/* TanStack Start answers any `Accept` it does not recognise with a 500, so unknown types are re-asked as HTML. */
-/* `Vary: Accept` because the response now varies by the request's `Accept`. */
 export default createServerEntry({
   async fetch(request, options) {
     const accept = request.headers.get("accept") ?? "*/*";

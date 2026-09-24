@@ -11,7 +11,6 @@ export const toId = (name: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-/* Decoded through the contract, not cast: a cast past the branded ids skips the id and name checks. */
 export function useCreatePrompt() {
   const navigate = useNavigate();
 

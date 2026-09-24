@@ -2,7 +2,6 @@ import type { DialogRegistry } from "@anpord/ui/components/dialog/create-dialog-
 import { type ComponentType, lazy } from "react";
 import type { DialogMap } from "@/lib/dialog/dialogs";
 
-/* Each dialog is a named export, so the module is unwrapped before `lazy` will take it. */
 // biome-ignore lint/suspicious/noExplicitAny: props are checked by the registry type
 type AnyDialog = ComponentType<any>;
 

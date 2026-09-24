@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { createFileRoute } from "@tanstack/react-router";
 import { CASE_DETAIL, CASE_HISTORY } from "@/components/dev/case-fixtures";
 import { CELL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
@@ -33,7 +34,9 @@ function EvalsPreview() {
     <TooltipProvider>
       <div className="flex flex-col gap-10 pb-24">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 pt-6 xl:px-6">
-          <h1 className="font-heading text-xl tracking-tight">Evals</h1>
+          <h1>
+            <PageHeading title="Evals" />
+          </h1>
           <ThemeToggle />
         </div>
 

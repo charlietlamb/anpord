@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@anpord/ui/lib/utils";
 
-const headingVariants = cva("truncate", {
+export const headingVariants = cva("truncate", {
   defaultVariants: { size: "page" },
   variants: {
     size: {

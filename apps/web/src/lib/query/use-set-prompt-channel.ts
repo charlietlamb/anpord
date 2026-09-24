@@ -10,7 +10,6 @@ interface SetChannelInput {
   version: number;
 }
 
-/* Decoded rather than asserted, so an invalid channel fails here instead of at the API. */
 const decodeRequest = Schema.decodeUnknownSync(SetChannelRequest);
 
 export function useSetPromptChannel(id: string) {

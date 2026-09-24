@@ -26,7 +26,6 @@ export function useDebouncedSave<TValue, TInput>({
   const [draft, setDraft] = useState<TValue | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* Read at commit time: the server value can change during the wait, and a stale comparison skips or repeats a write. */
   const latest = useRef(saved);
   useEffect(() => {
     latest.current = saved;
@@ -39,7 +38,6 @@ export function useDebouncedSave<TValue, TInput>({
     }
   };
 
-  /* A pending write outlives the field it was typed into, so the timer must not fire into an unmounted component. */
   useEffect(
     () => () => {
       if (timer.current) {
@@ -71,7 +69,6 @@ export function useDebouncedSave<TValue, TInput>({
       clear();
       timer.current = setTimeout(() => commit(next), SAVE_DELAY_MS);
     },
-    /* Only where a write is still owed: once the timer has fired, committing again would send it twice. */
     flush: () => {
       if (timer.current !== null && draft !== null) {
         commit(draft);

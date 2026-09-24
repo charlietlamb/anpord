@@ -9,7 +9,6 @@ const ENV_KEY = /^[A-Z_][A-Z0-9_]*$/;
 
 const meaningful = (line: string) => line !== "" && !line.startsWith("#");
 
-/* A bad line is named by its number, never quoted back: the text holds pasted secrets. */
 export const parseEnvLines = (text: string): ParsedEnvLines => {
   const values: Record<string, string> = {};
 

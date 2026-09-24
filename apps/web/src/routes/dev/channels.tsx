@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChannelsScreen } from "@/components/channels/channels-screen";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { SettingsFrame } from "@/components/settings/settings-frame";
 import { useDialog } from "@/lib/dialog/dialogs";
 
 export const Route = createFileRoute("/dev/channels")({
@@ -64,14 +65,16 @@ function ChannelsPreview() {
 
   return (
     <DashboardShell sidebarOpen>
-      <ChannelsScreen
-        error={null}
-        isPending={false}
-        onDelete={onDelete}
-        onEdit={onEdit}
-        onNew={onNew}
-        rows={rows}
-      />
+      <SettingsFrame>
+        <ChannelsScreen
+          error={null}
+          isPending={false}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onNew={onNew}
+          rows={rows}
+        />
+      </SettingsFrame>
     </DashboardShell>
   );
 }

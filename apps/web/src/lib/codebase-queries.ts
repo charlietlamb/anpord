@@ -13,7 +13,6 @@ export const codebaseQueries = {
       queryFn: codebaseClient.account,
       queryKey: codebaseKeys.account,
     }),
-  /* Without an account the list is empty by definition, so asking costs a wasted round trip. */
   repositories: (connected: boolean) =>
     queryOptions({
       enabled: connected,

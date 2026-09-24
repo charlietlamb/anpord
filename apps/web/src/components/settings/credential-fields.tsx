@@ -4,7 +4,6 @@ import { Label } from "@anpord/ui/components/ui/label";
 import { cn } from "@anpord/ui/lib/utils";
 import { EnvFields } from "@/components/settings/env-fields";
 
-/* Hands up the whole map, because an env method has no fields of its own. */
 export function CredentialFields({
   method,
   onChange,

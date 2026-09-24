@@ -35,7 +35,6 @@ export function PromptRail({
 }: PromptRailProps) {
   const oldest = versions.at(-1) ?? viewed;
 
-  /* Its own scrollbar is hidden so the page keeps the only one on screen. */
   return (
     <aside className={RAIL_FRAME}>
       <div className="flex justify-end">{actions}</div>

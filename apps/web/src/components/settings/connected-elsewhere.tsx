@@ -1,7 +1,6 @@
 import { UsersThreeIcon } from "@phosphor-icons/react";
 import { integrationLabel } from "@/lib/evals/variant-presentation";
 
-/* Two names join with "and"; a comma between just two reads as a fragment. */
 const NAMED = 2;
 
 const listed = (owners: readonly string[]) => {
@@ -14,7 +13,6 @@ const listed = (owners: readonly string[]) => {
   return `${owners.slice(0, NAMED).join(", ")} and ${rest} other${rest === 1 ? "" : "s"}`;
 };
 
-/* Names only, never the secret: a personal connection stays private. */
 export function ConnectedElsewhere({
   integrationId,
   owners,

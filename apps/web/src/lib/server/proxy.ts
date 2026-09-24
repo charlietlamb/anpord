@@ -1,6 +1,5 @@
 import { serverUrl } from "./server-url";
 
-/* GET and HEAD carry no body, so reading one would throw. */
 const METHODS_WITHOUT_BODY = new Set(["GET", "HEAD"]);
 
 export function proxyToServer({ request }: { request: Request }) {
@@ -9,7 +8,6 @@ export function proxyToServer({ request }: { request: Request }) {
 
 const AUTH_BASE = "/api/auth";
 
-/* Better Auth serves its metadata under /api/auth, but RFC 8414 clients look for it at the root or before the path, so both forms are answered. */
 export function proxyDiscoveryToServer({ request }: { request: Request }) {
   const { pathname } = new URL(request.url);
   const document = pathname.endsWith(AUTH_BASE)
@@ -18,7 +16,6 @@ export function proxyDiscoveryToServer({ request }: { request: Request }) {
   return forward(request, `${AUTH_BASE}${document}`);
 }
 
-/* The body is buffered, not streamed: once the framework has touched the request, undici fails a streamed body with "expected non-null body source". */
 async function forward(request: Request, pathname: string) {
   const baseUrl = serverUrl();
   if (!baseUrl) {

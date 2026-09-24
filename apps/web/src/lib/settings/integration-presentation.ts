@@ -6,7 +6,6 @@ import {
   VENDOR_MARKS,
 } from "@/lib/evals/variant-presentation";
 
-/* The env integration is no harness, so it names itself. */
 export const integrationPresentation = (integration: CredentialIntegration) => {
   if (integration.id === "env") {
     return { Icon: BracketsCurlyIcon, label: integration.label };

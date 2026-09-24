@@ -18,7 +18,6 @@ export function DetailRowFrame({
 }: DetailRowFrameProps) {
   return (
     <div className="group/detail flex h-7 items-center gap-2 text-label text-muted-foreground transition-colors hover:text-foreground">
-      {/* Only the marker triggers: wrapping the value would nest an interactive element inside another. */}
       <Tooltip>
         <TooltipTrigger
           render={<span className="flex shrink-0 cursor-default" />}

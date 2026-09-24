@@ -63,12 +63,18 @@ export function DataTableBody({
   );
 }
 
+const ROW_HOVER = "transition-colors hover:bg-alpha-4";
+
 export function DataTableRow({
   className,
+  linked = false,
   render,
   selected = false,
   ...props
-}: useRender.ComponentProps<"div"> & { readonly selected?: boolean }) {
+}: useRender.ComponentProps<"div"> & {
+  readonly linked?: boolean;
+  readonly selected?: boolean;
+}) {
   const row = useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(
@@ -77,7 +83,11 @@ export function DataTableRow({
           COLUMNS,
           "h-10 text-label",
           render !== undefined &&
-            "w-full text-left transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4 focus-visible:outline-none",
+            cn(
+              ROW_HOVER,
+              "w-full text-left focus-visible:bg-alpha-4 focus-visible:outline-none"
+            ),
+          linked && cn(ROW_HOVER, "relative has-focus-visible:bg-alpha-4"),
           selected && "bg-alpha-4",
           className
         ),
@@ -88,6 +98,27 @@ export function DataTableRow({
   });
 
   return <li className="border-border border-b last:border-b-0">{row}</li>;
+}
+
+export function DataTableRowLink({
+  className,
+  render,
+  ...props
+}: useRender.ComponentProps<"button">) {
+  return useRender({
+    defaultTagName: "button",
+    props: mergeProps<"button">(
+      {
+        className: cn(
+          "min-w-0 truncate text-left text-foreground outline-none after:absolute after:inset-0",
+          className
+        ),
+        type: render === undefined ? "button" : undefined,
+      },
+      props
+    ),
+    render,
+  });
 }
 
 export function DataTableChevron() {

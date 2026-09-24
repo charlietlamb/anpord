@@ -29,10 +29,8 @@ export const Route = createFileRoute("/_authed/settings/channels")({
   staticData: { title: "Channels" },
 });
 
-const failed = (message: string) => (error: unknown) =>
-  toast.error(message, {
-    description: error instanceof Error ? error.message : undefined,
-  });
+const failed = (message: string) => (error: Error) =>
+  toast.error(message, { description: error.message });
 
 function ChannelsPage() {
   const { open: openDialog } = useDialog();

@@ -8,13 +8,11 @@ import { authClient, useSession } from "@/lib/auth-client";
 
 interface UseImpersonation {
   readonly active: boolean;
-  /* True during an impersonation too: the staff member needs the way back, and the session's user is not staff. */
   readonly allowed: boolean;
   readonly start: (userId: string) => Promise<void>;
   readonly stop: () => Promise<void>;
 }
 
-/* Both paths end in a document load: caches are keyed without the session identity, so a soft refresh would leave one person's data under another's session. */
 export function useImpersonation(): UseImpersonation {
   const { data } = useSession();
 
@@ -23,7 +21,6 @@ export function useImpersonation(): UseImpersonation {
 
   const start = useCallback(
     async (userId: string) => {
-      /* An impersonated session is non-staff and fails the check a new impersonation requires, so the admin session is handed back first. */
       if (active) {
         await authClient.admin.stopImpersonating();
       }

@@ -2,7 +2,6 @@ import { usePostHog } from "@posthog/react";
 import { useEffect, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 
-/* Identifying is idempotent but re-sends person properties, so it runs once per user. */
 export function useIdentify() {
   const posthog = usePostHog();
   const { data: session } = useSession();

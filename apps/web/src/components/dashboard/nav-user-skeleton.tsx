@@ -1,8 +1,5 @@
 import { Skeleton } from "@anpord/ui/components/skeleton";
 
-/* Mirrors NavUser's trigger: the same h-12 button box, a size-7 avatar with
-   the avatar's own rounding, and two lines of text rather than one slab, so
-   the footer does not change shape when the user arrives. */
 export function NavUserSkeleton() {
   return (
     <div className="flex h-12 w-full items-center gap-2 overflow-hidden rounded-[calc(var(--radius-sm)+2px)] p-2 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!">

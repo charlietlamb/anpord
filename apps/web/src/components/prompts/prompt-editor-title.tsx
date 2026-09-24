@@ -1,5 +1,7 @@
 import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
+import { headingVariants } from "@anpord/ui/components/ui/page-heading";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
+import { cn } from "@anpord/ui/lib/utils";
 import { EyeIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useDebouncedSave } from "@/lib/query/use-debounced-save";
@@ -34,7 +36,7 @@ export function PromptEditorTitle({
     <div className="mb-5 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
       <InlineEdit
         ariaLabel="Prompt name"
-        className="flex-1 font-heading text-xl tracking-tight"
+        className={cn(headingVariants({ size: "page" }), "flex-1 shrink")}
         onBlur={title.flush}
         onCancel={title.reset}
         onChange={(value) => title.onChange(value)}

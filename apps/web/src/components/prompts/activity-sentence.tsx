@@ -6,7 +6,6 @@ interface ActivitySentenceProps {
   readonly entry: PromptActivityEntry;
 }
 
-/* Exhaustive over the union, so a new entry kind fails to compile here. */
 export function ActivitySentence({ entry }: ActivitySentenceProps) {
   switch (entry._tag) {
     case "saved":

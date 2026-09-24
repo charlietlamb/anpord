@@ -3,10 +3,12 @@ import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { DropdownMenuItem } from "@anpord/ui/components/dropdown-menu";
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
+import {
+  DataTableRow,
+  DataTableRowLink,
+} from "@anpord/ui/components/ui/data-table";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
-import { LINKED_ROW, ROW_LINK } from "@/components/layout/row-link";
 
 interface ChannelListRowProps {
   readonly channel: Channel;
@@ -23,12 +25,10 @@ export function ChannelListRow({
   const count = channel.promptCount;
 
   return (
-    <DataTableRow className={LINKED_ROW}>
+    <DataTableRow linked>
       <span className="flex min-w-0 items-center gap-2.5">
         <ChannelDot color={channel.color} />
-        <button className={ROW_LINK} onClick={onEdit} type="button">
-          {channel.name}
-        </button>
+        <DataTableRowLink onClick={onEdit}>{channel.name}</DataTableRowLink>
         {reserved ? (
           <Badge size="xs" variant="outline">
             Default

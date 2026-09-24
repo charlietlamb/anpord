@@ -34,7 +34,6 @@ const searchField = (
         : (result.data.users as readonly StaffUser[])
     );
 
-/* Better Auth searches one field per request, so name and email are searched separately and merged. */
 async function findUsers(search: string): Promise<readonly StaffUser[]> {
   const [byName, byEmail] = await Promise.all([
     searchField(search, "name"),

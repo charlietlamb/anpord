@@ -8,7 +8,6 @@ const linkClass = cn(
   "text-muted-foreground"
 );
 
-/* Deliberately session-free: reading it would block the marketing header on a fetch. */
 export function SiteNav() {
   return (
     <>

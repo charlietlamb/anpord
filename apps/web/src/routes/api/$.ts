@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DOCS_URL } from "@/lib/urls";
 
-/* Without this catch-all the SSR handler answers /api misses with the HTML app shell. */
 const notFound = ({ request }: { request: Request }) =>
   Response.json(
     {

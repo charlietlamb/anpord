@@ -24,7 +24,6 @@ export function useOrganizations(): UseOrganizations {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  /* Cleared, not invalidated: invalidating leaves the previous organisation's rows on screen while it refetches. */
   const setActive = useCallback(
     async (organizationId: string) => {
       const result = await authClient.organization.setActive({
@@ -41,7 +40,6 @@ export function useOrganizations(): UseOrganizations {
 
       queryClient.clear();
 
-      /* Route loaders prefetch outside React Query's control, so the cache alone does not refill them. */
       await router.invalidate();
     },
     [queryClient, router]

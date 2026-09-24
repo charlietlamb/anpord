@@ -6,7 +6,6 @@ import { CHANNEL_DEFAULT_COLOR } from "@anpord/ui/lib/channel-colors";
 import { z } from "zod";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 
-/* Mirrors ChannelName, so a name the API would refuse is caught in the form. */
 const channelSchema = z.object({
   color: z.string(),
   name: z

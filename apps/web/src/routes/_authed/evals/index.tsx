@@ -46,7 +46,7 @@ function EvalsIndex() {
     <PageShell
       actions={
         <Button render={<Link to="/evals/new" />} size="sm">
-          <PlusIcon className="size-3.5" />
+          <PlusIcon />
           New eval
         </Button>
       }
@@ -67,7 +67,7 @@ function EvalsIndex() {
         description="Run an eval and the cases it measures appear here."
         empty={cases.length === 0}
         error={error}
-        icon={<FlaskIcon size={20} />}
+        icon={<FlaskIcon />}
         isPending={isPending}
         skeleton={<DataTableSkeleton {...CASES_TABLE} />}
         title={tag === null ? "No cases yet" : `Nothing tagged ${tag}`}

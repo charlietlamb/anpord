@@ -51,7 +51,7 @@ export function Conversation({
           running ? "The first turn has not arrived yet." : undefined
         }
         frame="bare"
-        icon={<ChatsCircleIcon className="size-5" />}
+        icon={<ChatsCircleIcon />}
         title={running ? "Waiting for the agent" : "Nothing was journalled"}
       />
     );

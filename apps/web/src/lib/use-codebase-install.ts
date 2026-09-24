@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { codebaseClient } from "@/lib/codebase-client";
 import { codebaseKeys } from "@/lib/codebase-queries";
 
-/* GitHub sends installs to the app's callback (the sign-in route), so no id survives the trip and the server is asked first. */
 export function useCodebaseInstall(returnedId: number | undefined) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -30,7 +29,6 @@ export function useCodebaseInstall(returnedId: number | undefined) {
     },
   });
 
-  /* The ref and the URL clear both guard against replaying the connection on a re-run or a reload. */
   const claimed = useRef<number | null>(null);
   const { mutate } = connect;
 

@@ -81,7 +81,7 @@ export function Landing() {
             className={cn(buttonVariants({ size: "lg" }), "pr-2.5 pl-4")}
             to="/login"
           >
-            <FlaskIcon size={15} />
+            <FlaskIcon />
             Start optimizing
             {isClient ? (
               <span className="flex items-center gap-0.5">
