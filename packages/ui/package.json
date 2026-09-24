@@ -16,6 +16,7 @@
   "dependencies": {
     "@anpord/template": "workspace:*",
     "@base-ui/react": "catalog:",
+    "@paper-design/shaders-react": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@tanstack/react-form": "catalog:",
     "@tiptap/core": "catalog:",
