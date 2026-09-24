@@ -10,7 +10,7 @@ import { importEval } from "./eval-import";
 import { localProblems, reportLocal, runLocally } from "./eval-local";
 import type { EvalOutcome } from "./eval-outcome";
 import { reportFinished, reportStarted, writeReport } from "./eval-report";
-import { waitForRun } from "./eval-run";
+import { waitForBatch } from "./eval-run";
 import { evalTrigger } from "./eval-trigger";
 import { buildGithubCheck } from "./github-check";
 import { postCheckRun } from "./github-check-client";
@@ -18,7 +18,7 @@ import { githubContext } from "./github-context";
 import { attended, json, note } from "./render";
 
 const asJson = Options.boolean("json").pipe(
-  Options.withDescription("Print each finished run as JSON")
+  Options.withDescription("Print each finished batch as JSON")
 );
 const evalFile = Args.text({ name: "file" }).pipe(
   Args.withDescription(
@@ -27,14 +27,16 @@ const evalFile = Args.text({ name: "file" }).pipe(
   Args.optional
 );
 const noWait = Options.boolean("no-wait").pipe(
-  Options.withDescription("Start runs without waiting")
+  Options.withDescription("Start batches without waiting")
 );
 const failOn = Options.choice("fail-on", EvalGate.literals).pipe(
-  Options.withDescription("strict requires every trial to pass"),
-  Options.withDefault("strict" as const)
+  Options.withDescription(
+    "failures fails on any run whose trials did not all pass, strict also requires every expected run and trial, never only fails a batch that did not finish"
+  ),
+  Options.withDefault("failures" as const)
 );
 const timeout = Options.integer("timeout").pipe(
-  Options.withDescription("Maximum seconds to wait per run"),
+  Options.withDescription("Maximum seconds to wait per batch"),
   Options.withSchema(Schema.Int.pipe(Schema.positive())),
   Options.withDefault(1200)
 );
@@ -69,7 +71,7 @@ const runOneEval = (
   save: (outcome: EvalOutcome) => ReturnType<typeof writeReport>
 ) =>
   Effect.gen(function* () {
-    let runId: string | null = null;
+    let batchId: string | null = null;
     return yield* Effect.gen(function* () {
       const api = yield* AnpordApi;
       const payload = yield* compileEvalEffect(file);
@@ -77,9 +79,14 @@ const runOneEval = (
       const started = yield* api.evals.start({
         payload: { ...payload, trigger },
       });
-      runId = started.id;
-      yield* reportStarted(file, runId);
-      const pending: EvalOutcome = { file, runId, problems: [], run: null };
+      batchId = started.id;
+      yield* reportStarted(file, batchId);
+      const pending: EvalOutcome = {
+        batch: null,
+        batchId,
+        file,
+        problems: [],
+      };
       yield* save(pending);
       if (options.skipWait) {
         yield* json(started);
@@ -90,25 +97,29 @@ const runOneEval = (
         payload.trials,
         gridModeOf(options.wantsJson, live)
       );
-      const run = yield* waitForRun(runId, watcher, options.timeoutSeconds);
+      const batch = yield* waitForBatch(
+        batchId,
+        watcher,
+        options.timeoutSeconds
+      );
       yield* options.wantsJson
-        ? json(run)
-        : note(formatGridSummary(run, payload.trials, live));
+        ? json(batch)
+        : note(formatGridSummary(batch, payload.trials, live));
       return {
+        batch,
+        batchId,
         file,
-        runId,
-        run,
-        problems: problemsWith(run, options.gate, {
-          cells: payload.cases.length * payload.variants.length,
+        problems: problemsWith(batch, options.gate, {
+          runs: payload.cases.length * payload.variants.length,
           trials: payload.trials,
         }),
       } satisfies EvalOutcome;
     }).pipe(
       Effect.catchAll((error) =>
         Effect.succeed({
+          batch: null,
+          batchId,
           file,
-          runId,
-          run: null,
           problems: [describe(error)],
         } satisfies EvalOutcome)
       )
@@ -129,22 +140,25 @@ const reportToGithub = (outcomes: readonly EvalOutcome[]) =>
     )
   );
 
-/* Compiled and decided here rather than sent: nothing about a run on this
-   machine is the hosted grid's to record. */
 const recordedLocally = (file: string) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
-    const payload = yield* compileEvalEffect(file);
+    const compiled = yield* compileEvalEffect(file);
+    const payload = {
+      ...compiled,
+      trials: 1,
+      variants: compiled.variants.slice(0, 1),
+    };
     const trigger = yield* evalTrigger;
 
     const started = yield* api.evals.start({
-      payload: { ...payload, executeLocally: true, trigger },
+      payload: { ...payload, local: true, trigger },
     });
 
     yield* reportStarted(file, started.id);
 
     yield* Effect.addFinalizer(() =>
-      api.evals.finishRun({ payload: { id: started.id } }).pipe(Effect.ignore)
+      api.evals.finish({ payload: { id: started.id } }).pipe(Effect.ignore)
     );
 
     const leased = yield* api.evals
@@ -161,15 +175,23 @@ const recordedLocally = (file: string) =>
         Effect.catchAll(() => Effect.succeed(undefined))
       );
 
-    const cases = yield* runLocally(payload, {
-      credentials: leased,
-      onTrial: (trial) =>
-        api.evals
-          .reportTrial({ payload: { id: started.id, trial } })
-          .pipe(Effect.ignore),
-    });
+    const runIdOf = (caseId: string) =>
+      started.runs.find(
+        (run) => run.caseId === caseId && run.variantIndex === 0
+      )?.id;
 
-    return cases;
+    return yield* runLocally(payload, {
+      credentials: leased,
+      onTrial: (caseId, trial) => {
+        const runId = runIdOf(caseId);
+
+        return runId === undefined
+          ? Effect.void
+          : api.evals
+              .reportTrial({ payload: { ...trial, runId } })
+              .pipe(Effect.ignore);
+      },
+    });
   }).pipe(Effect.scoped, Effect.provide(ClientLayer));
 
 const runOneEvalLocally = (file: string) =>

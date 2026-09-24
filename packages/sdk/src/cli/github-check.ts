@@ -1,4 +1,4 @@
-import type { EvalCell, EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalRun } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 import { formatVariant } from "./eval-grid";
 import type { EvalOutcome } from "./eval-outcome";
@@ -29,46 +29,32 @@ const escaped = (text: string) =>
     .replaceAll("|", "\\|")
     .replaceAll(/[\r\n]/g, " ");
 
-const formatComparison = (run: EvalRun, cell: EvalCell) => {
-  const comparison = cell.comparison;
-  if (comparison === null) {
-    return "-";
-  }
-  const { baselineHarnessVersion: before, candidateHarnessVersion: after } =
-    comparison;
-  const changed =
-    before === after
-      ? ""
-      : ` (${run.variants[cell.variantIndex]?.harness} ${before} → ${after})`;
-  return `${comparison.verdict}${changed}`;
+const formatRunRow = (run: EvalRun) => {
+  const rate = run.distribution.scored ? run.distribution.passRate : undefined;
+  return `| ${escaped(run.case.name)} | ${escaped(formatVariant(run))} | ${percent(rate)} |`;
 };
 
-const formatCellRow = (run: EvalRun, cell: EvalCell) => {
-  const rate = cell.distribution?.scored
-    ? cell.distribution.passRate
-    : undefined;
-  return `| ${escaped(cell.caseName)} | ${escaped(formatVariant(run, cell))} | ${percent(rate)} | ${percent(cell.comparison?.baselinePassRate)} | ${escaped(formatComparison(run, cell))} |`;
-};
-
-export const runUrl = (webUrl: string, id: string) =>
+export const batchUrl = (webUrl: string, id: string) =>
   `${webUrl.replace(TRAILING_SLASH, "")}/evals/${encodeURIComponent(id)}`;
 
 const formatOutcome = (
-  { file, problems, run, runId }: EvalOutcome,
+  { batch, batchId, file, problems }: EvalOutcome,
   webUrl: string
 ) =>
   [
     `### ${escaped(file)}`,
     "",
-    ...(runId === null ? [] : [`[View run](${runUrl(webUrl, runId)})`, ""]),
+    ...(batchId === null
+      ? []
+      : [`[View batch](${batchUrl(webUrl, batchId)})`, ""]),
     ...problems.map((problem) => `- ${escaped(problem)}`),
-    ...(run === null
+    ...(batch === null
       ? []
       : [
           "",
-          "| Case | Variant | Pass rate | Baseline | Verdict |",
-          "| --- | --- | --- | --- | --- |",
-          ...run.cells.map((cell) => formatCellRow(run, cell)),
+          "| Case | Variant | Pass rate |",
+          "| --- | --- | --- |",
+          ...batch.runs.map(formatRunRow),
         ]),
   ].join("\n");
 
@@ -78,8 +64,8 @@ export const buildGithubCheck = (
 ): CheckRun => {
   const failed = outcomes.some((outcome) => outcome.problems.length > 0);
   const completed =
-    outcomes.length > 0 && outcomes.every((outcome) => outcome.run !== null);
-  const first = outcomes.find((outcome) => outcome.runId !== null);
+    outcomes.length > 0 && outcomes.every((outcome) => outcome.batch !== null);
+  const first = outcomes.find((outcome) => outcome.batchId !== null);
   const settled = completed ? "success" : "neutral";
   const conclusion = failed ? "failure" : settled;
   const summary = outcomes
@@ -87,7 +73,7 @@ export const buildGithubCheck = (
     .join("\n\n");
   return {
     conclusion,
-    details_url: first?.runId ? runUrl(webUrl, first.runId) : undefined,
+    details_url: first?.batchId ? batchUrl(webUrl, first.batchId) : undefined,
     name: "anpord",
     output: {
       title: TITLES[conclusion],

@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export const McpCallSchema = Schema.Struct({
+const McpCallSchema = Schema.Struct({
   error: Schema.optional(Schema.String),
   input: Schema.Unknown,
   kind: Schema.Literal("tool", "resource"),

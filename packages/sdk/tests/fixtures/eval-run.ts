@@ -1,54 +1,40 @@
 import type {
-  EvalCell,
-  EvalComparison,
+  EvalBatch,
   EvalRun,
   EvalTrial,
 } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 
+const STARTED = DateTime.unsafeMake("2026-09-06T10:00:00Z");
+const FINISHED = DateTime.unsafeMake("2026-09-06T10:00:01Z");
+
 export const createTrial = (overrides: Partial<EvalTrial> = {}): EvalTrial => ({
+  artifacts: [],
   commands: 1,
   costs: null,
-  prepared: null,
   exitCode: 0,
   failedCommands: 0,
   filesChanged: [],
+  id: "trial_fixture",
   modelMs: 1,
   ordinal: 1,
-  passed: true,
   sandboxId: null,
   sandboxMs: 1,
   status: "passed",
   timed: true,
   trajectory: [],
   usage: null,
+  validations: [],
   verifySteps: [],
   voidFields: [],
   ...overrides,
 });
 
-export const createComparison = (
-  overrides: Partial<EvalComparison> = {}
-): EvalComparison => ({
-  baselineHarnessVersion: "1.0.0",
-  baselinePassRate: 1,
-  baselineProfileVersion: null,
-  candidateHarnessVersion: "1.0.0",
-  candidatePassRate: 1,
-  candidateProfileVersion: null,
-  definitionChanged: false,
-  delta: 0,
-  determinismLost: false,
-  reason: null,
-  verdict: "unchanged",
-  ...overrides,
-});
-
-export const createCell = (overrides: Partial<EvalCell> = {}): EvalCell => ({
-  caseName: "fixture",
-  cellKey: null,
+export const createRun = (overrides: Partial<EvalRun> = {}): EvalRun => ({
+  batchId: "batch_fixture",
+  case: { id: "fixture", name: "fixture" },
   costs: null,
-  comparison: null,
+  definitionHash: "hash",
   distribution: {
     commandMax: 1,
     commandMedian: 1,
@@ -61,33 +47,43 @@ export const createCell = (overrides: Partial<EvalCell> = {}): EvalCell => ({
     trials: 1,
     voided: 0,
   },
-  internalId: null,
-  setup: null,
+  finishedAt: FINISHED,
+  harnessVersion: "1.0.0",
+  id: "run_fixture",
+  local: false,
+  profileVersion: null,
+  setup: {
+    prepare: null,
+    prompt: "Fix it",
+    source: { kind: "empty" },
+    validator: null,
+    verify: "true",
+  },
+  startedAt: STARTED,
   status: "finished",
-  variantIndex: 0,
+  suite: { id: "ci-fixture", name: "CI fixture" },
   trials: [createTrial()],
+  trigger: null,
+  variant: {
+    harness: "codex",
+    id: "variant_fixture",
+    model: "test",
+    profile: null,
+    sandbox: "e2b",
+    userModel: null,
+  },
   ...overrides,
 });
 
-export const createRun = (overrides: Partial<EvalRun> = {}): EvalRun => ({
-  executedBy: null,
-  trigger: null,
-  cases: ["fixture"],
-  cells: [createCell()],
+export const createBatch = (overrides: Partial<EvalBatch> = {}): EvalBatch => ({
   costs: null,
   failure: null,
-  finishedAt: DateTime.unsafeMake("2026-09-06T10:00:01Z"),
-  id: "run_fixture",
-  name: "CI fixture",
-  startedAt: DateTime.unsafeMake("2026-09-06T10:00:00Z"),
+  finishedAt: FINISHED,
+  id: "batch_fixture",
+  local: false,
+  runs: [createRun()],
+  startedAt: STARTED,
   status: "finished",
-  variants: [
-    {
-      harness: "codex",
-      harnessVersion: "1.0.0",
-      model: "test",
-      sandbox: "e2b",
-    },
-  ],
+  trigger: null,
   ...overrides,
 });

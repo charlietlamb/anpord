@@ -4,11 +4,9 @@ import { asEntries } from "@anpord/eval/domain/journal-entries";
 import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
 import { HarnessVersions } from "@anpord/eval/services/harness-versions";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
+import type { StartBatchRequest } from "@anpord/schema/domain/evals";
 import type { TokenCounts } from "@anpord/schema/domain/usage-health";
-import type {
-  PublicStartEvalRequest,
-  ReportedTrial,
-} from "@anpord/schema/public/evals-api";
+import type { ReportedTrial } from "@anpord/schema/public/evals-api";
 import { ConfigProvider, Effect, Option } from "effect";
 import { localUsageLines } from "./eval-usage";
 import { localEnv } from "./local-env";
@@ -24,15 +22,15 @@ export interface LocalCase {
   readonly usage: TokenCounts | null;
 }
 
-/* Everything a local run needs is on this machine, so one trial per case is
-   the whole grid: there is no baseline here to be repeatable against. */
+type LocalTrial = Omit<ReportedTrial, "runId">;
+
 export interface LocalRunOptions {
   readonly credentials?: Readonly<Record<string, string>>;
-  readonly onTrial?: (trial: ReportedTrial) => Effect.Effect<void>;
+  readonly onTrial?: (caseId: string, trial: LocalTrial) => Effect.Effect<void>;
 }
 
 export const runLocally = (
-  request: PublicStartEvalRequest,
+  request: StartBatchRequest,
   options: LocalRunOptions = {}
 ) =>
   Effect.gen(function* () {
@@ -77,7 +75,7 @@ export const runLocally = (
                 .pipe(Effect.flatMap(printed)),
             prepare: subject.prepare ?? null,
             profile: profileOfRequest(task.profile),
-            prompt: request.prompt,
+            prompt: request.suite.prompt,
             source: subject.source ?? { kind: "empty" },
             user: subject.user ?? null,
             validator: subject.validator ?? null,
@@ -86,13 +84,11 @@ export const runLocally = (
           .pipe(
             Effect.tap(
               (outcome) =>
-                options.onTrial?.({
-                  caseName: subject.name,
+                options.onTrial?.(subject.id, {
                   events: outcome.events,
-                  ordinal: 0,
+                  ordinal: 1,
                   outcome: outcome.outcome,
                   sandboxId: outcome.result.sandboxId,
-                  variantIndex: 0,
                   usage: Option.getOrNull(outcome.result.usage),
                 }) ?? Effect.void
             ),
@@ -121,9 +117,6 @@ export const runLocally = (
         : evalLocalWith(credentialResolverFrom(options.credentials))
     ),
     Effect.scoped,
-    /* Passing the flag is the opt-in the adapter's gate asks for: whoever runs
-       the command is the person whose machine it runs on. The environment can
-       still say no, so an explicit setting is left to win. */
     Effect.withConfigProvider(
       ConfigProvider.fromEnv().pipe(
         ConfigProvider.orElse(() =>

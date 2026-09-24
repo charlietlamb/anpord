@@ -105,8 +105,6 @@ const promote = Command.make(
     })
 ).pipe(Command.withDescription("Point a channel at a version"));
 
-/* Read the stream, not `/dev/stdin` as a file: the path only names the pipe,
-   so a multi-chunk body races the writer. */
 const readStdin = Effect.async<string, Error>((resume) => {
   let body = "";
 
@@ -153,8 +151,6 @@ const out = Options.file("out").pipe(
   Options.withDefault("anpord-env.d.ts")
 );
 
-/* The list carries no content, so each prompt is read separately -- bounded so
-   a large organisation does not open a connection per prompt. */
 const READ_AT_ONCE = 8;
 
 const writeDeclarations = ({ out: path }: { readonly out: string }) =>
@@ -183,19 +179,10 @@ const writeDeclarations = ({ out: path }: { readonly out: string }) =>
     );
   });
 
-const DESCRIPTION = "Write TypeScript declarations for prompt variables";
-
 const generate = Command.make("generate", { out }, writeDeclarations).pipe(
-  Command.withDescription(DESCRIPTION)
+  Command.withDescription("Write TypeScript declarations for prompt variables")
 );
 
-/* A second command rather than an alias, because a command carries one name. */
-const gen = Command.make("gen", { out }, writeDeclarations).pipe(
-  Command.withDescription(DESCRIPTION)
-);
-
-/* Every command here but `runEval` talks to the API, and `runEval` attaches
-   the client itself so its `import` subcommand does not inherit the need. */
 const withClient = <Name extends string, R, E, A>(
   command: Command.Command<Name, R, E, A>
 ) => Command.provide(command, ClientLayer);
@@ -203,7 +190,6 @@ const withClient = <Name extends string, R, E, A>(
 export const commands = [
   runEval,
   withClient(connectors),
-  withClient(gen),
   withClient(generate),
   withClient(get),
   withClient(list),

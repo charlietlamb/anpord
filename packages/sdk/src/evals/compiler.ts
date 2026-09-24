@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
-import { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
+import type { StartBatchRequest } from "@anpord/schema/domain/evals";
+import { PublicStartBatchRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Schema } from "effect";
 import { compileApis, withApis } from "./api-profile";
 import { bundledCaseModule } from "./case-modules";
@@ -14,14 +15,14 @@ import {
 } from "./mcp-profile";
 import { profileVariant } from "./profile-directory";
 import { type DefinitionRef, prepareEntry } from "./runner-source";
-import { repo } from "./source";
+import { empty, repo } from "./source";
+import { suiteIdOf } from "./suite-id";
 import type {
   EvalCaseDefinition,
   EvalDefinition,
   EvalVariantDefinition,
+  VariantInput,
 } from "./types";
-
-type PublicEvalVariant = PublicStartEvalRequest["variants"][number];
 
 const variantOf = (
   entry: string,
@@ -31,7 +32,7 @@ const variantOf = (
   apis: Readonly<Record<string, string>>
 ) =>
   Effect.gen(function* () {
-    const compiled: PublicEvalVariant =
+    const compiled: VariantInput =
       typeof variant.harness === "string"
         ? {
             harness: variant.harness,
@@ -48,14 +49,10 @@ const variantOf = (
     );
   });
 
-/* An omitted source is an empty workspace, so a suite runs the same on a
-   laptop as it does in CI. A run that wants the repository names it. */
 const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
-  const source = subject.source ?? definition.source;
+  const source = subject.source ?? definition.source ?? empty;
 
-  return source === undefined
-    ? {}
-    : { source: typeof source === "string" ? repo(source) : source };
+  return typeof source === "string" ? repo(source) : source;
 };
 
 const compileRefEffect = (ref: DefinitionRef) =>
@@ -115,7 +112,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
             id: subject.id,
             name: subject.name,
             prepare,
-            ...sourceFor(definition, subject),
+            source: sourceFor(definition, subject),
             ...(subject.tags === undefined ? {} : { tags: subject.tags }),
             user: subject.user ?? null,
             validator,
@@ -132,12 +129,15 @@ const compileRefEffect = (ref: DefinitionRef) =>
       { concurrency: 4 }
     );
 
-    return yield* Schema.decodeUnknown(PublicStartEvalRequest)({
+    return yield* Schema.decodeUnknown(PublicStartBatchRequest)({
       cases,
-      name: definition.name,
-      prompt: definition.prompt,
-      variants,
+      suite: {
+        id: definition.id ?? suiteIdOf(definition.name),
+        name: definition.name,
+        prompt: definition.prompt,
+      },
       trials: definition.trials,
+      variants,
     });
   }).pipe(Effect.withSpan("Eval.compile"));
 
@@ -146,7 +146,7 @@ const compileDefinitionEffect = (definition: EvalDefinition) =>
 
 export const compileDefinition = (
   definition: EvalDefinition
-): Promise<PublicStartEvalRequest> =>
+): Promise<StartBatchRequest> =>
   Effect.runPromise(compileDefinitionEffect(definition));
 
 const refOfPath = (path: string): DefinitionRef => ({
@@ -157,5 +157,5 @@ const refOfPath = (path: string): DefinitionRef => ({
 export const compileEvalEffect = (path: string) =>
   compileRefEffect(refOfPath(path));
 
-export const compileEval = (path: string): Promise<PublicStartEvalRequest> =>
+export const compileEval = (path: string): Promise<StartBatchRequest> =>
   Effect.runPromise(compileEvalEffect(path));

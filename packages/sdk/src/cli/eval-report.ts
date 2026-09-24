@@ -2,7 +2,7 @@ import { FileSystem } from "@effect/platform";
 import { Config, Effect, Option, Schema } from "effect";
 import { webUrlConfig } from "../client/config";
 import { EvalOutcome } from "./eval-outcome";
-import { buildGithubCheck, runUrl } from "./github-check";
+import { batchUrl, buildGithubCheck } from "./github-check";
 import { note } from "./render";
 
 const reportJson = Schema.encodeSync(
@@ -22,9 +22,9 @@ const appendSummary = (text: string) =>
 
 export const reportStarted = (file: string, id: string) =>
   Effect.gen(function* () {
-    const url = runUrl(yield* webUrlConfig, id);
+    const url = batchUrl(yield* webUrlConfig, id);
     yield* note(`${file}: ${url}`);
-    yield* appendSummary(`[Run ${id}](${url}) started.`);
+    yield* appendSummary(`[Batch ${id}](${url}) started.`);
   });
 
 export const writeReport = (

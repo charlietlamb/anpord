@@ -1,21 +1,23 @@
 import type { ApiCall } from "@anpord/schema/domain/api-mocks";
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import type { EvalTurn, EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { EvalHarness, EvalSource } from "@anpord/schema/domain/evals";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
+import type {
+  EvalHarness,
+  EvalSource,
+  EvalVariantRequest,
+} from "@anpord/schema/domain/evals";
 import type { McpCall } from "../mcp/calls";
 import type { McpServerDefinition } from "../mcp/define";
 import type { ApiDefinition } from "../mock-api/define";
 import type { CliCall } from "../mock-cli/calls";
 import type { CliDefinition } from "../mock-cli/define";
 
-type EvalVariantRequest = PublicStartEvalRequest["variants"][number];
-
-/** A profile directory beside the eval file; `dir` resolves against it. */
 export interface ProfileRef {
   readonly dir: string;
   readonly name: string;
 }
+
+export type VariantInput = typeof EvalVariantRequest.Encoded;
 
 export type HarnessRef =
   | EvalHarness
@@ -39,18 +41,13 @@ export interface ExecOptions {
   readonly timeoutMs?: number;
 }
 
-/** Entries are write-once, so the key must name everything the contents
- * depend on -- a lockfile hash above all. */
 export interface CaseCache {
   readonly key: string;
-  /** Relative to the workspace. */
   readonly path: string;
 }
 
 export interface PrepareContext {
   readonly api: { readonly url: (name: string) => Promise<string> };
-  /** True when the runner restored a cached directory, so a prepare can skip
-   * the work that produced it. */
   readonly cached: boolean;
   readonly exec: (
     file: string,
@@ -69,7 +66,6 @@ export type Prepare = (
 ) => Promise<PrepareValue | undefined> | PrepareValue | undefined;
 
 export interface ValidatorContext {
-  /** Empty when the agent said nothing. */
   readonly answer: () => Promise<string>;
   readonly api: {
     readonly url: (name: string) => Promise<string>;
@@ -85,7 +81,6 @@ export interface ValidatorContext {
   };
   readonly prepared: Readonly<Record<string, unknown>>;
   readonly readText: (path: string) => Promise<string>;
-  /** Every reply, oldest first, separated by a blank line. */
   readonly transcript: () => Promise<string>;
   readonly turns: () => Promise<readonly EvalTurn[]>;
 }
@@ -102,14 +97,11 @@ export type Validator = (
 type DeclaredSource = EvalSource | string;
 
 interface EvalCaseBase {
-  /** Restored before the prepare runs, saved after it succeeds. */
   readonly cache?: CaseCache;
   readonly id: string;
   readonly name: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;
-  /** How this case is grouped. A case may carry several, and retagging one
-   * keeps its baseline, because tags are not part of its identity. */
   readonly tags?: readonly string[];
   readonly user?: EvalUser;
   readonly variables?: Readonly<Record<string, string>>;
@@ -127,7 +119,6 @@ export type EvalCaseDefinition = EvalCaseBase &
     | { readonly validate?: never; readonly verify: string }
   );
 
-/** One case and what to run it on, for an eval that measures a single thing. */
 export type SingleCaseDefinition = EvalCaseDefinition & {
   readonly prompt: string;
   readonly variants: readonly EvalVariantDefinition[];
@@ -140,6 +131,7 @@ export interface EvalDefinition {
   readonly captureValidation?: boolean;
   readonly cases: readonly EvalCaseDefinition[];
   readonly cli?: readonly CliDefinition[];
+  readonly id?: string;
   readonly mcp?: readonly McpServerDefinition[];
   readonly name: string;
   readonly prompt: string;

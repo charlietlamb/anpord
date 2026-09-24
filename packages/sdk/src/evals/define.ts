@@ -11,14 +11,8 @@ interface CallSite {
   readonly getFileName: () => string | undefined;
 }
 
-/* A REPL, `node -e` and an internal frame all report a name that is not a file
-   on disk. Compiling re-imports whatever is captured here, so anything but a
-   real path would re-run the caller rather than load a module. */
 const AUTHORED = /\.[cm]?[jt]sx?$/;
 
-/* Whichever file this module ends up in, published or in the workspace: built,
-   suite() sits in a bundle rather than in define.ts, so matching a filename
-   would skip nothing and capture the SDK itself. */
 const FILE_URL = /^file:\/\//;
 const SELF = import.meta.url;
 
@@ -27,9 +21,6 @@ const authored = (name: string) =>
   !name.includes("node:") &&
   !SELF.endsWith(name.replace(FILE_URL, ""));
 
-/* suite() runs while the eval module is imported, so the frame below it is the
-   file that declared it. Capturing that is what lets a caller import a suite
-   and submit it, since compiling bundles the files sitting beside it. */
 const callerFile = (): string | undefined => {
   const prepare = Error.prepareStackTrace;
 
@@ -44,8 +35,6 @@ const callerFile = (): string | undefined => {
           name !== undefined && !name.endsWith("define.ts") && authored(name)
       );
 
-    /* Runtimes disagree on whether a frame carries a path or a URL, and the
-       compiler imports this value. */
     return file === undefined || file.startsWith("file:")
       ? file
       : pathToFileURL(file).href;
@@ -69,14 +58,12 @@ export function suite<const Definition extends EvalDefinition>(
       });
 }
 
-/* Most evals measure one thing, and wrapping that in a suite asks for two
-   names and an array to say it. A suite is what shares a prompt template or a
-   set of mocks across several cases, so it stays for the cases that do. */
 export function evalCase(definition: SingleCaseDefinition): EvalDefinition {
   const { prompt, variants, trials, ...subject } = definition;
 
   return suite({
     cases: [subject as EvalCaseDefinition],
+    id: subject.id,
     name: subject.name,
     prompt,
     variants,

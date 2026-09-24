@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
+import type { StartBatchRequest } from "@anpord/schema/domain/evals";
 import { tooLargeToSubmit } from "../../src/evals/request-size";
 
 const requestOf = (cases: number, bytesEach: number) =>
@@ -8,19 +8,16 @@ const requestOf = (cases: number, bytesEach: number) =>
       name: `case-${index}`,
       validator: { source: "x".repeat(bytesEach) },
     })),
-    name: "suite",
-    prompt: "p",
+    suite: { id: "suite", name: "suite", prompt: "p" },
     variants: [],
     trials: 1,
-  }) as unknown as PublicStartEvalRequest;
+  }) as unknown as StartBatchRequest;
 
 describe("a suite too large to submit", () => {
   it("passes a suite the gateway will accept", () => {
     expect(tooLargeToSubmit(requestOf(3, 200_000))).toBeNull();
   });
 
-  /* The gateway answers an oversized body with a bare 413, so the message has
-     to say what to do rather than only that something was too big. */
   it("names the size, the limit and how far to split", () => {
     const message = tooLargeToSubmit(requestOf(6, 700_000));
 
@@ -33,18 +30,15 @@ describe("a suite too large to submit", () => {
     expect(tooLargeToSubmit(requestOf(1, 5_000_000))).toContain("at most 1");
   });
 
-  /* Mocks are bundled once per task, so a wide grid is too big because of its
-     harnesses rather than its cases, and splitting by case would not help. */
   it("blames the variants when they carry the weight", () => {
     const request = {
       cases: [{ id: "c", name: "c", validator: { source: "x" } }],
-      name: "grid",
-      prompt: "p",
+      suite: { id: "grid", name: "grid", prompt: "p" },
       variants: Array.from({ length: 8 }, () => ({
         profile: { files: { mock: "y".repeat(600_000) } },
       })),
       trials: 1,
-    } as unknown as PublicStartEvalRequest;
+    } as unknown as StartBatchRequest;
 
     expect(tooLargeToSubmit(request)).toContain("8 variants");
   });

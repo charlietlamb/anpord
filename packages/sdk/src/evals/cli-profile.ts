@@ -1,13 +1,11 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect } from "effect";
 import type { CliDefinition } from "../mock-cli/define";
 import { bundle } from "./eval-bundle";
 import { appendInstall } from "./profile-compose";
 import { packageProgram } from "./program-package";
 import { cliEntry, type DefinitionRef } from "./runner-source";
-
-type EvalVariant = PublicStartEvalRequest["variants"][number];
+import type { VariantInput } from "./types";
 
 export interface CompiledCli {
   readonly entry: string;
@@ -46,9 +44,9 @@ export const compileClis = (
   });
 
 export const withClis = (
-  variant: EvalVariant,
+  variant: VariantInput,
   clis: readonly CompiledCli[]
-): EvalVariant => {
+): VariantInput => {
   if (clis.length === 0) {
     return variant;
   }

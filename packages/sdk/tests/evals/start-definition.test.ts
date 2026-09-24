@@ -8,7 +8,9 @@ const capture = () => {
 
   const stub = (input: URL | RequestInfo, init?: RequestInit) => {
     sent.push(new Request(input as RequestInfo, init));
-    return Promise.resolve(new Response('{"id":"run_1"}', { status: 200 }));
+    return Promise.resolve(
+      new Response('{"id":"batch_1","runs":[]}', { status: 200 })
+    );
   };
 
   globalThis.fetch = Object.assign(stub, {
@@ -33,10 +35,10 @@ describe("starting from an imported eval", () => {
 
       const body = (await sent[0]?.json()) as {
         cases: { name: string; validator: { source: string } }[];
-        prompt: string;
+        suite: { prompt: string };
       };
 
-      expect(body.prompt).toBe("Create hello.txt");
+      expect(body.suite.prompt).toBe("Create hello.txt");
       expect(body.cases[0]?.name).toBe("writes hello");
       expect(body.cases[0]?.validator.source).toContain("hello");
     } finally {
@@ -50,14 +52,22 @@ describe("starting from an imported eval", () => {
     try {
       const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
       await anpord.evals.start({
-        cases: [{ id: "a", name: "a", verify: "true" }],
-        prompt: "{{task}}",
-        variants: [{ harness: "codex", model: "m" }],
+        cases: [
+          {
+            id: "a",
+            name: "a",
+            prepare: null,
+            source: { kind: "empty" },
+            verify: "true",
+          },
+        ],
+        suite: { id: "writes", name: "writes", prompt: "{{task}}" },
+        variants: [{ harness: "codex", model: "m", sandbox: "e2b" }],
         trials: 1,
       });
 
-      const body = (await sent[0]?.json()) as { prompt: string };
-      expect(body.prompt).toBe("{{task}}");
+      const body = (await sent[0]?.json()) as { suite: { prompt: string } };
+      expect(body.suite.prompt).toBe("{{task}}");
     } finally {
       restore();
     }

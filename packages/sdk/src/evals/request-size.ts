@@ -1,9 +1,7 @@
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
+import type { StartBatchRequest } from "@anpord/schema/domain/evals";
 
 const MEGABYTE = 1024 * 1024;
 
-/* The gateway refuses a body over about four megabytes with a bare 413, which
-   says nothing about which part of the suite was too big. */
 const LIMIT = 3.5 * MEGABYTE;
 
 const megabytes = (bytes: number) => `${(bytes / MEGABYTE).toFixed(1)}MB`;
@@ -13,10 +11,7 @@ const sizeOf = (value: unknown) => JSON.stringify(value).length;
 const fitting = (total: number, count: number) =>
   Math.max(1, Math.floor(LIMIT / Math.ceil(total / count)));
 
-/* Weight comes from bundled code, and it sits in two places: a validator per
-   case, and the mocks a variant carries for its harness. Splitting the wrong one
-   does not help, so the advice follows whichever is larger. */
-export const tooLargeToSubmit = (request: PublicStartEvalRequest) => {
+export const tooLargeToSubmit = (request: StartBatchRequest) => {
   const size = sizeOf(request);
 
   if (size <= LIMIT) {
@@ -25,7 +20,7 @@ export const tooLargeToSubmit = (request: PublicStartEvalRequest) => {
 
   const cases = sizeOf(request.cases);
   const variants = sizeOf(request.variants);
-  const over = `${request.name} compiles to ${megabytes(size)}, over the ${megabytes(LIMIT)} a run may submit.`;
+  const over = `${request.suite.name} compiles to ${megabytes(size)}, over the ${megabytes(LIMIT)} a batch may submit.`;
 
   return variants > cases
     ? `${over} Its ${request.variants.length} variants each carry the mocks the suite declares, so give it at most ${fitting(variants, request.variants.length)}.`

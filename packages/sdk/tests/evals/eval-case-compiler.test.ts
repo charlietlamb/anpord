@@ -27,6 +27,10 @@ export default evalCase({ id: "answers", name: "answers", source: empty, prompt:
   const compiled = await compileEval(entry);
 
   expect(compiled.cases.map((subject) => subject.name)).toEqual(["answers"]);
-  expect(compiled.prompt).toBe("Answer");
+  expect(compiled.suite).toEqual({
+    id: "answers",
+    name: "answers",
+    prompt: "Answer",
+  });
   expect(compiled.cases[0]?.validator).toBeDefined();
 });

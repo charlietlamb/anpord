@@ -1,16 +1,11 @@
 import { commandText } from "@anpord/schema/domain/eval-journal";
-import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
-import {
-  validationSummary,
-  validationsOf,
-} from "@anpord/schema/domain/eval-validation-results";
+import { validationSummary } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { formatDuration } from "./duration";
 import type { Paint } from "./paint";
 import type { Writer } from "./transcript-writer";
 
 export interface Verdict {
-  readonly judgments?: readonly EvalJudgment[];
   readonly status: string;
   readonly validations?: readonly EvalValidation[];
   readonly verifySteps: readonly {
@@ -30,7 +25,7 @@ interface Check {
 const SUMMARY_LINES = 3;
 
 const checksOf = (verdict: Verdict): readonly Check[] => {
-  const validations = validationsOf(verdict);
+  const validations = verdict.validations ?? [];
 
   return validations.length > 0
     ? validations.map((validation) => ({

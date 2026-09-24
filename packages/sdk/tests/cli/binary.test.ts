@@ -69,7 +69,7 @@ describe.if(built)("the published binary", () => {
           payload: await incoming.json(),
         });
 
-        return Response.json({ id: "run_cli" });
+        return Response.json({ id: "batch_cli", runs: [] });
       },
     });
 
@@ -111,9 +111,7 @@ export default suite({
       );
 
       expect(code).toBe(0);
-      /* One started run printed per file, rather than one array at the end:
-         each is reported as it starts. */
-      expect(stdout.match(/run_cli/g)).toHaveLength(2);
+      expect(stdout.match(/batch_cli/g)).toHaveLength(2);
       expect(requests).toHaveLength(2);
       expect(
         requests.every(({ pathname }) => pathname === "/v1/evals.start")

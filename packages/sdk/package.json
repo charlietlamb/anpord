@@ -85,12 +85,6 @@
         "default": "./dist/eval.cjs"
       }
     },
-    "./config": {
-      "import": {
-        "types": "./dist/config.d.mts",
-        "default": "./dist/config.mjs"
-      }
-    },
     "./mcp": {
       "import": {
         "types": "./dist/mcp.d.mts",

@@ -1,7 +1,7 @@
 import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
-import type { EvalCell, EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { Effect, Ref } from "effect";
-import { runUsage, usageLines } from "./eval-usage";
+import { batchUsage, usageLines } from "./eval-usage";
 import { note } from "./render";
 import { makeTranscriber } from "./transcriber";
 import type { Speaker } from "./transcript-turn";
@@ -34,26 +34,26 @@ const formatElapsed = (ms: number) => {
     : `${minutes}m${String(total % MINUTE).padStart(2, "0")}s`;
 };
 
-const formatStatus = (cell: EvalCell) => {
-  if (cell.status === "finished") {
+const formatStatus = (run: EvalRun) => {
+  if (run.status === "finished") {
     return paint(GREEN, DONE);
   }
 
-  return cell.status === "failed" ? paint(RED, DONE) : paint(YELLOW, RUNNING);
+  return run.status === "failed" ? paint(RED, DONE) : paint(YELLOW, RUNNING);
 };
 
-const formatTrialProgress = (cell: EvalCell, trials: number) => {
-  const settled = cell.trials.filter(
+const formatTrialProgress = (run: EvalRun, trials: number) => {
+  const settled = run.trials.filter(
     (trial) => trial.status !== "queued" && trial.status !== "running"
   ).length;
 
   return `${FILLED.repeat(settled)}${paint(DIM, HOLLOW.repeat(Math.max(0, trials - settled)))}`;
 };
 
-const formatPassRate = (cell: EvalCell) => {
-  const rate = cell.distribution?.passRate;
+const formatPassRate = (run: EvalRun) => {
+  const rate = run.distribution.passRate;
 
-  if (rate === undefined || cell.distribution?.scored === 0) {
+  if (run.distribution.scored === 0) {
     return paint(DIM, "—");
   }
 
@@ -62,10 +62,8 @@ const formatPassRate = (cell: EvalCell) => {
   return paint(rate === 1 ? GREEN : RED, shown);
 };
 
-/* A trial runs for minutes behind one pip, so without what the agent is doing
-   the grid reads as a hang. */
-const formatActivity = (cell: EvalCell) => {
-  const running = cell.trials.find((trial) => trial.status === "running");
+const formatActivity = (run: EvalRun) => {
+  const running = run.trials.find((trial) => trial.status === "running");
 
   if (running === undefined) {
     return [];
@@ -81,36 +79,40 @@ const formatActivity = (cell: EvalCell) => {
   return [paint(DIM, `      ${counts}`)];
 };
 
-export const formatVariant = (run: EvalRun, cell: EvalCell) => {
-  const task = run.variants[cell.variantIndex];
+export const formatVariant = (run: EvalRun) =>
+  `${run.variant.harness}/${run.variant.model}`;
 
-  return task === undefined ? "?" : `${task.harness}/${task.model}`;
-};
-
-const widest = (run: EvalRun) =>
-  run.cells.reduce(
-    (width, cell) => Math.max(width, formatVariant(run, cell).length),
+const widest = (batch: EvalBatch) =>
+  batch.runs.reduce(
+    (width, run) => Math.max(width, formatVariant(run).length),
     0
   );
 
-export const formatGrid = (run: EvalRun, trials: number, elapsedMs: number) => {
-  const width = widest(run);
+const byCase = (batch: EvalBatch) =>
+  Map.groupBy(batch.runs, (run) => run.case.id).values();
+
+export const formatGrid = (
+  batch: EvalBatch,
+  trials: number,
+  elapsedMs: number
+) => {
+  const width = widest(batch);
   const lines: string[] = [];
 
-  for (const caseName of run.cases) {
-    lines.push(`  ${BOLD}${caseName}${RESET}`);
+  for (const runs of byCase(batch)) {
+    lines.push(`  ${BOLD}${runs[0]?.case.name ?? ""}${RESET}`);
 
-    for (const cell of run.cells.filter((one) => one.caseName === caseName)) {
+    for (const run of runs) {
       lines.push(
-        `    ${formatStatus(cell)} ${formatVariant(run, cell).padEnd(width)}  ${formatTrialProgress(cell, trials)}  ${formatPassRate(cell)}`
+        `    ${formatStatus(run)} ${formatVariant(run).padEnd(width)}  ${formatTrialProgress(run, trials)}  ${formatPassRate(run)}`
       );
-      lines.push(...formatActivity(cell));
+      lines.push(...formatActivity(run));
     }
 
     lines.push("");
   }
 
-  const usage = runUsage(run);
+  const usage = batchUsage(batch);
   const [spend, ...concerns] = usageLines(usage);
 
   lines.push(
@@ -134,40 +136,38 @@ const up = (rows: number) => `[${rows}A[0J`;
 export type GridMode = "grid" | "lines" | "silent";
 
 const speakerOf = (
-  run: EvalRun | null,
-  cellId: string,
+  batch: EvalBatch | null,
+  runId: string,
   ordinal: number,
   trials: number
 ): Speaker => {
-  const cell = run?.cells.find((one) => one.internalId === cellId);
+  const run = batch?.runs.find((one) => one.id === runId);
 
   return {
-    caseName: cell?.caseName ?? "trial",
-    key: `${cellId}#${ordinal}`,
+    caseName: run?.case.name ?? "trial",
+    key: `${runId}#${ordinal}`,
     ordinal: trials > 1 ? ordinal : null,
-    variant: run == null || cell === undefined ? "" : formatVariant(run, cell),
+    variant: run === undefined ? "" : formatVariant(run),
   };
 };
 
-const hasSettled = (trial: EvalCell["trials"][number]) =>
+const hasSettled = (trial: EvalRun["trials"][number]) =>
   trial.status !== "queued" && trial.status !== "running";
 
-const settledTrials = (run: EvalRun, trials: number) =>
-  run.cells.flatMap(({ internalId, trials: ran }) =>
-    internalId === null
-      ? []
-      : ran.filter(hasSettled).map((trial) => ({
-          speaker: speakerOf(run, internalId, trial.ordinal, trials),
-          verdict: trial,
-        }))
+const settledTrials = (batch: EvalBatch, trials: number) =>
+  batch.runs.flatMap((run) =>
+    run.trials.filter(hasSettled).map((trial) => ({
+      speaker: speakerOf(batch, run.id, trial.ordinal, trials),
+      verdict: trial,
+    }))
   );
 
 export const liveGrid = (trials: number, mode: GridMode) =>
   Effect.gen(function* () {
     const drawn = yield* Ref.make(0);
     const latest = yield* Ref.make<{
+      readonly batch: EvalBatch;
       readonly elapsedMs: number;
-      readonly run: EvalRun;
     } | null>(null);
     const transcript = yield* makeTranscriber(terminalStyle(mode === "grid"));
 
@@ -178,7 +178,7 @@ export const liveGrid = (trials: number, mode: GridMode) =>
         const held = yield* Ref.get(latest);
         const footer =
           mode === "grid" && held !== null
-            ? ["", ...formatGrid(held.run, trials, held.elapsedMs)]
+            ? ["", ...formatGrid(held.batch, trials, held.elapsedMs)]
             : [];
         const rows = yield* Ref.getAndSet(drawn, footer.length);
         const lines = [...above, ...footer];
@@ -188,14 +188,14 @@ export const liveGrid = (trials: number, mode: GridMode) =>
         }
       }).pipe(writing.withPermits(1));
 
-    const draw = (run: EvalRun, elapsedMs: number) =>
+    const draw = (batch: EvalBatch, elapsedMs: number) =>
       Effect.gen(function* () {
-        yield* Ref.set(latest, { elapsedMs, run });
+        yield* Ref.set(latest, { batch, elapsedMs });
 
         yield* print(
           mode === "silent"
             ? []
-            : yield* transcript.settle(settledTrials(run, trials))
+            : yield* transcript.settle(settledTrials(batch, trials))
         );
       });
 
@@ -205,13 +205,13 @@ export const liveGrid = (trials: number, mode: GridMode) =>
           return;
         }
 
-        const run = (yield* Ref.get(latest))?.run ?? null;
+        const batch = (yield* Ref.get(latest))?.batch ?? null;
 
         yield* print(
           yield* transcript.transcribe(
             events.map((event) => ({
               entry: event.entry,
-              speaker: speakerOf(run, event.cell, event.ordinal, trials),
+              speaker: speakerOf(batch, event.run, event.ordinal, trials),
             }))
           )
         );
@@ -221,7 +221,7 @@ export const liveGrid = (trials: number, mode: GridMode) =>
   });
 
 export const formatGridSummary = (
-  run: EvalRun,
+  batch: EvalBatch,
   trials: number,
   drawn: boolean
-) => (drawn ? "" : formatGrid(run, trials, 0).join("\n"));
+) => (drawn ? "" : formatGrid(batch, trials, 0).join("\n"));

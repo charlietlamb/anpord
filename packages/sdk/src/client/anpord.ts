@@ -1,11 +1,22 @@
+import type { StartBatchRequest } from "@anpord/schema/domain/evals";
 import {
   type AnpordClient,
   DEFAULT_BASE_URL,
   make,
 } from "@anpord/schema/public/client";
+import { PublicStartBatchRequest } from "@anpord/schema/public/evals-api";
 import { render, type Variables } from "@anpord/template/render";
 import { FetchHttpClient } from "@effect/platform";
-import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
+import {
+  Cause,
+  Effect,
+  Either,
+  Exit,
+  ManagedRuntime,
+  Option,
+  Redacted,
+  Schema,
+} from "effect";
 import { compileDefinition } from "../evals/compiler";
 import { sourceUrlOf } from "../evals/define";
 import { tooLargeToSubmit } from "../evals/request-size";
@@ -26,7 +37,7 @@ import type {
 import { AnpordError, asAnpordError, MissingApiKey } from "./errors";
 import { type Promised, promised } from "./promised";
 import type { VariablesFor } from "./variables";
-import { type WaitOptions, waitForRun } from "./wait";
+import { type WaitOptions, waitForBatch } from "./wait";
 
 export interface AnpordOptions {
   readonly apiKey?: string;
@@ -47,21 +58,44 @@ type Prompts = Promised<AnpordClient["prompts"]>;
 type Prompt = Awaited<ReturnType<Prompts["get"]>>;
 
 type Evals = Omit<Promised<AnpordClient["evals"]>, "tail">;
-type StartOptions = Parameters<Evals["start"]>[0];
-type StartInput = StartOptions | EvalDefinition;
-type Run = Awaited<ReturnType<Evals["get"]>>;
+type StartInput = typeof PublicStartBatchRequest.Encoded | EvalDefinition;
+
+const decodeStart = Schema.decodeUnknownEither(PublicStartBatchRequest);
+
+const requestOf = async (input: StartInput): Promise<StartBatchRequest> => {
+  if (sourceUrlOf(input as EvalDefinition) !== undefined) {
+    return await compileDefinition(input as EvalDefinition);
+  }
+
+  const decoded = decodeStart(input);
+
+  if (Either.isLeft(decoded)) {
+    throw asAnpordError(decoded.left);
+  }
+
+  return decoded.right;
+};
+
+const submittable = async (input: StartInput) => {
+  const request = await requestOf(input);
+  const tooLarge = tooLargeToSubmit(request);
+
+  if (tooLarge !== null) {
+    throw new AnpordError(tooLarge, { cause: null });
+  }
+
+  return request;
+};
+type Batch = Awaited<ReturnType<Evals["get"]>>;
 
 export interface EvalsSurface extends Omit<Evals, "start"> {
-  /** Starts a run from a request or an imported eval. */
   readonly start: (input: StartInput) => ReturnType<Evals["start"]>;
-  /** Starts a run and resolves once it finishes. */
   readonly startAndWait: (
     input: StartInput & Partial<WaitOptions>
-  ) => Promise<Run>;
-  /** Polls an already-started run until it finishes. */
+  ) => Promise<Batch>;
   readonly wait: (
     options: { readonly id: string } & WaitOptions
-  ) => Promise<Run>;
+  ) => Promise<Batch>;
 }
 
 export type PromptResult = Prompt & { readonly anpord: PromptMetadata };
@@ -100,27 +134,9 @@ export class Anpord {
     const group = promised(client.prompts);
     const { tail: _tail, ...evals } = promised(client.evals);
 
-    /* Checked on the way out rather than at compile time, so a suite too big
-       to submit can still be compiled and inspected. */
-    const requestOf = async (input: StartInput): Promise<StartOptions> => {
-      const request =
-        sourceUrlOf(input as EvalDefinition) === undefined
-          ? (input as StartOptions)
-          : ((await compileDefinition(
-              input as EvalDefinition
-            )) as StartOptions);
-      const tooLarge = tooLargeToSubmit(request);
-
-      if (tooLarge !== null) {
-        throw new AnpordError(tooLarge, { cause: null });
-      }
-
-      return request;
-    };
-
     this.evals = {
       ...evals,
-      start: async (input) => await evals.start(await requestOf(input)),
+      start: async (input) => await evals.start(await submittable(input)),
       startAndWait: async (options) => {
         const {
           maxIntervalMs,
@@ -129,9 +145,9 @@ export class Anpord {
           signal,
           timeoutMs,
           ...input
-        } = options as StartOptions & WaitOptions;
-        const { id } = await evals.start(await requestOf(input as StartInput));
-        return await waitForRun(evals.get, id, {
+        } = options;
+        const { id } = await evals.start(await submittable(input));
+        return await waitForBatch(evals.get, id, {
           maxIntervalMs,
           onProgress,
           pollIntervalMs,
@@ -139,7 +155,7 @@ export class Anpord {
           timeoutMs,
         });
       },
-      wait: ({ id, ...options }) => waitForRun(evals.get, id, options),
+      wait: ({ id, ...options }) => waitForBatch(evals.get, id, options),
     };
 
     const forget = (id: string) =>

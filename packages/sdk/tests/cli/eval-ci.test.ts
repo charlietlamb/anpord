@@ -4,10 +4,10 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EvalRun } from "@anpord/schema/domain/evals";
+import { EvalBatch } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
 import { EvalOutcome } from "../../src/cli/eval-outcome";
-import { createCell, createRun, createTrial } from "../fixtures/eval-run";
+import { createBatch, createRun, createTrial } from "../fixtures/eval-run";
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const binary = resolve(root, "packages/sdk/dist/bin.mjs");
@@ -19,7 +19,7 @@ const definition = `import { suite, empty } from "anpord";
 export default suite({name:"CI",source:empty,prompt:"test",cases:[{id:"fixture",name:"fixture",verify:"true"}],variants:[{harness:"codex",model:"test",provider:"e2b"}],trials:1});`;
 
 const execute = async (
-  run: EvalRun,
+  batch: EvalBatch,
   options: {
     readonly action?: boolean;
     readonly key?: string;
@@ -38,10 +38,10 @@ const execute = async (
       const path = new URL(request.url).pathname;
       if (path === "/v1/evals.start") {
         starts++;
-        return Response.json({ id: run.id });
+        return Response.json({ id: batch.id, runs: [] });
       }
       if (path === "/v1/evals.get") {
-        return Response.json(Schema.encodeSync(EvalRun)(run));
+        return Response.json(Schema.encodeSync(EvalBatch)(batch));
       }
       return new Response("Unexpected request", { status: 400 });
     },
@@ -106,50 +106,43 @@ const execute = async (
 
 describe.if(existsSync(binary))("CI runner", () => {
   test("writes results and a link for a non-interactive single suite", async () => {
-    const result = await execute(createRun());
+    const result = await execute(createBatch());
     expect(result.code).toBe(0);
-    expect(result.stderr).toContain("https://anpord.test/evals/run_fixture");
+    expect(result.stderr).toContain("https://anpord.test/evals/batch_fixture");
     expect(result.summary).toContain("Eval gate passed");
-    expect(result.report[0].run?.status).toBe("finished");
+    expect(result.report[0].batch?.status).toBe("finished");
   });
 
-  test.each([
-    "failed",
-    "void",
-  ] as const)("fails a %s trial without a baseline", async (status) => {
+  test.each(["failed", "void"] as const)("fails a %s trial", async (status) => {
     const result = await execute(
-      createRun({
-        cells: [
-          createCell({ trials: [createTrial({ status, passed: false })] }),
-        ],
-      })
+      createBatch({ runs: [createRun({ trials: [createTrial({ status })] })] })
     );
     expect(result.code).toBe(1);
     expect(result.summary).toContain("Eval gate failed");
     expect(result.report[0].problems).not.toBeEmpty();
   });
 
-  test("keeps the run ID on timeout and never resubmits", async () => {
+  test("keeps the batch ID on timeout and never resubmits", async () => {
     const result = await execute(
-      createRun({ status: "running", finishedAt: null }),
+      createBatch({ status: "running", finishedAt: null }),
       { timeout: 1 }
     );
     expect(result.code).toBe(1);
     expect(result.starts).toBe(1);
-    expect(result.report[0].runId).toBe("run_fixture");
+    expect(result.report[0].batchId).toBe("batch_fixture");
     expect(result.report[0].problems.join()).toContain("not cancelled");
   });
 
   test("the action invokes the installed CLI with a quoted file path", async () => {
-    const result = await execute(createRun(), { action: true });
+    const result = await execute(createBatch(), { action: true });
     expect(result.code).toBe(0);
     expect(result.starts).toBe(1);
-    expect(result.report[0].runId).toBe("run_fixture");
+    expect(result.report[0].batchId).toBe("batch_fixture");
   });
 
   test("the action preserves a failed gate", async () => {
     const result = await execute(
-      createRun({ status: "failed", failure: "Sandbox unavailable" }),
+      createBatch({ status: "failed", failure: "Sandbox unavailable" }),
       { action: true }
     );
     expect(result.code).toBe(1);
@@ -157,7 +150,7 @@ describe.if(existsSync(binary))("CI runner", () => {
   });
 
   test("missing action secrets fail before contacting the server", async () => {
-    const result = await execute(createRun(), { action: true, key: "" });
+    const result = await execute(createBatch(), { action: true, key: "" });
     expect(result.code).toBe(1);
     expect(result.starts).toBe(0);
     expect(result.stderr).toContain("api-key");
