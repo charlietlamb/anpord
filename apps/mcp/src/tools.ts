@@ -1,11 +1,11 @@
-import { RerunCellRequest } from "@anpord/schema/domain/eval-playground";
+import { StartBatchRequest } from "@anpord/schema/domain/evals";
 import { PROFILE_HARNESS_RULE } from "@anpord/schema/domain/harness-profile";
+import { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import {
-  EvalCellRequest,
+  CaseRunsRequest,
+  EvalBatchRequest,
   EvalModelsRequest,
-  EvalRunRequest,
-  ListEvalsRequest,
-  PublicStartEvalRequest,
+  ListBatchesRequest,
 } from "@anpord/schema/public/evals-api";
 import {
   GetPromptRequest,
@@ -36,18 +36,18 @@ const ResolvePrompt = GetPromptRequest.pick("channel", "id", "version");
 
 const AddVersion = UpdatePromptRequest.pick("content", "id", "message");
 
-const RerunCell = Schema.Struct({
-  ...EvalRunRequest.fields,
-  ...EvalCellRequest.fields,
-  ...RerunCellRequest.fields,
+const RunCase = Schema.Struct({
+  caseId: CaseRunsRequest.fields.caseId,
+  ...RunCaseRequest.fields,
 });
 
 export const register = (server: MCPServer<AnpordUser>) => {
   server.tool(
     {
-      description: "List a page of eval runs, newest first.",
-      inputSchema: toolInput(ListEvalsRequest),
-      name: "list_eval_runs",
+      description:
+        "List a page of eval batches, newest first. A batch is the runs started together.",
+      inputSchema: toolInput(ListBatchesRequest),
+      name: "list_eval_batches",
     },
     (payload, ctx) =>
       callApi(ctx, (api) => Effect.map(api.evals.list({ payload }), decodeJson))
@@ -69,17 +69,17 @@ export const register = (server: MCPServer<AnpordUser>) => {
   server.tool(
     {
       description:
-        "Start an eval run. Returns an id while trials continue in the background. " +
-        "A task may carry a profile: files under home/ or workspace/, a system prompt and env. " +
+        "Run every case of a suite on every variant. Returns the batch id and one run id per case and variant while trials continue in the background. " +
+        "A variant may carry a profile: files under home/ or workspace/, a system prompt and env. " +
         PROFILE_HARNESS_RULE,
-      inputSchema: toolInput(PublicStartEvalRequest.omit("trigger")),
-      name: "start_eval_run",
+      inputSchema: toolInput(StartBatchRequest.omit("local", "trigger")),
+      name: "start_eval_batch",
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
         Effect.map(
           api.evals.start({
-            payload: { ...payload, trigger: { source: "mcp" } },
+            payload: { ...payload, local: false, trigger: { source: "mcp" } },
           }),
           decodeJson
         )
@@ -88,9 +88,10 @@ export const register = (server: MCPServer<AnpordUser>) => {
 
   server.tool(
     {
-      description: "Get an eval run, including its cells and trial results.",
-      inputSchema: toolInput(EvalRunRequest),
-      name: "get_eval_run",
+      description:
+        "Get an eval batch, including each run and its trial results.",
+      inputSchema: toolInput(EvalBatchRequest),
+      name: "get_eval_batch",
     },
     (payload, ctx) =>
       callApi(ctx, (api) => Effect.map(api.evals.get({ payload }), decodeJson))
@@ -98,30 +99,27 @@ export const register = (server: MCPServer<AnpordUser>) => {
 
   server.tool(
     {
-      description: "List previous results for an eval cell.",
-      inputSchema: toolInput(EvalCellRequest),
-      name: "get_eval_cell_history",
+      description:
+        "List a case's runs, newest first, optionally on one of its variants.",
+      inputSchema: toolInput(CaseRunsRequest),
+      name: "list_case_runs",
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
-        Effect.map(api.evals.cellHistory({ payload }), decodeJson)
+        Effect.map(api.evals.caseRuns({ payload }), decodeJson)
       )
   );
 
   server.tool(
     {
-      description: "Run one cell again with the same case and variant.",
-      inputSchema: toolInput(RerunCell.omit("trigger")),
-      name: "rerun_eval_cell",
+      description:
+        "Run a case's newest version again on one of its variants, or on every variant when none is named.",
+      inputSchema: toolInput(RunCase),
+      name: "run_eval_case",
     },
     (payload, ctx) =>
       callApi(ctx, (api) =>
-        Effect.map(
-          api.evals.rerunCell({
-            payload: { ...payload, trigger: { source: "mcp" } },
-          }),
-          decodeJson
-        )
+        Effect.map(api.evals.runCase({ payload }), decodeJson)
       )
   );
 
