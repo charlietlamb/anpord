@@ -10,9 +10,8 @@ export const promptQueries = {
       queryFn: ({ pageParam }) =>
         listPrompts({
           cursor: pageParam ?? undefined,
-          q: filters.search || undefined,
+          q: filters.q || undefined,
           sort: filters.sort,
-          status: filters.status,
         }),
       initialPageParam: null as string | null,
       getNextPageParam: (page) => page.nextCursor,

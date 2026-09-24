@@ -43,7 +43,6 @@ export const listPrompts = (params: {
   limit?: number;
   q?: string;
   sort?: string;
-  status?: string;
 }) => {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {

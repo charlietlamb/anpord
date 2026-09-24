@@ -5,7 +5,6 @@ import { cn } from "@anpord/ui/lib/utils";
 
 interface PromptComposerProps {
   readonly bounded?: boolean;
-  readonly className?: string;
   readonly content: string;
   readonly onContentChange: (value: string) => void;
   readonly onEditRequest?: () => void;
@@ -14,14 +13,13 @@ interface PromptComposerProps {
 
 export function PromptComposer({
   bounded,
-  className,
   content,
   onContentChange,
   onEditRequest,
   readOnly,
 }: PromptComposerProps) {
   return (
-    <ComposerSurface className={className}>
+    <ComposerSurface>
       {readOnly && onEditRequest ? (
         <Button
           aria-label="Edit from this version"

@@ -6,7 +6,6 @@ import { useDebouncedSave } from "@/lib/query/use-debounced-save";
 import { useUpdatePrompt } from "@/lib/query/use-update-prompt";
 
 interface PromptEditorTitleProps {
-  /* Set while a past version is rewritten rather than branched from. */
   readonly correctingVersion: number | null;
   readonly dirty: boolean;
   readonly name: string;
@@ -35,7 +34,7 @@ export function PromptEditorTitle({
     <div className="mb-5 flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
       <InlineEdit
         ariaLabel="Prompt name"
-        className="flex-1 font-heading text-2xl tracking-tight"
+        className="flex-1 font-heading text-xl tracking-tight"
         onBlur={title.flush}
         onCancel={title.reset}
         onChange={(value) => title.onChange(value)}

@@ -11,20 +11,18 @@ import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import {
   CALLS_TABLE,
   CASES_TABLE,
   CHECKS_TABLE,
 } from "@/lib/evals/case-tables";
+import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
 });
 
-/* Each skeleton sits directly above the thing it stands in for, so a row that
-   settles when data lands shows up as a step between the two. */
 function Pair({
   loaded,
   name,
@@ -70,7 +68,7 @@ function SkeletonsPreview() {
 
         <PreviewScreen name="Prompt list">
           <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
-            <PromptListSkeleton />
+            <DataTableSkeleton {...PROMPTS_TABLE} />
           </div>
         </PreviewScreen>
 

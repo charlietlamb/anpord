@@ -9,10 +9,8 @@ import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
-import {
-  PromptEditorLayout,
-  PromptEditorMain,
-} from "@/components/prompts/prompt-editor-layout";
+import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
+import { PromptEditorMain } from "@/components/prompts/prompt-editor-main";
 import { PromptEditorTitle } from "@/components/prompts/prompt-editor-title";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { useDialog } from "@/lib/dialog/dialogs";
@@ -26,7 +24,6 @@ const BODY = Array.from(
   (_, line) => `Line ${line + 1} of a prompt about {{topic}} for {{audience}}.`
 ).join("\n\n");
 
-/* Fixed so the server and the client render the same timestamps. */
 const EPOCH = Date.parse("2026-08-16T09:00:00.000Z");
 
 const version = (number: number): ResolvedPrompt =>

@@ -26,16 +26,9 @@ export function PromptSortMenu<T extends string>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button
-            aria-label="Sort"
-            className="size-8 shrink-0"
-            size="icon-sm"
-            variant="subtle"
-          />
-        }
+        render={<Button aria-label="Sort" size="icon-sm" variant="subtle" />}
       >
-        <ArrowsDownUpIcon size={15} />
+        <ArrowsDownUpIcon />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-44">

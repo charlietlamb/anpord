@@ -1,7 +1,9 @@
 import type { Channel } from "@anpord/schema/domain/channels";
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { Button } from "@anpord/ui/components/button";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
-import { ListRow } from "@/components/layout/list-row";
+import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
+import { cn } from "@anpord/ui/lib/utils";
 import { VersionActions } from "@/components/prompts/version-actions";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 import { useRelativeTime } from "@/lib/use-relative-time";
@@ -40,30 +42,48 @@ export function VersionRow({
   const label = version.commitMessage ?? preview(version.content);
 
   return (
-    <ListRow
-      actions={
-        <VersionActions
-          channels={channels}
-          onEditFrom={onEditFrom}
-          onPromote={onPromote}
-          servedBy={servedBy}
-          version={version.version}
-        />
-      }
-      leading={
+    <div
+      className={cn(
+        BLEED_ROW,
+        "group/row flex items-center rounded-md transition-colors",
+        viewing ? "bg-alpha-8" : "hover:bg-alpha-4"
+      )}
+      role="presentation"
+    >
+      <Button
+        aria-selected={viewing}
+        className={cn(
+          "h-10 min-w-0 flex-1 justify-start gap-2.5 rounded-md px-2 text-label",
+          viewing
+            ? "font-medium text-foreground"
+            : "font-normal text-muted-foreground"
+        )}
+        onClick={onSelect}
+        role="option"
+        variant="bare"
+      >
         <ChannelDot
           color={version.channel ? channelColor(version.channel) : undefined}
         />
-      }
-      meta={
-        <time dateTime={new Date(version.createdAt).toISOString()}>{when}</time>
-      }
-      onSelect={onSelect}
-      role="option"
-      selected={viewing}
-    >
-      <span className="mr-2 tabular-nums">v{version.version}</span>
-      {label}
-    </ListRow>
+        <span className="min-w-0 flex-1 truncate text-left">
+          <span className="mr-2 tabular-nums">v{version.version}</span>
+          {label}
+        </span>
+        <time
+          className="shrink-0 text-muted-foreground text-xs tabular-nums"
+          dateTime={new Date(version.createdAt).toISOString()}
+        >
+          {when}
+        </time>
+      </Button>
+
+      <VersionActions
+        channels={channels}
+        onEditFrom={onEditFrom}
+        onPromote={onPromote}
+        servedBy={servedBy}
+        version={version.version}
+      />
+    </div>
   );
 }
