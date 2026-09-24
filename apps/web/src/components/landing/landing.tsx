@@ -118,10 +118,7 @@ export function Landing() {
         </p>
         <div className="fade-in-0 slide-in-from-bottom-2 mt-8 flex animate-in flex-wrap items-center gap-3 fill-mode-both ease-out [animation-delay:150ms] [animation-duration:500ms]">
           <Link
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "h-10 gap-2 pr-2.5 pl-4 text-sm"
-            )}
+            className={cn(buttonVariants({ size: "lg" }), "pr-2.5 pl-4")}
             to="/login"
           >
             <FlaskIcon size={15} />
@@ -136,7 +133,7 @@ export function Landing() {
           <a
             className={cn(
               buttonVariants({ size: "lg", variant: "outline" }),
-              "h-10 gap-2 px-4 text-sm"
+              "px-4"
             )}
             href={REPO_URL}
             rel="noreferrer"

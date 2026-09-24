@@ -15,6 +15,7 @@ export function LabelledSelect({
   onChange,
   options,
   placeholder,
+  size,
   triggerClassName,
   value,
 }: {
@@ -27,6 +28,7 @@ export function LabelledSelect({
     readonly value: string;
   }[];
   readonly placeholder?: string;
+  readonly size?: "sm" | "default" | "lg";
   readonly triggerClassName?: string;
   readonly value: string;
 }) {
@@ -37,7 +39,7 @@ export function LabelledSelect({
         onValueChange={(next) => onChange(String(next ?? ""))}
         value={value}
       >
-        <SelectTrigger className={triggerClassName} id={id}>
+        <SelectTrigger className={triggerClassName} id={id} size={size}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

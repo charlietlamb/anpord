@@ -64,7 +64,7 @@ export function RotateConnectionDialog({
         />
       ) : null}
       <ShortcutButton
-        className="h-10 w-full text-sm"
+        className="w-full"
         disabled={
           pending || method === null || incompleteCredential(method, values)
         }

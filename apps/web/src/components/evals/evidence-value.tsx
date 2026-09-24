@@ -155,7 +155,7 @@ export function EvidenceValue({
       ) : null}
       {formatted?.raw ? (
         <details className="group/raw ml-3 border-border border-l pl-3 [&[open]>summary>svg]:rotate-90">
-          <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 text-[0.6875rem] text-muted-foreground/80 transition-colors hover:text-foreground focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 text-2xs text-muted-foreground/80 transition-colors hover:text-foreground focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
             <CaretRightIcon
               aria-hidden="true"
               className="size-2.5 shrink-0 transition-transform"

@@ -6,8 +6,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anpord/ui/components/ui/select";
-import { DistributionPill } from "@/components/evals/eval-status-badge";
+import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { VariantName } from "@/components/evals/variant-name";
+import { distributionStatus } from "@/lib/evals/eval-status";
 
 const ALL = "all";
 
@@ -48,7 +49,10 @@ export function CaseVariantMenu({
           >
             <VariantName harness={entry.harness} model={entry.model} />
             <span className="ml-auto">
-              <DistributionPill distribution={entry.distribution} size="xs" />
+              <EvalStatusBadge
+                size="xs"
+                status={distributionStatus(entry.distribution)}
+              />
             </span>
           </SelectItem>
         ))}

@@ -1,9 +1,15 @@
+import {
+  MENU_ITEM,
+  MENU_LABEL,
+  MENU_SEPARATOR,
+  POPUP,
+  POPUP_MOTION,
+} from "@anpord/ui/lib/popup";
+import { cn } from "@anpord/ui/lib/utils";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import type * as React from "react";
-import { cn } from "../lib/utils";
 
-const MENU_ITEM_CLASS =
-  "group/dropdown-menu-item relative flex min-h-7 cursor-default select-none items-center gap-2 rounded-md px-2 py-1 text-muted-foreground text-xs/relaxed outline-hidden focus:bg-accent focus:text-foreground focus:**:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-3.5 [&_svg]:pointer-events-none [&_svg]:shrink-0";
+const MENU_ITEM_CLASS = cn("group/dropdown-menu-item", MENU_ITEM);
 
 export function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root {...props} />;
@@ -47,9 +53,9 @@ export function DropdownMenuSubContent({
       >
         <MenuPrimitive.Popup
           className={cn(
-            "max-h-(--available-height) min-w-48 max-w-(--available-width) origin-(--transform-origin) overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-(--shadow-popover) outline-none duration-100",
-            "data-open:fade-in-0 data-open:zoom-in-95 data-open:animate-in",
-            "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out",
+            "max-h-(--available-height) min-w-48 max-w-(--available-width) overflow-y-auto p-1",
+            POPUP,
+            POPUP_MOTION,
             className
           )}
           {...props}
@@ -77,9 +83,9 @@ export function DropdownMenuContent({
       >
         <MenuPrimitive.Popup
           className={cn(
-            "max-h-(--available-height) min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-(--shadow-popover) outline-none duration-100",
-            "data-open:fade-in-0 data-open:zoom-in-95 data-open:animate-in",
-            "data-closed:fade-out-0 data-closed:zoom-out-95 data-closed:animate-out",
+            "max-h-(--available-height) min-w-(--anchor-width) max-w-(--available-width) overflow-y-auto p-1",
+            POPUP,
+            POPUP_MOTION,
             className
           )}
           {...props}
@@ -100,8 +106,8 @@ export function DropdownMenuLabel({
   return (
     <MenuPrimitive.GroupLabel
       className={cn(
-        "-mx-1 mt-1 mb-0.5 border-border border-t px-3 pt-2 pb-1 font-medium text-[0.6875rem] text-muted-foreground/70 tracking-wide",
-        "first:mt-0 first:border-t-0 first:pt-1",
+        MENU_LABEL,
+        "-mx-1 mt-1 border-border border-t first:mt-0 first:border-t-0 first:pt-1",
         className
       )}
       {...props}
@@ -124,7 +130,7 @@ export function DropdownMenuSeparator({
 }: MenuPrimitive.Separator.Props) {
   return (
     <MenuPrimitive.Separator
-      className={cn("-mx-1 my-1 h-px bg-border/50", className)}
+      className={cn(MENU_SEPARATOR, className)}
       {...props}
     />
   );
@@ -137,7 +143,7 @@ export function DropdownMenuShortcut({
   return (
     <span
       className={cn(
-        "ml-auto text-[0.625rem] text-muted-foreground tracking-widest group-focus/dropdown-menu-item:text-accent-foreground",
+        "ml-auto text-3xs text-muted-foreground tracking-widest group-focus/dropdown-menu-item:text-accent-foreground",
         className
       )}
       data-slot="dropdown-menu-shortcut"

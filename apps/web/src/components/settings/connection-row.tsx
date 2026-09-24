@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { DotsThreeIcon } from "@phosphor-icons/react";
+import { DotsThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { ListRow, RowTitle } from "@/components/layout/list-row";
 import { ROW_ACTION } from "@/components/layout/row-action";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
@@ -102,7 +102,7 @@ export function ConnectionRow({
         </span>
 
         {connection.status === "invalid" ? (
-          <StatusBadge size="xs" tone="critical">
+          <StatusBadge icon={WarningCircleIcon} size="xs" tone="destructive">
             Invalid
           </StatusBadge>
         ) : null}

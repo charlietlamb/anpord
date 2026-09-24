@@ -59,7 +59,7 @@ export function TrialFiles({
                 </span>
                 <span>
                   {file === undefined ? (
-                    <StatusBadge icon={MinusCircleIcon} tone="neutral">
+                    <StatusBadge icon={MinusCircleIcon} tone="secondary">
                       Not captured
                     </StatusBadge>
                   ) : (

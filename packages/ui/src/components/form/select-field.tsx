@@ -26,7 +26,7 @@ export function SelectField({ label, options, placeholder }: SelectFieldProps) {
         onChange={(value) => field.handleChange(value)}
         options={options}
         placeholder={placeholder}
-        triggerClassName="h-10"
+        size="lg"
         value={field.state.value}
       />
       <FieldInfo field={field} />

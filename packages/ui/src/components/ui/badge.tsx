@@ -10,8 +10,6 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-primary text-primary-foreground [a]:hover:bg-primary/90",
         secondary:
           "bg-card text-foreground dark:bg-muted [a]:hover:bg-alpha-4",
         destructive:
@@ -20,31 +18,24 @@ const badgeVariants = cva(
           "border-success/25 bg-success/10 text-success [a]:hover:bg-success/15",
         pending:
           "border-warning/25 bg-warning/10 text-warning [a]:hover:bg-warning/15",
-        outline:
-          "border-border bg-background text-foreground dark:bg-input/30 [a]:hover:bg-muted [a]:hover:text-muted-foreground",
-        ghost:
-          "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        outline: "bg-transparent text-muted-foreground shadow-none",
       },
-      /* Small badges sit beside small buttons, so they take the same radius
-         rather than reading as pills dropped onto the row. */
       size: {
-        default: "h-7 rounded-full px-3 text-xs font-semibold",
         sm: "h-6 gap-1.5 rounded-md px-2 text-xs font-medium",
-        xs: "h-5 gap-1 rounded-md px-2 text-[0.625rem] font-medium",
+        xs: "h-5 gap-1 rounded-md px-2 text-3xs font-medium",
       },
     },
     defaultVariants: {
-      size: "default",
-      variant: "default",
+      size: "sm",
+      variant: "secondary",
     },
   }
 )
 
 function Badge({
   className,
-  size = "default",
-  variant = "default",
+  size = "sm",
+  variant = "secondary",
   render,
   ...props
 }: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {

@@ -9,23 +9,21 @@ export const buttonVariants = cva(
         default:
           "bg-foreground text-background shadow-[inset_0_-1px_0_0_rgb(0_0_0/0.15),0_1px_2px_0_rgb(0_0_0/0.4)] hover:bg-foreground/90",
         outline: `${SURFACE_RAISED} text-foreground hover:bg-alpha-4 aria-expanded:bg-alpha-4`,
-        secondary:
-          "border-border bg-secondary text-secondary-foreground hover:bg-muted",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted dark:hover:bg-muted/50",
-        /* No fill in any state; the text brightens instead. */
+          "hover:bg-alpha-4 hover:text-foreground aria-expanded:bg-alpha-4",
         bare: "text-muted-foreground hover:text-foreground aria-expanded:text-foreground",
         subtle:
-          "border-border bg-alpha-4 text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground aria-expanded:bg-muted",
+          "border-border bg-alpha-4 text-muted-foreground hover:bg-alpha-8 hover:text-foreground aria-expanded:bg-alpha-8",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
+          "border-destructive/25 bg-destructive/10 text-destructive hover:bg-destructive/15 focus-visible:ring-destructive/20",
       },
       size: {
         default: "h-[1.875rem] gap-2 px-5 text-sm",
         sm: "h-7 gap-1.5 rounded-md px-3.5 text-sm [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-2.5 px-7 text-base [&_svg:not([class*='size-'])]:size-5",
+        lg: "h-10 gap-2 px-5 text-sm",
         icon: "size-[1.875rem]",
         "icon-sm": "size-7 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
         "icon-round":
           "size-8 rounded-full [&_svg:not([class*='size-'])]:size-4",
       },

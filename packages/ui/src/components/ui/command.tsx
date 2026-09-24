@@ -3,6 +3,8 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 
+import { FIELD_SURFACE } from "@anpord/ui/lib/field"
+import { MENU_ITEM, MENU_SEPARATOR } from "@anpord/ui/lib/popup"
 import { cn } from "@anpord/ui/lib/utils"
 import {
   Dialog,
@@ -11,10 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@anpord/ui/components/ui/dialog"
-import {
-  InputGroup,
-  InputGroupAddon,
-} from "@anpord/ui/components/ui/input-group"
 import { MagnifyingGlassIcon, CheckIcon } from "@phosphor-icons/react"
 
 function Command({
@@ -25,7 +23,7 @@ function Command({
     <CommandPrimitive
       data-slot="command"
       className={cn(
-        "flex size-full flex-col overflow-hidden rounded-xl bg-popover p-1 text-popover-foreground",
+        "flex size-full flex-col overflow-hidden rounded-lg bg-popover p-1 text-popover-foreground",
         className
       )}
       {...props}
@@ -55,7 +53,7 @@ function CommandDialog({
       </DialogHeader>
       <DialogContent
         className={cn(
-          "top-1/3 translate-y-0 overflow-hidden rounded-xl! p-0",
+          "top-1/3 translate-y-0 overflow-hidden p-0",
           className
         )}
         showCloseButton={showCloseButton}
@@ -72,19 +70,17 @@ function CommandInput({
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
     <div data-slot="command-input-wrapper" className="p-1 pb-0">
-      <InputGroup className="h-8! bg-input/20 dark:bg-input/30">
+      <div className={cn(FIELD_SURFACE, "flex h-8 items-center gap-2 px-2.5")}>
+        <MagnifyingGlassIcon className="size-3.5 shrink-0 text-muted-foreground" />
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full text-xs/relaxed outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full bg-transparent text-xs/relaxed outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}
         />
-        <InputGroupAddon>
-          <MagnifyingGlassIcon className="size-3.5 shrink-0 opacity-50" />
-        </InputGroupAddon>
-      </InputGroup>
+      </div>
     </div>
   )
 }
@@ -141,7 +137,7 @@ function CommandSeparator({
   return (
     <CommandPrimitive.Separator
       data-slot="command-separator"
-      className={cn("-mx-1 my-1 h-px bg-border/50", className)}
+      className={cn(MENU_SEPARATOR, className)}
       {...props}
     />
   )
@@ -156,7 +152,8 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "group/command-item relative flex min-h-7 cursor-default items-center gap-2 rounded-md px-2.5 py-1.5 text-xs/relaxed outline-hidden select-none in-data-[slot=dialog-content]:rounded-md data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-selected:bg-muted data-selected:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5 data-selected:*:[svg]:text-foreground",
+        "group/command-item data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-selected:bg-alpha-8 data-selected:text-foreground data-selected:*:[svg]:text-foreground",
+        MENU_ITEM,
         className
       )}
       {...props}
@@ -175,7 +172,7 @@ function CommandShortcut({
     <span
       data-slot="command-shortcut"
       className={cn(
-        "ml-auto text-[0.625rem] tracking-widest text-muted-foreground group-data-selected/command-item:text-foreground",
+        "ml-auto text-3xs tracking-widest text-muted-foreground group-data-selected/command-item:text-foreground",
         className
       )}
       {...props}

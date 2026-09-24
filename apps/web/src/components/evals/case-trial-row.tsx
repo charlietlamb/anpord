@@ -6,9 +6,10 @@ import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { AgeCell } from "@/components/evals/age-cell";
-import { TrialStatusPill } from "@/components/evals/eval-status-badge";
+import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { SourceLabel } from "@/components/evals/source-label";
 import { VariantCell } from "@/components/evals/variant-cell";
+import { trialStatus } from "@/lib/evals/eval-status";
 import { trialVerdict } from "@/lib/evals/trial-verdict";
 
 export function CaseTrialRow({
@@ -42,7 +43,7 @@ export function CaseTrialRow({
       />
 
       <span>
-        <TrialStatusPill status={trial.status} />
+        <EvalStatusBadge status={trialStatus(trial.status)} />
       </span>
 
       <AgeCell at={entry.finishedAt?.epochMillis ?? null} />

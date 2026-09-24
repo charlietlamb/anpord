@@ -1,5 +1,8 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
+import {
+  StatusBadge,
+  type StatusTone,
+} from "@anpord/ui/components/ui/status-badge";
 import { SURFACE_FILL } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
 import { Collapsible } from "@base-ui/react/collapsible";
@@ -33,16 +36,16 @@ const STATES: Record<
     readonly className?: string;
     readonly Glyph: Icon;
     readonly label: string;
-    readonly tone: "neutral" | "pending" | "positive";
+    readonly tone: StatusTone;
   }
 > = {
   completed: { Glyph: CheckCircleIcon, label: "Completed", tone: "positive" },
-  error: { Glyph: XCircleIcon, label: "Error", tone: "pending" },
+  error: { Glyph: XCircleIcon, label: "Error", tone: "destructive" },
   running: {
     className: "[&>svg]:animate-spin motion-reduce:[&>svg]:animate-none",
     Glyph: CircleNotchIcon,
     label: "Running",
-    tone: "neutral",
+    tone: "secondary",
   },
 };
 

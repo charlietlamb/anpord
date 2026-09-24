@@ -33,7 +33,6 @@ export function TextField({
       </Label>
       <Input
         autoComplete={autoComplete}
-        className="h-10 px-3 text-sm md:text-sm"
         id={field.name}
         onBlur={field.handleBlur}
         onChange={(event) => {
@@ -41,6 +40,7 @@ export function TextField({
           onValueChange?.(event.target.value);
         }}
         placeholder={placeholder}
+        size="lg"
         type={type}
         value={field.state.value}
       />

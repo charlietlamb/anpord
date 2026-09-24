@@ -1,6 +1,6 @@
-import { Badge } from "@anpord/ui/components/ui/badge";
 import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
+import { EyeIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useDebouncedSave } from "@/lib/query/use-debounced-save";
 import { useUpdatePrompt } from "@/lib/query/use-update-prompt";
@@ -44,16 +44,18 @@ export function PromptEditorTitle({
       />
 
       {correctingVersion === null ? null : (
-        <Badge size="sm" variant="secondary">
+        <StatusBadge icon={PencilSimpleIcon}>
           Overwriting v{correctingVersion}
-        </Badge>
+        </StatusBadge>
       )}
       {viewingVersion === null || correctingVersion !== null ? null : (
-        <Badge size="sm" variant="secondary">
-          Viewing v{viewingVersion}
-        </Badge>
+        <StatusBadge icon={EyeIcon}>Viewing v{viewingVersion}</StatusBadge>
       )}
-      {dirty ? <StatusBadge tone="pending">Unsaved changes</StatusBadge> : null}
+      {dirty ? (
+        <StatusBadge icon={PencilSimpleIcon} tone="pending">
+          Unsaved changes
+        </StatusBadge>
+      ) : null}
     </div>
   );
 }

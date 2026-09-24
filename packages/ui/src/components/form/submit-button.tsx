@@ -33,7 +33,7 @@ export function SubmitButton({
     >
       {({ isSubmitting, canSubmit }) => (
         <ShortcutButton
-          className={cn("h-10 text-sm", fullWidth && "w-full")}
+          className={cn(fullWidth && "w-full")}
           disabled={disabled || isSubmitting || !canSubmit}
           metaShortcut={shortcut ? "enter" : undefined}
           onClick={() => form.handleSubmit()}

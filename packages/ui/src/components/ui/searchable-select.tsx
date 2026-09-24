@@ -1,5 +1,6 @@
 "use client";
 
+import { fieldVariants } from "@anpord/ui/lib/field";
 import {
   Command,
   CommandEmpty,
@@ -49,7 +50,8 @@ export function SearchableSelect<TValue extends string>({
             aria-expanded={open}
             aria-label={label}
             className={cn(
-              "flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-input/20 px-2.5 text-left text-sm transition-surface hover:bg-input/30 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
+              fieldVariants({ size: "lg" }),
+              "flex items-center gap-2 text-left",
               className
             )}
             type="button"

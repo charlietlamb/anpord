@@ -7,8 +7,9 @@ import {
   CodeIcon,
   TerminalIcon,
 } from "@phosphor-icons/react";
-import { ValidationStatusPill } from "@/components/evals/eval-status-badge";
+import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { seconds } from "@/lib/evals/duration";
+import { validationStatus } from "@/lib/evals/eval-status";
 
 const KIND_ICONS = { code: CodeIcon, command: TerminalIcon, judge: BrainIcon };
 
@@ -43,7 +44,7 @@ export function CheckRow({
       </span>
 
       <span>
-        <ValidationStatusPill status={validation.status} />
+        <EvalStatusBadge status={validationStatus(validation.status)} />
       </span>
 
       <CaretRightIcon

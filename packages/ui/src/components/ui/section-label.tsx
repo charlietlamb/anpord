@@ -26,7 +26,7 @@ export function SectionLabel({
     <div
       className={cn("flex h-6 items-center justify-between gap-2", className)}
     >
-      <h2 className="shrink-0 truncate font-medium text-[11px] text-muted-foreground/70">
+      <h2 className="shrink-0 truncate font-medium text-2xs text-muted-foreground/70">
         {children}
       </h2>
       {action}

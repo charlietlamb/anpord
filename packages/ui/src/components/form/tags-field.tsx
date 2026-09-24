@@ -3,6 +3,7 @@
 import { FieldInfo } from "@anpord/ui/components/form/field-info";
 import { Label } from "@anpord/ui/components/ui/label";
 import { useFieldContext } from "@anpord/ui/hooks/form-context";
+import { FIELD_SURFACE } from "@anpord/ui/lib/field";
 import { cn } from "@anpord/ui/lib/utils";
 import { XIcon } from "@phosphor-icons/react";
 import { type KeyboardEvent, useState } from "react";
@@ -47,7 +48,8 @@ export function TagsField({ label, placeholder = "Add…" }: TagsFieldProps) {
       <Label htmlFor={field.name}>{label}</Label>
       <div
         className={cn(
-          "flex min-h-9 flex-wrap items-center gap-1 rounded-lg border border-border bg-background px-2 py-1",
+          FIELD_SURFACE,
+          "flex min-h-10 flex-wrap items-center gap-1 px-2 py-1",
           "focus-within:border-ring focus-within:ring-4 focus-within:ring-ring/20"
         )}
       >

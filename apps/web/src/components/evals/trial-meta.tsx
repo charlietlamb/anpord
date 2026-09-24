@@ -4,9 +4,10 @@ import type {
   EvalVariant,
 } from "@anpord/schema/domain/evals";
 import { AgeCell } from "@/components/evals/age-cell";
-import { TrialStatusPill } from "@/components/evals/eval-status-badge";
+import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { SourceLabel } from "@/components/evals/source-label";
 import { VariantCell } from "@/components/evals/variant-cell";
+import { trialStatus } from "@/lib/evals/eval-status";
 
 export function TrialMeta({
   run,
@@ -27,7 +28,7 @@ export function TrialMeta({
         sandbox={variant?.sandbox ?? ""}
         trigger={run.trigger}
       />
-      <TrialStatusPill status={trial.status} />
+      <EvalStatusBadge status={trialStatus(trial.status)} />
       <AgeCell at={run.finishedAt?.epochMillis ?? null} />
     </span>
   );

@@ -4,6 +4,7 @@ import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
 import { buttonVariants } from "@anpord/ui/lib/button-variants"
+import { MENU_ITEM, MENU_LABEL, MENU_SEPARATOR, POPUP, POPUP_MOTION } from "@anpord/ui/lib/popup"
 import { cn } from "@anpord/ui/lib/utils"
 import { CaretDownIcon, CheckIcon, CaretUpIcon } from "@phosphor-icons/react"
 
@@ -44,7 +45,7 @@ function SelectTrigger({
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
-  size?: "sm" | "default"
+  size?: "sm" | "default" | "lg"
   variant?: keyof typeof TRIGGER_VARIANTS
 }) {
   return (
@@ -96,7 +97,12 @@ function SelectContent({
         <SelectPrimitive.Popup
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
-          className={cn("relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-(--shadow-popover) duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
+          className={cn(
+            "relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 overflow-x-hidden overflow-y-auto p-1 data-[align-trigger=true]:animate-none",
+            POPUP,
+            POPUP_MOTION,
+            className
+          )}
           {...props}
         >
           <SelectScrollUpButton />
@@ -115,7 +121,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cn("px-2 py-1.5 text-xs text-muted-foreground", className)}
+      className={cn(MENU_LABEL, className)}
       {...props}
     />
   )
@@ -130,7 +136,8 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex min-h-7 w-full cursor-default items-center gap-2 rounded-md px-2 py-1 text-muted-foreground text-xs/relaxed outline-hidden select-none focus:bg-accent focus:text-foreground focus:**:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        MENU_ITEM,
+        "*:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className
       )}
       {...props}
@@ -157,7 +164,8 @@ function SelectSeparator({
     <SelectPrimitive.Separator
       data-slot="select-separator"
       className={cn(
-        "pointer-events-none -mx-1 my-1 h-px bg-border/50",
+        "pointer-events-none",
+        MENU_SEPARATOR,
         className
       )}
       {...props}

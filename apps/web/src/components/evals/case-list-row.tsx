@@ -3,10 +3,11 @@ import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { AgeCell } from "@/components/evals/age-cell";
-import { DistributionPill } from "@/components/evals/eval-status-badge";
+import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { TagChip } from "@/components/evals/tag-chip";
 import { VariantCell } from "@/components/evals/variant-cell";
 import { counted } from "@/lib/evals/conversation";
+import { distributionStatus } from "@/lib/evals/eval-status";
 
 export function CaseListRow({
   subject,
@@ -29,7 +30,7 @@ export function CaseListRow({
       <VariantCell harness={subject.harness} model={subject.model} />
 
       <span>
-        <DistributionPill distribution={subject.distribution} />
+        <EvalStatusBadge status={distributionStatus(subject.distribution)} />
       </span>
 
       <span className="text-muted-foreground tabular-nums">

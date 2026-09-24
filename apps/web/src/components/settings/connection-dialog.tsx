@@ -251,7 +251,7 @@ export function ConnectionDialog({
       {challenge ? <DeviceChallenge challenge={challenge} /> : null}
 
       <ShortcutButton
-        className="h-10 w-full text-sm"
+        className="w-full"
         disabled={
           pending || challenge !== null || name.trim() === "" || missing
         }
