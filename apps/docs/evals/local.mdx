@@ -43,7 +43,7 @@ Sandbox credentials are never leased: a local run opens no cloud sandbox. A leas
 
 ## What a local run is
 
-A local run with an API key set is recorded like any other: it appears in the dashboard with its journal, marked as having run on your machine. What it does not get is a baseline. Its results were produced somewhere nobody else can inspect, so they never become the bar a later run is measured against, and `--fail-on regressed` has nothing to compare. The exit code reflects the result, so CI can gate on it:
+A local run with an API key set is recorded like any other: each case becomes a run in a batch, marked local, with its journal in the dashboard. It runs the first variant once per case. The exit code reflects the result, so CI can gate on it:
 
 ```bash
 anpord eval --local ./checkout.eval.ts || exit 1

@@ -33,7 +33,7 @@ Set `ANPORD_API_KEY` before commands that call Anpord. Help, version, and `eval 
 | `anpord versions <id>` | Print version history as JSON |
 | `anpord push <id> <content> [-m <message>]` | Append a version |
 | `anpord promote <id> --to <channel> --at <version>` | Move a channel |
-| `anpord generate [--out <path>]` | Generate variable types for up to 100 prompts; `gen` is an alias |
+| `anpord generate [--out <path>]` | Generate variable types for up to 100 prompts |
 | `anpord --completions <shell>` | Print completions for zsh, bash, or fish |
 
 Prompt content goes to stdout:
@@ -50,17 +50,17 @@ Run every eval suite in the repository:
 anpord eval
 ```
 
-Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Cells and trials run concurrently within Anpord and provider limits.
+Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Runs and trials run concurrently within Anpord and provider limits.
 
-The command waits for the run and fails unless every expected trial passes. In an interactive terminal, the grid updates as cells settle. Non-interactive runs print the final grid once.
+Each suite starts a batch: one run per case and variant. The command waits for the batch and fails if any run's trials did not all pass. In an interactive terminal, the grid updates as runs settle. Non-interactive runs print the final grid once.
 
 | Option | Purpose |
 | --- | --- |
-| `--fail-on` | `strict` by default: every expected trial must pass. `regressed` gates on baseline regressions, `unscored` also rejects cells without scores, and `never` ignores trial results |
-| `--timeout` | Seconds to wait per run, default `1200`. A timeout fails the command but does not cancel the remote run |
-| `--output` | Write a JSON report containing run IDs, results, and gate failures |
-| `--no-wait` | Start the run and print its id |
-| `--json` | Print the finished run instead of the grid |
+| `--fail-on` | `failures` by default: any run whose trials did not all pass fails. `strict` also requires every expected run and trial to have finished, and `never` ignores trial results |
+| `--timeout` | Seconds to wait per batch, default `1200`. A timeout fails the command but does not cancel the remote batch |
+| `--output` | Write a JSON report containing batch IDs, results, and gate failures |
+| `--no-wait` | Start the batch and print its id and runs |
+| `--json` | Print the finished batch instead of the grid |
 | `--local` | Run every case on this machine instead of a cloud sandbox, so a verifier can reach a service on `localhost`. With an API key the run is recorded and its credentials are leased from your organization; without one it prints and sends nothing. See [local runs](/evals/local) |
 
 A run that fails outright is reported whatever the gate, because that is the

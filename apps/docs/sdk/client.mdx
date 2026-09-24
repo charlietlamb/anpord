@@ -23,19 +23,19 @@ const anpord = new Anpord({
 
 | Method | Returns |
 | --- | --- |
-| `evals.start(request)` | A run id while trials continue on the server |
-| `evals.startAndWait(request)` | The finished run |
-| `evals.get({ id })` | One run with cells and trials |
-| `evals.wait({ id })` | An already-started run once it finishes |
-| `evals.list({ cursor?, limit? })` | A page of runs and its next cursor |
+| `evals.start(request)` | A batch id, and a run id per case and variant, while trials continue on the server |
+| `evals.startAndWait(request)` | The finished batch |
+| `evals.get({ id })` | One batch with its runs and trials |
+| `evals.wait({ id })` | An already-started batch once it finishes |
+| `evals.list({ cursor?, limit? })` | A page of batches and its next cursor |
 | `evals.models({ harness })` | Models available to a harness |
-| `evals.cellHistory({ cellKey })` | The twenty latest results for a cell |
-| `evals.rerunCell({ id, cellKey, trials })` | A new run containing one repeated cell |
+| `evals.caseRuns({ caseId, variant?, page? })` | A page of a case's runs, newest first |
+| `evals.runCase({ caseId, variant?, trials })` | A new batch running the case on one variant, or on every variant |
 
 ```ts
-const { id } = await anpord.evals.start({
+const { id, runs } = await anpord.evals.start({
   cases,
-  prompt: "{{task}}",
+  suite: { id: "smoke", name: "Smoke", prompt: "{{task}}" },
   variants: [{ harness: "codex", model }],
   trials: 3,
 });
@@ -50,7 +50,7 @@ export const smoke = suite({ ... });
 ```ts
 import { smoke } from "./evals/smoke.eval";
 
-const run = await anpord.evals.startAndWait(smoke);
+const batch = await anpord.evals.startAndWait(smoke);
 ```
 
 A suite records the file it was written in, which is how its validators and mock servers reach the sandbox with everything they close over. `start` and `startAndWait` compile it for you.
@@ -73,4 +73,4 @@ await anpord.dispose();
 
 Invalid request fields fail before a network call. API failures include an HTTP status when available.
 
-The package also exports `make`, `layer`, and `AnpordApi` for Effect applications. SDK date fields are Effect `DateTime.Utc` values. Read `epochMillis` when you need a number.
+SDK date fields are Effect `DateTime.Utc` values. Read `epochMillis` when you need a number.

@@ -54,7 +54,7 @@ The rest are `daytona`, `upstash`, `modal`, `cloudflare`, and `vercel`. Every tr
 
 None of them can reach a service on your own machine. To test against one, see [local runs](/evals/local).
 
-The sandbox is part of the cell key, so adding or removing it starts a new history. Name one explicitly to keep an existing baseline.
+The sandbox is part of the variant, so changing it starts a new history. Name one explicitly to keep adding to an existing one.
 
 ## Compare variants
 
@@ -67,4 +67,12 @@ variants: [
 ]
 ```
 
-Changing the harness, model, or sandbox creates a new cell history. A new harness version remains in the same history. Use a [profile](/evals/profiles) to compare an agent's stock and configured forms.
+A case keeps one variant per harness, model, sandbox, profile name and simulated-user model it has run on. Changing any of them creates a new variant with its own history. A new harness version remains in the same history, and each run records the version it used. Use a [profile](/evals/profiles) to compare an agent's stock and configured forms.
+
+## Read a variant's history
+
+```ts
+const { runs, total } = await anpord.evals.caseRuns({ caseId: "writes-hello" });
+```
+
+Runs come newest first, twenty to a page. Pass `variant` to read one variant, and `page` for older runs. `evals.runCase({ caseId, trials })` runs the case's newest version again on every variant, or on one when `variant` is given.

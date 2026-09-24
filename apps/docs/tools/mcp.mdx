@@ -21,19 +21,19 @@ claude mcp add --transport http anpord https://mcp.anpord.com/mcp
 
 </CodeGroup>
 
-The server uses OAuth 2.1. Your browser opens for sign-in and approval, so the MCP configuration does not contain an API key. Eval reads need `evals:read`, and starts and reruns need `evals:write`.
+The server uses OAuth 2.1. Your browser opens for sign-in and approval, so the MCP configuration does not contain an API key. Eval reads need `evals:read`, and starting runs needs `evals:write`.
 
 ## Eval tools
 
 | Tool | Purpose |
 | --- | --- |
-| `list_eval_runs` | List a page of runs, newest first |
+| `list_eval_batches` | List a page of batches, newest first |
 | `list_eval_models` | List models available to a harness |
-| `start_eval_run` | Start cases across variants |
-| `get_eval_run` | Read cells, trials, and comparisons |
-| `get_eval_cell_history` | Read previous results for a cell |
-| `rerun_eval_cell` | Repeat one cell in a new run |
+| `start_eval_batch` | Run every case of a suite on every variant |
+| `get_eval_batch` | Read a batch's runs and trials |
+| `list_case_runs` | Read a case's runs, optionally on one variant |
+| `run_eval_case` | Run a case again on one variant, or on all of them |
 
-`start_eval_run` returns an id immediately. Poll `get_eval_run` until its status is no longer `running`.
+`start_eval_batch` and `run_eval_case` return a batch id immediately. Poll `get_eval_batch` until its status is no longer `running`.
 
-`list_eval_runs` returns `runs` and `next`. Pass `next` as `cursor` for the following page.
+`list_eval_batches` returns `batches` and `next`. Pass `next` as `cursor` for the following page.

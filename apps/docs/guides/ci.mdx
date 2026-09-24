@@ -47,7 +47,7 @@ SDK, not a downloaded CLI. It requires Node 20 or later.
 
 The default `strict` gate requires every expected trial to pass. Failed, void,
 missing, and unfinished trials fail the job, including a suite's first run.
-Run links appear in the job summary as soon as submission succeeds.
+Batch links appear in the job summary as soon as submission succeeds.
 
 The dashboard labels these runs **CI** and links back to the exact GitHub
 Actions attempt. The CLI reads GitHub's existing environment; no extra setup
@@ -58,12 +58,12 @@ or environment overrides are needed.
 | `api-key` | Required | Anpord API key |
 | `working-directory` | `.` | Project containing the installed SDK |
 | `file` | Discover `*.eval.ts` | Run one suite |
-| `fail-on` | `strict` | `strict`, `regressed`, `unscored`, or `never` |
-| `timeout` | `1200` | Seconds to wait per run |
+| `fail-on` | `failures` | `failures`, `strict`, or `never` |
+| `timeout` | `1200` | Seconds to wait per batch |
 
-Use `regressed` to gate only against a baseline. `unscored` also rejects cells
-without scored trials. `never` ignores trial results. Submission errors, failed
-runs, and timeouts still fail all gates.
+`failures` fails on any run whose trials did not all pass. `strict` also
+requires every expected run and trial to have finished. `never` ignores trial
+results. Submission errors, failed batches, and timeouts still fail all gates.
 
 The action's `report` output is the path to a JSON results file. Upload it with
 `actions/upload-artifact` and `if: always()` if you want to keep it after the job.
@@ -85,28 +85,28 @@ matches the selected gate.
 Outside the action, the same command is:
 
 ```sh
-bunx --no-install anpord eval --fail-on strict --timeout 1200 --output results.json
+bunx --no-install anpord eval --fail-on failures --timeout 1200 --output results.json
 ```
 
 ## Keep comparisons stable
 
-When testing one change, keep everything in the [cell key](/evals/baselines) unchanged so the comparison holds. Pin fixture repositories to a commit. A harness release is compared against the existing baseline rather than starting a new one, and a regression names both versions.
+When testing one change, keep the rest of the [variant](/evals/variants) unchanged so its history stays comparable. Pin fixture repositories to a commit. A harness release stays on the same variant, and each run records the version it used.
 
 Use at least three trials for a gating check. One trial measures an outcome, not repeatability.
 
 ## Control the run size
 
 ```text
-total trials = cases x variants x trials per cell
+total trials = cases x variants x trials per run
 ```
 
 Five cases, two variants, and three trials open thirty sandbox sessions. Keep pull request grids small and run larger comparisons on a schedule.
 
-A cell runs between 1 and 10 trials. The [API reference](/api-reference/introduction) covers the request limits and what to do when a response is lost.
+A run holds between 1 and 10 trials. The [API reference](/api-reference/introduction) covers the request limits and what to do when a response is lost.
 
-The CLI records run IDs before polling and does not retry submissions. A remote
-run continues if CI times out or is cancelled. Open its dashboard link before
-starting another run.
+The CLI records batch IDs before polling and does not retry submissions. A remote
+batch continues if CI times out or is cancelled. Open its dashboard link before
+starting another.
 
 ## What a trial costs
 

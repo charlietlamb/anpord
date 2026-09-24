@@ -10,23 +10,20 @@ import { Anpord } from "anpord";
 import { smoke } from "./evals/smoke.eval";
 
 const anpord = new Anpord();
-const run = await anpord.evals.startAndWait(smoke);
+const batch = await anpord.evals.startAndWait(smoke);
 
-if (run.status === "failed") {
-  throw new Error(run.failure ?? "Eval run failed");
+if (batch.status === "failed") {
+  throw new Error(batch.failure ?? "Eval batch failed");
 }
 
-const regressions = run.cells.filter(
-  ({ comparison }) => comparison?.verdict === "regressed"
-);
-const unscored = run.cells.filter(
-  ({ distribution }) => (distribution?.scored ?? 0) === 0
+const failing = batch.runs.filter(({ trials }) =>
+  trials.some(({ status }) => status !== "passed")
 );
 
-if (regressions.length || unscored.length) process.exitCode = 1;
+if (failing.length) process.exitCode = 1;
 await anpord.dispose();
 ```
 
-`startAndWait` polls until the run finishes. Pass `timeoutMs` or `signal` to control waiting.
+`startAndWait` polls until the batch finishes. Pass `timeoutMs` or `signal` to control waiting.
 
 `compileEval("./evals/smoke.eval.ts")` compiles by path instead, and `compileDefinition` returns the request without sending it. See the [API client](/sdk/client).

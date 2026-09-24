@@ -41,8 +41,7 @@
               "introduction",
               "connections",
               "evals/variants",
-              "evals/results",
-              "evals/baselines"
+              "evals/results"
             ]
           },
           {

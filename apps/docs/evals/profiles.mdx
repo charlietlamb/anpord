@@ -16,7 +16,7 @@ variants: [
 ]
 ```
 
-The first column is the stock harness. The second is your configured harness. Each has its own cell and baseline, so profile changes are measured against that profile's history.
+The first column is the stock harness. The second is your configured harness. Each is its own variant with its own runs, so profile changes are read against that profile's history.
 
 ## The directory
 
@@ -102,22 +102,22 @@ For file-based delivery, place required instructions in `workspace/AGENTS.md` an
 
 ## Identity
 
-The profile **name** is part of the cell key. Two profiles on one base, one model and one sandbox are two cells with two histories, exactly as two harnesses would be.
+The profile **name** is part of the variant. Two profiles on one base, one model and one sandbox are two variants with two histories, exactly as two harnesses would be.
 
-The profile **version** is not. It is a content hash over the files, system prompt, environment, and install and run commands. An edited profile is a new reading on the same cell, measured against its baseline. Renaming a file changes the version. Renaming the profile starts a new cell.
+The profile **version** is not. It is a content hash over the files, system prompt, environment, and install and run commands. An edited profile is a new run on the same variant, and each run records the version it used. Renaming a file changes the version. Renaming the profile starts a new variant.
 
 ```ts
-const comparison = run.cells[0]?.comparison;
+const [latest, previous] = (
+  await anpord.evals.caseRuns({ caseId: "writes-docs", variant: variantId })
+).runs;
 
-if (comparison?.verdict === "regressed") {
-  console.error(comparison.baselineProfileVersion, "→", comparison.candidateProfileVersion);
-}
+console.log(previous?.profileVersion, "→", latest?.profileVersion);
 ```
 
 ## Comparing fairly
 
 Ship the same skills to every column. Skills usually live in agent-specific directories such as `.claude/skills` and `.agents/skills`. If only one column has them, the grid measures the skills instead of the harness. Write them into every directory the selected harnesses read through `workspace/`.
 
-Hold the model constant. Cells are not comparable when a profile requires an unavailable provider or the model ids do not overlap. State that beside the grid instead of interpreting the delta.
+Hold the model constant. Variants are not comparable when a profile requires an unavailable provider or the model ids do not overlap. State that beside the grid instead of interpreting the delta.
 
 Change one thing at a time. A run that moves the profile and the model together tells you something moved.

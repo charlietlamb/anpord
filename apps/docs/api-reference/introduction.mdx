@@ -26,23 +26,26 @@ curl https://api.anpord.com/v1/evals.list \
   -d '{"limit":20}'
 ```
 
-Keys belong to one organization. OAuth access tokens are also accepted. Eval reads use `evals:read`, and starts and reruns use `evals:write`.
+Keys belong to one organization. OAuth access tokens are also accepted. Eval reads use `evals:read`, and starting runs uses `evals:write`.
 
 ## Asynchronous evals
 
-`evals.start` returns an id while work continues on the server:
+`evals.start` runs every case of a suite on every variant. It returns the batch id, and a run id per case and variant, while work continues on the server:
 
 ```bash
 curl https://api.anpord.com/v1/evals.start \
   -H "authorization: Bearer $ANPORD_API_KEY" \
   -H "content-type: application/json" \
   -d '{
+    "suite": { "id": "smoke", "name": "Smoke", "prompt": "{{task}}" },
     "cases": [{
+      "id": "writes-hello",
       "name": "writes the requested file",
-      "task": "Create hello.txt containing exactly hello",
+      "prepare": null,
+      "source": { "kind": "empty" },
+      "variables": { "task": "Create hello.txt containing exactly hello" },
       "verify": "test \"$(cat hello.txt)\" = hello"
     }],
-    "prompt": "{{task}}",
     "variants": [{
       "harness": "codex",
       "model": "gpt-5.6-sol",
@@ -54,7 +57,7 @@ curl https://api.anpord.com/v1/evals.start \
 
 Poll `evals.get` with the returned id until `status` is `finished` or `failed`.
 
-One request may contain at most 100 total trials. Starting a run is not idempotent. If its response is lost, list recent runs before retrying.
+One request may contain at most 100 total trials. Starting a batch is not idempotent. If its response is lost, list recent batches before retrying.
 
 ## Errors
 

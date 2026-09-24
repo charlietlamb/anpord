@@ -37,6 +37,7 @@ export default suite({
   prompt: "{{task}}",
   cases: [
     {
+      id: "writes-hello",
       name: "writes hello",
       variables: { task: "Create hello.txt containing exactly hello" },
       verify: 'test "$(cat hello.txt)" = hello',
@@ -53,15 +54,16 @@ export default suite({
 npx anpord eval ./smoke.eval.ts
 ```
 
-Anpord compiles the TypeScript locally, then runs each trial in an isolated hosted sandbox. Each cell's first scored result becomes its baseline.
+Anpord compiles the TypeScript locally, then runs each trial in an isolated hosted sandbox.
 
 ## Vocabulary
 
+- **Suite:** cases that share a prompt, named by an id derived from its name unless you give one.
 - **Case:** the work to do and how to validate it.
-- **Variant:** the agent, model and sandbox configuration.
-- **Cell:** one case measured on one variant. This is what carries a baseline and a history.
-- **Trial:** one attempt at a cell.
-- **Run:** all the attempts started together.
+- **Variant:** the harness, model, sandbox, profile and simulated user a case runs on.
+- **Run:** one case on one variant, with its trials. A case's runs on a variant are its history.
+- **Trial:** one attempt within a run.
+- **Batch:** the runs started together, such as every case of a suite on every variant.
 
 The eval above is one case, one variant and three trials, so it makes three attempts. Two cases, three variants and three trials would make 18.
 
