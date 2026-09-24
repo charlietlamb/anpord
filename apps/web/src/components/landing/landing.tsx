@@ -69,24 +69,19 @@ export function Landing() {
         <h1
           className={cn(
             REVEAL,
-            "text-balance font-heading font-medium text-5xl tracking-tight sm:text-6xl"
+            "max-w-3xl font-heading text-3xl leading-[1.15] tracking-tight sm:text-5xl"
           )}
         >
-          Evals for Claude&nbsp;Code and Codex.
+          Streamline how agents use your product.{" "}
+          <span className="text-muted-foreground">
+            Test Claude&nbsp;Code and Codex against your CLI and docs, and catch
+            regressions – from your first eval to every release.
+          </span>
         </h1>
-        <p
-          className={cn(
-            REVEAL,
-            "mt-5 max-w-lg text-balance text-muted-foreground [animation-delay:75ms] sm:text-lg"
-          )}
-        >
-          Easily run evals across different sandboxes, harnesses and models to
-          optimize performance, latency and costs.
-        </p>
         <div
           className={cn(
             REVEAL,
-            "mt-8 flex flex-wrap items-center gap-3 [animation-delay:150ms]"
+            "mt-10 flex flex-wrap items-center gap-3 [animation-delay:100ms]"
           )}
         >
           <Link
