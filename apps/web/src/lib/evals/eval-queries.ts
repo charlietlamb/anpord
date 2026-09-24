@@ -1,8 +1,13 @@
 import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
-import type { EvalPageCursor, EvalRun } from "@anpord/schema/domain/evals";
+import type {
+  EvalArtifactRequest,
+  EvalPageCursor,
+  EvalRun,
+} from "@anpord/schema/domain/evals";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {
+  getArtifact,
   getCase,
   getRun,
   getTrialAddress,
@@ -93,6 +98,14 @@ export const evalQueries = {
       queryKey: evalKeys.trialAddress(id),
       queryFn: () => getTrialAddress(id),
       staleTime: Number.POSITIVE_INFINITY,
+    }),
+
+  artifact: (request: EvalArtifactRequest) =>
+    queryOptions({
+      queryKey: evalKeys.artifact(request),
+      queryFn: () => getArtifact(request),
+      staleTime: Number.POSITIVE_INFINITY,
+      gcTime: 300_000,
     }),
 
   caseHistory: (caseId: string, cellKey: string | null, page: number) =>

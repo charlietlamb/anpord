@@ -1,4 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
+import { COPY_RESET_MS } from "@anpord/ui/components/copy-button";
 import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
 import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { CheckIcon, type Icon } from "@phosphor-icons/react";
@@ -16,7 +17,7 @@ export function CopyAction({
   label,
   value,
 }: CopyActionProps) {
-  const { copied, copy } = useCopy(1000);
+  const { copied, copy } = useCopy(COPY_RESET_MS);
 
   return (
     <ActionTooltip label={copied ? copiedLabel : label}>

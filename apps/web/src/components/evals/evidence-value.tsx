@@ -1,6 +1,8 @@
 import { CopyButton } from "@anpord/ui/components/copy-button";
-import { CodeContent } from "@anpord/ui/components/ui/code-card";
+import { CodeContent } from "@anpord/ui/components/ui/code-content";
 import type { CodeLanguage } from "@anpord/ui/lib/highlight";
+import { SURFACE_BODY } from "@anpord/ui/lib/surface";
+import { cn } from "@anpord/ui/lib/utils";
 import { CaretRightIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { EvidenceLabel } from "./evidence-label";
@@ -126,8 +128,9 @@ export function EvidenceValue({
       <EvidenceLabel label={label} />
       {value === undefined ? null : (
         <CopyButton
-          className="size-6 shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/evidence:opacity-100"
+          className="shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/evidence:opacity-100"
           label={`Copy ${label}`}
+          size="inline"
           value={value}
         />
       )}
@@ -143,16 +146,15 @@ export function EvidenceValue({
           <MarkdownProse text={formatted.code || "(empty)"} />
         </div>
       ) : null}
-      {formatted?.shape === "preformatted" ? (
-        <div className="my-2 overflow-hidden rounded-lg border border-border bg-muted/30">
-          <CodeContent code={formatted.code} lang="text" maxHeight="max-h-80" />
+      {formatted === null || formatted.shape === "prose" ? null : (
+        <div className={cn("my-2", SURFACE_BODY)}>
+          <CodeContent
+            code={formatted.code}
+            lang={formatted.shape === "json" ? "json" : "text"}
+            maxHeight="max-h-80"
+          />
         </div>
-      ) : null}
-      {formatted?.shape === "json" ? (
-        <div className="my-2 overflow-hidden rounded-lg border border-border bg-muted/30">
-          <CodeContent code={formatted.code} lang="json" maxHeight="max-h-80" />
-        </div>
-      ) : null}
+      )}
       {formatted?.raw ? (
         <details className="group/raw ml-3 border-border border-l pl-3 [&[open]>summary>svg]:rotate-90">
           <summary className="flex cursor-pointer list-none items-center gap-1.5 py-2 text-2xs text-muted-foreground/80 transition-colors hover:text-foreground focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
@@ -162,7 +164,7 @@ export function EvidenceValue({
             />
             Raw value
           </summary>
-          <div className="mb-2 overflow-hidden rounded-lg border border-border bg-muted/30">
+          <div className={cn("mb-2", SURFACE_BODY)}>
             <CodeContent
               code={formatted.raw}
               lang="json"

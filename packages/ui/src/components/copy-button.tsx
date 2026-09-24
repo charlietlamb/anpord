@@ -1,36 +1,33 @@
+import { Button } from "@anpord/ui/components/button";
+import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
-import { useCopy } from "../hooks/use-copy";
-import { cn } from "../lib/utils";
-import { Button } from "./button";
 
-interface CopyButtonProps {
-  className?: string;
-  label?: string;
-  /** `inline` matches the type beside it rather than the padding around it. */
-  size?: "default" | "inline";
-  value: string;
-}
+export const COPY_RESET_MS = 1500;
 
 export function CopyButton({
-  value,
   className,
   label = "Copy",
   size = "default",
-}: CopyButtonProps) {
-  const { copied, copy } = useCopy(2000);
-  const inline = size === "inline";
+  value,
+}: {
+  readonly className?: string;
+  readonly label?: string;
+  readonly size?: "default" | "inline";
+  readonly value: string;
+}) {
+  const { copied, copy } = useCopy(COPY_RESET_MS);
   const Glyph = copied ? CheckIcon : CopyIcon;
 
   return (
     <Button
       aria-label={label}
-      className={cn(inline && "size-5", className)}
+      className={className}
       onClick={() => copy(value)}
-      size="icon-sm"
+      size={size === "inline" ? "icon-xs" : "icon-sm"}
       type="button"
       variant="bare"
     >
-      <Glyph className={inline ? "size-3.5" : "size-4"} />
+      <Glyph />
     </Button>
   );
 }

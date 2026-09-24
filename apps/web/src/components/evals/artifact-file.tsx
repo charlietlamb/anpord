@@ -3,117 +3,65 @@ import type {
   EvalArtifactRequest,
 } from "@anpord/schema/domain/evals";
 import { CopyButton } from "@anpord/ui/components/copy-button";
-import { CodeContent } from "@anpord/ui/components/ui/code-card";
-import type { CodeLanguage } from "@anpord/ui/lib/highlight";
-import { cn } from "@anpord/ui/lib/utils";
+import { CodeContent } from "@anpord/ui/components/ui/code-content";
+import {
+  CODE_FRAME_ACTION,
+  CodeFrame,
+} from "@anpord/ui/components/ui/code-frame";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { getArtifact } from "@/lib/evals/evals-client";
+import { ArtifactPending } from "@/components/evals/artifact-pending";
+import { codeLanguage } from "@/lib/evals/code-language";
+import { evalQueries } from "@/lib/evals/eval-queries";
 import { fileIcon } from "@/lib/evals/file-presentation";
 
-const TYPESCRIPT = /\.[cm]?[jt]sx?$/;
-const MARKDOWN = /\.mdx?$/;
-const language = (path: string): CodeLanguage => {
-  if (TYPESCRIPT.test(path)) {
-    return "typescript";
-  }
-  if (path.endsWith(".json")) {
-    return "json";
-  }
-  if (MARKDOWN.test(path)) {
-    return "markdown";
-  }
-  if (path.endsWith(".sh")) {
-    return "bash";
-  }
-  return "text";
-};
+const PLAIN_ABOVE_BYTES = 32_768;
 
 export function ArtifactFile({
   artifact,
-  className,
   maxHeight = "",
   trial,
 }: {
-  readonly maxHeight?: string;
   readonly artifact: EvalArtifactMetadata;
-  readonly className?: string;
+  readonly maxHeight?: string;
   readonly trial: Omit<EvalArtifactRequest, "sha256" | "path">;
 }) {
-  const [open, setOpen] = useState(true);
   const Glyph = fileIcon(artifact.path);
-  const { data, isPending, refetch } = useQuery({
-    queryKey: [
-      "artifact",
-      trial.id,
-      trial.cellKey,
-      trial.ordinal,
-      artifact.sha256,
-    ],
-    queryFn: () =>
-      getArtifact({ ...trial, path: artifact.path, sha256: artifact.sha256 }),
-    enabled: open,
-    staleTime: Number.POSITIVE_INFINITY,
-    gcTime: 300_000,
-  });
+  const { data, isPending, refetch } = useQuery(
+    evalQueries.artifact({
+      ...trial,
+      path: artifact.path,
+      sha256: artifact.sha256,
+    })
+  );
+
   return (
-    <div
-      className={cn(
-        "group/file overflow-hidden rounded-xl border border-border bg-muted/40",
-        className
-      )}
-    >
-      <div
-        className={cn(
-          "flex min-w-0 items-center gap-2 px-2 py-1.5 transition-colors hover:bg-muted/30",
-          /* With nothing below it, the rule would sit under nothing. */
-          open &&
-            (data || isPending) &&
-            "shadow-[inset_0_-1px_0_0] shadow-border"
-        )}
-      >
-        <button
-          aria-expanded={open}
-          className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-left text-xs"
-          onClick={() => setOpen(!open)}
-          type="button"
-        >
-          <Glyph
-            aria-hidden
-            className="size-4 shrink-0 text-muted-foreground"
-          />
-          <span className="min-w-0 flex-1 truncate font-mono">
-            {artifact.path}
-          </span>
-        </button>
-        {data ? (
+    <CodeFrame
+      actions={
+        data === undefined ? null : (
           <CopyButton
-            className="shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/file:opacity-100"
+            className={CODE_FRAME_ACTION}
             label={`Copy ${artifact.path}`}
             size="inline"
             value={data.content}
           />
-        ) : null}
-      </div>
-      {open && data ? (
+        )
+      }
+      icon={<Glyph aria-hidden className="size-4 shrink-0" />}
+      label={artifact.path}
+    >
+      {data === undefined ? (
+        <ArtifactPending onRetry={() => refetch()} pending={isPending} />
+      ) : (
         <CodeContent
           code={data.content}
-          lang={artifact.byteSize > 32_768 ? "text" : language(artifact.path)}
+          lang={
+            artifact.byteSize > PLAIN_ABOVE_BYTES
+              ? "text"
+              : codeLanguage(artifact.path)
+          }
           maxHeight={maxHeight}
         />
-      ) : null}
-      {open && !data && isPending ? (
-        <p className="px-4 py-5 text-muted-foreground text-xs">Loading file…</p>
-      ) : null}
-      {open && !data && !isPending ? (
-        <button
-          className="px-4 py-5 text-muted-foreground text-xs"
-          onClick={() => refetch()}
-          type="button"
-        >
-          Could not load file. Retry
-        </button>
-      ) : null}
-    </div>
+      )}
+    </CodeFrame>
   );
 }

@@ -1,4 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
+import { COPY_RESET_MS } from "@anpord/ui/components/copy-button";
 import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { cn } from "@anpord/ui/lib/utils";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
@@ -16,7 +17,7 @@ interface CopyableIdProps {
  * there is a reason for it to be a control.
  */
 export function CopyableId({ className, value }: CopyableIdProps) {
-  const { copied, copy } = useCopy(1000);
+  const { copied, copy } = useCopy(COPY_RESET_MS);
 
   return (
     <Button

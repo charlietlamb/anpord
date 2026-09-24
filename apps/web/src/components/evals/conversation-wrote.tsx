@@ -30,7 +30,6 @@ export function ConversationWrote({
           <li key={path}>
             <ArtifactFile
               artifact={artifact}
-              className="rounded-lg bg-card"
               maxHeight="max-h-96"
               trial={trial}
             />

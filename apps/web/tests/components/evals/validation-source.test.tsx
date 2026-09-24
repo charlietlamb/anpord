@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ValidationSource } from "../../../src/components/evals/validation-source";
 
-test("shows the original TypeScript with the shared file select", () => {
+test("shows every source file in full, each with its own copy button", () => {
   const html = renderToStaticMarkup(
     <ValidationSource
       files={[
@@ -11,15 +11,11 @@ test("shows the original TypeScript with the shared file select", () => {
       ]}
     />
   );
-  expect(html).toContain('aria-haspopup="dialog"');
-  expect(html).toContain('aria-label="Source file"');
-  expect(html).not.toContain("<select");
-  expect(html).toContain("const valid: boolean = true;\n");
+  expect(html).toContain("const valid: boolean = true;");
+  expect(html).toContain("export const name");
   expect(html).toContain("Copy validate.ts");
-  expect(html).not.toContain("<h3");
-  expect(html).not.toContain("group/surface");
-  expect(html.split("rounded-xl border")).toHaveLength(2);
-  expect(html.match(/>validate.ts</g)).toHaveLength(1);
+  expect(html).toContain("Copy judges.ts");
+  expect(html).not.toContain("<select");
 });
 
 test("renders source as text, not executable markup", () => {
