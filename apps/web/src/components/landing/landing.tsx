@@ -1,68 +1,13 @@
-import {
-  ClaudeMark,
-  CloudflareMark,
-  CursorMark,
-  DaytonaMark,
-  E2bMark,
-  ModalMark,
-  OpenAiMark,
-  OpencodeMark,
-  UpstashMark,
-  VercelMark,
-} from "@anpord/ui/components/brand/provider-marks";
-import { ShortcutKeys } from "@anpord/ui/components/ui/shortcut-keys";
-import { useShortcutClick } from "@anpord/ui/hooks/use-shortcut-click";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
-import { GaugeIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
-import { GithubIcon } from "@/components/icons/github-icon";
-import { type Vendor, VendorMarks } from "@/components/landing/vendor-marks";
+import { CopyAgentSetup } from "@/components/landing/copy-agent-setup";
 import { SiteLayout } from "@/components/layout/site-layout";
-import { REPO_URL } from "@/lib/urls";
-
-const HARNESSES: readonly Vendor[] = [
-  {
-    Mark: OpenAiMark,
-    href: "https://developers.openai.com/codex",
-    name: "Codex",
-  },
-  {
-    Mark: ClaudeMark,
-    href: "https://claude.com/product/claude-code",
-    name: "Claude Code",
-  },
-  { Mark: CursorMark, href: "https://cursor.com", name: "Cursor" },
-  { Mark: OpencodeMark, href: "https://opencode.ai", name: "opencode" },
-];
-
-const SANDBOXES: readonly Vendor[] = [
-  { Mark: E2bMark, href: "https://e2b.dev", name: "E2B" },
-  { Mark: DaytonaMark, href: "https://daytona.io", name: "Daytona" },
-  {
-    Mark: UpstashMark,
-    href: "https://upstash.com/docs/box",
-    name: "Upstash Box",
-  },
-  { Mark: ModalMark, href: "https://modal.com", name: "Modal" },
-  {
-    Mark: CloudflareMark,
-    href: "https://developers.cloudflare.com/sandbox",
-    name: "Cloudflare",
-  },
-  {
-    Mark: VercelMark,
-    href: "https://vercel.com/docs/vercel-sandbox",
-    name: "Vercel",
-  },
-];
 
 const REVEAL =
   "fade-in-0 slide-in-from-bottom-2 animate-in fill-mode-both ease-out [animation-duration:500ms]";
 
 export function Landing() {
-  const start = useShortcutClick<HTMLAnchorElement>("enter", { meta: true });
-
   return (
     <SiteLayout>
       <section className="flex flex-1 flex-col justify-center pb-24">
@@ -81,40 +26,23 @@ export function Landing() {
         <div
           className={cn(
             REVEAL,
-            "mt-10 flex flex-wrap items-center gap-3 [animation-delay:100ms]"
+            "mt-10 flex flex-wrap items-center gap-2 [animation-delay:100ms]"
           )}
         >
           <Link
-            className={buttonVariants({ size: "lg" })}
-            ref={start}
+            className={cn(buttonVariants({ size: "xl" }), "group/start")}
             to="/login"
           >
-            <GaugeIcon />
-            Start optimizing
-            <ShortcutKeys meta shortcut="enter" />
+            Get started
+            <span
+              aria-hidden
+              className="transition-transform duration-150 ease-out group-hover/start:translate-x-0.5"
+            >
+              →
+            </span>
           </Link>
-          <a
-            className={buttonVariants({ size: "lg", variant: "outline" })}
-            href={REPO_URL}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <GithubIcon />
-            View source
-          </a>
+          <CopyAgentSetup />
         </div>
-
-        <p
-          className={cn(
-            REVEAL,
-            "mt-9 flex flex-wrap items-center gap-x-2.5 gap-y-3 text-muted-foreground text-sm [animation-delay:225ms]"
-          )}
-        >
-          <span>Works with</span>
-          <VendorMarks items={HARNESSES} />
-          <span>across</span>
-          <VendorMarks items={SANDBOXES} />
-        </p>
       </section>
     </SiteLayout>
   );

@@ -21,6 +21,7 @@ export const buttonVariants = cva(
         default: "h-[1.875rem] gap-2 px-5 text-sm",
         sm: "h-7 gap-1.5 rounded-md px-3.5 text-sm [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-10 gap-2 px-5 text-sm",
+        xl: "h-11 gap-2 rounded-full px-5 text-[15px]",
         icon: "size-[1.875rem]",
         "icon-sm": "size-7 rounded-md [&_svg:not([class*='size-'])]:size-3.5",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3.5",

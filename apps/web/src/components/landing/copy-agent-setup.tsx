@@ -1,0 +1,23 @@
+import { useCopy } from "@anpord/ui/hooks/use-copy";
+import { buttonVariants } from "@anpord/ui/lib/button-variants";
+import { cn } from "@anpord/ui/lib/utils";
+import { AGENT_PROMPT } from "@/lib/agent-prompt";
+
+export function CopyAgentSetup() {
+  const { copied, copy } = useCopy();
+
+  return (
+    <button
+      className={cn(
+        buttonVariants({ size: "xl", variant: "subtle" }),
+        "text-foreground"
+      )}
+      onClick={() => copy(AGENT_PROMPT)}
+      type="button"
+    >
+      <span aria-live="polite">
+        {copied ? "Copied for your agent" : "Copy setup for agents"}
+      </span>
+    </button>
+  );
+}
