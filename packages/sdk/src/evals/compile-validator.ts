@@ -1,6 +1,7 @@
 import { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { Effect, Schema } from "effect";
+import { type Command, isCommand } from "./command";
 import { bundle } from "./eval-bundle";
 import {
   type DefinitionRef,
@@ -17,14 +18,16 @@ export const compileValidator = (
   captureValidation = true
 ) =>
   Effect.gen(function* () {
-    if (subject.validate === undefined) {
-      return null;
+    const name = subject.name ?? subject.id;
+    const validations: readonly (Validator | EvalJudge | Command)[] =
+      Array.isArray(subject.validate) ? subject.validate : [subject.validate];
+    if (validations.some(isCommand)) {
+      return yield* Effect.fail(
+        new Error(
+          `${name} combines a command with other validators. A command decides a case alone: validate: command("...").`
+        )
+      );
     }
-    const validations: readonly (Validator | EvalJudge)[] = Array.isArray(
-      subject.validate
-    )
-      ? subject.validate
-      : [subject.validate];
     if (validations.length === 0 || validations.length > 20) {
       return yield* Effect.fail(new Error("Use between 1 and 20 validators"));
     }
@@ -56,8 +59,8 @@ export const compileValidator = (
           {
             name:
               typeof subject.validate === "function"
-                ? subject.validate.name || subject.name
-                : subject.name,
+                ? subject.validate.name || name
+                : name,
             source: compiled.source,
             manifest,
             capture: captureValidation,
@@ -66,7 +69,7 @@ export const compileValidator = (
       : [];
     return yield* Schema.decodeUnknown(EvalValidator)({
       ...(judges.length > 0
-        ? { kind: "judged", name: subject.name, checks, judges }
+        ? { kind: "judged", name, checks, judges }
         : checks[0]),
       sourceFiles: compiled.sourceFiles,
       capture: captureValidation,

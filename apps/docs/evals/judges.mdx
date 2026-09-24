@@ -20,9 +20,9 @@ const correctness = judge({
 });
 
 export default suite({
-  name: "arithmetic",
+  id: "arithmetic",
   prompt: "What is 2 + 2? Explain briefly.",
-  cases: [{ id: "addition", name: "addition", validate: correctness }],
+  cases: [{ id: "addition", validate: correctness }],
   variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],
   trials: 3,
 });
@@ -32,7 +32,7 @@ The judge model is independent of the variant being measured. Anpord requests ex
 
 ## Combine checks
 
-`validate` accepts one validator or an array:
+`validate` accepts one validator or judge, or an array of them:
 
 ```ts
 validate: [checkToolCalls, correctness];

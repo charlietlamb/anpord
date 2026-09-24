@@ -157,7 +157,9 @@ describe("the generated suite", () => {
       ...oneCase({ name: "Two" }, "cases/two.yaml"),
     ]);
 
-    expect(source).toContain('name: "imported-suite"');
+    expect(source).toContain(
+      '  id: "imported-suite",\n  name: "imported-suite"'
+    );
   });
 
   test("parses as TypeScript with several cases in one suite", () => {

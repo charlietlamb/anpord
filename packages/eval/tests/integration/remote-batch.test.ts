@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { Database } from "@anpord/db/client";
 import { Effect, Layer, ManagedRuntime } from "effect";
-import { Batches } from "../../src/grid/batches";
+import { Batches } from "../../src/batch/batches";
 import { AgentTrial } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
 import { skipWithoutDatabase } from "../fixtures/database";

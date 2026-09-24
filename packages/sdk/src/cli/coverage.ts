@@ -2,7 +2,7 @@ import { PublicApi } from "@anpord/schema/public/api";
 import { Command } from "@effect/cli";
 import { HttpApi } from "@effect/platform";
 import { HashSet } from "effect";
-import { commands } from "./commands";
+import { commandsWith } from "./commands";
 
 export const apiOperations = () => {
   const names: string[] = [];
@@ -17,7 +17,7 @@ export const apiOperations = () => {
   return names.toSorted();
 };
 
-export const commandNames = () =>
-  commands
+export const commandNames = (prompts: boolean) =>
+  commandsWith(prompts)
     .flatMap((command) => HashSet.toValues(Command.getNames(command as never)))
     .toSorted();

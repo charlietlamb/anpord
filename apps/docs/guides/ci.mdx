@@ -47,16 +47,25 @@ Each suite file starts one batch: one run per case per variant. The job summary 
 | `api-key` | Required | Anpord API key |
 | `working-directory` | `.` | Project with `anpord` installed |
 | `file` | Discover `*.eval.ts` | Run one suite file |
+| `case` | Every case | Run one case. With `file`, picks it from the file. Without, runs the stored case again |
+| `variant` | Every variant | Variants to run, separated by commas or new lines: `harness/model` for a file, variant ids for a stored case |
 | `fail-on` | `failures` | `failures`, `strict` or `never` |
 | `timeout` | `1200` | Seconds to wait per batch |
+| `github-token` | None | Token that posts the results as a check run. Needs `checks: write` |
 
 - `failures` fails the job when any run fails or has a trial that did not pass.
 - `strict` also fails when a run or trial is missing or unfinished.
 - `never` ignores trial results.
 
-Under every gate, a batch that fails to start, fails, or times out fails the job.
+Under every gate, a batch that fails to start, fails, or times out fails the job. The step exits 0 when the gate passes, 2 when it fails, and 1 when a batch could not start or finish.
 
-The `report` output is the path to a JSON file with each suite file's batch ID, batch and problems. To keep it, upload it with `actions/upload-artifact` and `if: always()`.
+| Output | Value |
+| --- | --- |
+| `report` | Path to a JSON file with each suite file's batch ID, batch and problems |
+| `batch-ids` | The batch IDs started, separated by commas |
+| `conclusion` | `success`, `failure`, or `neutral` when a batch was started without waiting |
+
+To keep the report, upload it with `actions/upload-artifact` and `if: always()`.
 
 ## What runs
 
@@ -64,7 +73,7 @@ A case runs in an empty workspace unless it or its suite names a [`source`](/eva
 
 This example skips fork and Dependabot PRs because they don't receive repository secrets. Keep unit tests in a separate job so they still run. Don't use `pull_request_target` to run untrusted suites with a secret.
 
-The job is the PR check. For a separate check named `anpord` on the PR head commit, pass `GITHUB_TOKEN` in the step's `env` and grant `checks: write`. Its verdict follows the selected gate.
+The job is the PR check. For a separate check named `anpord` on the PR head commit, pass `github-token: ${{ github.token }}` and grant the job `checks: write`. Its verdict follows the selected gate.
 
 Outside the action, the same command is:
 

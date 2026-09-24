@@ -5,6 +5,7 @@ import { validateMcp } from "./validators/catalog";
 import { correctItem } from "./validators/judges";
 
 export default suite({
+  id: "anpord-ci-mcp",
   name: "anpord-ci/mcp",
   source: empty,
   mcp: [catalogMcp],

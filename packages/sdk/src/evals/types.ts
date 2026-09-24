@@ -11,6 +11,7 @@ import type { McpServerDefinition } from "../mcp/define";
 import type { ApiDefinition } from "../mock-api/define";
 import type { CliCall } from "../mock-cli/calls";
 import type { CliDefinition } from "../mock-cli/define";
+import type { Command } from "./command";
 
 export interface ProfileRef {
   readonly dir: string;
@@ -19,13 +20,10 @@ export interface ProfileRef {
 
 export type VariantInput = typeof EvalVariantRequest.Encoded;
 
-export type HarnessRef =
-  | EvalHarness
-  | { readonly base: EvalHarness; readonly profile: ProfileRef };
-
 export interface EvalVariantDefinition {
-  readonly harness: HarnessRef;
+  readonly harness: EvalHarness;
   readonly model: EvalVariantRequest["model"];
+  readonly profile?: ProfileRef;
   readonly sandbox?: EvalVariantRequest["sandbox"];
 }
 
@@ -96,34 +94,23 @@ export type Validator = (
 
 type DeclaredSource = EvalSource | string;
 
-interface EvalCaseBase {
+export type CaseValidation =
+  | Validator
+  | EvalJudge
+  | Command
+  | readonly (Validator | EvalJudge)[];
+
+export interface EvalCaseDefinition {
   readonly cache?: CaseCache;
   readonly id: string;
-  readonly name: string;
+  readonly name?: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;
   readonly tags?: readonly string[];
   readonly user?: EvalUser;
+  readonly validate: CaseValidation;
   readonly variables?: Readonly<Record<string, string>>;
 }
-
-export type EvalCaseDefinition = EvalCaseBase &
-  (
-    | {
-        readonly validate:
-          | Validator
-          | EvalJudge
-          | readonly (Validator | EvalJudge)[];
-        readonly verify?: never;
-      }
-    | { readonly validate?: never; readonly verify: string }
-  );
-
-export type SingleCaseDefinition = EvalCaseDefinition & {
-  readonly prompt: string;
-  readonly variants: readonly EvalVariantDefinition[];
-  readonly trials: number;
-};
 
 export interface EvalDefinition {
   readonly api?: readonly ApiDefinition[];
@@ -131,9 +118,9 @@ export interface EvalDefinition {
   readonly captureValidation?: boolean;
   readonly cases: readonly EvalCaseDefinition[];
   readonly cli?: readonly CliDefinition[];
-  readonly id?: string;
+  readonly id: string;
   readonly mcp?: readonly McpServerDefinition[];
-  readonly name: string;
+  readonly name?: string;
   readonly prompt: string;
   readonly source?: DeclaredSource;
   readonly trials: number;

@@ -6,6 +6,7 @@ import { note } from "./render";
 import { makeTranscriber } from "./transcriber";
 import type { Speaker } from "./transcript-turn";
 import { terminalStyle } from "./transcript-writer";
+import { formatVariant } from "./variant-label";
 
 const DIM = "[2m";
 const BOLD = "[1m";
@@ -79,19 +80,16 @@ const formatActivity = (run: EvalRun) => {
   return [paint(DIM, `      ${counts}`)];
 };
 
-export const formatVariant = (run: EvalRun) =>
-  `${run.variant.harness}/${run.variant.model}`;
-
 const widest = (batch: EvalBatch) =>
   batch.runs.reduce(
-    (width, run) => Math.max(width, formatVariant(run).length),
+    (width, run) => Math.max(width, formatVariant(run.variant).length),
     0
   );
 
 const byCase = (batch: EvalBatch) =>
   Map.groupBy(batch.runs, (run) => run.case.id).values();
 
-export const formatGrid = (
+export const formatBatch = (
   batch: EvalBatch,
   trials: number,
   elapsedMs: number
@@ -104,7 +102,7 @@ export const formatGrid = (
 
     for (const run of runs) {
       lines.push(
-        `    ${formatStatus(run)} ${formatVariant(run).padEnd(width)}  ${formatTrialProgress(run, trials)}  ${formatPassRate(run)}`
+        `    ${formatStatus(run)} ${formatVariant(run.variant).padEnd(width)}  ${formatTrialProgress(run, trials)}  ${formatPassRate(run)}`
       );
       lines.push(...formatActivity(run));
     }
@@ -133,7 +131,7 @@ export const formatGrid = (
 
 const up = (rows: number) => `[${rows}A[0J`;
 
-export type GridMode = "grid" | "lines" | "silent";
+export type ProgressMode = "live" | "lines" | "silent";
 
 const speakerOf = (
   batch: EvalBatch | null,
@@ -147,7 +145,7 @@ const speakerOf = (
     caseName: run?.case.name ?? "trial",
     key: `${runId}#${ordinal}`,
     ordinal: trials > 1 ? ordinal : null,
-    variant: run === undefined ? "" : formatVariant(run),
+    variant: run === undefined ? "" : formatVariant(run.variant),
   };
 };
 
@@ -162,14 +160,14 @@ const settledTrials = (batch: EvalBatch, trials: number) =>
     }))
   );
 
-export const liveGrid = (trials: number, mode: GridMode) =>
+export const watchBatch = (trials: number, mode: ProgressMode) =>
   Effect.gen(function* () {
     const drawn = yield* Ref.make(0);
     const latest = yield* Ref.make<{
       readonly batch: EvalBatch;
       readonly elapsedMs: number;
     } | null>(null);
-    const transcript = yield* makeTranscriber(terminalStyle(mode === "grid"));
+    const transcript = yield* makeTranscriber(terminalStyle(mode === "live"));
 
     const writing = yield* Effect.makeSemaphore(1);
 
@@ -177,8 +175,8 @@ export const liveGrid = (trials: number, mode: GridMode) =>
       Effect.gen(function* () {
         const held = yield* Ref.get(latest);
         const footer =
-          mode === "grid" && held !== null
-            ? ["", ...formatGrid(held.batch, trials, held.elapsedMs)]
+          mode === "live" && held !== null
+            ? ["", ...formatBatch(held.batch, trials, held.elapsedMs)]
             : [];
         const rows = yield* Ref.getAndSet(drawn, footer.length);
         const lines = [...above, ...footer];
@@ -220,8 +218,8 @@ export const liveGrid = (trials: number, mode: GridMode) =>
     return { draw, hear };
   });
 
-export const formatGridSummary = (
+export const formatBatchSummary = (
   batch: EvalBatch,
   trials: number,
   drawn: boolean
-) => (drawn ? "" : formatGrid(batch, trials, 0).join("\n"));
+) => (drawn ? "" : formatBatch(batch, trials, 0).join("\n"));

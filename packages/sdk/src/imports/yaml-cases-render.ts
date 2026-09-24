@@ -76,6 +76,7 @@ export const renderYamlSuite = (files: readonly YamlCaseFile[]) =>
     placeholderBlock,
     "",
     "export default suite({",
+    `  id: ${quoted(suiteName(files))},`,
     `  name: ${quoted(suiteName(files))},`,
     '  prompt: "{{task}}",',
     "  trials: 3,",

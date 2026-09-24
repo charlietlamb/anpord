@@ -37,18 +37,29 @@ describe("surface", () => {
   test("every endpoint in the group is reachable", () => {
     const anpord = new Anpord({ apiKey: "k" });
     expect(Object.keys(anpord.evals).toSorted()).toEqual([
-      "caseRuns",
-      "credentials",
-      "finish",
+      "batches",
+      "cases",
+      "models",
+      "runs",
+    ]);
+    expect(Object.keys(anpord.evals.batches).toSorted()).toEqual([
       "get",
       "list",
-      "models",
-      "reportTrial",
-      "runCase",
       "start",
       "startAndWait",
-      "subscription",
       "wait",
+    ]);
+    expect(Object.keys(anpord.evals.cases).toSorted()).toEqual([
+      "get",
+      "list",
+      "run",
+    ]);
+    expect(Object.keys(anpord.evals.runs).toSorted()).toEqual(["get", "list"]);
+    expect(Object.keys(anpord.evals.models)).toEqual(["list"]);
+    expect(Object.keys(anpord).toSorted()).toEqual([
+      "evals",
+      "prompts",
+      "runtime",
     ]);
     expect(Object.keys(anpord.prompts).toSorted()).toEqual([
       "create",
@@ -114,13 +125,13 @@ describe("validation", () => {
     );
   });
 
-  test("public evals reject a local sandbox before the network", async () => {
+  test("a batch rejects a local sandbox before the network", async () => {
     const anpord = new Anpord({
       apiKey: "unused",
       baseUrl: "http://127.0.0.1:1",
     });
     await expect(
-      anpord.evals.start({
+      anpord.evals.batches.start({
         cases: [
           {
             variables: { task: "Write hello.txt" },
@@ -140,13 +151,13 @@ describe("validation", () => {
     ).rejects.toThrow(SANDBOX_ERROR);
   });
 
-  test("public evals reject an empty model before the network", async () => {
+  test("a batch rejects an empty model before the network", async () => {
     const anpord = new Anpord({
       apiKey: "unused",
       baseUrl: "http://127.0.0.1:1",
     });
     await expect(
-      anpord.evals.start({
+      anpord.evals.batches.start({
         cases: [
           {
             variables: { task: "Write hello.txt" },

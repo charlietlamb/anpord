@@ -2,7 +2,7 @@ import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
 import type { EvalBatch } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Clock, Data, Duration, Effect, Fiber, Ref, Stream } from "effect";
-import { tailBatch } from "./eval-tail";
+import { followBatch } from "./batch-stream";
 
 const TICK = 1000;
 
@@ -54,7 +54,7 @@ export const waitForBatch = (
     });
 
     const read = Effect.gen(function* () {
-      const batch = yield* api.evals.get({ payload: { id } });
+      const batch = yield* api.batches.get({ payload: { id } });
 
       yield* Ref.set(latest, batch);
       yield* watcher.draw(batch, yield* elapsed);
@@ -73,7 +73,7 @@ export const waitForBatch = (
     );
 
     const watching = yield* Effect.forkScoped(
-      tailBatch(id, api).pipe(
+      followBatch(id, api).pipe(
         Stream.runFoldEffect(settledIn(first), (seen, tail) =>
           watcher
             .hear(tail.events)

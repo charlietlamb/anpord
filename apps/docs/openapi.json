@@ -538,12 +538,201 @@
         }
       }
     },
-    "/v1/evals.list": {
+    "/v1/evals.batches.start": {
       "post": {
         "tags": [
-          "Evals"
+          "Batches"
         ],
-        "operationId": "evals.list",
+        "operationId": "batches.start",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The batch started, and the run it holds for each case and variant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartedBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Starts one run per case and variant, and returns the batch while trials continue in the background. The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.",
+        "summary": "Start a batch for a suite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuiteBatchRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.batches.get": {
+      "post": {
+        "tags": [
+          "Batches"
+        ],
+        "operationId": "batches.get",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runs started together, such as every variant of a suite.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a batch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ById"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.batches.list": {
+      "post": {
+        "tags": [
+          "Batches"
+        ],
+        "operationId": "batches.list",
         "parameters": [],
         "security": [
           {
@@ -673,12 +862,200 @@
         }
       }
     },
-    "/v1/evals.start": {
+    "/v1/evals.cases.list": {
       "post": {
         "tags": [
-          "Evals"
+          "Cases"
         ],
-        "operationId": "evals.start",
+        "operationId": "cases.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cases, and every suite and tag they fall under.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalCasePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "List cases",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListCasesRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.cases.get": {
+      "post": {
+        "tags": [
+          "Cases"
+        ],
+        "operationId": "cases.get",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A case, how its newest version is set up, and each variant it has run on.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalCaseDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a case, its variants and its versions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ById"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.cases.run": {
+      "post": {
+        "tags": [
+          "Cases"
+        ],
+        "operationId": "cases.run",
         "parameters": [],
         "security": [
           {
@@ -754,13 +1131,13 @@
             }
           }
         },
-        "description": "Starts one run per case and variant, and returns the batch while trials continue in the background. The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.",
-        "summary": "Run a suite",
+        "description": "Runs the case's newest version on the variants named, or on every variant it has run on, so they can be compared.",
+        "summary": "Start a batch for a case",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PublicStartBatchRequest"
+                "$ref": "#/components/schemas/RunCaseBatchRequest"
               }
             }
           },
@@ -768,201 +1145,12 @@
         }
       }
     },
-    "/v1/evals.runCase": {
+    "/v1/evals.runs.list": {
       "post": {
         "tags": [
-          "Evals"
+          "Runs"
         ],
-        "operationId": "evals.runCase",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The batch started, and the run it holds for each case and variant.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StartedBatch"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "description": "Runs the case's newest version on one of its variants, or on every variant when none is named, so they can be compared.",
-        "summary": "Run a case again",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PublicRunCaseRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.get": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.get",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Runs started together, such as every variant of a suite.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EvalBatch"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get a batch",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvalBatchRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.caseRuns": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.caseRuns",
+        "operationId": "runs.list",
         "parameters": [],
         "security": [
           {
@@ -1044,7 +1232,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CaseRunsRequest"
+                "$ref": "#/components/schemas/ListRunsRequest"
               }
             }
           },
@@ -1052,12 +1240,12 @@
         }
       }
     },
-    "/v1/evals.subscription": {
+    "/v1/evals.runs.get": {
       "post": {
         "tags": [
-          "Evals"
+          "Runs"
         ],
-        "operationId": "evals.subscription",
+        "operationId": "runs.get",
         "parameters": [],
         "security": [
           {
@@ -1066,11 +1254,11 @@
         ],
         "responses": {
           "200": {
-            "description": "A scoped, read-only token for watching one batch in real time.",
+            "description": "One case run on one variant, with its trials.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BatchSubscription"
+                  "$ref": "#/components/schemas/EvalRun"
                 }
               }
             }
@@ -1133,13 +1321,12 @@
             }
           }
         },
-        "description": "Returns a read-only token scoped to this batch, for following it in real time. Short-lived: request another when it expires.",
-        "summary": "Watch a batch as it moves",
+        "summary": "Get a run and its trials",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EvalBatchRequest"
+                "$ref": "#/components/schemas/ById"
               }
             }
           },
@@ -1147,288 +1334,12 @@
         }
       }
     },
-    "/v1/evals.credentials": {
+    "/v1/evals.models.list": {
       "post": {
         "tags": [
-          "Evals"
+          "Models"
         ],
-        "operationId": "evals.credentials",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Credentials for one batch, held in memory and never written down. Short-lived: start another batch rather than keeping these.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CredentialLease"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "description": "For a batch started with local, so the machine running it holds no credentials of its own. Returns the organization credential for one harness, expiring in minutes.",
-        "summary": "Lease the credentials a local batch needs",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CredentialLeaseRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.reportTrial": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.reportTrial",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Report a trial the caller ran",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReportedTrial"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.finish": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.finish",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Runs started together, such as every variant of a suite.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EvalBatch"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Settle a batch whose trials the caller ran",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvalBatchRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.models": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.models",
+        "operationId": "models.list",
         "parameters": [],
         "security": [
           {
@@ -1504,12 +1415,12 @@
             }
           }
         },
-        "summary": "List models available to the harness",
+        "summary": "List models available to a harness",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EvalModelsRequest"
+                "$ref": "#/components/schemas/ListModelsRequest"
               }
             }
           },
@@ -2247,175 +2158,7 @@
         "additionalProperties": false,
         "description": "Remove a connector by its id."
       },
-      "ListBatchesRequest": {
-        "type": "object",
-        "required": [],
-        "properties": {
-          "cursor": {
-            "anyOf": [
-              {
-                "type": "object",
-                "required": [
-                  "id",
-                  "startedAtMillis"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "startedAtMillis": {
-                    "$ref": "#/components/schemas/Int"
-                  }
-                },
-                "additionalProperties": false
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "limit": {
-            "$ref": "#/components/schemas/Int"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Where to read from, and how much."
-      },
-      "Int": {
-        "type": "integer",
-        "description": "an integer",
-        "title": "int"
-      },
-      "EvalBatchSummary": {
-        "type": "object",
-        "required": [
-          "cases",
-          "failure",
-          "finishedAt",
-          "id",
-          "passed",
-          "runs",
-          "scored",
-          "startedAt",
-          "status",
-          "trigger",
-          "voided"
-        ],
-        "properties": {
-          "cases": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "failure": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "finishedAt": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTimestamp"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "id": {
-            "type": "string"
-          },
-          "passed": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "runs": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "scored": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "startedAt": {
-            "$ref": "#/components/schemas/EvalTimestamp"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "running",
-              "finished",
-              "failed"
-            ]
-          },
-          "trigger": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTrigger"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "voided": {
-            "$ref": "#/components/schemas/Int"
-          }
-        },
-        "additionalProperties": false,
-        "description": "A batch as a list shows it."
-      },
-      "EvalTimestamp": {
-        "type": "string",
-        "description": "An ISO-8601 timestamp in UTC.",
-        "format": "date-time"
-      },
-      "EvalTrigger": {
-        "type": "object",
-        "required": [
-          "source"
-        ],
-        "properties": {
-          "source": {
-            "type": "string",
-            "enum": [
-              "dashboard",
-              "api",
-              "cli",
-              "ci",
-              "mcp"
-            ]
-          },
-          "url": {
-            "type": "string",
-            "description": "a string at most 2048 character(s) long",
-            "title": "maxLength(2048)",
-            "maxLength": 2048
-          }
-        },
-        "additionalProperties": false,
-        "description": "What started this run. Client-reported context, not authorization."
-      },
-      "Conflict": {
-        "type": "object",
-        "required": [
-          "message",
-          "_tag"
-        ],
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "_tag": {
-            "type": "string",
-            "enum": [
-              "Conflict"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "PublicStartBatchRequest": {
+      "SuiteBatchRequest": {
         "type": "object",
         "required": [
           "cases",
@@ -2427,142 +2170,12 @@
           "cases": {
             "type": "array",
             "items": {
-              "type": "object",
-              "required": [
-                "id",
-                "name"
-              ],
-              "properties": {
-                "cache": {
-                  "$ref": "#/components/schemas/CaseCache"
-                },
-                "id": {
-                  "$ref": "#/components/schemas/EvalCaseId"
-                },
-                "name": {
-                  "$ref": "#/components/schemas/EvalCaseName"
-                },
-                "user": {
-                  "anyOf": [
-                    {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "required": [
-                            "kind",
-                            "goal",
-                            "prompt"
-                          ],
-                          "properties": {
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "simulated"
-                              ]
-                            },
-                            "goal": {
-                              "type": "string",
-                              "description": "a string at most 2000 character(s) long",
-                              "title": "maxLength(2000)",
-                              "minLength": 1,
-                              "maxLength": 2000
-                            },
-                            "prompt": {
-                              "type": "string",
-                              "description": "a string at most 8000 character(s) long",
-                              "title": "maxLength(8000)",
-                              "minLength": 1,
-                              "maxLength": 8000
-                            }
-                          },
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "object",
-                          "required": [
-                            "kind",
-                            "replies"
-                          ],
-                          "properties": {
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "scripted"
-                              ]
-                            },
-                            "replies": {
-                              "type": "array",
-                              "items": {
-                                "type": "string",
-                                "description": "a string at most 4000 character(s) long",
-                                "title": "maxLength(4000)",
-                                "minLength": 1,
-                                "maxLength": 4000
-                              },
-                              "description": "an array of at most 24 item(s)",
-                              "title": "maxItems(24)",
-                              "minItems": 1,
-                              "maxItems": 24
-                            }
-                          },
-                          "additionalProperties": false
-                        }
-                      ]
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "prepare": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/EvalPrepare"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "source": {
-                  "$ref": "#/components/schemas/EvalSource"
-                },
-                "tags": {
-                  "$ref": "#/components/schemas/EvalCaseTags"
-                },
-                "variables": {
-                  "$ref": "#/components/schemas/EvalVariables"
-                },
-                "validator": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/EvalValidator"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "verify": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/EvalVerify"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
+              "$ref": "#/components/schemas/EvalCase"
             },
             "description": "an array of at most 100 item(s)",
             "title": "maxItems(100)",
             "minItems": 1,
             "maxItems": 100
-          },
-          "local": {
-            "type": "boolean"
           },
           "suite": {
             "$ref": "#/components/schemas/EvalSuiteRequest"
@@ -2573,16 +2186,6 @@
             "title": "between(1, 10)",
             "minimum": 1,
             "maximum": 10
-          },
-          "trigger": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTrigger"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "variants": {
             "type": "array",
@@ -2595,8 +2198,137 @@
             "maxItems": 20
           }
         },
+        "additionalProperties": false
+      },
+      "EvalCase": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "cache": {
+            "$ref": "#/components/schemas/CaseCache"
+          },
+          "id": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          },
+          "user": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "goal",
+                      "prompt"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "simulated"
+                        ]
+                      },
+                      "goal": {
+                        "type": "string",
+                        "description": "a string at most 2000 character(s) long",
+                        "title": "maxLength(2000)",
+                        "minLength": 1,
+                        "maxLength": 2000
+                      },
+                      "prompt": {
+                        "type": "string",
+                        "description": "a string at most 8000 character(s) long",
+                        "title": "maxLength(8000)",
+                        "minLength": 1,
+                        "maxLength": 8000
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "replies"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "scripted"
+                        ]
+                      },
+                      "replies": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "a string at most 4000 character(s) long",
+                          "title": "maxLength(4000)",
+                          "minLength": 1,
+                          "maxLength": 4000
+                        },
+                        "description": "an array of at most 24 item(s)",
+                        "title": "maxItems(24)",
+                        "minItems": 1,
+                        "maxItems": 24
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prepare": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalPrepare"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/EvalSource"
+          },
+          "tags": {
+            "$ref": "#/components/schemas/EvalCaseTags"
+          },
+          "variables": {
+            "$ref": "#/components/schemas/EvalVariables"
+          },
+          "validator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalValidator"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verify": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalVerify"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "$ref": "#/components/schemas/EvalCaseName"
+          }
+        },
         "additionalProperties": false,
-        "description": "Run every case of a suite on every variant, each as many times as trials."
+        "description": "One eval. Its name defaults to its id."
       },
       "CaseCache": {
         "type": "object",
@@ -2627,12 +2359,6 @@
         "minLength": 1,
         "maxLength": 100,
         "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-      },
-      "EvalCaseName": {
-        "type": "string",
-        "description": "What a case is called.",
-        "title": "maxLength(200)",
-        "maxLength": 200
       },
       "EvalPrepare": {
         "type": "object",
@@ -3187,32 +2913,42 @@
         "title": "int",
         "minimum": 0
       },
+      "Int": {
+        "type": "integer",
+        "description": "an integer",
+        "title": "int"
+      },
       "EvalVerify": {
         "type": "string",
         "description": "The shell command that decides whether a trial passed.",
         "title": "maxLength(8192)",
         "maxLength": 8192
       },
+      "EvalCaseName": {
+        "type": "string",
+        "description": "What a case is called.",
+        "title": "maxLength(200)",
+        "maxLength": 200
+      },
       "EvalSuiteRequest": {
         "type": "object",
         "required": [
           "id",
-          "name",
           "prompt"
         ],
         "properties": {
           "id": {
             "$ref": "#/components/schemas/EvalSuiteId"
           },
-          "name": {
-            "$ref": "#/components/schemas/EvalSuiteName"
-          },
           "prompt": {
             "$ref": "#/components/schemas/EvalPrompt"
+          },
+          "name": {
+            "$ref": "#/components/schemas/EvalSuiteName"
           }
         },
         "additionalProperties": false,
-        "description": "The suite the cases belong to, and the prompt they share."
+        "description": "The suite the cases belong to, and the prompt they share. Its name defaults to its id."
       },
       "EvalSuiteId": {
         "type": "string",
@@ -3222,18 +2958,18 @@
         "maxLength": 100,
         "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       },
+      "EvalPrompt": {
+        "type": "string",
+        "description": "What the agent is asked to do.",
+        "title": "maxLength(16384)",
+        "maxLength": 16384
+      },
       "EvalSuiteName": {
         "type": "string",
         "description": "What a suite is called.",
         "title": "maxLength(200)",
         "minLength": 1,
         "maxLength": 200
-      },
-      "EvalPrompt": {
-        "type": "string",
-        "description": "What the agent is asked to do.",
-        "title": "maxLength(16384)",
-        "maxLength": 16384
       },
       "EvalVariantRequest": {
         "type": "object",
@@ -3379,7 +3115,7 @@
               "required": [
                 "caseId",
                 "id",
-                "variantIndex"
+                "variantId"
               ],
               "properties": {
                 "caseId": {
@@ -3388,8 +3124,8 @@
                 "id": {
                   "type": "string"
                 },
-                "variantIndex": {
-                  "$ref": "#/components/schemas/Int"
+                "variantId": {
+                  "type": "string"
                 }
               },
               "additionalProperties": false
@@ -3399,30 +3135,26 @@
         "additionalProperties": false,
         "description": "The batch started, and the run it holds for each case and variant."
       },
-      "PublicRunCaseRequest": {
+      "Conflict": {
         "type": "object",
         "required": [
-          "caseId",
-          "trials"
+          "message",
+          "_tag"
         ],
         "properties": {
-          "caseId": {
-            "$ref": "#/components/schemas/EvalCaseId"
-          },
-          "trials": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a number between 1 and 10",
-            "title": "between(1, 10)",
-            "minimum": 1,
-            "maximum": 10
-          },
-          "variant": {
+          "message": {
             "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Conflict"
+            ]
           }
         },
         "additionalProperties": false
       },
-      "EvalBatchRequest": {
+      "ById": {
         "type": "object",
         "required": [
           "id"
@@ -3433,7 +3165,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Select a batch by id."
+        "description": "Select one by id."
       },
       "EvalBatch": {
         "type": "object",
@@ -3608,6 +3340,11 @@
         },
         "additionalProperties": false,
         "description": "What one layer of a trial cost, and how far that is known."
+      },
+      "EvalTimestamp": {
+        "type": "string",
+        "description": "An ISO-8601 timestamp in UTC.",
+        "format": "date-time"
       },
       "EvalRun": {
         "type": "object",
@@ -4634,6 +4371,32 @@
         "additionalProperties": false,
         "description": "One condition of the verifier, and how it exited. Only the steps that ran are listed: the script stops at the first failure."
       },
+      "EvalTrigger": {
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "dashboard",
+              "api",
+              "cli",
+              "ci",
+              "mcp"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "a string at most 2048 character(s) long",
+            "title": "maxLength(2048)",
+            "maxLength": 2048
+          }
+        },
+        "additionalProperties": false,
+        "description": "What started this run. Client-reported context, not authorization."
+      },
       "EvalVariant": {
         "type": "object",
         "required": [
@@ -4701,7 +4464,398 @@
         "additionalProperties": false,
         "description": "The harness, model, sandbox and profile a case runs on. A case has one variant per combination it has run on."
       },
-      "CaseRunsRequest": {
+      "ListBatchesRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Where to read from, and how much."
+      },
+      "EvalBatchSummary": {
+        "type": "object",
+        "required": [
+          "cases",
+          "failure",
+          "finishedAt",
+          "id",
+          "passed",
+          "runs",
+          "scored",
+          "startedAt",
+          "status",
+          "trigger",
+          "voided"
+        ],
+        "properties": {
+          "cases": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "passed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "runs": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "scored": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "startedAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "voided": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A batch as a list shows it."
+      },
+      "ListCasesRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "suite": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Where to read from, how much, and an optional suite or tag."
+      },
+      "EvalCasePage": {
+        "type": "object",
+        "required": [
+          "cases",
+          "next",
+          "suites",
+          "tags"
+        ],
+        "properties": {
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalCaseSummary"
+            }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "suites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalSuite"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Cases, and every suite and tag they fall under."
+      },
+      "EvalCaseSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "lastRunAt",
+          "name",
+          "suite",
+          "tags",
+          "variants"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          },
+          "lastRunAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "name": {
+            "type": "string"
+          },
+          "suite": {
+            "$ref": "#/components/schemas/EvalSuite"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalVariantResult"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A case as the list shows it, with each variant's newest run."
+      },
+      "EvalVariantResult": {
+        "type": "object",
+        "required": [
+          "distribution",
+          "lastRunAt",
+          "lastRunId",
+          "runs",
+          "variant"
+        ],
+        "properties": {
+          "distribution": {
+            "$ref": "#/components/schemas/EvalDistribution"
+          },
+          "lastRunAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "lastRunId": {
+            "type": "string"
+          },
+          "runs": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "variant": {
+            "$ref": "#/components/schemas/EvalVariant"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A variant of a case and how its newest run went."
+      },
+      "EvalCaseDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "setup",
+          "suite",
+          "tags",
+          "variants",
+          "versions"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/EvalSetup"
+          },
+          "suite": {
+            "$ref": "#/components/schemas/EvalSuite"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalVariantResult"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalCaseVersion"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A case, how its newest version is set up, and each variant it has run on."
+      },
+      "EvalCaseVersion": {
+        "type": "object",
+        "required": [
+          "author",
+          "changes",
+          "createdAt",
+          "definitionHash"
+        ],
+        "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "definitionHash": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "One definition a case held, who wrote it, and what it changed."
+      },
+      "RunCaseBatchRequest": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "trials": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Int",
+                "description": "a number between 1 and 10",
+                "title": "between(1, 10)",
+                "minimum": 1,
+                "maximum": 10
+              }
+            ],
+            "title": "between(1, 10)",
+            "description": "a number between 1 and 10"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "an array of at most 20 item(s)",
+            "title": "maxItems(20)",
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "id": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ListRunsRequest": {
         "type": "object",
         "required": [
           "caseId"
@@ -4748,466 +4902,7 @@
         "additionalProperties": false,
         "description": "One page of a case's runs, newest first."
       },
-      "BatchSubscription": {
-        "type": "object",
-        "required": [
-          "expiresAtMillis",
-          "tag",
-          "token"
-        ],
-        "properties": {
-          "expiresAtMillis": {
-            "type": "number"
-          },
-          "tag": {
-            "type": "string"
-          },
-          "token": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "description": "A scoped, read-only token for watching one batch in real time."
-      },
-      "CredentialLeaseRequest": {
-        "type": "object",
-        "required": [
-          "harness",
-          "id"
-        ],
-        "properties": {
-          "harness": {
-            "type": "string",
-            "enum": [
-              "codex",
-              "opencode",
-              "pi",
-              "fx",
-              "claude",
-              "gemini",
-              "qwen",
-              "cursor",
-              "command"
-            ]
-          },
-          "id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Ask for the credentials a batch the caller is executing needs, for the harness it names."
-      },
-      "CredentialLease": {
-        "type": "object",
-        "required": [
-          "expiresAt",
-          "values"
-        ],
-        "properties": {
-          "expiresAt": {
-            "$ref": "#/components/schemas/DateTimeUtc"
-          },
-          "values": {
-            "type": "object",
-            "required": [],
-            "properties": {},
-            "additionalProperties": {
-              "type": "string"
-            }
-          }
-        },
-        "additionalProperties": false,
-        "description": "Credentials for one batch, held in memory and never written down. Short-lived: start another batch rather than keeping these."
-      },
-      "ReportedTrial": {
-        "type": "object",
-        "required": [
-          "events",
-          "ordinal",
-          "outcome",
-          "runId"
-        ],
-        "properties": {
-          "events": {
-            "type": "array",
-            "items": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "model",
-                    "sessionId"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Started"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "model": {
-                      "type": "string"
-                    },
-                    "sessionId": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "role",
-                    "text"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Message"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "role": {
-                      "type": "string",
-                      "enum": [
-                        "assistant",
-                        "user"
-                      ]
-                    },
-                    "text": {
-                      "type": "string"
-                    },
-                    "usage": {
-                      "type": "object",
-                      "required": [
-                        "cacheReadTokens",
-                        "cacheWriteTokens",
-                        "inputTokens",
-                        "outputTokens",
-                        "totalTokens"
-                      ],
-                      "properties": {
-                        "cacheReadTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "cacheWriteTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "costUsd": {
-                          "type": "number"
-                        },
-                        "inputTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "outputTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "totalTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        }
-                      },
-                      "additionalProperties": false
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "command",
-                    "exitCode",
-                    "output"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Command"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "command": {
-                      "type": "string"
-                    },
-                    "exitCode": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "output": {
-                      "type": "string"
-                    },
-                    "startedAt": {
-                      "type": "number"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "paths"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "FileChange"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "paths": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "callId",
-                    "input",
-                    "name",
-                    "status"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "ToolCall"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "callId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "input": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "output": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    },
-                    "startedAt": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "reason"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Finished"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "reason": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              ]
-            }
-          },
-          "ordinal": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a positive number",
-            "title": "positive",
-            "exclusiveMinimum": 0
-          },
-          "outcome": {
-            "type": "object",
-            "required": [
-              "commandCount",
-              "exitCode",
-              "modelMs",
-              "sandboxMs",
-              "status",
-              "verifySteps",
-              "voidFields"
-            ],
-            "properties": {
-              "artifacts": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "path",
-                    "byteSize",
-                    "sha256"
-                  ],
-                  "properties": {
-                    "path": {
-                      "type": "string"
-                    },
-                    "byteSize": {
-                      "$ref": "#/components/schemas/Int",
-                      "description": "a non-negative number",
-                      "title": "nonNegative",
-                      "minimum": 0
-                    },
-                    "sha256": {
-                      "type": "string",
-                      "description": "a string matching the pattern ^[a-f0-9]{64}$",
-                      "pattern": "^[a-f0-9]{64}$"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "commandCount": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "exitCode": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "modelMs": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "sandboxMs": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "status": {
-                "type": "string",
-                "enum": [
-                  "queued",
-                  "running",
-                  "passed",
-                  "failed",
-                  "void"
-                ]
-              },
-              "validations": {
-                "$ref": "#/components/schemas/EvalValidations"
-              },
-              "verifySteps": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/EvalVerifyStep"
-                }
-              },
-              "voidFields": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            },
-            "additionalProperties": false
-          },
-          "runId": {
-            "type": "string"
-          },
-          "sandboxId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "usage": {
-            "anyOf": [
-              {
-                "type": "object",
-                "required": [
-                  "cacheReadTokens",
-                  "cacheWriteTokens",
-                  "inputTokens",
-                  "outputTokens",
-                  "totalTokens"
-                ],
-                "properties": {
-                  "cacheReadTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "cacheWriteTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "costUsd": {
-                    "type": "number"
-                  },
-                  "inputTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "outputTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "totalTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  }
-                },
-                "additionalProperties": false
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "description": "One trial a client ran and is reporting the result of."
-      },
-      "EvalModelsRequest": {
+      "ListModelsRequest": {
         "type": "object",
         "required": [
           "harness"
@@ -5712,8 +5407,20 @@
       "description": "Connect the credentials an eval run needs: a harness to drive, a sandbox to run in, and a model to play a case's human."
     },
     {
-      "name": "Evals",
-      "description": "Run the cases of a suite on harness, model and sandbox variants, and compare the runs."
+      "name": "Batches",
+      "description": "Runs started together, such as every case of a suite on every variant."
+    },
+    {
+      "name": "Cases",
+      "description": "One eval each, belonging to a suite, run on one or more variants."
+    },
+    {
+      "name": "Runs",
+      "description": "One case run on one variant, with its trials."
+    },
+    {
+      "name": "Models",
+      "description": "The models a variant can name."
     },
     {
       "name": "Prompts",

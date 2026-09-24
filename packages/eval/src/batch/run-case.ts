@@ -15,8 +15,16 @@ export interface RunCase {
   readonly hostedOnly: boolean;
   readonly trials: number;
   readonly trigger: EvalTrigger;
-  readonly variantId: string | null;
+  readonly variantIds: readonly string[] | null;
 }
+
+const missingVariants = (
+  requested: readonly string[] | null,
+  runs: readonly { readonly variantInternalId: string }[]
+) => {
+  const found = new Set(runs.map((run) => run.variantInternalId));
+  return [...new Set(requested ?? [])].filter((id) => !found.has(id));
+};
 
 export const makeRunCase = (
   launch: (input: Launch) => Effect.Effect<
@@ -36,7 +44,7 @@ export const makeRunCase = (
         const found = yield* templates({
           caseId: input.caseId,
           organizationId: input.actor.organizationId,
-          variantId: input.variantId,
+          variantIds: input.variantIds,
         }).pipe(Effect.orDie);
 
         if (Option.isNone(found)) {
@@ -45,10 +53,18 @@ export const makeRunCase = (
 
         const { caseVersionInternalId, runs } = found.value;
 
+        const missing = missingVariants(input.variantIds, runs);
+        if (missing.length > 0) {
+          return yield* new NotRunnable({
+            id: input.caseId,
+            problems: [`this case has not run on ${missing.join(", ")}`],
+          });
+        }
+
         if (runs.length === 0) {
           return yield* new NotRunnable({
             id: input.caseId,
-            problems: ["this case has not run on that variant"],
+            problems: ["this case has not run on any variant"],
           });
         }
 
@@ -96,10 +112,10 @@ export const makeRunCase = (
 
         return {
           id: created.internalId,
-          runs: runs.map((_, index) => ({
+          runs: runs.map((run, index) => ({
             caseId: input.caseId,
             id: created.runInternalIds[index] ?? "",
-            variantIndex: index,
+            variantId: run.variantInternalId,
           })),
         } satisfies StartedBatch;
       }).pipe(

@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { command } from "../../src/evals/command";
 import { compileDefinition } from "../../src/evals/compiler";
 import { suite } from "../../src/evals/define";
 import { smoke } from "./fixtures/named.eval";
@@ -26,11 +27,12 @@ describe("compiling an imported definition", () => {
 
   test("says so when the eval is not exported from its file", async () => {
     const orphan = suite({
+      id: "orphan",
       name: "orphan",
       prompt: "x",
       variants: [{ harness: "codex", model: "m" }],
       trials: 1,
-      cases: [{ id: "a", name: "a", verify: "true" }],
+      cases: [{ id: "a", name: "a", validate: command("true") }],
     });
 
     await expect(compileDefinition(orphan)).rejects.toThrow(NOT_EXPORTED);

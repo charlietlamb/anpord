@@ -11,12 +11,14 @@ You write evals, validators, judges, classifiers and whatever else you need in T
 import { suite } from "anpord";
 
 export default suite({
+  id: "hello",
   name: "hello",
   prompt: "Create hello.txt containing exactly hello",
   variants: [{ harness: "codex", model: "gpt-6-astra" }],
   trials: 1,
   cases: [
     {
+      id: "writes-hello",
       name: "writes hello",
       validate: async ({ readText }) => ({
         passed: (await readText("hello.txt")) === "hello",

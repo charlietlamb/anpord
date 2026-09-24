@@ -9,6 +9,7 @@ import type {
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Effect, Layer, Option, Redacted } from "effect";
+import { BatchesLive } from "../../src/batch/batches";
 import { SourceTokensNone } from "../../src/codebase/source-token";
 import { CredentialError } from "../../src/credentials/errors";
 import {
@@ -16,7 +17,6 @@ import {
   type ResolveCredential,
 } from "../../src/credentials/resolver";
 import { SandboxUnavailable } from "../../src/domain/errors";
-import { BatchesLive } from "../../src/grid/batches";
 import { ModelPrices } from "../../src/ports/model-source";
 import { RunBellSilent } from "../../src/ports/run-bell";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";

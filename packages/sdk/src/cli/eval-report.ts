@@ -1,12 +1,12 @@
 import { FileSystem } from "@effect/platform";
 import { Config, Effect, Option, Schema } from "effect";
 import { webUrlConfig } from "../client/config";
-import { EvalOutcome } from "./eval-outcome";
 import { batchUrl, buildGithubCheck } from "./github-check";
 import { note } from "./render";
+import { SuiteOutcome } from "./suite-outcome";
 
 const reportJson = Schema.encodeSync(
-  Schema.parseJson(Schema.Array(EvalOutcome))
+  Schema.parseJson(Schema.Array(SuiteOutcome))
 );
 
 const appendSummary = (text: string) =>
@@ -20,15 +20,15 @@ const appendSummary = (text: string) =>
     }
   });
 
-export const reportStarted = (file: string, id: string) =>
+export const reportStarted = (label: string, id: string) =>
   Effect.gen(function* () {
     const url = batchUrl(yield* webUrlConfig, id);
-    yield* note(`${file}: ${url}`);
+    yield* note(`${label}: ${url}`);
     yield* appendSummary(`[Batch ${id}](${url}) started.`);
   });
 
 export const writeReport = (
-  outcomes: readonly EvalOutcome[],
+  outcomes: readonly SuiteOutcome[],
   path: Option.Option<string>
 ) =>
   Effect.gen(function* () {
@@ -38,7 +38,7 @@ export const writeReport = (
     }
   });
 
-export const reportFinished = (outcomes: readonly EvalOutcome[]) =>
+export const reportFinished = (outcomes: readonly SuiteOutcome[]) =>
   Effect.gen(function* () {
     const report = buildGithubCheck(outcomes, yield* webUrlConfig);
     yield* appendSummary(

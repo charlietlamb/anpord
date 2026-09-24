@@ -3,6 +3,7 @@ import { isDefinition } from "../../src/evals/definition-loader";
 
 const definition = {
   cases: [],
+  id: "release-notes",
   name: "release notes",
   prompt: "Do the work.",
   variants: [],
@@ -27,6 +28,12 @@ describe("isDefinition", () => {
     ).toBe(true);
   });
 
+  test("accepts a definition without a name, which defaults to its id", () => {
+    const { name: _name, ...unnamed } = definition;
+
+    expect(isDefinition(unnamed)).toBe(true);
+  });
+
   test("refuses a module that exported something else", () => {
     for (const value of [null, undefined, "a string", 7, []]) {
       expect(isDefinition(value)).toBe(false);
@@ -37,7 +44,6 @@ describe("isDefinition", () => {
     const { cases, name, prompt, variants, trials } = definition;
 
     expect(isDefinition({ name, prompt, variants, trials })).toBe(false);
-    expect(isDefinition({ cases, prompt, variants, trials })).toBe(false);
     expect(isDefinition({ cases, name, variants, trials })).toBe(false);
     expect(isDefinition({ cases, name, prompt, trials })).toBe(false);
     expect(isDefinition({ cases, name, prompt, variants })).toBe(false);

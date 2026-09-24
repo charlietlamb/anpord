@@ -3,15 +3,15 @@ title: "Results"
 description: "Read a batch, its runs and each trial"
 ---
 
-Starting evals creates a batch with one run per case per variant. Each run holds its trials. `evals.start` returns the batch id and a run id for each case and variant while trials continue on the server. `startAndWait` resolves once the batch stops:
+Starting evals creates a batch with one run per case per variant. Each run holds its trials. `evals.batches.start` returns the batch id and, for each case and variant, a run with its `caseId` and `variantId`, while trials continue on the server. `startAndWait` resolves once the batch stops:
 
 ```ts
-const batch = await anpord.evals.startAndWait(smoke);
+const batch = await anpord.evals.batches.startAndWait(smoke);
 ```
 
-To wait on a batch you started earlier, pass its id to `evals.wait({ id })`. Both poll `evals.get`, backing off as the batch goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs` and `maxIntervalMs`.
+To wait on a batch you started earlier, pass its id to `evals.batches.wait({ id })`. Both poll `evals.batches.get`, backing off as the batch goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs` and `maxIntervalMs`.
 
-Neither cancels the batch. On timeout or abort it keeps going, and `evals.get` can still read it.
+Neither cancels the batch. On timeout or abort it keeps going, and `evals.batches.get` can still read it.
 
 | Batch status | Meaning |
 | --- | --- |
@@ -40,8 +40,8 @@ Only scored trials count. When `scored` is zero, `passRate` is zero, which is no
 | --- | --- |
 | `queued` | Not started |
 | `running` | The harness is working |
-| `passed` | The verifier passed |
-| `failed` | The verifier ran and did not pass |
+| `passed` | Every check in `validate` passed |
+| `failed` | A check ran and did not pass |
 | `void` | Required evidence is missing |
 
 A void trial is an infrastructure failure, not a verdict. `voidFields` names the missing evidence where it can be identified. Keep void trials out of pass rates in reports and CI.
@@ -68,7 +68,7 @@ Start with the distribution, then compare a passing and a failing trajectory fro
 
 ## Validation evidence
 
-Each trial's `validations` holds the code checks, judges, classifiers and command verifier that scored it:
+Each trial's `validations` holds the code checks, judges and command that scored it:
 
 ```ts
 for (const validation of batch.runs[0].trials[0].validations) {
@@ -77,7 +77,7 @@ for (const validation of batch.runs[0].trials[0].validations) {
 }
 ```
 
-Code checks record their return value, context calls and results, logs and exceptions. Judges record the prompt, raw response, provider metadata and parsed judgment. Classifiers record the label they chose, the expected label and the probability of every option. Command verifiers record the command, stdout, stderr and exit code.
+Code checks record their return value, context calls and results, logs and exceptions. Judges record the prompt, raw response, provider metadata and parsed judgment. Commands record the command, stdout, stderr and exit code.
 
 `failed` means a check finished and did not pass, `error` means it could not finish, and `skipped` means it never ran. Earlier checks stay visible when a later one crashes. Runs from before capture existed have no evidence to show.
 
@@ -87,10 +87,6 @@ Inputs and logs can contain your data. Set `captureValidation: false` on the sui
 
 ## Trigger
 
-Each batch records a `trigger` (Dashboard, CLI, CI, API or MCP), and its runs inherit it. The CLI and MCP set it. Direct API calls default to API. Other automation can pass its own:
-
-```ts
-trigger: { source: "ci", url: "https://ci.example/run/123" }
-```
+Each batch records a `trigger` (Dashboard, CLI, CI, API or MCP), and its runs inherit it. Anpord sets it for you. The CLI records CLI, or CI with a link to the GitHub Actions attempt when it runs there. Batches started through the API record API.
 
 The trigger describes the caller. It grants and verifies nothing. Running a case again records the new trigger, and older runs show Unknown.

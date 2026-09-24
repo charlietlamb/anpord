@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: Start with claude-smoke to verify the Anthropic connection
+        description: all compares Claude and Codex in one batch. Run claude-smoke first to verify the Anthropic connection
         type: choice
-        options: [claude-smoke, claude, codex]
-        default: claude-smoke
+        options: [all, claude-smoke, claude, codex]
+        default: all
         required: true
 
 permissions:

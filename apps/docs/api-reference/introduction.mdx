@@ -6,9 +6,9 @@ description: "Call the Anpord API over HTTP"
 The public API is at `https://api.anpord.com/v1`. Every operation is a `POST` with a JSON body, reads included, and there are no path or query parameters:
 
 ```text
-POST /v1/evals.start
-POST /v1/evals.get
-POST /v1/evals.list
+POST /v1/evals.batches.start
+POST /v1/evals.batches.get
+POST /v1/evals.cases.run
 ```
 
 ## Authentication
@@ -16,7 +16,7 @@ POST /v1/evals.list
 Pass an API key as a bearer token:
 
 ```bash
-curl https://api.anpord.com/v1/evals.list \
+curl https://api.anpord.com/v1/evals.batches.list \
   -H "authorization: Bearer $ANPORD_API_KEY" \
   -H "content-type: application/json" \
   -d '{"limit":20}'
@@ -26,19 +26,16 @@ A key belongs to one organization. OAuth access tokens also work. Reading evals 
 
 ## Start a batch
 
-`evals.start` creates a batch that runs every case of a suite on every variant. It returns right away with the batch `id` and a `runs` list holding one run per case per variant, while the trials continue on the server:
+`evals.batches.start` creates a batch that runs every case of a suite on every variant. It returns right away with the batch `id` and a `runs` list holding one run per case per variant, each with its `caseId` and `variantId`, while the trials continue on the server:
 
 ```bash
-curl https://api.anpord.com/v1/evals.start \
+curl https://api.anpord.com/v1/evals.batches.start \
   -H "authorization: Bearer $ANPORD_API_KEY" \
   -H "content-type: application/json" \
   -d '{
     "suite": { "id": "smoke", "name": "Smoke", "prompt": "{{task}}" },
     "cases": [{
       "id": "writes-hello",
-      "name": "writes the requested file",
-      "prepare": null,
-      "source": { "kind": "empty" },
       "variables": { "task": "Create hello.txt containing exactly hello" },
       "verify": "test \"$(cat hello.txt)\" = hello"
     }],
@@ -51,9 +48,22 @@ curl https://api.anpord.com/v1/evals.start \
   }'
 ```
 
-`trials` is the number of trials in each run. Poll `evals.get` with the returned `id` until `status` is `finished` or `failed`.
+`trials` is the number of trials in each run. `verify` is the shell command that decides whether a trial passed, which the SDK writes as `validate: command("...")`. Poll `evals.batches.get` with the returned `id` until `status` is `finished` or `failed`.
 
-Starting a batch is not idempotent. If the response is lost, list recent batches with `evals.list` before retrying.
+The API can't run the `local` sandbox. Run those with `anpord eval --local`.
+
+Starting a batch is not idempotent. If the response is lost, list recent batches with `evals.batches.list` before retrying.
+
+## Run a case again
+
+`evals.cases.run` starts a batch for a stored case's newest version. Name variant ids from `evals.cases.get` to pick variants, or leave `variants` out to run every variant the case has run on. `trials` defaults to 1:
+
+```bash
+curl https://api.anpord.com/v1/evals.cases.run \
+  -H "authorization: Bearer $ANPORD_API_KEY" \
+  -H "content-type: application/json" \
+  -d '{"id":"writes-hello","trials":3}'
+```
 
 ## Limits
 

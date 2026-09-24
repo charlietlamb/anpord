@@ -1,5 +1,5 @@
 ---
-title: "Mock dependencies"
+title: "Mocks"
 description: "Give agents typed local MCP servers, CLIs and HTTP APIs"
 ---
 
@@ -88,9 +88,11 @@ export const usersCli = cli({
 
 The runtime generates help and version output, validates output, prints JSON to stdout and exits nonzero on failure.
 
+`anpord` also exports a `command` for `validate`. If one file needs both, import one under another name.
+
 ## Attach and validate
 
-Attach mocks on the suite, then check the call logs in a validator. [API mocks](/evals/api-mocks) work the same way.
+Attach MCP and CLI mocks on the suite, then check the call logs in a validator.
 
 ```ts users.eval.ts
 import { suite, type Validator } from "anpord";
@@ -119,17 +121,122 @@ const validate: Validator = async ({ answer, cli, mcp }) => {
 };
 
 export default suite({
-  name: "users-interface",
+  id: "users-interface",
   prompt: "Use an available interface to retrieve user_fixture and report its name.",
   mcp: [usersMcp],
   cli: [usersCli],
-  cases: [{ id: "gets-user", name: "gets user", validate }],
+  cases: [{ id: "gets-user", validate }],
   variants: [{ harness: "codex", model: "model-id" }],
   trials: 1,
 });
 ```
 
 Check both the recorded call and the outcome. Call inputs and outputs are `unknown`, so parse them with the shared schema before asserting on values.
+
+## HTTP APIs
+
+Define endpoints with `api()` and `endpoint()`. Standard Schema types the handler input and checks each response against the schema for its status code. Handlers are plain TypeScript.
+
+```ts mocks/catalog.ts
+import { api, endpoint } from "anpord/api";
+import { z } from "zod";
+
+const item = { id: "fixture", name: "Test item" };
+const Item = z.object({ id: z.string(), name: z.string() });
+
+export const catalog = api({
+  name: "catalog",
+  endpoints: [
+    endpoint({
+      method: "GET",
+      path: "/items/:id",
+      inputSchema: z.object({ params: z.object({ id: z.string() }) }),
+      responses: {
+        200: Item,
+        404: z.object({ message: z.string() }),
+      },
+      handler: ({ params }) => params.id === item.id
+        ? { status: 200, body: item }
+        : { status: 404, body: { message: "Item not found" } },
+    }),
+  ],
+});
+```
+
+Move `item` and `Item` into a shared fixture file to reuse them with MCP and CLI mocks. API names use lowercase letters, digits and hyphens.
+
+### Attach an API
+
+```ts catalog.eval.ts
+import { suite, type Validator } from "anpord";
+import { catalog } from "./mocks/catalog";
+
+const validate: Validator = async ({ api, answer }) => ({
+  passed: (await api.calls("catalog")).some(
+    ({ path, status }) => path === "/items/fixture" && status === 200
+  ) && (await answer()).includes("Test item"),
+});
+
+export default suite({
+  id: "catalog-api",
+  api: [catalog],
+  prompt: "Use the local catalog API to retrieve fixture and report its name.",
+  cases: [{ id: "retrieve-item", validate }],
+  variants: [{ harness: "codex", model: "model-id" }],
+  trials: 1,
+});
+```
+
+In each trial, Anpord starts a loopback HTTP server on a free port and adds its base URL and endpoint list to the agent's input. Your prompt is unchanged. Curl, Python and SDK clients can call it directly.
+
+Prepare functions and validators get the URL from `await api.url("catalog")`. No environment variables or global `fetch` are replaced.
+
+### Requests and responses
+
+- The input schema receives `{ params, query, headers, body }`. Headers are lowercase. Repeated query values are arrays. An empty body is `null`, and a nonempty body must be JSON. Use schema transforms for coercion.
+- Handlers return `{ status, body, headers? }`. Use `null` for bodyless responses such as 204. The runtime sets content type and framing headers.
+- An optional endpoint `description` is shown to the agent.
+- Error responses you declare, such as 404 or 429, are normal mock behavior. Unmatched routes return 404 and are recorded with `matched: false`.
+- A handler that throws, a response that fails its schema, or a body that cannot be serialized fails the mock. Nothing is forwarded upstream.
+
+Handlers take a second argument, `{ signal, log }`. Call `log(value)` to attach evidence to the call, and use `signal` to cancel async work.
+
+### Evidence
+
+HTTP calls appear in the trial's Calls view and are available to judges. `api.calls(name?)` returns records with method, path, status, timing, whether a route matched, input, output, handler logs and errors. Calls to `api.url` and `api.calls` appear in the validator's evidence.
+
+Input, output and log values are bounded snapshots with `text`, `format`, `state` and `truncated` fields. Check those before parsing captured JSON.
+
+Authorization headers, cookies and common secret fields are redacted before recording. Add more field names (case-insensitive) with `api({ redact: ["accessToken"], ... })`. Secrets inside arbitrary strings or URL paths are not redacted, so keep credentials out of fixtures.
+
+### Validator-owned servers
+
+Use `withApi()` when a validator needs its own server with hidden test data. The server closes when the callback finishes or fails.
+
+```ts
+import { withApi } from "anpord/api";
+
+await withApi({
+  api: catalog,
+  run: async ({ url, calls }) => {
+    const response = await fetch(`${url}/items/fixture`);
+    console.info("HTTP evidence", await calls());
+    return response.json();
+  },
+});
+```
+
+These calls are returned by `calls()`, not the trial's call log. Log them inside the validator to include them in its logs.
+
+### Limits
+
+- JSON HTTP endpoints only. No proxying, streaming, WebSockets or automatic recording.
+- Request bodies up to 1 MiB, handlers up to 30 seconds, and 256 requests per mock runtime.
+- Captured values are truncated at 16,000 characters.
+
+Mocks never call an upstream service, but they do not stop the agent from contacting other hosts. Use a sandbox egress policy for network isolation.
+
+## Where mocks run
 
 Mocks apply to every variant in the suite. Put variants in separate eval files when they need different mocks. CLI mocks are installed for every harness. MCP mocks are configured for every [built-in harness](/evals/variants), but not the [command harness](/evals/command-harness).
 

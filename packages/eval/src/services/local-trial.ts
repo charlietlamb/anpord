@@ -15,6 +15,7 @@ import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";
+import { AUTO_STOP_MINUTES } from "../batch/trial";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
 import type {
@@ -26,7 +27,6 @@ import type {
 } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { HarnessName } from "../domain/variant";
-import { AUTO_STOP_MINUTES } from "../grid/trial";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
 
 /* Names the operator rather than a person: the resolver a local run is given

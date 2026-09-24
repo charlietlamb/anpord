@@ -134,16 +134,14 @@ const fittingHarness = (base: EvalHarness, profile: HarnessProfile) => {
 export const profileVariant = (
   entry: string,
   variant: {
-    readonly harness: {
-      readonly base: EvalHarness;
-      readonly profile: ProfileRef;
-    };
+    readonly harness: EvalHarness;
     readonly model: string;
+    readonly profile: ProfileRef;
     readonly sandbox?: VariantInput["sandbox"];
   }
 ) =>
   Effect.gen(function* () {
-    const dir = resolve(dirname(entry), variant.harness.profile.dir);
+    const dir = resolve(dirname(entry), variant.profile.dir);
 
     yield* Effect.tryPromise({
       catch: (cause) => new ProfileDirectoryUnreadable({ cause, dir }),
@@ -155,20 +153,20 @@ export const profileVariant = (
       readProfileManifest(dir),
     ]);
 
-    const profile = yield* fittingHarness(variant.harness.base, {
+    const profile = yield* fittingHarness(variant.harness, {
       ...manifest,
       files,
-      name: variant.harness.profile.name,
+      name: variant.profile.name,
     });
 
     return {
-      harness: variant.harness.base,
+      harness: variant.harness,
       model: variant.model,
       profile,
       sandbox: variant.sandbox,
     } satisfies VariantInput;
   }).pipe(
     Effect.withSpan("Eval.profileVariant", {
-      attributes: { profile: variant.harness.profile.name },
+      attributes: { profile: variant.profile.name },
     })
   );

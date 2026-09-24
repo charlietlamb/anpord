@@ -4,7 +4,7 @@ import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import type { EvalCasePage, EvalPageCursor } from "@anpord/schema/domain/evals";
 import { Cause, Effect, Exit, ManagedRuntime, Option } from "effect";
-import { Batches } from "../../src/grid/batches";
+import { Batches } from "../../src/batch/batches";
 import { EvalReads } from "../../src/services/eval-reads";
 import { skipWithoutDatabase } from "../fixtures/database";
 import { seedOrganization } from "../fixtures/eval-rows";

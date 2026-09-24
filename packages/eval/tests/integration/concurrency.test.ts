@@ -11,11 +11,11 @@ import {
 } from "effect";
 import { runCommandForOutcome } from "../../src/adapters/sandbox/run-command";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
+import { Batches } from "../../src/batch/batches";
 import { CredentialError } from "../../src/credentials/errors";
 import { CredentialResolver } from "../../src/credentials/resolver";
 import { HarnessUnavailable } from "../../src/domain/errors";
 import type { SandboxName } from "../../src/domain/variant";
-import { Batches } from "../../src/grid/batches";
 import { EvalSandboxLive } from "../../src/layer";
 import { Harnesses } from "../../src/ports/harness";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";

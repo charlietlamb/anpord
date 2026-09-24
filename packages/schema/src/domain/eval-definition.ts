@@ -172,10 +172,9 @@ export const CaseCache = Schema.Struct({
 }).annotations({ identifier: "CaseCache" });
 export type CaseCache = typeof CaseCache.Type;
 
-export const EvalCase = Schema.Struct({
+const EvalCaseFields = {
   cache: Schema.optional(CaseCache),
   id: EvalCaseId,
-  name: EvalCaseName,
   user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
   prepare: Schema.optionalWith(Schema.NullOr(EvalPrepare), {
     default: () => null,
@@ -192,6 +191,19 @@ export const EvalCase = Schema.Struct({
   verify: Schema.optionalWith(Schema.NullOr(EvalVerify), {
     default: () => null,
   }),
+};
+
+export const EvalCase = Schema.transform(
+  Schema.Struct({ ...EvalCaseFields, name: Schema.optional(EvalCaseName) }),
+  Schema.typeSchema(Schema.Struct({ ...EvalCaseFields, name: EvalCaseName })),
+  {
+    decode: ({ name, ...rest }) => ({ ...rest, name: name ?? rest.id }),
+    encode: (value) => value,
+    strict: true,
+  }
+).annotations({
+  description: "One eval. Its name defaults to its id.",
+  identifier: "EvalCase",
 });
 export type EvalCase = typeof EvalCase.Type;
 
@@ -211,12 +223,19 @@ export const EvalVariantRequest = Schema.Struct({
   });
 export type EvalVariantRequest = typeof EvalVariantRequest.Type;
 
-export const EvalSuiteRequest = Schema.Struct({
-  id: EvalSuiteId,
-  name: EvalSuiteName,
-  prompt: EvalPrompt,
-}).annotations({
-  description: "The suite the cases belong to, and the prompt they share.",
+const EvalSuiteFields = { id: EvalSuiteId, prompt: EvalPrompt };
+
+export const EvalSuiteRequest = Schema.transform(
+  Schema.Struct({ ...EvalSuiteFields, name: Schema.optional(EvalSuiteName) }),
+  Schema.typeSchema(Schema.Struct({ ...EvalSuiteFields, name: EvalSuiteName })),
+  {
+    decode: ({ name, ...rest }) => ({ ...rest, name: name ?? rest.id }),
+    encode: (value) => value,
+    strict: true,
+  }
+).annotations({
+  description:
+    "The suite the cases belong to, and the prompt they share. Its name defaults to its id.",
   identifier: "EvalSuiteRequest",
 });
 export type EvalSuiteRequest = typeof EvalSuiteRequest.Type;

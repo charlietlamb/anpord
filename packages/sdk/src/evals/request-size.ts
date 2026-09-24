@@ -11,7 +11,9 @@ const sizeOf = (value: unknown) => JSON.stringify(value).length;
 const fitting = (total: number, count: number) =>
   Math.max(1, Math.floor(LIMIT / Math.ceil(total / count)));
 
-export const tooLargeToSubmit = (request: StartBatchRequest) => {
+export const tooLargeToSubmit = (
+  request: Pick<StartBatchRequest, "cases" | "suite" | "variants">
+) => {
   const size = sizeOf(request);
 
   if (size <= LIMIT) {

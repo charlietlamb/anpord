@@ -11,7 +11,7 @@ export const useRunCase = (caseId: string, variant: string | null) => {
     mutationFn: () =>
       runCase(caseId, {
         trials: TRIALS,
-        ...(variant === null ? {} : { variant }),
+        ...(variant === null ? {} : { variants: [variant] }),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: evalKeys.caseLists() });

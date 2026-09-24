@@ -18,7 +18,7 @@ const traceFold = (
     Effect.gen(function* () {
       const outcome = yield* runCommandForOutcome(
         request.sandbox,
-        `cat ${shellQuote(tracePath(request.sandbox.home))} 2>/dev/null || true`,
+        `cat ${shellQuote(tracePath(request.sandbox))} 2>/dev/null || true`,
         { timeoutMs: TRACE_TIMEOUT_MS }
       ).pipe(Effect.option);
 

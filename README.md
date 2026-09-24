@@ -1,6 +1,6 @@
 # Anpord
 
-Anpord runs coding agent evals across harnesses, models, and sandboxes. It records repeated trials, command trajectories, pass-rate distributions, and regressions against stable cell baselines. The same product also versions and releases prompts through named channels.
+Anpord runs coding agent evals. A suite holds cases, each case runs on variants (a harness, model and sandbox), and a batch starts those runs together so variants can be compared. Every run records its trials, command trajectories and pass rate.
 
 ## Repository
 

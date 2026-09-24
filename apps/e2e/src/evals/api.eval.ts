@@ -5,6 +5,7 @@ import { validateApi } from "./validators/api";
 import { correctItem } from "./validators/judges";
 
 export default suite({
+  id: "anpord-ci-api",
   name: "anpord-ci/api",
   source: empty,
   api: [catalogApi],

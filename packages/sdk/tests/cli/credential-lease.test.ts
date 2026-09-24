@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   CredentialLease,
   CredentialLeaseRequest,
-} from "@anpord/schema/public/evals-api";
+} from "@anpord/schema/public/runner-api";
 import { Schema } from "effect";
 
 const decodeRequest = Schema.decodeUnknownSync(CredentialLeaseRequest);

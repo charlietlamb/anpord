@@ -29,6 +29,7 @@
       "name": "@anpord/e2e",
       "version": "0.0.0",
       "dependencies": {
+        "@anpord/schema": "workspace:*",
         "anpord": "workspace:*",
         "effect": "catalog:",
         "pg": "catalog:",

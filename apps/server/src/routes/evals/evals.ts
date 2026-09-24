@@ -1,4 +1,4 @@
-import { Batches } from "@anpord/eval/grid/batches";
+import { Batches } from "@anpord/eval/batch/batches";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
@@ -12,7 +12,7 @@ import type {
 } from "@anpord/schema/domain/evals";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
-import type { ReportedTrial } from "@anpord/schema/public/evals-api";
+import type { ReportedTrial } from "@anpord/schema/public/runner-api";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { mintBatchSubscription } from "./batch-subscription";
@@ -51,7 +51,7 @@ export const runCase = (
       hostedOnly: options.hostedOnly,
       trials: request.trials,
       trigger: options.trigger,
-      variantId: request.variant ?? null,
+      variantIds: request.variants ?? null,
     });
   }).pipe(Effect.tap(metered(request.trials)), withEvalErrors);
 

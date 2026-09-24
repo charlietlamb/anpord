@@ -1,6 +1,7 @@
-import { empty, suite } from "anpord";
+import { command, empty, suite } from "anpord";
 
 export default suite({
+  id: "anpord-models-claude-smoke",
   name: "anpord-models/claude-smoke",
   source: empty,
   prompt:
@@ -9,7 +10,7 @@ export default suite({
     {
       id: "claude-smoke-writes-hello",
       name: "writes-hello",
-      verify: 'test "$(cat hello.txt)" = hello',
+      validate: command('test "$(cat hello.txt)" = hello'),
     },
   ],
   variants: [

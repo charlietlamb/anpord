@@ -2,12 +2,12 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 import { Effect, ManagedRuntime } from "effect";
+import { Batches } from "../../src/batch/batches";
 import {
   profileOfRequest,
   type RequestedProfile,
 } from "../../src/domain/harness-profile";
 import { profileVersionOf } from "../../src/domain/profile-identity";
-import { Batches } from "../../src/grid/batches";
 import { HarnessProfileRepository } from "../../src/repositories/harness-profile-repository";
 import type { AgentTrialRequest } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";

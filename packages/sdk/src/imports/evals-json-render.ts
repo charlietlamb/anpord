@@ -113,6 +113,7 @@ export const renderEvalSuite = (file: EvalsJsonFile) => {
     ...(structured ? [helpersBlock, ""] : []),
     ...(prose ? [placeholderBlock, ""] : []),
     "export default suite({",
+    `  id: ${quoted(slug(file.skill_name, "imported-suite"))},`,
     `  name: ${quoted(slug(file.skill_name, "imported-suite"))},`,
     '  prompt: "{{task}}",',
     "  trials: 3,",

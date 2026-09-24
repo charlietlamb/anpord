@@ -4,7 +4,7 @@ import type { EvalHarness, StartedBatch } from "@anpord/schema/domain/evals";
 import type {
   CredentialLease,
   ReportedTrial,
-} from "@anpord/schema/public/evals-api";
+} from "@anpord/schema/public/runner-api";
 import { Context, Effect, Layer } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import type {

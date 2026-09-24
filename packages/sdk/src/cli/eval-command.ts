@@ -1,21 +1,17 @@
-import { AnpordApi } from "@anpord/schema/public/client";
+import { EvalCaseId } from "@anpord/schema/domain/eval-limits";
 import { Args, Command, Options } from "@effect/cli";
-import { Effect, Option, Schema } from "effect";
-import { apiKeyConfig, ClientLayer, webUrlConfig } from "../client/config";
-import { compileEvalEffect } from "../evals/compiler";
+import { Data, Effect, Option, Schema } from "effect";
+import { ClientLayer } from "../client/config";
+import type { HostedOptions } from "./batch-outcome";
 import { evalFilesIn } from "./eval-files";
-import { EvalGate, failWhen, NoEvalFiles, problemsWith } from "./eval-gate";
-import { formatGridSummary, type GridMode, liveGrid } from "./eval-grid";
+import { EvalGate, NoEvalFiles } from "./eval-gate";
 import { importEval } from "./eval-import";
-import { localProblems, reportLocal, runLocally } from "./eval-local";
-import type { EvalOutcome } from "./eval-outcome";
-import { reportFinished, reportStarted, writeReport } from "./eval-report";
-import { waitForBatch } from "./eval-run";
-import { evalTrigger } from "./eval-trigger";
-import { buildGithubCheck } from "./github-check";
-import { postCheckRun } from "./github-check-client";
-import { githubContext } from "./github-context";
-import { attended, json, note } from "./render";
+import { runHosted } from "./hosted-report";
+import { runStoredCase, runSuiteFile } from "./suite-hosted";
+import { runSuitesLocally } from "./suite-local";
+import type { Selection } from "./suite-selection";
+
+const DEFAULT_TIMEOUT_SECONDS = 1200;
 
 const asJson = Options.boolean("json").pipe(
   Options.withDescription("Print each finished batch as JSON")
@@ -36,259 +32,162 @@ const failOn = Options.choice("fail-on", EvalGate.literals).pipe(
   Options.withDefault("failures" as const)
 );
 const timeout = Options.integer("timeout").pipe(
-  Options.withDescription("Maximum seconds to wait per batch"),
+  Options.withDescription(
+    `Maximum seconds to wait per batch, ${DEFAULT_TIMEOUT_SECONDS} unless set`
+  ),
   Options.withSchema(Schema.Int.pipe(Schema.positive())),
-  Options.withDefault(1200)
+  Options.optional
 );
 const local = Options.boolean("local").pipe(
   Options.withDescription(
-    "Run every case on this machine instead of a cloud sandbox"
+    "Run every case on every variant on this machine instead of a cloud sandbox"
   )
 );
 const output = Options.text("output").pipe(
   Options.withDescription("Write a JSON report to this file"),
   Options.optional
 );
-const gridModeOf = (wantsJson: boolean, live: boolean): GridMode => {
-  if (wantsJson) {
-    return "silent";
-  }
+const caseId = Options.text("case").pipe(
+  Options.withDescription(
+    "Run one case. With a file, picks that case from it; without one, runs the stored case again"
+  ),
+  Options.withSchema(EvalCaseId),
+  Options.optional
+);
+const variant = Options.text("variant").pipe(
+  Options.withDescription(
+    "Run one variant: a variant id for a stored case, or harness/model for a file. Repeat for more"
+  ),
+  Options.repeated
+);
 
-  return live ? "grid" : "lines";
+class LocalRefused extends Data.TaggedError("LocalRefused")<{
+  readonly reason: string;
+}> {
+  override get message() {
+    return this.reason;
+  }
+}
+
+const localRefusal = (flags: {
+  readonly file: Option.Option<string>;
+  readonly selection: Selection;
+  readonly skipWait: boolean;
+  readonly wantsJson: boolean;
+  readonly path: Option.Option<string>;
+}) => {
+  if (Option.isSome(flags.selection.caseId) && Option.isNone(flags.file)) {
+    return Option.some(
+      "--local runs a suite file. Name the file that holds the case."
+    );
+  }
+  if (flags.skipWait) {
+    return Option.some("--local always waits, so it cannot take --no-wait.");
+  }
+  if (flags.wantsJson) {
+    return Option.some(
+      "--local prints a transcript, so it cannot take --json."
+    );
+  }
+  return Option.isSome(flags.path)
+    ? Option.some(
+        "--local does not write a report, so it cannot take --output."
+      )
+    : Option.none();
 };
 
-const describe = (error: unknown) =>
-  error instanceof Error ? error.message : String(error);
-
-const runOneEval = (
-  file: string,
-  options: {
-    readonly gate: EvalGate;
-    readonly skipWait: boolean;
-    readonly wantsJson: boolean;
-    readonly timeoutSeconds: number;
-  },
-  save: (outcome: EvalOutcome) => ReturnType<typeof writeReport>
-) =>
+const filesFrom = (file: Option.Option<string>) =>
   Effect.gen(function* () {
-    let batchId: string | null = null;
-    return yield* Effect.gen(function* () {
-      const api = yield* AnpordApi;
-      const payload = yield* compileEvalEffect(file);
-      const trigger = yield* evalTrigger;
-      const started = yield* api.evals.start({
-        payload: { ...payload, trigger },
-      });
-      batchId = started.id;
-      yield* reportStarted(file, batchId);
-      const pending: EvalOutcome = {
-        batch: null,
-        batchId,
-        file,
-        problems: [],
-      };
-      yield* save(pending);
-      if (options.skipWait) {
-        yield* json(started);
-        return pending;
-      }
-      const live = !options.wantsJson && (yield* attended);
-      const watcher = yield* liveGrid(
-        payload.trials,
-        gridModeOf(options.wantsJson, live)
-      );
-      const batch = yield* waitForBatch(
-        batchId,
-        watcher,
-        options.timeoutSeconds
-      );
-      yield* options.wantsJson
-        ? json(batch)
-        : note(formatGridSummary(batch, payload.trials, live));
-      return {
-        batch,
-        batchId,
-        file,
-        problems: problemsWith(batch, options.gate, {
-          runs: payload.cases.length * payload.variants.length,
-          trials: payload.trials,
-        }),
-      } satisfies EvalOutcome;
-    }).pipe(
-      Effect.catchAll((error) =>
-        Effect.succeed({
-          batch: null,
-          batchId,
-          file,
-          problems: [describe(error)],
-        } satisfies EvalOutcome)
-      )
-    );
-  });
-
-const reportToGithub = (outcomes: readonly EvalOutcome[]) =>
-  Effect.gen(function* () {
-    const context = yield* githubContext;
-    if (Option.isNone(context)) {
-      return;
-    }
-    const webUrl = yield* webUrlConfig;
-    yield* postCheckRun(context.value, buildGithubCheck(outcomes, webUrl));
-  }).pipe(
-    Effect.catchAll((error) =>
-      note(`The GitHub check was not posted. ${describe(error)}`)
-    )
-  );
-
-const recordedLocally = (file: string) =>
-  Effect.gen(function* () {
-    const api = yield* AnpordApi;
-    const compiled = yield* compileEvalEffect(file);
-    const payload = {
-      ...compiled,
-      trials: 1,
-      variants: compiled.variants.slice(0, 1),
-    };
-    const trigger = yield* evalTrigger;
-
-    const started = yield* api.evals.start({
-      payload: { ...payload, local: true, trigger },
+    const files = yield* Option.match(file, {
+      onNone: () => evalFilesIn("."),
+      onSome: (one) => Effect.succeed([one] as readonly string[]),
     });
 
-    yield* reportStarted(file, started.id);
+    if (files.length === 0) {
+      return yield* new NoEvalFiles();
+    }
 
-    yield* Effect.addFinalizer(() =>
-      api.evals.finish({ payload: { id: started.id } }).pipe(Effect.ignore)
-    );
-
-    const leased = yield* api.evals
-      .credentials({
-        payload: {
-          harness: payload.variants[0]?.harness ?? "codex",
-          id: started.id,
-        },
-      })
-      .pipe(
-        Effect.map(
-          (lease): Readonly<Record<string, string>> | undefined => lease.values
-        ),
-        Effect.catchAll(() => Effect.succeed(undefined))
-      );
-
-    const runIdOf = (caseId: string) =>
-      started.runs.find(
-        (run) => run.caseId === caseId && run.variantIndex === 0
-      )?.id;
-
-    return yield* runLocally(payload, {
-      credentials: leased,
-      onTrial: (caseId, trial) => {
-        const runId = runIdOf(caseId);
-
-        return runId === undefined
-          ? Effect.void
-          : api.evals
-              .reportTrial({ payload: { ...trial, runId } })
-              .pipe(Effect.ignore);
-      },
-    });
-  }).pipe(Effect.scoped, Effect.provide(ClientLayer));
-
-const runOneEvalLocally = (file: string) =>
-  apiKeyConfig.pipe(
-    Effect.matchEffect({
-      onFailure: () =>
-        compileEvalEffect(file).pipe(
-          Effect.flatMap((payload) => runLocally(payload))
-        ),
-      onSuccess: () => recordedLocally(file),
-    })
-  );
-
-const runEveryEvalLocally = (files: readonly string[], gate: EvalGate) =>
-  Effect.gen(function* () {
-    const problems: string[] = [];
-
-    yield* Effect.forEach(files, (one) =>
-      Effect.gen(function* () {
-        const cases = yield* runOneEvalLocally(one);
-
-        yield* reportLocal(one, cases);
-        problems.push(...localProblems(cases));
-      })
-    );
-
-    return yield* failWhen(gate === "never" ? [] : problems);
+    return files;
   });
 
-const runEveryEvalHosted = (
-  files: readonly string[],
-  options: {
-    readonly gate: EvalGate;
-    readonly path: Option.Option<string>;
-    readonly skipWait: boolean;
-    readonly timeoutSeconds: number;
-    readonly wantsJson: boolean;
-  }
+const runHostedEvals = (
+  file: Option.Option<string>,
+  selection: Selection,
+  options: HostedOptions & { readonly path: Option.Option<string> }
 ) =>
   Effect.gen(function* () {
-    const { gate, path, skipWait, timeoutSeconds, wantsJson } = options;
-    const outcomes: EvalOutcome[] = [];
-    yield* Effect.forEach(files, (one, index) =>
-      Effect.gen(function* () {
-        const save = (outcome: EvalOutcome) =>
-          Effect.gen(function* () {
-            outcomes[index] = outcome;
-            yield* writeReport(outcomes, path);
-          });
-        const outcome = yield* runOneEval(
-          one,
-          { gate, skipWait, timeoutSeconds, wantsJson },
-          save
-        );
-        yield* save(outcome);
-      })
-    );
-    yield* reportFinished(outcomes);
-    if (!skipWait) {
-      yield* reportToGithub(outcomes);
+    if (Option.isSome(selection.caseId) && Option.isNone(file)) {
+      const stored = selection.caseId.value;
+      return yield* runHosted(
+        [(save) => runStoredCase(stored, selection.variants, options, save)],
+        options
+      );
     }
-    return yield* failWhen(outcomes.flatMap((outcome) => outcome.problems));
+
+    const files = yield* filesFrom(file);
+
+    return yield* runHosted(
+      files.map((one) => (save) => runSuiteFile(one, selection, options, save)),
+      options
+    );
   }).pipe(Effect.provide(ClientLayer));
 
 export const runEval = Command.make(
   "eval",
-  { asJson, evalFile, failOn, local, noWait, output, timeout },
-  ({
-    asJson: wantsJson,
-    evalFile: file,
-    failOn: gate,
-    local: onThisMachine,
-    noWait: skipWait,
-    output: path,
-    timeout: timeoutSeconds,
-  }) =>
+  {
+    asJson,
+    caseId,
+    evalFile,
+    failOn,
+    local,
+    noWait,
+    output,
+    timeout,
+    variant,
+  },
+  (flags) =>
     Effect.gen(function* () {
-      const files = yield* Option.match(file, {
-        onNone: () => evalFilesIn("."),
-        onSome: (one) => Effect.succeed([one] as readonly string[]),
-      });
+      const selection: Selection = {
+        caseId: flags.caseId,
+        variants: flags.variant,
+      };
 
-      if (files.length === 0) {
-        return yield* Effect.fail(new NoEvalFiles());
+      if (!flags.local) {
+        return yield* runHostedEvals(flags.evalFile, selection, {
+          gate: flags.failOn,
+          path: flags.output,
+          skipWait: flags.noWait,
+          timeoutSeconds: Option.getOrElse(
+            flags.timeout,
+            () => DEFAULT_TIMEOUT_SECONDS
+          ),
+          wantsJson: flags.asJson,
+        });
       }
 
-      return yield* onThisMachine
-        ? runEveryEvalLocally(files, gate)
-        : runEveryEvalHosted(files, {
-            gate,
-            path,
-            skipWait,
-            timeoutSeconds,
-            wantsJson,
-          });
+      const refused = localRefusal({
+        file: flags.evalFile,
+        path: flags.output,
+        selection,
+        skipWait: flags.noWait,
+        wantsJson: flags.asJson,
+      });
+      if (Option.isSome(refused)) {
+        return yield* new LocalRefused({ reason: refused.value });
+      }
+
+      return yield* runSuitesLocally(
+        yield* filesFrom(flags.evalFile),
+        selection,
+        {
+          gate: flags.failOn,
+          timeoutSeconds: flags.timeout,
+        }
+      );
     })
 ).pipe(
-  Command.withDescription("Compile and run an eval from TypeScript"),
+  Command.withDescription(
+    "Run suite files, or a stored case, as batches and gate on the results"
+  ),
   Command.withSubcommands([importEval])
 );

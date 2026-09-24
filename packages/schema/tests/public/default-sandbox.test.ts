@@ -5,7 +5,7 @@ import {
   EVAL_SANDBOXES,
   HOSTED_SANDBOXES,
 } from "../../src/domain/eval-definition";
-import { PublicStartBatchRequest } from "../../src/public/evals-api";
+import { SuiteBatchRequest } from "../../src/public/evals-api";
 
 const request = {
   cases: [{ id: "a-case", name: "a case", verify: "true" }],
@@ -13,7 +13,7 @@ const request = {
   trials: 1,
 };
 
-const decode = Schema.decodeUnknownSync(PublicStartBatchRequest);
+const decode = Schema.decodeUnknownSync(SuiteBatchRequest);
 
 describe("a task's sandbox", () => {
   it("defaults when left out", () => {

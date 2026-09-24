@@ -3,6 +3,7 @@ import { empty } from "../../../src/evals/source";
 import { human } from "../../../src/validators";
 
 export const conversation = suite({
+  id: "conversation",
   name: "conversation",
   source: empty,
   prompt: "Model the pricing",

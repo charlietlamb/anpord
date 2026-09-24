@@ -20,14 +20,13 @@ const askedFirst: Validator = async ({ cli, turns }) => {
 };
 
 export default suite({
-  name: "pricing",
+  id: "pricing",
   prompt: "Read USER_REQUEST.md and model the pricing.",
   cases: [
     {
       id: "asks-before-it-pushes",
-      name: "asks before it pushes",
       user: human({
-        goal: "Get Pro live in the sandbox, not just written to a file.",
+        goal: "Get Pro live in the sandbox, not only written to a file.",
         prompt: `Pro is $20 a month with 500 messages. Hard limit, no overage.
 If the agent asks whether to push or go live: yes, go ahead.`,
       }),

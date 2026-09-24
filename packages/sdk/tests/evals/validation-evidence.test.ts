@@ -48,7 +48,7 @@ const run = async (checks: string, capture = true) => {
   await writeFile(
     entry,
     `import { suite, empty } from "anpord";
-export default suite({ name: "observability", source: empty, prompt: "Answer", trials: 1, captureValidation: ${capture},
+export default suite({ id: "fixture", name: "observability", source: empty, prompt: "Answer", trials: 1, captureValidation: ${capture},
 variants: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: "check", name: "check", validate: ${checks} }] });`
   );
   const validator = (await compileEval(entry)).cases[0]?.validator;

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { EvalBatch } from "@anpord/schema/domain/evals";
-import { formatGrid } from "../../src/cli/eval-grid";
+import { formatBatch } from "../../src/cli/batch-progress";
 
 const COLOUR = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
 
@@ -31,9 +31,9 @@ const batch = {
   ],
 } as unknown as EvalBatch;
 
-describe("the grid a reader watches", () => {
+describe("the progress a reader watches", () => {
   test("groups runs under the case they belong to", () => {
-    const lines = formatGrid(batch, 3, 0).map(bare);
+    const lines = formatBatch(batch, 3, 0).map(bare);
 
     expect(lines[0]).toContain("adds a test");
     expect(lines[1]).toContain("codex/gpt-5.6-sol");
@@ -41,21 +41,23 @@ describe("the grid a reader watches", () => {
   });
 
   test("shows a settled pass rate, and an unscored run as absent", () => {
-    const [, settled, running] = formatGrid(batch, 3, 0).map(bare);
+    const [, settled, running] = formatBatch(batch, 3, 0).map(bare);
 
     expect(settled).toContain("100%");
     expect(running).toContain("—");
   });
 
   test("fills one pip per settled trial", () => {
-    const [, settled, running] = formatGrid(batch, 3, 0).map(bare);
+    const [, settled, running] = formatBatch(batch, 3, 0).map(bare);
 
     expect(settled).toContain("▰▰▰");
     expect(running).toContain("▰▱▱");
   });
 
   test("reads elapsed time in minutes once there are minutes", () => {
-    expect(bare(formatGrid(batch, 3, 45_000).at(-1) ?? "")).toContain("45s");
-    expect(bare(formatGrid(batch, 3, 134_000).at(-1) ?? "")).toContain("2m14s");
+    expect(bare(formatBatch(batch, 3, 45_000).at(-1) ?? "")).toContain("45s");
+    expect(bare(formatBatch(batch, 3, 134_000).at(-1) ?? "")).toContain(
+      "2m14s"
+    );
   });
 });

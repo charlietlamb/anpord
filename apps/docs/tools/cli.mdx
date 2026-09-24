@@ -1,6 +1,6 @@
 ---
 title: "Anpord CLI"
-description: "Run eval suites, connect credentials and manage prompts from a terminal"
+description: "Run eval suites and connect credentials from a terminal"
 ---
 
 ## Install
@@ -24,15 +24,9 @@ Set `ANPORD_API_KEY` before commands that call Anpord. `--help`, `--version`, `e
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval [file] [options]` | Run eval suites and wait for their batches |
+| `anpord eval [file] [options]` | Run suite files, or a stored case, as batches and gate on the results |
 | `anpord eval import --format <format> <path> [--out <file>]` | Turn a case file a team already wrote into a suite |
 | `anpord connectors <subcommand>` | Connect the credentials evals use |
-| `anpord list [--json]` | List up to 100 prompts |
-| `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Print a prompt's content, from a channel or a version |
-| `anpord versions <id>` | Print version history as JSON |
-| `anpord push <id> <content> [-m <message>]` | Add a version |
-| `anpord promote <id> --to <channel> --at <version>` | Point a channel at a version |
-| `anpord generate [--out <path>]` | Write variable types for up to 100 prompts |
 | `anpord --completions <shell>` | Print completions for zsh, bash or fish |
 
 ## Run evals
@@ -40,18 +34,24 @@ Set `ANPORD_API_KEY` before commands that call Anpord. `--help`, `--version`, `e
 ```bash
 anpord eval
 anpord eval ./evals/smoke.eval.ts
+anpord eval ./evals/smoke.eval.ts --case writes-hello --variant codex/gpt-5.6-sol
+anpord eval --case writes-hello
 ```
 
 With no file, the CLI finds every `*.eval.ts` under the current directory (skipping `node_modules`, `dist`, `build` and hidden folders) and runs them one after another. Each suite file starts one batch: one run per case per variant, each with the suite's number of trials. The command waits for the batch and applies the gate. In an interactive terminal the grid updates as trials finish. Otherwise it prints the final grid once.
 
+With `--case` and no file, the CLI runs a case Anpord already stores again, on its newest version.
+
 | Option | Purpose |
 | --- | --- |
+| `--case <id>` | Run one case. With a file, picks that case from it. Without one, runs the stored case again |
+| `--variant <variant>` | Run one variant: `harness/model` for a file, or a variant id for a stored case. Repeat it for more |
+| `--local` | Run every case on every variant, with the suite's trials, on this machine instead of a cloud sandbox. See [local runs](/evals/local) |
 | `--fail-on` | Gate, `failures` by default: fail when any run fails or has a trial that did not pass. `strict` also fails when a run or trial is missing or unfinished. `never` ignores trial results |
 | `--timeout` | Seconds to wait per batch, default `1200`. A timeout fails the command but does not cancel the batch |
 | `--output` | Write a JSON report with each file's batch ID, batch and problems |
 | `--no-wait` | Start each batch and print its ID and runs, without waiting |
 | `--json` | Print each finished batch as JSON instead of the grid |
-| `--local` | Run each case once on this machine instead of in a cloud sandbox, using the suite's first variant, so a verifier can reach a service on `localhost`. With an API key, the batch is recorded and credentials are leased from your organization. Without one, nothing is sent. See [local runs](/evals/local) |
 
 Under every gate, a batch that fails to start, fails, or times out fails the command.
 
@@ -63,25 +63,18 @@ Under every gate, a batch that fails to start, fails, or times out fails the com
 
 `anpord connectors integrations` lists what can be connected, `connectors list` shows what the organization has, and `connectors remove <id>` deletes one.
 
-## Manage prompts
+## Exit codes
 
-Prompt content goes to stdout:
+| Code | Meaning |
+| --- | --- |
+| `0` | Every batch passed the gate |
+| `2` | The gate failed |
+| `1` | An error, such as a batch that could not start or finish |
+| `130` | Interrupted |
 
-```bash
-anpord get support-reply > prompt.txt
-anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
-anpord promote support-reply --to production --at 7
-```
+Failures print without a stack trace. Status messages go to stderr.
 
-`push` does not promote and cannot set config. Use the SDK or API for prompts with versioned config.
-
-<Note>
-`--at` selects a prompt version. `--version` prints the CLI version.
-</Note>
-
-## Output and environment
-
-Failures exit nonzero without a stack trace. Status messages go to stderr.
+## Environment
 
 | Variable | Purpose |
 | --- | --- |

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { EvalGate, problemsWith } from "../../src/cli/eval-gate";
+import { batchError, EvalGate, problemsWith } from "../../src/cli/eval-gate";
 import { createBatch, createRun, createTrial } from "../fixtures/eval-run";
 
 const ONE = { runs: 1, trials: 1 };
@@ -21,13 +21,15 @@ describe("the eval gate", () => {
       runs: [createRun({ trials: [createTrial({ status })] })],
     });
     expect(problemsWith(batch, "failures", ONE)).toEqual([
-      `fixture, trial 1: ${status}.`,
+      `fixture on codex/test, trial 1: ${status}.`,
     ]);
   });
 
   test("failures rejects a failed run", () => {
     const batch = createBatch({ runs: [createRun({ status: "failed" })] });
-    expect(problemsWith(batch, "failures", ONE)).toEqual(["fixture failed."]);
+    expect(problemsWith(batch, "failures", ONE)).toEqual([
+      "fixture on codex/test failed.",
+    ]);
   });
 
   test("strict rejects missing and incomplete trial evidence", () => {
@@ -60,19 +62,22 @@ describe("the eval gate", () => {
     expect(problemsWith(batch, "never", ONE)).toEqual([]);
   });
 
+  test("an empty, unfinished or failed batch is an error whatever the gate", () => {
+    expect(batchError(createBatch())).toBeNull();
+    expect(batchError(createBatch({ runs: [] }))).not.toBeNull();
+    expect(batchError(createBatch({ status: "running" }))).not.toBeNull();
+    expect(
+      batchError(createBatch({ failure: "sandbox died", status: "failed" }))
+    ).toBe("sandbox died");
+  });
+
   test.each([
     ...EvalGate.literals,
-  ])("%s never hides an empty or failed batch", (gate) => {
-    expect(problemsWith(createBatch({ runs: [] }), gate, ONE)).not.toBeEmpty();
-    expect(
-      problemsWith(createBatch({ status: "running" }), gate, ONE)
-    ).not.toBeEmpty();
-    expect(
-      problemsWith(
-        createBatch({ failure: "sandbox died", status: "failed" }),
-        gate,
-        ONE
-      )
-    ).toEqual(["sandbox died"]);
+  ])("%s names the variant alongside the case", (gate) => {
+    const batch = createBatch({
+      runs: [createRun({ status: "failed", trials: [] })],
+    });
+    const problems = problemsWith(batch, gate, ONE);
+    expect(problems.every((line) => line.includes("codex/test"))).toBe(true);
   });
 });

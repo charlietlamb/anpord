@@ -1,11 +1,10 @@
 import { resolve } from "node:path";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { PublicStartBatchRequest } from "@anpord/schema/public/evals-api";
+import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { Effect, Schema } from "effect";
 import { compileApis, withApis } from "./api-profile";
-import { bundledCaseModule } from "./case-modules";
 import { type CompiledCli, compileClis, withClis } from "./cli-profile";
-import { compileValidator } from "./compile-validator";
+import { compileCase } from "./compile-case";
+import { suiteIdProblem } from "./define";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { locate } from "./locate";
 import {
@@ -14,11 +13,8 @@ import {
   withMcpServers,
 } from "./mcp-profile";
 import { profileVariant } from "./profile-directory";
-import { type DefinitionRef, prepareEntry } from "./runner-source";
-import { empty, repo } from "./source";
-import { suiteIdOf } from "./suite-id";
+import type { DefinitionRef } from "./runner-source";
 import type {
-  EvalCaseDefinition,
   EvalDefinition,
   EvalVariantDefinition,
   VariantInput,
@@ -33,7 +29,7 @@ const variantOf = (
 ) =>
   Effect.gen(function* () {
     const compiled: VariantInput =
-      typeof variant.harness === "string"
+      variant.profile === undefined
         ? {
             harness: variant.harness,
             model: variant.model,
@@ -41,19 +37,13 @@ const variantOf = (
           }
         : yield* profileVariant(entry, {
             ...variant,
-            harness: variant.harness,
+            profile: variant.profile,
           });
 
     return yield* Effect.try(() =>
       withApis(withClis(withMcpServers(compiled, mcp), clis), apis)
     );
   });
-
-const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
-  const source = subject.source ?? definition.source ?? empty;
-
-  return typeof source === "string" ? repo(source) : source;
-};
 
 const compileRefEffect = (ref: DefinitionRef) =>
   Effect.gen(function* () {
@@ -70,6 +60,12 @@ const compileRefEffect = (ref: DefinitionRef) =>
       );
     }
 
+    const idProblem = suiteIdProblem(definition);
+
+    if (idProblem !== null) {
+      return yield* Effect.fail(new Error(idProblem));
+    }
+
     const clis = yield* compileClis(ref, definition.cli ?? []);
     const mcp = yield* compileMcpServers(ref, definition.mcp ?? []);
     const apis = yield* compileApis(ref, definition.api ?? []);
@@ -77,49 +73,7 @@ const compileRefEffect = (ref: DefinitionRef) =>
     const cases = yield* Effect.forEach(
       definition.cases,
       (subject, caseIndex) =>
-        Effect.gen(function* () {
-          const hasValidator = subject.validate !== undefined;
-          const hasVerifier = typeof subject.verify === "string";
-
-          if (hasValidator === hasVerifier) {
-            return yield* Effect.fail(
-              new Error(
-                `${subject.name} must have exactly one of validate or verify`
-              )
-            );
-          }
-
-          const validator = yield* compileValidator(
-            ref,
-            subject,
-            caseIndex,
-            definition.captureSource !== false,
-            definition.captureValidation !== false
-          );
-
-          const prepare =
-            typeof subject.prepare === "function"
-              ? yield* bundledCaseModule(
-                  entry,
-                  loaded.inputs,
-                  subject.prepare.name || `${subject.name}-prepare`,
-                  prepareEntry
-                )
-              : null;
-
-          return {
-            ...(subject.cache === undefined ? {} : { cache: subject.cache }),
-            id: subject.id,
-            name: subject.name,
-            prepare,
-            source: sourceFor(definition, subject),
-            ...(subject.tags === undefined ? {} : { tags: subject.tags }),
-            user: subject.user ?? null,
-            validator,
-            variables: subject.variables ?? {},
-            verify: subject.verify ?? null,
-          };
-        }),
+        compileCase(ref, loaded.inputs, definition, subject, caseIndex),
       { concurrency: 4 }
     );
 
@@ -129,11 +83,11 @@ const compileRefEffect = (ref: DefinitionRef) =>
       { concurrency: 4 }
     );
 
-    return yield* Schema.decodeUnknown(PublicStartBatchRequest)({
+    return yield* Schema.decodeUnknown(StartBatchRequest)({
       cases,
       suite: {
-        id: definition.id ?? suiteIdOf(definition.name),
-        name: definition.name,
+        id: definition.id,
+        name: definition.name ?? definition.id,
         prompt: definition.prompt,
       },
       trials: definition.trials,

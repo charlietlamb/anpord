@@ -1,22 +1,29 @@
 import { describe, expect, test } from "bun:test";
 import { apiOperations, commandNames } from "../../src/cli/coverage";
 
-const OPERATION_COMMANDS: Record<string, readonly string[]> = {
+const EVAL_COMMANDS: Record<string, readonly string[]> = {
+  "batches.get": [],
+  "batches.list": [],
+  "batches.start": [],
+  "cases.get": [],
+  "cases.list": [],
+  "cases.run": [],
   "connectors.add": ["connectors"],
   "connectors.integrations": [],
   "connectors.list": [],
   "connectors.remove": [],
-  "evals.caseRuns": [],
-  "evals.credentials": [],
-  "evals.finish": [],
-  "evals.get": [],
-  "evals.list": [],
-  "evals.models": [],
-  "evals.reportTrial": [],
-  "evals.runCase": [],
-  "evals.start": ["eval"],
-  "evals.subscription": [],
-  "evals.tail": [],
+  "models.list": [],
+  "runner.finish": [],
+  "runner.lease": [],
+  "runner.report": [],
+  "runner.start": ["eval"],
+  "runner.subscribe": [],
+  "runner.tail": [],
+  "runs.get": [],
+  "runs.list": [],
+};
+
+const PROMPT_COMMANDS: Record<string, readonly string[]> = {
   "prompts.create": [],
   "prompts.get": ["generate", "get", "versions"],
   "prompts.list": ["list"],
@@ -24,24 +31,34 @@ const OPERATION_COMMANDS: Record<string, readonly string[]> = {
   "prompts.update": ["push"],
 };
 
+const mapped = (operations: Record<string, readonly string[]>) =>
+  Object.values(operations).flat().toSorted();
+
 describe("coverage", () => {
   test("every operation the api exposes has a decision recorded here", () => {
-    expect(Object.keys(OPERATION_COMMANDS).toSorted()).toEqual(apiOperations());
+    expect(
+      Object.keys({ ...EVAL_COMMANDS, ...PROMPT_COMMANDS }).toSorted()
+    ).toEqual(apiOperations());
   });
 
-  test("every command maps to an operation", () => {
-    const mapped = Object.values(OPERATION_COMMANDS).flat().toSorted();
-    expect(commandNames()).toEqual(mapped);
+  test("with prompts off, only eval and connector commands exist", () => {
+    expect(commandNames(false)).toEqual(mapped(EVAL_COMMANDS));
   });
 
-  test("reading and publishing are reachable from the terminal", () => {
+  test("with prompts on, every command maps to an operation", () => {
+    expect(commandNames(true)).toEqual(
+      mapped({ ...EVAL_COMMANDS, ...PROMPT_COMMANDS })
+    );
+  });
+
+  test("with prompts on, reading and publishing are reachable from the terminal", () => {
     for (const operation of [
       "prompts.get",
       "prompts.list",
       "prompts.update",
       "prompts.promote",
     ]) {
-      expect(OPERATION_COMMANDS[operation]).not.toBeEmpty();
+      expect(PROMPT_COMMANDS[operation]).not.toBeEmpty();
     }
   });
 });

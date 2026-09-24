@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Effect, Option, Redacted, Stream } from "effect";
 import { CommandDriver } from "../../../src/adapters/harness/command";
+import { tracePath } from "../../../src/adapters/harness/command-line";
 import {
   FINISHED,
   fake,
@@ -12,7 +13,7 @@ import {
   WORKSPACE,
 } from "./command-fake";
 
-const TRACE = `${HOME}/.anpord/trace.ndjson`;
+const TRACE = `${HOME}/.anpord/trace-sandbox.ndjson`;
 
 describe("the command harness command line", () => {
   it("carries the case in variables a shell cannot reinterpret", async () => {
@@ -33,6 +34,14 @@ describe("the command harness command line", () => {
         "< /dev/null",
       ].join(" ")
     );
+  });
+
+  it("keeps each sandbox's commands in its own trace, so trials sharing a home never mix", () => {
+    const first = tracePath({ home: HOME, id: "/tmp/anpord-local-a" });
+    const second = tracePath({ home: HOME, id: "/tmp/anpord-local-b" });
+
+    expect(first).not.toBe(second);
+    expect(first).toBe(`${HOME}/.anpord/trace--tmp-anpord-local-a.ndjson`);
   });
 
   it("names the system prompt only when the profile ships one", async () => {

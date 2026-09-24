@@ -21,16 +21,15 @@ Create an Anpord API key with `evals:read` and `evals:write` in the same organiz
 Install `anpord`, then create `claude.eval.ts`:
 
 ```ts
-import { suite } from "anpord";
+import { command, suite } from "anpord";
 
 export default suite({
-  name: "claude-smoke",
+  id: "claude-smoke",
   prompt: "Create hello.txt containing exactly hello.",
   cases: [
     {
       id: "writes-hello",
-      name: "writes hello.txt",
-      verify: 'test "$(cat hello.txt)" = hello',
+      validate: command('test "$(cat hello.txt)" = hello'),
     },
   ],
   variants: [{ harness: "claude", model: "claude-haiku-4-5-20251001" }],
@@ -42,7 +41,7 @@ export default suite({
 npx anpord eval ./claude.eval.ts
 ```
 
-This starts a batch with one run: the one case on the one variant, with one trial. A passing trial confirms the connection, the Claude install, its file tools and your verifier. Open the printed batch link to see the commands and output. One trial says nothing about how reliably the case passes.
+This starts a batch with one run: the one case on the one variant, with one trial. A passing trial confirms the connection, the Claude install, its file tools and your check. Open the printed batch link to see the commands and output. One trial says nothing about how reliably the case passes.
 
 ## Compare models
 
@@ -58,7 +57,7 @@ variants: [
 
 The next batch holds one run per case per variant, so the models appear side by side. Use [exact model IDs](https://platform.claude.com/docs/en/models/overview) your Anthropic account can call. Calls are billed to that account.
 
-To test tool use, add [MCP and CLI mocks](/evals/mocks) or [HTTP mocks](/evals/api-mocks). Anpord sets them up in each sandbox for Claude the same way as for other harnesses.
+To test tool use, add [MCP, CLI or HTTP mocks](/evals/mocks). Anpord sets them up in each sandbox for Claude the same way as for other harnesses.
 
 A batch is capped at 100 trials (cases x variants x trials). Split a larger grid into separate suites. See [API limits](/api-reference/introduction#limits), and [CI](/guides/ci) for trial counts and the GitHub Action.
 

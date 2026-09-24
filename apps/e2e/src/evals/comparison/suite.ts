@@ -16,6 +16,7 @@ export const comparisonSuite = (
   variants: readonly EvalVariantDefinition[]
 ) =>
   suite({
+    id: `anpord-models-${name}`,
     name: `anpord-models/${name}`,
     source: empty,
     mcp: [catalogMcp],

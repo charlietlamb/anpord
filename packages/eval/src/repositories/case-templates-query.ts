@@ -2,7 +2,7 @@ import { Database } from "@anpord/db/client";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import type { HarnessName, SandboxName } from "../domain/variant";
 import { namesOf } from "../domain/variant";
@@ -29,7 +29,7 @@ export const caseTemplatesQuery = Effect.gen(function* () {
   return (input: {
     readonly caseId: string;
     readonly organizationId: string;
-    readonly variantId: string | null;
+    readonly variantIds: readonly string[] | null;
   }) =>
     Effect.gen(function* () {
       const scope = and(
@@ -74,9 +74,9 @@ export const caseTemplatesQuery = Effect.gen(function* () {
             eq(evalCase.internalId, evalVariant.caseInternalId)
           )
           .where(
-            input.variantId === null
+            input.variantIds === null
               ? scope
-              : and(scope, eq(evalVariant.internalId, input.variantId))
+              : and(scope, inArray(evalVariant.internalId, input.variantIds))
           )
           .orderBy(evalRun.variantInternalId, desc(evalRun.createdAt))
       );

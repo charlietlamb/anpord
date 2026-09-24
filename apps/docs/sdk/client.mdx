@@ -24,14 +24,17 @@ const anpord = new Anpord({
 
 | Method | Returns |
 | --- | --- |
-| `evals.start(request)` | The new batch's id, and a run id per case and variant. Trials continue on the server |
-| `evals.startAndWait(request)` | The batch, once it stops |
-| `evals.get({ id })` | One batch with its runs and trials |
-| `evals.wait({ id })` | A batch you already started, once it stops |
-| `evals.list({ cursor?, limit? })` | A page of batches, newest first, and the next cursor |
-| `evals.models({ harness })` | Models available to a harness |
-| `evals.caseRuns({ caseId, variant?, page? })` | A page of a case's runs, newest first |
-| `evals.runCase({ caseId, variant?, trials })` | A new batch that runs the case on one variant, or on every variant it has |
+| `evals.batches.start(suite)` | The new batch's id, and a run per case and variant with its `caseId` and `variantId`. Trials continue on the server |
+| `evals.batches.startAndWait(suite)` | The batch, once it stops |
+| `evals.batches.wait({ id })` | A batch you already started, once it stops |
+| `evals.batches.get({ id })` | One batch with its runs and trials |
+| `evals.batches.list({ cursor?, limit? })` | A page of batches, newest first, and the next cursor |
+| `evals.cases.list({ suite?, tag?, cursor?, limit? })` | A page of cases, with each variant's newest run |
+| `evals.cases.get({ id })` | A case, its versions and the variants it has run on |
+| `evals.cases.run({ id, trials?, variants? })` | A new batch that runs the case's newest version on the variant ids named, or on every variant it has run on. `trials` defaults to 1 |
+| `evals.runs.list({ caseId, variant?, page? })` | A page of a case's runs, newest first |
+| `evals.runs.get({ id })` | One run and its trials |
+| `evals.models.list({ harness })` | Models available to a harness |
 
 Validators, preparation, profiles and mocks are written in an eval file. Import the suite and pass it in:
 
@@ -42,28 +45,12 @@ export const smoke = suite({ ... });
 ```ts
 import { smoke } from "./evals/smoke.eval";
 
-const batch = await anpord.evals.startAndWait(smoke);
+const batch = await anpord.evals.batches.startAndWait(smoke);
 ```
 
 `suite` records the file it was defined in, so `start` and `startAndWait` can compile it and ship its validators and mock servers, with everything they close over, to the sandbox.
 
-A plain request also works when cases only need a shell `verify`:
-
-```ts
-const { id, runs } = await anpord.evals.start({
-  suite: { id: "smoke", name: "Smoke", prompt: "{{task}}" },
-  cases: [
-    {
-      id: "writes-hello",
-      name: "writes hello",
-      variables: { task: "Create hello.txt containing exactly hello" },
-      verify: 'test "$(cat hello.txt)" = hello',
-    },
-  ],
-  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
-  trials: 3,
-});
-```
+The client can't start a batch on the `local` sandbox. Use `anpord eval --local` for that.
 
 ## Errors and cleanup
 
@@ -71,7 +58,7 @@ const { id, runs } = await anpord.evals.start({
 import { AnpordError } from "anpord";
 
 try {
-  await anpord.evals.get({ id: "missing" });
+  await anpord.evals.batches.get({ id: "missing" });
 } catch (error) {
   if (error instanceof AnpordError) {
     console.error(error.status, error.message);

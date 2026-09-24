@@ -1,9 +1,7 @@
 import { pathToFileURL } from "node:url";
-import type {
-  EvalCaseDefinition,
-  EvalDefinition,
-  SingleCaseDefinition,
-} from "./types";
+import { EvalSuiteId } from "@anpord/schema/domain/eval-limits";
+import { Schema } from "effect";
+import type { EvalDefinition } from "./types";
 
 const SOURCE_URL = Symbol.for("anpord.sourceUrl");
 
@@ -45,9 +43,25 @@ const callerFile = (): string | undefined => {
   }
 };
 
+const isSuiteId = Schema.is(EvalSuiteId);
+
+const suiteLabel = (definition: EvalDefinition) =>
+  definition.name === undefined ? "A suite" : `Suite "${definition.name}"`;
+
+export const suiteIdProblem = (definition: EvalDefinition) =>
+  isSuiteId(definition.id)
+    ? null
+    : `${suiteLabel(definition)} needs an id: a handle of at most 100 lowercase letters, digits and single hyphens, such as "checkout-flow".`;
+
 export function suite<const Definition extends EvalDefinition>(
   definition: Definition
 ): Definition {
+  const problem = suiteIdProblem(definition);
+
+  if (problem !== null) {
+    throw new TypeError(problem);
+  }
+
   const file = callerFile();
 
   return file === undefined
@@ -56,19 +70,6 @@ export function suite<const Definition extends EvalDefinition>(
         enumerable: false,
         value: file,
       });
-}
-
-export function evalCase(definition: SingleCaseDefinition): EvalDefinition {
-  const { prompt, variants, trials, ...subject } = definition;
-
-  return suite({
-    cases: [subject as EvalCaseDefinition],
-    id: subject.id,
-    name: subject.name,
-    prompt,
-    variants,
-    trials,
-  });
 }
 
 export const sourceUrlOf = (definition: EvalDefinition): string | undefined =>

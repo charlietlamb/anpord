@@ -1,7 +1,7 @@
 import type { EvalRun } from "@anpord/schema/domain/evals";
 import { Schema } from "effect";
-import { formatVariant } from "./eval-grid";
-import type { EvalOutcome } from "./eval-outcome";
+import { outcomeLabel, type SuiteOutcome } from "./suite-outcome";
+import { formatVariant } from "./variant-label";
 
 export const CheckRun = Schema.Struct({
   conclusion: Schema.Literal("failure", "neutral", "success"),
@@ -31,22 +31,26 @@ const escaped = (text: string) =>
 
 const formatRunRow = (run: EvalRun) => {
   const rate = run.distribution.scored ? run.distribution.passRate : undefined;
-  return `| ${escaped(run.case.name)} | ${escaped(formatVariant(run))} | ${percent(rate)} |`;
+  return `| ${escaped(run.case.name)} | ${escaped(formatVariant(run.variant))} | ${percent(rate)} |`;
 };
 
 export const batchUrl = (webUrl: string, id: string) =>
   `${webUrl.replace(TRAILING_SLASH, "")}/evals/${encodeURIComponent(id)}`;
 
-const formatOutcome = (
-  { batch, batchId, file, problems }: EvalOutcome,
-  webUrl: string
-) =>
-  [
-    `### ${escaped(file)}`,
+const headingOf = (outcome: SuiteOutcome) =>
+  outcome.file !== null && outcome.suite !== null
+    ? `${outcome.suite} (${outcome.file})`
+    : outcomeLabel(outcome);
+
+const formatOutcome = (outcome: SuiteOutcome, webUrl: string) => {
+  const { batch, batchId, error, problems } = outcome;
+  return [
+    `### ${escaped(headingOf(outcome))}`,
     "",
     ...(batchId === null
       ? []
       : [`[View batch](${batchUrl(webUrl, batchId)})`, ""]),
+    ...(error === null ? [] : [`- ${escaped(error)}`]),
     ...problems.map((problem) => `- ${escaped(problem)}`),
     ...(batch === null
       ? []
@@ -57,12 +61,15 @@ const formatOutcome = (
           ...batch.runs.map(formatRunRow),
         ]),
   ].join("\n");
+};
 
 export const buildGithubCheck = (
-  outcomes: readonly EvalOutcome[],
+  outcomes: readonly SuiteOutcome[],
   webUrl: string
 ): CheckRun => {
-  const failed = outcomes.some((outcome) => outcome.problems.length > 0);
+  const failed = outcomes.some(
+    (outcome) => outcome.error !== null || outcome.problems.length > 0
+  );
   const completed =
     outcomes.length > 0 && outcomes.every((outcome) => outcome.batch !== null);
   const first = outcomes.find((outcome) => outcome.batchId !== null);

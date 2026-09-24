@@ -1,8 +1,8 @@
 import { MCP_SCOPES, SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
 import { Clock, Duration, Effect } from "effect";
 import { OAuthError, OAuthErrorCode, oauthCustomProvider } from "mcp-use/oauth";
+import type { AnpordUser } from "./anpord-user";
 import { authUrl, resource } from "./config";
-import type { AnpordUser } from "./tools";
 
 const endpoint = (name: string) => `${authUrl}/mcp/${name}`;
 export const issuerOf = (url: string) => new URL(url).origin;

@@ -11,9 +11,10 @@ A variant is the harness, model and sandbox (plus an optional [profile](/evals/p
 
 | Field | Purpose |
 | --- | --- |
-| `harness` | The agent that does the work. A harness id, or `{ base, profile }` to layer a [profile](/evals/profiles) on one |
+| `harness` | The agent that does the work |
 | `model` | The model the harness uses |
 | `sandbox` | Where each trial runs. Optional, defaults to `e2b` |
+| `profile` | Optional `{ name, dir }`: files and settings layered on the harness. See [profiles](/evals/profiles) |
 
 ## Harnesses
 
@@ -37,7 +38,7 @@ For Claude Code, follow the [setup guide](/guides/claude-code) and check one tri
 Model ids differ by harness. List the ones a harness accepts:
 
 ```ts
-const { models } = await anpord.evals.models({ harness: "codex" });
+const { models } = await anpord.evals.models.list({ harness: "codex" });
 ```
 
 You don't have to list models before starting a batch. Lists come from Anpord's Codex cache, models.dev or a fixed list, depending on the harness, so an empty result means the source is unavailable, not that the harness has no models.
@@ -46,7 +47,7 @@ You don't have to list models before starting a batch. Lists come from Anpord's 
 
 A variant without `sandbox` runs on `e2b`. The others are `daytona`, `upstash`, `modal`, `cloudflare` and `vercel`. Every trial gets its own isolated workspace.
 
-Hosted sandboxes can't reach services on your machine. To test against one, see [local runs](/evals/local).
+Hosted sandboxes can't reach services on your machine. To test against one, run the suite with `anpord eval --local`. See [local runs](/evals/local).
 
 The sandbox is part of the variant, so changing it starts a new history. If a variant ran on a sandbox other than `e2b`, keep naming it to keep adding to that history.
 
@@ -68,9 +69,9 @@ A case has one variant for each combination of harness, model, sandbox, profile 
 ## Read a variant's history
 
 ```ts
-const { runs, total } = await anpord.evals.caseRuns({ caseId: "writes-hello" });
+const { runs, total } = await anpord.evals.runs.list({ caseId: "writes-hello" });
 ```
 
-Runs come newest first, 20 to a page. Pass `variant` (a variant id) to read one variant, and `page` for older runs.
+Runs come newest first, 20 to a page. Pass `variant` (a variant id) to read one variant, and `page` for older runs. `evals.cases.get({ id })` lists a case's variants with their ids.
 
-To run a case again, `evals.runCase({ caseId, trials })` starts a batch that runs the case's newest version on every variant it has, or on one when you pass `variant`.
+To run a case again, `evals.cases.run({ id, trials, variants })` starts a batch that runs the case's newest version on the variant ids you name, or on every variant it has run on when you leave `variants` out. `trials` defaults to 1.

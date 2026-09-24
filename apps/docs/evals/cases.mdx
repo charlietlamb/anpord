@@ -3,21 +3,20 @@ title: "Suites and cases"
 description: "Define what the agent does and how it passes"
 ---
 
-A suite is a group of cases that share a prompt, a workspace and a set of variants. Each case is one eval: it fills in the prompt, sets up the workspace and checks the result.
+A suite is a system prompt and shared setup for many cases. Each case is one eval: it fills in the prompt, sets up the workspace and checks the result.
 
 ```ts
-import { suite, repo } from "anpord";
+import { command, repo, suite } from "anpord";
 
 export default suite({
-  name: "api",
+  id: "api",
   source: repo("acme/api@8f31c4a"),
   prompt: "{{task}}",
   cases: [
     {
       id: "health-route",
-      name: "health route",
       variables: { task: "Add a /health route that returns 200" },
-      verify: "bun test test/health.test.ts",
+      validate: command("bun test test/health.test.ts"),
     },
   ],
   variants: [{ harness: "codex", model: "model-id" }],
@@ -27,22 +26,21 @@ export default suite({
 
 Running this file starts a batch: one run per case per variant, each with `trials` trials in their own sandboxes.
 
-A suite's `id` is its `name` lowercased with hyphens, unless you set one. A case `id` is a handle of lowercase letters, digits and hyphens, unique within your organization. Its history is kept under it, so keep it stable. When a case's definition changes, later runs record a new version of the case.
+A suite and a case each need an `id`: a handle of up to 100 lowercase letters, digits and single hyphens, such as `health-route`. A case id is unique within your organization. Its history is kept under it, so keep it stable. When a case's definition changes, later runs record a new version of the case.
 
 | Case field | Purpose |
 | --- | --- |
 | `id` | Stable handle the case's history is kept under (required) |
-| `name` | Label for the case's row in the grid (required) |
+| `name` | Label for the case's row in the grid. Defaults to the id |
 | `variables` | Values for prompt variables such as `{{task}}` |
 | `source` | Workspace for this case, overriding the suite's |
 | `prepare` | Typed setup that runs before the agent |
 | `cache` | One prepared directory to restore and save |
 | `tags` | Up to 12 labels to group and filter cases by |
 | `user` | Makes the case a [conversation](/evals/conversations) instead of one prompt |
-| `verify` | Shell check that runs after the agent |
-| `validate` | Code validators, [model judges](/evals/judges), or an array of them |
+| `validate` | How the trial passes: a validator, a [model judge](/evals/judges), `command("...")`, or an array of validators and judges (required) |
 
-Every case needs exactly one of `verify` or `validate`.
+The suite's `name` also defaults to its `id`.
 
 ## Sources
 
@@ -81,6 +79,8 @@ export const install: Prepare = async ({ cached, exec }) => {
 
 ## Validate
 
+`command("bun test")` runs a shell command in the workspace after the agent finishes. The trial passes when it exits 0.
+
 Use a validator when the check is clearer in TypeScript than in a shell command:
 
 ```ts
@@ -96,7 +96,7 @@ Set `validate: hasHealthRoute` on the case. Anpord bundles the function and its 
 
 The validator receives `answer`, `transcript`, `turns`, `readText`, `exists`, `exec`, `prepared`, and the call logs of any [mocks](/evals/mocks) (`api`, `cli`, `mcp`).
 
-Pass an array to combine checks, up to 20 per case: `validate: [hasHealthRoute, correctness]`. Use [model judges](/evals/judges) for checks that need interpretation.
+Pass an array to combine validators and judges, up to 20 per case: `validate: [hasHealthRoute, correctness]`. A `command()` can't go in an array. Use [model judges](/evals/judges) for checks that need interpretation.
 
 ### Source capture
 
@@ -104,8 +104,6 @@ The dashboard's **Validation** panel shows the validator source as you wrote it,
 
 ## Run
 
-`anpord eval` runs every `*.eval.ts` file it finds. Pass a path to run one: `anpord eval ./smoke.eval.ts`.
-
-For one case, `evalCase()` takes the case fields plus `prompt`, `variants` and `trials`, and wraps them in a suite with the case's `id` and `name`.
+`anpord eval` runs every `*.eval.ts` file it finds. Pass a path to run one: `anpord eval ./smoke.eval.ts`. Add `--case <id>` to run one case from the file.
 
 See [variants](/evals/variants) for harnesses, models and sandboxes, and [profiles](/evals/profiles) for custom harness configuration.

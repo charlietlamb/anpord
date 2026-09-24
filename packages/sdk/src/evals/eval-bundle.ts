@@ -6,8 +6,8 @@ import { build, type Plugin } from "esbuild";
 import { sourceFiles } from "./source-files";
 
 const authoringExports = [
-  "export const suite = (first, second) => typeof first === 'string' ? second : first;",
-  "export const evalCase = ({ prompt, variants, trials, ...subject }) => ({ cases: [subject], name: subject.name, prompt, variants, trials });",
+  "export const suite = (definition) => definition;",
+  `export { command } from "./command";`,
   `export { empty, files, repo } from "./source";`,
 ].join("\n");
 

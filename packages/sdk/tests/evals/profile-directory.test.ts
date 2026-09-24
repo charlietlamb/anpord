@@ -41,7 +41,8 @@ const compiled = (
 ) =>
   Effect.runPromise(
     profileVariant(join(dir, "..", "suite.eval.ts"), {
-      harness: { base, profile: { dir: "./profile", name } },
+      harness: base,
+      profile: { dir: "./profile", name },
       model: "anthropic/claude-sonnet-4.6",
       sandbox: "daytona",
     }).pipe(Effect.either)

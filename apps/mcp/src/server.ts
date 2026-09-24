@@ -1,10 +1,10 @@
 import { MCPServer } from "mcp-use";
+import type { AnpordUser } from "./anpord-user";
 import { anpordOAuth } from "./oauth";
-import type { AnpordUser } from "./tools";
-import { register } from "./tools";
+import { register, serverDescription } from "./tools";
 
 const server = new MCPServer<AnpordUser>({
-  description: "Run coding agent evals and manage versioned prompts.",
+  description: serverDescription(),
   name: "anpord",
   oauth: anpordOAuth,
   version: "0.2.0",

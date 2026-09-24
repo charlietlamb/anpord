@@ -5,7 +5,7 @@ import {
   MAX_START_CASES,
   MAX_START_VARIANTS,
 } from "../../src/domain/eval-quota";
-import { PublicStartBatchRequest } from "../../src/public/evals-api";
+import { SuiteBatchRequest } from "../../src/public/evals-api";
 
 const evalCase = {
   id: "a-case",
@@ -84,7 +84,7 @@ describe("what a start may carry to a sandbox", () => {
   });
 
   it("bounds the public intake the same way", () => {
-    const decoded = Schema.decodeUnknownEither(PublicStartBatchRequest)({
+    const decoded = Schema.decodeUnknownEither(SuiteBatchRequest)({
       cases: [
         {
           id: "a-case",

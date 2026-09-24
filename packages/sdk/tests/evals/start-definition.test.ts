@@ -31,7 +31,7 @@ describe("starting from an imported eval", () => {
 
     try {
       const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
-      await anpord.evals.start(smoke);
+      await anpord.evals.batches.start(smoke);
 
       const body = (await sent[0]?.json()) as {
         cases: { name: string; validator: { source: string } }[];
@@ -51,7 +51,7 @@ describe("starting from an imported eval", () => {
 
     try {
       const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
-      await anpord.evals.startAndWait(smoke).catch(() => undefined);
+      await anpord.evals.batches.startAndWait(smoke).catch(() => undefined);
 
       const body = (await sent[0]?.json()) as { suite: { prompt: string } };
       expect(body.suite.prompt).toBe("Create hello.txt");
@@ -65,7 +65,7 @@ describe("starting from an imported eval", () => {
 
     try {
       const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
-      await anpord.evals.start({
+      await anpord.evals.batches.start({
         cases: [
           {
             id: "a",

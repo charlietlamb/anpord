@@ -10,8 +10,8 @@ import { Anpord } from "anpord";
 import { smoke } from "./evals/smoke.eval";
 
 const anpord = new Anpord();
-const { id } = await anpord.evals.start(smoke);
-const batch = await anpord.evals.wait({ id });
+const { id } = await anpord.evals.batches.start(smoke);
+const batch = await anpord.evals.batches.wait({ id });
 
 if (batch.status === "failed") {
   throw new Error(batch.failure ?? "Eval batch failed");
@@ -25,8 +25,10 @@ if (failing.length) process.exitCode = 1;
 await anpord.dispose();
 ```
 
-`start` creates a batch with one run per case per variant and returns its ID. `wait` polls until the batch is no longer `running`. Pass `timeoutMs` (default one hour) or `signal` to stop waiting. Neither cancels the batch.
+`batches.start` creates a batch with one run per case per variant and returns its ID. `wait` polls until the batch is no longer `running`. Pass `timeoutMs` (default one hour) or `signal` to stop waiting. Neither cancels the batch.
 
-`startAndWait` does both in one call.
+`batches.startAndWait` does both in one call.
+
+To run one stored case again, `evals.cases.run({ id: "writes-hello" })` starts a batch for its newest version on every variant it has run on. Pass `variants` (variant ids) to narrow it, and `trials` (default 1) for more attempts.
 
 To compile without the client, import from `anpord/eval`: `compileEval("./evals/smoke.eval.ts")` compiles a file by path, and `compileDefinition(smoke)` returns the request without sending it. See the [API client](/sdk/client).

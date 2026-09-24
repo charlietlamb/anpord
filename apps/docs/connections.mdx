@@ -10,7 +10,7 @@ Every run needs a credential for its [harness](/evals/variants), because model u
 | Anpord CLI and SDK | `ANPORD_API_KEY` |
 | Harness | Saved harness connection |
 | Hosted sandbox | None. Uses Anpord's account unless you add your own |
-| Judge or classifier that calls a provider | Saved model connection |
+| Judge that calls a provider, or a simulated user | Saved model connection |
 | Mock product MCP or CLI | None |
 | [Anpord MCP](/tools/mcp) | OAuth 2.1 |
 
@@ -38,20 +38,15 @@ echo "$OPENAI_API_KEY" | anpord connectors add codex --name ci
 
 `anpord connectors remove <id>` deletes a connection. A run already holding the credential finishes.
 
-## Judges, classifiers and simulated users
+## Judges and simulated users
 
-A [judge](/evals/judges) that names a `harness` runs an agent with that harness connection. A judge that calls a provider directly, and every [classifier](/evals/classifiers), needs a model connection instead. Add it under **Settings > Models**.
-
-| Integration | Used by |
-| --- | --- |
-| OpenAI | Judges declared with `provider: "openai"` |
-| TypeSafe | Classifiers |
+A [judge](/evals/judges) that names a `harness` runs an agent with that harness connection. A judge declared with `provider: "openai"` needs an OpenAI model connection instead. Add it under **Settings > Models**.
 
 A case that states a [human](/evals/conversations) needs a model to play them. `openai`, `anthropic`, `google`, `xai`, `moonshotai`, `deepseek`, `groq` and `openrouter` all serve the same chat-completions API, so the human runs on whichever you connected first. Provider judges call OpenAI's responses API, which the others don't serve, so a case scored by one needs `openai`.
 
-On a self-hosted deployment, set `OPENAI_API_KEY` and `TYPESAFE_API_KEY` in the server and worker environment instead.
+On a self-hosted deployment, set `OPENAI_API_KEY` in the server and worker environment instead.
 
-A missing model credential is not a startup error. The judge or classifier that needs it fails when a case reaches it, and names what was missing.
+A missing model credential is not a startup error. The judge that needs it fails when a case reaches it, and names what was missing.
 
 A ChatGPT subscription is not an OpenAI API key.
 

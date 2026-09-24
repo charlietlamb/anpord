@@ -61,7 +61,7 @@
     "./domain/journal": "./src/domain/journal.ts",
     "./domain/page": "./src/domain/page.ts",
     "./domain/trial": "./src/domain/trial.ts",
-    "./grid/batches": "./src/grid/batches.ts",
+    "./batch/batches": "./src/batch/batches.ts",
     "./judges/classifier": "./src/judges/classifier.ts",
     "./layer": "./src/layer.ts",
     "./local-layer": "./src/local-layer.ts",

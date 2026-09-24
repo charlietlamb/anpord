@@ -32,6 +32,7 @@ const create = async (captureSource = true) => {
     `import { suite, empty } from "anpord";
 import { check } from "../check";
 export default suite({
+  id: "fixture",
   name: "example", captureSource: ${captureSource}, source: empty,
   prompt: "Answer", trials: 1,
   variants: [{ harness: "codex", model: "model", provider: "e2b" }],

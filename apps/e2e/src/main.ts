@@ -1,6 +1,7 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import { Effect } from "effect";
 import { ApiKeyStore } from "./harness/api-keys";
 import {
@@ -16,6 +17,7 @@ import { AUTH_SECRET, SERVER_PORT } from "./harness/settings";
 import { activityScenarios } from "./scenarios/activity";
 import { apiScenarios } from "./scenarios/api";
 import { cliScenarios } from "./scenarios/cli";
+import { evalScenarios } from "./scenarios/evals";
 import { lifecycleScenarios } from "./scenarios/lifecycle";
 import { resolutionScenarios } from "./scenarios/resolution";
 import { sdkScenarios } from "./scenarios/sdk";
@@ -53,7 +55,8 @@ const SURFACES = [
   { name: "validation", scenarios: validationScenarios },
   { name: "activity", scenarios: activityScenarios },
   { name: "sdk", scenarios: sdkScenarios },
-  { name: "cli", scenarios: cliScenarios },
+  { name: "cli", scenarios: PROMPTS_ENABLED ? cliScenarios : [] },
+  { name: "evals", scenarios: evalScenarios },
 ] as const;
 
 /* The cluster is left running by default because the preserved key points at it. */

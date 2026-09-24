@@ -13,7 +13,7 @@ const SETTLE = Duration.millis(300);
 const bellOf = (id: string, api: typeof AnpordApi.Service) =>
   Stream.unwrapScoped(
     Effect.gen(function* () {
-      const { tag, token } = yield* api.evals.subscription({
+      const { tag, token } = yield* api.runner.subscribe({
         payload: { id },
       });
 
@@ -42,13 +42,13 @@ const bellOf = (id: string, api: typeof AnpordApi.Service) =>
     })
   ).pipe(Stream.catchAll(() => Stream.empty));
 
-export const tailBatch = (id: string, api: typeof AnpordApi.Service) =>
+export const followBatch = (id: string, api: typeof AnpordApi.Service) =>
   Stream.unwrap(
     Effect.gen(function* () {
       const marks = yield* Ref.make<readonly EvalTailMark[]>([]);
 
       const read = Ref.get(marks).pipe(
-        Effect.flatMap((after) => api.evals.tail({ payload: { after, id } })),
+        Effect.flatMap((after) => api.runner.tail({ payload: { after, id } })),
         Effect.tap((tail) => Ref.set(marks, tail.next))
       );
 

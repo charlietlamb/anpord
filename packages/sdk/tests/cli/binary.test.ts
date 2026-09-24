@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const binary = join(packageRoot, "dist", "bin.mjs");
@@ -36,17 +37,12 @@ describe.if(built)("the published binary", () => {
     "help names every command, so the surface is discoverable",
     async () => {
       const { code, stdout } = await run(["--help"]);
-      for (const command of [
-        "eval",
-        "get",
-        "list",
-        "promote",
-        "push",
-        "versions",
-      ]) {
+      for (const command of ["eval", "connectors"]) {
         expect(stdout).toContain(command);
       }
-      expect(stdout).toContain("eval");
+      for (const command of ["promote", "push", "versions"]) {
+        expect(stdout.includes(command)).toBe(PROMPTS_ENABLED);
+      }
       expect(code).toBe(0);
     },
     CLI_TIMEOUT
@@ -76,13 +72,14 @@ describe.if(built)("the published binary", () => {
     try {
       const nested = join(directory, "evals");
       const dependencies = join(directory, "node_modules", "fixture");
-      const definition = `import { suite } from "anpord";
+      const definition = `import { command, suite } from "anpord";
 export default suite({
+  id: "NAME",
   name: "NAME",
   source: { kind: "empty" },
   prompt: "{{task}}",
-  cases: [{ id: "case", name: "case", variables: { task: "Do nothing" }, verify: "true" }],
-  variants: [{ harness: "codex", model: "test", provider: "daytona" }],
+  cases: [{ id: "case", name: "case", variables: { task: "Do nothing" }, validate: command("true") }],
+  variants: [{ harness: "codex", model: "test", sandbox: "daytona" }],
   trials: 1,
 });`;
       await Promise.all([
@@ -92,11 +89,11 @@ export default suite({
       await Promise.all([
         writeFile(
           join(directory, "root.eval.ts"),
-          definition.replace("NAME", "root")
+          definition.replaceAll("NAME", "root")
         ),
         writeFile(
           join(nested, "nested.eval.ts"),
-          definition.replace("NAME", "nested")
+          definition.replaceAll("NAME", "nested")
         ),
         writeFile(join(dependencies, "ignored.eval.ts"), definition),
       ]);
@@ -114,7 +111,7 @@ export default suite({
       expect(stdout.match(/batch_cli/g)).toHaveLength(2);
       expect(requests).toHaveLength(2);
       expect(
-        requests.every(({ pathname }) => pathname === "/v1/evals.start")
+        requests.every(({ pathname }) => pathname === "/v1/runner.start")
       ).toBe(true);
       expect(requests.map(({ payload }) => payload)).toEqual([
         expect.objectContaining({ trials: 1 }),
@@ -129,7 +126,7 @@ export default suite({
   test(
     "a failure leaves stdout empty, so output can be redirected",
     async () => {
-      const { code, stderr, stdout } = await run(["list"]);
+      const { code, stderr, stdout } = await run(["connectors", "list"]);
       expect(stdout).toBe("");
       expect(stderr).toContain("ANPORD_API_KEY");
       expect(code).toBe(1);
@@ -138,12 +135,12 @@ export default suite({
   );
 
   test("a failure reports one line rather than a stack trace", async () => {
-    const { stderr } = await run(["list"]);
+    const { stderr } = await run(["connectors", "list"]);
     expect(stderr.trimEnd().split("\n")).toHaveLength(1);
     expect(stderr).not.toContain("node_modules");
   });
 
-  test(
+  test.if(PROMPTS_ENABLED)(
     "an id that cannot be one is refused before the network",
     async () => {
       const { code, stdout } = await run(["get", "NOT A VALID ID"], {

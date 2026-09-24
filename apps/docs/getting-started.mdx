@@ -3,6 +3,8 @@ title: "Quickstart"
 description: "Define a suite and run it on a coding agent"
 ---
 
+`anpord` is the TypeScript package for defining and running evals for coding agents. Suites, mocks and validators live in your repository next to the code they test.
+
 ## Prerequisites
 
 Add a [harness connection](/connections), then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
@@ -10,6 +12,8 @@ Add a [harness connection](/connections), then create an API key with `evals:wri
 ```bash
 export ANPORD_API_KEY="anp_..."
 ```
+
+Save harness credentials in Anpord, never in eval definitions. Hosted sandboxes and mocks need no keys of their own.
 
 ## Install
 
@@ -30,17 +34,16 @@ bun add anpord
 Create `smoke.eval.ts`:
 
 ```ts
-import { suite } from "anpord";
+import { command, suite } from "anpord";
 
 export default suite({
-  name: "smoke",
+  id: "smoke",
   prompt: "{{task}}",
   cases: [
     {
       id: "writes-hello",
-      name: "writes hello",
       variables: { task: "Create hello.txt containing exactly hello" },
-      verify: 'test "$(cat hello.txt)" = hello',
+      validate: command('test "$(cat hello.txt)" = hello'),
     },
   ],
   variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
@@ -54,24 +57,38 @@ export default suite({
 npx anpord eval ./smoke.eval.ts
 ```
 
-The CLI compiles the file locally and starts a batch. Each trial runs in its own hosted sandbox.
+The CLI compiles the file on your machine, including imported fixtures and validators, and starts a batch. Each trial runs in its own hosted sandbox. The [GitHub Action](/guides/ci) runs the same command, and you can also [start a batch from your own code](/guides/run-from-code).
 
 ## Vocabulary
 
-- **Suite:** a group of cases that share a prompt and setup. Its id is derived from its name unless you set `id`.
-- **Case:** one eval. It sets up a scenario (prompt, workspace, optional prepare step) and checks the result with validators or a verifier. A case gets a new version when its definition changes.
-- **Variant:** the harness, model and sandbox (plus an optional profile) a case runs on.
-- **Run:** one case on one variant. A case's runs on a variant form its history.
-- **Trial:** one attempt of a run, in its own sandbox. A run's pass rate is taken across its trials.
-- **Batch:** the runs started together, one per case per variant, so you can compare variants side by side.
+- **Suite:** a system prompt and shared setup for many cases. It needs an `id`, and its `name` defaults to the id.
+- **Case:** one eval. It needs an `id`, and its `name` defaults to the id. It sets up a scenario and checks the result with `validate`. A case gets a new version when its definition changes.
+- **Variant:** the harness, model and sandbox, plus an optional profile, a case runs on.
+- **Run:** one case on one variant. It holds the trials.
+- **Trial:** one attempt, in its own sandbox. A run's pass rate is taken across its trials.
+- **Batch:** the runs started together. Starting evals creates a batch.
 
 The suite above has one case, one variant and three trials, so its batch holds one run with three trials. Two cases on three variants with three trials each would be six runs and 18 trials.
+
+## Package exports
+
+| Import | Use |
+| --- | --- |
+| `anpord` | [`suite`, `command`, `repo`, `files`, `empty` and validator types](/evals/cases) |
+| `anpord` | [`Anpord` client for batches, cases and runs](/sdk/client) |
+| `anpord/mcp` | [`server`, `tool`, `resource`](/evals/mocks#mcp) |
+| `anpord/cli` | [`cli`, `command`](/evals/mocks#cli) |
+| `anpord/api` | [`api`, `endpoint`, `withApi`](/evals/mocks#http-apis) |
+| `anpord/validators` | [`judge`](/evals/judges), [`human`, `script`](/evals/conversations) |
+| `anpord/eval` | [`compileEval`, `compileDefinition`](/guides/run-from-code) |
+
+Definitions are plain objects and handlers are ordinary functions. Mock inputs use Standard Schema for types and runtime checks (the examples use Zod). You don't need Effect or a separate model client.
 
 <CardGroup cols={2}>
   <Card title="Write cases" icon="list-check" href="/evals/cases">
     Add sources, preparation and typed validators.
   </Card>
-  <Card title="Mock MCP and CLI" icon="terminal" href="/evals/mocks">
-    Give agents typed local MCP servers and CLIs.
+  <Card title="Mock dependencies" icon="terminal" href="/evals/mocks">
+    Give agents typed MCP servers, CLIs and HTTP APIs.
   </Card>
 </CardGroup>

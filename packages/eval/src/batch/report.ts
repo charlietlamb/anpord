@@ -1,6 +1,6 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import type { EvalHarness } from "@anpord/schema/domain/evals";
-import type { ReportedTrial } from "@anpord/schema/public/evals-api";
+import type { ReportedTrial } from "@anpord/schema/public/runner-api";
 import { Clock, DateTime, Effect, Option, Redacted } from "effect";
 import { credentialIntegrations } from "../credentials/integrations";
 import { CredentialResolver } from "../credentials/resolver";

@@ -1,14 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import { problemsWith } from "../../src/cli/eval-gate";
-import type { EvalOutcome } from "../../src/cli/eval-outcome";
 import { buildGithubCheck, SUMMARY_LIMIT } from "../../src/cli/github-check";
+import type { SuiteOutcome } from "../../src/cli/suite-outcome";
 import { createBatch, createRun, createTrial } from "../fixtures/eval-run";
 
 const WEB = "https://anpord.test";
-const outcome = (batch = createBatch()): EvalOutcome => ({
+const outcome = (batch = createBatch()): SuiteOutcome => ({
   batch,
   batchId: batch.id,
+  error: null,
   file: "smoke.eval.ts",
+  suite: "smoke",
   problems: problemsWith(batch, "failures", { runs: 1, trials: 1 }),
 });
 
@@ -18,6 +20,7 @@ describe("GitHub reporting", () => {
     expect(check.conclusion).toBe("success");
     expect(check.details_url).toBe(`${WEB}/evals/batch_fixture`);
     expect(check.output.summary).toContain("| fixture | codex/test | 100% |");
+    expect(check.output.summary).toContain("### smoke (smoke.eval.ts)");
   });
 
   test("failed trials fail both the gate and check", () => {
@@ -42,11 +45,13 @@ describe("GitHub reporting", () => {
   });
 
   test("reports failures before a result exists and preserves its link", () => {
-    const result: EvalOutcome = {
+    const result: SuiteOutcome = {
       batch: null,
       batchId: "batch_timeout",
+      error: "Timed out",
       file: "timeout.eval.ts",
-      problems: ["Timed out"],
+      problems: [],
+      suite: "timeout",
     };
     const check = buildGithubCheck([result], WEB);
     expect(check.conclusion).toBe("failure");

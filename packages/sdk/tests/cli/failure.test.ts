@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
+import { EvalGateFailed, EvalRunFailed } from "../../src/cli/eval-gate";
 import { reportFailure } from "../../src/cli/failure";
 
 const reported = (error: unknown) => {
@@ -49,5 +50,17 @@ describe("reporting a failure", () => {
 
   test("a failure sets a non-zero exit code, so scripts can branch on it", () => {
     expect(reported({ _tag: "NotFound", message: "gone" }).code).toBe(1);
+  });
+
+  test("a failed gate exits 2, apart from errors", () => {
+    expect(reported(new EvalGateFailed({ problems: ["a failed"] })).code).toBe(
+      2
+    );
+  });
+
+  test("a batch that could not run exits 1", () => {
+    expect(reported(new EvalRunFailed({ problems: ["timed out"] })).code).toBe(
+      1
+    );
   });
 });

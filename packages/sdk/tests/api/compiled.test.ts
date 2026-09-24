@@ -67,7 +67,7 @@ test("compiled HTTP server, prepare, and validator preserve request evidence in 
 import { api, endpoint } from "anpord/api";
 import { z } from "zod";
 import { prepareHttp } from "./prepare";
-export default suite({ name: "http", source: empty, prompt: "Use catalog", trials: 1,
+export default suite({ id: "fixture", name: "http", source: empty, prompt: "Use catalog", trials: 1,
   api: [api({ name: "catalog", endpoints: [endpoint({ method: "GET", path: "/items/:id",
     inputSchema: z.object({ params: z.object({ id: z.string() }) }),
     responses: { 200: z.object({ id: z.string() }) },

@@ -187,7 +187,6 @@ export const makeStartBatch = (
               trialCount: request.trials,
               variantInternalId,
             },
-            variantIndex,
           }))
         );
 
@@ -204,7 +203,7 @@ export const makeStartBatch = (
           runs: slots.map((slot, index) => ({
             caseId: slot.caseId,
             id: created.runInternalIds[index] ?? "",
-            variantIndex: slot.variantIndex,
+            variantId: slot.run.variantInternalId,
           })),
         } satisfies StartedBatch;
       }).pipe(

@@ -38,7 +38,7 @@ export const loadDefinition = (ref: DefinitionRef) =>
    functions inside it are the compiler's to reject, not a schema's. */
 const DefinitionShape = Schema.Struct({
   cases: Schema.Array(Schema.Unknown),
-  name: Schema.String,
+  name: Schema.optional(Schema.String),
   prompt: Schema.String,
   variants: Schema.Array(Schema.Unknown),
   trials: Schema.Int,

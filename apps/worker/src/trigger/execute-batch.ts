@@ -1,4 +1,4 @@
-import { Batches } from "@anpord/eval/grid/batches";
+import { Batches } from "@anpord/eval/batch/batches";
 import { telemetryFor } from "@anpord/eval/telemetry";
 import { AbortTaskRunError } from "@trigger.dev/sdk";
 import { Effect, Layer, ManagedRuntime } from "effect";

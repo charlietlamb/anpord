@@ -9,14 +9,26 @@ inputs:
     default: .
   file:
     description: One eval file, relative to the working directory. Omit to discover suites.
+  case:
+    description: Run one case. With a file, picks that case from it. Without one, runs the stored case again.
+  variant:
+    description: Variants to run, separated by commas or new lines. A variant id for a stored case, or harness/model for a file.
   fail-on:
     description: failures, strict, or never. Defaults to the CLI's failures gate.
   timeout:
     description: Maximum seconds to wait per batch. Uses the CLI default when omitted. Does not cancel the remote batch.
+  github-token:
+    description: A token with checks write permission. When set, the results are posted as an anpord check run.
 outputs:
   report:
     description: Path to the JSON report, including batch IDs and failures.
     value: ${{ steps.eval.outputs.report }}
+  batch-ids:
+    description: The IDs of the batches started, separated by commas.
+    value: ${{ steps.eval.outputs.batch-ids }}
+  conclusion:
+    description: success, failure, or neutral when a batch was started without waiting.
+    value: ${{ steps.eval.outputs.conclusion }}
 runs:
   using: composite
   steps:
@@ -26,6 +38,9 @@ runs:
       env:
         ANPORD_API_KEY: ${{ inputs.api-key }}
         ANPORD_EVAL_FILE: ${{ inputs.file }}
+        ANPORD_EVAL_CASE: ${{ inputs.case }}
+        ANPORD_EVAL_VARIANTS: ${{ inputs.variant }}
         ANPORD_EVAL_GATE: ${{ inputs.fail-on }}
         ANPORD_EVAL_TIMEOUT: ${{ inputs.timeout }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: node "$GITHUB_ACTION_PATH/run.mjs"

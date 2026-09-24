@@ -299,7 +299,7 @@ export const StartedBatch = Schema.Struct({
     Schema.Struct({
       caseId: EvalCaseId,
       id: Schema.String,
-      variantIndex: Schema.Int,
+      variantId: Schema.String,
     })
   ),
 }).annotations({

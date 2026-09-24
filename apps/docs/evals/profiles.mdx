@@ -9,8 +9,9 @@ A profile is the files and settings you layer onto a harness. It is part of the 
 variants: [
   { harness: "opencode", model: "anthropic/claude-sonnet-4.6" },
   {
-    harness: { base: "opencode", profile: { name: "docs-writer", dir: "./profile" } },
+    harness: "opencode",
     model: "anthropic/claude-sonnet-4.6",
+    profile: { name: "docs-writer", dir: "./profile" },
     sandbox: "daytona",
   },
 ]
@@ -63,7 +64,7 @@ Files outside those two directories are ignored unless the manifest names them, 
 
 If `systemPrompt`, `install` or `run` names a file inside the profile directory, the file's content is used. Otherwise the value is used as written, so `"systemPrompt": "system.md"` ships the file and `"systemPrompt": "Be terse."` ships the sentence. A value that names a file outside the directory is an error. `env` values are always literal.
 
-`install` runs after both file stages, so it can read what the profile shipped, and before the case's prepare step. A profile that sets `run` on any base other than `command` is rejected.
+`install` runs after both file stages, so it can read what the profile shipped, and before the case's prepare step. A profile that sets `run` on any harness other than `command` is rejected.
 
 <Warning>
   Never put a key in `env`. A profile is committed beside the eval file, stored
@@ -85,9 +86,9 @@ Files are text. A file containing a NUL byte is skipped, so a checked-in binary 
 
 ## System prompts
 
-The prompt is always written into the sandbox. Each base receives it differently:
+The prompt is always written into the sandbox. Each harness receives it differently:
 
-| Base | Delivery |
+| Harness | Delivery |
 | --- | --- |
 | `claude` | `--append-system-prompt-file`. A profile also adds `--add-dir` on the workspace, plus `--settings` and `--mcp-config` when it ships `.claude/settings.json` or `.mcp.json`. Claude runs with `--bare`, so a `CLAUDE.md` is not discovered and must be passed this way |
 | `opencode` | `OPENCODE_CONFIG_CONTENT`, merging the profile's own config with the prompt's path in `instructions` |
@@ -99,16 +100,16 @@ For file-based delivery, check the trajectory to confirm the harness read the in
 
 ## Identity
 
-The profile **name** is part of the variant. Two profiles on the same base, model and sandbox are two variants with separate histories, the same as two harnesses.
+The profile **name** is part of the variant. Two profiles on the same harness, model and sandbox are two variants with separate histories, the same as two harnesses.
 
 The profile **version** is not. It is a hash of the files, system prompt, environment, install and run commands. When you edit a profile, the next batch adds a run on the same variant, and each run records the version it used. Renaming a file changes the version. Renaming the profile creates a new variant.
 
 ```ts
 const [latest, previous] = (
-  await anpord.evals.caseRuns({ caseId: "writes-docs", variant: variantId })
+  await anpord.evals.runs.list({ caseId: "writes-docs", variant: variantId })
 ).runs;
 
-console.log(previous?.profileVersion, "→", latest?.profileVersion);
+console.log(previous?.profileVersion, latest?.profileVersion);
 ```
 
 ## Comparing fairly

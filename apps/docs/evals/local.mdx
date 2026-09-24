@@ -9,11 +9,11 @@ A cloud sandbox cannot reach `localhost`. When the thing you are testing runs on
 anpord eval --local ./checkout.eval.ts
 ```
 
-Each case runs once, on the suite's first variant, and the results print in the terminal. Without a file, every `*.eval.ts` under the current directory runs.
+Every case runs on every variant, with the suite's number of trials, and the results print in the terminal. `--case <id>` and `--variant <harness/model>` narrow what runs. Without a file, every `*.eval.ts` under the current directory runs. A local run always waits and prints a transcript, so it can't take `--no-wait`, `--json` or `--output`.
 
 ## Reaching a local service
 
-Addresses in `.env.local` and `.env` in the directory you run the command from are passed to the case, so the agent, the prepare step and the verifier can reach a service you already have running:
+Addresses in `.env.local` and `.env` in the directory you run the command from are passed to the case, so the agent, the prepare step and `validate` can reach a service you already have running:
 
 ```bash
 # .env
@@ -24,8 +24,7 @@ API_BASE=http://localhost:1234
 cases: [
   {
     id: "checkout-completes",
-    name: "the checkout completes",
-    verify: 'test "$(curl -s $API_BASE/health)" = ok',
+    validate: command('test "$(curl -s $API_BASE/health)" = ok'),
   },
 ]
 ```
@@ -47,7 +46,7 @@ The agent does not read a model key from your machine. With an API key set, Anpo
 
 ## What gets recorded
 
-With an API key set, `--local` starts a local batch: one run per case on the first variant, each with one trial, marked local and visible in the dashboard with its journal. Without an API key, nothing is sent anywhere and the results only print.
+With an API key set, `--local` starts a local batch: one run per case per variant, marked local and visible in the dashboard with its journal. Without an API key, nothing is sent anywhere and the results only print.
 
 The exit code reflects the results either way, so CI can gate on it:
 

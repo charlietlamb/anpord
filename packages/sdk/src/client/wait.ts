@@ -16,7 +16,7 @@ export class EvalTimeout extends Error {
     const elapsed =
       elapsedMs < 1000 ? `${elapsedMs}ms` : `${Math.round(elapsedMs / 1000)}s`;
     super(
-      `Batch ${batchId} was still running after ${elapsed}. It was not cancelled — read it later with evals.get({ id: "${batchId}" }).`
+      `Batch ${batchId} was still running after ${elapsed}. It was not cancelled; read it later with evals.batches.get({ id: "${batchId}" }).`
     );
     this.batchId = batchId;
   }
@@ -28,7 +28,7 @@ export class EvalAborted extends Error {
 
   constructor(batchId: string) {
     super(
-      `Waiting on batch ${batchId} was aborted. The batch was not cancelled — read it later with evals.get({ id: "${batchId}" }).`
+      `Waiting on batch ${batchId} was aborted. The batch was not cancelled; read it later with evals.batches.get({ id: "${batchId}" }).`
     );
     this.batchId = batchId;
   }

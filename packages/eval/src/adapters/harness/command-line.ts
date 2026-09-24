@@ -6,7 +6,13 @@ const ANPORD_DIR = ".anpord";
 
 export const recorderPath = (home: string) => `${home}/${ANPORD_DIR}/trace.sh`;
 
-export const tracePath = (home: string) => `${home}/${ANPORD_DIR}/trace.ndjson`;
+const UNSAFE_IN_NAME = /[^A-Za-z0-9_-]+/g;
+
+export const tracePath = (sandbox: {
+  readonly home: string;
+  readonly id: string;
+}) =>
+  `${sandbox.home}/${ANPORD_DIR}/trace-${sandbox.id.replace(UNSAFE_IN_NAME, "-")}.ndjson`;
 
 const assignment = (name: string, value: string) =>
   `${name}=${shellQuote(value)}`;
@@ -23,7 +29,7 @@ export const commandCommand = (request: RunHarness, run: string) => {
       onNone: () => [],
       onSome: (path) => [assignment("ANPORD_SYSTEM_PROMPT_FILE", path)],
     }),
-    assignment("ANPORD_TRACE_LOG", tracePath(home)),
+    assignment("ANPORD_TRACE_LOG", tracePath(request.sandbox)),
     assignment("BASH_ENV", recorderPath(home)),
   ];
 

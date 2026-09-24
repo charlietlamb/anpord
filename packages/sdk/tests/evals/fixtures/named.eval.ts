@@ -4,6 +4,7 @@ import { empty } from "../../../src/evals/source";
 const expected = "hello";
 
 export const smoke = suite({
+  id: "smoke",
   name: "smoke",
   source: empty,
   prompt: "Create hello.txt",

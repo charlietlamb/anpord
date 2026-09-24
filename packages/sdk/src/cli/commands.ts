@@ -1,3 +1,4 @@
+import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import {
   ChannelName,
   PromptId,
@@ -187,9 +188,7 @@ const withClient = <Name extends string, R, E, A>(
   command: Command.Command<Name, R, E, A>
 ) => Command.provide(command, ClientLayer);
 
-export const commands = [
-  runEval,
-  withClient(connectors),
+const promptCommands = [
   withClient(generate),
   withClient(get),
   withClient(list),
@@ -197,3 +196,12 @@ export const commands = [
   withClient(push),
   withClient(versions),
 ] as const;
+
+export const commandsWith = (prompts: boolean) =>
+  [
+    runEval,
+    withClient(connectors),
+    ...(prompts ? promptCommands : []),
+  ] as const;
+
+export const commands = commandsWith(PROMPTS_ENABLED);

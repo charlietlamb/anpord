@@ -10,7 +10,7 @@ import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@anpord/schema/domain/eval-quota";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
-import { Batches } from "../../src/grid/batches";
+import { Batches } from "../../src/batch/batches";
 import type { AgentTrialRequest } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
 import { skipWithoutDatabase } from "../fixtures/database";
@@ -143,13 +143,11 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
     const batch = await start(twoByTwo);
     started.first = batch.id;
 
-    expect(
-      batch.runs.map((entry) => [entry.caseId, entry.variantIndex])
-    ).toEqual([
-      ["pay", 0],
-      ["pay", 1],
-      ["refund", 0],
-      ["refund", 1],
+    expect(batch.runs.map((entry) => entry.caseId)).toEqual([
+      "pay",
+      "pay",
+      "refund",
+      "refund",
     ]);
     expect(dispatched.map((entry) => entry.batchId)).toContain(batch.id);
 
@@ -182,6 +180,15 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
 
     const runs = await runsOf(batch.id);
     expect(runs).toHaveLength(4);
+    expect(batch.runs.map((entry) => entry.variantId).toSorted()).toEqual(
+      runs.map((row) => row.variantInternalId).toSorted()
+    );
+    expect(
+      batch.runs
+        .filter((entry) => entry.caseId === "pay")
+        .map((entry) => entry.variantId)
+        .toSorted()
+    ).toEqual(variants.map((row) => row.internalId).toSorted());
     expect(new Set(runs.map((row) => row.variantInternalId)).size).toBe(4);
     expect(runs.every((row) => row.status === "running")).toBe(true);
     expect(runs.every((row) => row.trialCount === 2)).toBe(true);
@@ -394,7 +401,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
             hostedOnly: true,
             trials: 3,
             trigger: { source: "dashboard" },
-            variantId: null,
+            variantIds: null,
           })
         )
       )
@@ -435,7 +442,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
             hostedOnly: true,
             trials: 1,
             trigger: { source: "dashboard" },
-            variantId: variant?.internalId ?? "",
+            variantIds: [variant?.internalId ?? ""],
           })
         )
       )
@@ -445,11 +452,14 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
     expect(runs.map((row) => row.variantInternalId)).toEqual([
       variant?.internalId ?? "",
     ]);
+    expect(again.runs.map((entry) => entry.variantId)).toEqual([
+      variant?.internalId ?? "",
+    ]);
     await execute(again.id);
   });
 
   it("refuses to run a case it does not know, or on a variant it never ran", async () => {
-    const runCase = (caseId: string, variantId: string | null) =>
+    const runCase = (caseId: string, variantIds: readonly string[] | null) =>
       exitOf(
         Batches.pipe(
           Effect.flatMap((batches) =>
@@ -459,7 +469,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
               hostedOnly: true,
               trials: 1,
               trigger: { source: "api" },
-              variantId,
+              variantIds,
             })
           )
         )
@@ -469,8 +479,14 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       _tag: "EvalNotFound",
       entity: "case",
     });
-    expect(failureOf(await runCase("refund", "evar_unknown"))).toMatchObject({
+    const [known] = await variantsOf("refund");
+    expect(
+      failureOf(
+        await runCase("refund", [known?.internalId ?? "", "evar_unknown"])
+      )
+    ).toMatchObject({
       _tag: "NotRunnable",
+      problems: ["this case has not run on evar_unknown"],
     });
   });
 
@@ -494,7 +510,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
             hostedOnly: true,
             trials: 1,
             trigger: { source: "dashboard" },
-            variantId: null,
+            variantIds: null,
           })
         )
       )
@@ -528,7 +544,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
             hostedOnly: true,
             trials: 1,
             trigger: { source: "dashboard" },
-            variantId: null,
+            variantIds: null,
           })
         )
       )

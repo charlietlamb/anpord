@@ -15,7 +15,12 @@ export type {
 } from "@anpord/schema/domain/eval-validations";
 export type {
   EvalBatch,
+  EvalBatchPage,
   EvalBatchSummary,
+  EvalCaseDetail,
+  EvalCasePage,
+  EvalCaseSummary,
+  EvalCaseVersion,
   EvalDistribution,
   EvalHarness,
   EvalJournalEntry,
@@ -38,7 +43,6 @@ export type {
 export {
   Anpord,
   type AnpordOptions,
-  type EvalsSurface,
   type PromptResult,
   type PromptsSurface,
 } from "./client/anpord";
@@ -48,21 +52,28 @@ export type {
   PromptMetadata,
 } from "./client/cache/types";
 export { AnpordError } from "./client/errors";
+export type {
+  BatchesSurface,
+  EvalsSurface,
+  StartInput,
+} from "./client/evals";
 export type { AnpordPromptVariables } from "./client/variables";
 export type { WaitOptions } from "./client/wait";
-export { evalCase, suite } from "./evals/define";
+export { type Command, command } from "./evals/command";
+export { suite } from "./evals/define";
 export { empty, files, repo } from "./evals/source";
 export type {
   CaseCache,
+  CaseValidation,
   CommandResult,
   EvalCaseDefinition,
   EvalDefinition,
   EvalVariantDefinition,
   ExecOptions,
-  HarnessRef,
   Prepare,
   PrepareContext,
   PrepareValue,
+  ProfileRef,
   Validator,
   ValidatorContext,
   ValidatorResult,

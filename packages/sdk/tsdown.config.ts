@@ -10,6 +10,7 @@ export default defineConfig({
     "api-context": "src/mock-api/context.ts",
     bin: "src/cli/main.ts",
     cli: "src/mock-cli/index.ts",
+    command: "src/evals/command.ts",
     "cli-runtime": "src/mock-cli/runtime.ts",
     eval: "src/evals/index.ts",
     index: "src/index.ts",

@@ -50,15 +50,15 @@ describe("compileEval", () => {
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
-import { cli, command } from "anpord/cli";
+      `import { command, suite } from "anpord";
+import { cli, command as cliCommand } from "anpord/cli";
 import { server, tool } from "anpord/mcp";
 import { api as httpApi, endpoint } from "anpord/api";
 import { z } from "zod";
 const client = cli({
   path: "example-cli",
   version: "1.0.0",
-  commands: [command({
+  commands: [cliCommand({
     path: ["users", "get"],
     inputSchema: z.object({ id: z.string() }),
     outputSchema: z.object({ id: z.string() }),
@@ -77,7 +77,8 @@ const api = server({
   })],
 });
 export default suite({
-  cases: [{ id: "case", name: "case", verify: "true" }],
+  id: "fixture",
+  cases: [{ id: "case", name: "case", validate: command("true") }],
   cli: [client],
   mcp: [api],
   api: [httpApi({ name: "example", endpoints: [endpoint({
@@ -200,9 +201,10 @@ export const hasGreeting: Validator = async ({ readText }) => ({
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
+      `import { command, suite } from "anpord";
 import { hasGreeting } from "./validator";
 export default suite({
+  id: "fixture",
   cases: [{ id: "a-case", variables: { task: "Write a greeting" }, name: "greeting", validate: hasGreeting }],
   name: "direct-validator",
   prompt: "{{task}}",
@@ -241,11 +243,12 @@ export default suite({
     workspace = await mkdtemp(join(tmpdir(), "anpord-source-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite, empty, repo } from "anpord";
+      `import { command, suite, empty, repo } from "anpord";
 export default suite({
+  id: "fixture",
   cases: [
-    { id: "inherits", variables: { task: "add a test" }, name: "inherits", verify: "true" },
-    { id: "overrides", variables: { task: "from scratch" }, name: "overrides", source: empty, verify: "true" },
+    { id: "inherits", variables: { task: "add a test" }, name: "inherits", validate: command("true") },
+    { id: "overrides", variables: { task: "from scratch" }, name: "overrides", source: empty, validate: command("true") },
   ],
   name: "suite",
   prompt: "{{task}}",
@@ -269,9 +272,10 @@ export default suite({
     workspace = await mkdtemp(join(tmpdir(), "anpord-bad-source-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite, repo } from "anpord";
+      `import { command, suite, repo } from "anpord";
 export default suite({
-  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", verify: "true" }],
+  id: "fixture",
+  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", validate: command("true") }],
   name: "suite",
   prompt: "{{task}}",
   source: repo("acme"),
@@ -287,11 +291,12 @@ export default suite({
     workspace = await mkdtemp(join(tmpdir(), "anpord-bare-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
+      `import { command, suite } from "anpord";
 export default suite({
+  id: "fixture",
   cases: [
-    { id: "inherits", variables: { task: "add a test" }, name: "inherits", verify: "true" },
-    { id: "own", variables: { task: "fix it" }, name: "own", source: "acme/widgets", verify: "true" },
+    { id: "inherits", variables: { task: "add a test" }, name: "inherits", validate: command("true") },
+    { id: "own", variables: { task: "fix it" }, name: "own", source: "acme/widgets", validate: command("true") },
   ],
   name: "suite",
   prompt: "{{task}}",
@@ -319,9 +324,10 @@ export default suite({
     workspace = await mkdtemp(join(tmpdir(), "anpord-bare-bad-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
+      `import { command, suite } from "anpord";
 export default suite({
-  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", verify: "true" }],
+  id: "fixture",
+  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", validate: command("true") }],
   name: "suite",
   prompt: "{{task}}",
   source: "nonsense",
@@ -343,9 +349,10 @@ export default suite({
 
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
+      `import { command, suite } from "anpord";
 export default suite({
-  cases: [{ id: "a-case", variables: { task: "add a test" }, name: "c", verify: "true" }],
+  id: "fixture",
+  cases: [{ id: "a-case", variables: { task: "add a test" }, name: "c", validate: command("true") }],
   name: "suite",
   prompt: "{{task}}",
   variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
@@ -362,9 +369,10 @@ export default suite({
     workspace = await mkdtemp(join(tmpdir(), "anpord-named-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
+      `import { command, suite } from "anpord";
 export default suite({
-  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", verify: "true" }],
+  id: "fixture",
+  cases: [{ id: "a-case", variables: { task: "g" }, name: "c", validate: command("true") }],
   name: "suite",
   prompt: "{{task}}",
   source: "acme/widgets",
@@ -398,10 +406,11 @@ export const validateRepoImage: Validator = ({ setup }) =>
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { suite } from "anpord";
+      `import { command, suite } from "anpord";
 import { prepareRepoImage, validateRepoImage } from "./prepare";
 
 export default suite({
+  id: "fixture",
   cases: [
     {
       id: "renders",

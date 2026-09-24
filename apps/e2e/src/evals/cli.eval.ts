@@ -5,6 +5,7 @@ import { validateCli } from "./validators/catalog";
 import { correctItem } from "./validators/judges";
 
 export default suite({
+  id: "anpord-ci-cli",
   name: "anpord-ci/cli",
   source: empty,
   cli: [catalogCli],

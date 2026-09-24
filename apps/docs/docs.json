@@ -69,16 +69,14 @@
         "groups": [
           {
             "group": "Getting started",
-            "pages": ["sdk/overview", "getting-started"]
+            "pages": ["getting-started"]
           },
           {
             "group": "Define evals",
             "pages": [
               "evals/cases",
               "evals/mocks",
-              "evals/api-mocks",
               "evals/judges",
-              "evals/classifiers",
               "evals/conversations"
             ]
           },
@@ -131,6 +129,21 @@
     {
       "source": "/evals/harnesses",
       "destination": "/evals/variants",
+      "permanent": true
+    },
+    {
+      "source": "/evals/api-mocks",
+      "destination": "/evals/mocks",
+      "permanent": true
+    },
+    {
+      "source": "/sdk/overview",
+      "destination": "/getting-started",
+      "permanent": true
+    },
+    {
+      "source": "/evals/classifiers",
+      "destination": "/evals/judges",
       "permanent": true
     }
   ],

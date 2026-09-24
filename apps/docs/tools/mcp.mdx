@@ -27,13 +27,16 @@ The server uses OAuth 2.1. Your browser opens to sign in and approve access, so 
 
 | Tool | Purpose |
 | --- | --- |
-| `start_eval_batch` | Start a batch: every case of a suite on every variant |
-| `run_eval_case` | Start a batch that runs one case's newest version again, on one variant or on all of them |
-| `get_eval_batch` | Read a batch with its runs and their trials |
-| `list_eval_batches` | List batches, newest first |
-| `list_case_runs` | List a case's runs, newest first, optionally on one variant |
-| `list_eval_models` | List the models a harness can use |
+| `start_suite_batch` | Start a batch: every case of a suite on every variant |
+| `start_case_batch` | Start a batch that runs a stored case's newest version on the variant ids named, or on every variant it has run on |
+| `get_batch` | Read a batch with its runs and their trials |
+| `list_batches` | List batches, newest first |
+| `list_cases` | List cases, optionally in one suite or with one tag |
+| `get_case` | Read a case, its versions and the variants it has run on, with their ids |
+| `list_runs` | List a case's runs, newest first, optionally on one variant |
+| `get_run` | Read one run and its trials |
+| `list_models` | List the models a harness can use |
 
-`start_eval_batch` and `run_eval_case` return the batch ID and one run ID per case per variant right away. Poll `get_eval_batch` until its `status` is no longer `running`.
+`start_suite_batch` and `start_case_batch` return the batch ID and one run ID per case per variant right away. Poll `get_batch` until its `status` is no longer `running`. `start_case_batch` runs 1 trial unless you pass `trials`.
 
-`list_eval_batches` returns `batches` and `next`. Pass `next` as `cursor` to read the following page.
+`list_batches` and `list_cases` return `next`. Pass it as `cursor` to read the following page.
