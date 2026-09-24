@@ -36,6 +36,7 @@
     "./adapters/runner/trigger-bell": "./src/adapters/runner/trigger-bell.ts",
     "./adapters/runner/trigger-suspender": "./src/adapters/runner/trigger-suspender.ts",
     "./adapters/scorers/ground-truth": "./src/adapters/scorers/ground-truth.ts",
+    "./codebase/codebase-connection": "./src/codebase/codebase-connection.ts",
     "./codebase/errors": "./src/codebase/errors.ts",
     "./codebase/github-app": "./src/codebase/github-app.ts",
     "./codebase/github-repositories": "./src/codebase/github-repositories.ts",

@@ -6,7 +6,7 @@ import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { handledPublicCredential } from "../../internal/credentials/errors";
+import { handledPublicCredential } from "../../../http/credential-errors";
 
 export const PublicConnectorsHandlers = HttpApiBuilder.group(
   PublicApi,

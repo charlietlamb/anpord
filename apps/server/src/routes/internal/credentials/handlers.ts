@@ -7,7 +7,7 @@ import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { handledCredential } from "./errors";
+import { handledCredential } from "../../../http/credential-errors";
 
 export const CredentialsHandlers = HttpApiBuilder.group(
   AnpordApi,

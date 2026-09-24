@@ -7,6 +7,7 @@ import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
 import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
+import { CodebaseConnectionLive } from "@anpord/eval/codebase/codebase-connection";
 import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import { CredentialConnectionsLive } from "@anpord/eval/credentials/connections";
@@ -71,10 +72,15 @@ const CredentialLayer = Layer.mergeAll(
   )
 );
 
-const CodebaseLayer = Layer.mergeAll(
-  EvalCodebaseLive,
-  GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer))
-).pipe(Layer.provide(DatabaseLayer));
+const CodebaseLayer = CodebaseConnectionLive.pipe(
+  Layer.provideMerge(
+    Layer.mergeAll(
+      EvalCodebaseLive,
+      GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer))
+    )
+  ),
+  Layer.provide(DatabaseLayer)
+);
 
 const EvalLayer = Layer.mergeAll(
   evalStackWith(TrialRunnerTrigger),

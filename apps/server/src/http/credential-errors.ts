@@ -22,8 +22,6 @@ export const handledCredential = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
 ) => effect.pipe(Effect.mapError(apiError));
 
-/* The public surface states the errors a caller can act on. A store failure is
-   not one of them, so it is a defect here rather than a shape on the wire. */
 export const handledPublicCredential = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
 ) =>
