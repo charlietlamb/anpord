@@ -62,7 +62,6 @@
     "./domain/page": "./src/domain/page.ts",
     "./domain/trial": "./src/domain/trial.ts",
     "./batch/batches": "./src/batch/batches.ts",
-    "./judges/classifier": "./src/judges/classifier.ts",
     "./layer": "./src/layer.ts",
     "./local-layer": "./src/local-layer.ts",
     "./ports/model-source": "./src/ports/model-source.ts",
