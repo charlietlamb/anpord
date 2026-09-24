@@ -46,7 +46,9 @@ export const PublicEvalsHandlers = HttpApiBuilder.group(
       .handle("subscription", read, ({ payload }) =>
         subscribeToBatch(payload.id)
       )
-      .handle("tail", read, ({ payload }) => readTail(payload.id, payload.after))
+      .handle("tail", read, ({ payload }) =>
+        readTail(payload.id, payload.after)
+      )
       .handle("credentials", write, ({ payload }) =>
         leaseCredentials(payload.id, payload.harness)
       )
