@@ -1,13 +1,20 @@
 import type { CredentialError } from "@anpord/eval/credentials/errors";
-import type { EvalStoreError, NotRunnable } from "@anpord/eval/domain/errors";
-import { Conflict, NotFound } from "@anpord/schema/domain/errors";
+import type {
+  EvalNotFound,
+  EvalStoreError,
+  NotRunnable,
+  StartRefused,
+} from "@anpord/eval/domain/errors";
+import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
 
-type EvalDomainError = CredentialError | EvalStoreError | NotRunnable;
+type EvalDomainError =
+  | CredentialError
+  | EvalNotFound
+  | EvalStoreError
+  | NotRunnable
+  | StartRefused;
 
-type EvalHttpError = Conflict | NotFound;
-
-/* Logged before dying: the platform discards the cause, leaving an empty 500. */
 const logged = (error: unknown) =>
   Effect.logError("Unhandled eval failure", error).pipe(
     Effect.zipRight(Effect.die(error))
@@ -15,17 +22,20 @@ const logged = (error: unknown) =>
 
 const toHttpError = (
   error: EvalDomainError
-): Effect.Effect<never, EvalHttpError> => {
+): Effect.Effect<never, BadRequest | Conflict | NotFound> => {
   switch (error._tag) {
     case "CredentialError":
       return error.code === "not-found"
-        ? Effect.fail(new NotFound({ message: error.message }))
+        ? Effect.fail(new BadRequest({ message: error.message }))
         : logged(error);
-
-    /* Every reason travels at once: fixing one and being told the next is
-       worse than being told all of them now. */
+    case "EvalNotFound":
+      return Effect.fail(new NotFound({ message: error.message }));
     case "NotRunnable":
       return Effect.fail(new Conflict({ message: error.problems.join("; ") }));
+    case "StartRefused":
+      return error.retryable
+        ? Effect.fail(new Conflict({ message: error.reason }))
+        : Effect.fail(new BadRequest({ message: error.reason }));
     case "EvalStoreError":
       return logged(error);
     default:

@@ -1,32 +1,23 @@
-export interface DefinitionFields {
-  readonly prepareSource: string | null;
-  readonly repoRef: string | null;
-  readonly repoUrl: string | null;
-  readonly sourceFiles: unknown;
-  readonly sourceKind: string | null;
-  readonly user: unknown;
-  readonly validatorConfig: unknown;
-  readonly validatorSource: string | null;
-  readonly verifyCommand: string | null;
-}
+import type { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 
-const PARTS: readonly (readonly [
-  string,
-  (row: DefinitionFields) => unknown,
-])[] = [
-  [
-    "source",
-    (row) => [row.sourceKind, row.sourceFiles, row.repoUrl, row.repoRef],
-  ],
-  ["setup", (row) => row.prepareSource],
-  ["validator", (row) => [row.validatorSource, row.validatorConfig]],
-  ["verifier", (row) => row.verifyCommand],
+type VersionRow = Pick<
+  typeof evalCaseVersion.$inferSelect,
+  "cache" | "prepare" | "prompt" | "source" | "user" | "validator" | "verify"
+>;
+
+const PARTS: readonly (readonly [string, (row: VersionRow) => unknown])[] = [
+  ["prompt", (row) => row.prompt],
+  ["source", (row) => row.source],
+  ["setup", (row) => row.prepare?.source ?? null],
+  ["validator", (row) => row.validator],
+  ["verifier", (row) => row.verify],
   ["simulated user", (row) => row.user],
+  ["cache", (row) => row.cache],
 ];
 
 export const changesBetween = (
-  before: DefinitionFields,
-  after: DefinitionFields
+  before: VersionRow,
+  after: VersionRow
 ): readonly string[] =>
   PARTS.filter(
     ([, read]) => JSON.stringify(read(before)) !== JSON.stringify(read(after))

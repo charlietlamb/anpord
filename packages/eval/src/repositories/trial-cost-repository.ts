@@ -7,15 +7,7 @@ import type { CostComponent } from "../domain/cost-component";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "./query";
 
-interface TrialCostRow {
-  readonly amountNanos: bigint | null;
-  readonly classification: string;
-  readonly component: string;
-  readonly detail: Record<string, unknown>;
-  readonly explanation: string;
-  readonly source: string;
-  readonly trialInternalId: string;
-}
+type TrialCostRow = typeof evalTrialCost.$inferSelect;
 
 export interface TrialCostRepositoryShape {
   readonly forTrials: (
@@ -65,9 +57,6 @@ export const TrialCostRepositoryLive = Layer.effect(
           db
             .insert(evalTrialCost)
             .values(rows)
-            /* A retry settles the same trial again, and the components it
-               reports are the ones that count: the earlier attempt's are the
-               ones that did not finish. */
             .onConflictDoUpdate({
               set: {
                 amountNanos: sql`excluded.amount_nanos`,
@@ -83,7 +72,7 @@ export const TrialCostRepositoryLive = Layer.effect(
 
     const forTrials = (trialInternalIds: readonly string[]) =>
       trialInternalIds.length === 0
-        ? Effect.succeed([] as readonly TrialCostRow[])
+        ? Effect.succeed<readonly TrialCostRow[]>([])
         : tryStore("trialCost.forTrials", () =>
             db
               .select()
@@ -91,10 +80,7 @@ export const TrialCostRepositoryLive = Layer.effect(
               .where(
                 inArray(evalTrialCost.trialInternalId, [...trialInternalIds])
               )
-          ).pipe(
-            Effect.map((rows) => rows as readonly TrialCostRow[]),
-            Effect.withSpan("TrialCostRepository.forTrials")
-          );
+          ).pipe(Effect.withSpan("TrialCostRepository.forTrials"));
 
     return TrialCostRepository.of({ forTrials, record });
   })

@@ -38,7 +38,7 @@ export const ScorerChecksLive = Layer.effect(
           for (const [index, validator] of request.validator.checks.entries()) {
             const prefix =
               request.validator.checks.length > 1 ? `group:${index}:` : "";
-            if (!outcome.passed) {
+            if (outcome.status !== "passed") {
               const skipped = skippedChecks(validator, prefix);
               validations.push(...skipped);
               yield* Effect.forEach(

@@ -1,25 +1,23 @@
 import { Database } from "@anpord/db/client";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
+import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, eq, exists, lt, notExists, sql } from "drizzle-orm";
+import { and, eq, exists, lt, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
+import { interruptedValidation } from "../domain/validation-plan";
 import { tryStore } from "./query";
 
-/* Three tables in one repository: trials close before cells, cells before runs. */
 export interface AbandonedWorkShape {
-  readonly failCellsUnderRunsSince: (
+  readonly failBatchesSince: (
     cutoff: Date
   ) => Effect.Effect<number, EvalStoreError>;
   readonly failRunsSince: (
     cutoff: Date
   ) => Effect.Effect<number, EvalStoreError>;
-  readonly failRunsWithoutCellsSince: (
-    cutoff: Date
-  ) => Effect.Effect<number, EvalStoreError>;
   readonly voidTrialsRunningSince: (
-    cutoff: Date
+    cutoff: Date,
+    now: Date
   ) => Effect.Effect<number, EvalStoreError>;
 }
 
@@ -33,17 +31,15 @@ export const AbandonedWorkLive = Layer.effect(
   Effect.gen(function* () {
     const db = yield* Database;
 
-    const counted = <A>(operation: string, run: () => Promise<readonly A[]>) =>
-      tryStore(operation, run).pipe(Effect.map((rows) => rows.length));
-
-    return AbandonedWork.of({
-      /* Void, not failed: the check constraint requires a verdict for failed. The
-         sandbox id stays until the reaper destroys the VM. */
-      voidTrialsRunningSince: (cutoff) =>
-        counted("reconcile.trials", () =>
-          db
-            .update(evalTrial)
-            .set({ finishedAt: sql`now()`, status: "void" })
+    const voidTrialsRunningSince = (cutoff: Date, now: Date) =>
+      tryStore("reconcile.trials", () =>
+        db.transaction(async (tx) => {
+          const stale = await tx
+            .select({
+              internalId: evalTrial.internalId,
+              validations: evalTrial.validations,
+            })
+            .from(evalTrial)
             .where(
               and(
                 eq(evalTrial.status, "running"),
@@ -52,75 +48,67 @@ export const AbandonedWorkLive = Layer.effect(
                   cutoff
                 )
               )
-            )
-            .returning({ internalId: evalTrial.internalId })
-        ),
+            );
+          for (const trial of stale) {
+            await tx
+              .update(evalTrial)
+              .set({
+                failure: "abandoned: the process running this trial stopped",
+                finishedAt: now,
+                status: "void",
+                validations: (trial.validations ?? []).map((record) =>
+                  interruptedValidation(record, now.getTime())
+                ),
+              })
+              .where(eq(evalTrial.internalId, trial.internalId));
+          }
+          return stale.length;
+        })
+      );
 
-      failCellsUnderRunsSince: (cutoff) =>
-        counted("reconcile.cells", () =>
-          db
-            .update(evalCell)
-            .set({ status: "failed" })
-            .where(
-              and(
-                eq(evalCell.status, "running"),
-                exists(
-                  db
-                    .select({ one: sql`1` })
-                    .from(evalRun)
-                    .where(
-                      and(
-                        eq(evalRun.internalId, evalCell.runInternalId),
-                        lt(evalRun.createdAt, cutoff)
-                      )
+    const failRunsSince = (cutoff: Date) =>
+      tryStore("reconcile.runs", () =>
+        db
+          .update(evalRun)
+          .set({ finishedAt: sql`now()`, status: "failed" })
+          .where(
+            and(
+              eq(evalRun.status, "running"),
+              exists(
+                db
+                  .select({ one: sql`1` })
+                  .from(evalBatch)
+                  .where(
+                    and(
+                      eq(evalBatch.internalId, evalRun.batchInternalId),
+                      lt(evalBatch.createdAt, cutoff)
                     )
-                )
+                  )
               )
             )
-            .returning({ internalId: evalCell.internalId })
-        ),
+          )
+          .returning({ internalId: evalRun.internalId })
+      ).pipe(Effect.map((rows) => rows.length));
 
-      failRunsWithoutCellsSince: (cutoff) =>
-        counted("reconcile.stillborn", () =>
-          db
-            .update(evalRun)
-            .set({
-              failure: "abandoned: the process running this did not start it",
-              finishedAt: sql`now()`,
-              status: "failed",
-            })
-            .where(
-              and(
-                eq(evalRun.status, "running"),
-                lt(evalRun.createdAt, cutoff),
-                notExists(
-                  db
-                    .select({ one: sql`1` })
-                    .from(evalCell)
-                    .where(eq(evalCell.runInternalId, evalRun.internalId))
-                )
-              )
-            )
-            .returning({ internalId: evalRun.internalId })
-        ),
+    const failBatchesSince = (cutoff: Date) =>
+      tryStore("reconcile.batches", () =>
+        db
+          .update(evalBatch)
+          .set({
+            failure: "abandoned: the process running this did not finish it",
+            finishedAt: sql`now()`,
+            status: "failed",
+          })
+          .where(
+            and(eq(evalBatch.status, "running"), lt(evalBatch.createdAt, cutoff))
+          )
+          .returning({ internalId: evalBatch.internalId })
+      ).pipe(Effect.map((rows) => rows.length));
 
-      /* The sweep cannot resume these itself: resolving a credential needs the
-         actor whose it is, and a background pass acts for nobody. */
-      failRunsSince: (cutoff) =>
-        counted("reconcile.runs", () =>
-          db
-            .update(evalRun)
-            .set({
-              failure:
-                "abandoned: the process running this did not finish it. It can be resumed.",
-              finishedAt: sql`now()`,
-              status: "failed",
-            })
-            .where(
-              and(eq(evalRun.status, "running"), lt(evalRun.createdAt, cutoff))
-            )
-            .returning({ internalId: evalRun.internalId })
-        ),
+    return AbandonedWork.of({
+      failBatchesSince,
+      failRunsSince,
+      voidTrialsRunningSince,
     });
   })
 );

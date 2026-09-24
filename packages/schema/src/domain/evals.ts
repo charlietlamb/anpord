@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 import { CredentialBindings } from "./credentials";
-import { EvalJudge, EvalJudgment } from "./eval-judges";
+import { EvalJudge } from "./eval-judges";
 import { EvalSourceFiles } from "./eval-source-files";
 import { EvalTrigger } from "./eval-trigger";
 import { EvalUser } from "./eval-turns";
@@ -13,7 +13,10 @@ export type EvalHarness = typeof EvalHarness.Type;
 import {
   EvalCaseId,
   EvalCaseName,
+  EvalCaseTags,
   EvalPrompt,
+  EvalSuiteId,
+  EvalSuiteName,
   EvalVariableValue,
   EvalVerify,
 } from "./eval-limits";
@@ -28,9 +31,6 @@ import {
   profileFitsHarness,
 } from "./harness-profile";
 
-/* `local` runs on the machine the server runs on, so the adapter opens one
-   only where a deployment has opted in. Naming it is always allowed: a request
-   the product refuses is clearer than a name the schema pretends not to know. */
 export const EvalSandbox = Schema.Literal(
   "daytona",
   "e2b",
@@ -44,15 +44,10 @@ export type EvalSandbox = typeof EvalSandbox.Type;
 
 export const EVAL_SANDBOXES = EvalSandbox.literals;
 
-/* Every sandbox a hosted deployment can open for a caller who is not the
-   operator. `local` is the one that is not: it is a shell on whichever machine
-   serves the request, which is only ever the caller's own from their own CLI. */
 export const HOSTED_SANDBOXES = EVAL_SANDBOXES.filter(
   (sandbox) => sandbox !== "local"
 );
 
-/* Conformance passes cleanly here and both client milestones ran on it, so a
-   variant that names no sandbox gets one that works rather than an error. */
 export const DEFAULT_SANDBOX: EvalSandbox = "e2b";
 
 export const EvalTrialStatus = Schema.Literal(
@@ -67,18 +62,12 @@ export type EvalTrialStatus = typeof EvalTrialStatus.Type;
 export const EvalRunStatus = Schema.Literal("running", "finished", "failed");
 export type EvalRunStatus = typeof EvalRunStatus.Type;
 
-export const EvalExecutor = Schema.Literal("client");
-export type EvalExecutor = typeof EvalExecutor.Type;
-
 export const EvalSource = Schema.Union(
   Schema.Struct({ kind: Schema.Literal("empty") }),
   Schema.Struct({
     kind: Schema.Literal("repo"),
     ref: Schema.NullOr(Schema.String),
-    /* Checked here rather than at the clone: an empty url reached the sandbox,
-       failed there, and reported a broken run instead of a form that was not
-       finished. */
-    url: Schema.String.pipe(
+        url: Schema.String.pipe(
       Schema.minLength(1),
       Schema.annotations({ message: () => "Give the repository a URL." })
     ),
@@ -176,11 +165,9 @@ export const EvalVariables = Schema.Record({
 });
 export type EvalVariables = typeof EvalVariables.Type;
 
-/* Declared on the case, not reported by its prepare: a restore runs before the prepare. */
 export const CaseCache = Schema.Struct({
   key: Schema.String.pipe(Schema.minLength(1)),
-  /* Joined onto the workspace, so a path that climbs out writes elsewhere. */
-  path: Schema.String.pipe(
+    path: Schema.String.pipe(
     Schema.minLength(1),
     Schema.filter(
       (value) => !(value.startsWith("/") || value.split("/").includes("..")),
@@ -206,11 +193,10 @@ export const EvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
   id: EvalCaseId,
   name: EvalCaseName,
-  /* Absent for a case that is one prompt and one answer, which is most of
-     them. Present when the agent is judged on a conversation. */
-  user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
+    user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
   prepare: Schema.NullOr(EvalPrepare),
   source: EvalSource,
+  tags: Schema.optionalWith(EvalCaseTags, { default: () => [] }),
   variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
 
   validator: Schema.optionalWith(Schema.NullOr(EvalValidator), {
@@ -220,69 +206,60 @@ export const EvalCase = Schema.Struct({
 });
 export type EvalCase = typeof EvalCase.Type;
 
-export const EvalVariantProfile = Schema.Struct({
-  name: Schema.String,
-  version: Schema.String,
-}).annotations({
-  description: "The profile a cell's harness ran under, by name and version.",
-  identifier: "EvalVariantProfile",
-});
-export type EvalVariantProfile = typeof EvalVariantProfile.Type;
-
-export const EvalVariant = Schema.Struct({
-  harness: EvalHarness,
-
-  harnessVersion: Schema.String,
-  model: Schema.String,
-  profile: Schema.optional(Schema.NullOr(EvalVariantProfile)),
-  /* Resolved, never optional: a cell that ran has a sandbox, whether or not
-     the request named one. */
-  sandbox: EvalSandbox,
-}).annotations({
-  description:
-    "The harness, installed version, profile, model, and sandbox for a cell.",
-  identifier: "EvalVariant",
-});
-export type EvalVariant = typeof EvalVariant.Type;
 
 export const EvalVariantRequest = Schema.Struct({
   credentials: Schema.optional(CredentialBindings),
   harness: EvalHarness,
-  model: Schema.String,
+  model: Schema.String.pipe(Schema.minLength(1)),
   profile: Schema.optional(HarnessProfile),
-  sandbox: Schema.optional(EvalSandbox),
-}).pipe(
-  Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
-);
+  sandbox: Schema.optionalWith(EvalSandbox, { default: () => DEFAULT_SANDBOX }),
+})
+  .pipe(
+    Schema.filter(profileFitsHarness, { message: () => PROFILE_HARNESS_RULE })
+  )
+  .annotations({
+    description: `A harness and model, with an optional sandbox and an optional profile layered on the harness. ${PROFILE_HARNESS_RULE}`,
+    identifier: "EvalVariantRequest",
+  });
 export type EvalVariantRequest = typeof EvalVariantRequest.Type;
 
-export const EvalName = Schema.String.pipe(
-  Schema.minLength(1),
-  Schema.maxLength(100)
-);
-export type EvalName = typeof EvalName.Type;
+export const EvalSuiteRequest = Schema.Struct({
+  id: EvalSuiteId,
+  name: EvalSuiteName,
+  prompt: EvalPrompt,
+}).annotations({
+  description: "The suite the cases belong to, and the prompt they share.",
+  identifier: "EvalSuiteRequest",
+});
+export type EvalSuiteRequest = typeof EvalSuiteRequest.Type;
 
-export const StartEvalRequest = Schema.Struct({
+export const StartBatchRequest = Schema.Struct({
   cases: Schema.Array(EvalCase).pipe(
     Schema.minItems(1),
     Schema.maxItems(MAX_START_CASES)
   ),
-  name: Schema.optional(EvalName),
-  prompt: EvalPrompt,
+  local: Schema.optionalWith(Schema.Boolean, { default: () => false }),
+  suite: EvalSuiteRequest,
+  trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),
+  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
+    default: () => null,
+  }),
   variants: Schema.Array(EvalVariantRequest).pipe(
     Schema.minItems(1),
     Schema.maxItems(MAX_START_VARIANTS)
   ),
-  trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),
+}).annotations({
+  description:
+    "Run every case of a suite on every variant, each as many times as trials.",
+  identifier: "StartBatchRequest",
 });
-export type StartEvalRequest = typeof StartEvalRequest.Type;
+export type StartBatchRequest = typeof StartBatchRequest.Type;
 
 const OccurredAtMillis = Schema.NullOr(Schema.Number);
 
 export const EvalUsage = Schema.Struct({
   cacheReadTokens: Schema.Int,
   cacheWriteTokens: Schema.Int,
-  /* Priced at published rates, not billed: no account discounts or tiers. */
   costUsd: Schema.optional(Schema.NullOr(Schema.Number)),
   inputTokens: Schema.Int,
   outputTokens: Schema.Int,
@@ -322,7 +299,6 @@ export const EvalJournalEntry = Schema.Union(
     outputTruncated: Schema.optional(Schema.Boolean),
     inputTruncated: Schema.optional(Schema.Boolean),
     errorTruncated: Schema.optional(Schema.Boolean),
-    /* Null where the harness reports only completion, which is most of them. */
     startedAtMillis: Schema.optional(OccurredAtMillis),
     status: Schema.NullOr(Schema.String),
   }),
@@ -347,7 +323,6 @@ export const EvalVerifyStep = Schema.Struct({
 });
 export type EvalVerifyStep = typeof EvalVerifyStep.Type;
 
-/* Kept apart because collapsing an estimate, a charge and an absorbed cost into one number reads as authoritative and is not. */
 export const CostClassification = Schema.Literal(
   "actual",
   "allocated",
@@ -373,7 +348,6 @@ export const EvalCostComponent = Schema.Struct({
   detail: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
   explanation: Schema.String,
   source: Schema.String,
-  /* Null, never zero: zero sums as free and unpriced is not free. */
   usd: Schema.NullOr(Schema.Number),
 }).annotations({
   description: "What one layer of a trial cost, and how far that is known.",
@@ -381,12 +355,10 @@ export const EvalCostComponent = Schema.Struct({
 });
 export type EvalCostComponent = typeof EvalCostComponent.Type;
 
-/* No single total, deliberately: summing across classifications means none of them. */
 export const EvalCosts = Schema.Struct({
   allocatedUsd: Schema.Number,
   components: Schema.Array(EvalCostComponent),
   estimatedEquivalentUsd: Schema.Number,
-  /* Raised only by unknown; included and managed are known states. */
   incomplete: Schema.Boolean,
   knownActualUsd: Schema.Number,
 }).annotations({
@@ -405,41 +377,35 @@ export type EvalArtifact = typeof EvalArtifact.Type;
 
 export const EvalArtifactMetadata = EvalArtifact.omit("content");
 export type EvalArtifactMetadata = typeof EvalArtifactMetadata.Type;
+
 export const EvalArtifactRequest = Schema.Struct({
   path: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(512)),
-  id: Schema.String,
-  cellKey: Schema.String,
-  ordinal: Schema.Int.pipe(Schema.positive()),
   sha256: Schema.String.pipe(Schema.pattern(/^[a-f0-9]{64}$/)),
+  trialId: Schema.String,
 });
 export type EvalArtifactRequest = typeof EvalArtifactRequest.Type;
 
 export const EvalTrial = Schema.Struct({
-  id: Schema.optional(Schema.String),
-  artifacts: Schema.optional(Schema.Array(EvalArtifactMetadata)),
-  validations: Schema.optional(EvalValidations),
-  judgments: Schema.optional(Schema.Array(EvalJudgment)),
+  artifacts: Schema.Array(EvalArtifactMetadata),
   commands: Schema.Int,
   costs: Schema.NullOr(EvalCosts),
-  prepared: Schema.NullOr(EvalPrepareValue),
-
   exitCode: Schema.Int,
   failedCommands: Schema.Int,
   filesChanged: Schema.Array(Schema.String),
+  id: Schema.String,
   modelMs: Schema.Int,
   ordinal: Schema.Int,
-  passed: Schema.Boolean,
   sandboxId: Schema.NullOr(Schema.String),
   sandboxMs: Schema.Int,
   status: EvalTrialStatus,
-
   timed: Schema.Boolean,
   trajectory: Schema.Array(EvalJournalEntry),
   usage: Schema.NullOr(EvalUsage),
+  validations: EvalValidations,
   verifySteps: Schema.Array(EvalVerifyStep),
   voidFields: Schema.Array(Schema.String),
 }).annotations({
-  description: "One sandbox attempt for a grid cell.",
+  description: "One attempt of a run, in its own sandbox.",
   identifier: "EvalTrial",
 });
 export type EvalTrial = typeof EvalTrial.Type;
@@ -456,130 +422,126 @@ export const EvalDistribution = Schema.Struct({
   trials: Schema.Int,
   voided: Schema.Int,
 }).annotations({
-  description: "The scored outcome across all trials in a cell.",
+  description: "The scored outcome across the trials of a run.",
   identifier: "EvalDistribution",
 });
 export type EvalDistribution = typeof EvalDistribution.Type;
 
-export const EvalVerdict = Schema.Literal(
-  "improved",
-  "incomparable",
-  "regressed",
-  "unchanged"
-);
-export type EvalVerdict = typeof EvalVerdict.Type;
-
-export const EvalComparison = Schema.Struct({
-  baselineHarnessVersion: Schema.String,
-  baselinePassRate: Schema.Number,
-  baselineProfileVersion: Schema.NullOr(Schema.String),
-  candidateHarnessVersion: Schema.String,
-  candidatePassRate: Schema.Number,
-  candidateProfileVersion: Schema.NullOr(Schema.String),
-  definitionChanged: Schema.Boolean,
-  delta: Schema.Number,
-
-  determinismLost: Schema.Boolean,
-  reason: Schema.NullOr(Schema.String),
-  verdict: EvalVerdict,
+export const EvalSuite = Schema.Struct({
+  id: EvalSuiteId,
+  name: Schema.String,
 }).annotations({
-  description: "The cell result compared with its most recent baseline.",
-  identifier: "EvalComparison",
+  description: "A group of cases that share a prompt and setup.",
+  identifier: "EvalSuite",
 });
-export type EvalComparison = typeof EvalComparison.Type;
+export type EvalSuite = typeof EvalSuite.Type;
+
+export const EvalVariant = Schema.Struct({
+  harness: EvalHarness,
+  id: Schema.String,
+  model: Schema.String,
+  profile: Schema.NullOr(Schema.String),
+  sandbox: EvalSandbox,
+  userModel: Schema.NullOr(Schema.String),
+}).annotations({
+  description:
+    "The harness, model, sandbox and profile a case runs on. A case has one variant per combination it has run on.",
+  identifier: "EvalVariant",
+});
+export type EvalVariant = typeof EvalVariant.Type;
 
 export const EvalSetup = Schema.Struct({
+  prepare: Schema.NullOr(Schema.String),
   prompt: Schema.String,
-  repoRef: Schema.NullOr(Schema.String),
-  repoUrl: Schema.NullOr(Schema.String),
-  prepareName: Schema.NullOr(Schema.String),
-
-  validatorName: Schema.NullOr(Schema.String),
+  source: EvalSource,
+  validator: Schema.NullOr(Schema.String),
   validatorFiles: Schema.optional(EvalSourceFiles),
-  verifyCommand: Schema.NullOr(Schema.String),
-  workspace: Schema.String,
+  verify: Schema.NullOr(Schema.String),
 }).annotations({
-  description: "The prompt, workspace, setup, and verifier used by a cell.",
+  description: "The prompt, workspace, setup and verifier a run used.",
   identifier: "EvalSetup",
 });
 export type EvalSetup = typeof EvalSetup.Type;
-
-export const EvalCell = Schema.Struct({
-  caseName: Schema.String,
-
-  cellKey: Schema.NullOr(Schema.String),
-  costs: Schema.NullOr(EvalCosts),
-  comparison: Schema.NullOr(EvalComparison),
-  distribution: Schema.NullOr(EvalDistribution),
-  internalId: Schema.NullOr(Schema.String),
-
-  setup: Schema.NullOr(EvalSetup),
-  status: EvalRunStatus,
-  variantIndex: Schema.Int,
-  trials: Schema.Array(EvalTrial),
-}).annotations({
-  description: "One case and variant combination in an eval grid.",
-  identifier: "EvalCell",
-});
 
 const EvalTimestamp = Schema.DateTimeUtc.annotations({
   description: "An ISO-8601 timestamp in UTC.",
   identifier: "EvalTimestamp",
   jsonSchema: { format: "date-time" },
 });
-export type EvalCell = typeof EvalCell.Type;
 
 export const EvalRun = Schema.Struct({
-  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
-    default: () => null,
-  }),
-  cases: Schema.Array(Schema.String),
-  cells: Schema.Array(EvalCell),
+  batchId: Schema.String,
+  case: Schema.Struct({ id: EvalCaseId, name: Schema.String }),
   costs: Schema.NullOr(EvalCosts),
-  executedBy: Schema.optionalWith(Schema.NullOr(EvalExecutor), {
-    default: () => null,
-  }),
-  failure: Schema.NullOr(Schema.String),
+  definitionHash: Schema.String,
+  distribution: EvalDistribution,
   finishedAt: Schema.NullOr(EvalTimestamp),
+  harnessVersion: Schema.String,
   id: Schema.String,
-  name: Schema.NullOr(EvalName),
+  local: Schema.Boolean,
+  profileVersion: Schema.NullOr(Schema.String),
+  setup: EvalSetup,
   startedAt: EvalTimestamp,
   status: EvalRunStatus,
-  variants: Schema.Array(EvalVariant),
+  suite: EvalSuite,
+  trials: Schema.Array(EvalTrial),
+  trigger: Schema.NullOr(EvalTrigger),
+  variant: EvalVariant,
 }).annotations({
-  description: "A complete eval run with its cells and trials.",
+  description: "One case run on one variant, with its trials.",
   identifier: "EvalRun",
 });
 export type EvalRun = typeof EvalRun.Type;
 
-export const EvalRunSummary = Schema.Struct({
-  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
-    default: () => null,
-  }),
-  caseCount: Schema.Int,
-
-  columns: Schema.Array(EvalVariant),
-  commandMax: Schema.NullOr(Schema.Int),
-  commandMin: Schema.NullOr(Schema.Int),
+export const EvalBatch = Schema.Struct({
+  costs: Schema.NullOr(EvalCosts),
   failure: Schema.NullOr(Schema.String),
   finishedAt: Schema.NullOr(EvalTimestamp),
-  firstCaseName: Schema.NullOr(Schema.String),
   id: Schema.String,
+  local: Schema.Boolean,
+  runs: Schema.Array(EvalRun),
+  startedAt: EvalTimestamp,
+  status: EvalRunStatus,
+  trigger: Schema.NullOr(EvalTrigger),
+}).annotations({
+  description: "Runs started together, such as every variant of a suite.",
+  identifier: "EvalBatch",
+});
+export type EvalBatch = typeof EvalBatch.Type;
 
-  name: Schema.NullOr(Schema.String),
+export const EvalBatchSummary = Schema.Struct({
+  cases: Schema.Int,
+  failure: Schema.NullOr(Schema.String),
+  finishedAt: Schema.NullOr(EvalTimestamp),
+  id: Schema.String,
   passed: Schema.Int,
+  runs: Schema.Int,
   scored: Schema.Int,
   startedAt: EvalTimestamp,
   status: EvalRunStatus,
-  taskCount: Schema.Int,
+  trigger: Schema.NullOr(EvalTrigger),
   voided: Schema.Int,
 }).annotations({
-  description: "A compact eval run returned by the run list.",
-  identifier: "EvalRunSummary",
+  description: "A batch as a list shows it.",
+  identifier: "EvalBatchSummary",
 });
-export type EvalRunSummary = typeof EvalRunSummary.Type;
+export type EvalBatchSummary = typeof EvalBatchSummary.Type;
 
-/* Shared with clients so a pending list can reserve the height of the one replacing it. */
+export const StartedBatch = Schema.Struct({
+  id: Schema.String,
+  runs: Schema.Array(
+    Schema.Struct({
+      caseId: EvalCaseId,
+      id: Schema.String,
+      variantIndex: Schema.Int,
+    })
+  ),
+}).annotations({
+  description: "The batch started, and the run it holds for each case and variant.",
+  identifier: "StartedBatch",
+});
+export type StartedBatch = typeof StartedBatch.Type;
+
 export const EVAL_PAGE_SIZE = 20;
 
 export const EvalPageCursor = Schema.Struct({
@@ -588,30 +550,34 @@ export const EvalPageCursor = Schema.Struct({
 });
 export type EvalPageCursor = typeof EvalPageCursor.Type;
 
-/* `next` is null at the end, so a caller stops on exhaustion rather than an empty fetch. */
-export const EvalRunPage = Schema.Struct({
+export const EvalBatchPage = Schema.Struct({
+  batches: Schema.Array(EvalBatchSummary),
   next: Schema.NullOr(EvalPageCursor),
-  runs: Schema.Array(EvalRunSummary),
   total: Schema.Int,
 });
-export type EvalRunPage = typeof EvalRunPage.Type;
+export type EvalBatchPage = typeof EvalBatchPage.Type;
 
-/* A case as the list shows it: one row per cell key, carrying its newest
-   sighting rather than a run. `runCount` is how many runs have reached it,
-   which is what makes a rarely-run case legible beside a daily one. */
-export const EvalCaseSummary = Schema.Struct({
-  caseId: EvalCaseId,
-  cellKey: Schema.String,
+export const EvalVariantResult = Schema.Struct({
   distribution: EvalDistribution,
-  harness: Schema.String,
-  lastRunAtMillis: Schema.Int,
+  lastRunAt: EvalTimestamp,
   lastRunId: Schema.String,
-  model: Schema.String,
-  name: Schema.String,
-  runCount: Schema.Int,
-  tags: Schema.Array(Schema.String),
+  runs: Schema.Int,
+  variant: EvalVariant,
 }).annotations({
-  description: "A case as the list shows it, with its newest run.",
+  description: "A variant of a case and how its newest run went.",
+  identifier: "EvalVariantResult",
+});
+export type EvalVariantResult = typeof EvalVariantResult.Type;
+
+export const EvalCaseSummary = Schema.Struct({
+  id: EvalCaseId,
+  lastRunAt: EvalTimestamp,
+  name: Schema.String,
+  suite: EvalSuite,
+  tags: Schema.Array(Schema.String),
+  variants: Schema.Array(EvalVariantResult),
+}).annotations({
+  description: "A case as the list shows it, with each variant's newest run.",
   identifier: "EvalCaseSummary",
 });
 export type EvalCaseSummary = typeof EvalCaseSummary.Type;
@@ -619,47 +585,13 @@ export type EvalCaseSummary = typeof EvalCaseSummary.Type;
 export const EvalCasePage = Schema.Struct({
   cases: Schema.Array(EvalCaseSummary),
   next: Schema.NullOr(EvalPageCursor),
+  suites: Schema.Array(EvalSuite),
   tags: Schema.Array(Schema.String),
 }).annotations({
-  description: "Cases and every tag they carry between them.",
+  description: "Cases, and every suite and tag they fall under.",
   identifier: "EvalCasePage",
 });
 export type EvalCasePage = typeof EvalCasePage.Type;
-
-export const EvalCellHistoryEntry = Schema.Struct({
-  cellKey: Schema.String,
-  trigger: Schema.optionalWith(Schema.NullOr(EvalTrigger), {
-    default: () => null,
-  }),
-  definitionHash: Schema.String,
-  distribution: EvalDistribution,
-  finishedAt: Schema.NullOr(EvalTimestamp),
-  harness: Schema.optionalWith(Schema.String, { default: () => "" }),
-  harnessVersion: Schema.String,
-  internalId: Schema.String,
-  local: Schema.optionalWith(Schema.Boolean, { default: () => false }),
-  model: Schema.optionalWith(Schema.String, { default: () => "" }),
-  profileVersion: Schema.NullOr(Schema.String),
-  runId: Schema.String,
-  sandbox: Schema.optionalWith(Schema.String, { default: () => "" }),
-  trials: Schema.Array(EvalTrial),
-}).annotations({
-  description: "A previous scored result for the same cell identity.",
-  identifier: "EvalCellHistoryEntry",
-});
-export type EvalCellHistoryEntry = typeof EvalCellHistoryEntry.Type;
-
-export const EvalTrialAddress = Schema.Struct({
-  caseId: Schema.String,
-  cellKey: Schema.String,
-  ordinal: Schema.Int,
-  runId: Schema.String,
-  trialId: Schema.String,
-}).annotations({
-  description: "Where a trial sits: its case, run, cell and ordinal.",
-  identifier: "EvalTrialAddress",
-});
-export type EvalTrialAddress = typeof EvalTrialAddress.Type;
 
 export const EvalCaseVersion = Schema.Struct({
   author: Schema.NullOr(Schema.String),
@@ -672,71 +604,54 @@ export const EvalCaseVersion = Schema.Struct({
 });
 export type EvalCaseVersion = typeof EvalCaseVersion.Type;
 
-export const EvalCaseWorkspace = Schema.Union(
-  Schema.Struct({ kind: Schema.Literal("empty") }),
-  Schema.Struct({
-    kind: Schema.Literal("repo"),
-    ref: Schema.NullOr(Schema.String),
-    url: Schema.String,
-  }),
-  Schema.Struct({
-    kind: Schema.Literal("files"),
-    paths: Schema.Array(Schema.String),
-  })
-).annotations({
-  description: "What the sandbox starts from, without the file contents.",
-  identifier: "EvalCaseWorkspace",
-});
-export type EvalCaseWorkspace = typeof EvalCaseWorkspace.Type;
-
-export const EvalCaseSetup = Schema.Struct({
-  checks: Schema.Array(Schema.String),
-  prepare: Schema.NullOr(Schema.String),
-  prompt: Schema.String,
-  verify: Schema.NullOr(Schema.String),
-  workspace: EvalCaseWorkspace,
-}).annotations({
-  description: "How the case's newest run was set up and judged.",
-  identifier: "EvalCaseSetup",
-});
-export type EvalCaseSetup = typeof EvalCaseSetup.Type;
-
-export const CASE_HISTORY_PAGE_SIZE = 20;
-
-export const EvalCaseHistoryPage = Schema.Struct({
-  entries: Schema.Array(EvalCellHistoryEntry),
-  page: Schema.Int,
-  pageSize: Schema.Int,
-  total: Schema.Int,
-}).annotations({
-  description: "One page of a case's runs, newest first.",
-  identifier: "EvalCaseHistoryPage",
-});
-export type EvalCaseHistoryPage = typeof EvalCaseHistoryPage.Type;
-
 export const EvalCaseDetail = Schema.Struct({
   id: EvalCaseId,
   name: Schema.String,
-  setup: EvalCaseSetup,
+  setup: EvalSetup,
+  suite: EvalSuite,
   tags: Schema.Array(Schema.String),
-  variants: Schema.Array(EvalCellHistoryEntry),
+  variants: Schema.Array(EvalVariantResult),
   versions: Schema.Array(EvalCaseVersion),
 }).annotations({
   description:
-    "A case, how its newest run was set up, and the newest reading on each variant it has run on.",
+    "A case, how its newest version is set up, and each variant it has run on.",
   identifier: "EvalCaseDetail",
 });
 export type EvalCaseDetail = typeof EvalCaseDetail.Type;
 
-export const runTagOf = (runId: string) => `run_${runId}`;
+export const RUN_PAGE_SIZE = 20;
 
-export const RunSubscription = Schema.Struct({
+export const EvalRunPage = Schema.Struct({
+  page: Schema.Int,
+  pageSize: Schema.Int,
+  runs: Schema.Array(EvalRun),
+  total: Schema.Int,
+}).annotations({
+  description: "One page of a case's runs, newest first.",
+  identifier: "EvalRunPage",
+});
+export type EvalRunPage = typeof EvalRunPage.Type;
+
+export const EvalTrialAddress = Schema.Struct({
+  batchId: Schema.String,
+  caseId: Schema.String,
+  ordinal: Schema.Int,
+  runId: Schema.String,
+  trialId: Schema.String,
+}).annotations({
+  description: "Where a trial sits: its case, batch, run and ordinal.",
+  identifier: "EvalTrialAddress",
+});
+export type EvalTrialAddress = typeof EvalTrialAddress.Type;
+
+export const batchTagOf = (batchId: string) => `batch_${batchId}`;
+
+export const BatchSubscription = Schema.Struct({
   expiresAtMillis: Schema.Number,
   tag: Schema.String,
   token: Schema.String,
 }).annotations({
-  description: "A scoped, read-only token for watching one run in real time.",
-  identifier: "RunSubscription",
+  description: "A scoped, read-only token for watching one batch in real time.",
+  identifier: "BatchSubscription",
 });
-
-export type RunSubscription = typeof RunSubscription.Type;
+export type BatchSubscription = typeof BatchSubscription.Type;

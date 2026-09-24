@@ -1,88 +1,58 @@
-import type { EvalPageCursor } from "@anpord/schema/domain/evals";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { getEvalArtifact } from "../../evals/artifacts";
-import { leaseCredentials } from "../../evals/credential-lease";
 import {
-  getCellHistory,
-  getEvalModels,
-  getEvalRun,
-  getRunSubscription,
-  listEvalCases,
-  listEvalRuns,
-  readRunTail,
-  rerunEvalCell,
-  startEvalRun,
-} from "../../evals/operations";
-import { finishReportedRun, reportTrial } from "../../evals/reported-trials";
+  finishBatch,
+  leaseCredentials,
+  listBatches,
+  listCaseRuns,
+  listModels,
+  readBatch,
+  readTail,
+  reportTrial,
+  runCase,
+  startBatch,
+  subscribeToBatch,
+} from "../../evals/evals";
 
-const pageParams = (cursor: EvalPageCursor | null | undefined) => ({
-  cursorId: cursor?.id,
-  cursorStartedAt: cursor?.startedAtMillis,
-});
+const read = { permission: Permissions.Evals.Read };
+const write = { permission: Permissions.Evals.Write };
 
 export const PublicEvalsHandlers = HttpApiBuilder.group(
   PublicApi,
   "evals",
   (handlers) =>
     authorized(handlers)
-      .handle(
-        "artifact",
-        { permission: Permissions.Evals.Read },
-        ({ payload }) => getEvalArtifact(payload)
+      .handle("list", read, ({ payload }) =>
+        listBatches(payload.cursor ?? null, payload.limit)
       )
-      .handle("list", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        listEvalRuns({ ...pageParams(payload.cursor), limit: payload.limit })
-      )
-      .handle("cases", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        listEvalCases({
-          ...pageParams(payload.cursor),
-          limit: payload.limit,
-          tag: payload.tag,
+      .handle("start", write, ({ payload }) =>
+        startBatch({
+          ...payload,
+          trigger: payload.trigger ?? { source: "api" },
         })
       )
-      .handle("start", { permission: Permissions.Evals.Write }, ({ payload }) =>
-        startEvalRun(payload)
+      .handle("runCase", write, ({ payload }) =>
+        runCase(payload.caseId, payload, {
+          hostedOnly: true,
+          trigger: { source: "api" },
+        })
       )
-      .handle("get", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        getEvalRun(payload.id)
+      .handle("get", read, ({ payload }) => readBatch(payload.id))
+      .handle("caseRuns", read, ({ payload }) =>
+        listCaseRuns(payload.caseId, payload.page, payload.variant)
       )
-      .handle(
-        "credentials",
-        { permission: Permissions.Evals.Write },
-        ({ payload }) => leaseCredentials(payload)
+      .handle("subscription", read, ({ payload }) =>
+        subscribeToBatch(payload.id)
       )
-      .handle(
-        "reportTrial",
-        { permission: Permissions.Evals.Write },
-        ({ payload }) => reportTrial(payload)
+      .handle("tail", read, ({ payload }) => readTail(payload.id, payload.after))
+      .handle("credentials", write, ({ payload }) =>
+        leaseCredentials(payload.id, payload.harness)
       )
-      .handle(
-        "finishRun",
-        { permission: Permissions.Evals.Write },
-        ({ payload }) => finishReportedRun(payload.id)
-      )
-      .handle(
-        "subscription",
-        { permission: Permissions.Evals.Read },
-        ({ payload }) => getRunSubscription(payload.id)
-      )
-      .handle("tail", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        readRunTail(payload.id, payload.after)
-      )
-      .handle(
-        "cellHistory",
-        { permission: Permissions.Evals.Read },
-        ({ payload }) => getCellHistory(payload.cellKey)
-      )
-      .handle(
-        "rerunCell",
-        { permission: Permissions.Evals.Write },
-        ({ payload }) => rerunEvalCell(payload)
-      )
-      .handle("models", { permission: Permissions.Evals.Read }, ({ payload }) =>
-        getEvalModels(payload.harness, payload.q)
+      .handle("reportTrial", write, ({ payload }) => reportTrial(payload))
+      .handle("finish", write, ({ payload }) => finishBatch(payload.id))
+      .handle("models", read, ({ payload }) =>
+        listModels(payload.harness, payload.q)
       ).done
 );

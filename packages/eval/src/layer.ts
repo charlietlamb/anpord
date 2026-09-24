@@ -8,97 +8,73 @@ import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
 import { SimulatedUserLive } from "./adapters/user/llm-user";
-import { GridRunLive } from "./grid/run";
+import { GithubAppConfigLive, GithubAppLive } from "./codebase/github-app";
+import { InstallationsLive } from "./codebase/installations";
+import { SourceTokensLive } from "./codebase/source-token";
+import { CredentialCipherLive } from "./credentials/cipher";
+import { CredentialResolverLive } from "./credentials/resolver-live";
+import { BatchesLive } from "./grid/batches";
 import { JudgeModelLive } from "./judges/layer";
 import { type RunBell, RunBellSilent } from "./ports/run-bell";
-import { type TrialRunner, TrialRunnerInProcess } from "./ports/trial-runner";
+import type { TrialRunner } from "./ports/trial-runner";
 import { AbandonedWorkLive } from "./repositories/abandoned-work";
-import { BaselineRepositoryLive } from "./repositories/baseline-repository";
-import { CaseRepositoryLive } from "./repositories/case-repository";
-import { CaseVersionRepositoryLive } from "./repositories/case-version-repository";
+import { BatchRepositoryLive } from "./repositories/batch-repository";
+import { CatalogRepositoryLive } from "./repositories/catalog-repository";
 import { EventRepositoryLive } from "./repositories/event-repository";
 import { ExpiredRowsLive } from "./repositories/expired-rows";
 import { HarnessProfileRepositoryLive } from "./repositories/harness-profile-repository";
 import { JournalArchiveLive } from "./repositories/journal-archive";
 import { LiveSandboxesLive } from "./repositories/live-sandboxes";
-import { RunQueryLive } from "./repositories/run-query";
-import { RunRepositoryLive } from "./repositories/run-repository";
 import { TrialCostRepositoryLive } from "./repositories/trial-cost-repository";
 import { TrialRecorderLive } from "./repositories/trial-record";
-import { WorkbenchRepositoryLive } from "./repositories/workbench-repository";
 import { AgentTrialLive } from "./services/agent-trial";
-import { BaselinesLive } from "./services/baselines";
-import { CellRerunsLive } from "./services/cell-rerun";
+import { EvalReadsLive } from "./services/eval-reads";
 import { ExpirySweepScheduleLive } from "./services/expiry-sweep";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { JournalRetentionScheduleLive } from "./services/journal-retention";
 import { AgentTrialJudgedLive } from "./services/judged-trial";
-import { layer as ModelCatalogueLive } from "./services/model-catalogue";
-import { ReconcilerLive, ReconcilerScheduleLive } from "./services/reconciler";
+import { ReconcilerScheduleLive } from "./services/reconciler";
 import { SandboxProviderLive } from "./services/sandbox-provider";
-import {
-  SandboxReaperLive,
-  SandboxReaperScheduleLive,
-} from "./services/sandbox-reaper";
+import { SandboxReaperScheduleLive } from "./services/sandbox-reaper";
 import { type Suspender, SuspenderSleeping } from "./services/suspender";
-import { WorkbenchesLive } from "./services/workbench";
 
-export const EvalRepositoriesLive = Layer.mergeAll(
-  BaselineRepositoryLive,
-  CaseRepositoryLive,
-  EventRepositoryLive,
-  HarnessProfileRepositoryLive,
-  RunQueryLive,
-  RunRepositoryLive,
-  CaseVersionRepositoryLive,
-  TrialCostRepositoryLive,
-  TrialRecorderLive,
-  WorkbenchRepositoryLive
-).pipe(Layer.provide(IdGeneratorLive), Layer.provide(JournalArchiveLive));
+const HttpLive = FetchHttpClient.layer;
+
+export const EvalCredentialsLive = CredentialResolverLive.pipe(
+  Layer.provide(Layer.merge(CredentialCipherLive, IdGeneratorLive))
+);
+
+export const EvalCodebaseLive = SourceTokensLive.pipe(
+  Layer.provideMerge(InstallationsLive),
+  Layer.provideMerge(GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)))
+);
 
 export const EvalSandboxLive = SandboxProviderLive.pipe(
   Layer.provide(SandboxAdaptersLive)
 );
 
+const RepositoriesLive = Layer.mergeAll(
+  BatchRepositoryLive,
+  CatalogRepositoryLive,
+  EventRepositoryLive,
+  HarnessProfileRepositoryLive,
+  TrialCostRepositoryLive,
+  TrialRecorderLive
+).pipe(Layer.provide(IdGeneratorLive), Layer.provide(JournalArchiveLive));
+
 const agentWith = (suspender: Layer.Layer<Suspender>) =>
   AgentTrialJudgedLive.pipe(
     Layer.provide(
       AgentTrialLive.pipe(
-        Layer.provide(
-          ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
-        ),
-        Layer.provide(suspender),
-        Layer.provide(
-          SimulatedUserLive.pipe(Layer.provide(FetchHttpClient.layer))
-        )
+        Layer.provide(ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))),
+        Layer.provide(suspender)
       )
     ),
-    Layer.provide(JudgeModelLive.pipe(Layer.provide(FetchHttpClient.layer))),
-    Layer.provide(Layer.mergeAll(HarnessesLive, HarnessVersionsLive))
+    Layer.provide(JudgeModelLive),
+    Layer.provide(HarnessesLive)
   );
 
-export const EvalBaselinesLive = BaselinesLive.pipe(
-  Layer.provideMerge(EvalRepositoriesLive)
-);
-
-/* The runner is not provided here: where a run executes is a deployment decision
-   this package cannot see, so the composition root passes one in. */
-const gridWith = (
-  runner: Layer.Layer<TrialRunner, ConfigError>,
-  bell: Layer.Layer<RunBell>
-) =>
-  GridRunLive.pipe(
-    Layer.provide(runner),
-    Layer.provide(bell),
-    Layer.provide(ModelPricesLive.pipe(Layer.provide(FetchHttpClient.layer))),
-    Layer.provide(BaselinesLive),
-    Layer.provideMerge(BaselinesLive)
-  );
-
-/* A sleeping suspender holds the process; a durable runner passes one that
-   suspends instead and stops paying for the wait. A silent bell leaves readers
-   to their poll; a runner that can be subscribed to passes one that wakes them. */
-export const evalGridWith = (
+export const evalStackWith = (
   runner: Layer.Layer<TrialRunner, ConfigError>,
   {
     bell = RunBellSilent,
@@ -107,41 +83,25 @@ export const evalGridWith = (
     readonly bell?: Layer.Layer<RunBell>;
     readonly suspender?: Layer.Layer<Suspender>;
   } = {}
-) => {
-  const grid = gridWith(runner, bell);
-
-  return Layer.mergeAll(
-    grid,
-    WorkbenchesLive.pipe(Layer.provide(grid)),
-
-    CellRerunsLive.pipe(Layer.provide(grid))
-  ).pipe(
+) =>
+  Layer.mergeAll(BatchesLive, EvalReadsLive).pipe(
     Layer.provide(agentWith(suspender)),
-    Layer.provide(SimulatedUserLive.pipe(Layer.provide(FetchHttpClient.layer))),
-    Layer.provideMerge(EvalRepositoriesLive)
+    Layer.provide(Layer.mergeAll(runner, bell, ModelPricesLive, SimulatedUserLive)),
+    Layer.provide(EvalSandboxLive),
+    Layer.provideMerge(RepositoriesLive),
+    Layer.provideMerge(HarnessVersionsLive),
+    Layer.provideMerge(EvalCodebaseLive),
+    Layer.provideMerge(EvalCredentialsLive),
+    Layer.provide(HttpLive)
   );
-};
 
-export const EvalGridLive = evalGridWith(TrialRunnerInProcess);
-
-export const EvalModelCatalogueLive = ModelCatalogueLive;
-export const EvalHarnessVersionsLive = HarnessVersionsLive;
-
-export const ReconcilerSweepLive = ReconcilerScheduleLive.pipe(
-  Layer.provide(ReconcilerLive),
-  Layer.provide(AbandonedWorkLive)
-);
-
-export const JournalRetentionSweepLive = JournalRetentionScheduleLive.pipe(
-  Layer.provide(JournalArchiveLive)
-);
-
-/* Reaping reaches the provider under the credentials a trial opened its sandbox with. */
-export const SandboxReaperSweepLive = SandboxReaperScheduleLive.pipe(
-  Layer.provide(SandboxReaperLive),
-  Layer.provide(LiveSandboxesLive)
-);
-
-export const ExpirySweepLive = ExpirySweepScheduleLive.pipe(
-  Layer.provide(ExpiredRowsLive)
+export const EvalSweepsLive = Layer.mergeAll(
+  ReconcilerScheduleLive.pipe(Layer.provide(AbandonedWorkLive)),
+  JournalRetentionScheduleLive.pipe(Layer.provide(JournalArchiveLive)),
+  ExpirySweepScheduleLive.pipe(Layer.provide(ExpiredRowsLive)),
+  SandboxReaperScheduleLive.pipe(
+    Layer.provide(LiveSandboxesLive),
+    Layer.provide(EvalSandboxLive),
+    Layer.provide(EvalCredentialsLive)
+  )
 );

@@ -86,12 +86,12 @@ const scoreValidator = (
       yield* publishValidation(record, request.onValidation);
     }
     return {
+      artifacts: [],
       commandCount: request.commandCount,
       modelMs: request.modelMs,
       sandboxMs: 0,
       exitCode: invalid ? execution.exitCode || -1 : Number(failed),
       status: invalid ? ("void" as const) : resultStatus(!failed),
-      passed: !(invalid || failed),
       validations,
       verifySteps: [],
       voidFields: invalid ? ["validator"] : [],
@@ -194,7 +194,7 @@ const scoreCommand: ScorerShape["score"] = (request) =>
       status:
         interrupted || outcome.status === "void"
           ? "error"
-          : resultStatus(outcome.passed),
+          : resultStatus(outcome.status === "passed"),
       durationMs: Math.max(0, (yield* Clock.currentTimeMillis) - started),
       exitCode: execution.exitCode,
       message: interrupted ? "Verifier did not report process exit" : "",
@@ -210,7 +210,7 @@ const scoreCommand: ScorerShape["score"] = (request) =>
       ...outcome,
       validations: [validation],
       ...(interrupted
-        ? { passed: false, status: "void" as const, voidFields: ["verify"] }
+        ? { status: "void" as const, voidFields: ["verify"] }
         : {}),
     };
   });

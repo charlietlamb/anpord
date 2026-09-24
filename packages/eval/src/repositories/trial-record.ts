@@ -13,15 +13,13 @@ import type {
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schema } from "effect";
-import type { ProviderName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import { interruptedValidation } from "../domain/validation-plan";
 import { tryStore } from "./query";
 
 export interface OpenTrial {
-  readonly cellInternalId: string;
   readonly ordinal: number;
-  readonly provider: ProviderName;
+  readonly runInternalId: string;
   readonly startedAt: Date;
 }
 
@@ -42,7 +40,6 @@ export interface SettleTrial {
   readonly artifacts?: readonly EvalArtifact[];
   readonly finishedAt: Date;
   readonly outcome: TrialOutcome;
-  readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string | null;
   readonly trialInternalId: string;
 
@@ -94,8 +91,6 @@ export const TrialRecorderLive = Layer.effect(
     const db = yield* Database;
     const ids = yield* IdGenerator;
 
-    /* The sandbox id is cleared: the scope destroyed it before this finalizer
-       writes, and a leftover id sends the reaper after a VM that is gone. */
     const abandon = (input: AbandonTrial) =>
       tryStore("trial.abandon", async () => {
         const [trial] = await db
@@ -139,66 +134,59 @@ export const TrialRecorderLive = Layer.effect(
         })
       );
 
-    /* Reopened, not inserted beside: a resumed run reuses its cells and a trial
-       is unique on its cell and ordinal. */
     const open = (input: OpenTrial) =>
       Effect.gen(function* () {
         const fresh = yield* ids.generate("evalTrial");
 
-        const rows = yield* tryStore("trial.open", () =>
-          db
-            .insert(evalTrial)
-            .values({
-              cellInternalId: input.cellInternalId,
-              internalId: fresh,
-              ordinal: input.ordinal,
-              provider: input.provider,
-              startedAt: input.startedAt,
-              status: "running",
-            })
-            .onConflictDoUpdate({
-              set: {
-                finishedAt: null,
-                provider: input.provider,
+        const row = yield* tryStore("trial.open", () =>
+          db.transaction(async (tx) => {
+            const [opened] = await tx
+              .insert(evalTrial)
+              .values({
+                internalId: fresh,
+                ordinal: input.ordinal,
+                runInternalId: input.runInternalId,
                 startedAt: input.startedAt,
                 status: "running",
-                validations: [],
-                artifacts: [],
-              },
-              target: [evalTrial.cellInternalId, evalTrial.ordinal],
-            })
-            .returning({
-              internalId: evalTrial.internalId,
-              sandboxId: evalTrial.sandboxId,
-            })
+              })
+              .onConflictDoUpdate({
+                set: {
+                  artifacts: [],
+                  finishedAt: null,
+                  startedAt: input.startedAt,
+                  status: "running",
+                  validations: [],
+                },
+                target: [evalTrial.runInternalId, evalTrial.ordinal],
+              })
+              .returning({
+                internalId: evalTrial.internalId,
+                sandboxId: evalTrial.sandboxId,
+              });
+            const trialInternalId = opened?.internalId ?? fresh;
+            await tx
+              .delete(evalTrialArtifact)
+              .where(eq(evalTrialArtifact.trialInternalId, trialInternalId));
+            await tx
+              .delete(evalEvent)
+              .where(eq(evalEvent.trialInternalId, trialInternalId));
+            await tx
+              .delete(evalTrialJournal)
+              .where(eq(evalTrialJournal.trialInternalId, trialInternalId));
+            return {
+              priorSandboxId: opened?.sandboxId ?? null,
+              trialInternalId,
+            };
+          })
         );
 
-        const trialInternalId = rows[0]?.internalId ?? fresh;
-        const priorSandboxId = Option.fromNullable(rows[0]?.sandboxId);
-
-        yield* tryStore("trial.clearArtifacts", () =>
-          db
-            .delete(evalTrialArtifact)
-            .where(eq(evalTrialArtifact.trialInternalId, trialInternalId))
-        );
-
-        /* An earlier attempt's journal would otherwise interleave with this one. */
-        yield* tryStore("trial.clearEvents", () =>
-          db
-            .delete(evalEvent)
-            .where(eq(evalEvent.trialInternalId, trialInternalId))
-        );
-
-        yield* tryStore("trial.clearArchive", () =>
-          db
-            .delete(evalTrialJournal)
-            .where(eq(evalTrialJournal.trialInternalId, trialInternalId))
-        );
-
-        return { priorSandboxId, trialInternalId };
+        return {
+          priorSandboxId: Option.fromNullable(row.priorSandboxId),
+          trialInternalId: row.trialInternalId,
+        };
       }).pipe(
         Effect.withSpan("TrialRecorder.open", {
-          attributes: { ordinal: input.ordinal, provider: input.provider },
+          attributes: { ordinal: input.ordinal, runId: input.runInternalId },
         })
       );
 
@@ -259,20 +247,13 @@ export const TrialRecorderLive = Layer.effect(
               exitCode: input.outcome.exitCode,
               finishedAt: input.finishedAt,
               modelMs: input.outcome.modelMs,
-              passed: input.outcome.passed,
-              prepared: input.prepared,
-              judgments: input.outcome.judgments ?? [],
-              ...(input.outcome.validations === undefined
-                ? {}
-                : { validations: input.outcome.validations }),
+              validations: input.outcome.validations,
               sandboxId: input.sandboxId,
               sandboxMs: input.outcome.sandboxMs,
               status: input.outcome.status,
               usage: input.usage === null ? null : { ...input.usage },
-              verifySteps: input.outcome.verifySteps.map((step) => ({
-                ...step,
-              })),
-              voidFields: [...input.outcome.voidFields],
+              verifySteps: input.outcome.verifySteps,
+              voidFields: input.outcome.voidFields,
             })
             .where(eq(evalTrial.internalId, input.trialInternalId));
         })

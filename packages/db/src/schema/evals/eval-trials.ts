@@ -1,10 +1,10 @@
-import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import type { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
+import type {
+  EvalArtifactMetadata,
+  EvalVerifyStep,
+} from "@anpord/schema/domain/evals";
 import { sql } from "drizzle-orm";
 import {
-  boolean,
-  check,
   index,
   integer,
   jsonb,
@@ -13,32 +13,26 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { evalCell } from "./eval-cells";
+import { evalRun } from "./eval-runs";
 
-/* `voidFields` is its own column, not a flavour of failure: a trial that never ran would otherwise let a broken provider report a clean pass rate. */
 export const evalTrial = pgTable(
   "eval_trial",
   {
     internalId: text("internal_id").primaryKey(),
-    cellInternalId: text("cell_internal_id")
+    runInternalId: text("run_internal_id")
       .notNull()
-      .references(() => evalCell.internalId, { onDelete: "cascade" }),
+      .references(() => evalRun.internalId, { onDelete: "cascade" }),
     ordinal: integer("ordinal").notNull(),
     status: text("status").notNull(),
-    provider: text("provider").notNull(),
     sandboxId: text("sandbox_id"),
-    passed: boolean("passed"),
     exitCode: integer("exit_code"),
     commandCount: integer("command_count"),
     modelMs: integer("model_ms"),
     sandboxMs: integer("sandbox_ms"),
     artifacts: jsonb("artifacts").$type<readonly EvalArtifactMetadata[]>(),
-    prepared: jsonb("prepared").$type<Record<string, unknown>>(),
-    judgments: jsonb("judgments").$type<readonly EvalJudgment[]>(),
     validations: jsonb("validations").$type<readonly EvalValidation[]>(),
-    voidFields: jsonb("void_fields").$type<string[]>(),
-    verifySteps:
-      jsonb("verify_steps").$type<{ command: string; exitCode: number }[]>(),
+    voidFields: jsonb("void_fields").$type<readonly string[]>(),
+    verifySteps: jsonb("verify_steps").$type<readonly EvalVerifyStep[]>(),
     usage: jsonb("usage").$type<Record<string, number>>(),
     failure: text("failure"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -46,17 +40,12 @@ export const evalTrial = pgTable(
     finishedAt: timestamp("finished_at"),
   },
   (table) => [
-    uniqueIndex("eval_trial_cell_internal_id_ordinal_idx").on(
-      table.cellInternalId,
+    uniqueIndex("eval_trial_run_internal_id_ordinal_idx").on(
+      table.runInternalId,
       table.ordinal
     ),
-    /* Covers every trial holding a sandbox whatever its status: a terminal status is not evidence the VM is gone. */
     index("eval_trial_live_sandbox_idx")
       .on(table.startedAt)
       .where(sql`sandbox_id is not null`),
-    check(
-      "eval_trial_passed_agrees_check",
-      sql`${table.status} not in ('passed', 'failed') or ${table.passed} is not null`
-    ),
   ]
 );

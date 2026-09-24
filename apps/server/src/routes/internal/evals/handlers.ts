@@ -1,180 +1,59 @@
-import { CredentialResolver } from "@anpord/eval/credentials/resolver";
-import { rebuildRun } from "@anpord/eval/grid/rebuild-run";
-import { GridRun } from "@anpord/eval/grid/run";
-import { RunQuery } from "@anpord/eval/repositories/run-query";
-import { CellReruns } from "@anpord/eval/services/cell-rerun";
-import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import { authorIdOf } from "@anpord/schema/domain/actor";
 import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
-import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { withEvalErrors } from "../../../http/eval-errors";
-import { getEvalArtifact } from "../../evals/artifacts";
 import {
-  getCase,
-  getCaseHistory,
-  getEvalRun,
-  getRunSubscription,
-  getTrialAddress,
-  listEvalCases,
-  listEvalRuns,
-  listRunAddresses,
-  readRunTail,
-  rerunEvalCase,
-} from "../../evals/operations";
-import { EvalCredentials } from "./credentials";
-import {
-  createPlayground,
-  getPlayground,
-  listPlaygrounds,
-  runPlayground,
-  savePlayground,
-} from "./playground-handlers";
-import { startEvalFromApp } from "./start-handler";
+  listCaseRuns,
+  listCases,
+  readArtifact,
+  readBatch,
+  readCase,
+  readRun,
+  readTail,
+  readTrialAddress,
+  runCase,
+  subscribeToBatch,
+} from "../../evals/evals";
+
+const read = { permission: Permissions.Evals.Read };
+const write = { permission: Permissions.Evals.Write };
 
 export const EvalsHandlers = HttpApiBuilder.group(
   AnpordApi,
   "evals",
   (handlers) =>
     authorized(handlers)
-      .handle(
-        "artifact",
-        { permission: Permissions.Evals.Read },
-        ({ payload }) => getEvalArtifact(payload)
-      )
-      .handle(
-        "cases",
-        { permission: Permissions.Evals.Read },
-        ({ urlParams }) => listEvalCases(urlParams)
-      )
-      .handle("list", { permission: Permissions.Evals.Read }, ({ urlParams }) =>
-        listEvalRuns(urlParams)
-      )
-
-      .handle("start", { permission: Permissions.Evals.Write }, ({ payload }) =>
-        startEvalFromApp(payload)
-      )
-      .handle("get", { permission: Permissions.Evals.Read }, ({ path }) =>
-        getEvalRun(path.id)
-      )
-      .handle(
-        "subscription",
-        { permission: Permissions.Evals.Read },
-        ({ path }) => getRunSubscription(path.id)
-      )
-      .handle(
-        "tail",
-        { permission: Permissions.Evals.Read },
-        ({ path, payload }) => readRunTail(path.id, payload.after)
-      )
-      .handle("case", { permission: Permissions.Evals.Read }, ({ path }) =>
-        getCase(path.id)
-      )
-      .handle(
-        "caseHistory",
-        { permission: Permissions.Evals.Read },
-        ({ path, urlParams }) => getCaseHistory(path.id, urlParams)
-      )
-      .handle(
-        "trialAddress",
-        { permission: Permissions.Evals.Read },
-        ({ path }) => getTrialAddress(path.id)
-      )
-      .handle(
-        "runAddresses",
-        { permission: Permissions.Evals.Read },
-        ({ path, payload }) => listRunAddresses({ ...payload, runId: path.id })
-      )
-      .handle(
-        "rerunCase",
-        { permission: Permissions.Evals.Write },
-        ({ path, payload }) => rerunEvalCase({ ...payload, id: path.id })
-      )
-      .handle(
-        "rerunCell",
-        { permission: Permissions.Evals.Write },
-        ({ path, payload }) =>
-          Effect.gen(function* () {
-            const actor = yield* CurrentActor;
-            const reruns = yield* CellReruns;
-            const credentials = yield* EvalCredentials;
-
-            const id = yield* reruns
-              .again({
-                actor,
-                cellKey: path.cellKey,
-                legacyHarnessAuth: credentials.codexAuth,
-                organizationId: actor.organizationId,
-                runId: path.id,
-                startedBy: authorIdOf(actor),
-                trigger: { source: "dashboard" },
-                trials: payload.trials,
-              })
-              .pipe(withEvalErrors);
-
-            return { id };
-          })
-      )
-      .handle("resume", { permission: Permissions.Evals.Write }, ({ path }) =>
-        Effect.gen(function* () {
-          const actor = yield* CurrentActor;
-          const credentials = yield* EvalCredentials;
-          const grid = yield* GridRun;
-
-          yield* rebuildRun(
-            {
-              credentials: yield* CredentialResolver,
-              grid,
-              query: yield* RunQuery,
-            },
-            {
-              organizationId: actor.organizationId,
-              runId: path.id,
-              source: { actor, legacyHarnessAuth: credentials.codexAuth },
-            }
-          ).pipe(Effect.flatMap(grid.resume), withEvalErrors);
-
-          return { id: path.id };
+      .handle("artifact", read, ({ payload }) => readArtifact(payload))
+      .handle("cases", read, ({ urlParams }) =>
+        listCases({
+          cursor:
+            urlParams.cursorId === undefined ||
+            urlParams.cursorStartedAt === undefined
+              ? null
+              : {
+                  id: urlParams.cursorId,
+                  startedAtMillis: urlParams.cursorStartedAt,
+                },
+          limit: urlParams.limit,
+          suite: urlParams.suite ?? null,
+          tag: urlParams.tag ?? null,
         })
       )
-      .handle(
-        "modelCatalogue",
-        { permission: Permissions.Evals.Read },
-        ({ urlParams }) =>
-          Effect.gen(function* () {
-            const catalogues = yield* ModelCatalogues;
-
-            return yield* catalogues.forHarness({
-              harness: urlParams.harness,
-              query: urlParams.q,
-            });
-          })
+      .handle("case", read, ({ path }) => readCase(path.id))
+      .handle("caseRuns", read, ({ path, urlParams }) =>
+        listCaseRuns(path.id, urlParams.page, urlParams.variant)
       )
-      .handle("listPlaygrounds", { permission: Permissions.Evals.Read }, () =>
-        listPlaygrounds()
+      .handle("runCase", write, ({ path, payload }) =>
+        runCase(path.id, payload, {
+          hostedOnly: false,
+          trigger: { source: "dashboard" },
+        })
       )
-      .handle(
-        "createPlayground",
-        { permission: Permissions.Evals.Write },
-        ({ payload }) => createPlayground(payload)
-      )
-      .handle(
-        "getPlayground",
-        { permission: Permissions.Evals.Read },
-        ({ path }) => getPlayground(path.id)
-      )
-      .handle(
-        "savePlayground",
-        { permission: Permissions.Evals.Write },
-        ({ path, payload }) => savePlayground(path.id, payload)
-      )
-
-      .handle(
-        "runPlayground",
-        { permission: Permissions.Evals.Write },
-        ({ path }) => runPlayground(path.id)
+      .handle("run", read, ({ path }) => readRun(path.id))
+      .handle("trialAddress", read, ({ path }) => readTrialAddress(path.id))
+      .handle("batch", read, ({ path }) => readBatch(path.id))
+      .handle("subscription", read, ({ path }) => subscribeToBatch(path.id))
+      .handle("tail", read, ({ path, payload }) =>
+        readTail(path.id, payload.after)
       ).done
 );

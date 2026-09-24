@@ -6,10 +6,8 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
+import { evalSuite } from "./eval-suites";
 
-/* The case itself, which outlives every edit to its definition. An
-   eval_case_version row is one version of what this case contained; this row
-   is which case it is. */
 export const evalCase = pgTable(
   "eval_case",
   {
@@ -18,6 +16,9 @@ export const evalCase = pgTable(
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
+    suiteInternalId: text("suite_internal_id")
+      .notNull()
+      .references(() => evalSuite.internalId, { onDelete: "restrict" }),
     name: text("name").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
@@ -26,6 +27,7 @@ export const evalCase = pgTable(
       table.organizationId,
       table.id
     ),
+    index("eval_case_suite_internal_id_idx").on(table.suiteInternalId),
     index("eval_case_organization_id_created_at_idx").on(
       table.organizationId,
       table.createdAt.desc()

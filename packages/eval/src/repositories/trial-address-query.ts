@@ -1,87 +1,39 @@
 import { Database } from "@anpord/db/client";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
+import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { and, eq, type SQL } from "drizzle-orm";
-import { Effect, type Option } from "effect";
+import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { and, eq } from "drizzle-orm";
+import { Effect } from "effect";
 import { head, tryStore } from "./query";
-
-export interface TrialAddress {
-  readonly caseId: string;
-  readonly cellKey: string;
-  readonly ordinal: number;
-  readonly runId: string;
-  readonly trialId: string;
-}
-
-export interface RunAddressInput {
-  readonly cellKey?: string | undefined;
-  readonly ordinal?: number | undefined;
-  readonly organizationId: string;
-  readonly runId: string;
-}
-
-const ADDRESS = {
-  caseId: evalCase.id,
-  cellKey: evalCell.cellKey,
-  ordinal: evalTrial.ordinal,
-  runId: evalRun.id,
-  trialId: evalTrial.internalId,
-};
 
 export const trialAddressQuery = Effect.gen(function* () {
   const db = yield* Database;
 
-  const addressesWhere = (condition: SQL | undefined) =>
-    tryStore("runQuery.trialAddress", () =>
+  return (organizationId: string, trialId: string) =>
+    tryStore("trialAddress.find", () =>
       db
-        .select(ADDRESS)
+        .select({
+          batchId: evalBatch.internalId,
+          caseId: evalCase.id,
+          ordinal: evalTrial.ordinal,
+          runId: evalRun.internalId,
+          trialId: evalTrial.internalId,
+        })
         .from(evalTrial)
-        .innerJoin(evalCell, eq(evalCell.internalId, evalTrial.cellInternalId))
-        .innerJoin(evalRun, eq(evalRun.internalId, evalCell.runInternalId))
-        .innerJoin(
-          evalCaseVersion,
-          eq(evalCaseVersion.internalId, evalCell.caseVersionInternalId)
+        .innerJoin(evalRun, eq(evalRun.internalId, evalTrial.runInternalId))
+        .innerJoin(evalBatch, eq(evalBatch.internalId, evalRun.batchInternalId))
+        .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
+        .innerJoin(evalCase, eq(evalCase.internalId, evalVariant.caseInternalId))
+        .where(
+          and(
+            eq(evalTrial.internalId, trialId),
+            eq(evalBatch.organizationId, organizationId)
+          )
         )
-        .innerJoin(
-          evalCase,
-          eq(evalCase.internalId, evalCaseVersion.caseInternalId)
-        )
-        .where(condition)
-    );
-
-  const findTrial = (input: {
-    readonly organizationId: string;
-    readonly trialId: string;
-  }) =>
-    addressesWhere(
-      and(
-        eq(evalTrial.internalId, input.trialId),
-        eq(evalRun.organizationId, input.organizationId)
-      )
     ).pipe(
-      Effect.map((rows): Option.Option<TrialAddress> => head(rows)),
-      Effect.withSpan("RunQuery.findTrial")
+      Effect.map(head),
+      Effect.withSpan("TrialAddressQuery.find", { attributes: { trialId } })
     );
-
-  const findRunAddresses = (input: RunAddressInput) =>
-    addressesWhere(
-      and(
-        eq(evalRun.id, input.runId),
-        eq(evalRun.organizationId, input.organizationId),
-        input.cellKey === undefined
-          ? undefined
-          : eq(evalCell.cellKey, input.cellKey),
-        input.ordinal === undefined
-          ? undefined
-          : eq(evalTrial.ordinal, input.ordinal)
-      )
-    ).pipe(
-      Effect.map((rows): readonly TrialAddress[] => rows),
-      Effect.withSpan("RunQuery.findRunAddresses")
-    );
-
-  return { findRunAddresses, findTrial };
 });

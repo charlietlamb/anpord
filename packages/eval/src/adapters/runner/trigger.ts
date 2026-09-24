@@ -1,4 +1,5 @@
 import { configure, tasks } from "@trigger.dev/sdk";
+import { batchTagOf } from "@anpord/schema/domain/evals";
 import { Config, Effect, Layer, Redacted } from "effect";
 import { TrialRunner } from "../../ports/trial-runner";
 
@@ -21,12 +22,12 @@ export const TrialRunnerTrigger = Layer.effect(
     configure({ secretKey: Redacted.value(key) });
 
     return TrialRunner.of({
-      dispatch: ({ organizationId, runId }) =>
+      dispatch: ({ batchId, organizationId }) =>
         Effect.tryPromise(() =>
           tasks.trigger(
             EVAL_RUN,
-            { organizationId, runId },
-            { tags: [`org_${organizationId}`, `run_${runId}`] }
+            { batchId, organizationId },
+            { tags: [`org_${organizationId}`, batchTagOf(batchId)] }
           )
         ).pipe(
           Effect.tapErrorCause((cause) =>
@@ -36,8 +37,8 @@ export const TrialRunnerTrigger = Layer.effect(
            and the sweep will mark it resumable. */
           Effect.orDie,
           Effect.asVoid,
-          Effect.withSpan("TrialRunner.dispatch", { attributes: { runId } }),
-          Effect.annotateLogs({ organizationId, runId })
+          Effect.withSpan("TrialRunner.dispatch", { attributes: { batchId } }),
+          Effect.annotateLogs({ batchId, organizationId })
         ),
     });
   })

@@ -75,7 +75,7 @@ export const AgentTrialJudgedLive = Layer.effect(
           );
           const invalid = judgments.filter(({ error }) => error !== null);
           const passed =
-            result.outcome.passed &&
+            result.outcome.status === "passed" &&
             judgments.every(
               ({ score, threshold }) => score !== null && score >= threshold
             );
@@ -86,9 +86,7 @@ export const AgentTrialJudgedLive = Layer.effect(
             ...result,
             outcome: {
               ...result.outcome,
-              judgments,
               validations: [...validations.values()],
-              passed,
               ...verdict,
               ...(invalid.length > 0
                 ? { status: "void" as const, exitCode: -1 }

@@ -43,18 +43,36 @@ export const EvalCaseName = Schema.String.pipe(
   })
 );
 
-export const EvalCaseId = Schema.String.pipe(
+const handleOf = (entity: "case" | "suite") =>
+  Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.maxLength(ID_LIMIT),
+    Schema.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    Schema.annotations({
+      description: `The stable handle an author gives a ${entity}.`,
+      message: () =>
+        `A ${entity} id must be at most ${ID_LIMIT} lowercase characters, digits and single hyphens.`,
+    })
+  );
+
+export const EvalCaseId = handleOf("case").annotations({
+  identifier: "EvalCaseId",
+});
+export type EvalCaseId = typeof EvalCaseId.Type;
+
+export const EvalSuiteId = handleOf("suite").annotations({
+  identifier: "EvalSuiteId",
+});
+export type EvalSuiteId = typeof EvalSuiteId.Type;
+
+export const EvalSuiteName = Schema.String.pipe(
   Schema.minLength(1),
-  Schema.maxLength(ID_LIMIT),
-  Schema.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  Schema.maxLength(NAME_LIMIT),
   Schema.annotations({
-    description: "The stable handle an author gives a case.",
-    identifier: "EvalCaseId",
-    message: () =>
-      `A case id must be at most ${ID_LIMIT} lowercase characters, digits and single hyphens, because it is the handle a case keeps across every edit.`,
+    description: "What a suite is called.",
+    identifier: "EvalSuiteName",
   })
 );
-export type EvalCaseId = typeof EvalCaseId.Type;
 
 /* Grouping is many to many, so a case carries several. Capped because these
    are read back as filters, not as content. */

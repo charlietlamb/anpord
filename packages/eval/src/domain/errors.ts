@@ -89,3 +89,21 @@ export class UserUnavailable extends Data.TaggedError("UserUnavailable")<{
     return `The simulated user could not reply: ${this.reason}`;
   }
 }
+
+export class StartRefused extends Data.TaggedError("StartRefused")<{
+  readonly reason: string;
+  readonly retryable: boolean;
+}> {
+  override get message() {
+    return this.reason;
+  }
+}
+
+export class EvalNotFound extends Data.TaggedError("EvalNotFound")<{
+  readonly entity: "batch" | "case" | "run" | "trial" | "artifact";
+  readonly id: string;
+}> {
+  override get message() {
+    return `No ${this.entity} with id "${this.id}"`;
+  }
+}

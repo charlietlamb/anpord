@@ -1,41 +1,29 @@
+import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
-export interface TailMark {
-  readonly cell: string;
-  readonly ordinal: number;
-  readonly seq: number;
-}
-
-export interface TailEvent extends TailMark {
+export interface TailEvent extends EvalTailMark {
   readonly event: HarnessEvent;
 }
 
-export interface RunTail {
-  readonly events: readonly TailEvent[];
-  readonly next: readonly TailMark[];
-  readonly running: boolean;
-  readonly settled: number;
-}
-
-type TrialAddress = Pick<TailMark, "cell" | "ordinal">;
+type TrialAddress = Pick<EvalTailMark, "ordinal" | "run">;
 
 const sameTrial = (left: TrialAddress, right: TrialAddress) =>
-  left.cell === right.cell && left.ordinal === right.ordinal;
+  left.run === right.run && left.ordinal === right.ordinal;
 
-export const markFor = (marks: readonly TailMark[], trial: TrialAddress) =>
+export const markFor = (marks: readonly EvalTailMark[], trial: TrialAddress) =>
   marks.find((mark) => sameTrial(mark, trial))?.seq ?? -1;
 
 export const advance = (
-  marks: readonly TailMark[],
-  events: readonly TailMark[]
-): readonly TailMark[] =>
-  events.reduce<readonly TailMark[]>(
-    (held, { cell, ordinal, seq }) =>
-      seq <= markFor(held, { cell, ordinal })
+  marks: readonly EvalTailMark[],
+  events: readonly EvalTailMark[]
+): readonly EvalTailMark[] =>
+  events.reduce<readonly EvalTailMark[]>(
+    (held, { ordinal, run, seq }) =>
+      seq <= markFor(held, { ordinal, run })
         ? held
         : [
-            ...held.filter((mark) => !sameTrial(mark, { cell, ordinal })),
-            { cell, ordinal, seq },
+            ...held.filter((mark) => !sameTrial(mark, { ordinal, run })),
+            { ordinal, run, seq },
           ],
     marks
   );

@@ -4,48 +4,107 @@ import type {
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
 import { Effect, Option, Redacted } from "effect";
-import type { GridExecutionTask } from "../grid/state";
-import type { CredentialError } from "./errors";
-import { CredentialError as CredentialFailure } from "./errors";
+import type { HarnessName, ProviderName } from "../domain/cell";
+import { CredentialError } from "./errors";
 import type { CredentialResolverShape } from "./resolver";
 
-export interface RequestedVariant {
+export interface BindVariant {
   readonly credentials?: CredentialBindings;
-  readonly harness: GridExecutionTask["harness"];
-  readonly harnessVersion: string;
-  readonly model: string;
-  readonly profile: GridExecutionTask["profile"];
-  readonly provider: GridExecutionTask["provider"];
+  readonly harness: HarnessName;
+  readonly sandbox: ProviderName;
 }
 
-const optional = <A>(
-  effect: Effect.Effect<A, CredentialError>,
+export interface BoundCredentials {
+  readonly harnessCredentialConnectionId: string | null;
+  readonly harnessCredentialRevision: number | null;
+  readonly sandboxCredentialConnectionId: string | null;
+  readonly sandboxCredentialRevision: number | null;
+}
+
+export const KEYLESS_HARNESSES: ReadonlySet<HarnessName> = new Set([
+  "command",
+]);
+
+const found = (
+  effect: Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>,
   explicit: string | undefined
 ) =>
   effect.pipe(
     Effect.map(Option.some),
     Effect.catchIf(
       (error) => explicit === undefined && error.code === "not-found",
-      () => Effect.succeed(Option.none())
+      () => Effect.succeedNone
     )
   );
 
-const legacyCodex = (auth: string) =>
-  Redacted.make<ResolvedCredential>({
-    authMethodId: "legacy-auth-json",
-    connectionId: "legacy-codex",
-    integrationId: "codex",
-    revision: 0,
-    values: { authJson: auth },
+const bindingOf = (credential: Option.Option<Redacted.Redacted<ResolvedCredential>>) =>
+  Option.match(credential, {
+    onNone: () => ({ connectionId: null, revision: null }),
+    onSome: (resolved) => {
+      const value = Redacted.value(resolved);
+      return value.revision === 0
+        ? { connectionId: null, revision: null }
+        : { connectionId: value.connectionId, revision: value.revision };
+    },
   });
 
-/* Harnesses that run without any credential of their own. Compared as strings
-   so this file is unchanged when the harness literal gains the name. */
-const KEYLESS_HARNESSES: ReadonlySet<string> = new Set(["command"]);
+export const bindCredentials = (
+  resolver: CredentialResolverShape,
+  actor: Actor,
+  variants: readonly BindVariant[]
+) =>
+  Effect.forEach(variants, (variant) =>
+    Effect.gen(function* () {
+      const harnessIn = (integrationId: string) =>
+        resolver.resolve({
+          actor,
+          connectionId: variant.credentials?.harnessConnectionId,
+          integrationId,
+        });
+      const harness = yield* found(
+        harnessIn(variant.harness).pipe(
+          Effect.catchIf(
+            (error) => error.code === "not-found",
+            () => harnessIn("env")
+          )
+        ),
+        variant.credentials?.harnessConnectionId
+      );
 
-/* Revision 0 leaves the cell unbound, as the legacy Codex fallback does: there
-   is no stored connection a resume could look up. */
-const emptyEnv = () =>
+      if (Option.isNone(harness) && !KEYLESS_HARNESSES.has(variant.harness)) {
+        return yield* new CredentialError({
+          code: "not-found",
+          message: `No credential configured for ${variant.harness}`,
+        });
+      }
+
+      const sandbox = yield* found(
+        resolver.resolve({
+          actor,
+          connectionId: variant.credentials?.sandboxConnectionId,
+          integrationId: variant.sandbox,
+        }),
+        variant.credentials?.sandboxConnectionId
+      );
+
+      const harnessBinding = bindingOf(harness);
+      const sandboxBinding = bindingOf(sandbox);
+
+      return {
+        harnessCredentialConnectionId: harnessBinding.connectionId,
+        harnessCredentialRevision: harnessBinding.revision,
+        sandboxCredentialConnectionId: sandboxBinding.connectionId,
+        sandboxCredentialRevision: sandboxBinding.revision,
+      } satisfies BoundCredentials;
+    })
+  ).pipe(
+    Effect.withSpan("EvalCredentials.bind", {
+      attributes: { variants: variants.length },
+    }),
+    Effect.annotateLogs({ organizationId: actor.organizationId })
+  );
+
+export const unkeyed = () =>
   Redacted.make<ResolvedCredential>({
     authMethodId: "env",
     connectionId: "env-none",
@@ -53,97 +112,3 @@ const emptyEnv = () =>
     revision: 0,
     values: {},
   });
-
-/* An env credential serves any harness, so a lookup that finds nothing under
-   the harness's own integration asks for one before giving up. Only a miss
-   falls through; a store failure is reported as it is. */
-const resolveHarness = (
-  resolver: CredentialResolverShape,
-  actor: Actor,
-  variant: RequestedVariant
-) => {
-  const connectionId = variant.credentials?.harnessConnectionId;
-  const resolve = (integrationId: string) =>
-    resolver.resolve({ actor, connectionId, integrationId });
-
-  return resolve(variant.harness).pipe(
-    Effect.catchIf(
-      (error) => error.code === "not-found",
-      () => resolve("env")
-    )
-  );
-};
-
-const bindingOf = (credential: Redacted.Redacted<ResolvedCredential>) => {
-  const resolved = Redacted.value(credential);
-  return resolved.revision === 0 ? undefined : resolved.connectionId;
-};
-
-const bindingsOf = (
-  harness: Redacted.Redacted<ResolvedCredential>,
-  sandbox?: Redacted.Redacted<ResolvedCredential>
-): CredentialBindings => ({
-  harnessConnectionId: bindingOf(harness),
-  sandboxConnectionId: sandbox === undefined ? undefined : bindingOf(sandbox),
-});
-
-export const resolveVariantCredentials = (
-  resolver: CredentialResolverShape,
-  actor: Actor,
-  variants: readonly RequestedVariant[],
-  legacyHarnessAuth: string
-) =>
-  Effect.forEach(variants, (variant) =>
-    Effect.gen(function* () {
-      const harness = yield* optional(
-        resolveHarness(resolver, actor, variant),
-        variant.credentials?.harnessConnectionId
-      );
-      const sandbox = yield* optional(
-        resolver.resolve({
-          actor,
-          connectionId: variant.credentials?.sandboxConnectionId,
-          integrationId: variant.provider,
-        }),
-        variant.credentials?.sandboxConnectionId
-      );
-      const resolvedHarness = yield* Option.match(harness, {
-        onNone: () => {
-          if (variant.harness === "codex" && legacyHarnessAuth) {
-            return Effect.succeed(legacyCodex(legacyHarnessAuth));
-          }
-          if (KEYLESS_HARNESSES.has(variant.harness)) {
-            return Effect.succeed(emptyEnv());
-          }
-          return Effect.fail(
-            new CredentialFailure({
-              message: `No credential configured for ${variant.harness}`,
-            })
-          );
-        },
-        onSome: Effect.succeed,
-      });
-      const resolvedSandbox = Option.getOrUndefined(sandbox);
-
-      return {
-        bindings: bindingsOf(resolvedHarness, resolvedSandbox),
-        credentials: {
-          harness: resolvedHarness,
-          ...(resolvedSandbox === undefined
-            ? {}
-            : { sandbox: resolvedSandbox }),
-        },
-        harness: variant.harness,
-        harnessVersion: variant.harnessVersion,
-        model: variant.model,
-        profile: variant.profile,
-        provider: variant.provider,
-      } satisfies GridExecutionTask;
-    })
-  ).pipe(
-    Effect.withSpan("EvalCredentials.resolveTasks"),
-    Effect.annotateLogs({
-      organizationId: actor.organizationId,
-      taskCount: variants.length,
-    })
-  );

@@ -1,42 +1,16 @@
 import { EvalSandbox } from "@anpord/schema/domain/evals";
-import {
-  Clock,
-  Context,
-  Duration,
-  Effect,
-  Layer,
-  Redacted,
-  Schedule,
-  Schema,
-} from "effect";
+import { Duration, Effect, Redacted, Schema } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
-import type { EvalStoreError } from "../domain/errors";
 import { SandboxProvider } from "../ports/sandbox";
 import {
   type LiveSandbox,
   LiveSandboxes,
 } from "../repositories/live-sandboxes";
-import { SWEEP_EVERY } from "./reconciler";
+import { cutoffBefore, SWEEP_EVERY, sweepEvery } from "./sweep";
 
-interface Reaped {
-  readonly destroyed: number;
-  readonly failed: number;
-}
+const LEAKED_AFTER = Duration.minutes(90);
 
-export interface SandboxReaperShape {
-  readonly reap: (input: {
-    readonly olderThan: Duration.Duration;
-  }) => Effect.Effect<Reaped, EvalStoreError>;
-}
-
-export class SandboxReaper extends Context.Tag("@anpord/eval/SandboxReaper")<
-  SandboxReaper,
-  SandboxReaperShape
->() {}
-
-/* Finishes what a scope finalizer would have, for a process that died. */
-export const SandboxReaperLive = Layer.effect(
-  SandboxReaper,
+export const reapSandboxes = (olderThan: Duration.Duration) =>
   Effect.gen(function* () {
     const credentials = yield* CredentialResolver;
     const live = yield* LiveSandboxes;
@@ -58,17 +32,10 @@ export const SandboxReaperLive = Layer.effect(
 
     const reapOne = (found: LiveSandbox) =>
       Effect.gen(function* () {
-        /* Decoded here rather than asserted at the query: a provider this
-           build cannot name is a warning naming the sandbox that outlived
-           it, which is what the operator needs to go and kill it by hand. */
-        const provider = yield* Schema.decodeUnknown(EvalSandbox)(
-          found.provider
-        );
-
         yield* sandboxes.destroy({
           credentials: yield* credentialsFor(found),
           id: found.sandboxId,
-          provider,
+          provider: yield* Schema.decodeUnknown(EvalSandbox)(found.provider),
         });
         yield* live.clear(found.trialInternalId);
         return true;
@@ -83,43 +50,22 @@ export const SandboxReaperLive = Layer.effect(
         })
       );
 
-    const reap = (input: { readonly olderThan: Duration.Duration }) =>
-      Effect.gen(function* () {
-        const now = yield* Clock.currentTimeMillis;
-        const cutoff = new Date(now - Duration.toMillis(input.olderThan));
-        const found = yield* live.startedBefore(cutoff);
-        const outcomes = yield* Effect.forEach(found, reapOne, {
-          concurrency: 4,
-        });
-        const destroyed = outcomes.filter(Boolean).length;
-        const reaped = { destroyed, failed: outcomes.length - destroyed };
+    const found = yield* live.startedBefore(yield* cutoffBefore(olderThan));
+    const outcomes = yield* Effect.forEach(found, reapOne, { concurrency: 4 });
+    const destroyed = outcomes.filter(Boolean).length;
+    const reaped = { destroyed, failed: outcomes.length - destroyed };
 
-        if (found.length > 0) {
-          yield* Effect.logWarning("reaped leaked sandboxes").pipe(
-            Effect.annotateLogs(reaped)
-          );
-        }
+    if (found.length > 0) {
+      yield* Effect.logWarning("reaped leaked sandboxes").pipe(
+        Effect.annotateLogs(reaped)
+      );
+    }
 
-        return reaped;
-      }).pipe(Effect.withSpan("SandboxReaper.reap"));
+    return reaped;
+  });
 
-    return SandboxReaper.of({ reap });
-  })
-);
-
-/* Past the worker's wall clock, with room for a checkpointed wait. */
-const LEAKED_AFTER = Duration.minutes(90);
-
-export const SandboxReaperScheduleLive = Layer.scopedDiscard(
-  Effect.gen(function* () {
-    const reaper = yield* SandboxReaper;
-
-    yield* reaper.reap({ olderThan: LEAKED_AFTER }).pipe(
-      Effect.catchAllCause((cause) =>
-        Effect.logError("sandbox reap failed", cause)
-      ),
-      Effect.repeat(Schedule.spaced(SWEEP_EVERY)),
-      Effect.forkScoped
-    );
-  })
+export const SandboxReaperScheduleLive = sweepEvery(
+  "SandboxReaper.reap",
+  SWEEP_EVERY,
+  reapSandboxes(LEAKED_AFTER)
 );

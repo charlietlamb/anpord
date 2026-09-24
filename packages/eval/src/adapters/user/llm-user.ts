@@ -7,7 +7,7 @@ import {
 import { Effect, Layer, Option, Redacted, Schema } from "effect";
 import { modelAccessFor } from "../../credentials/model-key";
 import { CredentialResolver } from "../../credentials/resolver";
-import { userModel } from "../../domain/cell";
+import { userModel } from "../../domain/variant";
 import { UserUnavailable } from "../../domain/errors";
 import {
   SimulatedUser,

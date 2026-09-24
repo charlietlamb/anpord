@@ -1,53 +1,42 @@
 import { createHash } from "node:crypto";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { EvalValidator } from "@anpord/schema/domain/evals";
-import type { WorkspaceSource } from "./workspace-source";
+import type {
+  CaseCache,
+  EvalPrepare,
+  EvalSource,
+  EvalValidator,
+} from "@anpord/schema/domain/evals";
 
 export interface CaseDefinition {
-  readonly name: string;
-  readonly prepare: { readonly source: string } | null;
-  readonly source: WorkspaceSource;
-  readonly user?: EvalUser | null;
-  readonly validator?: EvalValidator | null;
-  readonly variables: Readonly<Record<string, string>>;
-  readonly verifyCommand: string | null;
-  readonly workspace: string;
+  readonly cache: CaseCache | null;
+  readonly prepare: EvalPrepare | null;
+  readonly prompt: string;
+  readonly source: EvalSource;
+  readonly user: EvalUser | null;
+  readonly validator: EvalValidator | null;
+  readonly verify: string | null;
 }
 
-const variablesOf = (variables: Readonly<Record<string, string>>) =>
-  Object.keys(variables)
-    .sort()
-    .map((key) => `${key}=${variables[key]}`)
-    .join("\u0000");
-
-const validatorOf = (validator: EvalValidator | null | undefined) => {
-  if (validator == null) {
+const validatorOf = (validator: EvalValidator | null) => {
+  if (validator === null) {
     return "";
   }
   if ("source" in validator) {
     return validator.source;
   }
-  const { sourceFiles, ...execution } = validator;
+  const { sourceFiles: _sourceFiles, ...execution } = validator;
   return JSON.stringify(execution);
 };
 
-/* Last, and empty when absent, so a case that states no human keeps the
-   identity it had before one could. */
-const userOf = (user: EvalUser | null | undefined) =>
-  user == null ? "" : JSON.stringify(user);
-
-const sourceOf = (source: WorkspaceSource) => {
+const sourceOf = (source: EvalSource) => {
   if (source.kind === "empty") {
     return "empty";
   }
-
   if (source.kind === "repo") {
     return `repo ${source.url} ${source.ref ?? ""}`;
   }
-
-  /* Sorted: the same fixtures in a different order are the same case. */
   return `files ${Object.entries(source.files)
-    .sort(([left], [right]) => left.localeCompare(right))
+    .toSorted(([left], [right]) => left.localeCompare(right))
     .map(([path, content]) => `${path} ${content}`)
     .join("")}`;
 };
@@ -56,14 +45,14 @@ export const definitionHashOf = (input: CaseDefinition): string =>
   createHash("sha256")
     .update(
       [
-        variablesOf(input.variables),
+        input.prompt,
         input.prepare?.source ?? "",
         validatorOf(input.validator),
-        input.verifyCommand ?? "",
-        input.workspace,
+        input.verify ?? "",
         sourceOf(input.source),
-        userOf(input.user),
-      ].join(" ")
+        input.user === null ? "" : JSON.stringify(input.user),
+        input.cache === null ? "" : `${input.cache.key} ${input.cache.path}`,
+      ].join("\u0000")
     )
     .digest("hex")
     .slice(0, 32);

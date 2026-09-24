@@ -7,27 +7,17 @@ import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
 import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
-import {
-  GithubAppConfigLive,
-  GithubAppLive,
-} from "@anpord/eval/codebase/github-app";
 import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
-import { InstallationsLive } from "@anpord/eval/codebase/installations";
-import { SourceTokensLive } from "@anpord/eval/codebase/source-token";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
 import { CredentialConnectionsLive } from "@anpord/eval/credentials/connections";
 import { DeviceAuthLive } from "@anpord/eval/credentials/device-auth";
-import { CredentialResolverLive } from "@anpord/eval/credentials/resolver-live";
 import {
-  EvalHarnessVersionsLive,
-  EvalModelCatalogueLive,
-  EvalSandboxLive,
-  ExpirySweepLive,
-  evalGridWith,
-  JournalRetentionSweepLive,
-  ReconcilerSweepLive,
-  SandboxReaperSweepLive,
+  EvalCodebaseLive,
+  EvalCredentialsLive,
+  EvalSweepsLive,
+  evalStackWith,
 } from "@anpord/eval/layer";
+import { layer as ModelCatalogueLive } from "@anpord/eval/services/model-catalogue";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { EmailSenderLive } from "@anpord/notifications/email/layer";
 import { PromptsLayer } from "@anpord/prompts/layer";
@@ -36,7 +26,6 @@ import { BunContext } from "@effect/platform-bun";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
 import { VerifiedKeysLive } from "./http/authentication/verified-keys";
-import { EvalCredentialsLive } from "./routes/internal/evals/credentials";
 import { TelemetryLive } from "./telemetry";
 
 const DatabaseLayer = DatabaseLive.pipe(Layer.provide(DatabaseConfigLive));
@@ -75,7 +64,7 @@ const CredentialConnectionsLayer = CredentialConnectionsLive.pipe(
 );
 const CredentialLayer = Layer.mergeAll(
   CredentialConnectionsLayer,
-  CredentialResolverLive.pipe(Layer.provide(CredentialDependencies)),
+  EvalCredentialsLive.pipe(Layer.provide(DatabaseLayer)),
   DeviceAuthLive.pipe(
     Layer.provide(CredentialConnectionsLayer),
     Layer.provide(CredentialDependencies)
@@ -83,41 +72,17 @@ const CredentialLayer = Layer.mergeAll(
 );
 
 const CodebaseLayer = Layer.mergeAll(
-  InstallationsLive.pipe(Layer.provide(DatabaseLayer)),
-  GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)),
-  GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer)),
-  SourceTokensLive.pipe(
-    Layer.provide(InstallationsLive.pipe(Layer.provide(DatabaseLayer))),
-    Layer.provide(GithubAppLive.pipe(Layer.provide(GithubAppConfigLive)))
-  )
-);
+  EvalCodebaseLive,
+  GithubRepositoriesLive.pipe(Layer.provide(FetchHttpClient.layer))
+).pipe(Layer.provide(DatabaseLayer));
 
-/* Trials run in a worker, so a deploy or crash mid-run no longer takes the run with it. */
 const EvalLayer = Layer.mergeAll(
-  evalGridWith(TrialRunnerTrigger).pipe(
-    Layer.provide(EvalSandboxLive),
-    Layer.provide(CredentialLayer),
-    Layer.provide(EvalHarnessVersionsLive),
-    Layer.provide(CodebaseLayer),
-    Layer.provide(Layer.mergeAll(DatabaseLayer, IdGeneratorLive))
-  ),
-
-  ReconcilerSweepLive.pipe(Layer.provide(DatabaseLayer)),
-  JournalRetentionSweepLive.pipe(Layer.provide(DatabaseLayer)),
-  ExpirySweepLive.pipe(Layer.provide(DatabaseLayer)),
-  /* The grid's own sandbox layer, so the reaper shares its permits rather than building a second set. */
-  SandboxReaperSweepLive.pipe(
-    Layer.provide(EvalSandboxLive),
-    Layer.provide(CredentialLayer),
-    Layer.provide(DatabaseLayer)
-  ),
-  EvalCredentialsLive.pipe(Layer.provide(BunContext.layer)),
-  EvalHarnessVersionsLive,
-
-  EvalModelCatalogueLive.pipe(
+  evalStackWith(TrialRunnerTrigger),
+  EvalSweepsLive,
+  ModelCatalogueLive.pipe(
     Layer.provide(Layer.merge(BunContext.layer, FetchHttpClient.layer))
   )
-);
+).pipe(Layer.provide(DatabaseLayer));
 
 export const AppLayer = Layer.mergeAll(
   AuthConfigLive,

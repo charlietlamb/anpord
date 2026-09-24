@@ -15,18 +15,18 @@ import { verification } from "./schema/auth/verifications";
 import { credentialAuthAttempt } from "./schema/credentials/auth-attempts";
 import { credentialConnection } from "./schema/credentials/connections";
 import { githubInstallation } from "./schema/credentials/installations";
-import { evalBaseline } from "./schema/evals/eval-baselines";
 import { evalCaseVersion } from "./schema/evals/eval-case-versions";
 import { evalCase } from "./schema/evals/eval-cases";
-import { evalCell } from "./schema/evals/eval-cells";
+import { evalBatch } from "./schema/evals/eval-batches";
 import { evalEvent } from "./schema/evals/eval-events";
 import { evalHarnessProfile } from "./schema/evals/eval-harness-profiles";
-import { evalPlayground } from "./schema/evals/eval-playgrounds";
 import { evalRun } from "./schema/evals/eval-runs";
+import { evalSuite } from "./schema/evals/eval-suites";
 import { evalTrialArtifact } from "./schema/evals/eval-trial-artifacts";
 import { evalTrialCost } from "./schema/evals/eval-trial-costs";
 import { evalTrialJournal } from "./schema/evals/eval-trial-journal";
 import { evalTrial } from "./schema/evals/eval-trials";
+import { evalVariant } from "./schema/evals/eval-variants";
 import { channel } from "./schema/prompts/channels";
 import { promptChannel } from "./schema/prompts/prompt-channels";
 import { promptEvent } from "./schema/prompts/prompt-events";
@@ -45,18 +45,18 @@ export const schema = {
   oauthApplication,
   oauthConsent,
   organization,
-  evalBaseline,
   evalCase,
   evalCaseVersion,
-  evalCell,
+  evalBatch,
   evalEvent,
   evalHarnessProfile,
-  evalPlayground,
   evalRun,
   evalTrial,
   evalTrialArtifact,
   evalTrialCost,
   evalTrialJournal,
+  evalSuite,
+  evalVariant,
   prompt,
   channel,
   promptChannel,

@@ -124,7 +124,6 @@ export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<
 /* A journal with a hole in it cannot support a verdict. */
 const voided = (outcome: TrialOutcome): TrialOutcome => ({
   ...outcome,
-  passed: false,
   status: "void",
   voidFields: [...outcome.voidFields, "journal"],
 });

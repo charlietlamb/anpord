@@ -1,4 +1,4 @@
-import type { VerifyStepResult } from "@anpord/schema/domain/trial";
+import type { EvalVerifyStep } from "@anpord/schema/domain/evals";
 import { stepsOf } from "@anpord/schema/domain/verify-steps";
 
 /* `a && b && c` reports one exit code, so a failure never says which condition
@@ -39,7 +39,7 @@ export const verifyScriptOf = (verifier: string): VerifyScript => {
 export const stepResultsOf = (
   script: VerifyScript,
   output: string
-): readonly VerifyStepResult[] => {
+): readonly EvalVerifyStep[] => {
   if (script.steps.length < 2) {
     return [];
   }

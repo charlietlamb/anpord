@@ -1,31 +1,23 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
+import { EvalBatchTail, EvalTailMark } from "../domain/eval-tail";
 import {
-  CreatePlaygroundRequest,
-  ModelCatalogue,
-  PlaygroundView,
-  RerunCellRequest,
-  SavePlaygroundRequest,
-  StartedEval,
-} from "../domain/eval-playground";
-import { EvalRunTail, EvalTailMark } from "../domain/eval-tail";
-import {
+  BatchSubscription,
   EvalArtifact,
   EvalArtifactRequest,
+  EvalBatch,
   EvalCaseDetail,
-  EvalCaseHistoryPage,
   EvalCasePage,
-  EvalHarness,
   EvalRun,
   EvalRunPage,
   EvalTrialAddress,
-  RunSubscription,
-  StartEvalRequest,
+  StartedBatch,
 } from "../domain/evals";
+import { RunCaseRequest } from "../domain/run-case";
 import { Authentication } from "./authentication";
 
-const RunPath = Schema.Struct({ id: Schema.String });
+const IdPath = Schema.Struct({ id: Schema.String });
 
 export class EvalsGroup extends HttpApiGroup.make("evals")
   .add(
@@ -34,152 +26,65 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
       .addSuccess(EvalArtifact)
   )
   .add(
-    /* Cursor rather than offset: a run started between two fetches shifts every page after it. */
-    HttpApiEndpoint.get("list", "/evals")
-      .setUrlParams(
-        Schema.Struct({
-          cursorId: Schema.optional(Schema.String),
-          cursorStartedAt: Schema.optional(Schema.NumberFromString),
-          limit: Schema.optional(Schema.NumberFromString),
-        })
-      )
-      .addSuccess(EvalRunPage)
-  )
-  .add(
     HttpApiEndpoint.get("cases", "/evals/cases")
       .setUrlParams(
         Schema.Struct({
           cursorId: Schema.optional(Schema.String),
           cursorStartedAt: Schema.optional(Schema.NumberFromString),
           limit: Schema.optional(Schema.NumberFromString),
+          suite: Schema.optional(Schema.String),
           tag: Schema.optional(Schema.String),
         })
       )
       .addSuccess(EvalCasePage)
   )
-
-  .add(
-    HttpApiEndpoint.post("start", "/evals")
-      .setPayload(StartEvalRequest)
-      .addSuccess(StartedEval)
-  )
-  .add(
-    HttpApiEndpoint.get("get", "/evals/:id")
-      .setPath(RunPath)
-      .addSuccess(EvalRun)
-  )
-
-  .add(
-    HttpApiEndpoint.get("subscription", "/evals/:id/subscription")
-      .setPath(RunPath)
-      .addSuccess(RunSubscription)
-  )
-
-  .add(
-    HttpApiEndpoint.post("tail", "/evals/:id/tail")
-      .setPath(RunPath)
-      .setPayload(Schema.Struct({ after: Schema.Array(EvalTailMark) }))
-      .addSuccess(EvalRunTail)
-  )
-
-  .add(
-    HttpApiEndpoint.get("trialAddress", "/evals/trials/:id")
-      .setPath(Schema.Struct({ id: Schema.String }))
-      .addSuccess(EvalTrialAddress)
-      .addError(NotFound)
-  )
-
-  .add(
-    HttpApiEndpoint.post("runAddresses", "/evals/:id/addresses")
-      .setPath(Schema.Struct({ id: Schema.String }))
-      .setPayload(
-        Schema.Struct({
-          cellKey: Schema.optional(Schema.String),
-          ordinal: Schema.optional(Schema.Int),
-        })
-      )
-      .addSuccess(Schema.Array(EvalTrialAddress))
-  )
-
   .add(
     HttpApiEndpoint.get("case", "/evals/cases/:id")
-      .setPath(Schema.Struct({ id: Schema.String }))
+      .setPath(IdPath)
       .addSuccess(EvalCaseDetail)
-      .addError(NotFound)
   )
-
   .add(
-    HttpApiEndpoint.get("caseHistory", "/evals/cases/:id/history")
-      .setPath(Schema.Struct({ id: Schema.String }))
+    HttpApiEndpoint.get("caseRuns", "/evals/cases/:id/runs")
+      .setPath(IdPath)
       .setUrlParams(
         Schema.Struct({
-          cellKey: Schema.optional(Schema.String),
           page: Schema.optional(Schema.NumberFromString),
+          variant: Schema.optional(Schema.String),
         })
       )
-      .addSuccess(EvalCaseHistoryPage)
-  )
-
-  .add(
-    HttpApiEndpoint.post("rerunCase", "/evals/cases/:id/runs")
-      .setPath(Schema.Struct({ id: Schema.String }))
-      .setPayload(RerunCellRequest)
-      .addSuccess(StartedEval)
-  )
-
-  .add(
-    HttpApiEndpoint.post("rerunCell", "/evals/:id/cells/:cellKey/runs")
-      .setPath(Schema.Struct({ cellKey: Schema.String, id: Schema.String }))
-      .setPayload(RerunCellRequest)
-      .addSuccess(StartedEval)
-  )
-
-  .add(
-    /* The run keeps its id: a resume continues its cells rather than opening a second run. */
-    HttpApiEndpoint.post("resume", "/evals/:id/resume")
-      .setPath(RunPath)
-      .addSuccess(StartedEval)
-  )
-
-  .add(
-    HttpApiEndpoint.get("modelCatalogue", "/evals/models")
-      /* Codex takes a bare id and OpenCode `provider/model`, so a catalogue fetched without a harness offers names the run cannot address. */
-      .setUrlParams(
-        Schema.Struct({
-          harness: EvalHarness,
-          /* Filtered server-side: the catalogue is seven thousand models, 1.27 MB per picker open. */
-          q: Schema.optional(Schema.String),
-        })
-      )
-      .addSuccess(ModelCatalogue)
-  )
-
-  .add(
-    HttpApiEndpoint.get("listPlaygrounds", "/evals/playgrounds").addSuccess(
-      Schema.Array(PlaygroundView)
-    )
+      .addSuccess(EvalRunPage)
   )
   .add(
-    HttpApiEndpoint.post("createPlayground", "/evals/playgrounds")
-      .setPayload(CreatePlaygroundRequest)
-      .addSuccess(PlaygroundView)
+    HttpApiEndpoint.post("runCase", "/evals/cases/:id/runs")
+      .setPath(IdPath)
+      .setPayload(RunCaseRequest)
+      .addSuccess(StartedBatch)
   )
   .add(
-    HttpApiEndpoint.get("getPlayground", "/evals/playgrounds/:id")
-      .setPath(RunPath)
-      .addSuccess(PlaygroundView)
+    HttpApiEndpoint.get("run", "/evals/runs/:id")
+      .setPath(IdPath)
+      .addSuccess(EvalRun)
   )
   .add(
-    HttpApiEndpoint.put("savePlayground", "/evals/playgrounds/:id")
-      .setPath(RunPath)
-      .setPayload(SavePlaygroundRequest)
-      .addSuccess(PlaygroundView)
+    HttpApiEndpoint.get("trialAddress", "/evals/trials/:id")
+      .setPath(IdPath)
+      .addSuccess(EvalTrialAddress)
   )
-
   .add(
-    HttpApiEndpoint.post("runPlayground", "/evals/playgrounds/:id/runs")
-      .setPath(RunPath)
-      .addSuccess(StartedEval)
+    HttpApiEndpoint.get("batch", "/evals/batches/:id")
+      .setPath(IdPath)
+      .addSuccess(EvalBatch)
+  )
+  .add(
+    HttpApiEndpoint.get("subscription", "/evals/batches/:id/subscription")
+      .setPath(IdPath)
+      .addSuccess(BatchSubscription)
+  )
+  .add(
+    HttpApiEndpoint.post("tail", "/evals/batches/:id/tail")
+      .setPath(IdPath)
+      .setPayload(Schema.Struct({ after: Schema.Array(EvalTailMark) }))
+      .addSuccess(EvalBatchTail)
   )
   .addError(Conflict)
   .addError(BadRequest)
