@@ -1,8 +1,8 @@
+import type { EvalCodeValidator } from "@anpord/schema/domain/eval-definition";
 import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
-import type { EvalCodeValidator } from "@anpord/schema/domain/evals";
 import { Clock, Effect, Random } from "effect";
 import type { ScoreRequest } from "../../ports/scorer";
 import { shellQuote } from "../harness/process";

@@ -4,7 +4,7 @@ import { asEntries } from "@anpord/eval/domain/journal-entries";
 import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
 import { HarnessVersions } from "@anpord/eval/services/harness-versions";
 import { LocalTrials } from "@anpord/eval/services/local-trial";
-import type { StartBatchRequest } from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { TokenCounts } from "@anpord/schema/domain/usage-health";
 import type { ReportedTrial } from "@anpord/schema/public/evals-api";
 import { ConfigProvider, Effect, Option } from "effect";

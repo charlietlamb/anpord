@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { Schema } from "effect";
-import { CaseCache } from "../src/domain/evals";
+import { CaseCache } from "../src/domain/eval-definition";
 
 test.each([
   ".",

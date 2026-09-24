@@ -1,15 +1,15 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import { authorIdOf } from "@anpord/schema/domain/actor";
+import type {
+  EvalVariantRequest,
+  StartBatchRequest,
+} from "@anpord/schema/domain/eval-definition";
 import {
   MAX_ORGANIZATION_RUNS_IN_FLIGHT,
   MAX_RUN_TRIALS,
   trialsRequested,
 } from "@anpord/schema/domain/eval-quota";
-import type {
-  EvalVariantRequest,
-  StartBatchRequest,
-  StartedBatch,
-} from "@anpord/schema/domain/evals";
+import type { StartedBatch } from "@anpord/schema/domain/evals";
 import { Effect, Option } from "effect";
 import { modelAccessFor } from "../credentials/model-key";
 import { CredentialResolver } from "../credentials/resolver";

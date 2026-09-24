@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { EvalRunSummary } from "@anpord/schema/domain/evals";
+import { EvalBatchSummary } from "@anpord/schema/domain/evals";
 import {
   PromptPage,
   ResolvedPrompt,
@@ -40,28 +40,23 @@ test("prompt dates reach the relative-time formatter as native Dates", () => {
 });
 
 test("eval dates retain their Effect DateTime type", () => {
-  const run = fromWire(EvalRunSummary, {
-    caseCount: 1,
-    columns: [],
-    commandMax: null,
-    commandMin: null,
+  const run = fromWire(EvalBatchSummary, {
+    cases: 1,
     failure: null,
     finishedAt: null,
-    firstCaseName: "fixture",
-    id: "run_fixture",
-    name: timestamp,
+    id: "bat_fixture",
     passed: 0,
+    runs: 1,
     scored: 0,
     startedAt: timestamp,
     status: "running",
-    taskCount: 1,
+    trigger: null,
     voided: 0,
   });
   expect(DateTime.isDateTime(run.startedAt)).toBe(true);
   expect(run.startedAt.epochMillis).toBe(Date.parse(timestamp));
   expect(run.finishedAt).toBeNull();
   expect(run.trigger).toBeNull();
-  expect(run.name).toBe(timestamp);
 });
 
 test("ISO-looking source and config values remain untouched", () => {

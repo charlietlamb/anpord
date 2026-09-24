@@ -1,4 +1,4 @@
-import type { EvalPrepare } from "@anpord/schema/domain/evals";
+import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
 import { Effect, Option } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";

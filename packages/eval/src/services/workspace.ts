@@ -1,5 +1,8 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import type { EvalPrepare, EvalSource } from "@anpord/schema/domain/evals";
+import type {
+  EvalPrepare,
+  EvalSource,
+} from "@anpord/schema/domain/eval-definition";
 import { Effect, Option, Redacted, type Scope } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import { runCommand, runCommandOrFail } from "../adapters/sandbox/run-command";

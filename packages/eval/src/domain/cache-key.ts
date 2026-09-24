@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { EvalPrepare } from "@anpord/schema/domain/evals";
+import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
 
 const LENGTH = 16;
 

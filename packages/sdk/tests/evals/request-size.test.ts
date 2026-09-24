@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { StartBatchRequest } from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { tooLargeToSubmit } from "../../src/evals/request-size";
 
 const requestOf = (cases: number, bytesEach: number) =>

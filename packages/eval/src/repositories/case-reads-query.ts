@@ -33,26 +33,29 @@ export const caseReadsQuery = Effect.gen(function* () {
   const db = yield* Database;
   const variantResults = yield* variantResultsQuery;
 
-  const newestTags = (caseInternalIds: readonly string[]) =>
+  const currentVersions = (caseInternalIds: readonly string[]) =>
     caseInternalIds.length === 0
-      ? Effect.succeed(new Map<string, readonly string[]>())
-      : tryStore("caseReads.newestTags", () =>
+      ? Effect.succeed(new Map<string, typeof evalCaseVersion.$inferSelect>())
+      : tryStore("caseReads.currentVersions", () =>
           db
             .selectDistinctOn([evalCaseVersion.caseInternalId], {
-              caseInternalId: evalCaseVersion.caseInternalId,
-              tags: evalCaseVersion.tags,
+              version: evalCaseVersion,
             })
-            .from(evalCaseVersion)
+            .from(evalRun)
+            .innerJoin(
+              evalCaseVersion,
+              eq(evalCaseVersion.internalId, evalRun.caseVersionInternalId)
+            )
             .where(
               inArray(evalCaseVersion.caseInternalId, [...caseInternalIds])
             )
-            .orderBy(
-              evalCaseVersion.caseInternalId,
-              desc(evalCaseVersion.createdAt)
-            )
+            .orderBy(evalCaseVersion.caseInternalId, desc(evalRun.createdAt))
         ).pipe(
           Effect.map(
-            (rows) => new Map(rows.map((row) => [row.caseInternalId, row.tags]))
+            (rows) =>
+              new Map(
+                rows.map((row) => [row.version.caseInternalId, row.version])
+              )
           )
         );
 
@@ -136,7 +139,9 @@ export const caseReadsQuery = Effect.gen(function* () {
       const results = yield* variantResults(
         page.items.map((row) => row.internalId)
       );
-      const tagsOf = yield* newestTags(page.items.map((row) => row.internalId));
+      const current = yield* currentVersions(
+        page.items.map((row) => row.internalId)
+      );
       const filters = yield* suitesAndTags(input.organizationId);
 
       return {
@@ -147,7 +152,7 @@ export const caseReadsQuery = Effect.gen(function* () {
           ),
           name: row.name,
           suite: { id: row.suiteId, name: row.suiteName },
-          tags: tagsOf.get(row.internalId) ?? [],
+          tags: current.get(row.internalId)?.tags ?? [],
           variants: results.get(row.internalId) ?? [],
         })),
         next: nextCursor(page, (last) => ({
@@ -193,7 +198,10 @@ export const caseReadsQuery = Effect.gen(function* () {
           .where(eq(evalCaseVersion.caseInternalId, subject.internalId))
           .orderBy(asc(evalCaseVersion.createdAt))
       );
-      const newest = versions.at(-1);
+      const newest =
+        (yield* currentVersions([subject.internalId])).get(
+          subject.internalId
+        ) ?? versions.at(-1)?.version;
 
       if (newest === undefined) {
         return Option.none<EvalCaseDetail>();
@@ -204,9 +212,9 @@ export const caseReadsQuery = Effect.gen(function* () {
       return Option.some<EvalCaseDetail>({
         id: subject.id,
         name: subject.name,
-        setup: setupOf(newest.version),
+        setup: setupOf(newest),
         suite,
-        tags: newest.version.tags,
+        tags: newest.tags,
         variants: results.get(subject.internalId) ?? [],
         versions: versions.map((row, index) => ({
           author: row.author,

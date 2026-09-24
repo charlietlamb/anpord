@@ -1,5 +1,5 @@
+import { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import { EvalJudge } from "@anpord/schema/domain/eval-judges";
-import { EvalValidator } from "@anpord/schema/domain/evals";
 import { Effect, Schema } from "effect";
 import { bundle } from "./eval-bundle";
 import {

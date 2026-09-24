@@ -12,7 +12,6 @@
   "dependencies": {
     "@anpord/db": "workspace:*",
     "@anpord/eval": "workspace:*",
-    "@anpord/ids": "workspace:*",
     "@trigger.dev/sdk": "catalog:",
     "effect": "catalog:"
   },

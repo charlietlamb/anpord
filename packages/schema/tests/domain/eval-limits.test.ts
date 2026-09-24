@@ -1,11 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
+import { StartBatchRequest } from "../../src/domain/eval-definition";
 import {
   MAX_START_CASES,
   MAX_START_VARIANTS,
 } from "../../src/domain/eval-quota";
-import { StartEvalRequest } from "../../src/domain/evals";
-import { PublicStartEvalRequest } from "../../src/public/evals-api";
+import { PublicStartBatchRequest } from "../../src/public/evals-api";
 
 const evalCase = {
   id: "a-case",
@@ -24,27 +24,23 @@ const task = {
 
 const request = {
   cases: [evalCase],
-  prompt: "{{task}}",
+  suite: { id: "a-suite", name: "A suite", prompt: "{{task}}" },
   variants: [task],
   trials: 1,
 };
 
-const decode = Schema.decodeUnknownEither(StartEvalRequest);
+const decode = Schema.decodeUnknownEither(StartBatchRequest);
 
 const messageOf = (value: unknown) => {
   const decoded = decode(value);
 
   return decoded._tag === "Left" ? decoded.left.message : "";
 };
-
-/* Each of these reaches a sandbox as part of one `sh -c` argument, which Linux
-   caps at 128 KiB. Unbounded, a long one failed as an opaque E2BIG inside a VM
-   that was already billing rather than at the request that asked for it. */
 describe("what a start may carry to a sandbox", () => {
   it("refuses a prompt too long to survive being quoted onto a command line", () => {
     const message = messageOf({
       ...request,
-      prompt: "a".repeat(100_000),
+      suite: { ...request.suite, prompt: "a".repeat(100_000) },
     });
 
     expect(message).toContain("prompt");
@@ -52,7 +48,12 @@ describe("what a start may carry to a sandbox", () => {
   });
 
   it("accepts a prompt of a size any real one is", () => {
-    expect(decode({ ...request, prompt: "a".repeat(2000) })._tag).toBe("Right");
+    expect(
+      decode({
+        ...request,
+        suite: { ...request.suite, prompt: "a".repeat(2000) },
+      })._tag
+    ).toBe("Right");
   });
 
   it("refuses an over-long verifier", () => {
@@ -83,7 +84,7 @@ describe("what a start may carry to a sandbox", () => {
   });
 
   it("bounds the public intake the same way", () => {
-    const decoded = Schema.decodeUnknownEither(PublicStartEvalRequest)({
+    const decoded = Schema.decodeUnknownEither(PublicStartBatchRequest)({
       cases: [
         {
           id: "a-case",
@@ -92,7 +93,7 @@ describe("what a start may carry to a sandbox", () => {
           verify: "true",
         },
       ],
-      prompt: "a".repeat(100_000),
+      suite: { id: "a-suite", name: "A suite", prompt: "a".repeat(100_000) },
       variants: [task],
       trials: 1,
     });
@@ -100,11 +101,6 @@ describe("what a start may carry to a sandbox", () => {
     expect(decoded._tag).toBe("Left");
   });
 });
-
-/* Cells run eight at a time and each cell runs up to ten trials, so the array
-   lengths are what decide how many VMs one accepted request wants. Bounded at
-   the wire so no single dimension can be large on its own, before the product
-   the admission check computes is even reached. */
 describe("how large a grid a start may name", () => {
   const many = <A>(item: A, count: number) =>
     Array.from({ length: count }, () => item);

@@ -1,4 +1,5 @@
-import type { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
+import type { EvalSandbox } from "@anpord/schema/domain/eval-definition";
+import type { EvalHarness } from "@anpord/schema/domain/evals";
 import {
   AlibabaMark,
   CerebrasMark,

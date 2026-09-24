@@ -1,4 +1,4 @@
-import { EvalSandbox } from "@anpord/schema/domain/evals";
+import { EvalSandbox } from "@anpord/schema/domain/eval-definition";
 import { Duration, Effect, Redacted, Schema } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
 import { SandboxProvider } from "../ports/sandbox";

@@ -1,4 +1,4 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 
 const MEGABYTE = 1024 * 1024;
 

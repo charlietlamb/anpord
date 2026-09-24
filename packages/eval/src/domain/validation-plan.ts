@@ -1,8 +1,8 @@
+import type { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import {
   type EvalValidation,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
-import type { EvalValidator } from "@anpord/schema/domain/evals";
 
 export const interruptedValidation = (
   record: EvalValidation,

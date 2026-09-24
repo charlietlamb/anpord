@@ -4,7 +4,7 @@ import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import { IdGenerator } from "@anpord/ids/id";
-import type { EvalSuiteRequest } from "@anpord/schema/domain/evals";
+import type { EvalSuiteRequest } from "@anpord/schema/domain/eval-definition";
 import { Context, Effect, Layer } from "effect";
 import type { CaseDefinition } from "../domain/case-identity";
 import type { EvalStoreError } from "../domain/errors";

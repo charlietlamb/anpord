@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
 import { PROFILE_LIMITS, ProfilePath } from "../../src/domain/harness-profile";
-import { PublicStartEvalRequest } from "../../src/public/evals-api";
+import { PublicStartBatchRequest } from "../../src/public/evals-api";
 
 const path = Schema.decodeUnknownSync(ProfilePath);
 
@@ -14,13 +14,13 @@ const requestWith = (task: Record<string, unknown>) => ({
       verify: "true",
     },
   ],
-  prompt: "{{task}}",
+  suite: { id: "a-suite", name: "A suite", prompt: "{{task}}" },
   variants: [task],
   trials: 1,
 });
 
 const decode = (task: Record<string, unknown>) =>
-  Schema.decodeUnknownSync(PublicStartEvalRequest)(requestWith(task));
+  Schema.decodeUnknownSync(PublicStartBatchRequest)(requestWith(task));
 
 const opencode = {
   harness: "opencode",

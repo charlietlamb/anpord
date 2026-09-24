@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { EvalValidator } from "@anpord/schema/domain/evals";
+import { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import { Schema } from "effect";
 import { compileEval } from "../../src/evals/compiler";
 

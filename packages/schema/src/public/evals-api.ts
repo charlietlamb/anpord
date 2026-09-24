@@ -1,6 +1,7 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
+import { StartBatchRequest } from "../domain/eval-definition";
 import { EvalCaseId } from "../domain/eval-limits";
 import { ModelCatalogue } from "../domain/eval-models";
 import { MAX_RUN_TRIALS } from "../domain/eval-quota";
@@ -12,7 +13,6 @@ import {
   EvalHarness,
   EvalPageCursor,
   EvalRunPage,
-  StartBatchRequest,
   StartedBatch,
 } from "../domain/evals";
 import { HarnessEvent, HarnessUsage } from "../domain/harness-event";

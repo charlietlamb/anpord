@@ -2,13 +2,13 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type {
-  EvalArtifact,
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-definition";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
+import type { EvalArtifact } from "@anpord/schema/domain/evals";
 import type {
   HarnessEvent,
   HarnessUsage,

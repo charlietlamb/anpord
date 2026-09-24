@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import type { StartBatchRequest } from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { PublicStartBatchRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Schema } from "effect";
 import { compileApis, withApis } from "./api-profile";

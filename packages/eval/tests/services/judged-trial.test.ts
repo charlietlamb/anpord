@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { EvalValidator } from "@anpord/schema/domain/evals";
+import { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import { Effect, Layer, Option, Schema } from "effect";
 import { judgmentsIn } from "../../src/domain/judgments";
 import { JudgeModel } from "../../src/judges/model";

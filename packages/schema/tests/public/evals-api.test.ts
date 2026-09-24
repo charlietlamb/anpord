@@ -1,91 +1,82 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
-import { PublicStartEvalRequest } from "../../src/public/evals-api";
+import { PublicStartBatchRequest } from "../../src/public/evals-api";
+
+const decode = Schema.decodeUnknownSync(PublicStartBatchRequest);
 
 const request = {
   cases: [
     {
       id: "a-case",
-      variables: { task: "Fix it" },
       name: "case",
+      variables: { task: "Fix it" },
       verify: "true",
     },
   ],
-  name: "planner-core",
-  prompt: "{{task}}",
+  suite: { id: "planner-core", name: "Planner core", prompt: "{{task}}" },
+  trials: 1,
   variants: [
     { harness: "codex" as const, model: "gpt-5.6-sol", sandbox: "upstash" },
   ],
-  trials: 1,
 };
 
-describe("the public eval task contract", () => {
-  it("accepts an eval name", () => {
-    expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(request)).toEqual(
-      request
-    );
+describe("starting a batch", () => {
+  it("fills in what a case may leave out", () => {
+    const [first] = decode(request).cases;
+
+    expect(first?.source).toEqual({ kind: "empty" });
+    expect(first?.prepare).toBeNull();
+    expect(first?.validator).toBeNull();
+    expect(first?.tags).toEqual([]);
   });
 
-  it("continues to accept older unnamed clients", () => {
-    const { name: _, ...unnamed } = request;
-
-    expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(unnamed)).toEqual(
-      unnamed
-    );
+  it("keeps the suite a case belongs to", () => {
+    expect(decode(request).suite).toEqual(request.suite);
   });
 
   for (const sandbox of ["upstash", "modal", "cloudflare", "vercel"] as const) {
     it(`accepts ${sandbox}`, () => {
-      const value = {
+      const decoded = decode({
         ...request,
         variants: [{ ...request.variants[0], sandbox }],
-      };
-      expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(value)).toEqual(
-        value
-      );
+      });
+      expect(decoded.variants[0]?.sandbox).toBe(sandbox);
     });
   }
 
-  /* The domain knows `local`, so the guard has to live on the public contract:
-     a caller reaching a machine they do not own must never ask it for a shell. */
-  it("continues to reject the unisolated local sandbox", () => {
-    expect(() =>
-      Schema.decodeUnknownSync(PublicStartEvalRequest)({
-        ...request,
-        variants: [{ ...request.variants[0], sandbox: "local" }],
-      })
-    ).toThrow();
-  });
-});
+  it("rejects the local sandbox unless the caller runs the batch", () => {
+    const local = {
+      ...request,
+      variants: [{ ...request.variants[0], sandbox: "local" }],
+    };
 
-describe("TypeScript validators", () => {
+    expect(() => decode(local)).toThrow();
+    expect(decode({ ...local, local: true }).local).toBe(true);
+  });
+
   it("accepts a bundled validator instead of a shell verifier", () => {
-    const value = {
+    const decoded = decode({
       ...request,
       cases: [
         {
           id: "a-case",
-          variables: { task: "Fix it" },
           name: "case",
           validator: { name: "validateFix", source: "bundled JavaScript" },
           verify: null,
         },
       ],
-    };
+    });
 
-    expect(Schema.decodeUnknownSync(PublicStartEvalRequest)(value)).toEqual(
-      value
-    );
+    expect(decoded.cases[0]?.validator?.name).toBe("validateFix");
   });
 
   it("rejects a case with both a validator and verifier", () => {
     expect(() =>
-      Schema.decodeUnknownSync(PublicStartEvalRequest)({
+      decode({
         ...request,
         cases: [
           {
             id: "a-case",
-            variables: { task: "Fix it" },
             name: "case",
             validator: { name: "validateFix", source: "bundled JavaScript" },
             verify: "true",
@@ -93,5 +84,11 @@ describe("TypeScript validators", () => {
         ],
       })
     ).toThrow("Use either validator or verify, not both");
+  });
+
+  it("rejects a suite id that is not a handle", () => {
+    expect(() =>
+      decode({ ...request, suite: { ...request.suite, id: "Not A Handle" } })
+    ).toThrow();
   });
 });

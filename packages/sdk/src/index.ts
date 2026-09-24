@@ -1,4 +1,9 @@
 export type {
+  EvalSandbox,
+  EvalSource,
+  StartBatchRequest,
+} from "@anpord/schema/domain/eval-definition";
+export type {
   CatalogueModel,
   ModelCatalogue,
 } from "@anpord/schema/domain/eval-models";
@@ -17,14 +22,11 @@ export type {
   EvalRun,
   EvalRunPage,
   EvalRunStatus,
-  EvalSandbox,
-  EvalSource,
   EvalSuite,
   EvalTrial,
   EvalTrialStatus,
   EvalUsage,
   EvalVariant,
-  StartBatchRequest,
   StartedBatch,
 } from "@anpord/schema/domain/evals";
 export type {

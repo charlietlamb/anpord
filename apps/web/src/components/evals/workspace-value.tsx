@@ -1,4 +1,4 @@
-import type { EvalSource } from "@anpord/schema/domain/evals";
+import type { EvalSource } from "@anpord/schema/domain/eval-definition";
 import { InlineCode } from "@anpord/ui/components/ui/inline-code";
 import { EmptyValue } from "@/components/evals/empty-value";
 

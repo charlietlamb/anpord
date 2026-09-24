@@ -1,10 +1,10 @@
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type {
   CaseCache,
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-definition";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import {
   index,
   jsonb,

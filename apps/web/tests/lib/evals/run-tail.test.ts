@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalRunTail } from "@anpord/schema/domain/eval-tail";
+import type { EvalBatchTail } from "@anpord/schema/domain/eval-tail";
 import type { EvalJournalEntry, EvalRun } from "@anpord/schema/domain/evals";
 import { heardTail, NOTHING_HEARD, overlayTail } from "@/lib/evals/run-tail";
 
@@ -17,33 +17,27 @@ const wrote = (path: string): EvalJournalEntry => ({
   paths: [path],
 });
 
-const read = (entries: readonly EvalJournalEntry[]): EvalRunTail => ({
-  events: entries.map((entry, seq) => ({ cell: "c1", entry, ordinal: 1, seq })),
-  next: [{ cell: "c1", ordinal: 1, seq: entries.length - 1 }],
+const read = (entries: readonly EvalJournalEntry[]): EvalBatchTail => ({
+  events: entries.map((entry, seq) => ({ entry, ordinal: 1, run: "r1", seq })),
+  next: [{ ordinal: 1, run: "r1", seq: entries.length - 1 }],
   running: true,
   settled: 0,
 });
 
 const runWith = (status: string, trajectory: readonly EvalJournalEntry[]) =>
   ({
-    cells: [
-      {
-        internalId: "c1",
-        trials: [
-          { commands: 0, filesChanged: [], ordinal: 1, status, trajectory },
-        ],
-      },
-    ],
+    id: "r1",
+    trials: [{ commands: 0, filesChanged: [], ordinal: 1, status, trajectory }],
   }) as unknown as EvalRun;
 
-const trialOf = (run: EvalRun) => run.cells[0]?.trials[0];
+const trialOf = (run: EvalRun) => run.trials[0];
 
 describe("a run's tail", () => {
   test("gathers each read into the trial's whole journal", () => {
     const first = heardTail(NOTHING_HEARD, read([said("open")]));
     const second = heardTail(first, read([wrote("a.ts")]));
 
-    expect(second.journals.get("c1#1")).toEqual([said("open"), wrote("a.ts")]);
+    expect(second.journals.get("r1#1")).toEqual([said("open"), wrote("a.ts")]);
   });
 
   test("lays a longer journal over a running trial", () => {

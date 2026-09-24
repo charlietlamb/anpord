@@ -1,13 +1,13 @@
 import { Batches } from "@anpord/eval/grid/batches";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type {
   EvalArtifactRequest,
   EvalHarness,
   EvalPageCursor,
-  StartBatchRequest,
   StartedBatch,
 } from "@anpord/schema/domain/evals";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";

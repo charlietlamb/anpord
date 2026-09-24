@@ -1,4 +1,4 @@
-import { StartBatchRequest } from "@anpord/schema/domain/evals";
+import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { PROFILE_HARNESS_RULE } from "@anpord/schema/domain/harness-profile";
 import { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import {

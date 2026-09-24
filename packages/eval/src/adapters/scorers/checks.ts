@@ -1,5 +1,5 @@
+import type { EvalCodeValidator } from "@anpord/schema/domain/eval-definition";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import type { EvalCodeValidator } from "@anpord/schema/domain/evals";
 import { Effect, Layer } from "effect";
 import { outcomeOf } from "../../domain/trial";
 import { validationPlan } from "../../domain/validation-plan";

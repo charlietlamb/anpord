@@ -1,6 +1,7 @@
+import { EvalSandbox } from "@anpord/schema/domain/eval-definition";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import { DEFAULT_USER_MODEL } from "@anpord/schema/domain/eval-turns";
-import { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
+import { EvalHarness } from "@anpord/schema/domain/evals";
 import { Config, Effect, Option, Schema } from "effect";
 import { MODEL_PROVIDERS } from "./model-providers";
 

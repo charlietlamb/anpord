@@ -5,7 +5,7 @@ import type {
   EvalCase,
   EvalVariantRequest,
   StartBatchRequest,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-definition";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Effect, Layer, Option, Redacted } from "effect";
@@ -38,7 +38,7 @@ import { HarnessVersionsLive } from "../../src/services/harness-versions";
 import { testDatabase } from "./database";
 import { seedConnection } from "./eval-rows";
 
-export const CONNECTED = ["codex", "claude", "daytona", "e2b", "env", "openai"];
+const CONNECTED = ["codex", "claude", "daytona", "e2b", "env", "openai"];
 
 export const connectionOf = (organizationId: string, integrationId: string) =>
   `conn_${organizationId}_${integrationId}`;
@@ -73,7 +73,7 @@ const missing = (integrationId: string) =>
     message: `nothing connected for ${integrationId}`,
   });
 
-export const connectedResolver = Layer.succeed(
+const connectedResolver = Layer.succeed(
   CredentialResolver,
   CredentialResolver.of({
     persist: () => Effect.void,

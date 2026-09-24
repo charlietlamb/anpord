@@ -6,12 +6,12 @@ import {
   OrganizationId,
   UserId,
 } from "@anpord/schema/domain/actor";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type {
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-definition";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";

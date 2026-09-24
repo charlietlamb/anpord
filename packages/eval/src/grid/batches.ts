@@ -1,9 +1,6 @@
 import type { Actor } from "@anpord/schema/domain/actor";
-import type {
-  EvalHarness,
-  StartBatchRequest,
-  StartedBatch,
-} from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { EvalHarness, StartedBatch } from "@anpord/schema/domain/evals";
 import type {
   CredentialLease,
   ReportedTrial,

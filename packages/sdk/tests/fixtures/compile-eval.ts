@@ -1,4 +1,4 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { ConfigProvider, Effect } from "effect";
 import { compileEvalEffect } from "../../src/evals/compiler";
 
