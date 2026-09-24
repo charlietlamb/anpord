@@ -14,6 +14,7 @@ export default suite({
   prompt: "{{task}}",
   cases: [
     {
+      id: "health-route",
       name: "health route",
       variables: { task: "Add a /health route that returns 200" },
       verify: "bun test test/health.test.ts",
@@ -24,8 +25,11 @@ export default suite({
 });
 ```
 
+A suite's `id` is derived from its `name`, lowercased with hyphens, unless you pass one. A case id is unique within your organization and its runs are kept under it, so keep it stable.
+
 | Case field | Purpose |
 | --- | --- |
+| `id` | The stable handle the case's history is kept under |
 | `name` | Labels the grid row |
 | `variables` | Replaces prompt variables such as `{{task}}` |
 | `source` | Overrides the suite workspace |

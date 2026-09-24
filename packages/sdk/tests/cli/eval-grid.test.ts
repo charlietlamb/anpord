@@ -1,63 +1,61 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
 import { formatGrid } from "../../src/cli/eval-grid";
 
 const COLOUR = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, "g");
 
 const bare = (text: string) => text.replaceAll(COLOUR, "");
 
-const cell = (
-  caseName: string,
-  variantIndex: number,
+const run = (
+  harness: string,
+  model: string,
   status: string,
   settled: number,
   passRate: number | null
-) =>
-  ({
-    caseName,
-    distribution: passRate === null ? null : { passRate, scored: settled },
-    status,
-    variantIndex,
-    trials: Array.from({ length: settled }, () => ({ status: "passed" })),
-  }) as never;
+) => ({
+  case: { id: "adds-a-test", name: "adds a test" },
+  distribution: {
+    passRate: passRate ?? 0,
+    scored: passRate === null ? 0 : settled,
+  },
+  status,
+  trials: Array.from({ length: settled }, () => ({ status: "passed" })),
+  variant: { harness, model },
+});
 
-const run = {
-  cases: ["adds a test"],
-  cells: [
-    cell("adds a test", 0, "finished", 3, 1),
-    cell("adds a test", 1, "running", 1, null),
+const batch = {
+  costs: null,
+  runs: [
+    run("codex", "gpt-5.6-sol", "finished", 3, 1),
+    run("claude", "opus", "running", 1, null),
   ],
-  variants: [
-    { harness: "codex", model: "gpt-5.6-sol" },
-    { harness: "claude", model: "opus" },
-  ],
-} as unknown as EvalRun;
+} as unknown as EvalBatch;
 
 describe("the grid a reader watches", () => {
-  test("groups cells under the case they belong to", () => {
-    const lines = formatGrid(run, 3, 0).map(bare);
+  test("groups runs under the case they belong to", () => {
+    const lines = formatGrid(batch, 3, 0).map(bare);
 
     expect(lines[0]).toContain("adds a test");
     expect(lines[1]).toContain("codex/gpt-5.6-sol");
     expect(lines[2]).toContain("claude/opus");
   });
 
-  test("shows a settled pass rate, and an unscored cell as absent", () => {
-    const [, settled, running] = formatGrid(run, 3, 0).map(bare);
+  test("shows a settled pass rate, and an unscored run as absent", () => {
+    const [, settled, running] = formatGrid(batch, 3, 0).map(bare);
 
     expect(settled).toContain("100%");
-    expect(running).toContain("\u2014");
+    expect(running).toContain("—");
   });
 
   test("fills one pip per settled trial", () => {
-    const [, settled, running] = formatGrid(run, 3, 0).map(bare);
+    const [, settled, running] = formatGrid(batch, 3, 0).map(bare);
 
-    expect(settled).toContain("\u25b0\u25b0\u25b0");
-    expect(running).toContain("\u25b0\u25b1\u25b1");
+    expect(settled).toContain("▰▰▰");
+    expect(running).toContain("▰▱▱");
   });
 
   test("reads elapsed time in minutes once there are minutes", () => {
-    expect(bare(formatGrid(run, 3, 45_000).at(-1) ?? "")).toContain("45s");
-    expect(bare(formatGrid(run, 3, 134_000).at(-1) ?? "")).toContain("2m14s");
+    expect(bare(formatGrid(batch, 3, 45_000).at(-1) ?? "")).toContain("45s");
+    expect(bare(formatGrid(batch, 3, 134_000).at(-1) ?? "")).toContain("2m14s");
   });
 });

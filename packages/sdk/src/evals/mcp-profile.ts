@@ -1,13 +1,11 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect } from "effect";
 import type { McpServerDefinition } from "../mcp/define";
 import { bundle } from "./eval-bundle";
 import { applyMcpHarness } from "./mcp-harness";
 import { packageProgram } from "./program-package";
 import { type DefinitionRef, mcpEntry } from "./runner-source";
-
-type EvalVariant = PublicStartEvalRequest["variants"][number];
+import type { VariantInput } from "./types";
 
 export interface CompiledMcpServer {
   readonly entry: string;
@@ -49,9 +47,9 @@ export const compileMcpServers = (
   });
 
 export const withMcpServers = (
-  variant: EvalVariant,
+  variant: VariantInput,
   servers: readonly CompiledMcpServer[]
-): EvalVariant => {
+): VariantInput => {
   if (servers.length === 0) {
     return variant;
   }

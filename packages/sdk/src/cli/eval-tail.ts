@@ -1,6 +1,6 @@
 import {
   EVAL_TAIL_PAGE,
-  type EvalRunTail,
+  type EvalBatchTail,
   type EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
 import type { AnpordApi } from "@anpord/schema/public/client";
@@ -42,7 +42,7 @@ const bellOf = (id: string, api: typeof AnpordApi.Service) =>
     })
   ).pipe(Stream.catchAll(() => Stream.empty));
 
-export const tailRun = (id: string, api: typeof AnpordApi.Service) =>
+export const tailBatch = (id: string, api: typeof AnpordApi.Service) =>
   Stream.unwrap(
     Effect.gen(function* () {
       const marks = yield* Ref.make<readonly EvalTailMark[]>([]);
@@ -63,7 +63,7 @@ export const tailRun = (id: string, api: typeof AnpordApi.Service) =>
 
       return Stream.concat(Stream.void, wakes).pipe(
         Stream.flatMap(() => caughtUp),
-        Stream.takeUntil((tail: EvalRunTail) => !tail.running)
+        Stream.takeUntil((tail: EvalBatchTail) => !tail.running)
       );
     })
   );

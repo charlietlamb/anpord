@@ -1,4 +1,4 @@
-import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
 import {
   CONCERN_REASONS,
   type TokenCounts,
@@ -10,7 +10,7 @@ const THOUSAND = 1000;
 const MILLION = 1_000_000;
 const CENT = 0.01;
 
-export interface RunUsage {
+interface Usage {
   readonly concerns: readonly UsageConcern[];
   readonly inputTokens: number;
   readonly outputTokens: number;
@@ -18,16 +18,13 @@ export interface RunUsage {
   readonly usd: number | null;
 }
 
-const trialsOf = (run: EvalRun): readonly EvalTrial[] =>
-  run.cells.flatMap((cell) => cell.trials);
-
-export const runUsage = (run: EvalRun): RunUsage => {
+export const batchUsage = (batch: EvalBatch): Usage => {
   const concerns = new Set<UsageConcern>();
   let inputTokens = 0;
   let outputTokens = 0;
   let totalTokens = 0;
 
-  for (const trial of trialsOf(run)) {
+  for (const trial of batch.runs.flatMap((run) => run.trials)) {
     if (!trial.usage) {
       continue;
     }
@@ -49,7 +46,7 @@ export const runUsage = (run: EvalRun): RunUsage => {
     inputTokens,
     outputTokens,
     totalTokens,
-    usd: run.costs?.estimatedEquivalentUsd ?? null,
+    usd: batch.costs?.estimatedEquivalentUsd ?? null,
   };
 };
 
@@ -64,7 +61,7 @@ export const formatTokens = (value: number) => {
 export const formatUsd = (value: number) =>
   value < CENT ? "<$0.01" : `$${value.toFixed(2)}`;
 
-export const usageLines = (usage: RunUsage): readonly string[] => {
+export const usageLines = (usage: Usage): readonly string[] => {
   if (usage.totalTokens === 0) {
     return [];
   }
@@ -82,7 +79,7 @@ export interface LocalReading {
   readonly usage: TokenCounts | null;
 }
 
-const localUsage = (cases: readonly LocalReading[]): RunUsage => {
+const localUsage = (cases: readonly LocalReading[]): Usage => {
   const concerns = new Set<UsageConcern>();
   let inputTokens = 0;
   let outputTokens = 0;

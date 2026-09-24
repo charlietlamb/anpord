@@ -10,12 +10,12 @@ inputs:
   file:
     description: One eval file, relative to the working directory. Omit to discover suites.
   fail-on:
-    description: strict, regressed, unscored, or never. Defaults to the CLI's strict gate.
+    description: failures, strict, or never. Defaults to the CLI's failures gate.
   timeout:
-    description: Maximum seconds to wait per run. Uses the CLI default when omitted. Does not cancel the remote run.
+    description: Maximum seconds to wait per batch. Uses the CLI default when omitted. Does not cancel the remote batch.
 outputs:
   report:
-    description: Path to the JSON report, including run IDs and failures.
+    description: Path to the JSON report, including batch IDs and failures.
     value: ${{ steps.eval.outputs.report }}
 runs:
   using: composite

@@ -1,8 +1,8 @@
-import type { EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
 
 export interface WaitOptions {
   readonly maxIntervalMs?: number;
-  readonly onProgress?: (run: EvalRun) => void;
+  readonly onProgress?: (batch: EvalBatch) => void;
   readonly pollIntervalMs?: number;
   readonly signal?: AbortSignal;
   readonly timeoutMs?: number;
@@ -10,27 +10,27 @@ export interface WaitOptions {
 
 export class EvalTimeout extends Error {
   readonly name = "EvalTimeout";
-  readonly runId: string;
+  readonly batchId: string;
 
-  constructor(runId: string, elapsedMs: number) {
+  constructor(batchId: string, elapsedMs: number) {
     const elapsed =
       elapsedMs < 1000 ? `${elapsedMs}ms` : `${Math.round(elapsedMs / 1000)}s`;
     super(
-      `Eval ${runId} was still running after ${elapsed}. It was not cancelled — read it later with evals.get({ id: "${runId}" }).`
+      `Batch ${batchId} was still running after ${elapsed}. It was not cancelled — read it later with evals.get({ id: "${batchId}" }).`
     );
-    this.runId = runId;
+    this.batchId = batchId;
   }
 }
 
 export class EvalAborted extends Error {
   readonly name = "EvalAborted";
-  readonly runId: string;
+  readonly batchId: string;
 
-  constructor(runId: string) {
+  constructor(batchId: string) {
     super(
-      `Waiting on eval ${runId} was aborted. The run was not cancelled — read it later with evals.get({ id: "${runId}" }).`
+      `Waiting on batch ${batchId} was aborted. The batch was not cancelled — read it later with evals.get({ id: "${batchId}" }).`
     );
-    this.runId = runId;
+    this.batchId = batchId;
   }
 }
 
@@ -56,11 +56,11 @@ const sleep = (ms: number, signal: AbortSignal | undefined) =>
     signal?.addEventListener("abort", onAbort, { once: true });
   });
 
-export const waitForRun = async (
-  get: (options: { readonly id: string }) => Promise<EvalRun>,
+export const waitForBatch = async (
+  get: (options: { readonly id: string }) => Promise<EvalBatch>,
   id: string,
   options: WaitOptions = {}
-): Promise<EvalRun> => {
+): Promise<EvalBatch> => {
   const {
     maxIntervalMs = DEFAULT_MAX_INTERVAL,
     onProgress,
@@ -77,11 +77,11 @@ export const waitForRun = async (
       throw new EvalAborted(id);
     }
 
-    const run = await get({ id });
-    onProgress?.(run);
+    const batch = await get({ id });
+    onProgress?.(batch);
 
-    if (run.status !== "running") {
-      return run;
+    if (batch.status !== "running") {
+      return batch;
     }
 
     const elapsed = Date.now() - startedAt;

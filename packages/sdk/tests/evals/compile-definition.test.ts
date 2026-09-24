@@ -9,7 +9,7 @@ describe("compiling an imported definition", () => {
   test("finds the file and the export it was written in", async () => {
     const request = await compileDefinition(smoke);
 
-    expect(request.prompt).toBe("Create hello.txt");
+    expect(request.suite.prompt).toBe("Create hello.txt");
     expect(request.variants[0]?.harness).toBe("codex");
     expect(request.cases[0]?.name).toBe("writes hello");
   });
@@ -24,8 +24,6 @@ describe("compiling an imported definition", () => {
     ).toContain("hello");
   });
 
-  /* A suite finds its own file, so the remaining failure is a definition
-     that file never exported: there is no name to import it back by. */
   test("says so when the eval is not exported from its file", async () => {
     const orphan = suite({
       name: "orphan",

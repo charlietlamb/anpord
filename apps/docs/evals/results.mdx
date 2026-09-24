@@ -3,30 +3,32 @@ title: "Results"
 description: "Read outcomes and inspect each attempt"
 ---
 
-`evals.start` returns a run id while trials continue on the server. `startAndWait` runs and resolves once the grid stops:
+`evals.start` returns a batch id, and a run id for each case and variant, while trials continue on the server. `startAndWait` resolves once the batch stops:
 
 ```ts
-const run = await anpord.evals.startAndWait({ cases, prompt, variants, trials: 3 });
+const batch = await anpord.evals.startAndWait(smoke);
 ```
 
-To wait on a run you started earlier, pass its id to `evals.wait({ id })`. Both poll `evals.get`, widening the gap as the run goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs`, and `maxIntervalMs`.
+To wait on a batch you started earlier, pass its id to `evals.wait({ id })`. Both poll `evals.get`, widening the gap as the batch goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs`, and `maxIntervalMs`.
 
-Neither cancels the run. On timeout or abort the grid keeps going, and `evals.get` still reads it.
+Neither cancels the batch. On timeout or abort it keeps going, and `evals.get` still reads it.
 
-| Run status | Meaning |
+| Batch status | Meaning |
 | --- | --- |
-| `running` | At least one cell has not finished |
-| `finished` | The grid completed, including any void trials |
-| `failed` | The grid stopped early; `failure` explains why |
+| `running` | At least one run has not finished |
+| `finished` | Every run completed, including any void trials |
+| `failed` | The batch stopped early; `failure` explains why |
 
-## Cell distribution
+Each run in `batch.runs` names its `case`, `suite` and `variant`, and carries its own status, trials and distribution.
+
+## Run distribution
 
 ```ts
 const { passRate, passed, failed, voided, scored, deterministic } =
-  run.cells[0].distribution;
+  batch.runs[0].distribution;
 ```
 
-Pass rate counts only scored trials. When `scored` is zero the pass rate serializes as zero, which is not a result: a later candidate with a baseline reads as `incomparable`.
+Pass rate counts only scored trials. When `scored` is zero the pass rate serializes as zero, which is not a result.
 
 `deterministic` is true when several scored trials agree on pass or fail and their command counts stay within four. One trial cannot establish it.
 
@@ -42,14 +44,14 @@ Pass rate counts only scored trials. When `scored` is zero the pass rate seriali
 
 `voidFields` names the missing evidence where scoring can identify it. Keep void trials out of pass rates in reports and CI: a trial that never ran is not a failure.
 
-A run that stays `running` is usually still working, since coding trials take minutes. A server restart does not resume active work, and the reconciler marks abandoned runs failed after six hours.
+A batch that stays `running` is usually still working, since coding trials take minutes. A server restart does not resume active work, and the reconciler marks abandoned runs failed after six hours.
 
 ## Trajectory
 
 Each trial carries an ordered `trajectory` of commands, messages, tool calls, and file changes:
 
 ```ts
-for (const event of run.cells[0].trials[0].trajectory) {
+for (const event of batch.runs[0].trials[0].trajectory) {
   if (event._tag === "command") {
     console.log(event.command, event.exitCode, event.output);
   }
@@ -60,14 +62,14 @@ Trials also record command counts, changed files, model and sandbox time, sandbo
 
 Usage carries a warning when a trial read a large context on every turn, or when nothing came from cache. Both mean the trial paid repeatedly for something it read once: see [what a trial costs](/guides/ci#what-a-trial-costs).
 
-Read the distribution first, then compare a passing and a failing trajectory from the same cell. The pass rate says what happened. The command counts say how the attempts differed.
+Read the distribution first, then compare a passing and a failing trajectory from the same run. The pass rate says what happened. The command counts say how the attempts differed.
 
 ## Validation evidence
 
 Each trial's `validations` holds the code checks, judges, classifiers, and command verifier that scored it:
 
 ```ts
-for (const validation of run.cells[0].trials[0].validations) {
+for (const validation of batch.runs[0].trials[0].validations) {
   console.log(validation.name, validation.status, validation.durationMs);
   console.log(validation.input, validation.output, validation.error);
 }
@@ -83,10 +85,10 @@ Inputs and logs can contain your data. `captureValidation: false` on `suite` kee
 
 ## Run origin
 
-Each run records a `trigger`: Dashboard, CLI, CI, API, or MCP, which trials inherit. The CLI and MCP set it; direct API calls default to API. Other automation can pass its own:
+Each batch records a `trigger`: Dashboard, CLI, CI, API, or MCP, which its runs inherit. The CLI and MCP set it; direct API calls default to API. Other automation can pass its own:
 
 ```ts
 trigger: { source: "ci", url: "https://ci.example/run/123" }
 ```
 
-This describes the caller. It grants nothing and verifies nothing. Resuming keeps the original trigger, running again records the new one, and older runs show Unknown.
+This describes the caller. It grants nothing and verifies nothing. Running a case again records the new trigger, and older runs show Unknown.

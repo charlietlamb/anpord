@@ -1,44 +1,44 @@
 import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
-import type { EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Clock, Data, Duration, Effect, Fiber, Ref, Stream } from "effect";
-import { tailRun } from "./eval-tail";
+import { tailBatch } from "./eval-tail";
 
 const TICK = 1000;
 
 const FLOOR_POLL = 15_000;
 
-const running = (run: EvalRun) => run.status === "running";
+const running = (batch: EvalBatch) => batch.status === "running";
 
-const settledIn = (run: EvalRun) =>
-  run.cells
-    .flatMap((cell) => cell.trials)
+const settledIn = (batch: EvalBatch) =>
+  batch.runs
+    .flatMap((run) => run.trials)
     .filter((trial) => trial.status !== "queued" && trial.status !== "running")
     .length;
 
-export interface RunWatcher {
-  readonly draw: (run: EvalRun, elapsedMs: number) => Effect.Effect<void>;
+export interface BatchWatcher {
+  readonly draw: (batch: EvalBatch, elapsedMs: number) => Effect.Effect<void>;
   readonly hear: (events: readonly EvalTailEvent[]) => Effect.Effect<void>;
 }
 
 class EvalWaitTimeout extends Data.TaggedError("EvalWaitTimeout")<{
-  readonly runId: string;
+  readonly batchId: string;
   readonly seconds: number;
 }> {
   override get message() {
-    return `Timed out after ${this.seconds}s waiting for ${this.runId}. The remote run was not cancelled.`;
+    return `Timed out after ${this.seconds}s waiting for ${this.batchId}. The batch was not cancelled.`;
   }
 }
 
-export const waitForRun = (
+export const waitForBatch = (
   id: string,
-  watcher: RunWatcher,
+  watcher: BatchWatcher,
   timeoutSeconds: number
 ) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
     const startedAt = yield* Clock.currentTimeMillis;
-    const latest = yield* Ref.make<EvalRun | null>(null);
+    const latest = yield* Ref.make<EvalBatch | null>(null);
 
     const elapsed = Effect.map(
       Clock.currentTimeMillis,
@@ -46,20 +46,20 @@ export const waitForRun = (
     );
 
     const draw = Effect.gen(function* () {
-      const run = yield* Ref.get(latest);
+      const batch = yield* Ref.get(latest);
 
-      if (run !== null) {
-        yield* watcher.draw(run, yield* elapsed);
+      if (batch !== null) {
+        yield* watcher.draw(batch, yield* elapsed);
       }
     });
 
     const read = Effect.gen(function* () {
-      const run = yield* api.evals.get({ payload: { id } });
+      const batch = yield* api.evals.get({ payload: { id } });
 
-      yield* Ref.set(latest, run);
-      yield* watcher.draw(run, yield* elapsed);
+      yield* Ref.set(latest, batch);
+      yield* watcher.draw(batch, yield* elapsed);
 
-      return run;
+      return batch;
     });
 
     const first = yield* read;
@@ -73,7 +73,7 @@ export const waitForRun = (
     );
 
     const watching = yield* Effect.forkScoped(
-      tailRun(id, api).pipe(
+      tailBatch(id, api).pipe(
         Stream.runFoldEffect(settledIn(first), (seen, tail) =>
           watcher
             .hear(tail.events)
@@ -90,7 +90,7 @@ export const waitForRun = (
 
     const settled = yield* read.pipe(
       Effect.delay(Duration.millis(FLOOR_POLL)),
-      Effect.repeat({ until: (run: EvalRun) => !running(run) })
+      Effect.repeat({ until: (batch: EvalBatch) => !running(batch) })
     );
 
     yield* Fiber.interrupt(ticking);
@@ -102,7 +102,7 @@ export const waitForRun = (
     Effect.timeoutFail({
       duration: Duration.seconds(timeoutSeconds),
       onTimeout: () =>
-        new EvalWaitTimeout({ runId: id, seconds: timeoutSeconds }),
+        new EvalWaitTimeout({ batchId: id, seconds: timeoutSeconds }),
     }),
-    Effect.withSpan("Cli.waitForRun", { attributes: { runId: id } })
+    Effect.withSpan("Cli.waitForBatch", { attributes: { batchId: id } })
   );

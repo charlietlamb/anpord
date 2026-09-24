@@ -12,12 +12,12 @@ test("registers the public eval workflow", () => {
 
   expect(names).toEqual(
     expect.arrayContaining([
-      "list_eval_runs",
+      "list_eval_batches",
       "list_eval_models",
-      "start_eval_run",
-      "get_eval_run",
-      "get_eval_cell_history",
-      "rerun_eval_cell",
+      "start_eval_batch",
+      "get_eval_batch",
+      "list_case_runs",
+      "run_eval_case",
     ])
   );
 });

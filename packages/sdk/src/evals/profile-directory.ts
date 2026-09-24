@@ -7,7 +7,6 @@ import {
   ProfilePath,
   profileFitsHarness,
 } from "@anpord/schema/domain/harness-profile";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect, Schema } from "effect";
 import {
   CommandProfileNeedsRun,
@@ -19,9 +18,7 @@ import {
   ProfileTooManyFiles,
 } from "./profile-errors";
 import { readProfileManifest } from "./profile-manifest";
-import type { ProfileRef } from "./types";
-
-type PublicEvalVariant = PublicStartEvalRequest["variants"][number];
+import type { ProfileRef, VariantInput } from "./types";
 
 const SHIPPED_ROOTS = ["home", "workspace"] as const;
 const SKIPPED_DIRECTORIES = new Set(["node_modules", ".git"]);
@@ -29,7 +26,6 @@ const SKIPPED_DIRECTORIES = new Set(["node_modules", ".git"]);
 const isMissing = (cause: unknown) =>
   cause instanceof Error && "code" in cause && cause.code === "ENOENT";
 
-/* Paths come back posix-relative to `dir`, since they name sandbox entries. */
 const walk = async (dir: string, current: string): Promise<string[]> => {
   const entries = await readdir(current, { withFileTypes: true });
   const found = await Promise.all(
@@ -54,8 +50,6 @@ const walk = async (dir: string, current: string): Promise<string[]> => {
   return found.flat();
 };
 
-/* A root that is absent ships nothing; a profile with only workspace files
-   is complete. */
 const walkRoot = (dir: string, root: string) =>
   walk(dir, join(dir, root)).catch((cause: unknown) => {
     if (isMissing(cause)) {
@@ -82,7 +76,6 @@ const validPath = (path: string) =>
     Effect.mapError(() => new ProfilePathInvalid({ path }))
   );
 
-/** Nothing when the file holds a NUL byte and so is not text. */
 const readShipped = (dir: string, path: string) =>
   Effect.gen(function* () {
     const bytes = yield* Effect.tryPromise({
@@ -138,7 +131,6 @@ const fittingHarness = (base: EvalHarness, profile: HarnessProfile) => {
   return new ProfileStepNotSupported({ base, step: "run" });
 };
 
-/* The profile directory is read relative to the eval file. */
 export const profileVariant = (
   entry: string,
   variant: {
@@ -147,7 +139,7 @@ export const profileVariant = (
       readonly profile: ProfileRef;
     };
     readonly model: string;
-    readonly sandbox?: PublicEvalVariant["sandbox"];
+    readonly sandbox?: VariantInput["sandbox"];
   }
 ) =>
   Effect.gen(function* () {
@@ -174,7 +166,7 @@ export const profileVariant = (
       model: variant.model,
       profile,
       sandbox: variant.sandbox,
-    } satisfies PublicEvalVariant;
+    } satisfies VariantInput;
   }).pipe(
     Effect.withSpan("Eval.profileVariant", {
       attributes: { profile: variant.harness.profile.name },

@@ -20,13 +20,13 @@ Connect the harness as an organization default in Anpord. The API key uses that 
 | `api-key` | Required, with `evals:read` and `evals:write` |
 | `working-directory` | `.` |
 | `file` | Discover `*.eval.ts` recursively |
-| `fail-on` | `strict` |
-| `timeout` | `1200` seconds per run |
+| `fail-on` | `failures` |
+| `timeout` | `1200` seconds per batch |
 
-`strict` requires every requested trial to pass. `regressed` gates on baseline regressions. `unscored` also rejects cells without scores. `never` ignores scores, but infrastructure failures still fail.
+`failures` fails on any run whose trials did not all pass. `strict` also requires every requested run and trial to have finished. `never` ignores scores, but infrastructure failures still fail.
 
-The job summary links to each run. The `report` output points to a JSON array of `{ file, runId, run, problems }`. Run IDs are written before polling. Upload the report with an `always()` artifact step to preserve failures.
+The job summary links to each batch. The `report` output points to a JSON array of `{ file, batchId, batch, problems }`. Batch IDs are written before polling. Upload the report with an `always()` artifact step to preserve failures.
 
 Use `pull_request` for trusted branches. Fork and Dependabot PRs do not receive the Anpord secret. Do not run untrusted PR code with secrets through `pull_request_target`.
 
-GitHub cancellation and timeout stop waiting, not the remote run. Set a workflow timeout and avoid automatic submission retries. No GitHub write permissions are required.
+GitHub cancellation and timeout stop waiting, not the remote batch. Set a workflow timeout and avoid automatic submission retries. No GitHub write permissions are required.

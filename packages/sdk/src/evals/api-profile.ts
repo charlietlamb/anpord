@@ -1,10 +1,10 @@
 import { API_PROGRAM } from "@anpord/schema/domain/api-mocks";
-import type { PublicStartEvalRequest } from "@anpord/schema/public/evals-api";
 import { Effect } from "effect";
 import type { ApiDefinition } from "../mock-api/define";
 import { bundle } from "./eval-bundle";
 import { packageProgram } from "./program-package";
 import { type DefinitionRef, importsDefinition } from "./runner-source";
+import type { VariantInput } from "./types";
 
 export const compileApis = (
   ref: DefinitionRef,
@@ -39,9 +39,9 @@ runApiServers(definition.api ?? []);`,
   });
 
 export const withApis = (
-  variant: PublicStartEvalRequest["variants"][number],
+  variant: VariantInput,
   files: Readonly<Record<string, string>>
-): PublicStartEvalRequest["variants"][number] => {
+): VariantInput => {
   if (Object.keys(files).length === 0) {
     return variant;
   }

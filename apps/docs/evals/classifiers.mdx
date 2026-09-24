@@ -84,4 +84,4 @@ A classifier that cannot be reached records the failure and does not pass. A cas
 
 Each classification carries `name`, `model`, `choice`, `expected`, `probabilities`, `confidence`, `minConfidence`, `durationMs`, and `error`. The dashboard shows the distribution where a judge would show its reason.
 
-Changing a classifier's prompt, options, or expectation changes the case identity used for baselines. Calibrate against known inputs before trusting a floor: a threshold set above the model's usual confidence fails every case, including the correct ones.
+Changing a classifier's prompt, options, or expectation changes the case definition, and later runs record the new version. Calibrate against known inputs before trusting a floor: a threshold set above the model's usual confidence fails every case, including the correct ones.

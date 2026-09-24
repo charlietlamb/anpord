@@ -1,46 +1,32 @@
 export type {
   CatalogueModel,
   ModelCatalogue,
-  RerunCellRequest,
-  StartedEval,
-} from "@anpord/schema/domain/eval-playground";
-export type {
-  EvalArtifact,
-  EvalCell,
-  EvalCellHistoryEntry,
-  EvalComparison,
-  EvalDistribution,
-  EvalHarness,
-  EvalJournalEntry,
-  EvalRun,
-  EvalRunStatus,
-  EvalRunSummary,
-  EvalSandbox,
-  EvalSource,
-  EvalTrial,
-  EvalTrialStatus,
-  EvalUsage,
-  EvalVariant,
-  EvalVerdict,
-} from "@anpord/schema/domain/evals";
-export type { AnpordClient, ClientOptions } from "@anpord/schema/public/client";
-export {
-  AnpordApi,
-  DEFAULT_BASE_URL,
-  layer,
-  make,
-} from "@anpord/schema/public/client";
-
-import type { EvalsSurface as PublicEvalsSurface } from "./client/anpord";
-export type StartEvalRequest = Parameters<PublicEvalsSurface["start"]>[0];
+} from "@anpord/schema/domain/eval-models";
 export type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-export type EvalCase = StartEvalRequest["cases"][number];
-export type EvalVariantRequest = StartEvalRequest["variants"][number];
 export type {
   EvalValidation,
   ValidationCall,
   ValidationValue,
 } from "@anpord/schema/domain/eval-validations";
+export type {
+  EvalBatch,
+  EvalBatchSummary,
+  EvalDistribution,
+  EvalHarness,
+  EvalJournalEntry,
+  EvalRun,
+  EvalRunPage,
+  EvalRunStatus,
+  EvalSandbox,
+  EvalSource,
+  EvalSuite,
+  EvalTrial,
+  EvalTrialStatus,
+  EvalUsage,
+  EvalVariant,
+  StartBatchRequest,
+  StartedBatch,
+} from "@anpord/schema/domain/evals";
 export type {
   PublicPrompt,
   PublicPromptSummary,
@@ -57,12 +43,11 @@ export {
 export type { CacheOptions } from "./client/cache/settings";
 export type {
   GetPromptOptions,
-  PromptFallback,
   PromptMetadata,
 } from "./client/cache/types";
-export { AnpordError, MissingApiKey } from "./client/errors";
+export { AnpordError } from "./client/errors";
 export type { AnpordPromptVariables } from "./client/variables";
-export { EvalAborted, EvalTimeout, type WaitOptions } from "./client/wait";
+export type { WaitOptions } from "./client/wait";
 export { evalCase, suite } from "./evals/define";
 export { empty, files, repo } from "./evals/source";
 export type {
@@ -76,10 +61,9 @@ export type {
   Prepare,
   PrepareContext,
   PrepareValue,
-  ProfileRef,
   Validator,
   ValidatorContext,
   ValidatorResult,
 } from "./evals/types";
-export { type McpCall, McpCallSchema } from "./mcp/calls";
-export { type CliCall, CliCallSchema } from "./mock-cli/calls";
+export type { McpCall } from "./mcp/calls";
+export type { CliCall } from "./mock-cli/calls";

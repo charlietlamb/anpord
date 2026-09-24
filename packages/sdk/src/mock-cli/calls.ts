@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export const CliCallSchema = Schema.Struct({
+const CliCallSchema = Schema.Struct({
   cli: Schema.String,
   command: Schema.String,
   error: Schema.optional(Schema.String),

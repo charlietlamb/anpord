@@ -19,12 +19,13 @@ export default suite({
   prompt: "{{task}}",
   cases: [
     {
+      id: "writes-hello",
       name: "writes hello",
       variables: { task: "Create hello.txt containing exactly hello" },
       verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  tasks: [{ harness: "codex", model: "model-id", provider: "daytona" }],
+  variants: [{ harness: "codex", model: "model-id", sandbox: "daytona" }],
   trials: 3,
 });
 ```
@@ -110,11 +111,11 @@ import { Anpord } from "anpord";
 import { compileEval } from "anpord/eval";
 
 const anpord = new Anpord();
-const run = await anpord.evals.startAndWait(
+const batch = await anpord.evals.startAndWait(
   await compileEval("./greeting.eval.ts")
 );
 
-console.log(run.status, run.cells);
+console.log(batch.status, batch.runs);
 await anpord.dispose();
 ```
 

@@ -217,7 +217,7 @@ export default suite({
       throw new Error("Expected a code validator");
     }
 
-    expect(payload.name).toBe("direct-validator");
+    expect(payload.suite.name).toBe("direct-validator");
     expect(validator?.name).toBe("hasGreeting");
     expect(payload.cases[0]?.verify).toBeNull();
 
@@ -333,10 +333,7 @@ export default suite({
     expect(compileFixture(join(workspace, "eval.ts"))).rejects.toThrow();
   });
 
-  /* An omitted source used to become whichever repository the file happened to
-     sit in, so the same suite ran against different code on different machines,
-     and against the default branch whenever HEAD was unpushed. */
-  test("leaves the source unset rather than adopting the surrounding repository", async () => {
+  test("starts from an empty workspace rather than adopting the surrounding repository", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-local-"));
     const git = (...args: string[]) =>
       execFileSync("git", args, { cwd: workspace, stdio: "pipe" });
@@ -358,7 +355,7 @@ export default suite({
 
     const payload = await compileFixture(join(workspace, "eval.ts"));
 
-    expect(payload.cases[0]?.source).toBeUndefined();
+    expect(payload.cases[0]?.source).toEqual({ kind: "empty" });
   });
 
   test("a named source is not replaced by the surrounding repository", async () => {

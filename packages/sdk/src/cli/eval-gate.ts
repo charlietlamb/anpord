@@ -1,125 +1,87 @@
 import type {
-  EvalCell,
-  EvalComparison,
+  EvalBatch,
   EvalRun,
+  EvalTrial,
 } from "@anpord/schema/domain/evals";
 import { Data, Effect, Schema } from "effect";
 import { undecidedIn, verdictLines } from "./eval-verdict";
 
-export const EvalGate = Schema.Literal(
-  "strict",
-  "never",
-  "regressed",
-  "unscored"
-);
+export const EvalGate = Schema.Literal("failures", "strict", "never");
 export type EvalGate = typeof EvalGate.Type;
 
-const regressions = (run: EvalRun) =>
-  run.cells.filter((cell) => cell.comparison?.verdict === "regressed");
+interface Expected {
+  readonly runs: number;
+  readonly trials: number;
+}
 
-const unscored = (run: EvalRun) =>
-  run.cells.filter((cell) => (cell.distribution?.scored ?? 0) === 0);
-
-const rate = (value: number) => `${Math.round(value * 100) / 100}`;
-
-/* Named only when it moved -- a harness or profile version differing between
-   baseline and candidate is the first thing a reader wants to know. */
-const versionClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) =>
-  found.baselineHarnessVersion === found.candidateHarnessVersion
-    ? ""
-    : `${run.variants[cell.variantIndex]?.harness ?? "harness"} ${found.baselineHarnessVersion} → ${found.candidateHarnessVersion}, `;
-
-const profileClause = (run: EvalRun, cell: EvalCell, found: EvalComparison) => {
-  const { baselineProfileVersion, candidateProfileVersion } = found;
-
-  if (
-    baselineProfileVersion === null ||
-    candidateProfileVersion === null ||
-    baselineProfileVersion === candidateProfileVersion
-  ) {
-    return "";
+const trialProblems = (run: EvalRun, trial: EvalTrial) => {
+  if (trial.status === "passed") {
+    return [];
   }
 
-  const name = run.variants[cell.variantIndex]?.profile?.name ?? "profile";
+  const undecided = undecidedIn(trial);
+  const why =
+    undecided.length === 0
+      ? ""
+      : ` (${undecided.length} validator${undecided.length === 1 ? "" : "s"} never decided)`;
 
-  return `${name} ${baselineProfileVersion} → ${candidateProfileVersion}, `;
+  return [
+    `${run.case.name}, trial ${trial.ordinal}: ${trial.status}.${why}`,
+    ...verdictLines(trial),
+  ];
 };
 
-const regressionSentence = (run: EvalRun, cell: EvalCell) => {
-  const found = cell.comparison;
-
-  if (found === null) {
-    return `${cell.caseName} regressed against its baseline.`;
+const incomplete = (run: EvalRun, expected: Expected) => {
+  if (run.status !== "finished" || run.trials.length === 0) {
+    return [`${run.case.name} has no complete trial results.`];
   }
 
-  return `${cell.caseName} regressed against its baseline: ${versionClause(run, cell, found)}${profileClause(run, cell, found)}pass rate ${rate(found.baselinePassRate)} → ${rate(found.candidatePassRate)}.`;
+  return run.trials.length === expected.trials
+    ? []
+    : [
+        `${run.case.name}: expected ${expected.trials} trials, received ${run.trials.length}.`,
+      ];
 };
+
+const strictProblems = (batch: EvalBatch, expected: Expected) =>
+  batch.runs.length === expected.runs
+    ? batch.runs.flatMap((run) => {
+        const missing = incomplete(run, expected);
+
+        return missing.length > 0
+          ? missing
+          : run.trials.flatMap((trial) => trialProblems(run, trial));
+      })
+    : [`Expected ${expected.runs} runs, received ${batch.runs.length}.`];
 
 export const problemsWith = (
-  run: EvalRun,
+  batch: EvalBatch,
   failOn: EvalGate,
-  expected?: { readonly cells: number; readonly trials: number }
+  expected: Expected
 ): readonly string[] => {
-  if (run.status === "failed") {
-    return [run.failure ?? "The run failed."];
+  if (batch.status === "failed") {
+    return [batch.failure ?? "The batch failed."];
   }
 
-  if (run.status !== "finished") {
-    return ["The run has not finished."];
+  if (batch.status !== "finished") {
+    return ["The batch has not finished."];
   }
 
-  if (run.cells.length === 0) {
-    return ["The run recorded no cells."];
-  }
-
-  if (failOn === "strict") {
-    if (expected && run.cells.length !== expected.cells) {
-      return [
-        `Expected ${expected.cells} cells, received ${run.cells.length}.`,
-      ];
-    }
-    return run.cells.flatMap((cell) => {
-      if (cell.status !== "finished" || cell.trials.length === 0) {
-        return [`${cell.caseName} has no complete trial results.`];
-      }
-      if (expected && cell.trials.length !== expected.trials) {
-        return [
-          `${cell.caseName}: expected ${expected.trials} trials, received ${cell.trials.length}.`,
-        ];
-      }
-      return cell.trials.flatMap((trial) => {
-        if (trial.status === "passed" && trial.passed) {
-          return [];
-        }
-
-        const undecided = undecidedIn(trial);
-        const why =
-          undecided.length === 0
-            ? ""
-            : ` (${undecided.length} validator${undecided.length === 1 ? "" : "s"} never decided)`;
-
-        return [
-          `${cell.caseName}, trial ${trial.ordinal}: ${trial.status}.${why}`,
-          ...verdictLines(trial),
-        ];
-      });
-    });
+  if (batch.runs.length === 0) {
+    return ["The batch recorded no runs."];
   }
 
   if (failOn === "never") {
     return [];
   }
 
-  const found = regressions(run).map((cell) => regressionSentence(run, cell));
-
-  return failOn === "unscored"
-    ? [
-        ...found,
-        ...unscored(run).map(
-          (cell) => `${cell.caseName} produced no scored trials.`
-        ),
-      ]
-    : found;
+  return failOn === "strict"
+    ? strictProblems(batch, expected)
+    : batch.runs.flatMap((run) =>
+        run.status === "failed"
+          ? [`${run.case.name} failed.`]
+          : run.trials.flatMap((trial) => trialProblems(run, trial))
+      );
 };
 
 export const failWhen = (problems: readonly string[]) =>

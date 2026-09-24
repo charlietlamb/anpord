@@ -2,39 +2,28 @@ import { describe, expect, test } from "bun:test";
 import { problemsWith } from "../../src/cli/eval-gate";
 import type { EvalOutcome } from "../../src/cli/eval-outcome";
 import { buildGithubCheck, SUMMARY_LIMIT } from "../../src/cli/github-check";
-import {
-  createCell,
-  createComparison,
-  createRun,
-  createTrial,
-} from "../fixtures/eval-run";
+import { createBatch, createRun, createTrial } from "../fixtures/eval-run";
 
 const WEB = "https://anpord.test";
-const outcome = (run = createRun()): EvalOutcome => ({
+const outcome = (batch = createBatch()): EvalOutcome => ({
+  batch,
+  batchId: batch.id,
   file: "smoke.eval.ts",
-  problems: problemsWith(run, "strict"),
-  run,
-  runId: run.id,
+  problems: problemsWith(batch, "failures", { runs: 1, trials: 1 }),
 });
 
 describe("GitHub reporting", () => {
-  test("passes the same gate without requiring a baseline", () => {
+  test("passes a batch whose trials all passed", () => {
     const check = buildGithubCheck([outcome()], WEB);
     expect(check.conclusion).toBe("success");
-    expect(check.details_url).toBe(`${WEB}/evals/run_fixture`);
-    expect(check.output.summary).toContain(
-      "| fixture | codex/test | 100% | - | - |"
-    );
+    expect(check.details_url).toBe(`${WEB}/evals/batch_fixture`);
+    expect(check.output.summary).toContain("| fixture | codex/test | 100% |");
   });
 
   test("failed trials fail both the gate and check", () => {
     const result = outcome(
-      createRun({
-        cells: [
-          createCell({
-            trials: [createTrial({ status: "failed", passed: false })],
-          }),
-        ],
+      createBatch({
+        runs: [createRun({ trials: [createTrial({ status: "failed" })] })],
       })
     );
     expect(result.problems).not.toBeEmpty();
@@ -43,64 +32,44 @@ describe("GitHub reporting", () => {
 
   test("does not recalculate the chosen gate", () => {
     const result = outcome(
-      createRun({
-        cells: [
-          createCell({
-            comparison: createComparison({ verdict: "regressed" }),
-          }),
-        ],
+      createBatch({
+        runs: [createRun({ trials: [createTrial({ status: "failed" })] })],
       })
     );
     expect(
       buildGithubCheck([{ ...result, problems: [] }], WEB).conclusion
     ).toBe("success");
-    expect(
-      buildGithubCheck([{ ...result, problems: ["regressed"] }], WEB).conclusion
-    ).toBe("failure");
   });
 
   test("reports failures before a result exists and preserves its link", () => {
     const result: EvalOutcome = {
+      batch: null,
+      batchId: "batch_timeout",
       file: "timeout.eval.ts",
-      run: null,
-      runId: "run_timeout",
       problems: ["Timed out"],
     };
     const check = buildGithubCheck([result], WEB);
     expect(check.conclusion).toBe("failure");
     expect(check.output.summary).toContain("Timed out");
-    expect(check.output.summary).toContain(`${WEB}/evals/run_timeout`);
+    expect(check.output.summary).toContain(`${WEB}/evals/batch_timeout`);
   });
 
-  test("links every run, not just the first", () => {
+  test("links every batch, not just the first", () => {
     const check = buildGithubCheck(
-      [outcome(), outcome(createRun({ id: "run_second" }))],
+      [outcome(), outcome(createBatch({ id: "batch_second" }))],
       WEB
     );
-    expect(check.output.summary).toContain(`${WEB}/evals/run_fixture`);
-    expect(check.output.summary).toContain(`${WEB}/evals/run_second`);
-  });
-
-  test("names changed harness versions", () => {
-    const result = outcome(
-      createRun({
-        cells: [
-          createCell({
-            comparison: createComparison({ candidateHarnessVersion: "2.0.0" }),
-          }),
-        ],
-      })
-    );
-    expect(buildGithubCheck([result], WEB).output.summary).toContain(
-      "codex 1.0.0 → 2.0.0"
-    );
+    expect(check.output.summary).toContain(`${WEB}/evals/batch_fixture`);
+    expect(check.output.summary).toContain(`${WEB}/evals/batch_second`);
   });
 
   test("escapes repository text and limits the summary", () => {
     const result = outcome(
-      createRun({
-        cells: Array.from({ length: 2000 }, () =>
-          createCell({ caseName: `<script>\n| ${"x".repeat(60)}` })
+      createBatch({
+        runs: Array.from({ length: 2000 }, () =>
+          createRun({
+            case: { id: "fixture", name: `<script>\n| ${"x".repeat(60)}` },
+          })
         ),
       })
     );

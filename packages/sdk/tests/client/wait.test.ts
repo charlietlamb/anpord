@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import { EvalAborted, EvalTimeout, waitForRun } from "../../src/client/wait";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
+import { EvalAborted, EvalTimeout, waitForBatch } from "../../src/client/wait";
 
-const run = (status: EvalRun["status"]) =>
-  ({ cells: [], status }) as unknown as EvalRun;
+const run = (status: EvalBatch["status"]) =>
+  ({ runs: [], status }) as unknown as EvalBatch;
 
 const runningFor = (times: number) => {
   let polls = 0;
@@ -18,11 +18,11 @@ const runningFor = (times: number) => {
 
 const forever = () => Promise.resolve(run("running"));
 
-describe("waitForRun", () => {
+describe("waitForBatch", () => {
   test("resolves once the run stops running", async () => {
     const source = runningFor(2);
 
-    const result = await waitForRun(source.get, "run_1", {
+    const result = await waitForBatch(source.get, "run_1", {
       pollIntervalMs: 1,
     });
 
@@ -31,9 +31,13 @@ describe("waitForRun", () => {
   });
 
   test("a failed run is terminal, not something to keep waiting on", async () => {
-    const result = await waitForRun(() => Promise.resolve(run("failed")), "r", {
-      pollIntervalMs: 1,
-    });
+    const result = await waitForBatch(
+      () => Promise.resolve(run("failed")),
+      "r",
+      {
+        pollIntervalMs: 1,
+      }
+    );
 
     expect(result.status).toBe("failed");
   });
@@ -41,7 +45,7 @@ describe("waitForRun", () => {
   test("does not poll again once the run has finished", async () => {
     const source = runningFor(0);
 
-    await waitForRun(source.get, "run_1", { pollIntervalMs: 1 });
+    await waitForBatch(source.get, "run_1", { pollIntervalMs: 1 });
 
     expect(source.polls()).toBe(1);
   });
@@ -49,7 +53,7 @@ describe("waitForRun", () => {
   test("reports every poll to onProgress, including the last", async () => {
     const seen: string[] = [];
 
-    await waitForRun(runningFor(2).get, "run_1", {
+    await waitForBatch(runningFor(2).get, "run_1", {
       onProgress: (current) => seen.push(current.status),
       pollIntervalMs: 1,
     });
@@ -58,21 +62,21 @@ describe("waitForRun", () => {
   });
 
   test("throws EvalTimeout carrying the id, because the run keeps going", async () => {
-    const attempt = waitForRun(forever, "run_2", {
+    const attempt = waitForBatch(forever, "run_2", {
       pollIntervalMs: 1,
       timeoutMs: 20,
     });
 
     await expect(attempt).rejects.toThrow(EvalTimeout);
     await attempt.catch((error: EvalTimeout) => {
-      expect(error.runId).toBe("run_2");
+      expect(error.batchId).toBe("run_2");
     });
   });
 
   test("an already-aborted signal stops before the first request", async () => {
     let polled = false;
 
-    const attempt = waitForRun(
+    const attempt = waitForBatch(
       () => {
         polled = true;
         return forever();
@@ -89,7 +93,7 @@ describe("waitForRun", () => {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 5);
 
-    const attempt = waitForRun(forever, "run_4", {
+    const attempt = waitForBatch(forever, "run_4", {
       pollIntervalMs: 50,
       signal: controller.signal,
     });
@@ -101,7 +105,7 @@ describe("waitForRun", () => {
     const stamps: number[] = [];
     const started = Date.now();
 
-    await waitForRun(
+    await waitForBatch(
       () => {
         stamps.push(Date.now() - started);
         return Promise.resolve(
