@@ -8,11 +8,12 @@ import {
 } from "@anpord/ui/components/dropdown-menu";
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { StarIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { AgeCell } from "@/components/layout/age-cell";
+import { DefaultBadge } from "@/components/layout/default-badge";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
-import { useRelativeTime } from "@/lib/use-relative-time";
 
 export function ConnectionRow({
   connection,
@@ -33,15 +34,13 @@ export function ConnectionRow({
     (candidate) => candidate.id === connection.authMethodId
   );
   const own = integrationPresentation(integration);
-  const used = useRelativeTime(
-    new Date((connection.lastUsedAt ?? connection.createdAt).epochMillis)
-  );
 
   return (
     <DataTableRow>
       <span className="flex min-w-0 items-center gap-2.5">
         <own.Icon className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate text-foreground">{connection.name}</span>
+        {connection.isDefault ? <DefaultBadge /> : null}
       </span>
 
       <span className="truncate text-muted-foreground">
@@ -52,22 +51,23 @@ export function ConnectionRow({
         {connection.scope === "personal" ? "Only you" : "Organization"}
       </span>
 
-      <span className="flex min-w-0 items-center gap-1.5">
+      <span>
         {connection.status === "invalid" ? (
           <StatusBadge icon={WarningCircleIcon} size="xs" tone="destructive">
             Invalid
           </StatusBadge>
-        ) : null}
-        {connection.isDefault ? (
-          <StatusBadge icon={StarIcon} size="xs">
-            Default
+        ) : (
+          <StatusBadge icon={CheckCircleIcon} size="xs" tone="positive">
+            Active
           </StatusBadge>
-        ) : null}
+        )}
       </span>
 
-      <span className="truncate text-muted-foreground tabular-nums">
-        {connection.lastUsedAt === null ? "Never" : used}
-      </span>
+      {connection.lastUsedAt === null ? (
+        <span className="text-muted-foreground">Never</span>
+      ) : (
+        <AgeCell at={connection.lastUsedAt.epochMillis} />
+      )}
 
       <RowActionsMenu label={`Actions for ${connection.name}`}>
         <DropdownMenuItem onClick={onVerify}>Check it works</DropdownMenuItem>

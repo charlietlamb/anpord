@@ -1,7 +1,7 @@
 import type { EvalCaseDetail } from "@anpord/schema/domain/evals";
 import { Link } from "@tanstack/react-router";
-import { AgeCell } from "@/components/evals/age-cell";
 import { TagChip } from "@/components/evals/tag-chip";
+import { AgeCell } from "@/components/layout/age-cell";
 
 export function CaseMeta({ subject }: { readonly subject: EvalCaseDetail }) {
   const latest = subject.versions.at(-1);

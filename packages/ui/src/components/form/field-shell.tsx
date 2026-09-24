@@ -8,18 +8,21 @@ export function FieldShell({
   className,
   description,
   field,
+  hideLabel,
   label,
 }: {
   readonly children: ReactNode;
   readonly className?: string;
   readonly description?: string;
   readonly field: AnyFieldApi;
+  readonly hideLabel?: boolean;
   readonly label: string;
 }) {
   return (
     <LabelledField
       className={className}
       description={description}
+      hideLabel={hideLabel}
       htmlFor={field.name}
       label={label}
     >

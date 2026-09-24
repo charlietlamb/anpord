@@ -1,8 +1,8 @@
 import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
-import { AgeCell } from "@/components/evals/age-cell";
 import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { SourceLabel } from "@/components/evals/source-label";
 import { VariantCell } from "@/components/evals/variant-cell";
+import { AgeCell } from "@/components/layout/age-cell";
 import { trialStatus } from "@/lib/evals/eval-status";
 
 export function TrialMeta({

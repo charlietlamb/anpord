@@ -1,12 +1,12 @@
 import type { Channel } from "@anpord/schema/domain/channels";
 import { PRODUCTION } from "@anpord/schema/domain/prompts";
 import { DropdownMenuItem } from "@anpord/ui/components/dropdown-menu";
-import { Badge } from "@anpord/ui/components/ui/badge";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
 import {
   DataTableRow,
   DataTableRowLink,
 } from "@anpord/ui/components/ui/data-table";
+import { DefaultBadge } from "@/components/layout/default-badge";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 
@@ -29,11 +29,7 @@ export function ChannelListRow({
       <span className="flex min-w-0 items-center gap-2.5">
         <ChannelDot color={channel.color} />
         <DataTableRowLink onClick={onEdit}>{channel.name}</DataTableRowLink>
-        {reserved ? (
-          <Badge size="xs" variant="outline">
-            Default
-          </Badge>
-        ) : null}
+        {reserved ? <DefaultBadge /> : null}
       </span>
 
       <span className="text-muted-foreground tabular-nums">

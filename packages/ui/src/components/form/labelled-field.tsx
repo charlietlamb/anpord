@@ -6,18 +6,22 @@ export function LabelledField({
   children,
   className,
   description,
+  hideLabel = false,
   htmlFor,
   label,
 }: {
   readonly children: ReactNode;
   readonly className?: string;
   readonly description?: string;
+  readonly hideLabel?: boolean;
   readonly htmlFor: string;
   readonly label: string;
 }) {
   return (
     <div className={cn("grid gap-1.5", className)}>
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label className={cn(hideLabel && "sr-only")} htmlFor={htmlFor}>
+        {label}
+      </Label>
 
       {description === undefined ? null : (
         <p className="text-muted-foreground text-xs">{description}</p>

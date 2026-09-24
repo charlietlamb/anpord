@@ -1,14 +1,11 @@
+import { EmptyState } from "@anpord/ui/components/ui/empty-state";
+import { BuildingsIcon } from "@phosphor-icons/react";
 import { PageHeader } from "@/components/layout/page-header";
-import { useOrganizationSettingsForm } from "@/lib/use-organization-settings-form";
+import { OrganizationForm } from "@/components/settings/organization-form";
 import { useOrganizations } from "@/lib/use-organizations";
 
 export function GeneralSettings() {
   const { activeOrganization } = useOrganizations();
-  const form = useOrganizationSettingsForm({
-    name: activeOrganization?.name ?? "",
-    slug: activeOrganization?.slug ?? "",
-  });
-
   return (
     <>
       <PageHeader
@@ -16,33 +13,16 @@ export function GeneralSettings() {
         title="General"
       />
       {activeOrganization ? (
-        <form
-          className="flex max-w-sm flex-col gap-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            form.handleSubmit();
-          }}
-        >
-          <form.AppField name="name">
-            {(field) => <field.TextField label="Name" />}
-          </form.AppField>
-          <form.AppField name="slug">
-            {(field) => <field.TextField label="Slug" />}
-          </form.AppField>
-          <div className="flex justify-start">
-            <form.AppForm>
-              <form.SubmitButton
-                fullWidth={false}
-                label="Save changes"
-                loadingLabel="Saving…"
-              />
-            </form.AppForm>
-          </div>
-        </form>
+        <OrganizationForm
+          name={activeOrganization.name}
+          slug={activeOrganization.slug}
+        />
       ) : (
-        <p className="text-muted-foreground text-sm">
-          Select or create an organization to manage settings.
-        </p>
+        <EmptyState
+          description="Select or create an organization to manage its settings."
+          icon={<BuildingsIcon />}
+          title="No organization selected"
+        />
       )}
     </>
   );

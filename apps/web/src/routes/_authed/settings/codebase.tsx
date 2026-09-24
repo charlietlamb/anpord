@@ -1,6 +1,6 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
-import { Skeleton } from "@anpord/ui/components/skeleton";
+import { DetailListSkeleton } from "@anpord/ui/components/ui/detail-list";
 import { GitBranchIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -68,7 +68,7 @@ function CodebasePage() {
         error={account.error}
         icon={<GitBranchIcon />}
         isPending={loading}
-        skeleton={<Skeleton className="h-32 rounded-xl" />}
+        skeleton={<DetailListSkeleton label="GitHub installation" />}
         title="GitHub not connected"
       >
         {installed === null ? null : (

@@ -11,19 +11,19 @@ export const INVITATIONS_TABLE = {
 } as const;
 
 export const API_KEYS_TABLE = {
-  columns: "minmax(0,1fr) 8rem 7rem 1.5rem",
+  columns: "minmax(0,1fr) 8rem 7rem 1rem",
   headings: ["Name", "Key", "Created"],
   label: "API keys",
 } as const;
 
 export const CONNECTIONS_TABLE = {
-  columns: "minmax(0,1fr) minmax(0,10rem) 7rem minmax(0,9rem) 7rem 1.5rem",
+  columns: "minmax(0,1fr) minmax(0,10rem) 7rem 6rem 7rem 1rem",
   headings: ["Name", "Method", "Available to", "Status", "Last used"],
   label: "Connections",
 } as const;
 
 export const CHANNELS_TABLE = {
-  columns: "minmax(0,1fr) 7rem 1.5rem",
+  columns: "minmax(0,1fr) 7rem 1rem",
   headings: ["Channel", "Prompts"],
   label: "Channels",
 } as const;

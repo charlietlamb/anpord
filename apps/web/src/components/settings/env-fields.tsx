@@ -1,6 +1,5 @@
-import { Label } from "@anpord/ui/components/ui/label";
+import { LabelledField } from "@anpord/ui/components/form/labelled-field";
 import { Textarea } from "@anpord/ui/components/ui/textarea";
-import { cn } from "@anpord/ui/lib/utils";
 import { useState } from "react";
 import { parseEnvLines } from "@/lib/settings/env-lines";
 
@@ -18,10 +17,12 @@ export function EnvFields({
   };
 
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor="credential-env">Variables</Label>
+    <LabelledField
+      description="One KEY=VALUE per line. Blank lines and lines starting with # are ignored."
+      htmlFor="credential-env"
+      label="Variables"
+    >
       <Textarea
-        aria-describedby="credential-env-help"
         aria-invalid={problem !== null}
         autoComplete="off"
         className="min-h-28 font-mono"
@@ -31,16 +32,9 @@ export function EnvFields({
         spellCheck={false}
         value={text}
       />
-      <p
-        className={cn(
-          "text-xs",
-          problem === null ? "text-muted-foreground" : "text-destructive"
-        )}
-        id="credential-env-help"
-      >
-        {problem ??
-          "One KEY=VALUE per line. Blank lines and lines starting with # are ignored."}
-      </p>
-    </div>
+      {problem === null ? null : (
+        <p className="text-destructive text-xs">{problem}</p>
+      )}
+    </LabelledField>
   );
 }

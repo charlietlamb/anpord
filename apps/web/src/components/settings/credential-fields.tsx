@@ -1,6 +1,6 @@
 import type { CredentialAuthMethod } from "@anpord/schema/domain/credentials";
+import { LabelledField } from "@anpord/ui/components/form/labelled-field";
 import { Input } from "@anpord/ui/components/input";
-import { Label } from "@anpord/ui/components/ui/label";
 import { cn } from "@anpord/ui/lib/utils";
 import { EnvFields } from "@/components/settings/env-fields";
 
@@ -22,8 +22,11 @@ export function CredentialFields({
       className={cn("grid gap-4", method.fields.length > 1 && "sm:grid-cols-2")}
     >
       {method.fields.map((field) => (
-        <div className="grid gap-1.5" key={field.name}>
-          <Label htmlFor={`credential-${field.name}`}>{field.label}</Label>
+        <LabelledField
+          htmlFor={`credential-${field.name}`}
+          key={field.name}
+          label={field.label}
+        >
           <Input
             id={`credential-${field.name}`}
             onChange={(event) =>
@@ -31,10 +34,11 @@ export function CredentialFields({
             }
             placeholder={field.hint}
             required={field.required}
+            size="lg"
             type={field.secret ? "password" : "text"}
             value={values[field.name] ?? ""}
           />
-        </div>
+        </LabelledField>
       ))}
     </div>
   );

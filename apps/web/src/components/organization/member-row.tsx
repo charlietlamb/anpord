@@ -1,8 +1,8 @@
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { formatDate } from "@anpord/ui/lib/format-date";
 import { initials } from "@anpord/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { IdentityLabel } from "@/components/dashboard/identity-label";
+import { AgeCell } from "@/components/layout/age-cell";
 import { MemberRole } from "@/components/organization/member-role";
 import type { OrganizationMember } from "@/lib/use-organization-members";
 
@@ -22,9 +22,7 @@ export function MemberRow({ member }: { readonly member: OrganizationMember }) {
         <IdentityLabel subtitle={user.email} title={name} />
       </span>
       <MemberRole role={member.role} />
-      <span className="text-muted-foreground tabular-nums">
-        {formatDate(member.createdAt)}
-      </span>
+      <AgeCell at={new Date(member.createdAt).getTime()} />
     </DataTableRow>
   );
 }

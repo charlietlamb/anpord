@@ -4,9 +4,9 @@ import {
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
 import { Link } from "@tanstack/react-router";
-import { AgeCell } from "@/components/evals/age-cell";
 import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { TagChip } from "@/components/evals/tag-chip";
+import { AgeCell } from "@/components/layout/age-cell";
 import { counted } from "@/lib/evals/conversation";
 import { distributionStatus } from "@/lib/evals/eval-status";
 

@@ -4,10 +4,10 @@ import {
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
 import { Link } from "@tanstack/react-router";
-import { AgeCell } from "@/components/evals/age-cell";
 import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { SourceLabel } from "@/components/evals/source-label";
 import { VariantCell } from "@/components/evals/variant-cell";
+import { AgeCell } from "@/components/layout/age-cell";
 import { trialStatus } from "@/lib/evals/eval-status";
 import { trialVerdict } from "@/lib/evals/trial-verdict";
 

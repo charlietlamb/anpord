@@ -1,42 +1,29 @@
-import { Button } from "@anpord/ui/components/button";
-import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { TrashIcon } from "@phosphor-icons/react";
-import { useRelativeTime } from "@/lib/use-relative-time";
-
-interface ApiKeyRowProps {
-  readonly createdAt: Date | string;
-  readonly name: string;
-  readonly onRevoke: () => void;
-  readonly start: string | null;
-}
+import { AgeCell } from "@/components/layout/age-cell";
+import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
+import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 
 export function ApiKeyRow({
   createdAt,
   name,
   onRevoke,
   start,
-}: ApiKeyRowProps) {
-  const created = useRelativeTime(new Date(createdAt));
-
+}: {
+  readonly createdAt: Date | string;
+  readonly name: string;
+  readonly onRevoke: () => void;
+  readonly start: string | null;
+}) {
   return (
     <DataTableRow>
       <span className="truncate text-foreground">{name}</span>
       <span className="truncate font-mono text-muted-foreground text-xs">
         {start ? `${start}…` : "—"}
       </span>
-      <span className="text-muted-foreground tabular-nums">{created}</span>
-      <ActionTooltip label={`Revoke ${name}`}>
-        <Button
-          aria-label={`Revoke ${name}`}
-          className="hover:text-destructive"
-          onClick={onRevoke}
-          size="icon-xs"
-          variant="bare"
-        >
-          <TrashIcon />
-        </Button>
-      </ActionTooltip>
+      <AgeCell at={new Date(createdAt).getTime()} />
+      <RowActionsMenu label={`Actions for ${name}`}>
+        <DestructiveMenuItem onClick={onRevoke}>Revoke</DestructiveMenuItem>
+      </RowActionsMenu>
     </DataTableRow>
   );
 }

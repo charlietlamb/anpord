@@ -1,13 +1,12 @@
 "use client";
 
-import { FieldInfo } from "@anpord/ui/components/form/field-info";
+import { FieldShell } from "@anpord/ui/components/form/field-shell";
 import { Input } from "@anpord/ui/components/input";
-import { Label } from "@anpord/ui/components/ui/label";
 import { useFieldContext } from "@anpord/ui/hooks/form-context";
-import { cn } from "@anpord/ui/lib/utils";
 
 interface TextFieldProps {
   autoComplete?: string;
+  description?: string;
   hideLabel?: boolean;
   label: string;
   onValueChange?: (value: string) => void;
@@ -16,6 +15,7 @@ interface TextFieldProps {
 }
 
 export function TextField({
+  description,
   hideLabel = false,
   label,
   type = "text",
@@ -26,10 +26,12 @@ export function TextField({
   const field = useFieldContext<string>();
 
   return (
-    <div className="grid gap-2">
-      <Label className={cn(hideLabel && "sr-only")} htmlFor={field.name}>
-        {label}
-      </Label>
+    <FieldShell
+      description={description}
+      field={field}
+      hideLabel={hideLabel}
+      label={label}
+    >
       <Input
         autoComplete={autoComplete}
         id={field.name}
@@ -43,7 +45,6 @@ export function TextField({
         type={type}
         value={field.state.value}
       />
-      <FieldInfo field={field} />
-    </div>
+    </FieldShell>
   );
 }

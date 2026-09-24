@@ -5,6 +5,7 @@ import type { CSSProperties, ComponentProps, ReactNode } from "react";
 import { Skeleton } from "@anpord/ui/components/skeleton";
 import {
   SURFACE_BODY,
+  SURFACE_FOOTER,
   SURFACE_FRAME,
   SURFACE_HEAD,
 } from "@anpord/ui/lib/surface";
@@ -138,8 +139,8 @@ export function DataTableFooter({
   readonly children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-9 items-center gap-3 px-4 pt-2 pb-1">
-      <p className="text-label text-muted-foreground">{children}</p>
+    <div className={SURFACE_FOOTER}>
+      <p>{children}</p>
       {actions === undefined ? null : <div className="ml-auto">{actions}</div>}
     </div>
   );
