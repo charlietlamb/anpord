@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@anpord/ui/components/ui/select";
 import { DistributionPill } from "@/components/evals/eval-status-badge";
-import { VariantCell } from "@/components/evals/variant-cell";
+import { VariantName } from "@/components/evals/variant-name";
 
 const ALL = "all";
 
@@ -30,7 +30,7 @@ export function CaseVariantMenu({
           {selected === undefined ? (
             "All variants"
           ) : (
-            <VariantCell harness={selected.harness} model={selected.model} />
+            <VariantName harness={selected.harness} model={selected.model} />
           )}
         </SelectValue>
       </SelectTrigger>
@@ -46,7 +46,7 @@ export function CaseVariantMenu({
             key={entry.cellKey}
             value={entry.cellKey}
           >
-            <VariantCell harness={entry.harness} model={entry.model} />
+            <VariantName harness={entry.harness} model={entry.model} />
             <span className="ml-auto">
               <DistributionPill distribution={entry.distribution} size="xs" />
             </span>

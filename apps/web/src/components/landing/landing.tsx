@@ -26,8 +26,6 @@ import { SiteLayout } from "@/components/layout/site-layout";
 import { REPO_URL } from "@/lib/urls";
 import { useIsClient } from "@/lib/use-is-client";
 
-const CAP = "border-white/20 bg-white/16 text-white/80";
-
 interface Vendor {
   readonly href: string;
   readonly Mark: (props: { readonly className?: string }) => React.ReactElement;
@@ -130,8 +128,8 @@ export function Landing() {
             Start optimizing
             {isClient ? (
               <span className="flex items-center gap-0.5">
-                <Kbd className={CAP}>{isMac() ? "⌘" : "Ctrl"}</Kbd>
-                <Kbd className={CAP}>↵</Kbd>
+                <Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
+                <Kbd>↵</Kbd>
               </span>
             ) : null}
           </Link>

@@ -38,11 +38,7 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
   return (
     <PanelCard
       badge={
-        <Badge
-          className="border-warning/25 bg-warning/10 text-warning uppercase tracking-[0.08em] shadow-none"
-          size="xs"
-          variant="secondary"
-        >
+        <Badge size="xs" variant="pending">
           Beta
         </Badge>
       }
