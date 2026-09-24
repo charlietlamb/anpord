@@ -1,6 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
 import { Badge } from "@anpord/ui/components/ui/badge";
-import { Surface } from "@anpord/ui/components/ui/surface";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { useState } from "react";
 import { z } from "zod";
@@ -47,7 +46,7 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
       description="Pick up where you left off."
       title="Sign in"
     >
-      <Surface className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-4">
         <Button
           className="w-full"
           onClick={() => signInWithGithub(redirect)}
@@ -87,7 +86,7 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
             />
           </form.AppForm>
         </form>
-      </Surface>
+      </div>
     </PanelCard>
   );
 }
