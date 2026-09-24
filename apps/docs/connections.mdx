@@ -1,63 +1,65 @@
 ---
 title: "Connections"
-description: "The credentials your evals run with"
+description: "The credentials your evals use"
 ---
 
-A run needs a credential for its [agent](/evals/variants), because model usage is charged to your account. Add one under **Settings > Harnesses** before the first run. Raw model keys cannot be passed through the eval API.
+Every run needs a credential for its [harness](/evals/variants), because model usage is charged to your account. Add one under **Settings > Harnesses** before you start your first batch. The eval API does not accept raw model keys.
 
 | Surface | Credential |
 | --- | --- |
 | Anpord CLI and SDK | `ANPORD_API_KEY` |
-| Agent model | Saved harness connection |
-| Hosted sandbox | None. Runs on Anpord's account unless you add one |
-| Judge or classifier | Saved judge connection, for direct provider calls |
+| Harness | Saved harness connection |
+| Hosted sandbox | None. Uses Anpord's account unless you add your own |
+| Judge or classifier that calls a provider | Saved model connection |
 | Mock product MCP or CLI | None |
 | [Anpord MCP](/tools/mcp) | OAuth 2.1 |
 
-## Add one
+## Add a connection
 
-Choose **Add harness**, **Add judge** or **Add sandbox**, pick the integration, paste the key. Secrets are encrypted on arrival and never shown again. The [variants](/evals/variants) page lists the agents and sandboxes you can connect.
+Choose **Add harness**, **Add provider** or **Add sandbox**, pick the integration and paste the key. Secrets are encrypted on arrival and never shown again. The [variants](/evals/variants) page lists the harnesses and sandboxes you can connect.
 
-The first connection for an integration becomes its default. **Verify** checks a stored credential against the integration without revealing it.
+The first connection for an integration becomes its default. **Check it works** tests a stored credential without revealing it.
 
 ## From the terminal
 
 ```bash
 anpord connectors integrations
-anpord connectors add anthropic
+anpord connectors add codex
 anpord connectors list
 ```
 
-`add` prompts for the secret rather than taking a flag, because a flag is kept in shell history and readable from the process list while the command runs. In a script, pipe it instead:
+`add` prompts for the secret instead of taking it as a flag, since a flag ends up in shell history and the process list. In a script, pipe it in:
 
 ```bash
-echo "$ANTHROPIC_API_KEY" | anpord connectors add anthropic --name ci
+echo "$OPENAI_API_KEY" | anpord connectors add codex --name ci
 ```
 
-`--auth` picks the method where an integration accepts more than one, and `--default` marks the connector runs reach for. A method that signs in through a browser cannot be completed from the terminal, and the command says so. `anpord connectors remove <id>` deletes one. A run already holding the credential finishes.
+`--auth` picks the method when an integration accepts more than one. `--default` makes the new connection the one runs use. Methods that sign in through a browser, such as ChatGPT for Codex, can't be completed from the terminal, and the command says so.
 
-## Judges
+`anpord connectors remove <id>` deletes a connection. A run already holding the credential finishes.
 
-A [judge](/evals/judges) that names a `harness` runs an agent and uses that harness connection. One that calls a provider directly, and every [classifier](/evals/classifiers), needs its own credential instead. Add it under **Settings > Judges**.
+## Judges, classifiers and simulated users
+
+A [judge](/evals/judges) that names a `harness` runs an agent with that harness connection. A judge that calls a provider directly, and every [classifier](/evals/classifiers), needs a model connection instead. Add it under **Settings > Models**.
 
 | Integration | Used by |
 | --- | --- |
 | OpenAI | Judges declared with `provider: "openai"` |
 | TypeSafe | Classifiers |
 
-A case that states a [human](/evals/conversations) needs a model to play them. `openai`, `anthropic`, `google`, `xai`, `moonshotai`, `deepseek`, `groq` and `openrouter` all serve the same chat-completions shape, so the human runs on whichever you connect first. A judge calls OpenAI's responses API, which the others do not serve, so a case scored by one needs `openai`.
+A case that states a [human](/evals/conversations) needs a model to play them. `openai`, `anthropic`, `google`, `xai`, `moonshotai`, `deepseek`, `groq` and `openrouter` all serve the same chat-completions API, so the human runs on whichever you connected first. Provider judges call OpenAI's responses API, which the others don't serve, so a case scored by one needs `openai`.
 
-For a self-hosted deployment, `OPENAI_API_KEY` and `TYPESAFE_API_KEY` in the server and worker environment serve the same purpose.
+On a self-hosted deployment, set `OPENAI_API_KEY` and `TYPESAFE_API_KEY` in the server and worker environment instead.
 
-A missing credential is not a startup error. The judge or classifier that needs it fails when a case reaches it, naming what was missing.
+A missing model credential is not a startup error. The judge or classifier that needs it fails when a case reaches it, and names what was missing.
 
 A ChatGPT subscription is not an OpenAI API key.
 
-Keep credentials out of eval definitions and fixtures. Everything a run needs is resolved from a stored connection.
+Keep credentials out of eval definitions and fixtures. Runs resolve everything they need from stored connections.
 
 ## Personal or shared
 
-Organization connections are usable by everyone. Personal ones are yours alone and win for the same integration, which is how you run against your own account without changing what your team uses.
+Organization connections are available to everyone. Personal ones (**Only me**) are yours alone and take precedence for the same integration, so you can run on your own account without changing what your team uses.
 
 ## Missing, rotated, removed
 
@@ -65,8 +67,8 @@ Organization connections are usable by everyone. Personal ones are yours alone a
 No credential configured for codex
 ```
 
-Nothing is charged and no sandbox opens. In the dashboard the run button stays disabled and names what is missing. A missing *sandbox* connection is not an error.
+When the harness credential is missing, nothing is charged and no sandbox opens. In the dashboard the run button stays disabled and names what is missing. A missing sandbox connection is not an error.
 
-**Rotate** replaces the secret in place, keeping the id and the default, and makes an `invalid` credential active again.
+**Rotate secret** replaces the secret in place, keeps the id and default, and reactivates an `invalid` credential.
 
-Removing one leaves past runs readable. Removing a default leaves the integration without one, so set another before the next run.
+Removing a connection leaves past runs readable. Removing a default leaves the integration without one, so set another before your next batch.

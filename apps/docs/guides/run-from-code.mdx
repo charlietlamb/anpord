@@ -1,16 +1,17 @@
 ---
 title: "Run evals from code"
-description: "Import an eval and inspect its result"
+description: "Start a batch from your own code and act on the result"
 ---
 
-Export the suite from a typed `*.eval.ts` file, then submit it from application code and act on the result:
+Export a suite from a `*.eval.ts` file, start it from your code, and wait for the batch:
 
 ```ts
 import { Anpord } from "anpord";
 import { smoke } from "./evals/smoke.eval";
 
 const anpord = new Anpord();
-const batch = await anpord.evals.startAndWait(smoke);
+const { id } = await anpord.evals.start(smoke);
+const batch = await anpord.evals.wait({ id });
 
 if (batch.status === "failed") {
   throw new Error(batch.failure ?? "Eval batch failed");
@@ -24,6 +25,8 @@ if (failing.length) process.exitCode = 1;
 await anpord.dispose();
 ```
 
-`startAndWait` polls until the batch finishes. Pass `timeoutMs` or `signal` to control waiting.
+`start` creates a batch with one run per case per variant and returns its ID. `wait` polls until the batch is no longer `running`. Pass `timeoutMs` (default one hour) or `signal` to stop waiting. Neither cancels the batch.
 
-`compileEval("./evals/smoke.eval.ts")` compiles by path instead, and `compileDefinition` returns the request without sending it. See the [API client](/sdk/client).
+`startAndWait` does both in one call.
+
+To compile without the client, import from `anpord/eval`: `compileEval("./evals/smoke.eval.ts")` compiles a file by path, and `compileDefinition(smoke)` returns the request without sending it. See the [API client](/sdk/client).

@@ -1,19 +1,19 @@
 ---
-title: "Local runs"
-description: "Run an eval against services on your own machine"
+title: "Run evals locally"
+description: "Run an eval on your machine so it can reach local services"
 ---
 
-A cloud sandbox cannot reach `localhost`. When the thing you are changing runs on your machine, `--local` runs the eval there instead:
+A cloud sandbox cannot reach `localhost`. When the thing you are testing runs on your machine, `--local` runs the eval there instead:
 
 ```bash
 anpord eval --local ./checkout.eval.ts
 ```
 
-No API key is needed, because nothing is sent anywhere. Every case runs on this machine and the results print in the terminal.
+Each case runs once, on the suite's first variant, and the results print in the terminal. Without a file, every `*.eval.ts` under the current directory runs.
 
 ## Reaching a local service
 
-Variables in `.env.local` and `.env` beside the eval file are given to the case, so a verifier can reach a service you are already running:
+Addresses in `.env.local` and `.env` in the directory you run the command from are passed to the case, so the agent, the prepare step and the verifier can reach a service you already have running:
 
 ```bash
 # .env
@@ -23,36 +23,40 @@ API_BASE=http://localhost:1234
 ```ts
 cases: [
   {
+    id: "checkout-completes",
     name: "the checkout completes",
     verify: 'test "$(curl -s $API_BASE/health)" = ok',
   },
 ]
 ```
 
-`.env.local` wins over `.env`, and anything already set in your shell wins over both.
+`.env.local` wins over `.env`, and your shell's environment wins over both.
 
 ## What is forwarded
 
-Addresses, and nothing else. A variable is given to a case when its name ends in `URL`, `URI`, `HOST`, `PORT`, `ENDPOINT`, `ORIGIN`, or `BASE`, **and** its value is a plain `http(s)` address, a hostname, or a port.
+Addresses only. A variable is forwarded when both are true:
 
-Both halves matter. `DATABASE_URL=postgres://user:password@host/db` is named like an address but carries a password inside it, so it is withheld. A local sandbox is a shell on your machine, and a value handed to it reaches the agent's context and the journal the run writes down.
+- Its name is `URL`, `URI`, `HOST`, `PORT`, `ENDPOINT`, `ORIGIN` or `BASE`, or ends in `_` plus one of them.
+- Its value is an `http(s)` address with no credentials, a hostname, or a port.
 
-An agent that needs a model key does not read one from your machine. When you have an API key set, the run leases the credential your organization already connected, for the one harness it names, expiring in fifteen minutes. It is held in memory and never written down, so nothing has to be kept locally.
+`DATABASE_URL=postgres://user:password@host/db` has an address name but a password in its value, so it is withheld. Anything forwarded reaches the agent's context and the trial's journal.
 
-Sandbox credentials are never leased: a local run opens no cloud sandbox. A lease is only issued for a run you started with `--local` and are executing yourself.
+## Model credentials
 
-## What a local run is
+The agent does not read a model key from your machine. With an API key set, Anpord leases the credential your organization connected for the variant's harness. The lease expires after 15 minutes and is held in memory, never written to disk. Sandbox credentials are never leased, because a local batch opens no cloud sandbox.
 
-A local run with an API key set is recorded like any other: each case becomes a run in a batch, marked local, with its journal in the dashboard. It runs the first variant once per case. The exit code reflects the result, so CI can gate on it:
+## What gets recorded
+
+With an API key set, `--local` starts a local batch: one run per case on the first variant, each with one trial, marked local and visible in the dashboard with its journal. Without an API key, nothing is sent anywhere and the results only print.
+
+The exit code reflects the results either way, so CI can gate on it:
 
 ```bash
 anpord eval --local ./checkout.eval.ts || exit 1
 ```
 
-Without an API key nothing is sent anywhere, and the results only print.
-
 ## Requirements
 
-The agent runs as you, on your machine, in a temporary workspace with its own `HOME`. It is not a container: a case can read and write what you can. Run evals you wrote or trust.
+The agent runs as you, in a temporary workspace with its own `HOME`. It is not a container: a case can read and write anything you can. Only run evals you wrote or trust.
 
-Harnesses install into `~/.anpord/local` and are reused, so the first local run of a harness is slower than the rest.
+Harnesses install into `~/.anpord/local` and are reused, so the first time you use a harness locally is slower.

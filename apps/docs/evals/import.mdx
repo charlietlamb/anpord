@@ -9,12 +9,14 @@ description: "Turn existing JSON or YAML cases into a TypeScript suite"
 anpord eval import --format evals-json ./evals.json --out ./release-notes.eval.ts
 ```
 
-Omit `--out` to print the suite to stdout.
+Without `--out`, the suite prints to stdout. A summary of converted and unconverted assertions goes to stderr.
 
 | `--format` | Input |
 | --- | --- |
-| `evals-json` | One JSON file containing all cases |
+| `evals-json` | One JSON file holding every case |
 | `yaml` | One YAML file per case, or a directory of them |
+
+The generated suite has a placeholder variant (`codex` on `gpt-5.6-sol`) and `trials: 3`, with each case's text passed through a `task` variable.
 
 ## evals-json
 
@@ -40,7 +42,7 @@ Omit `--out` to print the suite to stdout.
 }
 ```
 
-Only `id`, `prompt`, and `assertions` are required. Assertions may be structured objects or prose strings.
+`skill_name` and `evals` are required, and each case needs `id`, `prompt` and `assertions`. An assertion is a structured object or a prose string.
 
 | `kind` | Generated check |
 | --- | --- |
@@ -48,20 +50,25 @@ Only `id`, `prompt`, and `assertions` are required. Assertions may be structured
 | `content_contains_all` | `containsAll(answer, needles)` |
 | `content_contains_none` | `containsNone(answer, needles)` |
 
-Matching is case-insensitive. Prose assertions cannot be converted safely, so they become failing placeholders:
+Matching is case-insensitive. Prose assertions cannot be converted safely, so each becomes a placeholder that always fails:
 
 ```ts
-validate: async () => [
-  /* The summary reads as though a maintainer wrote it. */
-  unwritten("The summary reads as though a maintainer wrote it."),
-].every(Boolean),
+validate: async (context) => {
+  const answer = await context.answer();
+
+  return [
+    /* Write this check, then delete the line under it: */
+    /* The summary reads as though a maintainer wrote it. */
+    unwritten("The summary reads as though a maintainer wrote it."),
+  ].every(Boolean);
+},
 ```
 
-`expected_output` becomes a comment, not a check. `files` carries directory names but not their contents, so each case starts with `files({})` and a comment naming the requested fixtures.
+`expected_output` becomes a comment, not a check. `files` names directories but not their contents, so each case starts with `files({})` and a comment naming them.
 
 ## yaml
 
-A directory imports all `*.yaml` and `*.yml` files, sorted by name.
+A directory imports every `*.yaml` and `*.yml` file in it, sorted by name.
 
 ```bash
 anpord eval import --format yaml ./cases --out ./browsing.eval.ts
@@ -76,16 +83,16 @@ judge_context:
 max_steps: 12
 ```
 
-`name` and `task` are required. The task becomes the prompt. Each `judge_context` entry becomes a failing placeholder because it requires human judgment. A case without `judge_context` gets one placeholder asking for a pass condition.
+`name` and `task` are required. The task becomes the prompt. Each `judge_context` entry needs human judgment, so it becomes a failing placeholder. A case without `judge_context` gets one placeholder asking what a good answer is.
 
-`max_steps` becomes a comment because Anpord does not cap agent steps. YAML cases use `files({})` because the format carries no source files.
+`max_steps` becomes a comment, because Anpord does not cap agent steps. YAML cases start with `files({})` because the format carries no source files.
 
 ## Finish the suite
 
-1. Run the import and review its output.
+1. Review the generated file.
 2. Replace each `files({})` with fixture files or a [repository source](/evals/cases).
-3. Choose the harness, model, and sandbox.
+3. Set the harness, model and sandbox for each variant.
 4. Replace every `unwritten(...)` placeholder with a real check.
-5. Run the generated suite with `anpord eval ./suite.eval.ts`.
+5. Run it with `anpord eval ./suite.eval.ts`.
 
-The command reports converted and unconverted assertions on stderr. Invalid files fail by path, case, and field. A directory is never partially imported.
+An invalid file fails with its path, case and field. A directory is never partially imported.

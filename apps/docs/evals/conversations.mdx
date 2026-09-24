@@ -1,19 +1,30 @@
 ---
 title: "Conversations"
-description: "Judge an agent on a conversation, not a single prompt"
+description: "Test an agent over a conversation, not a single prompt"
 ---
 
-A case is one prompt and one answer unless it states a human. When it does, the agent's reply goes back to that person, they answer what it actually said, and the harness continues the same session. That is what makes "did the agent ask before it acted" a question an eval can answer.
+A case sends one prompt and reads one answer unless it sets `user`. With `user`, the agent's reply goes to a simulated person, they answer what it actually said, and the harness continues the same session. That lets an eval check things like whether the agent asked before it acted.
 
 ```ts
-import { suite } from "anpord";
+import { suite, type Validator } from "anpord";
 import { human } from "anpord/validators";
 
+const askedFirst: Validator = async ({ cli, turns }) => {
+  const conversation = await turns();
+  const approved = conversation.findIndex((turn) =>
+    turn.userText.toLowerCase().includes("yes")
+  );
+  const calls = await cli.calls();
+
+  return { passed: approved > 0 && calls.length > 0 };
+};
+
 export default suite({
-  name: "support routing",
+  name: "pricing",
   prompt: "Read USER_REQUEST.md and model the pricing.",
   cases: [
     {
+      id: "asks-before-it-pushes",
       name: "asks before it pushes",
       user: human({
         goal: "Get Pro live in the sandbox, not just written to a file.",
@@ -30,35 +41,31 @@ If the agent asks whether to push or go live: yes, go ahead.`,
 
 ## Goal and prompt
 
-The two fields reach different halves of the person's instructions, and the difference is the point.
+`goal` (up to 2,000 characters) is what the person wants done. They pursue it every turn and push back when the agent stalls.
 
-`goal` is what they are trying to get done. They pursue it every turn, and it is why they push back when the agent stalls.
+`prompt` (up to 8,000 characters) is the private brief they answer from. They do not volunteer it. A broad question gets everything in the brief that answers it. A question never asked gets nothing, so an agent that guesses instead of asking will contradict facts it was never told.
 
-`prompt` is the brief they answer *from*. They do not volunteer it. A broad question earns everything in the brief that answers it. A question never asked earns nothing. An agent that guesses rather than asks will contradict a fact it was never told.
-
-Write the brief the way the person would say it, one fact per line. Facts that are not in it do not exist: a person who invents a price is not measuring anything.
+Write the brief the way the person would say it, one fact per line. The person is told not to invent anything outside it.
 
 ## Who plays the person
 
-A model, pinned apart from the agent under test rather than chosen per case, because the person is measurement apparatus. A weak simulator approves a summary that contradicts its own brief, and the case then passes for the wrong reason. `ANPORD_USER_MODEL` overrides it for a whole run.
+A model plays the person. It is fixed for all cases, not chosen per case, and defaults to `gpt-5.4-mini`. A weak simulator can approve a summary that contradicts its own brief, so the case passes for the wrong reason. The `ANPORD_USER_MODEL` environment variable on the runner overrides it.
 
-It speaks through a model [connection](/connections). Without one, a run that states a human is refused when it starts rather than conducting a one-turn conversation that reads like a person who approved immediately.
+It needs a model [connection](/connections). Without one, a batch that contains a case with a simulated person is refused when it starts.
 
-That model is part of the variant, so runs conducted by one person are never mixed with runs conducted by another. Changing it starts a new variant rather than rewriting the old one's history.
+The user model is part of the variant, so results from different user models are never mixed. Changing it creates a new variant.
 
 ## Ending
 
-A conversation ends when the person has nothing left to say, which they decide from the agent's reply rather than from a turn count. It also ends at a ceiling of eight turns, and immediately when the harness reports no session to continue.
+A conversation ends when the person says they are done, which they decide from the agent's reply, not a turn count. It also ends after eight turns.
 
-That last case ends the run at one turn rather than starting over. A second opening prompt would be scored as though a reply had been read, so a base that cannot continue a session is refused instead.
+If the harness reports no session to continue, the conversation stops after the first turn instead of starting over with a second opening prompt. `codex` and `claude` continue sessions. Other harnesses hold a one-turn conversation.
 
-A person who stops answering mid-conversation is not an ending but a failure. It fails the trial rather than scoring it, because a conversation that stopped early would otherwise read as one the agent finished.
-
-`codex` and `claude` continue sessions. Any other base runs a conversation of one turn.
+If the person stops answering mid-conversation (for example, the user model fails), the trial ends with an error instead of a pass or fail. A conversation cut short would otherwise look like one the agent finished.
 
 ## A fixed script
 
-When the ordering is the point and the conversation is not, state the replies:
+When the order of events matters more than the conversation, give the replies up front:
 
 ```ts
 import { script } from "anpord/validators";
@@ -66,30 +73,18 @@ import { script } from "anpord/validators";
 user: script(["yes, go ahead", "that looks right"]);
 ```
 
-The agent's own words never reach a script, so it costs nothing and varies not at all. It is the right choice for a case that asserts what happens *after* an approval, and the wrong one for a case that asks whether the agent earned it.
+A script takes 1 to 24 replies and ends when they run out. It never reads the agent's words, so it costs nothing and never varies. Use it to test what happens after an approval, not whether the agent earned one.
 
 ## What a validator reads
 
-`turns()` returns what each side said, in order, with the number of commands the agent ran before replying:
+`turns()` returns each turn in order, with `index`, `userText`, `agentText` and `commandCount`, the number of commands the agent ran before replying.
 
-```ts
-const askedFirst: Validator = async ({ cli, turns }) => {
-  const conversation = await turns();
-  const approved = conversation.findIndex((turn) =>
-    turn.userText.toLowerCase().includes("yes")
-  );
-  const calls = await cli.calls();
+`commandCount` ties calls to turns. The call log is in order, so the first turn owns the first `commandCount` calls, the second owns the next, and so on. An ordering check becomes index arithmetic instead of a transcript search.
 
-  return { passed: approved > 0 && calls.length > 0 };
-};
-```
-
-The command count is what attributes a call to a turn. The call log is in order and each turn states its own length, so the two partition together: the first turn owns the first `commandCount` calls, the second owns the next, and so on. An ordering question becomes arithmetic on indices rather than a search through a transcript.
-
-`turns()` returns an empty list for a case with no conversation, so a validator never has to ask whether the field is there.
+`turns()` returns an empty list for a case without `user`.
 
 ## Cost
 
-Every turn is a model call for the agent and a cheaper one for the person. A case that converses costs several times what a single-prompt case costs, and a case whose person never says `done` costs the ceiling.
+Every turn is a model call for the agent and a cheaper one for the person. A conversation costs several times a single-prompt case, and one where the person never finishes costs all eight turns.
 
-State a goal the person can recognise as met. A brief that never resolves is a bill, not a measurement.
+Give the person a goal they can recognize as met.

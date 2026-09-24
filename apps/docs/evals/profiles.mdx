@@ -1,9 +1,9 @@
 ---
 title: "Harness profiles"
-description: "Version the configuration you layer on a harness"
+description: "Version the files and settings you layer on a harness"
 ---
 
-Profiles version the files and settings layered onto a harness:
+A profile is the files and settings you layer onto a harness. It is part of the variant:
 
 ```ts
 variants: [
@@ -16,11 +16,11 @@ variants: [
 ]
 ```
 
-The first column is the stock harness. The second is your configured harness. Each is its own variant with its own runs, so profile changes are read against that profile's history.
+The first variant is the stock harness. The second is your configured one. Each variant keeps its own runs, so you read a profile change against that profile's history.
 
 ## The directory
 
-`dir` resolves against the eval file. Anpord walks two directories and nothing else:
+`dir` resolves against the eval file. Anpord reads two directories and nothing else:
 
 ```
 profile/
@@ -36,16 +36,14 @@ profile/
 
 | Path | Where it lands |
 | --- | --- |
-| `home/**` | The sandbox home directory, before the harness starts |
-| `workspace/**` | The checked-out workspace, after the source is cloned |
+| `home/**` | The sandbox home directory, after the harness writes its own credentials and config, so a profile can override them |
+| `workspace/**` | The workspace, after the source is cloned |
 
-Everything outside those two directories is ignored unless the manifest names it, so a `README.md` beside them documents the profile without shipping into the sandbox. `node_modules` and `.git` are skipped wherever they appear.
-
-Files land before the agent runs, and after the harness has written its own credentials, so a profile can override what the harness put there.
+Files outside those two directories are ignored unless the manifest names them, so a `README.md` can document the profile without shipping. `node_modules` and `.git` are skipped at any depth.
 
 ## The manifest
 
-`profile.json` carries what is not a file:
+`profile.json` holds what is not a file. It is optional.
 
 ```json profile.json
 {
@@ -58,22 +56,21 @@ Files land before the agent runs, and after the harness has written its own cred
 
 | Key | Meaning |
 | --- | --- |
-| `systemPrompt` | The agent's system prompt, delivered per base as below |
-| `env` | Environment variables, present for every process the trial starts. Never a secret: see below |
-| `install` | A command run once while the sandbox is prepared, after the profile's files are written. Any harness |
-| `run` | The command line that starts the process. Command harness only, and required there |
+| `systemPrompt` | The agent's system prompt. See [System prompts](#system-prompts) |
+| `env` | Environment variables for every process the trial starts. Never secrets |
+| `install` | A command run once while the sandbox is prepared. Any harness |
+| `run` | The command that starts your process. [Command harness](/evals/command-harness) only, and required there |
 
-A value naming a file inside the profile directory is replaced by that file's content, so `"systemPrompt": "system.md"` ships the prompt and `"systemPrompt": "Be terse."` ships the sentence. `env` values are always literal. A value naming a file outside the directory is refused rather than read: a prompt that only exists on one machine is not part of the profile.
+If `systemPrompt`, `install` or `run` names a file inside the profile directory, the file's content is used. Otherwise the value is used as written, so `"systemPrompt": "system.md"` ships the file and `"systemPrompt": "Be terse."` ships the sentence. A value that names a file outside the directory is an error. `env` values are always literal.
+
+`install` runs after both file stages, so it can read what the profile shipped, and before the case's prepare step. A profile that sets `run` on any base other than `command` is rejected.
 
 <Warning>
-  Never put a key in `env`. A profile is committed beside the eval file, sent
-  with the run, stored unencrypted, and readable by anyone who can read the
-  run. Provider keys belong in an `env` credential, which is sealed and
-  injected into the sandbox at run time, and whose values override anything
-  the profile sets under the same name.
+  Never put a key in `env`. A profile is committed beside the eval file, stored
+  unencrypted and readable by anyone who can read its runs. Provider keys
+  belong in an `env` credential, which is sealed, injected at run time, and
+  overrides any profile variable with the same name.
 </Warning>
-
-`run` belongs to the [command harness](/evals/command-harness), and a profile on any other base is rejected if it sets one. `install` is available to every base: fetching a skill package or a dependency is not a property of the harness that reads it afterwards. It runs after both file stages, so it can read what the profile shipped, and before the case's own prepare.
 
 ## Limits
 
@@ -82,29 +79,29 @@ A value naming a file inside the profile directory is replaced by that file's co
 | Files | 256 |
 | Characters per file | 96,000 |
 | Characters in total | 2,000,000 |
-| Path prefix | `home/` or `workspace/` |
+| Path length | 512 characters, under `home/` or `workspace/`, no `..` segment |
 
-Paths are relative, may not contain a `..` segment, and are at most 512 characters. Files are text: a file holding a NUL byte is skipped rather than shipped, so a checked-in binary does not fail the compile.
+Files are text. A file containing a NUL byte is skipped, so a checked-in binary does not fail the compile.
 
 ## System prompts
 
-Each base takes a system prompt in its own way. The prompt is always written into the sandbox; whether the harness is given its path or its text depends on the base:
+The prompt is always written into the sandbox. Each base receives it differently:
 
 | Base | Delivery |
 | --- | --- |
-| `claude` | `--append-system-prompt-file`, with `--add-dir` on the workspace so the profile's files are readable, plus `--settings` and `--mcp-config` when the profile ships them. Anpord runs Claude with `--bare`, so a `CLAUDE.md` is not auto-discovered and must be named this way |
+| `claude` | `--append-system-prompt-file`. A profile also adds `--add-dir` on the workspace, plus `--settings` and `--mcp-config` when it ships `.claude/settings.json` or `.mcp.json`. Claude runs with `--bare`, so a `CLAUDE.md` is not discovered and must be passed this way |
 | `opencode` | `OPENCODE_CONFIG_CONTENT`, merging the profile's own config with the prompt's path in `instructions` |
-| `codex` | `-c developer_instructions=…`, carrying the text rather than a path, and adding to the built-in prompt rather than replacing it |
-| `gemini`, `qwen`, `pi`, `fx`, `cursor` | The text is prepended to the instructions file the agent reads, `AGENTS.md` or `GEMINI.md` |
+| `codex` | `-c developer_instructions=…`, carrying the text, added to the built-in prompt rather than replacing it |
+| `gemini`, `qwen`, `pi`, `fx`, `cursor` | Prepended to the instructions file the agent reads, `GEMINI.md` for Gemini and `AGENTS.md` for the rest |
 | `command` | `ANPORD_SYSTEM_PROMPT_FILE`, holding the path |
 
-For file-based delivery, place required instructions in `workspace/AGENTS.md` and inspect the trajectory to confirm the harness read them.
+For file-based delivery, check the trajectory to confirm the harness read the instructions.
 
 ## Identity
 
-The profile **name** is part of the variant. Two profiles on one base, one model and one sandbox are two variants with two histories, exactly as two harnesses would be.
+The profile **name** is part of the variant. Two profiles on the same base, model and sandbox are two variants with separate histories, the same as two harnesses.
 
-The profile **version** is not. It is a content hash over the files, system prompt, environment, and install and run commands. An edited profile is a new run on the same variant, and each run records the version it used. Renaming a file changes the version. Renaming the profile starts a new variant.
+The profile **version** is not. It is a hash of the files, system prompt, environment, install and run commands. When you edit a profile, the next batch adds a run on the same variant, and each run records the version it used. Renaming a file changes the version. Renaming the profile creates a new variant.
 
 ```ts
 const [latest, previous] = (
@@ -116,8 +113,8 @@ console.log(previous?.profileVersion, "→", latest?.profileVersion);
 
 ## Comparing fairly
 
-Ship the same skills to every column. Skills usually live in agent-specific directories such as `.claude/skills` and `.agents/skills`. If only one column has them, the grid measures the skills instead of the harness. Write them into every directory the selected harnesses read through `workspace/`.
+Ship the same skills to every variant. Skills live in agent-specific directories such as `.claude/skills` and `.agents/skills`, so write them under `workspace/` into every directory the compared harnesses read. Otherwise you measure the skills, not the harness.
 
-Hold the model constant. Variants are not comparable when a profile requires an unavailable provider or the model ids do not overlap. State that beside the grid instead of interpreting the delta.
+Hold the model constant. If a profile needs a provider another variant cannot use, or the model ids do not overlap, the variants are not comparable. Say so next to the results instead of reading the difference.
 
-Change one thing at a time. A run that moves the profile and the model together tells you something moved.
+Change one thing at a time. If the profile and the model both change between runs, you cannot tell which one moved the result.

@@ -1,9 +1,7 @@
 ---
 title: "Anpord CLI"
-description: "Run eval files and manage prompts from a terminal"
+description: "Run eval suites, connect credentials and manage prompts from a terminal"
 ---
-
-The CLI runs TypeScript eval files, reads prompts, adds versions, moves channels, and generates variable types.
 
 ## Install
 
@@ -20,21 +18,52 @@ anpord --help
 
 </CodeGroup>
 
-Set `ANPORD_API_KEY` before commands that call Anpord. Help, version, and `eval import` work without it.
+Set `ANPORD_API_KEY` before commands that call Anpord. `--help`, `--version`, `eval import` and `eval --local` work without it.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval [file] [--local] [--fail-on <gate>] [--no-wait] [--json]` | Run a TypeScript eval suite and wait for it |
-| `anpord eval import --format <format> <file> [--out <path>]` | Turn a case file a team already wrote into a suite |
+| `anpord eval [file] [options]` | Run eval suites and wait for their batches |
+| `anpord eval import --format <format> <path> [--out <file>]` | Turn a case file a team already wrote into a suite |
+| `anpord connectors <subcommand>` | Connect the credentials evals use |
 | `anpord list [--json]` | List up to 100 prompts |
-| `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Read content, a channel, or a version |
+| `anpord get <id> [--json] [--channel <name>] [--at <version>]` | Print a prompt's content, from a channel or a version |
 | `anpord versions <id>` | Print version history as JSON |
-| `anpord push <id> <content> [-m <message>]` | Append a version |
-| `anpord promote <id> --to <channel> --at <version>` | Move a channel |
-| `anpord generate [--out <path>]` | Generate variable types for up to 100 prompts |
-| `anpord --completions <shell>` | Print completions for zsh, bash, or fish |
+| `anpord push <id> <content> [-m <message>]` | Add a version |
+| `anpord promote <id> --to <channel> --at <version>` | Point a channel at a version |
+| `anpord generate [--out <path>]` | Write variable types for up to 100 prompts |
+| `anpord --completions <shell>` | Print completions for zsh, bash or fish |
+
+## Run evals
+
+```bash
+anpord eval
+anpord eval ./evals/smoke.eval.ts
+```
+
+With no file, the CLI finds every `*.eval.ts` under the current directory (skipping `node_modules`, `dist`, `build` and hidden folders) and runs them one after another. Each suite file starts one batch: one run per case per variant, each with the suite's number of trials. The command waits for the batch and applies the gate. In an interactive terminal the grid updates as trials finish. Otherwise it prints the final grid once.
+
+| Option | Purpose |
+| --- | --- |
+| `--fail-on` | Gate, `failures` by default: fail when any run fails or has a trial that did not pass. `strict` also fails when a run or trial is missing or unfinished. `never` ignores trial results |
+| `--timeout` | Seconds to wait per batch, default `1200`. A timeout fails the command but does not cancel the batch |
+| `--output` | Write a JSON report with each file's batch ID, batch and problems |
+| `--no-wait` | Start each batch and print its ID and runs, without waiting |
+| `--json` | Print each finished batch as JSON instead of the grid |
+| `--local` | Run each case once on this machine instead of in a cloud sandbox, using the suite's first variant, so a verifier can reach a service on `localhost`. With an API key, the batch is recorded and credentials are leased from your organization. Without one, nothing is sent. See [local runs](/evals/local) |
+
+Under every gate, a batch that fails to start, fails, or times out fails the command.
+
+`anpord eval import` reads an existing case file (or a directory of them) and prints a suite, or writes it with `--out`. It converts the mechanical assertions and leaves prose ones failing until someone writes the check. It reports how many of each on stderr. See [importing a case file](/evals/import).
+
+## Connect credentials
+
+`anpord connectors add <integration>` connects a credential for the organization. It prompts for the secret, or reads it from stdin when not run in a terminal, so the secret never appears in your shell history. Pass `--default` to make it the one evals use, `--name` to label it and `--auth` to pick an auth method. Integrations that sign in through a browser are connected in the dashboard instead.
+
+`anpord connectors integrations` lists what can be connected, `connectors list` shows what the organization has, and `connectors remove <id>` deletes one.
+
+## Manage prompts
 
 Prompt content goes to stdout:
 
@@ -44,44 +73,19 @@ anpord push support-reply - -m "Shorter opening" < prompts/support-reply.md
 anpord promote support-reply --to production --at 7
 ```
 
-Run every eval suite in the repository:
-
-```bash
-anpord eval
-```
-
-Pass a file to run one suite: `anpord eval ./evals/smoke.eval.ts`. Runs and trials run concurrently within Anpord and provider limits.
-
-Each suite starts a batch: one run per case and variant. The command waits for the batch and fails if any run's trials did not all pass. In an interactive terminal, the grid updates as runs settle. Non-interactive runs print the final grid once.
-
-| Option | Purpose |
-| --- | --- |
-| `--fail-on` | `failures` by default: any run whose trials did not all pass fails. `strict` also requires every expected run and trial to have finished, and `never` ignores trial results |
-| `--timeout` | Seconds to wait per batch, default `1200`. A timeout fails the command but does not cancel the remote batch |
-| `--output` | Write a JSON report containing batch IDs, results, and gate failures |
-| `--no-wait` | Start the batch and print its id and runs |
-| `--json` | Print the finished batch instead of the grid |
-| `--local` | Run every case on this machine instead of a cloud sandbox, so a verifier can reach a service on `localhost`. With an API key the run is recorded and its credentials are leased from your organization; without one it prints and sends nothing. See [local runs](/evals/local) |
-
-A run that fails outright is reported whatever the gate, because that is the
-sandbox rather than the result.
-
-`anpord eval import` reads a case file a team already wrote and prints a suite,
-or writes one with `--out`. It converts the assertions that are mechanical and
-leaves the ones written as prose failing until a human writes them, saying how
-many of each on stderr. See [importing a case file](/evals/import).
-
-`push` does not promote or accept config. Use the SDK or API for prompts with versioned config.
+`push` does not promote and cannot set config. Use the SDK or API for prompts with versioned config.
 
 <Note>
 `--at` selects a prompt version. `--version` prints the CLI version.
 </Note>
+
+## Output and environment
 
 Failures exit nonzero without a stack trace. Status messages go to stderr.
 
 | Variable | Purpose |
 | --- | --- |
 | `ANPORD_API_KEY` | API key |
-| `ANPORD_BASE_URL` | API origin, defaulting to `https://api.anpord.com` |
-| `ANPORD_WEB_URL` | Where a GitHub check links to, defaulting to `https://anpord.com` |
-| `GITHUB_TOKEN` | Optional. With `GITHUB_REPOSITORY` and a sha, `anpord eval` posts a check named `anpord` on the commit |
+| `ANPORD_BASE_URL` | API origin, default `https://api.anpord.com` |
+| `ANPORD_WEB_URL` | Origin for batch links, default `https://anpord.com` |
+| `GITHUB_TOKEN` | Optional. With `GITHUB_REPOSITORY` set, `anpord eval` posts a check named `anpord` on the commit (the PR head on pull requests) |

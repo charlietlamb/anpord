@@ -1,9 +1,9 @@
 ---
 title: "Mock dependencies"
-description: "Give agents typed local MCP servers, CLIs, and HTTP APIs"
+description: "Give agents typed local MCP servers, CLIs and HTTP APIs"
 ---
 
-Mock dependencies are declarative TypeScript objects. Schemas infer handler types and validate requests and responses at runtime. Each trial gets its own MCP servers, CLIs, and HTTP APIs. Share fixtures across interfaces; keep assertions in validators.
+Mocks are TypeScript objects. Their schemas type your handlers and validate requests and responses at runtime. Each trial gets its own copy of every MCP server, CLI and HTTP API. Keep fixtures in shared files and assertions in validators.
 
 ```bash
 npm install anpord zod
@@ -58,7 +58,7 @@ export const usersMcp = server({
 });
 ```
 
-MCP supports tools and fixed-URI resources. Its schemas must implement Standard Schema and expose JSON Schema; the examples use Zod 4.
+MCP mocks support tools and fixed-URI resources. Schemas must implement Standard Schema and expose JSON Schema. The examples use Zod 4.
 
 ## CLI
 
@@ -81,13 +81,16 @@ export const usersCli = cli({
 });
 ```
 
-`cli.path` is the executable. `command.path` is a non-empty argv segment tuple. Each input key needs an `options` entry. Its flag defaults to the key in kebab case. Set `name`, including the leading `--`, to override it. String options accept `--id value` or `--id=value`. Boolean options are `true` when present and should be optional or have a schema default.
+- `cli.path` is the executable name. `command.path` is a non-empty list of argv segments.
+- Every input key needs an `options` entry. Its flag is the key in kebab case. Set `name` (with the leading `--`) to override it.
+- String options accept `--id value` or `--id=value`. Boolean options are `true` when present, so make them optional or give them a schema default.
+- Positional arguments are not supported.
 
-The runtime generates help and version output, validates output, prints JSON to stdout, and returns a nonzero exit code on failure. Positional arguments are not supported.
+The runtime generates help and version output, validates output, prints JSON to stdout and exits nonzero on failure.
 
 ## Attach and validate
 
-For HTTP servers, see [API mocks](/evals/api-mocks). They use the same fixtures and validators below.
+Attach mocks on the suite, then check the call logs in a validator. [API mocks](/evals/api-mocks) work the same way.
 
 ```ts users.eval.ts
 import { suite, type Validator } from "anpord";
@@ -120,14 +123,14 @@ export default suite({
   prompt: "Use an available interface to retrieve user_fixture and report its name.",
   mcp: [usersMcp],
   cli: [usersCli],
-  cases: [{ name: "gets user", validate }],
+  cases: [{ id: "gets-user", name: "gets user", validate }],
   variants: [{ harness: "codex", model: "model-id" }],
   trials: 1,
 });
 ```
 
-Validators should check both the recorded call and the case outcome. Journal inputs and outputs are `unknown`, so parse them with the shared schema before asserting values.
+Check both the recorded call and the outcome. Call inputs and outputs are `unknown`, so parse them with the shared schema before asserting on values.
 
-Definitions apply to every variant in the suite. Split variants into separate eval files when they need different interfaces. Anpord installs CLI mocks into every harness profile. It configures MCP mocks for every [built-in agent](/evals/variants), not the custom command harness.
+Mocks apply to every variant in the suite. Put variants in separate eval files when they need different mocks. CLI mocks are installed for every harness. MCP mocks are configured for every [built-in harness](/evals/variants), but not the [command harness](/evals/command-harness).
 
-Mock handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox and must contain no secrets. Running the hosted eval still requires `ANPORD_API_KEY` and a model connection.
+Handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox, so keep secrets out of it. Running the eval still needs `ANPORD_API_KEY` and a model connection.

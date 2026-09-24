@@ -1,22 +1,22 @@
 ---
 title: "Run Claude Code evals"
-description: "Connect Claude once, verify one trial, then compare models"
+description: "Connect Claude once, check one trial, then compare models"
 ---
 
-Anpord runs the actual Claude Code CLI in an isolated sandbox. You do not need to install Claude locally or write an authentication script.
+Anpord runs the real Claude Code CLI in a sandbox. You don't install Claude locally or write an authentication script.
 
 ## Connect Claude
 
-1. Select the organization that will own the runs.
+1. Select the organization that will own the evals.
 2. Open **Settings > Harnesses > Add harness** and choose **Claude Code**.
-3. Enter an Anthropic API key and choose **Everyone in the organization** for CLI, SDK or CI runs.
-4. Save it, make it the Claude default, and choose **Verify**.
+3. Enter an Anthropic API key and choose **Everyone in the organization**, so CLI, SDK and CI batches can use it.
+4. Save it. From the connection's actions menu, choose **Make default** if it isn't already, then **Check it works**.
 
-The key stays in Anpord. A local Claude login or Claude subscription does not authenticate these runs: Anpord uses [Claude Code's bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), which requires API credentials.
+The key stays in Anpord. A local Claude login or Claude subscription does not authenticate these trials: Anpord uses [Claude Code's bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), which requires API credentials.
 
-Create an Anpord API key with `evals:read` and `evals:write` in the same organization. Configure it as `ANPORD_API_KEY` in your shell or CI secret store. No Anthropic key belongs in your eval file or GitHub workflow. Hosted E2B sandboxes need no separate key.
+Create an Anpord API key with `evals:read` and `evals:write` in the same organization and set it as `ANPORD_API_KEY` in your shell or CI secrets. Your eval file and GitHub workflow hold no Anthropic key. Hosted E2B sandboxes need no key of their own.
 
-## Verify one trial
+## Check one trial
 
 Install `anpord`, then create `claude.eval.ts`:
 
@@ -26,7 +26,13 @@ import { suite } from "anpord";
 export default suite({
   name: "claude-smoke",
   prompt: "Create hello.txt containing exactly hello.",
-  cases: [{ name: "writes-hello", verify: 'test "$(cat hello.txt)" = hello' }],
+  cases: [
+    {
+      id: "writes-hello",
+      name: "writes hello.txt",
+      verify: 'test "$(cat hello.txt)" = hello',
+    },
+  ],
   variants: [{ harness: "claude", model: "claude-haiku-4-5-20251001" }],
   trials: 1,
 });
@@ -36,11 +42,11 @@ export default suite({
 npx anpord eval ./claude.eval.ts
 ```
 
-A passing trial confirms the connection, Claude installation, file tools and verifier. Open the returned dashboard link to inspect commands and output. It does not establish reliability across repeated attempts.
+This starts a batch with one run: the one case on the one variant, with one trial. A passing trial confirms the connection, the Claude install, its file tools and your verifier. Open the printed batch link to see the commands and output. One trial says nothing about how reliably the case passes.
 
 ## Compare models
 
-Keep the cases unchanged and add variants:
+Keep the cases and add variants:
 
 ```ts
 variants: [
@@ -50,17 +56,17 @@ variants: [
 ]
 ```
 
-Use [exact model IDs](https://platform.claude.com/docs/en/models/overview) available to your Anthropic account. Model discovery is optional. Calls are billed to that account.
+The next batch holds one run per case per variant, so the models appear side by side. Use [exact model IDs](https://platform.claude.com/docs/en/models/overview) your Anthropic account can call. Calls are billed to that account.
 
-Add [MCP and CLI mocks](/evals/mocks) or [HTTP mocks](/evals/api-mocks) to test tool use. The same definitions work with Claude; Anpord configures them in each sandbox.
+To test tool use, add [MCP and CLI mocks](/evals/mocks) or [HTTP mocks](/evals/api-mocks). Anpord sets them up in each sandbox for Claude the same way as for other harnesses.
 
-Split matrices past the [run limit](/api-reference/introduction) into separate suites. [CI](/guides/ci) covers trial counts and the shared GitHub Action.
+A batch is capped at 100 trials (cases x variants x trials). Split a larger grid into separate suites. See [API limits](/api-reference/introduction#limits), and [CI](/guides/ci) for trial counts and the GitHub Action.
 
 ## If setup fails
 
-- **Missing Claude credential:** check the organization, shared scope and default connection.
-- **Authentication rejected:** rotate the Anthropic key and verify it again.
+- **Missing Claude credential:** check the organization, that the connection is shared with everyone, and that it is the default.
+- **Authentication rejected:** rotate the Anthropic key and check it again.
 - **Model unavailable:** check the exact ID and your account's access.
-- **Local login works but CI fails:** CI needs an organization connection, not your personal connection or local session.
+- **Works locally but fails in CI:** an API key uses the organization's connections, not your personal connection or local login.
 
-Passing compilation or local mock tests does not confirm a hosted Claude run. Check the trial result before expanding the matrix.
+Compiling the suite or passing local mock tests does not prove a hosted Claude trial works. Check one trial's result before growing the grid.

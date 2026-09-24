@@ -3,7 +3,7 @@ title: "Model judges"
 description: "Score answers with a model you choose"
 ---
 
-Use code for exact checks. Add a judge for qualities such as correctness, relevance, or clarity that need interpretation. When the answer is one of a fixed set of labels, a [classifier](/evals/classifiers) decides faster and reports how sure it is.
+Use code for exact checks. Add a judge for qualities that need interpretation, such as correctness or clarity.
 
 ```ts
 import { suite } from "anpord";
@@ -22,13 +22,13 @@ const correctness = judge({
 export default suite({
   name: "arithmetic",
   prompt: "What is 2 + 2? Explain briefly.",
-  cases: [{ name: "addition", validate: correctness }],
+  cases: [{ id: "addition", name: "addition", validate: correctness }],
   variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "e2b" }],
   trials: 3,
 });
 ```
 
-No Effect imports or model client setup are needed in the eval file. The judge model is independent of the variant being measured. Anpord requests the exact model you specify. An unavailable model produces an unscored judgment rather than a fallback.
+The judge model is independent of the variant being measured. Anpord requests exactly the model you name. If it is unavailable, the judgment is unscored. There is no fallback model.
 
 ## Combine checks
 
@@ -38,41 +38,41 @@ No Effect imports or model client setup are needed in the eval file. The judge m
 validate: [checkToolCalls, correctness];
 ```
 
-Code checks run in the case sandbox. Judges run afterward. A case passes only when its code checks pass and every judge meets its threshold. A passing judge cannot override a failed code check.
+Code checks run in the trial's sandbox. Judges run after it. A trial passes only when every code check passes and every judge meets its threshold. A passing judge cannot override a failed code check.
 
 ## Configuration
 
 | Field | Meaning |
 | --- | --- |
-| `name` | Unique judge name within the case |
-| `harness` or `provider` | Agent harness, or `provider: "openai"` for a direct model call |
+| `name` | Judge name, unique within the case |
+| `harness` or `provider` | A harness (any except `command`), or `provider: "openai"` for a direct model call |
 | `model` | Exact model identifier |
 | `prompt` | Instructions for the judgment, separate from the case prompt |
 | `expected` | Optional reference answer |
-| `choices` | Labels mapped to scores between 0 and 1 |
-| `threshold` | Inclusive pass threshold; defaults to 1 |
-| `timeoutMs` | Total judging timeout; defaults to 120,000, maximum 300,000 |
+| `choices` | Labels mapped to scores from 0 to 1 (1 to 20 choices) |
+| `threshold` | Inclusive pass threshold, default 1 |
+| `timeoutMs` | Total judging timeout, default 120,000, range 1,000 to 300,000 |
 
-A case accepts up to 20 validators. Each judge accepts up to 20 choices. Names, prompts, and expected answers are checked when the eval compiles.
+A case accepts up to 20 validators. `judge()` checks its options when you call it.
 
 ## Authentication
 
-Agent judges use your organization's connection for that harness. A Codex judge can use a ChatGPT subscription connection and does not need an OpenAI API key. When the variant uses the same harness, the judge reuses its bound connection.
+A harness judge uses your organization's connection for that harness. A Codex judge can use a ChatGPT subscription connection and needs no OpenAI API key. When the variant uses the same harness, the judge reuses the variant's connection.
 
-For direct OpenAI calls, replace `harness` with `provider: "openai"`. That path needs its own OpenAI credential, which [connections](/connections) covers.
+A `provider: "openai"` judge needs its own OpenAI credential. See [connections](/connections).
 
 ## Evidence and isolation
 
-Judges receive the rendered case prompt, final answer, and optional expected answer. They do not receive the case workspace, transcript, MCP or CLI configuration, or sandbox environment.
+A judge receives the rendered case prompt, the final answer and `expected`, if set. It does not see the workspace, transcript, MCP or CLI configuration, or sandbox environment.
 
-Agent judges start in a fresh sandbox after the case sandbox closes. They are instructed to grade only the supplied evidence. Tool use invalidates the judgment. It is detected rather than prevented by a network firewall. For tool-use assertions, keep a code validator that inspects the mock call log.
+A harness judge starts in a fresh sandbox after the trial's sandbox closes. It is told to grade only the supplied evidence. If it uses tools anyway, the judgment is invalid. Tool use is detected, not blocked by a firewall. To assert on tool use, keep a code validator that reads the mock call log.
 
-Direct OpenAI judges use structured outputs with storage disabled. Both backends validate the response against the declared choices and require a short explanation. Timeouts, refusals, invalid responses, and provider failures produce `score: null` and make the trial `void`.
+An OpenAI judge uses structured outputs with storage disabled. Both kinds must pick one of the declared choices and give a short reason. A timeout, refusal, invalid response or provider failure gives `score: null` and voids the trial, so it is not counted as a pass or a fail.
 
 ## Results
 
-Each trial's `judgments` contains `name`, `model`, `evaluator`, `choice`, `score`, `threshold`, `reason`, `durationMs`, and `error`. The dashboard shows these separately from code checks. Judge costs are marked unpriced, so a judged run's cost total is incomplete.
+Each trial's judgments carry `name`, `model`, `evaluator`, `choice`, `score`, `threshold`, `reason`, `durationMs` and `error`. The dashboard shows them apart from code checks. Judge costs are not priced yet, so a judged run's cost total is incomplete.
 
-For the request, raw response, and provider metadata, inspect the judge entry in `trial.validations`. Invalid response text is retained even when no score can be assigned. See [validation evidence](/evals/results#validation-evidence) for capture limits and privacy settings.
+For the request, raw response and provider metadata, open the judge entry in the trial's `validations`. Invalid response text is kept even when no score is assigned. See [validation evidence](/evals/results#validation-evidence) for capture limits and privacy settings.
 
-Changing a judge changes the case definition, and later runs record the new version. Calibrate each judge prompt against known good and bad answers before trusting its scores. Repeat trials: model judgments can vary, even with the same model and prompt.
+Changing a judge changes the case definition, so later runs record a new case version. Calibrate each judge prompt against known good and bad answers before trusting it, and use several trials: judgments vary even with the same model and prompt.

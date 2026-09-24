@@ -1,17 +1,13 @@
 ---
 title: "Run evals in CI"
-description: "Catch regressions before release"
+description: "Gate pull requests on eval results"
 ---
 
-Install `anpord` in your project and commit the lockfile. Name suites `*.eval.ts`
-so the action can discover them.
+Install `anpord` in your project and commit the lockfile. Name suite files `*.eval.ts` so the action can find them.
 
-Create an API key with `evals:read` and `evals:write`, then save it as the
-`ANPORD_API_KEY` repository secret. Use a dedicated organization for CI.
+Create an API key with `evals:read` and `evals:write` and save it as the `ANPORD_API_KEY` repository secret. Use a dedicated organization for CI.
 
-In that organization, connect the harness under **Settings → Harnesses** and
-make it an organization default. API keys cannot use personal connections.
-Provider credentials stay in Anpord, not in GitHub or the eval definition.
+In that organization, connect the harness under **Settings > Harnesses** and make it the default, shared with everyone in the organization. API keys cannot use personal connections. Provider credentials stay in Anpord, not in GitHub or the suite.
 
 ```yaml
 name: Agent evals
@@ -42,45 +38,33 @@ jobs:
           api-key: ${{ secrets.ANPORD_API_KEY }}
 ```
 
-Replace `COMMIT_SHA` with a reviewed action commit. The action uses your installed
-SDK, not a downloaded CLI. It requires Node 20 or later.
+Replace `COMMIT_SHA` with a reviewed action commit. The action runs the `anpord` CLI you installed, with Node 20 or later. It does not install dependencies.
 
-The default `strict` gate requires every expected trial to pass. Failed, void,
-missing, and unfinished trials fail the job, including a suite's first run.
-Batch links appear in the job summary as soon as submission succeeds.
-
-The dashboard labels these runs **CI** and links back to the exact GitHub
-Actions attempt. The CLI reads GitHub's existing environment; no extra setup
-or environment overrides are needed.
+Each suite file starts one batch: one run per case per variant. The job summary links each batch as soon as it starts. The dashboard labels these batches **CI** and links back to the GitHub Actions attempt, read from GitHub's environment with no extra setup.
 
 | Input | Default | Purpose |
 | --- | --- | --- |
 | `api-key` | Required | Anpord API key |
-| `working-directory` | `.` | Project containing the installed SDK |
-| `file` | Discover `*.eval.ts` | Run one suite |
-| `fail-on` | `failures` | `failures`, `strict`, or `never` |
+| `working-directory` | `.` | Project with `anpord` installed |
+| `file` | Discover `*.eval.ts` | Run one suite file |
+| `fail-on` | `failures` | `failures`, `strict` or `never` |
 | `timeout` | `1200` | Seconds to wait per batch |
 
-`failures` fails on any run whose trials did not all pass. `strict` also
-requires every expected run and trial to have finished. `never` ignores trial
-results. Submission errors, failed batches, and timeouts still fail all gates.
+- `failures` fails the job when any run fails or has a trial that did not pass.
+- `strict` also fails when a run or trial is missing or unfinished.
+- `never` ignores trial results.
 
-The action's `report` output is the path to a JSON results file. Upload it with
-`actions/upload-artifact` and `if: always()` if you want to keep it after the job.
+Under every gate, a batch that fails to start, fails, or times out fails the job.
+
+The `report` output is the path to a JSON file with each suite file's batch ID, batch and problems. To keep it, upload it with `actions/upload-artifact` and `if: always()`.
 
 ## What runs
 
-A definition that names no source is evaluated against the repository it sits
-in. In GitHub Actions, the CLI pins that source to the checked-out commit. The
-checkout above tests the PR head, not GitHub's synthetic merge commit.
+A case runs in an empty workspace unless it or its suite names a [`source`](/evals/cases#sources), such as `repo("acme/api@8f31c4a")`. The CLI does not point it at the checked-out commit for you. The checkout above uses the PR head, not GitHub's merge commit, so the suites and validators are the ones in the PR.
 
-The action skips fork and Dependabot PRs in this example because they cannot
-receive repository secrets. Keep unit tests separate so they still run. Do not
-use `pull_request_target` to execute untrusted eval definitions with a secret.
+This example skips fork and Dependabot PRs because they don't receive repository secrets. Keep unit tests in a separate job so they still run. Don't use `pull_request_target` to run untrusted suites with a secret.
 
-The job itself is the PR check. For an additional check named `anpord`, pass
-`GITHUB_TOKEN` in the step environment and grant `checks: write`. Its verdict
-matches the selected gate.
+The job is the PR check. For a separate check named `anpord` on the PR head commit, pass `GITHUB_TOKEN` in the step's `env` and grant `checks: write`. Its verdict follows the selected gate.
 
 Outside the action, the same command is:
 
@@ -90,29 +74,26 @@ bunx --no-install anpord eval --fail-on failures --timeout 1200 --output results
 
 ## Keep comparisons stable
 
-When testing one change, keep the rest of the [variant](/evals/variants) unchanged so its history stays comparable. Pin fixture repositories to a commit. A harness release stays on the same variant, and each run records the version it used.
+When you test one change, keep the rest of the [variant](/evals/variants) the same so its history stays comparable. Pin fixture repositories to a commit. A new harness release stays on the same variant, and each run records the harness version it used.
 
-Use at least three trials for a gating check. One trial measures an outcome, not repeatability.
+Use at least three trials for a gating check. One trial shows an outcome, not whether it repeats.
 
-## Control the run size
+## Control the batch size
 
 ```text
-total trials = cases x variants x trials per run
+trials in a batch = cases x variants x trials per run
 ```
 
-Five cases, two variants, and three trials open thirty sandbox sessions. Keep pull request grids small and run larger comparisons on a schedule.
+Five cases, two variants and three trials open 30 sandboxes. Keep pull request grids small and run larger comparisons on a schedule.
 
-A run holds between 1 and 10 trials. The [API reference](/api-reference/introduction) covers the request limits and what to do when a response is lost.
+A run holds 1 to 10 trials and a batch at most 100. See [API limits](/api-reference/introduction#limits).
 
-The CLI records batch IDs before polling and does not retry submissions. A remote
-batch continues if CI times out or is cancelled. Open its dashboard link before
-starting another.
+The CLI records batch IDs before waiting and never retries a start. If CI times out or is cancelled, the batch keeps running in Anpord. Open its link before starting another.
 
 ## What a trial costs
 
-An agent re-sends its whole conversation every turn, so whatever it reads early is paid for again on every turn after it. Pulling a large skill or reading a dependency to work out its API is the usual reason a trial costs ten times its neighbour on the same number of turns.
+An agent re-sends its whole conversation every turn, so anything it reads early is paid for again on every later turn. Loading a large skill, or reading a dependency to work out its API, is the usual reason one trial costs ten times another with the same number of turns.
 
-Tell the agent the interface rather than letting it go looking. A short reference in the workspace is cheaper than the file tree it would otherwise read, and steadier: the trials that explore are the ones whose cost varies most.
+Give the agent the interface instead of letting it search. A short reference in the workspace costs less than the files it would otherwise read, and keeps cost steadier: the trials that explore are the ones whose cost varies most.
 
-Each trial reports its token counts, and the dashboard flags two readings worth acting on -- a context that grew fast, and nothing served from cache. A grid multiplies both: thirty sessions each carrying a large context is thirty times the bill.
-
+Each trial reports its token counts. The dashboard flags two things to act on: context that grew fast, and nothing served from cache. A grid multiplies both, so 30 sandboxes each carrying a large context cost 30 times as much.

@@ -1,6 +1,6 @@
 # anpord
 
-TypeScript SDK for [Anpord](https://anpord.com). Define coding-agent evals, run them across agents and sandboxes, and manage versioned prompts.
+TypeScript SDK and CLI for [Anpord](https://anpord.com). Define coding-agent evals, run them on different harnesses, models and sandboxes, and manage versioned prompts.
 
 ## Install
 
@@ -8,7 +8,9 @@ TypeScript SDK for [Anpord](https://anpord.com). Define coding-agent evals, run 
 npm install anpord
 ```
 
-## Define an eval
+## Define a suite
+
+A suite groups cases that share a prompt and setup. Each variant is a harness, model and sandbox to run every case on.
 
 ```ts
 import { suite, empty } from "anpord";
@@ -25,7 +27,10 @@ export default suite({
       verify: 'test "$(cat hello.txt)" = hello',
     },
   ],
-  variants: [{ harness: "codex", model: "model-id", sandbox: "daytona" }],
+  variants: [
+    { harness: "codex", model: "gpt-5.6-sol" },
+    { harness: "claude", model: "sonnet", sandbox: "daytona" },
+  ],
   trials: 3,
 });
 ```
@@ -34,7 +39,7 @@ export default suite({
 npx anpord eval ./greeting.eval.ts
 ```
 
-With no file, the CLI discovers every `**/*.eval.ts` suite.
+Each file starts a batch: one run per case per variant. Each run makes `trials` attempts, each in its own sandbox. With no file, the CLI finds every `*.eval.ts` file under the current directory.
 
 ## Mock MCP and CLI
 
@@ -83,7 +88,7 @@ export const usersCli = cli({
 });
 ```
 
-Attach definitions with `mcp: [usersMcp]` or `cli: [usersCli]`. Handlers use plain TypeScript. Schemas infer handler types and validate calls at runtime.
+Attach them to a suite with `mcp: [usersMcp]` or `cli: [usersCli]`. Schemas type the handlers and validate calls at runtime.
 
 ## Model judges
 
@@ -100,11 +105,11 @@ const correctness = judge({
 });
 ```
 
-Set `validate: correctness`, or combine it with code: `validate: [checkToolCalls, correctness]`. Every check must pass. Judges use the organization's harness connection, including Codex subscriptions. For direct OpenAI calls, use `provider: "openai"` and configure an OpenAI key in the environment connection.
+Set `validate: correctness` on a case, or combine it with code: `validate: [checkToolCalls, correctness]`. Every check must pass. A judge with `harness` uses that harness connection, including a ChatGPT sign-in for Codex. To call OpenAI directly, use `provider: "openai"` and add an OpenAI model connection.
 
-See [model judges](https://docs.anpord.com/evals/judges) for isolation, authentication, and unscored failures.
+See [model judges](https://docs.anpord.com/evals/judges) for isolation, authentication and unscored failures.
 
-## Use the API
+## Start a batch from code
 
 ```ts
 import { Anpord } from "anpord";
@@ -119,9 +124,9 @@ console.log(batch.status, batch.runs);
 await anpord.dispose();
 ```
 
-The client reads `ANPORD_API_KEY`.
+The client reads `ANPORD_API_KEY`. `batch.runs` holds one run per case and variant, each with its trials and pass rate.
 
-See the [documentation](https://docs.anpord.com) for cases, validators, profiles, mock interfaces, prompt releases, and the API reference.
+See the [documentation](https://docs.anpord.com) for cases, validators, profiles, mocks, prompt releases and the API reference.
 
 ## License
 

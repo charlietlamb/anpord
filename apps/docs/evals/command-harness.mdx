@@ -3,7 +3,7 @@ title: "Command harness"
 description: "Run your own agent as a process inside the sandbox"
 ---
 
-The `command` harness runs a process you own instead of a coding agent Anpord installs. Anpord starts it in the sandbox, hands it the case through environment variables, reads events from its stdout, and scores the trial with the case's verifier.
+The `command` harness runs a process you own instead of a coding agent Anpord installs. Anpord starts it in the sandbox, passes it the case through environment variables, reads events from its stdout, and scores the trial with the case's validators or `verify` command.
 
 ```ts
 variants: [
@@ -15,26 +15,24 @@ variants: [
 ]
 ```
 
-The profile's `run` is the command line. Its `install` step runs once while the sandbox is prepared. The profile directory ships everything else the process needs.
+The command harness needs a [profile](/evals/profiles). Its `run` is the command line, run with `bash -c` from the workspace. Its `install` runs once while the sandbox is prepared. The profile directory ships everything else the process needs.
 
 ## Environment
-
-The process receives these variables:
 
 | Variable | Value |
 | --- | --- |
 | `ANPORD_PROMPT` | The case prompt |
 | `ANPORD_MODEL` | The variant's `model`, verbatim |
 | `ANPORD_HOME` | The sandbox home directory |
-| `ANPORD_WORKSPACE` | The checked-out workspace; the working directory when the process starts |
+| `ANPORD_WORKSPACE` | The workspace, and the working directory when the process starts |
 | `ANPORD_SYSTEM_PROMPT_FILE` | Path to the profile's system prompt, when it has one |
 | `ANPORD_TRACE_LOG` | Where the shell recorder appends what it sees |
 
-Anything in the profile's `env` is present too. Stdin is closed.
+The profile's `env` is set too. Stdin is closed.
 
 ## Events
 
-Print one JSON object per line on stdout. A line with a known `_tag` is recorded and every other line is ignored, so ordinary logging is harmless. `at` is epoch milliseconds and optional. A line without it takes the moment it was read.
+Print one JSON object per line on stdout. Lines with a known `_tag` are recorded and every other line is ignored, so ordinary logging is fine. `at` is epoch milliseconds and optional. A line without it is stamped when it is read.
 
 ```json
 {"_tag":"Started","sessionId":"run-42","model":"openai/gpt-5.5"}
@@ -48,29 +46,29 @@ Print one JSON object per line on stdout. A line with a known `_tag` is recorded
 
 | Line | Recorded as |
 | --- | --- |
-| `Started` | Opens the session; `sessionId` and `model` are taken from it. One is synthesised if you never print it. |
-| `Message` | A turn of the conversation; `role` is `assistant` or `user` |
-| `Command` | A shell command with its exit code and output. `exitCode` may be `null` when you did not capture it. |
-| `FileChange` | Paths written, absolute |
-| `ToolCall` | A tool invoked by name; `callId` and `status` may be `null` |
-| `Usage` | Tokens spent by one turn, added to the run's total. `cacheReadTokens` and `cacheWriteTokens` default to 0 and `totalTokens` to input plus output. |
+| `Started` | The session id and model. Optional. Without it the trial has no session id |
+| `Message` | A conversation turn. `role` is `assistant` or `user`. The last assistant message is the answer validators read |
+| `Command` | A shell command with its exit code and output. `exitCode` is required but may be `null` |
+| `FileChange` | Absolute paths written |
+| `ToolCall` | A tool call by name. `callId` and `status` are required but may be `null` |
+| `Usage` | Tokens for one turn, added to the trial's total. `cacheReadTokens` and `cacheWriteTokens` default to 0, `totalTokens` to input plus output |
 | `Finished` | Ends the journal with a reason |
 
 ## Exit
 
-A non-zero exit does not fail the trial or discard earlier events. If the process omits `Finished`, Anpord records one with the reason `exit N`. The verifier scores the trial either way.
+A non-zero exit does not fail the trial or discard earlier events. If the process never prints `Finished`, Anpord records one with the reason `exit N`. The trial is scored either way.
 
-The process has fifteen minutes. A run that is still going at the cap is ended and recorded as unavailable.
+The process has 15 minutes. If it is still running at that point, it is stopped and the harness is recorded as unavailable.
 
 ## The recorder
 
-Anpord sources a small script into every non-interactive shell the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`, and each becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` whose text matches byte for byte.
+Anpord sources a small script into every non-interactive bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`. Each line becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with exactly the same text.
 
-What it sees is limited to bash and zsh, the two shells with a `DEBUG` trap:
+It only sees bash and zsh, the two shells with a `DEBUG` trap:
 
-- `bash -c` and nested bash scripts are traced, line by line.
-- `sh -c` on Debian is dash, which has no `DEBUG` trap. Only the `sh -c …` invocation is recorded, not what ran inside it.
-- Shells spawned by Node, Python or any other runtime are invisible. A Python agent leaves one line: its own invocation.
-- Exit codes are never captured. Bash runs the trap before the command, and zsh reports the command it is about to run, so neither knows how it ended.
+- `bash -c` and nested bash scripts are traced line by line.
+- `sh -c` on Debian is dash, which has no `DEBUG` trap. Only the `sh -c …` invocation is recorded.
+- Shells spawned by Node, Python or other runtimes are invisible. A Python agent leaves one line: its own invocation.
+- Exit codes are never captured, because the trap fires before the command runs.
 
-If you want inner commands and exit codes in the journal, print `Command` yourself.
+To get inner commands and exit codes into the journal, print `Command` lines yourself.

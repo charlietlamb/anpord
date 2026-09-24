@@ -1,5 +1,6 @@
----title: "API client"
-description: "Submit evals and read results from TypeScript"
+---
+title: "API client"
+description: "Start batches and read runs from TypeScript"
 ---
 
 ## Create a client
@@ -10,7 +11,7 @@ import { Anpord } from "anpord";
 const anpord = new Anpord();
 ```
 
-The client reads `ANPORD_API_KEY`. Pass `apiKey` or `baseUrl` when needed:
+The client reads `ANPORD_API_KEY` and throws if it is missing. Pass `apiKey` or `baseUrl` to override:
 
 ```ts
 const anpord = new Anpord({
@@ -23,25 +24,16 @@ const anpord = new Anpord({
 
 | Method | Returns |
 | --- | --- |
-| `evals.start(request)` | A batch id, and a run id per case and variant, while trials continue on the server |
-| `evals.startAndWait(request)` | The finished batch |
+| `evals.start(request)` | The new batch's id, and a run id per case and variant. Trials continue on the server |
+| `evals.startAndWait(request)` | The batch, once it stops |
 | `evals.get({ id })` | One batch with its runs and trials |
-| `evals.wait({ id })` | An already-started batch once it finishes |
-| `evals.list({ cursor?, limit? })` | A page of batches and its next cursor |
+| `evals.wait({ id })` | A batch you already started, once it stops |
+| `evals.list({ cursor?, limit? })` | A page of batches, newest first, and the next cursor |
 | `evals.models({ harness })` | Models available to a harness |
 | `evals.caseRuns({ caseId, variant?, page? })` | A page of a case's runs, newest first |
-| `evals.runCase({ caseId, variant?, trials })` | A new batch running the case on one variant, or on every variant |
+| `evals.runCase({ caseId, variant?, trials })` | A new batch that runs the case on one variant, or on every variant it has |
 
-```ts
-const { id, runs } = await anpord.evals.start({
-  cases,
-  suite: { id: "smoke", name: "Smoke", prompt: "{{task}}" },
-  variants: [{ harness: "codex", model }],
-  trials: 3,
-});
-```
-
-Validators, preparation, profiles and mock dependencies live in an eval file. Import it and hand it over:
+Validators, preparation, profiles and mocks are written in an eval file. Import the suite and pass it in:
 
 ```ts evals/smoke.eval.ts
 export const smoke = suite({ ... });
@@ -53,7 +45,25 @@ import { smoke } from "./evals/smoke.eval";
 const batch = await anpord.evals.startAndWait(smoke);
 ```
 
-A suite records the file it was written in, which is how its validators and mock servers reach the sandbox with everything they close over. `start` and `startAndWait` compile it for you.
+`suite` records the file it was defined in, so `start` and `startAndWait` can compile it and ship its validators and mock servers, with everything they close over, to the sandbox.
+
+A plain request also works when cases only need a shell `verify`:
+
+```ts
+const { id, runs } = await anpord.evals.start({
+  suite: { id: "smoke", name: "Smoke", prompt: "{{task}}" },
+  cases: [
+    {
+      id: "writes-hello",
+      name: "writes hello",
+      variables: { task: "Create hello.txt containing exactly hello" },
+      verify: 'test "$(cat hello.txt)" = hello',
+    },
+  ],
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  trials: 3,
+});
+```
 
 ## Errors and cleanup
 
@@ -71,6 +81,6 @@ try {
 await anpord.dispose();
 ```
 
-Invalid request fields fail before a network call. API failures include an HTTP status when available.
+Invalid request fields fail before any network call. API failures carry an HTTP status when one is available.
 
-SDK date fields are Effect `DateTime.Utc` values. Read `epochMillis` when you need a number.
+Date fields are Effect `DateTime.Utc` values. Read `epochMillis` for a number.

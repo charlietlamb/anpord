@@ -1,9 +1,9 @@
 ---
 title: "Variants"
-description: "Choose what runs a case and where it runs"
+description: "The harness, model and sandbox a case runs on"
 ---
 
-Each variant defines one grid column:
+A variant is the harness, model and sandbox (plus an optional [profile](/evals/profiles)) a case runs on. A case can run on many variants, and comparing them, for example Codex against Claude Code, is the main reason to have more than one.
 
 ```ts
 { harness: "codex", model: "gpt-5.6-sol" }
@@ -11,11 +11,11 @@ Each variant defines one grid column:
 
 | Field | Purpose |
 | --- | --- |
-| `harness` | Runs the agent and its tools |
-| `model` | Selects the harness model |
-| `sandbox` | Where the trial runs. Optional, defaults to `e2b` |
+| `harness` | The agent that does the work. A harness id, or `{ base, profile }` to layer a [profile](/evals/profiles) on one |
+| `model` | The model the harness uses |
+| `sandbox` | Where each trial runs. Optional, defaults to `e2b` |
 
-## Agents
+## Harnesses
 
 | Agent | `harness` | Credential | Reports |
 | --- | --- | --- | --- |
@@ -28,33 +28,27 @@ Each variant defines one grid column:
 | Cursor Agent | `cursor` | API key | Commands, files |
 | FX | `fx` | AI Gateway key or ChatGPT auth file | Tool names, answer |
 
-Each agent needs a [connection](/connections). Agents with fewer reports still use the same verifier but leave less trajectory and cost data.
+Each harness needs a [connection](/connections). Harnesses that report less are scored the same way but leave less trajectory and cost data. To run your own agent, use the [command harness](/evals/command-harness).
 
-For Claude Code, follow the [setup guide](/guides/claude-code) to verify one trial before comparing models.
+For Claude Code, follow the [setup guide](/guides/claude-code) and check one trial before comparing models.
 
 ## Models
 
-Model ids vary by agent. Use the catalogue when choosing one:
+Model ids differ by harness. List the ones a harness accepts:
 
 ```ts
 const { models } = await anpord.evals.models({ harness: "codex" });
 ```
 
-Model discovery is not required before a run. Available ids depend on the harness. Catalogues come from Anpord's Codex cache, models.dev, or a fixed list, so an empty result means that source is unavailable rather than that the harness has no models.
+You don't have to list models before starting a batch. Lists come from Anpord's Codex cache, models.dev or a fixed list, depending on the harness, so an empty result means the source is unavailable, not that the harness has no models.
 
 ## Sandboxes
 
-`sandbox` is optional. A variant that omits it runs on `e2b`:
+A variant without `sandbox` runs on `e2b`. The others are `daytona`, `upstash`, `modal`, `cloudflare` and `vercel`. Every trial gets its own isolated workspace.
 
-```ts
-variants: [{ harness: "codex", model: "gpt-5.6-sol" }]
-```
+Hosted sandboxes can't reach services on your machine. To test against one, see [local runs](/evals/local).
 
-The rest are `daytona`, `upstash`, `modal`, `cloudflare`, and `vercel`. Every trial gets an isolated workspace.
-
-None of them can reach a service on your own machine. To test against one, see [local runs](/evals/local).
-
-The sandbox is part of the variant, so changing it starts a new history. Name one explicitly to keep adding to an existing one.
+The sandbox is part of the variant, so changing it starts a new history. If a variant ran on a sandbox other than `e2b`, keep naming it to keep adding to that history.
 
 ## Compare variants
 
@@ -67,7 +61,9 @@ variants: [
 ]
 ```
 
-A case keeps one variant per harness, model, sandbox, profile name and simulated-user model it has run on. Changing any of them creates a new variant with its own history. A new harness version remains in the same history, and each run records the version it used. Use a [profile](/evals/profiles) to compare an agent's stock and configured forms.
+Starting the suite creates a batch with one run per case per variant, so the variants sit side by side.
+
+A case has one variant for each combination of harness, model, sandbox, profile name and simulated-user model it has run on. Changing any of them creates a new variant with its own history. A new harness version stays in the same history, and each run records the version it used. Use a [profile](/evals/profiles) to compare an agent's stock and configured setups.
 
 ## Read a variant's history
 
@@ -75,4 +71,6 @@ A case keeps one variant per harness, model, sandbox, profile name and simulated
 const { runs, total } = await anpord.evals.caseRuns({ caseId: "writes-hello" });
 ```
 
-Runs come newest first, twenty to a page. Pass `variant` to read one variant, and `page` for older runs. `evals.runCase({ caseId, trials })` runs the case's newest version again on every variant, or on one when `variant` is given.
+Runs come newest first, 20 to a page. Pass `variant` (a variant id) to read one variant, and `page` for older runs.
+
+To run a case again, `evals.runCase({ caseId, trials })` starts a batch that runs the case's newest version on every variant it has, or on one when you pass `variant`.

@@ -3,17 +3,13 @@ title: "API overview"
 description: "Call the Anpord API over HTTP"
 ---
 
-The public API is available at `https://api.anpord.com/v1`.
-
-Every operation is a `POST` with a JSON body, including reads:
+The public API is at `https://api.anpord.com/v1`. Every operation is a `POST` with a JSON body, reads included, and there are no path or query parameters:
 
 ```text
 POST /v1/evals.start
 POST /v1/evals.get
 POST /v1/evals.list
 ```
-
-There are no path or query parameters.
 
 ## Authentication
 
@@ -26,11 +22,11 @@ curl https://api.anpord.com/v1/evals.list \
   -d '{"limit":20}'
 ```
 
-Keys belong to one organization. OAuth access tokens are also accepted. Eval reads use `evals:read`, and starting runs uses `evals:write`.
+A key belongs to one organization. OAuth access tokens also work. Reading evals needs `evals:read`. Starting a batch needs `evals:write`.
 
-## Asynchronous evals
+## Start a batch
 
-`evals.start` runs every case of a suite on every variant. It returns the batch id, and a run id per case and variant, while work continues on the server:
+`evals.start` creates a batch that runs every case of a suite on every variant. It returns right away with the batch `id` and a `runs` list holding one run per case per variant, while the trials continue on the server:
 
 ```bash
 curl https://api.anpord.com/v1/evals.start \
@@ -55,9 +51,21 @@ curl https://api.anpord.com/v1/evals.start \
   }'
 ```
 
-Poll `evals.get` with the returned id until `status` is `finished` or `failed`.
+`trials` is the number of trials in each run. Poll `evals.get` with the returned `id` until `status` is `finished` or `failed`.
 
-One request may contain at most 100 total trials. Starting a batch is not idempotent. If its response is lost, list recent batches before retrying.
+Starting a batch is not idempotent. If the response is lost, list recent batches with `evals.list` before retrying.
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Trials per run | 1 to 10 |
+| Cases per batch | 100 |
+| Variants per batch | 20 |
+| Trials per batch (cases x variants x trials) | 100 |
+| Batches running at once per organization | 3 |
+
+A batch over a size limit is refused with `400`. A start while three batches are running is refused with `409`. Retry once one finishes.
 
 ## Errors
 
@@ -69,4 +77,4 @@ One request may contain at most 100 total trials. Starting a batch is not idempo
 | `404` | Resource not found |
 | `409` | Request conflicts with current state |
 
-Declared errors return JSON with a `message`. The [TypeScript client](/sdk/client) decodes responses and throws `AnpordError` for failures.
+The errors above return JSON with a `message`. The [TypeScript client](/sdk/client) decodes responses and throws `AnpordError` on failure.

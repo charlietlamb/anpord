@@ -1,11 +1,11 @@
 ---
 title: "Quickstart"
-description: "Run a TypeScript coding-agent eval"
+description: "Define a suite and run it on a coding agent"
 ---
 
 ## Prerequisites
 
-Add a [model connection](/connections), then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
+Add a [harness connection](/connections), then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
 
 ```bash
 export ANPORD_API_KEY="anp_..."
@@ -25,7 +25,7 @@ bun add anpord
 
 </CodeGroup>
 
-## Define the eval
+## Define a suite
 
 Create `smoke.eval.ts`:
 
@@ -54,22 +54,22 @@ export default suite({
 npx anpord eval ./smoke.eval.ts
 ```
 
-Anpord compiles the TypeScript locally, then runs each trial in an isolated hosted sandbox.
+The CLI compiles the file locally and starts a batch. Each trial runs in its own hosted sandbox.
 
 ## Vocabulary
 
-- **Suite:** cases that share a prompt, named by an id derived from its name unless you give one.
-- **Case:** the work to do and how to validate it.
-- **Variant:** the harness, model, sandbox, profile and simulated user a case runs on.
-- **Run:** one case on one variant, with its trials. A case's runs on a variant are its history.
-- **Trial:** one attempt within a run.
-- **Batch:** the runs started together, such as every case of a suite on every variant.
+- **Suite:** a group of cases that share a prompt and setup. Its id is derived from its name unless you set `id`.
+- **Case:** one eval. It sets up a scenario (prompt, workspace, optional prepare step) and checks the result with validators or a verifier. A case gets a new version when its definition changes.
+- **Variant:** the harness, model and sandbox (plus an optional profile) a case runs on.
+- **Run:** one case on one variant. A case's runs on a variant form its history.
+- **Trial:** one attempt of a run, in its own sandbox. A run's pass rate is taken across its trials.
+- **Batch:** the runs started together, one per case per variant, so you can compare variants side by side.
 
-The eval above is one case, one variant and three trials, so it makes three attempts. Two cases, three variants and three trials would make 18.
+The suite above has one case, one variant and three trials, so its batch holds one run with three trials. Two cases on three variants with three trials each would be six runs and 18 trials.
 
 <CardGroup cols={2}>
   <Card title="Write cases" icon="list-check" href="/evals/cases">
-    Add sources, preparation, and typed validators.
+    Add sources, preparation and typed validators.
   </Card>
   <Card title="Mock MCP and CLI" icon="terminal" href="/evals/mocks">
     Give agents typed local MCP servers and CLIs.
