@@ -1,8 +1,7 @@
 import { Button } from "@anpord/ui/components/button";
-import { Kbd } from "@anpord/ui/components/ui/kbd";
+import { ShortcutKeys } from "@anpord/ui/components/ui/shortcut-keys";
+import { useShortcutClick } from "@anpord/ui/hooks/use-shortcut-click";
 import { cn } from "@anpord/ui/lib/utils";
-import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
-import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
 import type { ComponentProps } from "react";
 
 interface ShortcutButtonProps extends ComponentProps<typeof Button> {
@@ -10,54 +9,30 @@ interface ShortcutButtonProps extends ComponentProps<typeof Button> {
   singleShortcut?: string;
 }
 
-const SHORTCUT_GLYPHS: Record<string, string> = {
-  enter: "↵",
-  backspace: "⌫",
-  escape: "Esc",
-};
-
-function shortcutGlyph(key: string) {
-  return SHORTCUT_GLYPHS[key] ?? key.toUpperCase();
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: keyboard-triggered click has no real DOM event
-const SYNTHETIC_CLICK = { preventBaseUIHandler: () => undefined } as any;
-
 export function ShortcutButton({
   metaShortcut,
   singleShortcut,
   children,
   className,
   disabled,
-  onClick,
-  variant,
   ...props
 }: ShortcutButtonProps) {
-  const key = metaShortcut ?? singleShortcut;
-  const metaKeyLabel = useMetaKeyLabel();
-
-  useShortcut(key ?? "", {
+  const shortcut = metaShortcut ?? singleShortcut;
+  const ref = useShortcutClick<HTMLButtonElement>(shortcut, {
+    disabled,
     meta: Boolean(metaShortcut),
-    disabled: disabled || !key,
-    onTrigger: () => onClick?.(SYNTHETIC_CLICK),
   });
 
   return (
     <Button
       className={cn("gap-2", className)}
       disabled={disabled}
-      onClick={onClick}
-      variant={variant}
+      ref={ref}
       {...props}
     >
       {children}
-      {key ? (
-        <span className="flex items-center gap-0.5">
-          {metaShortcut ? (
-            <Kbd>{metaKeyLabel}</Kbd>
-          ) : null}
-          <Kbd>{shortcutGlyph(key)}</Kbd>
-        </span>
+      {shortcut ? (
+        <ShortcutKeys meta={Boolean(metaShortcut)} shortcut={shortcut} />
       ) : null}
     </Button>
   );

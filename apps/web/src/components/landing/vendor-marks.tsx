@@ -21,7 +21,7 @@ export function VendorMarks({ items }: { readonly items: readonly Vendor[] }) {
             render={
               <a
                 className={cn(
-                  "rounded-sm text-muted-foreground/80",
+                  "rounded-sm text-muted-foreground",
                   "transition-colors duration-200 ease-out hover:text-foreground",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 )}

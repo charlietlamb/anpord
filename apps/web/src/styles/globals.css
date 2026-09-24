@@ -297,12 +297,6 @@
   .font-heading {
     font-weight: 450;
   }
-
-  .font-logo {
-    font-family: "Funnel Display Variable", ui-sans-serif, sans-serif;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-  }
 }
 
 @layer base {

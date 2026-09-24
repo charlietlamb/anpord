@@ -10,17 +10,16 @@ import {
   UpstashMark,
   VercelMark,
 } from "@anpord/ui/components/brand/provider-marks";
-import { Kbd } from "@anpord/ui/components/ui/kbd";
-import { isMac, useShortcut } from "@anpord/ui/hooks/use-shortcut";
+import { ShortcutKeys } from "@anpord/ui/components/ui/shortcut-keys";
+import { useShortcutClick } from "@anpord/ui/hooks/use-shortcut-click";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { FlaskIcon } from "@phosphor-icons/react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { type Vendor, VendorMarks } from "@/components/landing/vendor-marks";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { REPO_URL } from "@/lib/urls";
-import { useIsClient } from "@/lib/use-is-client";
 
 const HARNESSES: readonly Vendor[] = [
   {
@@ -58,54 +57,67 @@ const SANDBOXES: readonly Vendor[] = [
   },
 ];
 
+const REVEAL =
+  "fade-in-0 slide-in-from-bottom-2 animate-in fill-mode-both ease-out [animation-duration:500ms]";
+
 export function Landing() {
-  const navigate = useNavigate();
-  useShortcut("enter", {
-    meta: true,
-    onTrigger: () => navigate({ to: "/login" }),
-  });
-  const isClient = useIsClient();
+  const start = useShortcutClick<HTMLAnchorElement>("enter", { meta: true });
 
   return (
     <SiteLayout>
       <section className="flex flex-1 flex-col justify-center pb-24">
-        <h1 className="fade-in-0 slide-in-from-bottom-2 animate-in text-balance fill-mode-both font-heading text-5xl tracking-[-0.035em] ease-out [animation-duration:500ms] sm:text-6xl">
+        <h1
+          className={cn(
+            REVEAL,
+            "text-balance font-heading text-5xl tracking-[-0.035em] sm:text-6xl"
+          )}
+        >
           Evals for Claude Code and Codex.
         </h1>
-        <p className="fade-in-0 slide-in-from-bottom-2 mt-5 max-w-lg animate-in text-balance fill-mode-both text-muted-foreground ease-out [animation-delay:75ms] [animation-duration:500ms] sm:text-lg">
+        <p
+          className={cn(
+            REVEAL,
+            "mt-5 max-w-lg text-balance text-muted-foreground [animation-delay:75ms] sm:text-lg"
+          )}
+        >
           Easily run evals across different sandboxes, harnesses and models to
           optimize performance, latency and costs.
         </p>
-        <div className="fade-in-0 slide-in-from-bottom-2 mt-8 flex animate-in flex-wrap items-center gap-3 fill-mode-both ease-out [animation-delay:150ms] [animation-duration:500ms]">
+        <div
+          className={cn(
+            REVEAL,
+            "mt-8 flex flex-wrap items-center gap-3 [animation-delay:150ms]"
+          )}
+        >
           <Link
-            className={cn(buttonVariants({ size: "lg" }), "pr-2.5 pl-4")}
+            className={buttonVariants({ size: "lg" })}
+            ref={start}
             to="/login"
           >
             <FlaskIcon />
             Start optimizing
-            {isClient ? (
-              <span className="flex items-center gap-0.5">
-                <Kbd>{isMac() ? "⌘" : "Ctrl"}</Kbd>
-                <Kbd>↵</Kbd>
-              </span>
-            ) : null}
+            <ShortcutKeys meta shortcut="enter" />
           </Link>
           <a
-            className={cn(
-              buttonVariants({ size: "lg", variant: "outline" }),
-              "px-4"
-            )}
+            className={buttonVariants({ size: "lg", variant: "outline" })}
             href={REPO_URL}
             rel="noreferrer"
             target="_blank"
           >
-            <GithubIcon className="size-[15px]" />
+            <GithubIcon />
             View source
           </a>
         </div>
 
-        <p className="fade-in-0 slide-in-from-bottom-2 mt-9 flex animate-in flex-wrap items-center gap-x-2.5 gap-y-3 fill-mode-both text-muted-foreground/80 text-sm leading-normal ease-out [animation-delay:225ms] [animation-duration:500ms]">
-          Works with <VendorMarks items={HARNESSES} /> across{" "}
+        <p
+          className={cn(
+            REVEAL,
+            "mt-9 flex flex-wrap items-center gap-x-2.5 gap-y-3 text-muted-foreground text-sm [animation-delay:225ms]"
+          )}
+        >
+          <span>Works with</span>
+          <VendorMarks items={HARNESSES} />
+          <span>across</span>
           <VendorMarks items={SANDBOXES} />
         </p>
       </section>

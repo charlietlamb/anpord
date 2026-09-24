@@ -8,10 +8,10 @@ export function SiteHeader() {
     <header className="flex items-center justify-between py-8">
       <Link
         aria-label="Anpord home"
-        className="flex items-center gap-1.5 font-logo text-xl transition-opacity hover:opacity-70"
+        className="flex items-center gap-2 font-heading font-medium text-foreground text-lg tracking-tight transition-opacity hover:opacity-70"
         to="/"
       >
-        <Logo className="size-[22px]" />
+        <Logo className="size-5" />
         Anpord
       </Link>
       <nav className="flex items-center gap-1">

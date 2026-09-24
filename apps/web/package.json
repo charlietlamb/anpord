@@ -17,7 +17,6 @@
     "@anpord/ui": "workspace:*",
     "@better-auth/api-key": "catalog:",
     "@databuddy/sdk": "catalog:",
-    "@fontsource-variable/funnel-display": "catalog:",
     "@fontsource-variable/geist": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",
     "@icons-pack/react-simple-icons": "catalog:",
