@@ -10,8 +10,6 @@ import {
 import { Kbd } from "@anpord/ui/components/ui/kbd";
 import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
 import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import { cn } from "@anpord/ui/lib/utils";
 import { useState } from "react";
 
 export interface ConfirmDialogProps {
@@ -61,15 +59,13 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter className="sm:justify-stretch">
           <AlertDialogAction
-            className={cn(
-              "w-full gap-1.5",
-              destructive && buttonVariants({ variant: "destructive" })
-            )}
+            className="w-full gap-1.5"
             disabled={pending}
             onClick={(event) => {
               event.preventDefault();
               handleConfirm();
             }}
+            variant={destructive ? "destructive" : "default"}
           >
             {pending ? "Working…" : confirmLabel}
             {pending ? null : (

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
+import { OVERLAY } from "@anpord/ui/lib/popup"
 import { cn } from "@anpord/ui/lib/utils"
 import { Button } from "@anpord/ui/components/button"
 import { XIcon } from "@phosphor-icons/react"
@@ -28,7 +29,7 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-white/70 transition-opacity duration-300 data-ending-style:opacity-0 data-starting-style:opacity-0 dark:bg-black/70",
+        OVERLAY,
         className
       )}
       {...props}

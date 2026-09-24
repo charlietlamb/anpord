@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
+import { MODAL, OVERLAY } from "@anpord/ui/lib/popup"
 import { cn } from "@anpord/ui/lib/utils"
 import { Button } from "@anpord/ui/components/button"
 import { XIcon } from "@phosphor-icons/react"
@@ -31,7 +32,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/80 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        OVERLAY,
         className
       )}
       {...props}
@@ -47,16 +48,14 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
 }) {
-  /* [&>*]:min-w-0 because a grid item's min-width resolves to its content,
-     so one long unbroken string -- an API key, a URL, a sandbox id -- widens
-     the row past the dialog and any truncate inside it never gets to act. */
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-xs/relaxed text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 [&>*]:min-w-0",
+          MODAL,
+          "gap-4 p-4 text-xs/relaxed [&>*]:min-w-0",
           className
         )}
         {...props}
