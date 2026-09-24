@@ -1,3 +1,4 @@
+import { LogoPetals } from "@anpord/ui/components/logo-petals";
 import type * as React from "react";
 import { cn } from "../lib/utils";
 
@@ -12,13 +13,7 @@ export function Logo({ className, ...props }: React.ComponentProps<"svg">) {
       {...props}
     >
       <title>Anpord</title>
-      {[0, 60, 120, 180, 240, 300].map((angle) => (
-        <path
-          d="M-9-44H9L19-34L9-28L13-23L8-18H-8L-13-23L-9-28L-19-34Z"
-          key={angle}
-          transform={`rotate(${angle})`}
-        />
-      ))}
+      <LogoPetals />
     </svg>
   );
 }

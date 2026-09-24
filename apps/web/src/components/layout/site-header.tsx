@@ -1,18 +1,17 @@
-import { Logo } from "@anpord/ui/components/logo";
+import { Wordmark } from "@anpord/ui/components/wordmark";
 import { Link } from "@tanstack/react-router";
 import { SiteNav } from "@/components/layout/site-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export function SiteHeader() {
   return (
-    <header className="flex items-center justify-between py-8">
+    <header className="flex h-16 items-center justify-between">
       <Link
         aria-label="Anpord home"
-        className="flex items-center gap-2 font-heading font-medium text-foreground text-lg tracking-tight transition-opacity hover:opacity-70"
+        className="text-foreground transition-opacity hover:opacity-70"
         to="/"
       >
-        <Logo className="size-5" />
-        Anpord
+        <Wordmark />
       </Link>
       <nav className="flex items-center gap-1">
         <SiteNav />
