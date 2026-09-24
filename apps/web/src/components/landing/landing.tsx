@@ -69,10 +69,10 @@ export function Landing() {
         <h1
           className={cn(
             REVEAL,
-            "text-balance font-heading text-5xl tracking-[-0.035em] sm:text-6xl"
+            "text-balance font-heading font-medium text-5xl tracking-tight sm:text-6xl"
           )}
         >
-          Evals for Claude Code and Codex.
+          Evals for Claude&nbsp;Code and Codex.
         </h1>
         <p
           className={cn(
