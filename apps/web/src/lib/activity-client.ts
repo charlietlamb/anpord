@@ -1,8 +1,8 @@
 import { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
 import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
-import { fromWire } from "@/lib/wire";
+import { createApiClient, searchOf } from "@/lib/api-client";
 
-const BASE = "/api/activity";
+const api = createApiClient("/api/activity");
 
 export interface ActivityFilters {
   readonly channel?: string;
@@ -12,34 +12,7 @@ export interface ActivityFilters {
   readonly prompt?: string;
 }
 
-async function send(path: string): Promise<Response> {
-  const response = await fetch(`${BASE}${path}`, {
-    credentials: "same-origin",
-    headers: { "content-type": "application/json" },
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-    } | null;
-    throw new Error(body?.message ?? `Request failed (${response.status})`);
-  }
-
-  return response;
-}
-
-export const listActivity = async (
+export const listActivity = (
   filters: ActivityFilters = {}
-): Promise<PromptActivityPage> => {
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(filters)) {
-    if (value !== undefined && value !== "") {
-      query.set(key, String(value));
-    }
-  }
-
-  const response = await send(query.size > 0 ? `?${query}` : "");
-  const payload = await response.json();
-
-  return fromWire(PromptActivityPage, payload);
-};
+): Promise<PromptActivityPage> =>
+  api.request(PromptActivityPage, searchOf({ ...filters }));

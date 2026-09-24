@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, useLocation } from "@tanstack/react-router";
 import { ConsentCard } from "@/components/auth/consent-card";
 import { SiteLayout } from "@/components/layout/site-layout";
 import { authClient, useSession } from "@/lib/auth-client";
@@ -18,15 +18,15 @@ export const Route = createFileRoute("/oauth/consent")({
   }),
 });
 
-/* Fetched on the client: the name needs the session cookie. */
 function ConsentPage() {
   const { client_id, scope } = Route.useSearch();
+  const { href } = useLocation();
   const { data: session, isPending } = useSession();
   const { data: organization } = authClient.useActiveOrganization();
   const { data: name } = useQuery(oauthClientQueries.name(client_id));
 
   if (!(isPending || session?.user)) {
-    return <Navigate replace to="/login" />;
+    return <Navigate replace search={{ redirect: href }} to="/login" />;
   }
 
   return (

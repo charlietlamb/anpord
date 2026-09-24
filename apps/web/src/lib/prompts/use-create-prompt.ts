@@ -26,9 +26,9 @@ export function useCreatePrompt() {
           Effect.flatMap((body) => Effect.promise(() => createPrompt(body)))
         )
       ),
-    onError: (error: unknown) => {
+    onError: (error: Error) => {
       toast.error("Couldn't create the prompt", {
-        description: error instanceof Error ? error.message : undefined,
+        description: error.message,
       });
     },
     onSuccess: (prompt) => {

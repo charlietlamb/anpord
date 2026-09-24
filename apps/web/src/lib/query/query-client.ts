@@ -1,6 +1,11 @@
 import { QueryClient } from "@tanstack/react-query";
+import { HttpError } from "@/lib/api-client";
 
 const MINUTE = 60 * 1000;
+const RETRIES = 2;
+
+const retryable = (failureCount: number, error: unknown) =>
+  !(error instanceof HttpError && error.status < 500) && failureCount < RETRIES;
 
 export function createQueryClient() {
   return new QueryClient({
@@ -8,8 +13,7 @@ export function createQueryClient() {
       queries: {
         staleTime: MINUTE,
         gcTime: 5 * MINUTE,
-        retry: (failureCount, error) =>
-          isUnauthorized(error) ? false : failureCount < 2,
+        retry: retryable,
         refetchOnWindowFocus: false,
       },
       mutations: {
@@ -17,9 +21,4 @@ export function createQueryClient() {
       },
     },
   });
-}
-
-/* A 401 means the session is gone, and retrying cannot produce one. */
-function isUnauthorized(error: unknown) {
-  return error instanceof Error && error.message.includes("(401)");
 }

@@ -4,11 +4,3 @@ export const fromWire = <A, I>(
   schema: Schema.Schema<A, I>,
   payload: unknown
 ): A => Schema.decodeUnknownSync(schema)(payload);
-
-export const describeCause = async (response: Response, fallback: string) => {
-  const body = (await response.json().catch(() => null)) as {
-    message?: string;
-  } | null;
-
-  return new Error(body?.message ?? fallback);
-};

@@ -15,16 +15,12 @@ export function RerunButton({
   readonly started: string;
   readonly variant?: "default" | "ghost" | "outline";
 }) {
-  const start = async () => {
-    try {
-      await rerun.mutateAsync();
-      toast.success(started);
-    } catch (error) {
-      toast.error("Couldn't start the run", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-    }
-  };
+  const start = () =>
+    rerun.mutate(undefined, {
+      onError: (error) =>
+        toast.error("Couldn't start the run", { description: error.message }),
+      onSuccess: () => toast.success(started),
+    });
 
   return (
     <Button

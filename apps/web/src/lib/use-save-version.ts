@@ -40,7 +40,7 @@ export function useSaveVersion({
       {
         onError: (error) =>
           toast.error("Couldn't save the version", {
-            description: error instanceof Error ? error.message : undefined,
+            description: error.message,
           }),
         onSuccess: (created) => {
           onSaved();
@@ -57,7 +57,7 @@ export function useSaveVersion({
       {
         onError: (error) =>
           toast.error(`Couldn't overwrite v${version}`, {
-            description: error instanceof Error ? error.message : undefined,
+            description: error.message,
           }),
         onSuccess: () => {
           onOverwritten(version);

@@ -23,7 +23,7 @@ export function usePointChannel(
       {
         onError: (error) =>
           toast.error("Couldn't move the channel", {
-            description: error instanceof Error ? error.message : undefined,
+            description: error.message,
           }),
         onSuccess: () =>
           toast.success(`${channel} now serves v${version}`, {

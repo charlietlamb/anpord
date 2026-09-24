@@ -1,48 +1,18 @@
 import { Channel } from "@anpord/schema/domain/channels";
 import { Schema } from "effect";
-import { fromWire } from "@/lib/wire";
+import { createApiClient } from "@/lib/api-client";
 
-const BASE = "/api/channels";
+const api = createApiClient("/api/channels");
 
-async function send(path: string, init?: RequestInit): Promise<Response> {
-  const response = await fetch(`${BASE}${path}`, {
-    credentials: "same-origin",
-    headers: { "content-type": "application/json" },
-    ...init,
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Request failed with ${response.status}`);
-  }
-
-  return response;
-}
-
-async function request<A, I>(
-  schema: Schema.Schema<A, I>,
-  path: string,
-  init?: RequestInit
-): Promise<A> {
-  const response = await send(path, init);
-
-  return fromWire(schema, await response.json());
-}
-
-export const listChannels = () => request(Schema.Array(Channel), "");
+export const listChannels = () => api.request(Schema.Array(Channel), "");
 
 export const createChannel = (body: { color: string; name: string }) =>
-  request(Channel, "", { body: JSON.stringify(body), method: "POST" });
+  api.post(Channel, "", body);
 
 export const updateChannel = (
   name: string,
   body: { color?: string; name?: string }
-) =>
-  request(Channel, `/${encodeURIComponent(name)}`, {
-    body: JSON.stringify(body),
-    method: "PATCH",
-  });
+) => api.patch(Channel, `/${encodeURIComponent(name)}`, body);
 
-export const deleteChannel = async (name: string): Promise<void> => {
-  await send(`/${encodeURIComponent(name)}`, { method: "DELETE" });
-};
+export const deleteChannel = (name: string) =>
+  api.remove(`/${encodeURIComponent(name)}`);
