@@ -1,29 +1,19 @@
 import { DitherField } from "@anpord/ui/components/ui/dither-field";
 
-const SPECKS =
-  "inset-0 [mask-image:radial-gradient(circle_5svh_at_86%_16%,black,transparent),radial-gradient(circle_3svh_at_62%_9%,black,transparent),radial-gradient(circle_6svh_at_93%_52%,black,transparent),radial-gradient(circle_3svh_at_80%_80%,black,transparent),radial-gradient(circle_4svh_at_52%_88%,black,transparent),radial-gradient(circle_2svh_at_30%_12%,black,transparent),radial-gradient(circle_3svh_at_97%_88%,black,transparent),radial-gradient(circle_2svh_at_84%_66%,black,transparent)]";
+const FIELD =
+  "inset-0 [mask-image:radial-gradient(ellipse_55%_50%_at_6%_22%,black,transparent_75%)]";
 
-const RING =
-  "top-[16svh] -left-[25svh] h-[10svh] w-[50svh] sm:top-[43svh] sm:-left-[36svh] sm:h-[14svh] sm:w-[72svh] -rotate-[18deg] [mask-image:radial-gradient(closest-side,transparent_58%,black_68%,black_88%,transparent_100%)]";
+const DEBRIS =
+  "inset-0 [mask-image:radial-gradient(circle_3svh_at_30%_12%,black,transparent),radial-gradient(circle_2.4svh_at_38%_6%,black,transparent),radial-gradient(circle_2svh_at_48%_15%,black,transparent),radial-gradient(circle_1.6svh_at_59%_7%,black,transparent),radial-gradient(circle_1.3svh_at_70%_13%,black,transparent),radial-gradient(circle_1svh_at_81%_6%,black,transparent),radial-gradient(circle_0.8svh_at_91%_14%,black,transparent),radial-gradient(circle_2.4svh_at_12%_62%,black,transparent),radial-gradient(circle_1.6svh_at_7%_76%,black,transparent),radial-gradient(circle_1svh_at_15%_88%,black,transparent)]";
 
 export function Dither() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-svh overflow-hidden opacity-[0.16] invert dark:opacity-[0.2] dark:invert-0"
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[90svh] opacity-[0.16] invert dark:opacity-[0.18] dark:invert-0"
     >
-      <DitherField
-        className={SPECKS}
-        scale={0.5}
-        shape="simplex"
-        speed={0.05}
-      />
-      <DitherField
-        className="top-[6svh] -left-[15svh] size-[30svh] sm:top-[28svh] sm:-left-[22svh] sm:size-[44svh]"
-        shape="sphere"
-        speed={0.08}
-      />
-      <DitherField className={RING} scale={0.4} shape="simplex" speed={0.1} />
+      <DitherField className={FIELD} scale={0.7} shape="warp" speed={0.12} />
+      <DitherField className={DEBRIS} scale={0.7} shape="warp" speed={0.12} />
     </div>
   );
 }
