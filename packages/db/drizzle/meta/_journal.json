@@ -372,6 +372,20 @@
       "when": 1790900000000,
       "tag": "0052_a_case_version_is_not_a_task",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1790246115025,
+      "tag": "0053_evals_forget_their_old_shape",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1790246125672,
+      "tag": "0054_an_eval_is_a_suite_of_cases",
+      "breakpoints": true
     }
   ]
 }

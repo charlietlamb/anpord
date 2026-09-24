@@ -1,4 +1,4 @@
-import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
+import type { EvalVariantResult } from "@anpord/schema/domain/evals";
 import {
   Select,
   SelectContent,
@@ -17,21 +17,24 @@ export function CaseVariantMenu({
   selected,
   variants,
 }: {
-  readonly onSelect: (cellKey: string | null) => void;
-  readonly selected: EvalCellHistoryEntry | undefined;
-  readonly variants: readonly EvalCellHistoryEntry[];
+  readonly onSelect: (variantId: string | null) => void;
+  readonly selected: EvalVariantResult | undefined;
+  readonly variants: readonly EvalVariantResult[];
 }) {
   return (
     <Select
       onValueChange={(value) => onSelect(value === ALL ? null : value)}
-      value={selected?.cellKey ?? ALL}
+      value={selected?.variant.id ?? ALL}
     >
       <SelectTrigger aria-label="Variant" className="max-w-60" size="sm">
         <SelectValue>
           {selected === undefined ? (
             "All variants"
           ) : (
-            <VariantName harness={selected.harness} model={selected.model} />
+            <VariantName
+              harness={selected.variant.harness}
+              model={selected.variant.model}
+            />
           )}
         </SelectValue>
       </SelectTrigger>
@@ -44,10 +47,13 @@ export function CaseVariantMenu({
         {variants.map((entry) => (
           <SelectItem
             className="pr-8"
-            key={entry.cellKey}
-            value={entry.cellKey}
+            key={entry.variant.id}
+            value={entry.variant.id}
           >
-            <VariantName harness={entry.harness} model={entry.model} />
+            <VariantName
+              harness={entry.variant.harness}
+              model={entry.variant.model}
+            />
             <span className="ml-auto">
               <EvalStatusBadge
                 size="xs"

@@ -1,4 +1,3 @@
-import { validationsOf } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalTrial } from "@anpord/schema/domain/evals";
 
 export const trialVerdict = (trial: EvalTrial) => {
@@ -12,7 +11,7 @@ export const trialVerdict = (trial: EvalTrial) => {
       : `Not scored · ${trial.voidFields.join(", ")}`;
   }
 
-  const failed = validationsOf(trial).filter(
+  const failed = trial.validations.filter(
     (check) => check.status === "failed" || check.status === "error"
   );
   const [first] = failed;

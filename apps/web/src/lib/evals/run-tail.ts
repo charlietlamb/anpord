@@ -1,5 +1,5 @@
 import type {
-  EvalRunTail,
+  EvalBatchTail,
   EvalTailEvent,
   EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
@@ -25,20 +25,19 @@ export const NOTHING_HEARD: HeardTail = {
   settled: null,
 };
 
-const trialKey = (cell: string | null, ordinal: number) =>
-  `${cell ?? ""}#${ordinal}`;
+const trialKey = (run: string, ordinal: number) => `${run}#${ordinal}`;
 
 const journalled = (journals: Journals, events: readonly EvalTailEvent[]) =>
   events.reduce(
-    (held, { cell, entry, ordinal }) =>
-      new Map(held).set(trialKey(cell, ordinal), [
-        ...(held.get(trialKey(cell, ordinal)) ?? []),
+    (held, { entry, ordinal, run }) =>
+      new Map(held).set(trialKey(run, ordinal), [
+        ...(held.get(trialKey(run, ordinal)) ?? []),
         entry,
       ]),
     journals
   );
 
-export const heardTail = (held: HeardTail, read: EvalRunTail): HeardTail => ({
+export const heardTail = (held: HeardTail, read: EvalBatchTail): HeardTail => ({
   journals: journalled(held.journals, read.events),
   next: read.next,
   running: read.running,
@@ -68,10 +67,7 @@ const following = (
 
 export const overlayTail = (run: EvalRun, journals: Journals): EvalRun => ({
   ...run,
-  cells: run.cells.map((cell) => ({
-    ...cell,
-    trials: cell.trials.map((trial) =>
-      following(trial, journals.get(trialKey(cell.internalId, trial.ordinal)))
-    ),
-  })),
+  trials: run.trials.map((trial) =>
+    following(trial, journals.get(trialKey(run.id, trial.ordinal)))
+  ),
 });

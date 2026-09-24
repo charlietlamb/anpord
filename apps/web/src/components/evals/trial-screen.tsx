@@ -1,3 +1,4 @@
+import type { EvalTrialAddress } from "@anpord/schema/domain/evals";
 import { useQuery } from "@tanstack/react-query";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { TrialView } from "@/components/evals/trial-view";
@@ -6,37 +7,32 @@ import { evalQueries } from "@/lib/evals/eval-queries";
 import { useLiveRun } from "@/lib/evals/use-live-run";
 
 export function TrialScreen({
-  caseId,
-  cellKey,
-  ordinal,
-  runId,
+  address,
 }: {
-  readonly caseId: string;
-  readonly cellKey: string;
-  readonly ordinal: string;
-  readonly runId: string;
+  readonly address: EvalTrialAddress;
 }) {
-  const { data: run } = useQuery(evalQueries.detail(runId));
+  const { data: run } = useQuery(evalQueries.run(address.runId));
 
-  useLiveRun({ id: runId, running: run?.status === "running" });
-
-  const cell = run?.cells.find((candidate) => candidate.cellKey === cellKey);
-  const trial = cell?.trials.find(
-    (candidate) => String(candidate.ordinal) === ordinal
-  );
+  useLiveRun({
+    batchId: address.batchId,
+    runId: address.runId,
+    running: run?.status === "running",
+  });
 
   if (run === undefined) {
     return <TrialSkeleton />;
   }
 
-  if (cell === undefined || trial === undefined) {
+  const trial = run.trials.find((candidate) => candidate.id === address.trialId);
+
+  if (trial === undefined) {
     return (
       <ErrorCard
-        description="This cell has no trial with that number."
+        description="This run has no trial with that id."
         title="Could not find this trial"
       />
     );
   }
 
-  return <TrialView caseId={caseId} cell={cell} run={run} trial={trial} />;
+  return <TrialView run={run} trial={trial} />;
 }

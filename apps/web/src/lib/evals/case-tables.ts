@@ -1,10 +1,10 @@
 export const CASES_TABLE = {
-  columns: "minmax(0,1fr) minmax(0,15rem) 8.5rem 4.5rem 5.5rem 1rem",
-  headings: ["Case", "Variant", "Status", "Runs", "Last run"],
+  columns: "minmax(0,1fr) minmax(0,12rem) 6.5rem 8.5rem 4.5rem 5.5rem 1rem",
+  headings: ["Case", "Suite", "Variants", "Status", "Runs", "Last run"],
   label: "Cases",
 } as const;
 
-export const CASE_HISTORY_TABLE = {
+export const CASE_RUNS_TABLE = {
   columns: "minmax(0,16rem) minmax(0,1fr) minmax(0,15rem) 7.5rem 5.5rem 1rem",
   headings: ["Variant", "Result", "Source", "Status", "Time"],
   label: "Runs of this case",

@@ -1,7 +1,4 @@
-import type {
-  EvalCellHistoryEntry,
-  EvalTrial,
-} from "@anpord/schema/domain/evals";
+import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
 import {
   DataTableChevron,
   DataTableRow,
@@ -14,41 +11,39 @@ import { VariantCell } from "@/components/evals/variant-cell";
 import { trialStatus } from "@/lib/evals/eval-status";
 import { trialVerdict } from "@/lib/evals/trial-verdict";
 
-export function CaseTrialRow({
+export function RunTrialRow({
   caseId,
-  entry,
+  run,
   trial,
 }: {
   readonly caseId: string;
-  readonly entry: EvalCellHistoryEntry;
+  readonly run: EvalRun;
   readonly trial: EvalTrial;
 }) {
   return (
     <DataTableRow
       render={
-        trial.id === undefined ? undefined : (
-          <Link
-            params={{ caseId, trialId: trial.id }}
-            to="/evals/cases/$caseId/trials/$trialId"
-          />
-        )
+        <Link
+          params={{ caseId, trialId: trial.id }}
+          to="/evals/cases/$caseId/trials/$trialId"
+        />
       }
     >
-      <VariantCell harness={entry.harness} model={entry.model} />
+      <VariantCell harness={run.variant.harness} model={run.variant.model} />
 
       <span className="truncate text-foreground">{trialVerdict(trial)}</span>
 
       <SourceLabel
-        local={entry.local}
-        sandbox={entry.sandbox}
-        trigger={entry.trigger}
+        local={run.local}
+        sandbox={run.variant.sandbox}
+        trigger={run.trigger}
       />
 
       <span>
         <EvalStatusBadge status={trialStatus(trial.status)} />
       </span>
 
-      <AgeCell at={entry.finishedAt?.epochMillis ?? null} />
+      <AgeCell at={run.finishedAt?.epochMillis ?? null} />
 
       <DataTableChevron />
     </DataTableRow>

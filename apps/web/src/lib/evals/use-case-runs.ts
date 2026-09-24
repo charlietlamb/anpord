@@ -2,11 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import { useCasePage } from "@/lib/evals/use-case-page";
 
-export const useCaseHistory = (caseId: string, cellKey: string | null) => {
+export const useCaseRuns = (caseId: string, variant: string | null) => {
   const [page, setPage] = useCasePage();
   const { data, isPlaceholderData } = useQuery(
-    evalQueries.caseHistory(caseId, cellKey, page)
+    evalQueries.caseRuns(caseId, variant, page)
   );
 
-  return { history: data, onPage: setPage, paging: isPlaceholderData };
+  return { onPage: setPage, paging: isPlaceholderData, runs: data };
 };

@@ -1,4 +1,4 @@
-import type { EvalCell, EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 
 const START = 1_787_000_000_000;
@@ -121,6 +121,7 @@ const trial = (input: {
   readonly tokens: number | null;
   readonly trajectory?: EvalTrial["trajectory"];
 }): EvalTrial => ({
+  artifacts: [],
   commands: input.commands,
   costs:
     input.tokens === null
@@ -174,12 +175,11 @@ const trial = (input: {
     input.status === "passed"
       ? ["public/logos/github-light.svg", "public/logos/github-dark.svg"]
       : [],
+  id: `trl_fixture_${input.ordinal}`,
   modelMs: 89_579,
   ordinal: input.ordinal,
-  passed: input.status === "passed",
   sandboxId: "sbx-4f2a",
   sandboxMs: 5922,
-  prepared: null,
   status: input.status,
   timed: true,
   trajectory: input.trajectory ?? [],
@@ -193,6 +193,7 @@ const trial = (input: {
           outputTokens: 12_717,
           totalTokens: input.tokens,
         },
+  validations: [],
   verifySteps: trailOf(input.status),
   voidFields: input.status === "void" ? ["stdout"] : [],
 });
@@ -232,23 +233,14 @@ export const FAILED_TRIAL: EvalTrial = trial({
   tokens: 41_200,
 });
 
-export const CELL: EvalCell = {
-  caseName: "github-logo-in-footer",
-  cellKey: "e82b5274c0a2b4eaf3c4f11065b8f0cc",
+const PROMPT =
+  "I'm building a Next.js marketing site and I want to show the GitHub logo in the footer. The site supports light and dark mode. I already keep brand assets in public/logos. Can you grab the GitHub logo for me and put it where it belongs?";
+
+export const RUN: EvalRun = {
+  batchId: "bat_fixture",
+  case: { id: "github-logo-in-footer", name: "github-logo-in-footer" },
   costs: null,
-  comparison: {
-    baselineHarnessVersion: "0.144.4",
-    baselinePassRate: 1,
-    baselineProfileVersion: null,
-    candidateHarnessVersion: "0.145.0",
-    candidatePassRate: 0.667,
-    candidateProfileVersion: null,
-    delta: -0.333,
-    definitionChanged: false,
-    determinismLost: true,
-    reason: null,
-    verdict: "regressed",
-  },
+  definitionHash: "v2",
   distribution: {
     commandMax: 8,
     commandMedian: 6,
@@ -261,40 +253,29 @@ export const CELL: EvalCell = {
     trials: 3,
     voided: 1,
   },
-  internalId: "cell_9f21",
-  setup: {
-    prompt:
-      "I'm building a Next.js marketing site and I want to show the GitHub logo in the footer. The site supports light and dark mode. I already keep brand assets in public/logos. Can you grab the GitHub logo for me and put it where it belongs?",
-    repoRef: null,
-    repoUrl: null,
-    prepareName: null,
-    validatorName: null,
-    verifyCommand: VERIFY,
-    workspace: "/tmp/anpord-task",
-  },
-  status: "finished",
-  variantIndex: 0,
-  trials: TRIALS,
-};
-
-export const RUN: EvalRun = {
-  cases: [CELL.caseName],
-  cells: [CELL],
-  costs: null,
-  executedBy: null,
-  failure: null,
   finishedAt: DateTime.unsafeMake(START + 180_000),
+  harnessVersion: "0.145.0",
   id: "run_fixture",
-  name: null,
+  local: false,
+  profileVersion: null,
+  setup: {
+    prepare: null,
+    prompt: PROMPT,
+    source: { kind: "empty" },
+    validator: null,
+    verify: VERIFY,
+  },
   startedAt: DateTime.unsafeMake(START),
   status: "finished",
+  suite: { id: "brand-assets", name: "Brand assets" },
+  trials: TRIALS,
   trigger: { source: "cli" },
-  variants: [
-    {
-      harness: "codex",
-      harnessVersion: "0.145.0",
-      model: "gpt-5-codex",
-      sandbox: "e2b",
-    },
-  ],
+  variant: {
+    harness: "codex",
+    id: "evar_codex",
+    model: "gpt-5-codex",
+    profile: null,
+    sandbox: "e2b",
+    userModel: null,
+  },
 };

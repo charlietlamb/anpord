@@ -6,7 +6,7 @@ import { CaseActivity } from "@/components/evals/case-activity";
 import { CaseMeta } from "@/components/evals/case-meta";
 import { ErrorCard } from "@/components/layout/error-card";
 import { PageShell } from "@/components/layout/page-shell";
-import { CASE_HISTORY_TABLE } from "@/lib/evals/case-tables";
+import { CASE_RUNS_TABLE } from "@/lib/evals/case-tables";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 export const Route = createFileRoute("/_authed/evals/cases/$caseId/")({
@@ -32,7 +32,7 @@ function CaseScreen() {
       width="wide"
     >
       {data === undefined ? (
-        <DataTableSkeleton {...CASE_HISTORY_TABLE} />
+        <DataTableSkeleton {...CASE_RUNS_TABLE} />
       ) : (
         <CaseActivity detail={data} />
       )}

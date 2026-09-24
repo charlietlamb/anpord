@@ -7,13 +7,14 @@ import type {
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {
+  type CaseFilters,
   getArtifact,
   getCase,
   getRun,
   getTrialAddress,
-  listCaseHistory,
+  listCaseRuns,
   listCases,
-  readRunTail,
+  readBatchTail,
 } from "@/lib/evals/evals-client";
 import {
   type HeardTail,
@@ -22,59 +23,71 @@ import {
   overlayTail,
 } from "@/lib/evals/run-tail";
 
-const DETAIL_POLL_MS = 15_000;
-
+const RUN_POLL_MS = 15_000;
 const TAIL_POLL_MS = 3000;
 
 const LIVE = {
   refetchIntervalInBackground: false,
   refetchOnMount: false,
   refetchOnWindowFocus: false,
-  staleTime: DETAIL_POLL_MS,
+  staleTime: RUN_POLL_MS,
 } as const;
 
-const catchUp = async (id: string, held: HeardTail): Promise<HeardTail> => {
-  const read = await readRunTail(id, held.next);
+const catchUp = async (batchId: string, held: HeardTail): Promise<HeardTail> => {
+  const read = await readBatchTail(batchId, held.next);
   const heard = heardTail(held, read);
-
-  return read.events.length < EVAL_TAIL_PAGE ? heard : catchUp(id, heard);
+  return read.events.length < EVAL_TAIL_PAGE ? heard : catchUp(batchId, heard);
 };
 
 export const evalQueries = {
-  cases: (tag: string | null, cursor: EvalPageCursor | null = null) =>
+  cases: (filters: CaseFilters, cursor: EvalPageCursor | null = null) =>
     queryOptions({
-      queryKey: evalKeys.cases(tag, cursor),
-      queryFn: () => listCases(tag, cursor),
+      queryKey: evalKeys.cases(filters, cursor),
+      queryFn: () => listCases(filters, cursor),
       placeholderData: keepPreviousData,
       ...LIVE,
     }),
 
-  detail: (id: string) =>
+  case: (id: string) =>
     queryOptions({
-      queryKey: evalKeys.detail(id),
+      queryKey: evalKeys.case(id),
+      queryFn: () => getCase(id),
+    }),
+
+  caseRuns: (caseId: string, variant: string | null, page: number) =>
+    queryOptions({
+      queryKey: evalKeys.caseRuns(caseId, variant, page),
+      queryFn: () => listCaseRuns(caseId, variant, page),
+      placeholderData: keepPreviousData,
+    }),
+
+  run: (id: string) =>
+    queryOptions({
+      queryKey: evalKeys.run(id),
       queryFn: () => getRun(id),
       refetchInterval: (query) =>
-        query.state.data?.status === "running" ? DETAIL_POLL_MS : false,
+        query.state.data?.status === "running" ? RUN_POLL_MS : false,
       ...LIVE,
     }),
 
-  tail: (id: string) =>
+  tail: (batchId: string, runId: string) =>
     queryOptions({
-      queryKey: evalKeys.tail(id),
+      queryKey: evalKeys.tail(batchId),
       queryFn: async ({ client }) => {
         const held =
-          client.getQueryData<HeardTail>(evalKeys.tail(id)) ?? NOTHING_HEARD;
-        const heard = await catchUp(id, held);
+          client.getQueryData<HeardTail>(evalKeys.tail(batchId)) ??
+          NOTHING_HEARD;
+        const heard = await catchUp(batchId, held);
 
-        client.setQueryData<EvalRun>(evalKeys.detail(id), (run) =>
+        client.setQueryData<EvalRun>(evalKeys.run(runId), (run) =>
           run === undefined ? run : overlayTail(run, heard.journals)
         );
 
-        const settledMoved =
-          held.settled !== null && held.settled !== heard.settled;
-
-        if (settledMoved || !heard.running) {
-          await client.invalidateQueries({ queryKey: evalKeys.detail(id) });
+        if (
+          (held.settled !== null && held.settled !== heard.settled) ||
+          !heard.running
+        ) {
+          await client.invalidateQueries({ queryKey: evalKeys.run(runId) });
         }
 
         return heard;
@@ -83,12 +96,6 @@ export const evalQueries = {
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: false,
       staleTime: Number.POSITIVE_INFINITY,
-    }),
-
-  case: (id: string) =>
-    queryOptions({
-      queryKey: evalKeys.case(id),
-      queryFn: () => getCase(id),
     }),
 
   trialAddress: (id: string) =>
@@ -104,12 +111,5 @@ export const evalQueries = {
       queryFn: () => getArtifact(request),
       staleTime: Number.POSITIVE_INFINITY,
       gcTime: 300_000,
-    }),
-
-  caseHistory: (caseId: string, cellKey: string | null, page: number) =>
-    queryOptions({
-      queryKey: evalKeys.caseHistory(caseId, cellKey, page),
-      queryFn: () => listCaseHistory(caseId, cellKey, page),
-      placeholderData: keepPreviousData,
     }),
 } as const;

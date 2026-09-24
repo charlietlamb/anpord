@@ -1,4 +1,3 @@
-import { validationsOf } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalSetup, EvalTrial } from "@anpord/schema/domain/evals";
 import {
   DataTable,
@@ -24,13 +23,13 @@ export function TrialChecks({
   readonly trial: EvalTrial;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
-  const validations = validationsOf(trial);
+  const validations = trial.validations;
   const open = validations.find((validation) => validation.id === openId);
   const files = setup?.validatorFiles ?? [];
   const passed = validations.filter((entry) => entry.status === "passed");
 
-  if (setup?.validatorName == null && setup?.verifyCommand != null) {
-    return <VerifyResults command={setup.verifyCommand} trials={[trial]} />;
+  if (setup?.validator == null && setup?.verify != null) {
+    return <VerifyResults command={setup.verify} trials={[trial]} />;
   }
 
   if (validations.length === 0) {

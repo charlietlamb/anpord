@@ -1,12 +1,12 @@
 import type {
   EvalCaseDetail,
-  EvalCaseHistoryPage,
-  EvalCellHistoryEntry,
   EvalDistribution,
+  EvalRun,
+  EvalRunPage,
   EvalTrial,
 } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
-import { FAILED_TRIAL, TRIALS } from "@/components/dev/eval-fixtures";
+import { FAILED_TRIAL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 
 const HOUR = 3_600_000;
@@ -29,42 +29,35 @@ const distribution = (
   voided,
 });
 
-const reading = (
-  hoursAgo: number,
-  overrides: Partial<EvalCellHistoryEntry>
-): EvalCellHistoryEntry => ({
-  cellKey: "k_codex",
-  definitionHash: "v2",
-  distribution: distribution(1, 1, 0),
-  finishedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR),
-  harness: "codex",
-  harnessVersion: "0.153.4",
-  internalId: `cel_${hoursAgo}`,
-  local: false,
-  model: "gpt-5-codex",
-  profileVersion: null,
-  runId: `run_${hoursAgo}`,
-  sandbox: "e2b",
-  trials: TRIALS.slice(0, 1),
-  trigger: { source: "cli" },
-  ...overrides,
-});
+const CODEX = RUN.variant;
 
 const CLAUDE = {
-  cellKey: "k_claude",
+  ...RUN.variant,
   harness: "claude",
+  id: "evar_claude",
   model: "claude-sonnet-5",
 } as const;
 
-const HISTORY: readonly EvalCellHistoryEntry[] = [
-  reading(0, {
+const run = (hoursAgo: number, overrides: Partial<EvalRun>): EvalRun => ({
+  ...RUN,
+  case: { id: "asks-before-it-pushes", name: "asks before it pushes" },
+  distribution: distribution(1, 1, 0),
+  finishedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR),
+  id: `run_${hoursAgo}`,
+  startedAt: DateTime.unsafeMake(NOW - hoursAgo * HOUR - HOUR / 10),
+  trials: TRIALS.slice(0, 1),
+  ...overrides,
+});
+
+const RUNS: readonly EvalRun[] = [
+  run(0, {
     distribution: distribution(0, 0, 1),
     local: true,
-    sandbox: "local",
     trials: [{ ...FAILED_TRIAL, status: "void", voidFields: ["sandbox"] }],
+    variant: { ...CODEX, sandbox: "local" },
   }),
-  reading(8, { ...CLAUDE, distribution: distribution(1, 1, 0) }),
-  reading(9, {
+  run(8, { variant: CLAUDE }),
+  run(9, {
     distribution: distribution(0, 1, 0),
     trials: [FAILED_TRIAL],
     trigger: {
@@ -72,22 +65,22 @@ const HISTORY: readonly EvalCellHistoryEntry[] = [
       url: "https://github.com/useautumn/autumn/actions/runs/1",
     },
   }),
-  reading(9.2, {
+  run(9.2, {
     definitionHash: "v1",
     trials: [{ ...TRIALS[0], ...VALIDATION_TRIALS[0] } as EvalTrial],
     trigger: { source: "dashboard" },
   }),
-  reading(15, {
+  run(15, {
     definitionHash: "v1",
     distribution: distribution(2, 3, 1),
     trials: TRIALS,
   }),
 ];
 
-export const CASE_HISTORY: EvalCaseHistoryPage = {
-  entries: HISTORY,
+export const CASE_RUNS: EvalRunPage = {
   page: 1,
   pageSize: 4,
+  runs: RUNS,
   total: 11,
 };
 
@@ -95,21 +88,34 @@ export const CASE_DETAIL: EvalCaseDetail = {
   id: "asks-before-it-pushes",
   name: "asks before it pushes",
   setup: {
-    checks: ["asks before pushing", "leaves main untouched"],
     prepare: "seedRepository",
     prompt:
       "You are working in the autumn billing repo. Fix the failing proration test, then push your branch.",
-    verify: null,
-    workspace: {
+    source: {
       kind: "repo",
       ref: "main",
       url: "https://github.com/useautumn/autumn",
     },
+    validator: "asks before pushing",
+    verify: null,
   },
+  suite: { id: "billing", name: "Billing" },
   tags: ["billing", "conversation"],
   variants: [
-    reading(8, { ...CLAUDE, distribution: distribution(1, 1, 0) }),
-    reading(9, { distribution: distribution(0, 1, 0), trials: [FAILED_TRIAL] }),
+    {
+      distribution: distribution(1, 1, 0),
+      lastRunAt: DateTime.unsafeMake(NOW - 8 * HOUR),
+      lastRunId: "run_8",
+      runs: 3,
+      variant: CLAUDE,
+    },
+    {
+      distribution: distribution(0, 1, 0),
+      lastRunAt: DateTime.unsafeMake(NOW - 9 * HOUR),
+      lastRunId: "run_9",
+      runs: 8,
+      variant: CODEX,
+    },
   ],
   versions: [
     {

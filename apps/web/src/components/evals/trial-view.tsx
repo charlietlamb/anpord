@@ -1,4 +1,4 @@
-import type { EvalCell, EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
 import {
   ChatsCircleIcon,
   CheckSquareIcon,
@@ -10,7 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { CaseSetup } from "@/components/evals/case-setup";
 import { Conversation } from "@/components/evals/conversation";
-import { RunVariantButton } from "@/components/evals/run-variant-button";
+import { RunCaseButton } from "@/components/evals/run-case-button";
 import { TokenBand } from "@/components/evals/token-band";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
@@ -22,22 +22,14 @@ import { TrialStepSheet } from "@/components/evals/trial-step-sheet";
 import { Waterfall } from "@/components/evals/waterfall";
 import { PageShell } from "@/components/layout/page-shell";
 import { SideSheet } from "@/components/layout/side-sheet";
-import { caseSetupOf } from "@/lib/evals/case-setup-of";
 
 export function TrialView({
-  caseId,
-  cell,
   run,
   trial,
 }: {
-  readonly caseId: string;
-  readonly cell: EvalCell;
   readonly run: EvalRun;
   readonly trial: EvalTrial;
 }) {
-  const cellKey = cell.cellKey ?? "";
-  const runId = run.id;
-  const variant = run.variants[cell.variantIndex];
   const running = trial.status === "running";
 
   return (
@@ -52,27 +44,20 @@ export function TrialView({
           >
             <TrialDetails trial={trial} />
           </SideSheet>
-          {cell.setup === null ? null : (
-            <SideSheet
-              description="How this trial was set up and judged."
-              flush
-              icon={SlidersHorizontalIcon}
-              title="Setup"
-              trigger="Setup"
-            >
-              <CaseSetup setup={caseSetupOf(cell.setup)} />
-            </SideSheet>
-          )}
-          {variant === undefined ? null : (
-            <RunVariantButton
-              caseId={caseId}
-              entry={{ cellKey, model: variant.model, runId }}
-            />
-          )}
+          <SideSheet
+            description="How this run was set up and judged."
+            flush
+            icon={SlidersHorizontalIcon}
+            title="Setup"
+            trigger="Setup"
+          >
+            <CaseSetup setup={run.setup} />
+          </SideSheet>
+          <RunCaseButton caseId={run.case.id} variant={run.variant} />
         </>
       }
-      description={<TrialMeta run={run} trial={trial} variant={variant} />}
-      title={cell.caseName}
+      description={<TrialMeta run={run} trial={trial} />}
+      title={run.case.name}
       width="wide"
     >
       {trial.usage === null ? null : <TokenBand usage={trial.usage} />}
@@ -98,8 +83,8 @@ export function TrialView({
                 running={running}
                 trajectory={trial.trajectory}
                 written={{
-                  artifacts: trial.artifacts ?? [],
-                  trial: { cellKey, id: runId, ordinal: trial.ordinal },
+                  artifacts: trial.artifacts,
+                  trial: { trialId: trial.id },
                 }}
               />
             ),
@@ -109,24 +94,20 @@ export function TrialView({
           {
             Icon: CheckSquareIcon,
             content: (
-              <TrialChecks
-                key={`${cellKey}:${trial.ordinal}`}
-                setup={cell.setup}
-                trial={trial}
-              />
+              <TrialChecks key={trial.id} setup={run.setup} trial={trial} />
             ),
             label: "Checks",
             value: "checks",
           },
-          ...(trial.artifacts?.length || trial.filesChanged.length
+          ...(trial.artifacts.length > 0 || trial.filesChanged.length > 0
             ? [
                 {
                   Icon: FilesIcon,
                   content: (
                     <TrialFiles
-                      artifacts={trial.artifacts ?? []}
+                      artifacts={trial.artifacts}
                       changed={trial.filesChanged}
-                      trial={{ id: runId, cellKey, ordinal: trial.ordinal }}
+                      trial={{ trialId: trial.id }}
                     />
                   ),
                   label: "Files",

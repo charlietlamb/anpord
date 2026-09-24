@@ -1,18 +1,18 @@
-import type { EvalCellHistoryEntry } from "@anpord/schema/domain/evals";
+import type { EvalVariantResult } from "@anpord/schema/domain/evals";
 import { useQueryState } from "nuqs";
 import { useCasePage } from "@/lib/evals/use-case-page";
 
 export const useSelectedVariant = (
-  variants: readonly EvalCellHistoryEntry[]
+  variants: readonly EvalVariantResult[]
 ) => {
-  const [cellKey, setCellKey] = useQueryState("variant");
+  const [variantId, setVariantId] = useQueryState("variant");
   const [, setPage] = useCasePage();
 
   return {
     select: (next: string | null) => {
-      setCellKey(next);
+      setVariantId(next);
       setPage(null);
     },
-    selected: variants.find((entry) => entry.cellKey === cellKey),
+    selected: variants.find((entry) => entry.variant.id === variantId),
   };
 };

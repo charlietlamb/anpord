@@ -7,19 +7,29 @@ import { Link } from "@tanstack/react-router";
 import { AgeCell } from "@/components/evals/age-cell";
 import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { TagChip } from "@/components/evals/tag-chip";
-import { VariantCell } from "@/components/evals/variant-cell";
 import { counted } from "@/lib/evals/conversation";
 import { distributionStatus } from "@/lib/evals/eval-status";
+
+const newestAcross = (subject: EvalCaseSummary) =>
+  subject.variants.reduce(
+    (total, { distribution }) => ({
+      passed: total.passed + distribution.passed,
+      scored: total.scored + distribution.scored,
+    }),
+    { passed: 0, scored: 0 }
+  );
 
 export function CaseListRow({
   subject,
 }: {
   readonly subject: EvalCaseSummary;
 }) {
+  const runs = subject.variants.reduce((total, entry) => total + entry.runs, 0);
+
   return (
     <DataTableRow
       render={
-        <Link params={{ caseId: subject.caseId }} to="/evals/cases/$caseId" />
+        <Link params={{ caseId: subject.id }} to="/evals/cases/$caseId" />
       }
     >
       <span className="flex min-w-0 items-center gap-2">
@@ -29,17 +39,21 @@ export function CaseListRow({
         ))}
       </span>
 
-      <VariantCell harness={subject.harness} model={subject.model} />
+      <span className="truncate text-muted-foreground">{subject.suite.name}</span>
+
+      <span className="text-muted-foreground tabular-nums">
+        {counted(subject.variants.length, "variant", "variants")}
+      </span>
 
       <span>
-        <EvalStatusBadge status={distributionStatus(subject.distribution)} />
+        <EvalStatusBadge status={distributionStatus(newestAcross(subject))} />
       </span>
 
       <span className="text-muted-foreground tabular-nums">
-        {counted(subject.runCount, "run", "runs")}
+        {counted(runs, "run", "runs")}
       </span>
 
-      <AgeCell at={subject.lastRunAtMillis} />
+      <AgeCell at={subject.lastRunAt.epochMillis} />
 
       <DataTableChevron />
     </DataTableRow>

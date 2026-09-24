@@ -14,7 +14,7 @@ export const Route = createFileRoute(
       evalQueries.trialAddress(params.trialId)
     );
 
-    context.queryClient.prefetchQuery(evalQueries.detail(address.runId));
+    context.queryClient.prefetchQuery(evalQueries.run(address.runId));
   },
   component: TrialRoute,
   staticData: {
@@ -46,12 +46,5 @@ function TrialRoute() {
     return <TrialSkeleton />;
   }
 
-  return (
-    <TrialScreen
-      caseId={address.caseId}
-      cellKey={address.cellKey}
-      ordinal={String(address.ordinal)}
-      runId={address.runId}
-    />
-  );
+  return <TrialScreen address={address} />;
 }

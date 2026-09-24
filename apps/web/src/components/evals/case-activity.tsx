@@ -1,27 +1,22 @@
 import type { EvalCaseDetail } from "@anpord/schema/domain/evals";
 import { DataTableSkeleton } from "@anpord/ui/components/ui/data-table";
-import { CaseReadings } from "@/components/evals/case-readings";
-import { CASE_HISTORY_TABLE } from "@/lib/evals/case-tables";
-import { useCaseHistory } from "@/lib/evals/use-case-history";
+import { CaseRuns } from "@/components/evals/case-runs";
+import { CASE_RUNS_TABLE } from "@/lib/evals/case-tables";
+import { useCaseRuns } from "@/lib/evals/use-case-runs";
 import { useSelectedVariant } from "@/lib/evals/use-selected-variant";
 
 export function CaseActivity({ detail }: { readonly detail: EvalCaseDetail }) {
   const { selected } = useSelectedVariant(detail.variants);
-  const { history, onPage, paging } = useCaseHistory(
+  const { onPage, paging, runs } = useCaseRuns(
     detail.id,
-    selected?.cellKey ?? null
+    selected?.variant.id ?? null
   );
 
-  if (history === undefined) {
-    return <DataTableSkeleton {...CASE_HISTORY_TABLE} />;
+  if (runs === undefined) {
+    return <DataTableSkeleton {...CASE_RUNS_TABLE} />;
   }
 
   return (
-    <CaseReadings
-      caseId={detail.id}
-      history={history}
-      onPage={onPage}
-      paging={paging}
-    />
+    <CaseRuns caseId={detail.id} onPage={onPage} page={runs} paging={paging} />
   );
 }

@@ -11,7 +11,8 @@ import { FlaskIcon, PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CaseListRow } from "@/components/evals/case-list-row";
-import { TagFilter } from "@/components/evals/tag-filter";
+import { SuiteTabs } from "@/components/evals/suite-tabs";
+import { TagSelect } from "@/components/evals/tag-select";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
@@ -21,23 +22,29 @@ import { evalQueries } from "@/lib/evals/eval-queries";
 import { useCursorStack } from "@/lib/use-cursor-stack";
 
 export const Route = createFileRoute("/_authed/evals/")({
-  validateSearch: (search): { tag?: string } =>
-    typeof search.tag === "string" && search.tag !== ""
+  validateSearch: (search): { suite?: string; tag?: string } => ({
+    ...(typeof search.suite === "string" && search.suite !== ""
+      ? { suite: search.suite }
+      : {}),
+    ...(typeof search.tag === "string" && search.tag !== ""
       ? { tag: search.tag }
-      : {},
+      : {}),
+  }),
   ssr: false,
   loader: ({ context }) => {
-    context.queryClient.prefetchQuery(evalQueries.cases(null));
+    context.queryClient.prefetchQuery(
+      evalQueries.cases({ suite: null, tag: null })
+    );
   },
   component: EvalsIndex,
 });
 
 function EvalsIndex() {
   const navigate = Route.useNavigate();
-  const { tag = null } = Route.useSearch();
+  const { suite = null, tag = null } = Route.useSearch();
   const pages = useCursorStack<EvalPageCursor>();
   const { data, error, isPending, isPlaceholderData } = useQuery(
-    evalQueries.cases(tag, pages.cursor)
+    evalQueries.cases({ suite, tag }, pages.cursor)
   );
   const cases = data?.cases ?? [];
   const next = data?.next ?? null;
@@ -45,19 +52,33 @@ function EvalsIndex() {
   return (
     <PageShell
       actions={
-        <Button render={<Link to="/evals/new" />} size="sm">
-          <PlusIcon />
-          New eval
-        </Button>
+        <>
+          <TagSelect
+            onSelect={(selected) => {
+              pages.reset();
+              navigate({
+                search: (current) => ({ ...current, tag: selected ?? undefined }),
+              });
+            }}
+            selected={tag}
+            tags={data?.tags ?? []}
+          />
+          <Button render={<Link to="/evals/new" />} size="sm">
+            <PlusIcon />
+            New eval
+          </Button>
+        </>
       }
       tabs={
-        <TagFilter
+        <SuiteTabs
           onSelect={(selected) => {
             pages.reset();
-            navigate({ search: { tag: selected ?? undefined } });
+            navigate({
+              search: (current) => ({ ...current, suite: selected ?? undefined }),
+            });
           }}
-          selected={tag}
-          tags={data?.tags ?? []}
+          selected={suite}
+          suites={data?.suites ?? []}
         />
       }
       title="Evals"
@@ -77,7 +98,7 @@ function EvalsIndex() {
 
           <DataTableBody>
             {cases.map((subject) => (
-              <CaseListRow key={subject.caseId} subject={subject} />
+              <CaseListRow key={subject.id} subject={subject} />
             ))}
           </DataTableBody>
 

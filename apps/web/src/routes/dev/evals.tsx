@@ -1,8 +1,8 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { createFileRoute } from "@tanstack/react-router";
-import { CASE_DETAIL, CASE_HISTORY } from "@/components/dev/case-fixtures";
-import { CELL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
+import { CASE_DETAIL, CASE_RUNS } from "@/components/dev/case-fixtures";
+import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import {
   LOCAL_RUN,
@@ -14,7 +14,7 @@ import {
 import { AgentSetup } from "@/components/evals/agent-setup";
 import { CaseActions } from "@/components/evals/case-actions";
 import { CaseMeta } from "@/components/evals/case-meta";
-import { CaseReadings } from "@/components/evals/case-readings";
+import { CaseRuns } from "@/components/evals/case-runs";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
@@ -107,41 +107,26 @@ function EvalsPreview() {
             title={CASE_DETAIL.name}
             width="wide"
           >
-            <CaseReadings
+            <CaseRuns
               caseId={CASE_DETAIL.id}
-              history={CASE_HISTORY}
               onPage={() => undefined}
+              page={CASE_RUNS}
             />
           </PageShell>
         </PreviewScreen>
 
         {TRIAL ? (
           <PreviewScreen name="One trial">
-            <TrialView
-              caseId={CASE_DETAIL.id}
-              cell={CELL}
-              run={RUN}
-              trial={TRIAL}
-            />
+            <TrialView run={RUN} trial={TRIAL} />
           </PreviewScreen>
         ) : null}
 
         <PreviewScreen name="Trial judged by validators">
-          <TrialView
-            caseId={CASE_DETAIL.id}
-            cell={VALIDATED_RUN.cells[0] ?? CELL}
-            run={VALIDATED_RUN}
-            trial={VALIDATED_TRIAL}
-          />
+          <TrialView run={VALIDATED_RUN} trial={VALIDATED_TRIAL} />
         </PreviewScreen>
 
         <PreviewScreen name="Local trial that reported nothing">
-          <TrialView
-            caseId={CASE_DETAIL.id}
-            cell={LOCAL_RUN.cells[0] ?? CELL}
-            run={LOCAL_RUN}
-            trial={LOCAL_TRIAL}
-          />
+          <TrialView run={LOCAL_RUN} trial={LOCAL_TRIAL} />
         </PreviewScreen>
 
         <PreviewScreen name="Loading: one trial">

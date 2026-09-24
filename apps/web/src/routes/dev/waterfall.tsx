@@ -2,7 +2,7 @@ import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { CheckSquareIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { CONVERSATION } from "@/components/dev/conversation-fixture";
-import { CELL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
+import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
 import {
   VALIDATED_SETUP,
@@ -102,7 +102,7 @@ function WaterfallPreview() {
                 artifacts: [
                   { byteSize: 412, path: "autumn.config.ts", sha256: "dev" },
                 ],
-                trial: { cellKey: "dev", id: "run_dev", ordinal: 1 },
+                trial: { trialId: "trl_dev" },
               }}
             />
           </div>
@@ -134,7 +134,7 @@ function WaterfallPreview() {
 
         {TRIAL ? (
           <PreviewScreen name="Trajectory">
-            <TrialView caseId="fixture" cell={CELL} run={RUN} trial={TRIAL} />
+            <TrialView run={RUN} trial={TRIAL} />
           </PreviewScreen>
         ) : null}
 

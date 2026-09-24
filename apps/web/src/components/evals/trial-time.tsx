@@ -17,8 +17,8 @@ export function TrialTime({ trial }: { readonly trial: EvalTrial }) {
   const trialTotalMs =
     trial.modelMs +
     trial.sandboxMs +
-    (trial.judgments ?? []).reduce(
-      (total, judgment) => total + judgment.durationMs,
+    trial.validations.reduce(
+      (total, check) => total + (check.judgment?.durationMs ?? 0),
       0
     );
 
