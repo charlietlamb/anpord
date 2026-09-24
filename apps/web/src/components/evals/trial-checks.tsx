@@ -64,17 +64,11 @@ export function TrialChecks({
             files.length === 0 ? undefined : (
               <SideSheet
                 description="The validator code these checks ran."
+                icon={FileCodeIcon}
                 title="Source"
-                trigger={
-                  <>
-                    <FileCodeIcon className="size-3.5" />
-                    Source
-                  </>
-                }
+                trigger="Source"
               >
-                <div className="p-4">
-                  <ValidationSource files={files} />
-                </div>
+                <ValidationSource files={files} />
               </SideSheet>
             )
           }
@@ -84,19 +78,11 @@ export function TrialChecks({
       </DataTable>
 
       <SideSheet
-        onOpenChange={(next) => {
-          if (!next) {
-            setOpenId(null);
-          }
-        }}
+        onClose={() => setOpenId(null)}
         open={open !== undefined}
         title={open?.name}
       >
-        {open === undefined ? null : (
-          <div className="p-4">
-            <ValidationDetail validation={open} />
-          </div>
-        )}
+        {open === undefined ? null : <ValidationDetail validation={open} />}
       </SideSheet>
     </>
   );

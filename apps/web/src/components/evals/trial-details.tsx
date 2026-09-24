@@ -44,7 +44,7 @@ function FileRow({ path }: { readonly path: string }) {
 
 export function TrialDetails({ trial }: { readonly trial: EvalTrial }) {
   return (
-    <div className="flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-6">
       <TrialOutcome trial={trial} />
       <TrialTime trial={trial} />
 

@@ -1,4 +1,5 @@
 import { mergeProps } from "@base-ui/react/merge-props";
+import { CaretRightIcon } from "@phosphor-icons/react";
 import { useRender } from "@base-ui/react/use-render";
 import type { CSSProperties, ComponentProps, ReactNode } from "react";
 import { Skeleton } from "@anpord/ui/components/skeleton";
@@ -65,8 +66,9 @@ export function DataTableBody({
 export function DataTableRow({
   className,
   render,
+  selected = false,
   ...props
-}: useRender.ComponentProps<"div">) {
+}: useRender.ComponentProps<"div"> & { readonly selected?: boolean }) {
   const row = useRender({
     defaultTagName: "div",
     props: mergeProps<"div">(
@@ -75,7 +77,8 @@ export function DataTableRow({
           COLUMNS,
           "h-10 text-label",
           render !== undefined &&
-            "transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4 focus-visible:outline-none",
+            "w-full text-left transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4 focus-visible:outline-none",
+          selected && "bg-alpha-4",
           className
         ),
       },
@@ -85,6 +88,15 @@ export function DataTableRow({
   });
 
   return <li className="border-border border-b last:border-b-0">{row}</li>;
+}
+
+export function DataTableChevron() {
+  return (
+    <CaretRightIcon
+      aria-hidden="true"
+      className="size-3.5 text-muted-foreground"
+    />
+  );
 }
 
 export function DataTableFooter({

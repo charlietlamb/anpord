@@ -6,19 +6,11 @@ import {
   DataTable,
   DataTableBody,
   DataTableHead,
-  DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import {
-  CaretRightIcon,
-  CheckCircleIcon,
-  MinusCircleIcon,
-} from "@phosphor-icons/react";
 import { useState } from "react";
 import { FileSheet } from "@/components/evals/file-sheet";
+import { TrialFileRow } from "@/components/evals/trial-file-row";
 import { FILES_TABLE } from "@/lib/evals/case-tables";
-import { bytes } from "@/lib/evals/duration";
-import { fileIcon } from "@/lib/evals/file-presentation";
 
 export function TrialFiles({
   artifacts,
@@ -34,69 +26,28 @@ export function TrialFiles({
   const paths = [
     ...new Set([...artifacts.map((file) => file.path), ...changed]),
   ];
-  const open = openPath === null ? undefined : captured.get(openPath);
 
   return (
     <>
       <DataTable columns={FILES_TABLE.columns} label={FILES_TABLE.label}>
         <DataTableHead headings={FILES_TABLE.headings} />
-
         <DataTableBody>
-          {paths.map((path) => {
-            const file = captured.get(path);
-            const Glyph = fileIcon(path);
-            const cells = (
-              <>
-                <span className="flex min-w-0 items-center gap-2.5">
-                  <Glyph
-                    aria-hidden="true"
-                    className="size-4 shrink-0 text-muted-foreground"
-                  />
-                  <span className="truncate font-mono text-xs">{path}</span>
-                </span>
-                <span className="text-muted-foreground tabular-nums">
-                  {file === undefined ? null : bytes(file.byteSize)}
-                </span>
-                <span>
-                  {file === undefined ? (
-                    <StatusBadge icon={MinusCircleIcon} tone="secondary">
-                      Not captured
-                    </StatusBadge>
-                  ) : (
-                    <StatusBadge icon={CheckCircleIcon} tone="positive">
-                      Captured
-                    </StatusBadge>
-                  )}
-                </span>
-                {file === undefined ? (
-                  <span />
-                ) : (
-                  <CaretRightIcon
-                    aria-hidden="true"
-                    className="size-3.5 text-muted-foreground"
-                  />
-                )}
-              </>
-            );
-
-            return file === undefined ? (
-              <DataTableRow key={path}>{cells}</DataTableRow>
-            ) : (
-              <DataTableRow
-                className="w-full text-left"
-                key={path}
-                render={
-                  <button onClick={() => setOpenPath(path)} type="button" />
-                }
-              >
-                {cells}
-              </DataTableRow>
-            );
-          })}
+          {paths.map((path) => (
+            <TrialFileRow
+              file={captured.get(path)}
+              key={path}
+              onOpen={() => setOpenPath(path)}
+              path={path}
+            />
+          ))}
         </DataTableBody>
       </DataTable>
 
-      <FileSheet file={open} onClose={() => setOpenPath(null)} trial={trial} />
+      <FileSheet
+        file={openPath === null ? undefined : captured.get(openPath)}
+        onClose={() => setOpenPath(null)}
+        trial={trial}
+      />
     </>
   );
 }

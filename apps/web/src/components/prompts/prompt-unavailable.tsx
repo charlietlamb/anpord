@@ -1,4 +1,4 @@
-import { EmptyState } from "@anpord/ui/components/empty-state";
+import { EmptyState } from "@anpord/ui/components/ui/empty-state";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { TextTIcon } from "@phosphor-icons/react";
@@ -20,7 +20,6 @@ export function PromptUnavailable({ failed }: PromptUnavailableProps) {
             Back to prompts
           </Link>
         }
-        className="max-w-md"
         description={
           failed
             ? "The request didn't reach the server. Try again in a moment."

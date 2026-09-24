@@ -1,5 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
-import { EmptyState } from "@anpord/ui/components/empty-state";
+import { EmptyState } from "@anpord/ui/components/ui/empty-state";
 import { type Icon, PlusIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { RowList } from "@/components/layout/row-list";

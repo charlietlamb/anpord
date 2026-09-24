@@ -1,6 +1,6 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
-import { EmptyState } from "@anpord/ui/components/empty-state";
+import { EmptyState } from "@anpord/ui/components/ui/empty-state";
 import { GitBranchIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -70,7 +70,6 @@ function CodebasePage() {
       return (
         <EmptyState
           action={connectButton}
-          className="m-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
           description="Public repositories clone without it. Connecting lets you choose exactly which of your own it can read."
           icon={<GitBranchIcon />}
           title="GitHub not connected"

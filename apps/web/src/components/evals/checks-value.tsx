@@ -1,11 +1,11 @@
 import type { EvalCaseSetup } from "@anpord/schema/domain/evals";
-import { InlineCode } from "@anpord/ui/components/ui/inline-code";
+import { CodeBlock } from "@anpord/ui/components/ui/code-block";
 import { CheckCircleIcon } from "@phosphor-icons/react";
 import { EmptyValue } from "@/components/evals/empty-value";
 
 export function ChecksValue({ setup }: { readonly setup: EvalCaseSetup }) {
   if (setup.verify !== null) {
-    return <InlineCode>{setup.verify}</InlineCode>;
+    return <CodeBlock copyValue={setup.verify}>{setup.verify}</CodeBlock>;
   }
 
   if (setup.checks.length === 0) {

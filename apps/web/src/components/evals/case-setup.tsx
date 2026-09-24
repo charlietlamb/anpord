@@ -5,15 +5,9 @@ import { ChecksValue } from "@/components/evals/checks-value";
 import { EmptyValue } from "@/components/evals/empty-value";
 import { WorkspaceValue } from "@/components/evals/workspace-value";
 
-export function CaseSetup({
-  bare,
-  setup,
-}: {
-  readonly bare?: boolean;
-  readonly setup: EvalCaseSetup;
-}) {
+export function CaseSetup({ setup }: { readonly setup: EvalCaseSetup }) {
   return (
-    <DetailList bare={bare} label="Setup">
+    <DetailList bare label="Setup">
       <DetailRow label="Prompt">
         <p className="max-h-40 overflow-y-auto whitespace-pre-wrap leading-relaxed">
           {setup.prompt}

@@ -5,11 +5,12 @@ import {
   FilesIcon,
   InfoIcon,
   PulseIcon,
+  SlidersHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
+import { CaseSetup } from "@/components/evals/case-setup";
 import { Conversation } from "@/components/evals/conversation";
 import { RunVariantButton } from "@/components/evals/run-variant-button";
-import { SetupSheet } from "@/components/evals/setup-sheet";
 import { TokenBand } from "@/components/evals/token-band";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
@@ -17,11 +18,11 @@ import { TrialDetails } from "@/components/evals/trial-details";
 import { TrialFiles } from "@/components/evals/trial-files";
 import { TrialMeta } from "@/components/evals/trial-meta";
 import { TrialSections } from "@/components/evals/trial-sections";
-import { TrialSetup } from "@/components/evals/trial-setup";
 import { TrialStepSheet } from "@/components/evals/trial-step-sheet";
 import { Waterfall } from "@/components/evals/waterfall";
 import { PageShell } from "@/components/layout/page-shell";
 import { SideSheet } from "@/components/layout/side-sheet";
+import { caseSetupOf } from "@/lib/evals/case-setup-of";
 
 export function TrialView({
   caseId,
@@ -45,20 +46,22 @@ export function TrialView({
         <>
           <SideSheet
             description="What this trial cost, how long it took, and what it changed."
+            icon={InfoIcon}
             title="Details"
-            trigger={
-              <>
-                <InfoIcon className="size-3.5" />
-                Details
-              </>
-            }
+            trigger="Details"
           >
             <TrialDetails trial={trial} />
           </SideSheet>
           {cell.setup === null ? null : (
-            <SetupSheet description="How this trial was set up and judged.">
-              <TrialSetup setup={cell.setup} />
-            </SetupSheet>
+            <SideSheet
+              description="How this trial was set up and judged."
+              flush
+              icon={SlidersHorizontalIcon}
+              title="Setup"
+              trigger="Setup"
+            >
+              <CaseSetup setup={caseSetupOf(cell.setup)} />
+            </SideSheet>
           )}
           {variant === undefined ? null : (
             <RunVariantButton

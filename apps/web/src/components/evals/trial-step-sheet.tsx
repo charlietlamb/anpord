@@ -12,19 +12,11 @@ export function TrialStepSheet({ trial }: { readonly trial: EvalTrial }) {
 
   return (
     <SideSheet
-      onOpenChange={(open) => {
-        if (!open) {
-          setStep(null);
-        }
-      }}
+      onClose={() => setStep(null)}
       open={selected !== null}
       title="Step"
     >
-      {selected === null ? null : (
-        <div className="p-4">
-          <StepDetail step={selected} />
-        </div>
-      )}
+      {selected === null ? null : <StepDetail step={selected} />}
     </SideSheet>
   );
 }

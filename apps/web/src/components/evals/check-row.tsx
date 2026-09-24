@@ -1,12 +1,10 @@
 import { validationSummary } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import {
-  BrainIcon,
-  CaretRightIcon,
-  CodeIcon,
-  TerminalIcon,
-} from "@phosphor-icons/react";
+  DataTableChevron,
+  DataTableRow,
+} from "@anpord/ui/components/ui/data-table";
+import { BrainIcon, CodeIcon, TerminalIcon } from "@phosphor-icons/react";
 import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { seconds } from "@/lib/evals/duration";
 import { validationStatus } from "@/lib/evals/eval-status";
@@ -23,10 +21,7 @@ export function CheckRow({
   const Kind = KIND_ICONS[validation.kind];
 
   return (
-    <DataTableRow
-      className="w-full text-left"
-      render={<button onClick={onOpen} type="button" />}
-    >
+    <DataTableRow render={<button onClick={onOpen} type="button" />}>
       <span className="flex min-w-0 items-center gap-2.5 text-foreground">
         <Kind
           aria-label={validation.kind}
@@ -47,10 +42,7 @@ export function CheckRow({
         <EvalStatusBadge status={validationStatus(validation.status)} />
       </span>
 
-      <CaretRightIcon
-        aria-hidden="true"
-        className="size-3.5 text-muted-foreground"
-      />
+      <DataTableChevron />
     </DataTableRow>
   );
 }

@@ -2,8 +2,10 @@ import type {
   EvalCellHistoryEntry,
   EvalTrial,
 } from "@anpord/schema/domain/evals";
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { CaretRightIcon } from "@phosphor-icons/react";
+import {
+  DataTableChevron,
+  DataTableRow,
+} from "@anpord/ui/components/ui/data-table";
 import { Link } from "@tanstack/react-router";
 import { AgeCell } from "@/components/evals/age-cell";
 import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
@@ -48,10 +50,7 @@ export function CaseTrialRow({
 
       <AgeCell at={entry.finishedAt?.epochMillis ?? null} />
 
-      <CaretRightIcon
-        aria-hidden="true"
-        className="size-3.5 text-muted-foreground"
-      />
+      <DataTableChevron />
     </DataTableRow>
   );
 }

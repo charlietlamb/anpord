@@ -1,4 +1,4 @@
-import { EmptyState } from "@anpord/ui/components/empty-state";
+import { EmptyState } from "@anpord/ui/components/ui/empty-state";
 import type { ReactNode } from "react";
 
 interface ListStateProps {
@@ -30,11 +30,7 @@ export function ListState({
 
   if (error) {
     return (
-      <EmptyState
-        className="m-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
-        description={error.message}
-        title="Couldn't load this"
-      />
+      <EmptyState description={error.message} title="Couldn't load this" />
     );
   }
 
@@ -42,7 +38,6 @@ export function ListState({
     return (
       <EmptyState
         action={action}
-        className="m-auto max-h-64 w-full max-w-md flex-none gap-3 py-10"
         description={description}
         icon={icon}
         title={title}

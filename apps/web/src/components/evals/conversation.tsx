@@ -4,13 +4,13 @@ import type {
 } from "@anpord/schema/domain/evals";
 import {
   ConversationContent,
-  ConversationEmptyState,
   Conversation as ConversationLog,
 } from "@anpord/ui/components/ai-elements/conversation";
 import {
   Message,
   MessageContent,
 } from "@anpord/ui/components/ai-elements/message";
+import { EmptyState } from "@anpord/ui/components/ui/empty-state";
 import { ChatsCircleIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -115,10 +115,11 @@ export function Conversation({
 
   if (parts.length === 0) {
     return (
-      <ConversationEmptyState
+      <EmptyState
         description={
           running ? "The first turn has not arrived yet." : undefined
         }
+        frame="bare"
         icon={<ChatsCircleIcon className="size-5" />}
         title={running ? "Waiting for the agent" : "Nothing was journalled"}
       />

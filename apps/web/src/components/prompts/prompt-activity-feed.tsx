@@ -1,4 +1,4 @@
-import { SectionLabel } from "@anpord/ui/components/ui/section-label";
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ShowMore } from "@/components/layout/show-more";
 import { ActivityRow } from "@/components/prompts/activity-row";
@@ -14,7 +14,9 @@ export function PromptActivityFeed({ promptId }: PromptActivityFeedProps) {
 
   return (
     <section className="mt-10 border-border border-t pt-6">
-      <SectionLabel className="mb-3">Activity</SectionLabel>
+      <h2 className="mb-3">
+        <PageHeading size="label" title="Activity" />
+      </h2>
 
       <ul className="relative flex flex-col before:absolute before:top-3 before:bottom-3 before:left-2.5 before:w-px before:bg-border">
         {entries.map((entry) => (

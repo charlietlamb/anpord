@@ -6,7 +6,6 @@ import {
   DataTableHead,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
-import { cn } from "@anpord/ui/lib/utils";
 import { StepLabel } from "@/components/evals/step-label";
 import { CALLS_TABLE } from "@/lib/evals/case-tables";
 import {
@@ -49,7 +48,6 @@ export function TrialCalls({
           return (
             <DataTableRow
               aria-pressed={step === at}
-              className={cn("w-full text-left", step === at && "bg-alpha-4")}
               key={at}
               render={
                 <button
@@ -57,6 +55,7 @@ export function TrialCalls({
                   type="button"
                 />
               }
+              selected={step === at}
             >
               <span className="text-muted-foreground text-xs tabular-nums">
                 {index + 1}

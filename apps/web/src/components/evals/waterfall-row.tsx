@@ -27,8 +27,9 @@ export function TimedRow({
     <DataTableRow
       aria-label={describeRow(row)}
       aria-pressed={selected}
-      className={cn("group w-full text-left", selected && "bg-alpha-4")}
+      className="group"
       render={<button onClick={onSelect} type="button" />}
+      selected={selected}
     >
       <span className="flex min-w-0 items-center gap-2.5">
         <StepLabel entry={row.entry} />

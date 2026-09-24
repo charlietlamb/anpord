@@ -13,19 +13,9 @@ export function FileSheet({
   readonly trial: TrialRef;
 }) {
   return (
-    <SideSheet
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
-      open={file !== undefined}
-      title={file?.path}
-    >
+    <SideSheet onClose={onClose} open={file !== undefined} title={file?.path}>
       {file === undefined ? null : (
-        <div className="p-4">
-          <ArtifactFile artifact={file} trial={trial} />
-        </div>
+        <ArtifactFile artifact={file} trial={trial} />
       )}
     </SideSheet>
   );

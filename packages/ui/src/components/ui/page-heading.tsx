@@ -1,24 +1,24 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@anpord/ui/lib/utils";
 
-const SIZES = {
-  page: "font-heading text-xl tracking-tight",
-  section: "font-medium text-sm",
-} as const;
+const headingVariants = cva("truncate", {
+  defaultVariants: { size: "page" },
+  variants: {
+    size: {
+      page: "shrink-0 font-heading text-foreground text-xl tracking-tight",
+      section: "shrink-0 font-medium text-foreground text-sm",
+      label: "font-medium text-2xs text-muted-foreground",
+    },
+  },
+});
 
 export function PageHeading({
   className,
-  size = "page",
+  size,
   title,
-}: {
+}: VariantProps<typeof headingVariants> & {
   readonly className?: string;
-  readonly size?: keyof typeof SIZES;
   readonly title: string;
 }) {
-  return (
-    <span
-      className={cn("shrink-0 truncate text-foreground", SIZES[size], className)}
-    >
-      {title}
-    </span>
-  );
+  return <span className={cn(headingVariants({ size }), className)}>{title}</span>;
 }
