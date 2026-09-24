@@ -1,11 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalCell } from "@anpord/db/schema/evals/eval-cells";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
+import { Database } from "@anpord/db/client";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { inArray } from "drizzle-orm";
 import { Duration, Effect, Layer, Redacted } from "effect";
@@ -13,14 +7,14 @@ import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import type { DestroySandbox } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import { LiveSandboxesLive } from "../../src/repositories/live-sandboxes";
+import { reapSandboxes } from "../../src/services/sandbox-reaper";
+import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 import {
-  SandboxReaper,
-  SandboxReaperLive,
-} from "../../src/services/sandbox-reaper";
-import { skipWithoutDatabase } from "../fixtures/database";
-import { caseFixture, taskFixture } from "../fixtures/eval-rows";
-
-const URL = process.env.EVAL_TEST_DATABASE_URL;
+  seedConnection,
+  seedOrganization,
+  seedRun,
+  seedTrial,
+} from "../fixtures/eval-rows";
 
 const destroyed: DestroySandbox[] = [];
 
@@ -36,195 +30,148 @@ const recordingSandboxes = Layer.succeed(
   })
 );
 
-const TestLayer = SandboxReaperLive.pipe(
-  Layer.provide(LiveSandboxesLive),
-  Layer.provide(recordingSandboxes),
-  Layer.provide(layerTestResolver()),
-  Layer.provideMerge(DatabaseLive),
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 4,
-      statementTimeout: Duration.seconds(30),
-      url: Redacted.make(URL ?? ""),
-    })
-  )
-);
+const TestLayer = Layer.mergeAll(
+  LiveSandboxesLive,
+  recordingSandboxes,
+  layerTestResolver({ apiKey: "sandbox-key" })
+).pipe(Layer.provideMerge(testDatabase()));
 
 const suffix = Date.now();
 const organizationId = `org_reap_${suffix}`;
+const connectionId = `conn_reap_${suffix}`;
 const HOURS = 3_600_000;
 
-const run = <A, E>(effect: Effect.Effect<A, E, Database | SandboxReaper>) =>
+const reap = () =>
   Effect.runPromise(
-    effect.pipe(Effect.provide(TestLayer), Effect.scoped) as Effect.Effect<A, E>
+    reapSandboxes(Duration.minutes(90)).pipe(Effect.provide(TestLayer))
+  );
+
+const withDb = <A>(use: (db: Database["Type"]) => Promise<A>) =>
+  Effect.runPromise(
+    Database.pipe(
+      Effect.flatMap((db) => Effect.promise(() => use(db))),
+      Effect.provide(TestLayer)
+    )
   );
 
 const trialIds = {
-  fresh: `trialint_reap_fresh_${suffix}`,
-  released: `trialint_reap_released_${suffix}`,
-  stale: `trialint_reap_stale_${suffix}`,
-  voided: `trialint_reap_voided_${suffix}`,
+  fresh: `etri_reap_fresh_${suffix}`,
+  keyed: `etri_reap_keyed_${suffix}`,
+  released: `etri_reap_released_${suffix}`,
+  stale: `etri_reap_stale_${suffix}`,
+  voided: `etri_reap_voided_${suffix}`,
 };
 
-describe.skipIf(skipWithoutDatabase())("SandboxReaper", () => {
+describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
   beforeAll(async () => {
-    await run(
-      Effect.gen(function* () {
-        const db = yield* Database;
+    await withDb(async (db) => {
+      await seedOrganization(db, organizationId);
+      await seedConnection(db, {
+        id: connectionId,
+        integrationId: "e2b",
+        organizationId,
+      });
+      const old = await seedRun(db, {
+        createdAt: new Date(Date.now() - 12 * HOURS),
+        organizationId,
+        tag: `reap_${suffix}`,
+        trialCount: 4,
+      });
+      const keyed = await seedRun(db, {
+        createdAt: new Date(Date.now() - 12 * HOURS),
+        organizationId,
+        sandbox: "e2b",
+        sandboxConnectionId: connectionId,
+        tag: `reap_keyed_${suffix}`,
+      });
+      const twoHoursAgo = new Date(Date.now() - 2 * HOURS);
 
-        yield* Effect.promise(async () => {
-          await db
-            .insert(organization)
-            .values({
-              createdAt: new Date(),
-              id: organizationId,
-              name: "reap",
-              slug: `reap-${suffix}`,
-            })
-            .onConflictDoNothing();
-
-          await db.insert(evalCase).values(
-            caseFixture.values({
-              id: `task_reap_${suffix}`,
-              internalId: `taskint_reap_${suffix}`,
-              organizationId,
-            })
-          );
-
-          await db.insert(evalCaseVersion).values(
-            taskFixture.values({
-              id: `task_reap_${suffix}`,
-              internalId: `taskint_reap_${suffix}`,
-              organizationId,
-            })
-          );
-
-          await db.insert(evalRun).values({
-            cellCount: 1,
-            createdAt: new Date(Date.now() - 12 * HOURS),
-            id: `run_reap_${suffix}`,
-            internalId: `runint_reap_${suffix}`,
-            organizationId,
-            status: "running",
-            trialCount: 3,
-          });
-
-          await db.insert(evalCell).values({
-            cellKey: `key_reap_${suffix}`,
-            harness: "codex",
-            harnessVersion: "0.144.4",
-            internalId: `cellint_reap_${suffix}`,
-            model: "gpt-5",
-            prompt: "do the thing",
-            provider: "daytona",
-            runInternalId: `runint_reap_${suffix}`,
-            status: "running",
-            caseVersionInternalId: `taskint_reap_${suffix}`,
-          });
-
-          /* Three trials under one twelve-hour-old run, which is what a
-             resumed run looks like: the run is ancient, the trials are not
-             all. Only the attempt's own age may decide. */
-          await db.insert(evalTrial).values([
-            {
-              cellInternalId: `cellint_reap_${suffix}`,
-              internalId: trialIds.stale,
-              ordinal: 1,
-              provider: "daytona",
-              sandboxId: "sbx-stale",
-              startedAt: new Date(Date.now() - 2 * HOURS),
-              status: "running",
-            },
-            {
-              cellInternalId: `cellint_reap_${suffix}`,
-              internalId: trialIds.fresh,
-              ordinal: 2,
-              provider: "daytona",
-              sandboxId: "sbx-fresh",
-              startedAt: new Date(),
-              status: "running",
-            },
-            {
-              cellInternalId: `cellint_reap_${suffix}`,
-              internalId: trialIds.released,
-              ordinal: 3,
-              passed: true,
-              provider: "daytona",
-              sandboxId: null,
-              startedAt: new Date(Date.now() - 2 * HOURS),
-              status: "passed",
-            },
-            /* The trial the reconciler gave up on. It kept the id of a VM
-               that is still running, and the sweep that voided it destroys
-               nothing, so this is the row a reaper must still reach. */
-            {
-              cellInternalId: `cellint_reap_${suffix}`,
-              internalId: trialIds.voided,
-              ordinal: 4,
-              provider: "daytona",
-              sandboxId: "sbx-voided",
-              startedAt: new Date(Date.now() - 2 * HOURS),
-              status: "void",
-            },
-          ]);
-        });
-      })
-    );
+      await seedTrial(db, {
+        internalId: trialIds.stale,
+        ordinal: 1,
+        runInternalId: old.runInternalId,
+        sandboxId: "sbx-stale",
+        startedAt: twoHoursAgo,
+        status: "running",
+      });
+      await seedTrial(db, {
+        internalId: trialIds.fresh,
+        ordinal: 2,
+        runInternalId: old.runInternalId,
+        sandboxId: "sbx-fresh",
+        startedAt: new Date(),
+        status: "running",
+      });
+      await seedTrial(db, {
+        internalId: trialIds.released,
+        ordinal: 3,
+        runInternalId: old.runInternalId,
+        sandboxId: null,
+        startedAt: twoHoursAgo,
+        status: "passed",
+      });
+      await seedTrial(db, {
+        internalId: trialIds.voided,
+        ordinal: 4,
+        runInternalId: old.runInternalId,
+        sandboxId: "sbx-voided",
+        startedAt: twoHoursAgo,
+        status: "void",
+      });
+      await seedTrial(db, {
+        internalId: trialIds.keyed,
+        ordinal: 1,
+        runInternalId: keyed.runInternalId,
+        sandboxId: "sbx-keyed",
+        startedAt: twoHoursAgo,
+        status: "running",
+      });
+    });
   });
 
   it("destroys the sandbox of a trial started long ago and clears its id", async () => {
-    const reaped = await run(
-      Effect.gen(function* () {
-        const reaper = yield* SandboxReaper;
-
-        return yield* reaper.reap({ olderThan: Duration.minutes(90) });
-      })
+    const reaped = await reap();
+    const after = await withDb((db) =>
+      db
+        .select({
+          internalId: evalTrial.internalId,
+          sandboxId: evalTrial.sandboxId,
+        })
+        .from(evalTrial)
+        .where(inArray(evalTrial.internalId, Object.values(trialIds)))
     );
-
-    const after = await run(
-      Effect.gen(function* () {
-        const db = yield* Database;
-
-        return yield* Effect.promise(() =>
-          db
-            .select({
-              internalId: evalTrial.internalId,
-              sandboxId: evalTrial.sandboxId,
-            })
-            .from(evalTrial)
-            .where(inArray(evalTrial.internalId, Object.values(trialIds)))
-        );
-      })
-    );
-
     const byId = new Map(after.map((row) => [row.internalId, row.sandboxId]));
+    const ids = destroyed.map((input) => input.id);
 
-    /* The sweep is global, so other suites' rows may be reaped alongside;
-       only this suite's own ids are asserted on. */
-    expect(destroyed.map((input) => input.id)).toContain("sbx-stale");
-    expect(destroyed.map((input) => input.id)).not.toContain("sbx-fresh");
-    expect(reaped.destroyed).toBeGreaterThanOrEqual(1);
-
-    /* The defect this exists to catch: the query asked for a status of
-       queued or running, so the reconciler voiding a trial hid its still
-       running VM from the only thing that would have destroyed it. */
-    expect(destroyed.map((input) => input.id)).toContain("sbx-voided");
+    expect(ids).toContain("sbx-stale");
+    expect(ids).toContain("sbx-voided");
+    expect(ids).toContain("sbx-keyed");
+    expect(ids).not.toContain("sbx-fresh");
+    expect(reaped.destroyed).toBeGreaterThanOrEqual(3);
 
     expect(byId.get(trialIds.stale)).toBeNull();
     expect(byId.get(trialIds.voided)).toBeNull();
+    expect(byId.get(trialIds.keyed)).toBeNull();
     expect(byId.get(trialIds.fresh)).toBe("sbx-fresh");
+  });
+
+  it("destroys through the provider and credential the run was bound to", () => {
+    const stale = destroyed.find((input) => input.id === "sbx-stale");
+    const keyed = destroyed.find((input) => input.id === "sbx-keyed");
+
+    expect(stale?.provider).toBe("daytona");
+    expect(stale?.credentials).toBeUndefined();
+    expect(keyed?.provider).toBe("e2b");
+    expect(
+      keyed?.credentials === undefined
+        ? undefined
+        : Redacted.value(keyed.credentials)
+    ).toEqual({ apiKey: "sandbox-key" });
   });
 
   it("finds nothing the second time", async () => {
     const before = destroyed.length;
-
-    const reaped = await run(
-      Effect.gen(function* () {
-        const reaper = yield* SandboxReaper;
-
-        return yield* reaper.reap({ olderThan: Duration.minutes(90) });
-      })
-    );
+    const reaped = await reap();
 
     expect(reaped.destroyed).toBe(0);
     expect(destroyed.length).toBe(before);

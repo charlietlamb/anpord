@@ -1,14 +1,13 @@
 import { describe, expect, it } from "bun:test";
+import { EVAL_PAGE_SIZE } from "@anpord/schema/domain/evals";
 import {
-  DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
+  nextCursor,
   pageOf,
   pageSizeOf,
 } from "../../src/domain/page";
 
 describe("pageOf", () => {
-  /** The query asks for one more row than the page holds, so a full page and a
-   * last page are told apart without a second count query. */
   it("reports more when the query returned the extra row", () => {
     const page = pageOf([1, 2, 3, 4], 3);
 
@@ -30,11 +29,9 @@ describe("pageOf", () => {
 
 describe("pageSizeOf", () => {
   it("defaults when a caller asks for nothing", () => {
-    expect(pageSizeOf(undefined)).toBe(DEFAULT_PAGE_SIZE);
+    expect(pageSizeOf(undefined)).toBe(EVAL_PAGE_SIZE);
   });
 
-  /** A request for ten thousand rows is a request to hold ten thousand rows in
-   * memory, so the ceiling is the server's rather than the caller's. */
   it("caps a caller asking for too much", () => {
     expect(pageSizeOf(10_000)).toBe(MAX_PAGE_SIZE);
   });
@@ -42,5 +39,21 @@ describe("pageSizeOf", () => {
   it("refuses a page of nothing, which would never advance", () => {
     expect(pageSizeOf(0)).toBe(1);
     expect(pageSizeOf(-5)).toBe(1);
+  });
+});
+
+describe("nextCursor", () => {
+  const cursorOf = (last: number) => ({ id: `${last}`, startedAtMillis: last });
+
+  it("points past the last row of a full page", () => {
+    expect(nextCursor(pageOf([1, 2, 3], 2), cursorOf)).toEqual({
+      id: "2",
+      startedAtMillis: 2,
+    });
+  });
+
+  it("is null on the last page", () => {
+    expect(nextCursor(pageOf([1, 2], 2), cursorOf)).toBeNull();
+    expect(nextCursor(pageOf([], 2), cursorOf)).toBeNull();
   });
 });

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "bun:test";
 import { advance, markFor } from "../../src/domain/tail";
 
-const mark = (cell: string, ordinal: number, seq: number) => ({
-  cell,
+const mark = (run: string, ordinal: number, seq: number) => ({
+  run,
   ordinal,
   seq,
 });
 
 describe("a tail's marks", () => {
   it("reads a trial it has not seen from the start", () => {
-    expect(markFor([], { cell: "c", ordinal: 1 })).toBe(-1);
+    expect(markFor([], { run: "c", ordinal: 1 })).toBe(-1);
   });
 
   it("moves each trial to the furthest event read from it", () => {
@@ -18,15 +18,15 @@ describe("a tail's marks", () => {
       [mark("a", 1, 5), mark("a", 1, 6), mark("b", 1, 0)]
     );
 
-    expect(markFor(next, { cell: "a", ordinal: 1 })).toBe(6);
-    expect(markFor(next, { cell: "b", ordinal: 1 })).toBe(0);
+    expect(markFor(next, { run: "a", ordinal: 1 })).toBe(6);
+    expect(markFor(next, { run: "b", ordinal: 1 })).toBe(0);
   });
 
-  it("keeps two trials of one cell apart", () => {
+  it("keeps two trials of one run apart", () => {
     const next = advance([], [mark("a", 1, 9), mark("a", 2, 2)]);
 
-    expect(markFor(next, { cell: "a", ordinal: 1 })).toBe(9);
-    expect(markFor(next, { cell: "a", ordinal: 2 })).toBe(2);
+    expect(markFor(next, { run: "a", ordinal: 1 })).toBe(9);
+    expect(markFor(next, { run: "a", ordinal: 2 })).toBe(2);
   });
 
   it("never moves backwards, so a repeated read changes nothing", () => {

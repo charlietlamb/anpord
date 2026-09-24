@@ -37,16 +37,12 @@ const score = (
     }).pipe(Effect.provide(ScorerGroundTruthLive))
   );
 
-/* The scorer refuses an unguarded pipeline before it runs anything, so a
-   refusal turns a sandbox that would have exited zero into a failure. */
 const refusesAsPipeline = async (command: string) => {
   const outcome = await score(sandboxYielding([exit(0)]), command);
   return outcome.status === "failed";
 };
 
 describe("a verifier that is a pipeline", () => {
-  /* Measured on both providers: bun test | tail exits 0 while the runner exits 1. A
-     verifier written that way records every failure as a pass. */
   it("catches a verifier that would report its own success", async () => {
     expect(await refusesAsPipeline("bun test | tail -1")).toBe(true);
     expect(await refusesAsPipeline("bun test")).toBe(false);
@@ -73,7 +69,6 @@ describe("ScorerGroundTruthLive", () => {
       { name: "check", source: "source" }
     );
     expect(outcome.status).toBe("void");
-    expect(outcome.passed).toBe(false);
     expect(outcome.validations?.[0]?.status).toBe("error");
   });
 
@@ -159,7 +154,6 @@ describe("ScorerGroundTruthLive", () => {
     expect(outcome.status).toBe("passed");
   });
 
-  /* Nothing came back at all, so there is no evidence to score. */
   it("voids a verifier that never ran", async () => {
     const outcome = await score(sandboxYielding([]), "bun test");
 
@@ -172,31 +166,16 @@ describe("ScorerGroundTruthLive", () => {
       "bun test | tail -1"
     );
 
-    /* Failed, not void. A pipeline exits with its last command, so the
-       verifier cannot be trusted and the case is wrong. Reporting that as
-       void would put a misconfigured verifier through the same channel as a
-       broken provider, and nothing downstream could tell them apart: one is
-       a mistake somebody can fix, the other is an outage to wait out. */
     expect(outcome.status).toBe("failed");
-    expect(outcome.passed).toBe(false);
   });
 
-  /**
-   * A verifier killed part-way through: output arrived, the exit code never
-   * did, which is what a timeout actually looks like.
-   *
-   * The absent exit must never read as zero. Nothing else in the suite
-   * distinguishes a truncated stream from a clean pass, and reading it as a
-   * pass is this product's own headline failure happening inside the scorer
-   * that exists to prevent it.
-   */
   it("never reads a missing exit code as success", async () => {
     const outcome = await score(
       sandboxYielding([stdout("FAIL 3 tests failed")]),
       "node --test"
     );
 
-    expect(outcome.passed).toBe(false);
+    expect(outcome.status).not.toBe("passed");
     expect(outcome.exitCode).not.toBe(0);
   });
 
@@ -206,9 +185,6 @@ describe("ScorerGroundTruthLive", () => {
       "bun test | tail -1"
     );
 
-    /* The distinction the void gate exists to protect: a cell whose verifier
-       was refused still has a denominator, so it reports a real failure
-       rather than an absence of evidence. */
     expect(outcome.voidFields).toEqual([]);
   });
 });
@@ -261,9 +237,6 @@ describe("a verifier of several conditions", () => {
 });
 
 describe("a pipeline refusal and ordinary commands", () => {
-  /* Every one of these was refused by a bare substring test, which voided the
-     whole cell before the sandbox was touched and reported a pass rate of
-     zero with no diagnostic. */
   it("accepts a command whose pipe is not a pipeline", async () => {
     for (const command of [
       "node --test || exit 1",
@@ -286,15 +259,10 @@ describe("a pipeline refusal and ordinary commands", () => {
 });
 
 describe("a case with no verifier", () => {
-  /** The bug this prevents: substituting a verifier that always succeeds made
-   * an imported case report a perfect, deterministic, promotable pass rate
-   * from no evidence at all. That is the void gate's own failure wearing a
-   * feature's clothes. */
   it("is void rather than passed", async () => {
     const outcome = await score(sandboxYielding([]), null);
 
     expect(outcome.status).toBe("void");
-    expect(outcome.passed).toBe(false);
   });
 
   it("never counts toward a pass rate", () => {
@@ -308,12 +276,15 @@ describe("a case with no verifier", () => {
       })
     );
 
-    const distribution = distributionOf(voided);
+    const distribution = distributionOf(
+      voided.map((trial) => ({
+        commands: trial.commandCount,
+        status: trial.status,
+      }))
+    );
 
     expect(distribution.scored).toBe(0);
     expect(distribution.voided).toBe(3);
-    /* And so it cannot be promoted: promote refuses a cell with nothing
-       scored, which is what makes the fix hold end to end. */
     expect(distribution.deterministic).toBe(false);
   });
 });

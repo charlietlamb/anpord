@@ -14,7 +14,7 @@ import {
   opencodeRunEnv,
 } from "../../../src/adapters/harness/opencode";
 import { HarnessesLive } from "../../../src/adapters/harness/resolve";
-import type { HarnessName } from "../../../src/domain/cell";
+import type { HarnessName } from "../../../src/domain/variant";
 import type { RunHarness } from "../../../src/ports/harness";
 import { Harnesses } from "../../../src/ports/harness";
 

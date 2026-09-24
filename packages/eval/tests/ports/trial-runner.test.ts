@@ -5,8 +5,8 @@ import {
   TrialRunnerInProcess,
 } from "../../src/ports/trial-runner";
 
-describe("dispatching a grid in this process", () => {
-  test("returns before the grid finishes, so starting a run does not block", async () => {
+describe("dispatching a batch in this process", () => {
+  test("returns before the batch finishes, so starting one does not block", async () => {
     const ran = await Effect.runPromise(
       Effect.gen(function* () {
         const started = yield* Ref.make(false);
@@ -17,7 +17,7 @@ describe("dispatching a grid in this process", () => {
           work: Effect.sleep("50 millis").pipe(
             Effect.zipRight(Ref.set(started, true))
           ),
-          runId: "run_1",
+          batchId: "ebat_1",
         });
 
         return yield* Ref.get(started);
@@ -27,7 +27,7 @@ describe("dispatching a grid in this process", () => {
     expect(ran).toBe(false);
   });
 
-  test("the grid still runs once it has been dispatched", async () => {
+  test("the batch still runs once it has been dispatched", async () => {
     const ran = await Effect.runPromise(
       Effect.gen(function* () {
         const started = yield* Ref.make(false);
@@ -36,7 +36,7 @@ describe("dispatching a grid in this process", () => {
         yield* runner.dispatch({
           organizationId: "org",
           work: Ref.set(started, true),
-          runId: "run_1",
+          batchId: "ebat_1",
         });
 
         yield* Effect.sleep("50 millis");

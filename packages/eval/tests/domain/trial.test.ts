@@ -1,8 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import {
-  decodeTrialStatus,
-  type TrialStatus,
-} from "@anpord/schema/domain/trial";
+import type { EvalTrialStatus } from "@anpord/schema/domain/evals";
+import { decodeTrialStatus } from "@anpord/schema/domain/trial";
 import { Option } from "effect";
 import { outcomeOf } from "../../src/domain/trial";
 
@@ -18,7 +16,6 @@ describe("outcomeOf", () => {
     const outcome = outcomeOf({ ...base, fingerprint: { tests: "1 pass" } });
 
     expect(outcome.status).toBe("passed");
-    expect(outcome.passed).toBe(true);
     expect(outcome.voidFields).toEqual([]);
   });
 
@@ -30,7 +27,6 @@ describe("outcomeOf", () => {
     });
 
     expect(outcome.status).toBe("failed");
-    expect(outcome.passed).toBe(false);
   });
 
   it("voids the run that never ran, rather than failing it", () => {
@@ -47,9 +43,6 @@ describe("outcomeOf", () => {
     expect(outcome.voidFields).toEqual(["files", "tests"]);
   });
 
-  /* The bug this gate exists for: two identical error strings once read as
-     perfect agreement, reporting a flawless score for a provider where
-     nothing had executed. */
   it("never reports a pass for a voided trial", () => {
     const outcome = outcomeOf({
       ...base,
@@ -57,16 +50,12 @@ describe("outcomeOf", () => {
       fingerprint: { tests: "command not found" },
     });
 
-    expect(outcome.passed).toBe(false);
+    expect(outcome.status).not.toBe("passed");
     expect(outcome.status).toBe("void");
   });
 });
 
 describe("the void gate and quiet commands", () => {
-  /* A regression: E2B returns an empty stdout for a failing test run, so a
-     fingerprint built from raw output matched the empty-string void pattern
-     and threw away a legitimate failure. The gate must ask whether the command
-     ran, not whether it printed. */
   it("does not void a command that ran quietly", () => {
     const outcome = outcomeOf({
       commandCount: 2,
@@ -94,9 +83,6 @@ describe("the void gate and quiet commands", () => {
 });
 
 describe("a verifier that tested nothing", () => {
-  /* The worst failure this system can have. A runner that finds no tests
-     exits zero and says so, and scoring that as a pass reports a cell where
-     the workspace was empty as passing every trial, deterministically. */
   it("voids a run that found no tests rather than passing it", () => {
     const outcome = outcomeOf({
       commandCount: 3,
@@ -109,7 +95,6 @@ describe("a verifier that tested nothing", () => {
     });
 
     expect(outcome.status).toBe("void");
-    expect(outcome.passed).toBe(false);
     expect(outcome.voidFields).toEqual(["verify"]);
   });
 
@@ -160,8 +145,6 @@ describe("configured void patterns", () => {
     ).toBe("void");
   });
 
-  /** A typo in configuration must narrow the gate, never stop trials being
-   * scored at all. */
   it("ignores a pattern that will not compile", () => {
     const outcome = outcomeOf({
       ...base,
@@ -173,9 +156,7 @@ describe("configured void patterns", () => {
   });
 });
 
-/* Typed as the union rather than inferred, so a status removed from the schema
-   fails here instead of widening to string and passing. */
-const EVERY_STATUS: readonly TrialStatus[] = [
+const EVERY_STATUS: readonly EvalTrialStatus[] = [
   "queued",
   "running",
   "passed",
@@ -190,10 +171,6 @@ describe("decodeTrialStatus", () => {
     }
   });
 
-  /** The column has no check constraint, so a row written by an older deploy
-   * carries a status this build does not name. It must be absent rather than
-   * asserted: a cast let it compare unequal to every branch, which is how a
-   * run holding live trials reported none and could never be resumed. */
   it("refuses a status it does not name", () => {
     for (const status of ["RUNNING", "in_progress", "", "cancelled"]) {
       expect(decodeTrialStatus(status)).toEqual(Option.none());
