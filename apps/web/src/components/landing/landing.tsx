@@ -69,13 +69,13 @@ export function Landing() {
         <h1
           className={cn(
             REVEAL,
-            "max-w-3xl font-heading text-3xl leading-[1.15] tracking-tight sm:text-5xl"
+            "max-w-3xl text-pretty font-heading text-3xl leading-[1.15] tracking-tight sm:text-5xl"
           )}
         >
-          Streamline how agents use your product.{" "}
+          Reinforcement learning for your product.{" "}
           <span className="text-muted-foreground">
-            Watch Claude&nbsp;Code and Codex use it, and see exactly where they
-            get stuck.
+            Run agents on real tasks, reward what works, and fix what
+            doesn&rsquo;t.
           </span>
         </h1>
         <div
