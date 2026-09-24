@@ -74,8 +74,8 @@ export function Landing() {
         >
           Streamline how agents use your product.{" "}
           <span className="text-muted-foreground">
-            Test Claude&nbsp;Code and Codex against your CLI and docs, and catch
-            regressions – from your first eval to every release.
+            Watch Claude&nbsp;Code and Codex use it, and see exactly where they
+            get stuck.
           </span>
         </h1>
         <div
