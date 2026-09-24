@@ -1,14 +1,20 @@
-import { DEFAULT_USER_MODEL } from "@anpord/schema/domain/eval-turns";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
+import { DEFAULT_USER_MODEL } from "@anpord/schema/domain/eval-turns";
 import { EvalHarness, EvalSandbox } from "@anpord/schema/domain/evals";
 import { Config, Effect, Option, Schema } from "effect";
-import type { HarnessName, ProviderName } from "./cell";
+import { MODEL_PROVIDERS } from "./model-providers";
+
+export const SandboxName = EvalSandbox;
+export type SandboxName = typeof SandboxName.Type;
+
+export const HarnessName = EvalHarness;
+export type HarnessName = typeof HarnessName.Type;
 
 export interface VariantIdentity {
   readonly harness: HarnessName;
   readonly model: string;
   readonly profile: string | null;
-  readonly sandbox: ProviderName;
+  readonly sandbox: SandboxName;
   readonly userModel: string | null;
 }
 
@@ -29,4 +35,16 @@ export const namesOf = (row: {
   readonly harness: string;
   readonly sandbox: string;
 }) =>
-  Option.all({ harness: harnessOf(row.harness), sandbox: sandboxOf(row.sandbox) });
+  Option.all({
+    harness: harnessOf(row.harness),
+    sandbox: sandboxOf(row.sandbox),
+  });
+
+export const userModelRoute = (configured: string) => {
+  const [prefix, ...rest] = configured.split("/");
+  const named = MODEL_PROVIDERS.some(({ id }) => id === prefix);
+
+  return named && rest.length > 0
+    ? { model: rest.join("/"), providerId: prefix }
+    : { model: configured, providerId: "openai" };
+};

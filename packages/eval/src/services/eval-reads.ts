@@ -1,6 +1,6 @@
+import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import {
   type EvalArtifactRequest,
@@ -12,7 +12,10 @@ import { Context, Effect, Layer, Option } from "effect";
 import { EvalNotFound } from "../domain/errors";
 import { batchReadsQuery } from "../repositories/batch-reads-query";
 import { batchScopeQuery } from "../repositories/batch-scope-query";
-import { caseReadsQuery, type ListCases } from "../repositories/case-reads-query";
+import {
+  caseReadsQuery,
+  type ListCases,
+} from "../repositories/case-reads-query";
 import { runReadsQuery } from "../repositories/run-reads-query";
 import { tailQuery } from "../repositories/tail-query";
 import { trialAddressQuery } from "../repositories/trial-address-query";
@@ -25,7 +28,10 @@ const found = <A>(
   effect.pipe(
     Effect.orDie,
     Effect.flatMap(
-      Option.match({ onNone: () => Effect.fail(missing()), onSome: Effect.succeed })
+      Option.match({
+        onNone: () => Effect.fail(missing()),
+        onSome: Effect.succeed,
+      })
     )
   );
 
@@ -40,16 +46,19 @@ export const make = Effect.gen(function* () {
 
   return {
     artifact: (organizationId: string, input: EvalArtifactRequest) =>
-      found(artifact(organizationId, input), () =>
-        new EvalNotFound({ entity: "artifact", id: input.path })
+      found(
+        artifact(organizationId, input),
+        () => new EvalNotFound({ entity: "artifact", id: input.path })
       ),
     batch: (organizationId: string, id: string) =>
-      found(batches.get(organizationId, id), () =>
-        new EvalNotFound({ entity: "batch", id })
+      found(
+        batches.get(organizationId, id),
+        () => new EvalNotFound({ entity: "batch", id })
       ),
     ownedBatch: (organizationId: string, id: string) =>
-      found(scope.batch(organizationId, id), () =>
-        new EvalNotFound({ entity: "batch", id })
+      found(
+        scope.batch(organizationId, id),
+        () => new EvalNotFound({ entity: "batch", id })
       ),
     batches: (input: {
       readonly cursor: EvalPageCursor | null;
@@ -57,8 +66,9 @@ export const make = Effect.gen(function* () {
       readonly organizationId: string;
     }) => batches.list(input).pipe(Effect.orDie),
     case: (organizationId: string, id: string) =>
-      found(cases.detail(organizationId, id), () =>
-        new EvalNotFound({ entity: "case", id })
+      found(
+        cases.detail(organizationId, id),
+        () => new EvalNotFound({ entity: "case", id })
       ),
     caseRuns: (input: {
       readonly caseId: string;
@@ -108,12 +118,14 @@ export const make = Effect.gen(function* () {
       readonly batchId: string;
       readonly organizationId: string;
     }) =>
-      found(tail(input), () =>
-        new EvalNotFound({ entity: "batch", id: input.batchId })
+      found(
+        tail(input),
+        () => new EvalNotFound({ entity: "batch", id: input.batchId })
       ),
     trialAddress: (organizationId: string, trialId: string) =>
-      found(address(organizationId, trialId), () =>
-        new EvalNotFound({ entity: "trial", id: trialId })
+      found(
+        address(organizationId, trialId),
+        () => new EvalNotFound({ entity: "trial", id: trialId })
       ),
   };
 });

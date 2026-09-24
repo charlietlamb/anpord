@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { Chunk, Effect, Stream } from "effect";
-import type { ProviderName } from "../../src/domain/cell";
+import type { SandboxName } from "../../src/domain/cell";
 import { EvalSandboxLive } from "../../src/layer";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import {
@@ -35,7 +35,7 @@ process.env.VERCEL_TOKEN ??= read("vercel-token.key");
 process.env.VERCEL_TEAM_ID ??= read("vercel-team-id.key");
 process.env.VERCEL_PROJECT_ID ??= read("vercel-project-id.key");
 
-const failingVerify = (provider: ProviderName) =>
+const failingVerify = (provider: SandboxName) =>
   Effect.runPromise(
     Effect.gen(function* () {
       const sandboxes = yield* SandboxProvider;

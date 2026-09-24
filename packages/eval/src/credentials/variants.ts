@@ -4,14 +4,14 @@ import type {
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
 import { Effect, Option, Redacted } from "effect";
-import type { HarnessName, ProviderName } from "../domain/cell";
+import type { HarnessName, SandboxName } from "../domain/variant";
 import { CredentialError } from "./errors";
 import type { CredentialResolverShape } from "./resolver";
 
 export interface BindVariant {
   readonly credentials?: CredentialBindings;
   readonly harness: HarnessName;
-  readonly sandbox: ProviderName;
+  readonly sandbox: SandboxName;
 }
 
 export interface BoundCredentials {
@@ -21,9 +21,7 @@ export interface BoundCredentials {
   readonly sandboxCredentialRevision: number | null;
 }
 
-export const KEYLESS_HARNESSES: ReadonlySet<HarnessName> = new Set([
-  "command",
-]);
+export const KEYLESS_HARNESSES: ReadonlySet<HarnessName> = new Set(["command"]);
 
 const found = (
   effect: Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>,
@@ -37,7 +35,9 @@ const found = (
     )
   );
 
-const bindingOf = (credential: Option.Option<Redacted.Redacted<ResolvedCredential>>) =>
+const bindingOf = (
+  credential: Option.Option<Redacted.Redacted<ResolvedCredential>>
+) =>
   Option.match(credential, {
     onNone: () => ({ connectionId: null, revision: null }),
     onSome: (resolved) => {

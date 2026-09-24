@@ -24,8 +24,14 @@ export const trialAddressQuery = Effect.gen(function* () {
         .from(evalTrial)
         .innerJoin(evalRun, eq(evalRun.internalId, evalTrial.runInternalId))
         .innerJoin(evalBatch, eq(evalBatch.internalId, evalRun.batchInternalId))
-        .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
-        .innerJoin(evalCase, eq(evalCase.internalId, evalVariant.caseInternalId))
+        .innerJoin(
+          evalVariant,
+          eq(evalVariant.internalId, evalRun.variantInternalId)
+        )
+        .innerJoin(
+          evalCase,
+          eq(evalCase.internalId, evalVariant.caseInternalId)
+        )
         .where(
           and(
             eq(evalTrial.internalId, trialId),

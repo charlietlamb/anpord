@@ -1,5 +1,5 @@
 import { Data, Schema } from "effect";
-import { ProviderName } from "./cell";
+import { SandboxName } from "./variant";
 
 /* Bounded so a cyclic cause chain cannot hang the error reporter. */
 const CAUSE_DEPTH = 5;
@@ -28,12 +28,12 @@ export const describeFailure = (cause: unknown): string => {
 export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
   "SandboxUnavailable"
 )("SandboxUnavailable", {
-  provider: ProviderName,
+  provider: SandboxName,
   reason: Schema.String,
 }) {}
 
 export const sandboxUnavailable = (
-  provider: typeof ProviderName.Type,
+  provider: typeof SandboxName.Type,
   reason: unknown
 ) => new SandboxUnavailable({ provider, reason: describeFailure(reason) });
 

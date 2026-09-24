@@ -1,8 +1,6 @@
-import type {
-  HarnessEvent,
-  HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
+import type { DecodedOutput } from "./session";
 
 const CommandItem = Schema.Struct({
   aggregated_output: Schema.optional(Schema.String),
@@ -46,8 +44,6 @@ const FileChangeItem = Schema.Struct({
 });
 
 const Usage = Schema.Struct({
-  /* The Responses shape reports cache reads as a detail of the input, which
-     already counts them. There is no cache-write count to read. */
   input_tokens: Schema.Number,
   input_tokens_details: Schema.optional(
     Schema.Struct({ cached_tokens: Schema.optional(Schema.Number) })
@@ -60,6 +56,14 @@ const StartedItem = Schema.Struct({
   type: Schema.Literal("command_execution", "mcp_tool_call"),
 });
 
+const CompletedItem = Schema.Union(
+  CommandItem,
+  MessageItem,
+  FileChangeItem,
+  ToolCallItem,
+  McpToolCallItem
+);
+
 const Line = Schema.Union(
   Schema.Struct({
     thread_id: Schema.String,
@@ -70,13 +74,7 @@ const Line = Schema.Union(
     type: Schema.Literal("item.started"),
   }),
   Schema.Struct({
-    item: Schema.Union(
-      CommandItem,
-      MessageItem,
-      FileChangeItem,
-      ToolCallItem,
-      McpToolCallItem
-    ),
+    item: CompletedItem,
     type: Schema.Literal("item.completed"),
   }),
   Schema.Struct({
@@ -89,147 +87,100 @@ const Line = Schema.Union(
   })
 );
 
-/* The API error arrives as a JSON string inside the message. */
+const decodeLine = Schema.decodeUnknownOption(Schema.parseJson(Line));
+
+const decodeApiError = Schema.decodeUnknownOption(
+  Schema.parseJson(
+    Schema.Struct({ error: Schema.Struct({ message: Schema.String }) })
+  )
+);
+
 const failureReasonOf = (message: string) =>
-  Option.liftThrowable(JSON.parse)(message).pipe(
-    Option.flatMap((value: unknown) =>
-      Option.fromNullable(
-        (value as { error?: { message?: string } })?.error?.message
-      )
-    ),
-    Option.getOrElse(() => message)
-  );
+  Option.match(decodeApiError(message), {
+    onNone: () => message,
+    onSome: (found) => found.error.message,
+  });
 
-const decodeLine = Schema.decodeUnknownOption(Line);
-
-export interface DecodedLine {
-  readonly event: Option.Option<HarnessEvent>;
-  readonly itemId: Option.Option<string>;
-  readonly started: boolean;
-  readonly usage: Option.Option<HarnessUsage>;
-}
-
-const none: DecodedLine = {
-  itemId: Option.none(),
-  event: Option.none(),
-  started: false,
-  usage: Option.none(),
-};
-
-const only = (event: HarnessEvent): DecodedLine => ({
-  ...none,
-  event: Option.some(event),
-});
-
-const mcpEvent = (item: typeof McpToolCallItem.Type): DecodedLine => ({
-  ...none,
-  itemId: Option.some(item.id),
-  event: Option.some({
-    _tag: "ToolCall",
-    callId: item.id,
-    input: JSON.stringify(item.arguments),
-    name: `${item.server}.${item.tool}`,
-    ...(item.result == null ? {} : { output: JSON.stringify(item.result) }),
-    ...(item.error == null ? {} : { error: item.error.message }),
-    status: item.status,
-  }),
-});
-
-export const decodeCodexLine = (line: string): DecodedLine => {
-  if (line.trim() === "") {
-    return none;
-  }
-
-  const parsed = Option.liftThrowable(JSON.parse)(line);
-
-  if (Option.isNone(parsed)) {
-    return none;
-  }
-
-  const decoded = decodeLine(parsed.value);
-
-  if (Option.isNone(decoded)) {
-    return none;
-  }
-
-  const value = decoded.value;
-
-  if (value.type === "thread.started") {
-    return only({
-      _tag: "Started",
-      model: "codex",
-      sessionId: value.thread_id,
-    });
-  }
-
-  if (value.type === "item.started") {
-    return { ...none, itemId: Option.some(value.item.id), started: true };
-  }
-
-  if (value.type === "turn.failed") {
-    return only({
-      _tag: "Finished",
-      reason: failureReasonOf(value.error.message),
-    });
-  }
-
-  if (value.type === "turn.completed") {
-    return {
-      ...none,
-      event: Option.some({ _tag: "Finished", reason: "turn.completed" }),
-      usage: Option.some({
-        cacheReadTokens: value.usage.input_tokens_details?.cached_tokens ?? 0,
-        cacheWriteTokens: 0,
-        inputTokens: value.usage.input_tokens,
-        outputTokens: value.usage.output_tokens,
-        totalTokens: value.usage.input_tokens + value.usage.output_tokens,
-      }),
-    };
-  }
-
-  const item = value.item;
-
-  if (item.type === "command_execution") {
-    return {
-      ...none,
-      itemId: Option.fromNullable(item.id),
-      event: Option.some({
+const itemEvent = (
+  item: typeof CompletedItem.Type,
+  at: number
+): HarnessEvent => {
+  switch (item.type) {
+    case "command_execution":
+      return {
         _tag: "Command",
+        at,
         command: item.command,
         exitCode: item.exit_code ?? null,
         output: item.aggregated_output ?? "",
-      }),
-    };
+      };
+    case "mcp_tool_call":
+      return {
+        _tag: "ToolCall",
+        at,
+        callId: item.id,
+        input: JSON.stringify(item.arguments),
+        name: `${item.server}.${item.tool}`,
+        ...(item.result == null ? {} : { output: JSON.stringify(item.result) }),
+        ...(item.error == null ? {} : { error: item.error.message }),
+        status: item.status,
+      };
+    case "file_change":
+      return {
+        _tag: "FileChange",
+        at,
+        paths: item.changes.map((change) => change.path),
+      };
+    case "agent_message":
+      return { _tag: "Message", at, role: "assistant", text: item.text };
+    default:
+      return {
+        _tag: "ToolCall",
+        at,
+        callId: item.call_id ?? null,
+        input: item.input ?? "",
+        name: item.name,
+        status: item.status ?? null,
+      };
   }
-
-  if (item.type === "mcp_tool_call") {
-    return mcpEvent(item);
-  }
-
-  if (item.type === "function_call" || item.type === "custom_tool_call") {
-    return only({
-      _tag: "ToolCall",
-      callId: item.call_id ?? null,
-      input: item.input ?? "",
-      name: item.name,
-      status: item.status ?? null,
-    });
-  }
-
-  if (item.type === "file_change") {
-    return only({
-      _tag: "FileChange",
-      paths: item.changes.map((change) => change.path),
-    });
-  }
-
-  if (item.type === "agent_message") {
-    return only({
-      _tag: "Message",
-      role: "assistant",
-      text: item.text,
-    });
-  }
-
-  return none;
 };
+
+const closesOf = (item: typeof CompletedItem.Type) =>
+  item.type === "command_execution" || item.type === "mcp_tool_call"
+    ? item.id
+    : undefined;
+
+const outputOf = (value: typeof Line.Type, at: number): DecodedOutput => {
+  switch (value.type) {
+    case "thread.started":
+      return { sessionId: value.thread_id };
+    case "item.started":
+      return { opens: value.item.id };
+    case "turn.failed": {
+      const reason = failureReasonOf(value.error.message);
+      return { events: [{ _tag: "Finished", at, reason }], failure: reason };
+    }
+    case "turn.completed":
+      return {
+        events: [{ _tag: "Finished", at, reason: "turn.completed" }],
+        usage: {
+          cacheReadTokens: value.usage.input_tokens_details?.cached_tokens ?? 0,
+          cacheWriteTokens: 0,
+          inputTokens: value.usage.input_tokens,
+          outputTokens: value.usage.output_tokens,
+          totalTokens: value.usage.input_tokens + value.usage.output_tokens,
+        },
+      };
+    default:
+      return {
+        closes: closesOf(value.item),
+        events: [itemEvent(value.item, at)],
+      };
+  }
+};
+
+export const decodeCodexLine = (line: string, at: number): DecodedOutput =>
+  Option.match(decodeLine(line), {
+    onNone: () => ({}),
+    onSome: (value) => outputOf(value, at),
+  });

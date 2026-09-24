@@ -26,7 +26,10 @@ export const variantResultsQuery = Effect.gen(function* () {
             variant: evalVariant,
           })
           .from(evalRun)
-          .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
+          .innerJoin(
+            evalVariant,
+            eq(evalVariant.internalId, evalRun.variantInternalId)
+          )
           .where(inArray(evalVariant.caseInternalId, [...caseInternalIds]))
           .orderBy(evalRun.variantInternalId, desc(evalRun.createdAt))
       );
@@ -34,7 +37,10 @@ export const variantResultsQuery = Effect.gen(function* () {
       const variantIds = newest.map((row) => row.variant.internalId);
       const counts = yield* tryStore("variantResults.counts", () =>
         db
-          .select({ runs: count(), variantInternalId: evalRun.variantInternalId })
+          .select({
+            runs: count(),
+            variantInternalId: evalRun.variantInternalId,
+          })
           .from(evalRun)
           .where(inArray(evalRun.variantInternalId, variantIds))
           .groupBy(evalRun.variantInternalId)
@@ -55,7 +61,9 @@ export const variantResultsQuery = Effect.gen(function* () {
           )
       );
 
-      const runsOf = new Map(counts.map((row) => [row.variantInternalId, row.runs]));
+      const runsOf = new Map(
+        counts.map((row) => [row.variantInternalId, row.runs])
+      );
       const results = new Map<string, EvalVariantResult[]>();
 
       for (const row of newest) {

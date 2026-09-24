@@ -7,12 +7,13 @@ import {
 import { Effect, Layer, Option, Redacted, Schema } from "effect";
 import { modelAccessFor } from "../../credentials/model-key";
 import { CredentialResolver } from "../../credentials/resolver";
-import { userModel } from "../../domain/variant";
 import { UserUnavailable } from "../../domain/errors";
+import { userModel, userModelRoute } from "../../domain/variant";
 import {
   SimulatedUser,
   type UserTurnRequest,
 } from "../../ports/simulated-user";
+import { keepTagged } from "../keep-tagged";
 
 const DONE = "<<DONE>>";
 
@@ -39,8 +40,6 @@ const systemPrompt = (user: EvalSimulatedUser) =>
     ].join("\n"),
   ].join("\n\n");
 
-/* The agent is the one being measured, so in this chat it speaks as the user
-   and the simulated person answers as the assistant. */
 const messagesFor = (request: UserTurnRequest) => [
   { role: "system", content: systemPrompt(request.user) },
   ...request.spoken.map((text) => ({ role: "assistant", content: text })),
@@ -50,16 +49,22 @@ const messagesFor = (request: UserTurnRequest) => [
 const makeLlmUser = Effect.gen(function* () {
   const client = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
   const credentials = yield* CredentialResolver;
-  const model = yield* userModel;
+  const { model, providerId } = userModelRoute(yield* userModel);
 
   const reply = Effect.fn("SimulatedUser.reply")(function* (
     request: UserTurnRequest
   ) {
-    const access = yield* modelAccessFor(credentials, request.organizationId);
+    const access = yield* modelAccessFor(
+      credentials,
+      request.organizationId,
+      providerId
+    );
 
     if (Option.isNone(access)) {
       return yield* Effect.fail(
-        new UserUnavailable({ reason: "no model credential is configured" })
+        new UserUnavailable({
+          reason: `no ${providerId} model credential is configured`,
+        })
       );
     }
 
@@ -86,10 +91,9 @@ const makeLlmUser = Effect.gen(function* () {
   return SimulatedUser.of({
     reply: (request) =>
       reply(request).pipe(
-        Effect.mapError((error) =>
-          error._tag === "UserUnavailable"
-            ? error
-            : new UserUnavailable({ reason: "the user model did not answer" })
+        keepTagged(
+          "UserUnavailable",
+          () => new UserUnavailable({ reason: "the user model did not answer" })
         )
       ),
   });

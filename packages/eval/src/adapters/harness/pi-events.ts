@@ -1,9 +1,7 @@
-import type {
-  HarnessEvent,
-  HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { DecodedOutput } from "./support";
+import type { DecodedOutput } from "./session";
+import { toolOf } from "./tool-event";
 
 const Usage = Schema.Struct({
   input: Schema.optional(Schema.Number),
@@ -36,23 +34,13 @@ const Line = Schema.Union(
     toolName: Schema.String,
     type: Schema.Literal("tool_execution_start"),
   }),
-  Schema.Struct({
-    args: Schema.Unknown,
-    toolCallId: Schema.String,
-    toolName: Schema.String,
-    type: Schema.Literal("tool_execution_end"),
-  }),
   Schema.Struct({ type: Schema.Literal("agent_end") })
 );
 
-const decode = Schema.decodeUnknownOption(Line);
-const BashInput = Schema.Struct({ command: Schema.String });
-const FileInput = Schema.Struct({ path: Schema.String });
-const decodeBash = Schema.decodeUnknownOption(BashInput);
-const decodeFile = Schema.decodeUnknownOption(FileInput);
-const writes = new Set(["edit", "write"]);
+const decode = Schema.decodeUnknownOption(Schema.parseJson(Line));
 
-/* No cache counts in this stream: zero here means unreported, not unused. */
+const toolEvent = toolOf("bash");
+
 const usageOf = (usage: typeof Usage.Type): HarnessUsage => ({
   cacheReadTokens: 0,
   cacheWriteTokens: 0,
@@ -61,48 +49,8 @@ const usageOf = (usage: typeof Usage.Type): HarnessUsage => ({
   totalTokens: usage.totalTokens ?? (usage.input ?? 0) + (usage.output ?? 0),
 });
 
-const toolOf = (
-  toolName: string,
-  toolCallId: string,
-  args: unknown,
-  at: number
-): HarnessEvent => {
-  const bash = decodeBash(args);
-
-  if (toolName === "bash" && Option.isSome(bash)) {
-    return {
-      _tag: "Command",
-      at,
-      command: bash.value.command,
-      exitCode: null,
-      output: "",
-    };
-  }
-
-  const file = decodeFile(args);
-
-  if (writes.has(toolName) && Option.isSome(file)) {
-    return { _tag: "FileChange", at, paths: [file.value.path] };
-  }
-
-  return {
-    _tag: "ToolCall",
-    at,
-    callId: toolCallId,
-    input: JSON.stringify(args),
-    name: toolName,
-    status: null,
-  };
-};
-
 export const decodePiLine = (line: string, at: number): DecodedOutput => {
-  const parsed = Option.liftThrowable(JSON.parse)(line);
-
-  if (Option.isNone(parsed)) {
-    return {};
-  }
-
-  const found = decode(parsed.value);
+  const found = decode(line);
 
   if (Option.isNone(found)) {
     return {};
@@ -120,16 +68,15 @@ export const decodePiLine = (line: string, at: number): DecodedOutput => {
 
   if (value.type === "tool_execution_start") {
     return {
-      events: [toolOf(value.toolName, value.toolCallId, value.args, at)],
+      events: [
+        toolEvent({
+          at,
+          callId: value.toolCallId,
+          input: value.args,
+          name: value.toolName,
+        }),
+      ],
     };
-  }
-
-  if (value.type === "tool_execution_end") {
-    return {};
-  }
-
-  if (value.type !== "message_end") {
-    return {};
   }
 
   const text = (value.message.content ?? [])

@@ -37,6 +37,9 @@ export interface BatchRepositoryShape {
     readonly internalId: string;
     readonly status: Settled;
   }) => Effect.Effect<void, EvalStoreError>;
+  readonly inFlight: (
+    organizationId: string
+  ) => Effect.Effect<number, EvalStoreError>;
   readonly insert: (input: NewBatch) => Effect.Effect<
     {
       readonly internalId: string;
@@ -44,9 +47,6 @@ export interface BatchRepositoryShape {
     },
     EvalStoreError
   >;
-  readonly inFlight: (
-    organizationId: string
-  ) => Effect.Effect<number, EvalStoreError>;
   readonly reopen: (internalId: string) => Effect.Effect<void, EvalStoreError>;
   readonly settleOpenRuns: (input: {
     readonly batchInternalId: string;

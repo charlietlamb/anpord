@@ -43,10 +43,17 @@ export const caseReadsQuery = Effect.gen(function* () {
               tags: evalCaseVersion.tags,
             })
             .from(evalCaseVersion)
-            .where(inArray(evalCaseVersion.caseInternalId, [...caseInternalIds]))
-            .orderBy(evalCaseVersion.caseInternalId, desc(evalCaseVersion.createdAt))
+            .where(
+              inArray(evalCaseVersion.caseInternalId, [...caseInternalIds])
+            )
+            .orderBy(
+              evalCaseVersion.caseInternalId,
+              desc(evalCaseVersion.createdAt)
+            )
         ).pipe(
-          Effect.map((rows) => new Map(rows.map((row) => [row.caseInternalId, row.tags])))
+          Effect.map(
+            (rows) => new Map(rows.map((row) => [row.caseInternalId, row.tags]))
+          )
         );
 
   const suitesAndTags = (organizationId: string) =>
@@ -62,7 +69,10 @@ export const caseReadsQuery = Effect.gen(function* () {
         db
           .selectDistinct({ tags: evalCaseVersion.tags })
           .from(evalCaseVersion)
-          .innerJoin(evalCase, eq(evalCase.internalId, evalCaseVersion.caseInternalId))
+          .innerJoin(
+            evalCase,
+            eq(evalCase.internalId, evalCaseVersion.caseInternalId)
+          )
           .where(eq(evalCase.organizationId, organizationId))
       ).pipe(
         Effect.map((rows) =>
@@ -87,9 +97,18 @@ export const caseReadsQuery = Effect.gen(function* () {
             suiteName: evalSuite.name,
           })
           .from(evalCase)
-          .innerJoin(evalSuite, eq(evalSuite.internalId, evalCase.suiteInternalId))
-          .innerJoin(evalVariant, eq(evalVariant.caseInternalId, evalCase.internalId))
-          .innerJoin(evalRun, eq(evalRun.variantInternalId, evalVariant.internalId))
+          .innerJoin(
+            evalSuite,
+            eq(evalSuite.internalId, evalCase.suiteInternalId)
+          )
+          .innerJoin(
+            evalVariant,
+            eq(evalVariant.caseInternalId, evalCase.internalId)
+          )
+          .innerJoin(
+            evalRun,
+            eq(evalRun.variantInternalId, evalVariant.internalId)
+          )
           .where(
             and(
               eq(evalCase.organizationId, input.organizationId),
@@ -97,7 +116,13 @@ export const caseReadsQuery = Effect.gen(function* () {
               input.tag === null ? undefined : taggedWith(input.tag)
             )
           )
-          .groupBy(evalCase.internalId, evalCase.id, evalCase.name, evalSuite.id, evalSuite.name)
+          .groupBy(
+            evalCase.internalId,
+            evalCase.id,
+            evalCase.name,
+            evalSuite.id,
+            evalSuite.name
+          )
           .having(
             input.cursor === null
               ? undefined
@@ -108,14 +133,18 @@ export const caseReadsQuery = Effect.gen(function* () {
       );
 
       const page = pageOf(rows, size);
-      const results = yield* variantResults(page.items.map((row) => row.internalId));
+      const results = yield* variantResults(
+        page.items.map((row) => row.internalId)
+      );
       const tagsOf = yield* newestTags(page.items.map((row) => row.internalId));
       const filters = yield* suitesAndTags(input.organizationId);
 
       return {
         cases: page.items.map((row) => ({
           id: row.caseId,
-          lastRunAt: DateTime.unsafeMake(new Date(row.lastRunAt ?? 0).getTime()),
+          lastRunAt: DateTime.unsafeMake(
+            new Date(row.lastRunAt ?? 0).getTime()
+          ),
           name: row.name,
           suite: { id: row.suiteId, name: row.suiteName },
           tags: tagsOf.get(row.internalId) ?? [],
@@ -134,10 +163,21 @@ export const caseReadsQuery = Effect.gen(function* () {
     Effect.gen(function* () {
       const found = yield* tryStore("caseReads.case", () =>
         db
-          .select({ case: evalCase, suite: { id: evalSuite.id, name: evalSuite.name } })
+          .select({
+            case: evalCase,
+            suite: { id: evalSuite.id, name: evalSuite.name },
+          })
           .from(evalCase)
-          .innerJoin(evalSuite, eq(evalSuite.internalId, evalCase.suiteInternalId))
-          .where(and(eq(evalCase.organizationId, organizationId), eq(evalCase.id, caseId)))
+          .innerJoin(
+            evalSuite,
+            eq(evalSuite.internalId, evalCase.suiteInternalId)
+          )
+          .where(
+            and(
+              eq(evalCase.organizationId, organizationId),
+              eq(evalCase.id, caseId)
+            )
+          )
       ).pipe(Effect.map(head));
 
       if (Option.isNone(found)) {
@@ -173,7 +213,10 @@ export const caseReadsQuery = Effect.gen(function* () {
           changes:
             index === 0
               ? []
-              : changesBetween(versions[index - 1]?.version ?? row.version, row.version),
+              : changesBetween(
+                  versions[index - 1]?.version ?? row.version,
+                  row.version
+                ),
           createdAt: DateTime.unsafeMake(row.version.createdAt.getTime()),
           definitionHash: row.version.definitionHash,
         })),

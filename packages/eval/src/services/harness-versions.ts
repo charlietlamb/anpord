@@ -1,5 +1,5 @@
 import { Config, Context, Effect, Layer } from "effect";
-import type { HarnessName } from "../domain/cell";
+import type { HarnessName } from "../domain/variant";
 
 const config = Config.all({
   claude: Config.string("EVAL_CLAUDE_VERSION").pipe(

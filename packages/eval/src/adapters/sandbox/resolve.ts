@@ -1,53 +1,37 @@
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
-import { Effect, Layer, Redacted } from "effect";
-import type { ProviderName } from "../../domain/cell";
-import { type SandboxAdapterShape, SandboxAdapters } from "../../ports/sandbox";
-import {
-  makeCloudflareAdapter,
-  makeConfiguredCloudflareAdapter,
-} from "./cloudflare";
-import { makeConfiguredDaytonaAdapter, makeDaytonaAdapter } from "./daytona";
-import { makeConfiguredE2BAdapter, makeE2BAdapter } from "./e2b";
+import { Effect, Layer, Record, Redacted } from "effect";
+import type { SandboxName } from "../../domain/variant";
+import { SandboxAdapters } from "../../ports/sandbox";
+import { cloudflareAdapter } from "./cloudflare";
+import { daytonaAdapter } from "./daytona";
+import { e2bAdapter } from "./e2b";
 import { makeLocalAdapter } from "./local";
-import { makeConfiguredModalAdapter, makeModalAdapter } from "./modal";
-import { makeConfiguredUpstashAdapter, makeUpstashAdapter } from "./upstash";
-import { makeConfiguredVercelAdapter, makeVercelAdapter } from "./vercel";
+import { modalAdapter } from "./modal";
+import type { MakeAdapter } from "./provider-adapter";
+import { upstashAdapter } from "./upstash";
+import { vercelAdapter } from "./vercel";
+
+const SANDBOX_ADAPTERS: { readonly [provider in SandboxName]: MakeAdapter } = {
+  cloudflare: cloudflareAdapter,
+  daytona: daytonaAdapter,
+  e2b: e2bAdapter,
+  local: () => makeLocalAdapter,
+  modal: modalAdapter,
+  upstash: upstashAdapter,
+  vercel: vercelAdapter,
+};
 
 export const SandboxAdaptersLive = Layer.effect(
   SandboxAdapters,
   Effect.gen(function* () {
-    const builders: Record<ProviderName, Effect.Effect<SandboxAdapterShape>> = {
-      cloudflare: yield* Effect.cached(makeCloudflareAdapter),
-      daytona: yield* Effect.cached(makeDaytonaAdapter),
-      e2b: yield* Effect.cached(makeE2BAdapter),
-      local: yield* Effect.cached(makeLocalAdapter),
-      upstash: yield* Effect.cached(makeUpstashAdapter),
-      modal: yield* Effect.cached(makeModalAdapter),
-      vercel: yield* Effect.cached(makeVercelAdapter),
-    };
-
-    const configured = (
-      provider: ProviderName,
-      credentials: Redacted.Redacted<CredentialValues>
-    ) => {
-      const make = {
-        cloudflare: makeConfiguredCloudflareAdapter,
-        daytona: makeConfiguredDaytonaAdapter,
-        e2b: makeConfiguredE2BAdapter,
-        /* Nothing to configure: the machine is the credential. */
-        local: () => makeLocalAdapter,
-        modal: makeConfiguredModalAdapter,
-        upstash: makeConfiguredUpstashAdapter,
-        vercel: makeConfiguredVercelAdapter,
-      }[provider];
-      return make(Redacted.value(credentials));
-    };
+    const defaults = yield* Effect.all(
+      Record.map(SANDBOX_ADAPTERS, (make) => Effect.cached(make()))
+    );
 
     return SandboxAdapters.of({
       resolve: (provider, credentials) =>
         (credentials === undefined
-          ? builders[provider]
-          : configured(provider, credentials)
+          ? defaults[provider]
+          : SANDBOX_ADAPTERS[provider](Redacted.value(credentials))
         ).pipe(
           Effect.withSpan("SandboxAdapters.resolve", {
             attributes: { provider },

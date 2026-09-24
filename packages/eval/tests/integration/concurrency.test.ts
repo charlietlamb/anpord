@@ -20,7 +20,7 @@ import { runCommandForOutcome } from "../../src/adapters/sandbox/run-command";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { SourceTokensNone } from "../../src/codebase/source-token";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
-import type { ProviderName } from "../../src/domain/cell";
+import type { SandboxName } from "../../src/domain/cell";
 import { HarnessUnavailable } from "../../src/domain/errors";
 import { GridRun, GridRunLive } from "../../src/grid/run";
 import { EvalRepositoriesLive, EvalSandboxLive } from "../../src/layer";
@@ -107,14 +107,14 @@ const grid = GridRunLive.pipe(
   Layer.provideMerge(BaselinesLive)
 );
 
-const concurrencyOf = (provider: ProviderName) =>
+const concurrencyOf = (provider: SandboxName) =>
   Layer.setConfigProvider(
     ConfigProvider.fromMap(
       new Map([[`EVAL_${provider.toUpperCase()}_CONCURRENCY`, `${TRIALS}`]])
     ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()))
   );
 
-const layerFor = (provider: ProviderName) =>
+const layerFor = (provider: SandboxName) =>
   grid.pipe(
     Layer.provide(
       AgentTrialLive.pipe(
@@ -201,7 +201,7 @@ const settledRun = (organizationId: string, id: string) =>
 /* The provider is the witness for leaks: every id the run recorded must be
    gone. Daytona's `get` on a deleted sandbox rejects. Other providers have no
    cheap equivalent and are judged on the run alone. */
-const leftBehind = async (provider: ProviderName, ids: readonly string[]) => {
+const leftBehind = async (provider: SandboxName, ids: readonly string[]) => {
   if (provider !== "daytona") {
     return [];
   }
@@ -219,7 +219,7 @@ const leftBehind = async (provider: ProviderName, ids: readonly string[]) => {
   return found.filter((id): id is string => id !== null);
 };
 
-const wave = (provider: ProviderName, ready: boolean) =>
+const wave = (provider: SandboxName, ready: boolean) =>
   describe.skipIf(!(ready && hasDatabase))(
     `${TRIALS} trials at once on ${provider}`,
     () => {

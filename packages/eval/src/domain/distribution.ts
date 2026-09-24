@@ -31,7 +31,9 @@ export const distributionOf = (
     commandMedian: median(commands),
     commandMin,
     deterministic:
-      scored.length > 1 && agreed && commandMax - commandMin <= COMMAND_AGREEMENT,
+      scored.length > 1 &&
+      agreed &&
+      commandMax - commandMin <= COMMAND_AGREEMENT,
     failed: scored.length - passed.length,
     passRate: scored.length === 0 ? 0 : passed.length / scored.length,
     passed: passed.length,

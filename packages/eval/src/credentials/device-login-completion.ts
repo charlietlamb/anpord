@@ -13,7 +13,6 @@ interface Completion {
   readonly connections: CredentialConnectionsShape;
 }
 
-/** Runs after the challenge is answered in a browser, so it outlives the request. */
 export const completeDeviceLogin = (
   { attempts, cipher, connections }: Completion,
   login: CodexLogin,

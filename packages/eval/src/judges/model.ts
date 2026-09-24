@@ -24,7 +24,7 @@ export const JudgeCompletion = Schema.Struct({
 });
 export type JudgeCompletion = typeof JudgeCompletion.Type;
 
-import type { ProviderName } from "../domain/cell";
+import type { SandboxName } from "../domain/variant";
 import type { ValidationObserver } from "../ports/scorer";
 
 export class JudgeFailed extends Data.TaggedError("JudgeFailed")<{
@@ -34,7 +34,7 @@ export class JudgeFailed extends Data.TaggedError("JudgeFailed")<{
 interface JudgeContext {
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly organizationId: string;
-  readonly provider: ProviderName;
+  readonly provider: SandboxName;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
 }
 

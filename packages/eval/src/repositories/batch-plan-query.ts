@@ -14,8 +14,8 @@ import type {
 } from "@anpord/schema/domain/evals";
 import { eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
-import type { HarnessName, ProviderName } from "../domain/cell";
 import type { RequestedProfile } from "../domain/harness-profile";
+import type { HarnessName, SandboxName } from "../domain/variant";
 import { namesOf } from "../domain/variant";
 import { tryStore } from "./query";
 
@@ -39,7 +39,7 @@ export interface RunPlan {
   readonly internalId: string;
   readonly model: string;
   readonly profile: RequestedProfile | null;
-  readonly sandbox: ProviderName;
+  readonly sandbox: SandboxName;
   readonly sandboxCredentialConnectionId: string | null;
   readonly trialCount: number;
 }

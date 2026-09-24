@@ -2,15 +2,17 @@ import { describe, expect, it } from "bun:test";
 import { Effect, Option } from "effect";
 import { claudeCommand } from "../../../src/adapters/harness/claude";
 import { codexCommand } from "../../../src/adapters/harness/codex";
-import { cursorCommand } from "../../../src/adapters/harness/cursor";
-import { fxCommand } from "../../../src/adapters/harness/fx";
-import { geminiCommand } from "../../../src/adapters/harness/gemini";
+import {
+  cursorCommand,
+  fxCommand,
+  geminiCommand,
+  piCommand,
+  qwenCommand,
+} from "../../../src/adapters/harness/commands";
 import {
   opencodeCommand,
   opencodeRunEnv,
 } from "../../../src/adapters/harness/opencode";
-import { piCommand } from "../../../src/adapters/harness/pi";
-import { qwenCommand } from "../../../src/adapters/harness/qwen";
 import { HarnessesLive } from "../../../src/adapters/harness/resolve";
 import type { HarnessName } from "../../../src/domain/cell";
 import type { RunHarness } from "../../../src/ports/harness";
@@ -101,8 +103,6 @@ describe("a profile on Claude", () => {
     expect(built).not.toContain("--append-system-prompt-file");
   });
 
-  /* --bare turns off CLAUDE.md discovery, so a profile's workspace files are
-     read only when the directory is named. */
   it("names the workspace directory for every profile cell", () => {
     expect(claudeCommand(withProfile({}, null))).toContain(
       "--add-dir '/tmp/work space'"

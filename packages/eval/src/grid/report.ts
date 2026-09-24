@@ -19,14 +19,18 @@ export const makeReport = Effect.gen(function* () {
 
   const localBatch = (organizationId: string, batchId: string) =>
     Effect.gen(function* () {
-      const found = yield* scope.batch(organizationId, batchId).pipe(Effect.orDie);
+      const found = yield* scope
+        .batch(organizationId, batchId)
+        .pipe(Effect.orDie);
       if (Option.isNone(found)) {
         return yield* new EvalNotFound({ entity: "batch", id: batchId });
       }
       if (!found.value.local) {
         return yield* new NotRunnable({
           id: batchId,
-          problems: ["this batch runs on the platform, so its trials are not reported"],
+          problems: [
+            "this batch runs on the platform, so its trials are not reported",
+          ],
         });
       }
       return found.value;
@@ -34,14 +38,18 @@ export const makeReport = Effect.gen(function* () {
 
   const report = (organizationId: string, trial: ReportedTrial) =>
     Effect.gen(function* () {
-      const found = yield* scope.run(organizationId, trial.runId).pipe(Effect.orDie);
+      const found = yield* scope
+        .run(organizationId, trial.runId)
+        .pipe(Effect.orDie);
       if (Option.isNone(found)) {
         return yield* new EvalNotFound({ entity: "run", id: trial.runId });
       }
       if (!found.value.local) {
         return yield* new NotRunnable({
           id: trial.runId,
-          problems: ["this run is on the platform, so its trials are not reported"],
+          problems: [
+            "this run is on the platform, so its trials are not reported",
+          ],
         });
       }
 
@@ -50,7 +58,11 @@ export const makeReport = Effect.gen(function* () {
         runInternalId: trial.runId,
         startedAt: new Date(yield* Clock.currentTimeMillis),
       });
-      yield* recorder.append({ events: trial.events, from: 0, trialInternalId });
+      yield* recorder.append({
+        events: trial.events,
+        from: 0,
+        trialInternalId,
+      });
       yield* recorder.settle({
         finishedAt: new Date(yield* Clock.currentTimeMillis),
         outcome: trial.outcome,
@@ -85,7 +97,9 @@ export const makeReport = Effect.gen(function* () {
     Effect.gen(function* () {
       yield* localBatch(actor.organizationId, batchId);
 
-      const category = credentialIntegrations.find(({ id }) => id === harness)?.category;
+      const category = credentialIntegrations.find(
+        ({ id }) => id === harness
+      )?.category;
       if (category !== "harness" && category !== "model") {
         return yield* new NotRunnable({
           id: batchId,
@@ -93,7 +107,10 @@ export const makeReport = Effect.gen(function* () {
         });
       }
 
-      const credential = yield* credentials.resolve({ actor, integrationId: harness });
+      const credential = yield* credentials.resolve({
+        actor,
+        integrationId: harness,
+      });
       const now = yield* Clock.currentTimeMillis;
 
       return {

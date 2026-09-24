@@ -25,10 +25,6 @@ export const selectAllVisible = (db: Db, actor: Actor) =>
     .where(visibleTo(actor.organizationId, actor.id))
     .orderBy(desc(credentialConnection.isDefault), credentialConnection.name);
 
-/* Only what `visibleTo` withholds: somebody else's personal rows. An
-   organization row is already in the reader's own list, and repeating
-   it here would have the page say a teammate has what the reader can
-   see they have themselves. */
 export const selectPersonalOwners = (db: Db, actor: Actor) =>
   db
     .selectDistinct({

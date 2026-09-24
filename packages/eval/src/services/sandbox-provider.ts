@@ -1,5 +1,5 @@
 import { Config, Duration, Effect, Layer, Schedule } from "effect";
-import type { ProviderName } from "../domain/cell";
+import type { SandboxName } from "../domain/variant";
 import {
   type DestroySandbox,
   type OpenSandbox,
@@ -37,7 +37,7 @@ export const SandboxProviderLive = Layer.effect(
     const adapters = yield* SandboxAdapters;
     const concurrency = yield* concurrencyConfig;
 
-    const permits: Record<ProviderName, Effect.Semaphore> = {
+    const permits: Record<SandboxName, Effect.Semaphore> = {
       cloudflare: yield* Effect.makeSemaphore(concurrency.cloudflare),
       daytona: yield* Effect.makeSemaphore(concurrency.daytona),
       e2b: yield* Effect.makeSemaphore(concurrency.e2b),
@@ -76,7 +76,7 @@ export const SandboxProviderLive = Layer.effect(
         Effect.annotateLogs({ provider: request.provider })
       );
 
-    const attach = (provider: ProviderName, id: string) =>
+    const attach = (provider: SandboxName, id: string) =>
       Effect.gen(function* () {
         const adapter = yield* adapters.resolve(provider);
         return yield* adapter.attach(id);

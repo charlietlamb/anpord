@@ -100,7 +100,10 @@ export const AbandonedWorkLive = Layer.effect(
             status: "failed",
           })
           .where(
-            and(eq(evalBatch.status, "running"), lt(evalBatch.createdAt, cutoff))
+            and(
+              eq(evalBatch.status, "running"),
+              lt(evalBatch.createdAt, cutoff)
+            )
           )
           .returning({ internalId: evalBatch.internalId })
       ).pipe(Effect.map((rows) => rows.length));

@@ -28,7 +28,10 @@ const rateFor = (model: string) =>
     Effect.orElseSucceed(() => Option.none<ModelPrice>())
   );
 
-const priced = (usage: HarnessUsage | null, price: Option.Option<ModelPrice>) =>
+const priced = (
+  usage: HarnessUsage | null,
+  price: Option.Option<ModelPrice>
+) =>
   usage === null
     ? null
     : Option.match(price, {

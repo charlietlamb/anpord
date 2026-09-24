@@ -15,7 +15,10 @@ export const trialArtifactQuery = Effect.gen(function* () {
   return (organizationId: string, input: EvalArtifactRequest) =>
     tryStore("trialArtifact.find", () =>
       db
-        .select({ content: evalTrialArtifact.content, metadata: evalTrial.artifacts })
+        .select({
+          content: evalTrialArtifact.content,
+          metadata: evalTrial.artifacts,
+        })
         .from(evalTrial)
         .innerJoin(
           evalTrialArtifact,
@@ -37,10 +40,13 @@ export const trialArtifactQuery = Effect.gen(function* () {
     ).pipe(
       Effect.map((rows) => {
         const row = rows[0];
-        const artifact = row?.metadata?.find((file) => file.sha256 === input.sha256);
+        const artifact = row?.metadata?.find(
+          (file) => file.sha256 === input.sha256
+        );
         return row === undefined ||
           artifact === undefined ||
-          createHash("sha256").update(row.content).digest("hex") !== artifact.sha256
+          createHash("sha256").update(row.content).digest("hex") !==
+            artifact.sha256
           ? Option.none()
           : Option.some({ ...artifact, content: row.content });
       }),

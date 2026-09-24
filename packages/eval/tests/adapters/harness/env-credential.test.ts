@@ -1,15 +1,19 @@
 import { describe, expect, it } from "bun:test";
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import { Effect, Either, Option, Redacted, Stream } from "effect";
-import { ClaudeDriver } from "../../../src/adapters/harness/claude";
-import { CodexDriver } from "../../../src/adapters/harness/codex";
-import { OpencodeDriver } from "../../../src/adapters/harness/opencode";
-import { PiDriver } from "../../../src/adapters/harness/pi";
+import { HARNESS_DRIVERS } from "../../../src/adapters/harness/resolve";
 import type { HarnessDriverShape } from "../../../src/ports/harness";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
 import { declinesEverything } from "../../fixtures/declines-everything";
 
 const HOME = "/home/agent";
+
+const {
+  claude: ClaudeDriver,
+  codex: CodexDriver,
+  opencode: OpencodeDriver,
+  pi: PiDriver,
+} = HARNESS_DRIVERS;
 
 const recording = () => {
   const steps: string[] = [];

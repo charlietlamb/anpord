@@ -6,9 +6,9 @@ import { KEYLESS_HARNESSES, unkeyed } from "../credentials/variants";
 import { describeFailure, NotRunnable } from "../domain/errors";
 import { ModelPrices } from "../ports/model-source";
 import { SimulatedUser } from "../ports/simulated-user";
-import { BatchRepository } from "../repositories/batch-repository";
-import { batchPlanQuery, type RunPlan } from "../repositories/batch-plan-query";
 import { activeTrialsQuery } from "../repositories/active-trials-query";
+import { batchPlanQuery, type RunPlan } from "../repositories/batch-plan-query";
+import { BatchRepository } from "../repositories/batch-repository";
 import { makeRunTrial, type TrialCredentials } from "./trial";
 
 const RUNS_AT_ONCE = 8;

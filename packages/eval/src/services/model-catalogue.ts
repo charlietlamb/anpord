@@ -2,7 +2,6 @@ import type { ModelCatalogue } from "@anpord/schema/domain/eval-models";
 import { Context, Effect, Layer } from "effect";
 import { ModelDescriptionsLive } from "../adapters/models/descriptions";
 import { AvailableModelsLive } from "../adapters/models/resolve";
-import type { HarnessName } from "../domain/cell";
 import { describedBy } from "../domain/model-catalogue";
 import {
   byPopularity,
@@ -10,6 +9,7 @@ import {
   matches,
   type RankedModel,
 } from "../domain/model-ranking";
+import type { HarnessName } from "../domain/variant";
 import {
   AvailableModels,
   type ModelDescription,

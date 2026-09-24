@@ -26,7 +26,6 @@ import {
 } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
 import { cacheKeyOf } from "../domain/cache-key";
-import type { HarnessName, ProviderName } from "../domain/cell";
 import type {
   HarnessUnavailable,
   PrepareFailed,
@@ -42,6 +41,7 @@ import {
   filesIn,
   sessionIdOf,
 } from "../domain/journal";
+import type { HarnessName, SandboxName } from "../domain/variant";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
@@ -79,7 +79,7 @@ export interface AgentTrialRequest {
   readonly profile: RequestedProfile | null;
   readonly progress?: TrialProgressShape;
   readonly prompt: string;
-  readonly provider: ProviderName;
+  readonly provider: SandboxName;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
   readonly source: WorkspaceSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;

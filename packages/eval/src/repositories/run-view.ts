@@ -75,7 +75,10 @@ export const trialOf = (
   ordinal: row.ordinal,
   sandboxId: row.sandboxId,
   sandboxMs: row.sandboxMs ?? 0,
-  status: Option.getOrElse(decodeTrialStatus(row.status), () => "void" as const),
+  status: Option.getOrElse(
+    decodeTrialStatus(row.status),
+    () => "void" as const
+  ),
   timed:
     events !== undefined && new Set(events.map((event) => event.at)).size > 1,
   trajectory: events === undefined ? [] : events.flatMap(asEntries),
@@ -102,7 +105,8 @@ export const runOf = (
     costs: rollUp(trials.map((trial) => trial.costs)),
     definitionHash: row.version.definitionHash,
     distribution: distributionOf(trials),
-    finishedAt: row.run.finishedAt === null ? null : timestamp(row.run.finishedAt),
+    finishedAt:
+      row.run.finishedAt === null ? null : timestamp(row.run.finishedAt),
     harnessVersion: row.run.harnessVersion,
     id: row.run.internalId,
     local: row.batch.local,

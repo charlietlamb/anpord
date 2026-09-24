@@ -1,11 +1,11 @@
 import { ConfigProvider, Effect } from "effect";
-import { makeCloudflareAdapter } from "../../../../src/adapters/sandbox/cloudflare";
-import { makeDaytonaAdapter } from "../../../../src/adapters/sandbox/daytona";
-import { makeE2BAdapter } from "../../../../src/adapters/sandbox/e2b";
+import { cloudflareAdapter } from "../../../../src/adapters/sandbox/cloudflare";
+import { daytonaAdapter } from "../../../../src/adapters/sandbox/daytona";
+import { e2bAdapter } from "../../../../src/adapters/sandbox/e2b";
 import { makeLocalAdapter } from "../../../../src/adapters/sandbox/local";
-import { makeModalAdapter } from "../../../../src/adapters/sandbox/modal";
-import { makeUpstashAdapter } from "../../../../src/adapters/sandbox/upstash";
-import { makeVercelAdapter } from "../../../../src/adapters/sandbox/vercel";
+import { modalAdapter } from "../../../../src/adapters/sandbox/modal";
+import { upstashAdapter } from "../../../../src/adapters/sandbox/upstash";
+import { vercelAdapter } from "../../../../src/adapters/sandbox/vercel";
 import type { SandboxAdapterShape } from "../../../../src/ports/sandbox";
 import {
   hasCloudflare,
@@ -16,31 +16,16 @@ import {
   hasVercel,
 } from "../../../fixtures/credentials";
 
-/**
- * Every provider the product offers, and what each needs before it can be
- * exercised.
- *
- * A new provider is one row. The suite asserts the same capabilities against
- * every row, so a provider that cannot do something fails by name rather than
- * by being left out.
- */
 export interface ProviderUnderTest {
   readonly adapter: Effect.Effect<SandboxAdapterShape>;
   readonly credentialled: boolean;
   readonly name: string;
-  /** What a run must set for this provider to be exercised at all. */
   readonly needs: string;
-  /** How long a sandbox takes to become useful, which differs by an order of
-   * magnitude between providers. */
   readonly slowSeconds: number;
 }
 
 export const PROVIDERS: readonly ProviderUnderTest[] = [
   {
-    /* The control: a real shell on the machine running the tests, so the suite
-       proves the contract itself even with no credential at all. The opt-in is
-       supplied here rather than by the environment, so the suite exercises the
-       same adapter a developer runs and never depends on how a shell is set up. */
     adapter: makeLocalAdapter.pipe(
       Effect.withConfigProvider(
         ConfigProvider.fromMap(new Map([["ANPORD_LOCAL_SANDBOX", "true"]]), {
@@ -54,42 +39,42 @@ export const PROVIDERS: readonly ProviderUnderTest[] = [
     slowSeconds: 1,
   },
   {
-    adapter: makeDaytonaAdapter,
+    adapter: daytonaAdapter(),
     credentialled: hasDaytona,
     name: "daytona",
     needs: "DAYTONA_API_KEY",
     slowSeconds: 30,
   },
   {
-    adapter: makeE2BAdapter,
+    adapter: e2bAdapter(),
     credentialled: hasE2b,
     name: "e2b",
     needs: "E2B_API_KEY",
     slowSeconds: 5,
   },
   {
-    adapter: makeUpstashAdapter,
+    adapter: upstashAdapter(),
     credentialled: hasUpstash,
     name: "upstash",
     needs: "UPSTASH_BOX_API_KEY",
     slowSeconds: 5,
   },
   {
-    adapter: makeModalAdapter,
+    adapter: modalAdapter(),
     credentialled: hasModal,
     name: "modal",
     needs: "MODAL_TOKEN_ID and MODAL_TOKEN_SECRET",
     slowSeconds: 10,
   },
   {
-    adapter: makeCloudflareAdapter,
+    adapter: cloudflareAdapter(),
     credentialled: hasCloudflare,
     name: "cloudflare",
     needs: "CLOUDFLARE_API_TOKEN, or CLOUDFLARE_SANDBOX_URL with its API key",
     slowSeconds: 10,
   },
   {
-    adapter: makeVercelAdapter,
+    adapter: vercelAdapter(),
     credentialled: hasVercel,
     name: "vercel",
     needs: "VERCEL_OIDC_TOKEN, or VERCEL_TOKEN with team and project ids",

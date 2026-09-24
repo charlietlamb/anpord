@@ -1,128 +1,93 @@
 import { Sandbox as E2BSandbox } from "e2b";
-import { Effect } from "effect";
-import { describeFailure, sandboxUnavailable } from "../../domain/errors";
-import type {
-  ExecOptions,
-  OpenSandbox,
-  SandboxAdapterShape,
-  SandboxHandle,
-} from "../../ports/sandbox";
+import { Effect, Option, Schema } from "effect";
+import type { SandboxHandle } from "../../ports/sandbox";
 import { shellQuote } from "../harness/process";
-import { settingUp } from "./after-create";
-import { noCache, noResumableCommands } from "./capabilities";
 import { execStream } from "./exec-stream";
+import {
+  DEFAULT_TIMEOUT_MS,
+  type MakeAdapter,
+  providerAdapter,
+  providerCall,
+  unavailableFor,
+} from "./provider-adapter";
 
-const DEFAULT_TIMEOUT_MS = 120_000;
 const HOME = "/home/user";
 
-interface CommandResult {
-  readonly exitCode: number;
-  readonly stderr: string;
-  readonly stdout: string;
-}
+const call = providerCall("e2b");
 
-const toCommandResult = (rejection: unknown): CommandResult | null => {
-  const carried = (rejection as { result?: unknown })?.result;
-  const source = (carried ?? rejection) as {
-    exitCode?: number;
-    stderr?: string;
-    stdout?: string;
-  };
+const Exited = Schema.Struct({ exitCode: Schema.Number });
 
-  return typeof source?.exitCode === "number"
-    ? {
-        exitCode: source.exitCode,
-        stderr: source.stderr ?? "",
-        stdout: source.stdout ?? "",
-      }
-    : null;
-};
+const decodeRejection = Schema.decodeUnknownOption(
+  Schema.Union(Schema.Struct({ result: Exited }), Exited)
+);
 
-const NAMED = 80;
-
-const unavailable = (during: string) => (reason: unknown) =>
-  sandboxUnavailable(
-    "e2b",
-    `${during.slice(0, NAMED)}: ${describeFailure(reason)}`
+const exitCodeOf = (rejection: unknown) =>
+  decodeRejection(rejection).pipe(
+    Option.map((found) =>
+      "result" in found ? found.result.exitCode : found.exitCode
+    )
   );
 
 const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
-  cache: noCache,
-  exec: (command, options?: ExecOptions) =>
+  cache: Option.none(),
+  exec: (command, options) =>
     execStream((sink) =>
-      Effect.tryPromise({
-        catch: unavailable(`exec ${command}`),
-        try: () =>
-          sandbox.commands
-            .run(command, {
-              cwd: options?.cwd ?? workspace,
-              envs: options?.env as Record<string, string> | undefined,
-              onStderr: sink.stderr,
-              onStdout: sink.stdout,
-              timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-            })
-            .catch((rejection: unknown) => {
-              const failed = toCommandResult(rejection);
-
-              if (failed === null) {
-                throw rejection;
-              }
-
-              return failed;
-            }),
-      }).pipe(Effect.map((result) => result.exitCode))
+      Effect.tryPromise(() =>
+        sandbox.commands.run(command, {
+          cwd: options?.cwd ?? workspace,
+          envs: options?.env && { ...options.env },
+          onStderr: sink.stderr,
+          onStdout: sink.stdout,
+          timeoutMs: options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+        })
+      ).pipe(
+        Effect.map((result) => result.exitCode),
+        Effect.catchAll(({ error }) =>
+          Option.match(exitCodeOf(error), {
+            onNone: () =>
+              Effect.fail(unavailableFor("e2b", `exec ${command}`)(error)),
+            onSome: Effect.succeed,
+          })
+        )
+      )
     ),
-  id: sandbox.sandboxId,
   home: HOME,
+  id: sandbox.sandboxId,
   provider: "e2b",
-  resumable: noResumableCommands,
+  resumable: Option.none(),
   writeFile: (path, content) =>
-    Effect.tryPromise({
-      catch: unavailable(`write ${path}`),
-      try: () => sandbox.files.write(path, content),
-    }).pipe(Effect.asVoid),
+    call(() => sandbox.files.write(path, content), `write ${path}`).pipe(
+      Effect.asVoid
+    ),
 });
 
-export const makeConfiguredE2BAdapter = (
-  values?: Readonly<Record<string, string>>
-) =>
-  Effect.sync(
-    (): SandboxAdapterShape => ({
-      attach: (id) =>
-        Effect.tryPromise({
-          catch: unavailable("attach"),
-          try: () => E2BSandbox.connect(id, { apiKey: values?.apiKey }),
-        }).pipe(Effect.map((sandbox) => handleFor(sandbox, "/tmp/anpord"))),
-      destroy: (handle) =>
-        Effect.tryPromise({
-          catch: unavailable("destroy"),
-          try: () => E2BSandbox.kill(handle.id, { apiKey: values?.apiKey }),
-        }).pipe(Effect.asVoid),
-      open: (request: OpenSandbox) =>
-        Effect.tryPromise({
-          catch: unavailable("create"),
-          try: () =>
+export const e2bAdapter: MakeAdapter = (values) =>
+  Effect.sync(() =>
+    providerAdapter({
+      connect: (id) =>
+        call(
+          () => E2BSandbox.connect(id, { apiKey: values?.apiKey }),
+          "attach"
+        ),
+      create: (request) =>
+        call(
+          () =>
             E2BSandbox.create({
               apiKey: values?.apiKey,
               timeoutMs: request.autoStopMinutes * 60_000,
             }),
-        }).pipe(
-          Effect.flatMap((sandbox) =>
-            settingUp(
-              Effect.tryPromise({
-                catch: unavailable("create workspace"),
-                try: () =>
-                  sandbox.commands.run(
-                    `mkdir -p ${shellQuote(request.workspace)}`
-                  ),
-              }),
-              handleFor(sandbox, request.workspace),
-              () => sandbox.kill()
-            )
-          )
+          "create"
+        ),
+      destroy: (id) =>
+        call(() => E2BSandbox.kill(id, { apiKey: values?.apiKey }), "destroy"),
+      discard: (sandbox) => call(() => sandbox.kill()),
+      handleFor,
+      home: HOME,
+      makeWorkspace: (sandbox, workspace) =>
+        call(
+          () => sandbox.commands.run(`mkdir -p ${shellQuote(workspace)}`),
+          "create workspace"
         ),
       provider: "e2b",
     })
   );
-
-export const makeE2BAdapter = makeConfiguredE2BAdapter();

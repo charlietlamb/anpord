@@ -1,8 +1,6 @@
-import type {
-  HarnessEvent,
-  HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
+import type { DecodedOutput } from "./session";
 
 const ToolTime = Schema.Struct({
   end: Schema.optional(Schema.Number),
@@ -18,9 +16,6 @@ const ToolState = Schema.Struct({
 });
 
 const Tokens = Schema.Struct({
-  /* OpenCode nests the cache counts under the tokens it reports, and unlike
-     Anthropic it treats them as a share of the input rather than as figures
-     beside it. */
   cache: Schema.optional(
     Schema.Struct({
       read: Schema.optional(Schema.Number),
@@ -73,7 +68,7 @@ const Line = Schema.Union(
   })
 );
 
-const decodeLine = Schema.decodeUnknownOption(Line);
+const decodeLine = Schema.decodeUnknownOption(Schema.parseJson(Line));
 
 const BashMetadata = Schema.Struct({
   exit: Schema.optional(Schema.Number),
@@ -89,167 +84,121 @@ const decodeFileInput = Schema.decodeUnknownOption(FileInput);
 
 const WRITES = new Set(["edit", "patch", "write"]);
 
-export interface DecodedLine {
-  readonly event: Option.Option<HarnessEvent>;
-  readonly sessionId: Option.Option<string>;
-  readonly usage: Option.Option<HarnessUsage>;
-}
-
-const none: DecodedLine = {
-  event: Option.none(),
-  sessionId: Option.none(),
-  usage: Option.none(),
-};
-
-const only = (event: HarnessEvent): DecodedLine => ({
-  ...none,
-  event: Option.some(event),
-});
-
 const startedAtOf = (state: typeof ToolState.Type) =>
   state.time?.start === undefined ? {} : { startedAt: state.time.start };
 
+const toolCallOf = (
+  state: typeof ToolState.Type,
+  name: string,
+  callId: string | null
+): HarnessEvent => ({
+  _tag: "ToolCall",
+  callId,
+  input: JSON.stringify(state.input ?? null),
+  name,
+  output: state.output,
+  ...startedAtOf(state),
+  status: state.status,
+});
+
 const commandOf = (
   state: typeof ToolState.Type,
-  callId: string | null
-): HarnessEvent => {
-  const input = decodeBashInput(state.input);
-  const metadata = decodeBashMetadata(state.metadata);
-
-  if (Option.isNone(input)) {
-    return {
-      _tag: "ToolCall",
-      callId,
-      input: JSON.stringify(state.input ?? null),
-      name: "bash",
-      output: state.output,
-      ...startedAtOf(state),
-      status: state.status,
-    };
-  }
-
-  return {
-    _tag: "Command",
-    command: input.value.command,
-    exitCode: Option.match(metadata, {
-      onNone: () => null,
-      onSome: (found) => found.exit ?? null,
-    }),
-    output: state.output ?? "",
-    ...startedAtOf(state),
-  };
-};
-
-const fileChangeOf = (
-  state: typeof ToolState.Type,
-  tool: string,
-  callId: string | null
-): HarnessEvent => {
-  const input = decodeFileInput(state.input);
-
-  if (Option.isNone(input)) {
-    return {
-      _tag: "ToolCall",
-      callId,
-      input: JSON.stringify(state.input ?? null),
-      name: tool,
-      output: state.output,
-      ...startedAtOf(state),
-      status: state.status,
-    };
-  }
-
-  return { _tag: "FileChange", paths: [input.value.filePath] };
-};
+  input: typeof BashInput.Type
+): HarnessEvent => ({
+  _tag: "Command",
+  command: input.command,
+  exitCode: Option.match(decodeBashMetadata(state.metadata), {
+    onNone: () => null,
+    onSome: (found) => found.exit ?? null,
+  }),
+  output: state.output ?? "",
+  ...startedAtOf(state),
+});
 
 const toolEventOf = (
   state: typeof ToolState.Type,
   tool: string,
   callId: string | null
 ): HarnessEvent => {
+  const fallback = () => toolCallOf(state, tool, callId);
+
   if (tool === "bash") {
-    return commandOf(state, callId);
-  }
-
-  if (WRITES.has(tool)) {
-    return fileChangeOf(state, tool, callId);
-  }
-
-  return {
-    _tag: "ToolCall",
-    callId,
-    input: JSON.stringify(state.input ?? null),
-    name: tool,
-    output: state.output,
-    ...startedAtOf(state),
-    status: state.status,
-  };
-};
-
-export const decodeOpencodeLine = (line: string): DecodedLine => {
-  if (line.trim() === "") {
-    return none;
-  }
-
-  const parsed = Option.liftThrowable(JSON.parse)(line);
-
-  if (Option.isNone(parsed)) {
-    return none;
-  }
-
-  const decoded = decodeLine(parsed.value);
-
-  if (Option.isNone(decoded)) {
-    return none;
-  }
-
-  const value = decoded.value;
-
-  if (value.type === "text") {
-    if (value.part.text.trim() === "") {
-      return { ...none, sessionId: Option.some(value.sessionID) };
-    }
-
-    return {
-      ...only({ _tag: "Message", role: "assistant", text: value.part.text }),
-      sessionId: Option.some(value.sessionID),
-    };
-  }
-
-  if (value.type === "tool_use") {
-    const { callID, state, tool } = value.part;
-
-    return {
-      ...only(toolEventOf(state, tool, callID ?? null)),
-      sessionId: Option.some(value.sessionID),
-    };
-  }
-
-  if (value.type === "step_finish") {
-    const tokens = value.part.tokens;
-
-    return {
-      event: Option.none(),
-      sessionId: Option.some(value.sessionID),
-      usage:
-        tokens === undefined
-          ? Option.none()
-          : Option.some({
-              cacheReadTokens: tokens.cache?.read ?? 0,
-              cacheWriteTokens: tokens.cache?.write ?? 0,
-              inputTokens: tokens.input,
-              outputTokens: tokens.output,
-              totalTokens: tokens.total ?? tokens.input + tokens.output,
-            }),
-    };
-  }
-
-  if (value.type === "error") {
-    return only({
-      _tag: "Finished",
-      reason: JSON.stringify(value.error),
+    return Option.match(decodeBashInput(state.input), {
+      onNone: fallback,
+      onSome: (input) => commandOf(state, input),
     });
   }
 
-  return { ...none, sessionId: Option.some(value.sessionID) };
+  if (WRITES.has(tool)) {
+    return Option.match(decodeFileInput(state.input), {
+      onNone: fallback,
+      onSome: (input): HarnessEvent => ({
+        _tag: "FileChange",
+        paths: [input.filePath],
+      }),
+    });
+  }
+
+  return fallback();
 };
+
+const outputOf = (value: typeof Line.Type): DecodedOutput => {
+  switch (value.type) {
+    case "text":
+      return value.part.text.trim() === ""
+        ? { sessionId: value.sessionID }
+        : {
+            events: [
+              { _tag: "Message", role: "assistant", text: value.part.text },
+            ],
+            sessionId: value.sessionID,
+          };
+    case "tool_use":
+      return {
+        events: [
+          toolEventOf(
+            value.part.state,
+            value.part.tool,
+            value.part.callID ?? null
+          ),
+        ],
+        sessionId: value.sessionID,
+      };
+    case "step_finish": {
+      const tokens = value.part.tokens;
+      return {
+        sessionId: value.sessionID,
+        usage:
+          tokens === undefined
+            ? undefined
+            : {
+                cacheReadTokens: tokens.cache?.read ?? 0,
+                cacheWriteTokens: tokens.cache?.write ?? 0,
+                inputTokens: tokens.input,
+                outputTokens: tokens.output,
+                totalTokens: tokens.total ?? tokens.input + tokens.output,
+              },
+      };
+    }
+    case "error":
+      return {
+        events: [{ _tag: "Finished", reason: JSON.stringify(value.error) }],
+      };
+    default:
+      return { sessionId: value.sessionID };
+  }
+};
+
+export const decodeOpencodeLine = (line: string, at: number): DecodedOutput =>
+  Option.match(decodeLine(line), {
+    onNone: () => ({}),
+    onSome: (value) => {
+      const output = outputOf(value);
+      return output.events === undefined
+        ? output
+        : {
+            ...output,
+            events: output.events.map((event) => ({ ...event, at })),
+          };
+    },
+  });

@@ -19,7 +19,7 @@ import { StartRefused } from "../domain/errors";
 import { profileOfRequest } from "../domain/harness-profile";
 import { profileVersionOf } from "../domain/profile-identity";
 import { renderPrompt } from "../domain/prompt";
-import { userModel, userModelOf } from "../domain/variant";
+import { userModel, userModelOf, userModelRoute } from "../domain/variant";
 import { BatchRepository } from "../repositories/batch-repository";
 import { CatalogRepository } from "../repositories/catalog-repository";
 import { HarnessProfileRepository } from "../repositories/harness-profile-repository";
@@ -59,7 +59,8 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
     if (request.cases.some((subject) => subject.user?.kind === "simulated")) {
       const access = yield* modelAccessFor(
         yield* CredentialResolver,
-        actor.organizationId
+        actor.organizationId,
+        userModelRoute(yield* userModel).providerId
       );
       if (Option.isNone(access)) {
         return yield* new StartRefused({
@@ -82,10 +83,13 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
   });
 
 export const makeStartBatch = (
-  launch: (input: Launch) => Effect.Effect<{
-    readonly internalId: string;
-    readonly runInternalIds: readonly string[];
-  }, unknown>
+  launch: (input: Launch) => Effect.Effect<
+    {
+      readonly internalId: string;
+      readonly runInternalIds: readonly string[];
+    },
+    unknown
+  >
 ) =>
   Effect.gen(function* () {
     const catalog = yield* CatalogRepository;
@@ -120,12 +124,14 @@ export const makeStartBatch = (
             const profile = profileOfRequest(variant.profile);
             return profile === null
               ? Effect.succeed(null)
-              : profiles.insertIfAbsent({
-                  ...profile,
-                  base: variant.harness,
-                  organizationId: actor.organizationId,
-                  version: profileVersionOf(profile),
-                }).pipe(Effect.orDie);
+              : profiles
+                  .insertIfAbsent({
+                    ...profile,
+                    base: variant.harness,
+                    organizationId: actor.organizationId,
+                    version: profileVersionOf(profile),
+                  })
+                  .pipe(Effect.orDie);
           },
           { concurrency: 4 }
         );

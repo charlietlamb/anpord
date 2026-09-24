@@ -66,7 +66,9 @@ const agentWith = (suspender: Layer.Layer<Suspender>) =>
   AgentTrialJudgedLive.pipe(
     Layer.provide(
       AgentTrialLive.pipe(
-        Layer.provide(ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))),
+        Layer.provide(
+          ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
+        ),
         Layer.provide(suspender)
       )
     ),
@@ -86,7 +88,9 @@ export const evalStackWith = (
 ) =>
   Layer.mergeAll(BatchesLive, EvalReadsLive).pipe(
     Layer.provide(agentWith(suspender)),
-    Layer.provide(Layer.mergeAll(runner, bell, ModelPricesLive, SimulatedUserLive)),
+    Layer.provide(
+      Layer.mergeAll(runner, bell, ModelPricesLive, SimulatedUserLive)
+    ),
     Layer.provide(EvalSandboxLive),
     Layer.provideMerge(RepositoriesLive),
     Layer.provideMerge(HarnessVersionsLive),

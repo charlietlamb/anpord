@@ -9,8 +9,6 @@ export interface ResolveCredential {
   readonly integrationId: string;
 }
 
-/* No actor: a person authorised this connection when the run was started. Still
-   scoped to the organization, so a run cannot reach another's credential. */
 export interface BoundCredential {
   readonly connectionId: string;
   readonly organizationId: string;
@@ -23,8 +21,6 @@ export interface PersistCredential {
 }
 
 export interface CredentialResolverShape {
-  /* A harness that refreshes its own token leaves the stored copy spent, so
-     the rotated material has to be written back before the sandbox goes. */
   readonly persist: (
     input: PersistCredential
   ) => Effect.Effect<void, CredentialError>;

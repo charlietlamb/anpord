@@ -30,7 +30,6 @@ export const validatorResultOf = (output: string) => {
   )(line.slice(RESULT.length)).pipe(Option.getOrNull);
 };
 
-/* Beside the workspace, not in it, so the reply never becomes part of the diff. */
 export const writeAnswer = (
   sandbox: SandboxHandle,
   events: ScoreRequest["events"],

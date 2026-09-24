@@ -1,71 +1,15 @@
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Effect, Option, Ref, Stream } from "effect";
-import { EMPTY_TALLY, tallied, totalOf } from "../../domain/usage-tally";
 import type { HarnessSessionShape, RunHarness } from "../../ports/harness";
 import { runCommandForOutcome } from "../sandbox/run-command";
 import { decodeCommandLine, finishedOnExit } from "./command-events";
 import { tracePath } from "./command-line";
-import {
-  type CommandEvent,
-  traceToEvents,
-  withoutReported,
-} from "./command-recorder";
+import { traceToEvents, withoutReported } from "./command-recorder";
 import { type HarnessOutput, harnessLines, shellQuote } from "./process";
+import { decoding } from "./session";
 
 const TRACE_TIMEOUT_MS = 60_000;
 
-interface SessionState {
-  readonly finished: Ref.Ref<boolean>;
-  readonly reported: Ref.Ref<readonly HarnessEvent[]>;
-  readonly started: Ref.Ref<boolean>;
-  readonly usage: Ref.Ref<typeof EMPTY_TALLY>;
-}
-
-const journalled =
-  (state: SessionState, request: RunHarness) => (output: HarnessOutput) =>
-    Effect.gen(function* () {
-      if (output._tag === "exit") {
-        return Option.match(
-          finishedOnExit(output, yield* Ref.get(state.finished)),
-          { onNone: (): HarnessEvent[] => [], onSome: (event) => [event] }
-        );
-      }
-
-      const decoded = decodeCommandLine(output.line, output.at);
-
-      if (decoded.usage !== undefined) {
-        const reported = decoded.usage;
-
-        yield* Ref.update(state.usage, (tally) =>
-          tallied(tally, reported, decoded.usageIsCumulative ?? false)
-        );
-      }
-
-      const opening: HarnessEvent[] = [];
-
-      if (decoded.sessionId !== undefined && !(yield* Ref.get(state.started))) {
-        yield* Ref.set(state.started, true);
-        opening.push({
-          _tag: "Started",
-          at: output.at,
-          model: decoded.model ?? request.model,
-          sessionId: decoded.sessionId,
-        });
-      }
-
-      const events = [...opening, ...(decoded.events ?? [])];
-
-      if (events.some((event) => event._tag === "Finished")) {
-        yield* Ref.set(state.finished, true);
-      }
-
-      yield* Ref.update(state.reported, (seen) => [...seen, ...events]);
-
-      return events;
-    });
-
-/* Read only once the process has ended; a log that was never written reads as
-   no commands. */
 const traceFold = (
   request: RunHarness,
   reported: Ref.Ref<readonly HarnessEvent[]>
@@ -76,43 +20,60 @@ const traceFold = (
         request.sandbox,
         `cat ${shellQuote(tracePath(request.sandbox.home))} 2>/dev/null || true`,
         { timeoutMs: TRACE_TIMEOUT_MS }
-      ).pipe(Effect.orElseSucceed(() => null));
+      ).pipe(Effect.option);
 
-      if (outcome === null) {
+      if (Option.isNone(outcome)) {
         return Stream.empty;
       }
 
-      const seen = yield* Ref.get(reported);
-
-      return Stream.fromIterable<CommandEvent>(
-        withoutReported(traceToEvents(outcome.stdout), seen)
+      return Stream.fromIterable(
+        withoutReported(
+          traceToEvents(outcome.value.stdout),
+          yield* Ref.get(reported)
+        )
       );
     })
   );
 
 export const commandSession = (request: RunHarness, command: string) =>
   Effect.gen(function* () {
-    const state: SessionState = {
-      finished: yield* Ref.make(false),
-      reported: yield* Ref.make<readonly HarnessEvent[]>([]),
-      started: yield* Ref.make(false),
-      usage: yield* Ref.make(EMPTY_TALLY),
-    };
+    const session = yield* decoding(request, decodeCommandLine, false);
+    const finished = yield* Ref.make(false);
+    const reported = yield* Ref.make<readonly HarnessEvent[]>([]);
 
-    const printed = harnessLines(
-      request.harness,
-      request.sandbox,
-      command,
-      request.env,
-      { exit: "report" }
-    ).pipe(Stream.mapConcatEffect(journalled(state, request)));
+    const journalled = (output: HarnessOutput) =>
+      output._tag === "exit"
+        ? Ref.get(finished).pipe(
+            Effect.map((seen) => Option.toArray(finishedOnExit(output, seen)))
+          )
+        : session
+            .step(output)
+            .pipe(
+              Effect.tap((events) =>
+                Effect.all([
+                  Ref.update(
+                    finished,
+                    (seen) =>
+                      seen || events.some((event) => event._tag === "Finished")
+                  ),
+                  Ref.update(reported, (seen) => [...seen, ...events]),
+                ])
+              )
+            );
 
     return {
-      /* Concatenated, not merged: the fold reads a file the process appends to
-         until it exits. */
-      events: printed.pipe(Stream.concat(traceFold(request, state.reported))),
+      events: harnessLines(
+        request.harness,
+        request.sandbox,
+        command,
+        request.env,
+        { exit: "report" }
+      ).pipe(
+        Stream.mapConcatEffect(journalled),
+        Stream.concat(traceFold(request, reported))
+      ),
       harness: request.harness,
-      usage: Ref.get(state.usage).pipe(Effect.map(totalOf)),
+      usage: session.usage,
       version: request.harnessVersion,
     } satisfies HarnessSessionShape;
   });

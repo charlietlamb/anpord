@@ -96,14 +96,29 @@ export const batchReadsQuery = Effect.gen(function* () {
                 .select({
                   batchInternalId: evalRun.batchInternalId,
                   cases: countDistinct(evalVariant.caseInternalId),
-                  passed: sql<number>`count(${evalTrial.internalId}) filter (where ${evalTrial.status} = 'passed')`.mapWith(Number),
+                  passed:
+                    sql<number>`count(${evalTrial.internalId}) filter (where ${evalTrial.status} = 'passed')`.mapWith(
+                      Number
+                    ),
                   runs: countDistinct(evalRun.internalId),
-                  scored: sql<number>`count(${evalTrial.internalId}) filter (where ${evalTrial.status} in ('passed', 'failed'))`.mapWith(Number),
-                  voided: sql<number>`count(${evalTrial.internalId}) filter (where ${evalTrial.status} = 'void')`.mapWith(Number),
+                  scored:
+                    sql<number>`count(${evalTrial.internalId}) filter (where ${evalTrial.status} in ('passed', 'failed'))`.mapWith(
+                      Number
+                    ),
+                  voided:
+                    sql<number>`count(${evalTrial.internalId}) filter (where ${evalTrial.status} = 'void')`.mapWith(
+                      Number
+                    ),
                 })
                 .from(evalRun)
-                .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
-                .leftJoin(evalTrial, eq(evalTrial.runInternalId, evalRun.internalId))
+                .innerJoin(
+                  evalVariant,
+                  eq(evalVariant.internalId, evalRun.variantInternalId)
+                )
+                .leftJoin(
+                  evalTrial,
+                  eq(evalTrial.runInternalId, evalRun.internalId)
+                )
                 .where(inArray(evalRun.batchInternalId, ids))
                 .groupBy(evalRun.batchInternalId)
             );

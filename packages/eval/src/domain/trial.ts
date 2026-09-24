@@ -12,10 +12,13 @@ const VOID_PATTERNS: readonly RegExp[] = [
 
 const configuredPatterns = (extra: readonly string[]): readonly RegExp[] =>
   extra.flatMap((source) =>
-    Either.match(Either.try(() => new RegExp(source, "i")), {
-      onLeft: () => [],
-      onRight: (pattern) => [pattern],
-    })
+    Either.match(
+      Either.try(() => new RegExp(source, "i")),
+      {
+        onLeft: () => [],
+        onRight: (pattern) => [pattern],
+      }
+    )
   );
 
 const isVoidValue = (value: string, extra: readonly string[] = []): boolean =>
@@ -76,7 +79,7 @@ export const outcomeOf = (input: ScoreInput): TrialOutcome => {
     };
   }
 
-    const vacuous = Object.entries(input.fingerprint)
+  const vacuous = Object.entries(input.fingerprint)
     .filter(([, value]) => isVacuous(String(value)))
     .map(([key]) => key);
 

@@ -3,9 +3,9 @@ import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profile
 import { IdGenerator } from "@anpord/ids/id";
 import { and, eq, inArray } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
-import type { HarnessName } from "../domain/cell";
 import type { EvalStoreError } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
+import type { HarnessName } from "../domain/variant";
 import { head, tryStore } from "./query";
 
 type ProfileRow = typeof evalHarnessProfile.$inferSelect;

@@ -5,7 +5,7 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import { and, desc, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
-import type { HarnessName, ProviderName } from "../domain/cell";
+import type { HarnessName, SandboxName } from "../domain/variant";
 import { namesOf } from "../domain/variant";
 import { tryStore } from "./query";
 
@@ -14,7 +14,7 @@ export interface RunTemplate {
   readonly harnessCredentialConnectionId: string | null;
   readonly harnessVersion: string;
   readonly profileInternalId: string | null;
-  readonly sandbox: ProviderName;
+  readonly sandbox: SandboxName;
   readonly sandboxCredentialConnectionId: string | null;
   readonly variantInternalId: string;
 }
@@ -66,7 +66,10 @@ export const caseTemplatesQuery = Effect.gen(function* () {
             evalVariant,
             eq(evalVariant.internalId, evalRun.variantInternalId)
           )
-          .innerJoin(evalCase, eq(evalCase.internalId, evalVariant.caseInternalId))
+          .innerJoin(
+            evalCase,
+            eq(evalCase.internalId, evalVariant.caseInternalId)
+          )
           .where(
             input.variantId === null
               ? scope

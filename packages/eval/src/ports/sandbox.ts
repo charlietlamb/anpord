@@ -7,8 +7,8 @@ import {
   type Scope,
   type Stream,
 } from "effect";
-import type { ProviderName } from "../domain/cell";
 import type { SandboxUnavailable } from "../domain/errors";
+import type { SandboxName } from "../domain/variant";
 
 export type ExecChunk =
   | { readonly at: number; readonly stream: "stdout"; readonly data: string }
@@ -25,7 +25,7 @@ export interface OpenSandbox {
   readonly autoStopMinutes: number;
   readonly cache?: string;
   readonly credentials?: Redacted.Redacted<CredentialValues>;
-  readonly provider: ProviderName;
+  readonly provider: SandboxName;
   readonly workspace: string;
 }
 
@@ -76,7 +76,7 @@ export interface SandboxHandle {
   ) => Stream.Stream<ExecChunk, SandboxUnavailable>;
   readonly home: string;
   readonly id: string;
-  readonly provider: ProviderName;
+  readonly provider: SandboxName;
   readonly resumable: Option.Option<ResumableCommands>;
   readonly writeFile: (
     path: string,
@@ -87,12 +87,12 @@ export interface SandboxHandle {
 export interface DestroySandbox {
   readonly credentials?: Redacted.Redacted<CredentialValues>;
   readonly id: string;
-  readonly provider: ProviderName;
+  readonly provider: SandboxName;
 }
 
 export interface SandboxProviderShape {
   readonly attach: (
-    provider: ProviderName,
+    provider: SandboxName,
     id: string
   ) => Effect.Effect<SandboxHandle, SandboxUnavailable, Scope.Scope>;
   readonly destroy: (
@@ -117,7 +117,7 @@ export interface SandboxAdapterShape {
   readonly open: (
     request: OpenSandbox
   ) => Effect.Effect<SandboxHandle, SandboxUnavailable>;
-  readonly provider: ProviderName;
+  readonly provider: SandboxName;
 }
 
 export class SandboxAdapters extends Context.Tag(
@@ -126,7 +126,7 @@ export class SandboxAdapters extends Context.Tag(
   SandboxAdapters,
   {
     readonly resolve: (
-      provider: ProviderName,
+      provider: SandboxName,
       credentials?: Redacted.Redacted<CredentialValues>
     ) => Effect.Effect<SandboxAdapterShape>;
   }

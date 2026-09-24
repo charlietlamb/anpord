@@ -49,7 +49,10 @@ export const runReadsQuery = Effect.gen(function* () {
       })
       .from(evalRun)
       .innerJoin(evalBatch, eq(evalBatch.internalId, evalRun.batchInternalId))
-      .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
+      .innerJoin(
+        evalVariant,
+        eq(evalVariant.internalId, evalRun.variantInternalId)
+      )
       .innerJoin(
         evalCaseVersion,
         eq(evalCaseVersion.internalId, evalRun.caseVersionInternalId)
@@ -108,8 +111,11 @@ export const runReadsQuery = Effect.gen(function* () {
         const query = joined()
           .where(scoped(input))
           .orderBy(desc(evalRun.createdAt), desc(evalRun.internalId));
-        const limited = input.limit === undefined ? query : query.limit(input.limit);
-        return input.offset === undefined ? limited : limited.offset(input.offset);
+        const limited =
+          input.limit === undefined ? query : query.limit(input.limit);
+        return input.offset === undefined
+          ? limited
+          : limited.offset(input.offset);
       });
       return yield* hydrate(rows, input.events);
     }).pipe(Effect.withSpan("RunReads.find"));
@@ -120,8 +126,14 @@ export const runReadsQuery = Effect.gen(function* () {
         .select({ total: count() })
         .from(evalRun)
         .innerJoin(evalBatch, eq(evalBatch.internalId, evalRun.batchInternalId))
-        .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
-        .innerJoin(evalCase, eq(evalCase.internalId, evalVariant.caseInternalId))
+        .innerJoin(
+          evalVariant,
+          eq(evalVariant.internalId, evalRun.variantInternalId)
+        )
+        .innerJoin(
+          evalCase,
+          eq(evalCase.internalId, evalVariant.caseInternalId)
+        )
         .where(scoped(input))
     ).pipe(Effect.map((rows) => rows[0]?.total ?? 0));
 

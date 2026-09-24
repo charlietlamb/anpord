@@ -20,7 +20,6 @@ export const isUnguardedPipeline = (command: string) => {
       continue;
     }
 
-    /* `||` is a fallback, not a pipeline. */
     if (command[index + 1] === "|") {
       index++;
       continue;
@@ -30,12 +29,8 @@ export const isUnguardedPipeline = (command: string) => {
       continue;
     }
 
-    /* A pipeline exits with its last command, so `bun test | tail` would record
-       every failure as a pass. Refused unless PIPESTATUS or pipefail is used. */
     return !(command.includes("PIPESTATUS") || command.includes("pipefail"));
   }
 
   return false;
 };
-
-export const quoted = (value: string) => `'${value.replaceAll("'", `'\\''`)}'`;

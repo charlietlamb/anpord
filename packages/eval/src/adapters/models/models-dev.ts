@@ -6,8 +6,6 @@ import type { ModelDescription } from "../../ports/model-source";
 
 const SOURCE = "https://models.dev/api.json";
 
-/* Only what a picker needs, so an upstream shape change elsewhere cannot break
-   the catalogue. Optional throughout: an unpriced model is priceless, not free. */
 const DevCost = Schema.Struct({
   cache_read: Schema.optional(Schema.NullOr(Schema.Number)),
   cache_write: Schema.optional(Schema.NullOr(Schema.Number)),
@@ -32,13 +30,12 @@ const decodeCatalogue = Schema.decodeUnknown(
   Schema.Record({ key: Schema.String, value: DevProvider })
 );
 
-interface ModelsDevCatalogue {
+export interface ModelsDevCatalogue {
   readonly described: ReadonlyMap<string, ModelDescription>;
   readonly ids: readonly string[];
   readonly priced: ReadonlyMap<string, ModelPrice>;
 }
 
-/* A model publishing only one side is left unpriced rather than half-priced. */
 const priceOf = (cost: typeof DevCost.Type | null | undefined) => {
   if (cost === null || cost === undefined) {
     return null;
@@ -90,9 +87,6 @@ const fetchCatalogue = Effect.gen(function* () {
       if (price !== null) {
         priced.set(id, price);
 
-        /* Trials record the bare id, so it is keyed alongside the qualified one.
-           Resellers differ, and the lowest wins so the estimate is stable
-           between deploys rather than following catalogue order. */
         const held = priced.get(model);
 
         if (held === undefined || price.input < held.input) {
@@ -105,6 +99,4 @@ const fetchCatalogue = Effect.gen(function* () {
   return { described, ids, priced } satisfies ModelsDevCatalogue;
 }).pipe(Effect.withSpan("ModelsDev.fetch"));
 
-/* Cached: seven thousand entries behind one request, read on every visit to the
-   form, and changing on the order of days. */
 export const modelsDev = Effect.cached(fetchCatalogue);

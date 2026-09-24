@@ -1,3 +1,5 @@
+import { Option, Schema } from "effect";
+
 const CONFIG_VARIABLE = "OPENCODE_CONFIG_CONTENT";
 
 type Json = Record<string, unknown>;
@@ -5,36 +7,29 @@ type Json = Record<string, unknown>;
 const isObject = (value: unknown): value is Json =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const parsed = (value: string | undefined): Json => {
-  if (value === undefined) {
-    return {};
-  }
+const decodeJson = Schema.decodeUnknownOption(Schema.parseJson());
 
-  try {
-    const decoded: unknown = JSON.parse(value);
-    return isObject(decoded) ? decoded : {};
-  } catch {
-    return {};
-  }
-};
+const parsed = (value: string | undefined): Json =>
+  decodeJson(value).pipe(
+    Option.filter(isObject),
+    Option.getOrElse((): Json => ({}))
+  );
 
 const stringsOf = (value: unknown): readonly string[] =>
   Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 
-const merged = (base: Json, extra: Json): Json => {
-  const result: Json = { ...base };
+const merged = (base: Json, extra: Json): Json =>
+  Object.fromEntries([
+    ...Object.entries(base),
+    ...Object.entries(extra).map(([key, value]) => {
+      const current = base[key];
+      return [
+        key,
+        isObject(current) && isObject(value) ? merged(current, value) : value,
+      ];
+    }),
+  ]);
 
-  for (const [key, value] of Object.entries(extra)) {
-    const current = result[key];
-    result[key] =
-      isObject(current) && isObject(value) ? merged(current, value) : value;
-  }
-
-  return result;
-};
-
-/* `instructions` is concatenated because OpenCode's own merge replaces an array
-   wholesale, dropping whatever the profile declared. */
 export const opencodeConfigContent = (
   env: Readonly<Record<string, string>>,
   systemPromptPath: string

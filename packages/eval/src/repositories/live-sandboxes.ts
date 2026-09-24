@@ -56,8 +56,14 @@ export const LiveSandboxesLive = Layer.effect(
             })
             .from(evalTrial)
             .innerJoin(evalRun, eq(evalRun.internalId, evalTrial.runInternalId))
-            .innerJoin(evalBatch, eq(evalBatch.internalId, evalRun.batchInternalId))
-            .innerJoin(evalVariant, eq(evalVariant.internalId, evalRun.variantInternalId))
+            .innerJoin(
+              evalBatch,
+              eq(evalBatch.internalId, evalRun.batchInternalId)
+            )
+            .innerJoin(
+              evalVariant,
+              eq(evalVariant.internalId, evalRun.variantInternalId)
+            )
             .where(
               and(
                 sql`${evalTrial.sandboxId} is not null`,

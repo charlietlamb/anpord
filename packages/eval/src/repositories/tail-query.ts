@@ -106,6 +106,8 @@ export const tailQuery = Effect.gen(function* () {
         settled,
       });
     }).pipe(
-      Effect.withSpan("TailQuery.read", { attributes: { batchId: input.batchId } })
+      Effect.withSpan("TailQuery.read", {
+        attributes: { batchId: input.batchId },
+      })
     );
 });

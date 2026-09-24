@@ -19,10 +19,13 @@ export interface RunCase {
 }
 
 export const makeRunCase = (
-  launch: (input: Launch) => Effect.Effect<{
-    readonly internalId: string;
-    readonly runInternalIds: readonly string[];
-  }, unknown>
+  launch: (input: Launch) => Effect.Effect<
+    {
+      readonly internalId: string;
+      readonly runInternalIds: readonly string[];
+    },
+    unknown
+  >
 ) =>
   Effect.gen(function* () {
     const credentials = yield* CredentialResolver;

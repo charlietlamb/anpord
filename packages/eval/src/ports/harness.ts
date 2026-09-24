@@ -11,9 +11,9 @@ import {
   type Scope,
   type Stream,
 } from "effect";
-import type { HarnessName } from "../domain/cell";
 import type { HarnessUnavailable } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
+import type { HarnessName } from "../domain/variant";
 import type { SandboxHandle } from "./sandbox";
 
 export interface RunHarness {

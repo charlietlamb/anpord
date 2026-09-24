@@ -13,7 +13,6 @@ import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
-import type { HarnessName } from "../domain/cell";
 import type {
   HarnessUnavailable,
   PrepareFailed,
@@ -22,6 +21,7 @@ import type {
   UserUnavailable,
 } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
+import type { HarnessName } from "../domain/variant";
 import type { WorkspaceSource } from "../domain/workspace-source";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
 

@@ -1,7 +1,7 @@
 import { Context, type Effect, type Option } from "effect";
-import type { HarnessName } from "../domain/cell";
 import type { ModelsUnreadable } from "../domain/errors";
 import type { ModelPrice } from "../domain/model-price";
+import type { HarnessName } from "../domain/variant";
 
 export interface AvailableModelsShape {
   readonly forHarness: (

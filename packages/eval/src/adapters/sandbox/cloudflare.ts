@@ -1,84 +1,51 @@
-import { Effect, Schema } from "effect";
-import type {
-  OpenSandbox,
-  SandboxAdapterShape,
-  SandboxHandle,
-} from "../../ports/sandbox";
 import {
-  configuration,
-  ensure,
-  environment,
-  unavailable,
-} from "./cloudflare-bridge";
-import { handleFor } from "./cloudflare-handle";
-import { quoted } from "./env-file";
+  FetchHttpClient,
+  HttpClient,
+  HttpClientRequest as Request,
+} from "@effect/platform";
+import { Effect, Schema } from "effect";
+import { shellQuote } from "../harness/process";
+import { configuration, decoded, environment } from "./cloudflare-bridge";
+import {
+  type Bridge,
+  bridgeRequest,
+  handleFor,
+  WRITABLE_ROOT,
+} from "./cloudflare-handle";
+import { type MakeAdapter, providerAdapter } from "./provider-adapter";
 import { runCommand } from "./run-command";
-
-const WORKSPACE = "/workspace";
 
 const SandboxResponse = Schema.Struct({ id: Schema.String });
 
-export const makeConfiguredCloudflareAdapter = (
-  values?: Readonly<Record<string, string>>
-) =>
+export const cloudflareAdapter: MakeAdapter = (values) =>
   Effect.gen(function* () {
+    const client = yield* HttpClient.HttpClient;
     const env = yield* environment;
-    const configured = configuration(values, env);
-    const destroy = (handle: Pick<SandboxHandle, "id">) =>
-      Effect.tryPromise({
-        catch: unavailable,
-        try: async () => {
-          const { key, url } = await configured;
-          await ensure(
-            await fetch(`${url}/v1/sandbox/${handle.id}`, {
-              headers: { Authorization: `Bearer ${key}` },
-              method: "DELETE",
-            })
-          );
-        },
-      });
+    const bridge: Bridge = {
+      client,
+      configured: yield* Effect.cached(configuration(client, values, env)),
+    };
 
-    return {
-      attach: (id) => Effect.succeed(handleFor(id, WORKSPACE, configured)),
+    const destroy = (id: string) =>
+      bridgeRequest(bridge, (url) => Request.del(`${url}/v1/sandbox/${id}`));
+
+    return providerAdapter({
+      connect: Effect.succeed,
+      create: () =>
+        bridgeRequest(bridge, (url) => Request.post(`${url}/v1/sandbox`)).pipe(
+          Effect.flatMap(decoded(SandboxResponse)),
+          Effect.map((response) => response.id)
+        ),
       destroy,
-      /* `request.autoStopMinutes` is deliberately not sent: the bridge's
-         create route takes no body at all -- it generates a random id and
-         returns it -- so this provider has no server-side stop the way every
-         other one does.
-
-         The residual risk is real. A Cloudflare sandbox lives until something
-         deletes it, which means the scope finalizer on the happy path and the
-         reaper on every other. That is why the id is recorded before any work
-         runs, and why the reaper must find a sandbox by the column holding it
-         rather than by the trial's status. */
-      open: (request: OpenSandbox) =>
-        Effect.tryPromise({
-          catch: unavailable,
-          try: async () => {
-            const { key, url } = await configured;
-            const response = await ensure(
-              await fetch(`${url}/v1/sandbox`, {
-                headers: { Authorization: `Bearer ${key}` },
-                method: "POST",
-              })
-            );
-            return Schema.decodeUnknownSync(SandboxResponse)(
-              await response.json()
-            ).id;
-          },
-        }).pipe(
-          Effect.flatMap((id) => {
-            const handle = handleFor(id, request.workspace, configured);
-            return runCommand(handle, `mkdir -p ${quoted(request.workspace)}`, {
-              cwd: WORKSPACE,
-            }).pipe(
-              Effect.as(handle),
-              Effect.tapError(() => destroy(handle).pipe(Effect.ignore))
-            );
-          })
+      discard: destroy,
+      handleFor: (id, workspace) => handleFor(id, workspace, bridge),
+      home: WRITABLE_ROOT,
+      makeWorkspace: (id, workspace) =>
+        runCommand(
+          handleFor(id, workspace, bridge),
+          `mkdir -p ${shellQuote(workspace)}`,
+          { cwd: WRITABLE_ROOT }
         ),
       provider: "cloudflare",
-    } satisfies SandboxAdapterShape;
-  }).pipe(Effect.orDie);
-
-export const makeCloudflareAdapter = makeConfiguredCloudflareAdapter();
+    });
+  }).pipe(Effect.provide(FetchHttpClient.layer), Effect.orDie);
