@@ -68,7 +68,7 @@ export const shellTokens = async (
     const shiki = await highlighter();
 
     const { tokens } = shiki.codeToTokens(command, {
-      includeExplanation: true,
+      includeExplanation: "scopeName",
       lang: "bash",
       theme: "github-dark-default",
     });

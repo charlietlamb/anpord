@@ -129,42 +129,24 @@ export const cliScenarios: readonly Scenario<World>[] = [
     },
   },
   {
-    name: "cli: gen writes declarations naming each prompt's variables",
+    name: "cli: generate writes declarations naming each prompt's variables",
     run: async (world) => {
       const { id } = await givenPrompt(world, "cli-variables", {
         content: "Hello {{ customer_name }}, from {{product}}.",
       });
 
-      const generated = await cli(world, ["gen", "--out", "gen.d.ts"]);
-      equals("gen exits cleanly", generated.code, 0);
+      const generated = await cli(world, ["generate", "--out", "gen.d.ts"]);
+      equals("generate exits cleanly", generated.code, 0);
 
       const written = declarations(world, "gen.d.ts");
 
       contains("augments the sdk", written, 'import "anpord"');
       contains("declares the registry", written, "AnpordPromptVariables");
-      /* Matched together: gen writes every prompt, so separate matches would both hold even if this prompt contributed neither. */
       const entry = new RegExp(`"${id}":\\s*\\{[^}]*customer_name[^}]*product`);
       isTrue(
         "names this prompt with both of its variables",
         entry.test(written),
         `no entry for ${id} carrying both variables:\n${written}`
-      );
-    },
-  },
-  {
-    name: "cli: generate is the same command under a longer name",
-    run: async (world) => {
-      await givenPrompt(world, "cli-both-commands");
-
-      const short = await cli(world, ["gen", "--out", "short.d.ts"]);
-      const long = await cli(world, ["generate", "--out", "long.d.ts"]);
-
-      equals("gen exits cleanly", short.code, 0);
-      equals("generate exits cleanly", long.code, 0);
-      equals(
-        "both commands agree",
-        declarations(world, "long.d.ts"),
-        declarations(world, "short.d.ts")
       );
     },
   },
