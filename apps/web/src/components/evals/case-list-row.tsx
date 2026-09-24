@@ -39,7 +39,9 @@ export function CaseListRow({
         ))}
       </span>
 
-      <span className="truncate text-muted-foreground">{subject.suite.name}</span>
+      <span className="truncate text-muted-foreground">
+        {subject.suite.name}
+      </span>
 
       <span className="text-muted-foreground tabular-nums">
         {counted(subject.variants.length, "variant", "variants")}

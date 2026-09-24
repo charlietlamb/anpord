@@ -1,4 +1,7 @@
-import { EvalBatchTail, type EvalTailMark } from "@anpord/schema/domain/eval-tail";
+import {
+  EvalBatchTail,
+  type EvalTailMark,
+} from "@anpord/schema/domain/eval-tail";
 import {
   BatchSubscription,
   EvalArtifact,
@@ -25,7 +28,10 @@ export interface CaseFilters {
   readonly tag: string | null;
 }
 
-export const listCases = (filters: CaseFilters, cursor: EvalPageCursor | null) =>
+export const listCases = (
+  filters: CaseFilters,
+  cursor: EvalPageCursor | null
+) =>
   api.request(
     EvalCasePage,
     `/cases${searchOf({

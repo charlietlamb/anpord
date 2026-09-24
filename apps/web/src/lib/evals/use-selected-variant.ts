@@ -2,9 +2,7 @@ import type { EvalVariantResult } from "@anpord/schema/domain/evals";
 import { useQueryState } from "nuqs";
 import { useCasePage } from "@/lib/evals/use-case-page";
 
-export const useSelectedVariant = (
-  variants: readonly EvalVariantResult[]
-) => {
+export const useSelectedVariant = (variants: readonly EvalVariantResult[]) => {
   const [variantId, setVariantId] = useQueryState("variant");
   const [, setPage] = useCasePage();
 

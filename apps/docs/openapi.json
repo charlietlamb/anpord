@@ -558,11 +558,17 @@
                 "schema": {
                   "type": "object",
                   "required": [
+                    "batches",
                     "next",
-                    "runs",
                     "total"
                   ],
                   "properties": {
+                    "batches": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EvalBatchSummary"
+                      }
+                    },
                     "next": {
                       "anyOf": [
                         {
@@ -585,12 +591,6 @@
                           "type": "null"
                         }
                       ]
-                    },
-                    "runs": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/EvalRunSummary"
-                      }
                     },
                     "total": {
                       "$ref": "#/components/schemas/Int"
@@ -660,107 +660,12 @@
           }
         },
         "description": "Newest first. Pass the `next` cursor from a response to read the page after it; a null `next` means there are no more.",
-        "summary": "List eval runs",
+        "summary": "List batches",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ListEvalsRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.cases": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.cases",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Cases and every tag they carry between them.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EvalCasePage"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "description": "One row per case, newest run first, carrying its newest run. Pass `tag` to read only the cases carrying it, and the `next` cursor from a response to read the page after it; a null `next` means there are no more.",
-        "summary": "List cases",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ListCasesRequest"
+                "$ref": "#/components/schemas/ListBatchesRequest"
               }
             }
           },
@@ -782,11 +687,11 @@
         ],
         "responses": {
           "200": {
-            "description": "The id of an eval run accepted for background execution.",
+            "description": "The batch started, and the run it holds for each case and variant.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StartedEval"
+                  "$ref": "#/components/schemas/StartedBatch"
                 }
               }
             }
@@ -849,13 +754,392 @@
             }
           }
         },
-        "description": "Starts the grid and returns its id while trials continue in the background. The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.",
-        "summary": "Start an eval run",
+        "description": "Starts one run per case and variant, and returns the batch while trials continue in the background. The command harness needs a profile with a run command; other harnesses take no run. Any harness may take an install command.",
+        "summary": "Run a suite",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StartEvalRequest"
+                "$ref": "#/components/schemas/PublicStartBatchRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.runCase": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.runCase",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The batch started, and the run it holds for each case and variant.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartedBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Runs the case's newest version on one of its variants, or on every variant when none is named, so they can be compared.",
+        "summary": "Run a case again",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicRunCaseRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.get": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.get",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runs started together, such as every variant of a suite.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalBatch"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a batch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalBatchRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.caseRuns": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.caseRuns",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of a case's runs, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRunPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Newest first, 20 to a page.",
+        "summary": "List a case's runs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseRunsRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.subscription": {
+      "post": {
+        "tags": [
+          "Evals"
+        ],
+        "operationId": "evals.subscription",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A scoped, read-only token for watching one batch in real time.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchSubscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Returns a read-only token scoped to this batch, for following it in real time. Short-lived: request another when it expires.",
+        "summary": "Watch a batch as it moves",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvalBatchRequest"
               }
             }
           },
@@ -877,7 +1161,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Credentials for one run, held in memory and never written down. Short-lived: start another run rather than keeping these.",
+            "description": "Credentials for one batch, held in memory and never written down. Short-lived: start another batch rather than keeping these.",
             "content": {
               "application/json": {
                 "schema": {
@@ -944,8 +1228,8 @@
             }
           }
         },
-        "description": "For a run started with executeLocally, so the machine running it holds no credentials of its own. Returns the organization credential for one harness, expiring in minutes. Sandbox credentials are never leased: a local run opens no cloud sandbox.",
-        "summary": "Lease the credentials a local run needs",
+        "description": "For a batch started with local, so the machine running it holds no credentials of its own. Returns the organization credential for one harness, expiring in minutes.",
+        "summary": "Lease the credentials a local batch needs",
         "requestBody": {
           "content": {
             "application/json": {
@@ -1032,13 +1316,12 @@
             }
           }
         },
-        "description": "For a run started with executeLocally. The result is recorded as reported: it was produced somewhere the platform cannot inspect, so it is marked and kept out of baselines.",
-        "summary": "Report a trial run outside the platform",
+        "summary": "Report a trial the caller ran",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReportTrialRequest"
+                "$ref": "#/components/schemas/ReportedTrial"
               }
             }
           },
@@ -1046,12 +1329,12 @@
         }
       }
     },
-    "/v1/evals.finishRun": {
+    "/v1/evals.finish": {
       "post": {
         "tags": [
           "Evals"
         ],
-        "operationId": "evals.finishRun",
+        "operationId": "evals.finish",
         "parameters": [],
         "security": [
           {
@@ -1060,11 +1343,11 @@
         ],
         "responses": {
           "200": {
-            "description": "A complete eval run with its cells and trials.",
+            "description": "Runs started together, such as every variant of a suite.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EvalRun"
+                  "$ref": "#/components/schemas/EvalBatch"
                 }
               }
             }
@@ -1127,571 +1410,12 @@
             }
           }
         },
-        "description": "Settles the run from the trials reported so far. A run left unsettled is swept like any other abandoned work.",
-        "summary": "Settle a run whose trials the caller ran",
+        "summary": "Settle a batch whose trials the caller ran",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EvalRunRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.artifact": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.artifact",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "path",
-                    "content",
-                    "byteSize",
-                    "sha256"
-                  ],
-                  "properties": {
-                    "path": {
-                      "type": "string"
-                    },
-                    "content": {
-                      "type": "string"
-                    },
-                    "byteSize": {
-                      "$ref": "#/components/schemas/Int",
-                      "description": "a non-negative number",
-                      "title": "nonNegative",
-                      "minimum": 0
-                    },
-                    "sha256": {
-                      "type": "string",
-                      "description": "a string matching the pattern ^[a-f0-9]{64}$",
-                      "pattern": "^[a-f0-9]{64}$"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "path",
-                  "id",
-                  "cellKey",
-                  "ordinal",
-                  "sha256"
-                ],
-                "properties": {
-                  "path": {
-                    "type": "string",
-                    "description": "a string at most 512 character(s) long",
-                    "title": "maxLength(512)",
-                    "minLength": 1,
-                    "maxLength": 512
-                  },
-                  "id": {
-                    "type": "string"
-                  },
-                  "cellKey": {
-                    "type": "string"
-                  },
-                  "ordinal": {
-                    "$ref": "#/components/schemas/Int",
-                    "description": "a positive number",
-                    "title": "positive",
-                    "exclusiveMinimum": 0
-                  },
-                  "sha256": {
-                    "type": "string",
-                    "description": "a string matching the pattern ^[a-f0-9]{64}$",
-                    "pattern": "^[a-f0-9]{64}$"
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.get": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.get",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A complete eval run with its cells and trials.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EvalRun"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get an eval run",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvalRunRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.subscription": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.subscription",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A scoped, read-only token for watching one run in real time.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RunSubscription"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "description": "Returns a read-only token scoped to this run, for following it in real time. Short-lived: request another when it expires.",
-        "summary": "Watch an eval run as it moves",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvalRunRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.cellHistory": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.cellHistory",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EvalCellHistoryEntry"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "description": "Returns the 20 most recent results.",
-        "summary": "List a cell's history",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvalCellRequest"
-              }
-            }
-          },
-          "required": true
-        }
-      }
-    },
-    "/v1/evals.rerunCell": {
-      "post": {
-        "tags": [
-          "Evals"
-        ],
-        "operationId": "evals.rerunCell",
-        "parameters": [],
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The id of an eval run accepted for background execution.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StartedEval"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request did not match the expected schema",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HttpApiDecodeError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BadRequest"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unauthorized"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Forbidden"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NotFound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NotFound"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Conflict"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Rerun one cell",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "id",
-                  "cellKey",
-                  "trials"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "cellKey": {
-                    "type": "string"
-                  },
-                  "trigger": {
-                    "$ref": "#/components/schemas/EvalTrigger"
-                  },
-                  "trials": {
-                    "$ref": "#/components/schemas/Int",
-                    "description": "a number between 1 and 10",
-                    "title": "between(1, 10)",
-                    "minimum": 1,
-                    "maximum": 10
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/components/schemas/EvalBatchRequest"
               }
             }
           },
@@ -1780,7 +1504,6 @@
             }
           }
         },
-        "description": "The command harness has no catalogue of its own, so its list is empty: the model is whatever the profile's run command reads from ANPORD_MODEL.",
         "summary": "List models available to the harness",
         "requestBody": {
           "content": {
@@ -2524,7 +2247,7 @@
         "additionalProperties": false,
         "description": "Remove a connector by its id."
       },
-      "ListEvalsRequest": {
+      "ListBatchesRequest": {
         "type": "object",
         "required": [],
         "properties": {
@@ -2563,64 +2286,24 @@
         "description": "an integer",
         "title": "int"
       },
-      "EvalRunSummary": {
+      "EvalBatchSummary": {
         "type": "object",
         "required": [
-          "caseCount",
-          "columns",
-          "commandMax",
-          "commandMin",
+          "cases",
           "failure",
           "finishedAt",
-          "firstCaseName",
           "id",
-          "name",
           "passed",
+          "runs",
           "scored",
           "startedAt",
           "status",
-          "taskCount",
+          "trigger",
           "voided"
         ],
         "properties": {
-          "trigger": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTrigger"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "caseCount": {
+          "cases": {
             "$ref": "#/components/schemas/Int"
-          },
-          "columns": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalVariant"
-            }
-          },
-          "commandMax": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Int"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "commandMin": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Int"
-              },
-              {
-                "type": "null"
-              }
-            ]
           },
           "failure": {
             "anyOf": [
@@ -2642,30 +2325,13 @@
               }
             ]
           },
-          "firstCaseName": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "id": {
             "type": "string"
           },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "passed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "runs": {
             "$ref": "#/components/schemas/Int"
           },
           "scored": {
@@ -2682,15 +2348,27 @@
               "failed"
             ]
           },
-          "taskCount": {
-            "$ref": "#/components/schemas/Int"
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "voided": {
             "$ref": "#/components/schemas/Int"
           }
         },
         "additionalProperties": false,
-        "description": "A compact eval run returned by the run list."
+        "description": "A batch as a list shows it."
+      },
+      "EvalTimestamp": {
+        "type": "string",
+        "description": "An ISO-8601 timestamp in UTC.",
+        "format": "date-time"
       },
       "EvalTrigger": {
         "type": "object",
@@ -2718,83 +2396,6 @@
         "additionalProperties": false,
         "description": "What started this run. Client-reported context, not authorization."
       },
-      "EvalVariant": {
-        "type": "object",
-        "required": [
-          "harness",
-          "harnessVersion",
-          "model",
-          "sandbox"
-        ],
-        "properties": {
-          "harness": {
-            "type": "string",
-            "enum": [
-              "codex",
-              "opencode",
-              "pi",
-              "fx",
-              "claude",
-              "gemini",
-              "qwen",
-              "cursor",
-              "command"
-            ]
-          },
-          "harnessVersion": {
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "profile": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalVariantProfile"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "sandbox": {
-            "type": "string",
-            "enum": [
-              "daytona",
-              "e2b",
-              "upstash",
-              "modal",
-              "cloudflare",
-              "vercel",
-              "local"
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "description": "The harness, installed version, profile, model, and sandbox for a cell."
-      },
-      "EvalVariantProfile": {
-        "type": "object",
-        "required": [
-          "name",
-          "version"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "version": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "description": "The profile a cell's harness ran under, by name and version."
-      },
-      "EvalTimestamp": {
-        "type": "string",
-        "description": "An ISO-8601 timestamp in UTC.",
-        "format": "date-time"
-      },
       "Conflict": {
         "type": "object",
         "required": [
@@ -2814,250 +2415,157 @@
         },
         "additionalProperties": false
       },
-      "ListCasesRequest": {
-        "type": "object",
-        "required": [],
-        "properties": {
-          "cursor": {
-            "anyOf": [
-              {
-                "type": "object",
-                "required": [
-                  "id",
-                  "startedAtMillis"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "startedAtMillis": {
-                    "$ref": "#/components/schemas/Int"
-                  }
-                },
-                "additionalProperties": false
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "limit": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "tag": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "description": "Which cases to read, where to read from, and how much."
-      },
-      "EvalCasePage": {
+      "PublicStartBatchRequest": {
         "type": "object",
         "required": [
           "cases",
-          "next",
-          "tags"
-        ],
-        "properties": {
-          "cases": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalCaseSummary"
-            }
-          },
-          "next": {
-            "anyOf": [
-              {
-                "type": "object",
-                "required": [
-                  "id",
-                  "startedAtMillis"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "startedAtMillis": {
-                    "$ref": "#/components/schemas/Int"
-                  }
-                },
-                "additionalProperties": false
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "additionalProperties": false,
-        "description": "Cases and every tag they carry between them."
-      },
-      "EvalCaseSummary": {
-        "type": "object",
-        "required": [
-          "caseId",
-          "cellKey",
-          "distribution",
-          "harness",
-          "lastRunAtMillis",
-          "lastRunId",
-          "model",
-          "name",
-          "runCount",
-          "tags"
-        ],
-        "properties": {
-          "caseId": {
-            "$ref": "#/components/schemas/EvalCaseId"
-          },
-          "cellKey": {
-            "type": "string"
-          },
-          "distribution": {
-            "$ref": "#/components/schemas/EvalDistribution"
-          },
-          "harness": {
-            "type": "string"
-          },
-          "lastRunAtMillis": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "lastRunId": {
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "runCount": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "additionalProperties": false,
-        "description": "A case as the list shows it, with its newest run."
-      },
-      "EvalCaseId": {
-        "type": "string",
-        "description": "The stable handle an author gives a case.",
-        "title": "maxLength(100)",
-        "minLength": 1,
-        "maxLength": 100,
-        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-      },
-      "EvalDistribution": {
-        "type": "object",
-        "required": [
-          "commandMax",
-          "commandMedian",
-          "commandMin",
-          "deterministic",
-          "failed",
-          "passRate",
-          "passed",
-          "scored",
+          "suite",
           "trials",
-          "voided"
+          "variants"
         ],
         "properties": {
-          "commandMax": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "commandMedian": {
-            "type": "number"
-          },
-          "commandMin": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "deterministic": {
-            "type": "boolean"
-          },
-          "failed": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "passRate": {
-            "type": "number"
-          },
-          "passed": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "scored": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "trials": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "voided": {
-            "$ref": "#/components/schemas/Int"
-          }
-        },
-        "additionalProperties": false,
-        "description": "The scored outcome across all trials in a cell."
-      },
-      "StartEvalRequest": {
-        "type": "object",
-        "required": [
-          "cases",
-          "prompt",
-          "variants",
-          "trials"
-        ],
-        "properties": {
-          "trigger": {
-            "$ref": "#/components/schemas/EvalTrigger"
-          },
           "cases": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/StartEvalCase"
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "cache": {
+                  "$ref": "#/components/schemas/CaseCache"
+                },
+                "id": {
+                  "$ref": "#/components/schemas/EvalCaseId"
+                },
+                "name": {
+                  "$ref": "#/components/schemas/EvalCaseName"
+                },
+                "user": {
+                  "anyOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "kind",
+                            "goal",
+                            "prompt"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "simulated"
+                              ]
+                            },
+                            "goal": {
+                              "type": "string",
+                              "description": "a string at most 2000 character(s) long",
+                              "title": "maxLength(2000)",
+                              "minLength": 1,
+                              "maxLength": 2000
+                            },
+                            "prompt": {
+                              "type": "string",
+                              "description": "a string at most 8000 character(s) long",
+                              "title": "maxLength(8000)",
+                              "minLength": 1,
+                              "maxLength": 8000
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "kind",
+                            "replies"
+                          ],
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "scripted"
+                              ]
+                            },
+                            "replies": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "description": "a string at most 4000 character(s) long",
+                                "title": "maxLength(4000)",
+                                "minLength": 1,
+                                "maxLength": 4000
+                              },
+                              "description": "an array of at most 24 item(s)",
+                              "title": "maxItems(24)",
+                              "minItems": 1,
+                              "maxItems": 24
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "prepare": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/EvalPrepare"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "source": {
+                  "$ref": "#/components/schemas/EvalSource"
+                },
+                "tags": {
+                  "$ref": "#/components/schemas/EvalCaseTags"
+                },
+                "variables": {
+                  "$ref": "#/components/schemas/EvalVariables"
+                },
+                "validator": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/EvalValidator"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "verify": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/EvalVerify"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
             },
             "description": "an array of at most 100 item(s)",
             "title": "maxItems(100)",
             "minItems": 1,
             "maxItems": 100
           },
-          "executeLocally": {
+          "local": {
             "type": "boolean"
           },
-          "name": {
-            "type": "string",
-            "description": "a string at most 100 character(s) long",
-            "title": "maxLength(100)",
-            "minLength": 1,
-            "maxLength": 100
-          },
-          "prompt": {
-            "$ref": "#/components/schemas/EvalPrompt"
-          },
-          "variants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StartEvalVariant"
-            },
-            "description": "an array of at most 20 item(s)",
-            "title": "maxItems(20)",
-            "minItems": 1,
-            "maxItems": 20
+          "suite": {
+            "$ref": "#/components/schemas/EvalSuiteRequest"
           },
           "trials": {
             "$ref": "#/components/schemas/Int",
@@ -3065,138 +2573,30 @@
             "title": "between(1, 10)",
             "minimum": 1,
             "maximum": 10
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalVariantRequest"
+            },
+            "description": "an array of at most 20 item(s)",
+            "title": "maxItems(20)",
+            "minItems": 1,
+            "maxItems": 20
           }
         },
         "additionalProperties": false,
-        "description": "Start a grid with at most 100 total case, variant, and trial combinations."
-      },
-      "StartEvalCase": {
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "verify"
-        ],
-        "properties": {
-          "cache": {
-            "$ref": "#/components/schemas/CaseCache"
-          },
-          "id": {
-            "$ref": "#/components/schemas/EvalCaseId"
-          },
-          "name": {
-            "$ref": "#/components/schemas/EvalCaseName"
-          },
-          "prepare": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalPrepare"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "source": {
-            "$ref": "#/components/schemas/EvalSource"
-          },
-          "user": {
-            "anyOf": [
-              {
-                "anyOf": [
-                  {
-                    "type": "object",
-                    "required": [
-                      "kind",
-                      "goal",
-                      "prompt"
-                    ],
-                    "properties": {
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "simulated"
-                        ]
-                      },
-                      "goal": {
-                        "type": "string",
-                        "description": "a string at most 2000 character(s) long",
-                        "title": "maxLength(2000)",
-                        "minLength": 1,
-                        "maxLength": 2000
-                      },
-                      "prompt": {
-                        "type": "string",
-                        "description": "a string at most 8000 character(s) long",
-                        "title": "maxLength(8000)",
-                        "minLength": 1,
-                        "maxLength": 8000
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  {
-                    "type": "object",
-                    "required": [
-                      "kind",
-                      "replies"
-                    ],
-                    "properties": {
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "scripted"
-                        ]
-                      },
-                      "replies": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "description": "a string at most 4000 character(s) long",
-                          "title": "maxLength(4000)",
-                          "minLength": 1,
-                          "maxLength": 4000
-                        },
-                        "description": "an array of at most 24 item(s)",
-                        "title": "maxItems(24)",
-                        "minItems": 1,
-                        "maxItems": 24
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "validator": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalValidator"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "variables": {
-            "$ref": "#/components/schemas/EvalVariables"
-          },
-          "verify": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalVerify"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
+        "description": "Run every case of a suite on every variant, each as many times as trials."
       },
       "CaseCache": {
         "type": "object",
@@ -3219,6 +2619,14 @@
           }
         },
         "additionalProperties": false
+      },
+      "EvalCaseId": {
+        "type": "string",
+        "description": "The stable handle an author gives a case.",
+        "title": "maxLength(100)",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       },
       "EvalCaseName": {
         "type": "string",
@@ -3327,6 +2735,34 @@
           }
         ],
         "description": "The workspace available to the harness before setup runs."
+      },
+      "EvalCaseTags": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "description": "a string at most 40 character(s) long",
+          "title": "maxLength(40)",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "description": "What a case is grouped under.",
+        "title": "maxItems(12)",
+        "maxItems": 12
+      },
+      "EvalVariables": {
+        "type": "object",
+        "required": [],
+        "properties": {},
+        "additionalProperties": {
+          "$ref": "#/components/schemas/EvalVariableValue"
+        },
+        "description": "Values for the placeholders the run prompt names, such as {{task}}."
+      },
+      "EvalVariableValue": {
+        "type": "string",
+        "description": "a string at most 2048 character(s) long",
+        "title": "maxLength(2048)",
+        "maxLength": 2048
       },
       "EvalValidator": {
         "anyOf": [
@@ -3751,26 +3187,47 @@
         "title": "int",
         "minimum": 0
       },
-      "EvalVariables": {
-        "type": "object",
-        "required": [],
-        "properties": {},
-        "additionalProperties": {
-          "$ref": "#/components/schemas/EvalVariableValue"
-        },
-        "description": "Values for the placeholders the run prompt names, such as {{task}}."
-      },
-      "EvalVariableValue": {
-        "type": "string",
-        "description": "a string at most 2048 character(s) long",
-        "title": "maxLength(2048)",
-        "maxLength": 2048
-      },
       "EvalVerify": {
         "type": "string",
         "description": "The shell command that decides whether a trial passed.",
         "title": "maxLength(8192)",
         "maxLength": 8192
+      },
+      "EvalSuiteRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "prompt"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/EvalSuiteId"
+          },
+          "name": {
+            "$ref": "#/components/schemas/EvalSuiteName"
+          },
+          "prompt": {
+            "$ref": "#/components/schemas/EvalPrompt"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The suite the cases belong to, and the prompt they share."
+      },
+      "EvalSuiteId": {
+        "type": "string",
+        "description": "The stable handle an author gives a suite.",
+        "title": "maxLength(100)",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "EvalSuiteName": {
+        "type": "string",
+        "description": "What a suite is called.",
+        "title": "maxLength(200)",
+        "minLength": 1,
+        "maxLength": 200
       },
       "EvalPrompt": {
         "type": "string",
@@ -3778,13 +3235,26 @@
         "title": "maxLength(16384)",
         "maxLength": 16384
       },
-      "StartEvalVariant": {
+      "EvalVariantRequest": {
         "type": "object",
         "required": [
           "harness",
           "model"
         ],
         "properties": {
+          "credentials": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "harnessConnectionId": {
+                "type": "string"
+              },
+              "sandboxConnectionId": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
           "harness": {
             "type": "string",
             "enum": [
@@ -3809,7 +3279,16 @@
             "$ref": "#/components/schemas/HarnessProfile"
           },
           "sandbox": {
-            "$ref": "#/components/schemas/PublicEvalSandbox"
+            "type": "string",
+            "enum": [
+              "daytona",
+              "e2b",
+              "upstash",
+              "modal",
+              "cloudflare",
+              "vercel",
+              "local"
+            ]
           }
         },
         "additionalProperties": false
@@ -3883,19 +3362,67 @@
         "description": "Lowercase letters, digits and hyphens, at most 64 characters, starting with a letter or digit.",
         "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
       },
-      "PublicEvalSandbox": {
-        "type": "string",
-        "enum": [
-          "daytona",
-          "e2b",
-          "upstash",
-          "modal",
-          "cloudflare",
-          "vercel"
+      "StartedBatch": {
+        "type": "object",
+        "required": [
+          "id",
+          "runs"
         ],
-        "description": "The hosted sandbox a variant runs in."
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "caseId",
+                "id",
+                "variantIndex"
+              ],
+              "properties": {
+                "caseId": {
+                  "$ref": "#/components/schemas/EvalCaseId"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "variantIndex": {
+                  "$ref": "#/components/schemas/Int"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "The batch started, and the run it holds for each case and variant."
       },
-      "StartedEval": {
+      "PublicRunCaseRequest": {
+        "type": "object",
+        "required": [
+          "caseId",
+          "trials"
+        ],
+        "properties": {
+          "caseId": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          },
+          "trials": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a number between 1 and 10",
+            "title": "between(1, 10)",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "variant": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EvalBatchRequest": {
         "type": "object",
         "required": [
           "id"
@@ -3906,504 +3433,537 @@
           }
         },
         "additionalProperties": false,
-        "description": "The id of an eval run accepted for background execution."
+        "description": "Select a batch by id."
       },
-      "CredentialLeaseRequest": {
+      "EvalBatch": {
         "type": "object",
         "required": [
-          "harness",
-          "id"
+          "costs",
+          "failure",
+          "finishedAt",
+          "id",
+          "local",
+          "runs",
+          "startedAt",
+          "status",
+          "trigger"
         ],
         "properties": {
-          "harness": {
-            "type": "string",
-            "enum": [
-              "codex",
-              "opencode",
-              "pi",
-              "fx",
-              "claude",
-              "gemini",
-              "qwen",
-              "cursor",
-              "command"
+          "costs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalCosts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "id": {
             "type": "string"
+          },
+          "local": {
+            "type": "boolean"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalRun"
+            }
+          },
+          "startedAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
-        "description": "Ask for the credentials a run the caller is executing needs, for the harness it names."
+        "description": "Runs started together, such as every variant of a suite."
       },
-      "CredentialLease": {
+      "EvalCosts": {
         "type": "object",
         "required": [
-          "expiresAt",
-          "values"
+          "allocatedUsd",
+          "components",
+          "estimatedEquivalentUsd",
+          "incomplete",
+          "knownActualUsd"
         ],
         "properties": {
-          "expiresAt": {
-            "$ref": "#/components/schemas/DateTimeUtc"
+          "allocatedUsd": {
+            "type": "number"
           },
-          "values": {
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalCostComponent"
+            }
+          },
+          "estimatedEquivalentUsd": {
+            "type": "number"
+          },
+          "incomplete": {
+            "type": "boolean"
+          },
+          "knownActualUsd": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Cost by component, kept apart by classification."
+      },
+      "EvalCostComponent": {
+        "type": "object",
+        "required": [
+          "classification",
+          "component",
+          "detail",
+          "explanation",
+          "source",
+          "usd"
+        ],
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": [
+              "actual",
+              "allocated",
+              "estimate",
+              "included",
+              "managed",
+              "unknown"
+            ]
+          },
+          "component": {
+            "type": "string",
+            "enum": [
+              "judge",
+              "harness",
+              "model",
+              "platform",
+              "sandbox"
+            ]
+          },
+          "detail": {
             "type": "object",
             "required": [],
             "properties": {},
             "additionalProperties": {
-              "type": "string"
+              "$id": "/schemas/unknown",
+              "title": "unknown"
             }
-          }
-        },
-        "additionalProperties": false,
-        "description": "Credentials for one run, held in memory and never written down. Short-lived: start another run rather than keeping these."
-      },
-      "ReportTrialRequest": {
-        "type": "object",
-        "required": [
-          "id",
-          "trial"
-        ],
-        "properties": {
-          "id": {
+          },
+          "explanation": {
             "type": "string"
           },
-          "trial": {
-            "$ref": "#/components/schemas/ReportedTrial"
+          "source": {
+            "type": "string"
+          },
+          "usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
-        "description": "A trial the caller ran, named by the run it belongs to."
+        "description": "What one layer of a trial cost, and how far that is known."
       },
-      "ReportedTrial": {
+      "EvalRun": {
         "type": "object",
         "required": [
-          "caseName",
-          "events",
-          "ordinal",
-          "outcome",
-          "variantIndex"
+          "batchId",
+          "case",
+          "costs",
+          "definitionHash",
+          "distribution",
+          "finishedAt",
+          "harnessVersion",
+          "id",
+          "local",
+          "profileVersion",
+          "setup",
+          "startedAt",
+          "status",
+          "suite",
+          "trials",
+          "trigger",
+          "variant"
         ],
         "properties": {
-          "caseName": {
-            "$ref": "#/components/schemas/EvalCaseName"
+          "batchId": {
+            "type": "string"
           },
-          "events": {
-            "type": "array",
-            "items": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "model",
-                    "sessionId"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Started"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "model": {
-                      "type": "string"
-                    },
-                    "sessionId": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "role",
-                    "text"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Message"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "role": {
-                      "type": "string",
-                      "enum": [
-                        "assistant",
-                        "user"
-                      ]
-                    },
-                    "text": {
-                      "type": "string"
-                    },
-                    "usage": {
-                      "type": "object",
-                      "required": [
-                        "cacheReadTokens",
-                        "cacheWriteTokens",
-                        "inputTokens",
-                        "outputTokens",
-                        "totalTokens"
-                      ],
-                      "properties": {
-                        "cacheReadTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "cacheWriteTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "costUsd": {
-                          "type": "number"
-                        },
-                        "inputTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "outputTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        "totalTokens": {
-                          "$ref": "#/components/schemas/Int"
-                        }
-                      },
-                      "additionalProperties": false
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "command",
-                    "exitCode",
-                    "output"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Command"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "command": {
-                      "type": "string"
-                    },
-                    "exitCode": {
-                      "anyOf": [
-                        {
-                          "$ref": "#/components/schemas/Int"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "output": {
-                      "type": "string"
-                    },
-                    "startedAt": {
-                      "type": "number"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "paths"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "FileChange"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "paths": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "callId",
-                    "input",
-                    "name",
-                    "status"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "ToolCall"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "callId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "input": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "output": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    },
-                    "startedAt": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "object",
-                  "required": [
-                    "_tag",
-                    "reason"
-                  ],
-                  "properties": {
-                    "_tag": {
-                      "type": "string",
-                      "enum": [
-                        "Finished"
-                      ]
-                    },
-                    "at": {
-                      "type": "number"
-                    },
-                    "reason": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              ]
-            }
-          },
-          "ordinal": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a non-negative number",
-            "title": "nonNegative",
-            "minimum": 0
-          },
-          "outcome": {
+          "case": {
             "type": "object",
             "required": [
-              "commandCount",
-              "exitCode",
-              "modelMs",
-              "passed",
-              "sandboxMs",
-              "status",
-              "verifySteps",
-              "voidFields"
+              "id",
+              "name"
             ],
             "properties": {
-              "artifacts": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "path",
-                    "byteSize",
-                    "sha256"
-                  ],
-                  "properties": {
-                    "path": {
-                      "type": "string"
-                    },
-                    "byteSize": {
-                      "$ref": "#/components/schemas/Int",
-                      "description": "a non-negative number",
-                      "title": "nonNegative",
-                      "minimum": 0
-                    },
-                    "sha256": {
-                      "type": "string",
-                      "description": "a string matching the pattern ^[a-f0-9]{64}$",
-                      "pattern": "^[a-f0-9]{64}$"
-                    }
-                  },
-                  "additionalProperties": false
-                }
+              "id": {
+                "$ref": "#/components/schemas/EvalCaseId"
               },
-              "validations": {
-                "$ref": "#/components/schemas/EvalValidations"
-              },
-              "judgments": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "name",
-                    "model",
-                    "evaluator",
-                    "score",
-                    "choice",
-                    "reason",
-                    "threshold",
-                    "durationMs",
-                    "error"
-                  ],
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "model": {
-                      "type": "string"
-                    },
-                    "evaluator": {
-                      "type": "string"
-                    },
-                    "score": {
-                      "anyOf": [
-                        {
-                          "type": "number",
-                          "description": "a number between 0 and 1",
-                          "title": "between(0, 1)",
-                          "minimum": 0,
-                          "maximum": 1
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "choice": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "reason": {
-                      "type": "string"
-                    },
-                    "threshold": {
-                      "type": "number",
-                      "description": "a number between 0 and 1",
-                      "title": "between(0, 1)",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    "durationMs": {
-                      "$ref": "#/components/schemas/NonNegativeInt"
-                    },
-                    "error": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "commandCount": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "exitCode": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "modelMs": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "passed": {
-                "type": "boolean"
-              },
-              "sandboxMs": {
-                "$ref": "#/components/schemas/Int"
-              },
-              "status": {
-                "type": "string",
-                "enum": [
-                  "queued",
-                  "running",
-                  "passed",
-                  "failed",
-                  "void"
-                ]
-              },
-              "verifySteps": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "command",
-                    "exitCode"
-                  ],
-                  "properties": {
-                    "command": {
-                      "type": "string"
-                    },
-                    "exitCode": {
-                      "$ref": "#/components/schemas/Int"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "voidFields": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+              "name": {
+                "type": "string"
               }
             },
             "additionalProperties": false
+          },
+          "costs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalCosts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "definitionHash": {
+            "type": "string"
+          },
+          "distribution": {
+            "$ref": "#/components/schemas/EvalDistribution"
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "harnessVersion": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "local": {
+            "type": "boolean"
+          },
+          "profileVersion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "setup": {
+            "$ref": "#/components/schemas/EvalSetup"
+          },
+          "startedAt": {
+            "$ref": "#/components/schemas/EvalTimestamp"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
+          },
+          "suite": {
+            "$ref": "#/components/schemas/EvalSuite"
+          },
+          "trials": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalTrial"
+            }
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTrigger"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "variant": {
+            "$ref": "#/components/schemas/EvalVariant"
+          }
+        },
+        "additionalProperties": false,
+        "description": "One case run on one variant, with its trials."
+      },
+      "EvalDistribution": {
+        "type": "object",
+        "required": [
+          "commandMax",
+          "commandMedian",
+          "commandMin",
+          "deterministic",
+          "failed",
+          "passRate",
+          "passed",
+          "scored",
+          "trials",
+          "voided"
+        ],
+        "properties": {
+          "commandMax": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "commandMedian": {
+            "type": "number"
+          },
+          "commandMin": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "deterministic": {
+            "type": "boolean"
+          },
+          "failed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "passRate": {
+            "type": "number"
+          },
+          "passed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "scored": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "trials": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "voided": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "The scored outcome across the trials of a run."
+      },
+      "EvalSetup": {
+        "type": "object",
+        "required": [
+          "prepare",
+          "prompt",
+          "source",
+          "validator",
+          "verify"
+        ],
+        "properties": {
+          "prepare": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/EvalSource"
+          },
+          "validator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "validatorFiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "path",
+                "content"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "a string matching the pattern ^(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+(?:\\/(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+)*$",
+                  "title": "maxLength(512)",
+                  "maxLength": 512,
+                  "pattern": "^(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+(?:\\/(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+)*$"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "a string at most 1000000 character(s) long",
+                  "title": "maxLength(1000000)",
+                  "maxLength": 1000000
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "an array of at most 100 item(s)",
+            "title": "maxItems(100)",
+            "maxItems": 100
+          },
+          "verify": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The prompt, workspace, setup and verifier a run used."
+      },
+      "EvalSuite": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/EvalSuiteId"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A group of cases that share a prompt and setup."
+      },
+      "EvalTrial": {
+        "type": "object",
+        "required": [
+          "artifacts",
+          "commands",
+          "costs",
+          "exitCode",
+          "failedCommands",
+          "filesChanged",
+          "id",
+          "modelMs",
+          "ordinal",
+          "sandboxId",
+          "sandboxMs",
+          "status",
+          "timed",
+          "trajectory",
+          "usage",
+          "validations",
+          "verifySteps",
+          "voidFields"
+        ],
+        "properties": {
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "path",
+                "byteSize",
+                "sha256"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "byteSize": {
+                  "$ref": "#/components/schemas/Int",
+                  "description": "a non-negative number",
+                  "title": "nonNegative",
+                  "minimum": 0
+                },
+                "sha256": {
+                  "type": "string",
+                  "description": "a string matching the pattern ^[a-f0-9]{64}$",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "commands": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "costs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalCosts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "exitCode": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "failedCommands": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "filesChanged": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "modelMs": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "ordinal": {
+            "$ref": "#/components/schemas/Int"
           },
           "sandboxId": {
             "anyOf": [
@@ -4415,53 +3975,308 @@
               }
             ]
           },
-          "variantIndex": {
-            "$ref": "#/components/schemas/Int",
-            "description": "a non-negative number",
-            "title": "nonNegative",
-            "minimum": 0
+          "sandboxMs": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "passed",
+              "failed",
+              "void"
+            ]
+          },
+          "timed": {
+            "type": "boolean"
+          },
+          "trajectory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalJournalEntry"
+            }
           },
           "usage": {
             "anyOf": [
               {
-                "type": "object",
-                "required": [
-                  "cacheReadTokens",
-                  "cacheWriteTokens",
-                  "inputTokens",
-                  "outputTokens",
-                  "totalTokens"
-                ],
-                "properties": {
-                  "cacheReadTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "cacheWriteTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "costUsd": {
-                    "type": "number"
-                  },
-                  "inputTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "outputTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  "totalTokens": {
-                    "$ref": "#/components/schemas/Int"
-                  }
-                },
-                "additionalProperties": false
+                "$ref": "#/components/schemas/EvalUsage"
               },
               {
                 "type": "null"
               }
             ]
+          },
+          "validations": {
+            "$ref": "#/components/schemas/EvalValidations"
+          },
+          "verifySteps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalVerifyStep"
+            }
+          },
+          "voidFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false,
-        "description": "One trial a client ran and is reporting the result of."
+        "description": "One attempt of a run, in its own sandbox."
+      },
+      "EvalJournalEntry": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "command",
+              "exitCode",
+              "finishedAtMillis",
+              "output",
+              "startedAtMillis"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "command"
+                ]
+              },
+              "command": {
+                "type": "string"
+              },
+              "exitCode": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "output": {
+                "type": "string"
+              },
+              "outputTruncated": {
+                "type": "boolean"
+              },
+              "startedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "finishedAtMillis",
+              "text"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "message"
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "assistant",
+                  "user"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "usage": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/EvalUsage"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "finishedAtMillis",
+              "name",
+              "status"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "toolCall"
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "input": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "output": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              },
+              "outputTruncated": {
+                "type": "boolean"
+              },
+              "inputTruncated": {
+                "type": "boolean"
+              },
+              "errorTruncated": {
+                "type": "boolean"
+              },
+              "startedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "_tag",
+              "finishedAtMillis",
+              "paths"
+            ],
+            "properties": {
+              "_tag": {
+                "type": "string",
+                "enum": [
+                  "fileChange"
+                ]
+              },
+              "finishedAtMillis": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ],
+        "description": "A normalized event recorded from the harness trajectory."
+      },
+      "EvalUsage": {
+        "type": "object",
+        "required": [
+          "cacheReadTokens",
+          "cacheWriteTokens",
+          "inputTokens",
+          "outputTokens",
+          "totalTokens"
+        ],
+        "properties": {
+          "cacheReadTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "cacheWriteTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "costUsd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inputTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "outputTokens": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "totalTokens": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Token usage reported by the harness."
       },
       "EvalValidations": {
         "type": "array",
@@ -4802,1006 +4617,6 @@
         },
         "additionalProperties": false
       },
-      "EvalRunRequest": {
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Select an eval run by id."
-      },
-      "EvalRun": {
-        "type": "object",
-        "required": [
-          "cases",
-          "cells",
-          "costs",
-          "failure",
-          "finishedAt",
-          "id",
-          "name",
-          "startedAt",
-          "status",
-          "variants"
-        ],
-        "properties": {
-          "trigger": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTrigger"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "cases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "cells": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalCell"
-            }
-          },
-          "costs": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalCosts"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "executedBy": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "client"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "failure": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "finishedAt": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTimestamp"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string",
-                "description": "a string at most 100 character(s) long",
-                "title": "maxLength(100)",
-                "minLength": 1,
-                "maxLength": 100
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "startedAt": {
-            "$ref": "#/components/schemas/EvalTimestamp"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "running",
-              "finished",
-              "failed"
-            ]
-          },
-          "variants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalVariant"
-            }
-          }
-        },
-        "additionalProperties": false,
-        "description": "A complete eval run with its cells and trials."
-      },
-      "EvalCell": {
-        "type": "object",
-        "required": [
-          "caseName",
-          "cellKey",
-          "costs",
-          "comparison",
-          "distribution",
-          "internalId",
-          "setup",
-          "status",
-          "variantIndex",
-          "trials"
-        ],
-        "properties": {
-          "caseName": {
-            "type": "string"
-          },
-          "cellKey": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "costs": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalCosts"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "comparison": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalComparison"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "distribution": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalDistribution"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "internalId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "setup": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalSetup"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "running",
-              "finished",
-              "failed"
-            ]
-          },
-          "variantIndex": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "trials": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalTrial"
-            }
-          }
-        },
-        "additionalProperties": false,
-        "description": "One case and variant combination in an eval grid."
-      },
-      "EvalCosts": {
-        "type": "object",
-        "required": [
-          "allocatedUsd",
-          "components",
-          "estimatedEquivalentUsd",
-          "incomplete",
-          "knownActualUsd"
-        ],
-        "properties": {
-          "allocatedUsd": {
-            "type": "number"
-          },
-          "components": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalCostComponent"
-            }
-          },
-          "estimatedEquivalentUsd": {
-            "type": "number"
-          },
-          "incomplete": {
-            "type": "boolean"
-          },
-          "knownActualUsd": {
-            "type": "number"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Cost by component, kept apart by classification."
-      },
-      "EvalCostComponent": {
-        "type": "object",
-        "required": [
-          "classification",
-          "component",
-          "detail",
-          "explanation",
-          "source",
-          "usd"
-        ],
-        "properties": {
-          "classification": {
-            "type": "string",
-            "enum": [
-              "actual",
-              "allocated",
-              "estimate",
-              "included",
-              "managed",
-              "unknown"
-            ]
-          },
-          "component": {
-            "type": "string",
-            "enum": [
-              "judge",
-              "harness",
-              "model",
-              "platform",
-              "sandbox"
-            ]
-          },
-          "detail": {
-            "type": "object",
-            "required": [],
-            "properties": {},
-            "additionalProperties": {
-              "$id": "/schemas/unknown",
-              "title": "unknown"
-            }
-          },
-          "explanation": {
-            "type": "string"
-          },
-          "source": {
-            "type": "string"
-          },
-          "usd": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "description": "What one layer of a trial cost, and how far that is known."
-      },
-      "EvalComparison": {
-        "type": "object",
-        "required": [
-          "baselineHarnessVersion",
-          "baselinePassRate",
-          "baselineProfileVersion",
-          "candidateHarnessVersion",
-          "candidatePassRate",
-          "candidateProfileVersion",
-          "definitionChanged",
-          "delta",
-          "determinismLost",
-          "reason",
-          "verdict"
-        ],
-        "properties": {
-          "baselineHarnessVersion": {
-            "type": "string"
-          },
-          "baselinePassRate": {
-            "type": "number"
-          },
-          "baselineProfileVersion": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "candidateHarnessVersion": {
-            "type": "string"
-          },
-          "candidatePassRate": {
-            "type": "number"
-          },
-          "candidateProfileVersion": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "definitionChanged": {
-            "type": "boolean"
-          },
-          "delta": {
-            "type": "number"
-          },
-          "determinismLost": {
-            "type": "boolean"
-          },
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "verdict": {
-            "type": "string",
-            "enum": [
-              "improved",
-              "incomparable",
-              "regressed",
-              "unchanged"
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "description": "The cell result compared with its most recent baseline."
-      },
-      "EvalSetup": {
-        "type": "object",
-        "required": [
-          "prompt",
-          "repoRef",
-          "repoUrl",
-          "prepareName",
-          "validatorName",
-          "verifyCommand",
-          "workspace"
-        ],
-        "properties": {
-          "prompt": {
-            "type": "string"
-          },
-          "repoRef": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "repoUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "prepareName": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "validatorName": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "validatorFiles": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "path",
-                "content"
-              ],
-              "properties": {
-                "path": {
-                  "type": "string",
-                  "description": "a string matching the pattern ^(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+(?:\\/(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+)*$",
-                  "title": "maxLength(512)",
-                  "maxLength": 512,
-                  "pattern": "^(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+(?:\\/(?!\\.{1,2}(?:\\/|$))[^/\\\\:\\0]+)*$"
-                },
-                "content": {
-                  "type": "string",
-                  "description": "a string at most 1000000 character(s) long",
-                  "title": "maxLength(1000000)",
-                  "maxLength": 1000000
-                }
-              },
-              "additionalProperties": false
-            },
-            "description": "an array of at most 100 item(s)",
-            "title": "maxItems(100)",
-            "maxItems": 100
-          },
-          "verifyCommand": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "workspace": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "description": "The prompt, workspace, setup, and verifier used by a cell."
-      },
-      "EvalTrial": {
-        "type": "object",
-        "required": [
-          "commands",
-          "costs",
-          "prepared",
-          "exitCode",
-          "failedCommands",
-          "filesChanged",
-          "modelMs",
-          "ordinal",
-          "passed",
-          "sandboxId",
-          "sandboxMs",
-          "status",
-          "timed",
-          "trajectory",
-          "usage",
-          "verifySteps",
-          "voidFields"
-        ],
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "artifacts": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "path",
-                "byteSize",
-                "sha256"
-              ],
-              "properties": {
-                "path": {
-                  "type": "string"
-                },
-                "byteSize": {
-                  "$ref": "#/components/schemas/Int",
-                  "description": "a non-negative number",
-                  "title": "nonNegative",
-                  "minimum": 0
-                },
-                "sha256": {
-                  "type": "string",
-                  "description": "a string matching the pattern ^[a-f0-9]{64}$",
-                  "pattern": "^[a-f0-9]{64}$"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "validations": {
-            "$ref": "#/components/schemas/EvalValidations"
-          },
-          "judgments": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "name",
-                "model",
-                "evaluator",
-                "score",
-                "choice",
-                "reason",
-                "threshold",
-                "durationMs",
-                "error"
-              ],
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "model": {
-                  "type": "string"
-                },
-                "evaluator": {
-                  "type": "string"
-                },
-                "score": {
-                  "anyOf": [
-                    {
-                      "type": "number",
-                      "description": "a number between 0 and 1",
-                      "title": "between(0, 1)",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "choice": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "reason": {
-                  "type": "string"
-                },
-                "threshold": {
-                  "type": "number",
-                  "description": "a number between 0 and 1",
-                  "title": "between(0, 1)",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                "durationMs": {
-                  "$ref": "#/components/schemas/NonNegativeInt"
-                },
-                "error": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "commands": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "costs": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalCosts"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "prepared": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalPrepareValue"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "exitCode": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "failedCommands": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "filesChanged": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "modelMs": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "ordinal": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "passed": {
-            "type": "boolean"
-          },
-          "sandboxId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "sandboxMs": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "queued",
-              "running",
-              "passed",
-              "failed",
-              "void"
-            ]
-          },
-          "timed": {
-            "type": "boolean"
-          },
-          "trajectory": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalJournalEntry"
-            }
-          },
-          "usage": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalUsage"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "verifySteps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalVerifyStep"
-            }
-          },
-          "voidFields": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "additionalProperties": false,
-        "description": "One sandbox attempt for a grid cell."
-      },
-      "EvalPrepareValue": {
-        "type": "object",
-        "required": [],
-        "properties": {},
-        "additionalProperties": {
-          "$id": "/schemas/unknown",
-          "title": "unknown"
-        },
-        "description": "What a workspace setup returned, handed to the validator."
-      },
-      "EvalJournalEntry": {
-        "anyOf": [
-          {
-            "type": "object",
-            "required": [
-              "_tag",
-              "command",
-              "exitCode",
-              "finishedAtMillis",
-              "output",
-              "startedAtMillis"
-            ],
-            "properties": {
-              "_tag": {
-                "type": "string",
-                "enum": [
-                  "command"
-                ]
-              },
-              "command": {
-                "type": "string"
-              },
-              "exitCode": {
-                "anyOf": [
-                  {
-                    "$ref": "#/components/schemas/Int"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "finishedAtMillis": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "output": {
-                "type": "string"
-              },
-              "outputTruncated": {
-                "type": "boolean"
-              },
-              "startedAtMillis": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "_tag",
-              "finishedAtMillis",
-              "text"
-            ],
-            "properties": {
-              "_tag": {
-                "type": "string",
-                "enum": [
-                  "message"
-                ]
-              },
-              "finishedAtMillis": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "role": {
-                "type": "string",
-                "enum": [
-                  "assistant",
-                  "user"
-                ]
-              },
-              "text": {
-                "type": "string"
-              },
-              "usage": {
-                "anyOf": [
-                  {
-                    "$ref": "#/components/schemas/EvalUsage"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "_tag",
-              "finishedAtMillis",
-              "name",
-              "status"
-            ],
-            "properties": {
-              "_tag": {
-                "type": "string",
-                "enum": [
-                  "toolCall"
-                ]
-              },
-              "finishedAtMillis": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "input": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "output": {
-                "type": "string"
-              },
-              "error": {
-                "type": "string"
-              },
-              "outputTruncated": {
-                "type": "boolean"
-              },
-              "inputTruncated": {
-                "type": "boolean"
-              },
-              "errorTruncated": {
-                "type": "boolean"
-              },
-              "startedAtMillis": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "status": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "required": [
-              "_tag",
-              "finishedAtMillis",
-              "paths"
-            ],
-            "properties": {
-              "_tag": {
-                "type": "string",
-                "enum": [
-                  "fileChange"
-                ]
-              },
-              "finishedAtMillis": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "paths": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            },
-            "additionalProperties": false
-          }
-        ],
-        "description": "A normalized event recorded from the harness trajectory."
-      },
-      "EvalUsage": {
-        "type": "object",
-        "required": [
-          "cacheReadTokens",
-          "cacheWriteTokens",
-          "inputTokens",
-          "outputTokens",
-          "totalTokens"
-        ],
-        "properties": {
-          "cacheReadTokens": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "cacheWriteTokens": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "costUsd": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "inputTokens": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "outputTokens": {
-            "$ref": "#/components/schemas/Int"
-          },
-          "totalTokens": {
-            "$ref": "#/components/schemas/Int"
-          }
-        },
-        "additionalProperties": false,
-        "description": "Token usage reported by the harness."
-      },
       "EvalVerifyStep": {
         "type": "object",
         "required": [
@@ -5819,7 +4634,121 @@
         "additionalProperties": false,
         "description": "One condition of the verifier, and how it exited. Only the steps that ran are listed: the script stops at the first failure."
       },
-      "RunSubscription": {
+      "EvalVariant": {
+        "type": "object",
+        "required": [
+          "harness",
+          "id",
+          "model",
+          "profile",
+          "sandbox",
+          "userModel"
+        ],
+        "properties": {
+          "harness": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "opencode",
+              "pi",
+              "fx",
+              "claude",
+              "gemini",
+              "qwen",
+              "cursor",
+              "command"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sandbox": {
+            "type": "string",
+            "enum": [
+              "daytona",
+              "e2b",
+              "upstash",
+              "modal",
+              "cloudflare",
+              "vercel",
+              "local"
+            ]
+          },
+          "userModel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The harness, model, sandbox and profile a case runs on. A case has one variant per combination it has run on."
+      },
+      "CaseRunsRequest": {
+        "type": "object",
+        "required": [
+          "caseId"
+        ],
+        "properties": {
+          "caseId": {
+            "$ref": "#/components/schemas/EvalCaseId"
+          },
+          "page": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "variant": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Select a case, and optionally one of its variants."
+      },
+      "EvalRunPage": {
+        "type": "object",
+        "required": [
+          "page",
+          "pageSize",
+          "runs",
+          "total"
+        ],
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "pageSize": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalRun"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "One page of a case's runs, newest first."
+      },
+      "BatchSubscription": {
         "type": "object",
         "required": [
           "expiresAtMillis",
@@ -5838,80 +4767,395 @@
           }
         },
         "additionalProperties": false,
-        "description": "A scoped, read-only token for watching one run in real time."
+        "description": "A scoped, read-only token for watching one batch in real time."
       },
-      "EvalCellRequest": {
+      "CredentialLeaseRequest": {
         "type": "object",
         "required": [
-          "cellKey"
+          "harness",
+          "id"
         ],
         "properties": {
-          "cellKey": {
+          "harness": {
+            "type": "string",
+            "enum": [
+              "codex",
+              "opencode",
+              "pi",
+              "fx",
+              "claude",
+              "gemini",
+              "qwen",
+              "cursor",
+              "command"
+            ]
+          },
+          "id": {
             "type": "string"
           }
         },
         "additionalProperties": false,
-        "description": "Select an eval cell by its stable key."
+        "description": "Ask for the credentials a batch the caller is executing needs, for the harness it names."
       },
-      "EvalCellHistoryEntry": {
+      "CredentialLease": {
         "type": "object",
         "required": [
-          "cellKey",
-          "definitionHash",
-          "distribution",
-          "finishedAt",
-          "harnessVersion",
-          "internalId",
-          "profileVersion",
-          "runId",
-          "trials"
+          "expiresAt",
+          "values"
         ],
         "properties": {
-          "cellKey": {
-            "type": "string"
+          "expiresAt": {
+            "$ref": "#/components/schemas/DateTimeUtc"
           },
-          "trigger": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTrigger"
+          "values": {
+            "type": "object",
+            "required": [],
+            "properties": {},
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Credentials for one batch, held in memory and never written down. Short-lived: start another batch rather than keeping these."
+      },
+      "ReportedTrial": {
+        "type": "object",
+        "required": [
+          "events",
+          "ordinal",
+          "outcome",
+          "runId"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "_tag",
+                    "model",
+                    "sessionId"
+                  ],
+                  "properties": {
+                    "_tag": {
+                      "type": "string",
+                      "enum": [
+                        "Started"
+                      ]
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "model": {
+                      "type": "string"
+                    },
+                    "sessionId": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "_tag",
+                    "role",
+                    "text"
+                  ],
+                  "properties": {
+                    "_tag": {
+                      "type": "string",
+                      "enum": [
+                        "Message"
+                      ]
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "assistant",
+                        "user"
+                      ]
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "usage": {
+                      "type": "object",
+                      "required": [
+                        "cacheReadTokens",
+                        "cacheWriteTokens",
+                        "inputTokens",
+                        "outputTokens",
+                        "totalTokens"
+                      ],
+                      "properties": {
+                        "cacheReadTokens": {
+                          "$ref": "#/components/schemas/Int"
+                        },
+                        "cacheWriteTokens": {
+                          "$ref": "#/components/schemas/Int"
+                        },
+                        "costUsd": {
+                          "type": "number"
+                        },
+                        "inputTokens": {
+                          "$ref": "#/components/schemas/Int"
+                        },
+                        "outputTokens": {
+                          "$ref": "#/components/schemas/Int"
+                        },
+                        "totalTokens": {
+                          "$ref": "#/components/schemas/Int"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "_tag",
+                    "command",
+                    "exitCode",
+                    "output"
+                  ],
+                  "properties": {
+                    "_tag": {
+                      "type": "string",
+                      "enum": [
+                        "Command"
+                      ]
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "command": {
+                      "type": "string"
+                    },
+                    "exitCode": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/Int"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "output": {
+                      "type": "string"
+                    },
+                    "startedAt": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "_tag",
+                    "paths"
+                  ],
+                  "properties": {
+                    "_tag": {
+                      "type": "string",
+                      "enum": [
+                        "FileChange"
+                      ]
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "paths": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "_tag",
+                    "callId",
+                    "input",
+                    "name",
+                    "status"
+                  ],
+                  "properties": {
+                    "_tag": {
+                      "type": "string",
+                      "enum": [
+                        "ToolCall"
+                      ]
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "callId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "input": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "output": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "startedAt": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "_tag",
+                    "reason"
+                  ],
+                  "properties": {
+                    "_tag": {
+                      "type": "string",
+                      "enum": [
+                        "Finished"
+                      ]
+                    },
+                    "at": {
+                      "type": "number"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "ordinal": {
+            "$ref": "#/components/schemas/Int",
+            "description": "a positive number",
+            "title": "positive",
+            "exclusiveMinimum": 0
+          },
+          "outcome": {
+            "type": "object",
+            "required": [
+              "commandCount",
+              "exitCode",
+              "modelMs",
+              "sandboxMs",
+              "status",
+              "verifySteps",
+              "voidFields"
+            ],
+            "properties": {
+              "artifacts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "path",
+                    "byteSize",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "byteSize": {
+                      "$ref": "#/components/schemas/Int",
+                      "description": "a non-negative number",
+                      "title": "nonNegative",
+                      "minimum": 0
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "description": "a string matching the pattern ^[a-f0-9]{64}$",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
               },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "definitionHash": {
-            "type": "string"
-          },
-          "distribution": {
-            "$ref": "#/components/schemas/EvalDistribution"
-          },
-          "finishedAt": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EvalTimestamp"
+              "commandCount": {
+                "$ref": "#/components/schemas/Int"
               },
-              {
-                "type": "null"
+              "exitCode": {
+                "$ref": "#/components/schemas/Int"
+              },
+              "modelMs": {
+                "$ref": "#/components/schemas/Int"
+              },
+              "sandboxMs": {
+                "$ref": "#/components/schemas/Int"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "running",
+                  "passed",
+                  "failed",
+                  "void"
+                ]
+              },
+              "validations": {
+                "$ref": "#/components/schemas/EvalValidations"
+              },
+              "verifySteps": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/EvalVerifyStep"
+                }
+              },
+              "voidFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
-            ]
+            },
+            "additionalProperties": false
           },
-          "harness": {
+          "runId": {
             "type": "string"
           },
-          "harnessVersion": {
-            "type": "string"
-          },
-          "internalId": {
-            "type": "string"
-          },
-          "local": {
-            "type": "boolean"
-          },
-          "model": {
-            "type": "string"
-          },
-          "profileVersion": {
+          "sandboxId": {
             "anyOf": [
               {
                 "type": "string"
@@ -5921,21 +5165,47 @@
               }
             ]
           },
-          "runId": {
-            "type": "string"
-          },
-          "sandbox": {
-            "type": "string"
-          },
-          "trials": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalTrial"
-            }
+          "usage": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "cacheReadTokens",
+                  "cacheWriteTokens",
+                  "inputTokens",
+                  "outputTokens",
+                  "totalTokens"
+                ],
+                "properties": {
+                  "cacheReadTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "cacheWriteTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "costUsd": {
+                    "type": "number"
+                  },
+                  "inputTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "outputTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "totalTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
-        "description": "A previous scored result for the same cell identity."
+        "description": "One trial a client ran and is reporting the result of."
       },
       "EvalModelsRequest": {
         "type": "object",
@@ -6443,7 +5713,7 @@
     },
     {
       "name": "Evals",
-      "description": "Run cases across harness, model, and sandbox combinations and compare the results with their baselines."
+      "description": "Run the cases of a suite on harness, model and sandbox variants, and compare the runs."
     },
     {
       "name": "Prompts",

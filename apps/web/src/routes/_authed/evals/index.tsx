@@ -57,7 +57,10 @@ function EvalsIndex() {
             onSelect={(selected) => {
               pages.reset();
               navigate({
-                search: (current) => ({ ...current, tag: selected ?? undefined }),
+                search: (current) => ({
+                  ...current,
+                  tag: selected ?? undefined,
+                }),
               });
             }}
             selected={tag}
@@ -74,7 +77,10 @@ function EvalsIndex() {
           onSelect={(selected) => {
             pages.reset();
             navigate({
-              search: (current) => ({ ...current, suite: selected ?? undefined }),
+              search: (current) => ({
+                ...current,
+                suite: selected ?? undefined,
+              }),
             });
           }}
           selected={suite}

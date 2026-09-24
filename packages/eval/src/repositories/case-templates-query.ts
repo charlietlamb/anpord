@@ -9,7 +9,7 @@ import type { HarnessName, SandboxName } from "../domain/variant";
 import { namesOf } from "../domain/variant";
 import { tryStore } from "./query";
 
-export interface RunTemplate {
+interface RunTemplate {
   readonly harness: HarnessName;
   readonly harnessCredentialConnectionId: string | null;
   readonly harnessVersion: string;

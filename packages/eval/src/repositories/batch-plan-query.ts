@@ -19,7 +19,7 @@ import type { HarnessName, SandboxName } from "../domain/variant";
 import { namesOf } from "../domain/variant";
 import { tryStore } from "./query";
 
-export interface CasePlan {
+interface CasePlan {
   readonly cache: CaseCache | null;
   readonly id: string;
   readonly name: string;

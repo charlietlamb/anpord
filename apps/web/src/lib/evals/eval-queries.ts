@@ -33,7 +33,10 @@ const LIVE = {
   staleTime: RUN_POLL_MS,
 } as const;
 
-const catchUp = async (batchId: string, held: HeardTail): Promise<HeardTail> => {
+const catchUp = async (
+  batchId: string,
+  held: HeardTail
+): Promise<HeardTail> => {
   const read = await readBatchTail(batchId, held.next);
   const heard = heardTail(held, read);
   return read.events.length < EVAL_TAIL_PAGE ? heard : catchUp(batchId, heard);

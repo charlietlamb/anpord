@@ -33,10 +33,7 @@ export function CaseRuns({
   const to = from + runs.length - 1;
 
   return (
-    <DataTable
-      columns={CASE_RUNS_TABLE.columns}
-      label={CASE_RUNS_TABLE.label}
-    >
+    <DataTable columns={CASE_RUNS_TABLE.columns} label={CASE_RUNS_TABLE.label}>
       <DataTableHead headings={CASE_RUNS_TABLE.headings} />
 
       <DataTableBody>

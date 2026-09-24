@@ -2,6 +2,7 @@ import { Batches } from "@anpord/eval/grid/batches";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
 import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type {
   EvalArtifactRequest,
   EvalHarness,
@@ -9,7 +10,6 @@ import type {
   StartBatchRequest,
   StartedBatch,
 } from "@anpord/schema/domain/evals";
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import type { ReportedTrial } from "@anpord/schema/public/evals-api";
@@ -78,7 +78,10 @@ export const readBatch = (batchId: string) =>
     return yield* (yield* EvalReads).batch(yield* organization, batchId);
   }).pipe(withEvalErrors);
 
-export const listBatches = (cursor: EvalPageCursor | null, limit: number | undefined) =>
+export const listBatches = (
+  cursor: EvalPageCursor | null,
+  limit: number | undefined
+) =>
   Effect.gen(function* () {
     return yield* (yield* EvalReads).batches({
       cursor,

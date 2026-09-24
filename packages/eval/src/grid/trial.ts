@@ -14,7 +14,7 @@ import { TrialCostRepository } from "../repositories/trial-cost-repository";
 import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
 
-export const WORKSPACE = "/tmp/anpord-task";
+const WORKSPACE = "/tmp/anpord-task";
 export const AUTO_STOP_MINUTES = 15;
 
 export interface TrialCredentials {

@@ -67,7 +67,7 @@ export const EvalSource = Schema.Union(
   Schema.Struct({
     kind: Schema.Literal("repo"),
     ref: Schema.NullOr(Schema.String),
-        url: Schema.String.pipe(
+    url: Schema.String.pipe(
       Schema.minLength(1),
       Schema.annotations({ message: () => "Give the repository a URL." })
     ),
@@ -167,7 +167,7 @@ export type EvalVariables = typeof EvalVariables.Type;
 
 export const CaseCache = Schema.Struct({
   key: Schema.String.pipe(Schema.minLength(1)),
-    path: Schema.String.pipe(
+  path: Schema.String.pipe(
     Schema.minLength(1),
     Schema.filter(
       (value) => !(value.startsWith("/") || value.split("/").includes("..")),
@@ -193,19 +193,24 @@ export const EvalCase = Schema.Struct({
   cache: Schema.optional(CaseCache),
   id: EvalCaseId,
   name: EvalCaseName,
-    user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
-  prepare: Schema.NullOr(EvalPrepare),
-  source: EvalSource,
+  user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
+  prepare: Schema.optionalWith(Schema.NullOr(EvalPrepare), {
+    default: () => null,
+  }),
+  source: Schema.optionalWith(EvalSource, {
+    default: () => ({ kind: "empty" as const }),
+  }),
   tags: Schema.optionalWith(EvalCaseTags, { default: () => [] }),
   variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
 
   validator: Schema.optionalWith(Schema.NullOr(EvalValidator), {
     default: () => null,
   }),
-  verify: Schema.NullOr(EvalVerify),
+  verify: Schema.optionalWith(Schema.NullOr(EvalVerify), {
+    default: () => null,
+  }),
 });
 export type EvalCase = typeof EvalCase.Type;
-
 
 export const EvalVariantRequest = Schema.Struct({
   credentials: Schema.optional(CredentialBindings),
@@ -537,7 +542,8 @@ export const StartedBatch = Schema.Struct({
     })
   ),
 }).annotations({
-  description: "The batch started, and the run it holds for each case and variant.",
+  description:
+    "The batch started, and the run it holds for each case and variant.",
   identifier: "StartedBatch",
 });
 export type StartedBatch = typeof StartedBatch.Type;

@@ -11,7 +11,7 @@ import type { EvalStoreError } from "../domain/errors";
 import type { VariantIdentity } from "../domain/variant";
 import { tryStore } from "./query";
 
-export interface CatalogCase extends CaseDefinition {
+interface CatalogCase extends CaseDefinition {
   readonly definitionHash: string;
   readonly id: string;
   readonly name: string;
@@ -26,7 +26,7 @@ export interface RegisterCatalog {
   readonly suite: Pick<EvalSuiteRequest, "id" | "name">;
 }
 
-export interface RegisteredCase {
+interface RegisteredCase {
   readonly caseInternalId: string;
   readonly caseVersionInternalId: string;
   readonly variantInternalIds: readonly string[];

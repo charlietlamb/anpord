@@ -43,11 +43,13 @@ export const EvalCaseName = Schema.String.pipe(
   })
 );
 
+const HANDLE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const handleOf = (entity: "case" | "suite") =>
   Schema.String.pipe(
     Schema.minLength(1),
     Schema.maxLength(ID_LIMIT),
-    Schema.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    Schema.pattern(HANDLE),
     Schema.annotations({
       description: `The stable handle an author gives a ${entity}.`,
       message: () =>

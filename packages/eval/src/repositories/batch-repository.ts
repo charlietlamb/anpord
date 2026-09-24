@@ -28,7 +28,7 @@ export interface NewBatch {
   readonly trigger: EvalTrigger | null;
 }
 
-export type Settled = "failed" | "finished";
+type Settled = "failed" | "finished";
 
 export interface BatchRepositoryShape {
   readonly finish: (input: {

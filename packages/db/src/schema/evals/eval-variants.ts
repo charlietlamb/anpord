@@ -1,10 +1,4 @@
-import {
-  index,
-  pgTable,
-  text,
-  timestamp,
-  unique,
-} from "drizzle-orm/pg-core";
+import { index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 import { evalCase } from "./eval-cases";
 
 export const evalVariant = pgTable(

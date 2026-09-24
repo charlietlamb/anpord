@@ -22,9 +22,15 @@ import { Anpord } from "anpord";
 
 const anpord = new Anpord();
 
-const run = await anpord.evals.startAndWait({
+const batch = await anpord.evals.startAndWait({
+  suite: {
+    id: "<this repository>",
+    name: "<this repository>",
+    prompt: "Read the repository. Make the smallest correct change. {{task}}",
+  },
   cases: [
     {
+      id: "<short-case-id>",
       name: "<short name for the task>",
       variables: { task: "<what the agent must do, one sentence>" },
       source: {
@@ -32,11 +38,9 @@ const run = await anpord.evals.startAndWait({
         url: "<this repository's clone url>",
         ref: "<a commit>",
       },
-      setup: "<command that installs dependencies>",
       verify: "<command that exits 0 only when the task is met>",
     },
   ],
-  prompt: "Read the repository. Make the smallest correct change. {{task}}",
   variants: [
     { harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" },
     { harness: "claude", model: "opus", sandbox: "daytona" },
@@ -45,8 +49,8 @@ const run = await anpord.evals.startAndWait({
   trials: 3,
 });
 
-for (const cell of run.cells) {
-  console.log(cell.harness, cell.model, cell.distribution?.passRate);
+for (const run of batch.runs) {
+  console.log(run.case.name, run.variant.harness, run.variant.model, run.distribution.passRate);
 }
 await anpord.dispose();
 \`\`\`
@@ -56,7 +60,7 @@ Rules that decide whether the result means anything:
 - \`verify\` decides pass or fail. Without one the trial is recorded but unscored.
 - Pin \`ref\` to a commit, or the same eval measures different code each run.
 - Three trials or more: one trial measures an outcome, not repeatability.
-- Change one field at a time across tasks, or a difference has two causes.
+- Change one field at a time across variants, or a difference has two causes.
 
 Reference:
 

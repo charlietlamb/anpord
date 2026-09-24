@@ -26,9 +26,8 @@ import type {
 } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { HarnessName } from "../domain/variant";
+import { AUTO_STOP_MINUTES } from "../grid/trial";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
-
-const AUTO_STOP_MINUTES = 15;
 
 /* Names the operator rather than a person: the resolver a local run is given
    reads the environment, so there is no row for this to be scoped against. */

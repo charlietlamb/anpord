@@ -19,5 +19,3 @@ export const useRunCase = (caseId: string, variant: string | null) => {
     },
   });
 };
-
-export type CaseRun = ReturnType<typeof useRunCase>;

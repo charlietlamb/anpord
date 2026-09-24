@@ -23,7 +23,9 @@ export function TrialScreen({
     return <TrialSkeleton />;
   }
 
-  const trial = run.trials.find((candidate) => candidate.id === address.trialId);
+  const trial = run.trials.find(
+    (candidate) => candidate.id === address.trialId
+  );
 
   if (trial === undefined) {
     return (
