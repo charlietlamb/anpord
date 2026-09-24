@@ -1,12 +1,19 @@
 import type { Channel } from "@anpord/schema/domain/channels";
 import { Button } from "@anpord/ui/components/button";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableHead,
+  DataTableSkeleton,
+} from "@anpord/ui/components/ui/data-table";
 import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
 import { ChannelListRow } from "@/components/channels/channel-list-row";
-import { ChannelListSkeleton } from "@/components/channels/channel-list-skeleton";
 import { ListState } from "@/components/layout/list-state";
-import { RowList } from "@/components/layout/row-list";
-import { SettingsPanel } from "@/components/settings/settings-panel";
-import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
+import { PageHeader } from "@/components/layout/page-header";
+import { CHANNELS_TABLE } from "@/lib/settings/settings-tables";
+
+const DESCRIPTION =
+  "A channel points at one version, so you can ship a new one without a deploy.";
 
 interface ChannelsScreenProps {
   readonly error: Error | null;
@@ -25,45 +32,44 @@ export function ChannelsScreen({
   onNew,
   rows,
 }: ChannelsScreenProps) {
-  const nav = useListKeyboardNav(rows.length);
-
-  const newChannel = (
-    <Button onClick={onNew} size="sm">
-      <PlusIcon />
-      New channel
-    </Button>
-  );
-
   return (
-    <SettingsPanel
-      actions={newChannel}
-      description="A channel points at one version, so you can ship a new one without a deploy."
-      title="Channels"
-    >
+    <>
+      <PageHeader
+        actions={
+          <Button onClick={onNew} size="sm">
+            <PlusIcon />
+            New channel
+          </Button>
+        }
+        description={DESCRIPTION}
+        title="Channels"
+      />
       <ListState
-        action={newChannel}
-        description="A channel points at one version, so you can ship a new one without a deploy."
+        description={DESCRIPTION}
         empty={rows.length === 0}
         error={error}
         icon={<BroadcastIcon />}
         isPending={isPending}
-        skeleton={<ChannelListSkeleton />}
+        skeleton={<DataTableSkeleton {...CHANNELS_TABLE} rows={3} />}
         title="No channels yet"
       >
-        <RowList label="Channels" onKeyDown={nav.onKeyDown} role="listbox">
-          {rows.map((channel, index) => (
-            <ChannelListRow
-              channel={channel}
-              key={channel.name}
-              onDelete={() => onDelete(channel)}
-              onEdit={() => onEdit(channel)}
-              onMouseEnter={() => nav.setActiveIndex(index)}
-              ref={nav.registerRow(index)}
-              tabIndex={index === nav.activeIndex ? 0 : -1}
-            />
-          ))}
-        </RowList>
+        <DataTable
+          columns={CHANNELS_TABLE.columns}
+          label={CHANNELS_TABLE.label}
+        >
+          <DataTableHead headings={CHANNELS_TABLE.headings} />
+          <DataTableBody>
+            {rows.map((channel) => (
+              <ChannelListRow
+                channel={channel}
+                key={channel.name}
+                onDelete={() => onDelete(channel)}
+                onEdit={() => onEdit(channel)}
+              />
+            ))}
+          </DataTableBody>
+        </DataTable>
       </ListState>
-    </SettingsPanel>
+    </>
   );
 }

@@ -7,7 +7,7 @@ import {
   FloppyDiskIcon,
   HashIcon,
 } from "@phosphor-icons/react";
-import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
+import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { DetailRowFrame } from "@/components/prompts/detail-row-frame";
 import { useRelativeTime } from "@/lib/use-relative-time";

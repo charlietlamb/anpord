@@ -1,4 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
+import { Input } from "@anpord/ui/components/input";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 
 interface PromptSearchProps {
@@ -10,26 +11,27 @@ export function PromptSearch({ onChange, value }: PromptSearchProps) {
   return (
     <div className="relative flex items-center">
       <MagnifyingGlassIcon
-        className="pointer-events-none absolute left-2 text-muted-foreground"
-        size={14}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground"
       />
-      <input
+      <Input
         aria-label="Search prompts"
-        className="h-8 w-44 rounded-md border border-border bg-alpha-4 pr-7 pl-7 text-label outline-none transition-colors placeholder:text-muted-foreground focus:w-56 focus:border-border [&::-webkit-search-cancel-button]:hidden"
+        className="w-44 px-8 focus:w-56 [&::-webkit-search-cancel-button]:hidden"
         onChange={(event) => onChange(event.target.value)}
         placeholder="Search…"
+        size="sm"
         type="search"
         value={value}
       />
       {value ? (
         <Button
           aria-label="Clear search"
-          className="absolute right-0.5 size-6 rounded"
+          className="absolute right-0.5"
           onClick={() => onChange("")}
-          size="icon-sm"
+          size="icon-xs"
           variant="bare"
         >
-          <XIcon size={13} />
+          <XIcon />
         </Button>
       ) : null}
     </div>

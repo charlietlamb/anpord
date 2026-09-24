@@ -62,27 +62,25 @@ export function AppSidebar() {
             ) : null}
             <SidebarGroupContent>
               <SidebarMenu>
-                {section.items.map((item) => (
-                  <SidebarMenuItem key={item.label}>
-                    <SidebarMenuButton
-                      className="font-normal group-data-[collapsible=icon]:justify-center"
-                      isActive={isNavItemActive(item, pathname)}
-                      render={<Link to={item.to} />}
-                      tooltip={item.label}
-                    >
-                      <item.icon
-                        weight={
-                          isNavItemActive(item, pathname)
-                            ? (item.iconWeight ?? "fill")
-                            : "regular"
-                        }
-                      />
-                      <span className="group-data-[collapsible=icon]:hidden">
-                        {item.label}
-                      </span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {section.items.map((item) => {
+                  const active = isNavItemActive(item, pathname);
+
+                  return (
+                    <SidebarMenuItem key={item.label}>
+                      <SidebarMenuButton
+                        className="font-normal group-data-[collapsible=icon]:justify-center"
+                        isActive={active}
+                        render={<Link to={item.to} />}
+                        tooltip={item.label}
+                      >
+                        <item.icon weight={active ? "fill" : "regular"} />
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.label}
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

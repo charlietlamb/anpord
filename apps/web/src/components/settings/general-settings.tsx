@@ -1,4 +1,4 @@
-import { SettingsPanel } from "@/components/settings/settings-panel";
+import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizationSettingsForm } from "@/lib/use-organization-settings-form";
 import { useOrganizations } from "@/lib/use-organizations";
 
@@ -10,10 +10,11 @@ export function GeneralSettings() {
   });
 
   return (
-    <SettingsPanel
-      description="Update your organization's name and slug."
-      title="General"
-    >
+    <>
+      <PageHeader
+        description="Update your organization's name and slug."
+        title="General"
+      />
       {activeOrganization ? (
         <form
           className="flex max-w-sm flex-col gap-4"
@@ -43,6 +44,6 @@ export function GeneralSettings() {
           Select or create an organization to manage settings.
         </p>
       )}
-    </SettingsPanel>
+    </>
   );
 }

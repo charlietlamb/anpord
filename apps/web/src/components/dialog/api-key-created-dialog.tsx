@@ -1,6 +1,6 @@
 import { Button } from "@anpord/ui/components/button";
-import { CopyButton } from "@anpord/ui/components/copy-button";
 import { BaseDialog } from "@anpord/ui/components/dialog/base-dialog";
+import { CodeBlock } from "@anpord/ui/components/ui/code-block";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 
 interface ApiKeyCreatedDialogProps {
@@ -23,16 +23,9 @@ export function ApiKeyCreatedDialog({
       open={open}
       title={`${name} is ready`}
     >
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2.5">
-        <code className="min-w-0 flex-1 truncate font-mono text-label">
-          {apiKey}
-        </code>
-        <CopyButton
-          className="size-7 shrink-0"
-          label="Copy key"
-          value={apiKey}
-        />
-      </div>
+      <CodeBlock className="whitespace-pre-wrap break-all" copyValue={apiKey}>
+        {apiKey}
+      </CodeBlock>
 
       <Button onClick={close}>I've saved it</Button>
     </BaseDialog>

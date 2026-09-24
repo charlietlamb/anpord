@@ -1,57 +1,41 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
-import type { Ref } from "react";
-import { ListRow, RowTitle } from "@/components/layout/list-row";
+import { DataTableRow } from "@anpord/ui/components/ui/data-table";
+import { Link } from "@tanstack/react-router";
+import { LINKED_ROW, ROW_LINK } from "@/components/layout/row-link";
 import { PromptEditorAvatar } from "@/components/prompts/prompt-editor-avatar";
 import { PromptRowActions } from "@/components/prompts/prompt-row-actions";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
-interface PromptRowProps {
-  readonly onMouseEnter?: () => void;
-  readonly prompt: PromptSummary;
-  readonly ref?: Ref<HTMLElement>;
-  readonly tabIndex?: number;
-}
-
-export function PromptRow({
-  onMouseEnter,
-  prompt,
-  ref,
-  tabIndex,
-}: PromptRowProps) {
+export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
   const updated = useRelativeTime(prompt.updatedAt);
-
-  /* The serving version is what callers receive; the highest stands in until one is published. */
   const version = prompt.productionVersion ?? prompt.latestVersion;
 
   return (
-    <ListRow
-      actions={<PromptRowActions id={prompt.id} />}
-      leading={<PromptEditorAvatar author={prompt.author} />}
-      meta={
-        <>
-          {version === null ? null : (
-            <span className="w-8 text-right text-muted-foreground/70">
-              v{version}
-            </span>
-          )}
-          <span className="w-24 whitespace-nowrap text-right">{updated}</span>
-        </>
-      }
-      onMouseEnter={onMouseEnter}
-      params={{ id: prompt.id }}
-      ref={ref}
-      tabIndex={tabIndex}
-      to="/prompts/$id"
-    >
-      <RowTitle>{prompt.name}</RowTitle>
-      <span className="ml-2.5 font-mono text-muted-foreground/60 text-xs">
-        {prompt.id}
-      </span>
-      {prompt.description ? (
-        <span className="ml-2.5 text-muted-foreground/70">
-          {prompt.description}
+    <DataTableRow className={LINKED_ROW}>
+      <span className="flex min-w-0 items-center gap-2.5">
+        <PromptEditorAvatar author={prompt.author} />
+        <Link className={ROW_LINK} params={{ id: prompt.id }} to="/prompts/$id">
+          {prompt.name}
+        </Link>
+        <span className="shrink-0 font-mono text-muted-foreground text-xs">
+          {prompt.id}
         </span>
-      ) : null}
-    </ListRow>
+        {prompt.description ? (
+          <span className="truncate text-muted-foreground">
+            {prompt.description}
+          </span>
+        ) : null}
+      </span>
+
+      <span className="text-muted-foreground tabular-nums">
+        {version === null ? "—" : `v${version}`}
+      </span>
+
+      <span className="truncate text-muted-foreground tabular-nums">
+        {updated}
+      </span>
+
+      <PromptRowActions id={prompt.id} />
+    </DataTableRow>
   );
 }

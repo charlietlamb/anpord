@@ -9,10 +9,8 @@ import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 import { PromptEditorActions } from "@/components/prompts/prompt-editor-actions";
-import {
-  PromptEditorLayout,
-  PromptEditorMain,
-} from "@/components/prompts/prompt-editor-layout";
+import { PromptEditorLayout } from "@/components/prompts/prompt-editor-layout";
+import { PromptEditorMain } from "@/components/prompts/prompt-editor-main";
 import { PromptEditorTitle } from "@/components/prompts/prompt-editor-title";
 import { PromptRail } from "@/components/prompts/prompt-rail";
 import { useDialog } from "@/lib/dialog/dialogs";

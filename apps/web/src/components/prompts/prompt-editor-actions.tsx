@@ -66,7 +66,7 @@ export function PromptEditorActions({
 
       <ShortcutButton
         className={cn(
-          "h-8 shrink-0 rounded-full px-3.5 transition-surface",
+          "shrink-0 transition-surface",
           armed ? undefined : "disabled:opacity-100"
         )}
         disabled={!armed}
@@ -75,11 +75,7 @@ export function PromptEditorActions({
         size="sm"
         variant={armed ? "default" : "subtle"}
       >
-        {saving ? (
-          <SpinnerGapIcon className="animate-spin" size={15} />
-        ) : (
-          <ArrowUpIcon size={15} />
-        )}
+        {saving ? <SpinnerGapIcon className="animate-spin" /> : <ArrowUpIcon />}
         {saveLabel}
       </ShortcutButton>
     </ActionCluster>

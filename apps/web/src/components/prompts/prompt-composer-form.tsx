@@ -57,16 +57,16 @@ export function PromptComposerForm({
 
         <ComposerToolbarGroup className="ml-auto">
           <ShortcutButton
-            className="ml-1 h-8"
+            className="ml-1"
             disabled={!canSubmit}
             metaShortcut="enter"
             onClick={onSubmit}
             size="sm"
           >
             {saving ? (
-              <SpinnerGapIcon className="animate-spin" size={15} />
+              <SpinnerGapIcon className="animate-spin" />
             ) : (
-              <SubmitIcon size={15} />
+              <SubmitIcon />
             )}
             {submitLabel}
           </ShortcutButton>

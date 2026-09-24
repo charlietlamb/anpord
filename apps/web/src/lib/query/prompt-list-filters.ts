@@ -1,10 +1,26 @@
-import type {
-  PromptSortOrder,
-  PromptStatusFilter,
-} from "@anpord/schema/domain/prompts";
+import {
+  createLoader,
+  type inferParserType,
+  parseAsString,
+  parseAsStringLiteral,
+} from "nuqs";
 
-export interface PromptListFilters {
-  readonly search: string;
-  readonly sort: PromptSortOrder;
-  readonly status: PromptStatusFilter;
-}
+const SEARCH_THROTTLE_MS = 250;
+
+export const PROMPT_SORT_OPTIONS = [
+  { label: "Recently updated", value: "updated" },
+  { label: "Name", value: "name" },
+] as const;
+
+export const promptListParsers = {
+  q: parseAsString
+    .withDefault("")
+    .withOptions({ clearOnDefault: true, throttleMs: SEARCH_THROTTLE_MS }),
+  sort: parseAsStringLiteral(PROMPT_SORT_OPTIONS.map((option) => option.value))
+    .withDefault("updated")
+    .withOptions({ clearOnDefault: true }),
+};
+
+export const loadPromptListFilters = createLoader(promptListParsers);
+
+export type PromptListFilters = inferParserType<typeof promptListParsers>;

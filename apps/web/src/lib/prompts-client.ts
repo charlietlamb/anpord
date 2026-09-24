@@ -16,7 +16,6 @@ export const listPrompts = (params: {
   limit?: number;
   q?: string;
   sort?: string;
-  status?: string;
 }) => api.request(PromptPage, searchOf(params));
 
 export const listVersions = (id: string) =>

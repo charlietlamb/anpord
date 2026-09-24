@@ -1,3 +1,4 @@
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { useIsClient } from "@/lib/use-is-client";
 
@@ -15,8 +16,8 @@ export function ComposerHeading() {
       : "What are you creating today?";
 
   return (
-    <h1 className="fade-in-0 slide-in-from-bottom-1 mb-5 animate-in text-balance font-heading text-2xl tracking-tight ease-out [animation-duration:400ms]">
-      {greeting}
+    <h1 className="fade-in-0 slide-in-from-bottom-1 mb-5 flex animate-in ease-out [animation-duration:400ms]">
+      <PageHeading title={greeting} />
     </h1>
   );
 }

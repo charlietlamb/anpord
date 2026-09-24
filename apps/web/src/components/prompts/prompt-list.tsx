@@ -1,8 +1,14 @@
 import type { PromptSummary } from "@anpord/schema/domain/prompts";
-import { RowList } from "@/components/layout/row-list";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableFooter,
+  DataTableHead,
+} from "@anpord/ui/components/ui/data-table";
 import { ShowMore } from "@/components/layout/show-more";
 import { PromptRow } from "@/components/prompts/prompt-row";
-import { useListKeyboardNav } from "@/lib/use-list-keyboard-nav";
+import { counted } from "@/lib/evals/conversation";
+import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";
 
 interface PromptListProps {
   readonly hasMore: boolean;
@@ -17,29 +23,26 @@ export function PromptList({
   onLoadMore,
   prompts,
 }: PromptListProps) {
-  const nav = useListKeyboardNav(prompts.length);
-
   return (
-    <div className="flex flex-col gap-3">
-      <RowList label="Prompts" onKeyDown={nav.onKeyDown} role="listbox">
-        {prompts.map((prompt, index) => (
-          <PromptRow
-            key={prompt.id}
-            onMouseEnter={() => nav.setActiveIndex(index)}
-            prompt={prompt}
-            ref={nav.registerRow(index)}
-            tabIndex={index === nav.activeIndex ? 0 : -1}
-          />
+    <DataTable columns={PROMPTS_TABLE.columns} label={PROMPTS_TABLE.label}>
+      <DataTableHead headings={PROMPTS_TABLE.headings} />
+      <DataTableBody>
+        {prompts.map((prompt) => (
+          <PromptRow key={prompt.id} prompt={prompt} />
         ))}
-      </RowList>
-
-      <ShowMore
-        className="self-start"
-        hasMore={hasMore}
-        label="Show more"
-        loading={loadingMore}
-        onMore={onLoadMore}
-      />
-    </div>
+      </DataTableBody>
+      <DataTableFooter
+        actions={
+          <ShowMore
+            hasMore={hasMore}
+            label="Show more"
+            loading={loadingMore}
+            onMore={onLoadMore}
+          />
+        }
+      >
+        Showing {counted(prompts.length, "prompt", "prompts")}
+      </DataTableFooter>
+    </DataTable>
   );
 }

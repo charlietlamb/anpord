@@ -4,18 +4,15 @@ import {
   FlaskIcon,
   GearIcon,
   type Icon,
-  type IconWeight,
 } from "@phosphor-icons/react";
 
-export interface NavItem {
-  comingSoon?: boolean;
+interface NavItem {
   icon: Icon;
-  iconWeight?: IconWeight;
   label: string;
   to: string;
 }
 
-export interface NavSection {
+interface NavSection {
   items: NavItem[];
   label?: string;
 }
@@ -29,11 +26,5 @@ export const DASHBOARD_NAV: NavSection[] = [
 ];
 
 export function isNavItemActive(item: NavItem, pathname: string) {
-  if (item.comingSoon) {
-    return false;
-  }
-  if (item.to === "/") {
-    return pathname === "/";
-  }
   return pathname === item.to || pathname.startsWith(`${item.to}/`);
 }

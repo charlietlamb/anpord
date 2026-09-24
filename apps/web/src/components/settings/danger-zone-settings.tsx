@@ -1,62 +1,50 @@
 import { Button } from "@anpord/ui/components/button";
-import { useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
-import { SettingsPanel } from "@/components/settings/settings-panel";
-import { authClient } from "@/lib/auth-client";
+import { Surface } from "@anpord/ui/components/ui/surface";
+import { PageHeader } from "@/components/layout/page-header";
 import { useDialog } from "@/lib/dialog/dialogs";
+import { useDeleteOrganization } from "@/lib/use-delete-organization";
 import { useOrganizations } from "@/lib/use-organizations";
 
 export function DangerZoneSettings() {
   const { activeOrganization } = useOrganizations();
   const { open } = useDialog();
-  const router = useRouter();
-
-  async function deleteOrganization() {
-    if (!activeOrganization) {
-      return;
-    }
-    const { error } = await authClient.organization.delete({
-      organizationId: activeOrganization.id,
-    });
-    if (error) {
-      toast.error("Couldn't delete organization", {
-        description: error.message ?? "Please try again.",
-      });
-      return;
-    }
-    toast.success("Organization deleted");
-    router.invalidate();
-  }
+  const remove = useDeleteOrganization();
+  const name = activeOrganization?.name ?? "this organization";
 
   return (
-    <SettingsPanel
-      description="Irreversible actions for this organization."
-      title="Danger zone"
-    >
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-destructive/25 px-4 py-3">
-        <div className="flex flex-col gap-0.5">
-          <p className="font-medium text-sm">Delete organization</p>
-          <p className="text-muted-foreground text-sm">
-            Permanently delete {activeOrganization?.name ?? "this organization"}{" "}
-            and all its data.
+    <>
+      <PageHeader
+        description="Irreversible actions for this organization."
+        title="Danger zone"
+      />
+      <Surface className="flex items-center justify-between gap-4 px-4 py-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <p className="font-medium text-label">Delete organization</p>
+          <p className="text-label text-muted-foreground">
+            Permanently delete {name} and all its data.
           </p>
         </div>
         <Button
-          disabled={!activeOrganization}
+          disabled={!activeOrganization || remove.isPending}
           onClick={() =>
             open("confirm", {
               title: "Delete organization",
-              description: `This permanently deletes ${activeOrganization?.name} and all its credentials, sessions, and audit logs. This cannot be undone.`,
+              description: `This permanently deletes ${name} and all its credentials, sessions, and audit logs. This cannot be undone.`,
               confirmLabel: "Delete organization",
               destructive: true,
-              onConfirm: deleteOrganization,
+              onConfirm: () => {
+                if (activeOrganization) {
+                  remove.mutate(activeOrganization.id);
+                }
+              },
             })
           }
+          size="sm"
           variant="destructive"
         >
-          Delete
+          {remove.isPending ? "Deleting…" : "Delete"}
         </Button>
-      </div>
-    </SettingsPanel>
+      </Surface>
+    </>
   );
 }

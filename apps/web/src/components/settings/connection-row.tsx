@@ -2,18 +2,15 @@ import type {
   CredentialConnection,
   CredentialIntegration,
 } from "@anpord/schema/domain/credentials";
-import { Button } from "@anpord/ui/components/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@anpord/ui/components/dropdown-menu";
+import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { DotsThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
-import { ListRow, RowTitle } from "@/components/layout/list-row";
-import { ROW_ACTION } from "@/components/layout/row-action";
+import { StarIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
+import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
 import { useRelativeTime } from "@/lib/use-relative-time";
 
@@ -41,72 +38,48 @@ export function ConnectionRow({
   );
 
   return (
-    <ListRow
-      actions={
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                aria-label={`Actions for ${connection.name}`}
-                className={ROW_ACTION}
-                size="icon-sm"
-                variant="bare"
-              />
-            }
-          >
-            <DotsThreeIcon />
-          </DropdownMenuTrigger>
+    <DataTableRow>
+      <span className="flex min-w-0 items-center gap-2.5">
+        <own.Icon className="size-3.5 shrink-0 text-muted-foreground" />
+        <span className="truncate text-foreground">{connection.name}</span>
+      </span>
 
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onVerify}>
-              Check it works
-            </DropdownMenuItem>
-            {onRotate ? (
-              <DropdownMenuItem onClick={onRotate}>
-                Rotate secret
-              </DropdownMenuItem>
-            ) : null}
-            {connection.isDefault ? null : (
-              <DropdownMenuItem onClick={onDefault}>
-                Make default
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={onRemove}
-            >
-              Remove
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      }
-      leading={<own.Icon className="size-3.5 shrink-0 text-muted-foreground" />}
-      meta={
-        <span className="whitespace-nowrap">
-          {connection.lastUsedAt === null ? "Never used" : `Used ${used}`}
-        </span>
-      }
-    >
-      <span className="flex min-w-0 items-center gap-2">
-        <RowTitle>{connection.name}</RowTitle>
+      <span className="truncate text-muted-foreground">
+        {method?.label ?? "—"}
+      </span>
 
-        <span className="truncate text-muted-foreground/60 text-xs">
-          {[
-            method?.label ?? null,
-            connection.scope === "personal" ? "Only you" : null,
-            connection.isDefault ? "Default" : null,
-          ]
-            .filter((part) => part !== null)
-            .join(" · ")}
-        </span>
+      <span className="truncate text-muted-foreground">
+        {connection.scope === "personal" ? "Only you" : "Organization"}
+      </span>
 
+      <span className="flex min-w-0 items-center gap-1.5">
         {connection.status === "invalid" ? (
           <StatusBadge icon={WarningCircleIcon} size="xs" tone="destructive">
             Invalid
           </StatusBadge>
         ) : null}
+        {connection.isDefault ? (
+          <StatusBadge icon={StarIcon} size="xs">
+            Default
+          </StatusBadge>
+        ) : null}
       </span>
-    </ListRow>
+
+      <span className="truncate text-muted-foreground tabular-nums">
+        {connection.lastUsedAt === null ? "Never" : used}
+      </span>
+
+      <RowActionsMenu label={`Actions for ${connection.name}`}>
+        <DropdownMenuItem onClick={onVerify}>Check it works</DropdownMenuItem>
+        {onRotate ? (
+          <DropdownMenuItem onClick={onRotate}>Rotate secret</DropdownMenuItem>
+        ) : null}
+        {connection.isDefault ? null : (
+          <DropdownMenuItem onClick={onDefault}>Make default</DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DestructiveMenuItem onClick={onRemove}>Remove</DestructiveMenuItem>
+      </RowActionsMenu>
+    </DataTableRow>
   );
 }

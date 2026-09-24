@@ -8,10 +8,10 @@ import { SETTINGS_NAV } from "@/components/settings/settings-nav";
 export function SettingsSidebar() {
   return (
     <aside className="flex min-w-0 flex-col gap-6">
-      <h1 className="flex items-center gap-2 font-medium text-muted-foreground text-xs">
+      <p className="flex min-h-9 items-center gap-2 font-medium text-muted-foreground text-xs">
         <GearIcon className="size-3.5 shrink-0" weight="fill" />
         Settings
-      </h1>
+      </p>
 
       {SETTINGS_NAV.map((section) => (
         <RailSection key={section.label} title={section.label}>
@@ -20,11 +20,11 @@ export function SettingsSidebar() {
               <Link
                 activeOptions={{ exact: item.to === "/settings" }}
                 activeProps={{
-                  className: "bg-muted font-medium text-foreground",
+                  className: "bg-alpha-8 font-medium text-foreground",
                 }}
                 className={cn(
                   BLEED_ROW_FULL,
-                  "flex h-8 items-center gap-2 rounded-md text-muted-foreground text-xs transition-colors hover:bg-muted/50 hover:text-foreground"
+                  "flex h-8 items-center gap-2 rounded-md text-muted-foreground text-xs transition-colors hover:bg-alpha-4 hover:text-foreground"
                 )}
                 key={item.to}
                 to={item.to}

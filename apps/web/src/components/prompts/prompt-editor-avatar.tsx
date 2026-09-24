@@ -1,6 +1,6 @@
 import type { Author } from "@anpord/schema/domain/prompts";
 import { initials } from "@anpord/ui/lib/initials";
-import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
+import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 
 export function PromptEditorAvatar({
   author,

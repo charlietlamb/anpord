@@ -1,27 +1,22 @@
-import type {
-  CredentialIntegration,
-  DeviceAuthChallenge,
-} from "@anpord/schema/domain/credentials";
+import type { CredentialIntegration } from "@anpord/schema/domain/credentials";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { LabelledField } from "@anpord/ui/components/form/labelled-field";
 import { LabelledSelect } from "@anpord/ui/components/form/labelled-select";
-import { Input } from "@anpord/ui/components/input";
-import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { VariantLabel } from "@/components/evals/variant-label";
 import { CredentialFields } from "@/components/settings/credential-fields";
 import { DeviceChallenge } from "@/components/settings/device-challenge";
 import { credentialsClient } from "@/lib/credentials-client";
 import { incompleteCredential } from "@/lib/settings/credential-values";
 import { integrationPresentation } from "@/lib/settings/integration-presentation";
+import { useCredentialMutation } from "@/lib/settings/use-credential-mutation";
+import { useDeviceLogin } from "@/lib/settings/use-device-login";
 
-const POLL_MS = 2000;
-
-/* Neither is an account to sign in to: env hands a run the variables the
-   customer names, and command runs the customer's own process. They are
-   chosen on the run, not connected here. */
 const CREDENTIAL_ONLY = new Set(["command", "env"]);
+
+const SCOPE_OPTIONS = [
+  { label: "Everyone in the organization", value: "organization" },
+  { label: "Only me", value: "personal" },
+];
 
 const COPY = {
   harness: {
@@ -54,214 +49,223 @@ const submitLabel = (device: boolean, pending: boolean, waiting: boolean) => {
   return device ? "Connect ChatGPT" : "Add connection";
 };
 
+interface ConnectionValues {
+  readonly integrationId: string;
+  readonly methodId: string;
+  readonly name: string;
+  readonly values: Readonly<Record<string, string>>;
+}
+
+const scopeOf = (scope: string) =>
+  scope === "personal" ? "personal" : "organization";
+
 export function ConnectionDialog({
   category,
   integrations: all,
   onClose,
-  onCreated,
   open,
 }: {
-  readonly category: CredentialIntegration["category"] | null;
+  readonly category: CredentialIntegration["category"];
   readonly integrations: readonly CredentialIntegration[];
   readonly onClose: () => void;
-  readonly onCreated: () => void;
   readonly open: boolean;
 }) {
-  const copy = COPY[category ?? "harness"];
+  const copy = COPY[category];
   const integrations = all.filter(
     (item) => item.category === category && !CREDENTIAL_ONLY.has(item.id)
   );
+  const methodsOf = (id: string) =>
+    integrations.find((item) => item.id === id)?.authMethods ?? [];
+  const methodOf = (value: ConnectionValues) =>
+    methodsOf(value.integrationId).find((item) => item.id === value.methodId);
+  const incomplete = (value: ConnectionValues) => {
+    const method = methodOf(value);
 
-  const [integrationId, setIntegrationId] = useState(integrations[0]?.id ?? "");
-  const integration = integrations.find((item) => item.id === integrationId);
-
-  const [methodId, setMethodId] = useState(
-    integrations[0]?.authMethods[0]?.id ?? ""
-  );
-  const method = integration?.authMethods.find((item) => item.id === methodId);
-
-  const [name, setName] = useState("");
-  const [scope, setScope] = useState("organization");
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [challenge, setChallenge] = useState<DeviceAuthChallenge | null>(null);
-  const [pending, setPending] = useState(false);
-
-  const isDevice = method?.kind === "device";
-
-  const reset = () => {
-    setName("");
-    setValues({});
-    setChallenge(null);
+    return (
+      value.name.trim() === "" ||
+      method === undefined ||
+      incompleteCredential(method, value.values)
+    );
   };
 
+  const create = useCredentialMutation({
+    mutationFn: credentialsClient.create,
+    success: "Connection added",
+  });
+
+  const form = useAppForm({
+    defaultValues: {
+      integrationId: integrations[0]?.id ?? "",
+      methodId: integrations[0]?.authMethods[0]?.id ?? "",
+      name: "",
+      scope: "organization",
+      values: {} as Readonly<Record<string, string>>,
+    },
+    onSubmit: ({ value }) => {
+      if (incomplete(value) || device.challenge !== null) {
+        return;
+      }
+
+      const name = value.name.trim();
+
+      if (methodOf(value)?.kind === "device") {
+        device.start({
+          integrationId: "codex",
+          name,
+          scope: scopeOf(value.scope),
+        });
+        return;
+      }
+
+      create.mutate(
+        {
+          authMethodId: value.methodId,
+          integrationId: value.integrationId,
+          isDefault: false,
+          name,
+          scope: scopeOf(value.scope),
+          values: value.values,
+        },
+        { onSuccess: close }
+      );
+    },
+  });
+
   const close = () => {
-    reset();
+    form.reset();
+    device.reset();
     onClose();
   };
 
-  useEffect(() => {
-    if (!challenge) {
-      return;
-    }
+  const device = useDeviceLogin(close);
 
-    const interval = window.setInterval(async () => {
-      const result = await credentialsClient.deviceStatus(challenge.attemptId);
-
-      if (result.status === "complete") {
-        window.clearInterval(interval);
-        setName("");
-        setValues({});
-        setChallenge(null);
-        onCreated();
-        onClose();
-        toast.success("ChatGPT connected");
-      }
-
-      if (result.status === "failed" || result.status === "expired") {
-        window.clearInterval(interval);
-        toast.error(`ChatGPT login ${result.status}`);
-      }
-    }, POLL_MS);
-
-    return () => window.clearInterval(interval);
-  }, [challenge, onClose, onCreated]);
-
-  const chooseIntegration = (id: string) => {
-    const selected = integrations.find((item) => item.id === id);
-
-    setIntegrationId(id);
-    setMethodId(selected?.authMethods[0]?.id ?? "");
-    setValues({});
-    setChallenge(null);
-  };
-
-  const missing = method !== undefined && incompleteCredential(method, values);
-
-  const submit = async () => {
-    if (!(integration && method && name.trim()) || missing) {
-      return;
-    }
-
-    setPending(true);
-
-    try {
-      if (method.kind === "device") {
-        setChallenge(
-          await credentialsClient.startDevice({
-            /* Only codex offers device auth, so only codex can start one. */
-            integrationId: "codex",
-            name: name.trim(),
-            scope: scope === "personal" ? "personal" : "organization",
-          })
-        );
-      } else {
-        await credentialsClient.create({
-          authMethodId: method.id,
-          integrationId: integration.id,
-          isDefault: false,
-          name: name.trim(),
-          scope: scope === "personal" ? "personal" : "organization",
-          values,
-        });
-
-        reset();
-        onCreated();
-        onClose();
-        toast.success("Connection added");
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Connection failed");
-    } finally {
-      setPending(false);
-    }
+  const restart = () => {
+    form.setFieldValue("values", {});
+    device.reset();
   };
 
   return (
     <FormDialog
       description={copy.description}
       onClose={close}
-      onSubmit={submit}
+      onSubmit={form.handleSubmit}
       open={open}
       title={copy.title}
     >
-      <LabelledSelect
-        id="connection-integration"
-        label={copy.field}
-        onChange={chooseIntegration}
-        options={integrations.map((item) => {
-          const own = integrationPresentation(item);
+      <form.Subscribe selector={(state) => state.values}>
+        {(values) => {
+          const methods = methodsOf(values.integrationId);
+          const method = methodOf(values);
+          const isDevice = method?.kind === "device";
+          const waiting = device.challenge !== null;
+          const pending = create.isPending || device.starting;
 
-          return {
-            label: <VariantLabel Icon={own.Icon}>{own.label}</VariantLabel>,
-            value: item.id,
-          };
-        })}
-        triggerClassName="w-full"
-        value={integrationId}
-      />
+          return (
+            <>
+              <form.AppField
+                listeners={{
+                  onChange: ({ value }) => {
+                    form.setFieldValue(
+                      "methodId",
+                      methodsOf(value)[0]?.id ?? ""
+                    );
+                    restart();
+                  },
+                }}
+                name="integrationId"
+              >
+                {(field) => (
+                  <LabelledSelect
+                    id="connection-integration"
+                    label={copy.field}
+                    onChange={field.handleChange}
+                    options={integrations.map((item) => {
+                      const own = integrationPresentation(item);
 
-      {(integration?.authMethods.length ?? 0) > 1 ? (
-        <LabelledSelect
-          id="connection-method"
-          label="Sign in with"
-          onChange={(next) => {
-            setMethodId(next);
-            setValues({});
-            setChallenge(null);
-          }}
-          options={(integration?.authMethods ?? []).map((item) => ({
-            label: item.label,
-            value: item.id,
-          }))}
-          triggerClassName="w-full"
-          value={methodId}
-        />
-      ) : null}
+                      return {
+                        label: (
+                          <VariantLabel Icon={own.Icon}>
+                            {own.label}
+                          </VariantLabel>
+                        ),
+                        value: item.id,
+                      };
+                    })}
+                    triggerClassName="w-full"
+                    value={field.state.value}
+                  />
+                )}
+              </form.AppField>
 
-      <LabelledField htmlFor="connection-name" label="Name">
-        <Input
-          autoFocus
-          id="connection-name"
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Team key, personal key…"
-          value={name}
-        />
-      </LabelledField>
+              {methods.length > 1 ? (
+                <form.AppField
+                  listeners={{ onChange: restart }}
+                  name="methodId"
+                >
+                  {(field) => (
+                    <LabelledSelect
+                      id="connection-method"
+                      label="Sign in with"
+                      onChange={field.handleChange}
+                      options={methods.map((item) => ({
+                        label: item.label,
+                        value: item.id,
+                      }))}
+                      triggerClassName="w-full"
+                      value={field.state.value}
+                    />
+                  )}
+                </form.AppField>
+              ) : null}
 
-      {method !== undefined && method.kind !== "device" ? (
-        <CredentialFields
-          method={method}
-          onChange={(next) => setValues({ ...next })}
-          values={values}
-        />
-      ) : null}
+              <form.AppField name="name">
+                {(field) => (
+                  <field.TextField
+                    label="Name"
+                    placeholder="Team key, personal key…"
+                  />
+                )}
+              </form.AppField>
 
-      <LabelledSelect
-        id="connection-scope"
-        label="Available to"
-        onChange={setScope}
-        options={[
-          { label: "Everyone in the organization", value: "organization" },
-          { label: "Only me", value: "personal" },
-        ]}
-        triggerClassName="w-full"
-        value={scope}
-      />
+              {method === undefined || isDevice ? null : (
+                <form.AppField name="values">
+                  {(field) => (
+                    <CredentialFields
+                      method={method}
+                      onChange={field.handleChange}
+                      values={field.state.value}
+                    />
+                  )}
+                </form.AppField>
+              )}
 
-      {challenge ? <DeviceChallenge challenge={challenge} /> : null}
+              <form.AppField name="scope">
+                {(field) => (
+                  <LabelledSelect
+                    id="connection-scope"
+                    label="Available to"
+                    onChange={field.handleChange}
+                    options={SCOPE_OPTIONS}
+                    triggerClassName="w-full"
+                    value={field.state.value}
+                  />
+                )}
+              </form.AppField>
 
-      <ShortcutButton
-        className="w-full"
-        disabled={
-          pending || challenge !== null || name.trim() === "" || missing
-        }
-        metaShortcut="enter"
-        onClick={submit}
-        size="lg"
-        type="button"
-      >
-        {submitLabel(isDevice, pending, challenge !== null)}
-      </ShortcutButton>
+              {device.challenge === null ? null : (
+                <DeviceChallenge challenge={device.challenge} />
+              )}
+
+              <form.AppForm>
+                <form.SubmitButton
+                  disabled={pending || waiting || incomplete(values)}
+                  label={submitLabel(isDevice, pending, waiting)}
+                />
+              </form.AppForm>
+            </>
+          );
+        }}
+      </form.Subscribe>
     </FormDialog>
   );
 }

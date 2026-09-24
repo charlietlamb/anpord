@@ -14,17 +14,12 @@ export function ImpersonationBanner() {
   const who = data?.user?.email ?? data?.user?.name ?? "another user";
 
   return (
-    <div className="flex items-center gap-2 border-amber-500/30 border-b bg-amber-500/10 px-4 py-1.5 text-xs">
-      <UserSwitchIcon className="size-3.5 shrink-0 text-amber-600 dark:text-amber-500" />
+    <div className="flex items-center gap-2 border-warning/25 border-b bg-warning/10 px-4 py-1.5 text-xs">
+      <UserSwitchIcon className="size-3.5 shrink-0 text-warning" />
       <span className="truncate">
         Viewing as <span className="font-medium">{who}</span>
       </span>
-      <Button
-        className="ml-auto h-6 px-2"
-        onClick={stop}
-        size="sm"
-        variant="outline"
-      >
+      <Button className="ml-auto" onClick={stop} size="sm" variant="outline">
         Stop
       </Button>
     </div>
