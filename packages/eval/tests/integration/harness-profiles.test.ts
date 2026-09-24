@@ -14,7 +14,7 @@ import { HarnessProfileRepository } from "../../src/repositories/harness-profile
 import { RunQuery } from "../../src/repositories/run-query";
 import { RunRepository } from "../../src/repositories/run-repository";
 import { skipWithoutDatabase } from "../fixtures/database";
-import { taskFixture } from "../fixtures/eval-rows";
+import { seedCaseVersion } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -81,16 +81,11 @@ describe.skipIf(skipWithoutDatabase())("harness profiles in the record", () => {
         );
 
         yield* Effect.promise(() =>
-          db
-            .insert(taskFixture.table)
-            .values(
-              taskFixture.values({
-                id: taskId,
-                internalId: caseVersionInternalId,
-                organizationId,
-              })
-            )
-            .onConflictDoNothing()
+          seedCaseVersion(db, {
+            id: taskId,
+            internalId: caseVersionInternalId,
+            organizationId,
+          })
         );
       })
     );

@@ -10,7 +10,7 @@ import { RunRepository } from "../../src/repositories/run-repository";
 import { TrialRecorder } from "../../src/repositories/trial-record";
 import { Baselines } from "../../src/services/baselines";
 import { skipWithoutDatabase } from "../fixtures/database";
-import { statusOf, taskFixture } from "../fixtures/eval-rows";
+import { seedCaseVersion, statusOf } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -153,13 +153,11 @@ describe.skipIf(skipWithoutDatabase())("the regression story", () => {
             })
             .onConflictDoNothing();
 
-          await db.insert(taskFixture.table).values(
-            taskFixture.values({
-              id: `task_story_${suffix}`,
-              internalId: caseVersionInternalId,
-              organizationId,
-            })
-          );
+          await seedCaseVersion(db, {
+            id: `task_story_${suffix}`,
+            internalId: caseVersionInternalId,
+            organizationId,
+          });
         });
       })
     );

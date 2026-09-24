@@ -42,3 +42,19 @@ describe("code inside markdown", () => {
     expect(html).toContain("one");
   });
 });
+
+test("a file the trial captured opens instead of navigating", () => {
+  const html = renderToStaticMarkup(
+    <MarkdownProse
+      openerFor={(path) =>
+        path === "autumn.config.ts" ? () => undefined : null
+      }
+      text={"Config: [autumn.config.ts](autumn.config.ts), see `README.md`"}
+    />
+  );
+
+  expect(html).toContain('<button class="cursor-pointer');
+  expect(html).toContain(">autumn.config.ts</button>");
+  expect(html).not.toContain('href="autumn.config.ts"');
+  expect(html).toContain("README.md</code>");
+});

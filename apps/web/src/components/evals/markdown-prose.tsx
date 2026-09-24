@@ -29,21 +29,47 @@ const unwrapped = (node: ReactNode): ReactNode =>
 /* Code renders through the same components as the rest of the interface, so a
    snippet inside a judge's answer looks like one anywhere else. Everything
    markdown adds beyond that is styled here. */
-const COMPONENTS: Components = {
-  code: ({ children }) => <InlineCode>{children}</InlineCode>,
-  /* A fence arrives wrapped in its own code element. CodeBlock is already the
-     pre, so the wrapper is unwrapped rather than nested inside it. */
+export type FileOpener = (path: string) => (() => void) | null;
+
+const opening = (open: () => void, children: ReactNode) => (
+  <button
+    className="cursor-pointer underline underline-offset-2"
+    onClick={open}
+    type="button"
+  >
+    {children}
+  </button>
+);
+
+const componentsFor = (openerFor?: FileOpener): Components => ({
+  a: ({ children, href }) => {
+    const open = openerFor?.(textOf(children));
+
+    return open == null ? (
+      <a href={href}>{children}</a>
+    ) : (
+      opening(open, children)
+    );
+  },
+  code: ({ children }) => {
+    const code = <InlineCode>{children}</InlineCode>;
+    const open = openerFor?.(textOf(children));
+
+    return open == null ? code : opening(open, code);
+  },
   pre: ({ children }) => (
     <CodeBlock copyValue={textOf(children)}>{unwrapped(children)}</CodeBlock>
   ),
-};
+});
 
 export function MarkdownProse({
-  text,
   className,
+  openerFor,
+  text,
 }: {
-  readonly text: string;
   readonly className?: string;
+  readonly openerFor?: FileOpener;
+  readonly text: string;
 }) {
   return (
     <div
@@ -56,7 +82,10 @@ export function MarkdownProse({
         className
       )}
     >
-      <Markdown components={COMPONENTS} remarkPlugins={[remarkGfm]}>
+      <Markdown
+        components={componentsFor(openerFor)}
+        remarkPlugins={[remarkGfm]}
+      >
         {text}
       </Markdown>
     </div>

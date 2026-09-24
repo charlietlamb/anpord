@@ -2,8 +2,6 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalCell } from "@anpord/db/schema/evals/eval-cells";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
@@ -26,7 +24,7 @@ import {
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
 import { skipWithoutDatabase } from "../fixtures/database";
-import { caseFixture, taskFixture } from "../fixtures/eval-rows";
+import { seedCaseVersion } from "../fixtures/eval-rows";
 
 const URL = process.env.EVAL_TEST_DATABASE_URL;
 
@@ -162,21 +160,11 @@ describe.skipIf(skipWithoutDatabase())("JournalArchive", () => {
             })
             .onConflictDoNothing();
 
-          await db.insert(evalCase).values(
-            caseFixture.values({
-              id: `task_arc_${suffix}`,
-              internalId: `taskint_arc_${suffix}`,
-              organizationId,
-            })
-          );
-
-          await db.insert(evalCaseVersion).values(
-            taskFixture.values({
-              id: `task_arc_${suffix}`,
-              internalId: `taskint_arc_${suffix}`,
-              organizationId,
-            })
-          );
+          await seedCaseVersion(db, {
+            id: `task_arc_${suffix}`,
+            internalId: `taskint_arc_${suffix}`,
+            organizationId,
+          });
 
           await db.insert(evalRun).values({
             cellCount: 1,

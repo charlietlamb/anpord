@@ -15,8 +15,7 @@ import {
   MinusCircleIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
-import { ArtifactFile } from "@/components/evals/artifact-file";
-import { SideSheet } from "@/components/layout/side-sheet";
+import { FileSheet } from "@/components/evals/file-sheet";
 import { FILES_TABLE } from "@/lib/evals/case-tables";
 import { bytes } from "@/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
@@ -97,21 +96,7 @@ export function TrialFiles({
         </DataTableBody>
       </DataTable>
 
-      <SideSheet
-        onOpenChange={(next) => {
-          if (!next) {
-            setOpenPath(null);
-          }
-        }}
-        open={open !== undefined}
-        title={openPath}
-      >
-        {open === undefined ? null : (
-          <div className="p-4">
-            <ArtifactFile artifact={open} trial={trial} />
-          </div>
-        )}
-      </SideSheet>
+      <FileSheet file={open} onClose={() => setOpenPath(null)} trial={trial} />
     </>
   );
 }

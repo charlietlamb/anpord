@@ -1,3 +1,4 @@
+import type { Database } from "@anpord/db/client";
 import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 
@@ -33,6 +34,24 @@ export const taskFixture = {
     verifyCommand: "node --test 2>&1",
     workspace: "/tmp/anpord-task",
   }),
+};
+
+export const seedCaseVersion = async (
+  db: Database["Type"],
+  input: {
+    readonly id: string;
+    readonly internalId: string;
+    readonly organizationId: string;
+  }
+) => {
+  await db
+    .insert(evalCase)
+    .values(caseFixture.values(input))
+    .onConflictDoNothing();
+  await db
+    .insert(evalCaseVersion)
+    .values(taskFixture.values(input))
+    .onConflictDoNothing();
 };
 
 /** A trial's status from what happened to it. Void wins over the verdict,

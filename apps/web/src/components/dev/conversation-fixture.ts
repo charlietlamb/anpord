@@ -68,5 +68,8 @@ export const CONVERSATION: readonly EvalJournalEntry[] = [
     paths: ["/tmp/anpord-task/autumn.config.ts"],
   },
   ran(33_000, 35_200, "npx atmn push --yes", "pushed pro: $20 / month"),
-  replied(38_000, "Pro is live in your Autumn sandbox."),
+  replied(
+    38_000,
+    "Pro is live in your Autumn sandbox.\n\nConfig: [autumn.config.ts](autumn.config.ts)"
+  ),
 ];

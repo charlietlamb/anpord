@@ -99,7 +99,9 @@ function WaterfallPreview() {
               running={false}
               trajectory={CONVERSATION}
               written={{
-                artifacts: [],
+                artifacts: [
+                  { byteSize: 412, path: "autumn.config.ts", sha256: "dev" },
+                ],
                 trial: { cellKey: "dev", id: "run_dev", ordinal: 1 },
               }}
             />
