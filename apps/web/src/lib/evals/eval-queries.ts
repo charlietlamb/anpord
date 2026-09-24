@@ -1,21 +1,13 @@
 import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
-import type {
-  EvalHarness,
-  EvalPageCursor,
-  EvalRun,
-  EvalRunPage,
-} from "@anpord/schema/domain/evals";
+import type { EvalPageCursor, EvalRun } from "@anpord/schema/domain/evals";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {
   getCase,
-  getModelCatalogue,
-  getPlayground,
   getRun,
   getTrialAddress,
   listCaseHistory,
   listCases,
-  listRuns,
   readRunTail,
 } from "@/lib/evals/evals-client";
 import {
@@ -26,7 +18,6 @@ import {
 } from "@/lib/evals/run-tail";
 
 const DETAIL_POLL_MS = 15_000;
-const LIST_POLL_MS = 5000;
 
 const TAIL_POLL_MS = 3000;
 
@@ -39,10 +30,6 @@ const LIVE = {
   staleTime: DETAIL_POLL_MS,
 } as const;
 
-/* Polls only while a run is still moving, so a finished page stops polling itself. */
-const pollWhileRunning = (page: EvalRunPage | undefined) =>
-  page?.runs.some((run) => run.status === "running") ? LIST_POLL_MS : false;
-
 const catchUp = async (id: string, held: HeardTail): Promise<HeardTail> => {
   const read = await readRunTail(id, held.next);
   const heard = heardTail(held, read);
@@ -51,14 +38,6 @@ const catchUp = async (id: string, held: HeardTail): Promise<HeardTail> => {
 };
 
 export const evalQueries = {
-  list: (cursor: EvalPageCursor | null) =>
-    queryOptions({
-      queryKey: evalKeys.list(cursor),
-      queryFn: () => listRuns(cursor),
-      refetchInterval: (query) => pollWhileRunning(query.state.data),
-      ...LIVE,
-    }),
-
   cases: (tag: string | null, cursor: EvalPageCursor | null = null) =>
     queryOptions({
       queryKey: evalKeys.cases(tag, cursor),
@@ -121,18 +100,5 @@ export const evalQueries = {
       queryKey: evalKeys.caseHistory(caseId, cellKey, page),
       queryFn: () => listCaseHistory(caseId, cellKey, page),
       placeholderData: keepPreviousData,
-    }),
-
-  playground: (id: string) =>
-    queryOptions({
-      queryKey: evalKeys.playground(id),
-      queryFn: () => getPlayground(id),
-    }),
-
-  models: (harness: EvalHarness, query = "") =>
-    queryOptions({
-      queryKey: evalKeys.models(harness, query),
-      queryFn: () => getModelCatalogue(harness, query),
-      staleTime: 5 * 60 * 1000,
     }),
 } as const;

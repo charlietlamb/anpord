@@ -21,14 +21,6 @@ import { useSelectedStep } from "@/lib/evals/use-selected-step";
 const isCall = (entry: EvalJournalEntry): entry is Call =>
   entry._tag === "command" || entry._tag === "toolCall";
 
-const HEADINGS = [
-  "#",
-  "Call",
-  <span className="block text-right" key="time">
-    Time
-  </span>,
-];
-
 export function TrialCalls({
   trajectory,
 }: {
@@ -48,7 +40,7 @@ export function TrialCalls({
 
   return (
     <DataTable columns={CALLS_TABLE.columns} label={CALLS_TABLE.label}>
-      <DataTableHead headings={HEADINGS} />
+      <DataTableHead headings={CALLS_TABLE.headings} />
 
       <DataTableBody>
         {calls.map(({ at, call }, index) => {
@@ -72,7 +64,7 @@ export function TrialCalls({
               <span className="flex min-w-0 items-center gap-2.5">
                 <StepLabel entry={call} />
               </span>
-              <span className="text-right text-muted-foreground tabular-nums">
+              <span className="text-muted-foreground tabular-nums">
                 {took === null ? null : seconds(took)}
               </span>
             </DataTableRow>

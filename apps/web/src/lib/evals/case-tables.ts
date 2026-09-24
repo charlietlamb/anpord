@@ -18,6 +18,7 @@ export const CHECKS_TABLE = {
 
 export const CALLS_TABLE = {
   columns: "1.5rem minmax(0,1fr) 5rem",
+  headings: ["#", "Call", "Time"],
   label: "Calls in this trial",
 } as const;
 

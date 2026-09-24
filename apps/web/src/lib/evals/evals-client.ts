@@ -1,8 +1,4 @@
-import {
-  ModelCatalogue,
-  PlaygroundView,
-  StartedEval,
-} from "@anpord/schema/domain/eval-playground";
+import { StartedEval } from "@anpord/schema/domain/eval-playground";
 import {
   EvalRunTail,
   type EvalTailMark,
@@ -13,10 +9,8 @@ import {
   EvalCaseDetail,
   EvalCaseHistoryPage,
   EvalCasePage,
-  type EvalHarness,
   type EvalPageCursor,
   EvalRun,
-  EvalRunPage,
   EvalTrialAddress,
   RunSubscription,
 } from "@anpord/schema/domain/evals";
@@ -69,9 +63,6 @@ const pagePath = (
 
   return query === "" ? path : `${path}?${query}`;
 };
-
-export const listRuns = (cursor: EvalPageCursor | null) =>
-  request(EvalRunPage, pagePath("/evals", cursor));
 
 export const listCases = (tag: string | null, cursor: EvalPageCursor | null) =>
   request(
@@ -131,19 +122,6 @@ function post<A, I>(
     method: "POST",
   });
 }
-
-export const getPlayground = (id: string) =>
-  request(PlaygroundView, `/evals/playgrounds/${encodeURIComponent(id)}`);
-
-export const getModelCatalogue = (harness: EvalHarness, query: string) => {
-  const params = new URLSearchParams({ harness });
-
-  if (query.trim() !== "") {
-    params.set("q", query.trim());
-  }
-
-  return request(ModelCatalogue, `/evals/models?${params}`);
-};
 
 export const rerunCell = (runId: string, cellKey: string, trials: number) =>
   post(

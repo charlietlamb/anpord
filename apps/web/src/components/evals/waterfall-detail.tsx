@@ -5,9 +5,7 @@ import {
   ToolOutput,
   ToolSection,
 } from "@anpord/ui/components/ai-elements/tool";
-import { Button } from "@anpord/ui/components/button";
 import { ShellText } from "@anpord/ui/components/ui/shell-text";
-import { XIcon } from "@phosphor-icons/react";
 import { CallName } from "@/components/evals/call-name";
 import { KindIcon } from "@/components/evals/kind-icon";
 import { MarkdownProse } from "@/components/evals/markdown-prose";
@@ -70,10 +68,8 @@ function Timing({
 }
 
 export function StepDetail({
-  onClose,
   step: { entry, row },
 }: {
-  readonly onClose?: () => void;
   readonly step: SelectedStep;
 }) {
   const kind = entryKindOf(entry);
@@ -93,18 +89,6 @@ export function StepDetail({
         </h3>
         {failure === null ? null : (
           <span className="font-medium text-sm text-warning">{failure}</span>
-        )}
-
-        {onClose === undefined ? null : (
-          <Button
-            aria-label="Close"
-            className="ml-auto"
-            onClick={onClose}
-            size="icon-sm"
-            variant="ghost"
-          >
-            <XIcon size={14} />
-          </Button>
         )}
       </header>
 

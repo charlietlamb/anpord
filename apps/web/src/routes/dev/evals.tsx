@@ -1,6 +1,5 @@
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { CatchBoundary, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { CASE_DETAIL, CASE_HISTORY } from "@/components/dev/case-fixtures";
 import { CELL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
@@ -15,14 +14,10 @@ import { AgentSetup } from "@/components/evals/agent-setup";
 import { CaseActions } from "@/components/evals/case-actions";
 import { CaseMeta } from "@/components/evals/case-meta";
 import { CaseReadings } from "@/components/evals/case-readings";
-import { EvalForm } from "@/components/evals/eval-form";
-import { EvalMain } from "@/components/evals/eval-layout";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { TrialView } from "@/components/evals/trial-view";
-import { Waterfall } from "@/components/evals/waterfall";
-import { EmptyNote } from "@/components/layout/empty-note";
 import { PageShell } from "@/components/layout/page-shell";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
@@ -96,27 +91,6 @@ function EvalsPreview() {
           </div>
         </PreviewScreen>
 
-        <PreviewScreen name="New eval">
-          <div className="mx-auto w-full max-w-3xl px-5 py-5">
-            {/* The form throws when nobody is signed in, which must not take the other previews with it. */}
-            <CatchBoundary
-              errorComponent={() => (
-                <EmptyNote>Sign in to preview the form.</EmptyNote>
-              )}
-              getResetKey={() => "eval-form"}
-            >
-              <EvalForm
-                onSubmit={(draft) => {
-                  globalThis.console.log("draft", draft);
-
-                  return Promise.resolve();
-                }}
-                submitting={false}
-              />
-            </CatchBoundary>
-          </div>
-        </PreviewScreen>
-
         <PreviewScreen name="Eval in code">
           <PageShell title="New eval" width="wide">
             <AgentSetup />
@@ -136,15 +110,6 @@ function EvalsPreview() {
               onPage={() => undefined}
             />
           </PageShell>
-        </PreviewScreen>
-
-        <PreviewScreen name="A trial that has not reported yet">
-          <EvalMain>
-            <section className="flex flex-col gap-1.5">
-              <PageHeading title="Trajectory" />
-              <Waterfall running={true} timed={false} trajectory={[]} />
-            </section>
-          </EvalMain>
         </PreviewScreen>
 
         {TRIAL ? (

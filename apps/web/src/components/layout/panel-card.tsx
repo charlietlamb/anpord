@@ -1,33 +1,25 @@
+import { PageHeading } from "@anpord/ui/components/ui/page-heading";
 import { Surface } from "@anpord/ui/components/ui/surface";
-import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function PanelCard({
   badge,
   children,
   description,
-  heading = "h2",
-  mark,
   title,
 }: {
-  /** Sits after the title, for what qualifies the panel rather than names it. */
   readonly badge?: ReactNode;
   readonly children?: ReactNode;
   readonly description: ReactNode;
-  readonly heading?: "h1" | "h2";
-  readonly mark?: ReactNode;
   readonly title: string;
 }) {
-  const Heading = heading;
-
   return (
     <div className="w-full max-w-sm text-left">
       <Surface className="p-7">
-        <div className={cn("flex items-center", mark === undefined || "gap-2")}>
-          {mark}
-          <Heading className="font-heading text-xl tracking-tight">
-            {title}
-          </Heading>
+        <div className="flex items-center">
+          <h1>
+            <PageHeading title={title} />
+          </h1>
           {badge === undefined ? null : (
             <span className="ml-auto">{badge}</span>
           )}

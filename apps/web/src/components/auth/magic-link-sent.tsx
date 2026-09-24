@@ -17,7 +17,6 @@ export function MagicLinkSent({
           minutes.
         </>
       }
-      heading="h1"
       title="Check your email"
     >
       <Button

@@ -20,7 +20,7 @@ export function ErrorCard({
 }: ErrorCardProps) {
   return (
     <div className="flex flex-1 items-center justify-center p-6">
-      <PanelCard description={description} heading="h1" title={title}>
+      <PanelCard description={description} title={title}>
         {detail ? (
           <CodeBlock
             className="mt-4 max-h-48 whitespace-pre-wrap break-words border text-muted-foreground"

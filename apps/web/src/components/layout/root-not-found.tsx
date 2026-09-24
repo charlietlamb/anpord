@@ -18,7 +18,6 @@ export function RootNotFound() {
       <SiteLayout center>
         <PanelCard
           description="That page does not exist. These do:"
-          heading="h1"
           title="Page not found"
         >
           <nav aria-label="Where to go next" className="mt-5">

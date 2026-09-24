@@ -43,7 +43,6 @@ export function AuthCard({ redirect }: { readonly redirect: string }) {
         </Badge>
       }
       description="Pick up where you left off."
-      heading="h1"
       title="Sign in"
     >
       <Button

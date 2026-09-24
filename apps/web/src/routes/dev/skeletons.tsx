@@ -8,13 +8,16 @@ import {
   VALIDATED_TRIAL,
 } from "@/components/dev/trial-fixtures";
 import { TrialCalls } from "@/components/evals/trial-calls";
-import { TrialCallsSkeleton } from "@/components/evals/trial-calls-skeleton";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { PromptListSkeleton } from "@/components/prompts/prompt-list-skeleton";
 import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
-import { CASES_TABLE, CHECKS_TABLE } from "@/lib/evals/case-tables";
+import {
+  CALLS_TABLE,
+  CASES_TABLE,
+  CHECKS_TABLE,
+} from "@/lib/evals/case-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
@@ -89,7 +92,7 @@ function SkeletonsPreview() {
           <Pair
             loaded={<TrialCalls trajectory={TRIAL.trajectory} />}
             name="Calls"
-            skeleton={<TrialCallsSkeleton />}
+            skeleton={<DataTableSkeleton {...CALLS_TABLE} rows={4} />}
           />
         ) : null}
       </div>

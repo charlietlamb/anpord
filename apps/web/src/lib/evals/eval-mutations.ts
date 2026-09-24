@@ -11,7 +11,7 @@ const useCaseRerun = (caseId: string, start: () => Promise<StartedEval>) => {
   return useMutation({
     mutationFn: start,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: evalKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: evalKeys.caseLists() });
       queryClient.invalidateQueries({ queryKey: evalKeys.case(caseId) });
     },
   });

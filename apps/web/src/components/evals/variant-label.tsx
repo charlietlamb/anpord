@@ -1,13 +1,6 @@
 import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
 import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
-import {
-  harnessLabel,
-  harnessPresentation,
-  type LabelledProfile,
-  modelPresentation,
-  sandboxPresentation,
-} from "@/lib/evals/variant-presentation";
 
 export function VariantLabel({
   children,
@@ -30,54 +23,5 @@ export function VariantLabel({
       />
       <span className="truncate">{children}</span>
     </span>
-  );
-}
-
-interface Sized {
-  readonly size?: "compact" | "default";
-}
-
-export function ModelLabel({
-  model,
-  size,
-}: { readonly model: string } & Sized) {
-  const own = modelPresentation(model);
-
-  return (
-    <VariantLabel Icon={own.Icon} size={size}>
-      {own.label}
-    </VariantLabel>
-  );
-}
-
-export function HarnessLabel({
-  harness,
-  profile,
-  size,
-  version,
-}: {
-  readonly harness: string;
-  readonly profile?: LabelledProfile | null;
-  readonly version?: string;
-} & Sized) {
-  const own = harnessPresentation(harness);
-
-  return (
-    <VariantLabel Icon={own.Icon} size={size}>
-      {harnessLabel(harness, version, profile)}
-    </VariantLabel>
-  );
-}
-
-export function SandboxLabel({
-  sandbox,
-  size,
-}: { readonly sandbox: string } & Sized) {
-  const own = sandboxPresentation(sandbox);
-
-  return (
-    <VariantLabel Icon={own.Icon} size={size}>
-      {own.label}
-    </VariantLabel>
   );
 }

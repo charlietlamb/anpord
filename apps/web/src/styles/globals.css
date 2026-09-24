@@ -238,27 +238,6 @@
 }
 
 @layer utilities {
-  .btn-primary-glow {
-    position: relative;
-  }
-  .btn-primary-glow::before {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    content: "";
-    background: linear-gradient(to bottom, white, transparent);
-    border-radius: inherit;
-    opacity: 0.06;
-    transition: opacity 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-  }
-  .btn-primary-glow:hover::before {
-    opacity: 0.12;
-  }
-  .btn-primary-glow:active::before {
-    opacity: 0;
-    transition-duration: 0.05s;
-  }
-
   .skeleton-shimmer {
     overflow: hidden;
   }

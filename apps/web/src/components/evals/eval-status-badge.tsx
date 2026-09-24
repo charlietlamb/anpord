@@ -4,7 +4,6 @@ import type {
   EvalTrialStatus,
 } from "@anpord/schema/domain/evals";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { cn } from "@anpord/ui/lib/utils";
 import {
   CheckCircleIcon,
   CircleDashedIcon,
@@ -15,44 +14,6 @@ import {
   XCircleIcon,
 } from "@phosphor-icons/react";
 import { type EvalTone, trialGlyph, trialTone } from "@/lib/evals/eval-status";
-
-const TONE_CLASSES: Record<EvalTone, string> = {
-  critical: "text-destructive",
-  neutral: "text-muted-foreground",
-  pending: "text-warning",
-  positive: "text-success",
-};
-
-const BADGE_BACKGROUNDS: Record<EvalTone, string> = {
-  critical: "bg-destructive/15",
-  neutral: "bg-muted",
-  pending: "bg-warning/15",
-  positive: "bg-success/15",
-};
-
-export function TrialBadge({
-  ordinal,
-  status,
-}: {
-  readonly ordinal: number;
-  readonly status: EvalTrialStatus;
-}) {
-  const tone = trialTone(status);
-  return (
-    <span
-      className={cn(
-        "inline-flex size-6 items-center justify-center rounded-md font-medium font-mono text-xs tabular-nums",
-        TONE_CLASSES[tone],
-        BADGE_BACKGROUNDS[tone]
-      )}
-      title={`Trial ${ordinal}: ${status}`}
-    >
-      <span className="sr-only">Trial </span>
-      {ordinal}
-      <span className="sr-only">: {status}</span>
-    </span>
-  );
-}
 
 const TRIAL_LABELS: Record<EvalTrialStatus, string> = {
   failed: "Failed",
