@@ -1,14 +1,9 @@
-import { Effect, Option } from "effect";
-import type { HarnessDriverShape, RunHarness } from "../../ports/harness";
-import { decodeClaudeLine } from "./claude-events";
+import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import { Either, Option } from "effect";
+import type { RunHarness } from "../../ports/harness";
+import { binPath } from "./install";
+import { field } from "./json-driver";
 import { shellQuote } from "./process";
-import {
-  binPath,
-  installNpmHarness,
-  jsonSession,
-  requiredValue,
-  resolveCredential,
-} from "./support";
 
 const BIN = binPath("claude");
 
@@ -18,8 +13,6 @@ const shipped = (request: RunHarness, path: string) =>
     onSome: (profile) => Object.hasOwn(profile.files, `workspace/${path}`),
   });
 
-/* --bare turns off CLAUDE.md auto-discovery, so a profile's workspace files
-   are read only when the directory and each config file are named. */
 const profileFlags = (request: RunHarness) => {
   if (Option.isNone(request.profile)) {
     return [];
@@ -60,27 +53,11 @@ export const claudeCommand = (request: RunHarness) =>
     "< /dev/null",
   ].join(" ");
 
-export const ClaudeDriver: HarnessDriverShape = {
-  harness: "claude",
-  prepare: (input) =>
-    Effect.gen(function* () {
-      const credential = yield* resolveCredential(input, "claude");
-      const apiKey = yield* requiredValue(
-        credential,
-        "claude",
-        credential.integrationId === "env" ? "ANTHROPIC_API_KEY" : "apiKey"
-      );
-      yield* installNpmHarness(
-        input,
-        "claude",
-        "@anthropic-ai/claude-code",
-        true
-      );
-      /* Without IS_SANDBOX, Claude Code refuses to skip permissions as root. */
-      return { ANTHROPIC_API_KEY: apiKey, IS_SANDBOX: "1" };
-    }).pipe(Effect.withSpan("Claude.prepare")),
-  run: (request) =>
-    jsonSession(request, claudeCommand(request), decodeClaudeLine, true).pipe(
-      Effect.withSpan("Claude.run")
+export const claudeMaterial = (credential: ResolvedCredential) =>
+  Either.map(
+    field(
+      credential,
+      credential.integrationId === "env" ? "ANTHROPIC_API_KEY" : "apiKey"
     ),
-};
+    (apiKey) => ({ env: { ANTHROPIC_API_KEY: apiKey, IS_SANDBOX: "1" } })
+  );

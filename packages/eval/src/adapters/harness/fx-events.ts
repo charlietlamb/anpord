@@ -1,6 +1,6 @@
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { DecodedOutput } from "./support";
+import type { DecodedOutput } from "./session";
 
 const ToolCall = Schema.Struct({
   name: Schema.String,
@@ -16,16 +16,10 @@ const Result = Schema.Struct({
   tool_calls: Schema.Array(ToolCall),
 });
 
-const decode = Schema.decodeUnknownOption(Result);
+const decode = Schema.decodeUnknownOption(Schema.parseJson(Result));
 
 export const decodeFxLine = (line: string, at: number): DecodedOutput => {
-  const parsed = Option.liftThrowable(JSON.parse)(line);
-
-  if (Option.isNone(parsed)) {
-    return {};
-  }
-
-  const found = decode(parsed.value);
+  const found = decode(line);
 
   if (Option.isNone(found)) {
     return {};

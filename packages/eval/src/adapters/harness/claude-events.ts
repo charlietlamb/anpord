@@ -3,7 +3,8 @@ import type {
   HarnessUsage,
 } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { DecodedOutput } from "./support";
+import type { DecodedOutput } from "./session";
+import { toolOf } from "./tool-event";
 
 const Usage = Schema.Struct({
   cache_creation_input_tokens: Schema.optional(Schema.Number),
@@ -45,16 +46,10 @@ const Line = Schema.Union(
   })
 );
 
-const decode = Schema.decodeUnknownOption(Line);
-const ToolInput = Schema.Struct({
-  command: Schema.optional(Schema.String),
-  file_path: Schema.optional(Schema.String),
-  path: Schema.optional(Schema.String),
-});
-const decodeToolInput = Schema.decodeUnknownOption(ToolInput);
+const decode = Schema.decodeUnknownOption(Schema.parseJson(Line));
 
-/* Anthropic reports cache counts beside the input rather than inside it, so the
-   total must add them or a cached run reports a fraction of its real context. */
+const toolEvent = toolOf("bash");
+
 const usageOf = (usage: typeof Usage.Type): HarnessUsage => {
   const cacheReadTokens = usage.cache_read_input_tokens ?? 0;
   const cacheWriteTokens = usage.cache_creation_input_tokens ?? 0;
@@ -71,47 +66,8 @@ const usageOf = (usage: typeof Usage.Type): HarnessUsage => {
   };
 };
 
-const toolOf = (part: typeof Content.Type, at: number): HarnessEvent => {
-  const name = part.name ?? "unknown";
-  const input = decodeToolInput(part.input);
-  const lower = name.toLowerCase();
-
-  if (Option.isSome(input) && input.value.command && lower.includes("bash")) {
-    return {
-      _tag: "Command",
-      at,
-      command: input.value.command,
-      exitCode: null,
-      output: "",
-    };
-  }
-
-  const path = Option.isSome(input)
-    ? (input.value.file_path ?? input.value.path)
-    : undefined;
-
-  if (path && (lower.includes("write") || lower.includes("edit"))) {
-    return { _tag: "FileChange", at, paths: [path] };
-  }
-
-  return {
-    _tag: "ToolCall",
-    at,
-    callId: part.id ?? null,
-    input: JSON.stringify(part.input ?? null),
-    name,
-    status: null,
-  };
-};
-
 export const decodeClaudeLine = (line: string, at: number): DecodedOutput => {
-  const parsed = Option.liftThrowable(JSON.parse)(line);
-
-  if (Option.isNone(parsed)) {
-    return {};
-  }
-
-  const found = decode(parsed.value);
+  const found = decode(line);
 
   if (Option.isNone(found)) {
     return {};
@@ -144,8 +100,6 @@ export const decodeClaudeLine = (line: string, at: number): DecodedOutput => {
       reason: value.subtype ?? (value.is_error ? "error" : "success"),
     });
 
-    /* The closing result restates the whole run, so it replaces the turns
-       rather than joining them. */
     return {
       events,
       sessionId: value.session_id,
@@ -159,9 +113,6 @@ export const decodeClaudeLine = (line: string, at: number): DecodedOutput => {
       ? undefined
       : usageOf(value.message.usage);
 
-  /* The turn's cost rides on its first message, so a reader can see which
-     step of a run was the expensive one. Attaching it to every message of a
-     multi-part turn would report the same spend once per part. */
   let unspent = turn;
 
   return {
@@ -176,7 +127,16 @@ export const decodeClaudeLine = (line: string, at: number): DecodedOutput => {
         ];
       }
 
-      return part.type === "tool_use" ? [toolOf(part, at)] : [];
+      return part.type === "tool_use"
+        ? [
+            toolEvent({
+              at,
+              callId: part.id,
+              input: part.input,
+              name: part.name ?? "unknown",
+            }),
+          ]
+        : [];
     }),
     sessionId: value.session_id,
     usage: turn,

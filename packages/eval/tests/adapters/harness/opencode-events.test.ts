@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import { Option } from "effect";
 import { decodeOpencodeLine } from "../../../src/adapters/harness/opencode-events";
 
 const SESSION = "ses_fd1994f56ffeMiCm5DmYalA0jU";
@@ -14,9 +13,13 @@ const toolLine = (tool: string, state: unknown, callID = "toolu_01") =>
     type: "tool_use",
   });
 
+const decode = (value: string) => decodeOpencodeLine(value, 5);
+
+const eventOf = (value: string) => decode(value).events?.[0];
+
 describe("decoding an OpenCode line", () => {
   it("reads a shell call as a command with its exit code", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       toolLine("bash", {
         input: { command: "echo hello && ls -a", description: "list" },
         metadata: { exit: 0, output: "hello\n", truncated: false },
@@ -26,8 +29,9 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toEqual({
+    expect(event).toEqual({
       _tag: "Command",
+      at: 5,
       command: "echo hello && ls -a",
       exitCode: 0,
       output: "hello\n",
@@ -36,7 +40,7 @@ describe("decoding an OpenCode line", () => {
   });
 
   it("keeps a non-zero exit rather than reporting success", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       toolLine("bash", {
         input: { command: "exit 3" },
         metadata: { exit: 3, output: "" },
@@ -44,14 +48,14 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toMatchObject({
+    expect(event).toMatchObject({
       _tag: "Command",
       exitCode: 3,
     });
   });
 
   it("reports an unknown exit as null", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       toolLine("bash", {
         input: { command: "true" },
         metadata: {},
@@ -59,27 +63,28 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toMatchObject({
+    expect(event).toMatchObject({
       exitCode: null,
     });
   });
 
   it("reads a write as a file change", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       toolLine("write", {
         input: { content: "done", filePath: "/w/notes.txt" },
         status: "completed",
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toEqual({
+    expect(event).toEqual({
       _tag: "FileChange",
+      at: 5,
       paths: ["/w/notes.txt"],
     });
   });
 
   it("keeps any other tool as a call", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       toolLine("todowrite", {
         input: { todos: [] },
         output: "Saved",
@@ -87,7 +92,7 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toMatchObject({
+    expect(event).toMatchObject({
       _tag: "ToolCall",
       callId: "toolu_01",
       name: "todowrite",
@@ -97,7 +102,7 @@ describe("decoding an OpenCode line", () => {
   });
 
   it("reads assistant text as a message", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       line({
         part: { text: "I'll help with that.", type: "text" },
         sessionID: SESSION,
@@ -105,7 +110,7 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toMatchObject({
+    expect(event).toMatchObject({
       _tag: "Message",
       role: "assistant",
       text: "I'll help with that.",
@@ -113,7 +118,7 @@ describe("decoding an OpenCode line", () => {
   });
 
   it("drops an empty message but still reports the session", () => {
-    const decoded = decodeOpencodeLine(
+    const decoded = decode(
       line({
         part: { text: "   ", type: "text" },
         sessionID: SESSION,
@@ -121,12 +126,11 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.isNone(decoded.event)).toBe(true);
-    expect(Option.getOrThrow(decoded.sessionId)).toBe(SESSION);
+    expect(decoded).toEqual({ sessionId: SESSION });
   });
 
   it("reads usage from a finished step", () => {
-    const decoded = decodeOpencodeLine(
+    const decoded = decode(
       line({
         part: {
           cost: 0.0024,
@@ -145,7 +149,7 @@ describe("decoding an OpenCode line", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.usage)).toEqual({
+    expect(decoded.usage).toEqual({
       cacheReadTokens: 20_986,
       cacheWriteTokens: 355,
       inputTokens: 2,
@@ -155,11 +159,11 @@ describe("decoding an OpenCode line", () => {
   });
 
   it("reads an error as a finish carrying its reason", () => {
-    const decoded = decodeOpencodeLine(
+    const event = eventOf(
       line({ error: { name: "ProviderModelNotFoundError" }, type: "error" })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toMatchObject({
+    expect(event).toMatchObject({
       _tag: "Finished",
     });
   });
@@ -169,9 +173,6 @@ describe("decoding an OpenCode line", () => {
     ["a line that is not JSON", "Performing one time database migration..."],
     ["a shape from a later version", line({ type: "unheard_of" })],
   ])("yields nothing for %s", (_label, value) => {
-    const decoded = decodeOpencodeLine(value);
-
-    expect(Option.isNone(decoded.event)).toBe(true);
-    expect(Option.isNone(decoded.usage)).toBe(true);
+    expect(decode(value)).toEqual({});
   });
 });

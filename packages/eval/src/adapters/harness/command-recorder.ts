@@ -1,19 +1,7 @@
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 
-/* Only bash and zsh have a DEBUG trap, so `sh -c`, dash, and shells Node or
-   Python spawn leave no line here. */
-export const COMMAND_RECORDER = `# Sourced by every non-interactive bash through BASH_ENV.
-#
-# The DEBUG trap is the one shell hook that fires without a prompt, so it is
-# what catches a command the agent nested inside another. It runs before the
-# command, which is why these lines carry no exit code: a reader has to treat
-# them as evidence that something ran, not as evidence that it worked.
-
-# Escaped in the shell rather than by piping to a JSON encoder. The trap runs
-# before every command, so a subprocess per line would cost more than the work
-# being traced.
-anpord_escape() {
+export const COMMAND_RECORDER = `anpord_escape() {
   local s=$1
   s=\${s//\\\\/\\\\\\\\}
   s=\${s//\\"/\\\\\\"}
@@ -23,8 +11,6 @@ anpord_escape() {
   printf '%s' "$s"
 }
 
-# The command substitutions inside the trap run the trap's own functions, and
-# a subshell inherits the trap; the flag stops those from tracing themselves.
 anpord_trace() {
   [ -n "$ANPORD_TRACING" ] && return
   case "$BASH_COMMAND" in
@@ -39,9 +25,6 @@ anpord_trace() {
   ANPORD_TRACING=
 }
 
-# zsh has a DEBUG trap too, but it reports the command in $ZSH_DEBUG_CMD rather
-# than $BASH_COMMAND, and it fires after rather than before. Some sandboxes
-# default to zsh, so guarding on BASH_VERSION alone collected nothing there.
 if [ -n "$ANPORD_TRACE_LOG" ]; then
   if [ -n "$ZSH_VERSION" ]; then
     mkdir -p "$(dirname "$ANPORD_TRACE_LOG")" 2>/dev/null
@@ -61,17 +44,12 @@ const TraceLine = Schema.Struct({
   at: Schema.String,
 });
 
-const decodeTraceLine = Schema.decodeUnknownOption(TraceLine);
+const decodeTraceLine = Schema.decodeUnknownOption(Schema.parseJson(TraceLine));
 
-const parseJson = Option.liftThrowable((line: string): unknown =>
-  JSON.parse(line)
-);
-
-export type CommandEvent = Extract<HarnessEvent, { _tag: "Command" }>;
+type CommandEvent = Extract<HarnessEvent, { _tag: "Command" }>;
 
 const commandOf = (line: string): Option.Option<CommandEvent> =>
-  parseJson(line).pipe(
-    Option.flatMap(decodeTraceLine),
+  decodeTraceLine(line).pipe(
     Option.flatMap((trace) => {
       const at = Date.parse(trace.at);
 
@@ -87,7 +65,6 @@ const commandOf = (line: string): Option.Option<CommandEvent> =>
     })
   );
 
-/* An unreadable line is skipped. */
 export const traceToEvents = (text: string): CommandEvent[] =>
   text.split("\n").flatMap((line) =>
     Option.match(commandOf(line), {
@@ -96,7 +73,6 @@ export const traceToEvents = (text: string): CommandEvent[] =>
     })
   );
 
-/* Dropped so a customer printing `Command` is not shown the same line twice. */
 export const withoutReported = (
   trace: readonly CommandEvent[],
   reported: readonly HarnessEvent[]

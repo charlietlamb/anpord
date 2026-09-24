@@ -1,25 +1,15 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import type {
-  HarnessEvent,
-  HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
-import { Effect, Option, Redacted, Ref, Stream } from "effect";
-import { HarnessUnavailable } from "../../domain/errors";
-import type {
-  HarnessDriverShape,
-  HarnessSessionShape,
-  RunHarness,
-} from "../../ports/harness";
+import { Either, Option } from "effect";
+import type { RunHarness } from "../../ports/harness";
+import type { Material } from "./json-driver";
 import { opencodeConfigEnv } from "./opencode-config";
-import { decodeOpencodeLine } from "./opencode-events";
-import { installOpencode, OPENCODE_BIN, opencodeEnv } from "./opencode-install";
-import { harnessLines, shellQuote } from "./process";
+import { shellQuote } from "./process";
 
 export const opencodeCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
-    `${OPENCODE_BIN} run --format json`,
+    "~/.opencode/bin/opencode run --format json",
     "--auto",
     `--model ${shellQuote(request.model)}`,
     shellQuote(request.prompt),
@@ -32,99 +22,22 @@ export const opencodeRunEnv = (request: RunHarness) =>
     onSome: (path) => opencodeConfigEnv(request.env, path),
   });
 
-const added = (
-  current: Option.Option<HarnessUsage>,
-  next: HarnessUsage
-): HarnessUsage =>
-  Option.match(current, {
-    onNone: () => next,
-    onSome: (found) => ({
-      cacheReadTokens: found.cacheReadTokens + next.cacheReadTokens,
-      cacheWriteTokens: found.cacheWriteTokens + next.cacheWriteTokens,
-      inputTokens: found.inputTokens + next.inputTokens,
-      outputTokens: found.outputTokens + next.outputTokens,
-      totalTokens: found.totalTokens + next.totalTokens,
-    }),
-  });
+const WITHOUT_MODELS_FETCH = { OPENCODE_DISABLE_MODELS_FETCH: "1" };
 
-/* An env credential brings no auth.json; the variables it carries reach the
-   binary through the sandbox env, and OpenCode reads its providers from there. */
-const authOf = (credential: ResolvedCredential) => {
-  const authJson = credential.values.authJson;
-
+export const opencodeMaterial = (
+  credential: ResolvedCredential
+): Either.Either<Material, string> => {
   if (credential.integrationId === "env") {
-    return Effect.succeed(Option.none<Redacted.Redacted<string>>());
+    return Either.right({ env: WITHOUT_MODELS_FETCH });
   }
 
-  return credential.integrationId === "opencode" && authJson
-    ? Effect.succeed(Option.some(Redacted.make(authJson)))
-    : Effect.fail(
-        new HarnessUnavailable({
-          harness: "opencode",
-          reason: "Credential material is incomplete or does not match harness",
-        })
+  const authJson = credential.values.authJson;
+
+  return authJson
+    ? Either.right({
+        env: { ...WITHOUT_MODELS_FETCH, OPENCODE_AUTH_CONTENT: authJson },
+      })
+    : Either.left(
+        "Credential material is incomplete or does not match harness"
       );
-};
-
-export const OpencodeDriver: HarnessDriverShape = {
-  harness: "opencode",
-  prepare: (input) =>
-    Effect.gen(function* () {
-      const auth = yield* authOf(Redacted.value(input.credential));
-      yield* installOpencode(input.sandbox, input.version);
-      return opencodeEnv(auth);
-    }).pipe(Effect.withSpan("Opencode.prepare")),
-  run: (request: RunHarness) =>
-    Effect.gen(function* () {
-      const usage = yield* Ref.make(Option.none<HarnessUsage>());
-      const started = yield* Ref.make(false);
-
-      const events = harnessLines(
-        "opencode",
-        request.sandbox,
-        opencodeCommand(request),
-        opencodeRunEnv(request)
-      ).pipe(
-        Stream.mapConcatEffect(({ at, line }) =>
-          Effect.gen(function* () {
-            const decoded = decodeOpencodeLine(line);
-            const step = decoded.usage;
-
-            if (Option.isSome(step)) {
-              yield* Ref.update(usage, (current) =>
-                Option.some(added(current, step.value))
-              );
-            }
-
-            const session = decoded.sessionId;
-            const opening: HarnessEvent[] = [];
-
-            if (Option.isSome(session) && !(yield* Ref.get(started))) {
-              yield* Ref.set(started, true);
-              opening.push({
-                _tag: "Started",
-                at,
-                model: request.model,
-                sessionId: session.value,
-              });
-            }
-
-            return [
-              ...opening,
-              ...Option.match(decoded.event, {
-                onNone: (): HarnessEvent[] => [],
-                onSome: (event) => [{ ...event, at }],
-              }),
-            ];
-          })
-        )
-      );
-
-      return {
-        events,
-        harness: "opencode",
-        usage: Ref.get(usage),
-        version: request.harnessVersion,
-      } satisfies HarnessSessionShape;
-    }).pipe(Effect.withSpan("OpencodeRunner.run")),
 };

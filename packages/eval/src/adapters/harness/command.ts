@@ -1,53 +1,38 @@
 import { Effect, Option } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
-import type { RequestedProfile } from "../../domain/harness-profile";
-import type {
-  HarnessDriverShape,
-  PrepareHarness,
-  RunHarness,
-} from "../../ports/harness";
+import type { HarnessDriverShape } from "../../ports/harness";
 import { commandCommand, recorderPath } from "./command-line";
 import { COMMAND_RECORDER } from "./command-recorder";
 import { commandSession } from "./command-session";
-import { writeHarnessFile } from "./support";
 
-const missing = (reason: string) =>
+const unavailable = (reason: string) =>
   new HarnessUnavailable({ harness: "command", reason });
 
-const profileOf = (profile: Option.Option<RequestedProfile>, reason: string) =>
-  Option.match(profile, {
-    onNone: () => Effect.fail(missing(reason)),
-    onSome: Effect.succeed,
-  });
-
-/* Every capability is claimed because the contract offers every event; what a
-   given process reports is its own business. */
 export const CommandDriver: HarnessDriverShape = {
   harness: "command",
-  prepare: (input: PrepareHarness) =>
+  prepare: (input) =>
+    input.sandbox.writeFile(recorderPath(input.home), COMMAND_RECORDER).pipe(
+      Effect.mapError((cause) => unavailable(cause.reason)),
+      Effect.as({}),
+      Effect.withSpan("Command.prepare")
+    ),
+  run: (request) =>
     Effect.gen(function* () {
-      yield* writeHarnessFile(
-        input,
-        "command",
-        recorderPath(input.home),
-        COMMAND_RECORDER
-      );
+      const profile = yield* Option.match(request.profile, {
+        onNone: () =>
+          Effect.fail(unavailable("A command task needs a profile")),
+        onSome: Effect.succeed,
+      });
 
-      /* The install runs in the workspace step, once the profile's files exist. */
-      return {};
-    }).pipe(Effect.withSpan("Command.prepare")),
-  run: (request: RunHarness) =>
-    Effect.gen(function* () {
-      const profile = yield* profileOf(
-        request.profile,
-        "A command task needs a profile"
-      );
-      const run = profile.run;
-
-      if (run === null) {
-        return yield* Effect.fail(missing("The profile has no run command"));
+      if (profile.run === null) {
+        return yield* Effect.fail(
+          unavailable("The profile has no run command")
+        );
       }
 
-      return yield* commandSession(request, commandCommand(request, run));
-    }).pipe(Effect.withSpan("CommandRunner.run")),
+      return yield* commandSession(
+        request,
+        commandCommand(request, profile.run)
+      );
+    }).pipe(Effect.withSpan("Command.run")),
 };

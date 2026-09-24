@@ -1,9 +1,7 @@
-import type {
-  HarnessEvent,
-  HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
-import type { DecodedOutput } from "./support";
+import type { DecodedOutput } from "./session";
+import { toolOf } from "./tool-event";
 
 const Stats = Schema.Struct({
   input_tokens: Schema.optional(Schema.Number),
@@ -38,54 +36,10 @@ const Line = Schema.Union(
   })
 );
 
-const decode = Schema.decodeUnknownOption(Line);
-const ToolInput = Schema.Struct({
-  command: Schema.optional(Schema.String),
-  file_path: Schema.optional(Schema.String),
-  path: Schema.optional(Schema.String),
-});
-const decodeToolInput = Schema.decodeUnknownOption(ToolInput);
+const decode = Schema.decodeUnknownOption(Schema.parseJson(Line));
 
-const toolOf = (
-  name: string,
-  id: string | undefined,
-  parameters: unknown,
-  at: number
-): HarnessEvent => {
-  const input = decodeToolInput(parameters);
-  const lower = name.toLowerCase();
+const toolEvent = toolOf("shell");
 
-  if (Option.isSome(input) && input.value.command && lower.includes("shell")) {
-    return {
-      _tag: "Command",
-      at,
-      command: input.value.command,
-      exitCode: null,
-      output: "",
-    };
-  }
-
-  const path = Option.isSome(input)
-    ? (input.value.file_path ?? input.value.path)
-    : undefined;
-
-  if (path && (lower.includes("write") || lower.includes("edit"))) {
-    return { _tag: "FileChange", at, paths: [path] };
-  }
-
-  return {
-    _tag: "ToolCall",
-    at,
-    callId: id ?? null,
-    input: JSON.stringify(parameters ?? null),
-    name,
-    status: null,
-  };
-};
-
-/* Gemini's stats carry no cache counts, so these are zero: the run may well
-   have hit a cache, and this harness does not say. Read them as unreported
-   rather than as a cache that was never used. */
 const usageOf = (stats: typeof Stats.Type): HarnessUsage => ({
   cacheReadTokens: 0,
   cacheWriteTokens: 0,
@@ -97,13 +51,7 @@ const usageOf = (stats: typeof Stats.Type): HarnessUsage => ({
 });
 
 export const decodeGeminiLine = (line: string, at: number): DecodedOutput => {
-  const parsed = Option.liftThrowable(JSON.parse)(line);
-
-  if (Option.isNone(parsed)) {
-    return {};
-  }
-
-  const found = decode(parsed.value);
+  const found = decode(line);
 
   if (Option.isNone(found)) {
     return {};
@@ -127,7 +75,14 @@ export const decodeGeminiLine = (line: string, at: number): DecodedOutput => {
 
   if (value.type === "tool_use") {
     return {
-      events: [toolOf(value.name, value.tool_id, value.parameters, at)],
+      events: [
+        toolEvent({
+          at,
+          callId: value.tool_id,
+          input: value.parameters,
+          name: value.name,
+        }),
+      ],
     };
   }
 

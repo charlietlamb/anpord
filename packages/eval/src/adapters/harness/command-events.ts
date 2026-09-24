@@ -5,13 +5,9 @@ import type {
 import { Option, Schema } from "effect";
 import { CommandLine, type CommandUsageLine } from "../../domain/command-line";
 import type { HarnessExit } from "./process";
-import type { DecodedOutput } from "./support";
+import type { DecodedOutput } from "./session";
 
-const parseJson = Option.liftThrowable((line: string): unknown =>
-  JSON.parse(line)
-);
-
-const decodeLine = Schema.decodeUnknownOption(CommandLine);
+const decodeLine = Schema.decodeUnknownOption(Schema.parseJson(CommandLine));
 
 const usageOf = (line: CommandUsageLine): HarnessUsage => ({
   cacheReadTokens: line.cacheReadTokens ?? 0,
@@ -26,7 +22,6 @@ const outputOf = (decoded: CommandLine, at: number): DecodedOutput => {
     return { usage: usageOf(decoded), usageIsCumulative: false };
   }
 
-  /* Returning the event too would start the session twice. */
   if (decoded._tag === "Started") {
     return { model: decoded.model, sessionId: decoded.sessionId };
   }
@@ -34,17 +29,14 @@ const outputOf = (decoded: CommandLine, at: number): DecodedOutput => {
   return { events: [{ ...decoded, at: decoded.at ?? at }] };
 };
 
-/* Anything not a JSON object with a known `_tag` is ignored, never a trial failure. */
 export const decodeCommandLine = (line: string, at: number): DecodedOutput =>
-  parseJson(line).pipe(
-    Option.flatMap(decodeLine),
+  decodeLine(line).pipe(
     Option.match({
       onNone: (): DecodedOutput => ({}),
       onSome: (decoded) => outputOf(decoded, at),
     })
   );
 
-/* A journal ending without `Finished` would read as interrupted. */
 export const finishedOnExit = (
   exit: HarnessExit,
   finishedSeen: boolean

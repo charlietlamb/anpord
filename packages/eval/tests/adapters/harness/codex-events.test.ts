@@ -1,10 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { Option } from "effect";
 import { decodeCodexLine } from "../../../src/adapters/harness/codex-events";
 
-/* Verbatim lines from a real `codex exec --json` run, so a change in the
-   harness's output shape breaks this test rather than silently emptying a
-   journal in production. */
 const THREAD = '{"type":"thread.started","thread_id":"01a01a91-dfd4-7950"}';
 const COMMAND =
   '{"type":"item.completed","item":{"id":"item_6","type":"command_execution","command":"/bin/zsh -lc \'bun test\'","aggregated_output":"1 pass\\n","exit_code":0,"status":"completed"}}';
@@ -17,9 +13,13 @@ const TURN_FAILED =
 const TURN =
   '{"type":"turn.completed","usage":{"input_tokens":98371,"cached_input_tokens":87552,"output_tokens":757,"reasoning_output_tokens":175}}';
 
+const decoded = (line: string) => decodeCodexLine(line, 0);
+
+const eventOf = (line: string) => decoded(line).events?.[0];
+
 describe("decodeCodexLine", () => {
   it("keeps the reason a turn failed, not the wrapper around it", () => {
-    const event = Option.getOrThrow(decodeCodexLine(TURN_FAILED).event);
+    const event = eventOf(TURN_FAILED);
 
     expect(event).toMatchObject({
       _tag: "Finished",
@@ -29,22 +29,19 @@ describe("decodeCodexLine", () => {
   });
 
   it("reads the session id from the opening line", () => {
-    const event = Option.getOrThrow(decodeCodexLine(THREAD).event);
-
-    expect(event._tag).toBe("Started");
+    expect(decoded(THREAD).sessionId).toBe("01a01a91-dfd4-7950");
   });
 
-  /* The column an eval platform reading a tool-call string cannot have. */
   it("keeps the exit code of a command", () => {
-    const passed = Option.getOrThrow(decodeCodexLine(COMMAND).event);
-    const failed = Option.getOrThrow(decodeCodexLine(FAILED).event);
+    const passed = eventOf(COMMAND);
+    const failed = eventOf(FAILED);
 
     expect(passed).toMatchObject({ _tag: "Command", exitCode: 0 });
     expect(failed).toMatchObject({ _tag: "Command", exitCode: 1 });
   });
 
   it("keeps the files the agent changed", () => {
-    const event = Option.getOrThrow(decodeCodexLine(FILE).event);
+    const event = eventOf(FILE);
 
     expect(event).toMatchObject({
       _tag: "FileChange",
@@ -53,23 +50,17 @@ describe("decodeCodexLine", () => {
   });
 
   it("reads usage from the closing line", () => {
-    const decoded = decodeCodexLine(TURN);
-    const usage = Option.getOrThrow(decoded.usage);
+    const usage = decoded(TURN).usage;
 
-    expect(usage.inputTokens).toBe(98_371);
-    expect(usage.outputTokens).toBe(757);
-    expect(usage.totalTokens).toBe(99_128);
+    expect(usage?.inputTokens).toBe(98_371);
+    expect(usage?.outputTokens).toBe(757);
+    expect(usage?.totalTokens).toBe(99_128);
   });
 
-  /* A harness that adds a line type must not end a trial that is otherwise
-     running fine, so unknown and malformed lines are dropped rather than
-     failing the stream. */
   it("drops a line it does not model", () => {
-    expect(
-      Option.isNone(decodeCodexLine('{"type":"turn.started"}').event)
-    ).toBe(true);
-    expect(Option.isNone(decodeCodexLine("not json").event)).toBe(true);
-    expect(Option.isNone(decodeCodexLine("").event)).toBe(true);
+    expect(decoded('{"type":"turn.started"}')).toEqual({});
+    expect(decoded("not json")).toEqual({});
+    expect(decoded("")).toEqual({});
   });
 });
 
@@ -80,7 +71,7 @@ describe("tool calls", () => {
       { result },
       { error: { message: "Unknown item" } },
     ]) {
-      const decoded = decodeCodexLine(
+      const event = eventOf(
         JSON.stringify({
           type: "item.completed",
           item: {
@@ -94,7 +85,7 @@ describe("tool calls", () => {
           },
         })
       );
-      expect(Option.getOrThrow(decoded.event)).toMatchObject(
+      expect(event).toMatchObject(
         "result" in response
           ? { output: JSON.stringify(result) }
           : { error: "Unknown item" }
@@ -103,7 +94,7 @@ describe("tool calls", () => {
   });
 
   it.each(["completed", "failed"])("records %s MCP tool calls", (status) => {
-    const decoded = decodeCodexLine(
+    const event = eventOf(
       JSON.stringify({
         type: "item.completed",
         item: {
@@ -117,20 +108,18 @@ describe("tool calls", () => {
       })
     );
 
-    expect(Option.getOrThrow(decoded.event)).toEqual({
+    expect(event).toEqual({
       _tag: "ToolCall",
+      at: 0,
       callId: "item_1",
       input: '{"id":"fixture"}',
       name: "inventory.lookup",
       status,
     });
-    expect(Option.getOrThrow(decoded.itemId)).toBe("item_1");
   });
 
-  /* The payload shape taken from a real Codex session transcript, where
-     function calls outnumbered shell executions sixteen to one. */
   it("decodes a custom tool call", () => {
-    const decoded = decodeCodexLine(
+    const event = eventOf(
       JSON.stringify({
         item: {
           call_id: "call_TGMfN3Hvd3b2OUEWMvEw6KAv",
@@ -143,14 +132,9 @@ describe("tool calls", () => {
       })
     );
 
-    expect(Option.isSome(decoded.event)).toBe(true);
-
-    if (Option.isNone(decoded.event)) {
-      return;
-    }
-
-    expect(decoded.event.value).toEqual({
+    expect(event).toEqual({
       _tag: "ToolCall",
+      at: 0,
       callId: "call_TGMfN3Hvd3b2OUEWMvEw6KAv",
       input: '{"cmd":"sed -n 1,240p SKILL.md"}',
       name: "exec",
@@ -159,36 +143,28 @@ describe("tool calls", () => {
   });
 
   it("decodes a declared function call the same way", () => {
-    const decoded = decodeCodexLine(
+    const event = eventOf(
       JSON.stringify({
         item: { name: "read_file", type: "function_call" },
         type: "item.completed",
       })
     );
 
-    expect(Option.isSome(decoded.event)).toBe(true);
-
-    if (Option.isNone(decoded.event)) {
-      return;
-    }
-
-    expect(decoded.event.value).toMatchObject({
+    expect(event).toMatchObject({
       _tag: "ToolCall",
       callId: null,
       name: "read_file",
     });
   });
 
-  /* A later Codex adding an item type must be ignored, never coerced into a
-     message with a field it does not have. */
   it("drops an unknown item type rather than guessing", () => {
-    const decoded = decodeCodexLine(
+    const event = eventOf(
       JSON.stringify({
         item: { type: "something_new_in_a_later_version" },
         type: "item.completed",
       })
     );
 
-    expect(Option.isNone(decoded.event)).toBe(true);
+    expect(event).toBeUndefined();
   });
 });

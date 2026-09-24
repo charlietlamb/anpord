@@ -15,7 +15,6 @@ export interface HarnessLine {
   readonly line: string;
 }
 
-/** How the process ended, with the stderr tail that usually says why. */
 export interface HarnessExit {
   readonly _tag: "exit";
   readonly at: number;
@@ -25,17 +24,18 @@ export interface HarnessExit {
 
 export type HarnessOutput = HarnessLine | HarnessExit;
 
-export interface HarnessLinesOptions {
-  /* "fail" ends the stream with HarnessUnavailable on a non-zero exit; "report"
-     keeps every line and closes with the exit itself. */
-  readonly exit: "fail" | "report";
-}
+export type ExecLine =
+  | HarnessLine
+  | { readonly _tag: "stderr"; readonly data: string }
+  | { readonly _tag: "exit"; readonly at: number; readonly exitCode: number };
 
-interface Frame {
+interface Pending {
   readonly at: number;
-  readonly stderr: string;
   readonly stdout: string;
 }
+
+export const shellQuote = (value: string) =>
+  `'${value.replaceAll("'", `'\\''`)}'`;
 
 const split = (value: string, final: boolean) => {
   const lines: string[] = [];
@@ -66,22 +66,23 @@ const split = (value: string, final: boolean) => {
   return { lines, pending: value.slice(from) };
 };
 
-const frame = (
-  state: Frame,
+const lineAt =
+  (at: number) =>
+  (line: string): HarnessLine => ({ _tag: "line", at, line });
+
+const framed = (
+  state: Pending,
   chunk: ExecChunk
-): readonly [Frame, readonly HarnessOutput[]] => {
+): readonly [Pending, readonly ExecLine[]] => {
   if (chunk.stream === "stderr") {
-    return [
-      { ...state, stderr: `${state.stderr}${chunk.data}`.slice(-MAX_STDERR) },
-      [],
-    ];
+    return [state, [{ _tag: "stderr", data: chunk.data }]];
   }
 
   if (chunk.stream === "stdout") {
     const next = split(`${state.stdout}${chunk.data}`, false);
     return [
-      { ...state, at: chunk.at, stdout: next.pending },
-      next.lines.map((line) => ({ _tag: "line", at: chunk.at, line })),
+      { at: chunk.at, stdout: next.pending },
+      next.lines.map(lineAt(chunk.at)),
     ];
   }
 
@@ -89,21 +90,31 @@ const frame = (
   return [
     { ...state, stdout: "" },
     [
-      ...final.lines.map(
-        (line): HarnessLine => ({ _tag: "line", at: state.at, line })
-      ),
-      {
-        _tag: "exit",
-        at: chunk.at,
-        exitCode: chunk.exitCode,
-        stderr: state.stderr,
-      },
+      ...final.lines.map(lineAt(state.at)),
+      { _tag: "exit", at: chunk.at, exitCode: chunk.exitCode },
     ],
   ];
 };
 
-export const shellQuote = (value: string) =>
-  `'${value.replaceAll("'", `'\\''`)}'`;
+export const execLines = <E, R>(chunks: Stream.Stream<ExecChunk, E, R>) =>
+  chunks.pipe(
+    Stream.mapAccum({ at: 0, stdout: "" } satisfies Pending, framed),
+    Stream.mapConcat((lines) => lines)
+  );
+
+const withStderr = (
+  stderr: string,
+  output: ExecLine
+): readonly [string, readonly HarnessOutput[]] => {
+  switch (output._tag) {
+    case "line":
+      return [stderr, [output]];
+    case "stderr":
+      return [`${stderr}${output.data}`.slice(-MAX_STDERR), []];
+    default:
+      return [stderr, [{ ...output, stderr }]];
+  }
+};
 
 const framedOutput = (
   harness: HarnessName,
@@ -111,19 +122,15 @@ const framedOutput = (
   command: string,
   env: Readonly<Record<string, string>>
 ) =>
-  sandbox.exec(command, { env, timeoutMs: Duration.toMillis(TIMEOUT) }).pipe(
+  execLines(
+    sandbox.exec(command, { env, timeoutMs: Duration.toMillis(TIMEOUT) })
+  ).pipe(
     Stream.mapError(
       (cause) => new HarnessUnavailable({ harness, reason: cause.reason })
     ),
-    Stream.mapAccum({ at: 0, stderr: "", stdout: "" } satisfies Frame, frame),
+    Stream.mapAccum("", withStderr),
     Stream.mapConcat((outputs) => outputs)
   );
-
-const failedExit = (harness: HarnessName, exit: HarnessExit) =>
-  new HarnessUnavailable({
-    harness,
-    reason: exit.stderr.trim() || `Harness exited with status ${exit.exitCode}`,
-  });
 
 const linesOnly = (harness: HarnessName) =>
   Stream.mapEffect((output: HarnessOutput) => {
@@ -133,7 +140,14 @@ const linesOnly = (harness: HarnessName) =>
 
     return output.exitCode === 0
       ? Effect.succeed(Option.none<HarnessLine>())
-      : Effect.fail(failedExit(harness, output));
+      : Effect.fail(
+          new HarnessUnavailable({
+            harness,
+            reason:
+              output.stderr.trim() ||
+              `Harness exited with status ${output.exitCode}`,
+          })
+        );
   });
 
 export function harnessLines(
@@ -154,7 +168,7 @@ export function harnessLines(
   sandbox: SandboxHandle,
   command: string,
   env: Readonly<Record<string, string>>,
-  options: HarnessLinesOptions = { exit: "fail" }
+  options: { readonly exit: "fail" | "report" } = { exit: "fail" }
 ): Stream.Stream<HarnessOutput, HarnessUnavailable> {
   const output = framedOutput(harness, sandbox, command, env);
 
