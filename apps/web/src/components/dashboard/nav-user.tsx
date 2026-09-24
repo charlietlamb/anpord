@@ -29,10 +29,9 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
-import {
-  IdentityAvatar,
-  IdentityLabel,
-} from "@/components/dashboard/sidebar-identity";
+import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
+import { IdentityLabel } from "@/components/dashboard/identity-label";
+import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { DOCS_URL } from "@/lib/urls";
 import { useCurrentUser } from "@/lib/use-current-user";
@@ -160,13 +159,10 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="gap-2 text-destructive focus:text-destructive"
-              onClick={onSignOut}
-            >
+            <DestructiveMenuItem className="gap-2" onClick={onSignOut}>
               <SignOutIcon className="size-4" />
               Log out
-            </DropdownMenuItem>
+            </DestructiveMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

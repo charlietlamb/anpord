@@ -5,6 +5,8 @@ export const credentialKeys = {
   all: ["credentials"] as const,
   awareness: () => [...credentialKeys.all, "awareness"] as const,
   connections: () => [...credentialKeys.all, "connections"] as const,
+  device: (attemptId: string) =>
+    [...credentialKeys.all, "device", attemptId] as const,
   integrations: () => [...credentialKeys.all, "integrations"] as const,
 };
 

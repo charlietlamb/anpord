@@ -1,5 +1,6 @@
 import type { DeviceAuthChallenge } from "@anpord/schema/domain/credentials";
 import { CopyButton } from "@anpord/ui/components/copy-button";
+import { Surface } from "@anpord/ui/components/ui/surface";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 
 export function DeviceChallenge({
@@ -8,14 +9,14 @@ export function DeviceChallenge({
   readonly challenge: DeviceAuthChallenge;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3.5">
+    <Surface className="flex flex-col gap-3 p-3.5">
       <p className="text-muted-foreground text-xs">
         Open the link below, enter this code, and this window will finish on its
         own.
       </p>
 
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-foreground text-lg tracking-[0.2em]">
+        <span className="font-mono text-foreground text-lg tracking-widest">
           {challenge.code}
         </span>
         <CopyButton label="Copy code" value={challenge.code} />
@@ -30,6 +31,6 @@ export function DeviceChallenge({
         {challenge.verificationUrl}
         <ArrowSquareOutIcon aria-hidden="true" className="size-3.5" />
       </a>
-    </div>
+    </Surface>
   );
 }

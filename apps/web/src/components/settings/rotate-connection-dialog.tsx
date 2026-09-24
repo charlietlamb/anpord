@@ -3,78 +3,89 @@ import type {
   CredentialConnection,
 } from "@anpord/schema/domain/credentials";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { CredentialFields } from "@/components/settings/credential-fields";
 import { credentialsClient } from "@/lib/credentials-client";
 import { incompleteCredential } from "@/lib/settings/credential-values";
+import { useCredentialMutation } from "@/lib/settings/use-credential-mutation";
 
 export function RotateConnectionDialog({
   connection,
   method,
   onClose,
-  onRotated,
 }: {
   readonly connection: CredentialConnection | null;
   readonly method: CredentialAuthMethod | null;
   readonly onClose: () => void;
-  readonly onRotated: () => void;
 }) {
-  const [pending, setPending] = useState(false);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const rotate = useCredentialMutation({
+    mutationFn: ({
+      id,
+      values,
+    }: {
+      readonly id: string;
+      readonly values: Readonly<Record<string, string>>;
+    }) => credentialsClient.rotate(id, { values }),
+    success: "Credential rotated",
+  });
+
+  const form = useAppForm({
+    defaultValues: { values: {} as Readonly<Record<string, string>> },
+    onSubmit: ({ value }) => {
+      if (
+        connection === null ||
+        method === null ||
+        incompleteCredential(method, value.values)
+      ) {
+        return;
+      }
+      rotate.mutate(
+        { id: connection.id, values: value.values },
+        { onSuccess: close }
+      );
+    },
+  });
 
   const close = () => {
-    setValues({});
+    form.reset();
     onClose();
-  };
-
-  const submit = async () => {
-    if (!(connection && method)) {
-      return;
-    }
-    setPending(true);
-    try {
-      await credentialsClient.rotate(connection.id, { values });
-      onRotated();
-      close();
-      toast.success("Credential rotated");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Rotation failed");
-    } finally {
-      setPending(false);
-    }
   };
 
   return (
     <FormDialog
       description="Replace the stored secret without changing saved eval bindings."
       onClose={close}
-      onSubmit={submit}
+      onSubmit={form.handleSubmit}
       open={connection !== null}
       title={
         connection === null ? "Rotate credential" : `Rotate ${connection.name}`
       }
     >
-      {method ? (
-        <CredentialFields
-          method={method}
-          onChange={(next) => setValues({ ...next })}
-          values={values}
-        />
-      ) : null}
-      <ShortcutButton
-        className="w-full"
-        disabled={
-          pending || method === null || incompleteCredential(method, values)
-        }
-        metaShortcut="enter"
-        onClick={submit}
-        size="lg"
-        type="button"
-      >
-        {pending ? "Rotating…" : "Rotate credential"}
-      </ShortcutButton>
+      {method === null ? null : (
+        <form.AppField name="values">
+          {(field) => (
+            <CredentialFields
+              method={method}
+              onChange={field.handleChange}
+              values={field.state.value}
+            />
+          )}
+        </form.AppField>
+      )}
+      <form.Subscribe selector={(state) => state.values.values}>
+        {(values) => (
+          <form.AppForm>
+            <form.SubmitButton
+              disabled={
+                rotate.isPending ||
+                method === null ||
+                incompleteCredential(method, values)
+              }
+              label={rotate.isPending ? "Rotating…" : "Rotate credential"}
+            />
+          </form.AppForm>
+        )}
+      </form.Subscribe>
     </FormDialog>
   );
 }

@@ -2,22 +2,28 @@ import type {
   CredentialConnection,
   CredentialIntegration,
 } from "@anpord/schema/domain/credentials";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
+import { Button } from "@anpord/ui/components/button";
+import {
+  DataTable,
+  DataTableBody,
+  DataTableHead,
+  DataTableSkeleton,
+} from "@anpord/ui/components/ui/data-table";
+import { PlusIcon } from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { ListState } from "@/components/layout/list-state";
+import { PageHeader } from "@/components/layout/page-header";
 import { ConnectedElsewhere } from "@/components/settings/connected-elsewhere";
 import { ConnectionDialog } from "@/components/settings/connection-dialog";
-import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import { ConnectionRow } from "@/components/settings/connection-row";
 import { RotateConnectionDialog } from "@/components/settings/rotate-connection-dialog";
-import { SettingsList } from "@/components/settings/settings-list";
-import { SettingsPanel } from "@/components/settings/settings-panel";
-import { SettingsState } from "@/components/settings/settings-state";
-import { credentialKeys, credentialQueries } from "@/lib/credential-queries";
+import { credentialQueries } from "@/lib/credential-queries";
 import { credentialsClient } from "@/lib/credentials-client";
 import type { ConnectionSectionSpec } from "@/lib/settings/connection-sections";
+import { CONNECTIONS_TABLE } from "@/lib/settings/settings-tables";
+import { useCredentialMutation } from "@/lib/settings/use-credential-mutation";
 
-/* Only what can be typed again: a device login is redone, not rotated. */
 const rotatableMethodOf = (
   integration: CredentialIntegration | undefined,
   connection: CredentialConnection
@@ -32,92 +38,85 @@ export function CredentialPage({
 }: {
   readonly spec: ConnectionSectionSpec;
 }) {
-  const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [rotating, setRotating] = useState<CredentialConnection | null>(null);
   const integrations = useQuery(credentialQueries.integrations());
   const connections = useQuery(credentialQueries.connections());
   const awareness = useQuery(credentialQueries.awareness());
-  const refresh = useCallback(
-    () =>
-      queryClient.invalidateQueries({ queryKey: credentialKeys.connections() }),
-    [queryClient]
-  );
-  const remove = useMutation({
+  const remove = useCredentialMutation({
     mutationFn: credentialsClient.remove,
-    onError: (error) => toast.error(error.message),
-    onSuccess: refresh,
   });
-  const setDefault = useMutation({
+  const setDefault = useCredentialMutation({
     mutationFn: credentialsClient.setDefault,
-    onError: (error) => toast.error(error.message),
-    onSuccess: refresh,
   });
-  const verify = useMutation({
+  const verify = useCredentialMutation({
     mutationFn: credentialsClient.verify,
-    onError: (error) => toast.error(error.message),
-    onSettled: refresh,
-    onSuccess: () => toast.success("Stored credential is valid"),
+    success: "Stored credential is valid",
   });
 
-  const loading = connections.isPending || integrations.isPending;
-  const error = connections.error ?? integrations.error;
-
-  const integrationOf = (connection: CredentialConnection) =>
-    integrations.data?.find(
-      (integration) => integration.id === connection.integrationId
-    );
-  const rows = (connections.data ?? []).filter(
-    (connection) => integrationOf(connection)?.category === spec.category
+  const integrationOf = (id: string) =>
+    integrations.data?.find((integration) => integration.id === id);
+  const inCategory = (id: string) =>
+    integrationOf(id)?.category === spec.category;
+  const rows = (connections.data ?? []).filter((connection) =>
+    inCategory(connection.integrationId)
   );
   const connected = new Set(rows.map((row) => row.integrationId));
   const elsewhere = (awareness.data ?? []).filter(
     (entry) =>
-      !connected.has(entry.integrationId) &&
-      integrations.data?.find(
-        (integration) => integration.id === entry.integrationId
-      )?.category === spec.category
+      !connected.has(entry.integrationId) && inCategory(entry.integrationId)
   );
 
   return (
-    <SettingsPanel
-      add={{ label: spec.addLabel, onAdd: () => setAdding(true) }}
-      description={spec.note}
-      empty={loading || rows.length === 0}
-      title={spec.title}
-    >
-      {loading || error ? (
-        <SettingsState error={error} skeleton={<ConnectionListSkeleton />} />
-      ) : (
-        <SettingsList
-          addLabel={spec.addLabel}
-          empty={rows.length === 0 ? spec.empty : null}
-          emptyTitle={spec.emptyTitle}
-          Icon={spec.Icon}
-          onAdd={() => setAdding(true)}
-          title={spec.title}
-        >
-          {rows.map((connection) => {
-            const integration = integrationOf(connection);
+    <>
+      <PageHeader
+        actions={
+          <Button onClick={() => setAdding(true)} size="sm">
+            <PlusIcon />
+            {spec.addLabel}
+          </Button>
+        }
+        description={spec.note}
+        title={spec.title}
+      />
 
-            return integration ? (
-              <ConnectionRow
-                connection={connection}
-                integration={integration}
-                key={connection.id}
-                onDefault={() => setDefault.mutate(connection.id)}
-                onRemove={() => remove.mutate(connection.id)}
-                onRotate={
-                  rotatableMethodOf(integration, connection) === null
-                    ? undefined
-                    : () => setRotating(connection)
-                }
-                onVerify={() => verify.mutate(connection.id)}
-              />
-            ) : null;
-          })}
-        </SettingsList>
-      )}
+      <ListState
+        description={spec.empty}
+        empty={rows.length === 0}
+        error={connections.error ?? integrations.error}
+        icon={<spec.Icon />}
+        isPending={connections.isPending || integrations.isPending}
+        skeleton={<DataTableSkeleton {...CONNECTIONS_TABLE} rows={2} />}
+        title={spec.emptyTitle}
+      >
+        <DataTable
+          columns={CONNECTIONS_TABLE.columns}
+          label={CONNECTIONS_TABLE.label}
+        >
+          <DataTableHead headings={CONNECTIONS_TABLE.headings} />
+          <DataTableBody>
+            {rows.map((connection) => {
+              const integration = integrationOf(connection.integrationId);
+
+              return integration ? (
+                <ConnectionRow
+                  connection={connection}
+                  integration={integration}
+                  key={connection.id}
+                  onDefault={() => setDefault.mutate(connection.id)}
+                  onRemove={() => remove.mutate(connection.id)}
+                  onRotate={
+                    rotatableMethodOf(integration, connection) === null
+                      ? undefined
+                      : () => setRotating(connection)
+                  }
+                  onVerify={() => verify.mutate(connection.id)}
+                />
+              ) : null;
+            })}
+          </DataTableBody>
+        </DataTable>
+      </ListState>
 
       {elsewhere.map((entry) => (
         <ConnectedElsewhere
@@ -132,7 +131,6 @@ export function CredentialPage({
           category={spec.category}
           integrations={integrations.data}
           onClose={() => setAdding(false)}
-          onCreated={refresh}
           open={adding}
         />
       ) : null}
@@ -142,11 +140,10 @@ export function CredentialPage({
         method={
           rotating === null
             ? null
-            : rotatableMethodOf(integrationOf(rotating), rotating)
+            : rotatableMethodOf(integrationOf(rotating.integrationId), rotating)
         }
         onClose={() => setRotating(null)}
-        onRotated={refresh}
       />
-    </SettingsPanel>
+    </>
   );
 }

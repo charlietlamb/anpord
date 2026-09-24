@@ -11,13 +11,13 @@ import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSkeleton } from "@/components/evals/trial-skeleton";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
 import {
   CALLS_TABLE,
   CASES_TABLE,
   CHECKS_TABLE,
 } from "@/lib/evals/case-tables";
 import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";
+import { CONNECTIONS_TABLE } from "@/lib/settings/settings-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
@@ -74,7 +74,7 @@ function SkeletonsPreview() {
 
         <PreviewScreen name="Connection list">
           <div className="mx-auto w-full max-w-5xl px-5 xl:px-6">
-            <ConnectionListSkeleton />
+            <DataTableSkeleton {...CONNECTIONS_TABLE} rows={2} />
           </div>
         </PreviewScreen>
 

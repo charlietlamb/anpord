@@ -1,14 +1,13 @@
 import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
 import { Button } from "@anpord/ui/components/button";
-import { EmptyState } from "@anpord/ui/components/ui/empty-state";
+import { Skeleton } from "@anpord/ui/components/skeleton";
 import { GitBranchIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
-import { ConnectionListSkeleton } from "@/components/settings/connection-list-skeleton";
-import { InstalledAccountRow } from "@/components/settings/installed-account-row";
-import { SettingsPanel } from "@/components/settings/settings-panel";
-import { SettingsState } from "@/components/settings/settings-state";
+import { ListState } from "@/components/layout/list-state";
+import { PageHeader } from "@/components/layout/page-header";
+import { InstalledAccount } from "@/components/settings/installed-account";
 import { codebaseQueries } from "@/lib/codebase-queries";
 import { useCodebaseInstall } from "@/lib/use-codebase-install";
 
@@ -22,7 +21,6 @@ export const Route = createFileRoute("/_authed/settings/codebase")({
   },
 });
 
-/* The listing is a single page, so a full page is a floor rather than a total. */
 const repositoryCount = (
   fetching: boolean,
   repositories: readonly unknown[] | undefined
@@ -56,44 +54,35 @@ function CodebasePage() {
     </Button>
   );
 
-  const panelBody = () => {
-    if (loading || account.error) {
-      return (
-        <SettingsState
-          error={account.error}
-          skeleton={<ConnectionListSkeleton rows={1} />}
-        />
-      );
-    }
-
-    if (installed === null) {
-      return (
-        <EmptyState
-          action={connectButton}
-          description="Public repositories clone without it. Connecting lets you choose exactly which of your own it can read."
-          icon={<GitBranchIcon />}
-          title="GitHub not connected"
-        />
-      );
-    }
-
-    return (
-      <InstalledAccountRow
-        account={installed}
-        onRefresh={() => repositories.refetch()}
-        refreshing={repositories.isFetching}
-        summary={repositoryCount(repositories.isFetching, repositories.data)}
-      />
-    );
-  };
-
   return (
-    <SettingsPanel
-      actions={loading || installed === null ? undefined : connectButton}
-      description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
-      title="Codebase"
-    >
-      {panelBody()}
-    </SettingsPanel>
+    <>
+      <PageHeader
+        actions={loading || installed === null ? undefined : connectButton}
+        description="Optional. Connect GitHub to pick a repository from a list instead of pasting a URL, and to run evals against private ones."
+        title="Codebase"
+      />
+      <ListState
+        action={connectButton}
+        description="Public repositories clone without it. Connecting lets you choose exactly which of your own it can read."
+        empty={installed === null}
+        error={account.error}
+        icon={<GitBranchIcon />}
+        isPending={loading}
+        skeleton={<Skeleton className="h-32 rounded-xl" />}
+        title="GitHub not connected"
+      >
+        {installed === null ? null : (
+          <InstalledAccount
+            account={installed}
+            onRefresh={() => repositories.refetch()}
+            refreshing={repositories.isFetching}
+            summary={repositoryCount(
+              repositories.isFetching,
+              repositories.data
+            )}
+          />
+        )}
+      </ListState>
+    </>
   );
 }

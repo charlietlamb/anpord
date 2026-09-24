@@ -1,23 +1,20 @@
 import { Label } from "@anpord/ui/components/ui/label";
 import { Textarea } from "@anpord/ui/components/ui/textarea";
+import { cn } from "@anpord/ui/lib/utils";
 import { useState } from "react";
 import { parseEnvLines } from "@/lib/settings/env-lines";
 
-/* Only the parsed map is handed up, so the form above never holds a half-typed line. */
 export function EnvFields({
   onChange,
 }: {
   readonly onChange: (values: Readonly<Record<string, string>>) => void;
 }) {
   const [text, setText] = useState("");
-  const [problem, setProblem] = useState<string | null>(null);
+  const { problem } = parseEnvLines(text);
 
   const change = (next: string) => {
-    const parsed = parseEnvLines(next);
-
     setText(next);
-    setProblem(parsed.problem);
-    onChange(parsed.values ?? {});
+    onChange(parseEnvLines(next).values ?? {});
   };
 
   return (
@@ -35,11 +32,10 @@ export function EnvFields({
         value={text}
       />
       <p
-        className={
-          problem === null
-            ? "text-muted-foreground text-xs"
-            : "text-destructive text-xs"
-        }
+        className={cn(
+          "text-xs",
+          problem === null ? "text-muted-foreground" : "text-destructive"
+        )}
         id="credential-env-help"
       >
         {problem ??

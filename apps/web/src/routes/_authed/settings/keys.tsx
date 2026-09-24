@@ -1,11 +1,10 @@
-import { KeyIcon } from "@phosphor-icons/react";
+import { Button } from "@anpord/ui/components/button";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ApiKeyListSkeleton } from "@/components/settings/api-key-list-skeleton";
-import { ApiKeyRow } from "@/components/settings/api-key-row";
-import { SettingsList } from "@/components/settings/settings-list";
-import { SettingsPanel } from "@/components/settings/settings-panel";
+import { PageHeader } from "@/components/layout/page-header";
+import { ApiKeyList } from "@/components/settings/api-key-list";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { apiKeyQueries } from "@/lib/query/api-key-queries";
 import {
@@ -69,77 +68,24 @@ function ApiKeysPage() {
       title: `Revoke ${name}?`,
     });
 
-  const rows = keys.data ?? [];
-
   return (
-    <SettingsPanel
-      add={{ label: "New key", onAdd: onNew }}
-      description="Authenticate the SDK and the CLI. A key acts for this organization."
-      empty={rows.length === 0}
-      title="API keys"
-    >
+    <>
+      <PageHeader
+        actions={
+          <Button onClick={onNew} size="sm">
+            <PlusIcon />
+            New key
+          </Button>
+        }
+        description="Authenticate the SDK and the CLI. A key acts for this organization."
+        title="API keys"
+      />
       <ApiKeyList
         error={keys.error}
         isPending={keys.isLoading}
-        onNew={onNew}
         onRevoke={onRevoke}
-        rows={rows.map((row) => ({
-          createdAt: row.createdAt,
-          id: row.id,
-          name: row.name ?? "Unnamed key",
-          start: row.start,
-        }))}
+        rows={keys.data ?? []}
       />
-    </SettingsPanel>
-  );
-}
-
-interface ApiKeyListRow {
-  readonly createdAt: Date | string;
-  readonly id: string;
-  readonly name: string;
-  readonly start: string | null;
-}
-
-function ApiKeyList({
-  error,
-  isPending,
-  onNew,
-  onRevoke,
-  rows,
-}: {
-  readonly error: Error | null;
-  readonly isPending: boolean;
-  readonly onNew: () => void;
-  readonly onRevoke: (id: string, name: string) => void;
-  readonly rows: readonly ApiKeyListRow[];
-}) {
-  if (isPending) {
-    return <ApiKeyListSkeleton />;
-  }
-
-  if (error) {
-    return <p className="text-muted-foreground text-sm">{error.message}</p>;
-  }
-
-  return (
-    <SettingsList
-      addLabel="New key"
-      empty={rows.length === 0 ? "Create one to use the SDK or the CLI." : null}
-      emptyTitle="No keys yet"
-      Icon={KeyIcon}
-      onAdd={onNew}
-      title="API keys"
-    >
-      {rows.map((row) => (
-        <ApiKeyRow
-          createdAt={row.createdAt}
-          key={row.id}
-          name={row.name}
-          onRevoke={() => onRevoke(row.id, row.name)}
-          start={row.start}
-        />
-      ))}
-    </SettingsList>
+    </>
   );
 }

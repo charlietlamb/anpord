@@ -2,14 +2,13 @@ import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity"
 import { CHANNEL_SWATCHES } from "@anpord/ui/lib/channel-colors";
 import { initials } from "@anpord/ui/lib/initials";
 import { cn } from "@anpord/ui/lib/utils";
-import { IdentityAvatar } from "@/components/dashboard/sidebar-identity";
+import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 
 interface ActivityMarkerProps {
   readonly entry: PromptActivityEntry;
 }
 
-/* Every marker fills the same size-5 slot, or the timeline thread zigzags. */
 export function ActivityMarker({ entry }: ActivityMarkerProps) {
   const channelColor = useChannelColor();
 

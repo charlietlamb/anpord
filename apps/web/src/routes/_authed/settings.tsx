@@ -14,11 +14,13 @@ function SettingsLayout() {
       <div
         className={cn(
           PAGE_WIDTHS.wide,
-          "grid grid-cols-1 items-start gap-8 pt-5 pb-24 lg:grid-cols-[13rem_minmax(0,1fr)] xl:gap-10"
+          "grid grid-cols-1 items-start gap-8 pt-4 pb-8 lg:grid-cols-[13rem_minmax(0,1fr)] xl:gap-10"
         )}
       >
         <SettingsSidebar />
-        <Outlet />
+        <div className="flex min-w-0 flex-col gap-5">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
