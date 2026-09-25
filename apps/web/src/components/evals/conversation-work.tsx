@@ -12,6 +12,7 @@ import {
   stepFailed,
   summaryOf,
 } from "@/lib/evals/conversation";
+import { journalKey } from "@/lib/evals/journal-presentation";
 
 const titleOf = (steps: readonly Step[], live: boolean) => {
   const failed = steps.filter(stepFailed).length;
@@ -42,7 +43,7 @@ export function ConversationWork({
       />
       <TaskContent>
         {steps.map((step, index) => (
-          <TaskItem key={`${step._tag}-${index.toString()}`}>
+          <TaskItem key={journalKey(step, index)}>
             <ConversationWorkItem step={step} />
           </TaskItem>
         ))}

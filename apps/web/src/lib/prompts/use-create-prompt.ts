@@ -1,9 +1,10 @@
 import { CreatePromptRequest } from "@anpord/schema/domain/prompts";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Effect, Schema } from "effect";
 import { toast } from "sonner";
 import { createPrompt } from "@/lib/prompts-client";
+import { promptKeys } from "@/lib/query/prompt-keys";
 
 export const toId = (name: string) =>
   name
@@ -13,6 +14,7 @@ export const toId = (name: string) =>
 
 export function useCreatePrompt() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: { readonly content: string; readonly name: string }) =>
@@ -31,6 +33,7 @@ export function useCreatePrompt() {
       });
     },
     onSuccess: (prompt) => {
+      queryClient.invalidateQueries({ queryKey: promptKeys.lists() });
       toast.success("Prompt created", { description: "Live on production." });
       navigate({ params: { id: prompt.id }, to: "/prompts/$id" });
     },

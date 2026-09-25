@@ -6,25 +6,17 @@ import {
   SignInIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
-import { MarkdownProse } from "@/components/evals/markdown-prose";
 import { ReadEvidence } from "@/components/evals/read-evidence";
-import { ValidationValue } from "@/components/evals/validation-value";
+import { ValidationExecution } from "@/components/evals/validation-execution";
+import { ValidationResult } from "@/components/evals/validation-result";
 
 type Pane = "result" | "evidence" | "execution";
 
-const executionRows = (validation: EvalValidation) => [
-  { label: "Invocation input", value: validation.input },
-  ...(validation.judgment
-    ? [{ label: "Raw response", value: validation.output }]
-    : []),
-  ...(validation.metadata
-    ? [{ label: "Provider metadata", value: validation.metadata }]
-    : []),
-  ...validation.logs.map((log) => ({
-    label: `${log.level} · ${new Date(log.at).toISOString()} · ${log.index + 1}`,
-    value: log.value,
-  })),
-];
+const PANES = [
+  { Icon: BracketsCurlyIcon, label: "Result", value: "result" },
+  { Icon: ListMagnifyingGlassIcon, label: "Evidence", value: "evidence" },
+  { Icon: SignInIcon, label: "Execution", value: "execution" },
+] as const;
 
 export function ValidationDetail({
   validation,
@@ -32,57 +24,12 @@ export function ValidationDetail({
   readonly validation: EvalValidation;
 }) {
   const [pane, setPane] = useState<Pane>("result");
-  const judgment = validation.judgment;
 
   return (
     <div className="flex flex-col gap-3">
-      <PageTabs
-        onChange={setPane}
-        options={[
-          { Icon: BracketsCurlyIcon, label: "Result", value: "result" },
-          {
-            Icon: ListMagnifyingGlassIcon,
-            label: "Evidence",
-            value: "evidence",
-          },
-          { Icon: SignInIcon, label: "Execution", value: "execution" },
-        ]}
-        value={pane}
-      />
+      <PageTabs onChange={setPane} options={PANES} value={pane} />
 
-      {pane === "result" ? (
-        <div className="min-w-0">
-          {judgment ? (
-            <div className="space-y-3 text-sm leading-relaxed [overflow-wrap:anywhere]">
-              <p className="text-muted-foreground text-xs">
-                {judgment.score === null
-                  ? "Unscored"
-                  : `Score ${judgment.score}`}{" "}
-                · required ≥ {judgment.threshold} · {judgment.model}
-                {judgment.choice === null ? "" : ` · ${judgment.choice}`}
-              </p>
-              <MarkdownProse
-                className={
-                  judgment.error === null
-                    ? "text-foreground/90"
-                    : "text-destructive"
-                }
-                text={judgment.error ?? judgment.reason}
-              />
-            </div>
-          ) : (
-            <dl>
-              <ValidationValue label="Return value" value={validation.output} />
-            </dl>
-          )}
-
-          {validation.error ? (
-            <dl>
-              <ValidationValue label="Error" value={validation.error} />
-            </dl>
-          ) : null}
-        </div>
-      ) : null}
+      {pane === "result" ? <ValidationResult validation={validation} /> : null}
 
       {pane === "evidence" ? (
         <div className="min-w-0">
@@ -91,17 +38,7 @@ export function ValidationDetail({
       ) : null}
 
       {pane === "execution" ? (
-        <div className="min-w-0 space-y-1">
-          {executionRows(validation).map(({ label, value }) => (
-            <ValidationValue
-              disclosure
-              key={label}
-              label={label}
-              open={false}
-              value={value}
-            />
-          ))}
-        </div>
+        <ValidationExecution validation={validation} />
       ) : null}
 
       {validation.truncated ? (
