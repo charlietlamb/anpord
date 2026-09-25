@@ -2,15 +2,17 @@ import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { EvalHarness } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Data, Duration, Effect, Option } from "effect";
-import { apiKeyConfig, ClientLayer } from "../client/config";
+import { apiKeyConfig, ClientLayer, webUrlConfig } from "../client/config";
 import { asAnpordError } from "../client/errors";
 import { compileEvalEffect } from "../evals/compiler";
 import { type EvalGate, failWhen } from "./eval-gate";
 import { labelOfRequest, runLocally } from "./eval-local";
 import { reportStarted } from "./eval-report";
 import { evalTrigger } from "./eval-trigger";
+import { batchUrl } from "./github-check";
 import { localProblems, reportLocal } from "./local-report";
 import { runIdsFor } from "./local-run-ids";
+import { openBrowser } from "./open-browser";
 import { note } from "./render";
 import { type Selection, selectFrom } from "./suite-selection";
 
@@ -41,7 +43,11 @@ const leasesFor = (request: StartBatchRequest, batchId: string) =>
     );
   });
 
-const recordedLocally = (label: string, request: StartBatchRequest) =>
+const recordedLocally = (
+  label: string,
+  request: StartBatchRequest,
+  ui: boolean
+) =>
   Effect.gen(function* () {
     const api = yield* AnpordApi;
     const trigger = yield* evalTrigger;
@@ -53,6 +59,12 @@ const recordedLocally = (label: string, request: StartBatchRequest) =>
     yield* Effect.addFinalizer(() =>
       api.runner.finish({ payload: { id: started.id } }).pipe(Effect.ignore)
     );
+
+    /* The dashboard already follows a batch as it runs, so this opens that page
+       rather than serving a second copy of it that could drift. */
+    if (ui) {
+      yield* openBrowser(batchUrl(yield* webUrlConfig, started.id));
+    }
 
     const batch = yield* api.batches.get({ payload: { id: started.id } });
     const runIdOf = yield* runIdsFor(request, started, batch);
@@ -73,7 +85,7 @@ const recordedLocally = (label: string, request: StartBatchRequest) =>
     });
   }).pipe(Effect.scoped, Effect.provide(ClientLayer));
 
-const runSuiteLocally = (file: string, selection: Selection) =>
+const runSuiteLocally = (file: string, selection: Selection, ui: boolean) =>
   Effect.gen(function* () {
     const request = yield* selectFrom(
       file,
@@ -82,8 +94,15 @@ const runSuiteLocally = (file: string, selection: Selection) =>
     );
     const label = `${request.suite.name} (${file})`;
     const recorded = yield* Effect.option(apiKeyConfig);
+
+    if (ui && Option.isNone(recorded)) {
+      yield* note(
+        "--ui opens the dashboard for a recorded batch, so it needs an API key. Showing the transcript only."
+      );
+    }
+
     const cases = Option.isSome(recorded)
-      ? yield* recordedLocally(label, request)
+      ? yield* recordedLocally(label, request, ui)
       : yield* runLocally(request);
 
     yield* reportLocal(label, cases);
@@ -97,14 +116,15 @@ export const runSuitesLocally = (
   options: {
     readonly gate: EvalGate;
     readonly timeoutSeconds: Option.Option<number>;
+    readonly ui: boolean;
   }
 ) =>
   Effect.gen(function* () {
     const problems = yield* Effect.forEach(files, (file) =>
       Option.match(options.timeoutSeconds, {
-        onNone: () => runSuiteLocally(file, selection),
+        onNone: () => runSuiteLocally(file, selection, options.ui),
         onSome: (seconds) =>
-          runSuiteLocally(file, selection).pipe(
+          runSuiteLocally(file, selection, options.ui).pipe(
             Effect.timeoutFail({
               duration: Duration.seconds(seconds),
               onTimeout: () => new LocalTimeout({ file, seconds }),

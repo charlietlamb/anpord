@@ -21,6 +21,8 @@ const EVAL_COMMANDS: Record<string, readonly string[]> = {
   "runner.tail": [],
   "runs.get": [],
   "runs.list": [],
+  "suites.get": [],
+  "suites.list": [],
 };
 
 const PROMPT_COMMANDS: Record<string, readonly string[]> = {

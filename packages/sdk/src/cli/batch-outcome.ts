@@ -1,5 +1,6 @@
 import type { StartedBatch } from "@anpord/schema/domain/evals";
 import { Effect } from "effect";
+import { webUrlConfig } from "../client/config";
 import {
   formatBatchSummary,
   type ProgressMode,
@@ -7,12 +8,15 @@ import {
 } from "./batch-progress";
 import { waitForBatch } from "./batch-wait";
 import { batchError, type EvalGate, problemsWith } from "./eval-gate";
+import { batchUrl } from "./github-check";
+import { openBrowser } from "./open-browser";
 import { attended, json, note } from "./render";
 
 export interface HostedOptions {
   readonly gate: EvalGate;
   readonly skipWait: boolean;
   readonly timeoutSeconds: number;
+  readonly ui: boolean;
   readonly wantsJson: boolean;
 }
 
@@ -36,13 +40,19 @@ export const settleBatch = (
     }
 
     const live = !options.wantsJson && (yield* attended);
-    const watcher = yield* watchBatch(
+    const terminal = yield* watchBatch(
       trials,
       progressModeOf(options.wantsJson, live)
     );
+    /* The dashboard already follows a batch as it runs, so this opens that page
+       rather than serving a second copy of it that could drift. */
+    if (options.ui) {
+      yield* openBrowser(batchUrl(yield* webUrlConfig, started.id));
+    }
+
     const batch = yield* waitForBatch(
       started.id,
-      watcher,
+      terminal,
       options.timeoutSeconds
     );
 
@@ -63,4 +73,4 @@ export const settleBatch = (
             })
           : [],
     };
-  });
+  }).pipe(Effect.scoped);

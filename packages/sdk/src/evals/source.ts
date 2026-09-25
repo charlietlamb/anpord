@@ -18,3 +18,6 @@ export const files = (
 ): EvalSource => ({ files: contents, kind: "files" });
 
 export const empty: EvalSource = { kind: "empty" };
+
+export const sourceOf = (declared: EvalSource | string): EvalSource =>
+  typeof declared === "string" ? repo(declared) : declared;

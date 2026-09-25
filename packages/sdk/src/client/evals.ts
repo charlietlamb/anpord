@@ -39,6 +39,7 @@ export interface EvalsSurface {
   readonly cases: CasesSurface;
   readonly models: Promised<AnpordClient["models"]>;
   readonly runs: Promised<AnpordClient["runs"]>;
+  readonly suites: Promised<AnpordClient["suites"]>;
 }
 
 const decodeStart = Schema.decodeUnknownEither(SuiteBatchRequest);
@@ -99,4 +100,5 @@ export const evalsSurface = (client: AnpordClient): EvalsSurface => ({
   cases: casesSurface(client),
   models: promised(client.models),
   runs: promised(client.runs),
+  suites: promised(client.suites),
 });

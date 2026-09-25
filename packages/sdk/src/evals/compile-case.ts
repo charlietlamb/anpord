@@ -3,14 +3,11 @@ import { bundledCaseModule } from "./case-modules";
 import { isCommand } from "./command";
 import { compileValidator } from "./compile-validator";
 import { type DefinitionRef, prepareEntry } from "./runner-source";
-import { empty, repo } from "./source";
+import { empty, sourceOf } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
 
-const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) => {
-  const source = subject.source ?? definition.source ?? empty;
-
-  return typeof source === "string" ? repo(source) : source;
-};
+const sourceFor = (definition: EvalDefinition, subject: EvalCaseDefinition) =>
+  sourceOf(subject.source ?? definition.source ?? empty);
 
 export const compileCase = (
   ref: DefinitionRef,

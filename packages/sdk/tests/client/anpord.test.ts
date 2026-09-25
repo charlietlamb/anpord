@@ -41,6 +41,7 @@ describe("surface", () => {
       "cases",
       "models",
       "runs",
+      "suites",
     ]);
     expect(Object.keys(anpord.evals.batches).toSorted()).toEqual([
       "get",

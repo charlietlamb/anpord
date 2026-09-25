@@ -43,6 +43,9 @@ const local = Options.boolean("local").pipe(
     "Run every case on every variant on this machine instead of a cloud sandbox"
   )
 );
+const ui = Options.boolean("ui").pipe(
+  Options.withDescription("Open the dashboard for this batch in a browser")
+);
 const output = Options.text("output").pipe(
   Options.withDescription("Write a JSON report to this file"),
   Options.optional
@@ -143,6 +146,7 @@ export const runEval = Command.make(
     noWait,
     output,
     timeout,
+    ui,
     variant,
   },
   (flags) =>
@@ -161,6 +165,7 @@ export const runEval = Command.make(
             flags.timeout,
             () => DEFAULT_TIMEOUT_SECONDS
           ),
+          ui: flags.ui,
           wantsJson: flags.asJson,
         });
       }
@@ -182,6 +187,7 @@ export const runEval = Command.make(
         {
           gate: flags.failOn,
           timeoutSeconds: flags.timeout,
+          ui: flags.ui,
         }
       );
     })

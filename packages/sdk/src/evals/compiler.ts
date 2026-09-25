@@ -14,6 +14,7 @@ import {
 } from "./mcp-profile";
 import { profileVariant } from "./profile-directory";
 import type { DefinitionRef } from "./runner-source";
+import { sourceOf } from "./source";
 import type {
   EvalDefinition,
   EvalVariantDefinition,
@@ -89,6 +90,8 @@ const compileRefEffect = (ref: DefinitionRef) =>
         id: definition.id,
         name: definition.name ?? definition.id,
         prompt: definition.prompt,
+        source:
+          definition.source === undefined ? null : sourceOf(definition.source),
       },
       trials: definition.trials,
       variants,
