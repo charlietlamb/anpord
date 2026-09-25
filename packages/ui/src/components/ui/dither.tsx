@@ -1,25 +1,63 @@
 import { DitherField } from "@anpord/ui/components/ui/dither-field";
+import {
+  CURRENT_DITHER,
+  type DitherClumps,
+  type DitherLayer,
+  type DitherPreset,
+} from "@anpord/ui/lib/dither-presets";
 import type { CSSProperties } from "react";
 
-const FIELD =
-  "inset-0 [mask-image:radial-gradient(ellipse_55%_50%_at_6%_22%,black,transparent_75%)]";
+const clumpsImage = ({
+  cut = 7 / 12,
+  edge = 12,
+  frequency,
+  octaves = 3,
+  seed,
+}: DitherClumps) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" preserveAspectRatio="none"><filter id="c" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="${frequency}" numOctaves="${octaves}" seed="${seed}"/><feColorMatrix values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 ${edge} 0 0 0 ${-edge * cut}"/></filter><rect width="100%" height="100%" filter="url(#c)"/></svg>`
+  )}")`;
 
-const DEBRIS =
-  "inset-0 [mask-composite:intersect] [mask-image:var(--clumps),radial-gradient(ellipse_80%_45%_at_12%_20%,black,transparent_85%)] [mask-size:100%_100%]";
+const maskOf = (layer: DitherLayer): CSSProperties =>
+  layer.clumps === undefined
+    ? { maskImage: layer.mask, opacity: layer.opacity }
+    : {
+        opacity: layer.opacity,
+        maskComposite: "intersect",
+        maskImage: `${clumpsImage(layer.clumps)}, ${layer.mask}`,
+        maskSize: "100% 100%",
+      };
 
-const CLUMPS = {
-  "--clumps": 'url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%22900%22%20viewBox%3D%220%200%201600%20900%22%20preserveAspectRatio%3D%22none%22%3E%3Cfilter%20id%3D%22c%22%20x%3D%220%22%20y%3D%220%22%20width%3D%22100%25%22%20height%3D%22100%25%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.009%22%20numOctaves%3D%223%22%20seed%3D%2211%22%2F%3E%3CfeColorMatrix%20values%3D%220%200%200%200%201%200%200%200%200%201%200%200%200%200%201%2012%200%200%200%20-7%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23c)%22%2F%3E%3C%2Fsvg%3E")',
-} as CSSProperties;
-
-export function Dither() {
+export function Dither({
+  preset = CURRENT_DITHER,
+}: {
+  readonly preset?: DitherPreset;
+}) {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[90svh] opacity-[0.16] invert dark:opacity-[0.18] dark:invert-0"
-      style={CLUMPS}
+      /* The shader only exists once WebGL has a canvas, so it cannot be
+         server-rendered. Fading the layer in hides that first frame arriving
+         rather than letting it snap into place. */
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[90svh] invert dark:invert-0"
+      style={{
+        animation: "dither-in 700ms ease-out both",
+        opacity: preset.opacity,
+      }}
     >
-      <DitherField className={FIELD} scale={0.7} shape="warp" speed={0.12} />
-      <DitherField className={DEBRIS} scale={0.7} shape="warp" speed={0.12} />
+      {preset.layers.map((layer, index) => (
+        <DitherField
+          className="inset-0"
+          key={`${preset.id}-${index}`}
+          rotation={layer.rotation}
+          scale={layer.scale}
+          shape={layer.shape}
+          size={layer.size}
+          speed={layer.speed}
+          style={maskOf(layer)}
+          type={layer.type}
+        />
+      ))}
     </div>
   );
 }

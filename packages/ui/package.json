@@ -14,6 +14,7 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
+    "@anpord/schema": "workspace:*",
     "@anpord/template": "workspace:*",
     "@base-ui/react": "catalog:",
     "@paper-design/shaders-react": "catalog:",

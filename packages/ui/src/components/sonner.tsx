@@ -1,5 +1,6 @@
 "use client";
 
+import { cn, SPIN } from "@anpord/ui/lib/utils";
 import {
   CheckCircleIcon,
   InfoIcon,
@@ -24,7 +25,7 @@ export function Toaster({ ...props }: ToasterProps) {
         error: (
           <XCircleIcon className="size-4 text-destructive" weight="fill" />
         ),
-        loading: <SpinnerIcon className="size-4 animate-spin" />,
+        loading: <SpinnerIcon className={cn("size-4", SPIN)} />,
       }}
       position="top-center"
       style={
