@@ -131,6 +131,7 @@
     "e2e:smoke": "bash scripts/e2e-v1.sh",
     "fix": "ultracite fix",
     "knip": "knip --no-config-hints",
+    "local:key": "bash scripts/local-key.sh",
     "mint-key": "bun run scripts/mint-api-key.ts",
     "og": "bun run scripts/generate-og-image.ts",
     "openapi": "bun run packages/schema/scripts/generate-openapi.ts",
@@ -138,6 +139,7 @@
     "start": "bun --cwd apps/web start",
     "start:server": "bun --cwd apps/server start",
     "test": "turbo run test",
+    "test-org": "bun run scripts/test-org.ts",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

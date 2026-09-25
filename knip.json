@@ -155,6 +155,7 @@
   },
   "ignore": [
     "context/**",
+    "scripts/fixtures/**",
     "scripts/server-workspace-deps.mjs",
     "autumn.config.ts"
   ],

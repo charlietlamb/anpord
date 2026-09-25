@@ -148,3 +148,27 @@ bun run knip       # unused files, deps, exports
 ```
 
 All four must pass. `bun run doctor` for React changes.
+
+## Running an eval locally
+
+`--ui` opens the dashboard for the batch, so it needs a key and an
+organization. One command sets both up against the local stack:
+
+```bash
+eval "$(bun run local:key)"
+bun packages/sdk/dist/bin.cjs eval <file> --local --ui
+```
+
+- Mints against the organization the browser is already signed into, so the
+  batch it opens is one you can see. `ANPORD_TEST_ORG` names another, created
+  if missing.
+- `bun run test-org` creates an organization on its own. It refuses any
+  database that is not localhost, because it writes an unverified user.
+- `ANPORD_BROWSER` picks the browser; `none` prints the address and opens
+  nothing, which is what automated runs want.
+- `scripts/fixtures/local-smoke` is a keyless suite on the `command` harness.
+  It needs no model credential and settles in under a second, so it is the
+  fastest way to prove the pipeline end to end.
+
+The server must be running (`bun run dev`): the key comes from the endpoint the
+dashboard calls, not from the table.

@@ -15,6 +15,7 @@
       "!context",
       "!packages/eval/tests/fixtures/case-files",
       "!packages/sdk/tests/imports/fixtures",
+      "!scripts/fixtures",
       "!**/.claude/worktrees"
     ]
   },
