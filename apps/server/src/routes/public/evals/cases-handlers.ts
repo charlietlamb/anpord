@@ -13,6 +13,9 @@ export const CasesHandlers = HttpApiBuilder.group(
         listCases({
           cursor: payload.cursor ?? null,
           limit: payload.limit,
+          order: payload.order ?? "desc",
+          q: payload.q?.trim() || null,
+          sort: payload.sort ?? "recent",
           suite: payload.suite ?? null,
           tag: payload.tag ?? null,
         })

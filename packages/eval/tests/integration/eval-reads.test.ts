@@ -75,7 +75,7 @@ const checkout = requestOf({
 
 const wide = requestOf({
   cases: [caseOf("wide", { variables: { task: "search widely" } })],
-  suite: { id: "search", name: "Search", prompt: "{{task}}" },
+  suite: { id: "search", name: "Search", prompt: "{{task}}", source: null },
   variants: Array.from({ length: 12 }, (_, index) =>
     variantOf({ model: `model-${index + 1}` })
   ),
@@ -251,6 +251,9 @@ describe.skipIf(skipWithoutDatabase())(
           cursor: null,
           limit: undefined,
           organizationId,
+          q: null,
+          order: "desc" as const,
+          sort: "recent" as const,
           suite: null,
           tag: null,
         })
@@ -288,6 +291,9 @@ describe.skipIf(skipWithoutDatabase())(
             cursor: null,
             limit: undefined,
             organizationId,
+            q: null,
+            order: "desc" as const,
+            sort: "recent" as const,
             suite,
             tag,
           })
@@ -298,6 +304,57 @@ describe.skipIf(skipWithoutDatabase())(
       expect(await filtered(null, "slow")).toEqual(["refund"]);
       expect(await filtered(null, "billing")).toEqual(["pay", "refund"]);
       expect(await filtered("search", "billing")).toEqual([]);
+    });
+
+    it("searches cases by id, name and suite name", async () => {
+      const searched = (q: string) =>
+        reads((service) =>
+          service.cases({
+            cursor: null,
+            limit: undefined,
+            organizationId,
+            q,
+            order: "desc" as const,
+            sort: "recent" as const,
+            suite: null,
+            tag: null,
+          })
+        ).then((page) => page.cases.map((entry) => entry.id).toSorted());
+
+      expect(await searched("ref")).toEqual(["refund"]);
+      expect(await searched("REF")).toEqual(["refund"]);
+      expect(await searched("Checkout")).toEqual(["pay", "refund"]);
+      expect(await searched("nothing here")).toEqual([]);
+      /* A bare wildcard matches literally rather than standing for everything. */
+      expect(await searched("%")).toEqual([]);
+    });
+
+    it("sorts cases by name, and pages without repeating one", async () => {
+      const sorted = (cursor: EvalPageCursor | null, limit?: number) =>
+        reads((service) =>
+          service.cases({
+            cursor,
+            limit,
+            organizationId,
+            q: null,
+            order: "asc" as const,
+            sort: "name" as const,
+            suite: null,
+            tag: null,
+          })
+        );
+
+      const all = await sorted(null);
+      const names = all.cases.map((entry) => entry.name);
+
+      expect(names).toEqual([...names].toSorted());
+
+      const first = await sorted(null, 1);
+      const second = await sorted(first.next, 1);
+
+      expect(first.cases).toHaveLength(1);
+      expect(second.cases).toHaveLength(1);
+      expect(second.cases[0]?.id).not.toBe(first.cases[0]?.id);
     });
 
     it("walks the case list a page at a time without repeating one", async () => {
@@ -312,6 +369,9 @@ describe.skipIf(skipWithoutDatabase())(
             cursor: at,
             limit: 1,
             organizationId,
+            q: null,
+            order: "desc" as const,
+            sort: "recent" as const,
             suite: null,
             tag: null,
           })
@@ -390,6 +450,67 @@ describe.skipIf(skipWithoutDatabase())(
           service.tail({ after: [], batchId: "bat_missing", organizationId })
         )
       ).toMatchObject({ _tag: "EvalNotFound", entity: "batch" });
+    });
+
+    it("lists suites with what their cases add up to", async () => {
+      const page = await reads((service) =>
+        service.suites({ cursor: null, limit: 10, organizationId })
+      );
+      const listed = page.suites.map((suite) => suite.id);
+
+      expect(listed).toContain("checkout");
+      expect(listed).toContain("search");
+      expect(
+        page.suites.find((suite) => suite.id === "checkout")
+      ).toMatchObject({ cases: 2, variants: 2 });
+      expect(page.suites.find((suite) => suite.id === "search")).toMatchObject({
+        cases: 1,
+        variants: 12,
+      });
+      expect(page.suites.every((suite) => suite.lastRunAt !== null)).toBe(true);
+    });
+
+    it("keeps the prompt and workspace a suite's cases share", async () => {
+      const shared = { kind: "repo" as const, ref: "main", url: "acme/api" };
+      await startAndExecute(
+        requestOf({
+          cases: [caseOf("shared", { variables: { task: "share the setup" } })],
+          suite: {
+            id: "shared-setup",
+            name: "Shared setup",
+            prompt: "do {{task}}",
+            source: shared,
+          },
+        })
+      );
+
+      const suite = await reads((service) =>
+        service.suite(organizationId, "shared-setup")
+      );
+
+      expect(suite.setup).toEqual({ prompt: "do {{task}}", source: shared });
+      expect(suite.cases).toBe(1);
+    });
+
+    it("scores a suite across the newest run of each of its variants", async () => {
+      const suite = await reads((service) =>
+        service.suite(organizationId, "checkout")
+      );
+
+      expect(suite.tally.scored).toBeGreaterThan(0);
+      expect(suite.tally.passed).toBeLessThanOrEqual(suite.tally.scored);
+      expect(suite.tags.toSorted()).toEqual(["billing", "slow"]);
+    });
+
+    it("keeps a suite to its own organization", async () => {
+      expect(
+        await failureOf((service) =>
+          service.suite("org_someone_else", "checkout")
+        )
+      ).toMatchObject({ _tag: "EvalNotFound", entity: "suite" });
+      expect(
+        await failureOf((service) => service.suite(organizationId, "missing"))
+      ).toMatchObject({ _tag: "EvalNotFound", entity: "suite" });
     });
 
     it("does not hand out an artifact nobody stored", async () => {

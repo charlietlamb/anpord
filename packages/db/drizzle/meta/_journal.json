@@ -386,6 +386,13 @@
       "when": 1790900000002,
       "tag": "0054_an_eval_is_a_suite_of_cases",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1790900000003,
+      "tag": "0055_a_suite_keeps_its_setup",
+      "breakpoints": true
     }
   ]
 }

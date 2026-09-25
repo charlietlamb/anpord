@@ -3,12 +3,15 @@ import { AnpordApi } from "@anpord/schema/internal/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
 import {
+  cursorOf,
   listCaseRuns,
   listCases,
+  listSuites,
   readArtifact,
   readBatch,
   readCase,
   readRun,
+  readSuite,
   readTail,
   readTrialAddress,
   runCase,
@@ -26,19 +29,19 @@ export const EvalsHandlers = HttpApiBuilder.group(
       .handle("artifact", read, ({ payload }) => readArtifact(payload))
       .handle("cases", read, ({ urlParams }) =>
         listCases({
-          cursor:
-            urlParams.cursorId === undefined ||
-            urlParams.cursorStartedAt === undefined
-              ? null
-              : {
-                  id: urlParams.cursorId,
-                  startedAtMillis: urlParams.cursorStartedAt,
-                },
+          cursor: cursorOf(urlParams),
           limit: urlParams.limit,
+          order: urlParams.order ?? "desc",
+          q: urlParams.q?.trim() || null,
+          sort: urlParams.sort ?? "recent",
           suite: urlParams.suite ?? null,
           tag: urlParams.tag ?? null,
         })
       )
+      .handle("suites", read, ({ urlParams }) =>
+        listSuites(cursorOf(urlParams), urlParams.limit)
+      )
+      .handle("suite", read, ({ path }) => readSuite(path.id))
       .handle("case", read, ({ path }) => readCase(path.id))
       .handle("caseRuns", read, ({ path, urlParams }) =>
         listCaseRuns(path.id, urlParams.page, urlParams.variant)

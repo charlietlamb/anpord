@@ -223,7 +223,13 @@ export const EvalVariantRequest = Schema.Struct({
   });
 export type EvalVariantRequest = typeof EvalVariantRequest.Type;
 
-const EvalSuiteFields = { id: EvalSuiteId, prompt: EvalPrompt };
+const EvalSuiteFields = {
+  id: EvalSuiteId,
+  prompt: EvalPrompt,
+  source: Schema.optionalWith(Schema.NullOr(EvalSource), {
+    default: () => null,
+  }),
+};
 
 export const EvalSuiteRequest = Schema.transform(
   Schema.Struct({ ...EvalSuiteFields, name: Schema.optional(EvalSuiteName) }),
@@ -235,7 +241,7 @@ export const EvalSuiteRequest = Schema.transform(
   }
 ).annotations({
   description:
-    "The suite the cases belong to, and the prompt they share. Its name defaults to its id.",
+    "The suite the cases belong to, and the prompt and workspace they share. Its name defaults to its id.",
   identifier: "EvalSuiteRequest",
 });
 export type EvalSuiteRequest = typeof EvalSuiteRequest.Type;

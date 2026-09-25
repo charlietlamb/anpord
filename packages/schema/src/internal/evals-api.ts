@@ -11,6 +11,8 @@ import {
   EvalCasePage,
   EvalRun,
   EvalRunPage,
+  EvalSuiteDetail,
+  EvalSuitePage,
   EvalTrialAddress,
   StartedBatch,
 } from "../domain/evals";
@@ -32,11 +34,30 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
           cursorId: Schema.optional(Schema.String),
           cursorStartedAt: Schema.optional(Schema.NumberFromString),
           limit: Schema.optional(Schema.NumberFromString),
+          order: Schema.optional(Schema.Literal("asc", "desc")),
+          q: Schema.optional(Schema.String),
+          sort: Schema.optional(Schema.Literal("recent", "name")),
           suite: Schema.optional(Schema.String),
           tag: Schema.optional(Schema.String),
         })
       )
       .addSuccess(EvalCasePage)
+  )
+  .add(
+    HttpApiEndpoint.get("suites", "/evals/suites")
+      .setUrlParams(
+        Schema.Struct({
+          cursorId: Schema.optional(Schema.String),
+          cursorStartedAt: Schema.optional(Schema.NumberFromString),
+          limit: Schema.optional(Schema.NumberFromString),
+        })
+      )
+      .addSuccess(EvalSuitePage)
+  )
+  .add(
+    HttpApiEndpoint.get("suite", "/evals/suites/:id")
+      .setPath(IdPath)
+      .addSuccess(EvalSuiteDetail)
   )
   .add(
     HttpApiEndpoint.get("case", "/evals/cases/:id")

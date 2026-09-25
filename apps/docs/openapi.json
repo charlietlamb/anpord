@@ -770,6 +770,9 @@
                             "id": {
                               "type": "string"
                             },
+                            "name": {
+                              "type": "string"
+                            },
                             "startedAtMillis": {
                               "$ref": "#/components/schemas/Int"
                             }
@@ -855,6 +858,195 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ListBatchesRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.suites.list": {
+      "post": {
+        "tags": [
+          "Suites"
+        ],
+        "operationId": "suites.list",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suites, most recently active first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalSuitePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "description": "Most recently active first. Pass the `next` cursor from a response to read the page after it; a null `next` means there are no more.",
+        "summary": "List suites",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListSuitesRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/v1/evals.suites.get": {
+      "post": {
+        "tags": [
+          "Suites"
+        ],
+        "operationId": "suites.get",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A suite, the setup its cases share, and every tag they carry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalSuiteDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HttpApiDecodeError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BadRequest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Conflict"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a suite and the setup its cases share",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ById"
               }
             }
           },
@@ -2943,12 +3135,22 @@
           "prompt": {
             "$ref": "#/components/schemas/EvalPrompt"
           },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "name": {
             "$ref": "#/components/schemas/EvalSuiteName"
           }
         },
         "additionalProperties": false,
-        "description": "The suite the cases belong to, and the prompt they share. Its name defaults to its id."
+        "description": "The suite the cases belong to, and the prompt and workspace they share. Its name defaults to its id."
       },
       "EvalSuiteId": {
         "type": "string",
@@ -4480,6 +4682,9 @@
                   "id": {
                     "type": "string"
                   },
+                  "name": {
+                    "type": "string"
+                  },
                   "startedAtMillis": {
                     "$ref": "#/components/schemas/Int"
                   }
@@ -4577,6 +4782,225 @@
         "additionalProperties": false,
         "description": "A batch as a list shows it."
       },
+      "ListSuitesRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "limit": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Where to read from, and how much."
+      },
+      "EvalSuitePage": {
+        "type": "object",
+        "required": [
+          "next",
+          "suites"
+        ],
+        "properties": {
+          "next": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "id",
+                  "startedAtMillis"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "startedAtMillis": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "suites": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvalSuiteSummary"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "Suites, most recently active first."
+      },
+      "EvalSuiteSummary": {
+        "type": "object",
+        "required": [
+          "cases",
+          "id",
+          "lastRunAt",
+          "name",
+          "tally",
+          "variants"
+        ],
+        "properties": {
+          "cases": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "id": {
+            "$ref": "#/components/schemas/EvalSuiteId"
+          },
+          "lastRunAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "tally": {
+            "$ref": "#/components/schemas/EvalTally"
+          },
+          "variants": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "A suite as the list shows it, counted across the cases it holds."
+      },
+      "EvalTally": {
+        "type": "object",
+        "required": [
+          "passed",
+          "scored"
+        ],
+        "properties": {
+          "passed": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "scored": {
+            "$ref": "#/components/schemas/Int"
+          }
+        },
+        "additionalProperties": false,
+        "description": "How many trials were scored across a group, and how many passed."
+      },
+      "EvalSuiteDetail": {
+        "type": "object",
+        "required": [
+          "cases",
+          "id",
+          "lastRunAt",
+          "name",
+          "tally",
+          "variants",
+          "setup",
+          "tags"
+        ],
+        "properties": {
+          "cases": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "id": {
+            "$ref": "#/components/schemas/EvalSuiteId"
+          },
+          "lastRunAt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "tally": {
+            "$ref": "#/components/schemas/EvalTally"
+          },
+          "variants": {
+            "$ref": "#/components/schemas/Int"
+          },
+          "setup": {
+            "$ref": "#/components/schemas/EvalSuiteSetup"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "A suite, the setup its cases share, and every tag they carry."
+      },
+      "EvalSuiteSetup": {
+        "type": "object",
+        "required": [
+          "prompt",
+          "source"
+        ],
+        "properties": {
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "The prompt and workspace a suite's cases share, before a case overrides either. Null where the suite last ran before they were recorded."
+      },
       "ListCasesRequest": {
         "type": "object",
         "required": [],
@@ -4593,6 +5017,9 @@
                   "id": {
                     "type": "string"
                   },
+                  "name": {
+                    "type": "string"
+                  },
                   "startedAtMillis": {
                     "$ref": "#/components/schemas/Int"
                   }
@@ -4607,6 +5034,16 @@
           "limit": {
             "$ref": "#/components/schemas/Int"
           },
+          "q": {
+            "type": "string"
+          },
+          "sort": {
+            "type": "string",
+            "enum": [
+              "recent",
+              "name"
+            ]
+          },
           "suite": {
             "type": "string"
           },
@@ -4615,7 +5052,7 @@
           }
         },
         "additionalProperties": false,
-        "description": "Where to read from, how much, and an optional suite or tag."
+        "description": "Where to read from, how much, and an optional search, suite or tag."
       },
       "EvalCasePage": {
         "type": "object",
@@ -4642,6 +5079,9 @@
                 ],
                 "properties": {
                   "id": {
+                    "type": "string"
+                  },
+                  "name": {
                     "type": "string"
                   },
                   "startedAtMillis": {
@@ -5409,6 +5849,10 @@
     {
       "name": "Batches",
       "description": "Runs started together, such as every case of a suite on every variant."
+    },
+    {
+      "name": "Suites",
+      "description": "A prompt and workspace shared by many cases. List its cases with `evals.cases.list` and its `suite` filter."
     },
     {
       "name": "Cases",

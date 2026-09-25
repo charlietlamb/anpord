@@ -276,7 +276,7 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.22",
+      "version": "0.1.25",
       "bin": {
         "anpord": "./dist/bin.mjs",
       },
@@ -314,6 +314,7 @@
       "name": "@anpord/ui",
       "version": "0.0.0",
       "dependencies": {
+        "@anpord/schema": "workspace:*",
         "@anpord/template": "workspace:*",
         "@base-ui/react": "catalog:",
         "@paper-design/shaders-react": "catalog:",

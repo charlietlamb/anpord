@@ -10,7 +10,8 @@ import type {
   EvalCasePage,
   EvalPageCursor,
 } from "@anpord/schema/domain/evals";
-import { and, asc, desc, eq, inArray, max, sql } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, max, or, sql } from "drizzle-orm";
 import { DateTime, Effect, Option } from "effect";
 import { changesBetween } from "../domain/definition-changes";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
@@ -18,13 +19,64 @@ import { head, tryStore } from "./query";
 import { setupOf } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
 
+type CaseSort = "recent" | "name";
+type CaseOrder = "asc" | "desc";
+
 export interface ListCases {
   readonly cursor: EvalPageCursor | null;
   readonly limit: number | undefined;
+  readonly order: CaseOrder;
   readonly organizationId: string;
+  readonly q: string | null;
+  readonly sort: CaseSort;
   readonly suite: string | null;
   readonly tag: string | null;
 }
+
+/* `%` and `_` are LIKE wildcards, so searching "100%" would otherwise match
+   everything starting with "100". */
+const escapeLike = (term: string) =>
+  term.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
+
+const matchesSearch = (term: string) => {
+  const pattern = `%${escapeLike(term)}%`;
+
+  return or(
+    ilike(evalCase.id, pattern),
+    ilike(evalCase.name, pattern),
+    ilike(evalSuite.name, pattern)
+  );
+};
+
+/* Each sort compares its whole ordering tuple at once, which is what stops
+   rows sharing a sort key being skipped between pages. */
+const afterCursor = (input: ListCases, lastRun: SQL<Date | null>) => {
+  if (input.cursor === null) {
+    return;
+  }
+
+  const after = input.order === "asc";
+
+  if (input.sort === "name") {
+    return after
+      ? sql`(${evalCase.name}, ${evalCase.id}) > (${input.cursor.name ?? ""}, ${input.cursor.id})`
+      : sql`(${evalCase.name}, ${evalCase.id}) < (${input.cursor.name ?? ""}, ${input.cursor.id})`;
+  }
+
+  const at = new Date(input.cursor.startedAtMillis);
+
+  return after
+    ? sql`(${lastRun}, ${evalCase.id}) > (${at}, ${input.cursor.id})`
+    : sql`(${lastRun}, ${evalCase.id}) < (${at}, ${input.cursor.id})`;
+};
+
+const orderingOf = (input: ListCases, lastRun: SQL<Date | null>) => {
+  const way = input.order === "asc" ? asc : desc;
+
+  return input.sort === "name"
+    ? [way(evalCase.name), way(evalCase.id)]
+    : [way(lastRun), way(evalCase.id)];
+};
 
 const taggedWith = (tag: string) =>
   sql`exists (select 1 from ${evalCaseVersion} tagged where tagged.case_internal_id = ${evalCase.internalId} and tagged.tags @> ${JSON.stringify([tag])}::jsonb)`;
@@ -116,7 +168,8 @@ export const caseReadsQuery = Effect.gen(function* () {
             and(
               eq(evalCase.organizationId, input.organizationId),
               input.suite === null ? undefined : eq(evalSuite.id, input.suite),
-              input.tag === null ? undefined : taggedWith(input.tag)
+              input.tag === null ? undefined : taggedWith(input.tag),
+              input.q === null ? undefined : matchesSearch(input.q)
             )
           )
           .groupBy(
@@ -126,12 +179,8 @@ export const caseReadsQuery = Effect.gen(function* () {
             evalSuite.id,
             evalSuite.name
           )
-          .having(
-            input.cursor === null
-              ? undefined
-              : sql`(${lastRun}, ${evalCase.id}) < (${new Date(input.cursor.startedAtMillis)}, ${input.cursor.id})`
-          )
-          .orderBy(desc(lastRun), desc(evalCase.id))
+          .having(afterCursor(input, lastRun))
+          .orderBy(...orderingOf(input, lastRun))
           .limit(size + 1)
       );
 
@@ -157,6 +206,7 @@ export const caseReadsQuery = Effect.gen(function* () {
         })),
         next: nextCursor(page, (last) => ({
           id: last.caseId,
+          name: last.name,
           startedAtMillis: new Date(last.lastRunAt ?? 0).getTime(),
         })),
         suites: filters.suites,

@@ -1,12 +1,19 @@
 import { HttpApi, OpenApi } from "@effect/platform";
 import { PublicConnectorsGroup } from "./connectors-api";
-import { BatchesGroup, CasesGroup, ModelsGroup, RunsGroup } from "./evals-api";
+import {
+  BatchesGroup,
+  CasesGroup,
+  ModelsGroup,
+  RunsGroup,
+  SuitesGroup,
+} from "./evals-api";
 import { PublicPromptsGroup } from "./prompts-api";
 import { RunnerGroup } from "./runner-api";
 
 export class PublicApi extends HttpApi.make("anpord-public")
   .add(PublicConnectorsGroup)
   .add(BatchesGroup)
+  .add(SuitesGroup)
   .add(CasesGroup)
   .add(RunsGroup)
   .add(ModelsGroup)

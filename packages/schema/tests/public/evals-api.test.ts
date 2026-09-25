@@ -35,7 +35,21 @@ describe("starting a batch", () => {
   });
 
   it("keeps the suite a case belongs to", () => {
-    expect(decode(request).suite).toEqual(request.suite);
+    expect(decode(request).suite).toEqual({ ...request.suite, source: null });
+  });
+
+  it("leaves a suite without a shared workspace", () => {
+    expect(decode(request).suite.source).toBeNull();
+  });
+
+  it("keeps the workspace a suite shares", () => {
+    const shared = { kind: "empty" } as const;
+    const decoded = decode({
+      ...request,
+      suite: { ...request.suite, source: shared },
+    });
+
+    expect(decoded.suite.source).toEqual(shared);
   });
 
   for (const sandbox of ["upstash", "modal", "cloudflare", "vercel"] as const) {

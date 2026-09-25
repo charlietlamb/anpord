@@ -8,6 +8,7 @@ import { CasesHandlers } from "./evals/cases-handlers";
 import { ModelsHandlers } from "./evals/models-handlers";
 import { RunnerHandlers } from "./evals/runner-handlers";
 import { RunsHandlers } from "./evals/runs-handlers";
+import { SuitesHandlers } from "./evals/suites-handlers";
 import { PublicPromptsHandlers } from "./prompts/handlers";
 
 export const PublicApiLive = apiSurface(
@@ -16,6 +17,7 @@ export const PublicApiLive = apiSurface(
     PublicPromptsHandlers,
     PublicConnectorsHandlers,
     BatchesHandlers,
+    SuitesHandlers,
     CasesHandlers,
     RunsHandlers,
     ModelsHandlers,

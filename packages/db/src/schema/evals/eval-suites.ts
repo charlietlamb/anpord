@@ -1,5 +1,7 @@
+import type { EvalSource } from "@anpord/schema/domain/eval-definition";
 import {
   index,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -16,6 +18,8 @@ export const evalSuite = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    prompt: text("prompt"),
+    source: jsonb("source").$type<EvalSource>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => [

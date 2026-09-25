@@ -100,7 +100,7 @@ export class StartRefused extends Data.TaggedError("StartRefused")<{
 }
 
 export class EvalNotFound extends Data.TaggedError("EvalNotFound")<{
-  readonly entity: "batch" | "case" | "run" | "trial" | "artifact";
+  readonly entity: "batch" | "case" | "run" | "suite" | "trial" | "artifact";
   readonly id: string;
 }> {
   override get message() {

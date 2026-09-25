@@ -193,6 +193,27 @@ export const EvalDistribution = Schema.Struct({
 });
 export type EvalDistribution = typeof EvalDistribution.Type;
 
+export const EvalTally = Schema.Struct({
+  passed: Schema.Int,
+  scored: Schema.Int,
+}).annotations({
+  description:
+    "How many trials were scored across a group, and how many passed.",
+  identifier: "EvalTally",
+});
+export type EvalTally = typeof EvalTally.Type;
+
+export const tallyOf = (
+  distributions: readonly Pick<EvalDistribution, "passed" | "scored">[]
+): EvalTally =>
+  distributions.reduce(
+    (total, entry) => ({
+      passed: total.passed + entry.passed,
+      scored: total.scored + entry.scored,
+    }),
+    { passed: 0, scored: 0 }
+  );
+
 export const EvalSuite = Schema.Struct({
   id: EvalSuiteId,
   name: Schema.String,
@@ -313,6 +334,8 @@ export const EVAL_PAGE_SIZE = 20;
 
 export const EvalPageCursor = Schema.Struct({
   id: Schema.String,
+  /* Carried only by the name sort, whose ordering tuple is (name, id). */
+  name: Schema.optional(Schema.String),
   startedAtMillis: Schema.Int,
 });
 export type EvalPageCursor = typeof EvalPageCursor.Type;
@@ -359,6 +382,51 @@ export const EvalCasePage = Schema.Struct({
   identifier: "EvalCasePage",
 });
 export type EvalCasePage = typeof EvalCasePage.Type;
+
+const EvalSuiteFacts = {
+  cases: Schema.Int,
+  id: EvalSuiteId,
+  lastRunAt: Schema.NullOr(EvalTimestamp),
+  name: Schema.String,
+  tally: EvalTally,
+  variants: Schema.Int,
+};
+
+export const EvalSuiteSummary = Schema.Struct(EvalSuiteFacts).annotations({
+  description:
+    "A suite as the list shows it, counted across the cases it holds.",
+  identifier: "EvalSuiteSummary",
+});
+export type EvalSuiteSummary = typeof EvalSuiteSummary.Type;
+
+export const EvalSuitePage = Schema.Struct({
+  next: Schema.NullOr(EvalPageCursor),
+  suites: Schema.Array(EvalSuiteSummary),
+}).annotations({
+  description: "Suites, most recently active first.",
+  identifier: "EvalSuitePage",
+});
+export type EvalSuitePage = typeof EvalSuitePage.Type;
+
+export const EvalSuiteSetup = Schema.Struct({
+  prompt: Schema.NullOr(Schema.String),
+  source: Schema.NullOr(EvalSource),
+}).annotations({
+  description:
+    "The prompt and workspace a suite's cases share, before a case overrides either. Null where the suite last ran before they were recorded.",
+  identifier: "EvalSuiteSetup",
+});
+export type EvalSuiteSetup = typeof EvalSuiteSetup.Type;
+
+export const EvalSuiteDetail = Schema.Struct({
+  ...EvalSuiteFacts,
+  setup: EvalSuiteSetup,
+  tags: Schema.Array(Schema.String),
+}).annotations({
+  description: "A suite, the setup its cases share, and every tag they carry.",
+  identifier: "EvalSuiteDetail",
+});
+export type EvalSuiteDetail = typeof EvalSuiteDetail.Type;
 
 export const EvalCaseVersion = Schema.Struct({
   author: Schema.NullOr(Schema.String),

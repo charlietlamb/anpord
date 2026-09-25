@@ -17,6 +17,10 @@ import {
   type ListCases,
 } from "../repositories/case-reads-query";
 import { runReadsQuery } from "../repositories/run-reads-query";
+import {
+  type ListSuites,
+  suiteReadsQuery,
+} from "../repositories/suite-reads-query";
 import { tailQuery } from "../repositories/tail-query";
 import { trialAddressQuery } from "../repositories/trial-address-query";
 import { trialArtifactQuery } from "../repositories/trial-artifacts";
@@ -39,6 +43,7 @@ export const make = Effect.gen(function* () {
   const batches = yield* batchReadsQuery;
   const cases = yield* caseReadsQuery;
   const runs = yield* runReadsQuery;
+  const suites = yield* suiteReadsQuery;
   const tail = yield* tailQuery;
   const address = yield* trialAddressQuery;
   const artifact = yield* trialArtifactQuery;
@@ -113,6 +118,12 @@ export const make = Effect.gen(function* () {
           .pipe(Effect.map((held) => Option.fromNullable(held[0]))),
         () => new EvalNotFound({ entity: "run", id })
       ),
+    suite: (organizationId: string, id: string) =>
+      found(
+        suites.detail(organizationId, id),
+        () => new EvalNotFound({ entity: "suite", id })
+      ),
+    suites: (input: ListSuites) => suites.list(input).pipe(Effect.orDie),
     tail: (input: {
       readonly after: readonly EvalTailMark[];
       readonly batchId: string;

@@ -14,6 +14,8 @@ import {
   EvalPageCursor,
   EvalRun,
   EvalRunPage,
+  EvalSuiteDetail,
+  EvalSuitePage,
   StartedBatch,
 } from "../domain/evals";
 import { PROFILE_HARNESS_RULE } from "../domain/harness-profile";
@@ -35,12 +37,21 @@ export const ListBatchesRequest = Schema.Struct(Page).annotations({
   identifier: "ListBatchesRequest",
 });
 
+export const ListSuitesRequest = Schema.Struct(Page).annotations({
+  description: "Where to read from, and how much.",
+  identifier: "ListSuitesRequest",
+});
+
 export const ListCasesRequest = Schema.Struct({
   ...Page,
+  order: Schema.optional(Schema.Literal("asc", "desc")),
+  q: Schema.optional(Schema.String),
+  sort: Schema.optional(Schema.Literal("recent", "name")),
   suite: Schema.optional(Schema.String),
   tag: Schema.optional(Schema.String),
 }).annotations({
-  description: "Where to read from, how much, and an optional suite or tag.",
+  description:
+    "Where to read from, how much, and an optional search, suite or tag.",
   identifier: "ListCasesRequest",
 });
 
@@ -133,6 +144,28 @@ export class BatchesGroup extends evalsGroup("batches", "Batches")
   .annotate(
     OpenApi.Description,
     "Runs started together, such as every case of a suite on every variant."
+  ) {}
+
+export class SuitesGroup extends evalsGroup("suites", "Suites")
+  .add(
+    HttpApiEndpoint.post("list", "/evals.suites.list")
+      .setPayload(ListSuitesRequest)
+      .addSuccess(EvalSuitePage)
+      .annotate(OpenApi.Summary, "List suites")
+      .annotate(
+        OpenApi.Description,
+        "Most recently active first. Pass the `next` cursor from a response to read the page after it; a null `next` means there are no more."
+      )
+  )
+  .add(
+    HttpApiEndpoint.post("get", "/evals.suites.get")
+      .setPayload(ById)
+      .addSuccess(EvalSuiteDetail)
+      .annotate(OpenApi.Summary, "Get a suite and the setup its cases share")
+  )
+  .annotate(
+    OpenApi.Description,
+    "A prompt and workspace shared by many cases. List its cases with `evals.cases.list` and its `suite` filter."
   ) {}
 
 export class CasesGroup extends evalsGroup("cases", "Cases")

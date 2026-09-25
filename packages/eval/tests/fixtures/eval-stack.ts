@@ -240,7 +240,12 @@ export const requestOf = (
   overrides: Partial<StartBatchRequest> & Pick<StartBatchRequest, "cases">
 ): StartBatchRequest => ({
   local: false,
-  suite: { id: "checkout", name: "Checkout", prompt: "{{task}}" },
+  suite: {
+    id: "checkout",
+    name: "Checkout",
+    prompt: "{{task}}",
+    source: null,
+  },
   trials: 1,
   trigger: { source: "ci" },
   variants: [variantOf()],

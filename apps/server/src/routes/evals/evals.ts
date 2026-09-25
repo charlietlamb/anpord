@@ -32,6 +32,14 @@ const metered = (trials: number) => (started: StartedBatch) =>
 
 const organization = Effect.map(CurrentActor, (actor) => actor.organizationId);
 
+export const cursorOf = (params: {
+  readonly cursorId?: string | undefined;
+  readonly cursorStartedAt?: number | undefined;
+}): EvalPageCursor | null =>
+  params.cursorId === undefined || params.cursorStartedAt === undefined
+    ? null
+    : { id: params.cursorId, startedAtMillis: params.cursorStartedAt };
+
 export const startBatch = (request: StartBatchRequest) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
@@ -93,6 +101,9 @@ export const listBatches = (
 export const listCases = (input: {
   readonly cursor: EvalPageCursor | null;
   readonly limit: number | undefined;
+  readonly order: "asc" | "desc";
+  readonly q: string | null;
+  readonly sort: "recent" | "name";
   readonly suite: string | null;
   readonly tag: string | null;
 }) =>
@@ -102,6 +113,23 @@ export const listCases = (input: {
       organizationId: yield* organization,
     });
   });
+
+export const listSuites = (
+  cursor: EvalPageCursor | null,
+  limit: number | undefined
+) =>
+  Effect.gen(function* () {
+    return yield* (yield* EvalReads).suites({
+      cursor,
+      limit,
+      organizationId: yield* organization,
+    });
+  });
+
+export const readSuite = (suiteId: string) =>
+  Effect.gen(function* () {
+    return yield* (yield* EvalReads).suite(yield* organization, suiteId);
+  }).pipe(withEvalErrors);
 
 export const readCase = (caseId: string) =>
   Effect.gen(function* () {

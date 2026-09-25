@@ -23,7 +23,7 @@ export interface RegisterCatalog {
   readonly cases: readonly CatalogCase[];
   readonly createdBy: string | null;
   readonly organizationId: string;
-  readonly suite: Pick<EvalSuiteRequest, "id" | "name">;
+  readonly suite: Pick<EvalSuiteRequest, "id" | "name" | "prompt" | "source">;
 }
 
 interface RegisteredCase {
@@ -84,9 +84,15 @@ export const CatalogRepositoryLive = Layer.effect(
                   internalId: fresh.suite,
                   name: input.suite.name,
                   organizationId: input.organizationId,
+                  prompt: input.suite.prompt,
+                  source: input.suite.source,
                 })
                 .onConflictDoUpdate({
-                  set: { name: input.suite.name },
+                  set: {
+                    name: input.suite.name,
+                    prompt: input.suite.prompt,
+                    source: input.suite.source,
+                  },
                   target: [evalSuite.organizationId, evalSuite.id],
                 })
                 .returning({ internalId: evalSuite.internalId }),
