@@ -1,24 +1,28 @@
-import { FRACTIONS, TICKS } from "@/components/evals/waterfall-scale";
-import { seconds } from "@/lib/evals/duration";
+import { seconds } from "@anpord/ui/lib/evals/duration";
+import { cn } from "@anpord/ui/lib/utils";
+import { ticksFor } from "@/lib/evals/waterfall-scale";
 
-const tickShift = (index: number) => {
-  if (index === 0) {
+const tickShift = (fraction: number) => {
+  if (fraction === 0) {
     return;
   }
 
-  return index === TICKS ? "translateX(-100%)" : "translateX(-50%)";
+  return fraction === 1 ? "-translate-x-full" : "-translate-x-1/2";
 };
 
 export function WaterfallAxis({ spanMs }: { readonly spanMs: number }) {
   return (
     <span className="relative block h-4 w-full">
-      {FRACTIONS.map((fraction, index) => (
+      {ticksFor(spanMs).map((tick) => (
         <span
-          className="absolute top-0 tabular-nums"
-          key={fraction}
-          style={{ left: `${fraction * 100}%`, transform: tickShift(index) }}
+          className={cn(
+            "absolute top-0 tabular-nums",
+            tickShift(tick.fraction)
+          )}
+          key={tick.atMs}
+          style={{ left: `${tick.fraction * 100}%` }}
         >
-          {seconds(Math.round(spanMs * fraction))}
+          {seconds(tick.atMs)}
         </span>
       ))}
     </span>

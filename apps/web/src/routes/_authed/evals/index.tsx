@@ -1,94 +1,91 @@
-import type { EvalPageCursor } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
-import { GaugeIcon, PlusIcon } from "@phosphor-icons/react";
-import { useQuery } from "@tanstack/react-query";
+import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CasesTable } from "@/components/evals/cases-table";
-import { TagSelect } from "@/components/evals/tag-select";
-import { CursorPagination } from "@/components/layout/cursor-pagination";
-import { ListState } from "@/components/layout/list-state";
+import { useQueryStates } from "nuqs";
+import { CaseFilterMenu } from "@/components/evals/case-filter-menu";
+import { CaseList } from "@/components/evals/case-list";
 import { PageShell } from "@/components/layout/page-shell";
-import { PLACEHOLDER_CASE_PAGE } from "@/lib/evals/eval-placeholders";
+import { SearchInput } from "@/components/layout/search-input";
+import { SortMenu } from "@/components/layout/sort-menu";
 import { evalQueries } from "@/lib/evals/eval-queries";
-import { useCursorStack } from "@/lib/use-cursor-stack";
+import { useCaseList } from "@/lib/evals/use-case-list";
+import {
+  CASE_SORT_OPTIONS,
+  caseListParsers,
+} from "@/lib/query/case-list-filters";
 
 export const Route = createFileRoute("/_authed/evals/")({
-  validateSearch: (search): { tag?: string } => ({
-    ...(typeof search.tag === "string" && search.tag !== ""
-      ? { tag: search.tag }
-      : {}),
-  }),
   ssr: false,
   loader: ({ context }) => {
     context.queryClient.prefetchQuery(
-      evalQueries.cases({ suite: null, tag: null })
+      evalQueries.cases({
+        order: "desc",
+        q: null,
+        sort: "recent",
+        suite: null,
+        tag: null,
+      })
     );
   },
   component: EvalsIndex,
 });
 
 function EvalsIndex() {
-  const navigate = Route.useNavigate();
-  const { tag = null } = Route.useSearch();
-  const pages = useCursorStack<EvalPageCursor>();
-  const { data, error, isPending, isPlaceholderData } = useQuery(
-    evalQueries.cases({ suite: null, tag }, pages.cursor)
-  );
-  const page = data ?? PLACEHOLDER_CASE_PAGE;
-  const { cases, next } = page;
+  const [filters, setFilters] = useQueryStates(caseListParsers);
+  const selected = {
+    order: filters.order,
+    q: filters.q.trim() || null,
+    sort: filters.sort,
+    suite: filters.suite || null,
+    tag: filters.tag || null,
+  };
+  const { cases, error, loading, paging, reset, suites, tags } =
+    useCaseList(selected);
+
+  const narrow = (changed: Partial<typeof filters>) => {
+    reset();
+    setFilters(changed);
+  };
 
   return (
-    <PageShell
-      actions={
-        <>
-          <TagSelect
-            onSelect={(selected) => {
-              pages.reset();
-              navigate({
-                search: (current) => ({
-                  ...current,
-                  tag: selected ?? undefined,
-                }),
-              });
-            }}
-            selected={tag}
-            tags={page.tags}
-          />
-          <Button render={<Link to="/evals/new" />} size="sm">
-            <PlusIcon />
-            New eval
-          </Button>
-        </>
-      }
-      title="Evals"
-      width="wide"
-    >
-      <ListState
-        description="Run an eval and the cases it measures appear here."
-        empty={cases.length === 0}
-        error={error}
-        icon={<GaugeIcon />}
-        loading={isPending}
-        title={tag === null ? "No cases yet" : `Nothing tagged ${tag}`}
-      >
-        <CasesTable
-          cases={cases}
-          pagination={
-            <CursorPagination
-              canGoNext={next !== null}
-              canGoPrev={pages.page > 1}
-              disabled={isPlaceholderData}
-              onNext={() => {
-                if (next !== null) {
-                  pages.push(next);
-                }
-              }}
-              onPrev={pages.pop}
-              page={pages.page}
-            />
-          }
+    <PageShell title="Evals" width="wide">
+      <div className="flex flex-wrap items-center gap-2">
+        <SortMenu
+          direction={filters.order}
+          onChange={(sort) => narrow({ sort })}
+          onDirection={(order) => narrow({ order })}
+          options={CASE_SORT_OPTIONS}
+          value={filters.sort}
         />
-      </ListState>
+        <CaseFilterMenu
+          onClear={() => narrow({ suite: "", tag: "" })}
+          onSuite={(suite) => narrow({ suite: suite ?? "" })}
+          onTag={(tag) => narrow({ tag: tag ?? "" })}
+          suite={selected.suite}
+          suites={suites}
+          tag={selected.tag}
+          tags={tags}
+        />
+        <SearchInput
+          className="w-full"
+          grow
+          label="Search cases"
+          onChange={(q) => narrow({ q })}
+          value={filters.q}
+        />
+        <Button render={<Link to="/evals/new" />} size="sm">
+          <PlusIcon />
+          New eval
+        </Button>
+      </div>
+
+      <CaseList
+        cases={cases}
+        error={error}
+        loading={loading}
+        narrowed={Object.values(selected).some((value) => value !== null)}
+        paging={paging}
+      />
     </PageShell>
   );
 }

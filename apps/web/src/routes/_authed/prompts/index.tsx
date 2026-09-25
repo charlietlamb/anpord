@@ -9,9 +9,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryStates } from "nuqs";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
+import { SearchInput } from "@/components/layout/search-input";
+import { SortMenu } from "@/components/layout/sort-menu";
 import { PromptList } from "@/components/prompts/prompt-list";
-import { PromptSearch } from "@/components/prompts/prompt-search";
-import { PromptSortMenu } from "@/components/prompts/prompt-sort-menu";
 import { PLACEHOLDER_PROMPTS } from "@/lib/prompts/prompt-placeholders";
 import {
   loadPromptListFilters,
@@ -60,8 +60,12 @@ function PromptsPage() {
     <PageShell
       actions={
         <>
-          <PromptSearch onChange={(q) => setFilters({ q })} value={filters.q} />
-          <PromptSortMenu
+          <SearchInput
+            label="Search prompts"
+            onChange={(q) => setFilters({ q })}
+            value={filters.q}
+          />
+          <SortMenu
             onChange={(sort) => setFilters({ sort })}
             options={PROMPT_SORT_OPTIONS}
             value={filters.sort}

@@ -1,13 +1,20 @@
 import type { EvalCaseDetail } from "@anpord/schema/domain/evals";
+import { AgeCell } from "@anpord/ui/components/evals/age-cell";
+import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";
-import { AgeCell } from "@/components/layout/age-cell";
 
 export function CaseMeta({ subject }: { readonly subject: EvalCaseDetail }) {
   const latest = subject.versions.at(-1);
 
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-muted-foreground text-sm">
-      <span className="text-foreground">{subject.suite.name}</span>
+      <Link
+        className="text-foreground transition-colors hover:text-muted-foreground"
+        params={{ suiteId: subject.suite.id }}
+        to="/evals/suites/$suiteId"
+      >
+        {subject.suite.name}
+      </Link>
 
       <span className="font-mono text-xs">{subject.id}</span>
 

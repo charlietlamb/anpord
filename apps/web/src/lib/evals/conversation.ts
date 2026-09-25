@@ -78,6 +78,19 @@ export const conversationOf = (
   return parts;
 };
 
+export const thinkingLabel = (
+  parts: readonly ConversationPart[],
+  running: boolean
+) => {
+  const last = parts.at(-1);
+
+  if (!running || last === undefined || last._tag === "worked") {
+    return null;
+  }
+
+  return last._tag === "said" ? "Thinking" : "Working";
+};
+
 export const stepFailed = (step: ConversationStep) => {
   if (step._tag === "command") {
     return step.exitCode !== null && step.exitCode !== 0;

@@ -1,9 +1,7 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRealtimeRunsWithTag } from "@trigger.dev/react-hooks";
-import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
-import { evalQueries } from "@/lib/evals/eval-queries";
-import { getBatchSubscription } from "@/lib/evals/evals-client";
+import { evalQueries, TAIL_POLL_MS } from "@/lib/evals/eval-queries";
+import { useLiveBatch } from "@/lib/evals/use-live-batch";
 
 export function useLiveRun({
   batchId,
@@ -14,39 +12,17 @@ export function useLiveRun({
   readonly runId: string;
   readonly running: boolean;
 }) {
-  const client = useQueryClient();
+  const { listening } = useLiveBatch({
+    batchId,
+    running,
+    tail: evalKeys.tails(batchId),
+  });
 
-  const { data: subscription } = useQuery({
+  useQuery({
+    ...evalQueries.tail(batchId, runId),
     enabled: running,
-    gcTime: 0,
-    queryKey: evalKeys.subscription(batchId),
-    queryFn: () => getBatchSubscription(batchId),
-    refetchOnWindowFocus: false,
-    staleTime: Number.POSITIVE_INFINITY,
+    refetchInterval: listening ? false : TAIL_POLL_MS,
   });
 
-  useQuery({ ...evalQueries.tail(batchId, runId), enabled: running });
-
-  const { runs } = useRealtimeRunsWithTag(subscription?.tag ?? "", {
-    accessToken: subscription?.token,
-    enabled: running && subscription !== undefined,
-  });
-
-  const seen = useRef("");
-
-  useEffect(() => {
-    const signature = runs
-      .map(
-        (run) =>
-          `${run.id}:${run.status}:${run.updatedAt.getTime()}:${String(run.metadata?.tick ?? 0)}`
-      )
-      .join("|");
-
-    if (signature === "" || signature === seen.current) {
-      return;
-    }
-
-    seen.current = signature;
-    client.invalidateQueries({ queryKey: evalKeys.tail(batchId) });
-  }, [batchId, client, runs]);
+  return { listening };
 }

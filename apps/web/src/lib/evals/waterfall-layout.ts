@@ -35,7 +35,10 @@ export interface WaterfallLayout {
   readonly workingMs: number;
 }
 
-const momentOf = (entry: EvalJournalEntry) => entry.finishedAtMillis;
+const finite = (value: number | null | undefined) =>
+  typeof value === "number" && Number.isFinite(value) ? value : null;
+
+const momentOf = (entry: EvalJournalEntry) => finite(entry.finishedAtMillis);
 
 const LEAD_FLOOR_MS = 1;
 
@@ -50,8 +53,8 @@ const spanOf = (entry: EvalJournalEntry): Span | null => {
     return null;
   }
 
-  const { finishedAtMillis } = entry;
-  const startedAtMillis = entry.startedAtMillis ?? null;
+  const finishedAtMillis = finite(entry.finishedAtMillis);
+  const startedAtMillis = finite(entry.startedAtMillis);
 
   return startedAtMillis === null ||
     finishedAtMillis === null ||
@@ -131,12 +134,13 @@ const layoutOf = (trajectory: readonly EvalJournalEntry[]): WaterfallLayout => {
       ];
     }
 
-    const started =
-      (entry._tag === "command" || entry._tag === "toolCall"
+    const started = finite(
+      entry._tag === "command" || entry._tag === "toolCall"
         ? entry.startedAtMillis
-        : null) ?? null;
+        : null
+    );
 
-    if (entry.finishedAtMillis === null && started !== null) {
+    if (momentOf(entry) === null && started !== null) {
       const lead = leadUpTo(started);
       const durationMs = Math.max(end - started, 0);
 

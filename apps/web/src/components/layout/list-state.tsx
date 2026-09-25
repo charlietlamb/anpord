@@ -44,5 +44,9 @@ export function ListState({
     );
   }
 
-  return children;
+  return (
+    <div className="[&>*]:fade-in-0 contents [&>*]:animate-in [&>*]:ease-out [&>*]:[animation-duration:200ms]">
+      {children}
+    </div>
+  );
 }

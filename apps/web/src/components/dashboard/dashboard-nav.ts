@@ -4,6 +4,7 @@ import {
   GaugeIcon,
   GearIcon,
   type Icon,
+  StackIcon,
 } from "@phosphor-icons/react";
 
 interface NavItem {
@@ -18,13 +19,24 @@ interface NavSection {
 }
 
 export const DASHBOARD_NAV: NavSection[] = [
-  { items: [{ label: "Evals", icon: GaugeIcon, to: "/evals" }] },
+  {
+    items: [
+      { label: "Evals", icon: GaugeIcon, to: "/evals" },
+      { label: "Suites", icon: StackIcon, to: "/evals/suites" },
+    ],
+  },
   ...(PROMPTS_ENABLED
     ? [{ items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] }]
     : []),
   { items: [{ label: "Settings", icon: GearIcon, to: "/settings" }] },
 ];
 
-export function isNavItemActive(item: NavItem, pathname: string) {
-  return pathname === item.to || pathname.startsWith(`${item.to}/`);
+const covers = (to: string, pathname: string) =>
+  pathname === to || pathname.startsWith(`${to}/`);
+
+export function activeNavPath(pathname: string) {
+  return DASHBOARD_NAV.flatMap((section) => section.items)
+    .map((item) => item.to)
+    .filter((to) => covers(to, pathname))
+    .reduce((deepest, to) => (to.length > deepest.length ? to : deepest), "");
 }

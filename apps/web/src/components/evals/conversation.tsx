@@ -13,7 +13,12 @@ import {
 } from "@/components/evals/conversation-part";
 import { FileSheet } from "@/components/evals/file-sheet";
 import type { FileOpener } from "@/components/evals/markdown-prose";
-import { artifactFor, conversationOf } from "@/lib/evals/conversation";
+import { Thinking } from "@/components/evals/thinking";
+import {
+  artifactFor,
+  conversationOf,
+  thinkingLabel,
+} from "@/lib/evals/conversation";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 import { RISE } from "@/lib/motion";
 
@@ -28,6 +33,7 @@ export function Conversation({
 }) {
   const [openPath, setOpenPath] = useState<string | null>(null);
   const parts = conversationOf(trajectory);
+  const thinking = thinkingLabel(parts, running);
   const openerFor: FileOpener = (path) =>
     artifactFor(path, written.artifacts) === undefined
       ? null
@@ -72,6 +78,11 @@ export function Conversation({
               />
             </motion.li>
           ))}
+          {thinking === null ? null : (
+            <motion.li className="min-w-0" key="thinking" {...RISE}>
+              <Thinking label={thinking} />
+            </motion.li>
+          )}
         </AnimatePresence>
       </ConversationContent>
       <FileSheet

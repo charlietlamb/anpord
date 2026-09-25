@@ -1,5 +1,7 @@
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { PageHeading } from "@anpord/ui/components/ui/page-heading";
+import { trialStatus } from "@anpord/ui/lib/evals/eval-status";
 import { createFileRoute } from "@tanstack/react-router";
 import { CASE_DETAIL, CASE_RUNS } from "@/components/dev/case-fixtures";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
@@ -15,6 +17,7 @@ import { AgentSetup } from "@/components/evals/agent-setup";
 import { CaseActions } from "@/components/evals/case-actions";
 import { CaseMeta } from "@/components/evals/case-meta";
 import { CaseRuns } from "@/components/evals/case-runs";
+import { Conversation } from "@/components/evals/conversation";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
@@ -39,6 +42,50 @@ function EvalsPreview() {
           </h1>
           <ThemeToggle />
         </div>
+
+        <PreviewScreen name="Statuses">
+          <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-3 px-5 py-5">
+            <EvalStatusBadge status={trialStatus("running")} />
+            <EvalStatusBadge status={trialStatus("passed")} />
+            <EvalStatusBadge status={trialStatus("failed")} />
+            <EvalStatusBadge status={trialStatus("queued")} />
+          </div>
+        </PreviewScreen>
+
+        <PreviewScreen name="Thinking">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-5 py-5">
+            <Conversation
+              running
+              trajectory={[
+                {
+                  _tag: "message",
+                  role: "user",
+                  text: "Add a health endpoint and verify it responds.",
+                  finishedAtMillis: 1000,
+                },
+              ]}
+              written={{ artifacts: [], trial: { trialId: "trl_preview" } }}
+            />
+            <Conversation
+              running
+              trajectory={[
+                {
+                  _tag: "message",
+                  role: "user",
+                  text: "Add a health endpoint and verify it responds.",
+                  finishedAtMillis: 1000,
+                },
+                {
+                  _tag: "message",
+                  role: "assistant",
+                  text: "Added `/health`. Checking that it responds.",
+                  finishedAtMillis: 4200,
+                },
+              ]}
+              written={{ artifacts: [], trial: { trialId: "trl_preview" } }}
+            />
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="Validation and calls">
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-5 py-5">

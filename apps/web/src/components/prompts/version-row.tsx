@@ -2,11 +2,11 @@ import type { Channel } from "@anpord/schema/domain/channels";
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { Button } from "@anpord/ui/components/button";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
+import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
 import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
 import { cn } from "@anpord/ui/lib/utils";
 import { VersionActions } from "@/components/prompts/version-actions";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
-import { useRelativeTime } from "@/lib/use-relative-time";
 
 const MARKDOWN_PREFIX = /^\s*(?:#{1,6}\s+|[*-]\s+|>\s*)/;
 const EMPHASIS = /[*_`]/g;

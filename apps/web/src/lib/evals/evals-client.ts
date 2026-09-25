@@ -12,6 +12,8 @@ import {
   type EvalPageCursor,
   EvalRun,
   EvalRunPage,
+  EvalSuiteDetail,
+  EvalSuitePage,
   EvalTrialAddress,
   StartedBatch,
 } from "@anpord/schema/domain/evals";
@@ -24,6 +26,9 @@ const path = (...parts: readonly string[]) =>
   parts.map((part) => `/${encodeURIComponent(part)}`).join("");
 
 export interface CaseFilters {
+  readonly order: "asc" | "desc";
+  readonly q: string | null;
+  readonly sort: "recent" | "name";
   readonly suite: string | null;
   readonly tag: string | null;
 }
@@ -37,10 +42,25 @@ export const listCases = (
     `/cases${searchOf({
       cursorId: cursor?.id,
       cursorStartedAt: cursor?.startedAtMillis,
+      order: filters.order,
+      q: filters.q,
+      sort: filters.sort,
       suite: filters.suite,
       tag: filters.tag,
     })}`
   );
+
+export const listSuites = (cursor: EvalPageCursor | null) =>
+  api.request(
+    EvalSuitePage,
+    `/suites${searchOf({
+      cursorId: cursor?.id,
+      cursorStartedAt: cursor?.startedAtMillis,
+    })}`
+  );
+
+export const getSuite = (id: string) =>
+  api.request(EvalSuiteDetail, path("suites", id));
 
 export const getCase = (id: string) =>
   api.request(EvalCaseDetail, path("cases", id));

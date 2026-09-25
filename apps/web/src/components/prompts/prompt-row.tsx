@@ -3,10 +3,10 @@ import {
   DataTableRow,
   DataTableRowLink,
 } from "@anpord/ui/components/ui/data-table";
+import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
 import { Link } from "@tanstack/react-router";
 import { PromptEditorAvatar } from "@/components/prompts/prompt-editor-avatar";
 import { PromptRowActions } from "@/components/prompts/prompt-row-actions";
-import { useRelativeTime } from "@/lib/use-relative-time";
 
 export function PromptRow({ prompt }: { readonly prompt: PromptSummary }) {
   const updated = useRelativeTime(prompt.updatedAt);

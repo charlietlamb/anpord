@@ -1,12 +1,12 @@
 import type { EvalCostComponent } from "@anpord/schema/domain/evals";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
+import { count } from "@anpord/ui/lib/evals/duration";
 import {
   CpuIcon,
   CurrencyDollarIcon,
   RobotIcon,
   StackIcon,
 } from "@phosphor-icons/react";
-import { count } from "@/lib/evals/duration";
 import { dollars } from "@/lib/evals/tokens";
 
 const ICONS = {

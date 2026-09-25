@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { redirectFromBatch } from "@/lib/evals/batch-redirect";
+import { BatchScreen } from "@/components/evals/batch-screen";
 
 export const Route = createFileRoute("/_authed/evals/$batchId")({
   ssr: false,
-  loader: ({ params }) => redirectFromBatch(params.batchId),
+  component: BatchRoute,
 });
+
+function BatchRoute() {
+  const { batchId } = Route.useParams();
+
+  return <BatchScreen batchId={batchId} />;
+}

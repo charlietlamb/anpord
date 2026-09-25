@@ -1,6 +1,7 @@
 import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
 import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
+import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
 import { initials } from "@anpord/ui/lib/initials";
 import {
   ClockCounterClockwiseIcon,
@@ -10,7 +11,6 @@ import {
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { DetailRowFrame } from "@/components/prompts/detail-row-frame";
-import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface PromptDetailsProps {
   readonly created: Date;

@@ -1,13 +1,13 @@
 import { validationSummary } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import {
   DataTableChevron,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
+import { seconds } from "@anpord/ui/lib/evals/duration";
+import { validationStatus } from "@anpord/ui/lib/evals/eval-status";
 import { BrainIcon, CodeIcon, TerminalIcon } from "@phosphor-icons/react";
-import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
-import { seconds } from "@/lib/evals/duration";
-import { validationStatus } from "@/lib/evals/eval-status";
 
 const KIND_ICONS = { code: CodeIcon, command: TerminalIcon, judge: BrainIcon };
 

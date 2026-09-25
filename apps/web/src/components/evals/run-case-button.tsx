@@ -1,6 +1,6 @@
 import type { EvalVariant } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
-import { cn } from "@anpord/ui/lib/utils";
+import { cn, SPIN } from "@anpord/ui/lib/utils";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useRunCase } from "@/lib/evals/eval-mutations";
@@ -29,9 +29,7 @@ export function RunCaseButton({
 
   return (
     <Button disabled={run.isPending} onClick={start} size="sm">
-      <ArrowsClockwiseIcon
-        className={cn("size-3.5", run.isPending && "animate-spin")}
-      />
+      <ArrowsClockwiseIcon className={cn("size-3.5", run.isPending && SPIN)} />
       {run.isPending ? "Starting" : label}
     </Button>
   );

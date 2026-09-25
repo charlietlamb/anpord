@@ -5,6 +5,7 @@ import {
 } from "@anpord/schema/domain/usage-health";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { ShareBar } from "@anpord/ui/components/ui/share-bar";
+import { count } from "@anpord/ui/lib/evals/duration";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -12,7 +13,6 @@ import {
   StackIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
-import { count } from "@/lib/evals/duration";
 import { percent } from "@/lib/evals/tokens";
 
 export function TrialCost({

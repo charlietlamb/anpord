@@ -4,6 +4,9 @@ import type {
   EvalDistribution,
   EvalRun,
   EvalRunPage,
+  EvalSuiteDetail,
+  EvalSuitePage,
+  EvalSuiteSummary,
   EvalTrial,
   EvalVariant,
   EvalVariantResult,
@@ -121,6 +124,26 @@ export const PLACEHOLDER_CASE_PAGE: EvalCasePage = {
   })),
   next: null,
   suites: [],
+  tags: [],
+};
+
+const placeholderSuite = (index: number): EvalSuiteSummary => ({
+  cases: 4,
+  id: `placeholder-suite-${index}`,
+  lastRunAt: EPOCH,
+  name: placeholderText(index),
+  tally: { passed: 1, scored: 1 },
+  variants: 2,
+});
+
+export const PLACEHOLDER_SUITE_PAGE: EvalSuitePage = {
+  next: null,
+  suites: placeholders(8, placeholderSuite),
+};
+
+export const PLACEHOLDER_SUITE_DETAIL: EvalSuiteDetail = {
+  ...placeholderSuite(1),
+  setup: { prompt: placeholderText(2), source: { kind: "empty" } },
   tags: [],
 };
 

@@ -4,6 +4,7 @@ import type {
   EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
 import type {
+  EvalBatch,
   EvalJournalEntry,
   EvalRun,
   EvalTrial,
@@ -27,15 +28,22 @@ export const NOTHING_HEARD: HeardTail = {
 
 const trialKey = (run: string, ordinal: number) => `${run}#${ordinal}`;
 
-const journalled = (journals: Journals, events: readonly EvalTailEvent[]) =>
-  events.reduce(
-    (held, { entry, ordinal, run }) =>
-      new Map(held).set(trialKey(run, ordinal), [
-        ...(held.get(trialKey(run, ordinal)) ?? []),
-        entry,
-      ]),
-    journals
-  );
+/* One copy per read rather than per event: a catch-up page carries 500 of them,
+   and cloning the map for each was quadratic in the number of trials. */
+const journalled = (journals: Journals, events: readonly EvalTailEvent[]) => {
+  if (events.length === 0) {
+    return journals;
+  }
+
+  const held = new Map(journals);
+
+  for (const { entry, ordinal, run } of events) {
+    const key = trialKey(run, ordinal);
+    held.set(key, [...(held.get(key) ?? []), entry]);
+  }
+
+  return held;
+};
 
 export const heardTail = (held: HeardTail, read: EvalBatchTail): HeardTail => ({
   journals: journalled(held.journals, read.events),
@@ -70,4 +78,12 @@ export const overlayTail = (run: EvalRun, journals: Journals): EvalRun => ({
   trials: run.trials.map((trial) =>
     following(trial, journals.get(trialKey(run.id, trial.ordinal)))
   ),
+});
+
+export const overlayBatchTail = (
+  batch: EvalBatch,
+  journals: Journals
+): EvalBatch => ({
+  ...batch,
+  runs: batch.runs.map((run) => overlayTail(run, journals)),
 });

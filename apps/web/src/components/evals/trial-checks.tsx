@@ -5,13 +5,13 @@ import {
   DataTableFooter,
   DataTableHead,
 } from "@anpord/ui/components/ui/data-table";
+import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
 import { FileCodeIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { CheckRow } from "@/components/evals/check-row";
 import { ValidationDetail } from "@/components/evals/validation-detail";
 import { ValidationSource } from "@/components/evals/validation-source";
 import { VerifyResults } from "@/components/evals/verify-results";
-import { EmptyNote } from "@/components/layout/empty-note";
 import { SideSheet } from "@/components/layout/side-sheet";
 import { CHECKS_TABLE } from "@/lib/evals/case-tables";
 

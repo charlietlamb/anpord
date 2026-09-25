@@ -162,3 +162,15 @@ describe("timing a tool call", () => {
     expect(workingMs).toBe(1000);
   });
 });
+
+describe("a trajectory carrying a value that is not a time", () => {
+  it("lays out the entries it can read rather than reporting every span as NaN", () => {
+    const { rows, spanMs } = waterfallLayout([
+      message(Number.NaN as unknown as number),
+      command(10, 40),
+    ]);
+
+    expect(spanMs).toBe(30);
+    expect(rows.every((row) => Number.isFinite(row.leftPercent))).toBe(true);
+  });
+});

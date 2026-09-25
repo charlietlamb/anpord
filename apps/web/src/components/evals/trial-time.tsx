@@ -2,13 +2,13 @@ import type { EvalTrial } from "@anpord/schema/domain/evals";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { ShareBar } from "@anpord/ui/components/ui/share-bar";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import {
   BrainIcon,
   CubeIcon,
   TerminalWindowIcon,
   TimerIcon,
 } from "@phosphor-icons/react";
-import { seconds } from "@/lib/evals/duration";
 import { waterfallLayout } from "@/lib/evals/waterfall-layout";
 
 export function TrialTime({ trial }: { readonly trial: EvalTrial }) {

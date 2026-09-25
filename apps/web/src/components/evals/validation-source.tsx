@@ -1,6 +1,6 @@
 import type { EvalSourceFile } from "@anpord/schema/domain/eval-source-files";
 import { CodeCard } from "@anpord/ui/components/ui/code-card";
-import { EmptyNote } from "@/components/layout/empty-note";
+import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
 import { fileIcon } from "@/lib/evals/file-presentation";
 
 export function ValidationSource({

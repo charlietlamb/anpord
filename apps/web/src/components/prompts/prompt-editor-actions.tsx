@@ -3,7 +3,7 @@ import { ActionCluster } from "@anpord/ui/components/ui/action-cluster";
 import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
 import { CopyAction } from "@anpord/ui/components/ui/copy-action";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { cn } from "@anpord/ui/lib/utils";
+import { cn, SPIN } from "@anpord/ui/lib/utils";
 import {
   ArrowUpIcon,
   IdentificationCardIcon,
@@ -75,7 +75,7 @@ export function PromptEditorActions({
         size="sm"
         variant={armed ? "default" : "subtle"}
       >
-        {saving ? <SpinnerGapIcon className="animate-spin" /> : <ArrowUpIcon />}
+        {saving ? <SpinnerGapIcon className={SPIN} /> : <ArrowUpIcon />}
         {saveLabel}
       </ShortcutButton>
     </ActionCluster>

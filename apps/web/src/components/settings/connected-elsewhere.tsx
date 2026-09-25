@@ -1,5 +1,5 @@
+import { integrationLabel } from "@anpord/ui/components/evals/variant-presentation";
 import { UsersThreeIcon } from "@phosphor-icons/react";
-import { integrationLabel } from "@/lib/evals/variant-presentation";
 
 const NAMED = 2;
 

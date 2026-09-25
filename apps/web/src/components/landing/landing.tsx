@@ -1,4 +1,6 @@
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
+import type { DitherPreset } from "@anpord/ui/lib/dither-presets";
+import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { CopyAgentSetup } from "@/components/landing/copy-agent-setup";
@@ -7,9 +9,15 @@ import { SiteLayout } from "@/components/layout/site-layout";
 const REVEAL =
   "fade-in-0 slide-in-from-bottom-2 animate-in fill-mode-both ease-out [animation-duration:500ms]";
 
-export function Landing() {
+export function Landing({
+  dither,
+  header,
+}: {
+  readonly dither?: DitherPreset;
+  readonly header?: HeaderPreset;
+}) {
   return (
-    <SiteLayout>
+    <SiteLayout dither={dither} header={header}>
       <section className="flex flex-1 flex-col justify-center pb-24">
         <h1
           className={cn(
@@ -36,7 +44,7 @@ export function Landing() {
             )}
             to="/login"
           >
-            Get started
+            Start optimizing
             <span
               aria-hidden
               className="transition-transform duration-150 ease-out group-hover/start:translate-x-0.5"

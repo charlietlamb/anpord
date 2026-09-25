@@ -5,9 +5,9 @@ import {
   DataTableFooter,
   DataTableHead,
 } from "@anpord/ui/components/ui/data-table";
+import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
 import { RunTrialRow } from "@/components/evals/run-trial-row";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
-import { EmptyNote } from "@/components/layout/empty-note";
 import { CASE_RUNS_TABLE } from "@/lib/evals/case-tables";
 import { counted } from "@/lib/evals/conversation";
 

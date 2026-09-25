@@ -103,6 +103,47 @@
   }
 }
 
+@keyframes dither-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes thinking-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* The hatch drifts along the stripe so a lead that has not resolved reads as
+   still thinking, rather than as a gap the run stalled in. */
+@keyframes thinking-drift {
+  to {
+    background-position: 5.66px 0;
+  }
+}
+
+/* fontsource ships these faces with font-display: swap, which repaints every
+   heading the moment Geist arrives. Optional gives the browser a short window
+   to use the real font and otherwise keeps the fallback for the rest of the
+   page view, so text never reflows under the reader. */
+@font-face {
+  font-family: "Geist Variable";
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "Geist Mono Variable";
+  font-display: optional;
+}
+
 @theme inline {
   --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;

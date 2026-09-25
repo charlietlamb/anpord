@@ -1,10 +1,10 @@
 import { entryKindOf } from "@anpord/schema/domain/eval-journal";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import { CallName } from "@/components/evals/call-name";
 import { KindIcon } from "@/components/evals/kind-icon";
 import { StepDetailBody } from "@/components/evals/step-detail-body";
 import { StepTiming } from "@/components/evals/step-timing";
 import { failureLabel } from "@/lib/evals/conversation";
-import { seconds } from "@/lib/evals/duration";
 import { KIND_NAMES } from "@/lib/evals/journal-presentation";
 import type { SelectedStep } from "@/lib/evals/selected-step";
 

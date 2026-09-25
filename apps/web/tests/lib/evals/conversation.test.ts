@@ -6,6 +6,7 @@ import {
   durationOf,
   stepFailed,
   summaryOf,
+  thinkingLabel,
 } from "@/lib/evals/conversation";
 
 const message = (
@@ -108,5 +109,31 @@ describe("a journal read as a conversation", () => {
     expect(durationOf(timed as never)).toBe(1400);
     expect(durationOf(command("x") as never)).toBeNull();
     expect(durationOf(wrote("a") as never)).toBeNull();
+  });
+});
+
+describe("the thinking indicator", () => {
+  const said = { _tag: "said", key: 0, text: "go" } as const;
+  const replied = { _tag: "replied", key: 1, text: "done" } as const;
+  const worked = { _tag: "worked", key: 2, steps: [] } as const;
+
+  test("waits on the agent after the user speaks", () => {
+    expect(thinkingLabel([said], true)).toBe("Thinking");
+  });
+
+  test("keeps waiting between the agent's own turns", () => {
+    expect(thinkingLabel([said, replied], true)).toBe("Working");
+  });
+
+  test("stays silent while a work block already reports the step", () => {
+    expect(thinkingLabel([said, worked], true)).toBeNull();
+  });
+
+  test("stays silent once the trial is no longer running", () => {
+    expect(thinkingLabel([said, replied], false)).toBeNull();
+  });
+
+  test("stays silent before anything has been journalled", () => {
+    expect(thinkingLabel([], true)).toBeNull();
   });
 });

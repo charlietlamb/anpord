@@ -9,10 +9,10 @@ import {
   type ToolState,
 } from "@anpord/ui/components/ai-elements/tool";
 import { ShellText } from "@anpord/ui/components/ui/shell-text";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import { CallName } from "@/components/evals/call-name";
 import { KindIcon } from "@/components/evals/kind-icon";
 import { type Call, durationOf, stepFailed } from "@/lib/evals/conversation";
-import { seconds } from "@/lib/evals/duration";
 
 const stateOf = (call: Call): ToolState =>
   stepFailed(call) ? "error" : "completed";

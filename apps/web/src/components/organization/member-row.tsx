@@ -1,8 +1,8 @@
+import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
 import { initials } from "@anpord/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { IdentityLabel } from "@/components/dashboard/identity-label";
-import { AgeCell } from "@/components/layout/age-cell";
 import { MemberRole } from "@/components/organization/member-role";
 
 export interface MemberSummary {

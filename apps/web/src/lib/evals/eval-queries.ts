@@ -1,6 +1,7 @@
 import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
 import type {
   EvalArtifactRequest,
+  EvalBatch,
   EvalPageCursor,
   EvalRun,
 } from "@anpord/schema/domain/evals";
@@ -9,22 +10,26 @@ import { evalKeys } from "@/lib/evals/eval-keys";
 import {
   type CaseFilters,
   getArtifact,
+  getBatch,
   getCase,
   getRun,
+  getSuite,
   getTrialAddress,
   listCaseRuns,
   listCases,
+  listSuites,
   readBatchTail,
 } from "@/lib/evals/evals-client";
 import {
   type HeardTail,
   heardTail,
   NOTHING_HEARD,
+  overlayBatchTail,
   overlayTail,
 } from "@/lib/evals/run-tail";
 
 const RUN_POLL_MS = 15_000;
-const TAIL_POLL_MS = 3000;
+export const TAIL_POLL_MS = 3000;
 
 const LIVE = {
   refetchIntervalInBackground: false,
@@ -51,6 +56,20 @@ export const evalQueries = {
       ...LIVE,
     }),
 
+  suites: (cursor: EvalPageCursor | null = null) =>
+    queryOptions({
+      queryKey: evalKeys.suites(cursor),
+      queryFn: () => listSuites(cursor),
+      placeholderData: keepPreviousData,
+      ...LIVE,
+    }),
+
+  suite: (id: string) =>
+    queryOptions({
+      queryKey: evalKeys.suite(id),
+      queryFn: () => getSuite(id),
+    }),
+
   case: (id: string) =>
     queryOptions({
       queryKey: evalKeys.case(id),
@@ -75,10 +94,10 @@ export const evalQueries = {
 
   tail: (batchId: string, runId: string) =>
     queryOptions({
-      queryKey: evalKeys.tail(batchId),
+      queryKey: evalKeys.tail(batchId, runId),
       queryFn: async ({ client }) => {
         const held =
-          client.getQueryData<HeardTail>(evalKeys.tail(batchId)) ??
+          client.getQueryData<HeardTail>(evalKeys.tail(batchId, runId)) ??
           NOTHING_HEARD;
         const heard = await catchUp(batchId, held);
 
@@ -91,6 +110,43 @@ export const evalQueries = {
           !heard.running
         ) {
           await client.invalidateQueries({ queryKey: evalKeys.run(runId) });
+        }
+
+        return heard;
+      },
+      refetchInterval: TAIL_POLL_MS,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+      staleTime: Number.POSITIVE_INFINITY,
+    }),
+
+  batch: (id: string) =>
+    queryOptions({
+      queryKey: evalKeys.batch(id),
+      queryFn: () => getBatch(id),
+      refetchInterval: (query) =>
+        query.state.data?.status === "running" ? RUN_POLL_MS : false,
+      ...LIVE,
+    }),
+
+  batchTail: (batchId: string) =>
+    queryOptions({
+      queryKey: evalKeys.tails(batchId),
+      queryFn: async ({ client }) => {
+        const held =
+          client.getQueryData<HeardTail>(evalKeys.tails(batchId)) ??
+          NOTHING_HEARD;
+        const heard = await catchUp(batchId, held);
+
+        client.setQueryData<EvalBatch>(evalKeys.batch(batchId), (batch) =>
+          batch === undefined ? batch : overlayBatchTail(batch, heard.journals)
+        );
+
+        if (
+          (held.settled !== null && held.settled !== heard.settled) ||
+          !heard.running
+        ) {
+          await client.invalidateQueries({ queryKey: evalKeys.batch(batchId) });
         }
 
         return heard;

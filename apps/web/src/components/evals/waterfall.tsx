@@ -4,12 +4,12 @@ import {
   DataTableBody,
   DataTableHead,
 } from "@anpord/ui/components/ui/data-table";
+import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
 import { Surface } from "@anpord/ui/components/ui/surface";
+import { useMemo } from "react";
 import { UntimedSteps } from "@/components/evals/untimed-steps";
 import { WaterfallAxis } from "@/components/evals/waterfall-axis";
 import { TimedRow } from "@/components/evals/waterfall-row";
-import { TIMELINE_COLUMNS } from "@/components/evals/waterfall-scale";
-import { EmptyNote } from "@/components/layout/empty-note";
 import { journalKey } from "@/lib/evals/journal-presentation";
 import { selectedStepOf } from "@/lib/evals/selected-step";
 import { useSelectedStep } from "@/lib/evals/use-selected-step";
@@ -17,6 +17,7 @@ import {
   type WaterfallRow,
   waterfallLayout,
 } from "@/lib/evals/waterfall-layout";
+import { TIMELINE_COLUMNS } from "@/lib/evals/waterfall-scale";
 
 export function Waterfall({
   running,
@@ -30,7 +31,11 @@ export function Waterfall({
   const { rows, spanMs } = waterfallLayout(trajectory);
   const [step, setStep] = useSelectedStep();
   const open = selectedStepOf(trajectory, rows, step);
-  const at = (row: WaterfallRow) => trajectory.indexOf(row.entry);
+  const positions = useMemo(
+    () => new Map(trajectory.map((entry, index) => [entry, index])),
+    [trajectory]
+  );
+  const at = (row: WaterfallRow) => positions.get(row.entry) ?? -1;
   const selectedAt = (row: WaterfallRow) => open?.entry === row.entry;
 
   if (trajectory.length === 0) {
@@ -62,6 +67,7 @@ export function Waterfall({
             onSelect={() => setStep(selectedAt(row) ? null : at(row))}
             row={row}
             selected={selectedAt(row)}
+            spanMs={spanMs}
           />
         ))}
       </DataTableBody>

@@ -1,7 +1,7 @@
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import { EvidenceValue } from "@/components/evals/evidence-value";
 import { ValidationValue } from "@/components/evals/validation-value";
-import { seconds } from "@/lib/evals/duration";
 import { judgeInput } from "@/lib/evals/validation-results";
 
 export function ReadEvidence({

@@ -2,6 +2,7 @@ import type { EvalTrial } from "@anpord/schema/domain/evals";
 import { readingOf, stepsOf } from "@anpord/schema/domain/verify-steps";
 import { verdictsOf } from "@anpord/schema/domain/verify-verdicts";
 import { CopyButton } from "@anpord/ui/components/copy-button";
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import {
   DataTable,
   DataTableBody,
@@ -9,10 +10,12 @@ import {
   DataTableHead,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
-import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
+import {
+  verdictStatus,
+  verdictSummary,
+} from "@anpord/ui/lib/evals/eval-status";
 import { VerifyReading } from "@/components/evals/verify-reading";
 import { VERIFY_TABLE } from "@/lib/evals/case-tables";
-import { verdictStatus, verdictSummary } from "@/lib/evals/eval-status";
 
 export function VerifyResults({
   command,

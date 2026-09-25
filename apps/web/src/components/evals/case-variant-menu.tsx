@@ -1,4 +1,6 @@
 import type { EvalVariantResult } from "@anpord/schema/domain/evals";
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
+import { VariantName } from "@anpord/ui/components/evals/variant-name";
 import {
   Select,
   SelectContent,
@@ -6,9 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anpord/ui/components/ui/select";
-import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
-import { VariantName } from "@/components/evals/variant-name";
-import { distributionStatus } from "@/lib/evals/eval-status";
+import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
 
 const ALL = "all";
 

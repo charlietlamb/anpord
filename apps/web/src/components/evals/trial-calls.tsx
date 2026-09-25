@@ -6,6 +6,7 @@ import {
   DataTableHead,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import { StepLabel } from "@/components/evals/step-label";
 import { CALLS_TABLE } from "@/lib/evals/case-tables";
 import {
@@ -14,7 +15,6 @@ import {
   durationOf,
   stepFailed,
 } from "@/lib/evals/conversation";
-import { seconds } from "@/lib/evals/duration";
 import { useSelectedStep } from "@/lib/evals/use-selected-step";
 
 const isCall = (entry: EvalJournalEntry): entry is Call =>

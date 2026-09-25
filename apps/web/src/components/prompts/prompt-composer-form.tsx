@@ -6,6 +6,7 @@ import {
 } from "@anpord/ui/components/composer";
 import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
+import { SPIN } from "@anpord/ui/lib/utils";
 import type { Icon } from "@phosphor-icons/react";
 import { BracketsCurlyIcon, SpinnerGapIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
@@ -63,11 +64,7 @@ export function PromptComposerForm({
             onClick={onSubmit}
             size="sm"
           >
-            {saving ? (
-              <SpinnerGapIcon className="animate-spin" />
-            ) : (
-              <SubmitIcon />
-            )}
+            {saving ? <SpinnerGapIcon className={SPIN} /> : <SubmitIcon />}
             {submitLabel}
           </ShortcutButton>
         </ComposerToolbarGroup>

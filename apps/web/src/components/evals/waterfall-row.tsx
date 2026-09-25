@@ -1,9 +1,9 @@
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import { cn } from "@anpord/ui/lib/utils";
 import { StepLabel } from "@/components/evals/step-label";
 import { WaterfallGridlines } from "@/components/evals/waterfall-gridlines";
 import { Track } from "@/components/evals/waterfall-track";
-import { seconds } from "@/lib/evals/duration";
 import { describeRow } from "@/lib/evals/journal-presentation";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
@@ -13,10 +13,12 @@ export function TimedRow({
   onSelect,
   row,
   selected,
+  spanMs,
 }: {
   readonly onSelect: () => void;
   readonly row: WaterfallRow;
   readonly selected: boolean;
+  readonly spanMs: number;
 }) {
   const settled = row._tag === "bar" && row.running !== true;
   const end = row.leftPercent + (row._tag === "bar" ? row.widthPercent : 0);
@@ -36,7 +38,7 @@ export function TimedRow({
       </span>
 
       <span className="relative self-stretch">
-        <WaterfallGridlines />
+        <WaterfallGridlines spanMs={spanMs} />
         <Track row={row} />
         {settled ? (
           <span

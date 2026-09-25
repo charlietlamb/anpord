@@ -5,6 +5,7 @@ import {
   labelOf,
 } from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import { seconds } from "@anpord/ui/lib/evals/duration";
 import {
   BrainIcon,
   ChatCircleDotsIcon,
@@ -14,7 +15,6 @@ import {
   UserIcon,
   WrenchIcon,
 } from "@phosphor-icons/react";
-import { seconds } from "@/lib/evals/duration";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
 export type JournalKind = EntryKind | "thinking";
@@ -53,5 +53,7 @@ export const describeRow = (row: WaterfallRow): string => {
   return `${KIND_NAMES[kindOf(row)]}${took}${after}: ${labelOf(row.entry)}`;
 };
 
+/* A running entry finishing must transition the row it already has, so the key
+   holds its position and kind and never the time it settled. */
 export const journalKey = (entry: EvalJournalEntry, index: number) =>
-  [index, entry._tag, entry.finishedAtMillis ?? "unknown"].join("-");
+  [index, entry._tag].join("-");

@@ -1,14 +1,14 @@
 import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
+import { AgeCell } from "@anpord/ui/components/evals/age-cell";
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
+import { VariantCell } from "@anpord/ui/components/evals/variant-cell";
 import {
   DataTableChevron,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
+import { trialStatus } from "@anpord/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
-import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { SourceLabel } from "@/components/evals/source-label";
-import { VariantCell } from "@/components/evals/variant-cell";
-import { AgeCell } from "@/components/layout/age-cell";
-import { trialStatus } from "@/lib/evals/eval-status";
 import { trialVerdict } from "@/lib/evals/trial-verdict";
 
 export function RunTrialRow({

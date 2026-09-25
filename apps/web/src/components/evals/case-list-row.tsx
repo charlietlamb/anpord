@@ -1,23 +1,14 @@
-import type { EvalCaseSummary } from "@anpord/schema/domain/evals";
+import { type EvalCaseSummary, tallyOf } from "@anpord/schema/domain/evals";
+import { AgeCell } from "@anpord/ui/components/evals/age-cell";
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import {
   DataTableChevron,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
+import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
-import { EvalStatusBadge } from "@/components/evals/eval-status-badge";
 import { TagChip } from "@/components/evals/tag-chip";
-import { AgeCell } from "@/components/layout/age-cell";
 import { counted } from "@/lib/evals/conversation";
-import { distributionStatus } from "@/lib/evals/eval-status";
-
-const newestAcross = (subject: EvalCaseSummary) =>
-  subject.variants.reduce(
-    (total, { distribution }) => ({
-      passed: total.passed + distribution.passed,
-      scored: total.scored + distribution.scored,
-    }),
-    { passed: 0, scored: 0 }
-  );
 
 export function CaseListRow({
   subject,
@@ -48,7 +39,11 @@ export function CaseListRow({
       </span>
 
       <span>
-        <EvalStatusBadge status={distributionStatus(newestAcross(subject))} />
+        <EvalStatusBadge
+          status={distributionStatus(
+            tallyOf(subject.variants.map((entry) => entry.distribution))
+          )}
+        />
       </span>
 
       <span className="text-muted-foreground tabular-nums">

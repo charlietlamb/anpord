@@ -1,5 +1,5 @@
+import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { AgeCell } from "@/components/layout/age-cell";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 

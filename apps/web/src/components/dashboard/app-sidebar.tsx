@@ -15,14 +15,15 @@ import {
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { ClientOnly, Link, useLocation } from "@tanstack/react-router";
 import {
+  activeNavPath,
   DASHBOARD_NAV,
-  isNavItemActive,
 } from "@/components/dashboard/dashboard-nav";
 import { NavUser } from "@/components/dashboard/nav-user";
 import { NavUserPlaceholder } from "@/components/dashboard/nav-user-placeholder";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
+  const activePath = activeNavPath(pathname);
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -63,7 +64,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {section.items.map((item) => {
-                  const active = isNavItemActive(item, pathname);
+                  const active = item.to === activePath;
 
                   return (
                     <SidebarMenuItem key={item.label}>

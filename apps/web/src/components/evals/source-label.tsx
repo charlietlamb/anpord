@@ -1,7 +1,7 @@
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import { placePresentation } from "@anpord/ui/components/evals/variant-presentation";
 import { Badge } from "@anpord/ui/components/ui/badge";
 import { triggerPresentation } from "@/lib/evals/run-trigger";
-import { placePresentation } from "@/lib/evals/variant-presentation";
 
 export function SourceLabel({
   local,

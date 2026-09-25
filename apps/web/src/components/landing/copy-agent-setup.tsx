@@ -1,6 +1,7 @@
 import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
+import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 import { AGENT_PROMPT } from "@/lib/agent-prompt";
 
 export function CopyAgentSetup() {
@@ -12,8 +13,10 @@ export function CopyAgentSetup() {
       onClick={() => copy(AGENT_PROMPT)}
       type="button"
     >
-      <span aria-live="polite">
-        {copied ? "Copied for your agent" : "Copy setup for agents"}
+      Set up your agent
+      {copied ? <CheckIcon weight="bold" /> : <CopyIcon />}
+      <span aria-live="polite" className="sr-only">
+        {copied ? "Copied" : ""}
       </span>
     </button>
   );

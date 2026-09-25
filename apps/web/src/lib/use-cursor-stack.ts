@@ -8,6 +8,29 @@ import {
   pushed,
 } from "@/lib/cursor-stack";
 
+interface CursorPages<A> {
+  readonly page: number;
+  readonly pop: () => void;
+  readonly push: (next: A) => void;
+}
+
+export const pagingOf = <A>(
+  pages: CursorPages<A>,
+  next: A | null,
+  disabled: boolean
+) => ({
+  canGoNext: next !== null,
+  canGoPrev: pages.page > 1,
+  disabled,
+  onNext: () => {
+    if (next !== null) {
+      pages.push(next);
+    }
+  },
+  onPrev: pages.pop,
+  page: pages.page,
+});
+
 export function useCursorStack<A>() {
   const [stack, setStack] = useState<CursorStack<A>>(firstPage<A>);
 

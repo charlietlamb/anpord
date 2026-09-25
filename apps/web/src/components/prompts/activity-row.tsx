@@ -1,7 +1,7 @@
 import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
+import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
 import { ActivityMarker } from "@/components/prompts/activity-marker";
 import { ActivitySentence } from "@/components/prompts/activity-sentence";
-import { useRelativeTime } from "@/lib/use-relative-time";
 
 interface ActivityRowProps {
   readonly entry: PromptActivityEntry;

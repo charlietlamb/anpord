@@ -1,4 +1,5 @@
 import { Button } from "@anpord/ui/components/button";
+import { SPIN } from "@anpord/ui/lib/utils";
 import { SpinnerGapIcon } from "@phosphor-icons/react";
 
 export function ShowMore({
@@ -26,7 +27,7 @@ export function ShowMore({
       size="sm"
       variant="bare"
     >
-      {loading ? <SpinnerGapIcon className="animate-spin" /> : null}
+      {loading ? <SpinnerGapIcon className={SPIN} /> : null}
       {loading ? "Loading…" : label}
     </Button>
   );

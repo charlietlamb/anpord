@@ -3,7 +3,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@anpord/ui/components/tooltip";
-import { count } from "@/lib/evals/duration";
+import { count } from "@anpord/ui/lib/evals/duration";
 
 const FLOOR = 1.5;
 
