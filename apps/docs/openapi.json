@@ -5034,6 +5034,13 @@
           "limit": {
             "$ref": "#/components/schemas/Int"
           },
+          "order": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          },
           "q": {
             "type": "string"
           },
