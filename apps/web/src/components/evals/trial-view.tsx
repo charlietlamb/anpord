@@ -11,7 +11,6 @@ import {
 import { CaseSetup } from "@/components/evals/case-setup";
 import { Conversation } from "@/components/evals/conversation";
 import { RunCaseButton } from "@/components/evals/run-case-button";
-import { TokenBand } from "@/components/evals/token-band";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialDetails } from "@/components/evals/trial-details";
@@ -19,7 +18,7 @@ import { TrialFiles } from "@/components/evals/trial-files";
 import { TrialMeta } from "@/components/evals/trial-meta";
 import { TrialSections } from "@/components/evals/trial-sections";
 import { TrialStepSheet } from "@/components/evals/trial-step-sheet";
-import { Waterfall } from "@/components/evals/waterfall";
+import { TrialTimeline } from "@/components/evals/trial-timeline";
 import { PageShell } from "@/components/layout/page-shell";
 import { SideSheet } from "@/components/layout/side-sheet";
 
@@ -60,14 +59,12 @@ export function TrialView({
       title={run.case.name}
       width="wide"
     >
-      {trial.usage === null ? null : <TokenBand usage={trial.usage} />}
-
       <TrialSections
         sections={[
           {
             Icon: PulseIcon,
             content: (
-              <Waterfall
+              <TrialTimeline
                 running={running}
                 timed={trial.timed}
                 trajectory={trial.trajectory}

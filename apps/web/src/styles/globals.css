@@ -223,7 +223,7 @@
   --success: oklch(0.6 0.14 155);
   --warning: oklch(0.72 0.15 75);
 
-  --trace-command: oklch(0.55 0.19 255);
+  --trace-command: oklch(0.62 0.13 65);
   --trace-file: oklch(0.6 0.14 195);
   --trace-message: oklch(0.6 0.11 230);
   --trace-said: oklch(0.68 0.13 145);
@@ -267,7 +267,7 @@
   --success: oklch(0.72 0.15 155);
   --warning: oklch(0.8 0.15 78);
 
-  --trace-command: oklch(0.62 0.19 255);
+  --trace-command: oklch(0.8 0.11 72);
   --trace-file: oklch(0.72 0.15 195);
   --trace-message: oklch(0.62 0.11 230);
   --trace-said: oklch(0.7 0.13 145);
