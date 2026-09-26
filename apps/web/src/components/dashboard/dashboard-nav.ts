@@ -20,6 +20,7 @@ interface NavSection {
 
 export const DASHBOARD_NAV: NavSection[] = [
   {
+    label: "Evaluations",
     items: [
       { label: "Evals", icon: GaugeIcon, to: "/evals" },
       { label: "Suites", icon: StackIcon, to: "/evals/suites" },
@@ -28,7 +29,10 @@ export const DASHBOARD_NAV: NavSection[] = [
   ...(PROMPTS_ENABLED
     ? [{ items: [{ label: "Prompts", icon: ChatTextIcon, to: "/prompts" }] }]
     : []),
-  { items: [{ label: "Settings", icon: GearIcon, to: "/settings" }] },
+  {
+    label: "Workspace",
+    items: [{ label: "Settings", icon: GearIcon, to: "/settings" }],
+  },
 ];
 
 const covers = (to: string, pathname: string) =>
