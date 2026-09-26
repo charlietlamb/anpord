@@ -25,7 +25,7 @@ export function TimelineBand({
   );
 
   return (
-    <div className="flex flex-col gap-3.5 rounded-md bg-card p-4 shadow-(--shadow-control)">
+    <div className="flex flex-col gap-3 rounded-md bg-card px-3.5 py-3 shadow-(--shadow-control)">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-5">
           <TimelineStat label="duration" value={span(spanMs)} />

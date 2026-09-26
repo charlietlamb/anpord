@@ -1,5 +1,10 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import { describeStep, type StepTitle } from "@/lib/evals/step-title";
+import { stepFailed } from "@/lib/evals/conversation";
+import {
+  describeStep,
+  plainText,
+  type StepTitle,
+} from "@/lib/evals/step-title";
 
 export interface TimelineStep {
   readonly durationMs: number | null;
@@ -57,6 +62,32 @@ export const findSectionIndex = (
         section.steps.some((candidate) => candidate.index === step)
       );
 
+export const isInFlight = (entry: EvalJournalEntry) =>
+  (entry._tag === "command" || entry._tag === "toolCall") &&
+  entry.startedAtMillis !== null &&
+  entry.startedAtMillis !== undefined &&
+  entry.finishedAtMillis === null;
+
+export const findStep = (timeline: Timeline, index: number | null) => {
+  const section = timeline.sections[findSectionIndex(timeline.sections, index)];
+  const step = section?.steps.find((candidate) => candidate.index === index);
+
+  return section === undefined || step === undefined ? null : { section, step };
+};
+
+export const splitOpening = (section: TimelineSection) => {
+  const [opening, ...rest] = section.steps;
+
+  if (opening === undefined || opening.entry._tag !== "message") {
+    return { more: null, steps: section.steps };
+  }
+
+  const full = plainText(opening.entry.text);
+  const more = full.slice(section.title.title.length).trim();
+
+  return { more: more === "" ? null : more, steps: rest };
+};
+
 export const lengthOf = (section: TimelineSection) =>
   section.durationMs === null || section.durationMs < 1000
     ? null
@@ -79,10 +110,7 @@ const startOf = (entry: EvalJournalEntry) =>
     : null) ?? finite(entry.finishedAtMillis);
 
 const isFailure = (entry: EvalJournalEntry) =>
-  (entry._tag === "command" &&
-    entry.exitCode !== null &&
-    entry.exitCode !== 0) ||
-  (entry._tag === "toolCall" && entry.error !== undefined);
+  (entry._tag === "command" || entry._tag === "toolCall") && stepFailed(entry);
 
 const classifyMoment = (
   step: TimelineStep,

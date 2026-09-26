@@ -6,6 +6,7 @@ import { PreviewScreen } from "@/components/dev/preview-screen";
 import {
   AUTUMN_TRAJECTORY,
   FAILED_TRAJECTORY,
+  REDIRECT_TRAJECTORY,
   RUNNING_TRAJECTORY,
   UNTIMED_TRAJECTORY,
   WORST_CASE_TRAJECTORY,
@@ -28,6 +29,7 @@ const STATES: readonly {
   readonly trajectory: readonly EvalJournalEntry[];
 }[] = [
   { name: "A command failed", trajectory: FAILED_TRAJECTORY },
+  { name: "A write by redirect", trajectory: REDIRECT_TRAJECTORY },
   {
     name: "A step still running",
     running: true,

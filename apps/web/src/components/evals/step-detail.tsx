@@ -1,50 +1,60 @@
-import { entryKindOf } from "@anpord/schema/domain/eval-journal";
-import { seconds } from "@anpord/ui/lib/evals/duration";
-import { CallName } from "@/components/evals/call-name";
-import { KindIcon } from "@/components/evals/kind-icon";
+import { elapsed, seconds } from "@anpord/ui/lib/evals/duration";
+import type { ReactNode } from "react";
 import { StepDetailBody } from "@/components/evals/step-detail-body";
-import { StepTiming } from "@/components/evals/step-timing";
-import { failureLabel } from "@/lib/evals/conversation";
-import { KIND_NAMES } from "@/lib/evals/journal-presentation";
-import type { SelectedStep } from "@/lib/evals/selected-step";
+import { StepProperties } from "@/components/evals/step-properties";
+import { StepResult } from "@/components/evals/step-result";
+import { VerbBadge } from "@/components/evals/verb-badge";
+import type {
+  TimelineSection,
+  TimelineStep,
+} from "@/lib/evals/timeline-sections";
 
 export function StepDetail({
-  step: { entry, row },
+  section,
+  step,
+  thinkingMs,
 }: {
-  readonly step: SelectedStep;
+  readonly section: TimelineSection;
+  readonly step: TimelineStep;
+  readonly thinkingMs: number | null;
 }) {
-  const kind = entryKindOf(entry);
-  const failure = entry._tag === "message" ? null : failureLabel(entry);
-  const lead = row?.lead ?? null;
+  const rows: (readonly [string, ReactNode])[] = [
+    [
+      "Kind",
+      <VerbBadge failed={step.failed} key="kind" verb={step.title.verb} />,
+    ],
+  ];
+  const result = <StepResult entry={step.entry} />;
+
+  if (step.entry._tag === "command" || step.entry._tag === "toolCall") {
+    rows.push(["Result", result]);
+  }
+  if (step.offsetMs !== null) {
+    rows.push(["Started", elapsed(step.offsetMs)]);
+  }
+  if (thinkingMs !== null) {
+    rows.push(["Thinking", seconds(thinkingMs)]);
+  }
+  if (step.durationMs !== null) {
+    rows.push(["Ran for", seconds(step.durationMs)]);
+  }
+  if (section.steps[0] !== step) {
+    rows.push([
+      "Section",
+      <span className="truncate text-muted-foreground" key="section">
+        {section.title.title}
+      </span>,
+    ]);
+  }
 
   return (
     <div className="flex min-h-0 min-w-0 flex-col gap-4">
-      <header className="flex h-7 shrink-0 items-center gap-2">
-        <KindIcon failed={failure !== null} kind={kind} />
-        <h3 className="min-w-0 truncate font-medium text-sm">
-          {entry._tag === "toolCall" ? (
-            <CallName name={entry.name} />
-          ) : (
-            KIND_NAMES[kind]
-          )}
-        </h3>
-        {failure === null ? null : (
-          <span className="font-medium text-sm text-warning">{failure}</span>
-        )}
-      </header>
-
-      {lead !== null || row?._tag === "bar" ? (
-        <dl className="flex flex-col gap-1.5">
-          {lead === null ? null : (
-            <StepTiming label="Thinking" value={seconds(lead.durationMs)} />
-          )}
-          {row?._tag === "bar" ? (
-            <StepTiming label="Ran" value={seconds(row.durationMs)} />
-          ) : null}
-        </dl>
-      ) : null}
-
-      <StepDetailBody entry={entry} />
+      <h3 className="font-medium text-lg/snug tracking-[-0.015em]">
+        {step.title.title}
+      </h3>
+      <StepProperties rows={rows} />
+      <div className="h-px shrink-0 bg-border" />
+      <StepDetailBody entry={step.entry} />
     </div>
   );
 }

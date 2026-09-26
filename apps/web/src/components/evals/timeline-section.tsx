@@ -1,4 +1,3 @@
-import { Badge } from "@anpord/ui/components/ui/badge";
 import {
   Collapsible,
   CollapsiblePanel,
@@ -12,6 +11,7 @@ import { countVerbs } from "@/lib/evals/timeline-kinds";
 import {
   lengthOf,
   type TimelineSection as Section,
+  splitOpening,
 } from "@/lib/evals/timeline-sections";
 
 export function TimelineSection({
@@ -27,8 +27,8 @@ export function TimelineSection({
   readonly section: Section;
   readonly selected: number | null;
 }) {
-  const counts = countVerbs(section.steps);
   const length = lengthOf(section);
+  const { more, steps } = splitOpening(section);
 
   return (
     <Collapsible
@@ -36,39 +36,44 @@ export function TimelineSection({
       onOpenChange={onOpenChange}
       open={open}
     >
-      <CollapsibleTrigger className="flex h-12 w-full cursor-pointer items-center gap-3 px-4 text-left outline-none transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4">
+      <CollapsibleTrigger className="flex h-10 w-full cursor-pointer items-center gap-2.5 px-3.5 text-left outline-none transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4">
         <CaretRightIcon
           aria-hidden="true"
-          className="size-3.5 shrink-0 text-muted-foreground/70 transition-transform duration-200 group-data-[open]/section:rotate-90 group-data-[open]/section:text-foreground motion-reduce:transition-none"
+          className="size-3 shrink-0 text-muted-foreground/70 transition-transform duration-200 group-data-[open]/section:rotate-90 group-data-[open]/section:text-foreground motion-reduce:transition-none"
         />
-        <span className="min-w-0 max-w-md truncate font-medium text-muted-foreground text-sm group-data-[open]/section:text-foreground">
+        <span className="min-w-0 max-w-xl truncate font-medium text-[13px] text-muted-foreground group-data-[open]/section:text-foreground">
           {section.title.title}
         </span>
-        <span className="flex shrink-0 gap-1.5">
-          {counts.map(({ count, failed, verb }) => (
+        <span className="flex shrink-0 gap-1">
+          {countVerbs(section.steps).map(({ count, failed, verb }) => (
             <VerbBadge count={count} failed={failed} key={verb} verb={verb} />
           ))}
         </span>
         <span className="flex-1" />
-        {length === null ? null : (
-          <Badge className="text-xs tabular-nums" size="xs" variant="quiet">
-            {wholeSeconds(length)}
-          </Badge>
-        )}
+        <span className="w-12 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
+          {length === null ? "" : wholeSeconds(length)}
+        </span>
         <span className="w-9 shrink-0 text-right text-muted-foreground/70 text-xs tabular-nums">
           {section.offsetMs === null ? "" : elapsed(section.offsetMs)}
         </span>
       </CollapsibleTrigger>
 
       <CollapsiblePanel>
-        {section.steps.map((step) => (
-          <TimelineStep
-            key={step.index}
-            onSelect={() => onSelect(step.index)}
-            selected={selected === step.index}
-            step={step}
-          />
-        ))}
+        <div className="flex flex-col pb-1.5">
+          {more === null ? null : (
+            <p className="pr-4 pb-2 pl-[34px] text-muted-foreground text-xs/5">
+              {more}
+            </p>
+          )}
+          {steps.map((step) => (
+            <TimelineStep
+              key={step.index}
+              onSelect={() => onSelect(step.index)}
+              selected={selected === step.index}
+              step={step}
+            />
+          ))}
+        </div>
       </CollapsiblePanel>
     </Collapsible>
   );

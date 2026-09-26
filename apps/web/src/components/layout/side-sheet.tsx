@@ -12,6 +12,7 @@ import type { Icon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 export function SideSheet({
+  actions,
   children,
   description,
   flush = false,
@@ -21,6 +22,7 @@ export function SideSheet({
   title,
   trigger,
 }: {
+  readonly actions?: ReactNode;
   readonly children: ReactNode;
   readonly description?: ReactNode;
   readonly flush?: boolean;
@@ -48,7 +50,10 @@ export function SideSheet({
 
       <SheetContent>
         <SheetHeader className="gap-1 border-border border-b p-4 pr-12">
-          <SheetTitle>{title}</SheetTitle>
+          <div className="flex items-center justify-between gap-3">
+            <SheetTitle>{title}</SheetTitle>
+            {actions}
+          </div>
           {description === undefined ? null : (
             <SheetDescription>{description}</SheetDescription>
           )}

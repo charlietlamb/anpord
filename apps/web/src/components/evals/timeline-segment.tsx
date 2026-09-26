@@ -21,14 +21,14 @@ export function TimelineSegment({
     <button
       aria-label={`${active ? "Collapse" : "Expand"} ${section.title.title}`}
       aria-pressed={active}
-      className="group/segment flex min-w-0 cursor-pointer flex-col gap-2 rounded-[3px] text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+      className="group/segment flex min-w-0 cursor-pointer flex-col gap-1.5 rounded-[3px] text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
       onClick={onToggle}
       style={{ flexBasis: 0, flexGrow: width }}
       type="button"
     >
       <span
         className={cn(
-          "relative h-2 w-full overflow-hidden rounded-[3px] transition-colors",
+          "relative h-1.5 w-full overflow-hidden rounded-[2px] transition-colors",
           active
             ? "bg-foreground"
             : "bg-alpha-8 group-hover/segment:bg-foreground/20"
@@ -38,7 +38,7 @@ export function TimelineSegment({
           step.offsetMs === null ? null : (
             <span
               className={cn(
-                "absolute top-0 h-2 w-0.5 rounded-[1px]",
+                "absolute top-0 h-1.5 w-0.5 rounded-[1px]",
                 active ? "bg-background" : "bg-(--tint)"
               )}
               key={step.index}
@@ -55,7 +55,7 @@ export function TimelineSegment({
       <span className="flex min-w-0 flex-col">
         <span
           className={cn(
-            "truncate text-label",
+            "truncate text-xs",
             active ? "font-medium text-foreground" : "text-muted-foreground"
           )}
         >
