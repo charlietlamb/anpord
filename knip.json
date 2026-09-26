@@ -154,6 +154,8 @@
     }
   },
   "ignore": [
+    ".agents/**",
+    ".claude/**",
     "context/**",
     "scripts/fixtures/**",
     "scripts/server-workspace-deps.mjs",

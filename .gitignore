@@ -37,3 +37,10 @@ apps/sandbox-lab/.sessions/
 
 # Agent worktrees are checkouts of this repo, not files in it
 .claude/worktrees/
+
+# cstack links local skills here with install.sh --project; only anpord's own are tracked
+.claude/skills/*
+!.claude/skills/anpord-map
+.claude/agents/
+.agents/skills/*
+!.agents/skills/anpord-map
