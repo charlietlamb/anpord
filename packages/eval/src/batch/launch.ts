@@ -1,16 +1,17 @@
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import { Clock, Effect } from "effect";
+import { Clock, Effect, Option } from "effect";
 import { describeFailure } from "../domain/errors";
 import { TrialRunner } from "../ports/trial-runner";
-import { BatchRepository, type NewRun } from "../repositories/batch-repository";
+import {
+  BatchRepository,
+  type NewBatch,
+} from "../repositories/batch-repository";
 
-export interface Launch {
-  readonly local: boolean;
-  readonly organizationId: string;
-  readonly runs: readonly NewRun[];
-  readonly startedBy: string | null;
-  readonly trigger: EvalTrigger | null;
-}
+export type Launch = NewBatch;
+
+export type Launched = Option.Option<{
+  readonly internalId: string;
+  readonly runInternalIds: readonly string[];
+}>;
 
 export const makeLaunch = (
   execute: (batchInternalId: string) => Effect.Effect<unknown, unknown>
@@ -21,7 +22,11 @@ export const makeLaunch = (
 
     return (input: Launch) =>
       Effect.gen(function* () {
-        const created = yield* batches.insert(input);
+        const inserted = yield* batches.insert(input);
+        if (Option.isNone(inserted)) {
+          return inserted;
+        }
+        const created = inserted.value;
 
         if (!input.local) {
           yield* runner
@@ -47,7 +52,7 @@ export const makeLaunch = (
             );
         }
 
-        return created;
+        return inserted;
       }).pipe(
         Effect.withSpan("Batches.launch", {
           attributes: { local: input.local, runs: input.runs.length },

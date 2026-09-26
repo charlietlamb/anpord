@@ -10,13 +10,16 @@ bun run e2e -- --stop # run everything, then stop the test cluster
 
 ## What a run does
 
-1. Starts a Postgres cluster on port 55433, owned by these tests. Your own
-   Postgres keeps its port, its data, and its version.
+1. Starts this checkout's own Postgres cluster, with its data in `.e2e/postgres`.
+   The first run picks a free port and records it in `.e2e/postgres.json`. Later
+   runs reuse the same cluster. Your own Postgres and other worktrees' clusters
+   keep their ports and data: the harness checks the data directory a port
+   reports, and refuses to touch any cluster it did not start.
 2. Drops and recreates `anpord_e2e`, then applies the real migrations, so a run
    also proves the journal applies cleanly from nothing.
 3. Seeds two organizations. The second exists so tenant isolation is something a
    scenario can actually check rather than assume.
-4. Starts the server binary, so routing, authentication, and encoding are
+4. Starts the server binary on a free port, so routing, authentication, and encoding are
    exercised exactly as a deployment would.
 5. Mints API keys through the same endpoint the dashboard calls, and keeps the
    plaintext in `.e2e/api-keys.json`.
@@ -28,7 +31,8 @@ can keep poking at whatever the scenarios just built. The server exits with the
 run, so start one against the test database first:
 
 ```bash
-cd ../server && DATABASE_URL=postgresql://postgres@127.0.0.1:55433/anpord_e2e \
+PG_PORT=$(node -p "require('./.e2e/postgres.json').port")
+cd ../server && DATABASE_URL=postgresql://postgres@127.0.0.1:$PG_PORT/anpord_e2e \
   BETTER_AUTH_SECRET=e2e-secret-that-is-at-least-32-characters-long \
   PORT=3099 bun run src/server.ts
 ```

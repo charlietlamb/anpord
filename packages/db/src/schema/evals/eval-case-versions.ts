@@ -7,6 +7,7 @@ import type {
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import {
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -31,6 +32,8 @@ export const evalCaseVersion = pgTable(
     verify: text("verify"),
     user: jsonb("user").$type<EvalUser>(),
     cache: jsonb("cache").$type<CaseCache>(),
+    maxTurns: integer("max_turns"),
+    timeoutMs: integer("timeout_ms"),
     tags: jsonb("tags").$type<readonly string[]>().notNull().default([]),
     createdBy: text("created_by").references(() => user.id, {
       onDelete: "set null",

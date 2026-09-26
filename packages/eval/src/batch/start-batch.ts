@@ -10,21 +10,30 @@ import {
   trialsRequested,
 } from "@anpord/schema/domain/eval-quota";
 import type { StartedBatch } from "@anpord/schema/domain/evals";
+import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
 import { Effect, Option } from "effect";
 import { modelAccessFor } from "../credentials/model-key";
 import { CredentialResolver } from "../credentials/resolver";
 import { bindCredentials } from "../credentials/variants";
+import { caseDefinitionOf } from "../domain/case-definition";
 import { definitionHashOf } from "../domain/case-identity";
 import { StartRefused } from "../domain/errors";
 import { profileOfRequest } from "../domain/harness-profile";
+import { LOCAL_QUIET_AFTER } from "../domain/local-heartbeat";
 import { profileVersionOf } from "../domain/profile-identity";
-import { renderPrompt } from "../domain/prompt";
+import { startRequestHashOf } from "../domain/start-request-hash";
+import { userHarness } from "../domain/suite-harnesses";
 import { userModel, userModelOf, userModelRoute } from "../domain/variant";
-import { BatchRepository } from "../repositories/batch-repository";
+import {
+  BatchRepository,
+  type StartKey,
+} from "../repositories/batch-repository";
 import { CatalogRepository } from "../repositories/catalog-repository";
 import { HarnessProfileRepository } from "../repositories/harness-profile-repository";
+import { startedBatchQuery } from "../repositories/started-batch-query";
 import { HarnessVersions } from "../services/harness-versions";
-import type { Launch } from "./launch";
+import { cutoffBefore } from "../services/sweep";
+import type { Launch, Launched } from "./launch";
 
 const variantKey = (variant: EvalVariantRequest) =>
   [
@@ -56,7 +65,24 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
       });
     }
 
-    if (request.cases.some((subject) => subject.user?.kind === "simulated")) {
+    for (const harness of new Set(request.cases.flatMap(userHarness))) {
+      const connection = yield* (yield* CredentialResolver)
+        .resolve({ actor, integrationId: harness })
+        .pipe(Effect.option);
+      if (Option.isNone(connection)) {
+        return yield* new StartRefused({
+          reason: `A case asks ${harness} to play the human, and this organization has no ${harness} connection. Connect one under settings.`,
+          retryable: false,
+        });
+      }
+    }
+    if (
+      request.cases.some(
+        (subject) =>
+          subject.user?.kind === "simulated" &&
+          userHarness(subject).length === 0
+      )
+    ) {
       const access = yield* modelAccessFor(
         yield* CredentialResolver,
         actor.organizationId,
@@ -72,7 +98,7 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
     }
 
     const inFlight = yield* (yield* BatchRepository)
-      .inFlight(actor.organizationId)
+      .inFlight(actor.organizationId, yield* cutoffBefore(LOCAL_QUIET_AFTER))
       .pipe(Effect.orDie);
     if (inFlight >= MAX_ORGANIZATION_RUNS_IN_FLIGHT) {
       return yield* new StartRefused({
@@ -82,14 +108,13 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
     }
   });
 
+export interface Start {
+  readonly replayed: boolean;
+  readonly started: StartedBatch;
+}
+
 export const makeStartBatch = (
-  launch: (input: Launch) => Effect.Effect<
-    {
-      readonly internalId: string;
-      readonly runInternalIds: readonly string[];
-    },
-    unknown
-  >
+  launch: (input: Launch) => Effect.Effect<Launched, unknown>
 ) =>
   Effect.gen(function* () {
     const catalog = yield* CatalogRepository;
@@ -97,6 +122,29 @@ export const makeStartBatch = (
     const profiles = yield* HarnessProfileRepository;
     const versions = yield* HarnessVersions;
     const batches = yield* BatchRepository;
+    const startedWith = yield* startedBatchQuery;
+
+    const earlier = (actor: Actor, keyed: StartKey | null) =>
+      Effect.gen(function* () {
+        if (keyed === null) {
+          return Option.none<StartedBatch>();
+        }
+        const found = yield* startedWith(actor.organizationId, keyed.key).pipe(
+          Effect.orDie
+        );
+        if (Option.isNone(found)) {
+          return Option.none<StartedBatch>();
+        }
+        const { requestHash, started } = found.value;
+        if (requestHash !== null && requestHash !== keyed.requestHash) {
+          return yield* new StartRefused({
+            reason:
+              "This idempotency key already started a different run. Send a new key to start this one.",
+            retryable: false,
+          });
+        }
+        return Option.some(started);
+      });
 
     const admitted = (actor: Actor, request: StartBatchRequest) =>
       admit(actor, request).pipe(
@@ -104,8 +152,24 @@ export const makeStartBatch = (
         Effect.provideService(BatchRepository, batches)
       );
 
-    return (actor: Actor, request: StartBatchRequest) =>
+    return (
+      actor: Actor,
+      request: StartBatchRequest,
+      idempotencyKey: IdempotencyKey | null
+    ) =>
       Effect.gen(function* () {
+        const keyed =
+          idempotencyKey === null
+            ? null
+            : {
+                key: idempotencyKey,
+                requestHash: startRequestHashOf(request),
+              };
+        const replay = yield* earlier(actor, keyed);
+        if (Option.isSome(replay)) {
+          return { replayed: true, started: replay.value } satisfies Start;
+        }
+
         yield* admitted(actor, request);
 
         const conductedBy = yield* userModel;
@@ -137,15 +201,7 @@ export const makeStartBatch = (
         );
 
         const cases = request.cases.map((subject) => {
-          const definition = {
-            cache: subject.cache ?? null,
-            prepare: subject.prepare,
-            prompt: renderPrompt(request.suite.prompt, subject.variables),
-            source: subject.source,
-            user: subject.user,
-            validator: subject.validator,
-            verify: subject.verify,
-          };
+          const definition = caseDefinitionOf(request.suite, subject);
           return {
             ...definition,
             definitionHash: definitionHashOf(definition),
@@ -190,26 +246,42 @@ export const makeStartBatch = (
           }))
         );
 
-        const created = yield* launch({
+        const launched = yield* launch({
+          checksIn: request.checksIn,
+          idempotency: keyed,
           local: request.local,
           organizationId: actor.organizationId,
           runs: slots.map((slot) => slot.run),
           startedBy: authorIdOf(actor),
           trigger: request.trigger ?? { source: "api" },
         }).pipe(Effect.orDie);
+        if (Option.isNone(launched)) {
+          const raced = yield* earlier(actor, keyed);
+          if (Option.isNone(raced)) {
+            return yield* Effect.dieMessage(
+              "the start lost a race for its key, and no batch holds that key"
+            );
+          }
+          return { replayed: true, started: raced.value } satisfies Start;
+        }
 
+        const created = launched.value;
         return {
-          id: created.internalId,
-          runs: slots.map((slot, index) => ({
-            caseId: slot.caseId,
-            id: created.runInternalIds[index] ?? "",
-            variantId: slot.run.variantInternalId,
-          })),
-        } satisfies StartedBatch;
+          replayed: false,
+          started: {
+            id: created.internalId,
+            runs: slots.map((slot, index) => ({
+              caseId: slot.caseId,
+              id: created.runInternalIds[index] ?? "",
+              variantId: slot.run.variantInternalId,
+            })),
+          },
+        } satisfies Start;
       }).pipe(
         Effect.withSpan("Batches.start", {
           attributes: {
             cases: request.cases.length,
+            keyed: idempotencyKey !== null,
             suite: request.suite.id,
             trials: request.trials,
             variants: request.variants.length,

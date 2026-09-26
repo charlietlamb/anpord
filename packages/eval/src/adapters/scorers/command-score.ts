@@ -58,7 +58,7 @@ export const scoreCommand: ScorerShape["score"] = (request) =>
 
     const script = verifyScriptOf(request.verifyCommand);
     const started = yield* Clock.currentTimeMillis;
-    const capture = validationCapture();
+    const capture = validationCapture(true, request.secrets);
     const record = {
       ...validationExecution(
         {
@@ -84,6 +84,7 @@ export const scoreCommand: ScorerShape["score"] = (request) =>
       },
       records: [record],
       observe: request.onValidation,
+      secrets: request.secrets,
     });
     const raw = execution.stdout + execution.stderr;
     const output = withoutMarks(raw);

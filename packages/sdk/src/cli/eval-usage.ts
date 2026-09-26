@@ -1,4 +1,8 @@
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+import {
+  COST_COMPONENT_LABELS,
+  type EvalBatch,
+  type EvalCosts,
+} from "@anpord/schema/domain/evals";
 import {
   CONCERN_REASONS,
   type TokenCounts,
@@ -75,11 +79,14 @@ export const usageLines = (usage: Usage): readonly string[] => {
 };
 
 export interface LocalReading {
-  readonly turns: number;
+  readonly commands: number;
   readonly usage: TokenCounts | null;
 }
 
-const localUsage = (cases: readonly LocalReading[]): Usage => {
+const localUsage = (
+  cases: readonly LocalReading[],
+  costs: EvalCosts | null
+): Usage => {
   const concerns = new Set<UsageConcern>();
   let inputTokens = 0;
   let outputTokens = 0;
@@ -95,7 +102,7 @@ const localUsage = (cases: readonly LocalReading[]): Usage => {
     totalTokens += one.usage.inputTokens + one.usage.outputTokens;
 
     for (const concern of usageConcerns({
-      turns: one.turns,
+      turns: one.commands,
       usage: one.usage,
     })) {
       concerns.add(concern);
@@ -107,9 +114,30 @@ const localUsage = (cases: readonly LocalReading[]): Usage => {
     inputTokens,
     outputTokens,
     totalTokens,
-    usd: null,
+    usd: costs?.estimatedEquivalentUsd ?? null,
   };
 };
 
-export const localUsageLines = (cases: readonly LocalReading[]) =>
-  usageLines(localUsage(cases)).map((line) => `  ${line}`);
+const PAYERS = ["model", "user", "judge"] as const;
+
+const breakdownLine = (costs: EvalCosts | null) => {
+  const parts = PAYERS.flatMap(
+    (component) =>
+      costs?.components
+        .filter((part) => part.component === component)
+        .map(
+          ({ usd }) =>
+            `${COST_COMPONENT_LABELS[component]} ${usd === null ? "not priced" : formatUsd(usd)}`
+        ) ?? []
+  );
+
+  return parts.length > 1 ? [parts.join(", ")] : [];
+};
+
+export const localUsageLines = (
+  cases: readonly LocalReading[],
+  costs: EvalCosts | null = null
+) =>
+  [...usageLines(localUsage(cases, costs)), ...breakdownLine(costs)].map(
+    (line) => `  ${line}`
+  );

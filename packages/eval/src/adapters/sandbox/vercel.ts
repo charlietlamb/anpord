@@ -93,6 +93,7 @@ const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
     ),
   home: HOME,
   id: sandbox.name,
+  installs: Option.none(),
   provider: "vercel",
   resumable: Option.none(),
   writeFile: (path, content) =>

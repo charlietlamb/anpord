@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Option } from "effect";
 import { claudeCommand } from "../../../src/adapters/harness/claude";
 import { codexCommand } from "../../../src/adapters/harness/codex";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const request = (resume: Option.Option<string>, harness = "codex") =>
   ({
@@ -12,7 +13,7 @@ const request = (resume: Option.Option<string>, harness = "codex") =>
     profile: Option.none(),
     prompt: "yes, go ahead",
     resume,
-    sandbox: { home: "/home" },
+    sandbox: { ...declinesEverything, home: "/home" },
     systemPromptPath: Option.none(),
     workspace: "/workspace",
   }) as never;

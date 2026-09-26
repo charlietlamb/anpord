@@ -141,6 +141,51 @@ describe("a validator reading what the agent said", () => {
     expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
   });
 
+  test("reads what the agent ran in the turn it ran it", async () => {
+    const path = await wrote(
+      "turns.json",
+      JSON.stringify([
+        {
+          agentText: "Which usage limit?",
+          commandCount: 1,
+          events: [
+            {
+              _tag: "command",
+              command: "cat SKILL.md",
+              exitCode: 0,
+              finishedAtMillis: 2,
+              output: "# Pricing",
+              startedAtMillis: 1,
+            },
+          ],
+          index: 0,
+          userText: "Write the config",
+        },
+      ])
+    );
+    const result = await runValidator(
+      "async ({ turns }) => ({ passed: (await turns())[0].events.some((event) => event._tag === 'command' && event.command === 'cat SKILL.md') })",
+      { ANPORD_TURNS_FILE: path }
+    );
+
+    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+  });
+
+  test("does not read a damaged turns file as an empty conversation", async () => {
+    const path = await wrote("turns.json", "[{");
+    const result = await runValidator(
+      "async ({ turns }) => ({ passed: (await turns()).length === 0 })",
+      { ANPORD_TURNS_FILE: path }
+    );
+
+    expect(result.output).toContain(
+      '"message":"Validator threw or returned an invalid result"'
+    );
+    expect(result.output).toContain(
+      'ANPORD_VALIDATOR_RESULT={"passed":false,"message":"check threw or returned an invalid result"}'
+    );
+  });
+
   test("keeps the prepare value alongside them", async () => {
     const path = await wrote("answer.txt", "done");
     const result = await runValidator(

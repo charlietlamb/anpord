@@ -21,6 +21,10 @@ export const usageOf = (
     ? {
         cacheReadTokens: countOf(value.cacheReadTokens),
         cacheWriteTokens: countOf(value.cacheWriteTokens),
+        ...(typeof value.cacheWrite1hTokens === "number" &&
+        Number.isFinite(value.cacheWrite1hTokens)
+          ? { cacheWrite1hTokens: value.cacheWrite1hTokens }
+          : {}),
         /* Undefined rather than zero: unknown is not free. */
         costUsd:
           typeof value.costUsd === "number" && Number.isFinite(value.costUsd)

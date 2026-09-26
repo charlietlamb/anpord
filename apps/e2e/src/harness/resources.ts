@@ -1,16 +1,16 @@
 import { Effect } from "effect";
 import { Client } from "pg";
-import { startDatabase, stopDatabase } from "./database";
+import { ownCluster, stopCluster } from "./database";
 import { startServer } from "./server";
 
 /* Each resource carries its own release: a single try/finally protects only the last acquired, which once orphaned a running cluster. */
-export const database = (dataDirectory: string, keepRunning: boolean) =>
+export const database = (stateDirectory: string, keepRunning: boolean) =>
   Effect.acquireRelease(
-    Effect.promise(() => startDatabase(dataDirectory)),
-    () =>
+    Effect.promise(() => ownCluster(stateDirectory)),
+    (cluster) =>
       keepRunning
         ? Effect.void
-        : Effect.promise(() => stopDatabase(dataDirectory)).pipe(Effect.asVoid)
+        : Effect.promise(() => stopCluster(cluster)).pipe(Effect.asVoid)
   );
 
 export const server = (

@@ -3,9 +3,11 @@ import { isAuthRoute } from "./auth-route";
 import { withAuthenticateChallenge } from "./authenticate-challenge";
 import { isAuthorizeRoute, withConsentPrompt } from "./consent-route";
 import { isDiscoveryRoute, toAuthRequest } from "./discovery-route";
+import { isInternalRoute } from "./internal-route";
 import { withServerErrorLog } from "./log-server-error";
 import { publicOrigin } from "./public-origin";
 import { isPublicRoute } from "./public-route";
+import { publicRouteMiss, unknownRoute } from "./route-miss";
 import { isSameOrigin } from "./same-origin";
 import { withServerTiming } from "./server-timing";
 
@@ -29,6 +31,38 @@ const crossSite = () =>
     { status: 403, headers: { "content-type": "application/json" } }
   );
 
+const routePublic = (publicApi: WebHandler, request: Request) => {
+  const miss = publicRouteMiss(request);
+
+  if (miss !== undefined) {
+    return Promise.resolve(miss);
+  }
+
+  return publicApi
+    .handler(request)
+    .then((response) =>
+      withAuthenticateChallenge(response, publicOrigin(request))
+    );
+};
+
+const routeInternal = (
+  internalApi: WebHandler,
+  request: Request,
+  trustedOrigins: readonly string[]
+) => {
+  const { pathname } = new URL(request.url);
+
+  if (!isInternalRoute(pathname)) {
+    return Promise.resolve(unknownRoute(pathname));
+  }
+
+  if (!isSameOrigin(request, trustedOrigins)) {
+    return Promise.resolve(crossSite());
+  }
+
+  return internalApi.handler(request);
+};
+
 export const routeRequest =
   ({ auth, internalApi, publicApi, trustedOrigins }: RouteTargets) =>
   (request: Request) =>
@@ -49,17 +83,9 @@ export const routeRequest =
         }
 
         if (isPublicRoute(pathname)) {
-          return publicApi
-            .handler(request)
-            .then((response) =>
-              withAuthenticateChallenge(response, publicOrigin(request))
-            );
+          return routePublic(publicApi, request);
         }
 
-        if (!isSameOrigin(request, trustedOrigins)) {
-          return Promise.resolve(crossSite());
-        }
-
-        return internalApi.handler(request);
+        return routeInternal(internalApi, request, trustedOrigins);
       })
     );

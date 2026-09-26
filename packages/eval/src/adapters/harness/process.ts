@@ -1,3 +1,4 @@
+import { DEFAULT_TIMEOUT_MS } from "@anpord/schema/domain/eval-limits";
 import { Duration, Effect, Option, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { HarnessName } from "../../domain/variant";
@@ -6,8 +7,6 @@ import type { ExecChunk, SandboxHandle } from "../../ports/sandbox";
 const TRAILING_RETURN = /\r$/;
 
 const MAX_STDERR = 8192;
-
-const TIMEOUT = Duration.minutes(15);
 
 export interface HarnessLine {
   readonly _tag: "line";
@@ -120,10 +119,11 @@ const framedOutput = (
   harness: HarnessName,
   sandbox: SandboxHandle,
   command: string,
-  env: Readonly<Record<string, string>>
+  env: Readonly<Record<string, string>>,
+  timeout: Duration.Duration
 ) =>
   execLines(
-    sandbox.exec(command, { env, timeoutMs: Duration.toMillis(TIMEOUT) })
+    sandbox.exec(command, { env, timeoutMs: Duration.toMillis(timeout) })
   ).pipe(
     Stream.mapError(
       (cause) => new HarnessUnavailable({ harness, reason: cause.reason })
@@ -150,27 +150,38 @@ const linesOnly = (harness: HarnessName) =>
         );
   });
 
+interface LineOptions {
+  readonly timeout?: Duration.Duration;
+}
+
 export function harnessLines(
   harness: HarnessName,
   sandbox: SandboxHandle,
   command: string,
-  env: Readonly<Record<string, string>>
+  env: Readonly<Record<string, string>>,
+  options?: LineOptions & { readonly exit?: "fail" }
 ): Stream.Stream<HarnessLine, HarnessUnavailable>;
 export function harnessLines(
   harness: HarnessName,
   sandbox: SandboxHandle,
   command: string,
   env: Readonly<Record<string, string>>,
-  options: { readonly exit: "report" }
+  options: LineOptions & { readonly exit: "report" }
 ): Stream.Stream<HarnessOutput, HarnessUnavailable>;
 export function harnessLines(
   harness: HarnessName,
   sandbox: SandboxHandle,
   command: string,
   env: Readonly<Record<string, string>>,
-  options: { readonly exit: "fail" | "report" } = { exit: "fail" }
+  options: LineOptions & { readonly exit?: "fail" | "report" } = {}
 ): Stream.Stream<HarnessOutput, HarnessUnavailable> {
-  const output = framedOutput(harness, sandbox, command, env);
+  const output = framedOutput(
+    harness,
+    sandbox,
+    command,
+    env,
+    options.timeout ?? Duration.millis(DEFAULT_TIMEOUT_MS)
+  );
 
   return options.exit === "report"
     ? output

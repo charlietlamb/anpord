@@ -9,6 +9,10 @@ export const HarnessUsage = Schema.Struct({
   /* Priced separately from fresh input; a cache read is an order of magnitude cheaper. */
   cacheReadTokens: Schema.Int,
   cacheWriteTokens: Schema.Int,
+  cacheWrite1hTokens: Schema.optional(Schema.Int).annotations({
+    description:
+      "The part of cacheWriteTokens kept for an hour rather than five minutes, which Anthropic charges at twice the input rate.",
+  }),
   /* Recorded at the rates published when it ran, so a later price change cannot
      restate a finished run. */
   costUsd: Schema.optional(Schema.Number),
@@ -17,6 +21,15 @@ export const HarnessUsage = Schema.Struct({
   totalTokens: Schema.Int,
 });
 export type HarnessUsage = typeof HarnessUsage.Type;
+
+export const ModelSpend = Schema.Struct({
+  model: Schema.String,
+  usage: HarnessUsage,
+}).annotations({
+  description: "What one model spent, by the model that spent it.",
+  identifier: "ModelSpend",
+});
+export type ModelSpend = typeof ModelSpend.Type;
 
 export const HarnessEvent = Schema.Union(
   Schema.Struct({

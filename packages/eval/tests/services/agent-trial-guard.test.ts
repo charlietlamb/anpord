@@ -65,6 +65,7 @@ const quietHarness = Layer.succeed(
       Effect.succeed({
         harness,
         prepare: () => Effect.succeed({}),
+        resume: "usage-per-run",
         run: () =>
           Effect.succeed({
             events: Stream.make({
@@ -163,6 +164,9 @@ describe("AgentTrial guards", () => {
 
     expect(result.outcome.status).toBe("void");
     expect(result.outcome.voidFields).toContain("journal");
-    expect(result.events).toHaveLength(1);
+    expect(result.events.map((event) => event._tag)).toEqual([
+      "Message",
+      "Command",
+    ]);
   });
 });

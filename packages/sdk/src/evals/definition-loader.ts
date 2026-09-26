@@ -8,7 +8,7 @@ import { type DefinitionRef, definitionEntry } from "./runner-source";
 import type { EvalDefinition } from "./types";
 
 export const loadDefinition = (ref: DefinitionRef) =>
-  bundle(definitionEntry(ref), ref.entry).pipe(
+  bundle(definitionEntry(ref), ref.entry, { atSource: true }).pipe(
     Effect.flatMap(({ inputs, source }) =>
       Effect.acquireUseRelease(
         Effect.tryPromise(() => mkdtemp(join(tmpdir(), "anpord-eval-"))),

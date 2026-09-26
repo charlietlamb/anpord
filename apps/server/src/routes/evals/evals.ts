@@ -12,7 +12,10 @@ import type {
 } from "@anpord/schema/domain/evals";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
-import type { ReportedTrial } from "@anpord/schema/public/runner-api";
+import type {
+  IdempotencyKey,
+  ReportedTrial,
+} from "@anpord/schema/public/runner-api";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { mintBatchSubscription } from "./batch-subscription";
@@ -40,11 +43,28 @@ export const cursorOf = (params: {
     ? null
     : { id: params.cursorId, startedAtMillis: params.cursorStartedAt };
 
-export const startBatch = (request: StartBatchRequest) =>
+export const startBatch = (
+  request: StartBatchRequest,
+  idempotencyKey: IdempotencyKey | null = null
+) =>
   Effect.gen(function* () {
     const actor = yield* CurrentActor;
-    return yield* (yield* Batches).start(actor, request);
-  }).pipe(Effect.tap(metered(request.trials)), withEvalErrors);
+    const batches = yield* Batches;
+    if (idempotencyKey === null) {
+      return yield* batches
+        .start(actor, request)
+        .pipe(Effect.tap(metered(request.trials)));
+    }
+    const { replayed, started } = yield* batches.startOnce(
+      actor,
+      request,
+      idempotencyKey
+    );
+    if (!replayed) {
+      yield* metered(request.trials)(started);
+    }
+    return started;
+  }).pipe(withEvalErrors);
 
 export const runCase = (
   caseId: string,
@@ -73,6 +93,11 @@ export const finishBatch = (batchId: string) =>
     const organizationId = yield* organization;
     yield* (yield* Batches).finish(organizationId, batchId);
     return yield* (yield* EvalReads).batch(organizationId, batchId);
+  }).pipe(withEvalErrors);
+
+export const beatBatch = (batchId: string) =>
+  Effect.gen(function* () {
+    yield* (yield* Batches).beat(yield* organization, batchId);
   }).pipe(withEvalErrors);
 
 export const leaseCredentials = (batchId: string, harness: EvalHarness) =>

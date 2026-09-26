@@ -60,6 +60,16 @@ describe.if(built)("the published binary", () => {
     const server = Bun.serve({
       port: 0,
       fetch: async (incoming) => {
+        if (incoming.method === "GET") {
+          return new Response(null, { status: 404 });
+        }
+        if (new URL(incoming.url).pathname === "/v1/auth.whoami") {
+          return Response.json({
+            credential: { kind: "apiKey", name: "ci", start: "anp_test" },
+            organization: { id: "org_cli", name: "Acme", slug: "acme" },
+            permissions: ["evals:write"],
+          });
+        }
         requests.push({
           pathname: new URL(incoming.url).pathname,
           payload: await incoming.json(),
@@ -98,7 +108,7 @@ export default suite({
         writeFile(join(dependencies, "ignored.eval.ts"), definition),
       ]);
 
-      const { code, stdout } = await run(
+      const { code, stderr, stdout } = await run(
         ["eval", "--no-wait"],
         {
           ANPORD_API_KEY: "unused",
@@ -108,6 +118,7 @@ export default suite({
       );
 
       expect(code).toBe(0);
+      expect(stderr.split("\n")[0]).toBe("Runs land in Acme (acme).");
       expect(stdout.match(/batch_cli/g)).toHaveLength(2);
       expect(requests).toHaveLength(2);
       expect(

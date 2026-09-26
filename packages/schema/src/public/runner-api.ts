@@ -9,10 +9,15 @@ import {
   EvalHarness,
   StartedBatch,
 } from "../domain/evals";
-import { HarnessEvent, HarnessUsage } from "../domain/harness-event";
+import {
+  HarnessEvent,
+  HarnessUsage,
+  ModelSpend,
+} from "../domain/harness-event";
 import { TrialOutcome } from "../domain/trial";
 import { ApiKeyAuthentication } from "./authentication";
 import { ById, hasOneCheckPerCase, ONE_CHECK_PER_CASE } from "./evals-api";
+import { Repeatable } from "./repeatable";
 
 export const CredentialLeaseRequest = Schema.Struct({
   harness: EvalHarness,
@@ -34,10 +39,9 @@ export const CredentialLease = Schema.Struct({
 });
 export type CredentialLease = typeof CredentialLease.Type;
 
-export const ReportedTrial = Schema.Struct({
+const ReportedTrialFields = {
   events: Schema.Array(HarnessEvent),
   ordinal: Schema.Int.pipe(Schema.positive()),
-  outcome: TrialOutcome,
   runId: Schema.String,
   sandboxId: Schema.optionalWith(Schema.NullOr(Schema.String), {
     default: () => null,
@@ -45,11 +49,47 @@ export const ReportedTrial = Schema.Struct({
   usage: Schema.optionalWith(Schema.NullOr(HarnessUsage), {
     default: () => null,
   }),
-}).annotations({
-  description: "One trial a client ran and is reporting the result of.",
+};
+
+export const ScoredTrialReport = Schema.Struct({
+  ...ReportedTrialFields,
+  outcome: TrialOutcome,
+  userSpend: Schema.optionalWith(Schema.NullOr(ModelSpend), {
+    default: () => null,
+  }),
+});
+export type ScoredTrialReport = typeof ScoredTrialReport.Type;
+
+export const BrokenTrialReport = Schema.Struct({
+  ...ReportedTrialFields,
+  failure: Schema.String.pipe(Schema.minLength(1)),
+});
+export type BrokenTrialReport = typeof BrokenTrialReport.Type;
+
+export const ReportedTrial = Schema.Union(
+  ScoredTrialReport,
+  BrokenTrialReport
+).annotations({
+  description:
+    "One trial a client ran and is reporting: its outcome, or why it could not finish.",
   identifier: "ReportedTrial",
 });
 export type ReportedTrial = typeof ReportedTrial.Type;
+
+export const IdempotencyKey = Schema.String.pipe(
+  Schema.minLength(1),
+  Schema.maxLength(128),
+  Schema.brand("IdempotencyKey")
+).annotations({
+  description:
+    "Chosen by the caller once per batch it means to start, and sent again on every retry, so a retried start returns the batch the first one made.",
+  identifier: "IdempotencyKey",
+});
+export type IdempotencyKey = typeof IdempotencyKey.Type;
+
+const RunnerStartHeaders = Schema.Struct({
+  "idempotency-key": Schema.optional(IdempotencyKey),
+});
 
 export const RunnerBatchRequest = StartBatchRequest.pipe(
   Schema.filter(
@@ -68,10 +108,12 @@ export class RunnerGroup extends HttpApiGroup.make("runner")
   .add(
     HttpApiEndpoint.post("start", "/runner.start")
       .setPayload(RunnerBatchRequest)
+      .setHeaders(RunnerStartHeaders)
       .addSuccess(StartedBatch)
   )
   .add(
     HttpApiEndpoint.post("lease", "/runner.lease")
+      .annotate(Repeatable, true)
       .setPayload(CredentialLeaseRequest)
       .addSuccess(CredentialLease)
   )
@@ -81,17 +123,26 @@ export class RunnerGroup extends HttpApiGroup.make("runner")
       .addSuccess(Schema.Void)
   )
   .add(
+    HttpApiEndpoint.post("beat", "/runner.beat")
+      .annotate(Repeatable, true)
+      .setPayload(ById)
+      .addSuccess(Schema.Void)
+  )
+  .add(
     HttpApiEndpoint.post("finish", "/runner.finish")
+      .annotate(Repeatable, true)
       .setPayload(ById)
       .addSuccess(EvalBatch)
   )
   .add(
     HttpApiEndpoint.post("subscribe", "/runner.subscribe")
+      .annotate(Repeatable, true)
       .setPayload(ById)
       .addSuccess(BatchSubscription)
   )
   .add(
     HttpApiEndpoint.post("tail", "/runner.tail")
+      .annotate(Repeatable, true)
       .setPayload(EvalBatchTailRequest)
       .addSuccess(EvalBatchTail)
   )

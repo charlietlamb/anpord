@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { API_REPORTED_LIMITS } from "@anpord/schema/domain/api-mocks";
 import { z } from "zod";
 import { api, endpoint, withApi } from "../../src/mock-api";
 
@@ -134,7 +135,7 @@ test("marks bounded evidence explicitly and redacts nested response fields", () 
             log({ password: "private" });
             return {
               status: 200,
-              body: { accessToken: "hidden", text: "x".repeat(20_000) },
+              body: { accessToken: "hidden", text: "x".repeat(70_000) },
             };
           },
         }),
@@ -144,7 +145,7 @@ test("marks bounded evidence explicitly and redacts nested response fields", () 
       await fetch(url);
       const [call] = await calls();
       expect(call?.output.truncated).toBe(true);
-      expect(call?.output.text.length).toBe(16_000);
+      expect(call?.output.text.length).toBe(API_REPORTED_LIMITS.text);
       expect(JSON.stringify(call)).not.toContain("hidden");
       expect(JSON.stringify(call)).not.toContain("private");
     },

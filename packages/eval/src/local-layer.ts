@@ -4,7 +4,7 @@ import { HarnessesLive } from "./adapters/harness/resolve";
 import { makeLocalAdapter } from "./adapters/sandbox/local";
 import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
-import { SimulatedUserLive } from "./adapters/user/llm-user";
+import { SimulatedUserLive } from "./adapters/user/layer";
 import { CredentialResolverFromEnv } from "./credentials/env-resolver";
 import type { CredentialResolver } from "./credentials/resolver";
 import { JudgeModelLive } from "./judges/layer";
@@ -13,6 +13,7 @@ import { AgentTrialLive } from "./services/agent-trial";
 import { HarnessVersionsLive } from "./services/harness-versions";
 import { AgentTrialJudgedLive } from "./services/judged-trial";
 import { LocalTrialsLive } from "./services/local-trial";
+import { AgentTrialRedactedLive } from "./services/redacted-trial";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { SuspenderSleeping } from "./services/suspender";
 
@@ -35,6 +36,7 @@ const LocalAdaptersLive = Layer.effect(
    nothing to persist, so it needs no database at all. */
 export const evalLocalWith = (credentials: Layer.Layer<CredentialResolver>) =>
   LocalTrialsLive.pipe(
+    Layer.provide(AgentTrialRedactedLive),
     Layer.provide(
       AgentTrialJudgedLive.pipe(
         Layer.provide(

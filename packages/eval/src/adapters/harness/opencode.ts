@@ -1,6 +1,7 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import { Either, Option } from "effect";
 import type { RunHarness } from "../../ports/harness";
+import { installedPath } from "./install";
 import type { Material } from "./json-driver";
 import { opencodeConfigEnv } from "./opencode-config";
 import { shellQuote } from "./process";
@@ -9,7 +10,7 @@ export const opencodeCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
-    "~/.opencode/bin/opencode run --format json",
+    `${installedPath(request, ".opencode/bin/opencode")} run --format json`,
     "--auto",
     `--model ${shellQuote(request.model)}`,
     shellQuote(request.prompt),

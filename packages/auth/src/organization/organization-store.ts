@@ -1,10 +1,12 @@
 import { AutumnService } from "@anpord/billing/autumn";
 import { Database } from "@anpord/db/client";
 import { IdGenerator } from "@anpord/ids/id";
+import type { WhoamiOrganization } from "@anpord/schema/public/auth-api";
 import { Context, Effect, Layer, Option } from "effect";
 import {
   findLatestMembership,
   findMemberRole,
+  findOrganization,
   findOwnerProfile,
 } from "./organization-queries";
 import type { OrganizationStoreError } from "./organization-store-error";
@@ -15,6 +17,9 @@ export interface OrganizationStoreShape {
   readonly existingActive: (
     userId: string
   ) => Effect.Effect<Option.Option<string>, OrganizationStoreError>;
+  readonly find: (
+    organizationId: string
+  ) => Effect.Effect<Option.Option<WhoamiOrganization>, OrganizationStoreError>;
   /** Provisions a personal organisation when the user has none, so
    * impersonation reads {@link existingActive} instead. */
   readonly resolveActive: (
@@ -64,6 +69,12 @@ const make = Effect.gen(function* () {
       Effect.annotateLogs({ userId })
     );
 
+  const find = (organizationId: string) =>
+    findOrganization(db, organizationId).pipe(
+      Effect.withSpan("OrganizationStore.find"),
+      Effect.annotateLogs({ organizationId })
+    );
+
   const roleOf = (organizationId: string, userId: string) =>
     findMemberRole(db, organizationId, userId).pipe(
       Effect.map(Option.map((row) => row.role)),
@@ -71,7 +82,12 @@ const make = Effect.gen(function* () {
       Effect.annotateLogs({ organizationId, userId })
     );
 
-  return OrganizationStore.of({ existingActive, resolveActive, roleOf });
+  return OrganizationStore.of({
+    existingActive,
+    find,
+    resolveActive,
+    roleOf,
+  });
 });
 
 export const OrganizationStoreLive = Layer.effect(OrganizationStore, make);

@@ -1,6 +1,7 @@
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalTrialArtifact } from "@anpord/db/schema/evals/eval-trial-artifacts";
+import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
@@ -14,6 +15,7 @@ import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import type { EvalStoreError } from "../domain/errors";
+import { redactEvent, redactValidation } from "../domain/secret-redaction";
 import { interruptedValidation } from "../domain/validation-plan";
 import { tryStore } from "./query";
 
@@ -152,6 +154,7 @@ export const TrialRecorderLive = Layer.effect(
               .onConflictDoUpdate({
                 set: {
                   artifacts: [],
+                  failure: null,
                   finishedAt: null,
                   startedAt: input.startedAt,
                   status: "running",
@@ -173,6 +176,9 @@ export const TrialRecorderLive = Layer.effect(
             await tx
               .delete(evalTrialJournal)
               .where(eq(evalTrialJournal.trialInternalId, trialInternalId));
+            await tx
+              .delete(evalTrialCost)
+              .where(eq(evalTrialCost.trialInternalId, trialInternalId));
             return {
               priorSandboxId: opened?.sandboxId ?? null,
               trialInternalId,
@@ -200,7 +206,7 @@ export const TrialRecorderLive = Layer.effect(
           ids.generate("evalEvent").pipe(
             Effect.map((internalId) => ({
               internalId,
-              payload: event,
+              payload: redactEvent(event),
               seq: input.from + index,
               trialInternalId: input.trialInternalId,
             }))
@@ -247,7 +253,9 @@ export const TrialRecorderLive = Layer.effect(
               exitCode: input.outcome.exitCode,
               finishedAt: input.finishedAt,
               modelMs: input.outcome.modelMs,
-              validations: input.outcome.validations,
+              validations: input.outcome.validations?.map((record) =>
+                redactValidation(record)
+              ),
               sandboxId: input.sandboxId,
               sandboxMs: input.outcome.sandboxMs,
               status: input.outcome.status,
@@ -269,7 +277,7 @@ export const TrialRecorderLive = Layer.effect(
     ) =>
       Effect.gen(function* () {
         const validations = yield* Schema.decodeUnknown(EvalValidations)(
-          input.validations
+          input.validations.map((record) => redactValidation(record))
         ).pipe(Effect.orDie);
         yield* tryStore("trial.recordValidations", () =>
           db

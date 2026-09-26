@@ -90,6 +90,77 @@ describe("naming a variant that carries a profile", () => {
   });
 
   test("finds it by its full label too", () => {
-    expect(pick(["command/probe-a (probe)"])).toEqual(["probe-a"]);
+    expect(pick(["command/probe-a@probe"])).toEqual(["probe-a"]);
+  });
+
+  test("names every match when a profile is on more than one variant", () => {
+    const refused = Effect.runSync(
+      Effect.either(
+        selectFrom("probe.eval.ts", profiled, {
+          caseId: Option.none(),
+          variants: ["probe"],
+        })
+      )
+    );
+
+    expect(Either.getLeft(refused).pipe(Option.getOrThrow).message).toBe(
+      "probe matches 2 variants in probe.eval.ts: command/probe-a@probe, command/probe-b@probe. Name one of them."
+    );
+  });
+});
+
+describe("telling a profile variant from a bare one on the same model", () => {
+  const paired = Schema.decodeUnknownSync(StartBatchRequest)({
+    ...request,
+    variants: [
+      {
+        harness: "codex",
+        model: "luna",
+        profile: { files: {}, name: "autumn-setup" },
+      },
+      { harness: "codex", model: "luna" },
+    ],
+  });
+
+  const pick = (variants: readonly string[]) =>
+    Effect.runSync(
+      selectFrom("paired.eval.ts", paired, {
+        caseId: Option.none(),
+        variants,
+      })
+    ).variants.map((variant) => variant.profile?.name ?? "bare");
+
+  test("harness/model picks the bare variant alone", () => {
+    expect(pick(["codex/luna"])).toEqual(["bare"]);
+  });
+
+  test("harness/model@profile picks the profile variant alone", () => {
+    expect(pick(["codex/luna@autumn-setup"])).toEqual(["autumn-setup"]);
+  });
+
+  test("the profile name alone picks it too", () => {
+    expect(pick(["autumn-setup"])).toEqual(["autumn-setup"]);
+  });
+
+  test("naming both keeps the suite order", () => {
+    expect(pick(["codex/luna", "autumn-setup"])).toEqual([
+      "autumn-setup",
+      "bare",
+    ]);
+  });
+
+  test("lists every label when nothing matches", () => {
+    const refused = Effect.runSync(
+      Effect.either(
+        selectFrom("paired.eval.ts", paired, {
+          caseId: Option.none(),
+          variants: ["codex/sol"],
+        })
+      )
+    );
+
+    expect(Either.getLeft(refused).pipe(Option.getOrThrow).message).toBe(
+      "paired.eval.ts has no variant codex/sol. It has codex/luna@autumn-setup, codex/luna."
+    );
   });
 });

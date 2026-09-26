@@ -45,9 +45,56 @@ const selectCases = (
     return kept;
   });
 
-const selects = (variant: EvalVariantRequest, wanted: string) =>
-  wanted === `${variant.harness}/${variant.model}` ||
-  wanted === labelOfRequest(variant);
+class AmbiguousVariant extends Data.TaggedError("AmbiguousVariant")<{
+  readonly file: string;
+  readonly matches: readonly string[];
+  readonly wanted: string;
+}> {
+  override get message() {
+    return `${this.wanted} matches ${this.matches.length} variants in ${this.file}: ${this.matches.join(", ")}. Name one of them.`;
+  }
+}
+
+const matchesFor = (
+  variants: readonly EvalVariantRequest[],
+  wanted: string
+) => {
+  const exact = variants.filter(
+    (variant) => labelOfRequest(variant) === wanted
+  );
+
+  return exact.length > 0
+    ? exact
+    : variants.filter(
+        (variant) =>
+          `${variant.harness}/${variant.model}` === wanted ||
+          variant.profile?.name === wanted
+      );
+};
+
+const selectVariant = (
+  file: string,
+  variants: readonly EvalVariantRequest[],
+  wanted: string
+) =>
+  Effect.gen(function* () {
+    const matches = matchesFor(variants, wanted);
+    const labels = [...new Set(matches.map(labelOfRequest))];
+
+    if (labels.length === 0) {
+      return yield* new NothingSelected({
+        available: variants.map(labelOfRequest),
+        file,
+        kind: "variant",
+        wanted,
+      });
+    }
+    if (labels.length > 1) {
+      return yield* new AmbiguousVariant({ file, matches: labels, wanted });
+    }
+
+    return matches;
+  });
 
 const selectVariants = (
   file: string,
@@ -59,21 +106,13 @@ const selectVariants = (
       return request.variants;
     }
 
-    const missing = wanted.find(
-      (label) => !request.variants.some((variant) => selects(variant, label))
+    const chosen = new Set(
+      (yield* Effect.forEach(wanted, (label) =>
+        selectVariant(file, request.variants, label)
+      )).flat()
     );
-    if (missing !== undefined) {
-      return yield* new NothingSelected({
-        available: request.variants.map(labelOfRequest),
-        file,
-        kind: "variant",
-        wanted: missing,
-      });
-    }
 
-    return request.variants.filter((variant) =>
-      wanted.some((label) => selects(variant, label))
-    );
+    return request.variants.filter((variant) => chosen.has(variant));
   });
 
 export const selectFrom = (

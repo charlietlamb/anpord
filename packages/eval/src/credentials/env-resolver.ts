@@ -1,6 +1,7 @@
 import { Effect, Layer, Redacted } from "effect";
 import { CredentialError } from "./errors";
 import { CredentialResolver } from "./resolver";
+import { KEYLESS_HARNESSES } from "./variants";
 
 const environment = (): Readonly<Record<string, string>> =>
   Object.fromEntries(
@@ -21,15 +22,19 @@ const resolved = (
     values,
   });
 
-export const credentialResolverFrom = (
-  values: Readonly<Record<string, string>>
+const answering = (
+  valuesFor: (
+    integrationId: string
+  ) => Effect.Effect<Readonly<Record<string, string>>, CredentialError>
 ) =>
   Layer.succeed(
     CredentialResolver,
     CredentialResolver.of({
       persist: () => Effect.void,
       resolve: ({ integrationId }) =>
-        Effect.succeed(resolved(integrationId, values)),
+        Effect.map(valuesFor(integrationId), (values) =>
+          resolved(integrationId, values)
+        ),
       resolveBound: ({ connectionId }) =>
         Effect.fail(
           new CredentialError({
@@ -40,6 +45,25 @@ export const credentialResolverFrom = (
     })
   );
 
-export const CredentialResolverFromEnv = Layer.suspend(() =>
-  credentialResolverFrom(environment())
-);
+export const credentialResolverFrom = (
+  leases: ReadonlyMap<string, Readonly<Record<string, string>>>
+) =>
+  answering((integrationId) => {
+    if ([...KEYLESS_HARNESSES].some((harness) => harness === integrationId)) {
+      return Effect.succeed({});
+    }
+    const values = leases.get(integrationId);
+    return values === undefined
+      ? Effect.fail(
+          new CredentialError({
+            code: "not-found",
+            message: `this run holds credentials for ${[...leases.keys()].join(", ")}, not one for ${integrationId}`,
+          })
+        )
+      : Effect.succeed(values);
+  });
+
+export const CredentialResolverFromEnv = Layer.suspend(() => {
+  const values = environment();
+  return answering(() => Effect.succeed(values));
+});

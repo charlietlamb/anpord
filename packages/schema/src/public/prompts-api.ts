@@ -1,6 +1,7 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { ApiKeyAuthentication } from "./authentication";
+import { Repeatable } from "./repeatable";
 import {
   CreatePromptRequest,
   GetPromptRequest,
@@ -14,6 +15,7 @@ import { PromptList, PublicPromptWithVersions } from "./shapes";
 export class PublicPromptsGroup extends HttpApiGroup.make("prompts")
   .add(
     HttpApiEndpoint.post("get", "/prompts.get")
+      .annotate(Repeatable, true)
       .setPayload(GetPromptRequest)
       .addSuccess(PublicPromptWithVersions)
       .annotate(OpenApi.Summary, "Resolve a prompt")
@@ -25,6 +27,7 @@ export class PublicPromptsGroup extends HttpApiGroup.make("prompts")
   )
   .add(
     HttpApiEndpoint.post("list", "/prompts.list")
+      .annotate(Repeatable, true)
       .setPayload(ListPromptsRequest)
       .addSuccess(PromptList)
       .annotate(OpenApi.Summary, "List prompts")

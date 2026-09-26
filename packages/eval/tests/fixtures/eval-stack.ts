@@ -136,6 +136,7 @@ export const scriptedAgent = (seen: AgentTrialRequest[] = []) =>
           const status = request.prompt.includes(FAILING) ? "failed" : "passed";
           return {
             commands: status === "passed" ? 3 : 7,
+            conversationEvents: events,
             events,
             failedCommands: 0,
             filesChanged: [],
@@ -143,7 +144,9 @@ export const scriptedAgent = (seen: AgentTrialRequest[] = []) =>
             prepared: {},
             sandboxId,
             sessionId: "session_1",
+            turns: [],
             usage: Option.none(),
+            userSpend: Option.none(),
           } satisfies AgentTrialResult;
         }),
     })
@@ -182,8 +185,9 @@ const RepositoriesLive = Layer.mergeAll(
 ).pipe(Layer.provide(IdGeneratorLive), Layer.provide(JournalArchiveLive));
 
 export const evalStack = <E>(input: {
-  readonly agent: Layer.Layer<AgentTrial, E>;
+  readonly agent: Layer.Layer<AgentTrial, E, CredentialResolver>;
   readonly runner: Layer.Layer<TrialRunner>;
+  readonly prices?: Layer.Layer<ModelPrices>;
   readonly resolver?: Layer.Layer<CredentialResolver>;
 }) =>
   Layer.mergeAll(BatchesLive, EvalReadsLive).pipe(
@@ -195,7 +199,8 @@ export const evalStack = <E>(input: {
         SimulatedUserSilent,
         SourceTokensNone,
         HarnessVersionsLive,
-        Layer.succeed(ModelPrices, { forModel: () => Effect.succeedNone })
+        input.prices ??
+          Layer.succeed(ModelPrices, { forModel: () => Effect.succeedNone })
       )
     ),
     Layer.provideMerge(input.resolver ?? connectedResolver),
@@ -216,10 +221,12 @@ export const caseOf = (
   overrides: Partial<EvalCase> = {}
 ): EvalCase => ({
   id,
+  maxTurns: null,
   name: id,
   prepare: null,
   source: { kind: "empty" },
   tags: [],
+  timeoutMs: null,
   user: null,
   validator: null,
   variables: {},
@@ -239,6 +246,7 @@ export const variantOf = (
 export const requestOf = (
   overrides: Partial<StartBatchRequest> & Pick<StartBatchRequest, "cases">
 ): StartBatchRequest => ({
+  checksIn: false,
   local: false,
   suite: {
     id: "checkout",

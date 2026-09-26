@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { posix } from "node:path";
 import type { EvalArtifact } from "@anpord/schema/domain/evals";
+import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Effect, Schema, Stream } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import type { SandboxHandle } from "../ports/sandbox";
@@ -67,7 +68,8 @@ print(json.dumps(result))
 export const captureArtifacts = (
   sandbox: Pick<SandboxHandle, "exec">,
   workspace: string,
-  changed: readonly string[]
+  changed: readonly string[],
+  secrets: readonly string[] = []
 ) =>
   Effect.gen(function* () {
     const paths = artifactPaths(workspace, changed);
@@ -108,13 +110,14 @@ export const captureArtifacts = (
     )(output);
     let bytes = 0;
     return records.flatMap((record): readonly (typeof EvalArtifact.Type)[] => {
-      const byteSize = Buffer.byteLength(record.content);
+      const content = redactSecrets(record.content, secrets);
+      const byteSize = Buffer.byteLength(content);
       bytes += byteSize;
       if (
         !paths.includes(record.path) ||
         byteSize > MAX_ARTIFACT_BYTES ||
         bytes > MAX_ARTIFACT_TOTAL_BYTES ||
-        SECRET.test(record.content)
+        SECRET.test(content)
       ) {
         return [];
       }
@@ -122,7 +125,8 @@ export const captureArtifacts = (
         {
           ...record,
           byteSize,
-          sha256: createHash("sha256").update(record.content).digest("hex"),
+          content,
+          sha256: createHash("sha256").update(content).digest("hex"),
         },
       ];
     });

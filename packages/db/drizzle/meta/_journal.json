@@ -393,6 +393,34 @@
       "when": 1790900000003,
       "tag": "0055_a_suite_keeps_its_setup",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1790900000004,
+      "tag": "0056_a_case_sets_its_own_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1790900000005,
+      "tag": "0057_a_local_batch_is_heard_from",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1790900000006,
+      "tag": "0058_a_start_is_made_once",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1790900000007,
+      "tag": "0059_a_start_key_holds_its_request",
+      "breakpoints": true
     }
   ]
 }

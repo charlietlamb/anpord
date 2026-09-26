@@ -28,7 +28,15 @@ function ApiKeysPage() {
             New key
           </Button>
         }
-        description="Authenticate the SDK and the CLI. A key acts for this organization."
+        description={
+          <>
+            Authenticate the SDK and the CLI as{" "}
+            <span className="font-medium text-foreground">
+              {activeOrganization?.name ?? "this organization"}
+            </span>
+            .
+          </>
+        }
         title="API keys"
       />
       <ApiKeyList

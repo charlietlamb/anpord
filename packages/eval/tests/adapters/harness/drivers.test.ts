@@ -17,6 +17,7 @@ import { HarnessesLive } from "../../../src/adapters/harness/resolve";
 import type { HarnessName } from "../../../src/domain/variant";
 import type { RunHarness } from "../../../src/ports/harness";
 import { Harnesses } from "../../../src/ports/harness";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const harnesses: readonly HarnessName[] = [
   "codex",
@@ -36,9 +37,47 @@ const request = {
   profile: Option.none(),
   resume: Option.none(),
   prompt: "fix it's broken; touch /tmp/prompt",
+  sandbox: declinesEverything,
   systemPromptPath: Option.none(),
   workspace: "/tmp/work space",
 } as RunHarness;
+
+const sharing = {
+  ...declinesEverything,
+  installs: Option.some({
+    ensure: () => Effect.void,
+    homeFor: (key: string) => `/store/${key}`,
+  }),
+} as unknown as RunHarness["sandbox"];
+
+describe("where a harness runs from", () => {
+  it("is the sandbox home on a hosted sandbox", () => {
+    expect(claudeCommand({ ...request, harness: "claude" })).toStartWith(
+      "cd '/tmp/work space' && ~/.local/bin/claude -p 'fix it"
+    );
+    expect(
+      opencodeCommand({ ...request, harness: "opencode", harnessVersion: "2" })
+    ).toStartWith("cd '/tmp/work space' && ~/.opencode/bin/opencode run");
+  });
+
+  it("is the shared install for that version where the sandbox shares one", () => {
+    expect(
+      claudeCommand({ ...request, harness: "claude", sandbox: sharing })
+    ).toStartWith(
+      "cd '/tmp/work space' && '/store/claude@1'/.local/bin/claude -p 'fix it"
+    );
+    expect(
+      opencodeCommand({
+        ...request,
+        harness: "opencode",
+        harnessVersion: "2",
+        sandbox: sharing,
+      })
+    ).toStartWith(
+      "cd '/tmp/work space' && '/store/opencode@2'/.opencode/bin/opencode run"
+    );
+  });
+});
 
 describe("harness drivers", () => {
   it("registers every schema harness", async () => {

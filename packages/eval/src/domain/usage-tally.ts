@@ -9,7 +9,17 @@ export const NO_USAGE: HarnessUsage = {
   totalTokens: 0,
 };
 
+const hourWritesOf = (left: HarnessUsage, right: HarnessUsage) =>
+  left.cacheWrite1hTokens === undefined &&
+  right.cacheWrite1hTokens === undefined
+    ? {}
+    : {
+        cacheWrite1hTokens:
+          (left.cacheWrite1hTokens ?? 0) + (right.cacheWrite1hTokens ?? 0),
+      };
+
 const plus = (left: HarnessUsage, right: HarnessUsage): HarnessUsage => ({
+  ...hourWritesOf(left, right),
   cacheReadTokens: left.cacheReadTokens + right.cacheReadTokens,
   cacheWriteTokens: left.cacheWriteTokens + right.cacheWriteTokens,
   inputTokens: left.inputTokens + right.inputTokens,
@@ -39,3 +49,27 @@ export const totalOf = (tally: UsageTally): Option.Option<HarnessUsage> =>
   tally.turns.length === 0 && tally.total.totalTokens === 0
     ? Option.none()
     : Option.some(tally.total);
+
+export type ResumeSupport =
+  | "unsupported"
+  | "usage-per-run"
+  | "usage-per-session";
+
+export const reportsWholeSession = (
+  support: ResumeSupport,
+  resume: Option.Option<string>
+) => Option.isSome(resume) && support === "usage-per-session";
+
+export const throughRun = (
+  carried: Option.Option<HarnessUsage>,
+  reported: Option.Option<HarnessUsage>,
+  reportsWholeSession: boolean
+): Option.Option<HarnessUsage> => {
+  if (Option.isNone(reported)) {
+    return carried;
+  }
+
+  return Option.isNone(carried) || reportsWholeSession
+    ? reported
+    : Option.some(plus(carried.value, reported.value));
+};

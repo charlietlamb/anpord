@@ -5,6 +5,8 @@ import { CostLine } from "@/components/evals/cost-line";
 const ORDER: readonly EvalCostComponent["component"][] = [
   "model",
   "harness",
+  "user",
+  "judge",
   "sandbox",
   "platform",
 ];

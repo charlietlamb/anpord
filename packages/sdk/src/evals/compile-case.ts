@@ -49,10 +49,12 @@ export const compileCase = (
     return {
       ...(subject.cache === undefined ? {} : { cache: subject.cache }),
       id: subject.id,
+      maxTurns: subject.maxTurns ?? null,
       name,
       prepare,
       source: sourceFor(definition, subject),
       ...(subject.tags === undefined ? {} : { tags: subject.tags }),
+      timeoutMs: subject.timeoutMs ?? null,
       user: subject.user ?? null,
       validator,
       variables: subject.variables ?? {},

@@ -16,6 +16,7 @@ export const CommandDriver: HarnessDriverShape = {
       Effect.as({}),
       Effect.withSpan("Command.prepare")
     ),
+  resume: "unsupported",
   run: (request) =>
     Effect.gen(function* () {
       const profile = yield* Option.match(request.profile, {

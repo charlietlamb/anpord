@@ -1,3 +1,4 @@
+import { API_REPORTED_LIMITS } from "@anpord/schema/domain/api-mocks";
 import {
   unavailableValue,
   validationCapture,
@@ -19,7 +20,7 @@ export const apiCapture = (keys: readonly string[] = []) => {
   const sensitive = new Set(
     [...SECRET_KEYS, ...keys].map((key) => key.toLowerCase())
   );
-  const capture = validationCapture();
+  const capture = validationCapture(true, [], API_REPORTED_LIMITS);
   return (value: unknown) => {
     try {
       const text = JSON.stringify(value, (key, current: unknown) =>

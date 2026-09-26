@@ -15,7 +15,6 @@ import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";
-import { AUTO_STOP_MINUTES } from "../batch/trial";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
 import type {
@@ -23,9 +22,11 @@ import type {
   PrepareFailed,
   SandboxUnavailable,
   SourceUnavailable,
+  TrialTimedOut,
   UserUnavailable,
 } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
+import { autoStopMinutesFor } from "../domain/sandbox-lifetime";
 import type { HarnessName } from "../domain/variant";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
 
@@ -54,6 +55,7 @@ export interface LocalTrialRequest {
   readonly forwarded?: Readonly<Record<string, string>>;
   readonly harness: HarnessName;
   readonly harnessVersion: string;
+  readonly maxTurns?: number | null;
   readonly model: string;
   readonly onProgress?: (
     events: readonly HarnessEvent[]
@@ -62,6 +64,7 @@ export interface LocalTrialRequest {
   readonly profile?: RequestedProfile | null;
   readonly prompt: string;
   readonly source: EvalSource;
+  readonly timeoutMs?: number | null;
   readonly user?: EvalUser | null;
   readonly validator?: EvalValidator | null;
   readonly verifyCommand: string | null;
@@ -81,6 +84,7 @@ export type LocalTrialError =
   | PrepareFailed
   | SandboxUnavailable
   | SourceUnavailable
+  | TrialTimedOut
   | UserUnavailable;
 
 export interface LocalTrialsShape {
@@ -111,11 +115,12 @@ export const LocalTrialsLive = Layer.effect(
         });
 
         const result = yield* agent.run({
-          autoStopMinutes: AUTO_STOP_MINUTES,
+          autoStopMinutes: autoStopMinutesFor(request.timeoutMs ?? null),
           forwarded: request.forwarded ?? {},
           harness: request.harness,
           harnessCredential,
           harnessVersion: request.harnessVersion,
+          maxTurns: request.maxTurns ?? null,
           model: request.model,
           organizationId: "local",
           prepare: request.prepare ?? null,
@@ -130,6 +135,7 @@ export const LocalTrialsLive = Layer.effect(
           prompt: request.prompt,
           provider: "local",
           source: request.source,
+          timeoutMs: request.timeoutMs ?? null,
           user: request.user ?? null,
           validator: request.validator ?? null,
           verifyCommand: request.verifyCommand,

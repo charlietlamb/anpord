@@ -35,6 +35,7 @@ export interface PrepareWorkspace {
   readonly prepare: EvalPrepare | null;
   readonly profile: RequestedProfile | null;
   readonly sandbox: SandboxHandle;
+  readonly secrets: readonly string[];
   readonly source: EvalSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
   readonly workspace: string;
@@ -173,8 +174,10 @@ export const prepareWorkspace = (
        on the PATH. */
     if (input.profile != null) {
       yield* runProfileInstall({
+        forwarded: input.forwarded,
         profile: input.profile,
         sandbox: input.sandbox,
+        secrets: input.secrets,
         workspace: input.workspace,
       });
     }
@@ -185,8 +188,10 @@ export const prepareWorkspace = (
         ? {}
         : yield* runPrepare({
             caseCache: input.caseCache,
+            forwarded: input.forwarded,
             sandbox: input.sandbox,
             prepare: input.prepare,
+            secrets: input.secrets,
             workspace: input.workspace,
           });
 

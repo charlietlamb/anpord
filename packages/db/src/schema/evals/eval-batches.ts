@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { organization } from "../auth/organizations";
 import { user } from "../auth/users";
@@ -26,8 +27,15 @@ export const evalBatch = pgTable(
     }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     finishedAt: timestamp("finished_at"),
+    lastSeenAt: timestamp("last_seen_at"),
+    idempotencyKey: text("idempotency_key"),
+    requestHash: text("request_hash"),
   },
   (table) => [
+    uniqueIndex("eval_batch_organization_id_idempotency_key_idx").on(
+      table.organizationId,
+      table.idempotencyKey
+    ),
     index("eval_batch_started_by_idx").on(table.startedBy),
     index("eval_batch_organization_id_created_at_idx").on(
       table.organizationId,

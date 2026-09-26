@@ -1,28 +1,26 @@
-import type { EvalCostComponent } from "@anpord/schema/domain/evals";
+import {
+  COST_COMPONENT_LABELS,
+  type EvalCostComponent,
+} from "@anpord/schema/domain/evals";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { count } from "@anpord/ui/lib/evals/duration";
 import {
   CpuIcon,
   CurrencyDollarIcon,
   RobotIcon,
+  ScalesIcon,
   StackIcon,
+  UserIcon,
 } from "@phosphor-icons/react";
 import { dollars } from "@/lib/evals/tokens";
 
 const ICONS = {
-  judge: RobotIcon,
+  judge: ScalesIcon,
   harness: RobotIcon,
   model: CurrencyDollarIcon,
   platform: StackIcon,
   sandbox: CpuIcon,
-} as const;
-
-const LABELS = {
-  judge: "judging",
-  harness: "harness",
-  model: "model",
-  platform: "platform",
-  sandbox: "sandbox",
+  user: UserIcon,
 } as const;
 
 const units = (detail: Readonly<Record<string, unknown>>, key: string) =>
@@ -55,7 +53,7 @@ export function CostLine({ part }: { readonly part: EvalCostComponent }) {
     <RailFact
       hint={part.explanation}
       Icon={ICONS[part.component]}
-      label={LABELS[part.component]}
+      label={COST_COMPONENT_LABELS[part.component]}
       tone={part.usd === null ? "muted" : undefined}
       value={statedAs(part)}
     />

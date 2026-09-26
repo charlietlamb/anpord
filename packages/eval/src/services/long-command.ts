@@ -1,5 +1,8 @@
 import { Effect, Option } from "effect";
-import { runCommandForOutcome } from "../adapters/sandbox/run-command";
+import {
+  type CommandWatcher,
+  runCommandForOutcome,
+} from "../adapters/sandbox/run-command";
 import type { SandboxHandle } from "../ports/sandbox";
 import { pollUntilDone } from "./polled-command";
 import { Suspender } from "./suspender";
@@ -11,7 +14,7 @@ export interface LongCommandOptions {
   readonly env?: Readonly<Record<string, string>>;
   readonly timeoutMs?: number;
   /* Called with output since the last check, when there was any. */
-  readonly watch?: (text: string) => Effect.Effect<void>;
+  readonly watch?: CommandWatcher;
 }
 
 /* The streamed fallback lives here, not behind the port: a `start` faked from a

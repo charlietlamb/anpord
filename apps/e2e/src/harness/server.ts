@@ -1,14 +1,11 @@
 import { spawn } from "node:child_process";
-import { connect } from "node:net";
 import { join } from "node:path";
-import { runProcess } from "./process";
+import { portIsFree } from "./ports";
 import { AUTH_SECRET } from "./settings";
 import { waitUntil } from "./wait";
 
 const READY = "server listening on";
 const BOOT_TIMEOUT_MS = 45_000;
-/* The kill returns before the kernel releases the socket, so the port is watched rather than slept on. */
-const PORT_RELEASE_TIMEOUT_MS = 5000;
 
 export interface RunningServer {
   readonly baseUrl: string;
@@ -17,43 +14,17 @@ export interface RunningServer {
   readonly stop: () => void;
 }
 
-/* Asked of the socket, not `lsof`, which is absent on a bare CI image and would answer "free" for a held port. */
-const portIsFree = (port: number) =>
-  new Promise<boolean>((resolve) => {
-    const socket = connect({ host: "127.0.0.1", port });
-    const settle = (free: boolean) => {
-      socket.destroy();
-      resolve(free);
-    };
-
-    socket.once("connect", () => settle(false));
-    socket.once("error", () => settle(true));
-  });
-
-/* The port belongs to the tests, so a leftover holder is reclaimed rather than hunted down by hand. */
-const reclaimPort = async (port: number) => {
-  if (await portIsFree(port)) {
-    return;
-  }
-
-  await runProcess("sh", [
-    "-c",
-    `lsof -ti:${port} | xargs kill -9 2>/dev/null || fuser -k ${port}/tcp 2>/dev/null || true`,
-  ]);
-
-  await waitUntil(() => portIsFree(port), {
-    describe: `port ${port} becoming free`,
-    timeoutMs: PORT_RELEASE_TIMEOUT_MS,
-  });
-};
-
 /* REDIS_URL is removed rather than blanked: an empty value still reads as a url and sends the server retrying against nothing. */
 export const startServer = async (
   repositoryRoot: string,
   databaseUrl: string,
   port: number
 ): Promise<RunningServer> => {
-  await reclaimPort(port);
+  if (!(await portIsFree(port))) {
+    throw new Error(
+      `Port ${port} is already in use, so the e2e server cannot start there. The harness never stops a process it did not start.`
+    );
+  }
 
   const { REDIS_URL, ...inherited } = process.env;
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Option } from "effect";
 import { codexCommand } from "../../../src/adapters/harness/codex";
 import type { RunHarness } from "../../../src/ports/harness";
+import { declinesEverything } from "../../fixtures/declines-everything";
 
 const request = (overrides: Partial<RunHarness> = {}): RunHarness =>
   ({
@@ -12,7 +13,7 @@ const request = (overrides: Partial<RunHarness> = {}): RunHarness =>
     profile: Option.none(),
     resume: Option.none(),
     prompt: "add a footer",
-    sandbox: {} as RunHarness["sandbox"],
+    sandbox: declinesEverything as RunHarness["sandbox"],
     systemPromptPath: Option.none(),
     workspace: "/tmp/anpord-task",
     ...overrides,

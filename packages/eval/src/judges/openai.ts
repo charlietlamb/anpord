@@ -7,6 +7,7 @@ import { Effect, Option, Redacted, Schema } from "effect";
 import { keepTagged } from "../adapters/keep-tagged";
 import { modelAccessFor } from "../credentials/model-key";
 import { CredentialResolver } from "../credentials/resolver";
+import { promptInclusiveUsage } from "../domain/prompt-inclusive-usage";
 import { JudgeFailed, type JudgeRequest } from "./model";
 import { judgeEvidence, judgeInstructions, judgmentJsonSchema } from "./prompt";
 
@@ -17,6 +18,9 @@ const responseSchema = Schema.Struct({
   usage: Schema.optional(
     Schema.Struct({
       input_tokens: Schema.NonNegativeInt,
+      input_tokens_details: Schema.optional(
+        Schema.Struct({ cached_tokens: Schema.optional(Schema.NonNegativeInt) })
+      ),
       output_tokens: Schema.NonNegativeInt,
       total_tokens: Schema.NonNegativeInt,
     })
@@ -56,11 +60,9 @@ export const makeOpenAIJudge = Effect.gen(function* () {
       );
 
       if (Option.isNone(access)) {
-        return yield* Effect.fail(
-          new JudgeFailed({
-            message: `No ${request.judge.provider} model credential is configured`,
-          })
-        );
+        return yield* new JudgeFailed({
+          message: `No ${request.judge.provider} model credential is configured`,
+        });
       }
       const body = {
         model: request.judge.model,
@@ -105,11 +107,12 @@ export const makeOpenAIJudge = Effect.gen(function* () {
         usage:
           response.usage === undefined
             ? undefined
-            : {
-                inputTokens: response.usage.input_tokens,
-                outputTokens: response.usage.output_tokens,
-                totalTokens: response.usage.total_tokens,
-              },
+            : promptInclusiveUsage({
+                cached: response.usage.input_tokens_details?.cached_tokens ?? 0,
+                output: response.usage.output_tokens,
+                prompt: response.usage.input_tokens,
+                total: response.usage.total_tokens,
+              }),
       };
     }).pipe(
       Effect.scoped,

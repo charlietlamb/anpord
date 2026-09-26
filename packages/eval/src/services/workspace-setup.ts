@@ -1,42 +1,19 @@
 import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
-import { Effect, Option } from "effect";
+import { redactSecrets } from "@anpord/schema/domain/secret-text";
+import { Effect, Either, Option, Ref } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";
 import { PrepareFailed } from "../domain/errors";
+import {
+  NOTHING_STREAMED,
+  readPrepareValue,
+  type StreamedOutput,
+  shownPrepareOutput,
+} from "../domain/prepare-output";
 import type { SandboxHandle } from "../ports/sandbox";
 import { runLongCommand } from "./long-command";
 
-const MARKER = "ANPORD_PREPARE_RESULT=";
 const SETUP_TIMEOUT_MS = 1_800_000;
-const PREPARED_LIMIT = 16_000;
-
-export const readPrepareValue = (
-  output: string
-): Readonly<Record<string, unknown>> => {
-  const line = output.split("\n").findLast((entry) => entry.startsWith(MARKER));
-
-  if (line === undefined) {
-    return {};
-  }
-
-  const encoded = line.slice(MARKER.length);
-
-  /* Every trial stores a copy and serves it to readers, so one script must not
-     put a log or a base64 image through the database. */
-  if (encoded.length > PREPARED_LIMIT) {
-    return {};
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(encoded);
-
-    return typeof parsed === "object" && parsed !== null
-      ? (parsed as Readonly<Record<string, unknown>>)
-      : {};
-  } catch {
-    return {};
-  }
-};
 
 const scriptIn = (sandbox: SandboxHandle, source: string) =>
   Effect.acquireRelease(
@@ -53,8 +30,10 @@ const scriptIn = (sandbox: SandboxHandle, source: string) =>
 export const runPrepare = (input: {
   /* Declared on the case, not reported by the prepare, because a restore precedes it. */
   readonly caseCache?: { readonly key: string; readonly path: string };
+  readonly forwarded?: Readonly<Record<string, string>>;
   readonly sandbox: SandboxHandle;
   readonly prepare: EvalPrepare;
+  readonly secrets: readonly string[];
   readonly workspace: string;
 }) =>
   Effect.scoped(
@@ -86,36 +65,58 @@ export const runPrepare = (input: {
         );
       }
 
+      const env = {
+        ...(restored ? { ANPORD_CACHE_RESTORED: "1" } : {}),
+        ...input.forwarded,
+      };
+
+      const carried = yield* Ref.make(NOTHING_STREAMED);
+      const watch = (arrived: StreamedOutput) =>
+        Ref.modify(carried, (held) =>
+          shownPrepareOutput(held, arrived, input.secrets)
+        ).pipe(
+          Effect.flatMap((shown) =>
+            shown === ""
+              ? Effect.void
+              : Effect.logInfo("preparing").pipe(
+                  Effect.annotateLogs({
+                    output: shown,
+                    prepare: input.prepare.name,
+                    untrusted: true,
+                  })
+                )
+          )
+        );
+
       const outcome = yield* runLongCommand(
         input.sandbox,
         `node ${shellQuote(path)}`,
         {
           cwd: input.workspace,
-          env: restored ? { ANPORD_CACHE_RESTORED: "1" } : undefined,
+          env: Object.keys(env).length === 0 ? undefined : env,
           timeoutMs: SETUP_TIMEOUT_MS,
-          /* The customer's own script talking, annotated untrusted: it may echo a
-             key, and no length limit would redact that. */
-          watch: (text) =>
-            Effect.logInfo("preparing").pipe(
-              Effect.annotateLogs({
-                output: text,
-                prepare: input.prepare.name,
-                untrusted: true,
-              })
-            ),
+          watch,
         }
       );
 
       if (outcome.exitCode !== 0) {
-        return yield* Effect.fail(
-          new PrepareFailed({
-            name: input.prepare.name,
-            reason: outcome.stderr.trim() || `exit ${outcome.exitCode}`,
-          })
-        );
+        return yield* new PrepareFailed({
+          name: input.prepare.name,
+          reason: redactSecrets(
+            outcome.stderr.trim() ||
+              `The prepare step ${input.prepare.name} exited with status ${outcome.exitCode}`,
+            input.secrets
+          ),
+        });
       }
 
       const reported = readPrepareValue(outcome.stdout);
+      if (Either.isLeft(reported)) {
+        return yield* new PrepareFailed({
+          name: input.prepare.name,
+          reason: reported.left,
+        });
+      }
 
       /* Only on success: caching what a failed install left behind outlives the
          run that made it. */
@@ -134,7 +135,7 @@ export const runPrepare = (input: {
           );
       }
 
-      return reported;
+      return reported.right;
     })
   ).pipe(
     Effect.withSpan("Workspace.prepare", {

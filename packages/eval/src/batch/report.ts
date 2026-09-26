@@ -5,17 +5,41 @@ import { Clock, DateTime, Effect, Option, Redacted } from "effect";
 import { credentialIntegrations } from "../credentials/integrations";
 import { CredentialResolver } from "../credentials/resolver";
 import { EvalNotFound, NotRunnable } from "../domain/errors";
+import { batchPlanQuery } from "../repositories/batch-plan-query";
 import { BatchRepository } from "../repositories/batch-repository";
 import { batchScopeQuery } from "../repositories/batch-scope-query";
+import { TrialCostRepository } from "../repositories/trial-cost-repository";
 import { TrialRecorder } from "../repositories/trial-record";
+import { makeTrialPricing } from "./trial-pricing";
 
 const LEASE_MILLIS = 15 * 60_000;
+
+const closed = (id: string, status: string) =>
+  new NotRunnable({
+    id,
+    problems: [
+      status === "finished"
+        ? "This run already finished, so it no longer takes results. Run the eval again."
+        : "Anpord closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.",
+    ],
+  });
 
 export const makeReport = Effect.gen(function* () {
   const batches = yield* BatchRepository;
   const recorder = yield* TrialRecorder;
   const scope = yield* batchScopeQuery;
   const credentials = yield* CredentialResolver;
+  const plans = yield* batchPlanQuery;
+  const price = yield* makeTrialPricing;
+  const costs = yield* TrialCostRepository;
+
+  const authMethodOf = (organizationId: string, connectionId: string | null) =>
+    connectionId === null
+      ? Effect.succeed(null)
+      : credentials.resolveBound({ connectionId, organizationId }).pipe(
+          Effect.map((credential) => Redacted.value(credential).authMethodId),
+          Effect.orElseSucceed(() => null)
+        );
 
   const localBatch = (organizationId: string, batchId: string) =>
     Effect.gen(function* () {
@@ -52,6 +76,20 @@ export const makeReport = Effect.gen(function* () {
           ],
         });
       }
+      if (found.value.status !== "running") {
+        return yield* closed(found.value.batchInternalId, found.value.status);
+      }
+
+      const plan = Option.flatMap(
+        yield* plans(found.value.batchInternalId),
+        ({ runs }) =>
+          Option.fromNullable(
+            runs.find(({ internalId }) => internalId === trial.runId)
+          )
+      );
+      if (Option.isNone(plan)) {
+        return yield* new EvalNotFound({ entity: "run", id: trial.runId });
+      }
 
       const { trialInternalId } = yield* recorder.open({
         ordinal: trial.ordinal,
@@ -63,13 +101,40 @@ export const makeReport = Effect.gen(function* () {
         from: 0,
         trialInternalId,
       });
+      const finishedAt = new Date(yield* Clock.currentTimeMillis);
+
+      if ("failure" in trial) {
+        return yield* recorder.abandon({
+          failure: trial.failure,
+          finishedAt,
+          trialInternalId,
+        });
+      }
+
+      const { components, usage } = yield* price({
+        authMethodId: yield* authMethodOf(
+          organizationId,
+          plan.value.harnessCredentialConnectionId
+        ),
+        harness: plan.value.harness,
+        hasOwnSandboxCredential:
+          plan.value.sandboxCredentialConnectionId !== null,
+        model: plan.value.model,
+        outcome: trial.outcome,
+        provider: plan.value.sandbox,
+        usage: trial.usage,
+        userSpend: Option.fromNullable(trial.userSpend),
+      });
       yield* recorder.settle({
-        finishedAt: new Date(yield* Clock.currentTimeMillis),
+        finishedAt,
         outcome: trial.outcome,
         sandboxId: trial.sandboxId,
         trialInternalId,
-        usage: trial.usage,
+        usage,
       });
+      yield* costs
+        .record({ components, trialInternalId })
+        .pipe(Effect.ignoreLogged);
     }).pipe(
       Effect.catchTag("EvalStoreError", Effect.die),
       Effect.withSpan("Batches.report", {
@@ -79,7 +144,13 @@ export const makeReport = Effect.gen(function* () {
 
   const finish = (organizationId: string, batchId: string) =>
     Effect.gen(function* () {
-      yield* localBatch(organizationId, batchId);
+      const found = yield* localBatch(organizationId, batchId);
+      if (found.status === "finished") {
+        return;
+      }
+      if (found.status !== "running") {
+        return yield* closed(batchId, found.status);
+      }
       const finishedAt = new Date(yield* Clock.currentTimeMillis);
       yield* batches.settleOpenRuns({ batchInternalId: batchId, finishedAt });
       yield* batches.finish({
@@ -91,6 +162,21 @@ export const makeReport = Effect.gen(function* () {
     }).pipe(
       Effect.catchTag("EvalStoreError", Effect.die),
       Effect.withSpan("Batches.finish", { attributes: { batchId } })
+    );
+
+  const beat = (organizationId: string, batchId: string) =>
+    Effect.gen(function* () {
+      const found = yield* localBatch(organizationId, batchId);
+      if (found.status !== "running") {
+        return yield* closed(batchId, found.status);
+      }
+      yield* batches.touch({
+        internalId: batchId,
+        seenAt: new Date(yield* Clock.currentTimeMillis),
+      });
+    }).pipe(
+      Effect.catchTag("EvalStoreError", Effect.die),
+      Effect.withSpan("Batches.beat", { attributes: { batchId } })
     );
 
   const lease = (actor: Actor, batchId: string, harness: EvalHarness) =>
@@ -122,5 +208,5 @@ export const makeReport = Effect.gen(function* () {
       Effect.annotateLogs({ batchId, harness })
     );
 
-  return { finish, lease, localBatch, report };
+  return { beat, finish, lease, localBatch, report };
 });

@@ -44,9 +44,9 @@ Only scored trials count. When `scored` is zero, `passRate` is zero, which is no
 | `failed` | A check ran and did not pass |
 | `void` | Required evidence is missing |
 
-A void trial is an infrastructure failure, not a verdict. `voidFields` names the missing evidence where it can be identified. Keep void trials out of pass rates in reports and CI.
+A void trial is an infrastructure failure, not a verdict. `voidFields` names the missing evidence where it can be identified. When a trial stopped before it could be scored, `failure` says why, such as `The agent ran past its time limit of 5m` or a setup step that failed; it is `null` for a trial that was scored. The dashboard shows the same reason on the trial. Keep void trials out of pass rates in reports and CI.
 
-Coding trials take minutes, so a batch that stays `running` is usually still working. A server restart does not resume active work, and runs abandoned for six hours are marked failed.
+Coding trials take minutes, so a batch that stays `running` is usually still working. A server restart does not resume active work, and runs abandoned for six hours are marked failed. A [local batch](/evals/local#when-the-network-drops) from a CLI that checks in is marked failed once its machine has been quiet for 10 minutes.
 
 ## Trajectory
 
@@ -79,11 +79,29 @@ for (const validation of batch.runs[0].trials[0].validations) {
 
 Code checks record their return value, context calls and results, logs and exceptions. Judges record the prompt, raw response, provider metadata and parsed judgment. Commands record the command, stdout, stderr and exit code.
 
-`failed` means a check finished and did not pass, `error` means it could not finish, and `skipped` means it never ran. Earlier checks stay visible when a later one crashes. Runs from before capture existed have no evidence to show.
+`failed` means a check finished and did not pass, `error` means it could not finish, and `skipped` means it never ran. Every code check runs even when an earlier one fails or crashes, so each keeps its own result. A check is skipped only when the trial ended before it could start, or when it is a judge and the trial was already void. Runs from before capture existed have no evidence to show.
 
 Each validator gets a 64,000-character budget. Single values cap at 16,000 characters, and at most 64 calls or log entries are kept. Source snapshots cap at 100 files and 1,000,000 characters, and older runs without one show "Source unavailable." Truncation affects stored evidence, never the score.
 
-Inputs and logs can contain your data. Set `captureValidation: false` on the suite to keep verdicts and timing but store no payloads. `captureSource` controls source snapshots separately. Credentials and model reasoning are never collected, but a validator that prints a secret will store it.
+Inputs and logs can contain your data. Set `captureValidation: false` on the suite to keep verdicts and timing but store no payloads. `captureSource` controls source snapshots separately. Model reasoning is never collected.
+
+### Secrets in evidence
+
+Anpord does not store the value your `prepare` returns. A check can read `prepared` and pass or fail on it, and its evidence shows no input.
+
+Before evidence is stored or shown, every value, log line and message is checked for credentials. Anything that looks like a key is replaced with `[redacted]`. That covers keys starting with `sk-`, `sk_live_`, `am_sk_`, `anp_`, `ghp_`, `github_pat_`, `xox`, `AKIA` and `AIza`, JSON web tokens, private key blocks, the token after `Bearer`, and the password in a URL such as `postgres://app:password@db`. Every value of the harness and sandbox credentials the trial ran with is replaced too, even when a check reads it back from a file in the sandbox. A forwarded host variable is replaced when its name says it is secret, such as `STRIPE_SECRET_KEY`, or when its value looks like a token. A forwarded address such as `http://localhost:3000` stays readable, and only a password or token inside it is replaced.
+
+The agent's journal gets the same treatment before it is stored, streamed to the dashboard or printed in your terminal. That covers commands, their output, tool calls, messages and changed file paths. Failure reasons, such as the error output of a prepare or a clone, are redacted too.
+
+Code checks still read what the agent actually wrote, so redaction never changes their verdict. Judges read the redacted conversation, so a judge model is never sent a credential Anpord recognizes.
+
+The files a trial saves from its workspace are redacted the same way before they are stored. Only small text files are saved, so a binary file is never saved or changed. A file whose redacted text still holds something that looks like a password assignment is not saved at all.
+
+Text is redacted before it is cut to the limits above, so a key that crosses a limit never leaves a fragment behind.
+
+A secret with no known shape, such as a plain password, is stored if a check or the agent prints it. Log a summary instead of the value.
+
+Evidence stored before redaction existed is kept as it was. If an older run recorded a key, rotate that key.
 
 ## Trigger
 

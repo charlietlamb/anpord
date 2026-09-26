@@ -315,3 +315,67 @@ describe("a stored row this build cannot name", () => {
     expect(costs?.incomplete).toBe(true);
   });
 });
+
+describe("the people and judges around the agent", () => {
+  const spend = (model: string, input: number, output: number) => ({
+    model,
+    price: Option.some(RATE),
+    usage: { ...USAGE, inputTokens: input, outputTokens: output },
+  });
+
+  test("prices the simulated user apart from the agent", () => {
+    const user = find(
+      breakdown({ user: spend("person-model", 1_000_000, 100_000) }),
+      "user"
+    );
+
+    expect([user.classification, user.amountNanos]).toEqual([
+      "estimate",
+      toNanos(4.5),
+    ]);
+  });
+
+  test("adds every judge into one judging line", () => {
+    const judge = find(
+      breakdown({
+        judges: [spend("a", 1_000_000, 0), spend("b", 0, 1_000_000)],
+      }),
+      "judge"
+    );
+
+    expect([judge.classification, judge.amountNanos]).toEqual([
+      "estimate",
+      toNanos(18),
+    ]);
+  });
+
+  test("is unknown, not partly priced, when one judge reported nothing", () => {
+    const judge = find(
+      breakdown({
+        judges: [
+          spend("a", 1_000_000, 0),
+          { model: "b", price: Option.some(RATE), usage: null },
+        ],
+      }),
+      "judge"
+    );
+
+    expect([judge.classification, judge.amountNanos]).toEqual([
+      "unknown",
+      null,
+    ]);
+  });
+
+  test("names the model with no published rate", () => {
+    const user = find(
+      breakdown({
+        user: { ...spend("mystery-model", 10, 10), price: Option.none() },
+      }),
+      "user"
+    );
+
+    expect(user.explanation).toBe(
+      "No published rate for mystery-model, so its usage cannot be priced."
+    );
+  });
+});

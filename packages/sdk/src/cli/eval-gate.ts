@@ -30,7 +30,7 @@ const trialProblems = (run: EvalRun, trial: EvalTrial) => {
       : ` (${undecided.length} validator${undecided.length === 1 ? "" : "s"} never decided)`;
 
   return [
-    `${runLabel(run)}, trial ${trial.ordinal}: ${trial.status}.${why}`,
+    `${runLabel(run)}, trial ${trial.ordinal}: ${trial.status}.${trial.failure === null ? "" : ` ${trial.failure}`}${why}`,
     ...verdictLines(trial),
   ];
 };

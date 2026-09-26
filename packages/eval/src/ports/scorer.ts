@@ -1,5 +1,5 @@
+import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
 import type { EvalValidator } from "@anpord/schema/domain/eval-definition";
-import type { EvalTurn } from "@anpord/schema/domain/eval-turns";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
@@ -17,7 +17,8 @@ export interface ScoreRequest {
   readonly onValidation?: ValidationObserver;
   readonly prepared?: Readonly<Record<string, unknown>>;
   readonly sandbox: SandboxHandle;
-  readonly turns?: readonly EvalTurn[];
+  readonly secrets?: readonly string[];
+  readonly turns: readonly EvalTurn[];
   readonly validationPrefix?: string;
   readonly validator?: EvalValidator | null;
   /* Null for a case with no verifier, whose trials are void rather than passed. */

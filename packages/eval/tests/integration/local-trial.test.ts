@@ -1,4 +1,6 @@
 import { describe, expect, it } from "bun:test";
+import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { ConfigProvider, Effect } from "effect";
 import { EvalLocalLive } from "../../src/local-layer";
 import { LocalTrials } from "../../src/services/local-trial";
@@ -12,7 +14,8 @@ const opted = ConfigProvider.fromMap(
 const runCase = (
   verify: string,
   files: Readonly<Record<string, string>> = {},
-  forwarded: Readonly<Record<string, string>> = {}
+  forwarded: Readonly<Record<string, string>> = {},
+  prepare: EvalPrepare | null = null
 ) =>
   LocalTrials.pipe(
     Effect.flatMap((trials) =>
@@ -22,6 +25,7 @@ const runCase = (
         harness: "command",
         harnessVersion: "1",
         model: "none",
+        prepare,
         /* The command harness is the agent here: what it "does" is the run
            command, so a trial needs no model and no model credential. */
         profile: {
@@ -100,6 +104,21 @@ describe("a trial that runs on this machine", () => {
     }
   }, 180_000);
 
+  it("gives the prepare step the variables the run forwarded", async () => {
+    const outcome = await runCase(
+      "true",
+      {},
+      { ANPORD_TEST_PREPARE: "prepared-value" },
+      {
+        name: "reads what was forwarded",
+        source:
+          'console.log("ANPORD_PREPARE_RESULT=" + JSON.stringify({ seen: process.env.ANPORD_TEST_PREPARE ?? null }));',
+      }
+    );
+
+    expect(outcome.result.prepared).toEqual({ seen: "prepared-value" });
+  }, 180_000);
+
   it("withholds a variable the run did not name", async () => {
     process.env.ANPORD_TEST_SECRET = "leaked";
 
@@ -121,5 +140,49 @@ describe("what a local trial is given", () => {
     });
 
     expect(outcome.outcome.status).toBe("passed");
+  }, 180_000);
+});
+
+describe("what a local trial shows and reports", () => {
+  it("redacts a key the agent prints, in the live journal and the report", async () => {
+    const streamed: HarnessEvent[] = [];
+    const outcome = await LocalTrials.pipe(
+      Effect.flatMap((trials) =>
+        trials.run({
+          caseName: "prints a key",
+          harness: "command",
+          harnessVersion: "1",
+          model: "none",
+          onProgress: (events) =>
+            Effect.sync(() => {
+              streamed.push(...events);
+            }),
+          prepare: null,
+          profile: {
+            env: null,
+            files: {},
+            install: null,
+            name: "leaky",
+            run: "printf 'created am_sk_test_abc123 for the app'",
+            systemPrompt: null,
+          },
+          prompt: "make a key",
+          source: { files: {}, kind: "files" },
+          verifyCommand: "true",
+        })
+      ),
+      Effect.provide(EvalLocalLive),
+      Effect.scoped,
+      Effect.withConfigProvider(opted),
+      Effect.runPromise
+    );
+
+    const said = (events: readonly HarnessEvent[]) =>
+      JSON.stringify(events).match(/created \S+ for the app/g);
+
+    expect([said(streamed), said(outcome.events)]).toEqual([
+      ["created [redacted] for the app"],
+      ["created [redacted] for the app"],
+    ]);
   }, 180_000);
 });

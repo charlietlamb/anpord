@@ -50,6 +50,7 @@ const handleFor = (sandbox: Sandbox, workspace: string): SandboxHandle => ({
     ),
   home: HOME,
   id: sandbox.sandboxId,
+  installs: Option.none(),
   provider: "modal",
   resumable: Option.none(),
   writeFile: (path, content) =>

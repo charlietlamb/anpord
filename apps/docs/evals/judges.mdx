@@ -63,7 +63,11 @@ A `provider: "openai"` judge needs its own OpenAI credential. See [connections](
 
 ## Evidence and isolation
 
-A judge receives the rendered case prompt, the final answer and `expected`, if set. It does not see the workspace, transcript, MCP or CLI configuration, or sandbox environment.
+A judge receives the rendered case prompt, the conversation, the final answer and `expected`, if set. The conversation lists what happened in order: each user and agent message, each command with its exit code and output, each tool call, and each file written. A case without `user` is a one-turn conversation that opens with the prompt, so a judge can still ask what the agent did before it answered.
+
+Command output, tool input and output, and long messages are cut to 4,000 characters. A conversation longer than 48,000 characters keeps its start and end and marks how many steps were left out of the middle.
+
+A judge does not see the workspace, MCP or CLI configuration, or sandbox environment.
 
 A harness judge starts in a fresh sandbox after the trial's sandbox closes. It is told to grade only the supplied evidence. If it uses tools anyway, the judgment is invalid. Tool use is detected, not blocked by a firewall. To assert on tool use, keep a code validator that reads the mock call log.
 
@@ -71,7 +75,9 @@ An OpenAI judge uses structured outputs with storage disabled. Both kinds must p
 
 ## Results
 
-Each trial's judgments carry `name`, `model`, `evaluator`, `choice`, `score`, `threshold`, `reason`, `durationMs` and `error`. The dashboard shows them apart from code checks. Judge costs are not priced yet, so a judged run's cost total is incomplete.
+Each trial's judgments carry `name`, `model`, `evaluator`, `choice`, `score`, `threshold`, `reason`, `durationMs`, `error` and the tokens the judge used as `usage`. The dashboard shows them apart from code checks.
+
+Judging has its own line in the trial's cost, apart from the agent's model. Each judge is priced at its model's published rate. If a judge reported no usage, or its model has no published rate, the line reads as not known and the trial's cost is marked incomplete. The sandbox a harness judge runs in is not priced.
 
 For the request, raw response and provider metadata, open the judge entry in the trial's `validations`. Invalid response text is kept even when no score is assigned. See [validation evidence](/evals/results#validation-evidence) for capture limits and privacy settings.
 

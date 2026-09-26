@@ -65,6 +65,19 @@ export const findMemberRole = (
       .limit(1)
   ).pipe(Effect.map(firstRow));
 
+export const findOrganization = (db: Db, organizationId: string) =>
+  tryQuery("organization.findById", () =>
+    db
+      .select({
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+      })
+      .from(organization)
+      .where(eq(organization.id, organizationId))
+      .limit(1)
+  ).pipe(Effect.map(firstRow));
+
 export const findOwnerProfile = (db: Db, userId: string) =>
   tryQuery("user.findById", () =>
     db

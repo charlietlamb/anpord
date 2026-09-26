@@ -3,7 +3,7 @@ import { Effect, Either, Layer } from "effect";
 import type { HarnessName } from "../../domain/variant";
 import { type HarnessDriverShape, Harnesses } from "../../ports/harness";
 import { claudeCommand, claudeMaterial } from "./claude";
-import { decodeClaudeLine } from "./claude-events";
+import { decodeClaudeLine, decodeQwenLine } from "./claude-events";
 import { captureCodexRotation, codexCommand, codexMaterial } from "./codex";
 import { decodeCodexLine } from "./codex-events";
 import { CommandDriver } from "./command";
@@ -37,6 +37,7 @@ export const HARNESS_DRIVERS: Record<HarnessName, HarnessDriverShape> = {
     decode: decodeClaudeLine,
     install: npmInstall("@anthropic-ai/claude-code", { scripts: true }),
     material: claudeMaterial,
+    resume: "usage-per-run",
     verifyModel: true,
   }),
   codex: jsonDriver("codex", {
@@ -45,6 +46,7 @@ export const HARNESS_DRIVERS: Record<HarnessName, HarnessDriverShape> = {
     decode: decodeCodexLine,
     install: npmInstall("@openai/codex", { scripts: true }),
     material: codexMaterial,
+    resume: "usage-per-session",
   }),
   command: CommandDriver,
   cursor: jsonDriver("cursor", {
@@ -61,7 +63,7 @@ export const HARNESS_DRIVERS: Record<HarnessName, HarnessDriverShape> = {
         "&& mkdir -p ~/.local/bin ~/.local/share/cursor-agent/versions/$version",
         '&& curl -fsSL "https://downloads.cursor.com/lab/$version/$platform/agent-cli-package.tar.gz"',
         "| tar --strip-components=1 -xzf - -C ~/.local/share/cursor-agent/versions/$version",
-        "&& ln -sf ~/.local/share/cursor-agent/versions/$version/cursor-agent ~/.local/bin/cursor-agent",
+        "&& ln -sf ../share/cursor-agent/versions/$version/cursor-agent ~/.local/bin/cursor-agent",
       ]
     ),
     material: keyAs("CURSOR_API_KEY"),
@@ -111,7 +113,7 @@ export const HARNESS_DRIVERS: Record<HarnessName, HarnessDriverShape> = {
   }),
   qwen: jsonDriver("qwen", {
     command: qwenCommand,
-    decode: decodeClaudeLine,
+    decode: decodeQwenLine,
     install: npmInstall("@qwen-code/qwen-code"),
     material: (credential) =>
       Either.map(field(credential, "apiKey"), (apiKey) => ({

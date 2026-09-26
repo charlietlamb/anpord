@@ -69,6 +69,7 @@ export const trialOf = (
   costs: costsOf(costs),
   exitCode: row.exitCode ?? -1,
   failedCommands: events === undefined ? 0 : failedCommandsIn(events),
+  failure: row.failure,
   filesChanged: events === undefined ? [] : filesIn(events),
   id: row.internalId,
   modelMs: row.modelMs ?? 0,

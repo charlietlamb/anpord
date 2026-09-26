@@ -6,7 +6,9 @@ import {
   ApiManifest,
   ApiProgram,
 } from "@anpord/schema/domain/api-mocks";
+import { VALIDATION_TEXT_LIMIT } from "@anpord/schema/domain/eval-validations";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import {
   Deferred,
   Effect,
@@ -31,21 +33,25 @@ interface MockApis {
   readonly manifest: ApiManifest;
 }
 
-const eventOf = (call: ApiCall): HarnessEvent => ({
+const storedText = (text: string, secrets: readonly string[]) =>
+  redactSecrets(text, secrets).slice(0, VALIDATION_TEXT_LIMIT);
+
+const eventOf = (call: ApiCall, secrets: readonly string[]): HarnessEvent => ({
   _tag: "ToolCall",
   at: call.startedAt + call.durationMs,
   startedAt: call.startedAt,
   callId: `api:${call.api}:${call.index}`,
   name: `${call.api} ${call.method} ${call.path}`,
-  input: call.input.text,
-  output: call.output.text,
-  ...(call.error === null ? {} : { error: call.error }),
+  input: storedText(call.input.text, secrets),
+  output: storedText(call.output.text, secrets),
+  ...(call.error === null ? {} : { error: redactSecrets(call.error, secrets) }),
   status: call.error === null && call.status < 400 ? "completed" : "error",
 });
 
 export const startMockApis = (input: {
   readonly profile: RequestedProfile | null;
   readonly sandbox: SandboxHandle;
+  readonly secrets: readonly string[];
   readonly workspace: string;
 }): Effect.Effect<MockApis, PrepareFailed, Scope.Scope> =>
   Effect.gen(function* () {
@@ -129,7 +135,7 @@ export const startMockApis = (input: {
           recorded.some((call) => call.error !== null)
         );
         const from = yield* Ref.getAndSet(collected, recorded.length);
-        return recorded.slice(from).map(eventOf);
+        return recorded.slice(from).map((call) => eventOf(call, input.secrets));
       });
     const check = Effect.gen(function* () {
       if (Option.isSome(yield* Fiber.poll(process))) {

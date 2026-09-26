@@ -49,7 +49,7 @@ describe("runCommandForOutcome", () => {
       runCommandForOutcome(
         sandboxSaying(stdout("resolving\n"), stdout("linking\n"), exit(0)),
         "npm ci",
-        { watch: (text) => Effect.sync(() => seen.push(text)) }
+        { watch: (output) => Effect.sync(() => seen.push(output.stdout)) }
       )
     );
 

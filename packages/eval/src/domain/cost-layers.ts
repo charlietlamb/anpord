@@ -1,5 +1,5 @@
 import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
-import type { Option } from "effect";
+import { Option } from "effect";
 import { toNanos } from "./cost-arithmetic";
 import type { CostComponent } from "./cost-component";
 import { costOf, type ModelPrice } from "./model-price";
@@ -40,6 +40,7 @@ export const modelComponent = (input: {
 
   const tokens = {
     cacheReadTokens: input.usage.cacheReadTokens,
+    cacheWrite1hTokens: input.usage.cacheWrite1hTokens ?? null,
     cacheWriteTokens: input.usage.cacheWriteTokens,
     inputTokens: input.usage.inputTokens,
     model: input.model,
@@ -104,27 +105,42 @@ export const harnessComponent = (input: {
   };
 };
 
+const onMachine = (sandboxMs: number): CostComponent => ({
+  amountNanos: null,
+  classification: "included",
+  component: "sandbox",
+  detail: {
+    billableDurationMs: sandboxMs,
+    connectionMode: "local",
+    provider: "local",
+    sessions: 1,
+  },
+  explanation: "Ran on your own machine, so nothing is billed for it.",
+  source: "connection",
+});
+
 export const sandboxComponent = (input: {
   readonly hasOwnCredential: boolean;
   readonly provider: string;
   readonly sandboxMs: number;
-}): CostComponent => ({
-  amountNanos: null,
-  /* Ours is unbilled to the customer; theirs is billed by the provider with no
-     amount visible to us. Neither is zero. */
-  classification: input.hasOwnCredential ? "unknown" : "managed",
-  component: "sandbox",
-  detail: {
-    billableDurationMs: input.sandboxMs,
-    connectionMode: input.hasOwnCredential ? "user" : "managed",
-    provider: input.provider,
-    sessions: 1,
-  },
-  explanation: input.hasOwnCredential
-    ? `Billed by ${input.provider} to your own account, which reports no amount here.`
-    : `Run on our ${input.provider} account and not billed to you.`,
-  source: "connection",
-});
+}): CostComponent =>
+  input.provider === "local"
+    ? onMachine(input.sandboxMs)
+    : {
+        amountNanos: null,
+        classification: input.hasOwnCredential ? "unknown" : "managed",
+        component: "sandbox",
+        detail: {
+          billableDurationMs: input.sandboxMs,
+          connectionMode: input.hasOwnCredential ? "user" : "managed",
+          provider: input.provider,
+          sessions: 1,
+        },
+        explanation: input.hasOwnCredential
+          ? `Billed by ${input.provider} to your own account, which reports no amount here.`
+          : `Run on our ${input.provider} account and not billed to you.`,
+        source: "connection",
+      };
 
 export const platformComponent = (): CostComponent => ({
   amountNanos: null,
@@ -134,3 +150,85 @@ export const platformComponent = (): CostComponent => ({
   explanation: "Metered in eval units rather than priced per trial.",
   source: "platform",
 });
+
+export interface PricedSpend {
+  readonly model: string;
+  readonly price: Option.Option<ModelPrice>;
+  readonly usage: HarnessUsage | null;
+}
+
+const SPENDERS = {
+  judge: {
+    priced:
+      "What the judges used, priced at each model's published rate when the trial ran.",
+    unreported: "A judge reported no usage, so judging cannot be fully priced.",
+  },
+  user: {
+    priced:
+      "What the simulated user used, priced at its model's published rate when the trial ran.",
+    unreported:
+      "The simulated user reported no usage, so it cannot be fully priced.",
+  },
+} as const;
+
+const tokensOf = (spend: PricedSpend) => ({
+  cacheReadTokens: spend.usage?.cacheReadTokens ?? null,
+  cacheWrite1hTokens: spend.usage?.cacheWrite1hTokens ?? null,
+  cacheWriteTokens: spend.usage?.cacheWriteTokens ?? null,
+  inputTokens: spend.usage?.inputTokens ?? null,
+  model: spend.model,
+  outputTokens: spend.usage?.outputTokens ?? null,
+  rateSnapshot: Option.getOrNull(spend.price),
+  totalTokens: spend.usage?.totalTokens ?? null,
+});
+
+const unpricedBecause = (
+  component: keyof typeof SPENDERS,
+  spends: readonly PricedSpend[]
+) => {
+  if (spends.some((spend) => spend.usage === null)) {
+    return SPENDERS[component].unreported;
+  }
+
+  const unrated = spends.find((spend) => Option.isNone(spend.price));
+
+  return unrated === undefined
+    ? null
+    : `No published rate for ${unrated.model}, so its usage cannot be priced.`;
+};
+
+export const spendComponent = (
+  component: keyof typeof SPENDERS,
+  spends: readonly PricedSpend[]
+): CostComponent => {
+  const detail = { spends: spends.map(tokensOf) };
+  const because = unpricedBecause(component, spends);
+
+  if (because !== null) {
+    return {
+      amountNanos: null,
+      classification: "unknown",
+      component,
+      detail,
+      explanation: because,
+      source: "models.dev",
+    };
+  }
+
+  const nanos = spends.flatMap(({ price, usage }) =>
+    usage === null
+      ? []
+      : Option.toArray(
+          Option.map(price, (rate) => toNanos(costOf(usage, rate)))
+        )
+  );
+
+  return {
+    amountNanos: nanos.reduce((total, each) => total + each, 0n),
+    classification: "estimate",
+    component,
+    detail,
+    explanation: SPENDERS[component].priced,
+    source: "models.dev",
+  };
+};

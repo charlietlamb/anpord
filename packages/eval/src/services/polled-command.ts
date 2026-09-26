@@ -1,12 +1,15 @@
 import { Clock, Duration, Effect, Ref, Schedule } from "effect";
-import { type CommandOutcome, lastOf } from "../adapters/sandbox/run-command";
+import {
+  type CommandOutcome,
+  type CommandWatcher,
+  lastOf,
+} from "../adapters/sandbox/run-command";
 import type { ExecOptions, ResumableCommands } from "../ports/sandbox";
 import type { SuspenderShape } from "./suspender";
 
 const FIRST_CHECK_MS = 5000;
 const SLOWEST_CHECK_MS = 30_000;
 const WIDENING = 1.5;
-const WATCHED_TAIL = 400;
 
 /* A failed poll is not a failed command: one bad response would otherwise discard
    half an hour of sandbox work. */
@@ -20,7 +23,7 @@ export interface PolledCommand {
   readonly resumable: ResumableCommands;
   readonly suspender: SuspenderShape;
   readonly timeoutMs: number;
-  readonly watch?: (text: string) => Effect.Effect<void>;
+  readonly watch?: CommandWatcher;
 }
 
 /* The deadline is held here: a detached command leaves no call for a
@@ -37,9 +40,7 @@ export const pollUntilDone = (input: PolledCommand) =>
       Ref.getAndSet(reported, progress.stdout.length).pipe(
         Effect.flatMap((seen) =>
           progress.stdout.length > seen && input.watch !== undefined
-            ? input.watch(
-                progress.stdout.slice(seen).slice(-WATCHED_TAIL).trim()
-              )
+            ? input.watch({ stderr: "", stdout: progress.stdout.slice(seen) })
             : Effect.void
         )
       );

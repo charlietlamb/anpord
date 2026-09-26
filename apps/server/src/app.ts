@@ -1,68 +1,54 @@
 import { Auth } from "@anpord/auth";
 import { AuthConfig } from "@anpord/auth/config";
 import { logDatabase } from "@anpord/db/describe";
-import { HttpApiBuilder } from "@effect/platform";
-import { Effect, Layer, Schedule } from "effect";
+import { Effect, Layer } from "effect";
 import { ServerConfig } from "./config";
+import { listen } from "./http/listen";
 import { routeRequest } from "./http/request/route-request";
 import { AppLayer } from "./layer";
+import { buildApiHandler } from "./routes/api-handler";
 import { ApiLive } from "./routes/internal/api-layer";
 import { PublicApiLive } from "./routes/public/api-layer";
 
 const MAX_REQUEST_BODY_BYTES = 4 * 1024 * 1024;
 
+const routesWith = (memoMap: Layer.MemoMap) =>
+  Effect.gen(function* () {
+    const auth = yield* Auth;
+    const authConfig = yield* AuthConfig;
+
+    return routeRequest({
+      auth,
+      internalApi: yield* buildApiHandler(ApiLive, memoMap),
+      publicApi: yield* buildApiHandler(PublicApiLive, memoMap),
+      trustedOrigins: authConfig.trustedOrigins,
+    });
+  });
+
+const serve = (memoMap: Layer.MemoMap) =>
+  Effect.gen(function* () {
+    const config = yield* ServerConfig;
+    const server = yield* listen(routesWith(memoMap), {
+      drainTimeout: config.drainTimeout,
+      hostname: config.host,
+      maxRequestBodySize: MAX_REQUEST_BODY_BYTES,
+      port: config.port,
+    });
+
+    yield* logDatabase;
+    yield* Effect.logInfo(
+      `server listening on http://${config.host}:${server.port}`
+    );
+    yield* Effect.never;
+  });
+
 export const main = Effect.gen(function* () {
   const memoMap = yield* Layer.makeMemoMap;
-  const auth = yield* Auth;
-  const config = yield* ServerConfig;
-  const authConfig = yield* AuthConfig;
-
-  const internalApi = yield* Effect.acquireRelease(
-    Effect.sync(() => HttpApiBuilder.toWebHandler(ApiLive, { memoMap })),
-    ({ dispose }) => Effect.promise(dispose)
+  const app = yield* Layer.buildWithMemoMap(
+    AppLayer,
+    memoMap,
+    yield* Effect.scope
   );
 
-  const publicApi = yield* Effect.acquireRelease(
-    Effect.sync(() => HttpApiBuilder.toWebHandler(PublicApiLive, { memoMap })),
-    ({ dispose }) => Effect.promise(dispose)
-  );
-
-  const server = yield* Effect.acquireRelease(
-    Effect.try({
-      try: () =>
-        Bun.serve({
-          fetch: routeRequest({
-            auth,
-            internalApi,
-            publicApi,
-            trustedOrigins: authConfig.trustedOrigins,
-          }),
-          hostname: config.host,
-          maxRequestBodySize: MAX_REQUEST_BODY_BYTES,
-          port: config.port,
-        }),
-      catch: (cause) =>
-        new Error(
-          `Cannot bind ${config.host}:${config.port} — another process is using it. Run: lsof -ti:${config.port} | xargs kill`,
-          { cause }
-        ),
-    }).pipe(
-      Effect.retry(
-        Schedule.exponential("120 millis").pipe(
-          Schedule.compose(Schedule.recurs(6))
-        )
-      )
-    ),
-    (running) => Effect.sync(() => running.stop(true))
-  );
-
-  yield* logDatabase;
-  yield* Effect.logInfo(
-    `server listening on http://${config.host}:${server.port}`
-  );
-  yield* Effect.never;
-}).pipe(
-  Effect.scoped,
-  Effect.provide(AppLayer),
-  Effect.tapErrorCause(Effect.logError)
-);
+  yield* Effect.provide(serve(memoMap), app);
+}).pipe(Effect.scoped, Effect.tapErrorCause(Effect.logError));

@@ -1,4 +1,10 @@
 import { describe, expect, it } from "bun:test";
+import type { EvalCodeValidator } from "@anpord/schema/domain/eval-definition";
+import {
+  VALIDATION_FRAME,
+  validationCapture,
+  validationExecution,
+} from "@anpord/schema/domain/eval-validations";
 import { Effect, Stream } from "effect";
 import { ScorerGroundTruthLive } from "../../../src/adapters/scorers/ground-truth";
 import { distributionOf } from "../../../src/domain/distribution";
@@ -6,7 +12,7 @@ import { outcomeOf } from "../../../src/domain/trial";
 import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
 import { Scorer } from "../../../src/ports/scorer";
 import { declinesEverything } from "../../fixtures/declines-everything";
-import { exit, stdout } from "../../fixtures/exec-chunk";
+import { exit, stderr, stdout } from "../../fixtures/exec-chunk";
 
 const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
   exec: () => Stream.fromIterable(chunks),
@@ -20,7 +26,7 @@ const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
 const score = (
   sandbox: SandboxHandle,
   verifyCommand: string | null,
-  validator?: { readonly name: string; readonly source: string }
+  validator?: typeof EvalCodeValidator.Type
 ) =>
   Effect.runPromise(
     Effect.gen(function* () {
@@ -30,6 +36,7 @@ const score = (
         events: [],
         modelMs: 1000,
         sandbox,
+        turns: [],
         validator,
         verifyCommand,
         workspace: "/tmp/w",
@@ -286,5 +293,69 @@ describe("a case with no verifier", () => {
     expect(distribution.scored).toBe(0);
     expect(distribution.voided).toBe(3);
     expect(distribution.deterministic).toBe(false);
+  });
+});
+
+describe("a code validator built by an older SDK", () => {
+  it("keeps the prepared value it reports as input out of the evidence", async () => {
+    const reported = {
+      ...validationExecution(
+        { id: "code:0", index: 0, kind: "code", name: "check" },
+        1000
+      ),
+      input: validationCapture()({ prepared: { password: "hunter2-generic" } }),
+      output: validationCapture()(true),
+      status: "passed" as const,
+    };
+    const outcome = await score(
+      sandboxYielding([
+        stdout(`${VALIDATION_FRAME}${JSON.stringify(reported)}\n`),
+        stdout('ANPORD_VALIDATOR_RESULT={"passed":true}\n'),
+        exit(0),
+      ]),
+      null,
+      {
+        manifest: [{ index: 0, name: "check" }],
+        name: "check",
+        source: "export {}",
+      }
+    );
+
+    expect(
+      outcome.validations?.map((record) => [
+        record.status,
+        record.input.state,
+        record.output.text,
+      ])
+    ).toEqual([["passed", "unavailable", "true"]]);
+  });
+});
+
+describe("a validator whose stderr outgrows what is kept", () => {
+  it("redacts the trial's credential before cutting stderr down", async () => {
+    const outcome = await Effect.runPromise(
+      Effect.gen(function* () {
+        const scorer = yield* Scorer;
+        return yield* scorer.score({
+          commandCount: 0,
+          events: [],
+          modelMs: 0,
+          sandbox: sandboxYielding([
+            stderr(`${"y".repeat(15_995)}opaque-access-token-1\n`),
+            stdout('ANPORD_VALIDATOR_RESULT={"passed":false}\n'),
+            exit(0),
+          ]),
+          secrets: ["opaque-access-token-1"],
+          turns: [],
+          validator: { name: "check", source: "export {}" },
+          verifyCommand: null,
+          workspace: "/tmp/w",
+        });
+      }).pipe(Effect.provide(ScorerGroundTruthLive))
+    );
+
+    expect(outcome.validations?.[0]?.logs[1]?.value.text.slice(15_990)).toBe(
+      "yyyyy[reda"
+    );
   });
 });

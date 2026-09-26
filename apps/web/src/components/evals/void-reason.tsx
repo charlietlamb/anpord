@@ -5,7 +5,19 @@ const REASONS: Record<string, string> = {
   stdout: "nothing was written to stdout",
 };
 
-export function VoidReason({ fields }: { readonly fields: readonly string[] }) {
+export function VoidReason({
+  failure,
+  fields,
+}: {
+  readonly failure: string | null;
+  readonly fields: readonly string[];
+}) {
+  if (failure !== null) {
+    return (
+      <p className="text-muted-foreground text-xs">Not scored: {failure}</p>
+    );
+  }
+
   if (fields.length === 0) {
     return null;
   }
@@ -14,7 +26,7 @@ export function VoidReason({ fields }: { readonly fields: readonly string[] }) {
 
   return (
     <p className="text-muted-foreground text-xs">
-      void: {said}, so no evidence was produced
+      Not scored: {said}, so no evidence was produced
     </p>
   );
 }

@@ -4,6 +4,7 @@ import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Clock, Effect, Schema } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
 import { JudgeFailed, JudgeModel, type JudgeRequest } from "./model";
@@ -24,6 +25,7 @@ export const evaluateJudge = (request: JudgeRequest) =>
       started
     );
     yield* publishValidation(record, request.onValidation);
+    let usage: HarnessUsage | undefined;
     const result = yield* model
       .complete({
         ...request,
@@ -36,6 +38,7 @@ export const evaluateJudge = (request: JudgeRequest) =>
       .pipe(
         Effect.tap(({ text, ...metadata }) =>
           Effect.gen(function* () {
+            usage = metadata.usage;
             record = {
               ...record,
               output: capture(text, "text"),
@@ -105,6 +108,7 @@ export const evaluateJudge = (request: JudgeRequest) =>
           : request.judge.harness,
       threshold: request.judge.threshold,
       durationMs: (yield* Clock.currentTimeMillis) - started,
+      usage,
     } satisfies EvalJudgment;
     const passed =
       judgment.score !== null && judgment.score >= judgment.threshold;

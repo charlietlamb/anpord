@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
+import { dirname, extname, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { Effect } from "effect";
-import { build, type Plugin } from "esbuild";
+import { build, type Loader, type Plugin } from "esbuild";
 import { sourceFiles } from "./source-files";
 
 const authoringExports = [
@@ -110,10 +111,60 @@ const authoringModule: Plugin = {
   },
 };
 
+const SOURCE_FILE = /\.[cm]?[jt]sx?$/;
+const MODULE_LOCATION = /\bimport\.meta\.(url|dirname|filename)\b/g;
+
+const loaders: Readonly<Record<string, Loader>> = {
+  ".cjs": "js",
+  ".cts": "ts",
+  ".js": "js",
+  ".jsx": "jsx",
+  ".mjs": "js",
+  ".mts": "ts",
+  ".ts": "ts",
+  ".tsx": "tsx",
+};
+
+const locationOf = (path: string, field: string) => {
+  if (field === "url") {
+    return JSON.stringify(pathToFileURL(path).href);
+  }
+  return JSON.stringify(field === "dirname" ? dirname(path) : path);
+};
+
+const sourceLocations: Plugin = {
+  name: "anpord-source-locations",
+  setup: (compiler) => {
+    compiler.onLoad(
+      { filter: SOURCE_FILE, namespace: "file" },
+      async ({ path }) => {
+        const contents = await readFile(path, "utf8");
+        if (!contents.includes("import.meta")) {
+          return;
+        }
+        return {
+          contents: contents.replace(MODULE_LOCATION, (_, field: string) =>
+            locationOf(path, field)
+          ),
+          loader: loaders[extname(path)],
+          resolveDir: dirname(path),
+        };
+      }
+    );
+  },
+};
+
+const requireFrom = (url: string) =>
+  `import { createRequire as anpordCreateRequire } from "node:module"; const require = anpordCreateRequire(${url});`;
+
 export const bundle = (
   contents: string,
   entry: string,
-  options: { readonly minify?: boolean; readonly captureSource?: boolean } = {}
+  options: {
+    readonly captureSource?: boolean;
+    readonly minify?: boolean;
+    readonly atSource?: boolean;
+  } = {}
 ) =>
   Effect.tryPromise({
     try: () =>
@@ -121,7 +172,11 @@ export const bundle = (
         absWorkingDir: process.cwd(),
         bundle: true,
         banner: {
-          js: 'import { createRequire as anpordCreateRequire } from "node:module"; const require = anpordCreateRequire(import.meta.url);',
+          js: requireFrom(
+            options.atSource
+              ? JSON.stringify(pathToFileURL(entry).href)
+              : "import.meta.url"
+          ),
         },
         format: "esm",
         metafile: true,
@@ -130,7 +185,9 @@ export const bundle = (
         sourcemap: options.captureSource ? "external" : false,
         platform: "node",
         resolveExtensions: [".ts", ".mjs", ".js", ".cjs", ".json"],
-        plugins: [authoringModule],
+        plugins: options.atSource
+          ? [authoringModule, sourceLocations]
+          : [authoringModule],
         stdin: {
           contents,
           resolveDir: process.cwd(),

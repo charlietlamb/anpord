@@ -1,0 +1,472 @@
+import { afterEach, describe, expect, it, spyOn } from "bun:test";
+import { resolve } from "node:path";
+import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { EvalBatch, type EvalCosts } from "@anpord/schema/domain/evals";
+import { TrialOutcome } from "@anpord/schema/domain/trial";
+import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
+import { NodeContext } from "@effect/platform-node";
+import {
+  Cause,
+  ConfigProvider,
+  Effect,
+  Either,
+  Exit,
+  Fiber,
+  Option,
+  Schema,
+} from "effect";
+import { runRecorded } from "../../src/cli/recorded-run";
+import { runSuitesLocally } from "../../src/cli/suite-local";
+import { ClientLayer } from "../../src/client/config";
+import { asAnpordError } from "../../src/client/errors";
+import { compileFixture } from "../fixtures/compile-eval";
+import { createBatch, createRun } from "../fixtures/eval-run";
+
+const requestWith = (run: string, timeoutMs: number | null = null) =>
+  Schema.decodeUnknownSync(StartBatchRequest)({
+    cases: [{ id: "fixture", timeoutMs, verify: "test -f done.txt" }],
+    suite: { id: "flaky-network", prompt: "write done.txt" },
+    trials: 1,
+    variants: [
+      {
+        harness: "command",
+        model: "none",
+        profile: { files: {}, name: "writes-done", run },
+      },
+    ],
+  });
+
+const START_KEY = /^[0-9a-f]{32}$/;
+
+const priced = (component: "model" | "user" | "judge", usd: number) => ({
+  classification: "estimate" as const,
+  component,
+  detail: {},
+  explanation: "",
+  source: "aggregate",
+  usd,
+});
+
+const PRICED: EvalCosts = {
+  allocatedUsd: 0,
+  components: [
+    priced("model", 0.42),
+    priced("judge", 0.01),
+    priced("user", 0.03),
+  ],
+  estimatedEquivalentUsd: 0.46,
+  incomplete: false,
+  knownActualUsd: 0,
+};
+
+const CLOSED =
+  "Anpord closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.";
+
+const GATEWAY_PAGE =
+  "<html><body><h1>503 Service Temporarily Unavailable</h1></body></html>";
+
+interface Api {
+  readonly calls: Map<string, number>;
+  readonly finished: string[];
+  readonly reported: {
+    readonly failure?: string;
+    readonly ordinal: number;
+    readonly runId: string;
+    readonly status?: string;
+  }[];
+  readonly started: Promise<void>;
+  readonly startKeys: (string | null)[];
+  readonly startsCheckingIn: unknown[];
+  readonly url: string;
+}
+
+let stop: (() => void) | undefined;
+
+afterEach(() => {
+  stop?.();
+  stop = undefined;
+});
+
+const OldReportedTrial = Schema.Struct({
+  events: Schema.Array(Schema.Unknown),
+  ordinal: Schema.Int,
+  outcome: TrialOutcome,
+  runId: Schema.String,
+});
+
+const refusedByOldServer = (body: unknown) =>
+  Either.match(Schema.decodeUnknownEither(OldReportedTrial)(body), {
+    onLeft: (error) =>
+      Schema.encodeSync(HttpApiDecodeError)(
+        Effect.runSync(HttpApiDecodeError.fromParseError(error))
+      ),
+    onRight: () => null,
+  });
+
+const fakeApi = (
+  request: StartBatchRequest,
+  failures: Readonly<Record<string, readonly number[]>>,
+  knowsBeat = true,
+  version: "current" | "before-broken-reports" = "current"
+): Api => {
+  const calls = new Map<string, number>();
+  const finished: string[] = [];
+  const reported: { failure?: string; ordinal: number; runId: string }[] = [];
+  const started = Promise.withResolvers<void>();
+  const startKeys: (string | null)[] = [];
+  const startsCheckingIn: unknown[] = [];
+  const variant = request.variants[0];
+  const caseId = request.cases[0]?.id ?? "fixture";
+  const running = createBatch({
+    finishedAt: null,
+    id: "batch_1",
+    local: true,
+    runs: [
+      createRun({
+        case: { id: caseId, name: caseId },
+        variant: {
+          ...createRun().variant,
+          harness: variant?.harness ?? "command",
+          id: "variant_1",
+          model: variant?.model ?? "none",
+          profile: variant?.profile?.name ?? null,
+          sandbox: variant?.sandbox ?? "local",
+        },
+      }),
+    ],
+    status: "running",
+  });
+  const batch = Schema.encodeSync(EvalBatch)(running);
+  const finishedBatch = Schema.encodeSync(EvalBatch)({
+    ...running,
+    costs: PRICED,
+    status: "finished",
+  });
+
+  const server = Bun.serve({
+    port: 0,
+    fetch: async (incoming) => {
+      const path = new URL(incoming.url).pathname.replace("/v1/", "");
+      const attempt = (calls.get(path) ?? 0) + 1;
+      calls.set(path, attempt);
+      if (path === "runner.start") {
+        startKeys.push(incoming.headers.get("idempotency-key"));
+      }
+      const failure = failures[path]?.[attempt - 1];
+      if (failure === 409) {
+        return Response.json(
+          { _tag: "Conflict", message: CLOSED },
+          { status: 409 }
+        );
+      }
+      if (failure !== undefined) {
+        return new Response(GATEWAY_PAGE, {
+          headers: { "content-type": "text/html" },
+          status: failure,
+        });
+      }
+      const body = (
+        incoming.method === "POST" ? await incoming.json() : {}
+      ) as Record<string, unknown>;
+      switch (path) {
+        case "runner.start":
+          startsCheckingIn.push(body.checksIn);
+          started.resolve();
+          return Response.json({
+            id: "batch_1",
+            runs: [{ caseId, id: "run_1", variantId: "variant_1" }],
+          });
+        case "auth.whoami":
+          return Response.json({
+            credential: { kind: "apiKey", name: "ci", start: "anp_test" },
+            organization: { id: "org_1", name: "Acme", slug: "acme" },
+            permissions: ["evals:write"],
+          });
+        case "evals.batches.get":
+          return Response.json(batch);
+        case "runner.report": {
+          const refused =
+            version === "current" ? null : refusedByOldServer(body);
+          if (refused !== null) {
+            return Response.json(refused, { status: 400 });
+          }
+          reported.push({
+            ...(typeof body.failure === "string"
+              ? { failure: body.failure }
+              : {}),
+            ordinal: body.ordinal as number,
+            runId: body.runId as string,
+            ...(version === "current"
+              ? {}
+              : { status: (body.outcome as { status: string }).status }),
+          });
+          return new Response(null, { status: 204 });
+        }
+        case "runner.beat":
+          return new Response(null, { status: knowsBeat ? 204 : 404 });
+        case "runner.finish":
+          finished.push(body.id as string);
+          return Response.json(finishedBatch);
+        default:
+          return Response.json({ _tag: "NotFound" }, { status: 404 });
+      }
+    },
+  });
+  stop = () => server.stop(true);
+
+  return {
+    calls,
+    finished,
+    reported,
+    started: started.promise,
+    startKeys,
+    startsCheckingIn,
+    url: server.url.href.slice(0, -1),
+  };
+};
+
+const recorded = (api: Api, request: StartBatchRequest) =>
+  runRecorded("flaky-network", request, false).pipe(
+    Effect.provide(ClientLayer),
+    Effect.provide(NodeContext.layer),
+    Effect.withConfigProvider(
+      ConfigProvider.fromMap(
+        new Map([
+          ["ANPORD_API_KEY", "fixture"],
+          ["ANPORD_BASE_URL", api.url],
+          ["ANPORD_WEB_URL", "https://anpord.test"],
+        ])
+      )
+    )
+  );
+
+describe("a local run while the API is flaky", () => {
+  it("records a trial whose report met two 503 pages before it landed", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, { "runner.report": [503, 503] });
+
+    const { cases } = await Effect.runPromise(recorded(api, request));
+
+    expect(cases.map((one) => one.status)).toEqual(["passed"]);
+    expect(api.calls.get("runner.report")).toBe(3);
+    expect(api.reported).toEqual([{ ordinal: 1, runId: "run_1" }]);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("sends one idempotency key on every attempt to start the batch", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, { "runner.start": [502, 504] });
+
+    await Effect.runPromise(recorded(api, request));
+    const [first] = api.startKeys;
+
+    expect(api.startKeys).toHaveLength(3);
+    expect(first).toMatch(START_KEY);
+    expect(api.startKeys).toEqual([first ?? "", first ?? "", first ?? ""]);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("gives back the cost the server priced when the batch closed", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, {});
+
+    const { costs } = await Effect.runPromise(recorded(api, request));
+
+    expect(costs).toEqual(PRICED);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("runs against a server that has no heartbeat endpoint", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, {}, false);
+
+    const { cases } = await Effect.runPromise(recorded(api, request));
+
+    expect(cases.map((one) => one.status)).toEqual(["passed"]);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("starts its batch through a 502", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, { "runner.start": [502] });
+
+    const { cases } = await Effect.runPromise(recorded(api, request));
+
+    expect(cases.map((one) => one.status)).toEqual(["passed"]);
+    expect(api.calls.get("runner.start")).toBe(2);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("reports a trial that ran out of time as broken, with why, and finishes", async () => {
+    const request = requestWith("sleep 20", 1000);
+    const api = fakeApi(request, {});
+
+    const { cases, link } = await Effect.runPromise(recorded(api, request));
+
+    expect(cases.map((one) => one.status)).toEqual(["timed out"]);
+    expect(api.reported).toEqual([
+      {
+        failure: "The agent ran past its time limit of 1s",
+        ordinal: 1,
+        runId: "run_1",
+      },
+    ]);
+    expect(api.finished).toEqual(["batch_1"]);
+    expect(Option.getOrNull(link)).toBe("https://anpord.test/evals/batch_1");
+  }, 60_000);
+
+  it("still lands a broken trial on a server that predates broken reports", async () => {
+    const request = requestWith("sleep 20", 1000);
+    const api = fakeApi(request, {}, true, "before-broken-reports");
+
+    const { cases } = await Effect.runPromise(recorded(api, request));
+
+    expect(cases.map((one) => one.status)).toEqual(["timed out"]);
+    expect(api.calls.get("runner.report")).toBe(2);
+    expect(api.reported).toEqual([
+      { ordinal: 1, runId: "run_1", status: "void" },
+    ]);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("stops within seconds when Anpord cannot be reached at all", async () => {
+    const request = requestWith("touch done.txt");
+    const startedAt = Date.now();
+
+    const exit = await Effect.runPromiseExit(
+      runRecorded("unreachable", request, false).pipe(
+        Effect.provide(ClientLayer),
+        Effect.provide(NodeContext.layer),
+        Effect.withConfigProvider(
+          ConfigProvider.fromMap(
+            new Map([
+              ["ANPORD_API_KEY", "fixture"],
+              ["ANPORD_BASE_URL", "http://127.0.0.1:1"],
+            ])
+          )
+        )
+      )
+    );
+
+    expect(Date.now() - startedAt).toBeLessThan(5000);
+    expect(
+      Exit.isFailure(exit)
+        ? asAnpordError(Cause.squash(exit.cause)).message
+        : null
+    ).toBe(
+      "Unable to reach Anpord at http://127.0.0.1:1. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address."
+    );
+  }, 60_000);
+
+  it("finishes its batch when interrupted mid-trial, even through a 503", async () => {
+    const request = requestWith("sleep 30 && touch done.txt");
+    const api = fakeApi(request, { "runner.finish": [503] });
+
+    const fiber = Effect.runFork(recorded(api, request));
+    await api.started;
+    await Bun.sleep(1500);
+    const exit = await Effect.runPromise(Fiber.interrupt(fiber));
+
+    expect(Exit.isInterrupted(exit)).toBe(true);
+    expect(api.reported).toEqual([]);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+
+  it("checks once that Anpord answers, for the organization and the whole run", async () => {
+    const file = resolve(
+      import.meta.dir,
+      "../../../../scripts/fixtures/local-smoke/smoke.eval.ts"
+    );
+    const api = fakeApi(await compileFixture(file), {});
+
+    await Effect.runPromise(
+      runSuitesLocally(
+        [file],
+        { caseId: Option.none(), variants: [] },
+        { gate: "never", timeoutSeconds: Option.none(), ui: false }
+      ).pipe(
+        Effect.provide(NodeContext.layer),
+        Effect.withConfigProvider(
+          ConfigProvider.fromMap(
+            new Map([
+              ["ANPORD_API_KEY", "fixture"],
+              ["ANPORD_BASE_URL", api.url],
+              ["ANPORD_WEB_URL", "https://anpord.test"],
+            ])
+          )
+        )
+      )
+    );
+
+    expect(api.calls.get("/")).toBe(1);
+    expect(api.calls.get("auth.whoami")).toBe(1);
+    expect(api.reported).toEqual([{ ordinal: 1, runId: "run_1" }]);
+    expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+});
+
+describe("a local run whose batch Anpord already closed", () => {
+  it("says so once, without claiming Anpord will close it later", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, { "runner.finish": [409] });
+    const said: string[] = [];
+    const write = spyOn(process.stderr, "write").mockImplementation((text) => {
+      said.push(String(text));
+      return true;
+    });
+
+    try {
+      await Effect.runPromise(recorded(api, request));
+    } finally {
+      write.mockRestore();
+    }
+
+    expect(said.filter((line) => line.includes("closed"))).toEqual([
+      `${CLOSED}\n`,
+    ]);
+  }, 60_000);
+});
+
+describe("starting a local batch", () => {
+  it("tells Anpord this CLI checks in, so a silent machine is noticed", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, {});
+
+    await Effect.runPromise(recorded(api, request));
+
+    expect(api.startsCheckingIn).toEqual([true]);
+  }, 60_000);
+});
+
+describe("a local run whose batch Anpord closes while it runs", () => {
+  it("stops at once and fails with the one refusal, instead of reporting into a closed batch", async () => {
+    const request = requestWith("sleep 30 && touch done.txt");
+    const api = fakeApi(request, { "runner.beat": [409] });
+    const said: string[] = [];
+    const write = spyOn(process.stderr, "write").mockImplementation((text) => {
+      said.push(String(text));
+      return true;
+    });
+    const startedAt = Date.now();
+
+    const exit = await Effect.runPromiseExit(recorded(api, request)).finally(
+      () => write.mockRestore()
+    );
+
+    expect({
+      failure: Exit.isFailure(exit)
+        ? asAnpordError(Cause.squash(exit.cause)).message
+        : null,
+      finished: api.finished,
+      noted: said.filter((line) => line.includes("closed")),
+      quick: Date.now() - startedAt < 10_000,
+      reported: api.reported,
+    }).toEqual({
+      failure: CLOSED,
+      finished: [],
+      noted: [],
+      quick: true,
+      reported: [],
+    });
+  }, 60_000);
+});

@@ -21,7 +21,7 @@ export const codexCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
-    `${binPath("codex")} exec`,
+    `${binPath(request, "codex")} exec`,
     ...(Option.isSome(request.resume) ? ["resume"] : []),
     "--json --skip-git-repo-check",
     "--dangerously-bypass-approvals-and-sandbox",

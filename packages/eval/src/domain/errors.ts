@@ -1,4 +1,5 @@
-import { Data, Schema } from "effect";
+import { redactSecrets } from "@anpord/schema/domain/secret-text";
+import { Data, Duration, Schema } from "effect";
 import { SandboxName } from "./variant";
 
 /* Bounded so a cyclic cause chain cannot hang the error reporter. */
@@ -30,7 +31,14 @@ export class SandboxUnavailable extends Schema.TaggedError<SandboxUnavailable>(
 )("SandboxUnavailable", {
   provider: SandboxName,
   reason: Schema.String,
-}) {}
+}) {
+  constructor(props: {
+    readonly provider: typeof SandboxName.Type;
+    readonly reason: string;
+  }) {
+    super({ ...props, reason: redactSecrets(props.reason) });
+  }
+}
 
 export const sandboxUnavailable = (
   provider: typeof SandboxName.Type,
@@ -42,7 +50,11 @@ export class HarnessUnavailable extends Schema.TaggedError<HarnessUnavailable>(
 )("HarnessUnavailable", {
   harness: Schema.String,
   reason: Schema.String,
-}) {}
+}) {
+  constructor(props: { readonly harness: string; readonly reason: string }) {
+    super({ ...props, reason: redactSecrets(props.reason) });
+  }
+}
 
 /* Distinct from SandboxUnavailable: the sandbox is fine, the workspace is not. */
 export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>(
@@ -50,11 +62,19 @@ export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>(
 )("SourceUnavailable", {
   reason: Schema.String,
   url: Schema.String,
-}) {}
+}) {
+  constructor(props: { readonly reason: string; readonly url: string }) {
+    super({ ...props, reason: redactSecrets(props.reason) });
+  }
+}
 
 export class PrepareFailed extends Schema.TaggedError<PrepareFailed>(
   "PrepareFailed"
-)("PrepareFailed", { name: Schema.String, reason: Schema.String }) {}
+)("PrepareFailed", { name: Schema.String, reason: Schema.String }) {
+  constructor(props: { readonly name: string; readonly reason: string }) {
+    super({ ...props, reason: redactSecrets(props.reason) });
+  }
+}
 
 /* `message` is overridden because the default renders as "An error has occurred". */
 export class EvalStoreError extends Data.TaggedError("EvalStoreError")<{
@@ -87,6 +107,14 @@ export class UserUnavailable extends Data.TaggedError("UserUnavailable")<{
 }> {
   override get message() {
     return `The simulated user could not reply: ${this.reason}`;
+  }
+}
+
+export class TrialTimedOut extends Data.TaggedError("TrialTimedOut")<{
+  readonly timeoutMs: number;
+}> {
+  override get message() {
+    return `The agent ran past its time limit of ${Duration.format(Duration.millis(this.timeoutMs))}`;
   }
 }
 

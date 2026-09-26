@@ -36,6 +36,7 @@ const driverReturning = (
   captureRotation: () => Effect.succeed(rotated),
   harness: "codex",
   prepare: () => Effect.succeed({}),
+  resume: "usage-per-session",
   run: () => Effect.die("unused"),
 });
 
@@ -79,6 +80,7 @@ describe("capturing a credential the harness rotated", () => {
     const driver: HarnessDriverShape = {
       harness: "claude",
       prepare: () => Effect.succeed({}),
+      resume: "usage-per-run",
       run: () => Effect.die("unused"),
     };
 

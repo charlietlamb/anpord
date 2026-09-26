@@ -67,6 +67,14 @@ export interface ResumableCommands {
   ) => Effect.Effect<StartedCommand, SandboxUnavailable>;
 }
 
+export interface SharedInstalls {
+  readonly ensure: (
+    key: string,
+    install: (home: string) => Effect.Effect<void, SandboxUnavailable>
+  ) => Effect.Effect<void, SandboxUnavailable>;
+  readonly homeFor: (key: string) => string;
+}
+
 /* Capabilities are `Option` so a provider cannot claim one it does not supply. */
 export interface SandboxHandle {
   readonly cache: Option.Option<SandboxCache>;
@@ -76,6 +84,7 @@ export interface SandboxHandle {
   ) => Stream.Stream<ExecChunk, SandboxUnavailable>;
   readonly home: string;
   readonly id: string;
+  readonly installs: Option.Option<SharedInstalls>;
   readonly provider: SandboxName;
   readonly resumable: Option.Option<ResumableCommands>;
   readonly writeFile: (

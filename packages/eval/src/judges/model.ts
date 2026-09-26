@@ -2,7 +2,12 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import {
+  type HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Context, Data, type Effect, type Redacted, Schema } from "effect";
 
 export const JudgeCompletion = Schema.Struct({
@@ -14,13 +19,7 @@ export const JudgeCompletion = Schema.Struct({
   refusal: Schema.optional(Schema.String),
   incomplete: Schema.optional(Schema.Boolean),
   toolCalls: Schema.optional(Schema.Array(Schema.String)),
-  usage: Schema.optional(
-    Schema.Struct({
-      inputTokens: Schema.NonNegativeInt,
-      outputTokens: Schema.NonNegativeInt,
-      totalTokens: Schema.NonNegativeInt,
-    })
-  ),
+  usage: Schema.optional(HarnessUsage),
 });
 export type JudgeCompletion = typeof JudgeCompletion.Type;
 
@@ -41,6 +40,7 @@ interface JudgeContext {
 export interface JudgeRequest {
   readonly capture?: boolean;
   readonly context: JudgeContext;
+  readonly events: readonly HarnessEvent[];
   readonly index?: number;
   readonly input: string;
   readonly judge: EvalJudge;

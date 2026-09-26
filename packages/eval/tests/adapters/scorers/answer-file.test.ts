@@ -56,6 +56,7 @@ const score = (
         events,
         modelMs: 1,
         sandbox,
+        turns: [],
         validator,
         verifyCommand,
         workspace: "/tmp/w",

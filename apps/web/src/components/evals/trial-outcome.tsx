@@ -19,7 +19,9 @@ export function TrialOutcome({ trial }: { readonly trial: EvalTrial }) {
   const exited = trial.exitCode !== -1;
   const ranCommands = trial.commands + trial.failedCommands > 0;
 
-  if (!(exited || ranCommands || trial.voidFields.length > 0)) {
+  const unscored = trial.failure !== null || trial.voidFields.length > 0;
+
+  if (!(exited || ranCommands || unscored)) {
     return null;
   }
 
@@ -45,7 +47,7 @@ export function TrialOutcome({ trial }: { readonly trial: EvalTrial }) {
           ) : null}
         </div>
 
-        <VoidReason fields={trial.voidFields} />
+        <VoidReason failure={trial.failure} fields={trial.voidFields} />
       </div>
     </RailSection>
   );

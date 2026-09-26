@@ -48,7 +48,7 @@ Each suite file starts one batch: one run per case per variant. The job summary 
 | `working-directory` | `.` | Project with `anpord` installed |
 | `file` | Discover `*.eval.ts` | Run one suite file |
 | `case` | Every case | Run one case. With `file`, picks it from the file. Without, runs the stored case again |
-| `variant` | Every variant | Variants to run, separated by commas or new lines: `harness/model` for a file, variant ids for a stored case |
+| `variant` | Every variant | Variants to run, separated by commas or new lines: `harness/model`, `harness/model@profile` or a profile name for a file, variant ids for a stored case |
 | `fail-on` | `failures` | `failures`, `strict` or `never` |
 | `timeout` | `1200` | Seconds to wait per batch |
 | `github-token` | None | Token that posts the results as a check run. Needs `checks: write` |

@@ -16,9 +16,12 @@
     "build": "tsc --project tsconfig.json --noEmit",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test --pass-with-no-tests",
-    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
-    "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
-    "db:studio": "drizzle-kit studio --config drizzle.config.ts"
+    "db:generate": "bun scripts/generate.ts",
+    "db:migrate": "bun scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio --config drizzle.config.ts",
+    "db:check": "bun scripts/check.ts",
+    "db:reset": "bun scripts/reset.ts",
+    "db:status": "bun scripts/status.ts"
   },
   "dependencies": {
     "@anpord/schema": "workspace:*",

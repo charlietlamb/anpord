@@ -49,6 +49,7 @@ const prepare = (sandbox: SandboxHandle, token?: string) =>
     prepare: null,
     profile: null,
     sandbox,
+    secrets: [],
     source: {
       kind: "repo",
       ref: null,

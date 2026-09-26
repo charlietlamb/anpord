@@ -14,6 +14,7 @@ import { connectors } from "./connector-command";
 import { declarationFile } from "./declarations";
 import { runEval } from "./eval-command";
 import { json, note, promptContent, row } from "./render";
+import { whoami } from "./whoami-command";
 
 const promptId = Args.text({ name: "id" }).pipe(
   Args.withDescription("The prompt's id, such as support-reply"),
@@ -201,6 +202,7 @@ export const commandsWith = (prompts: boolean) =>
   [
     runEval,
     withClient(connectors),
+    withClient(whoami),
     ...(prompts ? promptCommands : []),
   ] as const;
 

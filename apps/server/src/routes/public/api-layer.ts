@@ -2,6 +2,7 @@ import { PublicApi } from "@anpord/schema/public/api";
 import { Layer } from "effect";
 import { ApiKeyAuthenticationLive } from "../../http/authentication/api-key-authentication";
 import { apiSurface } from "../api-surface";
+import { AuthHandlers } from "./auth/handlers";
 import { PublicConnectorsHandlers } from "./connectors/handlers";
 import { BatchesHandlers } from "./evals/batches-handlers";
 import { CasesHandlers } from "./evals/cases-handlers";
@@ -14,6 +15,7 @@ import { PublicPromptsHandlers } from "./prompts/handlers";
 export const PublicApiLive = apiSurface(
   PublicApi,
   Layer.mergeAll(
+    AuthHandlers,
     PublicPromptsHandlers,
     PublicConnectorsHandlers,
     BatchesHandlers,

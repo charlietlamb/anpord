@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { decodeCodexLine } from "../../../src/adapters/harness/codex-events";
+import { costOf } from "../../../src/domain/model-price";
 
 const THREAD = '{"type":"thread.started","thread_id":"01a01a91-dfd4-7950"}';
 const COMMAND =
@@ -49,12 +50,28 @@ describe("decodeCodexLine", () => {
     });
   });
 
-  it("reads usage from the closing line", () => {
+  it("reads usage from the closing line, cached input apart from fresh", () => {
+    expect(decoded(TURN).usage).toEqual({
+      cacheReadTokens: 87_552,
+      cacheWriteTokens: 0,
+      inputTokens: 10_819,
+      outputTokens: 757,
+      totalTokens: 99_128,
+    });
+  });
+
+  it("charges cached input at the cache rate and only fresh input at the input rate", () => {
     const usage = decoded(TURN).usage;
 
-    expect(usage?.inputTokens).toBe(98_371);
-    expect(usage?.outputTokens).toBe(757);
-    expect(usage?.totalTokens).toBe(99_128);
+    expect(
+      usage &&
+        costOf(usage, {
+          cacheRead: 0.125,
+          cacheWrite: null,
+          input: 1.25,
+          output: 10,
+        })
+    ).toBeCloseTo(0.032_037_75, 10);
   });
 
   it("drops a line it does not model", () => {

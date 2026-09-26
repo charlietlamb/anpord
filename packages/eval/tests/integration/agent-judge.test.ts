@@ -59,6 +59,7 @@ test.skipIf(!enabled)(
           judge,
           input: "What is 2 + 2?",
           output,
+          events: [],
           context: {
             organizationId: "judge-integration",
             harnessCredential: codexCredential,

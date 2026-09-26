@@ -35,6 +35,10 @@ export type {
   StartedBatch,
 } from "@anpord/schema/domain/evals";
 export type {
+  Whoami,
+  WhoamiCredential,
+} from "@anpord/schema/public/auth-api";
+export type {
   PublicPrompt,
   PublicPromptSummary,
   PublicPromptWithVersions,

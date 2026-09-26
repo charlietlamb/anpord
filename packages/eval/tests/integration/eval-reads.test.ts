@@ -152,7 +152,11 @@ describe.skipIf(skipWithoutDatabase())(
         await reads((service) =>
           service.ownedBatch(organizationId, batchIds[0] ?? "")
         )
-      ).toEqual({ internalId: batchIds[0] ?? "", local: false });
+      ).toEqual({
+        internalId: batchIds[0] ?? "",
+        local: false,
+        status: "finished",
+      });
     });
 
     it("lists batches newest first, a page at a time", async () => {

@@ -1,9 +1,11 @@
 import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
+import { promptInclusiveUsage } from "../../domain/prompt-inclusive-usage";
 import type { DecodedOutput } from "./session";
 import { toolOf } from "./tool-event";
 
 const Stats = Schema.Struct({
+  cached: Schema.optional(Schema.Number),
   input_tokens: Schema.optional(Schema.Number),
   output_tokens: Schema.optional(Schema.Number),
   total_tokens: Schema.optional(Schema.Number),
@@ -40,15 +42,13 @@ const decode = Schema.decodeUnknownOption(Schema.parseJson(Line));
 
 const toolEvent = toolOf("shell");
 
-const usageOf = (stats: typeof Stats.Type): HarnessUsage => ({
-  cacheReadTokens: 0,
-  cacheWriteTokens: 0,
-  inputTokens: stats.input_tokens ?? 0,
-  outputTokens: stats.output_tokens ?? 0,
-  totalTokens:
-    stats.total_tokens ??
-    (stats.input_tokens ?? 0) + (stats.output_tokens ?? 0),
-});
+const usageOf = (stats: typeof Stats.Type): HarnessUsage =>
+  promptInclusiveUsage({
+    cached: stats.cached ?? 0,
+    output: stats.output_tokens ?? 0,
+    prompt: stats.input_tokens ?? 0,
+    total: stats.total_tokens,
+  });
 
 export const decodeGeminiLine = (line: string, at: number): DecodedOutput => {
   const found = decode(line);

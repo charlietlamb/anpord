@@ -1,4 +1,4 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src", "drizzle.config.ts"]
+  "include": ["src", "scripts", "tests", "drizzle.config.ts"]
 }

@@ -10,6 +10,7 @@ import { runHosted } from "./hosted-report";
 import { runStoredCase, runSuiteFile } from "./suite-hosted";
 import { runSuitesLocally } from "./suite-local";
 import type { Selection } from "./suite-selection";
+import { announceOrganization } from "./whoami-command";
 
 const DEFAULT_TIMEOUT_SECONDS = 1200;
 
@@ -59,7 +60,7 @@ const caseId = Options.text("case").pipe(
 );
 const variant = Options.text("variant").pipe(
   Options.withDescription(
-    "Run one variant: a variant id for a stored case, or harness/model for a file. Repeat for more"
+    "Run one variant: harness/model, harness/model@profile or a profile name for a file, or a variant id for a stored case. Repeat for more"
   ),
   Options.repeated
 );
@@ -119,6 +120,8 @@ const runHostedEvals = (
   options: HostedOptions & { readonly path: Option.Option<string> }
 ) =>
   Effect.gen(function* () {
+    yield* announceOrganization;
+
     if (Option.isSome(selection.caseId) && Option.isNone(file)) {
       const stored = selection.caseId.value;
       return yield* runHosted(

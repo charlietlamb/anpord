@@ -1,4 +1,7 @@
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import type { DecodedOutput } from "./session";
 
@@ -24,8 +27,25 @@ const Tokens = Schema.Struct({
   ),
   input: Schema.Number,
   output: Schema.Number,
+  reasoning: Schema.optional(Schema.Number),
   total: Schema.optional(Schema.Number),
 });
+
+const usageOf = (tokens: typeof Tokens.Type): HarnessUsage => {
+  const cacheReadTokens = tokens.cache?.read ?? 0;
+  const cacheWriteTokens = tokens.cache?.write ?? 0;
+  const outputTokens = tokens.output + (tokens.reasoning ?? 0);
+
+  return {
+    cacheReadTokens,
+    cacheWriteTokens,
+    inputTokens: tokens.input,
+    outputTokens,
+    totalTokens:
+      tokens.total ??
+      tokens.input + outputTokens + cacheReadTokens + cacheWriteTokens,
+  };
+};
 
 const Line = Schema.Union(
   Schema.Struct({
@@ -168,16 +188,7 @@ const outputOf = (value: typeof Line.Type): DecodedOutput => {
       const tokens = value.part.tokens;
       return {
         sessionId: value.sessionID,
-        usage:
-          tokens === undefined
-            ? undefined
-            : {
-                cacheReadTokens: tokens.cache?.read ?? 0,
-                cacheWriteTokens: tokens.cache?.write ?? 0,
-                inputTokens: tokens.input,
-                outputTokens: tokens.output,
-                totalTokens: tokens.total ?? tokens.input + tokens.output,
-              },
+        usage: tokens === undefined ? undefined : usageOf(tokens),
       };
     }
     case "error":

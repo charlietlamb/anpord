@@ -41,6 +41,7 @@ const handleFor = (
     exec: sessionExec(sandbox, workspace),
     home: HOME,
     id: sandbox.id,
+    installs: Option.none(),
     provider: "daytona",
     resumable: Option.some(detachedCommands(sandbox, workspace)),
     writeFile: (path, content) =>

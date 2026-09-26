@@ -8,6 +8,7 @@ import {
 } from "../domain/credentials";
 import { BadRequest, Forbidden, NotFound } from "../domain/errors";
 import { ApiKeyAuthentication } from "./authentication";
+import { Repeatable } from "./repeatable";
 
 const ListConnectorsRequest = Schema.Struct({}).annotations({
   description: "List the connectors this organization has.",
@@ -39,6 +40,7 @@ const RemoveConnectorRequest = Schema.Struct({
 export class PublicConnectorsGroup extends HttpApiGroup.make("connectors")
   .add(
     HttpApiEndpoint.post("integrations", "/connectors.integrations")
+      .annotate(Repeatable, true)
       .setPayload(ListConnectorsRequest)
       .addSuccess(Schema.Array(CredentialIntegration))
       .annotate(OpenApi.Summary, "List the integrations that can be connected")
@@ -49,6 +51,7 @@ export class PublicConnectorsGroup extends HttpApiGroup.make("connectors")
   )
   .add(
     HttpApiEndpoint.post("list", "/connectors.list")
+      .annotate(Repeatable, true)
       .setPayload(ListConnectorsRequest)
       .addSuccess(Schema.Array(CredentialConnection))
       .annotate(OpenApi.Summary, "List connected integrations")

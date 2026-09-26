@@ -101,7 +101,7 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
           await seedRun(db, {
             organizationId,
             tag: `record_${suffix}`,
-            trialCount: 5,
+            trialCount: 7,
           });
         });
       })
@@ -237,6 +237,97 @@ describe.skipIf(skipWithoutDatabase())("TrialRecorder", () => {
     ]);
     expect(Option.isNone(seen.denied)).toBe(true);
     expect(Option.isNone(seen.afterRetry)).toBe(true);
+  });
+
+  it("stores no credential a validator printed, live or settled", async () => {
+    const leaked: EvalValidation = {
+      ...validationExecution(
+        { id: "code:0", index: 0, kind: "code", name: "check" },
+        1000
+      ),
+      input: validationCapture()({ prepared: { secretKey: "am_sk_test_x" } }),
+      logs: [
+        {
+          at: 1000,
+          index: 0,
+          level: "stdout",
+          value: validationCapture()("using am_sk_test_x", "text"),
+        },
+      ],
+      status: "passed",
+    };
+
+    const stored = await run(
+      Effect.gen(function* () {
+        const recorder = yield* TrialRecorder;
+        const { trialInternalId } = yield* opened(6);
+
+        yield* recorder.recordValidations({
+          trialInternalId,
+          validations: [leaked],
+        });
+        const live = yield* trialRow(trialInternalId);
+
+        yield* recorder.settle({
+          finishedAt: new Date(),
+          outcome: { ...outcome, validations: [leaked] },
+          sandboxId: null,
+          trialInternalId,
+          usage: null,
+        });
+
+        return { live, settled: yield* trialRow(trialInternalId) };
+      })
+    );
+
+    expect(
+      [stored.live, stored.settled].map((row) => [
+        row?.validations?.[0]?.input.text,
+        row?.validations?.[0]?.logs[0]?.value.text,
+      ])
+    ).toEqual([
+      ['{"prepared":{"secretKey":"[redacted]"}}', "using [redacted]"],
+      ['{"prepared":{"secretKey":"[redacted]"}}', "using [redacted]"],
+    ]);
+  });
+
+  it("stores a journal with the keys it printed redacted", async () => {
+    const stored = await run(
+      Effect.gen(function* () {
+        const recorder = yield* TrialRecorder;
+        const db = yield* Database;
+        const { trialInternalId } = yield* opened(7);
+
+        yield* recorder.append({
+          events: [
+            {
+              _tag: "Command",
+              command: "env",
+              exitCode: 0,
+              output: "GITHUB_TOKEN=ghp_16C7e42F292c6912E7710c838347Ae178B4a",
+            },
+          ],
+          from: 0,
+          trialInternalId,
+        });
+
+        return yield* Effect.promise(() =>
+          db
+            .select({ payload: evalEvent.payload })
+            .from(evalEvent)
+            .where(eq(evalEvent.trialInternalId, trialInternalId))
+        );
+      })
+    );
+
+    expect(stored.map((row) => row.payload)).toEqual([
+      {
+        _tag: "Command",
+        command: "env",
+        exitCode: 0,
+        output: "GITHUB_TOKEN=[redacted]",
+      },
+    ]);
   });
 
   it("ignores events it has already written", async () => {

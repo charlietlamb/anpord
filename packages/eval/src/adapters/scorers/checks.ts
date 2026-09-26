@@ -1,21 +1,23 @@
-import type { EvalCodeValidator } from "@anpord/schema/domain/eval-definition";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Effect, Layer } from "effect";
 import { outcomeOf } from "../../domain/trial";
-import { validationPlan } from "../../domain/validation-plan";
 import { Scorer } from "../../ports/scorer";
-import { publishValidation } from "./validation";
 
-const skippedChecks = (
-  validator: typeof EvalCodeValidator.Type,
-  prefix: string
-): readonly EvalValidation[] =>
-  validationPlan(validator, null).map((check) => ({
-    ...check,
-    id: `${prefix}${check.id}`,
-    status: "skipped",
-    message: "An earlier code validator did not pass",
-  }));
+const combineOutcomes = (
+  outcomes: readonly TrialOutcome[],
+  unchecked: TrialOutcome
+): TrialOutcome => {
+  const deciding =
+    outcomes.find((outcome) => outcome.status === "void") ??
+    outcomes.find((outcome) => outcome.status !== "passed") ??
+    outcomes.at(-1) ??
+    unchecked;
+  return {
+    ...deciding,
+    validations: outcomes.flatMap((outcome) => outcome.validations ?? []),
+    voidFields: outcomes.flatMap((outcome) => outcome.voidFields),
+  };
+};
 
 export const ScorerChecksLive = Layer.effect(
   Scorer,
@@ -27,35 +29,24 @@ export const ScorerChecksLive = Layer.effect(
           if (request.validator == null || "source" in request.validator) {
             return yield* scorer.score(request);
           }
-          let outcome = outcomeOf({
-            commandCount: request.commandCount,
-            exitCode: 0,
-            fingerprint: { validation: "Judgment required" },
-            modelMs: request.modelMs,
-            sandboxMs: 0,
-          });
-          const validations: EvalValidation[] = [];
-          for (const [index, validator] of request.validator.checks.entries()) {
-            const prefix =
-              request.validator.checks.length > 1 ? `group:${index}:` : "";
-            if (outcome.status !== "passed") {
-              const skipped = skippedChecks(validator, prefix);
-              validations.push(...skipped);
-              yield* Effect.forEach(
-                skipped,
-                (record) => publishValidation(record, request.onValidation),
-                { discard: true }
-              );
-              continue;
-            }
-            outcome = yield* scorer.score({
+          const { checks } = request.validator;
+          const outcomes = yield* Effect.forEach(checks, (validator, index) =>
+            scorer.score({
               ...request,
               validator,
-              validationPrefix: prefix,
-            });
-            validations.push(...(outcome.validations ?? []));
-          }
-          return { ...outcome, validations };
+              validationPrefix: checks.length > 1 ? `group:${index}:` : "",
+            })
+          );
+          return combineOutcomes(
+            outcomes,
+            outcomeOf({
+              commandCount: request.commandCount,
+              exitCode: 0,
+              fingerprint: { validation: "Judgment required" },
+              modelMs: request.modelMs,
+              sandboxMs: 0,
+            })
+          );
         }).pipe(Effect.withSpan("ScorerChecks.score")),
     });
   })

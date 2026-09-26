@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+import { usageOf } from "../../src/domain/harness-event";
 import {
   cacheHitOf,
   costOf,
@@ -22,6 +23,49 @@ const usage = (
   outputTokens: 0,
   totalTokens: 0,
   ...parts,
+});
+
+describe("cache writes kept for an hour", () => {
+  it("charges them at twice the input rate and the rest at the five minute rate", () => {
+    expect(
+      costOf(
+        usage({
+          cacheWrite1hTokens: 1_000_000,
+          cacheWriteTokens: 3_000_000,
+          inputTokens: 0,
+        }),
+        SONNET
+      )
+    ).toBeCloseTo(9, 9);
+  });
+
+  it("prices usage stored before the split as five minute writes", () => {
+    const stored = usageOf({
+      cacheReadTokens: 0,
+      cacheWriteTokens: 1_000_000,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalTokens: 1_000_000,
+    });
+
+    expect([
+      stored?.cacheWrite1hTokens,
+      stored && costOf(stored, SONNET),
+    ]).toEqual([undefined, 2.5]);
+  });
+
+  it("reads the split back from a stored row", () => {
+    expect(
+      usageOf({
+        cacheReadTokens: 0,
+        cacheWrite1hTokens: 400,
+        cacheWriteTokens: 1000,
+        inputTokens: 1,
+        outputTokens: 1,
+        totalTokens: 1002,
+      })?.cacheWrite1hTokens
+    ).toBe(400);
+  });
 });
 
 describe("model price", () => {

@@ -4,6 +4,7 @@ import { access, readFile } from "node:fs/promises";
 import { format } from "node:util";
 import {
   type EvalValidation,
+  REPORTED_LIMITS,
   unavailableValue,
   VALIDATION_ENTRY_LIMIT,
   VALIDATION_FRAME,
@@ -135,15 +136,9 @@ const context = (): ValidatorContext => ({
       readOptional(process.env.ANPORD_TRANSCRIPT_FILE)
     ),
   turns: () =>
-    observe("turns", [], async () => {
-      const read = await readOptional(process.env.ANPORD_TURNS_FILE);
-
-      try {
-        return JSON.parse(read || "[]");
-      } catch {
-        return [];
-      }
-    }),
+    observe("turns", [], async () =>
+      JSON.parse((await readOptional(process.env.ANPORD_TURNS_FILE)) || "[]")
+    ),
   prepared: decodePrepared(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
   readText: (path) => observe("readText", [path], () => readFile(path, "utf8")),
   exists: (path) =>
@@ -220,12 +215,12 @@ export const runValidators = async (
     console.debug =
       (...values) => log("stdout", values);
   console.warn = console.error = (...values) => log("stderr", values);
-  let stopped = false;
   let passed = true;
   let message: string | undefined;
+  const input = context();
   try {
     for (const check of checks) {
-      const started = stopped ? null : now();
+      const started = now();
       const state = {
         record: validationExecution(
           {
@@ -236,23 +231,11 @@ export const runValidators = async (
           },
           started
         ),
-        capture: validationCapture(capture),
+        capture: validationCapture(capture, [], REPORTED_LIMITS),
       };
-      if (stopped) {
-        emit({
-          ...state.record,
-          message: "An earlier code validator did not pass",
-        });
-        continue;
-      }
       emit(state.record);
-      await local.run(state, async () => {
+      const verdict = await local.run(state, async () => {
         try {
-          const input = context();
-          state.record = {
-            ...state.record,
-            input: state.capture({ prepared: input.prepared }),
-          };
           const raw = await check.validate(input);
           state.record = { ...state.record, output: state.capture(raw) };
           const result = decodeResult(raw);
@@ -264,12 +247,8 @@ export const runValidators = async (
             message: (verdict.message ?? "").slice(0, 2000),
             exitCode: 0,
           };
-          stopped = !verdict.passed;
-          passed &&= verdict.passed;
-          message = verdict.message;
+          return verdict;
         } catch (error) {
-          stopped = true;
-          passed = false;
           process.exitCode = 1;
           state.record = {
             ...state.record,
@@ -281,14 +260,22 @@ export const runValidators = async (
             ),
             exitCode: 1,
           };
+          return {
+            passed: false,
+            message: `${check.name} threw or returned an invalid result`,
+          };
         } finally {
           state.record = {
             ...state.record,
-            durationMs: Math.max(0, Math.round(now() - (started ?? now()))),
+            durationMs: Math.max(0, Math.round(now() - started)),
           };
           emit(state.record);
         }
       });
+      if (passed) {
+        message = verdict.message;
+      }
+      passed &&= verdict.passed;
     }
     write(`ANPORD_VALIDATOR_RESULT=${JSON.stringify({ passed, message })}\n`);
   } finally {

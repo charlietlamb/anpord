@@ -46,10 +46,14 @@ export const scoreValidator = (
       },
       records,
       prefix: request.validationPrefix,
+      secrets: request.secrets,
       observe: request.onValidation,
     });
     const finished = yield* Clock.currentTimeMillis;
-    const capture = validationCapture(request.validator.capture !== false);
+    const capture = validationCapture(
+      request.validator.capture !== false,
+      request.secrets
+    );
     const validations = completeValidations(
       request.validator.manifest === undefined
         ? execution.records.map((record) =>

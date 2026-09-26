@@ -19,6 +19,34 @@ describe("a case that states a user", () => {
     ).toThrow();
   });
 
+  test("names a harness and model to play the person through", () => {
+    expect(
+      human({
+        goal: "g",
+        prompt: "p",
+        harness: "codex",
+        model: "gpt-5.6-luna",
+      })
+    ).toEqual({
+      kind: "simulated",
+      goal: "g",
+      prompt: "p",
+      harness: "codex",
+      model: "gpt-5.6-luna",
+    });
+    expect(() =>
+      human({ goal: "g", prompt: "p", harness: "codex" } as never)
+    ).toThrow();
+    expect(() =>
+      human({
+        goal: "g",
+        prompt: "p",
+        harness: "command",
+        model: "m",
+      } as never)
+    ).toThrow();
+  });
+
   test("takes a script when the ordering is the point", () => {
     expect(script(["yes, go ahead"])).toMatchObject({
       kind: "scripted",

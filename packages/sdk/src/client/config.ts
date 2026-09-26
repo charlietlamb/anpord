@@ -1,7 +1,15 @@
 import { DEFAULT_BASE_URL, layer } from "@anpord/schema/public/client";
-import { Config, Effect, Layer } from "effect";
+import { Config, ConfigError, Effect, Either, Layer, Redacted } from "effect";
 
-export const apiKeyConfig = Config.redacted("ANPORD_API_KEY");
+const API_KEY = "ANPORD_API_KEY";
+
+export const apiKeyConfig = Config.string(API_KEY).pipe(
+  Config.mapOrFail((key) =>
+    key.trim() === ""
+      ? Either.left(ConfigError.MissingData([API_KEY], `${API_KEY} is empty`))
+      : Either.right(Redacted.make(key.trim()))
+  )
+);
 
 export const baseUrlConfig = Config.string("ANPORD_BASE_URL").pipe(
   Config.withDefault(DEFAULT_BASE_URL)

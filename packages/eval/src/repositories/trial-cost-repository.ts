@@ -80,6 +80,7 @@ export const TrialCostRepositoryLive = Layer.effect(
               .where(
                 inArray(evalTrialCost.trialInternalId, [...trialInternalIds])
               )
+              .orderBy(evalTrialCost.trialInternalId, evalTrialCost.component)
           ).pipe(Effect.withSpan("TrialCostRepository.forTrials"));
 
     return TrialCostRepository.of({ forTrials, record });

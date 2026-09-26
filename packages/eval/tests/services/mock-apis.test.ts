@@ -70,6 +70,7 @@ describe("shared API mock trial runtime", () => {
         Effect.gen(function* () {
           let entries = [call];
           const runtime = yield* startMockApis({
+            secrets: [],
             profile,
             workspace: "/workspace",
             sandbox: sandbox(() =>
@@ -100,6 +101,7 @@ describe("shared API mock trial runtime", () => {
       Effect.scoped(
         Effect.gen(function* () {
           const runtime = yield* startMockApis({
+            secrets: [],
             profile,
             workspace: "/workspace",
             sandbox: sandbox(() =>
@@ -118,6 +120,7 @@ describe("shared API mock trial runtime", () => {
     const evidence = Effect.scoped(
       Effect.gen(function* () {
         const runtime = yield* startMockApis({
+          secrets: [],
           profile,
           workspace: "/workspace",
           sandbox: sandbox(() => "not json"),
@@ -132,6 +135,7 @@ describe("shared API mock trial runtime", () => {
       Effect.runPromise(
         Effect.scoped(
           startMockApis({
+            secrets: [],
             profile,
             workspace: "/workspace",
             sandbox: sandbox(() => "", `${API_READY}{}\n`),
@@ -141,3 +145,32 @@ describe("shared API mock trial runtime", () => {
     ).rejects.toThrow("Invalid API runtime evidence");
   });
 });
+
+test("a body with the trial credential crossing the stored limit leaves no fragment", () =>
+  Effect.runPromise(
+    Effect.scoped(
+      Effect.gen(function* () {
+        const reported: ApiCall = {
+          ...call,
+          output: {
+            text: `${"x".repeat(15_995)}opaque-access-token-1 then more`,
+            format: "text",
+            state: "captured",
+            truncated: false,
+          },
+        };
+        const runtime = yield* startMockApis({
+          profile,
+          secrets: ["opaque-access-token-1"],
+          workspace: "/workspace",
+          sandbox: sandbox(() => JSON.stringify(reported)),
+        });
+        const [event] = yield* runtime.collect();
+        const output = event?._tag === "ToolCall" ? event.output : undefined;
+        expect([output?.length, output?.slice(15_990)]).toEqual([
+          16_000,
+          "xxxxx[reda",
+        ]);
+      })
+    )
+  ));

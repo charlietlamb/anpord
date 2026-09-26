@@ -1,3 +1,4 @@
+import type { Whoami } from "@anpord/schema/public/auth-api";
 import {
   type AnpordClient,
   DEFAULT_BASE_URL,
@@ -19,6 +20,7 @@ import type {
   PromptMetadata,
   PromptSelector,
 } from "./cache/types";
+import { apiKeyConfig } from "./config";
 import { asAnpordError, MissingApiKey } from "./errors";
 import { type EvalsSurface, evalsSurface } from "./evals";
 import { type Promised, promised } from "./promised";
@@ -32,11 +34,16 @@ export interface AnpordOptions {
 }
 
 const resolveApiKey = (provided: string | undefined) => {
-  const apiKey = provided ?? globalThis.process?.env?.ANPORD_API_KEY;
-  if (!apiKey) {
-    throw new MissingApiKey();
+  const given = provided?.trim() ?? "";
+  if (given !== "") {
+    return given;
   }
-  return apiKey;
+  return Option.getOrThrowWith(
+    Effect.runSync(Effect.option(apiKeyConfig)).pipe(
+      Option.map(Redacted.value)
+    ),
+    () => new MissingApiKey()
+  );
 };
 
 type Prompts = Promised<AnpordClient["prompts"]>;
@@ -56,6 +63,7 @@ export interface PromptsSurface extends Omit<Prompts, "get"> {
 export class Anpord {
   readonly evals: EvalsSurface;
   readonly prompts: PromptsSurface;
+  readonly whoami: () => Promise<Whoami>;
 
   private readonly runtime: ManagedRuntime.ManagedRuntime<PromptCache, never>;
 
@@ -77,6 +85,8 @@ export class Anpord {
 
     const group = promised(client.prompts);
     this.evals = evalsSurface(client);
+    const auth = promised(client.auth);
+    this.whoami = () => auth.whoami();
 
     const forget = (id: string) =>
       this.runtime

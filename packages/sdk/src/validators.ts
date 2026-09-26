@@ -22,10 +22,8 @@ export const judge = (options: JudgeOptions): EvalJudge =>
     { onExcessProperty: "error" }
   );
 
-export type {
-  EvalTurn as Turn,
-  EvalUser as User,
-} from "@anpord/schema/domain/eval-turns";
+export type { EvalTurn as Turn } from "@anpord/schema/domain/eval-conversation";
+export type { EvalUser as User } from "@anpord/schema/domain/eval-turns";
 
 export type HumanOptions = typeof EvalSimulatedUser.Encoded extends infer O
   ? O extends { readonly kind: "simulated" }

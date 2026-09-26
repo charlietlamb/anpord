@@ -60,7 +60,7 @@ The rules are in `~/.agents/skills/repo-map/SKILL.md`. This file only says where
 ## Commands
 
 ```bash
-bun run check           # ultracite
+bun run check           # ultracite, then db:check
 bun run typecheck
 bun run test
 bun run knip
@@ -68,7 +68,20 @@ bun run check:comments  # pre-commit, caps a comment block at three lines
 bun run doctor          # React changes
 ```
 
-Database: `bun run db:generate`, `bun run db:migrate`, `bun run db:studio`. Read the generated SQL for drops before migrating.
+Database commands run from the repository root. Each picks `DATABASE_URL`, then `.env.local`, then `.env`, and prints the database before touching it. `packages/db/README.md` has the details.
+
+```bash
+bun run db:generate --name <what_changed>  # drizzle-kit generate, with the new entry dated after the last
+bun run db:status                          # read only: target, applied, pending, and each refusal with its fix; exits 1 if migrate would refuse
+bun run db:migrate --dry-run               # read only: pending SQL files and their data loss
+bun run db:migrate                         # one transaction; refuses a pushed or mismatched database, and data loss
+bun run db:migrate --record <tag>          # mark migrations up to <tag> applied without running them (a pushed database)
+bun run db:migrate --confirm-data-loss     # apply a migration that drops or deletes, after a pg_dump backup
+bun run db:reset                           # localhost only: drop, recreate, migrate; --yes when the database exists
+bun run db:check                           # journal order, and data loss missing from drizzle/data-loss.json
+```
+
+Never run `drizzle-kit migrate` or `drizzle-kit push` directly. Read the SQL `db:generate` prints before migrating. Ask the owner before `--confirm-data-loss` or `db:reset --yes` on a database that holds their data.
 
 ## Running an eval locally
 

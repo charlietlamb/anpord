@@ -1,0 +1,1 @@
+ALTER TABLE "eval_batch" ADD COLUMN "request_hash" text;

@@ -75,6 +75,7 @@ const prepare = (
     prepare: null,
     profile,
     sandbox,
+    secrets: [],
     source: { kind: "repo", ref: null, url: "https://example.test/repo.git" },
     workspace: WORKSPACE,
     ...overrides,

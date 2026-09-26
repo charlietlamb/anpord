@@ -7,7 +7,7 @@ import { CredentialResolver } from "../credentials/resolver";
 import { bindCredentials } from "../credentials/variants";
 import { EvalNotFound, NotRunnable } from "../domain/errors";
 import { caseTemplatesQuery } from "../repositories/case-templates-query";
-import type { Launch } from "./launch";
+import type { Launch, Launched } from "./launch";
 
 export interface RunCase {
   readonly actor: Actor;
@@ -27,13 +27,7 @@ const missingVariants = (
 };
 
 export const makeRunCase = (
-  launch: (input: Launch) => Effect.Effect<
-    {
-      readonly internalId: string;
-      readonly runInternalIds: readonly string[];
-    },
-    unknown
-  >
+  launch: (input: Launch) => Effect.Effect<Launched, unknown>
 ) =>
   Effect.gen(function* () {
     const credentials = yield* CredentialResolver;
@@ -91,6 +85,8 @@ export const makeRunCase = (
         );
 
         const created = yield* launch({
+          checksIn: false,
+          idempotency: null,
           local: false,
           organizationId: input.actor.organizationId,
           runs: runs.map((run, index) => ({
@@ -108,7 +104,7 @@ export const makeRunCase = (
           })),
           startedBy: authorIdOf(input.actor),
           trigger: input.trigger,
-        }).pipe(Effect.orDie);
+        }).pipe(Effect.flatten, Effect.orDie);
 
         return {
           id: created.internalId,

@@ -25,6 +25,24 @@ describe("the eval gate", () => {
     ]);
   });
 
+  test("says why a trial stopped before it was scored", () => {
+    const batch = createBatch({
+      runs: [
+        createRun({
+          trials: [
+            createTrial({
+              failure: "The agent ran past its time limit of 5m",
+              status: "void",
+            }),
+          ],
+        }),
+      ],
+    });
+    expect(problemsWith(batch, "failures", ONE)).toEqual([
+      "fixture on codex/test, trial 1: void. The agent ran past its time limit of 5m",
+    ]);
+  });
+
   test("failures rejects a failed run", () => {
     const batch = createBatch({ runs: [createRun({ status: "failed" })] });
     expect(problemsWith(batch, "failures", ONE)).toEqual([

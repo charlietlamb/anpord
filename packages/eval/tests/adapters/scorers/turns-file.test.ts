@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
 import { Effect } from "effect";
 import {
   answerEnv,
@@ -15,24 +16,39 @@ const sandbox = (written: Map<string, string>) =>
       }),
   }) as never;
 
-const turns = [
-  { agentText: "shall I push?", commandCount: 2, index: 0, userText: "open" },
-  { agentText: "pushed", commandCount: 1, index: 1, userText: "yes" },
+const turns: EvalTurn[] = [
+  {
+    agentText: "shall I push?",
+    commandCount: 1,
+    events: [
+      {
+        _tag: "command",
+        command: "git status",
+        exitCode: 0,
+        finishedAtMillis: 2,
+        output: "clean",
+        outputTruncated: false,
+        startedAtMillis: 1,
+      },
+    ],
+    index: 0,
+    userText: "open",
+  },
+  {
+    agentText: "pushed",
+    commandCount: 0,
+    events: [],
+    index: 1,
+    userText: "yes",
+  },
 ];
 
 describe("the turns a validator reads", () => {
-  it("writes what each side said, in order", async () => {
+  it("writes what each side said and did, in order", async () => {
     const written = new Map<string, string>();
     await Effect.runPromise(writeAnswer(sandbox(written), [], turns));
 
     expect(JSON.parse(written.get(TURNS_PATH("/home")) ?? "[]")).toEqual(turns);
-  });
-
-  it("writes an empty list for a case with no conversation", async () => {
-    const written = new Map<string, string>();
-    await Effect.runPromise(writeAnswer(sandbox(written), [], undefined));
-
-    expect(written.get(TURNS_PATH("/home"))).toBe("[]");
   });
 
   it("names the file for the validator", () => {

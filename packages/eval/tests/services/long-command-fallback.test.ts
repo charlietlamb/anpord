@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Layer, Stream } from "effect";
+import type { CommandWatcher } from "../../src/adapters/sandbox/run-command";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
 import { runLongCommand } from "../../src/services/long-command";
 import { Suspender } from "../../src/services/suspender";
@@ -35,10 +36,7 @@ const streamingSandbox = (chunks: readonly ExecChunk[]) => {
   return { sandbox, seen };
 };
 
-const run = (
-  sandbox: SandboxHandle,
-  watch?: (text: string) => Effect.Effect<void>
-) =>
+const run = (sandbox: SandboxHandle, watch?: CommandWatcher) =>
   Effect.runPromise(
     runLongCommand(sandbox, "npm ci", {
       cwd: "/tmp/ws",
@@ -99,9 +97,9 @@ describe("a provider that cannot resume a command", () => {
 
     const watched: string[] = [];
 
-    await run(sandbox, (text) =>
+    await run(sandbox, (output) =>
       Effect.sync(() => {
-        watched.push(text);
+        watched.push(output.stdout);
       })
     );
 

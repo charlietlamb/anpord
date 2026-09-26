@@ -1,5 +1,9 @@
 import { Option } from "effect";
-import type { ResumableCommands, SandboxCache } from "../../src/ports/sandbox";
+import type {
+  ResumableCommands,
+  SandboxCache,
+  SharedInstalls,
+} from "../../src/ports/sandbox";
 
 /**
  * What a handle in a test declares when the test is not about a capability.
@@ -9,5 +13,6 @@ import type { ResumableCommands, SandboxCache } from "../../src/ports/sandbox";
  */
 export const declinesEverything = {
   cache: Option.none<SandboxCache>(),
+  installs: Option.none<SharedInstalls>(),
   resumable: Option.none<ResumableCommands>(),
 };

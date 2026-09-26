@@ -6,9 +6,12 @@ export const trialVerdict = (trial: EvalTrial) => {
   }
 
   if (trial.status === "void") {
+    if (trial.failure !== null) {
+      return `Not scored: ${trial.failure}`;
+    }
     return trial.voidFields.length === 0
       ? "Not scored"
-      : `Not scored · ${trial.voidFields.join(", ")}`;
+      : `Not scored: ${trial.voidFields.join(", ")}`;
   }
 
   const failed = trial.validations.filter(

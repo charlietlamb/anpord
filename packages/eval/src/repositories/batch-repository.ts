@@ -3,12 +3,17 @@ import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import { and, count, eq } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
+import { and, count, eq, not } from "drizzle-orm";
+import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "./query";
+import { quietLocalBatch } from "./quiet-local-batch";
+import { unreportedTrials, voidUnreported } from "./unreported-trials";
 
-export interface NewRun {
+const UNREPORTED = "not recorded: the machine running this never reported it";
+
+interface NewRun {
   readonly caseVersionInternalId: string;
   readonly harnessCredentialConnectionId: string | null;
   readonly harnessCredentialRevision: number | null;
@@ -20,7 +25,14 @@ export interface NewRun {
   readonly variantInternalId: string;
 }
 
+export interface StartKey {
+  readonly key: IdempotencyKey;
+  readonly requestHash: string;
+}
+
 export interface NewBatch {
+  readonly checksIn: boolean;
+  readonly idempotency: StartKey | null;
   readonly local: boolean;
   readonly organizationId: string;
   readonly runs: readonly NewRun[];
@@ -38,13 +50,14 @@ export interface BatchRepositoryShape {
     readonly status: Settled;
   }) => Effect.Effect<void, EvalStoreError>;
   readonly inFlight: (
-    organizationId: string
+    organizationId: string,
+    quietSince: Date
   ) => Effect.Effect<number, EvalStoreError>;
   readonly insert: (input: NewBatch) => Effect.Effect<
-    {
+    Option.Option<{
       readonly internalId: string;
       readonly runInternalIds: readonly string[];
-    },
+    }>,
     EvalStoreError
   >;
   readonly reopen: (internalId: string) => Effect.Effect<void, EvalStoreError>;
@@ -56,6 +69,10 @@ export interface BatchRepositoryShape {
     readonly finishedAt: Date;
     readonly internalId: string;
     readonly status: Settled;
+  }) => Effect.Effect<void, EvalStoreError>;
+  readonly touch: (input: {
+    readonly internalId: string;
+    readonly seenAt: Date;
   }) => Effect.Effect<void, EvalStoreError>;
 }
 
@@ -75,17 +92,30 @@ export const BatchRepositoryLive = Layer.effect(
         const runInternalIds = yield* Effect.forEach(input.runs, () =>
           ids.generate("evalRun")
         );
+        const createdAt = new Date(yield* Clock.currentTimeMillis);
 
-        yield* tryStore("batch.insert", () =>
+        const inserted = yield* tryStore("batch.insert", () =>
           db.transaction(async (tx) => {
-            await tx.insert(evalBatch).values({
-              internalId,
-              local: input.local,
-              organizationId: input.organizationId,
-              startedBy: input.startedBy,
-              status: "running",
-              trigger: input.trigger,
-            });
+            const [batch] = await tx
+              .insert(evalBatch)
+              .values({
+                idempotencyKey: input.idempotency?.key ?? null,
+                internalId,
+                lastSeenAt: input.local && input.checksIn ? createdAt : null,
+                local: input.local,
+                organizationId: input.organizationId,
+                requestHash: input.idempotency?.requestHash ?? null,
+                startedBy: input.startedBy,
+                status: "running",
+                trigger: input.trigger,
+              })
+              .onConflictDoNothing({
+                target: [evalBatch.organizationId, evalBatch.idempotencyKey],
+              })
+              .returning({ internalId: evalBatch.internalId });
+            if (batch === undefined) {
+              return false;
+            }
             if (input.runs.length > 0) {
               await tx.insert(evalRun).values(
                 input.runs.map((run, index) => ({
@@ -96,10 +126,13 @@ export const BatchRepositoryLive = Layer.effect(
                 }))
               );
             }
+            return true;
           })
         );
 
-        return { internalId, runInternalIds };
+        return inserted
+          ? Option.some({ internalId, runInternalIds })
+          : Option.none();
       }).pipe(
         Effect.withSpan("BatchRepository.insert", {
           attributes: { runs: input.runs.length },
@@ -116,7 +149,12 @@ export const BatchRepositoryLive = Layer.effect(
             finishedAt: input.finishedAt,
             status: input.status,
           })
-          .where(eq(evalBatch.internalId, input.internalId))
+          .where(
+            and(
+              eq(evalBatch.internalId, input.internalId),
+              eq(evalBatch.status, "running")
+            )
+          )
       ).pipe(
         Effect.asVoid,
         Effect.withSpan("BatchRepository.finish", {
@@ -124,7 +162,7 @@ export const BatchRepositoryLive = Layer.effect(
         })
       );
 
-    const inFlight = (organizationId: string) =>
+    const inFlight = (organizationId: string, quietSince: Date) =>
       tryStore("batch.inFlight", () =>
         db
           .select({ running: count() })
@@ -132,7 +170,8 @@ export const BatchRepositoryLive = Layer.effect(
           .where(
             and(
               eq(evalBatch.organizationId, organizationId),
-              eq(evalBatch.status, "running")
+              eq(evalBatch.status, "running"),
+              not(quietLocalBatch(quietSince))
             )
           )
       ).pipe(
@@ -171,18 +210,47 @@ export const BatchRepositoryLive = Layer.effect(
         })
       );
 
-    const settleOpenRuns: BatchRepositoryShape["settleOpenRuns"] = (input) =>
-      tryStore("batch.settleOpenRuns", () =>
+    const touch: BatchRepositoryShape["touch"] = (input) =>
+      tryStore("batch.touch", () =>
         db
-          .update(evalRun)
-          .set({ finishedAt: input.finishedAt, status: "finished" })
-          .where(
-            and(
-              eq(evalRun.batchInternalId, input.batchInternalId),
-              eq(evalRun.status, "running")
-            )
-          )
-      ).pipe(Effect.asVoid, Effect.withSpan("BatchRepository.settleOpenRuns"));
+          .update(evalBatch)
+          .set({ lastSeenAt: input.seenAt })
+          .where(eq(evalBatch.internalId, input.internalId))
+      ).pipe(
+        Effect.asVoid,
+        Effect.withSpan("BatchRepository.touch", {
+          attributes: { batchId: input.internalId },
+        })
+      );
+
+    const settleOpenRuns: BatchRepositoryShape["settleOpenRuns"] = (input) =>
+      Effect.gen(function* () {
+        const unreported = yield* unreportedTrials(db, ids, [
+          input.batchInternalId,
+        ]);
+
+        yield* tryStore("batch.settleOpenRuns", () =>
+          db.transaction(async (tx) => {
+            await voidUnreported(tx, unreported, {
+              failure: UNREPORTED,
+              finishedAt: input.finishedAt,
+            });
+            await tx
+              .update(evalRun)
+              .set({ finishedAt: input.finishedAt, status: "finished" })
+              .where(
+                and(
+                  eq(evalRun.batchInternalId, input.batchInternalId),
+                  eq(evalRun.status, "running")
+                )
+              );
+          })
+        );
+      }).pipe(
+        Effect.withSpan("BatchRepository.settleOpenRuns", {
+          attributes: { batchId: input.batchInternalId },
+        })
+      );
 
     return BatchRepository.of({
       finish,
@@ -191,6 +259,7 @@ export const BatchRepositoryLive = Layer.effect(
       reopen,
       settleOpenRuns,
       settleRun,
+      touch,
     });
   })
 );
