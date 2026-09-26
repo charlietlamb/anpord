@@ -8,44 +8,47 @@ import {
 import { ShellText } from "@anpord/ui/components/ui/shell-text";
 import { MarkdownProse } from "@/components/evals/markdown-prose";
 
+export type StepPart = "all" | "input" | "output";
+
 export function StepDetailBody({
   entry,
+  part = "all",
 }: {
   readonly entry: EvalJournalEntry;
+  readonly part?: StepPart;
 }) {
   if (entry._tag === "message") {
     return <MarkdownProse text={entry.text} />;
   }
 
-  if (entry._tag === "command") {
-    const command = labelOf(entry);
-
+  if (entry._tag === "fileChange") {
     return (
-      <>
-        <ToolSection copy={command} label="Command">
-          <ShellText command={command} />
-        </ToolSection>
-        <ToolOutput output={entry.output} truncated={entry.outputTruncated} />
-      </>
+      <ToolSection copy={entry.paths.join("\n")} label="Files">
+        {entry.paths.join("\n")}
+      </ToolSection>
     );
   }
 
-  if (entry._tag === "toolCall") {
-    return (
-      <>
-        <ToolInput input={entry.input} truncated={entry.inputTruncated} />
-        <ToolOutput
-          errorText={entry.error}
-          output={entry.output}
-          truncated={entry.outputTruncated}
-        />
-      </>
+  const input =
+    entry._tag === "command" ? (
+      <ToolSection copy={labelOf(entry)} label="Command">
+        <ShellText command={labelOf(entry)} />
+      </ToolSection>
+    ) : (
+      <ToolInput input={entry.input} truncated={entry.inputTruncated} />
     );
-  }
+  const output = (
+    <ToolOutput
+      errorText={entry._tag === "toolCall" ? entry.error : undefined}
+      output={entry.output}
+      truncated={entry.outputTruncated}
+    />
+  );
 
   return (
-    <ToolSection copy={entry.paths.join("\n")} label="Files">
-      {entry.paths.join("\n")}
-    </ToolSection>
+    <>
+      {part === "output" ? null : input}
+      {part === "input" ? null : output}
+    </>
   );
 }
