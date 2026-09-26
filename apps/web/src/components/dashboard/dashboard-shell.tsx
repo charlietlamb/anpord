@@ -32,17 +32,17 @@ export function DashboardShell({ children, sidebarOpen }: DashboardShellProps) {
           </ClientOnly>
         </Hydrate>
         <AppSidebar />
-        <SidebarInset className="relative isolate min-w-0 overflow-hidden bg-background md:peer-data-[variant=inset]:border md:peer-data-[variant=inset]:border-sidebar-border">
-          <ClientOnly>
-            <ImpersonationBanner />
-          </ClientOnly>
-          <header className="flex h-11 shrink-0 items-center border-b">
-            <div className="flex w-full items-center gap-1 px-5 xl:px-6">
-              <SidebarTrigger className="-ml-1 size-7 shrink-0 text-muted-foreground hover:bg-transparent hover:text-foreground active:bg-transparent" />
-              <DashboardBreadcrumbs />
-            </div>
+        <SidebarInset className="min-w-0 bg-transparent md:peer-data-[variant=inset]:mt-0 md:peer-data-[variant=inset]:rounded-none md:peer-data-[variant=inset]:shadow-none">
+          <header className="flex h-11 shrink-0 items-center gap-1 px-3 md:px-1">
+            <SidebarTrigger className="size-7 shrink-0 text-muted-foreground hover:bg-transparent hover:text-foreground active:bg-transparent" />
+            <DashboardBreadcrumbs />
           </header>
-          {children}
+          <div className="relative isolate flex min-h-0 flex-1 flex-col overflow-hidden bg-background md:rounded-xl md:border md:border-sidebar-border md:shadow-sm">
+            <ClientOnly>
+              <ImpersonationBanner />
+            </ClientOnly>
+            {children}
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
