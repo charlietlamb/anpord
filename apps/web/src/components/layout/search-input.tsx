@@ -26,24 +26,23 @@ export function SearchInput({
     >
       <MagnifyingGlassIcon
         aria-hidden="true"
-        className="pointer-events-none absolute left-2.5 size-3.5 text-muted-foreground"
+        className="pointer-events-none absolute left-2.5 size-4 text-muted-foreground"
       />
       <Input
         aria-label={label}
         className={cn(
-          "rounded-md border-border bg-alpha-4 pr-8 pl-8 text-sm focus-within:ring-0 focus-visible:ring-0 dark:bg-alpha-4 [&::-webkit-search-cancel-button]:hidden",
+          "pr-8 pl-8 [&::-webkit-search-cancel-button]:hidden",
           className
         )}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        size="sm"
         type="search"
         value={value}
       />
       {value ? (
         <Button
           aria-label="Clear search"
-          className="absolute right-1"
+          className="absolute right-1.5"
           onClick={() => onChange("")}
           size="icon-xs"
           variant="bare"

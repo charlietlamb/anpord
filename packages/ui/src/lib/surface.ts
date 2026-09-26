@@ -2,7 +2,10 @@ const SURFACE_BORDER = "border border-border bg-card dark:bg-muted";
 
 export const SURFACE_FILL = `${SURFACE_BORDER} shadow-sm`;
 
-export const SURFACE_RAISED = `${SURFACE_BORDER} shadow-[inset_0_1px_0_0_rgb(255_255_255/0.06),0_1px_2px_0_rgb(0_0_0/0.3)]`;
+export const SURFACE_CONTROL = "bg-control shadow-(--shadow-control)";
+
+export const SURFACE_CONTROL_HOVER =
+  "hover:bg-[color-mix(in_oklch,var(--control),var(--foreground)_5%)] aria-expanded:bg-[color-mix(in_oklch,var(--control),var(--foreground)_5%)]";
 
 export const SURFACE_RING = "ring-2 ring-muted dark:ring-card";
 

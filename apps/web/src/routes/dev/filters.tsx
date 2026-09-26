@@ -79,7 +79,7 @@ function FiltersPreview() {
             onChange={setQuery}
             value={query}
           />
-          <Button size="sm">
+          <Button>
             <PlusIcon />
             New eval
           </Button>
