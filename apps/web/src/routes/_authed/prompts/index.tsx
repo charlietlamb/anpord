@@ -70,7 +70,7 @@ function PromptsPage() {
             options={PROMPT_SORT_OPTIONS}
             value={filters.sort}
           />
-          <Button render={<Link to="/prompts/new" />} size="sm">
+          <Button render={<Link to="/prompts/new" />}>
             <PlusIcon />
             New prompt
           </Button>

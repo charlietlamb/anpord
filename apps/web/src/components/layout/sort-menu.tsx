@@ -49,14 +49,7 @@ export function SortMenu<T extends string>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button
-            aria-label="Sort"
-            className="rounded-md"
-            size="icon-sm"
-            variant="subtle"
-          />
-        }
+        render={<Button aria-label="Sort" size="icon" variant="subtle" />}
       >
         <ArrowsDownUpIcon />
       </DropdownMenuTrigger>

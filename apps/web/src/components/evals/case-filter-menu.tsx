@@ -98,11 +98,8 @@ export function CaseFilterMenu({
         render={
           <Button
             aria-label="Filter cases"
-            className={cn(
-              "relative rounded-md",
-              active > 0 && "text-foreground"
-            )}
-            size="icon-sm"
+            className={cn("relative", active > 0 && "text-foreground")}
+            size="icon"
             variant="subtle"
           />
         }

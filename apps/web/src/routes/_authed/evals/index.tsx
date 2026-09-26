@@ -73,7 +73,7 @@ function EvalsIndex() {
           onChange={(q) => narrow({ q })}
           value={filters.q}
         />
-        <Button render={<Link to="/evals/new" />} size="sm">
+        <Button render={<Link to="/evals/new" />}>
           <PlusIcon />
           New eval
         </Button>

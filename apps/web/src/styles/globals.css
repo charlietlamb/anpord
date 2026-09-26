@@ -186,6 +186,7 @@
   --color-warning: var(--warning);
   --color-alpha-4: var(--alpha-4);
   --color-alpha-8: var(--alpha-8);
+  --color-control: var(--control);
   --default-transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
   --default-transition-duration: 200ms;
   --ease-emphasised: cubic-bezier(0.2, 0, 0, 1);
@@ -218,6 +219,7 @@
   --foreground: oklch(0.145 0 0);
   --alpha-4: oklch(0 0 0 / 4%);
   --alpha-8: oklch(0 0 0 / 8%);
+  --control: oklch(1 0 0);
   --success: oklch(0.6 0.14 155);
   --warning: oklch(0.72 0.15 75);
 
@@ -234,6 +236,7 @@
   --shadow-popover:
     0 0 0 1px var(--border), 0 16px 32px oklch(0 0 0 / 10%),
     0 4px 10px oklch(0 0 0 / 8%);
+  --shadow-control: 0 0 0 0.5px oklch(0 0 0 / 14%), 0 1px 2px oklch(0 0 0 / 8%);
 }
 
 .dark {
@@ -260,6 +263,7 @@
   --border: oklch(1 0 0 / 10%);
   --alpha-4: oklch(1 0 0 / 4%);
   --alpha-8: oklch(1 0 0 / 9%);
+  --control: oklch(0.225 0.008 248);
   --success: oklch(0.72 0.15 155);
   --warning: oklch(0.8 0.15 78);
 
@@ -276,6 +280,9 @@
   --shadow-popover:
     0 0 0 1px var(--border), 0 1px 0 oklch(1 0 0 / 6%) inset,
     0 16px 32px oklch(0 0 0 / 40%), 0 4px 10px oklch(0 0 0 / 30%);
+  --shadow-control:
+    inset 0 0 0 0.5px oklch(1 0 0 / 16%), 0 1px 2px 0.5px oklch(0 0 0 / 40%),
+    0 0 0 0.5px oklch(0 0 0 / 16%);
   --input: oklch(1 0 0 / 20%);
   --ring: oklch(0.72 0 0);
 }
