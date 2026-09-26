@@ -1,77 +1,26 @@
 import type { EvalSuite } from "@anpord/schema/domain/evals";
 import { Button } from "@anpord/ui/components/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@anpord/ui/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@anpord/ui/components/ui/popover";
 import { cn } from "@anpord/ui/lib/utils";
 import {
-  CaretRightIcon,
-  CheckIcon,
   FunnelSimpleIcon,
+  StackIcon,
+  TagIcon,
   XIcon,
 } from "@phosphor-icons/react";
-
-interface Choice {
-  readonly label: string;
-  readonly value: string;
-}
-
-function FilterGroup({
-  choices,
-  label,
-  onSelect,
-  selected,
-}: {
-  readonly choices: readonly Choice[];
-  readonly label: string;
-  readonly onSelect: (value: string | null) => void;
-  readonly selected: string | null;
-}) {
-  if (choices.length === 0) {
-    return null;
-  }
-
-  return (
-    <DropdownMenuSub>
-      <DropdownMenuSubTrigger className="justify-between">
-        <span className="flex items-center gap-2">
-          {label}
-          {selected === null ? null : (
-            <span className="truncate text-muted-foreground text-xs">
-              {choices.find((choice) => choice.value === selected)?.label}
-            </span>
-          )}
-        </span>
-        <CaretRightIcon className="size-3.5 text-muted-foreground" />
-      </DropdownMenuSubTrigger>
-
-      <DropdownMenuSubContent className="max-h-72 min-w-52">
-        <DropdownMenuItem onClick={() => onSelect(null)}>
-          <CheckIcon className={selected === null ? undefined : "invisible"} />
-          Any
-        </DropdownMenuItem>
-        {choices.map((choice) => (
-          <DropdownMenuItem
-            key={choice.value}
-            onClick={() => onSelect(choice.value)}
-          >
-            <CheckIcon
-              className={choice.value === selected ? undefined : "invisible"}
-            />
-            <span className="truncate">{choice.label}</span>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuSubContent>
-    </DropdownMenuSub>
-  );
-}
 
 export function CaseFilterMenu({
   onClear,
@@ -93,8 +42,8 @@ export function CaseFilterMenu({
   const active = (suite === null ? 0 : 1) + (tag === null ? 0 : 1);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Popover>
+      <PopoverTrigger
         render={
           <Button
             aria-label="Filter cases"
@@ -108,35 +57,59 @@ export function CaseFilterMenu({
         {active > 0 ? (
           <span className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary" />
         ) : null}
-      </DropdownMenuTrigger>
+      </PopoverTrigger>
 
-      <DropdownMenuContent align="start" className="min-w-48">
-        <FilterGroup
-          choices={suites.map((entry) => ({
-            label: entry.name,
-            value: entry.id,
-          }))}
-          label="Suite"
-          onSelect={onSuite}
-          selected={suite}
-        />
-        <FilterGroup
-          choices={tags.map((entry) => ({ label: entry, value: entry }))}
-          label="Tag"
-          onSelect={onTag}
-          selected={tag}
-        />
-
-        {active > 0 ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onClear}>
-              <XIcon />
-              Clear filters
-            </DropdownMenuItem>
-          </>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      <PopoverContent align="start" className="w-64 p-0">
+        <Command>
+          <CommandInput placeholder="Filter by…" />
+          <CommandList>
+            <CommandEmpty>No suites or tags match.</CommandEmpty>
+            {suites.length === 0 ? null : (
+              <CommandGroup heading="Suite">
+                {suites.map((entry) => (
+                  <CommandItem
+                    data-checked={entry.id === suite}
+                    key={entry.id}
+                    onSelect={() =>
+                      onSuite(entry.id === suite ? null : entry.id)
+                    }
+                    value={`suite ${entry.name}`}
+                  >
+                    <StackIcon />
+                    <span className="truncate">{entry.name}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {tags.length === 0 ? null : (
+              <CommandGroup heading="Tag">
+                {tags.map((entry) => (
+                  <CommandItem
+                    data-checked={entry === tag}
+                    key={entry}
+                    onSelect={() => onTag(entry === tag ? null : entry)}
+                    value={`tag ${entry}`}
+                  >
+                    <TagIcon />
+                    <span className="truncate">{entry}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {active > 0 ? (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem onSelect={onClear} value="clear filters">
+                    <XIcon />
+                    Clear filters
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            ) : null}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

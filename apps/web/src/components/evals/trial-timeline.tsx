@@ -1,7 +1,11 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
-import { Surface } from "@anpord/ui/components/ui/surface";
-import { SURFACE_FOOTER } from "@anpord/ui/lib/surface";
+import {
+  RULED_BODY,
+  RULED_FRAME,
+  SURFACE_FOOTER,
+} from "@anpord/ui/lib/surface";
+import { cn } from "@anpord/ui/lib/utils";
 import { TimelineBand } from "@/components/evals/timeline-band";
 import { TimelineSection } from "@/components/evals/timeline-section";
 import { buildTimeline } from "@/lib/evals/timeline-sections";
@@ -26,20 +30,20 @@ export function TrialTimeline({
 
   if (trajectory.length === 0) {
     return (
-      <Surface>
+      <div className={cn(RULED_FRAME, RULED_BODY)}>
         <EmptyNote>
           {running
             ? "Waiting for the first step. The agent reads before it acts."
             : "This trial recorded no journal."}
         </EmptyNote>
-      </Surface>
+      </div>
     );
   }
 
   const spanMs = timed ? timeline.spanMs : null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {spanMs !== null && spanMs > 0 ? (
         <TimelineBand
           onToggle={toggleSection}
@@ -50,7 +54,13 @@ export function TrialTimeline({
       ) : null}
 
       <div className="flex flex-col">
-        <div className="flex flex-col divide-y divide-alpha-8 overflow-hidden rounded-md bg-card shadow-(--shadow-control)">
+        <div
+          className={cn(
+            RULED_FRAME,
+            RULED_BODY,
+            "flex flex-col divide-y divide-border"
+          )}
+        >
           {timeline.sections.map((section, position) => (
             <TimelineSection
               key={section.steps[0]?.index ?? position}

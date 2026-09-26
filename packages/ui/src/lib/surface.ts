@@ -16,4 +16,8 @@ export const SURFACE_HEAD = "h-8 text-muted-foreground text-xs";
 export const SURFACE_FOOTER =
   "flex min-h-9 items-center gap-3 px-4 pt-2 pb-1 text-label text-muted-foreground";
 
+export const RULED_FRAME = "-mx-4";
+
+export const RULED_BODY = "border-border border-y";
+
 export const SURFACE_BODY = `overflow-hidden rounded-lg ${SURFACE_FILL}`;
