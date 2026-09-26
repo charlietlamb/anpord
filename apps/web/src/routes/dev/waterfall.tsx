@@ -14,8 +14,8 @@ import { ConversationStep } from "@/components/evals/conversation-step";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialSections } from "@/components/evals/trial-sections";
+import { TrialTimeline } from "@/components/evals/trial-timeline";
 import { TrialView } from "@/components/evals/trial-view";
-import { Waterfall } from "@/components/evals/waterfall";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { fileIcon } from "@/lib/evals/file-presentation";
 
@@ -24,19 +24,6 @@ export const Route = createFileRoute("/dev/waterfall")({
 });
 
 const TRIAL = TRIALS.find((candidate) => candidate.trajectory.length > 0);
-
-const RUNNING_TRAJECTORY = [
-  ...(TRIAL?.trajectory ?? []).slice(0, 3),
-  {
-    _tag: "command" as const,
-    command:
-      "/bin/bash -lc \"ls -la && printf '\\\\n--- package ---' && cat package.json\"",
-    exitCode: null,
-    finishedAtMillis: null,
-    output: "",
-    startedAtMillis: (TRIAL?.trajectory[0]?.finishedAtMillis ?? 0) + 500,
-  },
-];
 
 const LONG_CALLS = [
   {
@@ -128,7 +115,11 @@ function WaterfallPreview() {
 
         <PreviewScreen name="Conversation as a timeline">
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-5">
-            <Waterfall running={false} timed={true} trajectory={CONVERSATION} />
+            <TrialTimeline
+              running={false}
+              timed={true}
+              trajectory={CONVERSATION}
+            />
           </div>
         </PreviewScreen>
 
@@ -168,16 +159,6 @@ function WaterfallPreview() {
                 </span>
               );
             })}
-          </div>
-        </PreviewScreen>
-
-        <PreviewScreen name="A step still running">
-          <div className="mx-auto w-full max-w-5xl px-5">
-            <Waterfall
-              running={true}
-              timed={true}
-              trajectory={RUNNING_TRAJECTORY}
-            />
           </div>
         </PreviewScreen>
 

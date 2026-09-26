@@ -39,9 +39,3 @@ export const VERIFY_TABLE = {
   headings: ["Step", "Status"],
   label: "Verify steps",
 } as const;
-
-export const STEPS_TABLE = {
-  columns: "minmax(0,1fr)",
-  headings: ["Step"],
-  label: "Steps in the order they were recorded",
-} as const;
