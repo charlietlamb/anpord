@@ -47,6 +47,12 @@ export const describeCommand = (command: string): StepTitle => {
     return { target: null, title: "Ran a command", verb: "ran" };
   }
 
+  const written = segments.flatMap(redirectTargetOf);
+
+  if (written.length > 0) {
+    return describeFiles("wrote", "Wrote", written);
+  }
+
   if (segments.every((words) => READERS.has(words[0] ?? ""))) {
     const files = segments.flatMap((words) => operandsOf(words).at(-1) ?? []);
     return files.length > 0
@@ -59,8 +65,11 @@ export const describeCommand = (command: string): StepTitle => {
     : describeRun(first);
 };
 
+export const plainText = (text: string) =>
+  text.replace(MARKUP, "").replace(WHITESPACE, " ").trim();
+
 export const summarizeMessage = (text: string) => {
-  const plain = text.replace(MARKUP, "").replace(WHITESPACE, " ").trim();
+  const plain = plainText(text);
   return SENTENCE.exec(plain)?.[1] ?? plain;
 };
 
@@ -93,6 +102,27 @@ const splitSegments = (script: string) => {
 
   return segments.filter((words) => words.length > 0);
 };
+
+const REDIRECT = /^>>?/;
+const DISCARDED = "/dev/null";
+
+const targetAt = (words: readonly string[], index: number) => {
+  const word = words[index] ?? "";
+
+  if (word === ">" || word === ">>") {
+    return words[index + 1];
+  }
+
+  return REDIRECT.test(word) ? word.replace(REDIRECT, "") : undefined;
+};
+
+const redirectTargetOf = (words: readonly string[]) =>
+  words.flatMap((_, index) => {
+    const target = targetAt(words, index);
+    return target === undefined || target === "" || target === DISCARDED
+      ? []
+      : [target];
+  });
 
 const operandsOf = (words: readonly string[]) =>
   words.slice(1).filter((word) => !word.startsWith("-"));

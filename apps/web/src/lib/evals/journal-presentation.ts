@@ -1,7 +1,4 @@
-import {
-  ENTRY_NAMES,
-  type EntryKind,
-} from "@anpord/schema/domain/eval-journal";
+import type { EntryKind } from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import {
   BrainIcon,
@@ -14,11 +11,6 @@ import {
 } from "@phosphor-icons/react";
 
 export type JournalKind = EntryKind | "thinking";
-
-export const KIND_NAMES: Record<JournalKind, string> = {
-  ...ENTRY_NAMES,
-  thinking: "Thinking",
-};
 
 export const KIND_ICONS: Record<JournalKind, Icon> = {
   command: TerminalWindowIcon,

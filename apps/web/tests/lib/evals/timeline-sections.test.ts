@@ -4,6 +4,10 @@ import {
   buildTimeline,
   findLastWorkingSection,
   findSectionIndex,
+  findStep,
+  isInFlight,
+  splitOpening,
+  type TimelineSection,
 } from "@/lib/evals/timeline-sections";
 
 const message = (
@@ -117,5 +121,54 @@ describe("findLastWorkingSection", () => {
     expect(
       findLastWorkingSection(buildTimeline([message("user", 1)]).sections)
     ).toBe(-1);
+  });
+});
+
+describe("splitOpening", () => {
+  test("drops the message a section is titled by", () => {
+    const [, working] = buildTimeline(TRAJECTORY).sections;
+    const { more, steps } = splitOpening(working as TimelineSection);
+
+    expect(more).toBeNull();
+    expect(steps.map((step) => step.entry._tag)).toEqual([
+      "command",
+      "command",
+    ]);
+  });
+
+  test("keeps what the title leaves out", () => {
+    const [section] = buildTimeline([
+      message("assistant", 1, "Writing hello.txt now. It holds one line."),
+    ]).sections;
+
+    expect(splitOpening(section as TimelineSection).more).toBe(
+      "It holds one line."
+    );
+  });
+});
+
+describe("findStep", () => {
+  test("finds a step with the section it sits in", () => {
+    const found = findStep(buildTimeline(TRAJECTORY), 3);
+
+    expect(found?.step.index).toBe(3);
+    expect(found?.section.title.title).toBe("Working on it.");
+  });
+
+  test("finds nothing for no step", () => {
+    expect(findStep(buildTimeline(TRAJECTORY), null)).toBeNull();
+  });
+});
+
+describe("isInFlight", () => {
+  test("is a command that started and has not finished", () => {
+    expect(isInFlight(command(1000, 0))).toBe(false);
+    expect(isInFlight({ ...command(1000, 0), finishedAtMillis: null })).toBe(
+      true
+    );
+  });
+
+  test("is never a step with no times at all", () => {
+    expect(isInFlight(command(null, 0))).toBe(false);
   });
 });

@@ -104,14 +104,6 @@ export const stepFailed = (step: ConversationStep) => {
   );
 };
 
-export const failureLabel = (step: ConversationStep) => {
-  if (!stepFailed(step)) {
-    return null;
-  }
-
-  return step._tag === "command" ? `Exit ${step.exitCode}` : "Failed";
-};
-
 export const counted = (count: number, one: string, many: string) =>
   `${count} ${count === 1 ? one : many}`;
 

@@ -97,3 +97,25 @@ describe("summarizeMessage", () => {
     expect(summarizeMessage("credits carry over")).toBe("credits carry over");
   });
 });
+
+describe("describeCommand with a redirect", () => {
+  test("names the file a redirect writes", () => {
+    expect(describeCommand("echo hello > hello.txt")).toEqual({
+      target: "hello.txt",
+      title: "Wrote hello.txt",
+      verb: "wrote",
+    });
+  });
+
+  test("treats an append the same way", () => {
+    expect(describeCommand("printf 'a' >> /work/notes.md").title).toBe(
+      "Wrote notes.md"
+    );
+  });
+
+  test("ignores output thrown away", () => {
+    expect(describeCommand("npx atmn push > /dev/null").title).toBe(
+      "Ran atmn push"
+    );
+  });
+});

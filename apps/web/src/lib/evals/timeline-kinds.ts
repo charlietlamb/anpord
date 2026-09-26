@@ -1,9 +1,9 @@
 import {
   BookOpenIcon,
+  ChatCircleDotsIcon,
   FilePlusIcon,
   type Icon,
   MagnifyingGlassIcon,
-  SparkleIcon,
   TerminalWindowIcon,
   UserIcon,
   WrenchIcon,
@@ -18,7 +18,11 @@ interface VerbLook {
 }
 
 export const VERBS: Record<StepVerb, VerbLook> = {
-  agent: { colour: "var(--trace-message)", icon: SparkleIcon, label: "Said" },
+  agent: {
+    colour: "var(--trace-message)",
+    icon: ChatCircleDotsIcon,
+    label: "Said",
+  },
   called: { colour: "var(--trace-tool)", icon: WrenchIcon, label: "Called" },
   ran: {
     colour: "var(--trace-command)",
@@ -39,9 +43,7 @@ export const VERBS: Record<StepVerb, VerbLook> = {
   you: { colour: "var(--trace-said)", icon: UserIcon, label: "You" },
 };
 
-const VERB_ORDER: readonly StepVerb[] = [
-  "you",
-  "agent",
+const COUNTED: readonly StepVerb[] = [
   "read",
   "searched",
   "ran",
@@ -67,7 +69,7 @@ export const verbColour = (verb: StepVerb, failed: boolean) =>
   failed ? FAILED_COLOUR : VERBS[verb].colour;
 
 export const countVerbs = (steps: readonly TimelineStep[]) =>
-  VERB_ORDER.flatMap((verb) => {
+  COUNTED.flatMap((verb) => {
     const matching = steps.filter((step) => step.title.verb === verb);
     return matching.length === 0
       ? []

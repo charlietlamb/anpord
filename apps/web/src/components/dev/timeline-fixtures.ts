@@ -98,6 +98,13 @@ export const AUTUMN_TRAJECTORY: readonly EvalJournalEntry[] = [
   ),
 ];
 
+export const REDIRECT_TRAJECTORY: readonly EvalJournalEntry[] = [
+  ask(0, "Write hello into hello.txt."),
+  say(16, "Writing hello.txt now."),
+  run(20, "echo hello > hello.txt", 3),
+  say(24, "Done. hello.txt holds one line."),
+];
+
 export const FAILED_TRAJECTORY: readonly EvalJournalEntry[] = [
   ...AUTUMN_TRAJECTORY.slice(0, 7),
   run(96, "npx atmn push", 1400, 1),

@@ -1,7 +1,6 @@
 import { Badge } from "@anpord/ui/components/ui/badge";
-import type { CSSProperties } from "react";
 import type { StepVerb } from "@/lib/evals/step-title";
-import { VERBS, verbColour } from "@/lib/evals/timeline-kinds";
+import { VERBS } from "@/lib/evals/timeline-kinds";
 
 export function VerbBadge({
   count,
@@ -17,11 +16,11 @@ export function VerbBadge({
   return (
     <Badge
       aria-label={count === undefined ? undefined : `${count} ${label}`}
-      className="h-[22px] gap-[5px] rounded-[5px] pr-2 pl-1.5 tabular-nums"
-      style={{ "--tint": verbColour(verb, failed) } as CSSProperties}
-      variant="tinted"
+      className="tabular-nums"
+      size="xs"
+      variant={failed ? "destructive" : "secondary"}
     >
-      <Glyph aria-hidden="true" weight="bold" />
+      <Glyph aria-hidden="true" className="text-muted-foreground" />
       {count ?? label}
     </Badge>
   );

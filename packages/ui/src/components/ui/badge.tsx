@@ -19,10 +19,6 @@ const badgeVariants = cva(
         pending:
           "border-warning/25 bg-warning/10 text-warning [a]:hover:bg-warning/15",
         outline: "bg-transparent text-muted-foreground shadow-none",
-        quiet:
-          "border-transparent bg-alpha-4 text-muted-foreground shadow-none ring-0",
-        tinted:
-          "border-(--tint)/20 bg-(--tint)/8 text-(--tint) shadow-none ring-0",
       },
       size: {
         sm: "h-6 gap-1.5 rounded-md px-2 text-xs font-medium",
