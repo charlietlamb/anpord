@@ -36,14 +36,9 @@ export function StepPane({
       aria-label="Step"
       className="flex h-full min-h-0 flex-col bg-background"
     >
-      <header className="flex h-11 shrink-0 items-end justify-between gap-2 border-b px-4">
-        <PageTabs
-          className="h-11 border-b-0"
-          onChange={setTab}
-          options={tabs}
-          value={shown}
-        />
-        <span className="flex h-11 items-center gap-0.5">
+      <header className="flex h-11 shrink-0 items-center justify-between gap-2 border-b px-3">
+        <PageTabs onChange={setTab} options={tabs} value={shown} />
+        <span className="flex items-center gap-0.5">
           <StepNav count={count} onStep={onStep} step={step.index} />
           <Button
             aria-label="Close step"

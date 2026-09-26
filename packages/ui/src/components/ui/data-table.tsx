@@ -3,9 +3,9 @@ import { CaretRightIcon } from "@phosphor-icons/react";
 import { useRender } from "@base-ui/react/use-render";
 import type { CSSProperties, ComponentProps, ReactNode } from "react";
 import {
-  RULED_BODY,
-  RULED_FRAME,
+  SURFACE_BODY,
   SURFACE_FOOTER,
+  SURFACE_FRAME,
   SURFACE_HEAD,
 } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
@@ -27,7 +27,7 @@ export function DataTable({
   return (
     <section
       aria-label={label}
-      className={cn(RULED_FRAME, className)}
+      className={cn(SURFACE_FRAME, className)}
       style={{ "--data-table-columns": columns } as CSSProperties}
     >
       {children}
@@ -59,7 +59,7 @@ export function DataTableBody({
   ...props
 }: ComponentProps<"ul">) {
   return (
-<ul className={cn(RULED_BODY, className)} {...props} />
+<ul className={cn(SURFACE_BODY, className)} {...props} />
   );
 }
 

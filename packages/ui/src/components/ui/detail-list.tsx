@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import {
-  RULED_BODY,
-  RULED_FRAME,
+  SURFACE_BODY,
   SURFACE_FOOTER,
+  SURFACE_FRAME,
   SURFACE_HEAD,
 } from "@anpord/ui/lib/surface";
 import { cn } from "@anpord/ui/lib/utils";
@@ -25,10 +25,10 @@ export function DetailList({
   return (
     <section
       aria-label={label}
-      className={cn("@container", !bare && RULED_FRAME)}
+      className={cn("@container", !bare && SURFACE_FRAME)}
     >
       {title === undefined && actions === undefined ? null : (
-        <div className={cn(SURFACE_HEAD, "flex items-center gap-2 px-4")}>
+        <div className={cn(SURFACE_HEAD, "flex items-center gap-2 px-3")}>
           <span className="flex min-w-0 items-center gap-2 truncate">
             {title}
           </span>
@@ -37,7 +37,7 @@ export function DetailList({
           )}
         </div>
       )}
-      <dl className={cn("divide-y divide-border", !bare && RULED_BODY)}>
+      <dl className={cn("divide-y divide-border", !bare && SURFACE_BODY)}>
         {children}
       </dl>
       {footer === undefined ? null : (
