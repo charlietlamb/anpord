@@ -1,3 +1,5 @@
+import { SESSION_COOKIE } from "@anpord/schema/internal/authentication";
+
 const ALGORITHM = { name: "HMAC", hash: "SHA-256" } as const;
 
 /* Better Auth stores the session token unsigned but sends it signed, so a seeded row needs the same signature the sign-in flow attaches. */
@@ -22,4 +24,4 @@ const signSessionCookie = async (token: string, secret: string) => {
 };
 
 export const sessionCookieHeader = async (token: string, secret: string) =>
-  `anpord.session_token=${await signSessionCookie(token, secret)}`;
+  `${SESSION_COOKIE}=${await signSessionCookie(token, secret)}`;
