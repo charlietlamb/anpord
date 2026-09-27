@@ -7,6 +7,7 @@
     "./email/config": "./src/email/email-config.ts",
     "./email/layer": "./src/email/layer.ts",
     "./email/magic-link": "./src/email/magic-link-email.ts",
+    "./email/organization-invite": "./src/email/organization-invite-email.ts",
     "./email/sender": "./src/email/email-sender.ts"
   },
   "scripts": {

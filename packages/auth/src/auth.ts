@@ -14,6 +14,7 @@ import { apiKeyPlugin } from "./credentials/api-key-plugin";
 import { mcpPlugin } from "./oauth/mcp-plugin";
 import { attachOrganizationBeforeWrite } from "./organization/attach-organization-before-write";
 import { OrganizationStore } from "./organization/organization-store";
+import { sendOrganizationInvite } from "./organization/send-organization-invite";
 import { setUpOrganization } from "./organization/set-up-organization";
 import { MAGIC_LINK_EXPIRY, sendMagicLink } from "./session/send-magic-link";
 
@@ -40,6 +41,7 @@ const makeAuth = Effect.gen(function* () {
     : {};
 
   const deliverMagicLink = sendMagicLink(emails);
+  const deliverInvitation = sendOrganizationInvite(emails);
 
   return betterAuth({
     advanced: {
@@ -59,6 +61,7 @@ const makeAuth = Effect.gen(function* () {
         impersonationSessionDuration: Duration.toSeconds(IMPERSONATION_SESSION),
       }),
       organization({
+        sendInvitationEmail: (invitation) => deliverInvitation(invitation),
         organizationHooks: {
           afterCreateOrganization: ({ organization: created, user }) =>
             Effect.runPromise(
