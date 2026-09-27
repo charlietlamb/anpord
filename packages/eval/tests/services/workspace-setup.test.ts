@@ -58,6 +58,7 @@ const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
       ]).pipe(Stream.tap(() => Effect.sync(() => record(command, options)))),
     resumable: Option.some({
       progress: () => Effect.succeed({ exitCode, stderr, stdout }),
+      settled: () => Effect.never,
       start: (command, options) =>
         Effect.sync(() => {
           record(command, options);

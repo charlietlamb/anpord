@@ -28,6 +28,7 @@ const resuming = (resumable: Partial<ResumableCommands>): SandboxHandle =>
     id: "sandbox-1",
     resumable: Option.some({
       progress: () => Effect.succeed({} as CommandProgress),
+      settled: () => Effect.never,
       start: () => Effect.succeed({ id: "cmd", session: "session" }),
       ...resumable,
     }),
@@ -87,6 +88,26 @@ describe("running a command that outlives a suspension", () => {
     await run(sandbox);
 
     expect(seen.checks).toBe(1);
+  });
+
+  test("checks a quick command within a second, then less often", async () => {
+    const { sandbox } = sandboxFinishingAfter(5);
+    const waits: number[] = [];
+    const Recording = Layer.succeed(
+      Suspender,
+      Suspender.of({
+        waitFor: (duration) =>
+          Effect.sync(() => {
+            waits.push(Duration.toMillis(duration));
+          }),
+      })
+    );
+
+    await Effect.runPromise(
+      runLongCommand(sandbox, "npm ci").pipe(Effect.provide(Recording))
+    );
+
+    expect(waits).toEqual([500, 750, 1125, 1688]);
   });
 });
 

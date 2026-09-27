@@ -51,6 +51,7 @@ const polled = (reads: readonly string[]): SandboxHandle => {
             stdout,
           };
         }),
+      settled: () => Effect.never,
       start: () => Effect.succeed({ id: "cmd", session: "session" }),
     }),
   };
