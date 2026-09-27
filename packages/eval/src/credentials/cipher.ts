@@ -1,4 +1,5 @@
 import { Config, Context, Effect, Layer, Redacted } from "effect";
+import { deriveEnvelopeKey, openEnvelope, sealEnvelope } from "./envelope";
 import { CredentialError } from "./errors";
 
 export interface CredentialCipherShape {
@@ -20,27 +21,12 @@ const keyConfig = Config.redacted("CREDENTIALS_ENCRYPTION_KEY").pipe(
   Config.orElse(() => Config.redacted("BETTER_AUTH_SECRET"))
 );
 
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-const encode = (value: Uint8Array) => Buffer.from(value).toString("base64url");
-const decode = (value: string) =>
-  Uint8Array.from(Buffer.from(value, "base64url"));
-
 export const CredentialCipherLive = Layer.effect(
   CredentialCipher,
   Effect.gen(function* () {
     const secret = yield* keyConfig;
-    const key = yield* Effect.promise(async () =>
-      crypto.subtle.importKey(
-        "raw",
-        await crypto.subtle.digest(
-          "SHA-256",
-          encoder.encode(Redacted.value(secret))
-        ),
-        "AES-GCM",
-        false,
-        ["encrypt", "decrypt"]
-      )
+    const key = yield* Effect.promise(() =>
+      deriveEnvelopeKey(Redacted.value(secret))
     );
 
     return CredentialCipher.of({
@@ -51,22 +37,8 @@ export const CredentialCipherLive = Layer.effect(
               code: "undecryptable",
               message: "Credential could not be decrypted",
             }),
-          try: async () => {
-            const [version, iv, encrypted] = sealed.split(".");
-            if (version !== "v1" || !iv || !encrypted) {
-              throw new Error("Invalid envelope");
-            }
-            const value = await crypto.subtle.decrypt(
-              {
-                additionalData: encoder.encode(context),
-                iv: decode(iv),
-                name: "AES-GCM",
-              },
-              key,
-              decode(encrypted)
-            );
-            return Redacted.make(decoder.decode(value));
-          },
+          try: async () =>
+            Redacted.make(await openEnvelope(key, sealed, context)),
         }).pipe(
           Effect.withSpan("CredentialCipher.open"),
           Effect.annotateLogs({ method: "open" })
@@ -78,21 +50,7 @@ export const CredentialCipherLive = Layer.effect(
               code: "internal",
               message: "Credential could not be encrypted",
             }),
-          try: async () => {
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const encrypted = await crypto.subtle.encrypt(
-              {
-                additionalData: encoder.encode(context),
-                iv,
-                name: "AES-GCM",
-              },
-              key,
-              encoder.encode(Redacted.value(value))
-            );
-            return ["v1", encode(iv), encode(new Uint8Array(encrypted))].join(
-              "."
-            );
-          },
+          try: () => sealEnvelope(key, Redacted.value(value), context),
         }).pipe(
           Effect.withSpan("CredentialCipher.seal"),
           Effect.annotateLogs({ method: "seal" })

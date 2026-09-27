@@ -13,7 +13,7 @@ interface SealedRow extends SealContext {
   readonly sealedPayload: string;
 }
 
-const contextOf = (row: SealContext) =>
+export const contextOf = (row: SealContext) =>
   `${row.organizationId}\0${row.id}\0${row.integrationId}`;
 
 export const sealValues = (

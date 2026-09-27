@@ -10,7 +10,8 @@
     "./oauth/errors": "./src/oauth/errors.ts",
     "./oauth/oauth-clients": "./src/oauth/oauth-clients.ts",
     "./organization": "./src/organization/organization-store.ts",
-    "./organization/errors": "./src/organization/organization-store-error.ts"
+    "./organization/errors": "./src/organization/organization-store-error.ts",
+    "./session/sign-session-cookie": "./src/session/sign-session-cookie.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",

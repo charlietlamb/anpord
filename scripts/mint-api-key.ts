@@ -2,8 +2,10 @@
 
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
+import { signSessionCookie } from "../packages/auth/src/session/sign-session-cookie";
 import { SESSION_COOKIE } from "../packages/schema/src/internal/authentication";
 import { API_ORIGIN, WEB_ORIGIN } from "../packages/schema/src/public/origins";
+import { arg, required } from "./lib/cli-args";
 
 /*
   Mints an API key for an organization you already own, through the same
@@ -28,40 +30,6 @@ import { API_ORIGIN, WEB_ORIGIN } from "../packages/schema/src/public/origins";
 
 const SESSION_MINUTES = 10;
 const MILLIS_PER_MINUTE = 60_000;
-
-const arg = (flag: string) => {
-  const at = process.argv.indexOf(`--${flag}`);
-
-  return at === -1 ? undefined : process.argv[at + 1];
-};
-
-const required = (name: string) => {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is not set`);
-  }
-
-  return value;
-};
-
-const signed = async (token: string, secret: string) => {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(token)
-  );
-
-  return `${token}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
-};
 
 const organization = arg("org");
 
@@ -119,7 +87,7 @@ try {
       organizationId: owner.organizationId,
     }),
     headers: {
-      cookie: `${cookieName}=${await signed(token, secret)}`,
+      cookie: `${cookieName}=${await signSessionCookie(token, secret)}`,
       "content-type": "application/json",
       origin,
     },
