@@ -1,6 +1,10 @@
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { AnimatePresence, LazyMotion, MotionConfig } from "motion/react";
+import { div as MotionDiv } from "motion/react-m";
 import type { ReactNode } from "react";
 import { RISE } from "@/lib/motion";
+
+const features = () =>
+  import("@/lib/motion-features").then((module) => module.animationFeatures);
 
 export function Swap({
   children,
@@ -12,12 +16,14 @@ export function Swap({
   readonly swapKey: string;
 }) {
   return (
-    <MotionConfig reducedMotion="user">
-      <AnimatePresence initial={false} mode="popLayout">
-        <motion.div className={className} key={swapKey} {...RISE}>
-          {children}
-        </motion.div>
-      </AnimatePresence>
-    </MotionConfig>
+    <LazyMotion features={features}>
+      <MotionConfig reducedMotion="user">
+        <AnimatePresence initial={false} mode="popLayout">
+          <MotionDiv className={className} key={swapKey} {...RISE}>
+            {children}
+          </MotionDiv>
+        </AnimatePresence>
+      </MotionConfig>
+    </LazyMotion>
   );
 }
