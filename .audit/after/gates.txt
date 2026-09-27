@@ -1,45 +1,46 @@
-gates at ceb9775d, worktree 1 uncommitted paths
+gates at 3196106f, worktree 0 uncommitted paths
 typecheck: exit 0 (bunx turbo run typecheck)
    Tasks:    18 successful, 18 total
 check: exit 0 (bun run check)
-  Checked 0 files in 1360ms. No fixes applied.
+  Checked 0 files in 1395ms. No fixes applied.
   Migrations are in order, and every data loss is written down.
 comments: exit 0 (bun run check:comments)
   Comment discipline clean across 1140 files.
 knip: exit 0 (bun run knip)
 biome: exit 0 (bunx biome check apps packages scripts)
-  Checked 1545 files in 1745ms. No fixes applied.
-tests: exit 0 (env EVAL_REQUIRE_DATABASE=1 EVAL_TEST_DATABASE_URL=postgresql://charlielamb@localhost:5432/anpord_scratch_o2 DATABASE_URL=postgresql://charlielamb@localhost:5432/anpord_scratch_o2 bunx turbo run test --force --concurrency=1)
+  Checked 1546 files in 2s. No fixes applied.
+tests: exit 0 (env EVAL_REQUIRE_DATABASE=1 EVAL_TEST_DATABASE_URL=<scratch> DATABASE_URL=<scratch> bunx turbo run test --force --concurrency=1)
    Tasks:    31 successful, 31 total
   @anpord/auth:test:  0 fail
-  @anpord/auth:test: Ran 16 tests across 4 files. [163.00ms]
+  @anpord/auth:test: Ran 16 tests across 4 files. [240.00ms]
   @anpord/billing:test:  0 fail
-  @anpord/billing:test: Ran 4 tests across 1 file. [174.00ms]
+  @anpord/billing:test: Ran 4 tests across 1 file. [194.00ms]
   @anpord/db:test:  0 fail
-  @anpord/db:test: Ran 40 tests across 7 files. [2.17s]
+  @anpord/db:test: Ran 40 tests across 7 files. [2.81s]
   @anpord/e2e:test:  0 fail
-  @anpord/e2e:test: Ran 35 tests across 4 files. [13.47s]
+  @anpord/e2e:test: Ran 35 tests across 4 files. [12.58s]
   @anpord/eval:test:  0 fail
-  @anpord/eval:test: Ran 832 tests across 124 files. [47.96s]
+  @anpord/eval:test: Ran 834 tests across 125 files. [48.22s]
   @anpord/ids:test:  0 fail
-  @anpord/ids:test: Ran 4 tests across 1 file. [109.00ms]
+  @anpord/ids:test: Ran 4 tests across 1 file. [119.00ms]
   @anpord/mcp:test:  0 fail
-  @anpord/mcp:test: Ran 6 tests across 2 files. [166.00ms]
+  @anpord/mcp:test: Ran 6 tests across 2 files. [178.00ms]
   @anpord/notifications:test:  0 fail
   @anpord/notifications:test: Ran 3 tests across 1 file. [6.00ms]
   @anpord/prompts:test:  0 fail
-  @anpord/prompts:test: Ran 110 tests across 13 files. [546.00ms]
+  @anpord/prompts:test: Ran 110 tests across 13 files. [521.00ms]
   @anpord/schema:test:  0 fail
-  @anpord/schema:test: Ran 164 tests across 17 files. [309.00ms]
+  @anpord/schema:test: Ran 164 tests across 17 files. [337.00ms]
   @anpord/server:test:  0 fail
   @anpord/server:test: Ran 51 tests across 11 files. [1.65s]
   @anpord/template:test:  0 fail
-  @anpord/template:test: Ran 25 tests across 2 files. [7.00ms]
+  @anpord/template:test: Ran 25 tests across 2 files. [8.00ms]
   @anpord/ui:test:  0 fail
-  @anpord/ui:test: Ran 30 tests across 5 files. [402.00ms]
+  @anpord/ui:test: Ran 30 tests across 5 files. [407.00ms]
   @anpord/web:test:  0 fail
-  @anpord/web:test: Ran 121 tests across 18 files. [679.00ms]
+  @anpord/web:test: Ran 121 tests across 18 files. [596.00ms]
   anpord:test:  0 fail
-  anpord:test: Ran 430 tests across 63 files. [51.87s]
+  anpord:test: Ran 430 tests across 63 files. [50.99s]
 e2e: exit 0 (bun run e2e -- --stop)
   @anpord/e2e e2e: 51/51 scenarios passed
+gates exit 0
