@@ -1,6 +1,8 @@
+import { Dither } from "@anpord/ui/components/ui/dither";
+import { LANDING_DITHER } from "@anpord/ui/lib/dither-presets";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { AuthCard } from "@/components/auth/auth-card";
-import { SiteLayout } from "@/components/layout/site-layout";
+import { SignInForm } from "@/components/auth/sign-in-form";
+import { LandingNav } from "@/components/landing/landing-nav";
 import { useSession } from "@/lib/auth-client";
 import { safeRedirect } from "@/lib/redirect";
 
@@ -21,8 +23,10 @@ function LoginPage() {
   }
 
   return (
-    <SiteLayout center>
-      <AuthCard redirect={target} />
-    </SiteLayout>
+    <main className="relative isolate flex min-h-svh items-center justify-center bg-background px-6 text-foreground">
+      <Dither preset={LANDING_DITHER} />
+      <LandingNav signIn={false} />
+      <SignInForm redirect={target} />
+    </main>
   );
 }

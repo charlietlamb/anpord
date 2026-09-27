@@ -6,7 +6,7 @@ import { GITHUB_URL } from "@/lib/urls";
 const QUIET =
   "hidden text-[14px] text-muted-foreground transition-colors duration-150 hover:text-foreground sm:inline";
 
-export function LandingNav() {
+export function LandingNav({ signIn = true }: { readonly signIn?: boolean }) {
   return (
     <header className="absolute inset-x-0 top-0 flex h-16 items-center justify-between px-6 lg:px-[72px]">
       <Link
@@ -28,18 +28,22 @@ export function LandingNav() {
         <a className={QUIET} href={GITHUB_URL} rel="noreferrer" target="_blank">
           GitHub
         </a>
-        <Link
-          className="text-[14px] text-foreground transition-opacity duration-150 hover:opacity-70"
-          to="/login"
-        >
-          Sign in
-        </Link>
-        <Link
-          className="flex h-[30px] items-center rounded-[4px] bg-foreground px-3 font-[450] text-[14px] text-background transition-opacity duration-150 hover:opacity-85"
-          to="/login"
-        >
-          Start
-        </Link>
+        {signIn ? (
+          <>
+            <Link
+              className="text-[14px] text-foreground transition-opacity duration-150 hover:opacity-70"
+              to="/login"
+            >
+              Sign in
+            </Link>
+            <Link
+              className="flex h-[30px] items-center rounded-[4px] bg-foreground px-3 font-[450] text-[14px] text-background transition-opacity duration-150 hover:opacity-85"
+              to="/login"
+            >
+              Start
+            </Link>
+          </>
+        ) : null}
       </nav>
     </header>
   );

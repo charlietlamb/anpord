@@ -10,9 +10,6 @@ import { CopyCommand } from "@/components/landing/copy-command";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { SiteHeader } from "@/components/layout/site-header";
 
-const REVEAL =
-  "fade-in-0 slide-in-from-bottom-2 animate-in fill-mode-both ease-out [animation-duration:500ms]";
-
 export function Landing({
   dither = LANDING_DITHER,
   header,
@@ -27,18 +24,12 @@ export function Landing({
       <section className="absolute inset-x-6 bottom-16 flex flex-col gap-8 lg:inset-x-[72px] lg:bottom-[88px] lg:flex-row lg:items-end lg:justify-between lg:gap-12">
         <h1
           className={cn(
-            REVEAL,
             "max-w-[760px] text-pretty font-light text-[40px] leading-[44px] tracking-[-0.04em] lg:text-[64px] lg:leading-[66px] lg:tracking-[-0.045em]"
           )}
         >
           Reinforcement learning for your product.
         </h1>
-        <div
-          className={cn(
-            REVEAL,
-            "flex w-full max-w-[380px] shrink-0 flex-col gap-5 [animation-delay:100ms] lg:pb-1.5"
-          )}
-        >
+        <div className="flex w-full max-w-[380px] shrink-0 flex-col gap-5 lg:pb-1.5">
           <p className="max-w-[372px] font-light text-[16px] text-muted-foreground leading-6">
             Run agents on real tasks, reward what works, and fix what
             doesn&rsquo;t.

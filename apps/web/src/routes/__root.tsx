@@ -1,14 +1,12 @@
 /// <reference types="vite/client" />
-import "@fontsource-variable/geist";
-import "@fontsource-variable/geist-mono";
 import { WEB_ORIGIN } from "@anpord/schema/public/origins";
-import bodyFont from "@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { RootDocument } from "@/components/layout/root-document";
 import { RootErrorComponent } from "@/components/layout/root-error";
 import { RootNotFound } from "@/components/layout/root-not-found";
+import { FONT_PRELOADS } from "@/lib/fonts";
 import appCss from "../styles/globals.css?url";
 
 const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
@@ -47,13 +45,7 @@ export const Route = createRootRouteWithContext<{
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/svg+xml", href: FAVICON },
-      {
-        rel: "preload",
-        as: "font",
-        type: "font/woff2",
-        href: bodyFont,
-        crossOrigin: "anonymous",
-      },
+      ...FONT_PRELOADS,
     ],
   }),
   component: RootComponent,
