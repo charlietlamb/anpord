@@ -1,4 +1,5 @@
 import { Batches } from "@anpord/eval/batch/batches";
+import { BatchSubscriptions } from "@anpord/eval/ports/batch-subscriptions";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
@@ -11,7 +12,6 @@ import type {
 } from "@anpord/schema/public/runner-api";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
-import { mintBatchSubscription } from "./batch-subscription";
 import { organization } from "./current-organization";
 import { meterBatch } from "./meter-batch";
 
@@ -93,5 +93,5 @@ export const leaseCredentials = (batchId: string, harness: EvalHarness) =>
 export const subscribeToBatch = (batchId: string) =>
   Effect.gen(function* () {
     yield* (yield* EvalReads).ownedBatch(yield* organization, batchId);
-    return yield* mintBatchSubscription(batchId);
+    return yield* (yield* BatchSubscriptions).mint(batchId);
   }).pipe(withEvalErrors);

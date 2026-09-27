@@ -1,12 +1,13 @@
-import { triggerSecretKey } from "@anpord/eval/adapters/runner/trigger";
 import { batchTagOf } from "@anpord/schema/domain/evals";
 import { auth, configure } from "@trigger.dev/sdk";
-import { Clock, Effect, Redacted } from "effect";
+import { Clock, Effect, Layer, Redacted } from "effect";
+import { BatchSubscriptions } from "../../ports/batch-subscriptions";
+import { triggerSecretKey } from "./trigger";
 
 const TTL = "1h";
 const TTL_MILLIS = 60 * 60 * 1000;
 
-export const mintBatchSubscription = (batchId: string) =>
+const mint = (batchId: string) =>
   Effect.gen(function* () {
     const key = yield* triggerSecretKey.pipe(Effect.orDie);
     const tag = batchTagOf(batchId);
@@ -26,3 +27,8 @@ export const mintBatchSubscription = (batchId: string) =>
       token,
     };
   }).pipe(Effect.withSpan("Evals.subscription", { attributes: { batchId } }));
+
+export const BatchSubscriptionsTrigger = Layer.succeed(
+  BatchSubscriptions,
+  BatchSubscriptions.of({ mint })
+);

@@ -8,6 +8,7 @@ import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
 import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
+import { BatchSubscriptionsTrigger } from "@anpord/eval/adapters/runner/trigger-subscriptions";
 import { CodebaseConnectionLive } from "@anpord/eval/codebase/codebase-connection";
 import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
@@ -85,6 +86,7 @@ const CodebaseLayer = CodebaseConnectionLive.pipe(
 
 const EvalLayer = Layer.mergeAll(
   evalStackWith(TrialRunnerTrigger),
+  BatchSubscriptionsTrigger,
   EvalSweepsLive,
   ModelCatalogueLive.pipe(
     Layer.provide(Layer.merge(BunContext.layer, FetchHttpClient.layer))
