@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { perTurnInput, usageConcerns } from "../../src/domain/usage-health";
+import {
+  cacheHitOf,
+  perTurnInput,
+  usageConcerns,
+} from "../../src/domain/usage-health";
 
 const usage = (inputTokens: number, cacheReadTokens = 0) => ({
   cacheReadTokens,
@@ -42,5 +46,27 @@ describe("what a trial's usage says about it", () => {
 
   it("reads per-turn input without dividing by nothing", () => {
     expect(perTurnInput({ turns: 0, usage: usage(5000) })).toBe(5000);
+  });
+});
+
+describe("the cache hit rate", () => {
+  const counts = (
+    inputTokens: number,
+    cacheReadTokens: number,
+    cacheWriteTokens: number
+  ) => ({ cacheReadTokens, cacheWriteTokens, inputTokens, outputTokens: 0 });
+
+  it("reads the cache share of everything the model was served", () => {
+    expect(cacheHitOf(counts(100, 900, 0))).toBeCloseTo(0.9, 6);
+  });
+
+  /* A rate needs a denominator: no tokens is not a zero-percent hit rate,
+     and reporting one would claim a cache missed when nothing was asked. */
+  it("reports no hit rate when nothing was served", () => {
+    expect(cacheHitOf(counts(0, 0, 0))).toBeNull();
+  });
+
+  it("counts a cache write against the hit rate", () => {
+    expect(cacheHitOf(counts(0, 0, 1000))).toBe(0);
   });
 });

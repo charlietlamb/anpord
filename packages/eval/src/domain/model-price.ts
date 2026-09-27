@@ -28,11 +28,3 @@ export const costOf = (usage: HarnessUsage, price: ModelPrice): number => {
 
   return (input + output + read + write + hourWrite) / PER;
 };
-
-/* Null rather than zero with no input read: a rate needs a denominator. */
-export const cacheHitOf = (usage: HarnessUsage): number | null => {
-  const served =
-    usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
-
-  return served === 0 ? null : usage.cacheReadTokens / served;
-};
