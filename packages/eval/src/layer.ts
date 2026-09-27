@@ -51,7 +51,8 @@ export const EvalCodebaseLive = SourceTokensLive.pipe(
 );
 
 export const EvalSandboxLive = SandboxProviderLive.pipe(
-  Layer.provide(SandboxAdaptersLive)
+  Layer.provide(SandboxAdaptersLive),
+  Layer.provide(HttpLive)
 );
 
 const RepositoriesLive = Layer.mergeAll(

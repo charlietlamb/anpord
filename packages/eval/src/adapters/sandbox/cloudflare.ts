@@ -1,8 +1,5 @@
-import {
-  FetchHttpClient,
-  HttpClient,
-  HttpClientRequest as Request,
-} from "@effect/platform";
+import type { CredentialValues } from "@anpord/schema/domain/credentials";
+import { HttpClient, HttpClientRequest as Request } from "@effect/platform";
 import { Effect, Schema } from "effect";
 import { shellQuote } from "../harness/process";
 import { configuration, decoded, environment } from "./cloudflare-bridge";
@@ -12,12 +9,12 @@ import {
   handleFor,
   WRITABLE_ROOT,
 } from "./cloudflare-handle";
-import { type MakeAdapter, providerAdapter } from "./provider-adapter";
+import { providerAdapter } from "./provider-adapter";
 import { runCommand } from "./run-command";
 
 const SandboxResponse = Schema.Struct({ id: Schema.String });
 
-export const cloudflareAdapter: MakeAdapter = (values) =>
+export const cloudflareAdapter = (values?: CredentialValues) =>
   Effect.gen(function* () {
     const client = yield* HttpClient.HttpClient;
     const env = yield* environment;
@@ -48,4 +45,4 @@ export const cloudflareAdapter: MakeAdapter = (values) =>
         ),
       provider: "cloudflare",
     });
-  }).pipe(Effect.provide(FetchHttpClient.layer), Effect.orDie);
+  }).pipe(Effect.orDie);

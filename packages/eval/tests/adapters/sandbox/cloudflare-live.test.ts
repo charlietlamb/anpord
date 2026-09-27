@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { FetchHttpClient } from "@effect/platform";
 import { Chunk, Effect, Stream } from "effect";
 import { cloudflareAdapter } from "../../../src/adapters/sandbox/cloudflare";
 import type { ExecChunk } from "../../../src/ports/sandbox";
@@ -20,7 +21,9 @@ describe.skipIf(!hasCloudflare)("the Cloudflare bridge worker", () => {
     const { id, reattached } = await Effect.runPromise(
       Effect.scoped(
         Effect.gen(function* () {
-          const adapter = yield* cloudflareAdapter();
+          const adapter = yield* cloudflareAdapter().pipe(
+            Effect.provide(FetchHttpClient.layer)
+          );
 
           const sandbox = yield* Effect.acquireRelease(
             adapter.open({
