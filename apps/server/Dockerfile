@@ -12,6 +12,7 @@ COPY package.json bun.lock ./
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/e2e/package.json ./apps/e2e/
 COPY apps/mcp/package.json ./apps/mcp/
+COPY apps/perf/package.json ./apps/perf/
 COPY apps/sandbox-bridge/package.json ./apps/sandbox-bridge/
 COPY apps/server/package.json ./apps/server/
 COPY apps/web/package.json ./apps/web/
