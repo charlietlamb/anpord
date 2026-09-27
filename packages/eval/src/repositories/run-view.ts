@@ -34,7 +34,11 @@ export interface RunRow {
 type TrialRow = typeof evalTrial.$inferSelect;
 type CostRow = typeof evalTrialCost.$inferSelect;
 
-const timestamp = (date: Date) => DateTime.unsafeMake(date.getTime());
+export function timestamp(date: Date): DateTime.Utc;
+export function timestamp(date: Date | null): DateTime.Utc | null;
+export function timestamp(date: Date | null) {
+  return date === null ? null : DateTime.unsafeMake(date.getTime());
+}
 
 export const variantOf = (
   row: typeof evalVariant.$inferSelect
@@ -106,8 +110,7 @@ export const runOf = (
     costs: rollUp(trials.map((trial) => trial.costs)),
     definitionHash: row.version.definitionHash,
     distribution: distributionOf(trials),
-    finishedAt:
-      row.run.finishedAt === null ? null : timestamp(row.run.finishedAt),
+    finishedAt: timestamp(row.run.finishedAt),
     harnessVersion: row.run.harnessVersion,
     id: row.run.internalId,
     local: row.batch.local,

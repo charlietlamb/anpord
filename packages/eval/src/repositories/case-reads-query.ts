@@ -14,11 +14,11 @@ import type {
 } from "@anpord/schema/domain/evals";
 import type { SQL } from "drizzle-orm";
 import { and, asc, desc, eq, ilike, inArray, max, or, sql } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { changesBetween } from "../domain/definition-changes";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
 import { tryStore } from "./query";
-import { setupOf } from "./run-view";
+import { setupOf, timestamp } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
 
 type CaseSort = "recent" | "name";
@@ -193,9 +193,7 @@ export const caseReadsQuery = Effect.gen(function* () {
       return {
         cases: page.items.map((row) => ({
           id: row.caseId,
-          lastRunAt: DateTime.unsafeMake(
-            new Date(row.lastRunAt ?? 0).getTime()
-          ),
+          lastRunAt: timestamp(new Date(row.lastRunAt ?? 0)),
           name: row.name,
           suite: { id: row.suiteId, name: row.suiteName },
           tags: current.get(row.internalId)?.tags ?? [],
@@ -272,7 +270,7 @@ export const caseReadsQuery = Effect.gen(function* () {
                   versions[index - 1]?.version ?? row.version,
                   row.version
                 ),
-          createdAt: DateTime.unsafeMake(row.version.createdAt.getTime()),
+          createdAt: timestamp(row.version.createdAt),
           definitionHash: row.version.definitionHash,
         })),
       });

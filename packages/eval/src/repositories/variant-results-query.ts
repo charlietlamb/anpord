@@ -5,10 +5,10 @@ import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import type { EvalVariantResult } from "@anpord/schema/domain/evals";
 import { decodeTrialStatus } from "@anpord/schema/domain/trial";
 import { count, desc, eq, inArray } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { distributionOf } from "../domain/distribution";
 import { tryStore } from "./query";
-import { variantOf } from "./run-view";
+import { timestamp, variantOf } from "./run-view";
 
 export const variantResultsQuery = Effect.gen(function* () {
   const db = yield* Database;
@@ -85,7 +85,7 @@ export const variantResultsQuery = Effect.gen(function* () {
           ...(results.get(caseId) ?? []),
           {
             distribution: distributionOf(own),
-            lastRunAt: DateTime.unsafeMake(row.run.createdAt.getTime()),
+            lastRunAt: timestamp(row.run.createdAt),
             lastRunId: row.run.internalId,
             runs: runsOf.get(row.variant.internalId) ?? 0,
             variant: variant.value,
