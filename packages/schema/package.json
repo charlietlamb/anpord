@@ -35,6 +35,7 @@
     "./domain/repo-spec": "./src/domain/repo-spec.ts",
     "./domain/run-case": "./src/domain/run-case.ts",
     "./domain/scopes": "./src/domain/scopes.ts",
+    "./domain/sandbox-env": "./src/domain/sandbox-env.ts",
     "./domain/secret-text": "./src/domain/secret-text.ts",
     "./domain/trial": "./src/domain/trial.ts",
     "./domain/usage-health": "./src/domain/usage-health.ts",

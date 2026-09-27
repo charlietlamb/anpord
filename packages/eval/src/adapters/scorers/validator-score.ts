@@ -3,6 +3,7 @@ import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
+import { PREPARE_VALUE_ENV } from "@anpord/schema/domain/sandbox-env";
 import { Clock, Effect, Random } from "effect";
 import type { ScoreRequest } from "../../ports/scorer";
 import { shellQuote } from "../harness/process";
@@ -41,7 +42,7 @@ export const scoreValidator = (
         env: {
           ...request.env,
           ...answerEnv(request.sandbox),
-          ANPORD_PREPARE_VALUE: JSON.stringify(request.prepared ?? {}),
+          [PREPARE_VALUE_ENV]: JSON.stringify(request.prepared ?? {}),
         },
       },
       records,

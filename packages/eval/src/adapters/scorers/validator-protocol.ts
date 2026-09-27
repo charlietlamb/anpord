@@ -1,10 +1,12 @@
-import { Effect, Option, Schema } from "effect";
 import {
   ANSWER_ENV,
-  ANSWER_PATH,
   TRANSCRIPT_ENV,
-  TRANSCRIPT_PATH,
   TURNS_ENV,
+} from "@anpord/schema/domain/sandbox-env";
+import { Effect, Option, Schema } from "effect";
+import {
+  ANSWER_PATH,
+  TRANSCRIPT_PATH,
   TURNS_PATH,
 } from "../../domain/answer-file";
 import { readAnswer, transcriptOf } from "../../domain/journal";
