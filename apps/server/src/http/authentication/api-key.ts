@@ -1,10 +1,8 @@
 import type { AuthInstance } from "@anpord/auth";
 import { Actor } from "@anpord/schema/domain/actor";
-import { Unauthorized } from "@anpord/schema/domain/errors";
 import type { Permission } from "@anpord/schema/domain/permissions";
 import { Effect, Option, Schema } from "effect";
-
-const unauthorized = (message: string) => new Unauthorized({ message });
+import { unauthorized } from "./unauthorized";
 
 const API_KEY_PERMISSIONS: readonly Permission[] = [
   "prompts:read",

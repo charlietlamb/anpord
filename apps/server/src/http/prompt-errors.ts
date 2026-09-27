@@ -1,14 +1,11 @@
 import type { PromptError } from "@anpord/prompts/errors";
 import { Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
+import { logAndDie } from "./log-and-die";
 
 type PromptHttpError = Conflict | NotFound;
 
-/* Logged before dying: the platform discards the cause, leaving an empty 500. */
-const logged = (error: unknown) =>
-  Effect.logError("Unhandled prompt failure", error).pipe(
-    Effect.zipRight(Effect.die(error))
-  );
+const logged = logAndDie("Unhandled prompt failure");
 
 const toHttpError = (
   error: PromptError
