@@ -50,7 +50,7 @@ For UI changes the script is not enough: open the page in a Chrome you launch wi
 
 ## Evidence
 
-- Proof is the step log, not the summary line. Quote the counts (`N tests passed`, `51/51 scenarios passed`, `0 regressed beyond 5%`) and link the log path.
+- Proof is the step log, not the summary line. Quote the counts (`N tests passed`, `51/51 scenarios passed`, `0 regressed beyond 5%` or `0 regressed in both passes`) and link the log path.
 - The perf step prints a before and after table. Paste the rows that matter into the PR with the command that produced them.
 - A step that was skipped is reported as skipped, never as passed.
 
