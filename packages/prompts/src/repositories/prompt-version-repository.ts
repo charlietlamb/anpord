@@ -100,7 +100,10 @@ export const PromptVersionRepositoryLive = Layer.effect(
             )
           )
           .limit(1)
-      ).pipe(Effect.map(head));
+      ).pipe(
+        Effect.map(head),
+        Effect.withSpan("PromptVersionRepository.byNumber")
+      );
 
     const latest = (promptInternalId: string) =>
       tryStore("promptVersion.latest", () =>
@@ -108,7 +111,10 @@ export const PromptVersionRepositoryLive = Layer.effect(
           .where(eq(promptVersion.promptInternalId, promptInternalId))
           .orderBy(desc(promptVersion.version))
           .limit(1)
-      ).pipe(Effect.map(head));
+      ).pipe(
+        Effect.map(head),
+        Effect.withSpan("PromptVersionRepository.latest")
+      );
 
     return {
       byNumber,
@@ -175,14 +181,14 @@ export const PromptVersionRepositoryLive = Layer.effect(
                 while: (error) => error._tag === "VersionConflict",
               })
             )
-        ),
+        ).pipe(Effect.withSpan("PromptVersionRepository.append")),
 
       list: (promptInternalId) =>
         tryStore("promptVersion.list", () =>
           selectVersion()
             .where(eq(promptVersion.promptInternalId, promptInternalId))
             .orderBy(desc(promptVersion.version))
-        ),
+        ).pipe(Effect.withSpan("PromptVersionRepository.list")),
 
       update: (input) =>
         Effect.flatMap(ids.generate("promptEvent"), (eventId) =>
@@ -228,7 +234,8 @@ export const PromptVersionRepositoryLive = Layer.effect(
             Option.isNone(head(rows))
               ? Effect.succeedNone
               : byNumber(input.promptInternalId, input.version)
-          )
+          ),
+          Effect.withSpan("PromptVersionRepository.update")
         ),
     } satisfies PromptVersionRepositoryShape;
   })
