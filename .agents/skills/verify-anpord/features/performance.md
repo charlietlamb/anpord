@@ -1,32 +1,17 @@
 # Performance
 
-Numbers for the server, the eval runner and the web app, recorded the same way every time and compared with a 5% threshold.
+Server, runner and web numbers, recorded the same way every time and compared with a 5% threshold. `apps/perf/README.md` owns the commands, the metrics and how a regression is judged.
 
-## Sub-features
+## Driving it
 
-- `perf-server` latency percentiles, throughput, errors and queries per request for each endpoint, plus peak memory over the whole suite and cold start.
-- `perf-runner` wall time per eval step and per trial, report latency, tokens.
-- `perf-web` Lighthouse metrics, bundle bytes per page, heap after opening a long trial.
-- `perf-compare` judges two sets of results; `perf-ab` runs the PR's base and the branch side by side and judges them.
+Preconditions: a local Postgres, and Chrome for the web suite (so for `all`). Keep other heavy work off the machine if you can.
 
-## How to get to it (user POV)
-
-- `bun run perf <server|runner|web|all>` from the repository root.
-- `bun run perf ab all --before <base checkout>` for a branch versus its PR base.
-
-## Driving it with the perf harness
-
-Preconditions:
-
-- A local Postgres. The web suite, and so `all`, also needs a Chrome install. Nothing else running heavy work, if you can help it.
-
-- **Measure.** `bun run perf server`. The table prints per endpoint rows and the file path it wrote.
-- **Compare.** `bun run perf compare <before file> <after file>`. Exit code `0` with `0 regressed beyond 5%`, or `1` with the rows that regressed.
-- **Side by side.** `bun run perf ab all --before <base checkout>`. Boots both checkouts at once, alternates between them for every endpoint, trial and page, writes `before.json` and `after.json`, then compares them. Exit code `1` names what regressed.
-- **Confirmation.** When the first pass flags anything, `ab` measures those suites again and ends with `N regressed over both passes`, judged on both passes pooled. About 1% of gated metrics flag in a single pass on main against main.
+- **Measure.** `bun run perf server` prints a table and the file it wrote.
+- **Compare.** `bun run perf compare <before> <after>` exits `0` with `0 regressed beyond 5%`, or `1` with the rows that regressed.
+- **Side by side.** `bun run perf ab all --before <base checkout>` ends with `N regressed beyond 5%`, or `N regressed over both passes` when a first pass flagged anything.
 
 ## Gotchas
 
-- Numbers from another machine are not comparable. The `host` field of a result says where it ran.
-- Other agents building or testing on the same machine inflate latencies. Prefer `ab`, which spreads that load over both sides.
+- Numbers from another machine are not comparable. A result's `host` field says where it ran.
+- Other agents building or testing on the machine inflate latencies. Prefer `ab`, which spreads that load over both sides.
 - `--quick` results only compare with other `--quick` results.
