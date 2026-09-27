@@ -14,6 +14,7 @@ import { eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 import {
   deriveEnvelopeKey,
+  openEnvelope,
   sealEnvelope,
 } from "../../src/credentials/envelope";
 
@@ -175,5 +176,37 @@ describe.skipIf(skipWithoutDatabase())("scripts/copy-connection.ts", () => {
       prefixes: ["con_"],
       stderr: expect.stringContaining("Copied"),
     });
+  });
+
+  it("seals the copy under the destination context so it opens there", async () => {
+    const [copied] = await run(
+      Effect.gen(function* () {
+        const db = yield* Database;
+
+        return yield* Effect.promise(() =>
+          db
+            .select({
+              id: credentialConnection.id,
+              organizationId: credentialConnection.organizationId,
+              sealedPayload: credentialConnection.sealedPayload,
+            })
+            .from(credentialConnection)
+            .innerJoin(
+              organization,
+              eq(organization.id, credentialConnection.organizationId)
+            )
+            .where(eq(organization.slug, destinationSlug))
+        );
+      })
+    );
+    const key = await deriveEnvelopeKey(realKey);
+
+    expect(
+      await openEnvelope(
+        key,
+        copied?.sealedPayload ?? "",
+        `${copied?.organizationId}\0${copied?.id}\0codex`
+      )
+    ).toBe(JSON.stringify({ authJson: "seeded-secret" }));
   });
 });
