@@ -1,5 +1,4 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import type { Paint } from "./paint";
 import { stepLine } from "./transcript-step";
 import {
   openedTurn,
@@ -28,14 +27,12 @@ export interface Settled {
 export interface Transcript {
   readonly closed: ReadonlySet<string>;
   readonly current: string | null;
-  readonly printed: boolean;
   readonly turns: ReadonlyMap<string, Turn>;
 }
 
 export const EMPTY_TRANSCRIPT: Transcript = {
   closed: new Set(),
   current: null,
-  printed: false,
   turns: new Map(),
 };
 
@@ -45,47 +42,51 @@ class Draft {
   readonly lines: string[] = [];
   readonly turns: Map<string, Turn>;
   readonly write: Writer;
-  private readonly printed: boolean;
 
   constructor(transcript: Transcript, style: TranscriptStyle) {
     this.closed = new Set(transcript.closed);
     this.current = transcript.current;
-    this.printed = transcript.printed;
     this.turns = new Map(transcript.turns);
     this.write = writerFor(style);
   }
 
   enter(speaker: Speaker) {
     if (speaker.key !== this.current) {
-      if (this.printed || this.lines.length > 0) {
-        this.lines.push("");
-      }
-
-      this.lines.push(this.write.header(speaker));
+      this.lines.push("", this.write.header(speaker));
       this.current = speaker.key;
     }
   }
 
-  say(label: string, tone: Paint, text: string) {
-    this.lines.push(
-      ...this.write.heading(label, tone),
-      ...this.write.indented(text, 1)
-    );
+  asUser(key: string, text: string, startedAt: number | null) {
+    const { heading, indented, paint } = this.write;
+
+    this.closeTurn(key);
+    this.turns.set(key, openedTurn(this.turns.get(key), startedAt));
+    this.lines.push("", heading("❯", "User", paint.blue), ...indented(text, 1));
+  }
+
+  asAgent(key: string) {
+    const turn = this.turns.get(key) ?? openedTurn(undefined, null);
+
+    if (!turn.answering) {
+      const { heading, paint } = this.write;
+      this.lines.push(heading("◆", "Agent", paint.magenta));
+    }
+
+    this.turns.set(key, { ...turn, answering: true });
   }
 
   closeTurn(key: string) {
     const turn = this.turns.get(key);
 
     if (turn?.open === true) {
-      const { blank, line, paint } = this.write;
+      const { close, nested, paint } = this.write;
+      const facts = turn.replied
+        ? turnFacts(turn)
+        : `${turnFacts(turn)} · no reply`;
 
       this.lines.push(
-        blank,
-        line(
-          turn.replied
-            ? `${paint.green("✓")} ${paint.dim(turnFacts(turn))}`
-            : paint.dim(`· ${turnFacts(turn)} · no reply`)
-        )
+        turn.answering ? close(paint.dim(facts)) : nested(paint.dim(facts))
       );
       this.turns.set(key, { ...turn, open: false });
     }
@@ -97,7 +98,6 @@ class Draft {
       transcript: {
         closed: this.closed,
         current: this.current,
-        printed: this.printed || this.lines.length > 0,
         turns: this.turns,
       } satisfies Transcript,
     };
@@ -110,21 +110,17 @@ export const transcribe = (
   style: TranscriptStyle
 ) => {
   const draft = new Draft(transcript, style);
-  const { paint } = draft.write;
 
   for (const { entry, speaker } of spoken) {
     draft.enter(speaker);
 
     if (entry._tag !== "message") {
+      draft.asAgent(speaker.key);
       draft.lines.push(stepLine(entry, draft.write));
     } else if (entry.role === "user") {
-      draft.closeTurn(speaker.key);
-      draft.turns.set(
-        speaker.key,
-        openedTurn(draft.turns.get(speaker.key), entry.finishedAtMillis ?? null)
-      );
-      draft.say("user", paint.cyan, entry.text);
+      draft.asUser(speaker.key, entry.text, entry.finishedAtMillis ?? null);
     } else {
+      draft.asAgent(speaker.key);
       draft.turns.set(
         speaker.key,
         repliedTurn(draft.turns.get(speaker.key), {
@@ -132,7 +128,7 @@ export const transcribe = (
           finishedAtMillis: entry.finishedAtMillis ?? null,
         })
       );
-      draft.say("agent", paint.magenta, entry.text);
+      draft.lines.push(...draft.write.indented(entry.text, 1));
     }
   }
 
@@ -150,7 +146,7 @@ export const settle = (
     if (!draft.closed.has(speaker.key)) {
       draft.enter(speaker);
       draft.closeTurn(speaker.key);
-      draft.lines.push(...verdictLines(verdict, draft.write));
+      draft.lines.push("", ...verdictLines(verdict, draft.write));
       draft.closed.add(speaker.key);
       draft.current = null;
     }

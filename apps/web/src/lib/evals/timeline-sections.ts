@@ -1,10 +1,10 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { stepFailed } from "@/lib/evals/conversation";
 import {
   describeStep,
   plainText,
   type StepTitle,
-} from "@/lib/evals/step-title";
+} from "@anpord/schema/domain/step-title";
+import { stepFailed } from "@/lib/evals/conversation";
 
 export interface TimelineStep {
   readonly durationMs: number | null;

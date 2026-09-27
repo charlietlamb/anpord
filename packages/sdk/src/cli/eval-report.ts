@@ -2,8 +2,11 @@ import { FileSystem } from "@effect/platform";
 import { Config, Effect, Option, Schema } from "effect";
 import { webUrlConfig } from "../client/config";
 import { batchUrl, buildGithubCheck } from "./github-check";
+import { labelled } from "./labelled-row";
+import { paletteFor } from "./paint";
 import { note } from "./render";
 import { SuiteOutcome } from "./suite-outcome";
+import { stderrStyle } from "./transcript-writer";
 
 const reportJson = Schema.encodeSync(
   Schema.parseJson(Schema.Array(SuiteOutcome))
@@ -23,7 +26,8 @@ const appendSummary = (text: string) =>
 export const reportStarted = (label: string, id: string) =>
   Effect.gen(function* () {
     const url = batchUrl(yield* webUrlConfig, id);
-    yield* note(`${label}: ${url}`);
+    const paint = paletteFor(stderrStyle().colour);
+    yield* note(labelled("Watch", `${url}  ${paint.dim(label)}`, paint));
     yield* appendSummary(`[Batch ${id}](${url}) started.`);
   });
 

@@ -3,7 +3,6 @@ import { validationSummary } from "@anpord/schema/domain/eval-validation-results
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { formatDuration } from "./duration";
 import { outcomeMark } from "./outcome-mark";
-import type { Paint } from "./paint";
 import type { Writer } from "./transcript-writer";
 
 export interface Verdict {
@@ -44,34 +43,21 @@ const checksOf = (verdict: Verdict): readonly Check[] => {
       }));
 };
 
-const markOf = (status: Check["status"], paint: Writer["paint"]) => {
-  if (status === "passed") {
-    return paint.green("✓");
-  }
-
-  if (status === "failed" || status === "error") {
-    return paint.red(status === "error" ? "!" : "✗");
-  }
-
-  return paint.dim(status === "skipped" ? "–" : "·");
-};
+const failing = (check: Check) =>
+  check.status === "failed" || check.status === "error";
 
 const checkLines = (check: Check, write: Writer) => {
   const timing =
     check.durationMs === null
       ? ""
       : write.paint.dim(` · ${formatDuration(check.durationMs)}`);
-  const tone: Paint =
-    check.status === "passed" ? write.paint.dim : (row) => row;
+  const mark = write.paint.red(check.status === "error" ? "!" : "✗");
   const summary =
     check.summary === null || check.summary === check.name
       ? []
-      : write.indented(check.summary, 3, tone).slice(0, SUMMARY_LINES);
+      : write.indented(check.summary, 2).slice(0, SUMMARY_LINES);
 
-  return [
-    write.line(`  ${markOf(check.status, write.paint)} ${check.name}${timing}`),
-    ...summary,
-  ];
+  return [write.nested(`${mark} ${check.name}${timing}`), ...summary];
 };
 
 const outcomeOf = (verdict: Verdict, paint: Writer["paint"]) => {
@@ -87,7 +73,7 @@ const outcomeOf = (verdict: Verdict, paint: Writer["paint"]) => {
       ? "not scored"
       : verdict.voidFields.join(", "));
 
-  return `${mark}${paint.yellow(` · ${why}`)}`;
+  return `${mark}${paint.dim(` · ${why}`)}`;
 };
 
 export const verdictLines = (verdict: Verdict, write: Writer) => {
@@ -99,13 +85,7 @@ export const verdictLines = (verdict: Verdict, write: Writer) => {
       : write.paint.dim(` · ${passed} of ${checks.length} checks passed`);
 
   return [
-    ...(checks.length === 0
-      ? []
-      : [
-          ...write.heading("checks", write.paint.blue),
-          ...checks.flatMap((check) => checkLines(check, write)),
-        ]),
-    write.blank,
-    write.close(`${outcomeOf(verdict, write.paint)}${tally}`),
+    write.line(`${outcomeOf(verdict, write.paint)}${tally}`),
+    ...checks.filter(failing).flatMap((check) => checkLines(check, write)),
   ];
 };

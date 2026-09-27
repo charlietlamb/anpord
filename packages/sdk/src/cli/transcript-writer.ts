@@ -11,8 +11,7 @@ export const PLAIN: TranscriptStyle = { colour: false, width: 80 };
 
 const NARROWEST = 40;
 const UNKNOWN_WIDTH = 100;
-const MARGIN = 2;
-const RAIL_WIDTH = 2;
+const MARGIN = "  ";
 const INDENT = "  ";
 const WHITESPACE = /\s+/g;
 
@@ -24,6 +23,8 @@ export const terminalStyle = (colour: boolean): TranscriptStyle =>
       }
     : PLAIN;
 
+export const stderrStyle = () => terminalStyle(process.stderr.isTTY === true);
+
 export const flat = (text: string) => text.replace(WHITESPACE, " ").trim();
 
 export const clipped = (text: string, width: number) =>
@@ -31,33 +32,39 @@ export const clipped = (text: string, width: number) =>
 
 export const writerFor = (style: TranscriptStyle) => {
   const paint = paletteFor(style.colour);
-  const room = Math.max(1, style.width - MARGIN - RAIL_WIDTH);
-  const rail = paint.dim("│");
-  const blank = `  ${rail}`;
-  const line = (text: string) => `  ${rail} ${text}`;
+  const room = Math.max(1, style.width - MARGIN.length - INDENT.length);
+  const line = (text: string) => `${MARGIN}${text}`;
+  const nested = (text: string, depth = 1) =>
+    line(`${INDENT.repeat(depth)}${text}`);
 
   const indented = (text: string, depth: number, tone: Paint = (row) => row) =>
-    wrapText(text, room - INDENT.length * depth).map((row) =>
-      row === "" ? blank : line(`${INDENT.repeat(depth)}${tone(row)}`)
+    wrapText(text, room - INDENT.length * (depth - 1)).map((row) =>
+      row === "" ? "" : nested(tone(row), depth)
     );
 
-  const header = ({ caseName, ordinal, variant }: Speaker) => {
-    const facts = [variant, ordinal === null ? "" : `trial ${ordinal}`]
-      .filter((fact) => fact !== "")
-      .map((fact) => ` · ${fact}`)
-      .join("");
+  const header = ({ caseName, ordinal, variant }: Speaker) =>
+    line(
+      `${paint.bold(caseName)}  ${paint.dim(variant)}${ordinal === null ? "" : paint.dim(` · trial ${ordinal}`)}`
+    );
 
-    return `  ${paint.dim("┌")} ${paint.bold(caseName)}${paint.dim(facts)}`;
+  const heading = (glyph: string, label: string, tone: Paint) =>
+    line(tone(`${glyph} ${paint.bold(label)}`));
+
+  const branch = (text: string) => nested(`${paint.dim("├")} ${text}`);
+
+  const close = (text: string) => nested(`${paint.dim("└")} ${text}`);
+
+  return {
+    branch,
+    close,
+    header,
+    heading,
+    indented,
+    line,
+    nested,
+    paint,
+    room,
   };
-
-  const heading = (label: string, tone: Paint) => [
-    blank,
-    line(paint.bold(tone(label))),
-  ];
-
-  const close = (text: string) => `  ${paint.dim("└")} ${text}`;
-
-  return { blank, close, header, heading, indented, line, paint, room };
 };
 
 export type Writer = ReturnType<typeof writerFor>;

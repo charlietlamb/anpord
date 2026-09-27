@@ -82,24 +82,28 @@ describe("the transcript a reader follows", () => {
   test("opens a trial with its case and variant", () => {
     const { lines } = run([said("go", 0)]);
 
-    expect(lines[0]).toBe("  ┌ asks before it pushes · codex/gpt-5.6-terra");
+    expect(lines.slice(0, 2)).toEqual([
+      "",
+      "  asks before it pushes  codex/gpt-5.6-terra",
+    ]);
   });
 
   test("gives each speaker a block and keeps the whole message", () => {
     const long = "word ".repeat(60).trim();
     const { lines } = run([said(long, 0)]);
-    const body = lines.filter((line) => line.startsWith("  │   "));
+    const body = lines.filter((line) => line.startsWith("    "));
 
-    expect(lines).toContain("  │ user");
+    expect(lines).toContain("  ❯ User");
     expect(body.length).toBeGreaterThan(1);
-    expect(body.join(" ").replaceAll("  │   ", "").split(" ")).toHaveLength(60);
+    expect(body.join(" ").replaceAll("    ", "").split(" ")).toHaveLength(60);
   });
 
   test("keeps the structure an agent wrote", () => {
     const { lines } = run([replied("[ ] one\n[X] two", 1)]);
 
-    expect(lines).toContain("  │   [ ] one");
-    expect(lines).toContain("  │   [X] two");
+    expect(lines).toContain("  ◆ Agent");
+    expect(lines).toContain("    [ ] one");
+    expect(lines).toContain("    [X] two");
   });
 
   test("names what a tool call acted on", () => {
@@ -107,7 +111,33 @@ describe("the transcript a reader follows", () => {
       tool("skill", JSON.stringify({ skill: "autumn:autumn-setup" })),
     ]);
 
-    expect(lines.at(-1)).toBe("  │ ● skill autumn:autumn-setup");
+    expect(lines.at(-1)).toBe("    ├ skill   autumn:autumn-setup");
+  });
+
+  test("reads a command as what it did, and marks one that failed", () => {
+    const ran = (command: string, exitCode: number, took: number) => ({
+      _tag: "command" as const,
+      command,
+      exitCode,
+      finishedAtMillis: took,
+      output: "",
+      startedAtMillis: 0,
+    });
+    const { lines } = run([
+      ran("sed -n 1,200p skills/autumn-setup/SKILL.md", 0, 4),
+      ran("npx tsc --noEmit", 2, 3100),
+      {
+        _tag: "fileChange",
+        finishedAtMillis: 0,
+        paths: ["src/autumn.config.ts"],
+      },
+    ]);
+
+    expect(lines.slice(-3)).toEqual([
+      "    ├ read    SKILL.md",
+      "    ├ ran     npx tsc --noEmit  3.1s  ✗ exit 2",
+      "    ├ wrote   autumn.config.ts",
+    ]);
   });
 
   test("closes a turn with its duration and spend when the next one opens", () => {
@@ -117,7 +147,7 @@ describe("the transcript a reader follows", () => {
       said("$20", 30_000),
     ]);
 
-    expect(lines).toContain("  │ ✓ turn 1 · 22.3s · $0.04");
+    expect(lines).toContain("    └ turn 1 · 22.3s · $0.04");
   });
 
   test("closes the last turn once the trial settles", () => {
@@ -128,12 +158,7 @@ describe("the transcript a reader follows", () => {
       PLAIN
     );
 
-    expect(lines).toEqual([
-      "  │",
-      "  │ ✓ turn 1 · 5.0s",
-      "  │",
-      "  └ ✓ passed",
-    ]);
+    expect(lines).toEqual(["    └ turn 1 · 5.0s", "", "  ✓ passed"]);
     expect(settle(opened.transcript, [], PLAIN).lines).toEqual([]);
   });
 
@@ -145,7 +170,7 @@ describe("the transcript a reader follows", () => {
       PLAIN
     );
 
-    expect(lines).toContain("  │ · turn 1 · no reply");
+    expect(lines).toContain("    turn 1 · no reply");
   });
 
   test("names the trial again whenever the speaker changes", () => {
@@ -181,18 +206,18 @@ describe("the verdict a trial closes with", () => {
       PLAIN
     ).lines;
 
-  test("lists every check with its mark, time and why", () => {
+  test("counts the checks and lists only the ones that failed, with why", () => {
     const lines = settled("failed", [
       check("asked before applying", "passed", "asked first", 2),
       check("pushed with --yes", "failed", "never ran atmn push", 157),
     ]);
 
-    expect(lines).toContain("  │ checks");
-    expect(lines).toContain("  │   ✓ asked before applying · 2ms");
-    expect(lines).toContain("  │       asked first");
-    expect(lines).toContain("  │   ✗ pushed with --yes · 157ms");
-    expect(lines).toContain("  │       never ran atmn push");
-    expect(lines.at(-1)).toBe("  └ ✗ failed · 1 of 2 checks passed");
+    expect(lines.slice(-3)).toEqual([
+      "  ✗ failed · 1 of 2 checks passed",
+      "    ✗ pushed with --yes · 157ms",
+      "      never ran atmn push",
+    ]);
+    expect(lines.join("\n")).not.toContain("asked before applying");
   });
 
   test("falls back to the verifier's steps when no check was recorded", () => {
@@ -211,8 +236,7 @@ describe("the verdict a trial closes with", () => {
       PLAIN
     ).lines;
 
-    expect(lines).toContain("  │   ✓ test -f pricing.md");
-    expect(lines.at(-1)).toBe("  └ ✓ passed · 1 of 1 checks passed");
+    expect(lines.at(-1)).toBe("  ✓ passed · 1 of 1 checks passed");
   });
 
   test("says why a trial was void", () => {
@@ -231,8 +255,8 @@ describe("the verdict a trial closes with", () => {
       PLAIN
     ).lines;
 
-    expect(lines.at(0)).toBe("  ┌ asks before it pushes · codex/gpt-5.6-terra");
-    expect(lines.at(-1)).toBe("  └ ○ void · sandbox");
+    expect(lines.at(1)).toBe("  asks before it pushes  codex/gpt-5.6-terra");
+    expect(lines.at(-1)).toBe("  ○ void · sandbox");
   });
 
   test("closes a trial once however often it is reported settled", () => {

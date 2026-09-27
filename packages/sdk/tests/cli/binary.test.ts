@@ -118,7 +118,7 @@ export default suite({
       );
 
       expect(code).toBe(0);
-      expect(stderr.split("\n")[0]).toBe("Runs land in Acme (acme).");
+      expect(stderr.split("\n")[0]).toBe("  Org      Acme (acme)");
       expect(stdout.match(/batch_cli/g)).toHaveLength(2);
       expect(requests).toHaveLength(2);
       expect(

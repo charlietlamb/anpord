@@ -1,3 +1,4 @@
+import type { StepVerb } from "@anpord/schema/domain/step-title";
 import {
   BookOpenIcon,
   ChatCircleDotsIcon,
@@ -8,7 +9,6 @@ import {
   UserIcon,
   WrenchIcon,
 } from "@phosphor-icons/react";
-import type { StepVerb } from "@/lib/evals/step-title";
 import type { MomentKind, TimelineStep } from "@/lib/evals/timeline-sections";
 
 interface VerbLook {

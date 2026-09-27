@@ -140,7 +140,7 @@ describe("the organization line at the start of an eval", () => {
     answer = { body: ACME, status: 200 };
 
     expect(await announce()).toEqual({
-      stderr: "Runs land in Acme (acme).\n",
+      stderr: "  Org      Acme (acme)\n",
       stdout: "",
     });
   });

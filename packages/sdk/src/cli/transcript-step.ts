@@ -1,35 +1,89 @@
 import { callSubjectOf, commandText } from "@anpord/schema/domain/eval-journal";
 import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import {
+  describeCommand,
+  describeStep,
+} from "@anpord/schema/domain/step-title";
+import { formatDuration } from "./duration";
 import { clipped, flat, type Writer } from "./transcript-writer";
 
 type Step = Exclude<EvalJournalEntry, { readonly _tag: "message" }>;
 
-const GLYPH_WIDTH = 2;
+interface StepParts {
+  readonly detail: string;
+  readonly failure: string | null;
+  readonly tookMs: number | null;
+  readonly verb: string;
+}
 
-export const stepLine = (step: Step, { line, paint, room }: Writer) => {
-  const width = room - GLYPH_WIDTH;
+const BRANCH_WIDTH = 2;
+const VERB_WIDTH = 7;
+const NOTABLE_MS = 1000;
+const GAP = "  ";
 
+const unless = (text: string, tone: (text: string) => string) =>
+  text === "" ? "" : tone(text);
+
+const tookBetween = (
+  startedAt: number | null | undefined,
+  finishedAt: number | null
+) =>
+  startedAt === null || startedAt === undefined || finishedAt === null
+    ? null
+    : Math.max(0, finishedAt - startedAt);
+
+const commandParts = (step: Extract<Step, { _tag: "command" }>): StepParts => {
+  const title = describeCommand(step.command);
+  const named = title.verb === "read" || title.verb === "wrote";
+
+  return {
+    detail: named
+      ? (title.target ?? title.title)
+      : flat(commandText(step.command)),
+    failure:
+      step.exitCode !== null && step.exitCode !== 0
+        ? `exit ${step.exitCode}`
+        : null,
+    tookMs: tookBetween(step.startedAtMillis, step.finishedAtMillis),
+    verb: title.verb === "searched" ? "search" : title.verb,
+  };
+};
+
+const partsOf = (step: Step): StepParts => {
   if (step._tag === "command") {
-    const failed = step.exitCode !== null && step.exitCode !== 0;
-
-    return line(
-      `${paint.yellow("$")} ${paint.dim(clipped(flat(commandText(step.command)), width))}${failed ? paint.red(` exit ${step.exitCode}`) : ""}`
-    );
+    return commandParts(step);
   }
 
   if (step._tag === "fileChange") {
-    return line(
-      `${paint.green("+")} ${paint.dim(clipped(`wrote ${step.paths.join(", ")}`, width))}`
-    );
+    return {
+      detail: describeStep(step).target ?? "",
+      failure: null,
+      tookMs: null,
+      verb: "wrote",
+    };
   }
 
-  const subject = callSubjectOf(step.input);
-  const detail =
-    subject === null
-      ? ""
-      : ` ${paint.dim(clipped(flat(subject), Math.max(1, width - step.name.length - 1)))}`;
+  return {
+    detail: flat(callSubjectOf(step.input) ?? ""),
+    failure: step.error === undefined ? null : "failed",
+    tookMs: tookBetween(step.startedAtMillis, step.finishedAtMillis),
+    verb: step.name,
+  };
+};
 
-  return line(
-    `${paint.blue("●")} ${step.name}${detail}${step.error === undefined ? "" : paint.red(" failed")}`
+export const stepLine = (step: Step, { branch, paint, room }: Writer) => {
+  const { detail, failure, tookMs, verb } = partsOf(step);
+  const took =
+    tookMs === null || tookMs < NOTABLE_MS
+      ? ""
+      : `${GAP}${formatDuration(tookMs)}`;
+  const failed = failure === null ? "" : `${GAP}✗ ${failure}`;
+  const label = verb.padEnd(VERB_WIDTH);
+  const width =
+    room - BRANCH_WIDTH - label.length - 1 - took.length - failed.length;
+  const tone = failure === null ? paint.dim : paint.red;
+
+  return branch(
+    `${tone(label)} ${clipped(detail, Math.max(1, width))}${unless(took, paint.dim)}${unless(failed, paint.red)}`
   );
 };
