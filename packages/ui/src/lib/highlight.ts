@@ -1,10 +1,14 @@
-import { createHighlighterCore, type HighlighterCore } from "shiki/core";
-import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import type { HighlighterCore } from "shiki/core";
 
 let pending: Promise<HighlighterCore> | undefined;
 
-const create = () =>
-  createHighlighterCore({
+const create = async () => {
+  const [{ createHighlighterCore }, { createJavaScriptRegexEngine }] =
+    await Promise.all([
+      import("shiki/core"),
+      import("shiki/engine/javascript"),
+    ]);
+  return createHighlighterCore({
     engine: createJavaScriptRegexEngine(),
     langs: [
       import("shiki/langs/typescript.mjs"),
@@ -17,6 +21,7 @@ const create = () =>
       import("shiki/themes/github-dark-default.mjs"),
     ],
   });
+};
 
 const UNBOUNDED = { tokenizeTimeLimit: 0 } as const;
 
