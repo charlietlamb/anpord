@@ -109,21 +109,82 @@ const record = (ast: SchemaAST.TypeLiteral): Step => {
   };
 };
 
+const NO_LITERAL = Symbol("no literal");
+
+const literalOf = (ast: SchemaAST.AST, key: PropertyKey): unknown => {
+  switch (ast._tag) {
+    case "TypeLiteral": {
+      const field = ast.propertySignatures.find(
+        (candidate) => candidate.name === key && !candidate.isOptional
+      );
+      const type =
+        field === undefined ? undefined : SchemaAST.typeAST(field.type);
+      return type?._tag === "Literal" ? type.literal : NO_LITERAL;
+    }
+    case "Transformation":
+      return literalOf(ast.to, key);
+    case "Refinement":
+      return literalOf(ast.from, key);
+    default:
+      return NO_LITERAL;
+  }
+};
+
+const keysOf = (ast: SchemaAST.AST): readonly PropertyKey[] => {
+  switch (ast._tag) {
+    case "TypeLiteral":
+      return ast.propertySignatures.map((field) => field.name);
+    case "Transformation":
+      return keysOf(ast.to);
+    case "Refinement":
+      return keysOf(ast.from);
+    default:
+      return [];
+  }
+};
+
+const discriminated = (types: readonly SchemaAST.AST[]) => {
+  const key = keysOf(types[0] ?? SchemaAST.neverKeyword).find((candidate) =>
+    types.every((type) => literalOf(type, candidate) !== NO_LITERAL)
+  );
+  if (key === undefined) {
+    return;
+  }
+  const byLiteral = new Map<unknown, Step[]>();
+  for (const type of types) {
+    const literal = literalOf(type, key);
+    byLiteral.set(literal, [...(byLiteral.get(literal) ?? []), stepOf(type)]);
+  }
+  return { byLiteral, key };
+};
+
+const firstOnlyMatch = (members: readonly Step[], input: unknown) => {
+  let found: unknown = MISMATCH;
+  for (const member of members) {
+    const value = member(input);
+    if (value === UNSUPPORTED || (value !== MISMATCH && found !== MISMATCH)) {
+      return UNSUPPORTED;
+    }
+    if (value !== MISMATCH) {
+      found = value;
+    }
+  }
+  return found;
+};
+
 const union = (ast: SchemaAST.Union): Step => {
   const members = ast.types.map(stepOf);
-  return (input) => {
-    let found: unknown = MISMATCH;
-    for (const member of members) {
-      const value = member(input);
-      if (value === UNSUPPORTED || (value !== MISMATCH && found !== MISMATCH)) {
-        return UNSUPPORTED;
-      }
-      if (value !== MISMATCH) {
-        found = value;
-      }
-    }
-    return found;
-  };
+  const tags = discriminated(ast.types);
+  if (tags === undefined) {
+    return (input) => firstOnlyMatch(members, input);
+  }
+  return (input) =>
+    typeof input === "object" && input !== null
+      ? firstOnlyMatch(
+          tags.byLiteral.get((input as Fields)[tags.key]) ?? [],
+          input
+        )
+      : MISMATCH;
 };
 
 const refinement = (ast: SchemaAST.Refinement): Step => {
