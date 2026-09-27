@@ -205,46 +205,6 @@ const reasonsOf = (evals: readonly EvalHomeEval[]): HomeReason[] =>
     }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
-const headlineOf = (
-  tally: HomeTally,
-  newlyFailing: number,
-  delta: number | null,
-  range: EvalHomeRange
-) => {
-  if (tally.total === 0) {
-    return null;
-  }
-  if (tally.passing === tally.total) {
-    return tally.total === 1
-      ? "1 eval passes."
-      : `All ${tally.total} evals pass.`;
-  }
-  const period = PERIOD[range];
-  const failing = failingSentence(tally.failing, newlyFailing);
-  if (tally.passRate === null) {
-    return failing;
-  }
-  const trend =
-    delta === null || delta === 0
-      ? ""
-      : `, ${delta < 0 ? "down" : "up"} ${Math.abs(delta)} ${Math.abs(delta) === 1 ? "point" : "points"} ${period}`;
-  return `${failing} Pass rate is ${tally.passRate}%${trend}.`;
-};
-
-const failingSentence = (failing: number, fresh: number) => {
-  if (failing === 0) {
-    return "No evals are failing.";
-  }
-  const lead =
-    failing === 1 ? "1 eval is failing" : `${failing} evals are failing`;
-  if (fresh === 0) {
-    return `${lead}.`;
-  }
-  return failing === 1
-    ? `${lead}, new since yesterday.`
-    : `${lead}, ${fresh} of them new since yesterday.`;
-};
-
 export const homeView = (home: EvalHome, filters: HomeFilters) => {
   const evals = home.evals.filter(
     (entry) =>
@@ -310,7 +270,6 @@ export const homeView = (home: EvalHome, filters: HomeFilters) => {
       })),
       variants,
     },
-    headline: headlineOf(tally, newlyFailing, delta, filters.range),
     newlyFailing,
     options: {
       suites: [...new Map(home.evals.map((e) => [e.suite.id, e.suite]))].map(

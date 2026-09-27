@@ -22,9 +22,6 @@ export function HomeDashboard({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-pretty font-medium text-[17px] leading-[23px] tracking-[-0.012em]">
-        {view.headline}
-      </p>
       <HomeOverview
         onVerdict={onVerdict}
         range={filters.range}

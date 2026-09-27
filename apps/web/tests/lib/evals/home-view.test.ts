@@ -108,9 +108,6 @@ describe("homeView", () => {
       unscored: 1,
     });
     expect(view.delta).toBe(-10);
-    expect(view.headline).toBe(
-      "2 evals are failing, 1 of them new since yesterday. Pass rate is 50%, down 10 points this week."
-    );
   });
 
   test("puts the suite with the most failing evals first and lists them", () => {
@@ -153,7 +150,6 @@ describe("homeView", () => {
     });
 
     expect(view.tally.total).toBe(1);
-    expect(view.headline).toBe("1 eval passes.");
     expect(view.grid).toEqual({
       rows: [{ cells: [100], suite: SMOKE }],
       variants: ["claude/opus@setup"],
@@ -197,10 +193,10 @@ describe("homeView", () => {
     ]);
   });
 
-  test("an empty organization has no headline", () => {
-    expect(
-      homeView({ ...HOME, days: [], evals: [] }, NONE).headline
-    ).toBeNull();
+  test("an empty organization has nothing to count", () => {
+    expect(homeView({ ...HOME, days: [], evals: [] }, NONE).tally.total).toBe(
+      0
+    );
   });
 });
 
