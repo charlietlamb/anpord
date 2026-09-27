@@ -1,6 +1,7 @@
 import type { EvalUsage } from "@anpord/schema/domain/evals";
 import {
   CONCERN_REASONS,
+  cacheHitOf,
   usageConcerns,
 } from "@anpord/schema/domain/usage-health";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
@@ -23,18 +24,17 @@ export function TrialCost({
   readonly usage: EvalUsage;
 }) {
   const concerns = usageConcerns({ turns, usage });
-  const served =
-    usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
+  const hit = cacheHitOf(usage);
 
   return (
     <div className="flex flex-col">
-      {served === 0 ? null : (
+      {hit === null ? null : (
         <RailFact
-          detail={<ShareBar of={served} value={usage.cacheReadTokens} />}
+          detail={<ShareBar of={1} value={hit} />}
           hint="The share of everything the model was given that came from cache. A cached read costs about a tenth of fresh input, so this is most of the difference between a first run and a repeat. Nothing cached means every turn paid full price for the turns before it."
           Icon={LightningIcon}
           label="cache hit rate"
-          value={`${percent(usage.cacheReadTokens / served)} cached`}
+          value={`${percent(hit)} cached`}
         />
       )}
 

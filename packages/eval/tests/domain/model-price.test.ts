@@ -1,11 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { usageOf } from "../../src/domain/harness-event";
-import {
-  cacheHitOf,
-  costOf,
-  type ModelPrice,
-} from "../../src/domain/model-price";
+import { costOf, type ModelPrice } from "../../src/domain/model-price";
 
 /* Anthropic's published rates for Sonnet, in dollars per million. */
 const SONNET: ModelPrice = {
@@ -109,27 +105,5 @@ describe("model price", () => {
     );
 
     expect(cost).toBeCloseTo(2, 6);
-  });
-
-  it("reads the cache share of everything the model was served", () => {
-    const hit = cacheHitOf(
-      usage({ cacheReadTokens: 900, cacheWriteTokens: 0, inputTokens: 100 })
-    );
-
-    expect(hit).toBeCloseTo(0.9, 6);
-  });
-
-  /* A rate needs a denominator: no tokens is not a zero-percent hit rate,
-     and reporting one would claim a cache missed when nothing was asked. */
-  it("reports no hit rate when nothing was served", () => {
-    expect(cacheHitOf(usage({ inputTokens: 0 }))).toBeNull();
-  });
-
-  it("counts a cache write against the hit rate", () => {
-    const hit = cacheHitOf(
-      usage({ cacheReadTokens: 0, cacheWriteTokens: 1000, inputTokens: 0 })
-    );
-
-    expect(hit).toBe(0);
   });
 });
