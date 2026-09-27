@@ -1,4 +1,5 @@
 import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
+import { isSettledTrial } from "@anpord/schema/domain/eval-trial";
 import type { EvalBatch } from "@anpord/schema/domain/evals";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Clock, Data, Duration, Effect, Fiber, Ref, Stream } from "effect";
@@ -13,8 +14,7 @@ const running = (batch: EvalBatch) => batch.status === "running";
 const settledIn = (batch: EvalBatch) =>
   batch.runs
     .flatMap((run) => run.trials)
-    .filter((trial) => trial.status !== "queued" && trial.status !== "running")
-    .length;
+    .filter((trial) => isSettledTrial(trial.status)).length;
 
 export interface BatchWatcher {
   readonly draw: (batch: EvalBatch, elapsedMs: number) => Effect.Effect<void>;

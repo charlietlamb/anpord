@@ -1,3 +1,4 @@
+import { isSettledTrial } from "@anpord/schema/domain/eval-trial";
 import type { EvalRun } from "@anpord/schema/domain/evals";
 import { counted } from "@anpord/ui/lib/evals/counted";
 import { cn } from "@anpord/ui/lib/utils";
@@ -11,9 +12,7 @@ const TONE = {
 } as const;
 
 const settledOf = (run: EvalRun) =>
-  run.trials.filter(
-    (trial) => trial.status !== "queued" && trial.status !== "running"
-  ).length;
+  run.trials.filter((trial) => isSettledTrial(trial.status)).length;
 
 const activeOf = (run: EvalRun) =>
   run.trials.find((trial) => trial.status === "running");
