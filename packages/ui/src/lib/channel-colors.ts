@@ -1,17 +1,4 @@
-export const CHANNEL_COLORS = [
-  "slate",
-  "blue",
-  "teal",
-  "green",
-  "amber",
-  "red",
-  "purple",
-  "pink",
-] as const;
-
-export type ChannelColor = (typeof CHANNEL_COLORS)[number];
-
-export const CHANNEL_DEFAULT_COLOR: ChannelColor = "slate";
+import type { ChannelColor } from "@anpord/schema/domain/channels";
 
 export const CHANNEL_SWATCHES: Record<ChannelColor, string> = {
   amber: "bg-amber-500",

@@ -1,10 +1,7 @@
+import { ChannelColor } from "@anpord/schema/domain/channels";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Button } from "../button";
-import {
-  CHANNEL_COLORS,
-  CHANNEL_SWATCHES,
-  type ChannelColor,
-} from "../../lib/channel-colors";
+import { CHANNEL_SWATCHES } from "../../lib/channel-colors";
 import { cn } from "../../lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
@@ -33,7 +30,7 @@ export function ColorPicker({ onChange, value }: ColorPickerProps) {
       />
       <PopoverContent align="start" className="w-auto p-2">
         <div className="grid grid-cols-4 gap-1">
-          {CHANNEL_COLORS.map((color) => (
+          {ChannelColor.literals.map((color) => (
             <button
               aria-label={color}
               aria-pressed={color === value}

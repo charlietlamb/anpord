@@ -1,8 +1,10 @@
+import {
+  type ChannelColor,
+  DEFAULT_CHANNEL_COLOR,
+} from "@anpord/schema/domain/channels";
 import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
 import { ColorPicker } from "@anpord/ui/components/ui/color-picker";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
-import type { ChannelColor } from "@anpord/ui/lib/channel-colors";
-import { CHANNEL_DEFAULT_COLOR } from "@anpord/ui/lib/channel-colors";
 import { z } from "zod";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 
@@ -28,7 +30,7 @@ export function ChannelDialog({ color, name, onSubmit }: ChannelDialogProps) {
 
   const form = useAppForm({
     defaultValues: {
-      color: (color ?? CHANNEL_DEFAULT_COLOR) as string,
+      color: (color ?? DEFAULT_CHANNEL_COLOR) as string,
       name: name ?? "",
     },
     onSubmit: ({ value }) => {
