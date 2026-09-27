@@ -90,6 +90,22 @@ describe("schemaEncoder", () => {
     expect(schemaEncoder(Tagged)(input)).toEqual(Option.none());
   });
 
+  it("runs each filter of a plain struct once per encode", () => {
+    const seen: string[] = [];
+    const Checked = Schema.Struct({ a: Schema.Number }).pipe(
+      Schema.filter(() => {
+        seen.push("inner");
+        return true;
+      }),
+      Schema.filter(() => {
+        seen.push("outer");
+        return true;
+      })
+    );
+    expect(schemaEncoder(Checked)({ a: 1 })).toEqual(Option.some({ a: 1 }));
+    expect(seen).toEqual(["inner", "outer"]);
+  });
+
   it("writes a stored batch back out exactly as it was read", () => {
     const encode = schemaEncoder(EvalBatch);
     const decoded = Schema.decodeUnknownSync(EvalBatch)(batch);

@@ -207,13 +207,18 @@ const holdsObjects = (ast: SchemaAST.AST): boolean => {
   }
 };
 
-const filtered = (ast: SchemaAST.Refinement) => {
+const filtered = (
+  ast: SchemaAST.Refinement
+): ((input: unknown, encoded: unknown) => unknown) => {
   const type = SchemaAST.typeAST(ast.from);
+  if (type === ast.from) {
+    return (_input, encoded) => encoded;
+  }
   if (!holdsObjects(type)) {
-    return (input: unknown) => input;
+    return (input) => input;
   }
   const validate = ParseResult.validateEither(Schema.make(type));
-  return (input: unknown) => Either.getOrElse(validate(input), () => MISMATCH);
+  return (input) => Either.getOrElse(validate(input), () => MISMATCH);
 };
 
 const refinement = (ast: SchemaAST.Refinement): Step => {
@@ -224,7 +229,7 @@ const refinement = (ast: SchemaAST.Refinement): Step => {
     if (failed(value)) {
       return value;
     }
-    const checked = typed(input);
+    const checked = typed(input, value);
     if (checked === MISMATCH) {
       return MISMATCH;
     }
