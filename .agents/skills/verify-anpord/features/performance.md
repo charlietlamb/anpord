@@ -21,7 +21,7 @@ Preconditions:
 - A local Postgres. The web suite, and so `all`, also needs a Chrome install. Nothing else running heavy work, if you can help it.
 
 - **Measure.** `bun run perf server`. The table prints per endpoint rows and the file path it wrote.
-- **Compare.** `bun run perf compare apps/perf/baselines/<main file> <your file>`. Exit code `0` with `0 regressed beyond 5%`, or `1` with the rows that regressed.
+- **Compare.** `bun run perf compare <before file> <after file>`. Exit code `0` with `0 regressed beyond 5%`, or `1` with the rows that regressed.
 - **Side by side.** `bun run perf ab all --before <base checkout>`. Boots both checkouts at once, alternates between them for every endpoint, trial and page, writes `before.json` and `after.json`, then compares them. Exit code `1` names what regressed.
 - **Confirmation.** When the first pass flags anything, `ab` measures those suites again and ends with `N regressed over both passes`, judged on both passes pooled. About 1% of gated metrics flag in a single pass on main against main.
 

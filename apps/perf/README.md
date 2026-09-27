@@ -43,6 +43,3 @@ Queries are counted by a Bun preload (`src/stack/probe-preload.ts`) that wraps `
 
 Pages: `/evals`, a batch, a case, the trial with the 4,000 event journal, and `/settings`.
 
-## Baselines
-
-`baselines/` holds committed results, one file per base branch and date: `main-2026-09-27.json` and `charlie-cleanup-2026-09-27.json`. Compare a branch against the newest one only when the machine is the one that recorded it (the `host` field says which), and prefer `ab` otherwise.
