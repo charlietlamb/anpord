@@ -7,6 +7,12 @@ export const triggerSecretKey = Config.redacted("TRIGGER_SECRET_KEY").pipe(
   Config.orElse(() => Config.redacted("TRIGGER_API_KEY"))
 );
 
+export const triggerSdk = async (key: Redacted.Redacted) => {
+  const sdk = await import("@trigger.dev/sdk");
+  sdk.configure({ secretKey: Redacted.value(key) });
+  return sdk;
+};
+
 export const TrialRunnerTrigger = Layer.effect(
   TrialRunner,
   Effect.gen(function* () {
@@ -15,8 +21,7 @@ export const TrialRunnerTrigger = Layer.effect(
     return TrialRunner.of({
       dispatch: ({ batchId, organizationId }) =>
         Effect.tryPromise(async () => {
-          const { configure, tasks } = await import("@trigger.dev/sdk");
-          configure({ secretKey: Redacted.value(key) });
+          const { tasks } = await triggerSdk(key);
           return tasks.trigger(
             EVAL_RUN,
             { batchId, organizationId } satisfies EvalBatchPayload,
