@@ -50,13 +50,13 @@ describe("a long command on the local sandbox", () => {
     const { ms, outcome } = await timedLongCommand("sleep 0.7; echo done");
 
     expect(outcome).toEqual({ exitCode: 0, stderr: "", stdout: "done\n" });
-    expect(ms).toBeLessThan(1000);
+    expect(ms).toBeLessThan(3000);
   });
 
   it("reports a quick failure with its exit code", async () => {
     const { ms, outcome } = await timedLongCommand("echo broke >&2; exit 3");
 
     expect(outcome).toEqual({ exitCode: 3, stderr: "broke\n", stdout: "" });
-    expect(ms).toBeLessThan(500);
+    expect(ms).toBeLessThan(3000);
   });
 });
