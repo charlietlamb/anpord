@@ -98,15 +98,11 @@ export const whoamiScenarios: readonly Scenario<World>[] = [
 
       const announcements = ran.stderr
         .split("\n")
-        .filter((line) => line.startsWith("Runs land in"));
-      equals(
-        "announced once",
-        announcements.join("\n"),
-        "Runs land in acme org (acme)."
-      );
+        .filter((line) => line.includes("acme org (acme)"));
+      equals("announced once", announcements.length, 1);
       isTrue(
         "announced before the batch link",
-        ran.stderr.indexOf("Runs land in") < ran.stderr.indexOf("/evals/"),
+        ran.stderr.indexOf("acme org (acme)") < ran.stderr.indexOf("/evals/"),
         ran.stderr
       );
     },

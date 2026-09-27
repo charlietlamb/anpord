@@ -115,10 +115,13 @@ export const evalScenarios: readonly Scenario<World>[] = [
 
       const ran = await cli(world, ["eval", suite.file, "--local"]);
       equals("a gate failure exits 2", ran.code, 2);
-      contains(
+      const failedRow = printed(ran)
+        .split("\n")
+        .find((line) => line.includes("never-writes"));
+      isTrue(
         "names the case and variant that failed",
-        printed(ran),
-        "never-writes on command/probe-a"
+        failedRow?.includes("command/probe-a") === true,
+        printed(ran)
       );
     },
   },

@@ -1,4 +1,20 @@
+import { posix } from "node:path";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+
+export const relativeToWorkspace = (
+  workspace: string,
+  events: readonly HarnessEvent[]
+): readonly HarnessEvent[] =>
+  events.map((event) =>
+    event._tag === "FileChange"
+      ? {
+          ...event,
+          paths: event.paths.map((path) =>
+            posix.isAbsolute(path) ? posix.relative(workspace, path) : path
+          ),
+        }
+      : event
+  );
 
 export const commandsIn = (events: readonly HarnessEvent[]) =>
   events.filter((event) => event._tag === "Command").length;

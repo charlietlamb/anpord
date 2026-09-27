@@ -1,6 +1,7 @@
 import type { EvalBatch } from "@anpord/schema/domain/evals";
 import {
   BatchRunRow,
+  type RunLink,
   type TrialLink,
 } from "@anpord/ui/components/evals/batch-run-row";
 import {
@@ -19,9 +20,11 @@ const settledOf = (batch: EvalBatch) =>
 export function BatchRuns({
   batch,
   linkTo,
+  runLinkTo,
 }: {
   readonly batch: EvalBatch;
   readonly linkTo?: TrialLink;
+  readonly runLinkTo?: RunLink;
 }) {
   if (batch.runs.length === 0) {
     return (
@@ -42,7 +45,12 @@ export function BatchRuns({
 
       <DataTableBody>
         {batch.runs.map((run) => (
-          <BatchRunRow key={run.id} linkTo={linkTo} run={run} />
+          <BatchRunRow
+            key={run.id}
+            linkTo={linkTo}
+            run={run}
+            runLinkTo={runLinkTo}
+          />
         ))}
       </DataTableBody>
 
