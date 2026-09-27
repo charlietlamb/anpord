@@ -5572,6 +5572,7 @@
           "lastRunAt",
           "lastRunId",
           "runs",
+          "status",
           "variant"
         ],
         "properties": {
@@ -5586,6 +5587,14 @@
           },
           "runs": {
             "$ref": "#/components/schemas/Int"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "finished",
+              "failed"
+            ]
           },
           "variant": {
             "$ref": "#/components/schemas/EvalVariant"
