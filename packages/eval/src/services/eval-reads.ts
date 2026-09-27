@@ -54,27 +54,30 @@ export const make = Effect.gen(function* () {
       found(
         artifact(organizationId, input),
         () => new EvalNotFound({ entity: "artifact", id: input.path })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.artifact")),
     batch: (organizationId: string, id: string) =>
       found(
         batches.get(organizationId, id),
         () => new EvalNotFound({ entity: "batch", id })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.batch")),
     ownedBatch: (organizationId: string, id: string) =>
       found(
         scope.batch(organizationId, id),
         () => new EvalNotFound({ entity: "batch", id })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.ownedBatch")),
     batches: (input: {
       readonly cursor: EvalPageCursor | null;
       readonly limit: number | undefined;
       readonly organizationId: string;
-    }) => batches.list(input).pipe(Effect.orDie),
+    }) =>
+      batches
+        .list(input)
+        .pipe(Effect.orDie, Effect.withSpan("EvalReads.batches")),
     case: (organizationId: string, id: string) =>
       found(
         cases.detail(organizationId, id),
         () => new EvalNotFound({ entity: "case", id })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.case")),
     caseRuns: (input: {
       readonly caseId: string;
       readonly organizationId: string;
@@ -106,7 +109,8 @@ export const make = Effect.gen(function* () {
         );
         return { page, pageSize: RUN_PAGE_SIZE, runs: held, total };
       }).pipe(Effect.orDie, Effect.withSpan("EvalReads.caseRuns")),
-    cases: (input: ListCases) => cases.list(input).pipe(Effect.orDie),
+    cases: (input: ListCases) =>
+      cases.list(input).pipe(Effect.orDie, Effect.withSpan("EvalReads.cases")),
     run: (organizationId: string, id: string) =>
       found(
         runs
@@ -117,13 +121,16 @@ export const make = Effect.gen(function* () {
           })
           .pipe(Effect.map((held) => Option.fromNullable(held[0]))),
         () => new EvalNotFound({ entity: "run", id })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.run")),
     suite: (organizationId: string, id: string) =>
       found(
         suites.detail(organizationId, id),
         () => new EvalNotFound({ entity: "suite", id })
-      ),
-    suites: (input: ListSuites) => suites.list(input).pipe(Effect.orDie),
+      ).pipe(Effect.withSpan("EvalReads.suite")),
+    suites: (input: ListSuites) =>
+      suites
+        .list(input)
+        .pipe(Effect.orDie, Effect.withSpan("EvalReads.suites")),
     tail: (input: {
       readonly after: readonly EvalTailMark[];
       readonly batchId: string;
@@ -132,12 +139,12 @@ export const make = Effect.gen(function* () {
       found(
         tail(input),
         () => new EvalNotFound({ entity: "batch", id: input.batchId })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.tail")),
     trialAddress: (organizationId: string, trialId: string) =>
       found(
         address(organizationId, trialId),
         () => new EvalNotFound({ entity: "trial", id: trialId })
-      ),
+      ).pipe(Effect.withSpan("EvalReads.trialAddress")),
   };
 });
 
