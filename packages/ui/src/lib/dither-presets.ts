@@ -67,6 +67,15 @@ export const CURRENT_DITHER = preset("current", "Current", 0.13, [
   }),
 ]);
 
+export const LANDING_DITHER = preset("landing", "Crisp 4x4", 0.14, [
+  layer(beam(135, 0, 95), {
+    clumps: { cut: 0.5, edge: 14, frequency: 0.0045, seed: 5 },
+    scale: 0.5,
+    size: 2.5,
+    type: "4x4",
+  }),
+]);
+
 const STREAMS: DitherFamily = {
   description:
     "The diagonal sweep with its streaks turned to run along the flow.",

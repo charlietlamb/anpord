@@ -1,60 +1,59 @@
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import type { DitherPreset } from "@anpord/ui/lib/dither-presets";
+import { Dither } from "@anpord/ui/components/ui/dither";
+import {
+  type DitherPreset,
+  LANDING_DITHER,
+} from "@anpord/ui/lib/dither-presets";
 import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { CopyAgentSetup } from "@/components/landing/copy-agent-setup";
-import { SiteLayout } from "@/components/layout/site-layout";
+import { CopyCommand } from "@/components/landing/copy-command";
+import { LandingNav } from "@/components/landing/landing-nav";
+import { SiteHeader } from "@/components/layout/site-header";
 
 const REVEAL =
   "fade-in-0 slide-in-from-bottom-2 animate-in fill-mode-both ease-out [animation-duration:500ms]";
 
 export function Landing({
-  dither,
+  dither = LANDING_DITHER,
   header,
 }: {
   readonly dither?: DitherPreset;
   readonly header?: HeaderPreset;
 }) {
   return (
-    <SiteLayout dither={dither} header={header}>
-      <section className="flex flex-1 flex-col justify-center pb-24">
+    <main className="relative isolate min-h-svh overflow-hidden bg-background text-foreground">
+      <Dither preset={dither} />
+      {header === undefined ? <LandingNav /> : <SiteHeader preset={header} />}
+      <section className="absolute inset-x-6 bottom-16 flex flex-col gap-8 lg:inset-x-[72px] lg:bottom-[88px] lg:flex-row lg:items-end lg:justify-between lg:gap-12">
         <h1
           className={cn(
             REVEAL,
-            "max-w-3xl text-pretty font-heading text-3xl leading-[1.15] tracking-tight sm:text-5xl"
+            "max-w-[760px] text-pretty font-light text-[40px] leading-[44px] tracking-[-0.04em] lg:text-[64px] lg:leading-[66px] lg:tracking-[-0.045em]"
           )}
         >
-          Reinforcement learning for your product.{" "}
-          <span className="text-muted-foreground">
-            Run agents on real tasks, reward what works, and fix what
-            doesn&rsquo;t.
-          </span>
+          Reinforcement learning for your product.
         </h1>
         <div
           className={cn(
             REVEAL,
-            "mt-10 flex flex-wrap items-center gap-2 [animation-delay:100ms]"
+            "flex w-full max-w-[380px] shrink-0 flex-col gap-5 [animation-delay:100ms] lg:pb-1.5"
           )}
         >
-          <Link
-            className={cn(
-              buttonVariants({ size: "xl", variant: "raised" }),
-              "group/start"
-            )}
-            to="/login"
-          >
-            Start optimizing
-            <span
-              aria-hidden
-              className="transition-transform duration-150 ease-out group-hover/start:translate-x-0.5"
+          <p className="max-w-[372px] font-light text-[16px] text-muted-foreground leading-6">
+            Run agents on real tasks, reward what works, and fix what
+            doesn&rsquo;t.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              className="flex h-9 items-center rounded-[4px] bg-foreground px-4 font-[450] text-[14px] text-background transition-opacity duration-150 hover:opacity-85"
+              to="/login"
             >
-              →
-            </span>
-          </Link>
-          <CopyAgentSetup />
+              Start optimizing
+            </Link>
+            <CopyCommand />
+          </div>
         </div>
       </section>
-    </SiteLayout>
+    </main>
   );
 }
