@@ -32,7 +32,7 @@ export function AppSidebar() {
           <Link
             aria-label="Home"
             className="shrink-0 cursor-pointer text-foreground transition-colors hover:text-muted-foreground"
-            to="/home"
+            to="/"
           >
             <Logo className="size-5" />
           </Link>

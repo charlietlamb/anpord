@@ -222,7 +222,9 @@ export const homeView = (home: EvalHome, filters: HomeFilters) => {
   const overall = dailyRates(axis, days);
   const tally = tallyOf(evals);
   const delta = rateDelta(axis, days);
-  const newlyFailing = evals.filter((entry) => entry.newlyFailing).length;
+  const newlyFailing = evals.filter(
+    (entry) => entry.newlyFailing && entry.verdict === "failed"
+  ).length;
   const focus = focusOf(filters);
 
   const suiteRows = [...groupBy(evals, (entry) => entry.suite.id)]

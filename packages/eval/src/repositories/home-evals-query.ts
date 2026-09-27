@@ -40,6 +40,7 @@ with scoped as (
     v.user_model as variant_user_model
   from eval_case c
   join eval_suite s on s.internal_id = c.suite_internal_id
+    and s.organization_id = ${organizationId}
   join eval_variant v on v.case_internal_id = c.internal_id
   where c.organization_id = ${organizationId}
 ),
