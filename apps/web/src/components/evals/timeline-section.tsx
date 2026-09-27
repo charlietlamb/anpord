@@ -5,7 +5,7 @@ import {
 } from "@anpord/ui/components/ui/collapsible";
 import { elapsed, wholeSeconds } from "@anpord/ui/lib/evals/duration";
 import { CaretRightIcon } from "@phosphor-icons/react";
-import { TimelineStep } from "@/components/evals/timeline-step";
+import { TimelineSteps } from "@/components/evals/timeline-steps";
 import { VerbBadge } from "@/components/evals/verb-badge";
 import { countVerbs } from "@/lib/evals/timeline-kinds";
 import {
@@ -65,14 +65,11 @@ export function TimelineSection({
               {more}
             </p>
           )}
-          {steps.map((step) => (
-            <TimelineStep
-              key={step.index}
-              onSelect={() => onSelect(step.index)}
-              selected={selected === step.index}
-              step={step}
-            />
-          ))}
+          <TimelineSteps
+            onSelect={onSelect}
+            selected={selected}
+            steps={steps}
+          />
         </div>
       </CollapsiblePanel>
     </Collapsible>
