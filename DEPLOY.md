@@ -72,8 +72,10 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 
 The service runs 0.5 vCPU / 1 GB with at least 2 instances (up to 4, 80 requests
 each) and a health check on `/api/livez` every 5 seconds, replaced after 3
-misses. The deploy workflow sets all of this on every run, so the service cannot
-drift back. The server idles near 400 MB and has peaked near 500 MB while evals
+misses. `scripts/apprunner-shape.sh` holds this shape: `apply` sets it with operator
+credentials, and the deploy workflow runs `check` first and refuses to deploy a
+service that has drifted, naming what changed. The CI key can only read the
+service, so it cannot resize it. The server idles near 400 MB and has peaked near 500 MB while evals
 run; on a single 0.5 GB instance that meant 8 kills with exit code 137 in a week,
 each taking the API down until it restarted. 1 GB leaves twice the worst seen,
 and a second instance keeps serving while one is replaced.
