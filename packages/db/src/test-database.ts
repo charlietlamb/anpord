@@ -2,14 +2,19 @@ type Env = Readonly<Record<string, string | undefined>>;
 
 const DISPOSABLE_NAME = /(^|[_-])(test|scratch)([_-]|$)/;
 
+const POSTGRES_PROTOCOLS: ReadonlySet<string> = new Set([
+  "postgres:",
+  "postgresql:",
+]);
+
 const databaseNameIn = (url: string) => {
-  try {
-    return decodeURIComponent(new URL(url).pathname.slice(1));
-  } catch {
+  const parsed = URL.parse(url);
+  if (parsed === null || !POSTGRES_PROTOCOLS.has(parsed.protocol)) {
     throw new Error(
       "EVAL_TEST_DATABASE_URL is not a postgres URL. Set it to a test database, such as postgresql://localhost:5432/anpord_test."
     );
   }
+  return decodeURIComponent(parsed.pathname.slice(1));
 };
 
 export const testDatabaseUrl = (env: Env = process.env) => {

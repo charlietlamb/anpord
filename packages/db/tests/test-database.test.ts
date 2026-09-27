@@ -25,7 +25,7 @@ describe("testDatabaseUrl", () => {
     );
   });
 
-  it("refuses a hosted database and a name that only contains the word", () => {
+  it("refuses any database whose name is not a test or scratch one, wherever it is hosted", () => {
     expect(() =>
       pointingAt("postgresql://u:p@ep-x.neon.tech/neondb?sslmode=require")
     ).toThrow('points at "neondb"');
@@ -39,6 +39,18 @@ describe("testDatabaseUrl", () => {
     expect(() => pointingAt("anpord_test")).toThrow(
       "EVAL_TEST_DATABASE_URL is not a postgres URL."
     );
+  });
+
+  it("refuses a URL for anything but postgres", () => {
+    for (const url of [
+      "postgresqlx://localhost/anpord_test",
+      "https://example.com/anpord_test",
+      "mysql://h/anpord_test",
+    ]) {
+      expect(() => pointingAt(url)).toThrow(
+        "EVAL_TEST_DATABASE_URL is not a postgres URL."
+      );
+    }
   });
 
   it("skips when unset, unless a database is required", () => {
