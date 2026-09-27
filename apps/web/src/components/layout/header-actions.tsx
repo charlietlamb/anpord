@@ -5,34 +5,10 @@ import { cn } from "@anpord/ui/lib/utils";
 import { ArrowRightIcon, BookOpenIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
+import { ShortcutChip } from "@/components/layout/shortcut-chip";
+import { StatChips } from "@/components/layout/stat-chips";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { GITHUB_URL } from "@/lib/urls";
-
-const CHIP =
-  "hidden h-9 items-center gap-2 rounded-full bg-alpha-4 px-3.5 text-muted-foreground text-xs xl:flex";
-
-function StatChips() {
-  return (
-    <>
-      <span className={CHIP}>
-        GitHub
-        <span className="text-foreground tabular-nums">2,184</span>
-      </span>
-      <span className={CHIP}>
-        npm
-        <span className="text-foreground tabular-nums">18.2k</span>
-      </span>
-    </>
-  );
-}
-
-function ShortcutChip() {
-  return (
-    <span className="hidden h-6 items-center rounded-md border border-alpha-8 px-1.5 text-[11px] text-muted-foreground tabular-nums sm:flex">
-      ⌘K
-    </span>
-  );
-}
 
 const VERCEL_SIGN_IN =
   "bg-transparent text-foreground shadow-[0_0_0_1px_rgb(0_0_0/0.12)] hover:bg-alpha-4 dark:bg-[#0a0a0a] dark:text-[#ededed] dark:shadow-[0_0_0_1px_#2e2e2e] dark:hover:bg-[#161616]";
