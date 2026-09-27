@@ -180,7 +180,25 @@ const runCompare = (before: string | undefined, after: string | undefined) => {
     log(`\n${regressed.length} regressed beyond ${threshold}%`);
   }
   process.exitCode = regressed.length > 0 ? 1 : 0;
+  return regressed.map((each) => each.key);
 };
+
+const measurePair = async (
+  names: readonly string[],
+  before: string,
+  after: string
+) => {
+  const [beforeFile, afterFile] = await measure(names, [before, after]);
+  const directory = join(RESULTS, `ab-${stamp()}`);
+  const beforePath = join(directory, "before.json");
+  const afterPath = join(directory, "after.json");
+  writeResult(beforePath, beforeFile as ResultFile);
+  writeResult(afterPath, afterFile as ResultFile);
+  log(`\nbefore ${before}\nafter  ${after}\nresults in ${directory}\n`);
+  return runCompare(beforePath, afterPath);
+};
+
+const suiteOfKey = (key: string) => key.slice(0, key.indexOf("."));
 
 const runAb = async (name: string | undefined) => {
   if (name === undefined || values.before === undefined) {
@@ -188,19 +206,21 @@ const runAb = async (name: string | undefined) => {
   }
   const before = resolve(values.before);
   const after = resolve(values.after ?? HARNESS_ROOT);
-  const [beforeFile, afterFile] = await measure(suitesOf(name), [
-    before,
-    after,
-  ]);
-  const directory = join(RESULTS, `ab-${stamp()}`);
-  const paths = [
-    join(directory, "before.json"),
-    join(directory, "after.json"),
-  ] as const;
-  writeResult(paths[0], beforeFile as ResultFile);
-  writeResult(paths[1], afterFile as ResultFile);
-  log(`\nbefore ${before}\nafter  ${after}\nresults in ${directory}\n`);
-  runCompare(paths[0], paths[1]);
+  const flagged = await measurePair(suitesOf(name), before, after);
+  if (flagged.length === 0) {
+    return;
+  }
+  log(
+    `\n${flagged.length} flagged. Measuring those suites again, since a real regression shows up twice.\n`
+  );
+  const again = new Set(
+    await measurePair([...new Set(flagged.map(suiteOfKey))], before, after)
+  );
+  const confirmed = flagged.filter((key) => again.has(key));
+  log(
+    `\n${confirmed.length} regressed in both passes${confirmed.length > 0 ? `: ${confirmed.join(", ")}` : ""}`
+  );
+  process.exitCode = confirmed.length > 0 ? 1 : 0;
 };
 
 const [command, ...rest] = positionals;

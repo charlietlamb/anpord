@@ -22,7 +22,8 @@ Preconditions:
 
 - **Measure.** `bun run perf server`. The table prints per endpoint rows and the file path it wrote.
 - **Compare.** `bun run perf compare apps/perf/baselines/<main file> <your file>`. Exit code `0` with `0 regressed beyond 5%`, or `1` with the rows that regressed.
-- **Interleave.** `bun run perf ab all --before <main checkout> --rounds 2`. Runs before, after, before, after, then compares the pooled medians.
+- **Side by side.** `bun run perf ab all --before <main checkout>`. Boots both checkouts at once, alternates between them for every endpoint, trial and page, writes `before.json` and `after.json`, then compares them. Exit code `1` names what regressed.
+- **Confirmation.** When the first pass flags anything, `ab` measures those suites again on its own and ends with `N regressed in both passes`. Only those fail it. About 1% of gated metrics flag once on main against main.
 
 ## Gotchas
 

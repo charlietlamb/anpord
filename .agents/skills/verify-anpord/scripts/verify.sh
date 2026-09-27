@@ -64,7 +64,7 @@ summary_of() {
   case "$1" in
     test) grep -hoE '^ *[0-9]+ pass' "$2" | awk '{ s += $1 } END { if (s) printf "%d tests passed", s }' ;;
     e2e) grep -oE '[0-9]+/[0-9]+ scenarios passed' "$2" | tail -1 ;;
-    perf) grep -oE '[0-9]+ regressed beyond [0-9.]+%' "$2" | tail -1 ;;
+    perf) grep -oE '[0-9]+ regressed (in both passes|beyond [0-9.]+%)' "$2" | tail -1 ;;
     *) ;;
   esac
 }
