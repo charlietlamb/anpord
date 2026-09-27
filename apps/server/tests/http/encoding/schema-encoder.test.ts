@@ -71,6 +71,22 @@ describe("schemaEncoder", () => {
     expect(encode(refused)).toEqual(Option.none());
   });
 
+  it("leaves an empty struct to Schema.encode, which keeps what it was given", () => {
+    const encode = schemaEncoder(Schema.Struct({}));
+    expect(encode({ kept: 1 } as never)).toEqual(Option.none());
+  });
+
+  it("checks a struct filter against the stripped value, as Schema.encode does", () => {
+    const Tagged = Schema.Struct({ a: Schema.Number }).pipe(
+      Schema.filter(
+        (value) => (value as { extra?: number }).extra !== undefined
+      )
+    );
+    const input = { a: 1, extra: 1 };
+    expect(Schema.encodeEither(Tagged)(input)._tag).toBe("Left");
+    expect(schemaEncoder(Tagged)(input)).toEqual(Option.none());
+  });
+
   it("writes a stored batch back out exactly as it was read", () => {
     const encode = schemaEncoder(EvalBatch);
     const decoded = Schema.decodeUnknownSync(EvalBatch)(batch);

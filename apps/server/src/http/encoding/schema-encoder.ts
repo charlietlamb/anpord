@@ -1,4 +1,4 @@
-import { Either, Option, type Schema, SchemaAST } from "effect";
+import { Either, Option, ParseResult, Schema, SchemaAST } from "effect";
 
 const MISMATCH = Symbol("mismatch");
 const UNSUPPORTED = Symbol("unsupported");
@@ -57,6 +57,7 @@ const array =
 
 const record = (ast: SchemaAST.TypeLiteral): Step => {
   if (
+    (ast.propertySignatures.length === 0 && ast.indexSignatures.length === 0) ||
     ast.indexSignatures.some(
       (signature) => signature.parameter._tag !== "StringKeyword"
     )
@@ -187,14 +188,47 @@ const union = (ast: SchemaAST.Union): Step => {
       : MISMATCH;
 };
 
+const holdsObjects = (ast: SchemaAST.AST): boolean => {
+  switch (ast._tag) {
+    case "TypeLiteral":
+    case "Declaration":
+    case "Suspend":
+      return true;
+    case "TupleType":
+      return [...ast.elements, ...ast.rest].some((element) =>
+        holdsObjects(element.type)
+      );
+    case "Union":
+      return ast.types.some(holdsObjects);
+    case "Refinement":
+      return holdsObjects(ast.from);
+    default:
+      return false;
+  }
+};
+
+const filtered = (ast: SchemaAST.Refinement) => {
+  const type = SchemaAST.typeAST(ast.from);
+  if (!holdsObjects(type)) {
+    return (input: unknown) => input;
+  }
+  const validate = ParseResult.validateEither(Schema.make(type));
+  return (input: unknown) => Either.getOrElse(validate(input), () => MISMATCH);
+};
+
 const refinement = (ast: SchemaAST.Refinement): Step => {
   const from = stepOf(ast.from);
+  const typed = filtered(ast);
   return (input) => {
     const value = from(input);
     if (failed(value)) {
       return value;
     }
-    return Option.isNone(ast.filter(input, SchemaAST.defaultParseOption, ast))
+    const checked = typed(input);
+    if (checked === MISMATCH) {
+      return MISMATCH;
+    }
+    return Option.isNone(ast.filter(checked, SchemaAST.defaultParseOption, ast))
       ? value
       : MISMATCH;
   };
