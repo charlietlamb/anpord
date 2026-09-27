@@ -29,7 +29,7 @@ bun run perf ab all --before ../anpord-main           # --after defaults to this
 
 A metric regresses when all three hold: it moves the wrong way by more than the threshold (`--threshold`, default 5), by more than a noise floor per unit (1 ms, 1 KiB, half a query, one request per second, 2 Lighthouse points, 0.001 of a ratio), and past the worst value the before side recorded across its own rounds when it has at least 3. Improvements are judged the same way in the other direction. Metrics only one side has are listed as added or removed. Metrics marked `info` (seed time, server memory, `p99_ms`, each step's `first_ms`, web build time) are shown but never fail, because main against main moves them by more than 10% or they rest on a single sample.
 
-Main against main through `ab all` flags about 3 of the 252 gated metrics (1%), almost always a latency percentile. So when a pass flags anything, `ab` measures the flagged suites again and fails only on metrics that regress in both passes. `compare` on its own has no second pass.
+Main against main through `ab all` flags about 3 of the 252 gated metrics (1%), almost always a latency percentile. So when a pass flags anything, `ab` measures the flagged suites again and judges both passes pooled: the median of the two values per side, against the widest spread either pass recorded. One noisy pass can neither fail a change nor clear it. `compare` accepts several files per side and pools them the same way.
 
 ## What each suite does
 

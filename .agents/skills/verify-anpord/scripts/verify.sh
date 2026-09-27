@@ -64,7 +64,7 @@ summary_of() {
   case "$1" in
     test) grep -aoE ':test: +[0-9]+ (pass|fail)' "$2" | awk '{ s[$3] += $2 } END { printf "%d tests passed, %d failed", s["pass"], s["fail"] }' ;;
     e2e) grep -oE '[0-9]+/[0-9]+ scenarios passed' "$2" | tail -1 ;;
-    perf) grep -oE '[0-9]+ regressed (in both passes|beyond [0-9.]+%)' "$2" | tail -1 ;;
+    perf) grep -oE '[0-9]+ regressed (over both passes|beyond [0-9.]+%)' "$2" | tail -1 ;;
     *) ;;
   esac
 }

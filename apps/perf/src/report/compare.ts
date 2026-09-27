@@ -27,9 +27,29 @@ const pooled = (runs: readonly Metrics[], key: string) => {
     return value === undefined ? [] : [value];
   });
   const [first] = found;
-  return first === undefined
-    ? undefined
-    : { ...first, value: median(found.map((each) => each.value)) };
+  if (first === undefined) {
+    return;
+  }
+  const spreads = found.flatMap((each) =>
+    each.spread === undefined ? [] : [each.spread]
+  );
+  return {
+    ...first,
+    ...(spreads.length === 0
+      ? {}
+      : {
+          spread: {
+            max: Math.max(...spreads.map((spread) => spread.max)),
+            min: Math.min(...spreads.map((spread) => spread.min)),
+            p95: Math.max(...spreads.map((spread) => spread.p95)),
+            samples: spreads.reduce(
+              (total, spread) => total + spread.samples,
+              0
+            ),
+          },
+        }),
+    value: median(found.map((each) => each.value)),
+  };
 };
 
 const MIN_SPREAD_SAMPLES = 3;

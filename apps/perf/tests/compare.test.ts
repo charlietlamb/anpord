@@ -99,6 +99,20 @@ describe("compare", () => {
     expect(regressions(result)).toEqual([]);
   });
 
+  test("pooled runs judge against the widest spread any of them recorded", () => {
+    const run = (value: number, min: number, p95: number) => ({
+      p50_ms: metric("ms", value, { max: p95, min, p95, samples: 5 }),
+    });
+    const [pooled] = compare(
+      [run(100, 95, 104), run(102, 90, 130)],
+      [run(120, 115, 125), run(118, 112, 124)],
+      5
+    );
+    expect(pooled?.before).toBe(101);
+    expect(pooled?.after).toBe(119);
+    expect(pooled?.verdict).toBe("same");
+  });
+
   test("several runs per side are pooled by their median", () => {
     const before = [
       { q: metric("count", 4) },
