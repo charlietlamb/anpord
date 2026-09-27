@@ -81,7 +81,7 @@ export function DataTableRow({
       {
         className: cn(
           COLUMNS,
-          "h-10 text-label",
+          "h-9 text-label",
           render !== undefined &&
             cn(
               ROW_HOVER,
