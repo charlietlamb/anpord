@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { isLocalHost } from "@anpord/db/local-hosts";
 import { testDatabaseUrl } from "@anpord/db/test-database";
 import { runOrThrow } from "@anpord/e2e/src/harness/process";
 import { Client } from "pg";
 
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 const SCRATCH_PREFIX = "anpord_scratch_";
 const QUOTED = /^(["'])(.*)\1$/;
 let created = 0;
@@ -28,7 +28,7 @@ const fromEnvFile = (path: string) => {
 
 export const scratchServerUrl = (raw: string) => {
   const url = new URL(raw.trim().replace(QUOTED, "$2"));
-  if (!LOCAL_HOSTS.has(url.hostname)) {
+  if (!isLocalHost(url.hostname)) {
     throw new Error(
       `The perf harness only creates scratch databases on a local Postgres, not ${url.hostname}.`
     );
