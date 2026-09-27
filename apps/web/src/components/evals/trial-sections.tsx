@@ -1,8 +1,10 @@
 import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 import type { Icon } from "@phosphor-icons/react";
 import { parseAsString, useQueryState } from "nuqs";
-import type { ReactNode } from "react";
+// biome-ignore lint/correctness/noUnresolvedImports: biome cannot see the Suspense export in the react types
+import { type ReactNode, Suspense } from "react";
 import { Swap } from "@/components/layout/swap";
+import { preloadTrialPanels } from "@/lib/evals/trial-panels";
 
 export interface TrialSection {
   readonly content: ReactNode;
@@ -27,6 +29,7 @@ export function TrialSections({
     <div className="flex min-w-0 flex-col gap-3">
       <PageTabs
         onChange={setTab}
+        onIntent={preloadTrialPanels}
         options={sections.map(({ Icon, label, value }) => ({
           Icon,
           label,
@@ -37,7 +40,7 @@ export function TrialSections({
 
       <div className="relative min-w-0">
         <Swap className="min-w-0" swapKey={open.value}>
-          {open.content}
+          <Suspense fallback={null}>{open.content}</Suspense>
         </Swap>
       </div>
     </div>

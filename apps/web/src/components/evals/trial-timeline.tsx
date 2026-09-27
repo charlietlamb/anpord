@@ -16,10 +16,12 @@ import { useVirtualRows } from "@/lib/use-virtual-rows";
 const SECTION_HEIGHT = 41;
 
 export function TrialTimeline({
+  onIntent,
   running,
   timed,
   trajectory,
 }: {
+  readonly onIntent?: () => void;
   readonly running: boolean;
   readonly timed: boolean;
   readonly trajectory: readonly EvalJournalEntry[];
@@ -56,7 +58,7 @@ export function TrialTimeline({
   const spanMs = timed ? timeline.spanMs : null;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" onPointerEnter={onIntent}>
       {spanMs !== null && spanMs > 0 ? (
         <TimelineBand
           onToggle={toggleSection}
@@ -67,7 +69,11 @@ export function TrialTimeline({
       ) : null}
 
       <StepList label="Timeline">
-        <StepListBody className="relative box-content" ref={listRef} style={{ height }}>
+        <StepListBody
+          className="relative box-content"
+          ref={listRef}
+          style={{ height }}
+        >
           {rows.map(({ index: position, offset }) => {
             const section = timeline.sections[position] as Section;
             return (

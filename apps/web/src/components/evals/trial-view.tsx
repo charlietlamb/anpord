@@ -14,18 +14,21 @@ import {
   SquaresFourIcon,
 } from "@phosphor-icons/react";
 import { CaseSetup } from "@/components/evals/case-setup";
-import { Conversation } from "@/components/evals/conversation";
 import { RunCaseButton } from "@/components/evals/run-case-button";
-import { TrialCalls } from "@/components/evals/trial-calls";
-import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialDetails } from "@/components/evals/trial-details";
-import { TrialFiles } from "@/components/evals/trial-files";
 import { TrialMeta } from "@/components/evals/trial-meta";
 import { TrialSections } from "@/components/evals/trial-sections";
 import { TrialStepPane } from "@/components/evals/trial-step-pane";
 import { TrialTimeline } from "@/components/evals/trial-timeline";
 import { PageShell } from "@/components/layout/page-shell";
 import { SideSheet } from "@/components/layout/side-sheet";
+import {
+  CallsPanel,
+  ChecksPanel,
+  ConversationPanel,
+  FilesPanel,
+  StepPanePanel,
+} from "@/lib/evals/trial-panels";
 
 export function TrialView({
   run,
@@ -72,6 +75,7 @@ export function TrialView({
                 Icon: PulseIcon,
                 content: (
                   <TrialTimeline
+                    onIntent={StepPanePanel.preload}
                     running={running}
                     timed={trial.timed}
                     trajectory={trial.trajectory}
@@ -83,7 +87,7 @@ export function TrialView({
               {
                 Icon: ChatsCircleIcon,
                 content: (
-                  <Conversation
+                  <ConversationPanel.Component
                     running={running}
                     trajectory={trial.trajectory}
                     written={{
@@ -98,7 +102,11 @@ export function TrialView({
               {
                 Icon: CheckSquareIcon,
                 content: (
-                  <TrialChecks key={trial.id} setup={run.setup} trial={trial} />
+                  <ChecksPanel.Component
+                    key={trial.id}
+                    setup={run.setup}
+                    trial={trial}
+                  />
                 ),
                 label: "Checks",
                 value: "checks",
@@ -108,7 +116,7 @@ export function TrialView({
                     {
                       Icon: FilesIcon,
                       content: (
-                        <TrialFiles
+                        <FilesPanel.Component
                           artifacts={trial.artifacts}
                           changed={trial.filesChanged}
                           trial={{ trialId: trial.id }}
@@ -121,7 +129,7 @@ export function TrialView({
                 : []),
               {
                 Icon: SquaresFourIcon,
-                content: <TrialCalls trajectory={trial.trajectory} />,
+                content: <CallsPanel.Component trajectory={trial.trajectory} />,
                 label: "Calls",
                 value: "calls",
               },

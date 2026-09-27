@@ -12,11 +12,13 @@ export interface PageTabOption<T extends string> {
 export function PageTabs<T extends string>({
   className,
   onChange,
+  onIntent,
   options,
   value,
 }: {
   readonly className?: string;
   readonly onChange: (value: T) => void;
+  readonly onIntent?: () => void;
   readonly options: readonly PageTabOption<T>[];
   readonly value: T;
 }) {
@@ -31,6 +33,8 @@ export function PageTabs<T extends string>({
           "skeleton-static relative isolate flex w-fit max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-muted p-1 dark:bg-card",
           className
         )}
+        onFocus={onIntent}
+        onPointerEnter={onIntent}
       >
         {options.map(({ Icon, label, value: option }) => (
           <Tabs.Tab
