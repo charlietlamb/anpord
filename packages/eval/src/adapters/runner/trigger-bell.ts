@@ -11,7 +11,8 @@ export const RunBellTrigger = Layer.succeed(
       Effect.asVoid,
       Effect.catchAllDefect((defect) =>
         Effect.logWarning("could not ring the run's bell", defect)
-      )
+      ),
+      Effect.withSpan("RunBell.ring")
     ),
   })
 );

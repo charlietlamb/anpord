@@ -17,7 +17,8 @@ export const SuspenderTrigger = Layer.succeed(
               Effect.logWarning("could not suspend, waiting in place").pipe(
                 Effect.andThen(Effect.sleep(duration))
               )
-            )
+            ),
+            Effect.withSpan("Suspender.waitFor")
           ),
   })
 );
