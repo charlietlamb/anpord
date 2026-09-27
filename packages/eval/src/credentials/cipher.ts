@@ -17,9 +17,12 @@ export class CredentialCipher extends Context.Tag(
   "@anpord/eval/CredentialCipher"
 )<CredentialCipher, CredentialCipherShape>() {}
 
-const keyConfig = Config.redacted("CREDENTIALS_ENCRYPTION_KEY").pipe(
+export const keyConfig = Config.redacted("CREDENTIALS_ENCRYPTION_KEY").pipe(
   Config.orElse(() => Config.redacted("BETTER_AUTH_SECRET"))
 );
+
+export const resolveEncryptionSecret = () =>
+  Effect.runPromise(keyConfig).then(Redacted.value);
 
 export const CredentialCipherLive = Layer.effect(
   CredentialCipher,
