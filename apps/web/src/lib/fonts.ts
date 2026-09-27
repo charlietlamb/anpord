@@ -18,6 +18,7 @@ const fileOf = (pkg: string, subset: string) =>
 const facesOf = (family: string, pkg: string, ranges: Record<string, string>) =>
   Object.entries(ranges).map(([subset, unicodeRange]) => ({
     family,
+    preloaded: subset === "latin",
     unicodeRange,
     url: fileOf(pkg, subset),
   }));
@@ -27,12 +28,22 @@ const FACES = [
   ...facesOf("Geist Mono Variable", "geist-mono", geistMonoRanges),
 ];
 
-export const LOAD_FONTS = `for (const { family, unicodeRange, url } of ${JSON.stringify(FACES)}) document.fonts.add(new FontFace(family, \`url(\${url}) format("woff2-variations")\`, { display: "block", unicodeRange, weight: "100 900" }))`;
+export const LOAD_FONTS = `for (const { family, preloaded, unicodeRange, url } of ${JSON.stringify(FACES)}) {
+  const face = new FontFace(family, \`url(\${url}) format("woff2-variations")\`, { display: "block", unicodeRange, weight: "100 900" });
+  document.fonts.add(face);
+  if (preloaded) face.load();
+}`;
 
-export const FONT_PRELOADS = ["geist", "geist-mono"].map((pkg) => ({
-  as: "font",
-  crossOrigin: "anonymous" as const,
-  href: fileOf(pkg, "latin"),
-  rel: "preload",
-  type: "font/woff2",
-}));
+export const FONT_PRELOADS = FACES.flatMap((face) =>
+  face.preloaded
+    ? [
+        {
+          as: "font",
+          crossOrigin: "anonymous" as const,
+          href: face.url,
+          rel: "preload",
+          type: "font/woff2",
+        },
+      ]
+    : []
+);

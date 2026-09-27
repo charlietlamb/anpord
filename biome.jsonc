@@ -48,6 +48,8 @@
     {
       "includes": [
         "packages/ui/src/**",
+        "apps/web/src/lib/ssr-module-preloads.ts",
+        "apps/web/src/ssr-module-preloads.d.ts",
         "**/*.test.ts",
         "**/*.test.tsx",
         "apps/worker/trigger.config.ts"

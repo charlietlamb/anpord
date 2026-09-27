@@ -1,15 +1,6 @@
 import type { Schema } from "effect";
+import { HttpError } from "@/lib/http-error";
 import { fromWire } from "@/lib/wire";
-
-export class HttpError extends Error {
-  readonly status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "HttpError";
-    this.status = status;
-  }
-}
 
 type SearchValue = number | string | null | undefined;
 

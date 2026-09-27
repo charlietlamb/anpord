@@ -7,7 +7,8 @@ import { RootDocument } from "@/components/layout/root-document";
 import { RootErrorComponent } from "@/components/layout/root-error";
 import { RootNotFound } from "@/components/layout/root-not-found";
 import { FONT_PRELOADS } from "@/lib/fonts";
-import appCss from "../styles/globals.css?url";
+import "../styles/globals.css";
+import devCss from "../styles/globals.css?url";
 
 const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
 
@@ -43,7 +44,8 @@ export const Route = createRootRouteWithContext<{
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
+      ...(import.meta.env.DEV ? [{ rel: "stylesheet", href: devCss }] : []),
+      { rel: "expect", href: "#$tsr-stream-barrier", blocking: "render" },
       { rel: "icon", type: "image/svg+xml", href: FAVICON },
       ...FONT_PRELOADS,
     ],

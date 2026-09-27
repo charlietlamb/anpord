@@ -8,9 +8,11 @@ export function HomeRecentRuns({
   readonly runs: readonly HomeRun[];
 }) {
   return (
-    <HomePanel className="py-1" title="Recent runs">
+    <HomePanel className="gap-0 p-0" title="Recent runs">
       {runs.length === 0 ? (
-        <p className="py-3 text-[13px] text-muted-foreground">No runs yet.</p>
+        <p className="px-4 py-3 text-[13px] text-muted-foreground">
+          No runs yet.
+        </p>
       ) : (
         <ul className="flex flex-col">
           {runs.map((run) => (

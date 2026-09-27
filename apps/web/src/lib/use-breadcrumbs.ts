@@ -1,4 +1,4 @@
-import { type DataTag, type QueryKey, useQueries } from "@tanstack/react-query";
+import { type QueryKey, useQueries } from "@tanstack/react-query";
 import { useMatches } from "@tanstack/react-router";
 
 export interface CrumbQuery {
@@ -18,8 +18,8 @@ export interface Crumb {
   label: string;
 }
 
-export const crumbFrom = <TData, TError>(
-  queryKey: DataTag<QueryKey, TData, TError>,
+export const crumbFrom = <TData>(
+  queryKey: QueryKey,
   label: (data: TData) => string | undefined
 ): CrumbQuery => ({
   queryKey,

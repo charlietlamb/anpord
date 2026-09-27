@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { HttpError } from "@/lib/api-client";
+import { HttpError } from "@/lib/http-error";
 
 const MINUTE = 60 * 1000;
 const RETRIES = 2;

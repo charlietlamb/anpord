@@ -191,7 +191,6 @@ export function ConnectionDialog({
                         value: item.id,
                       };
                     })}
-                    triggerClassName="w-full"
                     value={field.state.value}
                   />
                 )}
@@ -211,7 +210,6 @@ export function ConnectionDialog({
                         label: item.label,
                         value: item.id,
                       }))}
-                      triggerClassName="w-full"
                       value={field.state.value}
                     />
                   )}
@@ -246,7 +244,6 @@ export function ConnectionDialog({
                     label="Available to"
                     onChange={field.handleChange}
                     options={SCOPE_OPTIONS}
-                    triggerClassName="w-full"
                     value={field.state.value}
                   />
                 )}

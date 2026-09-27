@@ -1,4 +1,6 @@
+import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { evalKeys } from "@/lib/evals/eval-keys";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import { crumbFrom } from "@/lib/use-breadcrumbs";
 
@@ -11,8 +13,8 @@ export const Route = createFileRoute("/_authed/evals/cases/$caseId")({
   staticData: {
     crumb: (params) =>
       crumbFrom(
-        evalQueries.case(params.caseId).queryKey,
-        (entry) => entry.name
+        evalKeys.case(params.caseId),
+        (entry: EvalCaseDetail) => entry.name
       ),
     title: "Case",
   },
