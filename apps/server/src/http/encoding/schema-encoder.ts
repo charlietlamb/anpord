@@ -21,7 +21,7 @@ const when =
     accepts(input) ? input : MISMATCH;
 
 const isObject = (input: unknown): input is Fields =>
-  typeof input === "object" && input !== null;
+  typeof input === "object" && input !== null && !Array.isArray(input);
 
 const array =
   (item: Step): Step =>
