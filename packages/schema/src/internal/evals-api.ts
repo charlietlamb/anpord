@@ -3,6 +3,8 @@ import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { BatchSubscription } from "../domain/eval-batch-subscription";
 import {
+  CaseOrder,
+  CaseSort,
   EvalCaseDetail,
   EvalCasePage,
   EvalRunPage,
@@ -31,9 +33,9 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
           cursorId: Schema.optional(Schema.String),
           cursorStartedAt: Schema.optional(Schema.NumberFromString),
           limit: Schema.optional(Schema.NumberFromString),
-          order: Schema.optional(Schema.Literal("asc", "desc")),
+          order: Schema.optional(CaseOrder),
           q: Schema.optional(Schema.String),
-          sort: Schema.optional(Schema.Literal("recent", "name")),
+          sort: Schema.optional(CaseSort),
           suite: Schema.optional(Schema.String),
           tag: Schema.optional(Schema.String),
         })

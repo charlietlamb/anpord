@@ -1,3 +1,7 @@
+import type {
+  CaseOrder,
+  CaseSort,
+} from "@anpord/schema/domain/eval-read-models";
 import { Button } from "@anpord/ui/components/button";
 import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -33,8 +37,8 @@ const TAGS = ["billing", "conversation", "slow"];
 const NOTHING = () => undefined;
 
 function FiltersPreview() {
-  const [sort, setSort] = useState<"recent" | "name">("recent");
-  const [order, setOrder] = useState<"asc" | "desc">("desc");
+  const [sort, setSort] = useState<CaseSort>("recent");
+  const [order, setOrder] = useState<CaseOrder>("desc");
   const [suite, setSuite] = useState<string | null>(null);
   const [tag, setTag] = useState<string | null>(null);
   const [query, setQuery] = useState("");

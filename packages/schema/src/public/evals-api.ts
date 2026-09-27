@@ -6,6 +6,8 @@ import { EvalCaseId } from "../domain/eval-limits";
 import { ModelCatalogue } from "../domain/eval-models";
 import { MAX_RUN_TRIALS } from "../domain/eval-quota";
 import {
+  CaseOrder,
+  CaseSort,
   EvalBatchPage,
   EvalCaseDetail,
   EvalCasePage,
@@ -43,9 +45,9 @@ export const ListSuitesRequest = Schema.Struct(Page).annotations({
 
 export const ListCasesRequest = Schema.Struct({
   ...Page,
-  order: Schema.optional(Schema.Literal("asc", "desc")),
+  order: Schema.optional(CaseOrder),
   q: Schema.optional(Schema.String),
-  sort: Schema.optional(Schema.Literal("recent", "name")),
+  sort: Schema.optional(CaseSort),
   suite: Schema.optional(Schema.String),
   tag: Schema.optional(Schema.String),
 }).annotations({

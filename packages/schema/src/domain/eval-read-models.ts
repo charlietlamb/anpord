@@ -14,6 +14,12 @@ import {
 
 export const EVAL_PAGE_SIZE = 20;
 
+export const CaseSort = Schema.Literal("recent", "name");
+export type CaseSort = typeof CaseSort.Type;
+
+export const CaseOrder = Schema.Literal("asc", "desc");
+export type CaseOrder = typeof CaseOrder.Type;
+
 export const EvalPageCursor = Schema.Struct({
   id: Schema.String,
   /* Carried only by the name sort, whose ordering tuple is (name, id). */
