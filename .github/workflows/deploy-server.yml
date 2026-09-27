@@ -126,8 +126,8 @@ jobs:
 
       - name: Hold the service's size, scaling and health check
         env:
-          CPU: "1024"
-          MEMORY: "2048"
+          CPU: "512"
+          MEMORY: "1024"
           MIN_INSTANCES: "2"
           MAX_INSTANCES: "4"
           MAX_CONCURRENCY: "80"

@@ -70,12 +70,13 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
 
-The service runs 1 vCPU / 2 GB with at least 2 instances (up to 4, 80 requests
+The service runs 0.5 vCPU / 1 GB with at least 2 instances (up to 4, 80 requests
 each) and a health check on `/api/livez` every 5 seconds, replaced after 3
 misses. The deploy workflow sets all of this on every run, so the service cannot
-drift back. On 0.25 vCPU / 0.5 GB the server idled at 75 to 88% of memory and a
-single instance was killed with exit code 137, taking the API down until it
-restarted; two instances keep one serving while the other is replaced.
+drift back. The server idles near 400 MB and has peaked near 500 MB while evals
+run; on a single 0.5 GB instance that meant 8 kills with exit code 137 in a week,
+each taking the API down until it restarted. 1 GB leaves twice the worst seen,
+and a second instance keeps serving while one is replaced.
 App Runner counts only 2xx as healthy, so an authenticated route returning 401
 fails the check even though the server is up.
 
@@ -131,9 +132,9 @@ once; the pool has to keep up with the journal each one writes.
 
 ## Cost
 
-Two provisioned 2 GB instances cost about $20/month idle (App Runner bills
-provisioned memory whether or not requests arrive), plus vCPU time only while
-requests are running. ECR storage is pennies with the lifecycle
+Two provisioned 1 GB instances cost about $10/month idle, the same as one
+2 GB instance (App Runner bills provisioned memory whether or not requests
+arrive), plus vCPU time only while requests are running. ECR storage is pennies with the lifecycle
 policy the script applies. Vercel's hobby tier covers the frontend.
 
 To stop paying for the server, pause the App Runner service; that keeps the
