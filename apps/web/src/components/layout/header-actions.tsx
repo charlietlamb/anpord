@@ -1,3 +1,4 @@
+import { DOCS_ORIGIN } from "@anpord/schema/public/origins";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
 import { cn } from "@anpord/ui/lib/utils";
@@ -5,7 +6,7 @@ import { ArrowRightIcon, BookOpenIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { DOCS_URL, GITHUB_URL } from "@/lib/urls";
+import { GITHUB_URL } from "@/lib/urls";
 
 const CHIP =
   "hidden h-9 items-center gap-2 rounded-full bg-alpha-4 px-3.5 text-muted-foreground text-xs xl:flex";
@@ -71,7 +72,7 @@ export function HeaderActions({ preset }: { readonly preset: HeaderPreset }) {
           preset.signIn === undefined && "text-muted-foreground",
           preset.signIn === "vercel" && VERCEL_SIGN_IN
         )}
-        href={DOCS_URL}
+        href={DOCS_ORIGIN}
         rel="noreferrer"
         target="_blank"
       >

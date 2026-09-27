@@ -1,7 +1,6 @@
 import { PublicApi } from "@anpord/schema/public/api";
+import { API_REFERENCE_URL } from "@anpord/schema/public/origins";
 import { HttpApi } from "@effect/platform";
-
-const API_REFERENCE = "https://docs.anpord.com/api-reference/introduction";
 
 const PREFLIGHT = "OPTIONS";
 
@@ -42,7 +41,7 @@ const errorResponse = (
 export const unknownRoute = (pathname: string) =>
   errorResponse(404, {
     _tag: "NotFound",
-    message: `There is no route ${pathname}. See the API reference at ${API_REFERENCE}`,
+    message: `There is no route ${pathname}. See the API reference at ${API_REFERENCE_URL}`,
   });
 
 export const publicRouteMiss = (request: Request): Response | undefined => {

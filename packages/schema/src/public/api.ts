@@ -8,6 +8,7 @@ import {
   RunsGroup,
   SuitesGroup,
 } from "./evals-api";
+import { API_ORIGIN } from "./origins";
 import { PublicPromptsGroup } from "./prompts-api";
 import { RunnerGroup } from "./runner-api";
 
@@ -30,5 +31,5 @@ export class PublicApi extends HttpApi.make("anpord-public")
       "over POST and authenticates with a bearer API key."
   )
   .annotate(OpenApi.Servers, [
-    { description: "Production", url: "https://api.anpord.com" },
+    { description: "Production", url: API_ORIGIN },
   ]) {}

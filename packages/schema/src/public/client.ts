@@ -7,15 +7,14 @@ import {
 import { Effect, Layer, Redacted } from "effect";
 import { PublicApi } from "./api";
 import { withDeadlines } from "./deadlines";
-
-export const DEFAULT_BASE_URL = "https://api.anpord.com";
+import { API_ORIGIN } from "./origins";
 
 export interface ClientOptions {
   readonly apiKey: Redacted.Redacted<string>;
   readonly baseUrl?: string;
 }
 
-export const make = ({ apiKey, baseUrl = DEFAULT_BASE_URL }: ClientOptions) =>
+export const make = ({ apiKey, baseUrl = API_ORIGIN }: ClientOptions) =>
   Effect.flatMap(withDeadlines(baseUrl), (deadlines) =>
     HttpApiClient.make(PublicApi, {
       baseUrl,

@@ -55,6 +55,7 @@
     "./public/client": "./src/public/client.ts",
     "./public/deadlines": "./src/public/deadlines.ts",
     "./public/evals-api": "./src/public/evals-api.ts",
+    "./public/origins": "./src/public/origins.ts",
     "./public/prompts-api": "./src/public/prompts-api.ts",
     "./public/requests": "./src/public/requests.ts",
     "./public/runner-api": "./src/public/runner-api.ts",
