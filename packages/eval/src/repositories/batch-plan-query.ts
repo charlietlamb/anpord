@@ -12,7 +12,7 @@ import type {
   EvalValidator,
 } from "@anpord/schema/domain/eval-definition";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import type { RequestedProfile } from "../domain/harness-profile";
 import type { HarnessName, SandboxName } from "../domain/variant";
@@ -56,7 +56,7 @@ export interface BatchPlan {
 export const batchPlanQuery = Effect.gen(function* () {
   const db = yield* Database;
 
-  return (batchInternalId: string) =>
+  return (batchInternalId: string, runInternalId?: string) =>
     Effect.gen(function* () {
       const rows = yield* tryStore("batchPlan.find", () =>
         db
@@ -87,7 +87,14 @@ export const batchPlanQuery = Effect.gen(function* () {
             evalHarnessProfile,
             eq(evalHarnessProfile.internalId, evalRun.profileInternalId)
           )
-          .where(eq(evalBatch.internalId, batchInternalId))
+          .where(
+            and(
+              eq(evalBatch.internalId, batchInternalId),
+              runInternalId === undefined
+                ? undefined
+                : eq(evalRun.internalId, runInternalId)
+            )
+          )
       );
 
       const [first] = rows;
