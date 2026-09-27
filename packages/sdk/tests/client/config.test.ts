@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { WEB_ORIGIN } from "@anpord/schema/public/origins";
 import { ConfigProvider, Effect, Option, Redacted } from "effect";
-import { apiKeyConfig } from "../../src/client/config";
+import { apiKeyConfig, webUrlConfig } from "../../src/client/config";
 
 const keyFrom = (env: Readonly<Record<string, string>>) =>
   Effect.runSync(
@@ -25,5 +26,18 @@ describe("the API key from the environment", () => {
     expect(keyFrom({ ANPORD_API_KEY: " ak_live_123\n" })).toEqual(
       Option.some("ak_live_123")
     );
+  });
+});
+
+describe("the dashboard URL from the environment", () => {
+  test("falls back to the canonical web origin, not the bare apex domain", () => {
+    const webUrl = Effect.runSync(
+      webUrlConfig.pipe(
+        Effect.withConfigProvider(ConfigProvider.fromMap(new Map()))
+      )
+    );
+
+    expect(webUrl).toBe(WEB_ORIGIN);
+    expect(webUrl).toBe("https://www.anpord.com");
   });
 });
