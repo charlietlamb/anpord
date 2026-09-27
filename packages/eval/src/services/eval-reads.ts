@@ -1,6 +1,7 @@
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
 import {
   type EvalPageCursor,
   RUN_PAGE_SIZE,
@@ -16,6 +17,7 @@ import {
   caseReadsQuery,
   type ListCases,
 } from "../repositories/case-reads-query";
+import { homeQuery } from "../repositories/home-query";
 import { runReadsQuery } from "../repositories/run-reads-query";
 import {
   type ListSuites,
@@ -48,6 +50,7 @@ export const make = Effect.gen(function* () {
   const address = yield* trialAddressQuery;
   const artifact = yield* trialArtifactQuery;
   const scope = yield* batchScopeQuery;
+  const home = yield* homeQuery;
 
   return {
     artifact: (organizationId: string, input: EvalArtifactRequest) =>
@@ -111,6 +114,10 @@ export const make = Effect.gen(function* () {
       }).pipe(Effect.orDie, Effect.withSpan("EvalReads.caseRuns")),
     cases: (input: ListCases) =>
       cases.list(input).pipe(Effect.orDie, Effect.withSpan("EvalReads.cases")),
+    home: (input: {
+      readonly organizationId: string;
+      readonly range: EvalHomeRange;
+    }) => home(input).pipe(Effect.orDie, Effect.withSpan("EvalReads.home")),
     run: (organizationId: string, id: string) =>
       found(
         runs

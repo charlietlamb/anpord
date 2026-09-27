@@ -10,6 +10,7 @@ import {
   readCase,
   readSuite,
 } from "../../evals/catalog-reads";
+import { readHome } from "../../evals/home-reads";
 import { cursorOf } from "../../evals/page-cursor";
 import {
   listCaseRuns,
@@ -37,6 +38,9 @@ export const EvalsHandlers = HttpApiBuilder.group(
           suite: urlParams.suite ?? null,
           tag: urlParams.tag ?? null,
         })
+      )
+      .handle("home", read, ({ urlParams }) =>
+        readHome(urlParams.range ?? "7d")
       )
       .handle("suites", read, ({ urlParams }) =>
         listSuites(cursorOf(urlParams), urlParams.limit)
