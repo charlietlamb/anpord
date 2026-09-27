@@ -173,10 +173,17 @@ const layoutTimeline = (trajectory: readonly EvalJournalEntry[]): Timeline => {
   });
 
   const groups = splitAtMessages(steps);
+  const offsets = groups.map(firstOffset);
+  const nextOffsets: (number | null)[] = [];
+  let next = spanMs;
+  for (let position = groups.length - 1; position >= 0; position -= 1) {
+    nextOffsets[position] = next;
+    next = offsets[position] ?? next;
+  }
 
   const sections = groups.map((group, position): TimelineSection => {
-    const offsetMs = firstOffset(group);
-    const nextOffset = firstOffset(groups.slice(position + 1).flat()) ?? spanMs;
+    const offsetMs = offsets[position] ?? null;
+    const nextOffset = nextOffsets[position] ?? null;
 
     return {
       durationMs:
