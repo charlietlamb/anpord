@@ -36,6 +36,7 @@ export function TrialSections({
           value,
         }))}
         value={open.value}
+        variant="underline"
       />
 
       <div className="relative min-w-0">
