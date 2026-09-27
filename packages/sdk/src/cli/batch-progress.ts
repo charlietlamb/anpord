@@ -2,18 +2,14 @@ import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
 import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { Effect, Ref } from "effect";
 import { batchUsage, usageLines } from "./eval-usage";
+import { paletteFor } from "./paint";
 import { note } from "./render";
 import { makeTranscriber } from "./transcriber";
 import type { Speaker } from "./transcript-turn";
 import { terminalStyle } from "./transcript-writer";
 import { formatVariant } from "./variant-label";
 
-const DIM = "[2m";
-const BOLD = "[1m";
-const GREEN = "[32m";
-const RED = "[31m";
-const YELLOW = "[33m";
-const RESET = "[0m";
+const { bold, dim, green, red, yellow } = paletteFor(true);
 
 const DONE = "●";
 const RUNNING = "◐";
@@ -23,8 +19,6 @@ const HOLLOW = "▱";
 const PERCENT = 100;
 const SECONDS = 1000;
 const MINUTE = 60;
-
-const paint = (colour: string, text: string) => `${colour}${text}${RESET}`;
 
 const formatElapsed = (ms: number) => {
   const total = Math.floor(ms / SECONDS);
@@ -37,10 +31,10 @@ const formatElapsed = (ms: number) => {
 
 const formatStatus = (run: EvalRun) => {
   if (run.status === "finished") {
-    return paint(GREEN, DONE);
+    return green(DONE);
   }
 
-  return run.status === "failed" ? paint(RED, DONE) : paint(YELLOW, RUNNING);
+  return run.status === "failed" ? red(DONE) : yellow(RUNNING);
 };
 
 const formatTrialProgress = (run: EvalRun, trials: number) => {
@@ -48,19 +42,19 @@ const formatTrialProgress = (run: EvalRun, trials: number) => {
     (trial) => trial.status !== "queued" && trial.status !== "running"
   ).length;
 
-  return `${FILLED.repeat(settled)}${paint(DIM, HOLLOW.repeat(Math.max(0, trials - settled)))}`;
+  return `${FILLED.repeat(settled)}${dim(HOLLOW.repeat(Math.max(0, trials - settled)))}`;
 };
 
 const formatPassRate = (run: EvalRun) => {
   const rate = run.distribution.passRate;
 
   if (run.distribution.scored === 0) {
-    return paint(DIM, "—");
+    return dim("—");
   }
 
   const shown = `${Math.round(rate * PERCENT)}%`;
 
-  return paint(rate === 1 ? GREEN : RED, shown);
+  return (rate === 1 ? green : red)(shown);
 };
 
 const formatActivity = (run: EvalRun) => {
@@ -77,7 +71,7 @@ const formatActivity = (run: EvalRun) => {
       : [`${running.filesChanged.length} files`]),
   ].join(", ");
 
-  return [paint(DIM, `      ${counts}`)];
+  return [dim(`      ${counts}`)];
 };
 
 const widest = (batch: EvalBatch) =>
@@ -98,7 +92,7 @@ export const formatBatch = (
   const lines: string[] = [];
 
   for (const runs of byCase(batch)) {
-    lines.push(`  ${BOLD}${runs[0]?.case.name ?? ""}${RESET}`);
+    lines.push(`  ${bold(runs[0]?.case.name ?? "")}`);
 
     for (const run of runs) {
       lines.push(
@@ -114,8 +108,7 @@ export const formatBatch = (
   const [spend, ...concerns] = usageLines(usage);
 
   lines.push(
-    paint(
-      DIM,
+    dim(
       spend === undefined
         ? `  ${formatElapsed(elapsedMs)} elapsed`
         : `  ${formatElapsed(elapsedMs)} elapsed  ·  ${spend}`
@@ -123,7 +116,7 @@ export const formatBatch = (
   );
 
   for (const concern of concerns) {
-    lines.push(paint(YELLOW, `  ${concern}`));
+    lines.push(yellow(`  ${concern}`));
   }
 
   return lines;
