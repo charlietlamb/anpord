@@ -7,6 +7,7 @@ import { PREPARE_VALUE_ENV } from "@anpord/schema/domain/sandbox-env";
 import { Clock, Effect, Random } from "effect";
 import type { ScoreRequest } from "../../ports/scorer";
 import { shellQuote } from "../harness/process";
+import { SCORER_TIMEOUT_MS } from "./scorer-timeout";
 import { executeValidation, publishValidation } from "./validation";
 import { completeValidations, legacyValidation } from "./validation-records";
 import { answerEnv, processError, resultStatus } from "./validator-protocol";
@@ -38,7 +39,7 @@ export const scoreValidator = (
       command: `node ${shellQuote(path)}`,
       options: {
         cwd: request.workspace,
-        timeoutMs: 300_000,
+        timeoutMs: SCORER_TIMEOUT_MS,
         env: {
           ...request.env,
           ...answerEnv(request.sandbox),

@@ -4,6 +4,8 @@ import { type CaptureLimits, ReportedValue } from "./eval-validations";
 export const API_PROGRAM = "workspace/.anpord/api/program.json";
 export const API_MANIFEST = ".anpord/api/manifest.json";
 export const API_JOURNAL = ".anpord/api/calls.jsonl";
+export const CLI_JOURNAL = ".anpord/cli-calls.jsonl";
+export const MCP_JOURNAL = ".anpord/mcp-calls.jsonl";
 export const API_READY = "ANPORD_API_READY=";
 export const API_CALL_LIMIT = 256;
 export const API_REPORTED_LIMITS: CaptureLimits = {

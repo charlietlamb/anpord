@@ -18,7 +18,7 @@ import {
   MAX_START_TRIALS,
   MAX_START_VARIANTS,
 } from "./eval-quota";
-import { EvalSourceFiles } from "./eval-source-files";
+import { EvalSourceFiles, SOURCE_LIMIT } from "./eval-source-files";
 import { EvalTrigger } from "./eval-trigger";
 import { EvalUser } from "./eval-turns";
 import { EvalHarness } from "./harness";
@@ -86,7 +86,10 @@ export const EvalCodeValidator = Schema.Struct({
     )
   ),
   name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
-  source: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(1_000_000)),
+  source: Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.maxLength(SOURCE_LIMIT)
+  ),
 });
 
 export const EvalValidator = Schema.Union(
@@ -123,7 +126,10 @@ export type EvalValidator = typeof EvalValidator.Type;
 
 export const EvalPrepare = Schema.Struct({
   name: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(100)),
-  source: Schema.String.pipe(Schema.minLength(1), Schema.maxLength(1_000_000)),
+  source: Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.maxLength(SOURCE_LIMIT)
+  ),
 }).annotations({
   description:
     "A bundled TypeScript workspace setup and its exported function name.",

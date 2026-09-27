@@ -1,5 +1,7 @@
 import { Schema } from "effect";
 
+export const SOURCE_LIMIT = 1_000_000;
+
 export const EvalSourceFile = Schema.Struct({
   path: Schema.String.pipe(
     Schema.maxLength(512),
@@ -7,7 +9,7 @@ export const EvalSourceFile = Schema.Struct({
       /^(?!\.{1,2}(?:\/|$))[^/\\:\0]+(?:\/(?!\.{1,2}(?:\/|$))[^/\\:\0]+)*$/
     )
   ),
-  content: Schema.String.pipe(Schema.maxLength(1_000_000)),
+  content: Schema.String.pipe(Schema.maxLength(SOURCE_LIMIT)),
 });
 export type EvalSourceFile = typeof EvalSourceFile.Type;
 
@@ -18,6 +20,7 @@ export const EvalSourceFiles = Schema.Array(EvalSourceFile).pipe(
   ),
   Schema.filter(
     (files) =>
-      files.reduce((size, file) => size + file.content.length, 0) <= 1_000_000
+      files.reduce((size, file) => size + file.content.length, 0) <=
+      SOURCE_LIMIT
   )
 );
