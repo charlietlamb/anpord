@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { Effect } from "effect";
 import { sourceUrlOf } from "./define";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import type { DefinitionRef } from "./runner-source";
 import type { EvalDefinition } from "./types";
 
@@ -30,7 +31,9 @@ export const locate = (definition: EvalDefinition) =>
 
     if (url === undefined) {
       return yield* Effect.fail(
-        new Error(`This eval does not know where it was written. ${HINT}`)
+        new EvalDefinitionInvalid({
+          reason: `This eval does not know where it was written. ${HINT}`,
+        })
       );
     }
 

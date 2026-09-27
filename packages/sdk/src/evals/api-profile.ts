@@ -1,6 +1,7 @@
 import { API_PROGRAM } from "@anpord/schema/domain/api-mocks";
 import { Effect } from "effect";
 import type { ApiDefinition } from "../mock-api/define";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { bundle } from "./eval-bundle";
 import { packageProgram } from "./program-package";
 import { type DefinitionRef, importsDefinition } from "./runner-source";
@@ -16,7 +17,9 @@ export const compileApis = (
     }
     const names = definitions.map(({ name }) => name);
     if (new Set(names).size !== names.length) {
-      return yield* Effect.fail(new Error("Duplicate API mock name"));
+      return yield* Effect.fail(
+        new EvalDefinitionInvalid({ reason: "Duplicate API mock name" })
+      );
     }
     const { source } = yield* bundle(
       `${importsDefinition(ref)}

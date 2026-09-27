@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Effect, Option, Schema } from "effect";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { bundle } from "./eval-bundle";
 import { type DefinitionRef, definitionEntry } from "./runner-source";
 import type { EvalDefinition } from "./types";
@@ -21,10 +22,10 @@ export const loadDefinition = (ref: DefinitionRef) =>
               return { definition: module.default as unknown, inputs };
             },
             catch: (cause) =>
-              new Error(
-                `Could not load ${ref.entry}: ${cause instanceof Error ? cause.message : String(cause)}`,
-                { cause }
-              ),
+              new EvalDefinitionInvalid({
+                cause,
+                reason: `Could not load ${ref.entry}: ${cause instanceof Error ? cause.message : String(cause)}`,
+              }),
           }),
         (directory) =>
           Effect.promise(() =>

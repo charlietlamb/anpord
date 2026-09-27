@@ -5,6 +5,7 @@ import { compileApis, withApis } from "./api-profile";
 import { type CompiledCli, compileClis, withClis } from "./cli-profile";
 import { compileCase } from "./compile-case";
 import { suiteIdProblem } from "./define";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { isDefinition, loadDefinition } from "./definition-loader";
 import { locate } from "./locate";
 import {
@@ -57,14 +58,18 @@ const compileRefEffect = (ref: DefinitionRef) =>
         ref.exportName === null ? "default export" : `export ${ref.exportName}`;
 
       return yield* Effect.fail(
-        new Error(`${entry} must ${named} suite({ ... })`)
+        new EvalDefinitionInvalid({
+          reason: `${entry} must ${named} suite({ ... })`,
+        })
       );
     }
 
     const idProblem = suiteIdProblem(definition);
 
     if (idProblem !== null) {
-      return yield* Effect.fail(new Error(idProblem));
+      return yield* Effect.fail(
+        new EvalDefinitionInvalid({ reason: idProblem })
+      );
     }
 
     const clis = yield* compileClis(ref, definition.cli ?? []);
