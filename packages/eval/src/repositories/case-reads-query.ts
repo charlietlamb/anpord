@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
@@ -15,7 +16,7 @@ import { and, asc, desc, eq, ilike, inArray, max, or, sql } from "drizzle-orm";
 import { DateTime, Effect, Option } from "effect";
 import { changesBetween } from "../domain/definition-changes";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 import { setupOf } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
 

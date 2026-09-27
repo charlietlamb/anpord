@@ -1,9 +1,10 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
 import type { Actor } from "@anpord/schema/domain/actor";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { head, tryStore } from "../repositories/query";
+import { tryStore } from "../repositories/query";
 import { CredentialError, storeUnavailable } from "./errors";
 
 type AttemptRow = typeof credentialAuthAttempt.$inferSelect;

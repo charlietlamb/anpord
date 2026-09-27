@@ -1,9 +1,10 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { githubInstallation } from "@anpord/db/schema/credentials/installations";
 import type { Actor } from "@anpord/schema/domain/actor";
 import { eq } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, type Option } from "effect";
-import { head, tryStore } from "../repositories/query";
+import { tryStore } from "../repositories/query";
 import { CodebaseError } from "./errors";
 
 export interface Installation {

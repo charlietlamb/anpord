@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
@@ -7,7 +8,7 @@ import type { StartedBatch } from "@anpord/schema/domain/evals";
 import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
 import { and, asc, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export const startedBatchQuery = Effect.gen(function* () {
   const db = yield* Database;

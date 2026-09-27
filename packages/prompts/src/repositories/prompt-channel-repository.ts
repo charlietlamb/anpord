@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
@@ -10,7 +11,7 @@ import { Context, Effect, Layer, Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
 import { type ChannelMove, movePromptChannel } from "./prompt-channel-move";
 import type { VersionRow } from "./prompt-version-repository";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export interface ChannelRow {
   readonly channel: string;

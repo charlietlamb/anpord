@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { prompt } from "@anpord/db/schema/prompts/prompts";
 import type { OrganizationId } from "@anpord/schema/domain/actor";
 import type { PromptId, PromptName } from "@anpord/schema/domain/prompts";
@@ -8,7 +9,7 @@ import type { PromptStoreError } from "../domain/errors";
 import type { OwnedPromptId } from "../domain/owned-prompt";
 import type { PromptListParams, PromptListRow } from "./prompt-list-query";
 import { selectPromptList } from "./prompt-list-query";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 type PromptRow = typeof prompt.$inferSelect;
 

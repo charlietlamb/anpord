@@ -1,9 +1,10 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export const batchScopeQuery = Effect.gen(function* () {
   const db = yield* Database;

@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
@@ -8,7 +9,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schedule } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { isUniqueViolation } from "./postgres-errors";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 /* Beyond three attempts the collision is not transient and the caller should
    hear about it. */
