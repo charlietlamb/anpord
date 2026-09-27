@@ -1,3 +1,4 @@
+import { CLI_JOURNAL as JOURNAL } from "@anpord/schema/domain/api-mocks";
 import { Effect } from "effect";
 import { appendCall, decodeStandard, errorOf } from "../mock-journal";
 import {
@@ -5,8 +6,6 @@ import {
   type CliDefinition,
   optionName,
 } from "./define";
-
-const JOURNAL = ".anpord/cli-calls.jsonl";
 
 const commandHelp = (definition: CliDefinition, item: CliCommandDefinition) => {
   const options = Object.entries(item.options).map(

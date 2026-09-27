@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import { format } from "node:util";
+import { CLI_JOURNAL, MCP_JOURNAL } from "@anpord/schema/domain/api-mocks";
 import {
   type EvalValidation,
   REPORTED_LIMITS,
@@ -165,7 +166,7 @@ const context = (): ValidatorContext => ({
   cli: {
     calls: (name) =>
       observe("cli.calls", name === undefined ? [] : [name], async () =>
-        (await calls(".anpord/cli-calls.jsonl", decodeCliCall)).filter(
+        (await calls(CLI_JOURNAL, decodeCliCall)).filter(
           (call) => name === undefined || call.cli === name
         )
       ),
@@ -173,7 +174,7 @@ const context = (): ValidatorContext => ({
   mcp: {
     calls: (name) =>
       observe("mcp.calls", name === undefined ? [] : [name], async () =>
-        (await calls(".anpord/mcp-calls.jsonl", decodeMcpCall)).filter(
+        (await calls(MCP_JOURNAL, decodeMcpCall)).filter(
           (call) => name === undefined || call.server === name
         )
       ),

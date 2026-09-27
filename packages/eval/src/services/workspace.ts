@@ -15,7 +15,11 @@ import type { SandboxHandle } from "../ports/sandbox";
 import { cloneFailureReason } from "./clone-failure";
 import { startMockApis } from "./mock-apis";
 import { profileEnv } from "./profile-env";
-import { materialiseProfile, WRITE_CONCURRENCY } from "./profile-files";
+import {
+  MKDIR_TIMEOUT_MS,
+  materialiseProfile,
+  WRITE_CONCURRENCY,
+} from "./profile-files";
 import { runProfileInstall } from "./profile-install";
 import type { Suspender } from "./suspender";
 import { runPrepare } from "./workspace-setup";
@@ -159,7 +163,7 @@ export const prepareWorkspace = (
     });
 
     yield* runCommand(input.sandbox, `mkdir -p ${input.workspace}`, {
-      timeoutMs: 60_000,
+      timeoutMs: MKDIR_TIMEOUT_MS,
     });
 
     /* Home files after the driver's own prepare, so a profile overrides the

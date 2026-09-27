@@ -14,7 +14,7 @@ export interface MaterialiseProfile {
   readonly workspace: string;
 }
 
-const MKDIR_TIMEOUT_MS = 60_000;
+export const MKDIR_TIMEOUT_MS = 60_000;
 /* Shared with the fixture writer: one number governs how hard a trial leans on a
    sandbox's file API. */
 export const WRITE_CONCURRENCY = 4;

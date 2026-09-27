@@ -1,3 +1,4 @@
+import { MCP_JOURNAL as JOURNAL } from "@anpord/schema/domain/api-mocks";
 import {
   McpServer,
   type StandardSchemaWithJSON,
@@ -10,8 +11,6 @@ import type {
   ResourceDefinition,
   ToolDefinition,
 } from "./define";
-
-const JOURNAL = ".anpord/mcp-calls.jsonl";
 
 const decode = <Schema extends StandardSchemaWithJSON>(
   schema: Schema,

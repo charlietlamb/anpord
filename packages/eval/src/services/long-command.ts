@@ -1,4 +1,5 @@
 import { Effect, Option } from "effect";
+import { DEFAULT_TIMEOUT_MS } from "../adapters/sandbox/provider-adapter";
 import {
   type CommandWatcher,
   runCommandForOutcome,
@@ -6,8 +7,6 @@ import {
 import type { SandboxHandle } from "../ports/sandbox";
 import { pollUntilDone } from "./polled-command";
 import { Suspender } from "./suspender";
-
-const DEFAULT_TIMEOUT_MS = 120_000;
 
 export interface LongCommandOptions {
   readonly cwd?: string;
