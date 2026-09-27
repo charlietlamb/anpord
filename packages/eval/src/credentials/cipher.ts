@@ -48,7 +48,7 @@ export const CredentialCipherLive = Layer.effect(
         Effect.tryPromise({
           catch: () =>
             new CredentialError({
-              code: "internal",
+              code: "undecryptable",
               message: "Credential could not be decrypted",
             }),
           try: async () => {

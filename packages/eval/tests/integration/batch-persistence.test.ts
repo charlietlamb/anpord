@@ -12,12 +12,8 @@ import { AgentTrialLive } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
 import { SuspenderSleeping } from "../../src/services/suspender";
 import { fixedSource, VERIFY_COMMAND } from "../fixtures/broken-task";
-import {
-  codexCredential,
-  hasCodex,
-  hasDatabase,
-  hasDaytona,
-} from "../fixtures/credentials";
+import { codexCredential, hasCodex, hasDaytona } from "../fixtures/credentials";
+import { skipWithoutDatabase } from "../fixtures/database";
 import { seedConnection, seedOrganization } from "../fixtures/eval-rows";
 import {
   actorOf,
@@ -28,7 +24,7 @@ import {
   variantOf,
 } from "../fixtures/eval-stack";
 
-const READY = hasCodex && hasDatabase && hasDaytona;
+const READY = hasCodex && !skipWithoutDatabase() && hasDaytona;
 const suffix = Date.now();
 const organizationId = `org_persist_${suffix}`;
 const connectionId = `conn_persist_${suffix}`;

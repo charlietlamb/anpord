@@ -1,7 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { Client } from "pg";
-
-const REQUIRED = process.env.EVAL_REQUIRE_DATABASE === "1";
+import { testDatabaseUrl } from "../../src/test-database";
 
 const withServer = async <A>(
   base: string,
@@ -19,12 +18,7 @@ const withServer = async <A>(
 };
 
 export const scratchDatabases = () => {
-  const base = process.env.EVAL_TEST_DATABASE_URL;
-  if (base === undefined && REQUIRED) {
-    throw new Error(
-      "EVAL_TEST_DATABASE_URL is unset and EVAL_REQUIRE_DATABASE=1, so these tests would have skipped silently"
-    );
-  }
+  const base = testDatabaseUrl();
   const created: string[] = [];
 
   const create = async () => {

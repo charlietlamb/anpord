@@ -1,6 +1,13 @@
 import { EvalSandbox } from "@anpord/schema/domain/eval-definition";
-import { Duration, Effect, Redacted, Schema } from "effect";
+import { Clock, Duration, Effect, Redacted, Schema } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
+import {
+  classifyReapFailure,
+  type Reaped,
+  type ReapFailure,
+  settleFailure,
+  summarizeReaps,
+} from "../domain/reap-outcome";
 import { SandboxProvider } from "../ports/sandbox";
 import {
   type LiveSandbox,
@@ -15,6 +22,7 @@ export const reapSandboxes = (olderThan: Duration.Duration) =>
     const credentials = yield* CredentialResolver;
     const live = yield* LiveSandboxes;
     const sandboxes = yield* SandboxProvider;
+    const now = yield* Clock.currentTimeMillis;
 
     const credentialsFor = (found: LiveSandbox) =>
       found.sandboxConnectionId === null
@@ -30,18 +38,52 @@ export const reapSandboxes = (olderThan: Duration.Duration) =>
               )
             );
 
-    const reapOne = (found: LiveSandbox) =>
+    const destroy = (found: LiveSandbox) =>
       Effect.gen(function* () {
+        const provider = yield* Schema.decodeUnknown(EvalSandbox)(
+          found.provider
+        );
         yield* sandboxes.destroy({
           credentials: yield* credentialsFor(found),
           id: found.sandboxId,
-          provider: yield* Schema.decodeUnknown(EvalSandbox)(found.provider),
+          provider,
         });
-        yield* live.clear(found.trialInternalId);
-        return true;
-      }).pipe(
-        Effect.catchAllCause((cause) =>
-          Effect.logWarning("sandbox not reaped", cause).pipe(Effect.as(false))
+      });
+
+    const settle = (found: LiveSandbox, reason: ReapFailure) =>
+      settleFailure(
+        found.sandboxId,
+        reason,
+        Duration.millis(now - found.startedAt.getTime())
+      );
+
+    const reapOne = (found: LiveSandbox) =>
+      destroy(found).pipe(
+        Effect.as<Reaped>({ outcome: "destroyed", sandboxId: found.sandboxId }),
+        Effect.catchAll((error) =>
+          Effect.logDebug("sandbox not destroyed", error).pipe(
+            Effect.as(settle(found, classifyReapFailure(error)))
+          )
+        ),
+        Effect.catchAllDefect((defect) =>
+          Effect.logDebug("sandbox not destroyed", defect).pipe(
+            Effect.as(settle(found, "unexpected"))
+          )
+        ),
+        Effect.tap((reaped) =>
+          reaped.outcome === "retrying"
+            ? Effect.void
+            : live.clear(found.trialInternalId)
+        ),
+        Effect.catchTag("EvalStoreError", () =>
+          Effect.succeed<Reaped>({
+            outcome: "retrying",
+            reason: "store-unavailable",
+            sandboxId: found.sandboxId,
+          })
+        ),
+        Effect.tap((reaped) =>
+          Effect.logDebug("sandbox reaped").pipe(Effect.annotateLogs(reaped))
         ),
         Effect.annotateLogs({
           provider: found.provider,
@@ -51,17 +93,19 @@ export const reapSandboxes = (olderThan: Duration.Duration) =>
       );
 
     const found = yield* live.startedBefore(yield* cutoffBefore(olderThan));
-    const outcomes = yield* Effect.forEach(found, reapOne, { concurrency: 4 });
-    const destroyed = outcomes.filter(Boolean).length;
-    const reaped = { destroyed, failed: outcomes.length - destroyed };
+    const summary = summarizeReaps(
+      yield* Effect.forEach(found, reapOne, { concurrency: 4 })
+    );
 
     if (found.length > 0) {
-      yield* Effect.logWarning("reaped leaked sandboxes").pipe(
-        Effect.annotateLogs(reaped)
+      const log =
+        summary.failures.length === 0 ? Effect.logInfo : Effect.logWarning;
+      yield* log("reaped leaked sandboxes").pipe(
+        Effect.annotateLogs({ ...summary })
       );
     }
 
-    return reaped;
+    return summary;
   });
 
 export const SandboxReaperScheduleLive = sweepEvery(

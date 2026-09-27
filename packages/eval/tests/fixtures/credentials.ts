@@ -97,4 +97,3 @@ export const hasVercel = Boolean(
       process.env.VERCEL_PROJECT_ID)
 );
 export const hasCodex = Boolean(codexCredentials);
-export const hasDatabase = Boolean(process.env.EVAL_TEST_DATABASE_URL);

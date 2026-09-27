@@ -2,8 +2,14 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { inArray } from "drizzle-orm";
-import { Duration, Effect, Layer, Redacted } from "effect";
+import { ConfigProvider, Duration, Effect, Layer, Redacted } from "effect";
+import {
+  CredentialCipher,
+  CredentialCipherLive,
+} from "../../src/credentials/cipher";
+import { sealValues } from "../../src/credentials/connection-payload";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
+import { CredentialResolverLive } from "../../src/credentials/resolver-live";
 import type { DestroySandbox } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import { LiveSandboxesLive } from "../../src/repositories/live-sandboxes";
@@ -36,9 +42,16 @@ const TestLayer = Layer.mergeAll(
   layerTestResolver({ apiKey: "sandbox-key" })
 ).pipe(Layer.provideMerge(testDatabase()));
 
+const RealCredentialsLayer = Layer.mergeAll(
+  LiveSandboxesLive,
+  recordingSandboxes,
+  CredentialResolverLive.pipe(Layer.provide(CredentialCipherLive))
+).pipe(Layer.provideMerge(testDatabase()));
+
 const suffix = Date.now();
 const organizationId = `org_reap_${suffix}`;
 const connectionId = `conn_reap_${suffix}`;
+const foreignConnectionId = `conn_reap_foreign_${suffix}`;
 const HOURS = 3_600_000;
 
 const reap = () =>
@@ -61,6 +74,7 @@ const trialIds = {
   stale: `etri_reap_stale_${suffix}`,
   voided: `etri_reap_voided_${suffix}`,
 };
+const foreignTrialId = `etri_reap_foreign_${suffix}`;
 
 describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
   beforeAll(async () => {
@@ -175,5 +189,78 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
 
     expect(reaped.destroyed).toBe(0);
     expect(destroyed.length).toBe(before);
+  });
+
+  it("clears a trial whose bound credential was sealed under another key", async () => {
+    const foreignRow = {
+      id: foreignConnectionId,
+      integrationId: "e2b",
+      organizationId,
+    };
+    const sealedElsewhere = await Effect.runPromise(
+      CredentialCipher.pipe(
+        Effect.flatMap((cipher) =>
+          sealValues(cipher, { apiKey: "e2b-key" }, foreignRow)
+        ),
+        Effect.provide(CredentialCipherLive),
+        Effect.withConfigProvider(
+          ConfigProvider.fromMap(
+            new Map([["CREDENTIALS_ENCRYPTION_KEY", "another-server-key"]])
+          )
+        )
+      )
+    );
+    await withDb(async (db) => {
+      await seedConnection(db, {
+        ...foreignRow,
+        sealedPayload: sealedElsewhere,
+      });
+      const foreign = await seedRun(db, {
+        createdAt: new Date(Date.now() - 12 * HOURS),
+        organizationId,
+        sandbox: "e2b",
+        sandboxConnectionId: foreignConnectionId,
+        tag: `reap_foreign_${suffix}`,
+      });
+      await seedTrial(db, {
+        internalId: foreignTrialId,
+        ordinal: 1,
+        runInternalId: foreign.runInternalId,
+        sandboxId: "sbx-sonnet",
+        startedAt: new Date(Date.now() - 2 * HOURS),
+        status: "running",
+      });
+    });
+    const sweep = () =>
+      Effect.runPromise(
+        reapSandboxes(Duration.minutes(90)).pipe(
+          Effect.provide(RealCredentialsLayer),
+          Effect.withConfigProvider(
+            ConfigProvider.fromMap(
+              new Map([["CREDENTIALS_ENCRYPTION_KEY", "dev-server-key"]])
+            )
+          )
+        )
+      );
+
+    const first = await sweep();
+    const second = await sweep();
+    const [trial] = await withDb((db) =>
+      db
+        .select({ sandboxId: evalTrial.sandboxId })
+        .from(evalTrial)
+        .where(inArray(evalTrial.internalId, [foreignTrialId]))
+    );
+
+    expect(first.failures).toContainEqual({
+      count: 1,
+      outcome: "abandoned",
+      reason: "credential-unreadable",
+      sandboxIds: ["sbx-sonnet"],
+    });
+    expect(trial?.sandboxId).toBeNull();
+    expect(second.failures).not.toContainEqual(
+      expect.objectContaining({ sandboxIds: ["sbx-sonnet"] })
+    );
   });
 });
