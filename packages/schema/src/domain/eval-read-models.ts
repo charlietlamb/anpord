@@ -5,6 +5,7 @@ import {
   EvalBatchSummary,
   EvalDistribution,
   EvalRun,
+  EvalRunStatus,
   EvalSetup,
   EvalSuite,
   EvalTally,
@@ -40,6 +41,7 @@ export const EvalVariantResult = Schema.Struct({
   lastRunAt: EvalTimestamp,
   lastRunId: Schema.String,
   runs: Schema.Int,
+  status: EvalRunStatus,
   variant: EvalVariant,
 }).annotations({
   description: "A variant of a case and how its newest run went.",
