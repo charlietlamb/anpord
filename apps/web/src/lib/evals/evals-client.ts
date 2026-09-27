@@ -1,5 +1,7 @@
 import { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
 import {
+  type CaseOrder,
+  type CaseSort,
   EvalCaseDetail,
   EvalCasePage,
   type EvalPageCursor,
@@ -26,9 +28,9 @@ const path = (...parts: readonly string[]) =>
   parts.map((part) => `/${encodeURIComponent(part)}`).join("");
 
 export interface CaseFilters {
-  readonly order: "asc" | "desc";
+  readonly order: CaseOrder;
   readonly q: string | null;
-  readonly sort: "recent" | "name";
+  readonly sort: CaseSort;
   readonly suite: string | null;
   readonly tag: string | null;
 }

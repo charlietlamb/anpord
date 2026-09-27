@@ -8,6 +8,8 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import type {
+  CaseOrder,
+  CaseSort,
   EvalCaseDetail,
   EvalCasePage,
   EvalPageCursor,
@@ -20,9 +22,6 @@ import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
 import { tryStore } from "./query";
 import { setupOf, timestamp } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
-
-type CaseSort = "recent" | "name";
-type CaseOrder = "asc" | "desc";
 
 export interface ListCases {
   readonly cursor: EvalPageCursor | null;
