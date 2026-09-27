@@ -1,0 +1,1 @@
+{ "run": "bash $ANPORD_HOME/agent.sh" }

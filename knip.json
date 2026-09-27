@@ -16,6 +16,15 @@
       ],
       "project": ["src/**"]
     },
+    "apps/perf": {
+      "entry": [
+        "src/main.ts",
+        "src/stack/probe-preload.ts",
+        "fixtures/**/*.eval.ts",
+        "tests/**/*.test.ts"
+      ],
+      "project": ["src/**", "fixtures/**", "tests/**"]
+    },
     "apps/worker": {
       "entry": ["trigger.config.ts", "src/trigger/**/*.ts"],
       "ignoreDependencies": ["trigger.dev"],
