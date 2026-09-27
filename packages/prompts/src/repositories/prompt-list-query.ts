@@ -1,4 +1,5 @@
 import type { Database } from "@anpord/db/client";
+import { escapeLike } from "@anpord/db/like";
 import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
@@ -45,11 +46,6 @@ export interface PromptListParams {
   readonly sort?: PromptSortOrder;
   readonly status?: PromptStatusFilter;
 }
-
-/* `%` and `_` are LIKE wildcards, so searching "100%" would otherwise match
-   everything starting with "100". */
-const escapeLike = (term: string) =>
-  term.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
 
 const matchesSearch = (term: string) => {
   const pattern = `%${escapeLike(term)}%`;
