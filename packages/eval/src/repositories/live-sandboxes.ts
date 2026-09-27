@@ -70,6 +70,7 @@ export const LiveSandboxesLive = Layer.effect(
             .where(
               and(
                 sql`${evalTrial.sandboxId} is not null`,
+                eq(evalBatch.local, false),
                 lt(
                   sql`coalesce(${evalTrial.startedAt}, ${evalTrial.createdAt})`,
                   cutoff
