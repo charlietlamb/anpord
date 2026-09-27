@@ -74,16 +74,22 @@ describe("a long local trial", () => {
   });
 
   it("keeps every command the journal shows, marked as cut", () => {
-    const install = payload.events.find(
-      (event) => event._tag === "Command" && event.command === "bun install"
-    );
+    const commands = payload.events.filter((event) => event._tag === "Command");
 
     expect(
-      (install === undefined ? [] : asEntries(install)).map((entry) =>
-        entry._tag === "command"
-          ? [entry.output.length, entry.outputTruncated]
-          : []
-      )
-    ).toEqual([[4000, true]]);
+      commands
+        .flatMap(asEntries)
+        .map((entry) =>
+          entry._tag === "command"
+            ? [entry.command, entry.output.length, entry.outputTruncated]
+            : []
+        )
+    ).toEqual(
+      commands.map((event) => [
+        event._tag === "Command" ? event.command : "",
+        4000,
+        true,
+      ])
+    );
   });
 });

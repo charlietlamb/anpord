@@ -40,7 +40,7 @@ const LOUD_COMMANDS: readonly (readonly [string, string, number])[] = [
 ];
 
 const STEPS = 136;
-const LOUD_EVERY = 19;
+const LOUD_EVERY = 20;
 const CHECKS = 6;
 
 const at = (step: number) =>
