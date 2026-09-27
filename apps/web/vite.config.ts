@@ -5,6 +5,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import { dynamicChunkPreloads } from "./ssr-module-preloads";
 
 const REACT_CORE = /node_modules\/(react|react-dom|scheduler)\//;
 
@@ -32,5 +33,24 @@ export default defineConfig({
   server: { port: WEB_PORT },
   ssr: { noExternal: [/^@anpord\//] },
   optimizeDeps: { exclude: ["@tanstack/start-server-core"] },
-  plugins: [tailwindcss(), tanstackStart(), nitro(), viteReact()],
+  plugins: [
+    tailwindcss(),
+    tanstackStart({
+      dev: { ssrStyles: { enabled: false } },
+      server: { build: { inlineCss: true } },
+      router: {
+        codeSplittingOptions: {
+          defaultBehavior: [
+            ["loader"],
+            ["component"],
+            ["errorComponent"],
+            ["notFoundComponent"],
+          ],
+        },
+      },
+    }),
+    nitro(),
+    viteReact(),
+    dynamicChunkPreloads(fileURLToPath(new URL(".", import.meta.url))),
+  ],
 });

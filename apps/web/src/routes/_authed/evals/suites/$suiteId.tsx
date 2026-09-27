@@ -1,3 +1,4 @@
+import type { EvalSuiteDetail } from "@anpord/schema/domain/eval-read-models";
 import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -8,6 +9,7 @@ import { SuiteSetup } from "@/components/evals/suite-setup";
 import { ErrorCard } from "@/components/layout/error-card";
 import { PageSection } from "@/components/layout/page-section";
 import { PageShell } from "@/components/layout/page-shell";
+import { evalKeys } from "@/lib/evals/eval-keys";
 import {
   PLACEHOLDER_CASE_PAGE,
   PLACEHOLDER_SUITE_DETAIL,
@@ -24,8 +26,8 @@ export const Route = createFileRoute("/_authed/evals/suites/$suiteId")({
   staticData: {
     crumb: (params) =>
       crumbFrom(
-        evalQueries.suite(params.suiteId).queryKey,
-        (suite) => suite.name
+        evalKeys.suite(params.suiteId),
+        (suite: EvalSuiteDetail) => suite.name
       ),
     title: "Suite",
   },

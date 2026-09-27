@@ -1,8 +1,10 @@
+import type { EvalTrialAddress } from "@anpord/schema/domain/eval-read-models";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialScreen } from "@/components/evals/trial-screen";
 import { ErrorCard } from "@/components/layout/error-card";
+import { evalKeys } from "@/lib/evals/eval-keys";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import { crumbFrom } from "@/lib/use-breadcrumbs";
 
@@ -21,8 +23,8 @@ export const Route = createFileRoute(
   staticData: {
     crumb: (params) =>
       crumbFrom(
-        evalQueries.trialAddress(params.trialId).queryKey,
-        (address) => `Trial ${address.ordinal}`
+        evalKeys.trialAddress(params.trialId),
+        (address: EvalTrialAddress) => `Trial ${address.ordinal}`
       ),
     title: "Trial",
   },

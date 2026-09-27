@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anpord/ui/components/ui/select";
+import { cn } from "@anpord/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function LabelledSelect({
@@ -39,7 +40,11 @@ export function LabelledSelect({
         onValueChange={(next) => onChange(String(next ?? ""))}
         value={value}
       >
-        <SelectTrigger className={triggerClassName} id={id} size={size}>
+        <SelectTrigger
+          className={cn("w-full px-3 font-normal", triggerClassName)}
+          id={id}
+          size={size}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

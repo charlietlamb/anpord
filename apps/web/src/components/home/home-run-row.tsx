@@ -17,7 +17,7 @@ export function HomeRunRow({ run }: { readonly run: HomeRun }) {
     <li className="border-border border-t first:border-t-0">
       <Link
         aria-label={`${run.name}, ${summaryOf(run)}`}
-        className="flex min-h-[52px] items-center gap-4 py-2 transition-colors duration-150 hover:bg-alpha-4"
+        className="flex min-h-[52px] items-center gap-4 px-4 py-2 transition-colors duration-150 hover:bg-alpha-4"
         params={{ batchId: run.id }}
         to="/evals/$batchId"
       >
