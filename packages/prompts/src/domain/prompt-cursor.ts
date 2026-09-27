@@ -3,8 +3,9 @@ import {
   PromptName,
   type PromptSortOrder,
 } from "@anpord/schema/domain/prompts";
-import { Effect, ParseResult, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import type { PromptListRow } from "../repositories/prompt-list-query";
+import { decodeCursor } from "./cursor-codec";
 import { InvalidCursor } from "./errors";
 
 /* The cursor names the sort that issued it, so changing sort mid-page is
@@ -23,17 +24,6 @@ export const PromptCursorPayload = Schema.Union(
 );
 export type PromptCursorPayload = typeof PromptCursorPayload.Type;
 
-const decodePayload = Schema.decodeUnknown(PromptCursorPayload);
-
-const toBase64Url = (value: string) =>
-  btoa(value).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-
-const fromBase64Url = (value: string) =>
-  atob(value.replaceAll("-", "+").replaceAll("_", "/"));
-
-export const encodePromptCursor = (cursor: PromptCursorPayload): string =>
-  toBase64Url(JSON.stringify(cursor));
-
 export const cursorFor = (
   row: PromptListRow,
   sort: PromptSortOrder
@@ -50,23 +40,11 @@ export const cursorFor = (
         updatedAt: row.updatedAt.getTime(),
       };
 
-/* Decoded, not cast, so a tampered cursor is rejected before it reaches the
-   query as an arbitrary id. */
 export const decodePromptCursor = (
   encoded: string,
   sort: PromptSortOrder
 ): Effect.Effect<PromptCursorPayload, InvalidCursor> =>
-  Effect.suspend(() =>
-    Effect.try({
-      try: () => JSON.parse(fromBase64Url(encoded)) as unknown,
-      catch: () => new InvalidCursor({ cursor: encoded }),
-    })
-  ).pipe(
-    Effect.flatMap(decodePayload),
-    Effect.catchIf(
-      ParseResult.isParseError,
-      () => new InvalidCursor({ cursor: encoded })
-    ),
+  decodeCursor(PromptCursorPayload, encoded).pipe(
     Effect.filterOrFail(
       (payload) => payload.sort === sort,
       () => new InvalidCursor({ cursor: encoded })

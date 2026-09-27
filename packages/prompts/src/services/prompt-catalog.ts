@@ -10,13 +10,10 @@ import type {
   UpdatePromptRequest,
 } from "@anpord/schema/domain/prompts";
 import { Clock, Context, Effect, Layer } from "effect";
+import { encodeCursor } from "../domain/cursor-codec";
 import type { PromptError } from "../domain/errors";
 import { PromptIdTaken } from "../domain/errors";
-import {
-  cursorFor,
-  decodePromptCursor,
-  encodePromptCursor,
-} from "../domain/prompt-cursor";
+import { cursorFor, decodePromptCursor } from "../domain/prompt-cursor";
 import { toSummary } from "../domain/views";
 import { ChannelRepository } from "../repositories/channel-repository";
 import { PromptRepository } from "../repositories/prompt-repository";
@@ -118,7 +115,7 @@ export const PromptCatalogLive = Layer.effect(
             items: yield* Effect.all(page.map(toSummary)),
             nextCursor:
               rows.length > query.limit && last !== undefined
-                ? encodePromptCursor(cursorFor(last, sort))
+                ? encodeCursor(cursorFor(last, sort))
                 : null,
           } satisfies PromptPage;
         }).pipe(
