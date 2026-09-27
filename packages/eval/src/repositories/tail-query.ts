@@ -9,7 +9,7 @@ import {
   type EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { and, asc, eq, gt, or } from "drizzle-orm";
+import { and, eq, gt, or, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { asEntries } from "../domain/journal-entries";
 import { advance, markFor, type TailEvent } from "../domain/tail";
@@ -68,9 +68,14 @@ export const tailQuery = Effect.gen(function* () {
       const rows =
         addressed.size === 0
           ? []
-          : yield* tryStore("tail.events", () =>
-              db
-                .select()
+          : yield* tryStore("tail.events", async () => {
+              const matched = db
+                .select({
+                  at: evalEvent.at,
+                  payload: evalEvent.payload,
+                  seq: evalEvent.seq,
+                  trialInternalId: evalEvent.trialInternalId,
+                })
                 .from(evalEvent)
                 .where(
                   or(
@@ -81,14 +86,20 @@ export const tailQuery = Effect.gen(function* () {
                       )
                     )
                   )
-                )
-                .orderBy(
-                  asc(evalEvent.at),
-                  asc(evalEvent.trialInternalId),
-                  asc(evalEvent.seq)
-                )
-                .limit(EVAL_TAIL_PAGE)
-            );
+                );
+              const sorted = await db.execute<{
+                readonly payload: unknown;
+                readonly seq: number;
+                readonly trial_internal_id: string;
+              }>(
+                sql`with matched as materialized (${matched}) select payload, seq, trial_internal_id from matched order by at, trial_internal_id, seq limit ${EVAL_TAIL_PAGE}`
+              );
+              return sorted.rows.map((row) => ({
+                payload: row.payload,
+                seq: row.seq,
+                trialInternalId: row.trial_internal_id,
+              }));
+            });
 
       const events = rows.flatMap((row): readonly TailEvent[] => {
         const address = addressed.get(row.trialInternalId);
