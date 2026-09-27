@@ -41,6 +41,12 @@ describe("testDatabaseUrl", () => {
     );
   });
 
+  it("refuses a database name with broken percent encoding", () => {
+    expect(() => pointingAt("postgresql://localhost:5432/%zz")).toThrow(
+      "EVAL_TEST_DATABASE_URL is not a postgres URL."
+    );
+  });
+
   it("refuses a URL for anything but postgres", () => {
     for (const url of [
       "postgresqlx://localhost/anpord_test",

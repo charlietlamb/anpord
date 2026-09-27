@@ -7,14 +7,21 @@ const POSTGRES_PROTOCOLS: ReadonlySet<string> = new Set([
   "postgresql:",
 ]);
 
+const notPostgres = () =>
+  new Error(
+    "EVAL_TEST_DATABASE_URL is not a postgres URL. Set it to a test database, such as postgresql://localhost:5432/anpord_test."
+  );
+
 const databaseNameIn = (url: string) => {
   const parsed = URL.parse(url);
   if (parsed === null || !POSTGRES_PROTOCOLS.has(parsed.protocol)) {
-    throw new Error(
-      "EVAL_TEST_DATABASE_URL is not a postgres URL. Set it to a test database, such as postgresql://localhost:5432/anpord_test."
-    );
+    throw notPostgres();
   }
-  return decodeURIComponent(parsed.pathname.slice(1));
+  try {
+    return decodeURIComponent(parsed.pathname.slice(1));
+  } catch {
+    throw notPostgres();
+  }
 };
 
 export const testDatabaseUrl = (env: Env = process.env) => {
