@@ -1,7 +1,7 @@
 import {
   CostClassification as CostClassificationSchema,
   CostComponentName as CostComponentNameSchema,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-costs";
 import { type Option, Schema } from "effect";
 
 export type CostClassification = typeof CostClassificationSchema.Type;

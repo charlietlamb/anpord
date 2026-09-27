@@ -10,7 +10,7 @@ import type {
   EvalVariantRequest,
   StartBatchRequest,
 } from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness } from "@anpord/schema/domain/evals";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import {
   Array as Arr,

@@ -4,7 +4,7 @@ import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrialArtifact } from "@anpord/db/schema/evals/eval-trial-artifacts";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import type { EvalArtifactRequest } from "@anpord/schema/domain/evals";
+import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
 import { and, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { tryStore } from "./query";

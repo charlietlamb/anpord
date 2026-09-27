@@ -1,7 +1,8 @@
 import type { ListCases } from "@anpord/eval/repositories/case-reads-query";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import type { EvalHarness, EvalPageCursor } from "@anpord/schema/domain/evals";
+import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { organization } from "./current-organization";

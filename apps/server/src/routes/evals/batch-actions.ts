@@ -2,8 +2,9 @@ import { Batches } from "@anpord/eval/batch/batches";
 import { BatchSubscriptions } from "@anpord/eval/ports/batch-subscriptions";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { EvalHarness, StartedBatch } from "@anpord/schema/domain/evals";
+import type { StartedBatch } from "@anpord/schema/domain/evals";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import type {

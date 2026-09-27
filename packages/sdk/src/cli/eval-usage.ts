@@ -1,8 +1,8 @@
 import {
   COST_COMPONENT_LABELS,
-  type EvalBatch,
   type EvalCosts,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-costs";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
 import {
   CONCERN_REASONS,
   type TokenCounts,

@@ -1,4 +1,4 @@
-import { batchTagOf } from "@anpord/schema/domain/evals";
+import { batchTagOf } from "@anpord/schema/domain/eval-batch-subscription";
 import { configure, tasks } from "@trigger.dev/sdk";
 import { Config, Effect, Layer, Redacted } from "effect";
 import { TrialRunner } from "../../ports/trial-runner";

@@ -1,4 +1,5 @@
-import { type EvalCaseSummary, tallyOf } from "@anpord/schema/domain/evals";
+import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
+import { tallyOf } from "@anpord/schema/domain/evals";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import {

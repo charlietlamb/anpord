@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { EvalHarness } from "./evals";
+import { EvalHarness } from "./eval-trial";
 
 export const CatalogueModel = Schema.Struct({
   displayName: Schema.String,

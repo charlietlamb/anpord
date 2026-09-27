@@ -1,4 +1,4 @@
-import type { EvalRunPage } from "@anpord/schema/domain/evals";
+import type { EvalRunPage } from "@anpord/schema/domain/eval-read-models";
 import {
   DataTable,
   DataTableBody,

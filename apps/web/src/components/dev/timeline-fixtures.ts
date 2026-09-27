@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 
 const START = Date.UTC(2026, 8, 26, 12, 25, 43);
 const at = (seconds: number) => START + seconds * 1000;

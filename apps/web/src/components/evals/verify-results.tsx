@@ -1,4 +1,4 @@
-import type { EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import { readingOf, stepsOf } from "@anpord/schema/domain/verify-steps";
 import { verdictsOf } from "@anpord/schema/domain/verify-verdicts";
 import { CopyButton } from "@anpord/ui/components/copy-button";

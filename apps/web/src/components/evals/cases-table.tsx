@@ -1,4 +1,4 @@
-import type { EvalCaseSummary } from "@anpord/schema/domain/evals";
+import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
 import type { ReactNode } from "react";
 import { CaseListRow } from "@/components/evals/case-list-row";
 import { SummaryTable } from "@/components/evals/summary-table";

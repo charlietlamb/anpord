@@ -5,13 +5,12 @@ import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import {
-  type EvalPageCursor,
-  type EvalSuiteDetail,
-  type EvalSuitePage,
-  type EvalTally,
-  tallyOf,
-} from "@anpord/schema/domain/evals";
+import type {
+  EvalPageCursor,
+  EvalSuiteDetail,
+  EvalSuitePage,
+} from "@anpord/schema/domain/eval-read-models";
+import { type EvalTally, tallyOf } from "@anpord/schema/domain/evals";
 import type { SQL } from "drizzle-orm";
 import { and, countDistinct, desc, eq, inArray, max, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";

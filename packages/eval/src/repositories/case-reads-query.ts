@@ -11,7 +11,7 @@ import type {
   EvalCaseDetail,
   EvalCasePage,
   EvalPageCursor,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-read-models";
 import type { SQL } from "drizzle-orm";
 import { and, asc, desc, eq, ilike, inArray, max, or, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";

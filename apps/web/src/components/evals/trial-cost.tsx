@@ -1,4 +1,4 @@
-import type { EvalUsage } from "@anpord/schema/domain/evals";
+import type { EvalUsage } from "@anpord/schema/domain/eval-trial";
 import {
   CONCERN_REASONS,
   cacheHitOf,

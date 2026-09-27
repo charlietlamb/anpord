@@ -1,8 +1,5 @@
-import type {
-  EvalBatch,
-  EvalRun,
-  EvalTrial,
-} from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 
 const STARTED = DateTime.unsafeMake("2026-09-06T10:00:00Z");

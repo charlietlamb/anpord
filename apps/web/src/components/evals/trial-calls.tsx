@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { counted } from "@anpord/ui/lib/evals/counted";
 import { seconds } from "@anpord/ui/lib/evals/duration";
 import { StepLabel } from "@/components/evals/step-label";

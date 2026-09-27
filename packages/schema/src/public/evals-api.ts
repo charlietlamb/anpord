@@ -6,18 +6,16 @@ import { EvalCaseId } from "../domain/eval-limits";
 import { ModelCatalogue } from "../domain/eval-models";
 import { MAX_RUN_TRIALS } from "../domain/eval-quota";
 import {
-  EvalBatch,
   EvalBatchPage,
   EvalCaseDetail,
   EvalCasePage,
-  EvalHarness,
   EvalPageCursor,
-  EvalRun,
   EvalRunPage,
   EvalSuiteDetail,
   EvalSuitePage,
-  StartedBatch,
-} from "../domain/evals";
+} from "../domain/eval-read-models";
+import { EvalHarness } from "../domain/eval-trial";
+import { EvalBatch, EvalRun, StartedBatch } from "../domain/evals";
 import { PROFILE_HARNESS_RULE } from "../domain/harness-profile";
 import { RunCaseRequest } from "../domain/run-case";
 import { ApiKeyAuthentication } from "./authentication";

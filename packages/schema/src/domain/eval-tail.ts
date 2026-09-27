@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { EvalJournalEntry } from "./evals";
+import { EvalJournalEntry } from "./eval-trial";
 
 export const EVAL_TAIL_PAGE = 500;
 

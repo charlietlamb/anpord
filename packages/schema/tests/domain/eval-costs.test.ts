@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
-import { EvalCosts } from "../../src/domain/evals";
+import { EvalCosts } from "../../src/domain/eval-costs";
 
 const line = (component: string, classification = "estimate") => ({
   classification,

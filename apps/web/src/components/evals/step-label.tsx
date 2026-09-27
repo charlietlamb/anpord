@@ -1,5 +1,5 @@
 import { entryKindOf, labelOf } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { ShellText } from "@anpord/ui/components/ui/shell-text";
 import { cn } from "@anpord/ui/lib/utils";
 import { CallName } from "@/components/evals/call-name";

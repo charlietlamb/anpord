@@ -1,4 +1,4 @@
-import type { BatchSubscription } from "@anpord/schema/domain/evals";
+import type { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
 import { Context, type Effect } from "effect";
 
 export interface BatchSubscriptionsShape {

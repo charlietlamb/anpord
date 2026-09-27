@@ -1,4 +1,7 @@
-import type { EvalCostComponent, EvalCosts } from "@anpord/schema/domain/evals";
+import type {
+  EvalCostComponent,
+  EvalCosts,
+} from "@anpord/schema/domain/eval-costs";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { CostLine } from "@/components/evals/cost-line";
 

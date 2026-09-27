@@ -1,4 +1,4 @@
-import type { EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
 
 export function CommandsHint({ trial }: { readonly trial: EvalTrial }) {

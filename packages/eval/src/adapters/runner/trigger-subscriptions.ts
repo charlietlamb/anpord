@@ -1,4 +1,4 @@
-import { batchTagOf } from "@anpord/schema/domain/evals";
+import { batchTagOf } from "@anpord/schema/domain/eval-batch-subscription";
 import { auth, configure } from "@trigger.dev/sdk";
 import { Clock, Effect, Layer, Redacted } from "effect";
 import { BatchSubscriptions } from "../../ports/batch-subscriptions";

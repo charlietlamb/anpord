@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TRIALS } from "../../../src/components/dev/eval-fixtures";
 import { TrialOutcome } from "../../../src/components/evals/trial-outcome";

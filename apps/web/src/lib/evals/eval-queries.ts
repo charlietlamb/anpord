@@ -1,10 +1,7 @@
+import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
 import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
-import type {
-  EvalArtifactRequest,
-  EvalBatch,
-  EvalPageCursor,
-  EvalRun,
-} from "@anpord/schema/domain/evals";
+import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {

@@ -12,8 +12,8 @@ import {
   DEFAULT_MAX_TURNS,
   DEFAULT_TIMEOUT_MS,
 } from "@anpord/schema/domain/eval-limits";
+import type { EvalArtifact } from "@anpord/schema/domain/eval-trial";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { EvalArtifact } from "@anpord/schema/domain/evals";
 import type {
   HarnessEvent,
   HarnessUsage,
