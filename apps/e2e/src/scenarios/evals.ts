@@ -120,7 +120,7 @@ export const evalScenarios: readonly Scenario<World>[] = [
         .find((line) => line.includes("never-writes"));
       isTrue(
         "names the case and variant that failed",
-        failedRow !== undefined && failedRow.includes("command/probe-a"),
+        failedRow?.includes("command/probe-a") === true,
         printed(ran)
       );
     },
