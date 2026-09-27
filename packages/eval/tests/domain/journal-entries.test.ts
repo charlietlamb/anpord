@@ -60,3 +60,18 @@ describe("an event cut to what the journal shows", () => {
     expect(cutToJournal(command)).toEqual(command);
   });
 });
+
+describe("a tool call that fits", () => {
+  it("is left as it was, error included", () => {
+    const failed: HarnessEvent = {
+      _tag: "ToolCall",
+      callId: "call_2",
+      error: "no such file",
+      input: "{}",
+      name: "read_file",
+      status: "failed",
+    };
+
+    expect(cutToJournal(failed)).toEqual(failed);
+  });
+});
