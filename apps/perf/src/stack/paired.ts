@@ -1,5 +1,24 @@
 import { bootStack, type Stack, type StackOptions } from "./stack";
 
+export const teardownAll = async (
+  stacks: readonly Pick<Stack, "teardown">[]
+) => {
+  const failures: unknown[] = [];
+  for (const stack of stacks) {
+    try {
+      await stack.teardown();
+    } catch (cause) {
+      failures.push(cause);
+    }
+  }
+  if (failures.length === 1) {
+    throw failures[0];
+  }
+  if (failures.length > 1) {
+    throw new AggregateError(failures, "Several stacks failed to tear down.");
+  }
+};
+
 export const bootStacks = async (
   targets: readonly string[],
   options: Omit<StackOptions, "repositoryRoot">
@@ -11,14 +30,15 @@ export const bootStacks = async (
     }
     return stacks;
   } catch (cause) {
-    await teardownAll(stacks);
+    try {
+      await teardownAll(stacks);
+    } catch (teardown) {
+      throw new AggregateError(
+        [cause, teardown],
+        "A stack failed to boot, and tearing down the booted ones failed too."
+      );
+    }
     throw cause;
-  }
-};
-
-export const teardownAll = async (stacks: readonly Stack[]) => {
-  for (const stack of stacks) {
-    await stack.teardown();
   }
 };
 
