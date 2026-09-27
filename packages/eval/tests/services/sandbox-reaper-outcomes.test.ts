@@ -3,6 +3,7 @@ import { Duration, Effect, Layer, Logger, Redacted } from "effect";
 import { CredentialError } from "../../src/credentials/errors";
 import { CredentialResolver } from "../../src/credentials/resolver";
 import { EvalStoreError, SandboxUnavailable } from "../../src/domain/errors";
+import type { ReapFailure, ReapSummary } from "../../src/domain/reap-outcome";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import {
   type LiveSandbox,
@@ -143,6 +144,25 @@ const world = (
   return { attempts, live, sweep, warnings };
 };
 
+const failure = (
+  outcome: ReapSummary["failures"][number]["outcome"],
+  reason: ReapFailure,
+  sandboxIds: readonly string[],
+  count = sandboxIds.length
+) => ({ count, outcome, reason, sandboxIds });
+
+const swept = (
+  counts: Partial<Omit<ReapSummary, "failures">>,
+  ...failures: ReapSummary["failures"]
+): ReapSummary => ({
+  abandoned: 0,
+  destroyed: 0,
+  failures,
+  gaveUp: 0,
+  retrying: 0,
+  ...counts,
+});
+
 describe("what a sweep does with a sandbox it cannot destroy", () => {
   it("clears a sandbox whose credential cannot be decrypted and never tries it again", async () => {
     const { attempts, live, sweep } = world([
@@ -155,29 +175,15 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
     const first = await sweep();
     const second = await sweep();
 
-    expect(first).toEqual({
-      abandoned: 1,
-      destroyed: 0,
-      failures: [
-        {
-          count: 1,
-          outcome: "abandoned",
-          reason: "credential-unreadable",
-          sandboxIds: ["sbx-gpt-5"],
-        },
-      ],
-      gaveUp: 0,
-      retrying: 0,
-    });
+    expect(first).toEqual(
+      swept(
+        { abandoned: 1 },
+        failure("abandoned", "credential-unreadable", ["sbx-gpt-5"])
+      )
+    );
     expect([...live.keys()]).toEqual([]);
     expect(attempts).toEqual([]);
-    expect(second).toEqual({
-      abandoned: 0,
-      destroyed: 0,
-      failures: [],
-      gaveUp: 0,
-      retrying: 0,
-    });
+    expect(second).toEqual(swept({}));
   });
 
   it("clears a sandbox whose connection was deleted or whose provider is unknown", async () => {
@@ -189,18 +195,8 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
     const summary = await sweep();
 
     expect(summary.failures).toEqual([
-      {
-        count: 1,
-        outcome: "abandoned",
-        reason: "connection-deleted",
-        sandboxIds: ["sbx-trl_deleted"],
-      },
-      {
-        count: 1,
-        outcome: "abandoned",
-        reason: "unknown-provider",
-        sandboxIds: ["sbx-trl_floppy"],
-      },
+      failure("abandoned", "connection-deleted", ["sbx-trl_deleted"]),
+      failure("abandoned", "unknown-provider", ["sbx-trl_floppy"]),
     ]);
     expect([...live.keys()]).toEqual([]);
   });
@@ -217,12 +213,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
     const summary = await sweep();
 
     expect(summary.failures).toEqual([
-      {
-        count: 1,
-        outcome: "abandoned",
-        reason: "unknown-provider",
-        sandboxIds: ["sbx-floppy"],
-      },
+      failure("abandoned", "unknown-provider", ["sbx-floppy"]),
     ]);
     expect([...live.keys()]).toEqual([]);
   });
@@ -235,20 +226,12 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
 
     const summary = await sweep();
 
-    expect(summary).toEqual({
-      abandoned: 0,
-      destroyed: 0,
-      failures: [
-        {
-          count: 1,
-          outcome: "retrying",
-          reason: "store-unavailable",
-          sandboxIds: ["sbx-unsaved"],
-        },
-      ],
-      gaveUp: 0,
-      retrying: 1,
-    });
+    expect(summary).toEqual(
+      swept(
+        { retrying: 1 },
+        failure("retrying", "store-unavailable", ["sbx-unsaved"])
+      )
+    );
     expect(attempts).toEqual(["sbx-unsaved"]);
     expect([...live.keys()]).toEqual(["trl_unsaved"]);
   });
@@ -264,20 +247,12 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
 
     const summary = await sweep();
 
-    expect(summary).toEqual({
-      abandoned: 0,
-      destroyed: 1,
-      failures: [
-        {
-          count: 1,
-          outcome: "retrying",
-          reason: "unexpected",
-          sandboxIds: ["sbx-crash"],
-        },
-      ],
-      gaveUp: 0,
-      retrying: 1,
-    });
+    expect(summary).toEqual(
+      swept(
+        { destroyed: 1, retrying: 1 },
+        failure("retrying", "unexpected", ["sbx-crash"])
+      )
+    );
     expect([...live.keys()]).toEqual(["trl_crash"]);
   });
 
@@ -315,20 +290,12 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
 
     const summary = await sweep();
 
-    expect(summary).toEqual({
-      abandoned: 0,
-      destroyed: 0,
-      failures: [
-        {
-          count: 1,
-          outcome: "gave-up",
-          reason: "provider-unavailable",
-          sandboxIds: ["sbx-ancient"],
-        },
-      ],
-      gaveUp: 1,
-      retrying: 0,
-    });
+    expect(summary).toEqual(
+      swept(
+        { gaveUp: 1 },
+        failure("gave-up", "provider-unavailable", ["sbx-ancient"])
+      )
+    );
     expect([...live.keys()]).toEqual([]);
   });
 
@@ -347,20 +314,15 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
 
     expect(warnings).toEqual([
       {
-        annotations: {
-          abandoned: 5,
-          destroyed: 1,
-          failures: [
-            {
-              count: 5,
-              outcome: "abandoned",
-              reason: "credential-unreadable",
-              sandboxIds: ["sbx-sonnet", "sbx-model-1", "sbx-model-2"],
-            },
-          ],
-          gaveUp: 0,
-          retrying: 0,
-        },
+        annotations: swept(
+          { abandoned: 5, destroyed: 1 },
+          failure(
+            "abandoned",
+            "credential-unreadable",
+            ["sbx-sonnet", "sbx-model-1", "sbx-model-2"],
+            5
+          )
+        ),
         message: ["reaped leaked sandboxes"],
       },
     ]);
