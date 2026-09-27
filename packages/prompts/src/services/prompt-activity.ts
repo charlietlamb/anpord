@@ -3,10 +3,10 @@ import type { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
 import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
 import { Context, Effect, Layer } from "effect";
 import {
+  ActivityCursorPayload,
   activityCursorFor,
-  decodeActivityCursor,
-  encodeActivityCursor,
 } from "../domain/activity-cursor";
+import { decodeCursor, encodeCursor } from "../domain/cursor-codec";
 import type { PromptError } from "../domain/errors";
 import { toActivityEntry } from "../domain/views";
 import { PromptEventRepository } from "../repositories/prompt-event-repository";
@@ -41,7 +41,7 @@ export const PromptActivityLive = Layer.effect(
           const cursor =
             query.cursor === undefined
               ? undefined
-              : yield* decodeActivityCursor(query.cursor);
+              : yield* decodeCursor(ActivityCursorPayload, query.cursor);
 
           /* One more than asked for, so a full page is distinguishable from
              the last without a second empty request. */
@@ -60,7 +60,7 @@ export const PromptActivityLive = Layer.effect(
             items: yield* Effect.all(page.map(toActivityEntry)),
             nextCursor:
               rows.length > query.limit && last !== undefined
-                ? encodeActivityCursor(activityCursorFor(last))
+                ? encodeCursor(activityCursorFor(last))
                 : null,
           } satisfies PromptActivityPage;
         }).pipe(
