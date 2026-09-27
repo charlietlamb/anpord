@@ -57,6 +57,13 @@ export const trialStatus = (status: EvalTrialStatus) => TRIAL[status];
 export const validationStatus = (status: EvalValidation["status"]) =>
   VALIDATION[status];
 
+export const RUNNING: PresentedStatus = {
+  icon: CircleNotchIcon,
+  label: "Running",
+  spin: true,
+  tone: "pending",
+};
+
 export const distributionStatus = ({
   passed,
   scored,
@@ -85,12 +92,7 @@ export const runStatus = (run: {
   readonly status: EvalRunStatus;
 }): PresentedStatus => {
   if (run.status === "running") {
-    return {
-      icon: CircleNotchIcon,
-      label: "Running",
-      spin: true,
-      tone: "pending",
-    };
+    return RUNNING;
   }
 
   /* A run can fail after its trials scored, so the scores it did reach are

@@ -1,12 +1,14 @@
 import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
 import { tallyOf } from "@anpord/schema/domain/evals";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
+import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import { PassBars } from "@anpord/ui/components/evals/pass-bars";
 import {
   DataTableChevron,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
 import { counted } from "@anpord/ui/lib/evals/counted";
+import { RUNNING } from "@anpord/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";
 
@@ -16,6 +18,7 @@ export function CaseListRow({
   readonly subject: EvalCaseSummary;
 }) {
   const runs = subject.variants.reduce((total, entry) => total + entry.runs, 0);
+  const running = subject.variants.some((entry) => entry.status === "running");
 
   return (
     <DataTableRow
@@ -39,9 +42,13 @@ export function CaseListRow({
       </span>
 
       <span>
-        <PassBars
-          tally={tallyOf(subject.variants.map((entry) => entry.distribution))}
-        />
+        {running ? (
+          <EvalStatusBadge size="xs" status={RUNNING} />
+        ) : (
+          <PassBars
+            tally={tallyOf(subject.variants.map((entry) => entry.distribution))}
+          />
+        )}
       </span>
 
       <span className="text-muted-foreground tabular-nums">

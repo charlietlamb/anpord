@@ -47,6 +47,7 @@ const variantResult = (index: number): EvalVariantResult => ({
   lastRunAt: EPOCH,
   lastRunId: `placeholder-run-${index}`,
   runs: 1,
+  status: "finished",
   variant: { ...VARIANT, id: `placeholder-variant-${index}` },
 });
 

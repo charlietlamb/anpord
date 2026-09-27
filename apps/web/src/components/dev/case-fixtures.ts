@@ -115,6 +115,7 @@ export const CASE_DETAIL: EvalCaseDetail = {
       lastRunAt: DateTime.unsafeMake(NOW - 8 * HOUR),
       lastRunId: "run_8",
       runs: 3,
+      status: "running",
       variant: CLAUDE,
     },
     {
@@ -122,6 +123,7 @@ export const CASE_DETAIL: EvalCaseDetail = {
       lastRunAt: DateTime.unsafeMake(NOW - 9 * HOUR),
       lastRunId: "run_9",
       runs: 8,
+      status: "finished",
       variant: CODEX,
     },
   ],

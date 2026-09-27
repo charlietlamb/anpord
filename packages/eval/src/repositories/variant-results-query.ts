@@ -8,7 +8,7 @@ import { count, desc, eq, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { distributionOf } from "../domain/distribution";
 import { tryStore } from "./query";
-import { timestamp, variantOf } from "./run-view";
+import { runStatus, timestamp, variantOf } from "./run-view";
 
 export const variantResultsQuery = Effect.gen(function* () {
   const db = yield* Database;
@@ -88,6 +88,7 @@ export const variantResultsQuery = Effect.gen(function* () {
             lastRunAt: timestamp(row.run.createdAt),
             lastRunId: row.run.internalId,
             runs: runsOf.get(row.variant.internalId) ?? 0,
+            status: runStatus(row.run.status),
             variant: variant.value,
           },
         ]);
