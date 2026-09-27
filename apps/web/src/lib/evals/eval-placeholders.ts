@@ -1,3 +1,4 @@
+import type { EvalHome } from "@anpord/schema/domain/eval-home";
 import type {
   EvalCaseDetail,
   EvalCasePage,
@@ -173,4 +174,48 @@ export const PLACEHOLDER_CASE_DETAIL: EvalCaseDetail = {
       definitionHash: "placeholder",
     },
   ],
+};
+
+const HOME_SUITES = placeholders(5, (index) => ({
+  id: `placeholder-suite-${index}`,
+  name: placeholderText(index),
+}));
+
+export const PLACEHOLDER_HOME: EvalHome = {
+  days: placeholders(7, (index) => ({
+    day: `2026-01-0${index + 1}`,
+    passed: 10,
+    scored: 10,
+    suiteId: "placeholder-suite-0",
+    variant: "codex/gpt-5-codex",
+  })),
+  evals: placeholders(30, (index) => ({
+    caseId: `placeholder-case-${index}`,
+    caseName: placeholderText(index),
+    failure: null,
+    finishedAt: EPOCH,
+    newlyFailing: false,
+    passed: 1,
+    runId: `placeholder-run-${index}`,
+    scored: 1,
+    suite: HOME_SUITES[index % HOME_SUITES.length],
+    unscoredReason: null,
+    variant: VARIANT,
+    verdict: "passed",
+  })),
+  range: "7d",
+  recentBatches: placeholders(5, (index) => ({
+    cases: 1,
+    failure: null,
+    finishedAt: EPOCH,
+    id: `placeholder-batch-${index}`,
+    passed: 1,
+    runs: 1,
+    scored: 1,
+    startedAt: EPOCH,
+    status: "finished",
+    trigger: { source: "ci" },
+    voided: 0,
+  })),
+  spendUsd: 0,
 };
