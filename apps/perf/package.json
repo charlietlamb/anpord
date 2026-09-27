@@ -1,0 +1,25 @@
+{
+  "name": "@anpord/perf",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@anpord/db": "workspace:*",
+    "@anpord/e2e": "workspace:*",
+    "@anpord/schema": "workspace:*",
+    "anpord": "workspace:*",
+    "effect": "catalog:",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@types/pg": "catalog:",
+    "lighthouse": "catalog:",
+    "puppeteer-core": "catalog:",
+    "typescript": "catalog:"
+  }
+}
