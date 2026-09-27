@@ -1,17 +1,14 @@
+import {
+  EVAL_RUN,
+  EvalBatchPayload,
+} from "@anpord/eval/adapters/runner/eval-run-task";
 import { schemaTask } from "@trigger.dev/sdk";
 import { Schema } from "effect";
-
-const EvalBatchPayload = Schema.Struct({
-  batchId: Schema.String,
-  organizationId: Schema.String,
-});
-
-type EvalBatchPayload = typeof EvalBatchPayload.Type;
 
 const decode = Schema.decodeUnknownSync(EvalBatchPayload);
 
 export const evalRun = schemaTask({
-  id: "eval-run",
+  id: EVAL_RUN,
   machine: "small-1x",
   maxDuration: 3600,
   schema: (payload: unknown) => decode(payload),
