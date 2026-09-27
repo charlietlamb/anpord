@@ -7,15 +7,17 @@ import {
 import { Effect } from "effect";
 
 export const credentialApiError = (error: CredentialError) => {
-  if (error.code === "not-found") {
-    return new NotFound({ message: error.message });
+  switch (error.code) {
+    case "not-found":
+      return new NotFound({ message: error.message });
+    case "internal":
+    case "undecryptable":
+      return new InternalError({ message: "Credential operation failed" });
+    case undefined:
+      return new BadRequest({ message: error.message });
+    default:
+      return error.code satisfies never;
   }
-
-  if (error.code === "internal" || error.code === "undecryptable") {
-    return new InternalError({ message: "Credential operation failed" });
-  }
-
-  return new BadRequest({ message: error.message });
 };
 
 export const withCredentialErrors = <A, R>(

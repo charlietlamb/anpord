@@ -97,6 +97,16 @@ describe("eval errors over http", () => {
     );
   });
 
+  it("answers a credential error with no code as a bad request, the same as /credentials", () => {
+    const failure = failureOf(
+      mapped(new CredentialError({ message: "Credential payload is invalid" }))
+    );
+
+    expect(failure).toEqual(
+      new BadRequest({ message: "Credential payload is invalid" })
+    );
+  });
+
   it("does not turn a broken credential store into a client error", () => {
     const error = new CredentialError({
       code: "internal",
