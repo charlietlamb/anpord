@@ -18,6 +18,12 @@ const scrollParentOf = (element: HTMLElement) => {
   return document.documentElement;
 };
 
+const exactHeight = (
+  element: Element,
+  entry: ResizeObserverEntry | undefined
+) =>
+  entry?.borderBoxSize[0]?.blockSize ?? element.getBoundingClientRect().height;
+
 interface ScrollFrame {
   readonly element: HTMLElement;
   readonly margin: number;
@@ -25,12 +31,16 @@ interface ScrollFrame {
 
 export function useVirtualRows<List extends HTMLElement>({
   count,
+  gap = 0,
+  inset = 0,
   pinned,
   rowHeight,
 }: {
   readonly count: number;
+  readonly gap?: number;
+  readonly inset?: number;
   readonly pinned: Iterable<number>;
-  readonly rowHeight: number;
+  readonly rowHeight: number | ((index: number) => number);
 }) {
   const [list, listRef] = useState<List | null>(null);
   const [frame, setFrame] = useState<ScrollFrame | null>(null);
@@ -60,10 +70,14 @@ export function useVirtualRows<List extends HTMLElement>({
   const margin = frame?.margin ?? 0;
   const virtualizer = useVirtualizer({
     count,
-    estimateSize: () => rowHeight,
+    estimateSize: typeof rowHeight === "number" ? () => rowHeight : rowHeight,
+    gap,
+    measureElement: exactHeight,
     getScrollElement: () => frame?.element ?? null,
     initialRect: FIRST_WINDOW,
     overscan: OVERSCAN,
+    paddingEnd: inset,
+    paddingStart: inset,
     rangeExtractor: (range) =>
       [
         ...new Set([

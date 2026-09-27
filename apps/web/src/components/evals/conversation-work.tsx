@@ -27,13 +27,17 @@ const titleOf = (steps: readonly Step[], live: boolean) => {
 
 export function ConversationWork({
   live,
+  onOpenChange,
+  open,
   steps,
 }: {
   readonly live: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly open: boolean;
   readonly steps: readonly Step[];
 }) {
   return (
-    <Task>
+    <Task onOpenChange={onOpenChange} open={open}>
       <TaskTrigger
         className={
           live ? "animate-pulse motion-reduce:animate-none" : undefined
