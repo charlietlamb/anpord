@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { ConfigProvider, Effect } from "effect";
 import { describeDatabase } from "../src/describe";
-import { isLocal } from "../src/migrations/target";
 import { isLocalHost, LOCAL_HOSTS } from "../src/local-hosts";
+import { isLocal } from "../src/migrations/target";
 
 const localOf = (url: string) =>
   Effect.runPromise(
