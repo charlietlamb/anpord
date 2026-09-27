@@ -32,11 +32,14 @@ export const buildWeb = async (repositoryRoot: string, serverUrl: string) => {
   return performance.now() - began;
 };
 
-const answers = async (url: string) => {
+const answers = async (url: string, timeoutMs: number) => {
   try {
-    const response = await fetch(url, { redirect: "manual" });
+    const response = await fetch(url, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(Math.max(1, timeoutMs)),
+    });
     await response.arrayBuffer();
-    return true;
+    return response.status < 400;
   } catch {
     return false;
   }
@@ -62,19 +65,18 @@ export const startWeb = async (
   const exited = new Promise<void>((resolve) =>
     child.once("exit", () => resolve())
   );
+  const running = () => child.exitCode === null && child.signalCode === null;
   const stop = async () => {
-    if (child.exitCode === null) {
+    if (running()) {
       child.kill("SIGKILL");
       await exited;
     }
   };
 
   const began = performance.now();
-  while (!(await answers(`${baseUrl}/login`))) {
-    if (
-      child.exitCode !== null ||
-      performance.now() - began > BOOT_TIMEOUT_MS
-    ) {
+  const remaining = () => BOOT_TIMEOUT_MS - (performance.now() - began);
+  while (!(await answers(`${baseUrl}/login`, remaining()))) {
+    if (!running() || performance.now() - began > BOOT_TIMEOUT_MS) {
       await stop();
       throw new Error(`The web server did not start:\n${output}`);
     }

@@ -4,8 +4,9 @@ import { testDatabaseUrl } from "@anpord/db/test-database";
 import { runOrThrow } from "@anpord/e2e/src/harness/process";
 import { Client } from "pg";
 
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 const SCRATCH_PREFIX = "anpord_scratch_";
+const QUOTED = /^(["'])(.*)\1$/;
 let created = 0;
 
 export interface ScratchDatabase {
@@ -22,15 +23,11 @@ const fromEnvFile = (path: string) => {
   const line = readFileSync(path, "utf8")
     .split("\n")
     .find((candidate) => candidate.startsWith("DATABASE_URL="));
-  return line?.slice("DATABASE_URL=".length).trim();
+  return line?.slice("DATABASE_URL=".length);
 };
 
-const serverUrl = (repositoryRoot: string) => {
-  const url = new URL(
-    process.env.PERF_DATABASE_URL ??
-      fromEnvFile(join(repositoryRoot, ".env.local")) ??
-      DEFAULT_SERVER
-  );
+export const scratchServerUrl = (raw: string) => {
+  const url = new URL(raw.trim().replace(QUOTED, "$2"));
   if (!LOCAL_HOSTS.has(url.hostname)) {
     throw new Error(
       `The perf harness only creates scratch databases on a local Postgres, not ${url.hostname}.`
@@ -38,6 +35,13 @@ const serverUrl = (repositoryRoot: string) => {
   }
   return url;
 };
+
+const serverUrl = (repositoryRoot: string) =>
+  scratchServerUrl(
+    process.env.PERF_DATABASE_URL ??
+      fromEnvFile(join(repositoryRoot, ".env.local")) ??
+      DEFAULT_SERVER
+  );
 
 const withDatabase = (url: URL, name: string) => {
   const next = new URL(url);
@@ -57,6 +61,11 @@ const admin = async <T>(url: URL, use: (client: Client) => Promise<T>) => {
   }
 };
 
+const dropDatabase = (url: URL, name: string) =>
+  admin(url, (client) =>
+    client.query(`drop database if exists ${name} with (force)`)
+  );
+
 export const createScratchDatabase = async (
   repositoryRoot: string,
   label: string
@@ -67,20 +76,23 @@ export const createScratchDatabase = async (
   const url = withDatabase(base, name);
   testDatabaseUrl({ EVAL_TEST_DATABASE_URL: url });
 
-  await admin(base, async (client) => {
-    await client.query(`drop database if exists ${name} with (force)`);
-    await client.query(`create database ${name}`);
-  });
+  await dropDatabase(base, name);
+  await admin(base, (client) => client.query(`create database ${name}`));
 
-  await runOrThrow(
-    "Could not migrate the scratch database",
-    "bun",
-    ["scripts/migrate.ts"],
-    {
-      cwd: join(repositoryRoot, "packages/db"),
-      env: { ...process.env, DATABASE_URL: url },
-    }
-  );
+  try {
+    await runOrThrow(
+      "Could not migrate the scratch database",
+      "bun",
+      ["scripts/migrate.ts"],
+      {
+        cwd: join(repositoryRoot, "packages/db"),
+        env: { ...process.env, DATABASE_URL: url },
+      }
+    );
+  } catch (cause) {
+    await dropDatabase(base, name);
+    throw cause;
+  }
 
   return { name, url };
 };
@@ -90,7 +102,5 @@ export const dropScratchDatabase = (
   database: ScratchDatabase
 ) => {
   testDatabaseUrl({ EVAL_TEST_DATABASE_URL: database.url });
-  return admin(serverUrl(repositoryRoot), (client) =>
-    client.query(`drop database if exists ${database.name} with (force)`)
-  );
+  return dropDatabase(serverUrl(repositoryRoot), database.name);
 };

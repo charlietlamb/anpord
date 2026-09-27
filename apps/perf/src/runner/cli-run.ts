@@ -28,6 +28,7 @@ export const timeCliRun = (stack: Stack, targetRoot: string, fixture: string) =>
     child.stderr?.on("data", (chunk) => {
       errors = `${errors}${String(chunk)}`.slice(-4000);
     });
+    child.once("error", reject);
     child.once("exit", (code) =>
       code === 0
         ? resolve(performance.now() - began)

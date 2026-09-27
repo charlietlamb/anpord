@@ -6,6 +6,7 @@ import { AUTH_SECRET } from "@anpord/e2e/src/harness/settings";
 
 const BOOT_TIMEOUT_MS = 60_000;
 const READY_POLL_MS = 20;
+const PROBE_TIMEOUT_MS = 10_000;
 
 interface ServerMemory {
   readonly heapUsed: number;
@@ -83,18 +84,16 @@ export const startServer = async (
     child.once("exit", () => resolve())
   );
 
+  const running = () => child.exitCode === null && child.signalCode === null;
   const stop = async () => {
-    if (child.exitCode === null) {
+    if (running()) {
       child.kill("SIGKILL");
       await exited;
     }
   };
 
   while (!(await healthy(baseUrl))) {
-    if (
-      child.exitCode !== null ||
-      performance.now() - startedAt > BOOT_TIMEOUT_MS
-    ) {
+    if (!running() || performance.now() - startedAt > BOOT_TIMEOUT_MS) {
       await stop();
       throw new Error(`The server did not answer /api/healthz:\n${output}`);
     }
@@ -103,7 +102,14 @@ export const startServer = async (
   const coldStartMs = performance.now() - startedAt;
 
   const probe = async <T>(path: string) => {
-    const response = await fetch(`${probeUrl}${path}`);
+    const response = await fetch(`${probeUrl}${path}`, {
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `The server probe answered ${path} with ${response.status}.`
+      );
+    }
     return (await response.json()) as T;
   };
 

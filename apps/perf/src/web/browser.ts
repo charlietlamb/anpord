@@ -24,17 +24,22 @@ export const launchChrome = async (): Promise<OwnBrowser> => {
     );
   }
   const profile = await mkdtemp(join(tmpdir(), "anpord-perf-chrome-"));
-  const browser = await puppeteer.launch({
-    args: [
-      "--no-first-run",
-      "--no-default-browser-check",
-      "--disable-extensions",
-    ],
-    defaultViewport: null,
-    executablePath,
-    headless: true,
-    userDataDir: profile,
-  });
+  const browser = await puppeteer
+    .launch({
+      args: [
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-extensions",
+      ],
+      defaultViewport: null,
+      executablePath,
+      headless: true,
+      userDataDir: profile,
+    })
+    .catch(async (cause: unknown) => {
+      await rm(profile, { force: true, recursive: true });
+      throw cause;
+    });
   return {
     browser,
     close: async () => {
