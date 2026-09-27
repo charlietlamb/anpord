@@ -41,6 +41,7 @@
     "./domain/scopes": "./src/domain/scopes.ts",
     "./domain/sandbox-env": "./src/domain/sandbox-env.ts",
     "./domain/secret-text": "./src/domain/secret-text.ts",
+    "./domain/step-title": "./src/domain/step-title.ts",
     "./domain/trial": "./src/domain/trial.ts",
     "./domain/usage-health": "./src/domain/usage-health.ts",
     "./domain/verify-steps": "./src/domain/verify-steps.ts",

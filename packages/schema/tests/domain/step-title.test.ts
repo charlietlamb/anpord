@@ -3,7 +3,7 @@ import {
   describeCommand,
   describeStep,
   summarizeMessage,
-} from "@/lib/evals/step-title";
+} from "../../src/domain/step-title";
 
 describe("describeCommand", () => {
   test("names the file a read prints", () => {

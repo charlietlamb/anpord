@@ -46,13 +46,15 @@ describe("the summary a local run ends with", () => {
         Option.some("https://anpord.test/evals/batch_1")
       )
     ).toEqual([
-      "checkout (checkout.eval.ts): 3 trials on this machine, 1 passed, 1 void, 1 timed out",
-      "  ✓ passed     completes on codex/luna@autumn-setup  41.2s",
-      "  ○ void       refunds on codex/luna@autumn-setup    2.1s",
-      "               The prepare step seeds-orders exited with status 3",
-      "  ○ timed out  retries on codex/luna@autumn-setup    5m00s",
-      "               The agent ran past its time limit of 5m",
-      "  Results: https://anpord.test/evals/batch_1",
+      "  ✓ completes  codex/luna@autumn-setup  41.2s",
+      "  ○ refunds    codex/luna@autumn-setup  2.1s",
+      "    void · The prepare step seeds-orders exited with status 3",
+      "  ○ retries    codex/luna@autumn-setup  5m00s",
+      "    timed out · The agent ran past its time limit of 5m",
+      "",
+      "  Suite    checkout (checkout.eval.ts)",
+      "  Trials   1 timed out | 1 void | 1 passed (3)",
+      "  Results  https://anpord.test/evals/batch_1",
     ]);
   });
 
@@ -68,9 +70,11 @@ describe("the summary a local run ends with", () => {
         Option.none()
       )
     ).toEqual([
-      "smoke: 2 trials on this machine, 1 passed, 1 failed",
-      "  ✓ passed  writes on codex/luna@autumn-setup, trial 1  900ms",
-      "  ✗ failed  writes on codex/luna@autumn-setup, trial 2  800ms",
+      "  ✓ writes #1  codex/luna@autumn-setup  900ms",
+      "  ✗ writes #2  codex/luna@autumn-setup  800ms",
+      "",
+      "  Suite    smoke",
+      "  Trials   1 failed | 1 passed (2)",
     ]);
   });
 
@@ -108,11 +112,13 @@ describe("the summary a local run ends with", () => {
         Option.some("https://anpord.test/evals/batch_1")
       )
     ).toEqual([
-      "smoke: 1 trial on this machine, 1 passed",
-      "  ✓ passed  writes on codex/luna@autumn-setup  900ms",
-      "  26k tokens (25k in, 1k out), $0.45 est.",
-      "  model $0.42, simulated user $0.03",
-      "  Results: https://anpord.test/evals/batch_1",
+      "  ✓ writes  codex/luna@autumn-setup  900ms",
+      "",
+      "  Suite    smoke",
+      "  Trials   1 passed (1)",
+      "  Usage    26k tokens (25k in, 1k out), $0.45 est.",
+      "           model $0.42, simulated user $0.03",
+      "  Results  https://anpord.test/evals/batch_1",
     ]);
   });
 

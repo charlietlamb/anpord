@@ -1,28 +1,71 @@
 import type { EvalCosts } from "@anpord/schema/domain/eval-costs";
 import { Option } from "effect";
 import { formatDuration } from "./duration";
-import { localUsageLines } from "./eval-usage";
+import { localUsage } from "./eval-usage";
+import { continued, labelled } from "./labelled-row";
 import type { LocalCase, LocalStatus } from "./local-trial-result";
-import { outcomeMark } from "./outcome-mark";
+import { outcomeGlyph, outcomeTone } from "./outcome-mark";
 import { type Palette, paletteFor } from "./paint";
 import { note } from "./render";
-import { terminalStyle } from "./transcript-writer";
+import { stderrStyle } from "./transcript-writer";
 
 const STATUSES: readonly LocalStatus[] = [
-  "passed",
   "failed",
-  "void",
   "timed out",
+  "void",
+  "passed",
 ];
 
 const trialName = (one: LocalCase, numbered: boolean) =>
-  `${one.name} on ${one.variant}${numbered ? `, trial ${one.ordinal}` : ""}`;
+  numbered ? `${one.name} #${one.ordinal}` : one.name;
 
-const tallyOf = (cases: readonly LocalCase[]) =>
-  STATUSES.flatMap((status) => {
+const tallyOf = (cases: readonly LocalCase[], paint: Palette) => {
+  const counts = STATUSES.flatMap((status) => {
     const count = cases.filter((one) => one.status === status).length;
-    return count === 0 ? [] : [`${count} ${status}`];
-  }).join(", ");
+    return count === 0
+      ? []
+      : [outcomeTone(status, paint)(`${count} ${status}`)];
+  });
+
+  return `${counts.join(paint.dim(" | "))} ${paint.dim(`(${cases.length})`)}`;
+};
+
+const trialLines = (
+  cases: readonly LocalCase[],
+  paint: Palette
+): readonly string[] => {
+  const numbered = cases.some((one) => one.ordinal > 1);
+  const nameWidth = Math.max(
+    ...cases.map((one) => trialName(one, numbered).length)
+  );
+  const variantWidth = Math.max(...cases.map((one) => one.variant.length));
+
+  return cases.flatMap((one) => [
+    `  ${outcomeGlyph(one.status, paint)} ${trialName(one, numbered).padEnd(nameWidth)}  ${paint.dim(one.variant.padEnd(variantWidth))}  ${paint.dim(formatDuration(one.durationMs))}`,
+    ...(one.reason === null
+      ? []
+      : [
+          `    ${outcomeTone(one.status, paint)(one.status)} ${paint.dim(`· ${one.reason}`)}`,
+        ]),
+  ]);
+};
+
+const usageRows = (
+  cases: readonly LocalCase[],
+  costs: EvalCosts | null,
+  paint: Palette
+) => {
+  const { concerns, lines } = localUsage(cases, costs);
+  const [first, ...rest] = lines;
+
+  return first === undefined
+    ? []
+    : [
+        labelled("Usage", first, paint),
+        ...rest.map(continued),
+        ...concerns.map((concern) => continued(paint.yellow(`⚠ ${concern}`))),
+      ];
+};
 
 export const summaryLines = (
   label: string,
@@ -30,28 +73,20 @@ export const summaryLines = (
   costs: EvalCosts | null,
   link: Option.Option<string>,
   paint: Palette = paletteFor(false)
-): readonly string[] => {
-  const numbered = cases.some((one) => one.ordinal > 1);
-  const statusWidth = Math.max(...cases.map((one) => one.status.length), 0);
-  const nameWidth = Math.max(
-    ...cases.map((one) => trialName(one, numbered).length),
-    0
-  );
-  const reasonIndent = " ".repeat(statusWidth + 6);
-
-  return [
-    `${paint.bold(label)}: ${[`${cases.length} ${cases.length === 1 ? "trial" : "trials"} on this machine`, tallyOf(cases)].filter((part) => part !== "").join(", ")}`,
-    ...cases.flatMap((one) => [
-      `  ${outcomeMark(one.status, paint)}${" ".repeat(statusWidth - one.status.length)}  ${trialName(one, numbered).padEnd(nameWidth)}  ${paint.dim(formatDuration(one.durationMs))}`,
-      ...(one.reason === null ? [] : [`${reasonIndent}${one.reason}`]),
-    ]),
-    ...localUsageLines(cases, costs),
-    ...Option.match(link, {
-      onNone: () => [],
-      onSome: (url) => [`  Results: ${url}`],
-    }),
-  ];
-};
+): readonly string[] => [
+  ...(cases.length === 0 ? [] : [...trialLines(cases, paint), ""]),
+  labelled("Suite", label, paint),
+  labelled(
+    "Trials",
+    cases.length === 0 ? "none ran" : tallyOf(cases, paint),
+    paint
+  ),
+  ...usageRows(cases, costs, paint),
+  ...Option.match(link, {
+    onNone: () => [],
+    onSome: (url) => [labelled("Results", url, paint)],
+  }),
+];
 
 export const reportLocal = (
   label: string,
@@ -67,7 +102,7 @@ export const reportLocal = (
         cases,
         costs,
         link,
-        paletteFor(terminalStyle(process.stderr.isTTY === true).colour)
+        paletteFor(stderrStyle().colour)
       ),
     ].join("\n")
   );

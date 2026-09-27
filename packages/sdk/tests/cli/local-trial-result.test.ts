@@ -43,7 +43,7 @@ describe("a local trial that could not finish", () => {
       voidFields: [],
     });
     expect(verdictLines(verdictOf(timedOut), writerFor(PLAIN)).at(-1)).toBe(
-      "  └ ○ timed out · The agent ran past its time limit of 1s"
+      "  ○ timed out · The agent ran past its time limit of 1s"
     );
   });
 

@@ -2,7 +2,10 @@ import type { Whoami } from "@anpord/schema/public/auth-api";
 import { AnpordApi } from "@anpord/schema/public/client";
 import { Command, Options } from "@effect/cli";
 import { Effect } from "effect";
+import { labelled } from "./labelled-row";
+import { paletteFor } from "./paint";
 import { json, note, row } from "./render";
+import { stderrStyle } from "./transcript-writer";
 
 const asJson = Options.boolean("json").pipe(
   Options.withDescription("Print the result as JSON")
@@ -62,7 +65,13 @@ export const whoami = Command.make(
 export const announceOrganization = AnpordApi.pipe(
   Effect.flatMap((api) => api.auth.whoami({ payload: {} })),
   Effect.flatMap(({ organization }) =>
-    note(`Runs land in ${organization.name} (${organization.slug}).`)
+    note(
+      labelled(
+        "Org",
+        `${organization.name} (${organization.slug})`,
+        paletteFor(stderrStyle().colour)
+      )
+    )
   ),
   Effect.ignore
 );

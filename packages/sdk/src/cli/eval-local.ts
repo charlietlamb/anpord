@@ -30,7 +30,7 @@ import {
 } from "./local-trial-result";
 import { note } from "./render";
 import { makeTranscriber } from "./transcriber";
-import { terminalStyle } from "./transcript-writer";
+import { stderrStyle } from "./transcript-writer";
 import { formatVariant } from "./variant-label";
 
 export interface LocalSlot {
@@ -185,9 +185,7 @@ export const runLocally = (
   options: LocalRunOptions = {}
 ) =>
   Effect.gen(function* () {
-    const transcript = yield* makeTranscriber(
-      terminalStyle(process.stderr.isTTY === true)
-    );
+    const transcript = yield* makeTranscriber(stderrStyle());
 
     const results = yield* Effect.forEach(
       request.variants,

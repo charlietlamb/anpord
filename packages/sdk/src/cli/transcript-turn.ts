@@ -9,6 +9,7 @@ export interface Speaker {
 }
 
 export interface Turn {
+  readonly answering: boolean;
   readonly costUsd: number | null;
   readonly endedAt: number | null;
   readonly number: number;
@@ -26,6 +27,7 @@ export const openedTurn = (
   previous: Turn | undefined,
   startedAt: number | null
 ): Turn => ({
+  answering: false,
   costUsd: null,
   endedAt: null,
   number: (previous?.number ?? 0) + 1,

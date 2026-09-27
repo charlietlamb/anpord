@@ -115,17 +115,24 @@ const breakdownLine = (costs: EvalCosts | null) => {
   return parts.length > 1 ? [parts.join(", ")] : [];
 };
 
-export const localUsageLines = (
+export interface LocalUsage {
+  readonly concerns: readonly string[];
+  readonly lines: readonly string[];
+}
+
+export const localUsage = (
   cases: readonly LocalReading[],
   costs: EvalCosts | null = null
-) =>
-  [
-    ...usageLines(
-      sumUsage(
-        cases,
-        (usage) => usage.inputTokens + usage.outputTokens,
-        costs?.estimatedEquivalentUsd ?? null
-      )
-    ),
-    ...breakdownLine(costs),
-  ].map((line) => `  ${line}`);
+): LocalUsage => {
+  const [spend, ...concerns] = usageLines(
+    sumUsage(
+      cases,
+      (usage) => usage.inputTokens + usage.outputTokens,
+      costs?.estimatedEquivalentUsd ?? null
+    )
+  );
+
+  return spend === undefined
+    ? { concerns: [], lines: [] }
+    : { concerns, lines: [spend, ...breakdownLine(costs)] };
+};

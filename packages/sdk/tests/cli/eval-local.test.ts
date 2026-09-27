@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { Effect, Schema } from "effect";
 import { runLocally } from "../../src/cli/eval-local";
-import { localUsageLines } from "../../src/cli/eval-usage";
+import { localUsage } from "../../src/cli/eval-usage";
 
 const request = Schema.decodeUnknownSync(StartBatchRequest)({
   cases: [
@@ -110,7 +110,7 @@ describe("the usage a local run reports", () => {
   it("weighs context by the commands the agent ran, as a hosted run does", async () => {
     const results = await Effect.runPromise(runLocally(reportsUsage));
 
-    expect(localUsageLines(results)).toEqual(["  31k tokens (30k in, 1k out)"]);
+    expect(localUsage(results).lines).toEqual(["31k tokens (30k in, 1k out)"]);
   }, 180_000);
 });
 
