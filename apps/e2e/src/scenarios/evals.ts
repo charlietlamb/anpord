@@ -309,7 +309,7 @@ export const evalScenarios: readonly Scenario<World>[] = [
         const detail = await anpord.evals.runs.get({ id: run?.id ?? "" });
         const commands = (detail.trials[0]?.trajectory ?? []).flatMap(
           (entry) =>
-            entry._tag === "command"
+            entry._tag === "command" && entry.command.startsWith("npm run")
               ? [`${entry.output.length} ${entry.outputTruncated}`]
               : []
         );

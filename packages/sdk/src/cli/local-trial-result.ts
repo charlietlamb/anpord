@@ -1,5 +1,6 @@
 import { TrialTimedOut } from "@anpord/eval/domain/errors";
 import { describeCause } from "@anpord/eval/domain/failure";
+import { cutToJournal } from "@anpord/eval/domain/journal-entries";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import type { TokenCounts } from "@anpord/schema/domain/usage-health";
@@ -74,7 +75,7 @@ export const reportRequest = (
   result.kind === "scored"
     ? {
         payload: {
-          events: result.events,
+          events: result.events.map(cutToJournal),
           ordinal,
           outcome: result.outcome,
           runId,
@@ -85,7 +86,7 @@ export const reportRequest = (
       }
     : {
         payload: {
-          events: result.events,
+          events: result.events.map(cutToJournal),
           failure: result.reason,
           ordinal,
           runId,
@@ -112,7 +113,7 @@ export const unscoredForOlderServer = (
   runId: string
 ): ReportRequest => ({
   payload: {
-    events: result.events,
+    events: result.events.map(cutToJournal),
     ordinal,
     outcome: UNSCORED,
     runId,
@@ -120,6 +121,11 @@ export const unscoredForOlderServer = (
     usage: null,
     userSpend: null,
   },
+});
+
+export const withoutJournal = (result: LocalTrialResult): LocalTrialResult => ({
+  ...result,
+  events: [],
 });
 
 export const verdictOf = (result: LocalTrialResult): Verdict =>

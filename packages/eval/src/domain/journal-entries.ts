@@ -3,6 +3,31 @@ import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
 const JOURNAL_OUTPUT_LIMIT = 4000;
 
+const cut = (text: string) =>
+  text.length > JOURNAL_OUTPUT_LIMIT
+    ? `${text.slice(0, JOURNAL_OUTPUT_LIMIT)}\n[the rest was cut before this was sent, ${text.length} characters in all]`
+    : text;
+
+const cutIfPresent = (text: string | undefined) =>
+  text === undefined ? text : cut(text);
+
+export const cutToJournal = (event: HarnessEvent): HarnessEvent => {
+  if (event._tag === "Command") {
+    return { ...event, output: cut(event.output) };
+  }
+
+  if (event._tag === "ToolCall") {
+    return {
+      ...event,
+      error: cutIfPresent(event.error),
+      input: cut(event.input),
+      output: cutIfPresent(event.output),
+    };
+  }
+
+  return event;
+};
+
 const millisOrNull = (at: number | undefined) => at ?? null;
 
 export const asEntries = (event: HarnessEvent): readonly EvalJournalEntry[] => {

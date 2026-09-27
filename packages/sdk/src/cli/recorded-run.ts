@@ -8,6 +8,7 @@ import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import type { StartedBatch } from "@anpord/schema/domain/evals";
 import { AnpordApi, type AnpordClient } from "@anpord/schema/public/client";
 import { IdempotencyKey } from "@anpord/schema/public/runner-api";
+import { HttpClientError } from "@effect/platform";
 import {
   Array as Arr,
   Cause,
@@ -31,6 +32,7 @@ import {
   type ReportRequest,
   reportRequest,
   unscoredForOlderServer,
+  withoutJournal,
 } from "./local-trial-result";
 import { openBrowser } from "./open-browser";
 import { note } from "./render";
@@ -125,20 +127,41 @@ const untilClosed = (batchId: string) =>
     Effect.zipRight(Effect.never)
   );
 
+const TOO_LARGE = 413;
+
+const tooLarge = (error: unknown) =>
+  HttpClientError.isHttpClientError(error) &&
+  error._tag === "ResponseError" &&
+  error.response.status === TOO_LARGE;
+
 const reportTrial = (
   api: AnpordClient,
   result: LocalTrialResult,
   ordinal: number,
-  runId: string
+  runId: string,
+  trial: string
 ) => {
   const send = (request: ReportRequest) =>
     retryTransient(api.runner.report(request));
 
-  return send(reportRequest(result, ordinal, runId)).pipe(
-    Effect.catchTag("HttpApiDecodeError", (refused) =>
-      result.kind === "broken"
-        ? send(unscoredForOlderServer(result, ordinal, runId))
-        : Effect.fail(refused)
+  const sendTrial = (sent: LocalTrialResult) =>
+    send(reportRequest(sent, ordinal, runId)).pipe(
+      Effect.catchTag("HttpApiDecodeError", (refused) =>
+        sent.kind === "broken"
+          ? send(unscoredForOlderServer(sent, ordinal, runId))
+          : Effect.fail(refused)
+      )
+    );
+
+  return sendTrial(result).pipe(
+    Effect.catchIf(tooLarge, () =>
+      sendTrial(withoutJournal(result)).pipe(
+        Effect.zipRight(
+          note(
+            `The journal of a trial of ${trial} was too large for Anpord to take, so its verdict was recorded without it.`
+          )
+        )
+      )
     )
   );
 };
@@ -167,14 +190,17 @@ const recordInto = (
 
     const cases = yield* runLocally(request, {
       credentials: leases,
-      onTrial: (slot, result, ordinal) =>
-        reportTrial(api, result, ordinal, runIdOf(slot)).pipe(
+      onTrial: (slot, result, ordinal) => {
+        const trial = `${slot.caseId} on ${labelOfRequest(slot.variant)}`;
+
+        return reportTrial(api, result, ordinal, runIdOf(slot), trial).pipe(
           Effect.catchAll((error) =>
             note(
-              `A trial of ${slot.caseId} on ${labelOfRequest(slot.variant)} was not recorded, so it shows as void. ${asAnpordError(error).message}`
+              `A trial of ${trial} was not recorded, so it shows as void. ${asAnpordError(error).message}`
             )
           )
-        ),
+        );
+      },
     });
 
     return {
