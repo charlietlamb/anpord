@@ -1,4 +1,5 @@
 import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
+import { CACHE_RESTORED_ENV } from "@anpord/schema/domain/sandbox-env";
 import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Effect, Either, Option, Ref } from "effect";
 import { shellQuote } from "../adapters/harness/process";
@@ -66,7 +67,7 @@ export const runPrepare = (input: {
       }
 
       const env = {
-        ...(restored ? { ANPORD_CACHE_RESTORED: "1" } : {}),
+        ...(restored ? { [CACHE_RESTORED_ENV]: "1" } : {}),
         ...input.forwarded,
       };
 

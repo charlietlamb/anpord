@@ -1,11 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
+import { TURNS_ENV } from "@anpord/schema/domain/sandbox-env";
 import { Effect } from "effect";
 import {
   answerEnv,
   writeAnswer,
 } from "../../../src/adapters/scorers/validator-protocol";
-import { TURNS_ENV, TURNS_PATH } from "../../../src/domain/answer-file";
+import { TURNS_PATH } from "../../../src/domain/answer-file";
 
 const sandbox = (written: Map<string, string>) =>
   ({
