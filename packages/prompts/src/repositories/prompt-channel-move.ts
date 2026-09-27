@@ -1,3 +1,4 @@
+import type { Tx } from "@anpord/db/query";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
 import { promptReleaseVersion } from "@anpord/db/schema/prompts/prompt-release-versions";
@@ -9,7 +10,6 @@ import type { ChannelName, VersionNumber } from "@anpord/schema/domain/prompts";
 import { pinned } from "@anpord/schema/domain/releases";
 import { and, eq } from "drizzle-orm";
 import { claimChannel } from "./claim-channel";
-import type { Tx } from "./query";
 
 export interface ChannelMove {
   readonly authorId: string | null;

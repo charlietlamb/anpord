@@ -1,4 +1,4 @@
-import type { EvalVerifyStep } from "./evals";
+import type { EvalVerifyStep } from "./eval-trial";
 
 /* `unknown` is a trial predating the trail or a one-command verifier; `unreached` is a step an earlier failure stopped, never a pass. */
 export type StepVerdict = "failed" | "passed" | "unknown" | "unreached";

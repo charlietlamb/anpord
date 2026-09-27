@@ -1,13 +1,14 @@
 import { Command, CommandExecutor } from "@effect/platform";
-import { Effect } from "effect";
+import { Config, Effect, Option } from "effect";
 
 /* Named so a run does not land in whichever browser the machine defaults to:
    ANPORD_BROWSER picks one, and "none" prints the address instead of opening. */
-const BROWSER = "ANPORD_BROWSER";
+const browserConfig = Config.string("ANPORD_BROWSER").pipe(
+  Config.option,
+  Config.map(Option.getOrUndefined)
+);
 
-const opened = (url: string) => {
-  const chosen = process.env[BROWSER];
-
+const opened = (url: string, chosen: string | undefined) => {
   if (process.platform === "darwin") {
     return chosen === undefined
       ? Command.make("open", url)
@@ -21,11 +22,13 @@ const opened = (url: string) => {
 
 export const openBrowser = (url: string) =>
   Effect.gen(function* () {
-    if (process.env[BROWSER] === "none") {
+    const chosen = yield* browserConfig;
+
+    if (chosen === "none") {
       return;
     }
 
     const executor = yield* CommandExecutor.CommandExecutor;
 
-    yield* executor.exitCode(opened(url));
+    yield* executor.exitCode(opened(url, chosen));
   }).pipe(Effect.ignore);

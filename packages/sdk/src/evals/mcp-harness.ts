@@ -1,4 +1,4 @@
-import type { EvalHarness } from "@anpord/schema/domain/evals";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 import { Schema } from "effect";
 import { parse, stringify } from "smol-toml";

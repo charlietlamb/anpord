@@ -1,4 +1,5 @@
 import { formatDuration } from "./duration";
+import { CENT } from "./eval-usage";
 
 export interface Speaker {
   readonly caseName: string;
@@ -20,8 +21,6 @@ interface Reply {
   readonly costUsd: number | null;
   readonly finishedAtMillis: number | null;
 }
-
-const CENT = 0.01;
 
 export const openedTurn = (
   previous: Turn | undefined,

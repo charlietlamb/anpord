@@ -1,4 +1,4 @@
-import type { EvalRunPage } from "@anpord/schema/domain/evals";
+import type { EvalRunPage } from "@anpord/schema/domain/eval-read-models";
 import {
   DataTable,
   DataTableBody,
@@ -6,10 +6,10 @@ import {
   DataTableHead,
 } from "@anpord/ui/components/ui/data-table";
 import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
+import { counted } from "@anpord/ui/lib/evals/counted";
 import { RunTrialRow } from "@/components/evals/run-trial-row";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { CASE_RUNS_TABLE } from "@/lib/evals/case-tables";
-import { counted } from "@/lib/evals/conversation";
 
 export function CaseRuns({
   caseId,

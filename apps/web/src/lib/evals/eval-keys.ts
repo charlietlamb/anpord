@@ -1,4 +1,4 @@
-import type { EvalArtifactRequest } from "@anpord/schema/domain/evals";
+import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
 import type { CaseFilters } from "@/lib/evals/evals-client";
 
 export const evalKeys = {

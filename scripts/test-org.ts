@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
+import { arg } from "./lib/cli-args";
 
 /*
   Creates a local organization with an owner, so there is something to mint a
@@ -16,12 +17,6 @@ import { Client } from "pg";
   It refuses to touch anything but a local database, because it writes a user
   that never verified an email and can sign nothing.
 */
-
-const arg = (flag: string) => {
-  const at = process.argv.indexOf(`--${flag}`);
-
-  return at === -1 ? undefined : process.argv[at + 1];
-};
 
 const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost"]);
 

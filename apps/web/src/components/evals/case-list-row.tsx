@@ -1,14 +1,15 @@
-import { type EvalCaseSummary, tallyOf } from "@anpord/schema/domain/evals";
+import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
+import { tallyOf } from "@anpord/schema/domain/evals";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import {
   DataTableChevron,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
+import { counted } from "@anpord/ui/lib/evals/counted";
 import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";
-import { counted } from "@/lib/evals/conversation";
 
 export function CaseListRow({
   subject,

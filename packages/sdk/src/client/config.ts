@@ -1,4 +1,5 @@
-import { DEFAULT_BASE_URL, layer } from "@anpord/schema/public/client";
+import { layer } from "@anpord/schema/public/client";
+import { API_ORIGIN } from "@anpord/schema/public/origins";
 import { Config, ConfigError, Effect, Either, Layer, Redacted } from "effect";
 
 const API_KEY = "ANPORD_API_KEY";
@@ -12,7 +13,7 @@ export const apiKeyConfig = Config.string(API_KEY).pipe(
 );
 
 export const baseUrlConfig = Config.string("ANPORD_BASE_URL").pipe(
-  Config.withDefault(DEFAULT_BASE_URL)
+  Config.withDefault(API_ORIGIN)
 );
 
 export const webUrlConfig = Config.string("ANPORD_WEB_URL").pipe(

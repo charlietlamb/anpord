@@ -1,3 +1,5 @@
+import type { CredentialValues } from "@anpord/schema/domain/credentials";
+import { HttpClient } from "@effect/platform";
 import { Effect, Layer, Record, Redacted } from "effect";
 import type { SandboxName } from "../../domain/variant";
 import { SandboxAdapters } from "../../ports/sandbox";
@@ -10,28 +12,37 @@ import type { MakeAdapter } from "./provider-adapter";
 import { upstashAdapter } from "./upstash";
 import { vercelAdapter } from "./vercel";
 
-const SANDBOX_ADAPTERS: { readonly [provider in SandboxName]: MakeAdapter } = {
-  cloudflare: cloudflareAdapter,
+const withClient =
+  (client: HttpClient.HttpClient) => (values?: CredentialValues) =>
+    cloudflareAdapter(values).pipe(
+      Effect.provideService(HttpClient.HttpClient, client)
+    );
+
+const adaptersWith = (
+  client: HttpClient.HttpClient
+): { readonly [provider in SandboxName]: MakeAdapter } => ({
+  cloudflare: withClient(client),
   daytona: daytonaAdapter,
   e2b: e2bAdapter,
   local: () => makeLocalAdapter,
   modal: modalAdapter,
   upstash: upstashAdapter,
   vercel: vercelAdapter,
-};
+});
 
 export const SandboxAdaptersLive = Layer.effect(
   SandboxAdapters,
   Effect.gen(function* () {
+    const adapters = adaptersWith(yield* HttpClient.HttpClient);
     const defaults = yield* Effect.all(
-      Record.map(SANDBOX_ADAPTERS, (make) => Effect.cached(make()))
+      Record.map(adapters, (make) => Effect.cached(make()))
     );
 
     return SandboxAdapters.of({
       resolve: (provider, credentials) =>
         (credentials === undefined
           ? defaults[provider]
-          : SANDBOX_ADAPTERS[provider](Redacted.value(credentials))
+          : adapters[provider](Redacted.value(credentials))
         ).pipe(
           Effect.withSpan("SandboxAdapters.resolve", {
             attributes: { provider },

@@ -7,6 +7,7 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { skipWithoutDatabase } from "@anpord/db/test-database";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@anpord/schema/domain/eval-quota";
 import { and, asc, eq, inArray } from "drizzle-orm";
@@ -15,7 +16,6 @@ import { Batches } from "../../src/batch/batches";
 import { BatchRepository } from "../../src/repositories/batch-repository";
 import type { AgentTrialRequest } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
-import { skipWithoutDatabase } from "../fixtures/database";
 import { seedOrganization, seedRun } from "../fixtures/eval-rows";
 import {
   actorOf,

@@ -1,4 +1,5 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import { counted } from "@anpord/ui/lib/evals/counted";
 
 export type ConversationStep = Extract<
   EvalJournalEntry,
@@ -103,9 +104,6 @@ export const stepFailed = (step: ConversationStep) => {
       step.status === "error")
   );
 };
-
-export const counted = (count: number, one: string, many: string) =>
-  `${count} ${count === 1 ? one : many}`;
 
 export const summaryOf = (steps: readonly ConversationStep[]) => {
   const commands = steps.filter((step) => step._tag === "command").length;

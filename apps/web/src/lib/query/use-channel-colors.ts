@@ -1,5 +1,7 @@
-import type { ChannelColor } from "@anpord/ui/lib/channel-colors";
-import { CHANNEL_DEFAULT_COLOR } from "@anpord/ui/lib/channel-colors";
+import {
+  type ChannelColor,
+  DEFAULT_CHANNEL_COLOR,
+} from "@anpord/schema/domain/channels";
 import { useQuery } from "@tanstack/react-query";
 import { channelQueries } from "@/lib/query/channel-queries";
 
@@ -8,5 +10,5 @@ export function useChannelColor(): (name: string) => ChannelColor {
 
   return (name) =>
     data?.find((channel) => channel.name === name)?.color ??
-    CHANNEL_DEFAULT_COLOR;
+    DEFAULT_CHANNEL_COLOR;
 }

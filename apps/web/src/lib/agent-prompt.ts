@@ -1,6 +1,6 @@
-import { DOCS_URL } from "@/lib/urls";
+import { DOCS_ORIGIN, WEB_ORIGIN } from "@anpord/schema/public/origins";
 
-const KEYS_URL = "https://www.anpord.com/settings/keys";
+const KEYS_URL = `${WEB_ORIGIN}/settings/keys`;
 
 export const AGENT_PROMPT = `Write an eval for this repository using Anpord, in scripts/eval.ts.
 
@@ -46,6 +46,6 @@ Rules that decide whether the result means anything:
 
 Reference:
 
-- ${DOCS_URL}/guides/run-from-code
-- ${DOCS_URL}/evals/cases
-- ${DOCS_URL}/evals/variants`;
+- ${DOCS_ORIGIN}/guides/run-from-code
+- ${DOCS_ORIGIN}/evals/cases
+- ${DOCS_ORIGIN}/evals/variants`;

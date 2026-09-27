@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { EvalBatchTail } from "@anpord/schema/domain/eval-tail";
-import type { EvalJournalEntry, EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import type { EvalRun } from "@anpord/schema/domain/evals";
 import { heardTail, NOTHING_HEARD, overlayTail } from "@/lib/evals/run-tail";
 
 const said = (text: string): EvalJournalEntry => ({

@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { EvalJournalEntry } from "./evals";
+import { EvalJournalEntry } from "./eval-trial";
 
 export const EvalTurn = Schema.Struct({
   index: Schema.NonNegativeInt,

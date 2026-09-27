@@ -1,8 +1,8 @@
+import type { EvalTrialStatus } from "@anpord/schema/domain/eval-trial";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import type {
   EvalDistribution,
   EvalRunStatus,
-  EvalTrialStatus,
 } from "@anpord/schema/domain/evals";
 import type { StepVerdict } from "@anpord/schema/domain/verify-verdicts";
 import type { StatusTone } from "@anpord/ui/components/ui/status-badge";

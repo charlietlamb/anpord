@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import { Effect, Redacted } from "effect";
 import { CredentialError } from "../../src/credentials/errors";
 import type {
@@ -12,13 +11,9 @@ import {
   KEYLESS_HARNESSES,
   unkeyed,
 } from "../../src/credentials/variants";
+import { actorOf } from "../fixtures/eval-stack";
 
-const actor = Actor.make({
-  id: UserId.make("user"),
-  isUser: true,
-  organizationId: OrganizationId.make("organization"),
-  permissions: [],
-});
+const actor = actorOf("organization", true);
 
 const notFound = () =>
   Effect.fail(new CredentialError({ code: "not-found", message: "not found" }));

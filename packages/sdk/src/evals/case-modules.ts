@@ -2,6 +2,7 @@ import { realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { sep } from "node:path";
 import { Effect } from "effect";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { bundle } from "./eval-bundle";
 
 /* Compared by what the filesystem resolves to, not the strings: on macOS /var
@@ -41,9 +42,9 @@ const exportingModule = (
 
     if (matches.length !== 1) {
       return yield* Effect.fail(
-        new Error(
-          `${name} must be one named function or const export from a separate TypeScript file`
-        )
+        new EvalDefinitionInvalid({
+          reason: `${name} must be one named function or const export from a separate TypeScript file`,
+        })
       );
     }
 

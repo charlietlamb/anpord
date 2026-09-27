@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import type { WaterfallRow } from "@/lib/evals/waterfall-layout";
 
 export interface SelectedStep {

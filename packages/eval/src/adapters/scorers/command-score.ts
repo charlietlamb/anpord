@@ -12,6 +12,7 @@ import {
   withoutMarks,
 } from "../../domain/verify-script";
 import type { ScorerShape } from "../../ports/scorer";
+import { SCORER_TIMEOUT_MS } from "./scorer-timeout";
 import { isUnguardedPipeline } from "./shell-pipeline";
 import { executeValidation, publishValidation } from "./validation";
 import { answerEnv, resultStatus } from "./validator-protocol";
@@ -80,7 +81,7 @@ export const scoreCommand: ScorerShape["score"] = (request) =>
       options: {
         cwd: request.workspace,
         env: { ...request.env, ...answerEnv(request.sandbox) },
-        timeoutMs: 300_000,
+        timeoutMs: SCORER_TIMEOUT_MS,
       },
       records: [record],
       observe: request.onValidation,

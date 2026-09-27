@@ -1,4 +1,4 @@
-import type { EvalVerifyStep } from "@anpord/schema/domain/evals";
+import type { EvalVerifyStep } from "@anpord/schema/domain/eval-trial";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import { Either } from "effect";
 

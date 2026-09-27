@@ -10,8 +10,8 @@ import {
   harnessLines,
 } from "../../../src/adapters/harness/process";
 import { EMPTY_TALLY, tallied } from "../../../src/domain/usage-tally";
-import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
-import { declinesEverything } from "../../fixtures/declines-everything";
+import type { ExecChunk } from "../../../src/ports/sandbox";
+import { fakeSandbox } from "../../fixtures/fake-sandbox";
 
 const AT = 1_700_000_000_000;
 
@@ -26,13 +26,10 @@ const LINES = {
     '{"_tag":"ToolCall","callId":"call_7","name":"search","input":"{\\"query\\":\\"total\\"}","status":"completed"}',
 };
 
-const sandbox = (chunks: readonly ExecChunk[]): SandboxHandle => ({
-  exec: () => Stream.fromIterable(chunks),
+const sandbox = fakeSandbox({
   home: "/home/test",
   id: "sandbox",
   provider: "e2b",
-  ...declinesEverything,
-  writeFile: () => Effect.void,
 });
 
 const reported = (chunks: readonly ExecChunk[]) =>

@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
 const JOURNAL_OUTPUT_LIMIT = 4000;

@@ -1,5 +1,5 @@
 import { OrganizationStore } from "@anpord/auth/organization";
-import { NotFound } from "@anpord/schema/domain/errors";
+import { OrganizationMissing } from "@anpord/auth/organization/errors";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { PublicApi } from "@anpord/schema/public/api";
 import type { WhoamiCredential } from "@anpord/schema/public/auth-api";
@@ -13,8 +13,8 @@ const whoami = Effect.gen(function* () {
   const organization = yield* organizations.find(actor.organizationId);
 
   if (Option.isNone(organization)) {
-    return yield* new NotFound({
-      message: "This credential's organization no longer exists.",
+    return yield* new OrganizationMissing({
+      organizationId: actor.organizationId,
     });
   }
 

@@ -1,5 +1,6 @@
 import { AuthLive } from "@anpord/auth";
 import { AuthConfigLive } from "@anpord/auth/config";
+import { OAuthClientsLive } from "@anpord/auth/oauth/oauth-clients";
 import { OrganizationStoreLive } from "@anpord/auth/organization";
 import { BillingLive } from "@anpord/billing/layer";
 import { CacheConfigLive } from "@anpord/cache/config";
@@ -7,6 +8,7 @@ import { CacheLive } from "@anpord/cache/layer";
 import { DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfigLive } from "@anpord/db/config";
 import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
+import { BatchSubscriptionsTrigger } from "@anpord/eval/adapters/runner/trigger-subscriptions";
 import { CodebaseConnectionLive } from "@anpord/eval/codebase/codebase-connection";
 import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
 import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
@@ -84,6 +86,7 @@ const CodebaseLayer = CodebaseConnectionLive.pipe(
 
 const EvalLayer = Layer.mergeAll(
   evalStackWith(TrialRunnerTrigger),
+  BatchSubscriptionsTrigger,
   EvalSweepsLive,
   ModelCatalogueLive.pipe(
     Layer.provide(Layer.merge(BunContext.layer, FetchHttpClient.layer))
@@ -97,6 +100,7 @@ export const AppLayer = Layer.mergeAll(
   AuthLayer,
   VerifiedKeysLayer,
   OrganizationLayer,
+  OAuthClientsLive.pipe(Layer.provide(DatabaseLayer)),
   DatabaseLayer,
   PromptsServiceLayer,
   CredentialLayer,

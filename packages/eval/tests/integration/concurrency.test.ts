@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
+import { skipWithoutDatabase } from "@anpord/db/test-database";
 import { Daytona } from "@daytonaio/sdk";
 import {
   ConfigProvider,
@@ -12,8 +13,6 @@ import {
 import { runCommandForOutcome } from "../../src/adapters/sandbox/run-command";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
 import { Batches } from "../../src/batch/batches";
-import { CredentialError } from "../../src/credentials/errors";
-import { CredentialResolver } from "../../src/credentials/resolver";
 import { HarnessUnavailable } from "../../src/domain/errors";
 import type { SandboxName } from "../../src/domain/variant";
 import { EvalSandboxLive } from "../../src/layer";
@@ -23,7 +22,6 @@ import { AgentTrialLive } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
 import { SuspenderSleeping } from "../../src/services/suspender";
 import { hasDaytona, hasE2b } from "../fixtures/credentials";
-import { skipWithoutDatabase } from "../fixtures/database";
 import { seedOrganization } from "../fixtures/eval-rows";
 import {
   actorOf,
@@ -33,6 +31,7 @@ import {
   requestOf,
   variantOf,
 } from "../fixtures/eval-stack";
+import { nothingConnected } from "../fixtures/nothing-connected";
 
 const TRIALS = Number(process.env.EVAL_CONCURRENCY_TRIALS ?? "50");
 const LOCAL_TRIALS = 8;
@@ -68,21 +67,6 @@ const oneCommandHarness = Layer.succeed(
             version: "0.0.0-test",
           }),
       }),
-  })
-);
-
-const nothingConnected = Layer.succeed(
-  CredentialResolver,
-  CredentialResolver.of({
-    persist: () => Effect.void,
-    resolve: () =>
-      Effect.fail(
-        new CredentialError({ code: "not-found", message: "not connected" })
-      ),
-    resolveBound: () =>
-      Effect.fail(
-        new CredentialError({ code: "not-found", message: "not connected" })
-      ),
   })
 );
 

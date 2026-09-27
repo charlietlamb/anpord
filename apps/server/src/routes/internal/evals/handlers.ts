@@ -2,21 +2,21 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
+import { runCase, subscribeToBatch } from "../../evals/batch-actions";
+import { readBatch, readTail } from "../../evals/batch-reads";
 import {
-  cursorOf,
-  listCaseRuns,
   listCases,
   listSuites,
-  readArtifact,
-  readBatch,
   readCase,
-  readRun,
   readSuite,
-  readTail,
+} from "../../evals/catalog-reads";
+import { cursorOf } from "../../evals/page-cursor";
+import {
+  listCaseRuns,
+  readArtifact,
+  readRun,
   readTrialAddress,
-  runCase,
-  subscribeToBatch,
-} from "../../evals/evals";
+} from "../../evals/run-reads";
 
 const read = { permission: Permissions.Evals.Read };
 const write = { permission: Permissions.Evals.Write };

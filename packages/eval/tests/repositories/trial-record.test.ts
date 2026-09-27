@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import {
   type EvalValidation,
@@ -19,7 +20,6 @@ import {
   TrialRecorder,
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 import { seedOrganization, seedRun } from "../fixtures/eval-rows";
 
 const TestLayer = TrialRecorderLive.pipe(

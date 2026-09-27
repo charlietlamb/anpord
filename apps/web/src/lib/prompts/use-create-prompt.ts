@@ -1,16 +1,11 @@
 import { CreatePromptRequest } from "@anpord/schema/domain/prompts";
+import { slugify } from "@anpord/ui/lib/slugify";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Effect, Schema } from "effect";
 import { toast } from "sonner";
 import { createPrompt } from "@/lib/prompts-client";
 import { promptKeys } from "@/lib/query/prompt-keys";
-
-export const toId = (name: string) =>
-  name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
 
 export function useCreatePrompt() {
   const navigate = useNavigate();
@@ -21,7 +16,7 @@ export function useCreatePrompt() {
       Effect.runPromise(
         Schema.decodeUnknown(CreatePromptRequest)({
           content: input.content.trim(),
-          id: toId(input.name),
+          id: slugify(input.name),
           name: input.name.trim(),
         }).pipe(
           Effect.flatMap((body) => Effect.promise(() => createPrompt(body)))

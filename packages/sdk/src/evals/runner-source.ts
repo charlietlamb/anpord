@@ -1,3 +1,8 @@
+import {
+  CACHE_RESTORED_ENV,
+  PREPARE_RESULT_MARKER,
+} from "@anpord/schema/domain/sandbox-env";
+
 export interface DefinitionRef {
   readonly entry: string;
   readonly exportName: string | null;
@@ -55,7 +60,7 @@ const exec = (file, args = [], options = {}) => new Promise((resolve, reject) =>
 
 const context = {
   api: apiContext,
-  cached: process.env.ANPORD_CACHE_RESTORED === "1",
+  cached: process.env.${CACHE_RESTORED_ENV} === "1",
   exec,
   exists: path => access(path).then(() => true, () => false),
   readText: path => readFile(path, "utf8"),
@@ -64,7 +69,7 @@ const context = {
 
 try {
   const value = await setup(context) ?? {};
-  console.log("ANPORD_PREPARE_RESULT=" + JSON.stringify(value));
+  console.log(${JSON.stringify(PREPARE_RESULT_MARKER)} + JSON.stringify(value));
 } catch (error) {
   console.error(error instanceof Error ? error.stack : String(error));
   process.exitCode = 1;

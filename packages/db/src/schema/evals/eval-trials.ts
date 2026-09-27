@@ -1,8 +1,8 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import type {
   EvalArtifactMetadata,
   EvalVerifyStep,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
+import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { sql } from "drizzle-orm";
 import {
   index,

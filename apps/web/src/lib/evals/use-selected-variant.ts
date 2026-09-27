@@ -1,4 +1,4 @@
-import type { EvalVariantResult } from "@anpord/schema/domain/evals";
+import type { EvalVariantResult } from "@anpord/schema/domain/eval-read-models";
 import { useQueryState } from "nuqs";
 import { useCasePage } from "@/lib/evals/use-case-page";
 

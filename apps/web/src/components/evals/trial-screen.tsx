@@ -1,4 +1,4 @@
-import type { EvalTrialAddress } from "@anpord/schema/domain/evals";
+import type { EvalTrialAddress } from "@anpord/schema/domain/eval-read-models";
 import { useQuery } from "@tanstack/react-query";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialView } from "@/components/evals/trial-view";

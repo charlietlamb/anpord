@@ -1,0 +1,48 @@
+@anpord/template:test:  25 pass
+@anpord/template:test:  0 fail
+@anpord/template:test: Ran 25 tests across 2 files.
+@anpord/billing:test:  4 pass
+@anpord/billing:test:  0 fail
+@anpord/billing:test: Ran 4 tests across 1 file.
+@anpord/schema:test:  161 pass
+@anpord/schema:test:  0 fail
+@anpord/schema:test: Ran 161 tests across 17 files.
+@anpord/notifications:test:  3 pass
+@anpord/notifications:test:  0 fail
+@anpord/notifications:test: Ran 3 tests across 1 file.
+@anpord/ids:test:  4 pass
+@anpord/ids:test:  0 fail
+@anpord/ids:test: Ran 4 tests across 1 file.
+@anpord/mcp:test:  6 pass
+@anpord/mcp:test:  0 fail
+@anpord/mcp:test: Ran 6 tests across 2 files.
+@anpord/db:test:  34 pass
+@anpord/db:test:  0 fail
+@anpord/db:test: Ran 34 tests across 6 files.
+@anpord/ui:test:  30 pass
+@anpord/ui:test:  0 fail
+@anpord/ui:test: Ran 30 tests across 5 files.
+@anpord/prompts:test:  110 pass
+@anpord/prompts:test:  0 fail
+@anpord/prompts:test: Ran 110 tests across 13 files.
+@anpord/eval:test:  772 pass
+@anpord/eval:test:  56 skip
+@anpord/eval:test:  0 fail
+@anpord/eval:test: Ran 828 tests across 123 files.
+@anpord/auth:test:  14 pass
+@anpord/auth:test:  0 fail
+@anpord/auth:test: Ran 14 tests across 3 files.
+@anpord/web:test:  124 pass
+@anpord/web:test:  0 fail
+@anpord/web:test: Ran 124 tests across 18 files.
+anpord:test:  429 pass
+anpord:test:  1 skip
+anpord:test:  0 fail
+anpord:test: Ran 430 tests across 63 files.
+@anpord/server:test:  48 pass
+@anpord/server:test:  0 fail
+@anpord/server:test: Ran 48 tests across 9 files.
+@anpord/e2e:test:  35 pass
+@anpord/e2e:test:  0 fail
+@anpord/e2e:test: Ran 35 tests across 4 files.
+ Tasks:    31 successful, 31 total

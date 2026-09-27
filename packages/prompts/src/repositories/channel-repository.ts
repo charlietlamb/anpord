@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import type { OrganizationId } from "@anpord/schema/domain/actor";
@@ -7,7 +8,7 @@ import type { ChannelName } from "@anpord/schema/domain/prompts";
 import { and, asc, count, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export interface ChannelCountRow {
   readonly color: string;
@@ -81,7 +82,7 @@ export const ChannelRepositoryLive = Layer.effect(
             .where(eq(channel.organizationId, organizationId))
             .groupBy(channel.internalId)
             .orderBy(asc(channel.name))
-        ),
+        ).pipe(Effect.withSpan("ChannelRepository.list")),
 
       byName: (organizationId, name) =>
         tryStore("channel.byName", () =>
@@ -95,7 +96,7 @@ export const ChannelRepositoryLive = Layer.effect(
               )
             )
             .limit(1)
-        ).pipe(Effect.map(head)),
+        ).pipe(Effect.map(head), Effect.withSpan("ChannelRepository.byName")),
 
       defaultChannel: (organizationId) =>
         tryStore("channel.defaultChannel", () =>
@@ -109,7 +110,10 @@ export const ChannelRepositoryLive = Layer.effect(
               )
             )
             .limit(1)
-        ).pipe(Effect.map(head)),
+        ).pipe(
+          Effect.map(head),
+          Effect.withSpan("ChannelRepository.defaultChannel")
+        ),
 
       insert: (input) =>
         tryStore("channel.insert", () =>
@@ -120,7 +124,7 @@ export const ChannelRepositoryLive = Layer.effect(
             color: input.color,
             createdAt: input.createdAt,
           })
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("ChannelRepository.insert")),
 
       update: (internalId, changes) =>
         tryStore("channel.update", () =>
@@ -128,12 +132,12 @@ export const ChannelRepositoryLive = Layer.effect(
             .update(channel)
             .set(changes)
             .where(eq(channel.internalId, internalId))
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("ChannelRepository.update")),
 
       remove: (internalId) =>
         tryStore("channel.remove", () =>
           db.delete(channel).where(eq(channel.internalId, internalId))
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("ChannelRepository.remove")),
 
       setDefault: (organizationId, internalId) =>
         tryStore("channel.setDefault", () =>
@@ -153,7 +157,7 @@ export const ChannelRepositoryLive = Layer.effect(
               .set({ isDefault: true })
               .where(eq(channel.internalId, internalId));
           })
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("ChannelRepository.setDefault")),
     } satisfies ChannelRepositoryShape;
   })
 );

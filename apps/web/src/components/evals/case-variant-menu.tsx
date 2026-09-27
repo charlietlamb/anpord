@@ -1,4 +1,4 @@
-import type { EvalVariantResult } from "@anpord/schema/domain/evals";
+import type { EvalVariantResult } from "@anpord/schema/domain/eval-read-models";
 import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import { VariantName } from "@anpord/ui/components/evals/variant-name";
 import {

@@ -1,3 +1,4 @@
+import { SERVER_PORT } from "@anpord/schema/internal/local-ports";
 import { Config, Context, Duration, Layer } from "effect";
 
 export interface ServerConfigShape {
@@ -18,6 +19,6 @@ export const ServerConfigLive = Layer.effect(
       Config.withDefault(Duration.seconds(20))
     ),
     host: Config.string("HOST").pipe(Config.withDefault("127.0.0.1")),
-    port: Config.integer("PORT").pipe(Config.withDefault(3003)),
+    port: Config.integer("PORT").pipe(Config.withDefault(SERVER_PORT)),
   })
 );

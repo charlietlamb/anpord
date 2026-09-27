@@ -59,14 +59,14 @@ export const PromptEventRepositoryLive = Layer.effect(
       list: (organizationId, params) =>
         tryStore("promptEvent.list", () =>
           selectPromptEventList(db, organizationId, params)
-        ),
+        ).pipe(Effect.withSpan("PromptEventRepository.list")),
 
       record: (input) =>
         Effect.flatMap(ids.generate("promptEvent"), (internalId) =>
           tryStore("promptEvent.record", async () => {
             await db.insert(promptEvent).values({ ...input, internalId });
           })
-        ),
+        ).pipe(Effect.withSpan("PromptEventRepository.record")),
     } satisfies PromptEventRepositoryShape;
   })
 );

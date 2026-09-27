@@ -6,11 +6,11 @@ import {
   beatBatch,
   finishBatch,
   leaseCredentials,
-  readTail,
   reportTrial,
   startBatch,
   subscribeToBatch,
-} from "../../evals/evals";
+} from "../../evals/batch-actions";
+import { readTail } from "../../evals/batch-reads";
 
 const read = { permission: Permissions.Evals.Read };
 const write = { permission: Permissions.Evals.Write };

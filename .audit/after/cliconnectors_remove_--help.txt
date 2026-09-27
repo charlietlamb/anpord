@@ -1,0 +1,63 @@
+Anpord
+
+Anpord 0.1.26
+
+USAGE
+
+$ remove <id>
+
+DESCRIPTION
+
+Remove a connector
+
+ARGUMENTS
+
+<id>
+
+  A user-defined piece of text.
+
+  The connector's id
+
+OPTIONS
+
+--completions sh | bash | fish | zsh
+
+  One of the following: sh, bash, fish, zsh
+
+  Generate a completion script for a specific shell.
+
+  This setting is optional.
+
+--log-level all | trace | debug | info | warning | error | fatal | none
+
+  One of the following: all, trace, debug, info, warning, error, fatal, none
+
+  Sets the minimum log level for a command.
+
+  This setting is optional.
+
+(-h, --help)
+
+  A true or false value.
+
+  Show the help documentation for a command.
+
+  This setting is optional.
+
+--wizard
+
+  A true or false value.
+
+  Start wizard mode for a command.
+
+  This setting is optional.
+
+--version
+
+  A true or false value.
+
+  Show the version of the application.
+
+  This setting is optional.
+
+exit 0

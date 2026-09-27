@@ -1,3 +1,4 @@
+import { DOCS_ORIGIN } from "@anpord/schema/public/origins";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +35,6 @@ import { NAV_USER_BUTTON } from "@/components/dashboard/nav-user-button";
 import { NavUserIdentity } from "@/components/dashboard/nav-user-identity";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { useDialog } from "@/lib/dialog/dialogs";
-import { DOCS_URL } from "@/lib/urls";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { useOrganizations } from "@/lib/use-organizations";
 import { useSignOut } from "@/lib/use-sign-out";
@@ -125,7 +125,7 @@ export function NavUser() {
               <DropdownMenuItem
                 className="gap-2"
                 render={
-                  <a href={DOCS_URL} rel="noreferrer" target="_blank">
+                  <a href={DOCS_ORIGIN} rel="noreferrer" target="_blank">
                     <BookOpenIcon className="size-4" />
                     Documentation
                   </a>

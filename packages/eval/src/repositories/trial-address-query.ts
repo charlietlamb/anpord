@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
@@ -6,7 +7,7 @@ import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export const trialAddressQuery = Effect.gen(function* () {
   const db = yield* Database;

@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
 import { CredentialError } from "@anpord/eval/credentials/errors";
 import { Effect } from "effect";
-import { handledCredential } from "../../src/http/credential-errors";
+import { withCredentialErrors } from "../../src/http/credential-errors";
 
 const answer = (error: CredentialError) =>
-  Effect.runPromise(Effect.flip(handledCredential(Effect.fail(error))));
+  Effect.runPromise(Effect.flip(withCredentialErrors(Effect.fail(error))));
 
-describe("handledCredential", () => {
+describe("withCredentialErrors", () => {
   it("answers an undecryptable credential as an internal error without its detail", async () => {
     const answered = await answer(
       new CredentialError({

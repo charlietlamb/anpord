@@ -1,7 +1,7 @@
+import { PREPARE_RESULT_MARKER as MARKER } from "@anpord/schema/domain/sandbox-env";
 import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Either, Schema } from "effect";
 
-const MARKER = "ANPORD_PREPARE_RESULT=";
 const PREPARED_LIMIT = 16_000;
 const SHOWN_TAIL = 400;
 const CARRIED_LIMIT = PREPARED_LIMIT * 2;

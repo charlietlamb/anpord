@@ -1,17 +1,14 @@
-import { Option, Schema } from "effect";
+import { Option, Predicate, Schema } from "effect";
 
 const CONFIG_VARIABLE = "OPENCODE_CONFIG_CONTENT";
 
 type Json = Record<string, unknown>;
 
-const isObject = (value: unknown): value is Json =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
 const decodeJson = Schema.decodeUnknownOption(Schema.parseJson());
 
 const parsed = (value: string | undefined): Json =>
   decodeJson(value).pipe(
-    Option.filter(isObject),
+    Option.filter(Predicate.isRecord),
     Option.getOrElse((): Json => ({}))
   );
 
@@ -25,7 +22,9 @@ const merged = (base: Json, extra: Json): Json =>
       const current = base[key];
       return [
         key,
-        isObject(current) && isObject(value) ? merged(current, value) : value,
+        Predicate.isRecord(current) && Predicate.isRecord(value)
+          ? merged(current, value)
+          : value,
       ];
     }),
   ]);

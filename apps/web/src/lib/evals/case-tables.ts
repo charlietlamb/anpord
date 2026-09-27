@@ -2,12 +2,14 @@ export const CASES_TABLE = {
   columns: "minmax(0,2fr) minmax(0,1fr) 6.5rem 8.5rem 4.5rem 5.5rem 1rem",
   headings: ["Case", "Suite", "Variants", "Status", "Runs", "Last run"],
   label: "Cases",
+  noun: ["case", "cases"],
 } as const;
 
 export const SUITES_TABLE = {
   columns: "minmax(0,2fr) 5.5rem 6.5rem 8.5rem 5.5rem 1rem",
   headings: ["Suite", "Cases", "Variants", "Status", "Last run"],
   label: "Suites",
+  noun: ["suite", "suites"],
 } as const;
 
 export const CASE_RUNS_TABLE = {

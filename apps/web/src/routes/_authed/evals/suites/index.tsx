@@ -1,9 +1,11 @@
 import { StackIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { SuitesTable } from "@/components/evals/suites-table";
+import { SuiteListRow } from "@/components/evals/suite-list-row";
+import { SummaryTable } from "@/components/evals/summary-table";
 import { CursorPagination } from "@/components/layout/cursor-pagination";
 import { ListState } from "@/components/layout/list-state";
 import { PageShell } from "@/components/layout/page-shell";
+import { SUITES_TABLE } from "@/lib/evals/case-tables";
 import { evalQueries } from "@/lib/evals/eval-queries";
 import { useSuiteList } from "@/lib/evals/use-suite-list";
 
@@ -33,9 +35,11 @@ function SuitesIndex() {
         loading={loading}
         title="No suites yet"
       >
-        <SuitesTable
+        <SummaryTable
+          items={suites}
           pagination={<CursorPagination {...paging} />}
-          suites={suites}
+          row={(suite) => <SuiteListRow key={suite.id} suite={suite} />}
+          table={SUITES_TABLE}
         />
       </ListState>
     </PageShell>

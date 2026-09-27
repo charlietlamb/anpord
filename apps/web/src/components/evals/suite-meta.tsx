@@ -1,7 +1,7 @@
-import type { EvalSuiteDetail } from "@anpord/schema/domain/evals";
+import type { EvalSuiteDetail } from "@anpord/schema/domain/eval-read-models";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
+import { counted } from "@anpord/ui/lib/evals/counted";
 import { TagChip } from "@/components/evals/tag-chip";
-import { counted } from "@/lib/evals/conversation";
 
 export function SuiteMeta({ suite }: { readonly suite: EvalSuiteDetail }) {
   return (

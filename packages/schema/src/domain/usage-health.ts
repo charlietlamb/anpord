@@ -14,6 +14,16 @@ export interface UsageReading {
   readonly usage: TokenCounts;
 }
 
+/* Null rather than zero with no input read: a rate needs a denominator. */
+export const cacheHitOf = (
+  usage: TokenCounts & { readonly cacheWriteTokens: number }
+): number | null => {
+  const served =
+    usage.inputTokens + usage.cacheReadTokens + usage.cacheWriteTokens;
+
+  return served === 0 ? null : usage.cacheReadTokens / served;
+};
+
 export const perTurnInput = ({ turns, usage }: UsageReading) =>
   turns <= 0 ? usage.inputTokens : Math.round(usage.inputTokens / turns);
 

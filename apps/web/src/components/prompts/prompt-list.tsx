@@ -5,9 +5,9 @@ import {
   DataTableFooter,
   DataTableHead,
 } from "@anpord/ui/components/ui/data-table";
+import { counted } from "@anpord/ui/lib/evals/counted";
 import { ShowMore } from "@/components/layout/show-more";
 import { PromptRow } from "@/components/prompts/prompt-row";
-import { counted } from "@/lib/evals/conversation";
 import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";
 
 interface PromptListProps {

@@ -1,4 +1,5 @@
 import { AnpordApi } from "@anpord/schema/public/client";
+import { WEB_ORIGIN } from "@anpord/schema/public/origins";
 import { Args, Command, Options, Prompt } from "@effect/cli";
 import { Effect, Option, Redacted } from "effect";
 import { attended, json, note, row } from "./render";
@@ -133,7 +134,7 @@ const add = Command.make(
 
       if (method.kind === "device") {
         return yield* note(
-          `${integration} signs in through a browser. Connect it at https://www.anpord.com/settings/connections.`
+          `${integration} signs in through a browser. Connect it at ${WEB_ORIGIN}/settings/connections.`
         );
       }
 

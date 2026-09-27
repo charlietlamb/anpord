@@ -31,10 +31,12 @@ export const PromptCacheLive = Layer.effect(
           (handle) =>
             cache.invalidatePrefix(promptPrefix(organizationId, handle)),
           { discard: true }
-        ),
+        ).pipe(Effect.withSpan("PromptCache.invalidate")),
 
       invalidateOrganization: (organizationId) =>
-        cache.invalidatePrefix(organizationPrefix(organizationId)),
+        cache
+          .invalidatePrefix(organizationPrefix(organizationId))
+          .pipe(Effect.withSpan("PromptCache.invalidateOrganization")),
     });
   })
 );

@@ -2,6 +2,7 @@ import { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { Effect, Schema } from "effect";
 import { type Command, isCommand } from "./command";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { bundle } from "./eval-bundle";
 import {
   type DefinitionRef,
@@ -23,13 +24,15 @@ export const compileValidator = (
       Array.isArray(subject.validate) ? subject.validate : [subject.validate];
     if (validations.some(isCommand)) {
       return yield* Effect.fail(
-        new Error(
-          `${name} combines a command with other validators. A command decides a case alone: validate: command("...").`
-        )
+        new EvalDefinitionInvalid({
+          reason: `${name} combines a command with other validators. A command decides a case alone: validate: command("...").`,
+        })
       );
     }
     if (validations.length === 0 || validations.length > 20) {
-      return yield* Effect.fail(new Error("Use between 1 and 20 validators"));
+      return yield* Effect.fail(
+        new EvalDefinitionInvalid({ reason: "Use between 1 and 20 validators" })
+      );
     }
     const judges = yield* Effect.forEach(
       validations.filter((value) => typeof value !== "function"),
@@ -38,7 +41,9 @@ export const compileValidator = (
     );
     if (new Set(judges.map(({ name }) => name)).size !== judges.length) {
       return yield* Effect.fail(
-        new Error("Judge names must be unique within a case")
+        new EvalDefinitionInvalid({
+          reason: "Judge names must be unique within a case",
+        })
       );
     }
     const manifest = validations.flatMap((value, index) =>

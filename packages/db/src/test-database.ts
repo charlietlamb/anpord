@@ -1,3 +1,7 @@
+import { Duration, Layer, Redacted } from "effect";
+import { DatabaseLive } from "./client";
+import { DatabaseConfig } from "./config";
+
 type Env = Readonly<Record<string, string | undefined>>;
 
 const DISPOSABLE_NAME = /(^|[_-])(test|scratch)([_-]|$)/;
@@ -46,3 +50,22 @@ export const testDatabaseUrl = (env: Env = process.env) => {
 
   return url;
 };
+
+export const skipWithoutDatabase = () => testDatabaseUrl() === undefined;
+
+export const testDatabase = ({
+  poolMax = 4,
+  statementTimeout = Duration.seconds(30),
+}: {
+  readonly poolMax?: number;
+  readonly statementTimeout?: Duration.Duration;
+} = {}) =>
+  DatabaseLive.pipe(
+    Layer.provide(
+      Layer.succeed(DatabaseConfig, {
+        poolMax,
+        statementTimeout,
+        url: Redacted.make(testDatabaseUrl() ?? ""),
+      })
+    )
+  );

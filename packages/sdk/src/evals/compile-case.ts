@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import { bundledCaseModule } from "./case-modules";
 import { isCommand } from "./command";
 import { compileValidator } from "./compile-validator";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { type DefinitionRef, prepareEntry } from "./runner-source";
 import { empty, sourceOf } from "./source";
 import type { EvalCaseDefinition, EvalDefinition } from "./types";
@@ -20,7 +21,9 @@ export const compileCase = (
     const name = subject.name ?? subject.id;
 
     if (subject.validate === undefined) {
-      return yield* Effect.fail(new Error(`${name} must have a validate`));
+      return yield* Effect.fail(
+        new EvalDefinitionInvalid({ reason: `${name} must have a validate` })
+      );
     }
 
     const verify = isCommand(subject.validate) ? subject.validate.run : null;

@@ -1,9 +1,6 @@
 import type { Whoami } from "@anpord/schema/public/auth-api";
-import {
-  type AnpordClient,
-  DEFAULT_BASE_URL,
-  make,
-} from "@anpord/schema/public/client";
+import { type AnpordClient, make } from "@anpord/schema/public/client";
+import { API_ORIGIN } from "@anpord/schema/public/origins";
 import { render, type Variables } from "@anpord/template/render";
 import { FetchHttpClient } from "@effect/platform";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
@@ -71,7 +68,7 @@ export class Anpord {
     const apiKey = resolveApiKey(options.apiKey);
     const client = make({
       apiKey: Redacted.make(apiKey),
-      baseUrl: options.baseUrl ?? DEFAULT_BASE_URL,
+      baseUrl: options.baseUrl ?? API_ORIGIN,
     }).pipe(Effect.provide(FetchHttpClient.layer), Effect.runSync);
 
     const fetch = (selector: PromptSelector) =>

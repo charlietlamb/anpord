@@ -1,23 +1,21 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import type {
-  EvalBatch,
   EvalBatchPage,
   EvalPageCursor,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-read-models";
+import type { EvalBatch } from "@anpord/schema/domain/evals";
 import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { rollUp } from "../domain/eval-costs";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 import { runReadsQuery } from "./run-reads-query";
-import { runStatus } from "./run-view";
-
-const timestamp = (date: Date | null) =>
-  date === null ? null : DateTime.unsafeMake(date.getTime());
+import { runStatus, timestamp } from "./run-view";
 
 export const batchReadsQuery = Effect.gen(function* () {
   const db = yield* Database;
@@ -55,7 +53,7 @@ export const batchReadsQuery = Effect.gen(function* () {
         id: batch.internalId,
         local: batch.local,
         runs: held.toReversed(),
-        startedAt: DateTime.unsafeMake(batch.createdAt.getTime()),
+        startedAt: timestamp(batch.createdAt),
         status: runStatus(batch.status),
         trigger: batch.trigger,
       });
@@ -138,7 +136,7 @@ export const batchReadsQuery = Effect.gen(function* () {
             passed: tally?.passed ?? 0,
             runs: tally?.runs ?? 0,
             scored: tally?.scored ?? 0,
-            startedAt: DateTime.unsafeMake(row.createdAt.getTime()),
+            startedAt: timestamp(row.createdAt),
             status: runStatus(row.status),
             trigger: row.trigger,
             voided: tally?.voided ?? 0,

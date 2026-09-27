@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, spyOn } from "bun:test";
 import { resolve } from "node:path";
+import type { EvalCosts } from "@anpord/schema/domain/eval-costs";
 import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { EvalBatch, type EvalCosts } from "@anpord/schema/domain/evals";
+import { EvalBatch } from "@anpord/schema/domain/evals";
 import { TrialOutcome } from "@anpord/schema/domain/trial";
 import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
 import { NodeContext } from "@effect/platform-node";

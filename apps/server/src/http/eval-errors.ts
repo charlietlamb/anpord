@@ -7,6 +7,7 @@ import type {
 } from "@anpord/eval/domain/errors";
 import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
+import { logAndDie } from "./log-and-die";
 
 type EvalDomainError =
   | CredentialError
@@ -15,10 +16,7 @@ type EvalDomainError =
   | NotRunnable
   | StartRefused;
 
-const logged = (error: unknown) =>
-  Effect.logError("Unhandled eval failure", error).pipe(
-    Effect.zipRight(Effect.die(error))
-  );
+const logged = logAndDie("Unhandled eval failure");
 
 const toHttpError = (
   error: EvalDomainError

@@ -1,4 +1,5 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import { counted } from "@anpord/ui/lib/evals/counted";
 import { seconds } from "@anpord/ui/lib/evals/duration";
 import { StepLabel } from "@/components/evals/step-label";
 import {
@@ -9,12 +10,7 @@ import {
   StepListRow,
 } from "@/components/evals/step-list";
 import { CALLS_TABLE } from "@/lib/evals/case-tables";
-import {
-  type Call,
-  counted,
-  durationOf,
-  stepFailed,
-} from "@/lib/evals/conversation";
+import { type Call, durationOf, stepFailed } from "@/lib/evals/conversation";
 import { useSelectedStep } from "@/lib/evals/use-selected-step";
 
 const isCall = (entry: EvalJournalEntry): entry is Call =>

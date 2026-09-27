@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { validationExecution } from "@anpord/schema/domain/eval-validations";
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
 import { EMPTY_TRANSCRIPT, settle, transcribe } from "../../src/cli/transcript";
 import { PLAIN } from "../../src/cli/transcript-writer";
 

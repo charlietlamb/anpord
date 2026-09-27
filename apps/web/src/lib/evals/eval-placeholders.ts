@@ -1,15 +1,17 @@
 import type {
   EvalCaseDetail,
   EvalCasePage,
-  EvalDistribution,
-  EvalRun,
   EvalRunPage,
   EvalSuiteDetail,
   EvalSuitePage,
   EvalSuiteSummary,
-  EvalTrial,
-  EvalVariant,
   EvalVariantResult,
+} from "@anpord/schema/domain/eval-read-models";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type {
+  EvalDistribution,
+  EvalRun,
+  EvalVariant,
 } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 import { placeholders, placeholderText } from "@/lib/placeholders";

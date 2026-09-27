@@ -1,7 +1,7 @@
 import type {
   EvalArtifactMetadata,
   EvalArtifactRequest,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
 import {
   DataTable,
   DataTableBody,

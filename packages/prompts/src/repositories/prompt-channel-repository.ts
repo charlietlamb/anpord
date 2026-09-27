@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
@@ -10,7 +11,7 @@ import { Context, Effect, Layer, Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
 import { type ChannelMove, movePromptChannel } from "./prompt-channel-move";
 import type { VersionRow } from "./prompt-version-repository";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export interface ChannelRow {
   readonly channel: string;
@@ -68,7 +69,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
             .leftJoin(user, eq(user.id, promptChannel.updatedBy))
             .where(eq(promptChannel.promptInternalId, promptInternalId))
             .orderBy(channel.name)
-        ),
+        ).pipe(Effect.withSpan("PromptChannelRepository.list")),
 
       resolve: (promptInternalId, name) =>
         tryStore("promptChannel.resolve", () =>
@@ -99,7 +100,8 @@ export const PromptChannelRepositoryLive = Layer.effect(
             head(rows).pipe(
               Option.map((row) => ({ ...row.version, author: row.author }))
             )
-          )
+          ),
+          Effect.withSpan("PromptChannelRepository.resolve")
         ),
 
       move: (input) =>
@@ -130,7 +132,8 @@ export const PromptChannelRepositoryLive = Layer.effect(
                   )
                 )
               ).pipe(Effect.asVoid)
-          )
+          ),
+          Effect.withSpan("PromptChannelRepository.move")
         ),
     } satisfies PromptChannelRepositoryShape;
   })

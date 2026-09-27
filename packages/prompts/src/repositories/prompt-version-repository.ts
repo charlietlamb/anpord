@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
 import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
@@ -8,11 +9,11 @@ import { and, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schedule } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
 import { isUniqueViolation } from "./postgres-errors";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 /* Beyond three attempts the collision is not transient and the caller should
    hear about it. */
-const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
+export const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
   Schedule.jittered,
   Schedule.compose(Schedule.recurs(3))
 );
@@ -99,7 +100,10 @@ export const PromptVersionRepositoryLive = Layer.effect(
             )
           )
           .limit(1)
-      ).pipe(Effect.map(head));
+      ).pipe(
+        Effect.map(head),
+        Effect.withSpan("PromptVersionRepository.byNumber")
+      );
 
     const latest = (promptInternalId: string) =>
       tryStore("promptVersion.latest", () =>
@@ -107,7 +111,10 @@ export const PromptVersionRepositoryLive = Layer.effect(
           .where(eq(promptVersion.promptInternalId, promptInternalId))
           .orderBy(desc(promptVersion.version))
           .limit(1)
-      ).pipe(Effect.map(head));
+      ).pipe(
+        Effect.map(head),
+        Effect.withSpan("PromptVersionRepository.latest")
+      );
 
     return {
       byNumber,
@@ -174,14 +181,14 @@ export const PromptVersionRepositoryLive = Layer.effect(
                 while: (error) => error._tag === "VersionConflict",
               })
             )
-        ),
+        ).pipe(Effect.withSpan("PromptVersionRepository.append")),
 
       list: (promptInternalId) =>
         tryStore("promptVersion.list", () =>
           selectVersion()
             .where(eq(promptVersion.promptInternalId, promptInternalId))
             .orderBy(desc(promptVersion.version))
-        ),
+        ).pipe(Effect.withSpan("PromptVersionRepository.list")),
 
       update: (input) =>
         Effect.flatMap(ids.generate("promptEvent"), (eventId) =>
@@ -227,7 +234,8 @@ export const PromptVersionRepositoryLive = Layer.effect(
             Option.isNone(head(rows))
               ? Effect.succeedNone
               : byNumber(input.promptInternalId, input.version)
-          )
+          ),
+          Effect.withSpan("PromptVersionRepository.update")
         ),
     } satisfies PromptVersionRepositoryShape;
   })

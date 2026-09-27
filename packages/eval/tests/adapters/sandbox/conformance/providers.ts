@@ -1,3 +1,4 @@
+import { FetchHttpClient } from "@effect/platform";
 import { ConfigProvider, Effect } from "effect";
 import { cloudflareAdapter } from "../../../../src/adapters/sandbox/cloudflare";
 import { daytonaAdapter } from "../../../../src/adapters/sandbox/daytona";
@@ -67,7 +68,7 @@ export const PROVIDERS: readonly ProviderUnderTest[] = [
     slowSeconds: 10,
   },
   {
-    adapter: cloudflareAdapter(),
+    adapter: cloudflareAdapter().pipe(Effect.provide(FetchHttpClient.layer)),
     credentialled: hasCloudflare,
     name: "cloudflare",
     needs: "CLOUDFLARE_API_TOKEN, or CLOUDFLARE_SANDBOX_URL with its API key",

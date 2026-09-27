@@ -1,21 +1,22 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import {
-  type EvalPageCursor,
-  type EvalSuiteDetail,
-  type EvalSuitePage,
-  type EvalTally,
-  tallyOf,
-} from "@anpord/schema/domain/evals";
+import type {
+  EvalPageCursor,
+  EvalSuiteDetail,
+  EvalSuitePage,
+} from "@anpord/schema/domain/eval-read-models";
+import { type EvalTally, tallyOf } from "@anpord/schema/domain/evals";
 import type { SQL } from "drizzle-orm";
 import { and, countDistinct, desc, eq, inArray, max, sql } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
+import { timestamp } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
 
 export interface ListSuites {
@@ -42,9 +43,6 @@ const configurations =
   sql<number>`count(distinct (${evalVariant.harness}, ${evalVariant.model}, ${evalVariant.sandbox}, coalesce(${evalVariant.profile}, '')))`.mapWith(
     Number
   );
-
-const timestamp = (at: Date | null) =>
-  at === null ? null : DateTime.unsafeMake(at.getTime());
 
 export const suiteReadsQuery = Effect.gen(function* () {
   const db = yield* Database;

@@ -1,10 +1,11 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { credentialConnection } from "@anpord/db/schema/credentials/connections";
 import type { Actor } from "@anpord/schema/domain/actor";
 import type { IntegrationAwareness } from "@anpord/schema/domain/credentials";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
-import { head, tryStore } from "../repositories/query";
+import { tryStore } from "../repositories/query";
 import {
   insertClaimingDefault,
   type NewConnection,

@@ -1,11 +1,12 @@
 import type { Database } from "@anpord/db/client";
+import type { Tx } from "@anpord/db/query";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import type { IdGeneratorShape } from "@anpord/ids/id";
 import { and, eq, inArray } from "drizzle-orm";
 import { Array as Arr, Effect } from "effect";
 import type { EvalStoreError } from "../domain/errors";
-import { type Tx, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export interface UnreportedTrial {
   readonly batchInternalId: string;

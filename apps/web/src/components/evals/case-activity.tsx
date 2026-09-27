@@ -1,4 +1,4 @@
-import type { EvalCaseDetail } from "@anpord/schema/domain/evals";
+import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
 import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
 import { CaseRuns } from "@/components/evals/case-runs";
 import { PLACEHOLDER_RUN_PAGE } from "@/lib/evals/eval-placeholders";

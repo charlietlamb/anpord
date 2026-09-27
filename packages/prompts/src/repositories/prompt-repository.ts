@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { prompt } from "@anpord/db/schema/prompts/prompts";
 import type { OrganizationId } from "@anpord/schema/domain/actor";
 import type { PromptId, PromptName } from "@anpord/schema/domain/prompts";
@@ -8,7 +9,7 @@ import type { PromptStoreError } from "../domain/errors";
 import type { OwnedPromptId } from "../domain/owned-prompt";
 import type { PromptListParams, PromptListRow } from "./prompt-list-query";
 import { selectPromptList } from "./prompt-list-query";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 type PromptRow = typeof prompt.$inferSelect;
 
@@ -83,7 +84,7 @@ export const PromptRepositoryLive = Layer.effect(
               )
             )
             .limit(1)
-        ).pipe(Effect.map(head)),
+        ).pipe(Effect.map(head), Effect.withSpan("PromptRepository.findById")),
 
       findByIdIncludingArchived: (organizationId, id) =>
         tryStore("prompt.findByIdIncludingArchived", () =>
@@ -94,7 +95,10 @@ export const PromptRepositoryLive = Layer.effect(
               and(eq(prompt.organizationId, organizationId), eq(prompt.id, id))
             )
             .limit(1)
-        ).pipe(Effect.map(head)),
+        ).pipe(
+          Effect.map(head),
+          Effect.withSpan("PromptRepository.findByIdIncludingArchived")
+        ),
 
       idExists: (organizationId, id) =>
         tryStore("prompt.idExists", () =>
@@ -105,7 +109,10 @@ export const PromptRepositoryLive = Layer.effect(
               and(eq(prompt.organizationId, organizationId), eq(prompt.id, id))
             )
             .limit(1)
-        ).pipe(Effect.map((rows) => rows.length > 0)),
+        ).pipe(
+          Effect.map((rows) => rows.length > 0),
+          Effect.withSpan("PromptRepository.idExists")
+        ),
 
       insert: (input) =>
         tryStore("prompt.insert", () =>
@@ -117,12 +124,12 @@ export const PromptRepositoryLive = Layer.effect(
             description: input.description,
             createdBy: input.authorId,
           })
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("PromptRepository.insert")),
 
       listByOrganization: (organizationId, params) =>
         tryStore("prompt.listByOrganization", () =>
           selectPromptList(db, organizationId, params)
-        ),
+        ).pipe(Effect.withSpan("PromptRepository.listByOrganization")),
 
       update: (internalId, changes, updatedAt) =>
         tryStore("prompt.update", () =>
@@ -130,7 +137,7 @@ export const PromptRepositoryLive = Layer.effect(
             .update(prompt)
             .set({ ...changes, updatedAt })
             .where(eq(prompt.internalId, internalId))
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("PromptRepository.update")),
 
       touch: (internalId, updatedAt) =>
         tryStore("prompt.touch", () =>
@@ -138,7 +145,7 @@ export const PromptRepositoryLive = Layer.effect(
             .update(prompt)
             .set({ updatedAt })
             .where(eq(prompt.internalId, internalId))
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("PromptRepository.touch")),
 
       archive: (internalId, archivedAt) =>
         tryStore("prompt.archive", () =>
@@ -146,7 +153,7 @@ export const PromptRepositoryLive = Layer.effect(
             .update(prompt)
             .set({ archivedAt })
             .where(eq(prompt.internalId, internalId))
-        ).pipe(Effect.asVoid),
+        ).pipe(Effect.asVoid, Effect.withSpan("PromptRepository.archive")),
     } satisfies PromptRepositoryShape;
   })
 );

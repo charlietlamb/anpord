@@ -1,7 +1,7 @@
 import type {
   EvalArtifactMetadata,
   EvalArtifactRequest,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
 import { ArtifactFile } from "@/components/evals/artifact-file";
 import { WroteLine } from "@/components/evals/wrote-line";
 import { artifactFor } from "@/lib/evals/conversation";

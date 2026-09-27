@@ -2,6 +2,10 @@
 
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
+import { signSessionCookie } from "../packages/auth/src/session/sign-session-cookie";
+import { SESSION_COOKIE } from "../packages/schema/src/internal/authentication";
+import { API_ORIGIN, WEB_ORIGIN } from "../packages/schema/src/public/origins";
+import { arg, required } from "./lib/cli-args";
 
 /*
   Mints an API key for an organization you already own, through the same
@@ -27,40 +31,6 @@ import { Client } from "pg";
 const SESSION_MINUTES = 10;
 const MILLIS_PER_MINUTE = 60_000;
 
-const arg = (flag: string) => {
-  const at = process.argv.indexOf(`--${flag}`);
-
-  return at === -1 ? undefined : process.argv[at + 1];
-};
-
-const required = (name: string) => {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is not set`);
-  }
-
-  return value;
-};
-
-const signed = async (token: string, secret: string) => {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(token)
-  );
-
-  return `${token}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
-};
-
 const organization = arg("org");
 
 if (organization === undefined) {
@@ -70,14 +40,14 @@ if (organization === undefined) {
 }
 
 const label = arg("name") ?? "test";
-const baseUrl = process.env.ANPORD_SERVER_URL ?? "https://api.anpord.com";
+const baseUrl = process.env.ANPORD_SERVER_URL ?? API_ORIGIN;
 /* Better Auth checks the origin against its trusted list, which names the web
    app rather than the API. */
-const origin = process.env.ANPORD_WEB_URL ?? "https://www.anpord.com";
+const origin = process.env.ANPORD_WEB_URL ?? WEB_ORIGIN;
 /* Better Auth prefixes the cookie with __Secure- once it is served over https. */
 const cookieName = baseUrl.startsWith("https:")
-  ? "__Secure-anpord.session_token"
-  : "anpord.session_token";
+  ? `__Secure-${SESSION_COOKIE}`
+  : SESSION_COOKIE;
 const secret = required("BETTER_AUTH_SECRET");
 const db = new Client({ connectionString: required("DATABASE_URL") });
 await db.connect();
@@ -117,7 +87,7 @@ try {
       organizationId: owner.organizationId,
     }),
     headers: {
-      cookie: `${cookieName}=${await signed(token, secret)}`,
+      cookie: `${cookieName}=${await signSessionCookie(token, secret)}`,
       "content-type": "application/json",
       origin,
     },

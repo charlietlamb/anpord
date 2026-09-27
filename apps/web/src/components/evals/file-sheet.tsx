@@ -1,4 +1,4 @@
-import type { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
+import type { EvalArtifactMetadata } from "@anpord/schema/domain/eval-trial";
 import { ArtifactFile } from "@/components/evals/artifact-file";
 import type { TrialRef } from "@/components/evals/conversation-wrote";
 import { SideSheet } from "@/components/layout/side-sheet";

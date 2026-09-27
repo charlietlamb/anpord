@@ -1,4 +1,5 @@
-import type { EvalSetup, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalSetup } from "@anpord/schema/domain/evals";
 import {
   DataTable,
   DataTableBody,

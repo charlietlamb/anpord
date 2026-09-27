@@ -1,22 +1,12 @@
 import type { AuthInstance } from "@anpord/auth";
 import { Actor } from "@anpord/schema/domain/actor";
-import { Unauthorized } from "@anpord/schema/domain/errors";
 import type { Permission } from "@anpord/schema/domain/permissions";
+import { API_SCOPES } from "@anpord/schema/domain/scopes";
 import { Effect, Option, Schema } from "effect";
-
-const unauthorized = (message: string) => new Unauthorized({ message });
-
-const PERMISSION_SCOPES: readonly Permission[] = [
-  "prompts:read",
-  "prompts:write",
-  "channels:read",
-  "channels:write",
-  "evals:read",
-  "evals:write",
-];
+import { unauthorized } from "./unauthorized";
 
 const isPermission = (scope: string): scope is Permission =>
-  PERMISSION_SCOPES.includes(scope as Permission);
+  API_SCOPES.includes(scope as Permission);
 
 const permissionsForScopes = (
   scopes: readonly string[] | string | undefined

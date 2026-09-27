@@ -2,6 +2,13 @@
 
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
+import { contextOf } from "../packages/eval/src/credentials/connection-payload";
+import {
+  deriveEnvelopeKey,
+  openEnvelope,
+  sealEnvelope,
+} from "../packages/eval/src/credentials/envelope";
+import { arg, required } from "./lib/cli-args";
 
 /*
   Copies a credential connection from one organization to another, creating the
@@ -18,45 +25,6 @@ import { Client } from "pg";
   live in AWS Secrets Manager under anpord/server/.
 */
 
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-const arg = (flag: string) => {
-  const at = process.argv.indexOf(`--${flag}`);
-
-  return at === -1 ? undefined : process.argv[at + 1];
-};
-
-const required = (name: string) => {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is not set`);
-  }
-
-  return value;
-};
-
-const bytes = (value: string) =>
-  Uint8Array.from(Buffer.from(value, "base64url"));
-
-const base64 = (value: ArrayBuffer) => Buffer.from(value).toString("base64url");
-
-const contextOf = (row: {
-  id: string;
-  integrationId: string;
-  organizationId: string;
-}) => `${row.organizationId}\0${row.id}\0${row.integrationId}`;
-
-const cipherKey = async (secret: string) =>
-  crypto.subtle.importKey(
-    "raw",
-    await crypto.subtle.digest("SHA-256", encoder.encode(secret)),
-    "AES-GCM",
-    false,
-    ["encrypt", "decrypt"]
-  );
-
 const from = arg("from");
 const to = arg("to");
 const integration = arg("integration") ?? "codex";
@@ -67,7 +35,7 @@ if (from === undefined || to === undefined) {
   );
 }
 
-const key = await cipherKey(required("BETTER_AUTH_SECRET"));
+const key = await deriveEnvelopeKey(required("BETTER_AUTH_SECRET"));
 const db = new Client({ connectionString: required("DATABASE_URL") });
 await db.connect();
 
@@ -113,29 +81,14 @@ if (existing === undefined) {
   process.stderr.write(`Created ${to}.\n`);
 }
 
-const opened = await crypto.subtle.decrypt(
-  {
-    additionalData: encoder.encode(contextOf(source)),
-    iv: bytes(source.sealedPayload.split(".")[1]),
-    name: "AES-GCM",
-  },
-  key,
-  bytes(source.sealedPayload.split(".")[2])
-);
+const opened = await openEnvelope(key, source.sealedPayload, contextOf(source));
 
 const id = `ccn_${randomUUID().replaceAll("-", "")}`;
-const iv = crypto.getRandomValues(new Uint8Array(12));
 
-const sealed = await crypto.subtle.encrypt(
-  {
-    additionalData: encoder.encode(
-      contextOf({ id, integrationId: integration, organizationId })
-    ),
-    iv,
-    name: "AES-GCM",
-  },
+const sealed = await sealEnvelope(
   key,
-  encoder.encode(decoder.decode(opened))
+  opened,
+  contextOf({ id, integrationId: integration, organizationId })
 );
 
 await db.query(
@@ -150,7 +103,7 @@ await db.query(
     source.authMethodId,
     source.scope,
     source.name,
-    `v1.${base64(iv.buffer as ArrayBuffer)}.${base64(sealed)}`,
+    sealed,
     source.createdBy,
     now,
   ]

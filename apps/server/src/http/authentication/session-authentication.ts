@@ -4,7 +4,6 @@ import {
   type OrganizationStoreShape,
 } from "@anpord/auth/organization";
 import { Actor } from "@anpord/schema/domain/actor";
-import { Unauthorized } from "@anpord/schema/domain/errors";
 import {
   permissionsForPlatformRole,
   permissionsForRole,
@@ -22,8 +21,8 @@ import {
   Option,
   Schema,
 } from "effect";
+import { unauthorized } from "./unauthorized";
 
-const unauthorized = (message: string) => new Unauthorized({ message });
 const ROLE_CACHE_CAPACITY = 4096;
 
 /* withDefault means this cannot fail, so the layer keeps a never error. */

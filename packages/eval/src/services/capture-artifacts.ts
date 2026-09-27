@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { posix } from "node:path";
-import type { EvalArtifact } from "@anpord/schema/domain/evals";
+import type { EvalArtifact } from "@anpord/schema/domain/eval-trial";
 import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Effect, Schema, Stream } from "effect";
 import { shellQuote } from "../adapters/harness/process";

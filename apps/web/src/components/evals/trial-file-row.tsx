@@ -1,4 +1,4 @@
-import type { EvalArtifactMetadata } from "@anpord/schema/domain/evals";
+import type { EvalArtifactMetadata } from "@anpord/schema/domain/eval-trial";
 import {
   DataTableChevron,
   DataTableRow,

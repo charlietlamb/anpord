@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import { format } from "node:util";
+import { CLI_JOURNAL, MCP_JOURNAL } from "@anpord/schema/domain/api-mocks";
 import {
   type EvalValidation,
   REPORTED_LIMITS,
@@ -13,6 +14,12 @@ import {
   validationExecution,
   validationSnapshot,
 } from "@anpord/schema/domain/eval-validations";
+import {
+  ANSWER_ENV,
+  PREPARE_VALUE_ENV,
+  TRANSCRIPT_ENV,
+  TURNS_ENV,
+} from "@anpord/schema/domain/sandbox-env";
 import { apiContext } from "../mock-api/context";
 import type { CommandResult, Validator, ValidatorContext } from "./types";
 import {
@@ -130,16 +137,14 @@ const context = (): ValidatorContext => ({
       ),
   },
   answer: () =>
-    observe("answer", [], () => readOptional(process.env.ANPORD_ANSWER_FILE)),
+    observe("answer", [], () => readOptional(process.env[ANSWER_ENV])),
   transcript: () =>
-    observe("transcript", [], () =>
-      readOptional(process.env.ANPORD_TRANSCRIPT_FILE)
-    ),
+    observe("transcript", [], () => readOptional(process.env[TRANSCRIPT_ENV])),
   turns: () =>
     observe("turns", [], async () =>
-      JSON.parse((await readOptional(process.env.ANPORD_TURNS_FILE)) || "[]")
+      JSON.parse((await readOptional(process.env[TURNS_ENV])) || "[]")
     ),
-  prepared: decodePrepared(process.env.ANPORD_PREPARE_VALUE ?? "{}"),
+  prepared: decodePrepared(process.env[PREPARE_VALUE_ENV] ?? "{}"),
   readText: (path) => observe("readText", [path], () => readFile(path, "utf8")),
   exists: (path) =>
     observe("exists", [path], () =>
@@ -161,7 +166,7 @@ const context = (): ValidatorContext => ({
   cli: {
     calls: (name) =>
       observe("cli.calls", name === undefined ? [] : [name], async () =>
-        (await calls(".anpord/cli-calls.jsonl", decodeCliCall)).filter(
+        (await calls(CLI_JOURNAL, decodeCliCall)).filter(
           (call) => name === undefined || call.cli === name
         )
       ),
@@ -169,7 +174,7 @@ const context = (): ValidatorContext => ({
   mcp: {
     calls: (name) =>
       observe("mcp.calls", name === undefined ? [] : [name], async () =>
-        (await calls(".anpord/mcp-calls.jsonl", decodeMcpCall)).filter(
+        (await calls(MCP_JOURNAL, decodeMcpCall)).filter(
           (call) => name === undefined || call.server === name
         )
       ),

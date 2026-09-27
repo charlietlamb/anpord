@@ -2,20 +2,23 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import {
   type Actor,
   OrganizationId,
   UserId,
 } from "@anpord/schema/domain/actor";
-import { Effect, Layer } from "effect";
+import { Duration, Effect, Layer } from "effect";
 import {
   CredentialConnectionRepository,
   CredentialConnectionRepositoryLive,
 } from "../../src/credentials/connection-repository";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 
-const database = testDatabase(2);
+const database = testDatabase({
+  poolMax: 2,
+  statementTimeout: Duration.seconds(10),
+});
 const TestLayer = Layer.mergeAll(
   CredentialConnectionRepositoryLive.pipe(
     Layer.provide(Layer.mergeAll(database, IdGeneratorLive))

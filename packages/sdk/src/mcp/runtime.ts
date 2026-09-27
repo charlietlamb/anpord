@@ -1,34 +1,13 @@
-import {
-  McpServer,
-  type StandardSchemaWithJSON,
-} from "@modelcontextprotocol/server";
+import { MCP_JOURNAL as JOURNAL } from "@anpord/schema/domain/api-mocks";
+import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { Effect } from "effect";
-import { appendCall, errorOf } from "../mock-journal";
+import { appendCall, decodeStandard, errorOf } from "../mock-journal";
 import type {
   McpServerDefinition,
   ResourceDefinition,
   ToolDefinition,
 } from "./define";
-
-const JOURNAL = ".anpord/mcp-calls.jsonl";
-
-const decode = <Schema extends StandardSchemaWithJSON>(
-  schema: Schema,
-  value: StandardSchemaWithJSON.InferInput<Schema>
-) =>
-  Effect.tryPromise({
-    catch: errorOf,
-    try: async () => {
-      const result = await schema["~standard"].validate(value);
-
-      if (result.issues !== undefined) {
-        throw new Error(result.issues.map(({ message }) => message).join("; "));
-      }
-
-      return result.value;
-    },
-  });
 
 const messageOf = (cause: unknown) => errorOf(cause).message;
 
@@ -43,7 +22,9 @@ const toolResult = async (
     const output = yield* Effect.tryPromise({
       catch: errorOf,
       try: () => Promise.resolve(definition.handler(input, { signal })),
-    }).pipe(Effect.flatMap((value) => decode(definition.outputSchema, value)));
+    }).pipe(
+      Effect.flatMap((value) => decodeStandard(definition.outputSchema, value))
+    );
 
     yield* appendCall(journal, {
       input,
@@ -90,7 +71,9 @@ const readResource = async (
     const output = yield* Effect.tryPromise({
       catch: errorOf,
       try: () => Promise.resolve(definition.handler(input, { signal })),
-    }).pipe(Effect.flatMap((value) => decode(definition.outputSchema, value)));
+    }).pipe(
+      Effect.flatMap((value) => decodeStandard(definition.outputSchema, value))
+    );
 
     yield* appendCall(journal, {
       input,

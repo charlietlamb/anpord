@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { PromptId, PromptName } from "@anpord/schema/domain/prompts";
 import { Effect, Exit } from "effect";
+import { encodeCursor } from "../../src/domain/cursor-codec";
 import {
   decodePromptCursor,
-  encodePromptCursor,
   type PromptCursorPayload,
 } from "../../src/domain/prompt-cursor";
 
@@ -30,19 +30,19 @@ const forge = (payload: unknown) =>
 
 describe("prompt cursor", () => {
   test("round trips an updated cursor", () => {
-    expect(decode(encodePromptCursor(updatedCursor))).toEqual(
+    expect(decode(encodeCursor(updatedCursor))).toEqual(
       Exit.succeed(updatedCursor)
     );
   });
 
   test("round trips a name cursor", () => {
-    expect(decode(encodePromptCursor(nameCursor), "name")).toEqual(
+    expect(decode(encodeCursor(nameCursor), "name")).toEqual(
       Exit.succeed(nameCursor)
     );
   });
 
   test("encodes to a url safe string", () => {
-    const encoded = encodePromptCursor({
+    const encoded = encodeCursor({
       id: PromptId.make("a/b_c-d"),
       sort: "updated",
       updatedAt: Date.UTC(2026, 5, 30, 12, 34, 56, 789),
@@ -53,16 +53,16 @@ describe("prompt cursor", () => {
   });
 
   test("rejects a cursor issued under the other sort", () => {
-    const exit = decode(encodePromptCursor(updatedCursor), "name");
+    const exit = decode(encodeCursor(updatedCursor), "name");
 
     expect(Exit.isFailure(exit)).toBe(true);
     expect(String(exit)).toContain("InvalidCursor");
   });
 
   test("rejects a name cursor used against the updated sort", () => {
-    expect(
-      Exit.isFailure(decode(encodePromptCursor(nameCursor), "updated"))
-    ).toBe(true);
+    expect(Exit.isFailure(decode(encodeCursor(nameCursor), "updated"))).toBe(
+      true
+    );
   });
 
   test("fails rather than throwing on a cursor that is not base64", () => {

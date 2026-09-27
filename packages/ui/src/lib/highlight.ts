@@ -20,7 +20,7 @@ const create = () =>
 
 const UNBOUNDED = { tokenizeTimeLimit: 0 } as const;
 
-export const highlighter = () => {
+const highlighter = () => {
   pending ??= create();
   return pending;
 };

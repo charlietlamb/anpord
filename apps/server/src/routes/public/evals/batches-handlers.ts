@@ -2,7 +2,8 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { listBatches, readBatch, startBatch } from "../../evals/evals";
+import { startBatch } from "../../evals/batch-actions";
+import { listBatches, readBatch } from "../../evals/batch-reads";
 
 export const BatchesHandlers = HttpApiBuilder.group(
   PublicApi,

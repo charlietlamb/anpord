@@ -1,4 +1,6 @@
 import { Database } from "@anpord/db/client";
+import { escapeLike } from "@anpord/db/like";
+import { head } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
@@ -6,21 +8,20 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import type {
+  CaseOrder,
+  CaseSort,
   EvalCaseDetail,
   EvalCasePage,
   EvalPageCursor,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-read-models";
 import type { SQL } from "drizzle-orm";
 import { and, asc, desc, eq, ilike, inArray, max, or, sql } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { changesBetween } from "../domain/definition-changes";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
-import { head, tryStore } from "./query";
-import { setupOf } from "./run-view";
+import { tryStore } from "./query";
+import { setupOf, timestamp } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
-
-type CaseSort = "recent" | "name";
-type CaseOrder = "asc" | "desc";
 
 export interface ListCases {
   readonly cursor: EvalPageCursor | null;
@@ -32,11 +33,6 @@ export interface ListCases {
   readonly suite: string | null;
   readonly tag: string | null;
 }
-
-/* `%` and `_` are LIKE wildcards, so searching "100%" would otherwise match
-   everything starting with "100". */
-const escapeLike = (term: string) =>
-  term.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
 
 const matchesSearch = (term: string) => {
   const pattern = `%${escapeLike(term)}%`;
@@ -196,9 +192,7 @@ export const caseReadsQuery = Effect.gen(function* () {
       return {
         cases: page.items.map((row) => ({
           id: row.caseId,
-          lastRunAt: DateTime.unsafeMake(
-            new Date(row.lastRunAt ?? 0).getTime()
-          ),
+          lastRunAt: timestamp(new Date(row.lastRunAt ?? 0)),
           name: row.name,
           suite: { id: row.suiteId, name: row.suiteName },
           tags: current.get(row.internalId)?.tags ?? [],
@@ -275,7 +269,7 @@ export const caseReadsQuery = Effect.gen(function* () {
                   versions[index - 1]?.version ?? row.version,
                   row.version
                 ),
-          createdAt: DateTime.unsafeMake(row.version.createdAt.getTime()),
+          createdAt: timestamp(row.version.createdAt),
           definitionHash: row.version.definitionHash,
         })),
       });

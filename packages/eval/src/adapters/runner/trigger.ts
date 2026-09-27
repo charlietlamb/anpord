@@ -1,9 +1,8 @@
-import { batchTagOf } from "@anpord/schema/domain/evals";
+import { batchTagOf } from "@anpord/schema/domain/eval-batch-subscription";
 import { configure, tasks } from "@trigger.dev/sdk";
 import { Config, Effect, Layer, Redacted } from "effect";
 import { TrialRunner } from "../../ports/trial-runner";
-
-const EVAL_RUN = "eval-run";
+import { EVAL_RUN, type EvalBatchPayload } from "./eval-run-task";
 
 export const triggerSecretKey = Config.redacted("TRIGGER_SECRET_KEY").pipe(
   Config.orElse(() => Config.redacted("TRIGGER_API_KEY"))
@@ -21,7 +20,7 @@ export const TrialRunnerTrigger = Layer.effect(
         Effect.tryPromise(() =>
           tasks.trigger(
             EVAL_RUN,
-            { batchId, organizationId },
+            { batchId, organizationId } satisfies EvalBatchPayload,
             { tags: [`org_${organizationId}`, batchTagOf(batchId)] }
           )
         ).pipe(

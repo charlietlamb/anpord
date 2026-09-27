@@ -119,13 +119,6 @@ export const PromptSummary = Schema.Struct({
 });
 export type PromptSummary = typeof PromptSummary.Type;
 
-/* Keyset rather than offset: editing a prompt mid-scroll would shift every offset after it. */
-export const PromptCursor = Schema.Struct({
-  id: PromptId,
-  updatedAt: Timestamp,
-});
-export type PromptCursor = typeof PromptCursor.Type;
-
 /* "draft" is a prompt no channel points at yet, which is not the same as having no versions. */
 export const PromptStatusFilter = Schema.Literal("all", "draft", "live");
 export type PromptStatusFilter = typeof PromptStatusFilter.Type;

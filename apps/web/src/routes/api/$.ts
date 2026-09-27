@@ -1,12 +1,12 @@
+import { API_ORIGIN, API_REFERENCE_URL } from "@anpord/schema/public/origins";
 import { createFileRoute } from "@tanstack/react-router";
-import { DOCS_URL } from "@/lib/urls";
 
 const notFound = ({ request }: { request: Request }) =>
   Response.json(
     {
       _tag: "NotFound",
-      documentation: `${DOCS_URL}/api-reference/introduction`,
-      message: `No API route matches ${new URL(request.url).pathname}. The public API is served from https://api.anpord.com/v1.`,
+      documentation: API_REFERENCE_URL,
+      message: `No API route matches ${new URL(request.url).pathname}. The public API is served from ${API_ORIGIN}/v1.`,
     },
     { status: 404 }
   );
