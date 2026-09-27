@@ -208,10 +208,10 @@ export const evalStack = <E>(input: {
     Layer.provideMerge(testDatabase({ poolMax: 8 }))
   );
 
-export const actorOf = (organizationId: string) =>
+export const actorOf = (organizationId: string, isUser = false) =>
   Actor.make({
     id: UserId.make(`user_${organizationId}`),
-    isUser: false,
+    isUser,
     organizationId: OrganizationId.make(organizationId),
     permissions: [],
   });

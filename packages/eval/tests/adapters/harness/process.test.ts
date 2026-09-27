@@ -4,16 +4,12 @@ import {
   harnessLines,
   shellQuote,
 } from "../../../src/adapters/harness/process";
-import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
-import { declinesEverything } from "../../fixtures/declines-everything";
+import { fakeSandbox } from "../../fixtures/fake-sandbox";
 
-const sandbox = (chunks: readonly ExecChunk[]): SandboxHandle => ({
-  exec: () => Stream.fromIterable(chunks),
+const sandbox = fakeSandbox({
   home: "/home/test",
   id: "sandbox",
   provider: "daytona",
-  ...declinesEverything,
-  writeFile: () => Effect.void,
 });
 
 describe("harness process framing", () => {

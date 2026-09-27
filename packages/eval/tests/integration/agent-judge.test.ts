@@ -3,14 +3,13 @@ import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { Effect, Layer, Schema } from "effect";
 import { HarnessesLive } from "../../src/adapters/harness/resolve";
-import { connectionNotFound } from "../../src/credentials/errors";
-import { CredentialResolver } from "../../src/credentials/resolver";
 import { makeAgentJudge } from "../../src/judges/agent";
 import { evaluateJudge } from "../../src/judges/evaluate";
 import { JudgeModel } from "../../src/judges/model";
 import { EvalSandboxLive } from "../../src/layer";
 import { HarnessVersionsLive } from "../../src/services/harness-versions";
 import { codexCredential, hasCodex, hasE2b } from "../fixtures/credentials";
+import { nothingConnected } from "../fixtures/nothing-connected";
 
 const enabled = process.env.EVAL_LIVE_JUDGES === "1" && hasCodex && hasE2b;
 const layer = Layer.effect(
@@ -20,13 +19,7 @@ const layer = Layer.effect(
   Layer.provide(HarnessesLive),
   Layer.provide(HarnessVersionsLive),
   Layer.provide(EvalSandboxLive),
-  Layer.provide(
-    Layer.succeed(CredentialResolver, {
-      persist: () => Effect.void,
-      resolve: () => Effect.fail(connectionNotFound()),
-      resolveBound: () => Effect.fail(connectionNotFound()),
-    })
-  )
+  Layer.provide(nothingConnected)
 );
 
 test.skipIf(!enabled)(

@@ -1,17 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
 import { HttpClient, HttpClientResponse } from "@effect/platform";
-import {
-  ConfigProvider,
-  Effect,
-  Layer,
-  Option,
-  Redacted,
-  Schema,
-} from "effect";
+import { ConfigProvider, Effect, Option, Redacted, Schema } from "effect";
 import { makeLlmUser } from "../../../src/adapters/user/llm-user";
-import { connectionNotFound } from "../../../src/credentials/errors";
-import { CredentialResolver } from "../../../src/credentials/resolver";
+import { nothingConnected } from "../../fixtures/nothing-connected";
 
 const answering = HttpClient.make((request) =>
   Effect.succeed(
@@ -29,12 +21,6 @@ const answering = HttpClient.make((request) =>
     )
   )
 );
-
-const nothingConnected = Layer.succeed(CredentialResolver, {
-  persist: () => Effect.void,
-  resolve: () => Effect.fail(connectionNotFound()),
-  resolveBound: () => Effect.fail(connectionNotFound()),
-});
 
 describe("a person played by a model", () => {
   it("adds up what every reply spent, cached input apart from fresh", async () => {
