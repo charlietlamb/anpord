@@ -36,14 +36,22 @@ const opening = (open: () => void, children: ReactNode) => (
   </button>
 );
 
+const LINKABLE = /^(?:https?:|mailto:)/i;
+
 const componentsFor = (openerFor?: FileOpener): Components => ({
   a: ({ children, href }) => {
     const open = openerFor?.(textOf(children));
 
-    return open == null ? (
-      <a href={href}>{children}</a>
+    if (open != null) {
+      return opening(open, children);
+    }
+
+    return href !== undefined && LINKABLE.test(href) ? (
+      <a href={href} rel="noreferrer" target="_blank">
+        {children}
+      </a>
     ) : (
-      opening(open, children)
+      <span>{children}</span>
     );
   },
   code: ({ children }) => {
