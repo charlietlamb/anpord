@@ -14,6 +14,7 @@ import {
 import { asAnpordError } from "../../src/client/errors";
 
 const posted: (() => void)[] = [];
+const unanswered: ((response: Response) => void)[] = [];
 let heardPost = false;
 const server = Bun.serve({
   fetch: (request) => {
@@ -24,13 +25,18 @@ const server = Bun.serve({
     for (const wake of posted.splice(0)) {
       wake();
     }
-    return new Promise<Response>(() => undefined);
+    return new Promise<Response>((answer) => unanswered.push(answer));
   },
   port: 0,
 });
 const origin = `http://127.0.0.1:${server.port}`;
 
-afterAll(() => server.stop(true));
+afterAll(async () => {
+  for (const answer of unanswered.splice(0)) {
+    answer(new Response("", { status: 503 }));
+  }
+  await server.stop(true);
+});
 
 const post = Effect.promise(
   () => new Promise<void>((wake) => (heardPost ? wake() : posted.push(wake)))
