@@ -52,3 +52,16 @@ Use `db:migrate`, not `drizzle-kit migrate` or `drizzle-kit push`. Push records 
 ## Data loss
 
 `drizzle/data-loss.json` names every migration that drops a table or column, deletes or truncates rows, or changes a column's type, with a line on what is lost and why that is fine. `bun run check` runs `db:check`, which fails on any such migration missing from that file. It also fails on an out-of-order journal. Prefer an additive change. When a drop is the right call, carry the data over in the same migration and write down why.
+
+## Tests that need a database
+
+Tests that write rows read only `EVAL_TEST_DATABASE_URL`, never `DATABASE_URL`, and refuse to start unless the database name has `test` or `scratch` in it. That keeps them off your dev database and anything hosted. Make a scratch database, migrate it, point the tests at it, then drop it:
+
+```sh
+createdb anpord_scratch_mine
+DATABASE_URL=postgresql://localhost:5432/anpord_scratch_mine bun run db:migrate
+EVAL_REQUIRE_DATABASE=1 EVAL_TEST_DATABASE_URL=postgresql://localhost:5432/anpord_scratch_mine bun run test
+dropdb anpord_scratch_mine
+```
+
+`EVAL_REQUIRE_DATABASE=1` turns a missing URL into an error instead of a silent skip.

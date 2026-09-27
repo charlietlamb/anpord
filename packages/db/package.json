@@ -10,7 +10,8 @@
     "./health": "./src/health.ts",
     "./schema": "./src/schema.ts",
     "./schema/credentials/*": "./src/schema/credentials/*.ts",
-    "./schema/*": "./src/schema/*.ts"
+    "./schema/*": "./src/schema/*.ts",
+    "./test-database": "./src/test-database.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",

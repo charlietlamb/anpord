@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
+import { testDatabaseUrl } from "@anpord/db/test-database";
 import { Redacted } from "effect";
 
 const keyDir = process.env.EVAL_KEY_DIR;
@@ -97,4 +98,4 @@ export const hasVercel = Boolean(
       process.env.VERCEL_PROJECT_ID)
 );
 export const hasCodex = Boolean(codexCredentials);
-export const hasDatabase = Boolean(process.env.EVAL_TEST_DATABASE_URL);
+export const hasDatabase = testDatabaseUrl() !== undefined;

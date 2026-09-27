@@ -1,6 +1,5 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
+import { Database } from "@anpord/db/client";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
 import { IdGeneratorLive } from "@anpord/ids/layer";
@@ -9,23 +8,14 @@ import {
   OrganizationId,
   UserId,
 } from "@anpord/schema/domain/actor";
-import { Duration, Effect, Layer, Redacted } from "effect";
+import { Effect, Layer } from "effect";
 import {
   CredentialConnectionRepository,
   CredentialConnectionRepositoryLive,
 } from "../../src/credentials/connection-repository";
-import { skipWithoutDatabase } from "../fixtures/database";
+import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 
-const url = process.env.EVAL_TEST_DATABASE_URL;
-const database = DatabaseLive.pipe(
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 2,
-      statementTimeout: Duration.seconds(10),
-      url: Redacted.make(url ?? ""),
-    })
-  )
-);
+const database = testDatabase(2);
 const TestLayer = Layer.mergeAll(
   CredentialConnectionRepositoryLive.pipe(
     Layer.provide(Layer.mergeAll(database, IdGeneratorLive))

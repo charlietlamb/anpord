@@ -10,6 +10,7 @@ import { BillingConfig } from "@anpord/billing/config";
 import { Database, DatabaseLive } from "@anpord/db/client";
 import { DatabaseConfig } from "@anpord/db/config";
 import { organization } from "@anpord/db/schema/auth/organizations";
+import { testDatabaseUrl } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { AuthGroup } from "@anpord/schema/public/auth-api";
 import { HttpApi, HttpApiBuilder, HttpServer } from "@effect/platform";
@@ -18,13 +19,7 @@ import { ApiKeyAuthenticationLive } from "../../../../src/http/authentication/ap
 import { VerifiedKeysLive } from "../../../../src/http/authentication/verified-keys";
 import { AuthHandlers } from "../../../../src/routes/public/auth/handlers";
 
-const url = process.env.EVAL_TEST_DATABASE_URL;
-
-if (url === undefined && process.env.EVAL_REQUIRE_DATABASE === "1") {
-  throw new Error(
-    "EVAL_TEST_DATABASE_URL is unset and EVAL_REQUIRE_DATABASE=1, so these tests would have skipped silently"
-  );
-}
+const url = testDatabaseUrl();
 
 const suffix = Date.now();
 const organizationId = `org_whoami_${suffix}`;

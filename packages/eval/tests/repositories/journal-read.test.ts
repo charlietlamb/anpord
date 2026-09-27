@@ -1,28 +1,17 @@
 import { describe, expect, it } from "bun:test";
-import { DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
 import { IdGeneratorLive } from "@anpord/ids/layer";
-import { Duration, Effect, Layer, Redacted } from "effect";
+import { Effect, Layer } from "effect";
 import {
   EventRepository,
   EventRepositoryLive,
 } from "../../src/repositories/event-repository";
 import { JournalArchiveLive } from "../../src/repositories/journal-archive";
-import { skipWithoutDatabase } from "../fixtures/database";
-
-const URL = process.env.EVAL_TEST_DATABASE_URL;
+import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 
 const TestLayer = EventRepositoryLive.pipe(
   Layer.provide(IdGeneratorLive),
   Layer.provide(JournalArchiveLive),
-  Layer.provideMerge(DatabaseLive),
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 4,
-      statementTimeout: Duration.seconds(30),
-      url: Redacted.make(URL ?? ""),
-    })
-  )
+  Layer.provideMerge(testDatabase())
 );
 
 describe.skipIf(skipWithoutDatabase())("reading journals in one query", () => {

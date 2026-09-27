@@ -11,7 +11,7 @@ const apiError = (error: CredentialError) => {
     return new NotFound({ message: error.message });
   }
 
-  if (error.code === "internal") {
+  if (error.code === "internal" || error.code === "undecryptable") {
     return new InternalError({ message: "Credential operation failed" });
   }
 

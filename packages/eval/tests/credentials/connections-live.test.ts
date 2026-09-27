@@ -1,19 +1,11 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
+import { Database } from "@anpord/db/client";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
 import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
-import {
-  Clock,
-  ConfigProvider,
-  Duration,
-  Effect,
-  Layer,
-  Redacted,
-} from "effect";
+import { Clock, ConfigProvider, Effect, Layer, Redacted } from "effect";
 import {
   CredentialCipher,
   CredentialCipherLive,
@@ -25,18 +17,9 @@ import {
 import { DeviceAuth, DeviceAuthLive } from "../../src/credentials/device-auth";
 import { CredentialResolver } from "../../src/credentials/resolver";
 import { CredentialResolverLive } from "../../src/credentials/resolver-live";
-import { skipWithoutDatabase } from "../fixtures/database";
+import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 
-const url = process.env.EVAL_TEST_DATABASE_URL;
-const database = DatabaseLive.pipe(
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 2,
-      statementTimeout: Duration.seconds(10),
-      url: Redacted.make(url ?? ""),
-    })
-  )
-);
+const database = testDatabase(2);
 const dependencies = Layer.mergeAll(
   database,
   IdGeneratorLive,

@@ -5,14 +5,15 @@ import {
   CredentialCipherLive,
 } from "../../src/credentials/cipher";
 
-const run = <A>(effect: Effect.Effect<A, unknown, CredentialCipher>) =>
+const run = <A>(
+  effect: Effect.Effect<A, unknown, CredentialCipher>,
+  key = "test-key"
+) =>
   Effect.runPromise(
     effect.pipe(
       Effect.provide(CredentialCipherLive),
       Effect.withConfigProvider(
-        ConfigProvider.fromMap(
-          new Map([["CREDENTIALS_ENCRYPTION_KEY", "test-key"]])
-        )
+        ConfigProvider.fromMap(new Map([["CREDENTIALS_ENCRYPTION_KEY", key]]))
       )
     )
   );
@@ -42,5 +43,26 @@ describe("CredentialCipher", () => {
     );
 
     expect(result._tag).toBe("Left");
+  });
+
+  it("reports a payload sealed under another key as undecryptable", async () => {
+    const sealed = await run(
+      CredentialCipher.pipe(
+        Effect.flatMap((cipher) =>
+          cipher.seal(Redacted.make("secret"), "context")
+        )
+      ),
+      "another-key"
+    );
+    const opened = await run(
+      CredentialCipher.pipe(
+        Effect.flatMap((cipher) => Effect.flip(cipher.open(sealed, "context")))
+      )
+    );
+
+    expect({ code: opened.code, message: opened.message }).toEqual({
+      code: "undecryptable",
+      message: "Credential could not be decrypted",
+    });
   });
 });
