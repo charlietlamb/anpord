@@ -6,7 +6,7 @@ git ls-tree -r --name-only "$rev" -- apps packages scripts \
   | grep -E '\.(ts|tsx|mjs|js)$' \
   | grep -vE '(^|/)(dist|node_modules)/|routeTree\.gen\.ts$|^apps/docs/' \
   | while read -r f; do
-      pkg="$(echo "$f" | cut -d/ -f1-2)"
+      pkg="$(echo "$f" | awk -F/ '{print (NF > 2) ? $1 "/" $2 : $1}')"
       n="$(git show "$rev:$f" | grep -cv '^[[:space:]]*$' || true)"
       echo "$pkg $n"
     done \
