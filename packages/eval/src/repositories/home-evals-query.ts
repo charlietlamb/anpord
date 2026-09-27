@@ -68,6 +68,11 @@ judged as (
     from eval_trial trial
     where trial.run_internal_id = r.run_id
   ) tally
+),
+paired as (
+  select judged.*,
+    lead(verdict) over (partition by variant_id order by position) as previous_verdict
+  from judged
 )
 select newest.case_id, newest.case_name, newest.suite_id, newest.suite_name,
   newest.variant_id, newest.variant_harness, newest.variant_model,
@@ -77,13 +82,11 @@ select newest.case_id, newest.case_name, newest.suite_id, newest.suite_name,
   (
     newest.verdict in ('failed', 'flaky')
     and newest.finished_at >= ${failingSince}::timestamp
-    and (previous.verdict is null or previous.verdict = 'passed')
+    and (newest.previous_verdict is null or newest.previous_verdict = 'passed')
   ) as newly_failing,
   failure.check_name as failure_check, failure.message as failure_message,
   unscored.failure as unscored_failure
-from judged newest
-left join judged previous
-  on previous.variant_id = newest.variant_id and previous.position = 2
+from paired newest
 left join lateral (
   select coalesce(check_row.value ->> 'name', 'verify') as check_name,
     case when check_row.value is null then trial.failure
