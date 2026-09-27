@@ -19,7 +19,6 @@ import { caseDefinitionOf } from "../domain/case-definition";
 import { definitionHashOf } from "../domain/case-identity";
 import { StartRefused } from "../domain/errors";
 import { profileOfRequest } from "../domain/harness-profile";
-import { LOCAL_QUIET_AFTER } from "../domain/local-heartbeat";
 import { profileVersionOf } from "../domain/profile-identity";
 import { startRequestHashOf } from "../domain/start-request-hash";
 import { userHarness } from "../domain/suite-harnesses";
@@ -32,7 +31,6 @@ import { CatalogRepository } from "../repositories/catalog-repository";
 import { HarnessProfileRepository } from "../repositories/harness-profile-repository";
 import { startedBatchQuery } from "../repositories/started-batch-query";
 import { HarnessVersions } from "../services/harness-versions";
-import { cutoffBefore } from "../services/sweep";
 import type { Launch, Launched } from "./launch";
 
 const variantKey = (variant: EvalVariantRequest) =>
@@ -98,7 +96,7 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
     }
 
     const inFlight = yield* (yield* BatchRepository)
-      .inFlight(actor.organizationId, yield* cutoffBefore(LOCAL_QUIET_AFTER))
+      .inFlight(actor.organizationId)
       .pipe(Effect.orDie);
     if (inFlight >= MAX_ORGANIZATION_RUNS_IN_FLIGHT) {
       return yield* new StartRefused({
