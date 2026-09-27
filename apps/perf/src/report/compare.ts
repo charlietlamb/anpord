@@ -139,3 +139,13 @@ export const compare = (
 
 export const regressions = (comparisons: readonly Comparison[]) =>
   comparisons.filter((each) => each.verdict === "regressed");
+
+export const thresholdOf = (raw: string | undefined, fallback: number) => {
+  const value = raw === undefined ? fallback : Number(raw);
+  if (raw?.trim() === "" || !Number.isFinite(value) || value < 0) {
+    throw new Error(
+      `--threshold must be a percentage of 0 or more, not ${raw}.`
+    );
+  }
+  return value;
+};

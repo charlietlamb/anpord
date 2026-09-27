@@ -4,7 +4,7 @@ import { DEFAULT_PLAN, type SeedPlan } from "../seed/plan";
 import { alternating, bootStacks, teardownAll } from "../stack/paired";
 import { startServer } from "../stack/server";
 import type { Stack } from "../stack/stack";
-import { ENDPOINTS } from "./endpoints";
+import { selectEndpoints } from "./endpoints";
 import { type MeasureSettings, measureEndpoint } from "./measure";
 import { peakMetrics, sampleMemory } from "./memory";
 
@@ -49,6 +49,7 @@ export const runServerSuite = async (
   settings: ServerSettings,
   log: (line: string) => void
 ): Promise<readonly SuiteResult[]> => {
+  const selected = selectEndpoints(settings.endpoints);
   log(`server: seeding ${targets.length} scratch database(s)`);
   const stacks = await bootStacks(targets, {
     label: "server",
@@ -58,14 +59,8 @@ export const runServerSuite = async (
     const idle = await Promise.all(
       stacks.map((stack) => stack.server.memory())
     );
-    const selected = ENDPOINTS.filter(
-      (endpoint) =>
-        settings.endpoints === null ||
-        settings.endpoints.includes(endpoint.name)
-    );
-
     const metrics = stacks.map((): Record<string, Metric> => ({}));
-    const samplers = stacks.map(sampleMemory);
+    const samplers = stacks.map((stack) => sampleMemory(stack.server.memory));
     try {
       for (const endpoint of selected) {
         const measured = await measureEndpoint(stacks, endpoint, settings, log);
@@ -73,10 +68,12 @@ export const runServerSuite = async (
           Object.assign(metrics[index] ?? {}, each);
         }
       }
-    } finally {
-      for (const [index, stop] of samplers.entries()) {
-        Object.assign(metrics[index] ?? {}, await peakMetrics(stop));
-      }
+    } catch (cause) {
+      await Promise.allSettled(samplers.map((stop) => stop()));
+      throw cause;
+    }
+    for (const [index, stop] of samplers.entries()) {
+      Object.assign(metrics[index] ?? {}, await peakMetrics(stop));
     }
 
     log("server: timing cold starts");

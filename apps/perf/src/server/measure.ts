@@ -1,5 +1,5 @@
 import { informational, type Metric } from "../report/metric";
-import { percentile, single, summarise } from "../report/stats";
+import { median, percentile, single, summarise } from "../report/stats";
 import { alternating } from "../stack/paired";
 import type { Stack } from "../stack/stack";
 import type { Endpoint, Workload } from "./endpoints";
@@ -20,6 +20,7 @@ interface Lane {
   queries: number;
   readonly sequential: LoadResult[];
   readonly stack: Stack;
+  readonly warmup: LoadResult[];
   readonly workload: Workload;
 }
 
@@ -85,6 +86,7 @@ const openLane = async (
     queries: 0,
     sequential: [],
     stack,
+    warmup: [],
     workload: await endpoint.prepare(stack, stack.world, total),
   };
 };
@@ -103,7 +105,7 @@ const run = async (lane: Lane, count: number, concurrency: number) => {
 
 const assertNoFailures = (name: string, lanes: readonly Lane[]) => {
   const failed = lanes.flatMap((lane) =>
-    [...lane.sequential, ...lane.loaded].flatMap((result) =>
+    [...lane.warmup, ...lane.sequential, ...lane.loaded].flatMap((result) =>
       result.samples.filter((sample) => !sample.ok)
     )
   );
@@ -120,7 +122,7 @@ export const measureEndpoint = async (
   settings: MeasureSettings,
   log: (line: string) => void
 ) => {
-  const budget = endpoint.budget ?? settings;
+  const budget = endpoint.budget?.(settings) ?? settings;
   const sequential = Math.floor(budget.sequential / settings.rounds);
   const requests = Math.floor(budget.requests / settings.rounds);
   const concurrency = Math.min(
@@ -139,7 +141,7 @@ export const measureEndpoint = async (
   }
 
   for (const lane of lanes) {
-    await run(lane, budget.warmup, 1);
+    lane.warmup.push(await run(lane, budget.warmup, 1));
   }
   for (let round = 0; round < settings.rounds; round += 1) {
     for (const lane of alternating(lanes, round)) {
@@ -156,10 +158,7 @@ export const measureEndpoint = async (
   assertNoFailures(endpoint.name, lanes);
   log(
     `  ${endpoint.name}: p50 ${lanes
-      .map(
-        (lane) =>
-          `${percentile(lane.loaded.flatMap(latencies), 50).toFixed(1)} ms`
-      )
+      .map((lane) => `${median(perRound(lane.loaded, 50)).toFixed(1)} ms`)
       .join(" vs ")}`
   );
   return lanes.map((lane) => laneMetrics(endpoint.name, lane));

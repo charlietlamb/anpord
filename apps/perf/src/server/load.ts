@@ -6,6 +6,8 @@ export interface Credentials {
   readonly cookie: string;
 }
 
+const REQUEST_TIMEOUT_MS = 30_000;
+
 interface Sample {
   readonly bytes: number;
   readonly failure?: string;
@@ -40,6 +42,7 @@ const send = async (
       body: spec.body === undefined ? undefined : JSON.stringify(spec.body),
       headers: headersFor(spec, credentials),
       method: spec.method,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     const body = await response.text();
     return {
@@ -53,15 +56,31 @@ const send = async (
           : { failure: `${response.status} ${body.slice(0, 300)}` }),
       },
     };
-  } catch {
+  } catch (cause) {
     return {
       body: "",
       sample: {
         bytes: 0,
-        failure: "no response",
+        failure: `no response: ${String(cause)}`,
         ms: performance.now() - started,
         ok: false,
       },
+    };
+  }
+};
+
+const settled = async (workload: Workload, sent: Sent): Promise<Sample> => {
+  if (!sent.sample.ok || workload.settle === undefined) {
+    return sent.sample;
+  }
+  try {
+    await workload.settle(sent.body);
+    return sent.sample;
+  } catch (cause) {
+    return {
+      ...sent.sample,
+      failure: `settle: ${cause instanceof Error ? cause.message : String(cause)}`,
+      ok: false,
     };
   }
 };
@@ -80,10 +99,7 @@ export const drive = async (
       const index = next;
       next += 1;
       const sent = await send(workload.requests(offset + index), credentials);
-      samples.push(sent.sample);
-      if (sent.sample.ok) {
-        await workload.settle?.(sent.body);
-      }
+      samples.push(await settled(workload, sent));
     }
   };
   const started = performance.now();

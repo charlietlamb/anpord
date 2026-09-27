@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus, totalmem } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { compare, regressions } from "./report/compare";
+import { compare, regressions, thresholdOf } from "./report/compare";
 import { flatten, type ResultFile, type SuiteResult } from "./report/metric";
 import { comparisonTable, metricsTable } from "./report/table";
 import { DEFAULT_RUNNER_SETTINGS, runRunnerSuite } from "./runner/suite";
@@ -21,8 +21,6 @@ const USAGE = `usage:
   bun run perf ab <server|runner|web|all> --before <checkout> [--after <checkout>] [--quick] [--threshold <percent>]
   bun run perf compare <before.json[,more.json]> <after.json[,more.json]> [--threshold <percent>]`;
 
-const log = (line: string) => process.stdout.write(`${line}\n`);
-
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: {
@@ -36,6 +34,10 @@ const { positionals, values } = parseArgs({
     threshold: { type: "string" },
   },
 });
+
+const print = (line: string) => process.stdout.write(`${line}\n`);
+const log = (line: string) =>
+  (values.json ? process.stderr : process.stdout).write(`${line}\n`);
 
 const QUICK_PLAN = {
   ...DEFAULT_PLAN,
@@ -149,7 +151,7 @@ const runOne = async (name: string) => {
   }
   const out = values.out ?? join(RESULTS, `${names.join("-")}-${stamp()}.json`);
   writeResult(out, file);
-  log(
+  print(
     values.json
       ? JSON.stringify(file, null, 2)
       : `\n${metricsTable(flatten(file))}\n\nwrote ${out}`
@@ -160,7 +162,7 @@ const runCompare = (before: string | undefined, after: string | undefined) => {
   if (before === undefined || after === undefined) {
     throw new Error(USAGE);
   }
-  const threshold = Number(values.threshold ?? DEFAULT_THRESHOLD_PERCENT);
+  const threshold = thresholdOf(values.threshold, DEFAULT_THRESHOLD_PERCENT);
   const comparisons = compare(
     before.split(",").map((path) => flatten(readResult(path))),
     after.split(",").map((path) => flatten(readResult(path))),
@@ -168,7 +170,7 @@ const runCompare = (before: string | undefined, after: string | undefined) => {
   );
   const regressed = regressions(comparisons);
   if (values.json) {
-    log(
+    print(
       JSON.stringify(
         { comparisons, regressed: regressed.length, threshold },
         null,
@@ -176,8 +178,8 @@ const runCompare = (before: string | undefined, after: string | undefined) => {
       )
     );
   } else {
-    log(comparisonTable(comparisons));
-    log(`\n${regressed.length} regressed beyond ${threshold}%`);
+    print(comparisonTable(comparisons));
+    print(`\n${regressed.length} regressed beyond ${threshold}%`);
   }
   process.exitCode = regressed.length > 0 ? 1 : 0;
   return regressed.map((each) => each.key);
@@ -235,7 +237,7 @@ if (command === "compare") {
 } else if (command === "ab") {
   await runAb(rest[0]);
 } else if (command === undefined) {
-  log(USAGE);
+  print(USAGE);
   process.exitCode = 1;
 } else {
   await runOne(command);

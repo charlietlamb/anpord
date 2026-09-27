@@ -34,7 +34,7 @@ export interface Workload {
 }
 
 export interface Endpoint {
-  readonly budget?: Budget;
+  readonly budget?: (settings: Budget) => Budget;
   readonly concurrency?: number;
   readonly name: string;
   readonly prepare: (
@@ -50,6 +50,18 @@ const REPORT_CASES = MAX_RUN_TRIALS / REPORT_TRIALS;
 const REPORT_BATCHES = MAX_ORGANIZATION_RUNS_IN_FLIGHT;
 const REPORT_WARMUP = 10;
 const REPORT_SEQUENTIAL = 20;
+const REPORT_SLOTS = REPORT_BATCHES * REPORT_CASES * REPORT_TRIALS;
+const REPORT_BUDGET: Budget = {
+  requests: REPORT_SLOTS - REPORT_WARMUP - REPORT_SEQUENTIAL,
+  sequential: REPORT_SEQUENTIAL,
+  warmup: REPORT_WARMUP,
+};
+
+if (!Number.isInteger(REPORT_CASES)) {
+  throw new Error(
+    `runner.report needs MAX_RUN_TRIALS (${MAX_RUN_TRIALS}) to be a multiple of MAX_START_TRIALS (${REPORT_TRIALS}).`
+  );
+}
 const START_CONCURRENCY = MAX_ORGANIZATION_RUNS_IN_FLIGHT - 1;
 
 const at = <T>(items: readonly T[], index: number) =>
@@ -101,14 +113,14 @@ const startEndpoint: Endpoint = {
 };
 
 const reportEndpoint: Endpoint = {
-  budget: {
-    requests:
-      REPORT_BATCHES * REPORT_CASES * REPORT_TRIALS -
-      REPORT_WARMUP -
-      REPORT_SEQUENTIAL,
-    sequential: REPORT_SEQUENTIAL,
-    warmup: REPORT_WARMUP,
-  },
+  budget: (settings) =>
+    settings.warmup + settings.sequential + settings.requests <= REPORT_SLOTS
+      ? {
+          requests: settings.requests,
+          sequential: settings.sequential,
+          warmup: settings.warmup,
+        }
+      : REPORT_BUDGET,
   name: "runner.report",
   prepare: async (stack) => {
     const batches = await mapLimit(
@@ -212,3 +224,16 @@ export const ENDPOINTS: readonly Endpoint[] = [
   startEndpoint,
   reportEndpoint,
 ];
+
+export const selectEndpoints = (names: readonly string[] | null) => {
+  if (names === null) {
+    return ENDPOINTS;
+  }
+  const unknown = names.filter(
+    (name) => !ENDPOINTS.some((endpoint) => endpoint.name === name)
+  );
+  if (unknown.length > 0) {
+    throw new Error(`No endpoint called ${unknown.join(", ")}.`);
+  }
+  return ENDPOINTS.filter((endpoint) => names.includes(endpoint.name));
+};
