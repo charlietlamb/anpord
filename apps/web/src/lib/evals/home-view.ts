@@ -241,8 +241,8 @@ const failingSentence = (failing: number, fresh: number, period: string) => {
     return `${lead}.`;
   }
   return failing === 1
-    ? `${lead}, new ${period}.`
-    : `${lead}, ${fresh} of them new ${period}.`;
+    ? `${lead}, new since yesterday.`
+    : `${lead}, ${fresh} of them new since yesterday.`;
 };
 
 export const homeView = (home: EvalHome, filters: HomeFilters) => {

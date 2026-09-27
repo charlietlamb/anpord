@@ -35,10 +35,12 @@ export const rateDelta = (
   axis: readonly string[],
   days: readonly EvalHomeDay[]
 ) => {
-  const opening = new Set(axis.slice(0, Math.ceil(axis.length / 3)));
-  const whole = sumOf(days);
+  const third = Math.ceil(axis.length / 3);
+  const opening = new Set(axis.slice(0, third));
+  const closing = new Set(axis.slice(-third));
   const start = sumOf(days.filter((day) => opening.has(day.day)));
-  const now = percentOf(whole.passed, whole.scored);
+  const end = sumOf(days.filter((day) => closing.has(day.day)));
+  const now = percentOf(end.passed, end.scored);
   const then = percentOf(start.passed, start.scored);
   return now === null || then === null ? null : Math.round(now - then);
 };

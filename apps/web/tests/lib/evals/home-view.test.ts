@@ -107,9 +107,9 @@ describe("homeView", () => {
       total: 7,
       unscored: 1,
     });
-    expect(view.delta).toBe(-6);
+    expect(view.delta).toBe(-10);
     expect(view.headline).toBe(
-      "2 evals are failing, 1 of them new this week. Pass rate is 50%, down 6 points this week."
+      "2 evals are failing, 1 of them new since yesterday. Pass rate is 50%, down 10 points this week."
     );
   });
 
