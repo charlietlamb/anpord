@@ -28,7 +28,7 @@ The gates start what they need and stop it. To poke at the app yourself:
 
 - **Server.** `bun run perf server --quick` proves a real server boots against a seeded scratch database. For a server you keep, follow `apps/e2e/README.md`: `bun run e2e` leaves its Postgres cluster running with keys in `apps/e2e/.e2e/api-keys.json`, then start `apps/server` against it on a free port. Ready means `GET /api/healthz` answers 200.
 - **Dashboard.** `bun run dev` serves the web app on 3005 and the server on 3003 against `.env.local`. Only use it when the operator's own stack is not already running there. The perf web suite builds and serves its own copy on a free port instead.
-- **CLI.** `bun --cwd packages/sdk run build`, then `bun packages/sdk/dist/bin.cjs eval scripts/fixtures/local-smoke/smoke.eval.ts --local` runs a keyless suite in under a second.
+- **CLI.** `(cd packages/sdk && bun run build)`, then `bun packages/sdk/dist/bin.cjs eval scripts/fixtures/local-smoke/smoke.eval.ts --local` runs a keyless suite in under a second.
 
 ## Doctor
 

@@ -75,7 +75,7 @@ summary_of() {
 }
 
 route_tree() {
-  [ -f apps/web/src/routeTree.gen.ts ] || bun --cwd apps/web run build
+  [ -f apps/web/src/routeTree.gen.ts ] || (cd apps/web && bun run build)
 }
 
 changed_files() {
@@ -112,7 +112,7 @@ tests_on_scratch() {
 }
 
 sdk_smoke() {
-  bun --cwd packages/sdk run build &&
+  (cd packages/sdk && bun run build) &&
     env -u ANPORD_API_KEY ANPORD_BROWSER=none bun packages/sdk/dist/bin.cjs eval scripts/fixtures/local-smoke/smoke.eval.ts --local
 }
 
