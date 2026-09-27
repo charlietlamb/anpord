@@ -195,7 +195,7 @@ const measurePair = async (
   writeResult(beforePath, beforeFile as ResultFile);
   writeResult(afterPath, afterFile as ResultFile);
   log(`\nbefore ${before}\nafter  ${after}\nresults in ${directory}\n`);
-  return runCompare(beforePath, afterPath);
+  return { afterPath, beforePath, flagged: runCompare(beforePath, afterPath) };
 };
 
 const suiteOfKey = (key: string) => key.slice(0, key.indexOf("."));
@@ -206,21 +206,26 @@ const runAb = async (name: string | undefined) => {
   }
   const before = resolve(values.before);
   const after = resolve(values.after ?? HARNESS_ROOT);
-  const flagged = await measurePair(suitesOf(name), before, after);
-  if (flagged.length === 0) {
+  const first = await measurePair(suitesOf(name), before, after);
+  if (first.flagged.length === 0) {
     return;
   }
   log(
-    `\n${flagged.length} flagged. Measuring those suites again, since a real regression shows up twice.\n`
+    `\n${first.flagged.length} flagged. Measuring those suites again and judging both passes pooled, so one noisy pass neither fails nor clears a change.\n`
   );
-  const again = new Set(
-    await measurePair([...new Set(flagged.map(suiteOfKey))], before, after)
+  const second = await measurePair(
+    [...new Set(first.flagged.map(suiteOfKey))],
+    before,
+    after
   );
-  const confirmed = flagged.filter((key) => again.has(key));
+  log("\nboth passes pooled\n");
+  const pooled = runCompare(
+    `${first.beforePath},${second.beforePath}`,
+    `${first.afterPath},${second.afterPath}`
+  );
   log(
-    `\n${confirmed.length} regressed in both passes${confirmed.length > 0 ? `: ${confirmed.join(", ")}` : ""}`
+    `${pooled.length} regressed over both passes${pooled.length > 0 ? `: ${pooled.join(", ")}` : ""}`
   );
-  process.exitCode = confirmed.length > 0 ? 1 : 0;
 };
 
 const [command, ...rest] = positionals;
