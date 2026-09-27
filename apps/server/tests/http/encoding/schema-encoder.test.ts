@@ -5,7 +5,7 @@ import { EvalValidations } from "@anpord/schema/domain/eval-validations";
 import { EvalBatch } from "@anpord/schema/domain/evals";
 import { Arbitrary, DateTime, FastCheck, Option, Schema } from "effect";
 import { schemaEncoder } from "../../../src/http/encoding/schema-encoder";
-import batch from "./fixtures/batch.json";
+import batch from "./fixtures/batch.json" with { type: "json" };
 
 const Journal = Schema.Union(
   Schema.Struct({ _tag: Schema.Literal("command"), exitCode: Schema.Int }),

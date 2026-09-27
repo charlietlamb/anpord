@@ -251,10 +251,7 @@
             {
               "_tag": "fileChange",
               "finishedAtMillis": 1788241462663,
-              "paths": [
-                "src/the.ts",
-                "src/module.ts"
-              ]
+              "paths": ["src/the.ts", "src/module.ts"]
             }
           ],
           "usage": {
@@ -394,10 +391,7 @@
             {
               "_tag": "fileChange",
               "finishedAtMillis": 1788241462664,
-              "paths": [
-                "src/read.ts",
-                "src/handler.ts"
-              ]
+              "paths": ["src/read.ts", "src/handler.ts"]
             }
           ],
           "usage": {
@@ -630,10 +624,7 @@
             {
               "_tag": "fileChange",
               "finishedAtMillis": 1788241462439,
-              "paths": [
-                "src/read.ts",
-                "src/module.ts"
-              ]
+              "paths": ["src/read.ts", "src/module.ts"]
             }
           ],
           "usage": {
@@ -773,10 +764,7 @@
             {
               "_tag": "fileChange",
               "finishedAtMillis": 1788241462440,
-              "paths": [
-                "src/cache.ts",
-                "src/module.ts"
-              ]
+              "paths": ["src/cache.ts", "src/module.ts"]
             }
           ],
           "usage": {
