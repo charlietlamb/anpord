@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
 import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
@@ -19,7 +20,6 @@ import {
   TrialRecorder,
   TrialRecorderLive,
 } from "../../src/repositories/trial-record";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 import { seedOrganization, seedRun } from "../fixtures/eval-rows";
 
 const TestLayer = Layer.mergeAll(

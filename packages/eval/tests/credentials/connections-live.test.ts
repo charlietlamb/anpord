@@ -3,9 +3,17 @@ import { Database } from "@anpord/db/client";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
 import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
-import { Clock, ConfigProvider, Effect, Layer, Redacted } from "effect";
+import {
+  Clock,
+  ConfigProvider,
+  Duration,
+  Effect,
+  Layer,
+  Redacted,
+} from "effect";
 import {
   CredentialCipher,
   CredentialCipherLive,
@@ -17,9 +25,11 @@ import {
 import { DeviceAuth, DeviceAuthLive } from "../../src/credentials/device-auth";
 import { CredentialResolver } from "../../src/credentials/resolver";
 import { CredentialResolverLive } from "../../src/credentials/resolver-live";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 
-const database = testDatabase(2);
+const database = testDatabase({
+  poolMax: 2,
+  statementTimeout: Duration.seconds(10),
+});
 const dependencies = Layer.mergeAll(
   database,
   IdGeneratorLive,

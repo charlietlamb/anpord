@@ -8,10 +8,10 @@
     "./config": "./src/config.ts",
     "./describe": "./src/describe.ts",
     "./health": "./src/health.ts",
+    "./test-database": "./src/test-database.ts",
     "./schema": "./src/schema.ts",
     "./schema/credentials/*": "./src/schema/credentials/*.ts",
-    "./schema/*": "./src/schema/*.ts",
-    "./test-database": "./src/test-database.ts"
+    "./schema/*": "./src/schema/*.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",
