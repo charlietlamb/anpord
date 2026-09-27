@@ -4,6 +4,7 @@ import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import { LivePip } from "@anpord/ui/components/evals/live-pip";
 import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
+import { LiveTail } from "@/components/evals/live-tail";
 import { ErrorCard } from "@/components/layout/error-card";
 import { PageShell } from "@/components/layout/page-shell";
 import { triggerPresentation } from "@/lib/evals/run-trigger";
@@ -68,6 +69,7 @@ export function BatchScreen({ batchId }: { readonly batchId: string }) {
       title="Batch"
       width="wide"
     >
+      {running ? <LiveTail batchId={batchId} runId={null} /> : null}
       {batch === undefined ? null : (
         <BatchRuns batch={batch} linkTo={trialLink} />
       )}

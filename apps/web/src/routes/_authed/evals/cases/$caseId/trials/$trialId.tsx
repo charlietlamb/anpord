@@ -4,6 +4,7 @@ import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialScreen } from "@/components/evals/trial-screen";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { crumbFrom } from "@/lib/use-breadcrumbs";
 
 export const Route = createFileRoute(
   "/_authed/evals/cases/$caseId/trials/$trialId"
@@ -18,13 +19,11 @@ export const Route = createFileRoute(
   },
   component: TrialRoute,
   staticData: {
-    crumb: (params, queryClient) => {
-      const address = queryClient.getQueryData(
-        evalQueries.trialAddress(params.trialId).queryKey
-      );
-
-      return address === undefined ? undefined : `Trial ${address.ordinal}`;
-    },
+    crumb: (params) =>
+      crumbFrom(
+        evalQueries.trialAddress(params.trialId).queryKey,
+        (address) => `Trial ${address.ordinal}`
+      ),
     title: "Trial",
   },
 });

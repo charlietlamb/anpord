@@ -26,13 +26,14 @@
     "@tanstack/react-router": "catalog:",
     "@tanstack/react-router-ssr-query": "catalog:",
     "@tanstack/react-start": "catalog:",
+    "@tanstack/react-virtual": "catalog:",
     "@tanstack/start-server-core": "catalog:",
     "@trigger.dev/react-hooks": "catalog:",
     "better-auth": "catalog:",
     "effect": "catalog:",
+    "motion": "catalog:",
     "next-themes": "catalog:",
     "nitro": "catalog:",
-    "motion": "catalog:",
     "nuqs": "catalog:",
     "posthog-js": "catalog:",
     "react": "catalog:",
@@ -49,6 +50,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "happy-dom": "catalog:",
     "tailwindcss": "catalog:",
     "vite": "catalog:"
   }

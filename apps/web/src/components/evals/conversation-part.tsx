@@ -22,12 +22,16 @@ export interface Written {
 
 export function ConversationPart({
   live,
+  onOpenChange,
+  open,
   openerFor,
   took,
   part,
   written,
 }: {
   readonly live: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly open: boolean;
   readonly openerFor: FileOpener;
   readonly took: number | null;
   readonly part: Part;
@@ -57,5 +61,12 @@ export function ConversationPart({
     return <ConversationWrote paths={part.paths} {...written} />;
   }
 
-  return <ConversationWork live={live} steps={part.steps} />;
+  return (
+    <ConversationWork
+      live={live}
+      onOpenChange={onOpenChange}
+      open={open}
+      steps={part.steps}
+    />
+  );
 }

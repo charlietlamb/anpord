@@ -1,4 +1,3 @@
-import type { QueryKey } from "@tanstack/react-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRealtimeRunsWithTag } from "@trigger.dev/react-hooks";
 import { useEffect, useRef } from "react";
@@ -13,19 +12,10 @@ export interface LiveBatch {
   readonly listening: boolean;
 }
 
-export function useLiveBatch({
-  batchId,
-  running,
-  tail,
-}: {
-  readonly batchId: string;
-  readonly running: boolean;
-  readonly tail: QueryKey;
-}): LiveBatch {
+export function useLiveBatch(batchId: string): LiveBatch {
   const client = useQueryClient();
 
   const { data: subscription } = useQuery({
-    enabled: running,
     gcTime: 0,
     queryKey: evalKeys.subscription(batchId),
     queryFn: () => getBatchSubscription(batchId),
@@ -42,7 +32,7 @@ export function useLiveBatch({
 
   const { runs } = useRealtimeRunsWithTag(subscription?.tag ?? "", {
     accessToken: subscription?.token,
-    enabled: running && subscription !== undefined,
+    enabled: subscription !== undefined,
   });
 
   const seen = useRef("");
@@ -60,8 +50,8 @@ export function useLiveBatch({
     }
 
     seen.current = signature;
-    client.invalidateQueries({ queryKey: tail });
-  }, [client, runs, tail]);
+    client.invalidateQueries({ queryKey: evalKeys.tails(batchId) });
+  }, [batchId, client, runs]);
 
   return { listening: runs.length > 0 };
 }

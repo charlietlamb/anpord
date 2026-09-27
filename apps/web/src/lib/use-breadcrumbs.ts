@@ -1,12 +1,14 @@
-import { type QueryClient, useQueryClient } from "@tanstack/react-query";
+import { type DataTag, type QueryKey, useQueries } from "@tanstack/react-query";
 import { useMatches } from "@tanstack/react-router";
+
+export interface CrumbQuery {
+  label: (data: unknown) => string | undefined;
+  queryKey: QueryKey;
+}
 
 declare module "@tanstack/react-router" {
   interface StaticDataRouteOption {
-    crumb?: (
-      params: Record<string, string>,
-      queryClient: QueryClient
-    ) => string | undefined;
+    crumb?: (params: Record<string, string>) => string | CrumbQuery;
     title?: string;
   }
 }
@@ -16,17 +18,37 @@ export interface Crumb {
   label: string;
 }
 
+export const crumbFrom = <TData, TError>(
+  queryKey: DataTag<QueryKey, TData, TError>,
+  label: (data: TData) => string | undefined
+): CrumbQuery => ({
+  queryKey,
+  label: (data) => label(data as TData),
+});
+
 export function useBreadcrumbs(): Crumb[] {
-  const queryClient = useQueryClient();
   const matches = useMatches();
+  const sources = matches.map((match) =>
+    match.staticData?.crumb?.(match.params as Record<string, string>)
+  );
+  const queried = sources.filter(
+    (source): source is CrumbQuery => typeof source === "object"
+  );
+  const labels = useQueries({
+    queries: queried.map((source) => ({
+      queryKey: source.queryKey,
+      enabled: false,
+      select: source.label,
+    })),
+    combine: (results) => results.map((result) => result.data),
+  });
   const crumbs: Crumb[] = [];
 
-  for (const match of matches) {
-    const { crumb, title } = match.staticData ?? {};
+  for (const [index, match] of matches.entries()) {
+    const source = sources[index];
     const label =
-      (crumb
-        ? crumb(match.params as Record<string, string>, queryClient)
-        : undefined) ?? title;
+      (typeof source === "object" ? labels[queried.indexOf(source)] : source) ??
+      match.staticData?.title;
 
     if (label && crumbs.at(-1)?.label !== label) {
       crumbs.push({ label, href: match.pathname });

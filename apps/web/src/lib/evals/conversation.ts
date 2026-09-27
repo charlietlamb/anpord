@@ -129,3 +129,22 @@ export const durationOf = (step: ConversationStep) =>
   step.finishedAtMillis == null
     ? null
     : Math.max(0, step.finishedAtMillis - step.startedAtMillis);
+
+const LINE_HEIGHT = 22.75;
+const MESSAGE_CHROME = 23;
+const CHARACTERS_PER_LINE = 126;
+const WORK_HEIGHT = 32;
+const WROTE_HEIGHT = 40;
+
+export const estimatedHeightOf = (part: ConversationPart) => {
+  if (part._tag === "worked") {
+    return WORK_HEIGHT;
+  }
+  if (part._tag === "wrote") {
+    return WROTE_HEIGHT * part.paths.length;
+  }
+  return (
+    MESSAGE_CHROME +
+    LINE_HEIGHT * Math.max(1, Math.ceil(part.text.length / CHARACTERS_PER_LINE))
+  );
+};

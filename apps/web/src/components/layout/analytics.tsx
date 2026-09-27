@@ -1,8 +1,14 @@
 import { Databuddy } from "@databuddy/sdk/react";
 import { ClientOnly } from "@tanstack/react-router";
+import { Hydrate } from "@tanstack/react-start";
+import { idle } from "@tanstack/react-start/hydration";
 // biome-ignore lint/correctness/noUnresolvedImports: biome cannot see the Suspense export in the react types
 import { type ComponentType, lazy, type ReactNode, Suspense } from "react";
-import { ANALYTICS_ENABLED, DATABUDDY_CLIENT_ID } from "@/lib/analytics/config";
+import {
+  ANALYTICS_ENABLED,
+  DATABUDDY_CLIENT_ID,
+  POSTHOG_KEY,
+} from "@/lib/analytics/config";
 
 const PostHogAnalytics = lazy<ComponentType>(() =>
   import("@/components/layout/posthog-analytics").then(
@@ -15,11 +21,15 @@ export function Analytics({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      <ClientOnly>
-        <Suspense fallback={null}>
-          <PostHogAnalytics />
-        </Suspense>
-      </ClientOnly>
+      {POSTHOG_KEY === "" ? null : (
+        <Hydrate when={idle()}>
+          <ClientOnly>
+            <Suspense fallback={null}>
+              <PostHogAnalytics />
+            </Suspense>
+          </ClientOnly>
+        </Hydrate>
+      )}
       <Databuddy
         clientId={DATABUDDY_CLIENT_ID}
         disabled={!ANALYTICS_ENABLED}

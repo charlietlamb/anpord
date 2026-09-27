@@ -115,3 +115,26 @@ test("weights the tool name above the server it came from", () => {
   expect(html).toContain("get_markdown");
   expect(html).toContain("font-medium text-foreground");
 });
+
+test("renders the first screen of a long trial's calls and counts them all", () => {
+  const html = renderToStaticMarkup(
+    <NuqsTestingAdapter>
+      <TrialCalls
+        trajectory={Array.from({ length: 2000 }, (_, index) => ({
+          _tag: "toolCall" as const,
+          name: `catalog.get_${index}`,
+          input: "{}",
+          output: "ok",
+          status: "completed" as const,
+          finishedAtMillis: index,
+        }))}
+      />
+    </NuqsTestingAdapter>
+  );
+
+  expect(html).toContain("get_0<");
+  expect(html).toContain("get_20<");
+  expect(html).not.toContain("get_1999<");
+  expect(html).toContain("2000 calls");
+  expect(html).toContain("height:82000px");
+});

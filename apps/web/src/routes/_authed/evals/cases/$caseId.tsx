@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { crumbFrom } from "@/lib/use-breadcrumbs";
 
 export const Route = createFileRoute("/_authed/evals/cases/$caseId")({
   ssr: false,
@@ -8,8 +9,11 @@ export const Route = createFileRoute("/_authed/evals/cases/$caseId")({
   },
   component: Outlet,
   staticData: {
-    crumb: (params, queryClient) =>
-      queryClient.getQueryData(evalQueries.case(params.caseId).queryKey)?.name,
+    crumb: (params) =>
+      crumbFrom(
+        evalQueries.case(params.caseId).queryKey,
+        (entry) => entry.name
+      ),
     title: "Case",
   },
 });
