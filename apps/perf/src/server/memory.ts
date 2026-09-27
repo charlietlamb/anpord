@@ -35,7 +35,7 @@ export const sampleMemory = (probe: () => Promise<Memory>) => {
   };
 };
 
-export const peakMetrics = async (
+const peakMetrics = async (
   stop: () => Promise<{ peakHeap: number; peakRss: number }>
 ) => {
   const peak = await stop();
@@ -43,4 +43,17 @@ export const peakMetrics = async (
     heap_peak_bytes: informational(single("bytes", peak.peakHeap)),
     rss_peak_bytes: informational(single("bytes", peak.peakRss)),
   };
+};
+
+export const stopSamplers = async (
+  stops: readonly (() => Promise<{ peakHeap: number; peakRss: number }>)[]
+) => {
+  const settled = await Promise.allSettled(stops.map(peakMetrics));
+  const failure = settled.find((each) => each.status === "rejected");
+  if (failure?.status === "rejected") {
+    throw failure.reason;
+  }
+  return settled.flatMap((each) =>
+    each.status === "fulfilled" ? [each.value] : []
+  );
 };

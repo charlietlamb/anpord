@@ -6,7 +6,7 @@ import { startServer } from "../stack/server";
 import type { Stack } from "../stack/stack";
 import { selectEndpoints } from "./endpoints";
 import { type MeasureSettings, measureEndpoint } from "./measure";
-import { peakMetrics, sampleMemory } from "./memory";
+import { sampleMemory, stopSamplers } from "./memory";
 
 export interface ServerSettings extends MeasureSettings {
   readonly coldStarts: number;
@@ -72,8 +72,8 @@ export const runServerSuite = async (
       await Promise.allSettled(samplers.map((stop) => stop()));
       throw cause;
     }
-    for (const [index, stop] of samplers.entries()) {
-      Object.assign(metrics[index] ?? {}, await peakMetrics(stop));
+    for (const [index, peak] of (await stopSamplers(samplers)).entries()) {
+      Object.assign(metrics[index] ?? {}, peak);
     }
 
     log("server: timing cold starts");
