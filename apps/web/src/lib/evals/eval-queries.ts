@@ -1,3 +1,4 @@
+import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
 import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
 import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
 import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
@@ -16,6 +17,7 @@ import {
   listCases,
   listSuites,
   readBatchTail,
+  readHome,
 } from "@/lib/evals/evals-client";
 import {
   type HeardTail,
@@ -52,6 +54,13 @@ const catchUp = async (
 };
 
 export const evalQueries = {
+  home: (range: EvalHomeRange) =>
+    queryOptions({
+      queryKey: evalKeys.home(range),
+      queryFn: () => readHome(range),
+      ...LIST,
+    }),
+
   cases: (filters: CaseFilters, cursor: EvalPageCursor | null = null) =>
     queryOptions({
       queryKey: evalKeys.cases(filters, cursor),

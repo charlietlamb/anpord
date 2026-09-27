@@ -3,6 +3,7 @@ import {
   ChatTextIcon,
   GaugeIcon,
   GearIcon,
+  HouseIcon,
   type Icon,
   StackIcon,
 } from "@phosphor-icons/react";
@@ -19,6 +20,7 @@ interface NavSection {
 }
 
 export const DASHBOARD_NAV: NavSection[] = [
+  { items: [{ label: "Home", icon: HouseIcon, to: "/" }] },
   {
     label: "Evaluations",
     items: [
