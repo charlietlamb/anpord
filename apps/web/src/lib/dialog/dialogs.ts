@@ -1,6 +1,6 @@
+import type { ChannelColor } from "@anpord/schema/domain/channels";
 import type { ConfirmDialogProps } from "@anpord/ui/components/dialog/confirm-dialog";
 import { createDialogSystem } from "@anpord/ui/components/dialog/create-dialog-system";
-import type { ChannelColor } from "@anpord/ui/lib/channel-colors";
 
 export interface DialogMap {
   apiKeyCreated: { apiKey: string; name: string };

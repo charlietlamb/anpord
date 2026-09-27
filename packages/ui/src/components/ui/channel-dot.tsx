@@ -1,4 +1,5 @@
-import { type ChannelColor, CHANNEL_SWATCHES } from "@anpord/ui/lib/channel-colors";
+import type { ChannelColor } from "@anpord/schema/domain/channels";
+import { CHANNEL_SWATCHES } from "@anpord/ui/lib/channel-colors";
 import { cn } from "@anpord/ui/lib/utils";
 
 interface ChannelDotProps {
