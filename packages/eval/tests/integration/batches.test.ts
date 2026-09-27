@@ -38,6 +38,7 @@ const suffix = Date.now();
 const organizationId = `org_batches_${suffix}`;
 const crowdedId = `org_crowded_${suffix}`;
 const quietId = `org_quiet_${suffix}`;
+const localCrowdId = `org_local_crowd_${suffix}`;
 const actor = actorOf(organizationId);
 const dispatched: Dispatched[] = [];
 const seen: AgentTrialRequest[] = [];
@@ -137,6 +138,8 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       await seedConnections(db, crowdedId);
       await seedOrganization(db, quietId);
       await seedConnections(db, quietId);
+      await seedOrganization(db, localCrowdId);
+      await seedConnections(db, localCrowdId);
     });
   });
 
@@ -986,6 +989,34 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
           )
       );
       expect(running).toHaveLength(MAX_ORGANIZATION_RUNS_IN_FLIGHT);
+    });
+
+    it("lets local batches past the ceiling, because they open no sandbox", async () => {
+      const crowd = actorOf(localCrowdId);
+      const wanted = MAX_ORGANIZATION_RUNS_IN_FLIGHT + 2;
+      for (let index = 0; index < wanted; index += 1) {
+        await start(
+          requestOf({
+            cases: [caseOf(`local-crowd-${index}`)],
+            local: true,
+            variants: [variantOf({ sandbox: "local" })],
+          }),
+          crowd
+        );
+      }
+
+      const running = await query((db) =>
+        db
+          .select({ id: evalBatch.internalId })
+          .from(evalBatch)
+          .where(
+            and(
+              eq(evalBatch.organizationId, localCrowdId),
+              inArray(evalBatch.status, ["running"])
+            )
+          )
+      );
+      expect(running).toHaveLength(wanted);
     });
 
     it("does not count local batches whose machine went quiet", async () => {

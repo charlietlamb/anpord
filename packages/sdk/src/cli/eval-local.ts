@@ -16,6 +16,7 @@ import {
   Array as Arr,
   Cause,
   Clock,
+  Config,
   ConfigProvider,
   Effect,
   Option,
@@ -56,6 +57,17 @@ export const labelOfRequest = (variant: EvalVariantRequest) =>
     model: variant.model,
     profile: variant.profile?.name ?? null,
   });
+
+const casesAtOnce = Config.string("EVAL_LOCAL_CASES_AT_ONCE").pipe(
+  Config.withDefault("1"),
+  Config.map((value) =>
+    value === "unbounded" ? ("unbounded" as const) : Number.parseInt(value, 10)
+  ),
+  Config.validate({
+    message: "EVAL_LOCAL_CASES_AT_ONCE must be a positive number or unbounded",
+    validation: (value) => value === "unbounded" || value > 0,
+  })
+);
 
 const localConfig = ConfigProvider.fromEnv().pipe(
   ConfigProvider.orElse(() =>
@@ -169,7 +181,7 @@ const runVariant = (
         ordinals.map((ordinal) => [subject, ordinal] as const)
       ),
       ([subject, ordinal]) => attempt(subject, ordinal),
-      { concurrency: 1 }
+      { concurrency: yield* casesAtOnce }
     );
   }).pipe(
     Effect.provide(

@@ -375,14 +375,12 @@ describe.skipIf(skipWithoutDatabase())(
         return row?.status;
       });
 
-    it("keeps counting and running past 10 minutes, while one that checks in is closed", async () => {
+    it("leaves local batches uncounted, and closes the quiet one", async () => {
       const older = await run(startedLongAgo(false, `rec_older_${suffix}`));
       const newer = await run(startedLongAgo(true, `rec_newer_${suffix}`));
 
       const counted = await run(
-        Effect.flatMap(BatchRepository, (batches) =>
-          batches.inFlight(olderId, new Date(Date.now() - 10 * MINUTES))
-        )
+        Effect.flatMap(BatchRepository, (batches) => batches.inFlight(olderId))
       );
       await run(reconcile(Duration.hours(6)));
 
@@ -390,7 +388,7 @@ describe.skipIf(skipWithoutDatabase())(
         counted,
         newer: await statusOf(newer),
         older: await statusOf(older),
-      }).toEqual({ counted: 1, newer: "failed", older: "running" });
+      }).toEqual({ counted: 0, newer: "failed", older: "running" });
     });
   }
 );

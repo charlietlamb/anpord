@@ -4,11 +4,10 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
-import { and, count, eq, not } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
 import { tryStore } from "./query";
-import { quietLocalBatch } from "./quiet-local-batch";
 import { unreportedTrials, voidUnreported } from "./unreported-trials";
 
 const UNREPORTED = "not recorded: the machine running this never reported it";
@@ -50,8 +49,7 @@ export interface BatchRepositoryShape {
     readonly status: Settled;
   }) => Effect.Effect<void, EvalStoreError>;
   readonly inFlight: (
-    organizationId: string,
-    quietSince: Date
+    organizationId: string
   ) => Effect.Effect<number, EvalStoreError>;
   readonly insert: (input: NewBatch) => Effect.Effect<
     Option.Option<{
@@ -161,8 +159,7 @@ export const BatchRepositoryLive = Layer.effect(
           attributes: { batchId: input.internalId, status: input.status },
         })
       );
-
-    const inFlight = (organizationId: string, quietSince: Date) =>
+    const inFlight = (organizationId: string) =>
       tryStore("batch.inFlight", () =>
         db
           .select({ running: count() })
@@ -171,7 +168,7 @@ export const BatchRepositoryLive = Layer.effect(
             and(
               eq(evalBatch.organizationId, organizationId),
               eq(evalBatch.status, "running"),
-              not(quietLocalBatch(quietSince))
+              eq(evalBatch.local, false)
             )
           )
       ).pipe(
