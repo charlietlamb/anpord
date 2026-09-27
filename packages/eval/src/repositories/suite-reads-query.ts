@@ -14,9 +14,10 @@ import {
 } from "@anpord/schema/domain/evals";
 import type { SQL } from "drizzle-orm";
 import { and, countDistinct, desc, eq, inArray, max, sql } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
 import { tryStore } from "./query";
+import { timestamp } from "./run-view";
 import { variantResultsQuery } from "./variant-results-query";
 
 export interface ListSuites {
@@ -43,9 +44,6 @@ const configurations =
   sql<number>`count(distinct (${evalVariant.harness}, ${evalVariant.model}, ${evalVariant.sandbox}, coalesce(${evalVariant.profile}, '')))`.mapWith(
     Number
   );
-
-const timestamp = (at: Date | null) =>
-  at === null ? null : DateTime.unsafeMake(at.getTime());
 
 export const suiteReadsQuery = Effect.gen(function* () {
   const db = yield* Database;

@@ -10,15 +10,12 @@ import type {
   EvalPageCursor,
 } from "@anpord/schema/domain/evals";
 import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
-import { DateTime, Effect, Option } from "effect";
+import { Effect, Option } from "effect";
 import { rollUp } from "../domain/eval-costs";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
 import { tryStore } from "./query";
 import { runReadsQuery } from "./run-reads-query";
-import { runStatus } from "./run-view";
-
-const timestamp = (date: Date | null) =>
-  date === null ? null : DateTime.unsafeMake(date.getTime());
+import { runStatus, timestamp } from "./run-view";
 
 export const batchReadsQuery = Effect.gen(function* () {
   const db = yield* Database;
@@ -56,7 +53,7 @@ export const batchReadsQuery = Effect.gen(function* () {
         id: batch.internalId,
         local: batch.local,
         runs: held.toReversed(),
-        startedAt: DateTime.unsafeMake(batch.createdAt.getTime()),
+        startedAt: timestamp(batch.createdAt),
         status: runStatus(batch.status),
         trigger: batch.trigger,
       });
@@ -139,7 +136,7 @@ export const batchReadsQuery = Effect.gen(function* () {
             passed: tally?.passed ?? 0,
             runs: tally?.runs ?? 0,
             scored: tally?.scored ?? 0,
-            startedAt: DateTime.unsafeMake(row.createdAt.getTime()),
+            startedAt: timestamp(row.createdAt),
             status: runStatus(row.status),
             trigger: row.trigger,
             voided: tally?.voided ?? 0,
