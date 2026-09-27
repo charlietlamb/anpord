@@ -1,3 +1,4 @@
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import type { EvalRun } from "@anpord/schema/domain/evals";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
@@ -9,15 +10,41 @@ import {
 import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
 import { runStatus } from "@anpord/ui/lib/evals/eval-status";
 import { RunTrialRow } from "@/components/evals/run-trial-row";
+import { TrialTimeline } from "@/components/evals/trial-timeline";
 import { PageShell } from "@/components/layout/page-shell";
 import { CASE_RUNS_TABLE } from "@/lib/evals/case-tables";
+
+const liveSteps = (
+  run: EvalRun,
+  trajectory: readonly EvalJournalEntry[]
+) => {
+  if (trajectory.length > 0) {
+    return (
+      <TrialTimeline
+        running={run.status === "running"}
+        timed={trajectory.some((entry) => entry.finishedAtMillis !== null)}
+        trajectory={trajectory}
+      />
+    );
+  }
+
+  return (
+    <EmptyNote>
+      {run.status === "running"
+        ? "Waiting for the agent to take its first step."
+        : "This run finished without opening a trial."}
+    </EmptyNote>
+  );
+};
 
 export function RunView({
   caseId,
   run,
+  trajectory,
 }: {
   readonly caseId: string;
   readonly run: EvalRun;
+  readonly trajectory: readonly EvalJournalEntry[];
 }) {
   return (
     <PageShell
@@ -34,11 +61,7 @@ export function RunView({
       width="wide"
     >
       {run.trials.length === 0 ? (
-        <EmptyNote>
-          {run.status === "running"
-            ? "This run has not opened a trial yet. It will appear here as it starts."
-            : "This run finished without opening a trial."}
-        </EmptyNote>
+        liveSteps(run, trajectory)
       ) : (
         <DataTable
           columns={CASE_RUNS_TABLE.columns}
