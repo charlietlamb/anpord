@@ -18,8 +18,9 @@ export const openEnvelope = async (
   sealed: string,
   context: string
 ) => {
-  const [version, iv, encrypted] = sealed.split(".");
-  if (version !== "v1" || !iv || !encrypted) {
+  const segments = sealed.split(".");
+  const [version, iv, encrypted] = segments;
+  if (segments.length !== 3 || version !== "v1" || !iv || !encrypted) {
     throw new Error("Invalid envelope");
   }
   const value = await crypto.subtle.decrypt(
