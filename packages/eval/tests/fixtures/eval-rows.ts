@@ -28,6 +28,7 @@ export const seedConnection = (
     readonly id: string;
     readonly integrationId: string;
     readonly organizationId: string;
+    readonly sealedPayload?: string;
   }
 ) =>
   db
@@ -39,7 +40,7 @@ export const seedConnection = (
       name: input.id,
       organizationId: input.organizationId,
       scope: "organization",
-      sealedPayload: "sealed",
+      sealedPayload: input.sealedPayload ?? "sealed",
       status: "active",
     })
     .onConflictDoNothing();

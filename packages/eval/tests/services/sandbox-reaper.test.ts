@@ -3,7 +3,11 @@ import { Database } from "@anpord/db/client";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { inArray } from "drizzle-orm";
 import { ConfigProvider, Duration, Effect, Layer, Redacted } from "effect";
-import { CredentialCipherLive } from "../../src/credentials/cipher";
+import {
+  CredentialCipher,
+  CredentialCipherLive,
+} from "../../src/credentials/cipher";
+import { sealValues } from "../../src/credentials/connection-payload";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { CredentialResolverLive } from "../../src/credentials/resolver-live";
 import type { DestroySandbox } from "../../src/ports/sandbox";
@@ -188,11 +192,28 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
   });
 
   it("clears a trial whose bound credential was sealed under another key", async () => {
+    const foreignRow = {
+      id: foreignConnectionId,
+      integrationId: "e2b",
+      organizationId,
+    };
+    const sealedElsewhere = await Effect.runPromise(
+      CredentialCipher.pipe(
+        Effect.flatMap((cipher) =>
+          sealValues(cipher, { apiKey: "e2b-key" }, foreignRow)
+        ),
+        Effect.provide(CredentialCipherLive),
+        Effect.withConfigProvider(
+          ConfigProvider.fromMap(
+            new Map([["CREDENTIALS_ENCRYPTION_KEY", "another-server-key"]])
+          )
+        )
+      )
+    );
     await withDb(async (db) => {
       await seedConnection(db, {
-        id: foreignConnectionId,
-        integrationId: "e2b",
-        organizationId,
+        ...foreignRow,
+        sealedPayload: sealedElsewhere,
       });
       const foreign = await seedRun(db, {
         createdAt: new Date(Date.now() - 12 * HOURS),
