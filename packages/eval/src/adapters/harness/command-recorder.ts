@@ -8,19 +8,31 @@ export const COMMAND_RECORDER = `anpord_escape() {
   s=\${s//$'\\t'/\\\\t}
   s=\${s//$'\\n'/\\\\n}
   s=\${s//$'\\r'/\\\\r}
-  printf '%s' "$s"
+  ANPORD_ESCAPED=$s
 }
+
+if [ -n "$BASH_VERSION" ] && TZ=UTC0 printf -v ANPORD_NOW '%(%Y)T' -1 2>/dev/null; then
+  anpord_now() {
+    TZ=UTC0 printf -v ANPORD_NOW '%(%Y-%m-%dT%H:%M:%SZ)T' -1
+  }
+else
+  anpord_now() {
+    ANPORD_NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  }
+fi
 
 anpord_trace() {
   [ -n "$ANPORD_TRACING" ] && return
   case "$BASH_COMMAND" in
-    anpord_trace* | anpord_escape*) return ;;
+    anpord_trace* | anpord_escape* | anpord_now*) return ;;
   esac
   ANPORD_TRACING=1
+  anpord_now
+  anpord_escape "$PWD"
+  local cwd=$ANPORD_ESCAPED
+  anpord_escape "$BASH_COMMAND"
   printf '{"at":"%s","cwd":"%s","argv":"%s","source":"trap"}\\n' \\
-    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \\
-    "$(anpord_escape "$PWD")" \\
-    "$(anpord_escape "$BASH_COMMAND")" \\
+    "$ANPORD_NOW" "$cwd" "$ANPORD_ESCAPED" \\
     >> "$ANPORD_TRACE_LOG" 2>/dev/null
   ANPORD_TRACING=
 }

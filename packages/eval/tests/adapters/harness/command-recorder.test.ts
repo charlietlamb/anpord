@@ -1,4 +1,7 @@
 import { describe, expect, it } from "bun:test";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import {
   COMMAND_RECORDER,
@@ -89,16 +92,36 @@ describe("withoutReported", () => {
   });
 });
 
+const TRACED_TAB =
+  /^\{"at":"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ","cwd":"[^"]+","argv":"echo \\"a\\tb\\" > \/dev\/null","source":"trap"\}$/;
+
 describe("the recorder script", () => {
   it("installs nothing without a log to write to", () => {
     expect(COMMAND_RECORDER).toContain('if [ -n "$ANPORD_TRACE_LOG" ]; then');
   });
 
-  it("guards the trap against tracing itself", () => {
-    expect(COMMAND_RECORDER).toContain('[ -n "$ANPORD_TRACING" ] && return');
-    expect(COMMAND_RECORDER).toContain(
-      "anpord_trace* | anpord_escape*) return"
+  it("records each command a script runs, escaped, and nothing of its own", () => {
+    const dir = mkdtempSync(join(tmpdir(), "anpord-recorder-"));
+    const recorder = join(dir, "trace.sh");
+    const log = join(dir, "trace.ndjson");
+    writeFileSync(recorder, COMMAND_RECORDER);
+
+    const ran = Bun.spawnSync(
+      [
+        "bash",
+        "-c",
+        'echo "a\tb" > /dev/null; read -r <<< kept; echo "$REPLY"',
+      ],
+      { cwd: dir, env: { ANPORD_TRACE_LOG: log, BASH_ENV: recorder } }
     );
+    const lines = readFileSync(log, "utf8").trim().split("\n");
+    rmSync(dir, { force: true, recursive: true });
+
+    expect(ran.stdout.toString()).toBe("kept\n");
+    expect(traceToEvents(lines.join("\n")).map((each) => each.command)).toEqual(
+      ['echo "a\tb" > /dev/null', "read -r <<< kept", 'echo "$REPLY"']
+    );
+    expect(lines[0]).toMatch(TRACED_TAB);
   });
 
   it("is valid bash", () => {
