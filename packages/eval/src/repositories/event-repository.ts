@@ -38,7 +38,10 @@ export const EventRepositoryLive = Layer.effect(
 
         const rows = yield* tryStore("event.listByTrials", () =>
           db
-            .select()
+            .select({
+              payload: evalEvent.payload,
+              trialInternalId: evalEvent.trialInternalId,
+            })
             .from(evalEvent)
             .where(inArray(evalEvent.trialInternalId, [...trialInternalIds]))
             .orderBy(asc(evalEvent.seq))

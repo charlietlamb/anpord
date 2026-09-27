@@ -37,6 +37,7 @@ const collector = () => {
     () => Effect.Effect<string, unknown, never>
   >();
   const self = {
+    group: { endpoints: {} },
     handle(name: string, handler: () => Effect.Effect<string, unknown, never>) {
       registered.set(name, handler);
       return self;

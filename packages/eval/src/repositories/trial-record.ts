@@ -167,6 +167,13 @@ export const TrialRecorderLive = Layer.effect(
                 sandboxId: evalTrial.sandboxId,
               });
             const trialInternalId = opened?.internalId ?? fresh;
+            const prior = {
+              priorSandboxId: opened?.sandboxId ?? null,
+              trialInternalId,
+            };
+            if (trialInternalId === fresh) {
+              return prior;
+            }
             await tx
               .delete(evalTrialArtifact)
               .where(eq(evalTrialArtifact.trialInternalId, trialInternalId));
@@ -179,10 +186,7 @@ export const TrialRecorderLive = Layer.effect(
             await tx
               .delete(evalTrialCost)
               .where(eq(evalTrialCost.trialInternalId, trialInternalId));
-            return {
-              priorSandboxId: opened?.sandboxId ?? null,
-              trialInternalId,
-            };
+            return prior;
           })
         );
 

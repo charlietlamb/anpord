@@ -4,6 +4,7 @@ import { grants } from "@anpord/schema/domain/permissions";
 import { CurrentActor } from "@anpord/schema/internal/authentication";
 import type { HttpApiBuilder, HttpApiEndpoint } from "@effect/platform";
 import { Effect } from "effect";
+import { jsonSuccess } from "../encoding/json-success";
 
 interface RouteOptions {
   readonly permission: Permission;
@@ -45,6 +46,11 @@ type Authorized<E, Provides, R, Endpoints extends AnyEndpoint> = Omit<
 type AnyEndpoint = HttpApiEndpoint.HttpApiEndpoint.Any;
 
 interface Builder {
+  readonly group: {
+    readonly endpoints: Readonly<
+      Record<string, HttpApiEndpoint.HttpApiEndpoint.AnyWithProps | undefined>
+    >;
+  };
   handle: (name: string, handler: unknown, options?: unknown) => Builder;
 }
 
@@ -87,12 +93,20 @@ export const authorized = <E, Provides, R, Endpoints extends AnyEndpoint>(
         }
 
         return (name: string, options: RouteOptions, handler: unknown) => {
+          const respond = jsonSuccess(source.group.endpoints[name]);
           const guarded =
             typeof handler === "function"
               ? (...args: readonly unknown[]) =>
                   Effect.zipRight(
                     authorize(options.permission),
-                    handler(...args) as Effect.Effect<unknown, unknown, unknown>
+                    Effect.flatMap(
+                      handler(...args) as Effect.Effect<
+                        unknown,
+                        unknown,
+                        unknown
+                      >,
+                      respond
+                    )
                   )
               : handler;
 

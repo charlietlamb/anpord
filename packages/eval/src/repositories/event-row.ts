@@ -1,7 +1,10 @@
 import type { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
-type EventRow = typeof evalEvent.$inferSelect;
+type EventRow = Pick<
+  typeof evalEvent.$inferSelect,
+  "payload" | "trialInternalId"
+>;
 
 /* Rows must already be in seq order; nothing here sorts. */
 export const groupByTrial = (

@@ -81,7 +81,7 @@ export const makeReport = Effect.gen(function* () {
       }
 
       const plan = Option.flatMap(
-        yield* plans(found.value.batchInternalId),
+        yield* plans(found.value.batchInternalId, trial.runId),
         ({ runs }) =>
           Option.fromNullable(
             runs.find(({ internalId }) => internalId === trial.runId)
