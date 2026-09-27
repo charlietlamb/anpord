@@ -80,7 +80,6 @@
         "@anpord/schema": "workspace:*",
         "@effect/platform": "catalog:",
         "@effect/platform-bun": "catalog:",
-        "@trigger.dev/sdk": "catalog:",
         "effect": "catalog:",
       },
       "devDependencies": {
@@ -276,7 +275,7 @@
     },
     "packages/sdk": {
       "name": "anpord",
-      "version": "0.1.25",
+      "version": "0.1.26",
       "bin": {
         "anpord": "./dist/bin.mjs",
       },
