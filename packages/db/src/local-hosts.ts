@@ -1,4 +1,4 @@
-export const LOCAL_HOSTS = new Set([
+const LOCAL_HOSTS = new Set([
   "localhost",
   "127.0.0.1",
   "::1",

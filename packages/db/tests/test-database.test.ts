@@ -35,20 +35,10 @@ describe("testDatabaseUrl", () => {
     expect(() => pointingAt("postgresql://localhost/")).toThrow('points at ""');
   });
 
-  it("refuses a value that is not a URL", () => {
-    expect(() => pointingAt("anpord_test")).toThrow(
-      "EVAL_TEST_DATABASE_URL is not a postgres URL."
-    );
-  });
-
-  it("refuses a database name with broken percent encoding", () => {
-    expect(() => pointingAt("postgresql://localhost:5432/%zz")).toThrow(
-      "EVAL_TEST_DATABASE_URL is not a postgres URL."
-    );
-  });
-
-  it("refuses a URL for anything but postgres", () => {
+  it("refuses anything but a well formed postgres URL", () => {
     for (const url of [
+      "anpord_test",
+      "postgresql://localhost:5432/%zz",
       "postgresqlx://localhost/anpord_test",
       "https://example.com/anpord_test",
       "mysql://h/anpord_test",
