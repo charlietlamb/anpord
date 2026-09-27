@@ -26,6 +26,9 @@ const Trial = Schema.Struct({
 
 const at = DateTime.unsafeMake(Date.UTC(2026, 8, 27, 4, 30));
 
+const bytesOf = <I>(encoded: Option.Option<I>) =>
+  JSON.stringify(Option.getOrThrow(encoded));
+
 const sameAsSchemaEncode = <A, I>(
   schema: Schema.Schema<A, I>,
   values: readonly A[]
@@ -33,7 +36,7 @@ const sameAsSchemaEncode = <A, I>(
   const encode = schemaEncoder(schema);
   const reference = Schema.encodeSync(schema);
   for (const value of values) {
-    expect(encode(value)).toEqual(Option.some(reference(value)));
+    expect(bytesOf(encode(value))).toBe(JSON.stringify(reference(value)));
   }
 };
 
@@ -90,7 +93,7 @@ describe("schemaEncoder", () => {
   it("writes a stored batch back out exactly as it was read", () => {
     const encode = schemaEncoder(EvalBatch);
     const decoded = Schema.decodeUnknownSync(EvalBatch)(batch);
-    expect(encode(decoded)).toEqual(Option.some(batch as never));
+    expect(bytesOf(encode(decoded))).toBe(JSON.stringify(batch));
     sameAsSchemaEncode(EvalBatch, [decoded]);
   });
 
