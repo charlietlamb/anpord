@@ -1,4 +1,5 @@
-import type { CostClassification, CostComponent } from "./cost-component";
+import type { CostClassification } from "@anpord/schema/domain/eval-costs";
+import type { CostComponent } from "./cost-component";
 
 /* Cents cannot hold a trial costing a fraction of one, and floats drift when
    summed across a run; nanos are exact under addition. */

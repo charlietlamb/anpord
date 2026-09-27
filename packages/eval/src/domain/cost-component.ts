@@ -1,25 +1,19 @@
 import {
-  CostClassification as CostClassificationSchema,
-  CostComponentName as CostComponentNameSchema,
+  CostClassification,
+  CostComponentName,
 } from "@anpord/schema/domain/eval-costs";
 import { type Option, Schema } from "effect";
-
-export type CostClassification = typeof CostClassificationSchema.Type;
-
-export type CostComponentName = typeof CostComponentNameSchema.Type;
 
 /* Decoded, not asserted: both columns are plain text with no check constraint. */
 export const classificationOf: (
   value: string
-) => Option.Option<CostClassification> = Schema.decodeUnknownOption(
-  CostClassificationSchema
-);
+) => Option.Option<CostClassification> =
+  Schema.decodeUnknownOption(CostClassification);
 
 export const componentNameOf: (
   value: string
-) => Option.Option<CostComponentName> = Schema.decodeUnknownOption(
-  CostComponentNameSchema
-);
+) => Option.Option<CostComponentName> =
+  Schema.decodeUnknownOption(CostComponentName);
 
 /* `amountNanos` is null for anything not priced in money; zero would sum as free. */
 export interface CostComponent {

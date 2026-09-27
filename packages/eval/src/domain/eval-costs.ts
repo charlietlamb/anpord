@@ -1,10 +1,12 @@
-import type { EvalCosts } from "@anpord/schema/domain/eval-costs";
+import type {
+  CostClassification,
+  CostComponentName,
+  EvalCosts,
+} from "@anpord/schema/domain/eval-costs";
 import { Option } from "effect";
 import { dollarsOf, summaryOf } from "./cost-arithmetic";
 import {
-  type CostClassification,
   type CostComponent,
-  type CostComponentName,
   classificationOf,
   componentNameOf,
 } from "./cost-component";
