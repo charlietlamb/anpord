@@ -7,6 +7,11 @@ import { Config, Duration, Effect } from "effect";
 /* Shorter than the statement timeout, so the probe answers before the platform gives up on it. */
 const PROBE_TIMEOUT = Duration.seconds(2);
 
+const revision = Config.string("BUILD_REVISION").pipe(
+  Config.withDefault("development"),
+  Effect.map((value) => ({ ok: true, revision: value }))
+);
+
 /* Redis is deliberately not probed: a cache outage degrades to Postgres, so failing on it would roll back a deployment over a fault it survives. */
 const health = pingDatabase.pipe(
   Effect.timeout(PROBE_TIMEOUT),
@@ -15,10 +20,7 @@ const health = pingDatabase.pipe(
       Effect.annotateLogs({ cause: String(cause) })
     )
   ),
-  Effect.andThen(
-    Config.string("BUILD_REVISION").pipe(Config.withDefault("development"))
-  ),
-  Effect.map((revision) => ({ ok: true, revision })),
+  Effect.andThen(revision),
   Effect.mapError(
     () => new Unhealthy({ message: "The database is not reachable." })
   )
@@ -29,11 +31,6 @@ export const HealthHandlers = HttpApiBuilder.group(
   "health",
   (handlers) =>
     handlers
-      .handle("live", () =>
-        Effect.sync(() => ({
-          ok: true,
-          revision: process.env.BUILD_REVISION ?? "development",
-        }))
-      )
+      .handle("live", () => Effect.orDie(revision))
       .handle("health", () => health)
 );
