@@ -4,7 +4,12 @@ import { mapLimit } from "../concurrency";
 import { callV1 } from "../stack/api";
 import type { PerfTenant } from "../stack/tenant";
 import { journal, outcome, trialUsage } from "./journal";
-import { LARGE_SUITE, type SeedPlan, suiteRequest } from "./plan";
+import {
+  assertPlanFits,
+  LARGE_SUITE,
+  type SeedPlan,
+  suiteRequest,
+} from "./plan";
 import { seeded } from "./random";
 
 const SEED_CONCURRENCY = 12;
@@ -123,6 +128,7 @@ export const seedWorld = async (
   plan: SeedPlan,
   template: StartBatchRequest
 ): Promise<SeededWorld> => {
+  assertPlanFits(plan);
   const suites = Array.from(
     { length: plan.suites },
     (_, index) => `perf-s${index}`

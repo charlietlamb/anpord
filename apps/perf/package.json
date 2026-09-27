@@ -8,6 +8,7 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
+    "@anpord/db": "workspace:*",
     "@anpord/e2e": "workspace:*",
     "@anpord/schema": "workspace:*",
     "anpord": "workspace:*",

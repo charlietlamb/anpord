@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { compare, regressions } from "../src/report/compare";
 import { flatten, informational, metric } from "../src/report/metric";
 import { median, percentile, summarise } from "../src/report/stats";
+import { assertPlanFits, DEFAULT_PLAN } from "../src/seed/plan";
 import { seeded } from "../src/seed/random";
 
 describe("stats", () => {
@@ -180,5 +181,16 @@ describe("seeded", () => {
     expect(draw(7)).toEqual([0, 68, 81]);
     expect(draw(7)).toEqual([0, 68, 81]);
     expect(draw(7)).not.toEqual(draw(8));
+  });
+});
+
+describe("seed plan", () => {
+  test("a plan with more trials per batch than a batch may hold is refused", () => {
+    expect(() => assertPlanFits(DEFAULT_PLAN)).not.toThrow();
+    expect(() =>
+      assertPlanFits({ ...DEFAULT_PLAN, casesPerSuite: 25 })
+    ).toThrow(
+      "The seed plan asks for 225 trials per batch, and a batch may hold 100."
+    );
   });
 });

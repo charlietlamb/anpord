@@ -1,3 +1,8 @@
+import {
+  MAX_ORGANIZATION_RUNS_IN_FLIGHT,
+  MAX_RUN_TRIALS,
+  MAX_START_TRIALS,
+} from "@anpord/schema/domain/eval-quota";
 import type { StartedBatch } from "@anpord/schema/domain/evals";
 import { mapLimit } from "../concurrency";
 import { journal, outcome, trialUsage } from "../seed/journal";
@@ -40,12 +45,12 @@ export interface Endpoint {
 }
 
 const REPORT_EVENTS = 40;
-const REPORT_CASES = 10;
-const REPORT_TRIALS = 10;
-const REPORT_BATCHES = 3;
+const REPORT_TRIALS = MAX_START_TRIALS;
+const REPORT_CASES = MAX_RUN_TRIALS / REPORT_TRIALS;
+const REPORT_BATCHES = MAX_ORGANIZATION_RUNS_IN_FLIGHT;
 const REPORT_WARMUP = 10;
 const REPORT_SEQUENTIAL = 20;
-const START_CONCURRENCY = 2;
+const START_CONCURRENCY = MAX_ORGANIZATION_RUNS_IN_FLIGHT - 1;
 
 const at = <T>(items: readonly T[], index: number) =>
   items[index % items.length] as T;

@@ -58,6 +58,7 @@
       "name": "@anpord/perf",
       "version": "0.0.0",
       "dependencies": {
+        "@anpord/db": "workspace:*",
         "@anpord/e2e": "workspace:*",
         "@anpord/schema": "workspace:*",
         "anpord": "workspace:*",
