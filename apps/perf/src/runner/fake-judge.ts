@@ -48,6 +48,17 @@ const answer = (body: JudgeBody) => {
   };
 };
 
+export const withFakeJudge = async <T>(
+  body: (judge: FakeJudge) => Promise<T>
+): Promise<T> => {
+  const judge = installFakeJudge();
+  try {
+    return await body(judge);
+  } finally {
+    judge.restore();
+  }
+};
+
 export const installFakeJudge = (): FakeJudge => {
   const real = globalThis.fetch;
   let calls = 0;

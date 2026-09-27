@@ -5,7 +5,11 @@ import { single, summarise } from "../report/stats";
 import { alternating, bootStacks, teardownAll } from "../stack/paired";
 import type { Stack } from "../stack/stack";
 import { timeCliRun } from "./cli-run";
-import { installFakeJudge, JUDGE_TOKENS_PER_CALL } from "./fake-judge";
+import {
+  type FakeJudge,
+  JUDGE_TOKENS_PER_CALL,
+  withFakeJudge,
+} from "./fake-judge";
 import {
   emptyObservation,
   type Observation,
@@ -102,13 +106,13 @@ const openLane = async (
   };
 };
 
-export const runRunnerSuite = async (
+const measureRunner = async (
   harnessRoot: string,
   targets: readonly string[],
   settings: RunnerSettings,
-  log: (line: string) => void
+  log: (line: string) => void,
+  judge: FakeJudge
 ): Promise<readonly SuiteResult[]> => {
-  const judge = installFakeJudge();
   const stacks = await bootStacks(targets, { label: "runner", plan: null });
   try {
     const lanes: Lane[] = [];
@@ -178,7 +182,16 @@ export const runRunnerSuite = async (
       };
     });
   } finally {
-    judge.restore();
     await teardownAll(stacks);
   }
 };
+
+export const runRunnerSuite = (
+  harnessRoot: string,
+  targets: readonly string[],
+  settings: RunnerSettings,
+  log: (line: string) => void
+): Promise<readonly SuiteResult[]> =>
+  withFakeJudge((judge) =>
+    measureRunner(harnessRoot, targets, settings, log, judge)
+  );

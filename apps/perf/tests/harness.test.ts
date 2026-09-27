@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mapLimit } from "../src/concurrency";
 import { thresholdOf } from "../src/report/compare";
-import { installFakeJudge } from "../src/runner/fake-judge";
+import { installFakeJudge, withFakeJudge } from "../src/runner/fake-judge";
 import { tokensOf } from "../src/runner/recorded-batch";
 import { trialUsage } from "../src/seed/journal";
 import { seeded } from "../src/seed/random";
 import { ENDPOINTS, selectEndpoints } from "../src/server/endpoints";
 import { drive } from "../src/server/load";
-import { sampleMemory } from "../src/server/memory";
+import { sampleMemory, stopSamplers } from "../src/server/memory";
 import { teardownAll } from "../src/stack/paired";
 import { scratchServerUrl } from "../src/stack/scratch-database";
 
@@ -151,6 +151,23 @@ describe("teardownAll", () => {
   });
 });
 
+describe("stopSamplers", () => {
+  test("stops every sampler before reporting the first failure", async () => {
+    let healthyProbes = 0;
+    const failing = sampleMemory(() => Promise.reject(new Error("probe down")));
+    const healthy = sampleMemory(() => {
+      healthyProbes += 1;
+      return Promise.resolve({ heapUsed: 1, rss: 2 });
+    });
+    await expect(stopSamplers([failing, healthy])).rejects.toThrow(
+      "Could not read server memory: probe down"
+    );
+    const afterStop = healthyProbes;
+    await sleep(250);
+    expect(healthyProbes).toBe(afterStop);
+  });
+});
+
 describe("scratchServerUrl", () => {
   test("accepts quoted and IPv6 loopback URLs and refuses remote hosts", () => {
     expect(
@@ -169,7 +186,9 @@ describe("scratchServerUrl", () => {
 
 describe("fake judge", () => {
   const original = process.env.OPENAI_API_KEY;
+  const realFetch = globalThis.fetch;
   afterEach(() => {
+    globalThis.fetch = realFetch;
     if (original === undefined) {
       delete process.env.OPENAI_API_KEY;
     } else {
@@ -188,6 +207,15 @@ describe("fake judge", () => {
     judge.restore();
     expect(body.model).toBe("perf-fake-judge");
     expect(judge.calls()).toBe(1);
+    expect(process.env.OPENAI_API_KEY).toBe("operator-key");
+  });
+
+  test("restores fetch and the key when the body throws", async () => {
+    process.env.OPENAI_API_KEY = "operator-key";
+    await expect(
+      withFakeJudge(() => Promise.reject(new Error("boot failed")))
+    ).rejects.toThrow("boot failed");
+    expect(globalThis.fetch).toBe(realFetch);
     expect(process.env.OPENAI_API_KEY).toBe("operator-key");
   });
 
