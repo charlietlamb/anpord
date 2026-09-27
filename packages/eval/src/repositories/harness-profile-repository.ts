@@ -87,6 +87,12 @@ export const HarnessProfileRepositoryLive = Layer.effect(
 
       insertIfAbsent: (input) =>
         Effect.gen(function* () {
+          const stored = yield* findByIdentity(input);
+
+          if (Option.isSome(stored)) {
+            return toStoredProfile(stored.value);
+          }
+
           const internalId = yield* ids.generate("evalHarnessProfile");
 
           const rows = yield* tryStore("harnessProfile.insertIfAbsent", () =>
