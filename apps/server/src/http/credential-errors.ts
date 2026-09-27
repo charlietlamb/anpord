@@ -6,7 +6,7 @@ import {
 } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
 
-const apiError = (error: CredentialError) => {
+export const credentialApiError = (error: CredentialError) => {
   if (error.code === "not-found") {
     return new NotFound({ message: error.message });
   }
@@ -20,12 +20,12 @@ const apiError = (error: CredentialError) => {
 
 export const withCredentialErrors = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
-) => effect.pipe(Effect.mapError(apiError));
+) => effect.pipe(Effect.mapError(credentialApiError));
 
 export const withPublicCredentialErrors = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
 ) =>
   effect.pipe(
-    Effect.mapError(apiError),
+    Effect.mapError(credentialApiError),
     Effect.catchTag("InternalError", Effect.die)
   );
