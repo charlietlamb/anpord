@@ -1,20 +1,12 @@
 import type { AuthInstance } from "@anpord/auth";
 import { Actor } from "@anpord/schema/domain/actor";
 import type { Permission } from "@anpord/schema/domain/permissions";
+import { API_SCOPES } from "@anpord/schema/domain/scopes";
 import { Effect, Option, Schema } from "effect";
 import { unauthorized } from "./unauthorized";
 
-const PERMISSION_SCOPES: readonly Permission[] = [
-  "prompts:read",
-  "prompts:write",
-  "channels:read",
-  "channels:write",
-  "evals:read",
-  "evals:write",
-];
-
 const isPermission = (scope: string): scope is Permission =>
-  PERMISSION_SCOPES.includes(scope as Permission);
+  API_SCOPES.includes(scope as Permission);
 
 const permissionsForScopes = (
   scopes: readonly string[] | string | undefined
