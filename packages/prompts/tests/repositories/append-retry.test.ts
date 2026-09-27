@@ -1,15 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import { PromptId } from "@anpord/schema/domain/prompts";
-import { Effect, Schedule } from "effect";
+import { Effect } from "effect";
 import { VersionConflict } from "../../src/domain/errors";
-
-/** Mirrors the schedule the repository appends with. Kept here rather than
- * exported so the repository states its own policy, and asserted so a change to
- * the number of attempts is a deliberate one. */
-const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
-  Schedule.jittered,
-  Schedule.compose(Schedule.recurs(3))
-);
+import { APPEND_RETRY } from "../../src/repositories/prompt-version-repository";
 
 const conflict = () =>
   new VersionConflict({ promptId: PromptId.make("greeting") });
