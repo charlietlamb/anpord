@@ -42,13 +42,15 @@ export const trialUsage = (random: Random): HarnessUsage => {
   const inputTokens = random.between(800, 6000);
   const outputTokens = random.between(50, 900);
   const cacheReadTokens = random.between(0, inputTokens);
+  const cacheWriteTokens = random.between(0, 400);
   return {
     cacheReadTokens,
-    cacheWriteTokens: random.between(0, 400),
+    cacheWriteTokens,
     costUsd: (inputTokens * 1.25 + outputTokens * 10) / 1_000_000,
     inputTokens,
     outputTokens,
-    totalTokens: inputTokens + outputTokens,
+    totalTokens:
+      inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens,
   };
 };
 

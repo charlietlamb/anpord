@@ -4,7 +4,7 @@ import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { callV1 } from "../stack/api";
 import type { Stack } from "../stack/stack";
 import type { RecordedSpan, spanRecorder } from "./span-recorder";
-import type { RunnerTarget } from "./target";
+import type { LocalTrialResult, RunnerTarget } from "./target";
 
 export interface Observation {
   readonly cliMs: number[];
@@ -32,12 +32,16 @@ const quietly = async <T>(run: () => Promise<T>) => {
   }
 };
 
-const tokensIn = (events: readonly HarnessEvent[]) =>
+const messageTokens = (events: readonly HarnessEvent[]) =>
   events.reduce(
     (total, event) =>
       total + (event._tag === "Message" ? (event.usage?.totalTokens ?? 0) : 0),
     0
   );
+
+export const tokensOf = (result: LocalTrialResult) =>
+  (result.kind === "scored" ? result.usage?.totalTokens : undefined) ??
+  messageTokens(result.events);
 
 export const runRecordedBatch = async (
   target: RunnerTarget,
@@ -55,10 +59,17 @@ export const runRecordedBatch = async (
     local: true,
   });
   const batch = await call<EvalBatch>("evals.batches.get", { id: started.id });
-  const runIdOf = (caseId: string, model: string) =>
-    batch.runs.find(
-      (run) => run.case.id === caseId && run.variant.model === model
-    )?.id ?? "";
+  const runIdOf = (caseId: string, model: string) => {
+    const run = batch.runs.find(
+      (each) => each.case.id === caseId && each.variant.model === model
+    );
+    if (run === undefined) {
+      throw new Error(
+        `Batch ${started.id} has no run for case ${caseId} on ${model}.`
+      );
+    }
+    return run.id;
+  };
 
   let tokens = 0;
   const began = performance.now();
@@ -68,7 +79,7 @@ export const runRecordedBatch = async (
         .runLocally(request, {
           onTrial: (slot, result, ordinal) =>
             Effect.promise(async () => {
-              tokens += tokensIn(result.events);
+              tokens += tokensOf(result);
               const sent = performance.now();
               await call(
                 "runner.report",

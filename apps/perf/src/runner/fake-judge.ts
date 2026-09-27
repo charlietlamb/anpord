@@ -51,12 +51,14 @@ const answer = (body: JudgeBody) => {
 export const installFakeJudge = (): FakeJudge => {
   const real = globalThis.fetch;
   let calls = 0;
+  const previousKey = process.env.OPENAI_API_KEY;
   const fake = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const request = new Request(input, init);
-    if (request.url !== JUDGE_URL) {
+    const url = input instanceof Request ? input.url : String(input);
+    if (url !== JUDGE_URL) {
       return real(input, init);
     }
     calls += 1;
+    const request = new Request(input, init);
     return Response.json(answer((await request.json()) as JudgeBody));
   };
   globalThis.fetch = Object.assign(fake, { preconnect: real.preconnect });
@@ -65,6 +67,11 @@ export const installFakeJudge = (): FakeJudge => {
     calls: () => calls,
     restore: () => {
       globalThis.fetch = real;
+      if (previousKey === undefined) {
+        delete process.env.OPENAI_API_KEY;
+      } else {
+        process.env.OPENAI_API_KEY = previousKey;
+      }
     },
   };
 };

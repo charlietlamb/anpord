@@ -62,8 +62,17 @@ export const auditPage = async (
         `Lighthouse was sent to ${landed} instead of ${url}, so the page was not measured signed in.`
       );
     }
-    const numeric = (id: string) =>
-      report.audits[id]?.numericValue ?? Number.NaN;
+    const numeric = (id: string) => {
+      const value = report.audits[id]?.numericValue;
+      if (value === undefined || !Number.isFinite(value)) {
+        throw new Error(`Lighthouse measured no ${id} for ${url}.`);
+      }
+      return value;
+    };
+    const score = report.categories.performance?.score;
+    if (score === null || score === undefined) {
+      throw new Error(`Lighthouse gave ${url} no performance score.`);
+    }
     const details = report.audits["network-requests"]?.details as
       | { readonly items?: readonly NetworkItem[] }
       | undefined;
@@ -73,7 +82,7 @@ export const auditPage = async (
       fcpMs: numeric("first-contentful-paint"),
       lcpMs: numeric("largest-contentful-paint"),
       requests: items.length,
-      score: (report.categories.performance?.score ?? 0) * 100,
+      score: score * 100,
       scriptBytes: sumOf(items, "Script", "resourceSize"),
       scriptTransferBytes: sumOf(items, "Script", "transferSize"),
       styleBytes: sumOf(items, "Stylesheet", "resourceSize"),

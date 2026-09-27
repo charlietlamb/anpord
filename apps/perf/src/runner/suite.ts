@@ -116,6 +116,7 @@ export const runRunnerSuite = async (
       lanes.push(await openLane(harnessRoot, target));
     }
     const indexes = [...lanes.keys()];
+    const judgeCalls = lanes.map(() => 0);
 
     for (let rep = 0; rep < settings.reps; rep += 1) {
       for (const index of alternating(indexes, rep)) {
@@ -124,6 +125,7 @@ export const runRunnerSuite = async (
           log(
             `runner: ${fixture.name} rep ${rep + 1}/${settings.reps} on ${targets[index]}`
           );
+          const judgedBefore = judge.calls();
           await runRecordedBatch(
             lane.target,
             stacks[index] as Stack,
@@ -131,6 +133,8 @@ export const runRunnerSuite = async (
             lane.recorder,
             seen
           );
+          judgeCalls[index] =
+            (judgeCalls[index] ?? 0) + judge.calls() - judgedBefore;
         }
       }
     }
@@ -153,24 +157,26 @@ export const runRunnerSuite = async (
       }
     }
 
-    const judgeCalls = judge.calls() / settings.reps / lanes.length;
-    return lanes.map((lane, index) => ({
-      metrics: {
-        ...Object.assign(
-          {},
-          ...lane.measured.map(({ fixture, seen }) =>
-            fixtureMetrics(fixture, seen)
-          )
-        ),
-        judge_calls_per_bench_batch: single("count", judgeCalls),
-        judge_tokens_per_bench_batch: single(
-          "count",
-          JUDGE_TOKENS_PER_CALL * judgeCalls
-        ),
-      },
-      settings: { ...settings, target: targets[index] },
-      suite: "runner",
-    }));
+    return lanes.map((lane, index) => {
+      const perBatch = (judgeCalls[index] ?? 0) / settings.reps;
+      return {
+        metrics: {
+          ...Object.assign(
+            {},
+            ...lane.measured.map(({ fixture, seen }) =>
+              fixtureMetrics(fixture, seen)
+            )
+          ),
+          judge_calls_per_bench_batch: single("count", perBatch),
+          judge_tokens_per_bench_batch: single(
+            "count",
+            JUDGE_TOKENS_PER_CALL * perBatch
+          ),
+        },
+        settings: { ...settings, target: targets[index] },
+        suite: "runner",
+      };
+    });
   } finally {
     judge.restore();
     await teardownAll(stacks);

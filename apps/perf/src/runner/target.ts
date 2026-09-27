@@ -7,6 +7,9 @@ type TrialResults =
   typeof import("../../../../packages/sdk/src/cli/local-trial-result");
 type EffectModule = typeof import("effect");
 
+export type LocalTrialResult =
+  import("../../../../packages/sdk/src/cli/local-trial-result").LocalTrialResult;
+
 export interface RunnerTarget {
   readonly compileEval: Compiler["compileEval"];
   readonly effect: EffectModule;

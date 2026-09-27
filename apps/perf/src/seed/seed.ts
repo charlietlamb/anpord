@@ -174,6 +174,10 @@ export const seedWorld = async (
   const run = await call<RunWithTrials>(baseUrl, tenant, "evals.runs.get", {
     id: largeRun.id,
   });
+  const [largeTrial] = run.trials;
+  if (largeTrial === undefined) {
+    throw new Error("The large journal run recorded no trial.");
+  }
 
   return {
     batches,
@@ -186,7 +190,7 @@ export const seedWorld = async (
       batchId: largeBatch.id,
       caseId: largeRun.caseId,
       runId: largeRun.id,
-      trialId: run.trials[0]?.id ?? "",
+      trialId: largeTrial.id,
     },
     prompts: await seedPrompts(baseUrl, tenant, plan.prompts),
     suites,

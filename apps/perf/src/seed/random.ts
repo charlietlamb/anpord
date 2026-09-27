@@ -16,7 +16,11 @@ export const seeded = (seed: number): Random => {
   return {
     between: (low, high) => low + Math.floor(next() * (high - low + 1)),
     chance: (probability) => next() < probability,
-    pick: <T>(items: readonly T[]) =>
-      items[Math.floor(next() * items.length)] as T,
+    pick: <T>(items: readonly T[]) => {
+      if (items.length === 0) {
+        throw new Error("pick needs at least one item.");
+      }
+      return items[Math.floor(next() * items.length)] as T;
+    },
   };
 };
