@@ -5,11 +5,10 @@ import {
 } from "@anpord/schema/domain/eval-quota";
 import type { StartedBatch } from "@anpord/schema/domain/evals";
 import { mapLimit } from "../concurrency";
-import { journal, outcome, trialUsage } from "../seed/journal";
+import { JOURNAL_EPOCH, trialReport } from "../seed/journal";
 import { suiteRequest } from "../seed/plan";
 import { seeded } from "../seed/random";
 import type { SeededWorld } from "../seed/seed";
-import { callV1 } from "../stack/api";
 import type { Stack } from "../stack/stack";
 
 export interface RequestSpec {
@@ -37,11 +36,7 @@ export interface Endpoint {
   readonly budget?: (settings: Budget) => Budget;
   readonly concurrency?: number;
   readonly name: string;
-  readonly prepare: (
-    stack: Stack,
-    world: SeededWorld,
-    count: number
-  ) => Promise<Workload>;
+  readonly prepare: (stack: Stack, world: SeededWorld) => Promise<Workload>;
 }
 
 const REPORT_EVENTS = 40;
@@ -93,7 +88,7 @@ const read = (
 });
 
 const finish = (stack: Stack, id: string) =>
-  callV1(stack.server.baseUrl, stack.tenant.apiKey, "runner.finish", { id });
+  stack.call("runner.finish", { id });
 
 const runs = (world: SeededWorld) =>
   world.batches.flatMap((batch) => batch.runs);
@@ -115,11 +110,7 @@ const startEndpoint: Endpoint = {
 const reportEndpoint: Endpoint = {
   budget: (settings) =>
     settings.warmup + settings.sequential + settings.requests <= REPORT_SLOTS
-      ? {
-          requests: settings.requests,
-          sequential: settings.sequential,
-          warmup: settings.warmup,
-        }
+      ? settings
       : REPORT_BUDGET,
   name: "runner.report",
   prepare: async (stack) => {
@@ -127,9 +118,7 @@ const reportEndpoint: Endpoint = {
       Array.from({ length: REPORT_BATCHES }, (_, index) => index),
       REPORT_BATCHES,
       (index) =>
-        callV1<StartedBatch>(
-          stack.server.baseUrl,
-          stack.tenant.apiKey,
+        stack.call<StartedBatch>(
           "runner.start",
           suiteRequest(
             stack.template,
@@ -148,28 +137,19 @@ const reportEndpoint: Endpoint = {
         }))
       )
     );
-    const requests = v1("runner.report", (index) => {
-      const slot = at(slots, index);
-      const random = seeded(index + 1);
-      const events = journal(
-        random,
-        REPORT_EVENTS,
-        Date.UTC(2026, 8, 1) + index
-      );
-      return {
-        events,
-        ordinal: slot.ordinal,
-        outcome: outcome(random, events),
-        runId: slot.runId,
-        sandboxId: `perf-report-${index}`,
-        usage: trialUsage(random),
-      };
-    });
     return {
       cleanup: async () => {
         await Promise.all(batches.map((batch) => finish(stack, batch.id)));
       },
-      requests,
+      requests: v1("runner.report", (index) =>
+        trialReport(
+          seeded(index + 1),
+          REPORT_EVENTS,
+          JOURNAL_EPOCH + index,
+          at(slots, index),
+          `perf-report-${index}`
+        )
+      ),
     };
   },
 };

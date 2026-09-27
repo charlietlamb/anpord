@@ -3,16 +3,14 @@ import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { compileEval } from "anpord/eval";
 import type { SeedPlan } from "../seed/plan";
 import { type SeededWorld, seedWorld } from "../seed/seed";
-import {
-  createScratchDatabase,
-  dropScratchDatabase,
-  type ScratchDatabase,
-} from "./scratch-database";
+import { type CallV1, v1Client } from "./api";
+import { createScratchDatabase, dropScratchDatabase } from "./scratch-database";
 import { type RunningServer, startServer } from "./server";
 import { givenTenant, type PerfTenant } from "./tenant";
 
 export interface Stack {
-  readonly database: ScratchDatabase;
+  readonly call: CallV1;
+  readonly coldStart: () => Promise<number>;
   readonly seedMs: number;
   readonly server: RunningServer;
   readonly teardown: () => Promise<void>;
@@ -24,44 +22,42 @@ export interface Stack {
 export interface StackOptions {
   readonly label: string;
   readonly plan: SeedPlan | null;
-  readonly repositoryRoot: string;
   readonly trustedOrigins?: readonly string[];
 }
 
-const smokeTemplate = (repositoryRoot: string) =>
-  compileEval(
-    join(repositoryRoot, "scripts/fixtures/local-smoke/smoke.eval.ts")
-  );
-
-export const bootStack = async (options: StackOptions): Promise<Stack> => {
-  const database = await createScratchDatabase(
-    options.repositoryRoot,
-    options.label
-  );
+export const bootStack = async (
+  root: string,
+  options: StackOptions
+): Promise<Stack> => {
+  const database = await createScratchDatabase(root, options.label);
   let server: RunningServer | undefined;
   const teardown = async () => {
     await server?.stop();
-    await dropScratchDatabase(options.repositoryRoot, database);
+    await dropScratchDatabase(root, database);
   };
 
   try {
-    server = await startServer({
-      databaseUrl: database.url,
-      repositoryRoot: options.repositoryRoot,
-      trustedOrigins: options.trustedOrigins,
-    });
+    server = await startServer(root, database.url, options.trustedOrigins);
     const tenant = await givenTenant(database.url, server.baseUrl, "perf");
     await givenTenant(database.url, server.baseUrl, "perf-other");
-    const template = await smokeTemplate(options.repositoryRoot);
+    const template = await compileEval(
+      join(root, "scripts/fixtures/local-smoke/smoke.eval.ts")
+    );
+    const call = v1Client(server.baseUrl, tenant.apiKey);
 
     const seedStarted = performance.now();
     const world =
       options.plan === null
         ? null
-        : await seedWorld(server.baseUrl, tenant, options.plan, template);
+        : await seedWorld(call, options.plan, template);
 
     return {
-      database,
+      call,
+      coldStart: async () => {
+        const fresh = await startServer(root, database.url);
+        await fresh.stop();
+        return fresh.coldStartMs;
+      },
       seedMs: performance.now() - seedStarted,
       server,
       teardown,

@@ -33,6 +33,8 @@ export const JOURNAL_COMMANDS = [
   "bunx tsc --noEmit",
 ];
 
+export const JOURNAL_EPOCH = Date.UTC(2026, 8, 1);
+
 const TOOLS = ["read_file", "edit_file", "search", "list_directory"];
 
 const prose = (random: Random, words: number) =>
@@ -98,7 +100,7 @@ const middleEvent = (
   };
 };
 
-export const journal = (
+const journal = (
   random: Random,
   events: number,
   startedAt: number
@@ -114,7 +116,7 @@ export const journal = (
   ];
 };
 
-export const outcome = (
+const outcome = (
   random: Random,
   events: readonly HarnessEvent[]
 ): TrialOutcome => {
@@ -129,5 +131,23 @@ export const outcome = (
     validations: [],
     verifySteps: [],
     voidFields: [],
+  };
+};
+
+export const trialReport = (
+  random: Random,
+  events: number,
+  startedAt: number,
+  slot: { readonly ordinal: number; readonly runId: string },
+  sandboxId: string
+) => {
+  const written = journal(random, events, startedAt);
+  return {
+    events: written,
+    ordinal: slot.ordinal,
+    outcome: outcome(random, written),
+    runId: slot.runId,
+    sandboxId,
+    usage: trialUsage(random),
   };
 };

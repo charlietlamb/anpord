@@ -1,3 +1,4 @@
+import { mapLimit } from "../concurrency";
 import type { RequestSpec, Workload } from "./endpoints";
 
 export interface Credentials {
@@ -92,17 +93,12 @@ export const drive = async (
   count: number,
   concurrency: number
 ): Promise<LoadResult> => {
-  const samples: Sample[] = [];
-  let next = 0;
-  const worker = async () => {
-    while (next < count) {
-      const index = next;
-      next += 1;
-      const sent = await send(workload.requests(offset + index), credentials);
-      samples.push(await settled(workload, sent));
-    }
-  };
   const started = performance.now();
-  await Promise.all(Array.from({ length: concurrency }, worker));
+  const samples = await mapLimit(
+    Array.from({ length: count }, (_, index) => offset + index),
+    concurrency,
+    async (index) =>
+      settled(workload, await send(workload.requests(index), credentials))
+  );
   return { samples, wallMs: performance.now() - started };
 };

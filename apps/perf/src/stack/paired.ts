@@ -19,16 +19,16 @@ export const teardownAll = async (
   }
 };
 
-export const bootStacks = async (
+export const withStacks = async <T>(
   targets: readonly string[],
-  options: Omit<StackOptions, "repositoryRoot">
-): Promise<readonly Stack[]> => {
+  options: StackOptions,
+  use: (stacks: readonly Stack[]) => Promise<T>
+): Promise<T> => {
   const stacks: Stack[] = [];
   try {
     for (const target of targets) {
-      stacks.push(await bootStack({ ...options, repositoryRoot: target }));
+      stacks.push(await bootStack(target, options));
     }
-    return stacks;
   } catch (cause) {
     try {
       await teardownAll(stacks);
@@ -40,7 +40,24 @@ export const bootStacks = async (
     }
     throw cause;
   }
+  try {
+    return await use(stacks);
+  } finally {
+    await teardownAll(stacks);
+  }
 };
 
 export const alternating = <T>(items: readonly T[], round: number) =>
   round % 2 === 0 ? items : [...items].reverse();
+
+export const inRounds = async <T>(
+  rounds: number,
+  items: readonly T[],
+  run: (item: T, round: number) => Promise<void>
+) => {
+  for (let round = 0; round < rounds; round += 1) {
+    for (const item of alternating(items, round)) {
+      await run(item, round);
+    }
+  }
+};
