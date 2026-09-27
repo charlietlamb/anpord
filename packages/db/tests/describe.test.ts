@@ -7,8 +7,6 @@ import { scratchDatabases } from "./migrations/scratch-database";
 
 const scratch = scratchDatabases();
 
-afterAll(() => scratch.dropAll());
-
 const warningsFor = async (url: string) => {
   const warnings: string[] = [];
   await Effect.runPromise(
@@ -32,6 +30,8 @@ const warningsFor = async (url: string) => {
 };
 
 describe.skipIf(scratch.skip)("a local database at boot", () => {
+  afterAll(() => scratch.dropAll());
+
   it("names the migrations it is missing", async () => {
     const url = await scratch.create();
     const name = new URL(url).pathname.slice(1);
@@ -41,6 +41,17 @@ describe.skipIf(scratch.skip)("a local database at boot", () => {
 
     expect(await warningsFor(url)).toEqual([
       `database ${name} is missing ${tags.length} migrations (${tags.join(", ")}). Run bun run db:migrate.`,
+    ]);
+  });
+
+  it("says it could not check when Postgres refuses", async () => {
+    const url = new URL(await scratch.create());
+    url.pathname = "/anpord_scratch_absent";
+
+    const warnings = await warningsFor(url.toString());
+
+    expect(warnings.map((warning) => warning.split(":")[0])).toEqual([
+      "could not check migrations on anpord_scratch_absent",
     ]);
   });
 

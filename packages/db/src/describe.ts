@@ -21,12 +21,24 @@ export const describeDatabase = Config.redacted("DATABASE_URL").pipe(
   })
 );
 
-const pendingMigrations = (url: Redacted.Redacted<string>) =>
+const migrationWarning = (name: string, url: Redacted.Redacted<string>) =>
   Effect.tryPromise(() =>
     inspect(Redacted.value(url), { confirmDataLoss: false })
   ).pipe(
-    Effect.map((inspection) => inspection.pending),
-    Effect.orElseSucceed((): readonly string[] => [])
+    Effect.map((inspection) => {
+      if (inspection.problems.length > 0) {
+        return `database ${name} needs attention before it can migrate: ${inspection.problems.join(" ")}`;
+      }
+      if (inspection.pending.length > 0) {
+        return `database ${name} is missing ${inspection.pending.length} migrations (${inspection.pending.join(", ")}). Run bun run db:migrate.`;
+      }
+      return;
+    }),
+    Effect.catchAll((error) =>
+      Effect.succeed(
+        `could not check migrations on ${name}: ${error.cause instanceof Error ? error.cause.message : String(error.cause)}`
+      )
+    )
   );
 
 export const logDatabase = Effect.gen(function* () {
@@ -37,12 +49,11 @@ export const logDatabase = Effect.gen(function* () {
   if (!database.local) {
     return;
   }
-  const pending = yield* pendingMigrations(
+  const warning = yield* migrationWarning(
+    database.name,
     yield* Config.redacted("DATABASE_URL")
   );
-  if (pending.length > 0) {
-    yield* Effect.logWarning(
-      `database ${database.name} is missing ${pending.length} migrations (${pending.join(", ")}). Run bun run db:migrate.`
-    );
+  if (warning !== undefined) {
+    yield* Effect.logWarning(warning);
   }
 });
