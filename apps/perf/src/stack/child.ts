@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 
 const READY_POLL_MS = 20;
 const OUTPUT_TAIL = 20_000;
@@ -29,24 +29,39 @@ const answers = async (options: ChildOptions, remainingMs: number) => {
   }
 };
 
+const spawnChild = (options: ChildOptions): ChildProcess => {
+  const { REDIS_URL, ...inherited } = process.env;
+  try {
+    return spawn(options.command, options.args, {
+      cwd: options.cwd,
+      env: { ...inherited, ...options.env },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (cause) {
+    throw new Error(`${options.failure}:\n${String(cause)}`);
+  }
+};
+
 export const spawnUntilReady = async (options: ChildOptions) => {
   const began = performance.now();
-  const { REDIS_URL, ...inherited } = process.env;
-  const child = spawn(options.command, options.args, {
-    cwd: options.cwd,
-    env: { ...inherited, ...options.env },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const child = spawnChild(options);
   let output = "";
+  let spawnFailed = false;
   const collect = (chunk: unknown) => {
     output = `${output}${String(chunk)}`.slice(-OUTPUT_TAIL);
   };
   child.stdout?.on("data", collect);
   child.stderr?.on("data", collect);
-  const exited = new Promise<void>((resolve) =>
-    child.once("exit", () => resolve())
-  );
-  const running = () => child.exitCode === null && child.signalCode === null;
+  const exited = new Promise<void>((resolve) => {
+    child.once("exit", () => resolve());
+    child.once("error", (cause) => {
+      spawnFailed = true;
+      collect(cause);
+      resolve();
+    });
+  });
+  const running = () =>
+    !spawnFailed && child.exitCode === null && child.signalCode === null;
   const stop = async () => {
     if (running()) {
       child.kill("SIGKILL");
@@ -55,12 +70,15 @@ export const spawnUntilReady = async (options: ChildOptions) => {
   };
   const elapsed = () => performance.now() - began;
 
-  while (!(await answers(options, options.timeoutMs - elapsed()))) {
+  for (;;) {
+    const ready = await answers(options, options.timeoutMs - elapsed());
+    if (ready && running()) {
+      return { readyMs: elapsed(), stop };
+    }
     if (!running() || elapsed() > options.timeoutMs) {
       await stop();
       throw new Error(`${options.failure}:\n${output}`);
     }
     await new Promise((resolve) => setTimeout(resolve, READY_POLL_MS));
   }
-  return { readyMs: elapsed(), stop };
 };
