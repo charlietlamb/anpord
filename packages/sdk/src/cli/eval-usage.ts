@@ -22,24 +22,33 @@ interface Usage {
   readonly usd: number | null;
 }
 
-export const batchUsage = (batch: EvalBatch): Usage => {
+interface Reading<T extends TokenCounts> {
+  readonly commands: number;
+  readonly usage: T | null | undefined;
+}
+
+const sumUsage = <T extends TokenCounts>(
+  readings: readonly Reading<T>[],
+  totalOf: (usage: T) => number,
+  usd: number | null
+): Usage => {
   const concerns = new Set<UsageConcern>();
   let inputTokens = 0;
   let outputTokens = 0;
   let totalTokens = 0;
 
-  for (const trial of batch.runs.flatMap((run) => run.trials)) {
-    if (!trial.usage) {
+  for (const reading of readings) {
+    if (!reading.usage) {
       continue;
     }
 
-    inputTokens += trial.usage.inputTokens;
-    outputTokens += trial.usage.outputTokens;
-    totalTokens += trial.usage.totalTokens;
+    inputTokens += reading.usage.inputTokens;
+    outputTokens += reading.usage.outputTokens;
+    totalTokens += totalOf(reading.usage);
 
     for (const concern of usageConcerns({
-      turns: trial.commands,
-      usage: trial.usage,
+      turns: reading.commands,
+      usage: reading.usage,
     })) {
       concerns.add(concern);
     }
@@ -50,9 +59,16 @@ export const batchUsage = (batch: EvalBatch): Usage => {
     inputTokens,
     outputTokens,
     totalTokens,
-    usd: batch.costs?.estimatedEquivalentUsd ?? null,
+    usd,
   };
 };
+
+export const batchUsage = (batch: EvalBatch): Usage =>
+  sumUsage(
+    batch.runs.flatMap((run) => run.trials),
+    (usage) => usage.totalTokens,
+    batch.costs?.estimatedEquivalentUsd ?? null
+  );
 
 export const formatTokens = (value: number) => {
   if (value >= MILLION) {
@@ -83,41 +99,6 @@ export interface LocalReading {
   readonly usage: TokenCounts | null;
 }
 
-const localUsage = (
-  cases: readonly LocalReading[],
-  costs: EvalCosts | null
-): Usage => {
-  const concerns = new Set<UsageConcern>();
-  let inputTokens = 0;
-  let outputTokens = 0;
-  let totalTokens = 0;
-
-  for (const one of cases) {
-    if (!one.usage) {
-      continue;
-    }
-
-    inputTokens += one.usage.inputTokens;
-    outputTokens += one.usage.outputTokens;
-    totalTokens += one.usage.inputTokens + one.usage.outputTokens;
-
-    for (const concern of usageConcerns({
-      turns: one.commands,
-      usage: one.usage,
-    })) {
-      concerns.add(concern);
-    }
-  }
-
-  return {
-    concerns: [...concerns],
-    inputTokens,
-    outputTokens,
-    totalTokens,
-    usd: costs?.estimatedEquivalentUsd ?? null,
-  };
-};
-
 const PAYERS = ["model", "user", "judge"] as const;
 
 const breakdownLine = (costs: EvalCosts | null) => {
@@ -138,6 +119,13 @@ export const localUsageLines = (
   cases: readonly LocalReading[],
   costs: EvalCosts | null = null
 ) =>
-  [...usageLines(localUsage(cases, costs)), ...breakdownLine(costs)].map(
-    (line) => `  ${line}`
-  );
+  [
+    ...usageLines(
+      sumUsage(
+        cases,
+        (usage) => usage.inputTokens + usage.outputTokens,
+        costs?.estimatedEquivalentUsd ?? null
+      )
+    ),
+    ...breakdownLine(costs),
+  ].map((line) => `  ${line}`);
