@@ -16,9 +16,10 @@ const traceFold = (
 ) =>
   Stream.unwrap(
     Effect.gen(function* () {
+      const trace = shellQuote(tracePath(request.sandbox));
       const outcome = yield* runCommandForOutcome(
         request.sandbox,
-        `cat ${shellQuote(tracePath(request.sandbox))} 2>/dev/null || true`,
+        `cat ${trace} 2>/dev/null && rm -f ${trace} || true`,
         { timeoutMs: TRACE_TIMEOUT_MS }
       ).pipe(Effect.option);
 
@@ -67,7 +68,7 @@ export const commandSession = (request: RunHarness, command: string) =>
         request.sandbox,
         command,
         request.env,
-        { exit: "report" }
+        { exit: "report", timeout: request.timeout }
       ).pipe(
         Stream.mapConcatEffect(journalled),
         Stream.concat(traceFold(request, reported))

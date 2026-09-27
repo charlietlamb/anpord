@@ -207,7 +207,7 @@ HTTP calls appear in the trial's Calls view and are available to judges. `api.ca
 
 Input, output and log values are bounded snapshots with `text`, `format`, `state` and `truncated` fields. Check those before parsing captured JSON.
 
-Authorization headers, cookies and common secret fields are redacted before recording. Add more field names (case-insensitive) with `api({ redact: ["accessToken"], ... })`. Secrets inside arbitrary strings or URL paths are not redacted, so keep credentials out of fixtures.
+Authorization headers, cookies and common secret fields are redacted before recording. Add more field names (case-insensitive) with `api({ redact: ["accessToken"], ... })`. Before a call is stored in the trial, anything that looks like a key and every secret the trial knows, such as its harness and sandbox credentials, are also replaced with `[redacted]`, as described in [secrets in evidence](/evals/results#secrets-in-evidence). A secret with no known shape inside a string is still recorded, so keep credentials out of fixtures.
 
 ### Validator-owned servers
 
@@ -232,7 +232,7 @@ These calls are returned by `calls()`, not the trial's call log. Log them inside
 
 - JSON HTTP endpoints only. No proxying, streaming, WebSockets or automatic recording.
 - Request bodies up to 1 MiB, handlers up to 30 seconds, and 256 requests per mock runtime.
-- Captured values are truncated at 16,000 characters.
+- `api.calls()` inside a validator returns values up to 64,000 characters. The trial stores each value at up to 16,000 characters, cut after redaction.
 
 Mocks never call an upstream service, but they do not stop the agent from contacting other hosts. Use a sandbox egress policy for network isolation.
 

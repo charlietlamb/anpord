@@ -1,10 +1,11 @@
 import type { ApiCall } from "@anpord/schema/domain/api-mocks";
+import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
 import type {
   EvalSource,
   EvalVariantRequest,
 } from "@anpord/schema/domain/eval-definition";
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
-import type { EvalTurn, EvalUser } from "@anpord/schema/domain/eval-turns";
+import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalHarness } from "@anpord/schema/domain/evals";
 import type { McpCall } from "../mcp/calls";
 import type { McpServerDefinition } from "../mcp/define";
@@ -103,10 +104,12 @@ export type CaseValidation =
 export interface EvalCaseDefinition {
   readonly cache?: CaseCache;
   readonly id: string;
+  readonly maxTurns?: number;
   readonly name?: string;
   readonly prepare?: Prepare | null;
   readonly source?: DeclaredSource;
   readonly tags?: readonly string[];
+  readonly timeoutMs?: number;
   readonly user?: EvalUser;
   readonly validate: CaseValidation;
   readonly variables?: Readonly<Record<string, string>>;

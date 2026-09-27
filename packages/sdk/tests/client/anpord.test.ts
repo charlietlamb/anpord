@@ -26,6 +26,16 @@ describe("credentials", () => {
     expect(new Anpord()).toBeInstanceOf(Anpord);
   });
 
+  test("a key of only whitespace counts as missing", () => {
+    const previous = process.env.ANPORD_API_KEY;
+    process.env.ANPORD_API_KEY = "   ";
+    try {
+      expect(() => new Anpord()).toThrow(MissingApiKey);
+    } finally {
+      process.env.ANPORD_API_KEY = previous ?? "";
+    }
+  });
+
   test("a missing key fails at construction rather than on first call", () => {
     withoutEnvKey(() => {
       expect(() => new Anpord()).toThrow(MissingApiKey);
@@ -61,6 +71,7 @@ describe("surface", () => {
       "evals",
       "prompts",
       "runtime",
+      "whoami",
     ]);
     expect(Object.keys(anpord.prompts).toSorted()).toEqual([
       "create",

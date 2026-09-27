@@ -53,6 +53,7 @@ const handleFor = (sandbox: E2BSandbox, workspace: string): SandboxHandle => ({
     ),
   home: HOME,
   id: sandbox.sandboxId,
+  installs: Option.none(),
   provider: "e2b",
   resumable: Option.none(),
   writeFile: (path, content) =>

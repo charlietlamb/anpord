@@ -1,21 +1,25 @@
 import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
+import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
 } from "@effect/platform";
-import { Effect, Layer, Option, Redacted, Schema } from "effect";
+import { Effect, Option, Redacted, Ref, Schema } from "effect";
 import { modelAccessFor } from "../../credentials/model-key";
 import { CredentialResolver } from "../../credentials/resolver";
 import { UserUnavailable } from "../../domain/errors";
+import { MODEL_PROVIDERS } from "../../domain/model-providers";
+import { promptInclusiveUsage } from "../../domain/prompt-inclusive-usage";
+import { throughRun } from "../../domain/usage-tally";
 import { userModel, userModelRoute } from "../../domain/variant";
-import {
-  SimulatedUser,
-  type UserTurnRequest,
+import type {
+  JoinConversation,
+  UserConversation,
+  UserTurnRequest,
 } from "../../ports/simulated-user";
 import { keepTagged } from "../keep-tagged";
-
-const DONE = "<<DONE>>";
+import { spokenReply, systemPrompt } from "./persona";
 
 const responseSchema = Schema.Struct({
   choices: Schema.Array(
@@ -23,80 +27,102 @@ const responseSchema = Schema.Struct({
       message: Schema.Struct({ content: Schema.NullOr(Schema.String) }),
     })
   ),
+  usage: Schema.optional(
+    Schema.Struct({
+      completion_tokens: Schema.NonNegativeInt,
+      prompt_tokens: Schema.NonNegativeInt,
+      prompt_tokens_details: Schema.optional(
+        Schema.Struct({ cached_tokens: Schema.optional(Schema.NonNegativeInt) })
+      ),
+      total_tokens: Schema.NonNegativeInt,
+    })
+  ),
 });
 
-const systemPrompt = (user: EvalSimulatedUser) =>
-  [
-    "You are playing a HUMAN CUSTOMER talking to an AI coding agent. Stay in character; never reveal you are simulated.",
-    `Your goal: ${user.goal}`,
-    `What you know (your private brief — the agent must ask to learn it):\n${user.prompt}`,
-    [
-      "Rules:",
-      "- Answer what the agent just asked. A broad question deserves everything in your brief that answers it. Do not volunteer what it has not asked about.",
-      "- Never invent prices, limits, or features that are not in your brief.",
-      "- You are non-technical: you cannot approve tool permissions, run commands, or edit files. If asked, say so and tell the agent to do its best without it.",
-      "- Keep replies to one or two sentences.",
-      `- When the agent has finished, or is only waiting on something you cannot do, reply with exactly ${DONE}`,
-    ].join("\n"),
-  ].join("\n\n");
-
-const messagesFor = (request: UserTurnRequest) => [
-  { role: "system", content: systemPrompt(request.user) },
+const messagesFor = (user: EvalSimulatedUser, request: UserTurnRequest) => [
+  { role: "system", content: systemPrompt(user) },
   ...request.spoken.map((text) => ({ role: "assistant", content: text })),
   { role: "user", content: request.agentText },
 ];
 
-const makeLlmUser = Effect.gen(function* () {
+const labelOf = (providerId: string) =>
+  MODEL_PROVIDERS.find(({ id }) => id === providerId)?.label ?? providerId;
+
+export const makeLlmUser = Effect.gen(function* () {
   const client = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
   const credentials = yield* CredentialResolver;
   const { model, providerId } = userModelRoute(yield* userModel);
 
-  const reply = Effect.fn("SimulatedUser.reply")(function* (
-    request: UserTurnRequest
-  ) {
+  return Effect.fn("LlmUser.join")(function* ({
+    context,
+    user,
+  }: JoinConversation) {
     const access = yield* modelAccessFor(
       credentials,
-      request.organizationId,
+      context.organizationId,
       providerId
     );
 
     if (Option.isNone(access)) {
-      return yield* Effect.fail(
-        new UserUnavailable({
-          reason: `no ${providerId} model credential is configured`,
-        })
-      );
+      return yield* new UserUnavailable({
+        reason: `no ${labelOf(providerId)} credential is configured for this organization`,
+      });
     }
 
-    const httpRequest = yield* HttpClientRequest.post(
-      `${access.value.provider.baseUrl}/chat/completions`
-    ).pipe(
-      HttpClientRequest.bearerToken(Redacted.make(access.value.key)),
-      HttpClientRequest.bodyJson({
-        model,
-        messages: messagesFor(request),
-        max_completion_tokens: 512,
-      })
-    );
-    const response = yield* client
-      .execute(httpRequest)
-      .pipe(Effect.flatMap(HttpClientResponse.schemaBodyJson(responseSchema)));
-    const said = response.choices[0]?.message.content?.trim() ?? "";
+    const spent = yield* Ref.make(Option.none<HarnessUsage>());
 
-    return said === "" || said.includes(DONE)
-      ? Option.none<string>()
-      : Option.some(said);
-  });
+    const reply = Effect.fn("LlmUser.reply")(function* (
+      request: UserTurnRequest
+    ) {
+      const httpRequest = yield* HttpClientRequest.post(
+        `${access.value.provider.baseUrl}/chat/completions`
+      ).pipe(
+        HttpClientRequest.bearerToken(Redacted.make(access.value.key)),
+        HttpClientRequest.bodyJson({
+          model,
+          messages: messagesFor(user, request),
+          max_completion_tokens: 512,
+        })
+      );
+      const response = yield* client
+        .execute(httpRequest)
+        .pipe(
+          Effect.flatMap(HttpClientResponse.schemaBodyJson(responseSchema))
+        );
 
-  return SimulatedUser.of({
-    reply: (request) =>
-      reply(request).pipe(
-        keepTagged(
-          "UserUnavailable",
-          () => new UserUnavailable({ reason: "the user model did not answer" })
+      yield* Ref.update(spent, (carried) =>
+        throughRun(
+          carried,
+          Option.fromNullable(response.usage).pipe(
+            Option.map((usage) =>
+              promptInclusiveUsage({
+                cached: usage.prompt_tokens_details?.cached_tokens ?? 0,
+                output: usage.completion_tokens,
+                prompt: usage.prompt_tokens,
+                total: usage.total_tokens,
+              })
+            )
+          ),
+          false
         )
+      );
+
+      return spokenReply(response.choices[0]?.message.content);
+    });
+
+    return {
+      reply: (request) =>
+        reply(request).pipe(
+          keepTagged(
+            "UserUnavailable",
+            () =>
+              new UserUnavailable({ reason: "the user model did not answer" })
+          )
+        ),
+      spent: Effect.map(
+        Ref.get(spent),
+        Option.map((usage) => ({ model, usage }))
       ),
+    } satisfies UserConversation;
   });
 });
-
-export const SimulatedUserLive = Layer.effect(SimulatedUser, makeLlmUser);

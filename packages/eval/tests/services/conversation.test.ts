@@ -1,8 +1,12 @@
 import { describe, expect, it } from "bun:test";
+import { DEFAULT_MAX_TURNS } from "@anpord/schema/domain/eval-limits";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { Chunk, Effect, Layer, Option, Stream } from "effect";
+import { Chunk, Effect, Layer, Option, Redacted, Stream } from "effect";
 import { UserUnavailable } from "../../src/domain/errors";
-import { SimulatedUser } from "../../src/ports/simulated-user";
+import {
+  SimulatedUser,
+  type UserContext,
+} from "../../src/ports/simulated-user";
 import { converse, spokenThrough } from "../../src/services/conversation";
 import { progressSink } from "../../src/services/trial-progress-sink";
 
@@ -13,16 +17,38 @@ const said = (text: string, session = "s-1"): HarnessEvent[] => [
 
 const human = { goal: "g", kind: "simulated", prompt: "p" } as const;
 
+const context: UserContext = {
+  autoStopMinutes: 5,
+  harnessCredential: Redacted.make({
+    authMethodId: "test",
+    connectionId: "test",
+    integrationId: "codex",
+    revision: 1,
+    values: {},
+  }),
+  organizationId: "org",
+  provider: "local",
+};
+
 const replies = (queue: readonly string[]) =>
   Layer.succeed(SimulatedUser, {
-    reply: ({ spoken }) =>
-      Effect.succeed(Option.fromNullable(queue[spoken.length - 1])),
+    join: () =>
+      Effect.succeed({
+        reply: ({ spoken }) =>
+          Effect.succeed(Option.fromNullable(queue[spoken.length - 1])),
+        spent: Effect.succeedNone,
+      }),
   });
 
-const run = (answers: readonly string[], seen: string[][] = []) =>
+const run = (
+  answers: readonly string[],
+  seen: string[][] = [],
+  maxTurns = DEFAULT_MAX_TURNS
+) =>
   converse({
     opening: "open",
-    organizationId: "org",
+    context,
+    maxTurns,
     run: (turn, resume) => {
       seen.push([turn, Option.getOrElse(resume, () => "new")]);
       return Effect.succeed(said(answers[seen.length - 1] ?? "done"));
@@ -77,7 +103,8 @@ describe("a conversation", () => {
 
         return yield* converse({
           opening: "open",
-          organizationId: "org",
+          context,
+          maxTurns: DEFAULT_MAX_TURNS,
           run: spokenThrough(sink, (turn) =>
             Stream.fromIterable(said(`re: ${turn}`)).pipe(
               sink.through,
@@ -115,13 +142,29 @@ describe("a conversation", () => {
     expect(result.turns).toHaveLength(8);
   });
 
+  it("stops at the case's own turn limit", async () => {
+    const result = await Effect.runPromise(
+      run([], [], 3).pipe(
+        Effect.provide(replies(Array.from({ length: 50 }, () => "go")))
+      )
+    );
+
+    expect(result.ended).toBe("max-turns");
+    expect(result.turns.map((turn) => turn.userText)).toEqual([
+      "open",
+      "go",
+      "go",
+    ]);
+  });
+
   /* A harness that reported no session cannot be continued, so the run is one
      turn rather than an opening prompt scored twice. */
   it("does not continue when no session was reported", async () => {
     const result = await Effect.runPromise(
       converse({
         opening: "open",
-        organizationId: "org",
+        context,
+        maxTurns: DEFAULT_MAX_TURNS,
         run: () => Effect.succeed([]),
         user: human,
       }).pipe(Effect.provide(replies(["yes"])))
@@ -138,22 +181,45 @@ describe("a conversation", () => {
       run(["asked?"]).pipe(
         Effect.provide(
           Layer.succeed(SimulatedUser, {
-            reply: () =>
+            join: () =>
               Effect.fail(new UserUnavailable({ reason: "no credential" })),
           })
         )
       )
     );
 
-    expect(result.ended).toBe("no-user");
+    expect(result).toMatchObject({ ended: "no-user", reason: "no credential" });
     expect(result.turns).toHaveLength(1);
+  });
+
+  it("holds one turn, opened by the prompt, when the case has no person", async () => {
+    const seen: string[] = [];
+    const result = await Effect.runPromise(
+      converse({
+        opening: "open",
+        context,
+        maxTurns: DEFAULT_MAX_TURNS,
+        run: (turn) => {
+          seen.push(turn);
+          return Effect.succeed(said("ok"));
+        },
+        user: null,
+      }).pipe(Effect.provide(replies(["never asked"])))
+    );
+
+    expect(seen).toEqual(["open"]);
+    expect(result.ended).toBe("single-turn");
+    expect(result.turns.map((turn) => [turn.userText, turn.agentText])).toEqual(
+      [["open", "ok"]]
+    );
   });
 
   it("follows a script without asking a model", async () => {
     const result = await Effect.runPromise(
       converse({
         opening: "open",
-        organizationId: "org",
+        context,
+        maxTurns: DEFAULT_MAX_TURNS,
         run: () => Effect.succeed(said("ok")),
         user: { kind: "scripted", replies: ["first", "second"] },
       }).pipe(Effect.provide(replies([])))

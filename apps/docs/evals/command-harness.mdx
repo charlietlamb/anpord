@@ -59,11 +59,11 @@ Print one JSON object per line on stdout. Lines with a known `_tag` are recorded
 
 A non-zero exit does not fail the trial or discard earlier events. If the process never prints `Finished`, Anpord records one with the reason `exit N`. The trial is scored either way.
 
-The process has 15 minutes. If it is still running at that point, it is stopped and the harness is recorded as unavailable.
+The process shares the case's [time limit](/evals/cases#limits) with every other turn of the trial, 15 minutes by default. If it is still running when the limit runs out, it is stopped and the trial ends as timed out.
 
 ## The recorder
 
-Anpord sources a small script into every non-interactive bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`. Each line becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with exactly the same text.
+Anpord sources a small script into every non-interactive bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`. Each line becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with exactly the same text. The log is cleared after each turn, so a turn records only the commands it ran.
 
 It only sees bash and zsh, the two shells with a `DEBUG` trap:
 

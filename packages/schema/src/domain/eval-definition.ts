@@ -5,9 +5,11 @@ import {
   EvalCaseId,
   EvalCaseName,
   EvalCaseTags,
+  EvalMaxTurns,
   EvalPrompt,
   EvalSuiteId,
   EvalSuiteName,
+  EvalTimeoutMs,
   EvalVariableValue,
   EvalVerify,
 } from "./eval-limits";
@@ -175,6 +177,9 @@ export type CaseCache = typeof CaseCache.Type;
 const EvalCaseFields = {
   cache: Schema.optional(CaseCache),
   id: EvalCaseId,
+  maxTurns: Schema.optionalWith(Schema.NullOr(EvalMaxTurns), {
+    default: () => null,
+  }),
   user: Schema.optionalWith(Schema.NullOr(EvalUser), { default: () => null }),
   prepare: Schema.optionalWith(Schema.NullOr(EvalPrepare), {
     default: () => null,
@@ -183,6 +188,9 @@ const EvalCaseFields = {
     default: () => ({ kind: "empty" as const }),
   }),
   tags: Schema.optionalWith(EvalCaseTags, { default: () => [] }),
+  timeoutMs: Schema.optionalWith(Schema.NullOr(EvalTimeoutMs), {
+    default: () => null,
+  }),
   variables: Schema.optionalWith(EvalVariables, { default: () => ({}) }),
 
   validator: Schema.optionalWith(Schema.NullOr(EvalValidator), {
@@ -251,6 +259,7 @@ export const StartBatchRequest = Schema.Struct({
     Schema.minItems(1),
     Schema.maxItems(MAX_START_CASES)
   ),
+  checksIn: Schema.optionalWith(Schema.Boolean, { default: () => false }),
   local: Schema.optionalWith(Schema.Boolean, { default: () => false }),
   suite: EvalSuiteRequest,
   trials: Schema.Int.pipe(Schema.between(1, MAX_START_TRIALS)),

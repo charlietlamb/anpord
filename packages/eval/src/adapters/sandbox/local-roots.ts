@@ -2,10 +2,12 @@ import { mkdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Config, Effect } from "effect";
+import { pruneLocal } from "./local-prune";
 
 export interface LocalRoots {
   readonly cache: string;
-  readonly home: string;
+  readonly installs: string;
+  readonly staging: string;
 }
 
 const ensure = (path: string) =>
@@ -21,8 +23,13 @@ export const localRoots: Effect.Effect<LocalRoots> = Effect.gen(function* () {
     Effect.orDie
   );
 
-  return {
+  const roots = {
     cache: yield* ensure(join(base, "cache")),
-    home: yield* ensure(join(base, "home")),
+    installs: yield* ensure(join(base, "harness")),
+    staging: yield* ensure(join(base, "staging")),
   };
+
+  yield* Effect.forkDaemon(pruneLocal(base, roots));
+
+  return roots;
 });

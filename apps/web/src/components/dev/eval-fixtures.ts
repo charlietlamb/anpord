@@ -139,6 +139,24 @@ const trial = (input: {
               usd: 0.113,
             },
             {
+              classification: "estimate" as const,
+              component: "user" as const,
+              detail: {},
+              explanation:
+                "What the simulated user used, priced at its model's published rate when the trial ran.",
+              source: "models.dev",
+              usd: 0.004,
+            },
+            {
+              classification: "estimate" as const,
+              component: "judge" as const,
+              detail: {},
+              explanation:
+                "What the judges used, priced at each model's published rate when the trial ran.",
+              source: "models.dev",
+              usd: 0.002,
+            },
+            {
               classification: "included" as const,
               component: "harness" as const,
               detail: { connectionMode: "subscription" },
@@ -165,12 +183,13 @@ const trial = (input: {
               usd: null,
             },
           ],
-          estimatedEquivalentUsd: 0.113,
+          estimatedEquivalentUsd: 0.119,
           incomplete: false,
           knownActualUsd: 0,
         },
   exitCode: EXIT_CODES[input.status] ?? 1,
   failedCommands: input.failedCommands,
+  failure: null,
   filesChanged:
     input.status === "passed"
       ? ["public/logos/github-light.svg", "public/logos/github-dark.svg"]

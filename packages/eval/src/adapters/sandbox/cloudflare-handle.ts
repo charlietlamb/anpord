@@ -89,6 +89,7 @@ export const handleFor = (
       ),
     home: HOME,
     id,
+    installs: Option.none(),
     provider: "cloudflare",
     resumable: Option.none(),
     writeFile: (path, content) =>

@@ -2,16 +2,22 @@ import type {
   CredentialValues,
   ResolvedCredential,
 } from "@anpord/schema/domain/credentials";
+import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
 import type {
   EvalPrepare,
   EvalSource,
   EvalValidator,
 } from "@anpord/schema/domain/eval-definition";
+import {
+  DEFAULT_MAX_TURNS,
+  DEFAULT_TIMEOUT_MS,
+} from "@anpord/schema/domain/eval-limits";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 import type { EvalArtifact } from "@anpord/schema/domain/evals";
 import type {
   HarnessEvent,
   HarnessUsage,
+  ModelSpend,
 } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import {
@@ -32,6 +38,7 @@ import type {
   PrepareFailed,
   SandboxUnavailable,
   SourceUnavailable,
+  TrialTimedOut,
 } from "../domain/errors";
 import { UserUnavailable } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
@@ -42,6 +49,8 @@ import {
   filesIn,
   sessionIdOf,
 } from "../domain/journal";
+import { trialSecrets } from "../domain/trial-secrets";
+import { reportsWholeSession, throughRun } from "../domain/usage-tally";
 import type { HarnessName, SandboxName } from "../domain/variant";
 import { Harnesses } from "../ports/harness";
 import { SandboxProvider } from "../ports/sandbox";
@@ -55,6 +64,7 @@ import { apiInstructions } from "./mock-apis";
 import { systemPromptPath } from "./profile-files";
 import { Suspender } from "./suspender";
 import { progressSink } from "./trial-progress-sink";
+import { turnBudget } from "./turn-budget";
 import { prepareWorkspace } from "./workspace";
 
 export interface AgentTrialRequest {
@@ -69,6 +79,7 @@ export interface AgentTrialRequest {
   readonly harness: HarnessName;
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly harnessVersion: string;
+  readonly maxTurns?: number | null;
   readonly model: string;
 
   readonly onSandbox?: (sandboxId: string) => Effect.Effect<void>;
@@ -83,6 +94,7 @@ export interface AgentTrialRequest {
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
   readonly source: EvalSource;
   readonly sourceToken?: Redacted.Redacted<string> | undefined;
+  readonly timeoutMs?: number | null;
   readonly user?: EvalUser | null;
 
   readonly validator?: EvalValidator | null;
@@ -93,6 +105,7 @@ export interface AgentTrialRequest {
 export interface AgentTrialResult {
   readonly artifactContents?: readonly EvalArtifact[];
   readonly commands: number;
+  readonly conversationEvents: readonly HarnessEvent[];
   readonly events: readonly HarnessEvent[];
   readonly failedCommands: number;
   readonly filesChanged: readonly string[];
@@ -100,7 +113,9 @@ export interface AgentTrialResult {
   readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string;
   readonly sessionId: string | null;
+  readonly turns: readonly EvalTurn[];
   readonly usage: Option.Option<HarnessUsage>;
+  readonly userSpend: Option.Option<ModelSpend>;
 }
 
 export interface AgentTrialShape {
@@ -112,6 +127,7 @@ export interface AgentTrialShape {
     | SandboxUnavailable
     | PrepareFailed
     | SourceUnavailable
+    | TrialTimedOut
     | UserUnavailable
   >;
 }
@@ -152,6 +168,7 @@ export const AgentTrialLive = Layer.effect(
     const run = (request: AgentTrialRequest) =>
       Effect.gen(function* () {
         const startedAt = yield* Clock.currentTimeMillis;
+        const secrets = trialSecrets(request);
 
         yield* destroyPrior(request);
 
@@ -183,6 +200,7 @@ export const AgentTrialLive = Layer.effect(
           profile: request.profile,
           prepare: request.prepare,
           sandbox,
+          secrets,
           source: request.source,
           sourceToken: request.sourceToken,
           workspace: request.workspace,
@@ -213,99 +231,88 @@ export const AgentTrialLive = Layer.effect(
         );
 
         const modelStarted = yield* Clock.currentTimeMillis;
-        const instructions = apiInstructions(api.manifest);
-        const discovery: readonly HarnessEvent[] =
-          instructions === ""
-            ? []
-            : [
-                {
-                  _tag: "Message",
-                  at: modelStarted,
-                  role: "user",
-                  text: instructions.trim(),
-                },
-              ];
-        yield* Stream.fromIterable(discovery).pipe(
-          sink.through,
-          Stream.runDrain
-        );
 
         const tallied = yield* Ref.make(Option.none<HarnessUsage>());
+        const budgeted = yield* turnBudget(
+          request.timeoutMs ?? DEFAULT_TIMEOUT_MS
+        );
         const turn = (prompt: string, resume: Option.Option<string>) =>
-          driver
-            .run({
-              env,
-              harness: request.harness,
-              harnessVersion: request.harnessVersion,
-              resume,
-              model: request.model,
-              profile,
-              prompt,
-              sandbox,
-              systemPromptPath: profile.pipe(
-                Option.filter((found) => found.systemPrompt !== null),
-                Option.map(() => systemPromptPath(sandbox.home))
-              ),
-              workspace: request.workspace,
-            })
-            .pipe(
-              waitingOutCapacity(request.model),
-              Effect.flatMap((session) =>
-                session.events
-                  .pipe(sink.through, Stream.runCollect)
-                  .pipe(
-                    Effect.tap(() =>
-                      Effect.flatMap(session.usage, (usage) =>
-                        Ref.update(tallied, (carried) =>
-                          Option.isSome(usage) ? usage : carried
+          budgeted((timeout) =>
+            driver
+              .run({
+                env,
+                harness: request.harness,
+                harnessVersion: request.harnessVersion,
+                resume,
+                model: request.model,
+                profile,
+                prompt,
+                sandbox,
+                systemPromptPath: profile.pipe(
+                  Option.filter((found) => found.systemPrompt !== null),
+                  Option.map(() => systemPromptPath(sandbox.home))
+                ),
+                timeout,
+                workspace: request.workspace,
+              })
+              .pipe(
+                waitingOutCapacity(request.model),
+                Effect.flatMap((session) =>
+                  session.events
+                    .pipe(sink.through, Stream.runCollect)
+                    .pipe(
+                      Effect.tap(() =>
+                        Effect.flatMap(session.usage, (usage) =>
+                          Ref.update(tallied, (carried) =>
+                            throughRun(
+                              carried,
+                              usage,
+                              reportsWholeSession(driver.resume, resume)
+                            )
+                          )
                         )
                       )
                     )
-                  )
-              ),
-              Effect.map(Chunk.toReadonlyArray)
-            );
+                ),
+                Effect.map(Chunk.toReadonlyArray)
+              )
+          );
 
-        const opening = request.prompt + instructions;
-        const conversation =
-          request.user == null
-            ? null
-            : yield* converse({
-                opening,
-                organizationId: request.organizationId,
-                run: spokenThrough(sink, turn),
-                user: request.user,
-              }).pipe(Effect.provideService(SimulatedUser, human));
+        const conversation = yield* converse({
+          context: {
+            autoStopMinutes: request.autoStopMinutes,
+            harnessCredential: request.harnessCredential,
+            organizationId: request.organizationId,
+            provider: request.provider,
+            sandboxCredentials: request.sandboxCredentials,
+          },
+          maxTurns: request.maxTurns ?? DEFAULT_MAX_TURNS,
+          opening: request.prompt + apiInstructions(api.manifest),
+          run: spokenThrough(sink, turn),
+          user: request.user ?? null,
+        }).pipe(Effect.provideService(SimulatedUser, human));
 
         /* A case that states a human and then holds no conversation measured
            nothing: scoring it would report the setup failure as a verdict. */
-        if (conversation?.ended === "no-user") {
-          return yield* Effect.fail(
-            new UserUnavailable({
-              reason:
-                "no OpenAI credential is configured for this organization",
-            })
-          );
+        if (conversation.ended === "no-user") {
+          return yield* new UserUnavailable({ reason: conversation.reason });
         }
 
-        const agentEvents =
-          conversation === null
-            ? yield* turn(opening, Option.none())
-            : conversation.events;
         const apiEvents = yield* api.collect();
         yield* Stream.fromIterable(apiEvents).pipe(
           sink.through,
           Stream.runDrain
         );
         yield* api.check;
-        const events = [...discovery, ...agentEvents, ...apiEvents];
+        const events = [...conversation.events, ...apiEvents];
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
         const artifacts = yield* captureArtifacts(
           sandbox,
           request.workspace,
-          filesIn(events)
+          filesIn(events),
+          secrets
         );
         const scored = yield* scorer.score({
           onValidation: request.onValidation,
@@ -314,7 +321,8 @@ export const AgentTrialLive = Layer.effect(
           events,
           modelMs: modelFinished - modelStarted,
           sandbox,
-          turns: conversation?.turns,
+          secrets,
+          turns: conversation.turns,
           prepared,
           validator: request.validator,
           verifyCommand: request.verifyCommand,
@@ -333,6 +341,7 @@ export const AgentTrialLive = Layer.effect(
         return {
           artifactContents: artifacts,
           commands: commandsIn(events),
+          conversationEvents: conversation.events,
           events: [...events, ...validationApiEvents],
           failedCommands: failedCommandsIn(events),
           filesChanged: filesIn(events),
@@ -347,7 +356,9 @@ export const AgentTrialLive = Layer.effect(
           prepared,
           sandboxId: sandbox.id,
           sessionId: sessionIdOf(events),
+          turns: conversation.turns,
           usage: yield* Ref.get(tallied),
+          userSpend: conversation.userSpend,
         } satisfies AgentTrialResult;
       }).pipe(
         Effect.scoped,

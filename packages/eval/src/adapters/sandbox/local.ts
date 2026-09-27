@@ -8,7 +8,8 @@ import type { SandboxAdapterShape, SandboxHandle } from "../../ports/sandbox";
 import { execStream } from "./exec-stream";
 import { localCache } from "./local-cache";
 import { localDetached } from "./local-detached";
-import { localRoots } from "./local-home";
+import { localInstalls } from "./local-installs";
+import { localRoots } from "./local-roots";
 import {
   DEFAULT_TIMEOUT_MS,
   providerCall,
@@ -98,15 +99,18 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
             mkdtemp(join(tmpdir(), "anpord-local-"))
           );
 
+          const home = join(root, "home");
+
+          yield* call(() => mkdir(home));
           yield* call(() => mkdir(request.workspace, { recursive: true }));
 
-          const base = { HOME: roots.home, PATH: path };
+          const base = { HOME: home, PATH: path };
 
           return {
             cache:
               request.cache === undefined
                 ? Option.none()
-                : Option.some(localCache(roots.cache)),
+                : Option.some(localCache(roots.cache, roots.staging)),
             exec: (command, options) =>
               execute(
                 options?.cwd ?? root,
@@ -114,8 +118,9 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
                 options?.timeoutMs ?? DEFAULT_TIMEOUT_MS,
                 { ...base, ...options?.env }
               ),
-            home: roots.home,
+            home,
             id: root,
+            installs: Option.some(localInstalls(roots.installs, roots.staging)),
             provider: "local",
             resumable: Option.some(localDetached(root, path, base)),
             writeFile: (target, content) => {

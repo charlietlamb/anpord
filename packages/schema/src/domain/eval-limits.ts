@@ -98,3 +98,31 @@ export const EvalVariableValue = Schema.String.pipe(
       `A variable value must be at most ${VARIABLE_VALUE_LIMIT} characters, because it is substituted into the prompt before it is quoted.`,
   })
 );
+
+export const DEFAULT_MAX_TURNS = 8;
+
+const MAX_TURNS_LIMIT = 50;
+
+export const EvalMaxTurns = Schema.Int.pipe(
+  Schema.between(1, MAX_TURNS_LIMIT),
+  Schema.annotations({
+    description: `The most user turns a conversation may hold, the opening prompt included. Defaults to ${DEFAULT_MAX_TURNS}.`,
+    identifier: "EvalMaxTurns",
+    message: () =>
+      `maxTurns must be a whole number from 1 to ${MAX_TURNS_LIMIT}.`,
+  })
+);
+
+export const DEFAULT_TIMEOUT_MS = 900_000;
+
+const TIMEOUT_LIMIT_MS = 3_600_000;
+
+export const EvalTimeoutMs = Schema.Int.pipe(
+  Schema.between(1000, TIMEOUT_LIMIT_MS),
+  Schema.annotations({
+    description: `How long the agent may spend across all of a trial's turns, in milliseconds. Defaults to ${DEFAULT_TIMEOUT_MS}.`,
+    identifier: "EvalTimeoutMs",
+    message: () =>
+      `timeoutMs must be a whole number of milliseconds from 1000 to ${TIMEOUT_LIMIT_MS}.`,
+  })
+);

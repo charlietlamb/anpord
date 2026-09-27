@@ -1,8 +1,10 @@
 import { expect, test } from "bun:test";
 import { EvalValidator } from "@anpord/schema/domain/eval-definition";
-import { Effect, Layer, Option, Schema } from "effect";
+import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { Effect, Layer, Option, Redacted, Schema } from "effect";
 import { judgmentsIn } from "../../src/domain/judgments";
 import { JudgeModel } from "../../src/judges/model";
+import { judgeEvidence } from "../../src/judges/prompt";
 import { SimulatedUserSilent } from "../../src/ports/simulated-user";
 import {
   AgentTrial,
@@ -46,18 +48,24 @@ const request: AgentTrialRequest = {
 
 const run = (
   output: string,
-  status: "passed" | "failed" | "void" = "passed"
+  status: "passed" | "failed" | "void" = "passed",
+  conversationEvents: readonly HarnessEvent[] = [],
+  asked: AgentTrialRequest = request
 ) => {
   const order: string[] = [];
+  const evidence: string[] = [];
   const base: AgentTrialResult = {
     commands: 0,
+    conversationEvents,
     events: [],
     failedCommands: 0,
     filesChanged: [],
     prepared: {},
     sandboxId: "task",
     sessionId: null,
+    turns: [],
     usage: Option.none(),
+    userSpend: Option.none(),
     outcome: {
       artifacts: [],
       commandCount: 0,
@@ -87,7 +95,8 @@ const run = (
             Effect.sync(() => {
               order.push("judge");
               expect(input.judge.model).toBe("judge-model");
-              expect(input.input).toBe(request.prompt);
+              expect(input.input).toBe(asked.prompt);
+              evidence.push(judgeEvidence(input));
               return { text: output };
             }),
         })
@@ -97,7 +106,7 @@ const run = (
   return Effect.runPromise(
     Effect.gen(function* () {
       const trial = yield* AgentTrial;
-      return { result: yield* trial.run(request), order };
+      return { evidence, result: yield* trial.run(asked), order };
     }).pipe(Effect.provide(layer))
   );
 };
@@ -136,4 +145,84 @@ test("does not judge an already void trial", async () => {
   const { result, order } = await run("invalid", "void");
   expect(result.outcome.status).toBe("void");
   expect(order).not.toContain("judge");
+});
+
+test("shows the judge what was said and run in each turn", async () => {
+  const { evidence } = await run(
+    '{"choice":"correct","reason":"Asked first"}',
+    "passed",
+    [
+      {
+        _tag: "Message",
+        at: 1,
+        role: "user",
+        text: "Write the pricing config",
+      },
+      {
+        _tag: "Command",
+        at: 3,
+        command: "cat USER_REQUEST.md",
+        exitCode: 0,
+        output: "Pro is $20",
+        startedAt: 2,
+      },
+      { _tag: "Message", at: 4, role: "assistant", text: "Which usage limit?" },
+      { _tag: "Message", at: 5, role: "user", text: "500 messages" },
+      { _tag: "FileChange", at: 6, paths: ["/w/autumn.config.ts"] },
+      {
+        _tag: "ToolCall",
+        at: 7,
+        callId: null,
+        input: "skills/pricing/SKILL.md",
+        name: "read",
+        status: "completed",
+      },
+      { _tag: "Message", at: 8, role: "assistant", text: "Written." },
+    ]
+  );
+
+  expect(evidence.map((sent) => JSON.parse(sent).conversation)).toEqual([
+    [
+      { user: "Write the pricing config" },
+      { command: "cat USER_REQUEST.md", exitCode: 0, output: "Pro is $20" },
+      { agent: "Which usage limit?" },
+      { user: "500 messages" },
+      { wrote: ["/w/autumn.config.ts"] },
+      { tool: "read", input: "skills/pricing/SKILL.md" },
+      { agent: "Written." },
+    ],
+  ]);
+});
+
+test("cuts a long command for the judge only after redacting it", async () => {
+  const { evidence } = await run(
+    '{"choice":"correct","reason":"Fine"}',
+    "passed",
+    [
+      {
+        _tag: "Command",
+        command: "cat ~/.codex/auth.json",
+        exitCode: 0,
+        output: `${"o".repeat(3995)}opaque-access-token-1 and am_sk_test_x`,
+      },
+    ],
+    {
+      ...request,
+      harnessCredential: Redacted.make({
+        authMethodId: "api-key",
+        connectionId: "conn",
+        integrationId: "codex",
+        revision: 1,
+        values: { apiKey: "opaque-access-token-1" },
+      }),
+    }
+  );
+
+  expect(JSON.parse(evidence[0] ?? "{}").conversation).toEqual([
+    {
+      command: "cat ~/.codex/auth.json",
+      exitCode: 0,
+      output: `${"o".repeat(3995)}[reda [truncated]`,
+    },
+  ]);
 });

@@ -26,7 +26,7 @@ export function ReadEvidence({
     if (validation.calls.length === 0) {
       return (
         <p className="py-2 text-muted-foreground text-xs">
-          {validation.input.state === "disabled"
+          {validation.output.state === "disabled"
             ? "Capture disabled"
             : "No context reads recorded"}
         </p>

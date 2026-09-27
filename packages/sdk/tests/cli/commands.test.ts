@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { apiOperations, commandNames } from "../../src/cli/coverage";
 
 const EVAL_COMMANDS: Record<string, readonly string[]> = {
+  "auth.whoami": ["whoami"],
   "batches.get": [],
   "batches.list": [],
   "batches.start": [],
@@ -13,6 +14,7 @@ const EVAL_COMMANDS: Record<string, readonly string[]> = {
   "connectors.list": [],
   "connectors.remove": [],
   "models.list": [],
+  "runner.beat": [],
   "runner.finish": [],
   "runner.lease": [],
   "runner.report": [],

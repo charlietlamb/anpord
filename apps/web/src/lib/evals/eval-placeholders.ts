@@ -72,6 +72,7 @@ export const placeholderTrial = (ordinal: number): EvalTrial => ({
   costs: null,
   exitCode: 0,
   failedCommands: 0,
+  failure: null,
   filesChanged: [],
   id: `placeholder-trial-${ordinal}`,
   modelMs: 0,

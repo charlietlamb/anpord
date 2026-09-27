@@ -9,6 +9,7 @@
     "./credentials/api-key-prefix": "./src/credentials/api-key-prefix.ts",
     "./oauth/client-lookup": "./src/oauth/oauth-client-lookup.ts",
     "./organization": "./src/organization/organization-store.ts",
+    "./organization/errors": "./src/organization/organization-store-error.ts",
     "./session/cookies": "./src/session/cookies.ts"
   },
   "scripts": {

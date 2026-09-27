@@ -5,16 +5,18 @@ import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
+import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@anpord/schema/domain/eval-quota";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
 import { Batches } from "../../src/batch/batches";
+import { BatchRepository } from "../../src/repositories/batch-repository";
 import type { AgentTrialRequest } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
 import { skipWithoutDatabase } from "../fixtures/database";
-import { seedOrganization } from "../fixtures/eval-rows";
+import { seedOrganization, seedRun } from "../fixtures/eval-rows";
 import {
   actorOf,
   capturingRunner,
@@ -35,6 +37,7 @@ import {
 const suffix = Date.now();
 const organizationId = `org_batches_${suffix}`;
 const crowdedId = `org_crowded_${suffix}`;
+const quietId = `org_quiet_${suffix}`;
 const actor = actorOf(organizationId);
 const dispatched: Dispatched[] = [];
 const seen: AgentTrialRequest[] = [];
@@ -46,7 +49,7 @@ const runtime = ManagedRuntime.make(
   })
 );
 
-type Services = Batches | Database | EvalReads;
+type Services = Batches | BatchRepository | Database | EvalReads;
 
 const run = <A, E>(effect: Effect.Effect<A, E, Services>) =>
   runtime.runPromise(effect);
@@ -132,6 +135,8 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       await seedConnections(db, organizationId);
       await seedOrganization(db, crowdedId);
       await seedConnections(db, crowdedId);
+      await seedOrganization(db, quietId);
+      await seedConnections(db, quietId);
     });
   });
 
@@ -294,6 +299,38 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
     await execute(retagged.id);
   });
 
+  it("hands every trial the turn and time limits its case stored", async () => {
+    const limited = await start(
+      requestOf({
+        ...twoByTwo,
+        cases: [
+          caseOf("slow", {
+            maxTurns: 3,
+            timeoutMs: 1_800_000,
+            variables: { task: "take your time" },
+          }),
+        ],
+      })
+    );
+    seen.length = 0;
+
+    await execute(limited.id);
+
+    expect(
+      (await versionsOf("slow")).map((version) => [
+        version.maxTurns,
+        version.timeoutMs,
+      ])
+    ).toEqual([[3, 1_800_000]]);
+    expect(
+      seen.map((request) => [
+        request.maxTurns,
+        request.timeoutMs,
+        request.autoStopMinutes,
+      ])
+    ).toEqual(Array.from({ length: 4 }, () => [3, 1_800_000, 30]));
+  });
+
   it("runs every trial of a batch and settles its runs and the batch", async () => {
     const batchId = started.first ?? "";
     const work = dispatched.find((entry) => entry.batchId === batchId);
@@ -380,6 +417,11 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       "void",
       "void",
     ]);
+    expect(byCase.get("broken")?.trials.map((trial) => trial.failure)).toEqual([
+      "the provider refused every sandbox",
+      "the provider refused every sandbox",
+    ]);
+    expect(byCase.get("steady")?.trials[0]?.failure).toBeNull();
   });
 
   it("refuses to execute a batch that has no runs", async () => {
@@ -595,6 +637,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
               runId: local.runId,
               sandboxId: "laptop",
               usage: null,
+              userSpend: null,
             })
           )
         )
@@ -613,6 +656,49 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       expect(reported.trials[0]?.commands).toBe(4);
       expect(reported.trials[0]?.sandboxId).toBe("laptop");
       expect(reported.trials[0]?.trajectory.length).toBeGreaterThan(0);
+      expect(reported.trials[0]?.failure).toBeNull();
+    });
+
+    it("records a trial its caller could not finish as void, with why", async () => {
+      const batch = await start(
+        requestOf({ cases: [caseOf("broken")], local: true, trials: 1 })
+      );
+      const runId = batch.runs[0]?.id ?? "";
+
+      await run(
+        Batches.pipe(
+          Effect.flatMap((batches) =>
+            batches.report(organizationId, {
+              events,
+              failure: "The agent ran past its time limit of 1s",
+              ordinal: 1,
+              runId,
+              sandboxId: null,
+              usage: null,
+            })
+          )
+        )
+      );
+
+      const trials = await query((db) =>
+        db
+          .select({ failure: evalTrial.failure, status: evalTrial.status })
+          .from(evalTrial)
+          .where(eq(evalTrial.runInternalId, runId))
+      );
+      const reported = await run(
+        EvalReads.pipe(
+          Effect.flatMap((reads) => reads.run(organizationId, runId))
+        )
+      );
+
+      expect(trials).toEqual([
+        { failure: "The agent ran past its time limit of 1s", status: "void" },
+      ]);
+      expect(reported.trials[0]?.trajectory.length).toBeGreaterThan(0);
+      expect(reported.trials[0]?.failure).toBe(
+        "The agent ran past its time limit of 1s"
+      );
     });
 
     it("refuses a report for a run it does not hold or one on the platform", async () => {
@@ -637,6 +723,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
                 runId,
                 sandboxId: null,
                 usage: null,
+                userSpend: null,
               })
             )
           )
@@ -650,6 +737,29 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       expect(failureOf(await report(hosted))).toMatchObject({
         _tag: "NotRunnable",
       });
+    });
+
+    it("hears a beat from its caller, and refuses one for a batch on the platform", async () => {
+      const before = Date.now();
+      await run(
+        Batches.pipe(
+          Effect.flatMap((batches) =>
+            batches.beat(organizationId, local.batchId)
+          )
+        )
+      );
+      const hosted = await exitOf(
+        Batches.pipe(
+          Effect.flatMap((batches) =>
+            batches.beat(organizationId, started.first ?? "")
+          )
+        )
+      );
+
+      expect(
+        (await batchRow(local.batchId))?.lastSeenAt?.getTime()
+      ).toBeGreaterThanOrEqual(before - 1000);
+      expect(failureOf(hosted)).toMatchObject({ _tag: "NotRunnable" });
     });
 
     it("leases the caller its harness credential and nothing else", async () => {
@@ -672,7 +782,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       expect(failureOf(hosted)).toMatchObject({ _tag: "NotRunnable" });
     });
 
-    it("finishes with its open runs", async () => {
+    it("finishes with its open runs, voiding the trial it never reported", async () => {
       await run(
         Batches.pipe(
           Effect.flatMap((batches) =>
@@ -688,6 +798,30 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       expect(runs[0]?.finishedAt).not.toBeNull();
       expect(batch?.status).toBe("finished");
       expect(batch?.failure).toBeNull();
+
+      const finished = await run(
+        EvalReads.pipe(
+          Effect.flatMap((reads) => reads.run(organizationId, local.runId))
+        )
+      );
+      expect(
+        finished.trials.map((trial) => [trial.ordinal, trial.status])
+      ).toEqual([
+        [1, "passed"],
+        [2, "void"],
+      ]);
+    });
+
+    it("takes a repeated finish as done", async () => {
+      await run(
+        Batches.pipe(
+          Effect.flatMap((batches) =>
+            batches.finish(organizationId, local.batchId)
+          )
+        )
+      );
+
+      expect((await batchRow(local.batchId))?.status).toBe("finished");
     });
 
     it("refuses to finish a batch on the platform or in another organization", async () => {
@@ -705,6 +839,96 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
         _tag: "EvalNotFound",
         entity: "batch",
       });
+    });
+
+    it("refuses a beat, a report and a finish once anpord closed it, and stays failed", async () => {
+      const batch = await start(
+        requestOf({ cases: [caseOf("went-quiet")], local: true, trials: 1 })
+      );
+      const runId = batch.runs[0]?.id ?? "";
+      const closedAt = new Date("2026-09-01T00:00:00Z");
+      await query(async (db) => {
+        await db
+          .update(evalBatch)
+          .set({
+            failure: "abandoned: the machine running this stopped reporting",
+            finishedAt: closedAt,
+            status: "failed",
+          })
+          .where(eq(evalBatch.internalId, batch.id));
+        await db
+          .update(evalRun)
+          .set({ finishedAt: closedAt, status: "failed" })
+          .where(eq(evalRun.batchInternalId, batch.id));
+      });
+      const refusal = async (
+        effect: Effect.Effect<unknown, unknown, Services>
+      ) => {
+        const failure = failureOf(await exitOf(effect));
+        return failure !== null &&
+          typeof failure === "object" &&
+          "problems" in failure
+          ? failure.problems
+          : failure;
+      };
+      const closed = [
+        "Anpord closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.",
+      ];
+
+      expect([
+        await refusal(
+          Batches.pipe(
+            Effect.flatMap((batches) => batches.beat(organizationId, batch.id))
+          )
+        ),
+        await refusal(
+          Batches.pipe(
+            Effect.flatMap((batches) =>
+              batches.report(organizationId, {
+                events,
+                failure: "The agent ran past its time limit of 1s",
+                ordinal: 1,
+                runId,
+                sandboxId: null,
+                usage: null,
+              })
+            )
+          )
+        ),
+        await refusal(
+          Batches.pipe(
+            Effect.flatMap((batches) =>
+              batches.finish(organizationId, batch.id)
+            )
+          )
+        ),
+      ]).toEqual([closed, closed, closed]);
+
+      await run(
+        BatchRepository.pipe(
+          Effect.flatMap((batches) =>
+            batches.finish({
+              failure: null,
+              finishedAt: new Date(),
+              internalId: batch.id,
+              status: "finished",
+            })
+          )
+        )
+      );
+
+      const row = await batchRow(batch.id);
+      expect([
+        row?.status,
+        row?.finishedAt,
+        (await runsOf(batch.id)).map((entry) => entry.status),
+        await query((db) =>
+          db
+            .select({ ordinal: evalTrial.ordinal })
+            .from(evalTrial)
+            .where(eq(evalTrial.runInternalId, runId))
+        ),
+      ]).toEqual(["failed", closedAt, ["failed"], []]);
     });
   });
 
@@ -762,6 +986,31 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
           )
       );
       expect(running).toHaveLength(MAX_ORGANIZATION_RUNS_IN_FLIGHT);
+    });
+
+    it("does not count local batches whose machine went quiet", async () => {
+      await query(async (db) => {
+        for (
+          let index = 0;
+          index < MAX_ORGANIZATION_RUNS_IN_FLIGHT;
+          index += 1
+        ) {
+          await seedRun(db, {
+            createdAt: new Date(Date.now() - 20 * 60_000),
+            lastSeenAt: new Date(Date.now() - 15 * 60_000),
+            local: true,
+            organizationId: quietId,
+            tag: `quiet_${index}_${suffix}`,
+          });
+        }
+      });
+
+      const batch = await start(
+        requestOf({ cases: [caseOf("after-quiet")] }),
+        actorOf(quietId)
+      );
+
+      expect((await batchRow(batch.id))?.status).toBe("running");
     });
   });
 });

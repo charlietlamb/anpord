@@ -7,7 +7,10 @@ const capture = () => {
 
   globalThis.fetch = Object.assign(
     (input: URL | RequestInfo, init?: RequestInit) => {
-      sent.push(new Request(input as RequestInfo, init));
+      const request = new Request(input as RequestInfo, init);
+      if (request.method === "POST") {
+        sent.push(request);
+      }
       return Promise.resolve(
         new Response('{"id":"batch_1","runs":[]}', { status: 200 })
       );

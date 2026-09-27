@@ -40,6 +40,34 @@ export const apiScenarios: readonly Scenario<World>[] = [
     },
   },
   {
+    name: "api: a wrong method is a 405 naming the right one, an unknown path a 404",
+    run: async (world) => {
+      const wrongMethod = await fetch(`${world.baseUrl}/v1/evals.suites.list`);
+      equals("wrong method status", wrongMethod.status, 405);
+      equals("allow header", wrongMethod.headers.get("allow"), "POST");
+      equals(
+        "wrong method body",
+        await wrongMethod.text(),
+        JSON.stringify({
+          _tag: "MethodNotAllowed",
+          message: "Use POST for /v1/evals.suites.list.",
+        })
+      );
+
+      const unknown = await fetch(`${world.baseUrl}/health`);
+      equals("unknown path status", unknown.status, 404);
+      equals(
+        "unknown path body",
+        await unknown.text(),
+        JSON.stringify({
+          _tag: "NotFound",
+          message:
+            "There is no route /health. See the API reference at https://docs.anpord.com/api-reference/introduction",
+        })
+      );
+    },
+  },
+  {
     name: "api: a key creates, reads back, and versions a prompt",
     run: async (world) => {
       const { id } = await givenPrompt(world, "api-versions", {

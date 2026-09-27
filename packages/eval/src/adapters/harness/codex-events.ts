@@ -1,4 +1,7 @@
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type {
+  HarnessEvent,
+  HarnessUsage,
+} from "@anpord/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import type { DecodedOutput } from "./session";
 
@@ -44,11 +47,27 @@ const FileChangeItem = Schema.Struct({
 });
 
 const Usage = Schema.Struct({
+  cache_write_input_tokens: Schema.optionalWith(Schema.Number, {
+    default: () => 0,
+  }),
+  cached_input_tokens: Schema.optionalWith(Schema.Number, {
+    default: () => 0,
+  }),
   input_tokens: Schema.Number,
-  input_tokens_details: Schema.optional(
-    Schema.Struct({ cached_tokens: Schema.optional(Schema.Number) })
-  ),
   output_tokens: Schema.Number,
+});
+
+const usageOf = (usage: typeof Usage.Type): HarnessUsage => ({
+  cacheReadTokens: usage.cached_input_tokens,
+  cacheWriteTokens: usage.cache_write_input_tokens,
+  inputTokens: Math.max(
+    usage.input_tokens -
+      usage.cached_input_tokens -
+      usage.cache_write_input_tokens,
+    0
+  ),
+  outputTokens: usage.output_tokens,
+  totalTokens: usage.input_tokens + usage.output_tokens,
 });
 
 const StartedItem = Schema.Struct({
@@ -163,13 +182,7 @@ const outputOf = (value: typeof Line.Type, at: number): DecodedOutput => {
     case "turn.completed":
       return {
         events: [{ _tag: "Finished", at, reason: "turn.completed" }],
-        usage: {
-          cacheReadTokens: value.usage.input_tokens_details?.cached_tokens ?? 0,
-          cacheWriteTokens: 0,
-          inputTokens: value.usage.input_tokens,
-          outputTokens: value.usage.output_tokens,
-          totalTokens: value.usage.input_tokens + value.usage.output_tokens,
-        },
+        usage: usageOf(value.usage),
       };
     default:
       return {

@@ -1,11 +1,15 @@
 import { Schema } from "effect";
-import { ValidationValue } from "./eval-validations";
+import { type CaptureLimits, ReportedValue } from "./eval-validations";
 
 export const API_PROGRAM = "workspace/.anpord/api/program.json";
 export const API_MANIFEST = ".anpord/api/manifest.json";
 export const API_JOURNAL = ".anpord/api/calls.jsonl";
 export const API_READY = "ANPORD_API_READY=";
 export const API_CALL_LIMIT = 256;
+export const API_REPORTED_LIMITS: CaptureLimits = {
+  budget: 96_000,
+  text: 64_000,
+};
 
 export const ApiProgram = Schema.Struct({
   entry: Schema.Literal(".anpord/api/server.mjs"),
@@ -33,9 +37,9 @@ export class ApiCall extends Schema.Class<ApiCall>("ApiCall")({
   matched: Schema.Boolean,
   startedAt: Schema.Number,
   durationMs: Schema.NonNegativeInt,
-  input: ValidationValue,
-  output: ValidationValue,
+  input: ReportedValue,
+  output: ReportedValue,
   status: Schema.Int,
   error: Schema.NullOr(Schema.String.pipe(Schema.maxLength(2000))),
-  logs: Schema.Array(ValidationValue).pipe(Schema.maxItems(64)),
+  logs: Schema.Array(ReportedValue).pipe(Schema.maxItems(64)),
 }) {}

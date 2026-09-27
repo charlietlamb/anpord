@@ -104,9 +104,21 @@ export const CostComponentName = Schema.Literal(
   "harness",
   "model",
   "platform",
-  "sandbox"
+  "sandbox",
+  "user"
 );
 export type CostComponentName = typeof CostComponentName.Type;
+
+export const COST_COMPONENT_LABELS: Readonly<
+  Record<CostComponentName, string>
+> = {
+  harness: "harness",
+  judge: "judges",
+  model: "model",
+  platform: "platform",
+  sandbox: "sandbox",
+  user: "simulated user",
+};
 
 export const EvalCostComponent = Schema.Struct({
   classification: CostClassification,
@@ -121,13 +133,78 @@ export const EvalCostComponent = Schema.Struct({
 });
 export type EvalCostComponent = typeof EvalCostComponent.Type;
 
-export const EvalCosts = Schema.Struct({
+const LEGACY_COMPONENT_NAMES: readonly string[] = [
+  "judge",
+  "harness",
+  "model",
+  "platform",
+  "sandbox",
+];
+
+const WireCostComponent = Schema.Struct({
+  ...EvalCostComponent.fields,
+  classification: Schema.String,
+  component: Schema.String,
+});
+type WireCostComponent = typeof WireCostComponent.Type;
+
+const isComponentName = Schema.is(CostComponentName);
+const isClassification = Schema.is(CostClassification);
+
+const readComponent = (
+  part: WireCostComponent
+): readonly EvalCostComponent[] =>
+  isComponentName(part.component)
+    ? [
+        {
+          ...part,
+          classification: isClassification(part.classification)
+            ? part.classification
+            : "unknown",
+          component: part.component,
+        },
+      ]
+    : [];
+
+const costTotals = {
   allocatedUsd: Schema.Number,
-  components: Schema.Array(EvalCostComponent),
   estimatedEquivalentUsd: Schema.Number,
   incomplete: Schema.Boolean,
   knownActualUsd: Schema.Number,
-}).annotations({
+};
+
+export const EvalCosts = Schema.transform(
+  Schema.Struct({
+    ...costTotals,
+    components: Schema.Array(WireCostComponent),
+    laterComponents: Schema.optionalWith(Schema.Array(WireCostComponent), {
+      default: () => [],
+    }).annotations({
+      description:
+        "Components named after anpord 0.1.25, kept out of `components` so clients from then still decode the response.",
+    }),
+  }),
+  Schema.Struct({
+    ...costTotals,
+    components: Schema.Array(Schema.typeSchema(EvalCostComponent)),
+  }),
+  {
+    strict: true,
+    decode: ({ components, laterComponents, ...totals }) => ({
+      ...totals,
+      components: [...components, ...laterComponents].flatMap(readComponent),
+    }),
+    encode: ({ components, ...totals }) => ({
+      ...totals,
+      components: components.filter(({ component }) =>
+        LEGACY_COMPONENT_NAMES.includes(component)
+      ),
+      laterComponents: components.filter(
+        ({ component }) => !LEGACY_COMPONENT_NAMES.includes(component)
+      ),
+    }),
+  }
+).annotations({
   description: "Cost by component, kept apart by classification.",
   identifier: "EvalCosts",
 });
@@ -157,6 +234,13 @@ export const EvalTrial = Schema.Struct({
   costs: Schema.NullOr(EvalCosts),
   exitCode: Schema.Int,
   failedCommands: Schema.Int,
+  failure: Schema.optionalWith(
+    Schema.NullOr(Schema.String).annotations({
+      description:
+        "Why the trial stopped before it could be scored, such as running past its time limit or a setup step that failed. Null when it was scored.",
+    }),
+    { default: () => null }
+  ),
   filesChanged: Schema.Array(Schema.String),
   id: Schema.String,
   modelMs: Schema.Int,

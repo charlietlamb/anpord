@@ -3,13 +3,25 @@ import { Database } from "@anpord/db/client";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { IdGeneratorLive } from "@anpord/ids/layer";
 import { validationExecution } from "@anpord/schema/domain/eval-validations";
-import { eq } from "drizzle-orm";
-import { Duration, Effect, Layer } from "effect";
+import { asc, eq } from "drizzle-orm";
+import {
+  Duration,
+  Effect,
+  Layer,
+  Option,
+  TestClock,
+  TestContext,
+} from "effect";
 import {
   type AbandonedWork,
   AbandonedWorkLive,
 } from "../../src/repositories/abandoned-work";
+import {
+  BatchRepository,
+  BatchRepositoryLive,
+} from "../../src/repositories/batch-repository";
 import { reconcile } from "../../src/services/reconciler";
 import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 import {
@@ -19,14 +31,19 @@ import {
   seedTrial,
 } from "../fixtures/eval-rows";
 
-const TestLayer = AbandonedWorkLive.pipe(Layer.provideMerge(testDatabase()));
+const TestLayer = Layer.merge(AbandonedWorkLive, BatchRepositoryLive).pipe(
+  Layer.provide(IdGeneratorLive),
+  Layer.provideMerge(testDatabase())
+);
 
 const suffix = Date.now();
 const organizationId = `org_reconcile_${suffix}`;
 const HOURS = 3_600_000;
+const MINUTES = 60_000;
 
-const run = <A, E>(effect: Effect.Effect<A, E, AbandonedWork | Database>) =>
-  Effect.runPromise(effect.pipe(Effect.provide(TestLayer)));
+const run = <A, E>(
+  effect: Effect.Effect<A, E, AbandonedWork | BatchRepository | Database>
+) => Effect.runPromise(effect.pipe(Effect.provide(TestLayer)));
 
 const withDb = <A>(use: (db: Database["Type"]) => Promise<A>) =>
   run(Database.pipe(Effect.flatMap((db) => Effect.promise(() => use(db)))));
@@ -66,6 +83,31 @@ describe.skipIf(skipWithoutDatabase())("reconcile", () => {
       seeded.fresh = await seedRun(db, {
         organizationId,
         tag: `rec_fresh_${suffix}`,
+      });
+      seeded.quietLocal = await seedRun(db, {
+        createdAt: new Date(Date.now() - 20 * MINUTES),
+        lastSeenAt: new Date(Date.now() - 15 * MINUTES),
+        local: true,
+        organizationId,
+        tag: `rec_quiet_${suffix}`,
+      });
+      seeded.silentLocal = await seedRun(db, {
+        createdAt: new Date(Date.now() - 20 * MINUTES),
+        local: true,
+        organizationId,
+        tag: `rec_silent_${suffix}`,
+      });
+      seeded.heardLocal = await seedRun(db, {
+        createdAt: new Date(Date.now() - 20 * MINUTES),
+        lastSeenAt: new Date(Date.now() - MINUTES),
+        local: true,
+        organizationId,
+        tag: `rec_heard_${suffix}`,
+      });
+      seeded.recentHosted = await seedRun(db, {
+        createdAt: new Date(Date.now() - 20 * MINUTES),
+        organizationId,
+        tag: `rec_hosted_${suffix}`,
       });
       seeded.done = await seedRun(db, {
         batchStatus: "finished",
@@ -156,6 +198,28 @@ describe.skipIf(skipWithoutDatabase())("reconcile", () => {
     expect(done.batch?.failure).toBeNull();
   });
 
+  it("closes a local batch whose machine went quiet, and spares one still beating, one from a CLI that never beats, and a hosted one", async () => {
+    await run(reconcile(Duration.hours(6)));
+
+    const quiet = await read(seeded.quietLocal as SeededRun);
+    expect(quiet.batch?.status).toBe("failed");
+    expect(quiet.batch?.failure).toBe(
+      "abandoned: the machine running this stopped reporting"
+    );
+    expect(quiet.run?.status).toBe("failed");
+
+    const heard = await read(seeded.heardLocal as SeededRun);
+    expect(heard.batch?.status).toBe("running");
+    expect(heard.run?.status).toBe("running");
+
+    const silent = await read(seeded.silentLocal as SeededRun);
+    expect(silent.batch?.status).toBe("running");
+
+    const hosted = await read(seeded.recentHosted as SeededRun);
+    expect(hosted.batch?.status).toBe("running");
+    expect(hosted.run?.status).toBe("running");
+  });
+
   it("leaves work it already closed as it was", async () => {
     const before = await read(seeded.stale as SeededRun);
     await run(reconcile(Duration.hours(6)));
@@ -165,4 +229,168 @@ describe.skipIf(skipWithoutDatabase())("reconcile", () => {
     expect(after.batch?.finishedAt).toEqual(before.batch?.finishedAt ?? null);
     expect(after.trials).toEqual(before.trials);
   });
+
+  it("closes a local batch whose machine never beat once, voiding the trials it never reported", async () => {
+    const fixture = await withDb((db) =>
+      seedRun(db, {
+        batchStatus: "finished",
+        organizationId,
+        runStatus: "finished",
+        tag: `rec_unbeaten_${suffix}`,
+      })
+    );
+    const inserted = await run(
+      Effect.gen(function* () {
+        yield* TestClock.setTime(Date.now() - 15 * MINUTES);
+        return yield* (yield* BatchRepository).insert({
+          checksIn: true,
+          idempotency: null,
+          local: true,
+          organizationId,
+          runs: [
+            {
+              caseVersionInternalId: fixture.versionInternalId,
+              harnessCredentialConnectionId: null,
+              harnessCredentialRevision: null,
+              harnessVersion: "0.144.4",
+              profileInternalId: null,
+              sandboxCredentialConnectionId: null,
+              sandboxCredentialRevision: null,
+              trialCount: 2,
+              variantInternalId: fixture.variantInternalId,
+            },
+          ],
+          startedBy: null,
+          trigger: null,
+        });
+      }).pipe(Effect.provide(TestContext.TestContext))
+    );
+    const { internalId, runInternalIds } = Option.getOrThrow(inserted);
+    const runInternalId = runInternalIds[0] ?? "";
+    await withDb((db) =>
+      seedTrial(db, {
+        finishedAt: new Date(),
+        internalId: `etri_rec_unbeaten_${suffix}`,
+        ordinal: 1,
+        runInternalId,
+        startedAt: new Date(),
+        status: "passed",
+      })
+    );
+
+    await run(reconcile(Duration.hours(6)));
+
+    const closed = await withDb(async (db) => ({
+      batch: (
+        await db
+          .select({ failure: evalBatch.failure, status: evalBatch.status })
+          .from(evalBatch)
+          .where(eq(evalBatch.internalId, internalId))
+      )[0],
+      runs: await db
+        .select({ status: evalRun.status })
+        .from(evalRun)
+        .where(eq(evalRun.batchInternalId, internalId)),
+      trials: await db
+        .select({
+          failure: evalTrial.failure,
+          ordinal: evalTrial.ordinal,
+          status: evalTrial.status,
+        })
+        .from(evalTrial)
+        .where(eq(evalTrial.runInternalId, runInternalId))
+        .orderBy(asc(evalTrial.ordinal)),
+    }));
+
+    expect(closed).toEqual({
+      batch: {
+        failure: "abandoned: the machine running this stopped reporting",
+        status: "failed",
+      },
+      runs: [{ status: "failed" }],
+      trials: [
+        { failure: null, ordinal: 1, status: "passed" },
+        {
+          failure: "abandoned: the machine running this stopped reporting",
+          ordinal: 2,
+          status: "void",
+        },
+      ],
+    });
+  });
 });
+
+describe.skipIf(skipWithoutDatabase())(
+  "a local batch from a CLI that never checks in",
+  () => {
+    const olderId = `org_reconcile_older_${suffix}`;
+
+    beforeAll(() => withDb((db) => seedOrganization(db, olderId)));
+
+    const startedLongAgo = (checksIn: boolean, tag: string) =>
+      Effect.gen(function* () {
+        const fixture = yield* Database.pipe(
+          Effect.flatMap((db) =>
+            Effect.promise(() =>
+              seedRun(db, {
+                batchStatus: "finished",
+                organizationId: olderId,
+                runStatus: "finished",
+                tag,
+              })
+            )
+          )
+        );
+        yield* TestClock.setTime(Date.now() - 15 * MINUTES);
+        const inserted = yield* (yield* BatchRepository).insert({
+          checksIn,
+          idempotency: null,
+          local: true,
+          organizationId: olderId,
+          runs: [
+            {
+              caseVersionInternalId: fixture.versionInternalId,
+              harnessCredentialConnectionId: null,
+              harnessCredentialRevision: null,
+              harnessVersion: "0.144.4",
+              profileInternalId: null,
+              sandboxCredentialConnectionId: null,
+              sandboxCredentialRevision: null,
+              trialCount: 1,
+              variantInternalId: fixture.variantInternalId,
+            },
+          ],
+          startedBy: null,
+          trigger: null,
+        });
+        return Option.getOrThrow(inserted).internalId;
+      }).pipe(Effect.provide(TestContext.TestContext));
+
+    const statusOf = (internalId: string) =>
+      withDb(async (db) => {
+        const [row] = await db
+          .select({ status: evalBatch.status })
+          .from(evalBatch)
+          .where(eq(evalBatch.internalId, internalId));
+        return row?.status;
+      });
+
+    it("keeps counting and running past 10 minutes, while one that checks in is closed", async () => {
+      const older = await run(startedLongAgo(false, `rec_older_${suffix}`));
+      const newer = await run(startedLongAgo(true, `rec_newer_${suffix}`));
+
+      const counted = await run(
+        Effect.flatMap(BatchRepository, (batches) =>
+          batches.inFlight(olderId, new Date(Date.now() - 10 * MINUTES))
+        )
+      );
+      await run(reconcile(Duration.hours(6)));
+
+      expect({
+        counted,
+        newer: await statusOf(newer),
+        older: await statusOf(older),
+      }).toEqual({ counted: 1, newer: "failed", older: "running" });
+    });
+  }
+);

@@ -3,7 +3,9 @@ import { execFileSync } from "node:child_process";
 import {
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
+  realpath,
   rm,
   symlink,
   writeFile,
@@ -268,6 +270,41 @@ export default suite({
     expect(payload.cases[1]?.source).toEqual({ kind: "empty" });
   });
 
+  test("reads beside the eval file and leaves nothing there", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-in-place-"));
+    await mkdir(join(workspace, "node_modules/greeter"), { recursive: true });
+    await writeFile(
+      join(workspace, "node_modules/greeter/index.js"),
+      'module.exports = { hello: "hello from greeter" };'
+    );
+    await writeFile(join(workspace, "task.txt"), "add a test\n");
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { command, suite } from "anpord";
+const task = readFileSync(new URL("./task.txt", import.meta.url), "utf8").trim();
+const named = "greeter";
+const greeting = createRequire(import.meta.url)(named).hello;
+export default suite({
+  id: "fixture",
+  cases: [{ id: "reads", name: "reads", validate: command("true") }],
+  prompt: \`\${task} / \${greeting} / \${import.meta.dirname === ${JSON.stringify(await realpath(workspace))}}\`,
+  variants: [{ harness: "codex", model: "gpt-5.6-sol", sandbox: "daytona" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileFixture(join(workspace, "eval.ts"));
+
+    expect(payload.suite.prompt).toBe("add a test / hello from greeter / true");
+    expect((await readdir(workspace)).sort()).toEqual([
+      "eval.ts",
+      "node_modules",
+      "task.txt",
+    ]);
+  });
+
   test("refuses a repository nobody could read, at the definition", async () => {
     workspace = await mkdtemp(join(tmpdir(), "anpord-bad-source-"));
     await writeFile(
@@ -318,6 +355,56 @@ export default suite({
       ref: null,
       url: "https://github.com/acme/widgets.git",
     });
+  });
+
+  test("carries the turn and time limits a case sets", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-limits-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { command, suite } from "anpord";
+export default suite({
+  id: "fixture",
+  cases: [
+    { id: "limited", maxTurns: 3, timeoutMs: 120000, validate: command("true") },
+    { id: "defaults", validate: command("true") },
+  ],
+  prompt: "go",
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  trials: 1,
+});`
+    );
+
+    const payload = await compileFixture(join(workspace, "eval.ts"));
+
+    expect(
+      payload.cases.map(({ id, maxTurns, timeoutMs }) => ({
+        id,
+        maxTurns,
+        timeoutMs,
+      }))
+    ).toEqual([
+      { id: "limited", maxTurns: 3, timeoutMs: 120_000 },
+      { id: "defaults", maxTurns: null, timeoutMs: null },
+    ]);
+  });
+
+  test("refuses a turn limit of zero", async () => {
+    workspace = await mkdtemp(join(tmpdir(), "anpord-limits-bad-"));
+    await writeFile(
+      join(workspace, "eval.ts"),
+      `import { command, suite } from "anpord";
+export default suite({
+  id: "fixture",
+  cases: [{ id: "none", maxTurns: 0, validate: command("true") }],
+  prompt: "go",
+  variants: [{ harness: "codex", model: "gpt-5.6-sol" }],
+  trials: 1,
+});`
+    );
+
+    await expect(compileFixture(join(workspace, "eval.ts"))).rejects.toThrow(
+      "maxTurns must be a whole number from 1 to 50."
+    );
   });
 
   test("refuses a plain string that is not a repository", async () => {

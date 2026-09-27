@@ -5,6 +5,7 @@ import type {
 } from "@anpord/schema/domain/harness-event";
 import {
   Context,
+  type Duration,
   type Effect,
   type Option,
   type Redacted,
@@ -13,6 +14,7 @@ import {
 } from "effect";
 import type { HarnessUnavailable } from "../domain/errors";
 import type { RequestedProfile } from "../domain/harness-profile";
+import type { ResumeSupport } from "../domain/usage-tally";
 import type { HarnessName } from "../domain/variant";
 import type { SandboxHandle } from "./sandbox";
 
@@ -28,6 +30,7 @@ export interface RunHarness {
   /** Where the materialiser left the profile's system prompt, for a base that
    * names a file rather than taking the text. */
   readonly systemPromptPath: Option.Option<string>;
+  readonly timeout?: Duration.Duration;
   readonly workspace: string;
 }
 
@@ -56,6 +59,7 @@ export interface HarnessDriverShape {
   readonly prepare: (
     input: PrepareHarness
   ) => Effect.Effect<Readonly<Record<string, string>>, HarnessUnavailable>;
+  readonly resume: ResumeSupport;
   readonly run: (
     request: RunHarness
   ) => Effect.Effect<HarnessSessionShape, HarnessUnavailable, Scope.Scope>;

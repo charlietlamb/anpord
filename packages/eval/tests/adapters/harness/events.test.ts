@@ -41,7 +41,6 @@ describe("harness event decoders", () => {
       )
     ).toMatchObject({
       events: [{ _tag: "Command", command: "bun test" }],
-      usage: { inputTokens: 4, outputTokens: 2, totalTokens: 6 },
     });
   });
 

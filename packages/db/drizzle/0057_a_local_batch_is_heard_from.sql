@@ -1,0 +1,1 @@
+ALTER TABLE "eval_batch" ADD COLUMN "last_seen_at" timestamp;

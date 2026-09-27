@@ -1,20 +1,14 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness } from "@anpord/schema/domain/evals";
-import { AnpordApi } from "@anpord/schema/public/client";
-import { Data, Duration, Effect, Option } from "effect";
-import { apiKeyConfig, ClientLayer, webUrlConfig } from "../client/config";
-import { asAnpordError } from "../client/errors";
+import type { AnpordApi } from "@anpord/schema/public/client";
+import { type Context, Data, Duration, Effect, Layer, Option } from "effect";
+import { apiKeyConfig, ClientLayer } from "../client/config";
 import { compileEvalEffect } from "../evals/compiler";
 import { type EvalGate, failWhen } from "./eval-gate";
-import { labelOfRequest, runLocally } from "./eval-local";
-import { reportStarted } from "./eval-report";
-import { evalTrigger } from "./eval-trigger";
-import { batchUrl } from "./github-check";
+import { runLocally } from "./eval-local";
 import { localProblems, reportLocal } from "./local-report";
-import { runIdsFor } from "./local-run-ids";
-import { openBrowser } from "./open-browser";
+import { runRecorded } from "./recorded-run";
 import { note } from "./render";
 import { type Selection, selectFrom } from "./suite-selection";
+import { announceOrganization } from "./whoami-command";
 
 class LocalTimeout extends Data.TaggedError("LocalTimeout")<{
   readonly file: string;
@@ -25,67 +19,14 @@ class LocalTimeout extends Data.TaggedError("LocalTimeout")<{
   }
 }
 
-const leasesFor = (request: StartBatchRequest, batchId: string) =>
-  Effect.gen(function* () {
-    const api = yield* AnpordApi;
-    const harnesses = [
-      ...new Set(request.variants.map((variant) => variant.harness)),
-    ];
-    const leased = yield* Effect.forEach(harnesses, (harness) =>
-      api.runner.lease({ payload: { harness, id: batchId } }).pipe(
-        Effect.map((lease) => [harness, lease.values] as const),
-        Effect.option
-      )
-    );
+type Recorder = Option.Option<Context.Context<AnpordApi>>;
 
-    return new Map<EvalHarness, Readonly<Record<string, string>>>(
-      leased.flatMap(Option.toArray)
-    );
-  });
-
-const recordedLocally = (
-  label: string,
-  request: StartBatchRequest,
-  ui: boolean
+const runSuiteLocally = (
+  file: string,
+  selection: Selection,
+  ui: boolean,
+  recorder: Recorder
 ) =>
-  Effect.gen(function* () {
-    const api = yield* AnpordApi;
-    const trigger = yield* evalTrigger;
-    const started = yield* api.runner.start({
-      payload: { ...request, local: true, trigger },
-    });
-
-    yield* reportStarted(label, started.id);
-    yield* Effect.addFinalizer(() =>
-      api.runner.finish({ payload: { id: started.id } }).pipe(Effect.ignore)
-    );
-
-    /* The dashboard already follows a batch as it runs, so this opens that page
-       rather than serving a second copy of it that could drift. */
-    if (ui) {
-      yield* openBrowser(batchUrl(yield* webUrlConfig, started.id));
-    }
-
-    const batch = yield* api.batches.get({ payload: { id: started.id } });
-    const runIdOf = yield* runIdsFor(request, started, batch);
-    const leases = yield* leasesFor(request, started.id);
-
-    return yield* runLocally(request, {
-      credentials: (harness) => leases.get(harness),
-      onTrial: (slot, trial) =>
-        api.runner
-          .report({ payload: { ...trial, runId: runIdOf(slot) } })
-          .pipe(
-            Effect.catchAll((error) =>
-              note(
-                `A trial of ${slot.caseId} on ${labelOfRequest(slot.variant)} was not recorded. ${asAnpordError(error).message}`
-              )
-            )
-          ),
-    });
-  }).pipe(Effect.scoped, Effect.provide(ClientLayer));
-
-const runSuiteLocally = (file: string, selection: Selection, ui: boolean) =>
   Effect.gen(function* () {
     const request = yield* selectFrom(
       file,
@@ -93,21 +34,25 @@ const runSuiteLocally = (file: string, selection: Selection, ui: boolean) =>
       selection
     );
     const label = `${request.suite.name} (${file})`;
-    const recorded = yield* Effect.option(apiKeyConfig);
-
-    if (ui && Option.isNone(recorded)) {
+    if (ui && Option.isNone(recorder)) {
       yield* note(
         "--ui opens the dashboard for a recorded batch, so it needs an API key. Showing the transcript only."
       );
     }
 
-    const cases = Option.isSome(recorded)
-      ? yield* recordedLocally(label, request, ui)
-      : yield* runLocally(request);
+    const { cases, costs, link } = Option.isSome(recorder)
+      ? yield* runRecorded(label, request, ui).pipe(
+          Effect.provide(recorder.value)
+        )
+      : {
+          cases: yield* runLocally(request),
+          costs: null,
+          link: Option.none<string>(),
+        };
 
-    yield* reportLocal(label, cases);
+    yield* reportLocal(label, cases, costs, link);
 
-    return localProblems(cases);
+    return localProblems(label, cases);
   });
 
 export const runSuitesLocally = (
@@ -120,11 +65,19 @@ export const runSuitesLocally = (
   }
 ) =>
   Effect.gen(function* () {
+    const recorder: Recorder = Option.isSome(yield* Effect.option(apiKeyConfig))
+      ? Option.some(yield* Layer.build(ClientLayer))
+      : Option.none();
+
+    if (Option.isSome(recorder)) {
+      yield* announceOrganization.pipe(Effect.provide(recorder.value));
+    }
+
     const problems = yield* Effect.forEach(files, (file) =>
       Option.match(options.timeoutSeconds, {
-        onNone: () => runSuiteLocally(file, selection, options.ui),
+        onNone: () => runSuiteLocally(file, selection, options.ui, recorder),
         onSome: (seconds) =>
-          runSuiteLocally(file, selection, options.ui).pipe(
+          runSuiteLocally(file, selection, options.ui, recorder).pipe(
             Effect.timeoutFail({
               duration: Duration.seconds(seconds),
               onTimeout: () => new LocalTimeout({ file, seconds }),
@@ -134,4 +87,4 @@ export const runSuitesLocally = (
     );
 
     return yield* failWhen([], options.gate === "never" ? [] : problems.flat());
-  });
+  }).pipe(Effect.scoped);

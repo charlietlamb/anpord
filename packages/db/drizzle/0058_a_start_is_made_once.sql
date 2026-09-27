@@ -1,0 +1,2 @@
+ALTER TABLE "eval_batch" ADD COLUMN "idempotency_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "eval_batch_organization_id_idempotency_key_idx" ON "eval_batch" USING btree ("organization_id","idempotency_key");

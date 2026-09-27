@@ -1,13 +1,14 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import { Effect, Either, Redacted } from "effect";
+import { Effect, Either, Option, Redacted } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
+import type { ResumeSupport } from "../../domain/usage-tally";
 import type { HarnessName } from "../../domain/variant";
 import type {
   HarnessDriverShape,
   PrepareHarness,
   RunHarness,
 } from "../../ports/harness";
-import type { Install } from "./install";
+import { type InstallPlan, installHarness } from "./install";
 import { jsonSession, type LineDecoder } from "./session";
 
 type Values = Readonly<Record<string, string>>;
@@ -21,10 +22,11 @@ export interface HarnessRow {
   readonly captureRotation?: HarnessDriverShape["captureRotation"];
   readonly command: (request: RunHarness) => string;
   readonly decode: LineDecoder;
-  readonly install: Install;
+  readonly install: InstallPlan;
   readonly material: (
     credential: ResolvedCredential
   ) => Either.Either<Material, string>;
+  readonly resume?: ResumeSupport;
   readonly runEnv?: (request: RunHarness) => Values;
   readonly verifyModel?: boolean;
 }
@@ -65,6 +67,8 @@ export const jsonDriver = (
       reason: typeof cause === "string" ? cause : cause.reason,
     });
 
+  const resume = row.resume ?? "unsupported";
+
   return {
     captureRotation: row.captureRotation,
     harness,
@@ -73,7 +77,7 @@ export const jsonDriver = (
         const credential = yield* credentialOf(harness, input);
         const material = yield* row.material(credential);
 
-        yield* row.install(input).pipe(
+        yield* installHarness(harness, row.install, input).pipe(
           Effect.withSpan(`${name}.install`, {
             attributes: { version: input.version },
           })
@@ -88,10 +92,14 @@ export const jsonDriver = (
 
         return material.env;
       }).pipe(Effect.mapError(unavailable), Effect.withSpan(`${name}.prepare`)),
+    resume,
     run: (request) =>
-      jsonSession(request, row.command(request), row.decode, {
-        env: row.runEnv?.(request),
-        verifyModel: row.verifyModel,
-      }).pipe(Effect.withSpan(`${name}.run`)),
+      (Option.isSome(request.resume) && resume === "unsupported"
+        ? Effect.fail(unavailable(`${harness} cannot continue a session`))
+        : jsonSession(request, row.command(request), row.decode, {
+            env: row.runEnv?.(request),
+            verifyModel: row.verifyModel,
+          })
+      ).pipe(Effect.withSpan(`${name}.run`)),
   };
 };

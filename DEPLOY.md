@@ -66,6 +66,7 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `EVAL_JOURNAL_HOT` | Defaults to `30 days`. How long a settled trial keeps one row per event before the journal is folded into one; the run page reads either |
 | `AUTUMN_API_KEY` | *secret*. Without it usage goes uncounted, since the meter fails open |
 | `GITHUB_APP_PRIVATE_KEY` | *secret*. The `.pem` GitHub issued, whole. `./scripts/configure-github-app.sh` puts all three on the service |
+| `SHUTDOWN_DRAIN_TIMEOUT` | Defaults to `20 seconds`. How long a stopping instance waits for requests already running before it exits. Keep it under the platform's stop grace period |
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
 
@@ -73,6 +74,11 @@ Suggested size is 0.25 vCPU / 0.5 GB, which is the floor and enough for this
 workload. Set the health check path to `/api/healthz`, which answers 200.
 App Runner counts only 2xx as healthy, so an authenticated route returning 401
 fails the check even though the server is up.
+
+The server opens its port only after both APIs have mounted their routes, so a
+new instance refuses connections until it can answer every route rather than
+accepting traffic it cannot route. On `SIGTERM` it stops accepting connections,
+lets requests already running finish, then exits.
 
 The deployment workflow checks for the Trigger key before building. Store it in
 Secrets Manager and reference its ARN as `TRIGGER_SECRET_KEY` in App Runner;

@@ -7,7 +7,7 @@ import { ModelPricesLive } from "./adapters/models/prices";
 import { SandboxAdaptersLive } from "./adapters/sandbox/resolve";
 import { ScorerChecksLive } from "./adapters/scorers/checks";
 import { ScorerGroundTruthLive } from "./adapters/scorers/ground-truth";
-import { SimulatedUserLive } from "./adapters/user/llm-user";
+import { SimulatedUserLive } from "./adapters/user/layer";
 import { BatchesLive } from "./batch/batches";
 import { GithubAppConfigLive, GithubAppLive } from "./codebase/github-app";
 import { InstallationsLive } from "./codebase/installations";
@@ -34,6 +34,7 @@ import { HarnessVersionsLive } from "./services/harness-versions";
 import { JournalRetentionScheduleLive } from "./services/journal-retention";
 import { AgentTrialJudgedLive } from "./services/judged-trial";
 import { ReconcilerScheduleLive } from "./services/reconciler";
+import { AgentTrialRedactedLive } from "./services/redacted-trial";
 import { SandboxProviderLive } from "./services/sandbox-provider";
 import { SandboxReaperScheduleLive } from "./services/sandbox-reaper";
 import { type Suspender, SuspenderSleeping } from "./services/suspender";
@@ -63,17 +64,21 @@ const RepositoriesLive = Layer.mergeAll(
 ).pipe(Layer.provide(IdGeneratorLive), Layer.provide(JournalArchiveLive));
 
 const agentWith = (suspender: Layer.Layer<Suspender>) =>
-  AgentTrialJudgedLive.pipe(
+  AgentTrialRedactedLive.pipe(
     Layer.provide(
-      AgentTrialLive.pipe(
+      AgentTrialJudgedLive.pipe(
         Layer.provide(
-          ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
+          AgentTrialLive.pipe(
+            Layer.provide(
+              ScorerChecksLive.pipe(Layer.provide(ScorerGroundTruthLive))
+            ),
+            Layer.provide(suspender)
+          )
         ),
-        Layer.provide(suspender)
+        Layer.provide(JudgeModelLive),
+        Layer.provide(HarnessesLive)
       )
-    ),
-    Layer.provide(JudgeModelLive),
-    Layer.provide(HarnessesLive)
+    )
   );
 
 export const evalStackWith = (
@@ -89,7 +94,12 @@ export const evalStackWith = (
   Layer.mergeAll(BatchesLive, EvalReadsLive).pipe(
     Layer.provide(agentWith(suspender)),
     Layer.provide(
-      Layer.mergeAll(runner, bell, ModelPricesLive, SimulatedUserLive)
+      Layer.mergeAll(
+        runner,
+        bell,
+        ModelPricesLive,
+        SimulatedUserLive.pipe(Layer.provide(HarnessesLive))
+      )
     ),
     Layer.provide(EvalSandboxLive),
     Layer.provideMerge(RepositoriesLive),
@@ -100,7 +110,9 @@ export const evalStackWith = (
   );
 
 export const EvalSweepsLive = Layer.mergeAll(
-  ReconcilerScheduleLive.pipe(Layer.provide(AbandonedWorkLive)),
+  ReconcilerScheduleLive.pipe(
+    Layer.provide(AbandonedWorkLive.pipe(Layer.provide(IdGeneratorLive)))
+  ),
   JournalRetentionScheduleLive.pipe(Layer.provide(JournalArchiveLive)),
   ExpirySweepScheduleLive.pipe(Layer.provide(ExpiredRowsLive)),
   SandboxReaperScheduleLive.pipe(

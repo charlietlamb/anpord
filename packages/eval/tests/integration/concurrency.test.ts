@@ -45,6 +45,7 @@ const oneCommandHarness = Layer.succeed(
       Effect.succeed({
         harness,
         prepare: () => Effect.succeed({}),
+        resume: "usage-per-run",
         run: (request) =>
           Effect.succeed({
             events: Stream.fromEffect(

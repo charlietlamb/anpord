@@ -9,6 +9,7 @@ import { PreviewScreen } from "@/components/dev/preview-screen";
 import {
   LOCAL_RUN,
   LOCAL_TRIAL,
+  TIMED_OUT_TRIAL,
   VALIDATED_RUN,
   VALIDATED_SETUP,
   VALIDATED_TRIAL,
@@ -174,6 +175,10 @@ function EvalsPreview() {
 
         <PreviewScreen name="Local trial that reported nothing">
           <TrialView run={LOCAL_RUN} trial={LOCAL_TRIAL} />
+        </PreviewScreen>
+
+        <PreviewScreen name="Trial that ran out of time">
+          <TrialView run={LOCAL_RUN} trial={TIMED_OUT_TRIAL} />
         </PreviewScreen>
 
         <PreviewScreen name="Loading: one trial">

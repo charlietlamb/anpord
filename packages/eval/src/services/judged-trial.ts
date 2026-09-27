@@ -2,9 +2,12 @@ import {
   type EvalValidation,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
+import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Effect, Layer } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
 import { readAnswer } from "../domain/journal";
+import { redactEvent } from "../domain/secret-redaction";
+import { trialSecrets } from "../domain/trial-secrets";
 import { evaluateJudge } from "../judges/evaluate";
 import { JudgeModel } from "../judges/model";
 import { AgentTrial, type AgentTrialResult } from "./agent-trial";
@@ -60,6 +63,7 @@ export const AgentTrialJudgedLive = Layer.effect(
               },
             };
           }
+          const secrets = trialSecrets(request);
           const judgments = yield* Effect.forEach(
             request.validator.judges,
             (judge, index) =>
@@ -69,8 +73,11 @@ export const AgentTrialJudgedLive = Layer.effect(
                 capture: request.validator?.capture !== false,
                 judge,
                 context: request,
-                input: request.prompt,
-                output: readAnswer(result.events),
+                input: redactSecrets(request.prompt, secrets),
+                output: redactSecrets(readAnswer(result.events), secrets),
+                events: result.conversationEvents.map((event) =>
+                  redactEvent(event, secrets)
+                ),
               })
           );
           const invalid = judgments.filter(({ error }) => error !== null);

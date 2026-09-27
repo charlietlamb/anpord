@@ -11,7 +11,11 @@ export const batchScopeQuery = Effect.gen(function* () {
   const batch = (organizationId: string, batchId: string) =>
     tryStore("batchScope.batch", () =>
       db
-        .select({ internalId: evalBatch.internalId, local: evalBatch.local })
+        .select({
+          internalId: evalBatch.internalId,
+          local: evalBatch.local,
+          status: evalBatch.status,
+        })
         .from(evalBatch)
         .where(
           and(
@@ -27,6 +31,7 @@ export const batchScopeQuery = Effect.gen(function* () {
         .select({
           batchInternalId: evalRun.batchInternalId,
           local: evalBatch.local,
+          status: evalBatch.status,
         })
         .from(evalRun)
         .innerJoin(evalBatch, eq(evalBatch.internalId, evalRun.batchInternalId))

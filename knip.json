@@ -57,9 +57,11 @@
         "src/client.ts",
         "src/config.ts",
         "src/schema.ts",
-        "src/schema/**/*.ts"
+        "src/schema/**/*.ts",
+        "scripts/*.ts",
+        "tests/**/*.test.ts"
       ],
-      "project": "src/**"
+      "project": ["src/**", "scripts/**", "tests/**"]
     },
     "packages/eval": {
       "entry": ["src/layer.ts", "tests/**/*.test.ts"],

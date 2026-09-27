@@ -38,6 +38,8 @@ A suite and a case each need an `id`: a handle of up to 100 lowercase letters, d
 | `cache` | One prepared directory to restore and save |
 | `tags` | Up to 12 labels to group and filter cases by |
 | `user` | Makes the case a [conversation](/evals/conversations) instead of one prompt |
+| `maxTurns` | Most turns a conversation may hold. Defaults to 8 |
+| `timeoutMs` | How long the agent may work across the whole trial. Defaults to 15 minutes |
 | `validate` | How the trial passes: a validator, a [model judge](/evals/judges), `command("...")`, or an array of validators and judges (required) |
 
 The suite's `name` also defaults to its `id`.
@@ -77,6 +79,25 @@ export const install: Prepare = async ({ cached, exec }) => {
 
 `cached` is `true` when the cache directory was restored. The cache path must stay inside the workspace.
 
+`prepare` can return a key it creates, such as a test API key. Anpord hands the value to your validator and never prints it in logs or the terminal or stores it as evidence. Output the prepare prints itself is logged while it runs, with anything that looks like a key replaced by `[redacted]`.
+
+## Limits
+
+`timeoutMs` is how long the agent may work across all of a trial's turns, from 1,000 to 3,600,000 milliseconds. It defaults to 15 minutes. Time the person spends replying does not count. When the agent runs past it, the harness is stopped and the trial ends as timed out, never as a pass or a fail.
+
+`maxTurns` caps how many times the person speaks in a [conversation](/evals/conversations), the opening prompt included. It takes 1 to 50 and defaults to 8.
+
+```ts
+{
+  id: "long-migration",
+  maxTurns: 4,
+  timeoutMs: 1_800_000,
+  validate: migrated,
+}
+```
+
+Changing either limit creates a new version of the case.
+
 ## Validate
 
 `command("bun test")` runs a shell command in the workspace after the agent finishes. The trial passes when it exits 0.
@@ -94,9 +115,13 @@ export const hasHealthRoute: Validator = async ({ readText }) => ({
 
 Set `validate: hasHealthRoute` on the case. Anpord bundles the function and its imports with the case. A validator can also return a plain boolean.
 
-The validator receives `answer`, `transcript`, `turns`, `readText`, `exists`, `exec`, `prepared`, and the call logs of any [mocks](/evals/mocks) (`api`, `cli`, `mcp`).
+The validator receives `answer`, `transcript`, `turns`, `readText`, `exists`, `exec`, `prepared`, and the call logs of any [mocks](/evals/mocks) (`api`, `cli`, `mcp`). Every check of a trial receives the same context object, so checks can share work, such as one request to your app, by caching on it.
+
+`answer()` is the agent's last message and `transcript()` is every agent message joined. `turns()` is the whole conversation, turn by turn, with the messages, commands, tool calls and file changes of each. A case without `user` has one turn. See [what a validator reads](/evals/conversations#what-a-validator-reads).
 
 Pass an array to combine validators and judges, up to 20 per case: `validate: [hasHealthRoute, correctness]`. A `command()` can't go in an array. Use [model judges](/evals/judges) for checks that need interpretation.
+
+Every code validator runs, even after an earlier one fails, so each one records its own result and pass rate. The trial passes only when all of them pass.
 
 ### Source capture
 

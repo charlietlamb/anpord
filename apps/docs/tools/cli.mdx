@@ -27,7 +27,25 @@ Set `ANPORD_API_KEY` before commands that call Anpord. `--help`, `--version`, `e
 | `anpord eval [file] [options]` | Run suite files, or a stored case, as batches and gate on the results |
 | `anpord eval import --format <format> <path> [--out <file>]` | Turn a case file a team already wrote into a suite |
 | `anpord connectors <subcommand>` | Connect the credentials evals use |
+| `anpord whoami [--json]` | Show the organization and key `ANPORD_API_KEY` acts for |
 | `anpord --completions <shell>` | Print completions for zsh, bash or fish |
+
+## Check which organization a key uses
+
+```bash
+anpord whoami
+```
+
+```text
+organization       Acme
+organization slug  acme
+organization id    org_01J9...
+key                ci
+key starts with    anp_AbCd
+permissions        evals:read, evals:write
+```
+
+Every run, suite and connector a key touches belongs to this organization. `--json` prints the same facts as JSON. The secret is never printed. `anpord eval` also prints the organization once before its first batch.
 
 ## Run evals
 
@@ -45,7 +63,7 @@ With `--case` and no file, the CLI runs a case Anpord already stores again, on i
 | Option | Purpose |
 | --- | --- |
 | `--case <id>` | Run one case. With a file, picks that case from it. Without one, runs the stored case again |
-| `--variant <variant>` | Run one variant: `harness/model` for a file, or a variant id for a stored case. Repeat it for more |
+| `--variant <variant>` | Run one variant: `harness/model`, `harness/model@profile` or a profile name for a file, or a variant id for a stored case. Repeat it for more |
 | `--local` | Run every case on every variant, with the suite's trials, on this machine instead of a cloud sandbox. See [local runs](/evals/local) |
 | `--fail-on` | Gate, `failures` by default: fail when any run fails or has a trial that did not pass. `strict` also fails when a run or trial is missing or unfinished. `never` ignores trial results |
 | `--timeout` | Seconds to wait per batch, default `1200`. A timeout fails the command but does not cancel the batch |
@@ -73,6 +91,8 @@ Under every gate, a batch that fails to start, fails, or times out fails the com
 | `130` | Interrupted |
 
 Failures print without a stack trace. Status messages go to stderr.
+
+When Anpord cannot be reached, the error says so and names the address it tried. The first request checks that the server answers and gives up within 5 seconds if it does not. After that, a read that gets no answer in 30 seconds gives up with an error that says the server was slow, not unreachable. A change is never cut off once the server has it, so it cannot be applied twice.
 
 ## Environment
 

@@ -9,9 +9,11 @@ import type { EvalUser } from "@anpord/schema/domain/eval-turns";
 
 export interface CaseDefinition {
   readonly cache: CaseCache | null;
+  readonly maxTurns: number | null;
   readonly prepare: EvalPrepare | null;
   readonly prompt: string;
   readonly source: EvalSource;
+  readonly timeoutMs: number | null;
   readonly user: EvalUser | null;
   readonly validator: EvalValidator | null;
   readonly verify: string | null;
@@ -27,6 +29,11 @@ const validatorOf = (validator: EvalValidator | null) => {
   const { sourceFiles: _sourceFiles, ...execution } = validator;
   return JSON.stringify(execution);
 };
+
+const limitsOf = ({ maxTurns, timeoutMs }: CaseDefinition) =>
+  maxTurns === null && timeoutMs === null
+    ? []
+    : [`limits ${maxTurns ?? ""} ${timeoutMs ?? ""}`];
 
 const sourceOf = (source: EvalSource) => {
   if (source.kind === "empty") {
@@ -52,6 +59,7 @@ export const definitionHashOf = (input: CaseDefinition): string =>
         sourceOf(input.source),
         input.user === null ? "" : JSON.stringify(input.user),
         input.cache === null ? "" : `${input.cache.key} ${input.cache.path}`,
+        ...limitsOf(input),
       ].join("\u0000")
     )
     .digest("hex")

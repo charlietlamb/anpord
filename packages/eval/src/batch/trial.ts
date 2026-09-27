@@ -1,43 +1,22 @@
 import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
 import { describeCause } from "../domain/failure";
-import { judgmentsIn } from "../domain/judgments";
-import { costOf, type ModelPrice } from "../domain/model-price";
-import { breakdownOf } from "../domain/trial-cost";
+import { autoStopMinutesFor } from "../domain/sandbox-lifetime";
 import { validationPlan } from "../domain/validation-plan";
-import { ModelPrices } from "../ports/model-source";
 import { RunBell } from "../ports/run-bell";
 import type { RunPlan } from "../repositories/batch-plan-query";
 import { TrialCostRepository } from "../repositories/trial-cost-repository";
 import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
+import { makeTrialPricing } from "./trial-pricing";
 
 const WORKSPACE = "/tmp/anpord-task";
-export const AUTO_STOP_MINUTES = 15;
 
 export interface TrialCredentials {
   readonly harness: Redacted.Redacted<ResolvedCredential>;
   readonly sandbox?: Redacted.Redacted<ResolvedCredential>;
 }
-
-const rateFor = (model: string) =>
-  ModelPrices.pipe(
-    Effect.flatMap((prices) => prices.forModel(model)),
-    Effect.orElseSucceed(() => Option.none<ModelPrice>())
-  );
-
-const priced = (
-  usage: HarnessUsage | null,
-  price: Option.Option<ModelPrice>
-) =>
-  usage === null
-    ? null
-    : Option.match(price, {
-        onNone: () => usage,
-        onSome: (found) => ({ ...usage, costUsd: costOf(usage, found) }),
-      });
 
 const upsert = (
   records: readonly EvalValidation[],
@@ -51,6 +30,7 @@ export const makeRunTrial = Effect.gen(function* () {
   const agent = yield* AgentTrial;
   const bell = yield* RunBell;
   const costs = yield* TrialCostRepository;
+  const price = yield* makeTrialPricing;
   const recorder = yield* TrialRecorder;
 
   return (input: {
@@ -96,11 +76,12 @@ export const makeRunTrial = Effect.gen(function* () {
       yield* recordValidations(yield* Ref.get(validations));
 
       const result = yield* agent.run({
-        autoStopMinutes: AUTO_STOP_MINUTES,
+        autoStopMinutes: autoStopMinutesFor(plan.case.timeoutMs),
         caseCache: plan.case.cache ?? undefined,
         harness: plan.harness,
         harnessCredential: input.credentials.harness,
         harnessVersion: plan.harnessVersion,
+        maxTurns: plan.case.maxTurns,
         model: plan.model,
         onSandbox: (sandboxId) =>
           Effect.ignoreLogged(recorder.attach({ sandboxId, trialInternalId })),
@@ -126,6 +107,7 @@ export const makeRunTrial = Effect.gen(function* () {
             : Redacted.make(Redacted.value(input.credentials.sandbox).values),
         source: plan.case.source,
         sourceToken: input.sourceToken,
+        timeoutMs: plan.case.timeoutMs,
         user: plan.case.user,
         validator: plan.case.validator,
         verifyCommand: plan.case.verify,
@@ -133,8 +115,16 @@ export const makeRunTrial = Effect.gen(function* () {
       });
 
       const finishedAt = yield* Clock.currentTimeMillis;
-      const price = yield* rateFor(plan.model);
-      const usage = priced(Option.getOrNull(result.usage), price);
+      const { components, usage } = yield* price({
+        authMethodId: Redacted.value(input.credentials.harness).authMethodId,
+        harness: plan.harness,
+        hasOwnSandboxCredential: input.credentials.sandbox !== undefined,
+        model: plan.model,
+        outcome: result.outcome,
+        provider: plan.sandbox,
+        usage: Option.getOrNull(result.usage),
+        userSpend: result.userSpend,
+      });
 
       yield* recorder.settle({
         artifacts: result.artifactContents,
@@ -146,22 +136,7 @@ export const makeRunTrial = Effect.gen(function* () {
       });
 
       yield* costs
-        .record({
-          components: breakdownOf({
-            authMethodId: Redacted.value(input.credentials.harness)
-              .authMethodId,
-            harness: plan.harness,
-            hasOwnSandboxCredential: input.credentials.sandbox !== undefined,
-            judgments: judgmentsIn(result.outcome.validations),
-            model: plan.model,
-            modelMs: result.outcome.modelMs,
-            price,
-            provider: plan.sandbox,
-            sandboxMs: result.outcome.sandboxMs,
-            usage,
-          }),
-          trialInternalId,
-        })
+        .record({ components, trialInternalId })
         .pipe(Effect.ignoreLogged);
 
       yield* bell.ring;

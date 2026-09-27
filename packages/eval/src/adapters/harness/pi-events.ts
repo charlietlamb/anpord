@@ -4,6 +4,9 @@ import type { DecodedOutput } from "./session";
 import { toolOf } from "./tool-event";
 
 const Usage = Schema.Struct({
+  cacheRead: Schema.optional(Schema.Number),
+  cacheWrite: Schema.optional(Schema.Number),
+  cacheWrite1h: Schema.optional(Schema.Number),
   input: Schema.optional(Schema.Number),
   output: Schema.optional(Schema.Number),
   totalTokens: Schema.optional(Schema.Number),
@@ -41,13 +44,25 @@ const decode = Schema.decodeUnknownOption(Schema.parseJson(Line));
 
 const toolEvent = toolOf("bash");
 
-const usageOf = (usage: typeof Usage.Type): HarnessUsage => ({
-  cacheReadTokens: 0,
-  cacheWriteTokens: 0,
-  inputTokens: usage.input ?? 0,
-  outputTokens: usage.output ?? 0,
-  totalTokens: usage.totalTokens ?? (usage.input ?? 0) + (usage.output ?? 0),
-});
+const usageOf = (usage: typeof Usage.Type): HarnessUsage => {
+  const cacheReadTokens = usage.cacheRead ?? 0;
+  const cacheWriteTokens = usage.cacheWrite ?? 0;
+  const inputTokens = usage.input ?? 0;
+  const outputTokens = usage.output ?? 0;
+
+  return {
+    ...(usage.cacheWrite1h === undefined
+      ? {}
+      : { cacheWrite1hTokens: usage.cacheWrite1h }),
+    cacheReadTokens,
+    cacheWriteTokens,
+    inputTokens,
+    outputTokens,
+    totalTokens:
+      usage.totalTokens ??
+      inputTokens + outputTokens + cacheReadTokens + cacheWriteTokens,
+  };
+};
 
 export const decodePiLine = (line: string, at: number): DecodedOutput => {
   const found = decode(line);

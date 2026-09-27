@@ -120,15 +120,6 @@ export const jsonSession = (
   options: SessionOptions = {}
 ) =>
   Effect.gen(function* () {
-    if (
-      Option.isSome(request.resume) &&
-      !command.includes(request.resume.value)
-    ) {
-      return yield* Effect.fail(
-        unavailable(request, `${request.harness} cannot continue a session`)
-      );
-    }
-
     const session = yield* decoding(
       request,
       decode,
@@ -140,7 +131,8 @@ export const jsonSession = (
         request.harness,
         request.sandbox,
         command,
-        options.env ?? request.env
+        options.env ?? request.env,
+        { timeout: request.timeout }
       ).pipe(
         Stream.mapConcatEffect(session.step),
         Stream.catchAll((error) => Stream.fromEffect(session.failed(error)))

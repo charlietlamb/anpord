@@ -6,6 +6,7 @@ import {
 } from "@effect/platform";
 import { Effect, Layer, Redacted } from "effect";
 import { PublicApi } from "./api";
+import { withDeadlines } from "./deadlines";
 
 export const DEFAULT_BASE_URL = "https://api.anpord.com";
 
@@ -15,12 +16,17 @@ export interface ClientOptions {
 }
 
 export const make = ({ apiKey, baseUrl = DEFAULT_BASE_URL }: ClientOptions) =>
-  HttpApiClient.make(PublicApi, {
-    baseUrl,
-    transformClient: HttpClient.mapRequest(
-      HttpClientRequest.bearerToken(Redacted.value(apiKey))
-    ),
-  });
+  Effect.flatMap(withDeadlines(baseUrl), (deadlines) =>
+    HttpApiClient.make(PublicApi, {
+      baseUrl,
+      transformClient: (client) =>
+        deadlines(client).pipe(
+          HttpClient.mapRequest(
+            HttpClientRequest.bearerToken(Redacted.value(apiKey))
+          )
+        ),
+    })
+  );
 
 export type AnpordClient = Effect.Effect.Success<ReturnType<typeof make>>;
 

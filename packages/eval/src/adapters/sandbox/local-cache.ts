@@ -1,44 +1,30 @@
-import { cp, mkdir, rm, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { cp, rm } from "node:fs/promises";
 import { Effect } from "effect";
 import type { SandboxCache } from "../../ports/sandbox";
+import { markUsed } from "./local-prune";
+import { entryIn, pathExists, publishOnce } from "./local-publish";
 import { providerCall } from "./provider-adapter";
 
 const call = providerCall("local");
 
-const entryFor = (store: string, key: string) =>
-  join(store, encodeURIComponent(key).replaceAll("%", "_"));
-
-const exists = (path: string) =>
-  Effect.tryPromise(() => stat(path)).pipe(
-    Effect.as(true),
-    Effect.orElseSucceed(() => false)
-  );
-
-export const localCache = (store: string): SandboxCache => ({
-  has: (key) => exists(entryFor(store, key)),
+export const localCache = (store: string, staging: string): SandboxCache => ({
+  has: (key) => pathExists(entryIn(store, key)),
   restore: (key, path) =>
     Effect.gen(function* () {
-      const entry = entryFor(store, key);
+      const entry = entryIn(store, key);
 
-      if (!(yield* exists(entry))) {
+      if (!(yield* pathExists(entry))) {
         return false;
       }
 
       yield* call(() => rm(path, { force: true, recursive: true }));
       yield* call(() => cp(entry, path, { recursive: true }));
+      yield* markUsed(entry);
 
       return true;
     }),
   save: (key, path) =>
-    Effect.gen(function* () {
-      const entry = entryFor(store, key);
-
-      if (yield* exists(entry)) {
-        return;
-      }
-
-      yield* call(() => mkdir(store, { recursive: true }));
-      yield* call(() => cp(path, entry, { recursive: true }));
-    }),
+    publishOnce(staging, entryIn(store, key), (staged) =>
+      call(() => cp(path, staged, { recursive: true }))
+    ),
 });

@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { EvalHarness } from "./harness";
+import { HarnessUsage } from "./harness-event";
 
 const text = Schema.String.pipe(Schema.minLength(1));
 export const EvalScore = Schema.Number.pipe(Schema.between(0, 1));
@@ -53,5 +54,6 @@ export const EvalJudgment = Schema.Struct({
   threshold: EvalScore,
   durationMs: Schema.NonNegativeInt,
   error: Schema.NullOr(Schema.String),
+  usage: Schema.optional(HarnessUsage),
 });
 export type EvalJudgment = typeof EvalJudgment.Type;

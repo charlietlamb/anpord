@@ -5,4 +5,4 @@ export interface VariantParts {
 }
 
 export const formatVariant = ({ harness, model, profile }: VariantParts) =>
-  profile ? `${harness}/${model} (${profile})` : `${harness}/${model}`;
+  profile ? `${harness}/${model}@${profile}` : `${harness}/${model}`;

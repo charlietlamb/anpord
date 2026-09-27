@@ -14,6 +14,7 @@ export const createTrial = (overrides: Partial<EvalTrial> = {}): EvalTrial => ({
   costs: null,
   exitCode: 0,
   failedCommands: 0,
+  failure: null,
   filesChanged: [],
   id: "trial_fixture",
   modelMs: 1,

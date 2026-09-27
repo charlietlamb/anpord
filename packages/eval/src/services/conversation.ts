@@ -1,13 +1,22 @@
+import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
 import type {
-  EvalTurn,
+  EvalScriptedUser,
   EvalTurnsEnded,
   EvalUser,
 } from "@anpord/schema/domain/eval-turns";
-import { MAX_USER_TURNS } from "@anpord/schema/domain/eval-turns";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { Chunk, Clock, Effect, Option, Stream } from "effect";
+import type {
+  HarnessEvent,
+  ModelSpend,
+} from "@anpord/schema/domain/harness-event";
+import { Chunk, Clock, Effect, Either, Option, Scope, Stream } from "effect";
+import type { UserUnavailable } from "../domain/errors";
 import { commandsIn, readAnswer, sessionIdOf } from "../domain/journal";
-import { SimulatedUser } from "../ports/simulated-user";
+import { asEntries } from "../domain/journal-entries";
+import {
+  SimulatedUser,
+  type UserContext,
+  type UserConversation,
+} from "../ports/simulated-user";
 import type { ProgressSink } from "./trial-progress-sink";
 
 type Turn<E, R> = (
@@ -31,11 +40,25 @@ export const spokenThrough =
       return [...Chunk.toReadonlyArray(said), ...replied];
     });
 
-interface Conversation {
-  readonly ended: EvalTurnsEnded;
+interface Transcript {
   readonly events: readonly HarnessEvent[];
   readonly turns: readonly EvalTurn[];
 }
+
+type Conversation = Transcript &
+  (
+    | { readonly ended: Exclude<EvalTurnsEnded, "no-user"> }
+    | { readonly ended: "no-user"; readonly reason: string }
+  );
+
+type Spoken = Conversation & {
+  readonly userSpend: Option.Option<ModelSpend>;
+};
+
+const unspent = (conversation: Conversation): Spoken => ({
+  ...conversation,
+  userSpend: Option.none(),
+});
 
 const turnOf = (
   index: number,
@@ -44,89 +67,137 @@ const turnOf = (
 ): EvalTurn => ({
   agentText: readAnswer(events),
   commandCount: commandsIn(events),
+  events: events.flatMap(asEntries),
   index,
   userText,
 });
 
-type Said =
-  | { readonly _tag: "said"; readonly text: string }
-  | { readonly _tag: "done" }
-  | { readonly _tag: "absent"; readonly reason: string };
+const scripted = (user: EvalScriptedUser): UserConversation => ({
+  reply: ({ spoken }) =>
+    Effect.succeed(Option.fromNullable(user.replies[spoken.length - 1])),
+  spent: Effect.succeedNone,
+});
 
-const nextText = (
-  user: EvalUser,
-  spoken: readonly string[],
-  agentText: string,
-  organizationId: string
-): Effect.Effect<Said, never, SimulatedUser> =>
+const joined = (user: EvalUser, context: UserContext) =>
   user.kind === "scripted"
-    ? Effect.succeed(
-        Option.match(Option.fromNullable(user.replies[spoken.length - 1]), {
-          onNone: (): Said => ({ _tag: "done" }),
-          onSome: (text): Said => ({ _tag: "said", text }),
-        })
-      )
-    : SimulatedUser.pipe(
-        Effect.flatMap((simulated) =>
-          simulated.reply({ agentText, organizationId, spoken, user })
-        ),
-        Effect.map(
-          Option.match({
-            onNone: (): Said => ({ _tag: "done" }),
-            onSome: (text): Said => ({ _tag: "said", text }),
-          })
-        ),
-        Effect.catchTag("UserUnavailable", (error) =>
-          Effect.succeed<Said>({ _tag: "absent", reason: error.reason })
-        )
+    ? Effect.succeed(scripted(user))
+    : Effect.flatMap(SimulatedUser, (simulated) =>
+        simulated.join({ context, user })
       );
 
+const absent = (transcript: Transcript, error: UserUnavailable) =>
+  Effect.logWarning("the simulated user could not speak").pipe(
+    Effect.annotateLogs({
+      reason: error.reason,
+      turns: transcript.turns.length,
+    }),
+    Effect.as<Conversation>({
+      ...transcript,
+      ended: "no-user",
+      reason: error.reason,
+    })
+  );
+
+interface Continuing<E, R> {
+  readonly events: HarnessEvent[];
+  readonly maxTurns: number;
+  readonly person: UserConversation;
+  readonly run: Turn<E, R>;
+  readonly session: Option.Option<string>;
+  readonly spoken: string[];
+  readonly turns: EvalTurn[];
+}
+
+const continued = <E, R>({
+  events,
+  maxTurns,
+  person,
+  run,
+  session,
+  spoken,
+  turns,
+}: Continuing<E, R>) =>
+  Effect.gen(function* () {
+    while (turns.length < maxTurns) {
+      const reply = yield* Effect.either(
+        person.reply({
+          agentText: turns.at(-1)?.agentText ?? "",
+          spoken,
+        })
+      );
+
+      if (Either.isLeft(reply)) {
+        return yield* absent({ events, turns }, reply.left);
+      }
+
+      const said = reply.right;
+
+      if (Option.isNone(said)) {
+        return { ended: "user-done", events, turns } satisfies Conversation;
+      }
+
+      const replied = yield* run(said.value, session);
+
+      spoken.push(said.value);
+      turns.push(turnOf(turns.length, said.value, replied));
+      events.push(...replied);
+    }
+
+    return { ended: "max-turns", events, turns } satisfies Conversation;
+  });
+
 export const converse = <E, R>(input: {
-  readonly organizationId: string;
+  readonly context: UserContext;
+  readonly maxTurns: number;
   readonly run: Turn<E, R>;
   readonly opening: string;
-  readonly user: EvalUser;
+  readonly user: EvalUser | null;
 }) =>
   Effect.gen(function* () {
     const first = yield* input.run(input.opening, Option.none());
     const session = Option.fromNullable(sessionIdOf(first));
     const turns: EvalTurn[] = [turnOf(0, input.opening, first)];
     const events: HarnessEvent[] = [...first];
-    const spoken: string[] = [input.opening];
+    const { user } = input;
+
+    if (user === null) {
+      return unspent({ ended: "single-turn", events, turns });
+    }
 
     if (Option.isNone(session)) {
-      return { ended: "failed", events, turns } satisfies Conversation;
+      return unspent({ ended: "failed", events, turns });
     }
 
-    let ended: Conversation["ended"] = "max-turns";
-
-    while (turns.length < MAX_USER_TURNS) {
-      const said = yield* nextText(
-        input.user,
-        spoken,
-        turns.at(-1)?.agentText ?? "",
-        input.organizationId
-      );
-
-      if (said._tag === "done") {
-        ended = "user-done";
-        break;
-      }
-
-      if (said._tag === "absent") {
-        yield* Effect.logWarning("the simulated user could not speak").pipe(
-          Effect.annotateLogs({ reason: said.reason, turns: turns.length })
-        );
-        ended = "no-user";
-        break;
-      }
-
-      const replied = yield* input.run(said.text, session);
-
-      spoken.push(said.text);
-      turns.push(turnOf(turns.length, said.text, replied));
-      events.push(...replied);
-    }
-
-    return { ended, events, turns } satisfies Conversation;
+    return yield* Effect.acquireUseRelease(
+      Scope.make(),
+      (scope) =>
+        Effect.either(
+          joined(user, input.context).pipe(Scope.extend(scope))
+        ).pipe(
+          Effect.flatMap(
+            Either.match({
+              onLeft: (error) =>
+                Effect.map(absent({ events, turns }, error), unspent),
+              onRight: (person) =>
+                continued({
+                  events,
+                  maxTurns: input.maxTurns,
+                  person,
+                  run: input.run,
+                  session,
+                  spoken: [input.opening],
+                  turns,
+                }).pipe(
+                  Effect.flatMap((conversation) =>
+                    Effect.map(
+                      person.spent,
+                      (userSpend): Spoken => ({ ...conversation, userSpend })
+                    )
+                  )
+                ),
+            })
+          )
+        ),
+      (scope, exit) => Scope.close(scope, exit)
+    );
   });

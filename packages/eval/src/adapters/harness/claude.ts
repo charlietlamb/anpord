@@ -5,8 +5,6 @@ import { binPath } from "./install";
 import { field } from "./json-driver";
 import { shellQuote } from "./process";
 
-const BIN = binPath("claude");
-
 const shipped = (request: RunHarness, path: string) =>
   Option.match(request.profile, {
     onNone: () => false,
@@ -41,7 +39,7 @@ export const claudeCommand = (request: RunHarness) =>
   [
     `cd ${shellQuote(request.workspace)}`,
     "&&",
-    `${BIN} -p ${shellQuote(request.prompt)}`,
+    `${binPath(request, "claude")} -p ${shellQuote(request.prompt)}`,
     ...Option.match(request.resume, {
       onNone: (): string[] => [],
       onSome: (session) => [`--resume ${shellQuote(session)}`],

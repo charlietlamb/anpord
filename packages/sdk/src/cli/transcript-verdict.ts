@@ -2,10 +2,12 @@ import { commandText } from "@anpord/schema/domain/eval-journal";
 import { validationSummary } from "@anpord/schema/domain/eval-validation-results";
 import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
 import { formatDuration } from "./duration";
+import { outcomeMark } from "./outcome-mark";
 import type { Paint } from "./paint";
 import type { Writer } from "./transcript-writer";
 
 export interface Verdict {
+  readonly failure?: string | null;
   readonly status: string;
   readonly validations?: readonly EvalValidation[];
   readonly verifySteps: readonly {
@@ -73,19 +75,19 @@ const checkLines = (check: Check, write: Writer) => {
 };
 
 const outcomeOf = (verdict: Verdict, paint: Writer["paint"]) => {
-  if (verdict.status === "passed") {
-    return paint.green("✓ passed");
+  const mark = outcomeMark(verdict.status, paint);
+
+  if (verdict.status !== "void" && verdict.status !== "timed out") {
+    return mark;
   }
 
-  if (verdict.status === "failed") {
-    return paint.red("✗ failed");
-  }
+  const why =
+    verdict.failure ??
+    (verdict.voidFields.length === 0
+      ? "not scored"
+      : verdict.voidFields.join(", "));
 
-  return verdict.status === "void"
-    ? paint.yellow(
-        `○ void · ${verdict.voidFields.length === 0 ? "not scored" : verdict.voidFields.join(", ")}`
-      )
-    : paint.dim(verdict.status);
+  return `${mark}${paint.yellow(` · ${why}`)}`;
 };
 
 export const verdictLines = (verdict: Verdict, write: Writer) => {

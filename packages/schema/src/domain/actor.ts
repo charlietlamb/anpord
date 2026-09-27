@@ -13,6 +13,12 @@ export const OrganizationId = Schema.String.pipe(
 );
 export type OrganizationId = typeof OrganizationId.Type;
 
+export const ApiKeyLabel = Schema.Struct({
+  name: Schema.NullOr(Schema.String),
+  start: Schema.NullOr(Schema.String),
+});
+export type ApiKeyLabel = typeof ApiKeyLabel.Type;
+
 export const Actor = Schema.Struct({
   id: UserId,
   organizationId: OrganizationId,
@@ -22,6 +28,7 @@ export const Actor = Schema.Struct({
   isUser: Schema.Boolean,
   /* `id` stays the person being acted as, so scoping is unchanged; this is the only field an audit can separate them by. */
   impersonatedBy: Schema.optional(UserId),
+  apiKey: Schema.optional(ApiKeyLabel),
 });
 export type Actor = typeof Actor.Type;
 

@@ -48,19 +48,38 @@ Write the brief the way the person would say it, one fact per line. The person i
 
 ## Who plays the person
 
-A model plays the person. It is fixed for all cases, not chosen per case, and defaults to `gpt-5.4-mini`. A weak simulator can approve a summary that contradicts its own brief, so the case passes for the wrong reason. The `ANPORD_USER_MODEL` environment variable on the runner overrides it.
+By default a model plays the person. It is fixed for all cases, not chosen per case, and defaults to `gpt-5.4-mini`. A weak simulator can approve a summary that contradicts its own brief, so the case passes for the wrong reason. The `ANPORD_USER_MODEL` environment variable on the runner overrides it.
 
-It needs a model [connection](/connections). Without one, a batch that contains a case with a simulated person is refused when it starts.
+That model needs a model [connection](/connections). Without one, a batch that contains a case with a simulated person is refused when it starts.
 
-The user model is part of the variant, so results from different user models are never mixed. Changing it creates a new variant.
+To play the person through a harness instead, name one and a model:
+
+```ts
+user: human({
+  goal: "Get Pro live in the sandbox, not only written to a file.",
+  prompt: "Pro is $20 a month with 500 messages.",
+  harness: "codex",
+  model: "gpt-5.6-luna",
+}),
+```
+
+`harness` is any harness except `command`, and `model` is required with it. The person uses your organization's connection for that harness, so a Codex person can run on a ChatGPT subscription and needs no OpenAI API key. When the variant uses the same harness, the person reuses the variant's connection. Without a connection for it, the trial ends with an error that names the missing harness.
+
+A harness person gets a sandbox of its own, separate from the agent's workspace, kept for the whole conversation. It is told to reply only in words, never to run commands or touch files.
+
+On `codex` and `claude`, the person keeps one session for the whole conversation, and each later turn sends only the agent's latest reply. Other harnesses start a new session every turn and are sent everything said so far.
+
+In a local run, Anpord leases a credential for every harness the suite needs, including one that plays the person. Each is used only for its own harness.
+
+Whoever plays the person, model or harness and model, is part of the variant, so results from different people are never mixed. Changing it creates a new variant. A harness and model named in the case are also part of the case, so changing them creates a new case version.
 
 ## Ending
 
-A conversation ends when the person says they are done, which they decide from the agent's reply, not a turn count. It also ends after eight turns.
+A conversation ends when the person says they are done, which they decide from the agent's reply, not a turn count. It also ends after the case's `maxTurns`, eight by default. See [limits](/evals/cases#limits).
 
 If the harness reports no session to continue, the conversation stops after the first turn instead of starting over with a second opening prompt. `codex` and `claude` continue sessions. Other harnesses hold a one-turn conversation.
 
-If the person stops answering mid-conversation (for example, the user model fails), the trial ends with an error instead of a pass or fail. A conversation cut short would otherwise look like one the agent finished.
+If the person stops answering mid-conversation (for example, the user model or harness fails), the trial ends with an error instead of a pass or fail. A conversation cut short would otherwise look like one the agent finished.
 
 ## A fixed script
 
@@ -76,14 +95,39 @@ A script takes 1 to 24 replies and ends when they run out. It never reads the ag
 
 ## What a validator reads
 
-`turns()` returns each turn in order, with `index`, `userText`, `agentText` and `commandCount`, the number of commands the agent ran before replying.
+`turns()` returns each turn in order, with `index`, `userText`, `agentText`, `commandCount` and `events`.
 
-`commandCount` ties calls to turns. The call log is in order, so the first turn owns the first `commandCount` calls, the second owns the next, and so on. An ordering check becomes index arithmetic instead of a transcript search.
+`events` is everything that happened in that turn, in order, in the same shape the dashboard shows:
 
-`turns()` returns an empty list for a case without `user`.
+| `_tag` | Fields |
+| --- | --- |
+| `message` | `role` (`user` or `assistant`), `text` |
+| `command` | `command`, `exitCode`, `output` |
+| `fileChange` | `paths` written |
+| `toolCall` | `name`, `input`, `output`, `error`, `status` |
+
+Each turn opens with the person's `message`. Command output and tool input, output and errors keep their first 4,000 characters, and `outputTruncated`, `inputTruncated` or `errorTruncated` says when something was cut.
+
+```ts
+const readSkillBeforeWriting: Validator = async ({ turns }) => {
+  const [first] = await turns();
+  const read = first.events.findIndex(
+    (event) => event._tag === "toolCall" && event.input?.includes("SKILL.md")
+  );
+  const wrote = first.events.findIndex((event) => event._tag === "fileChange");
+
+  return { passed: read !== -1 && (wrote === -1 || read < wrote) };
+};
+```
+
+`commandCount` is the number of commands the agent ran in the turn. It ties calls to turns. The call log is in order, so the first turn owns the first `commandCount` calls, the second owns the next, and so on.
+
+A case without `user` has one turn: the prompt and everything the agent did in reply.
 
 ## Cost
 
-Every turn is a model call for the agent and a cheaper one for the person. A conversation costs several times a single-prompt case, and one where the person never finishes costs all eight turns.
+Every turn is a model call for the agent and a cheaper one for the person. A conversation costs several times a single-prompt case, and one where the person never finishes costs every turn up to `maxTurns`.
+
+The trial's cost shows the person on its own line, priced at the published rate of the model playing the person, so it never inflates the agent's model cost or token counts.
 
 Give the person a goal they can recognize as met.

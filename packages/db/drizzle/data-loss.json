@@ -1,0 +1,11 @@
+{
+  "0005_org_owned_channels": "Drops prompt_channel.name. Channels became their own table, so the name moved there.",
+  "0014_youthful_lockheed": "Drops prompt_channel_event after carrying its channel moves into prompt_event.",
+  "0028_typed_workspace_setup": "Drops eval_task.setup_command, replaced by the typed workspace setup.",
+  "0033_cell_key_without_version": "Deletes duplicate eval_baseline rows so the cell key can drop the version.",
+  "0035_schema_hygiene": "Drops eval_task.suite_id and other columns nothing read.",
+  "0036_schema_leftovers": "Drops eval_event and eval_baseline columns nothing read.",
+  "0038_write_only_columns": "Drops columns that were written and never read.",
+  "0051_a_case_keeps_its_name": "Deletes duplicate eval_task, eval_baseline and eval_cell rows before a case keeps one name.",
+  "0053_evals_forget_their_old_shape": "Drops every eval table of the old model. Production data was restored from a backup by hand, so back up before applying."
+}

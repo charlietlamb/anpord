@@ -1,26 +1,11 @@
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig } from "drizzle-kit";
+import { databaseUrl } from "./src/migrations/target";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const envPath = resolve(root, ".env");
-
-/* An explicit DATABASE_URL wins over the repo .env. Without this precedence a
-   push aimed at a local container silently retargets whatever the checked-in
-   environment points at, which is production. */
-const envUrl = existsSync(envPath)
-  ? readFileSync(envPath, "utf8")
-      .match(/^DATABASE_URL=(.+)$/m)?.[1]
-      ?.trim()
-      .replace(/^(['"])(.*)\1$/, "$2")
-  : undefined;
+const url = databaseUrl();
 
 export default defineConfig({
   dialect: "postgresql",
-  ...((process.env.DATABASE_URL ?? envUrl)
-    ? { dbCredentials: { url: (process.env.DATABASE_URL ?? envUrl) as string } }
-    : {}),
+  ...(url ? { dbCredentials: { url } } : {}),
   out: "./drizzle",
   /* The table files, not schema.ts: drizzle-kit collects named exports, and
      schema.ts nests every table inside one `schema` object, so pointing at it

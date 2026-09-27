@@ -94,6 +94,7 @@ export const handleFor = (
     ),
   home: HOME,
   id: box.id,
+  installs: Option.none(),
   provider: "upstash",
   resumable: Option.none(),
   writeFile: (path, content) => call(() => box.files.write({ content, path })),

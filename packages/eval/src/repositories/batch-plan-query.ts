@@ -22,10 +22,12 @@ import { tryStore } from "./query";
 interface CasePlan {
   readonly cache: CaseCache | null;
   readonly id: string;
+  readonly maxTurns: number | null;
   readonly name: string;
   readonly prepare: EvalPrepare | null;
   readonly prompt: string;
   readonly source: EvalSource;
+  readonly timeoutMs: number | null;
   readonly user: EvalUser | null;
   readonly validator: EvalValidator | null;
   readonly verify: string | null;
@@ -102,10 +104,12 @@ export const batchPlanQuery = Effect.gen(function* () {
               case: {
                 cache: row.version.cache,
                 id: row.caseId,
+                maxTurns: row.version.maxTurns,
                 name: row.caseName,
                 prepare: row.version.prepare,
                 prompt: row.version.prompt,
                 source: row.version.source,
+                timeoutMs: row.version.timeoutMs,
                 user: row.version.user,
                 validator: row.version.validator,
                 verify: row.version.verify,

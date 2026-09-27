@@ -66,6 +66,25 @@ Starting the suite creates a batch with one run per case per variant, so the var
 
 A case has one variant for each combination of harness, model, sandbox, profile name and simulated-user model it has run on. Changing any of them creates a new variant with its own history. A new harness version stays in the same history, and each run records the version it used. Use a [profile](/evals/profiles) to compare an agent's stock and configured setups.
 
+## Pick variants from the command line
+
+Every variant in a suite file has a label. It is `harness/model`, plus `@` and the profile name when it has a profile. `anpord eval` prints these labels, and `--variant` takes them back:
+
+```ts
+variants: [
+  { harness: "codex", model: "luna", profile: { name: "autumn-setup", dir: "./autumn" } },
+  { harness: "codex", model: "luna" },
+]
+```
+
+| `--variant` | Runs |
+| --- | --- |
+| `codex/luna` | The variant with no profile |
+| `codex/luna@autumn-setup` | The variant with the profile |
+| `autumn-setup` | The variant with the profile, named by the profile alone |
+
+A label matches its own variant first. `harness/model` also picks the one variant on that model with a profile, when no variant without one exists. When a name matches no variant, or more than one, the command stops and lists the labels to choose from. Repeat `--variant` to run more than one.
+
 ## Read a variant's history
 
 ```ts

@@ -9,6 +9,7 @@ const store = (calls: string[]): OrganizationStoreShape => ({
       calls.push(`existingActive:${userId}`);
       return Option.none<string>();
     }),
+  find: () => Effect.succeedNone,
   resolveActive: (userId) =>
     Effect.sync(() => {
       calls.push(`resolveActive:${userId}`);
@@ -44,6 +45,7 @@ describe("attachOrganizationBeforeWrite", () => {
   test("a failed lookup leaves the session without an organisation", async () => {
     const failing: OrganizationStoreShape = {
       existingActive: () => Effect.die("unreachable"),
+      find: () => Effect.succeedNone,
       resolveActive: () => Effect.die("unreachable"),
       roleOf: () => Effect.succeedNone,
     };

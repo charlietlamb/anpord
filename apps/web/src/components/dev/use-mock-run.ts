@@ -192,6 +192,7 @@ const trialOf = (
     costs: null,
     exitCode: 0,
     failedCommands: 0,
+    failure: null,
     filesChanged: trajectory.flatMap((entry) =>
       entry._tag === "fileChange" ? entry.paths : []
     ),

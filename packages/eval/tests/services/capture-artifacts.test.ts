@@ -93,3 +93,31 @@ test("rejects escapes, secrets, oversized/binary files and symlink components", 
     ])
   ).toEqual([]);
 });
+
+test("stores a text file with the trial's credentials and key shapes redacted", async () => {
+  const root = await workspace();
+  await writeFile(
+    join(root, "seed.ts"),
+    'export const key = "am_sk_test_abc123";\nexport const token = "opaque-access-token-1";\n'
+  );
+  const stored =
+    'export const key = "[redacted]";\nexport const token = "[redacted]";\n';
+
+  expect(
+    await Effect.runPromise(
+      captureArtifacts(
+        sandbox,
+        root,
+        [join(root, "seed.ts")],
+        ["opaque-access-token-1"]
+      )
+    )
+  ).toEqual([
+    {
+      path: "seed.ts",
+      content: stored,
+      byteSize: Buffer.byteLength(stored),
+      sha256: new Bun.CryptoHasher("sha256").update(stored).digest("hex"),
+    },
+  ]);
+});

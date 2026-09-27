@@ -1,17 +1,23 @@
 import {
-  EvalValidation,
+  type EvalValidation,
+  ReportedValidation,
   VALIDATION_FRAME,
   VALIDATION_TEXT_LIMIT,
   validationSnapshot,
 } from "@anpord/schema/domain/eval-validations";
+import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Effect, Exit, Option, Ref, Schema, Stream } from "effect";
+import { redactValidation } from "../../domain/secret-redaction";
 import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";
 import type { ValidationObserver } from "../../ports/scorer";
 import { type ExecLine, execLines } from "../harness/process";
 
-const decode = Schema.decodeUnknownOption(Schema.parseJson(EvalValidation), {
-  onExcessProperty: "error",
-});
+const decode = Schema.decodeUnknownOption(
+  Schema.parseJson(ReportedValidation),
+  {
+    onExcessProperty: "error",
+  }
+);
 
 const MAX_FRAME = 512_000;
 
@@ -32,22 +38,33 @@ export const publishValidation = (
 const frameOf = (
   text: string,
   records: ReadonlyMap<string, EvalValidation>,
-  prefix: string
+  prefix: string,
+  secrets: readonly string[]
 ) =>
   decode(text.slice(VALIDATION_FRAME.length)).pipe(
     Option.map((decoded) => ({ ...decoded, id: `${prefix}${decoded.id}` })),
-    Option.filter((record) => {
-      const previous = records.get(record.id);
-      return (
-        previous !== undefined &&
-        previous.index === record.index &&
-        previous.kind === record.kind &&
-        previous.name === record.name
-      );
-    })
+    Option.flatMap((record) =>
+      Option.fromNullable(records.get(record.id)).pipe(
+        Option.filter(
+          (previous) =>
+            previous.index === record.index &&
+            previous.kind === record.kind &&
+            previous.name === record.name
+        ),
+        Option.map((previous) =>
+          redactValidation({ ...record, input: previous.input }, secrets)
+        )
+      )
+    )
   );
 
-const withText = (state: ExecutionState, text: string): ExecutionState => ({
+const withText = (
+  state: ExecutionState,
+  text: string,
+  secrets: readonly string[]
+): ExecutionState => withLine(state, redactSecrets(text, secrets));
+
+const withLine = (state: ExecutionState, text: string): ExecutionState => ({
   ...state,
   rawTruncated:
     state.rawTruncated ||
@@ -55,13 +72,19 @@ const withText = (state: ExecutionState, text: string): ExecutionState => ({
   stdout: `${state.stdout}${text}\n`.slice(-VALIDATION_TEXT_LIMIT),
 });
 
-const withStderr = (state: ExecutionState, data: string): ExecutionState => ({
-  ...state,
-  rawTruncated:
-    state.rawTruncated ||
-    state.stderr.length + data.length > VALIDATION_TEXT_LIMIT,
-  stderr: `${state.stderr}${data}`.slice(0, VALIDATION_TEXT_LIMIT),
-});
+const withStderr = (
+  state: ExecutionState,
+  data: string,
+  secrets: readonly string[]
+): ExecutionState => {
+  const stderr = redactSecrets(`${state.stderr}${data}`, secrets);
+
+  return {
+    ...state,
+    rawTruncated: state.rawTruncated || stderr.length > VALIDATION_TEXT_LIMIT,
+    stderr: stderr.slice(0, VALIDATION_TEXT_LIMIT),
+  };
+};
 
 export const executeValidation = (input: {
   sandbox: SandboxHandle;
@@ -70,6 +93,7 @@ export const executeValidation = (input: {
   records: readonly EvalValidation[];
   observe?: ValidationObserver;
   prefix?: string;
+  secrets?: readonly string[];
 }) =>
   Effect.gen(function* () {
     yield* Effect.forEach(
@@ -78,6 +102,7 @@ export const executeValidation = (input: {
       { discard: true }
     );
 
+    const secrets = input.secrets ?? [];
     const framed = input.records.some((record) => record.kind !== "command");
     const state = yield* Ref.make<ExecutionState>({
       exitCode: null,
@@ -97,10 +122,15 @@ export const executeValidation = (input: {
         }
 
         if (!(framed && text.startsWith(VALIDATION_FRAME))) {
-          return yield* Ref.set(state, withText(current, text));
+          return yield* Ref.set(state, withText(current, text, secrets));
         }
 
-        const record = frameOf(text, current.records, input.prefix ?? "");
+        const record = frameOf(
+          text,
+          current.records,
+          input.prefix ?? "",
+          secrets
+        );
 
         if (Option.isNone(record)) {
           return yield* Ref.set(state, { ...current, invalid: true });
@@ -119,7 +149,7 @@ export const executeValidation = (input: {
           return onLine(output.line);
         case "stderr":
           return Ref.update(state, (current) =>
-            withStderr(current, output.data)
+            withStderr(current, output.data, secrets)
           );
         default:
           return Ref.update(state, (current) => ({

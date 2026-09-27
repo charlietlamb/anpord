@@ -2,7 +2,15 @@ import type { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions
 
 type VersionRow = Pick<
   typeof evalCaseVersion.$inferSelect,
-  "cache" | "prepare" | "prompt" | "source" | "user" | "validator" | "verify"
+  | "cache"
+  | "maxTurns"
+  | "prepare"
+  | "prompt"
+  | "source"
+  | "timeoutMs"
+  | "user"
+  | "validator"
+  | "verify"
 >;
 
 const PARTS: readonly (readonly [string, (row: VersionRow) => unknown])[] = [
@@ -13,6 +21,8 @@ const PARTS: readonly (readonly [string, (row: VersionRow) => unknown])[] = [
   ["verifier", (row) => row.verify],
   ["simulated user", (row) => row.user],
   ["cache", (row) => row.cache],
+  ["turn limit", (row) => row.maxTurns],
+  ["time limit", (row) => row.timeoutMs],
 ];
 
 export const changesBetween = (

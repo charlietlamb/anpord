@@ -3,9 +3,11 @@ import { changesBetween } from "../../src/domain/definition-changes";
 
 const base = {
   cache: null,
+  maxTurns: null,
   prepare: null,
   prompt: "fix the failing test",
   source: { files: { "a.txt": "one" }, kind: "files" as const },
+  timeoutMs: null,
   user: null,
   validator: { name: "validate", source: "v1" },
   verify: null,
@@ -37,6 +39,12 @@ describe("what changed between two versions of a case", () => {
         verify: "npm test",
       })
     ).toEqual(["setup", "verifier", "simulated user", "cache"]);
+  });
+
+  it("names the turn and time limits", () => {
+    expect(
+      changesBetween(base, { ...base, maxTurns: 3, timeoutMs: 60_000 })
+    ).toEqual(["turn limit", "time limit"]);
   });
 
   it("ignores a setup whose name changed but whose source did not", () => {

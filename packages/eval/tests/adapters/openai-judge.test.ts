@@ -23,6 +23,7 @@ const request = {
   },
   input: "What is 2 + 2?",
   output: "4",
+  events: [],
 };
 
 const complete = (
@@ -107,6 +108,27 @@ test("sends strict structured output requirements with the exact model", async (
     ],
   });
   expect(result._tag).toBe("Right");
+});
+
+test("reports cached input apart from fresh input", async () => {
+  const { result } = await complete({
+    status: "completed",
+    usage: {
+      input_tokens: 1000,
+      input_tokens_details: { cached_tokens: 800 },
+      output_tokens: 50,
+      total_tokens: 1050,
+    },
+    output: [],
+  });
+
+  expect(result._tag === "Right" ? result.right.usage : null).toEqual({
+    cacheReadTokens: 800,
+    cacheWriteTokens: 0,
+    inputTokens: 200,
+    outputTokens: 50,
+    totalTokens: 1050,
+  });
 });
 
 test.each([

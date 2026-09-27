@@ -6,6 +6,84 @@
     "description": "Run agent evals and manage prompts. Every endpoint takes a JSON body over POST and authenticates with a bearer API key."
   },
   "paths": {
+    "/v1/auth.whoami": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "auth.whoami",
+        "parameters": [],
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The organization every call with this credential acts for, and what the credential may do there.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Whoami"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request did not match the expected schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpApiDecodeError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NotFound",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFound"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "InternalError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Runs, suites, and connectors started with this credential land in this organization.",
+        "summary": "Show which organization a credential uses",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhoamiRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/v1/connectors.integrations": {
       "post": {
         "tags": [
@@ -2098,7 +2176,7 @@
   },
   "components": {
     "schemas": {
-      "ListConnectorsRequest": {
+      "WhoamiRequest": {
         "$id": "/schemas/%7B%7D",
         "anyOf": [
           {
@@ -2108,7 +2186,122 @@
             "type": "array"
           }
         ],
-        "description": "List the connectors this organization has."
+        "description": "Describe the organization and credential behind this call."
+      },
+      "Whoami": {
+        "type": "object",
+        "required": [
+          "credential",
+          "organization",
+          "permissions"
+        ],
+        "properties": {
+          "credential": {
+            "$ref": "#/components/schemas/WhoamiCredential"
+          },
+          "organization": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "slug"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "prompts:read",
+                "prompts:write",
+                "channels:read",
+                "channels:write",
+                "apiKeys:read",
+                "apiKeys:write",
+                "members:read",
+                "members:write",
+                "evals:read",
+                "evals:write",
+                "credentials:read",
+                "credentials:write",
+                "credentials:use",
+                "organization:admin",
+                "platform:impersonate"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "description": "The organization every call with this credential acts for, and what the credential may do there."
+      },
+      "WhoamiCredential": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "name",
+              "start"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "apiKey"
+                ]
+              },
+              "name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "start": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "oauth"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        ],
+        "description": "The credential that authenticated the call. For an API key, its name and its first characters, never the secret."
       },
       "HttpApiDecodeError": {
         "type": "object",
@@ -2204,25 +2397,6 @@
           }
         ]
       },
-      "BadRequest": {
-        "type": "object",
-        "required": [
-          "message",
-          "_tag"
-        ],
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "_tag": {
-            "type": "string",
-            "enum": [
-              "BadRequest"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
       "Unauthorized": {
         "type": "object",
         "required": [
@@ -2242,25 +2416,6 @@
         },
         "additionalProperties": false
       },
-      "Forbidden": {
-        "type": "object",
-        "required": [
-          "message",
-          "_tag"
-        ],
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "_tag": {
-            "type": "string",
-            "enum": [
-              "Forbidden"
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
       "NotFound": {
         "type": "object",
         "required": [
@@ -2275,6 +2430,75 @@
             "type": "string",
             "enum": [
               "NotFound"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "InternalError": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "InternalError"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ListConnectorsRequest": {
+        "$id": "/schemas/%7B%7D",
+        "anyOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "array"
+          }
+        ],
+        "description": "List the connectors this organization has."
+      },
+      "BadRequest": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "BadRequest"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Forbidden": {
+        "type": "object",
+        "required": [
+          "message",
+          "_tag"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "_tag": {
+            "type": "string",
+            "enum": [
+              "Forbidden"
             ]
           }
         },
@@ -2369,6 +2593,9 @@
             "minItems": 1,
             "maxItems": 100
           },
+          "checksIn": {
+            "type": "boolean"
+          },
           "suite": {
             "$ref": "#/components/schemas/EvalSuiteRequest"
           },
@@ -2404,40 +2631,117 @@
           "id": {
             "$ref": "#/components/schemas/EvalCaseId"
           },
+          "maxTurns": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalMaxTurns"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "user": {
             "anyOf": [
               {
                 "anyOf": [
                   {
-                    "type": "object",
-                    "required": [
-                      "kind",
-                      "goal",
-                      "prompt"
-                    ],
-                    "properties": {
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "simulated"
-                        ]
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "goal",
+                          "prompt"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "simulated"
+                            ]
+                          },
+                          "goal": {
+                            "type": "string",
+                            "description": "a string at most 2000 character(s) long",
+                            "title": "maxLength(2000)",
+                            "minLength": 1,
+                            "maxLength": 2000
+                          },
+                          "prompt": {
+                            "type": "string",
+                            "description": "a string at most 8000 character(s) long",
+                            "title": "maxLength(8000)",
+                            "minLength": 1,
+                            "maxLength": 8000
+                          },
+                          "harness": {
+                            "$id": "/schemas/never",
+                            "not": {},
+                            "title": "never"
+                          },
+                          "model": {
+                            "$id": "/schemas/never",
+                            "not": {},
+                            "title": "never"
+                          }
+                        },
+                        "additionalProperties": false
                       },
-                      "goal": {
-                        "type": "string",
-                        "description": "a string at most 2000 character(s) long",
-                        "title": "maxLength(2000)",
-                        "minLength": 1,
-                        "maxLength": 2000
-                      },
-                      "prompt": {
-                        "type": "string",
-                        "description": "a string at most 8000 character(s) long",
-                        "title": "maxLength(8000)",
-                        "minLength": 1,
-                        "maxLength": 8000
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "goal",
+                          "prompt",
+                          "harness",
+                          "model"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "simulated"
+                            ]
+                          },
+                          "goal": {
+                            "type": "string",
+                            "description": "a string at most 2000 character(s) long",
+                            "title": "maxLength(2000)",
+                            "minLength": 1,
+                            "maxLength": 2000
+                          },
+                          "prompt": {
+                            "type": "string",
+                            "description": "a string at most 8000 character(s) long",
+                            "title": "maxLength(8000)",
+                            "minLength": 1,
+                            "maxLength": 8000
+                          },
+                          "harness": {
+                            "type": "string",
+                            "enum": [
+                              "codex",
+                              "opencode",
+                              "pi",
+                              "fx",
+                              "claude",
+                              "gemini",
+                              "qwen",
+                              "cursor"
+                            ]
+                          },
+                          "model": {
+                            "type": "string",
+                            "description": "a string at most 200 character(s) long",
+                            "title": "maxLength(200)",
+                            "minLength": 1,
+                            "maxLength": 200
+                          }
+                        },
+                        "additionalProperties": false
                       }
-                    },
-                    "additionalProperties": false
+                    ]
                   },
                   {
                     "type": "object",
@@ -2491,6 +2795,16 @@
           },
           "tags": {
             "$ref": "#/components/schemas/EvalCaseTags"
+          },
+          "timeoutMs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalTimeoutMs"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "variables": {
             "$ref": "#/components/schemas/EvalVariables"
@@ -2551,6 +2865,13 @@
         "minLength": 1,
         "maxLength": 100,
         "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      },
+      "EvalMaxTurns": {
+        "type": "integer",
+        "description": "The most user turns a conversation may hold, the opening prompt included. Defaults to 8.",
+        "title": "between(1, 50)",
+        "minimum": 1,
+        "maximum": 50
       },
       "EvalPrepare": {
         "type": "object",
@@ -2666,6 +2987,13 @@
         "description": "What a case is grouped under.",
         "title": "maxItems(12)",
         "maxItems": 12
+      },
+      "EvalTimeoutMs": {
+        "type": "integer",
+        "description": "How long the agent may spend across all of a trial's turns, in milliseconds. Defaults to 900000.",
+        "title": "between(1000, 3600000)",
+        "minimum": 1000,
+        "maximum": 3600000
       },
       "EvalVariables": {
         "type": "object",
@@ -3454,20 +3782,14 @@
         "type": "object",
         "required": [
           "allocatedUsd",
-          "components",
           "estimatedEquivalentUsd",
           "incomplete",
-          "knownActualUsd"
+          "knownActualUsd",
+          "components"
         ],
         "properties": {
           "allocatedUsd": {
             "type": "number"
-          },
-          "components": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EvalCostComponent"
-            }
           },
           "estimatedEquivalentUsd": {
             "type": "number"
@@ -3477,71 +3799,107 @@
           },
           "knownActualUsd": {
             "type": "number"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "classification",
+                "component",
+                "detail",
+                "explanation",
+                "source",
+                "usd"
+              ],
+              "properties": {
+                "classification": {
+                  "type": "string"
+                },
+                "component": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": {
+                    "$id": "/schemas/unknown",
+                    "title": "unknown"
+                  }
+                },
+                "explanation": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "usd": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "laterComponents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "classification",
+                "component",
+                "detail",
+                "explanation",
+                "source",
+                "usd"
+              ],
+              "properties": {
+                "classification": {
+                  "type": "string"
+                },
+                "component": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": {
+                    "$id": "/schemas/unknown",
+                    "title": "unknown"
+                  }
+                },
+                "explanation": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "usd": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "Components named after anpord 0.1.25, kept out of `components` so clients from then still decode the response."
           }
         },
         "additionalProperties": false,
         "description": "Cost by component, kept apart by classification."
-      },
-      "EvalCostComponent": {
-        "type": "object",
-        "required": [
-          "classification",
-          "component",
-          "detail",
-          "explanation",
-          "source",
-          "usd"
-        ],
-        "properties": {
-          "classification": {
-            "type": "string",
-            "enum": [
-              "actual",
-              "allocated",
-              "estimate",
-              "included",
-              "managed",
-              "unknown"
-            ]
-          },
-          "component": {
-            "type": "string",
-            "enum": [
-              "judge",
-              "harness",
-              "model",
-              "platform",
-              "sandbox"
-            ]
-          },
-          "detail": {
-            "type": "object",
-            "required": [],
-            "properties": {},
-            "additionalProperties": {
-              "$id": "/schemas/unknown",
-              "title": "unknown"
-            }
-          },
-          "explanation": {
-            "type": "string"
-          },
-          "source": {
-            "type": "string"
-          },
-          "usd": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false,
-        "description": "What one layer of a trial cost, and how far that is known."
       },
       "EvalTimestamp": {
         "type": "string",
@@ -3888,6 +4246,17 @@
           },
           "failedCommands": {
             "$ref": "#/components/schemas/Int"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the trial stopped before it could be scored, such as running past its time limit or a setup step that failed. Null when it was scored."
           },
           "filesChanged": {
             "type": "array",
@@ -4389,6 +4758,45 @@
                     "type": "null"
                   }
                 ]
+              },
+              "usage": {
+                "type": "object",
+                "required": [
+                  "cacheReadTokens",
+                  "cacheWriteTokens",
+                  "inputTokens",
+                  "outputTokens",
+                  "totalTokens"
+                ],
+                "properties": {
+                  "cacheReadTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "cacheWriteTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "cacheWrite1hTokens": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Int"
+                      }
+                    ],
+                    "description": "The part of cacheWriteTokens kept for an hour rather than five minutes, which Anthropic charges at twice the input rate."
+                  },
+                  "costUsd": {
+                    "type": "number"
+                  },
+                  "inputTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "outputTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  },
+                  "totalTokens": {
+                    "$ref": "#/components/schemas/Int"
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "additionalProperties": false
@@ -5849,6 +6257,10 @@
   },
   "security": [],
   "tags": [
+    {
+      "name": "Auth",
+      "description": "Check the credential a client is using before it starts work."
+    },
     {
       "name": "Connectors",
       "description": "Connect the credentials an eval run needs: a harness to drive, a sandbox to run in, and a model to play a case's human."

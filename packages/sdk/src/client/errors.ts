@@ -1,3 +1,6 @@
+import { ANSWER_BUDGET, answerOverdue } from "@anpord/schema/public/deadlines";
+import { HttpClientError } from "@effect/platform";
+import { Duration } from "effect";
 import type { ParseError } from "effect/ParseResult";
 import { ArrayFormatter } from "effect/ParseResult";
 
@@ -10,6 +13,22 @@ export class MissingApiKey extends Error {
     );
   }
 }
+
+const transportMessage = (error: unknown) => {
+  if (
+    !HttpClientError.isHttpClientError(error) ||
+    error._tag !== "RequestError" ||
+    error.reason !== "Transport"
+  ) {
+    return null;
+  }
+
+  const { origin } = new URL(error.request.url);
+
+  return answerOverdue(error)
+    ? `Anpord at ${origin} took more than ${Duration.toSeconds(ANSWER_BUDGET)} seconds to answer. Try again in a moment.`
+    : `Unable to reach Anpord at ${origin}. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address.`;
+};
 
 export class AnpordError extends Error {
   readonly name = "AnpordError";
@@ -61,6 +80,10 @@ const rejectedFields = (error: unknown) => {
 };
 
 const messageOf = (error: unknown) => {
+  const transport = transportMessage(error);
+  if (transport !== null) {
+    return transport;
+  }
   if (typeof error === "object" && error !== null) {
     const rejected = rejectedFields(error);
     if (rejected) {

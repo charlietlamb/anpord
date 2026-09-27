@@ -3,7 +3,8 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  EvalValidation,
+  REPORTED_LIMITS,
+  ReportedValidation,
   VALIDATION_FRAME,
   VALIDATION_TEXT_LIMIT,
 } from "@anpord/schema/domain/eval-validations";
@@ -21,7 +22,11 @@ afterEach(async () => {
   }
 });
 
-const run = async (checks: string, capture = true) => {
+const run = async (
+  checks: string,
+  capture = true,
+  prepared = '{"fixture":"prepared"}'
+) => {
   workspace = await mkdtemp(join(tmpdir(), "anpord-validation-"));
   await mkdir(join(workspace, ".anpord"));
   await writeFile(join(workspace, "answer.txt"), "Fixture\n");
@@ -62,7 +67,7 @@ variants: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: 
     env: {
       ...process.env,
       ANPORD_ANSWER_FILE: join(workspace, "answer.txt"),
-      ANPORD_PREPARE_VALUE: '{"fixture":"prepared"}',
+      ANPORD_PREPARE_VALUE: prepared,
     },
     stderr: "pipe",
   });
@@ -75,7 +80,7 @@ variants: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: 
     .split("\n")
     .filter((line) => line.startsWith(VALIDATION_FRAME))
     .map((line) =>
-      Schema.decodeUnknownSync(Schema.parseJson(EvalValidation))(
+      Schema.decodeUnknownSync(Schema.parseJson(ReportedValidation))(
         line.slice(VALIDATION_FRAME.length)
       )
     );
@@ -101,7 +106,7 @@ test("captures each named function, context inputs, outputs, and logs", async ()
   ]);
   expect(latest.map((record) => record.status)).toEqual(["passed", "passed"]);
   const record = latest[0];
-  expect(record?.input.text).toBe('{"prepared":{"fixture":"prepared"}}');
+  expect(record?.input.state).toBe("unavailable");
   expect(record?.output.text).toBe(
     '{"passed":true,"message":"Evidence checked"}'
   );
@@ -134,16 +139,32 @@ test.each([
   ["return false", "failed", 0],
   ['throw new Error("fixture unavailable")', "error", 1],
   ["return {}", "error", 1],
-] as const)("keeps later validators skipped after %s", async (body, status, exitCode) => {
+] as const)("runs later validators after %s", async (body, status, exitCode) => {
   const result = await run(
-    `[() => { ${body}; }, () => { throw new Error("must not run"); }]`
+    `[() => { ${body}; }, () => ({ passed: false, message: "second check" })]`
   );
   expect(result.exitCode).toBe(exitCode);
-  expect(result.latest.map((record) => record.status)).toEqual([
-    status,
-    "skipped",
+  expect(
+    result.latest.map((record) => [record.status, record.message])
+  ).toEqual([
+    [
+      status,
+      status === "failed"
+        ? ""
+        : "Validator threw or returned an invalid result",
+    ],
+    ["failed", "second check"],
   ]);
-  expect(result.latest[1]?.startedAt).toBeNull();
+});
+
+test("hands every check of a trial the same context", async () => {
+  const result = await run(
+    `[(context) => { globalThis.seen = context; return true; }, (context) => ({ passed: context === globalThis.seen, message: "a new context" })]`
+  );
+  expect(result.latest.map((record) => record.status)).toEqual([
+    "passed",
+    "passed",
+  ]);
 });
 
 test("associates concurrent calls with their own inputs and results", async () => {
@@ -155,20 +176,18 @@ test("associates concurrent calls with their own inputs and results", async () =
   ).toEqual(["first", "second"]);
 });
 
-test.each([
-  ["return true", "passed", "passed"],
-  ["return false", "failed", "failed"],
-  ['throw new Error("broken fixture")', "void", "error"],
-] as const)("scores real runtime evidence for %s", async (body, status, checkStatus) => {
-  const execution = await run(
-    `[function first() { return true; }, function second() { ${body}; }]`
-  );
-  const outcome = await Effect.runPromise(
+const score = (
+  execution: Awaited<ReturnType<typeof run>>,
+  secrets: readonly string[] = []
+) =>
+  Effect.runPromise(
     Effect.flatMap(Scorer, (scorer) =>
       scorer.score({
         commandCount: 0,
         events: [],
         modelMs: 0,
+        secrets,
+        turns: [],
         verifyCommand: null,
         workspace: workspace ?? "/tmp",
         validator: execution.validator,
@@ -188,12 +207,42 @@ test.each([
       })
     ).pipe(Effect.provide(ScorerGroundTruthLive))
   );
+
+test.each([
+  ["return true", "passed", "passed"],
+  ["return false", "failed", "failed"],
+  ['throw new Error("broken fixture")', "void", "error"],
+] as const)("scores real runtime evidence for %s", async (body, status, checkStatus) => {
+  const outcome = await score(
+    await run(
+      `[function first() { return true; }, function second() { ${body}; }]`
+    )
+  );
   expect(outcome.status).toBe(status);
   expect(outcome.validations?.map((record) => record.status)).toEqual([
     "passed",
     checkStatus,
   ]);
   expect(outcome.validations?.[0]?.output.text).toBe("true");
+});
+
+test.each([
+  ["return false", "failed", "failed"],
+  ['throw new Error("broken fixture")', "void", "error"],
+] as const)("scores every check when the first does %s", async (body, status, checkStatus) => {
+  const outcome = await score(
+    await run(
+      `[function first() { ${body}; }, function second() { return true; }]`
+    )
+  );
+  expect(outcome.status).toBe(status);
+  expect(
+    outcome.validations?.map((record) => [record.name, record.status])
+  ).toEqual([
+    ["first", checkStatus],
+    ["second", "passed"],
+  ]);
+  expect(outcome.validations?.[1]?.output.text).toBe("true");
 });
 
 test("keeps logged protocol-looking text out of the verdict", async () => {
@@ -206,6 +255,19 @@ test("keeps logged protocol-looking text out of the verdict", async () => {
   );
 });
 
+test("stores none of what the prepare returned, even when a check reads it", async () => {
+  const execution = await run(
+    '({ prepared }) => prepared.secretKey.startsWith("am_sk_")',
+    true,
+    '{"secretKey":"am_sk_test_x"}'
+  );
+  const outcome = await score(execution);
+
+  expect(outcome.status).toBe("passed");
+  expect(JSON.stringify(outcome.validations)).not.toContain("am_sk_test_x");
+  expect(outcome.validations?.[0]?.output.text).toBe("true");
+});
+
 test("disables payload capture without hiding the result", async () => {
   const result = await run(
     "async ({ answer }) => { console.log(await answer()); return true; }",
@@ -216,12 +278,53 @@ test("disables payload capture without hiding the result", async () => {
   expect(result.stdout).not.toContain("Fixture");
 });
 
-test("bounds evidence and marks truncation", async () => {
-  const result = await run(
-    `() => { console.log("x".repeat(20000)); return true; }`
+test("bounds stored evidence and marks truncation", async () => {
+  const outcome = await score(
+    await run(`() => { console.log("x".repeat(20000)); return true; }`)
   );
-  expect(result.latest[0]?.truncated).toBe(true);
-  expect(result.latest[0]?.logs[0]?.value.text.length).toBe(
-    VALIDATION_TEXT_LIMIT
+  const log = outcome.validations?.[0]?.logs[0]?.value;
+  expect([log?.text.length, log?.truncated]).toEqual([
+    VALIDATION_TEXT_LIMIT,
+    true,
+  ]);
+});
+
+test("a runaway validator reports no more than the protocol ceiling", async () => {
+  const result = await run(
+    `() => { console.log("x".repeat(1_000_000)); return true; }`
+  );
+  const log = result.latest[0]?.logs[0]?.value;
+  expect([log?.text.length, log?.truncated, result.exitCode]).toEqual([
+    REPORTED_LIMITS.text,
+    true,
+    0,
+  ]);
+});
+
+test("a credential cut by the evidence limit leaves no fragment", async () => {
+  const outcome = await score(
+    await run(
+      `() => { console.log("x".repeat(15_995) + " opaque-access-token-1"); return true; }`
+    ),
+    ["opaque-access-token-1"]
+  );
+  const log = outcome.validations?.[0]?.logs[0]?.value;
+  expect([log?.text.slice(15_990), log?.truncated]).toEqual([
+    "xxxxx [red",
+    true,
+  ]);
+});
+
+test("names the check that threw, not one that passed before it", async () => {
+  const result = await run(
+    `[function looks() { return { passed: true, message: "looks right" }; }, function reads() { throw new Error("fixture unavailable"); }]`
+  );
+
+  expect(
+    result.stdout
+      .split("\n")
+      .find((line) => line.startsWith("ANPORD_VALIDATOR_RESULT="))
+  ).toBe(
+    'ANPORD_VALIDATOR_RESULT={"passed":false,"message":"reads threw or returned an invalid result"}'
   );
 });

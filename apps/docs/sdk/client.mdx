@@ -20,6 +20,14 @@ const anpord = new Anpord({
 });
 ```
 
+To see which organization a key acts for:
+
+```ts
+const { organization, credential, permissions } = await anpord.whoami();
+```
+
+`credential` is `{ kind: "apiKey", name, start }` for a key, where `start` is its first characters, never the secret.
+
 ## Evals
 
 | Method | Returns |
@@ -69,5 +77,7 @@ await anpord.dispose();
 ```
 
 Invalid request fields fail before any network call. API failures carry an HTTP status when one is available.
+
+When Anpord cannot be reached, the error says so and names the address it tried. The first request checks that the server answers and gives up within 5 seconds if it does not. After that, a read that gets no answer in 30 seconds gives up with an error that says the server was slow, not unreachable. A change is never cut off once the server has it, so it cannot be applied twice.
 
 Date fields are Effect `DateTime.Utc` values. Read `epochMillis` for a number.

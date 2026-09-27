@@ -39,7 +39,7 @@ export const writeAnswer = (
     [
       sandbox.writeFile(ANSWER_PATH(sandbox.home), readAnswer(events)),
       sandbox.writeFile(TRANSCRIPT_PATH(sandbox.home), transcriptOf(events)),
-      sandbox.writeFile(TURNS_PATH(sandbox.home), JSON.stringify(turns ?? [])),
+      sandbox.writeFile(TURNS_PATH(sandbox.home), JSON.stringify(turns)),
     ],
     { discard: true }
   );

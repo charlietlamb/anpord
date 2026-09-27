@@ -9,6 +9,8 @@ import { declinesEverything } from "../fixtures/declines-everything";
    that resumes is polled, and one that does not is streamed. Five of six
    providers are the second kind, which is the case that used to fail
    outright. */
+const RETURNED_NOTHING = "built\nANPORD_PREPARE_RESULT={}\n";
+
 const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
   const commands: string[] = [];
   const environments: (Readonly<Record<string, string>> | undefined)[] = [];
@@ -72,6 +74,7 @@ const run = (sandbox: SandboxHandle) =>
   runPrepare({
     sandbox,
     prepare: { name: "prepareRepoImage", source: "export {}" },
+    secrets: [],
     workspace: "/tmp/ws",
   }).pipe(Effect.provide(SuspenderSleeping));
 
@@ -88,7 +91,7 @@ describe("running a workspace setup", () => {
   });
 
   test("a setup that returns nothing still succeeds", async () => {
-    const { sandbox } = sandboxSaying(0, "built\n");
+    const { sandbox } = sandboxSaying(0, RETURNED_NOTHING);
 
     expect(await Effect.runPromise(run(sandbox))).toEqual({});
   });
@@ -111,7 +114,7 @@ describe("running a workspace setup", () => {
   });
 
   test("restores before the prepare runs, and tells it so", async () => {
-    const { environments, sandbox } = sandboxSaying(0, "");
+    const { environments, sandbox } = sandboxSaying(0, RETURNED_NOTHING);
     const asked: string[] = [];
 
     await Effect.runPromise(
@@ -130,6 +133,7 @@ describe("running a workspace setup", () => {
             save: () => Effect.void,
           }),
         },
+        secrets: [],
         workspace: "/tmp/ws",
       }).pipe(Effect.provide(SuspenderSleeping))
     );
@@ -139,7 +143,7 @@ describe("running a workspace setup", () => {
   });
 
   test("does not claim a restore that did not happen", async () => {
-    const { environments, sandbox } = sandboxSaying(0, "");
+    const { environments, sandbox } = sandboxSaying(0, RETURNED_NOTHING);
 
     await Effect.runPromise(
       runPrepare({
@@ -153,6 +157,7 @@ describe("running a workspace setup", () => {
             save: () => Effect.void,
           }),
         },
+        secrets: [],
         workspace: "/tmp/ws",
       }).pipe(Effect.provide(SuspenderSleeping))
     );
@@ -181,6 +186,7 @@ describe("running a workspace setup", () => {
                 }),
             }),
           },
+          secrets: [],
           workspace: "/tmp/ws",
         }).pipe(Effect.provide(SuspenderSleeping))
       )
@@ -190,7 +196,7 @@ describe("running a workspace setup", () => {
   });
 
   test("says nothing about a cache when the provider has none", async () => {
-    const { environments, sandbox } = sandboxSaying(0, "");
+    const { environments, sandbox } = sandboxSaying(0, RETURNED_NOTHING);
 
     await Effect.runPromise(run(sandbox));
 
@@ -224,7 +230,7 @@ describe("a prepare on a provider that cannot resume a command", () => {
   });
 
   test("still tells the prepare a restore happened", async () => {
-    const { environments, sandbox } = sandboxSaying(0, "");
+    const { environments, sandbox } = sandboxSaying(0, RETURNED_NOTHING);
 
     await Effect.runPromise(
       runPrepare({
@@ -238,6 +244,7 @@ describe("a prepare on a provider that cannot resume a command", () => {
             save: () => Effect.void,
           }),
         },
+        secrets: [],
         workspace: "/tmp/ws",
       }).pipe(Effect.provide(SuspenderSleeping))
     );

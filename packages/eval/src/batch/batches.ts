@@ -3,6 +3,7 @@ import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { EvalHarness, StartedBatch } from "@anpord/schema/domain/evals";
 import type {
   CredentialLease,
+  IdempotencyKey,
   ReportedTrial,
 } from "@anpord/schema/public/runner-api";
 import { Context, Effect, Layer } from "effect";
@@ -17,9 +18,13 @@ import { makeExecuteBatch } from "./execute-batch";
 import { makeLaunch } from "./launch";
 import { makeReport } from "./report";
 import { makeRunCase, type RunCase } from "./run-case";
-import { makeStartBatch } from "./start-batch";
+import { makeStartBatch, type Start } from "./start-batch";
 
 export interface BatchesShape {
+  readonly beat: (
+    organizationId: string,
+    batchId: string
+  ) => Effect.Effect<void, EvalNotFound | NotRunnable>;
   readonly execute: (
     batchInternalId: string
   ) => Effect.Effect<number, CredentialError | EvalStoreError | NotRunnable>;
@@ -49,6 +54,11 @@ export interface BatchesShape {
     actor: Actor,
     request: StartBatchRequest
   ) => Effect.Effect<StartedBatch, CredentialError | StartRefused>;
+  readonly startOnce: (
+    actor: Actor,
+    request: StartBatchRequest,
+    idempotencyKey: IdempotencyKey
+  ) => Effect.Effect<Start, CredentialError | StartRefused>;
 }
 
 export class Batches extends Context.Tag("@anpord/eval/Batches")<
@@ -66,12 +76,17 @@ export const BatchesLive = Layer.effect(
     const reporting = yield* makeReport;
 
     return Batches.of({
+      beat: reporting.beat,
       execute,
       finish: reporting.finish,
       lease: reporting.lease,
       report: reporting.report,
       runCase,
-      start,
+      start: (actor, request) =>
+        start(actor, request, null).pipe(
+          Effect.map((outcome) => outcome.started)
+        ),
+      startOnce: start,
     });
   })
 );

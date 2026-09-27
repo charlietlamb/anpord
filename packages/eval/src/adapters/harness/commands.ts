@@ -20,7 +20,7 @@ export const geminiCommand = (request: RunHarness) =>
   inWorkspace(
     request,
     "&&",
-    `${binPath("gemini")} -p ${shellQuote(request.prompt)}`,
+    `${binPath(request, "gemini")} -p ${shellQuote(request.prompt)}`,
     "--output-format stream-json --yolo",
     model(request)
   );
@@ -29,7 +29,7 @@ export const qwenCommand = (request: RunHarness) =>
   inWorkspace(
     request,
     "&&",
-    `${binPath("qwen")} -p ${shellQuote(request.prompt)}`,
+    `${binPath(request, "qwen")} -p ${shellQuote(request.prompt)}`,
     "--output-format stream-json --yolo",
     `--auth-type openai --openai-base-url ${shellQuote(request.env.OPENAI_BASE_URL ?? QWEN_BASE_URL)}`,
     model(request)
@@ -39,7 +39,7 @@ export const piCommand = (request: RunHarness) =>
   inWorkspace(
     request,
     "&&",
-    `${binPath("pi")} --mode json --no-session --approve`,
+    `${binPath(request, "pi")} --mode json --no-session --approve`,
     model(request),
     shellQuote(request.prompt)
   );
@@ -53,7 +53,7 @@ export const cursorCommand = (request: RunHarness) =>
   inWorkspace(
     request,
     "&&",
-    `${binPath("cursor-agent")} -p --force --output-format stream-json`,
+    `${binPath(request, "cursor-agent")} -p --force --output-format stream-json`,
     ...(shipsMcp(request) ? ["--approve-mcps"] : []),
     model(request),
     shellQuote(request.prompt)
@@ -65,5 +65,5 @@ export const fxCommand = (request: RunHarness) =>
     "&& mkdir -p ~/.fx",
     `&& printf %s ${shellQuote(JSON.stringify({ model: request.model }))} > ~/.fx/settings.json`,
     "&&",
-    `${binPath("fx")} ask --json --yolo --no-color -- ${shellQuote(request.prompt)}`
+    `${binPath(request, "fx")} ask --json --yolo --no-color -- ${shellQuote(request.prompt)}`
   );

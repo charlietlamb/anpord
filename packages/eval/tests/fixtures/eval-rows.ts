@@ -57,6 +57,7 @@ export const seedRun = async (
   input: {
     readonly batchStatus?: string;
     readonly createdAt?: Date;
+    readonly lastSeenAt?: Date;
     readonly local?: boolean;
     readonly organizationId: string;
     readonly runStatus?: string;
@@ -106,6 +107,7 @@ export const seedRun = async (
   await db.insert(evalBatch).values({
     createdAt,
     internalId: seeded.batchInternalId,
+    lastSeenAt: input.lastSeenAt ?? null,
     local: input.local ?? false,
     organizationId: input.organizationId,
     status: input.batchStatus ?? "running",

@@ -8,9 +8,11 @@ import {
 
 const base: CaseDefinition = {
   cache: null,
+  maxTurns: null,
   prepare: null,
   prompt: "add the GitHub logo to the footer",
   source: { files: { "a.txt": "one" }, kind: "files" },
+  timeoutMs: null,
   user: null,
   validator: null,
   verify: "test -f public/logos/github-light.svg",
@@ -134,6 +136,36 @@ describe("case identity", () => {
     });
 
     expect(second).toBe(first);
+  });
+
+  it("changes when the harness or model playing the person changes", () => {
+    const person = { goal: "go live", kind: "simulated", prompt: "p" } as const;
+    const through = (harness: "codex" | "claude", model: string) =>
+      definitionHashOf({ ...base, user: { ...person, harness, model } });
+
+    expect(through("codex", "gpt-5.6-luna")).not.toBe(
+      definitionHashOf({ ...base, user: person })
+    );
+    expect(through("codex", "gpt-5.6-luna")).not.toBe(
+      through("codex", "gpt-5.6-sol")
+    );
+    expect(through("codex", "gpt-5.6-luna")).not.toBe(
+      through("claude", "gpt-5.6-luna")
+    );
+  });
+
+  it("keeps the hash a case had before limits existed when it sets none", () => {
+    expect(definitionHashOf(base)).toBe("96d071e2e04fa3cedb2804a98837f02b");
+  });
+
+  it("changes when the turn or time limit changes", () => {
+    const limited = (maxTurns: number | null, timeoutMs: number | null) =>
+      definitionHashOf({ ...base, maxTurns, timeoutMs });
+
+    expect(limited(3, null)).not.toBe(definitionHashOf(base));
+    expect(limited(null, 60_000)).not.toBe(definitionHashOf(base));
+    expect(limited(3, null)).not.toBe(limited(4, null));
+    expect(limited(3, null)).not.toBe(limited(null, 3));
   });
 
   it("does not change when a case is retagged or renamed", () => {

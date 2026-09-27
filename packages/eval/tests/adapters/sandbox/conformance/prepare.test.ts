@@ -34,6 +34,7 @@ const prepares = (provider: ProviderUnderTest) => {
           runPrepare({
             prepare: { name: "prepareRepoImage", source: SOURCE },
             sandbox,
+            secrets: [],
             workspace: WORKSPACE,
           }).pipe(Effect.provide(SuspenderSleeping))
         );
@@ -50,6 +51,7 @@ const prepares = (provider: ProviderUnderTest) => {
           runPrepare({
             prepare: { name: "prepareRepoImage", source: FAILING },
             sandbox,
+            secrets: [],
             workspace: WORKSPACE,
           }).pipe(Effect.provide(SuspenderSleeping), Effect.either)
         );

@@ -21,6 +21,7 @@ import {
 import { PROFILE_HARNESS_RULE } from "../domain/harness-profile";
 import { RunCaseRequest } from "../domain/run-case";
 import { ApiKeyAuthentication } from "./authentication";
+import { Repeatable } from "./repeatable";
 
 export const ById = Schema.Struct({ id: Schema.String }).annotations({
   description: "Select one by id.",
@@ -127,12 +128,14 @@ export class BatchesGroup extends evalsGroup("batches", "Batches")
   )
   .add(
     HttpApiEndpoint.post("get", "/evals.batches.get")
+      .annotate(Repeatable, true)
       .setPayload(ById)
       .addSuccess(EvalBatch)
       .annotate(OpenApi.Summary, "Get a batch")
   )
   .add(
     HttpApiEndpoint.post("list", "/evals.batches.list")
+      .annotate(Repeatable, true)
       .setPayload(ListBatchesRequest)
       .addSuccess(EvalBatchPage)
       .annotate(OpenApi.Summary, "List batches")
@@ -149,6 +152,7 @@ export class BatchesGroup extends evalsGroup("batches", "Batches")
 export class SuitesGroup extends evalsGroup("suites", "Suites")
   .add(
     HttpApiEndpoint.post("list", "/evals.suites.list")
+      .annotate(Repeatable, true)
       .setPayload(ListSuitesRequest)
       .addSuccess(EvalSuitePage)
       .annotate(OpenApi.Summary, "List suites")
@@ -159,6 +163,7 @@ export class SuitesGroup extends evalsGroup("suites", "Suites")
   )
   .add(
     HttpApiEndpoint.post("get", "/evals.suites.get")
+      .annotate(Repeatable, true)
       .setPayload(ById)
       .addSuccess(EvalSuiteDetail)
       .annotate(OpenApi.Summary, "Get a suite and the setup its cases share")
@@ -171,12 +176,14 @@ export class SuitesGroup extends evalsGroup("suites", "Suites")
 export class CasesGroup extends evalsGroup("cases", "Cases")
   .add(
     HttpApiEndpoint.post("list", "/evals.cases.list")
+      .annotate(Repeatable, true)
       .setPayload(ListCasesRequest)
       .addSuccess(EvalCasePage)
       .annotate(OpenApi.Summary, "List cases")
   )
   .add(
     HttpApiEndpoint.post("get", "/evals.cases.get")
+      .annotate(Repeatable, true)
       .setPayload(ById)
       .addSuccess(EvalCaseDetail)
       .annotate(OpenApi.Summary, "Get a case, its variants and its versions")
@@ -199,6 +206,7 @@ export class CasesGroup extends evalsGroup("cases", "Cases")
 export class RunsGroup extends evalsGroup("runs", "Runs")
   .add(
     HttpApiEndpoint.post("list", "/evals.runs.list")
+      .annotate(Repeatable, true)
       .setPayload(ListRunsRequest)
       .addSuccess(EvalRunPage)
       .annotate(OpenApi.Summary, "List a case's runs")
@@ -206,6 +214,7 @@ export class RunsGroup extends evalsGroup("runs", "Runs")
   )
   .add(
     HttpApiEndpoint.post("get", "/evals.runs.get")
+      .annotate(Repeatable, true)
       .setPayload(ById)
       .addSuccess(EvalRun)
       .annotate(OpenApi.Summary, "Get a run and its trials")
@@ -218,6 +227,7 @@ export class RunsGroup extends evalsGroup("runs", "Runs")
 export class ModelsGroup extends evalsGroup("models", "Models")
   .add(
     HttpApiEndpoint.post("list", "/evals.models.list")
+      .annotate(Repeatable, true)
       .setPayload(ListModelsRequest)
       .addSuccess(ModelCatalogue)
       .annotate(OpenApi.Summary, "List models available to a harness")

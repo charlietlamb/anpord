@@ -24,3 +24,26 @@ test("rejects a nonzero command", async () => {
   );
   expect(failure.reason).toBe("Command exited with status 7");
 });
+
+test("says why a command failed when it wrote to stderr", async () => {
+  const failing = {
+    ...sandbox(190),
+    exec: () =>
+      Stream.make(
+        {
+          at: 0,
+          data: "npm error code ENOTEMPTY\nnpm error rename failed\n",
+          stream: "stderr" as const,
+        },
+        { at: 1, exitCode: 190, stream: "exit" as const }
+      ),
+  } satisfies SandboxHandle;
+
+  const failure = await Effect.runPromise(
+    runCommand(failing, "npm i -g codex").pipe(Effect.flip)
+  );
+
+  expect(failure.reason).toBe(
+    "Command exited with status 190: npm error code ENOTEMPTY\nnpm error rename failed"
+  );
+});

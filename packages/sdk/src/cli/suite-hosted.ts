@@ -41,6 +41,7 @@ export const runSuiteFile = (
       known.suite = request.suite.name;
       const trigger = yield* evalTrigger;
       const started = yield* api.runner.start({
+        headers: {},
         payload: { ...request, trigger },
       });
       known.batchId = started.id;

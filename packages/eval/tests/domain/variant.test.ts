@@ -33,6 +33,21 @@ describe("the model that plays the user", () => {
     expect(userModelOf(undefined, "gpt-5.4-mini")).toBeNull();
   });
 
+  it("is the harness and model a case names to play the person", () => {
+    expect(
+      userModelOf(
+        {
+          goal: "go live",
+          harness: "codex",
+          kind: "simulated",
+          model: "gpt-5.6-luna",
+          prompt: "p",
+        },
+        "gpt-5.4-mini"
+      )
+    ).toBe("codex/gpt-5.6-luna");
+  });
+
   it("defaults when nothing is configured", () => {
     expect(configured(new Map())).toBe(DEFAULT_USER_MODEL);
   });

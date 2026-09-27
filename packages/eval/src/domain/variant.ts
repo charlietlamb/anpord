@@ -27,7 +27,12 @@ export const userModel = Config.string("ANPORD_USER_MODEL").pipe(
 export const userModelOf = (
   user: EvalUser | null | undefined,
   model: string
-): string | null => (user?.kind === "simulated" ? model : null);
+): string | null => {
+  if (user?.kind !== "simulated") {
+    return null;
+  }
+  return user.harness === undefined ? model : `${user.harness}/${user.model}`;
+};
 
 const harnessOf = Schema.decodeUnknownOption(EvalHarness);
 const sandboxOf = Schema.decodeUnknownOption(EvalSandbox);

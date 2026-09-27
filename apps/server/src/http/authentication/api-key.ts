@@ -46,5 +46,6 @@ export const resolveApiKey = (auth: AuthInstance, token: string) =>
       organizationId: key.value.referenceId,
       permissions: resolveApiKeyPermissions(key.value.permissions),
       isUser: false,
+      apiKey: { name: key.value.name, start: key.value.start },
     }).pipe(Effect.mapError(() => unauthorized("API key is malformed")));
   }).pipe(Effect.withSpan("Authentication.resolveApiKey"));

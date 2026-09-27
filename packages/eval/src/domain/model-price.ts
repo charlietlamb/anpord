@@ -13,15 +13,20 @@ export const ModelPrice = Schema.Struct({
 });
 export type ModelPrice = typeof ModelPrice.Type;
 
+const HOUR_CACHE_WRITE_INPUT_MULTIPLE = 2;
+
 /* Anthropic reports cache tokens beside the input rather than inside it, so each
    count is charged once at its own rate and nothing is subtracted. */
 export const costOf = (usage: HarnessUsage, price: ModelPrice): number => {
+  const hourWrites = usage.cacheWrite1hTokens ?? 0;
   const input = usage.inputTokens * price.input;
   const output = usage.outputTokens * price.output;
   const read = usage.cacheReadTokens * (price.cacheRead ?? price.input);
-  const write = usage.cacheWriteTokens * (price.cacheWrite ?? price.input);
+  const write =
+    (usage.cacheWriteTokens - hourWrites) * (price.cacheWrite ?? price.input);
+  const hourWrite = hourWrites * price.input * HOUR_CACHE_WRITE_INPUT_MULTIPLE;
 
-  return (input + output + read + write) / PER;
+  return (input + output + read + write + hourWrite) / PER;
 };
 
 /* Null rather than zero with no input read: a rate needs a denominator. */

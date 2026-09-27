@@ -43,6 +43,12 @@ export const LOCAL_TRIAL = {
   voidFields: ["sandbox"],
 } as EvalTrial;
 
+export const TIMED_OUT_TRIAL = {
+  ...LOCAL_TRIAL,
+  failure: "The agent ran past its time limit of 5m",
+  voidFields: [],
+} as EvalTrial;
+
 export const LOCAL_RUN: EvalRun = {
   ...RUN,
   local: true,
