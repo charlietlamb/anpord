@@ -7,6 +7,7 @@ import type {
 } from "@anpord/eval/domain/errors";
 import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
+import { credentialApiError } from "./credential-errors";
 import { logAndDie } from "./log-and-die";
 
 type EvalDomainError =
@@ -22,10 +23,12 @@ const toHttpError = (
   error: EvalDomainError
 ): Effect.Effect<never, BadRequest | Conflict | NotFound> => {
   switch (error._tag) {
-    case "CredentialError":
-      return error.code === "not-found"
-        ? Effect.fail(new BadRequest({ message: error.message }))
-        : logged(error);
+    case "CredentialError": {
+      const mapped = credentialApiError(error);
+      return mapped._tag === "InternalError"
+        ? logged(error)
+        : Effect.fail(mapped);
+    }
     case "EvalNotFound":
       return Effect.fail(new NotFound({ message: error.message }));
     case "NotRunnable":

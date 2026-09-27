@@ -82,7 +82,7 @@ describe("eval errors over http", () => {
     );
   });
 
-  it("answers a missing credential with a bad request", () => {
+  it("answers a missing credential with not found, the same as /credentials", () => {
     const failure = failureOf(
       mapped(
         new CredentialError({
@@ -93,7 +93,7 @@ describe("eval errors over http", () => {
     );
 
     expect(failure).toEqual(
-      new BadRequest({ message: "No credential configured for claude" })
+      new NotFound({ message: "No credential configured for claude" })
     );
   });
 
