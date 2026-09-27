@@ -7,7 +7,7 @@ import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { handledCredential } from "../../../http/credential-errors";
+import { withCredentialErrors } from "../../../http/credential-errors";
 
 export const CredentialsHandlers = HttpApiBuilder.group(
   AnpordApi,
@@ -23,13 +23,13 @@ export const CredentialsHandlers = HttpApiBuilder.group(
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           return yield* (yield* CredentialConnections).awareness(actor);
-        }).pipe(handledCredential)
+        }).pipe(withCredentialErrors)
       )
       .handle("list", { permission: Permissions.Credentials.Read }, () =>
         Effect.gen(function* () {
           const actor = yield* CurrentActor;
           return yield* (yield* CredentialConnections).list(actor);
-        }).pipe(handledCredential)
+        }).pipe(withCredentialErrors)
       )
       .handle(
         "create",
@@ -38,7 +38,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* CredentialConnections).create(actor, payload);
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       )
       .handle(
         "remove",
@@ -47,7 +47,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* CredentialConnections).remove(actor, path.id);
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       )
       .handle(
         "setDefault",
@@ -59,7 +59,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
               actor,
               path.id
             );
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       )
       .handle(
         "rotate",
@@ -72,7 +72,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
               path.id,
               payload.values
             );
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       )
       .handle(
         "verify",
@@ -81,7 +81,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* CredentialConnections).verify(actor, path.id);
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       )
       .handle(
         "startDevice",
@@ -90,7 +90,7 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* DeviceAuth).start(actor, payload);
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       )
       .handle(
         "deviceStatus",
@@ -99,6 +99,6 @@ export const CredentialsHandlers = HttpApiBuilder.group(
           Effect.gen(function* () {
             const actor = yield* CurrentActor;
             return yield* (yield* DeviceAuth).status(actor, path.id);
-          }).pipe(handledCredential)
+          }).pipe(withCredentialErrors)
       ).done
 );
