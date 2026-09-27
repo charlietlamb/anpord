@@ -35,23 +35,20 @@ limits_of() {
 }
 
 current() {
-  local service scaling
+  local service scaling limits
   service="$(aws apprunner describe-service --service-arn "${ARN}" --region "${REGION}" \
     --query 'Service.[InstanceConfiguration.Cpu,InstanceConfiguration.Memory,InstanceConfiguration.InstanceRoleArn,HealthCheckConfiguration.Protocol,HealthCheckConfiguration.Path,HealthCheckConfiguration.Interval,HealthCheckConfiguration.Timeout,HealthCheckConfiguration.HealthyThreshold,HealthCheckConfiguration.UnhealthyThreshold]' \
-    --output text)"
+    --output text)" || return 1
   scaling="$(aws apprunner describe-service --service-arn "${ARN}" --region "${REGION}" \
-    --query 'Service.AutoScalingConfigurationSummary.AutoScalingConfigurationArn' --output text)"
-  printf '%s\t%s' "${service}" "$(limits_of "${scaling}")"
+    --query 'Service.AutoScalingConfigurationSummary.AutoScalingConfigurationArn' --output text)" || return 1
+  limits="$(limits_of "${scaling}")" || return 1
+  printf '%s\t%s' "${service}" "${limits}"
 }
 
-matches() {
-  local now
-  now="$(current)"
-  [ "${now}" = "${WANTED}" ] && return 0
+report_drift() {
   echo "${SERVICE} has drifted from its expected shape."
-  echo "  now:      ${now}"
+  echo "  now:      $1"
   echo "  expected: ${WANTED}"
-  return 1
 }
 
 settle() {
@@ -74,10 +71,12 @@ settle() {
 
 SUMMARY="${SERVICE} runs ${CPU} CPU, ${MEMORY} MB, ${MIN_INSTANCES} to ${MAX_INSTANCES} instances."
 
-if matches; then
+NOW="$(current)"
+if [ "${NOW}" = "${WANTED}" ]; then
   echo "${SUMMARY}"
   exit 0
 fi
+report_drift "${NOW}"
 
 if [ "${MODE}" = "check" ]; then
   echo "Run scripts/apprunner-shape.sh apply with operator credentials, then deploy again."
@@ -100,5 +99,9 @@ aws apprunner update-service --service-arn "${ARN}" --region "${REGION}" \
   --auto-scaling-configuration-arn "${SCALING}" \
   --health-check-configuration "${HEALTH}" >/dev/null
 settle
-matches
+NOW="$(current)"
+if [ "${NOW}" != "${WANTED}" ]; then
+  report_drift "${NOW}"
+  exit 1
+fi
 echo "${SUMMARY}"
