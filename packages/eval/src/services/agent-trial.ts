@@ -222,12 +222,7 @@ export const AgentTrialLive = Layer.effect(
         );
 
         yield* Effect.addFinalizer(() =>
-          api.collect().pipe(
-            Effect.flatMap((events) =>
-              Stream.fromIterable(events).pipe(sink.through, Stream.runDrain)
-            ),
-            Effect.ignoreLogged
-          )
+          api.collect().pipe(Effect.flatMap(sink.record), Effect.ignoreLogged)
         );
 
         const modelStarted = yield* Clock.currentTimeMillis;
@@ -299,10 +294,7 @@ export const AgentTrialLive = Layer.effect(
         }
 
         const apiEvents = yield* api.collect();
-        yield* Stream.fromIterable(apiEvents).pipe(
-          sink.through,
-          Stream.runDrain
-        );
+        yield* sink.record(apiEvents);
         yield* api.check;
         const events = [...conversation.events, ...apiEvents];
 
@@ -329,10 +321,7 @@ export const AgentTrialLive = Layer.effect(
           workspace: request.workspace,
         });
         const validationApiEvents = yield* api.collect();
-        yield* Stream.fromIterable(validationApiEvents).pipe(
-          sink.through,
-          Stream.runDrain
-        );
+        yield* sink.record(validationApiEvents);
         yield* api.check;
 
         const finishedAt = yield* Clock.currentTimeMillis;

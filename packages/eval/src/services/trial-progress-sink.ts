@@ -11,6 +11,7 @@ const PROGRESS_RETRY = Schedule.exponential("100 millis").pipe(
 
 export interface ProgressSink {
   readonly lost: Ref.Ref<boolean>;
+  readonly record: (events: readonly HarnessEvent[]) => Effect.Effect<void>;
   readonly through: <E>(
     events: Stream.Stream<HarnessEvent, E>
   ) => Stream.Stream<HarnessEvent, E>;
@@ -49,5 +50,14 @@ export const progressSink = (
         Stream.flattenChunks
       );
 
-    return { lost, through };
+    return {
+      lost,
+      record: (events) =>
+        Effect.forEach(
+          Chunk.chunksOf(Chunk.fromIterable(events), PROGRESS_BATCH),
+          record,
+          { discard: true }
+        ),
+      through,
+    };
   });

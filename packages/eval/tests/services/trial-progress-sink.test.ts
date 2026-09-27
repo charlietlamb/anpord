@@ -77,3 +77,38 @@ describe("progressSink", () => {
     expect(lost).toBe(false);
   });
 });
+
+describe("recording events already collected", () => {
+  it("sends them in batches of 32 without waiting out the batch window in a finalizer", async () => {
+    const many = Array.from(
+      { length: 40 },
+      (_, index): HarnessEvent => ({
+        _tag: "Command",
+        at: index,
+        command: `step ${index}`,
+        exitCode: 0,
+        output: "",
+      })
+    );
+
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const seen = yield* Ref.make<readonly [number, number][]>([]);
+        const sink = yield* progressSink((batch, from) =>
+          Ref.update(seen, (all) => [...all, [from, batch.length]])
+        );
+        const began = performance.now();
+
+        yield* Effect.uninterruptible(sink.record(many));
+
+        return { batches: yield* Ref.get(seen), ms: performance.now() - began };
+      })
+    );
+
+    expect(result.batches).toEqual([
+      [0, 32],
+      [32, 8],
+    ]);
+    expect(result.ms).toBeLessThan(100);
+  });
+});
