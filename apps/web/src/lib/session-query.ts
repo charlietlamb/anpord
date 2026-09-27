@@ -6,5 +6,6 @@ const SESSION_CHECK_MS = 60_000;
 export const sessionQuery = queryOptions({
   queryKey: ["session"],
   queryFn: () => getSession(),
-  staleTime: SESSION_CHECK_MS,
+  staleTime: ({ state }) =>
+    state.data?.authenticated === true ? SESSION_CHECK_MS : 0,
 });
