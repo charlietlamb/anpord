@@ -23,7 +23,7 @@ export function TimelineStep({
     <button
       aria-pressed={selected}
       className={cn(
-        "flex h-8 w-full items-center gap-2.5 pr-3.5 pl-[34px] text-left outline-none transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4",
+        "flex h-8 w-full items-center gap-2.5 pr-4 pl-[38px] text-left outline-none transition-colors hover:bg-alpha-4 focus-visible:bg-alpha-4",
         selected && "bg-alpha-4"
       )}
       onClick={onSelect}

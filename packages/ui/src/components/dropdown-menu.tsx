@@ -7,6 +7,7 @@ import {
 } from "@anpord/ui/lib/popup";
 import { cn } from "@anpord/ui/lib/utils";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { CheckIcon } from "@phosphor-icons/react";
 import type * as React from "react";
 
 const MENU_ITEM_CLASS = cn("group/dropdown-menu-item", MENU_ITEM);
@@ -105,22 +106,29 @@ export function DropdownMenuLabel({
 }: MenuPrimitive.GroupLabel.Props) {
   return (
     <MenuPrimitive.GroupLabel
-      className={cn(
-        MENU_LABEL,
-        "-mx-1 mt-1 border-border border-t first:mt-0 first:border-t-0 first:pt-1",
-        className
-      )}
+      className={cn(MENU_LABEL, className)}
       {...props}
     />
   );
 }
 
 export function DropdownMenuItem({
+  checked,
+  children,
   className,
   ...props
-}: MenuPrimitive.Item.Props) {
+}: MenuPrimitive.Item.Props & { readonly checked?: boolean }) {
   return (
-    <MenuPrimitive.Item className={cn(MENU_ITEM_CLASS, className)} {...props} />
+    <MenuPrimitive.Item className={cn(MENU_ITEM_CLASS, className)} {...props}>
+      {children}
+      {checked === undefined ? null : (
+        <CheckIcon
+          aria-hidden="true"
+          className={cn("ml-auto text-foreground", !checked && "invisible")}
+          weight="bold"
+        />
+      )}
+    </MenuPrimitive.Item>
   );
 }
 

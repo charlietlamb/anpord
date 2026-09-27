@@ -1,13 +1,13 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
-import {
-  DataTable,
-  DataTableBody,
-  DataTableFooter,
-  DataTableHead,
-  DataTableRow,
-} from "@anpord/ui/components/ui/data-table";
 import { seconds } from "@anpord/ui/lib/evals/duration";
 import { StepLabel } from "@/components/evals/step-label";
+import {
+  StepList,
+  StepListBody,
+  StepListFooter,
+  StepListHead,
+  StepListRow,
+} from "@/components/evals/step-list";
 import { CALLS_TABLE } from "@/lib/evals/case-tables";
 import {
   type Call,
@@ -38,23 +38,17 @@ export function TrialCalls({
   const failed = calls.filter(({ call }) => stepFailed(call)).length;
 
   return (
-    <DataTable columns={CALLS_TABLE.columns} label={CALLS_TABLE.label}>
-      <DataTableHead headings={CALLS_TABLE.headings} />
+    <StepList columns={CALLS_TABLE.columns} label={CALLS_TABLE.label}>
+      <StepListHead headings={CALLS_TABLE.headings} />
 
-      <DataTableBody>
+      <StepListBody>
         {calls.map(({ at, call }, index) => {
           const took = durationOf(call);
 
           return (
-            <DataTableRow
-              aria-pressed={step === at}
+            <StepListRow
               key={at}
-              render={
-                <button
-                  onClick={() => setStep(step === at ? null : at)}
-                  type="button"
-                />
-              }
+              onClick={() => setStep(step === at ? null : at)}
               selected={step === at}
             >
               <span className="text-muted-foreground text-xs tabular-nums">
@@ -66,15 +60,15 @@ export function TrialCalls({
               <span className="text-muted-foreground tabular-nums">
                 {took === null ? null : seconds(took)}
               </span>
-            </DataTableRow>
+            </StepListRow>
           );
         })}
-      </DataTableBody>
+      </StepListBody>
 
-      <DataTableFooter>
+      <StepListFooter>
         {counted(calls.length, "call", "calls")}
         {failed === 0 ? "" : `, ${failed} failed`}
-      </DataTableFooter>
-    </DataTable>
+      </StepListFooter>
+    </StepList>
   );
 }

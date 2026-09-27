@@ -5,7 +5,6 @@ import {
   DropdownMenuLabel,
 } from "@anpord/ui/components/dropdown-menu";
 import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
-import { CheckIcon } from "@phosphor-icons/react";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 
@@ -41,15 +40,13 @@ export function VersionActions({
 
         {channels.map((channel) => (
           <DropdownMenuItem
+            checked={serves.has(channel.name)}
             closeOnClick={false}
             key={channel.name}
             onClick={() => onPromote(channel.name)}
           >
             <ChannelDot color={channelColor(channel.name)} />
             <span className="flex-1 truncate">{channel.name}</span>
-            {serves.has(channel.name) ? (
-              <CheckIcon className="size-3.5 shrink-0" />
-            ) : null}
           </DropdownMenuItem>
         ))}
       </DropdownMenuGroup>

@@ -10,7 +10,6 @@ import {
 } from "@anpord/ui/components/dropdown-menu";
 import {
   ArrowsDownUpIcon,
-  CheckIcon,
   SortAscendingIcon,
   SortDescendingIcon,
 } from "@phosphor-icons/react";
@@ -59,12 +58,10 @@ export function SortMenu<T extends string>({
           <DropdownMenuLabel>Sort by</DropdownMenuLabel>
           {options.map((option) => (
             <DropdownMenuItem
+              checked={option.value === value}
               key={option.value}
               onClick={() => onChange(option.value)}
             >
-              <CheckIcon
-                className={option.value === value ? undefined : "invisible"}
-              />
               {option.label}
             </DropdownMenuItem>
           ))}
@@ -77,14 +74,10 @@ export function SortMenu<T extends string>({
               <DropdownMenuLabel>Order</DropdownMenuLabel>
               {DIRECTIONS.map((entry) => (
                 <DropdownMenuItem
+                  checked={entry.value === direction}
                   key={entry.value}
                   onClick={() => onDirection(entry.value)}
                 >
-                  <CheckIcon
-                    className={
-                      entry.value === direction ? undefined : "invisible"
-                    }
-                  />
                   <entry.icon />
                   {entry.label}
                 </DropdownMenuItem>

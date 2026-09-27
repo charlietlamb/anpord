@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 
-import { FIELD_SURFACE } from "@anpord/ui/lib/field"
 import { MENU_ITEM, MENU_SEPARATOR } from "@anpord/ui/lib/popup"
 import { cn } from "@anpord/ui/lib/utils"
 import {
@@ -69,13 +68,13 @@ function CommandInput({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
-    <div data-slot="command-input-wrapper" className="p-1 pb-0">
-      <div className={cn(FIELD_SURFACE, "flex h-8 items-center gap-2 px-2.5")}>
-        <MagnifyingGlassIcon className="size-3.5 shrink-0 text-muted-foreground" />
+    <div data-slot="command-input-wrapper" className="-mx-1 -mt-1 mb-1 border-border border-b">
+      <div className="flex h-10 items-center gap-2 px-3">
+        <MagnifyingGlassIcon className="size-4 shrink-0 text-muted-foreground" />
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full bg-transparent text-xs/relaxed outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full bg-transparent text-[13px]/5 outline-hidden placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}
@@ -122,7 +121,7 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot="command-group"
       className={cn(
-        "overflow-hidden p-1 text-foreground **:[[cmdk-group-heading]]:px-2.5 **:[[cmdk-group-heading]]:py-1.5 **:[[cmdk-group-heading]]:text-xs **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group-heading]]:text-muted-foreground",
+        "overflow-hidden text-foreground **:[[cmdk-group-heading]]:flex **:[[cmdk-group-heading]]:h-7 **:[[cmdk-group-heading]]:items-center **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:text-muted-foreground/80 **:[[cmdk-group-heading]]:text-xs",
         className
       )}
       {...props}
@@ -159,7 +158,7 @@ function CommandItem({
       {...props}
     >
       {children}
-      <CheckIcon className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
+      <CheckIcon weight="bold" className="ml-auto text-foreground opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
     </CommandPrimitive.Item>
   )
 }
