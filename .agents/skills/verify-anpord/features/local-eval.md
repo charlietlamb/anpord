@@ -27,4 +27,4 @@ Preconditions:
 ## Gotchas
 
 - The smoke suite needs no model credential. A suite with a real harness or a judge does, and a live run costs money.
-- Without `ANPORD_BROWSER=none`, `--ui` opens the operator's default browser.
+- Without `ANPORD_BROWSER=none`, `--ui` opens the browser that `ANPORD_BROWSER` names, or the system default when it is unset.

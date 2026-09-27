@@ -4,7 +4,7 @@ Numbers for the server, the eval runner and the web app, recorded the same way e
 
 ## Sub-features
 
-- `perf-server` latency percentiles, throughput, errors, queries per request and memory per endpoint, plus cold start.
+- `perf-server` latency percentiles, throughput, errors and queries per request for each endpoint, plus peak memory over the whole suite and cold start.
 - `perf-runner` wall time per eval step and per trial, report latency, tokens.
 - `perf-web` Lighthouse metrics, bundle bytes per page, heap after opening a long trial.
 - `perf-compare` judges two sets of results; `perf-ab` runs the PR's base and the branch side by side and judges them.
@@ -18,7 +18,7 @@ Numbers for the server, the eval runner and the web app, recorded the same way e
 
 Preconditions:
 
-- A local Postgres and a Chrome install. Nothing else running heavy work, if you can help it.
+- A local Postgres. The web suite, and so `all`, also needs a Chrome install. Nothing else running heavy work, if you can help it.
 
 - **Measure.** `bun run perf server`. The table prints per endpoint rows and the file path it wrote.
 - **Compare.** `bun run perf compare apps/perf/baselines/<main file> <your file>`. Exit code `0` with `0 regressed beyond 5%`, or `1` with the rows that regressed.

@@ -17,8 +17,8 @@ A signed in user browses evals: the list at `/evals`, a batch at `/evals/<batchI
 
 Preconditions:
 
-- A seeded server and a built web app you started. `bun run perf web` does all of it and leaves nothing behind; to keep one running, reuse `apps/perf/src/stack/stack.ts` and `apps/perf/src/web/web-server.ts` from a script.
-- A Chrome from `launchChrome()` in `apps/perf/src/web/browser.ts`, signed in with `signIn()`.
+- A seeded server and a built web app you started. `bun run perf web` does all of it and drops its databases and servers, but it rebuilds `apps/web/.output` in each checkout it measures, replacing any build already there; to keep one running, reuse `apps/perf/src/stack/stack.ts` and `apps/perf/src/web/web-server.ts` from a script.
+- A Chrome from `launchChrome()` in `apps/perf/src/web/browser.ts`, signed in with `signedInContext()` from the same file, using the `cookie` that `givenTenant()` in `apps/perf/src/stack/tenant.ts` returns.
 
 - **Open a page.** `page.goto("<web>/evals", { waitUntil: "networkidle0" })`. The URL stays on `/evals`; a redirect to `/login` means the cookie did not take.
 - **Proof.** `page.screenshot({ path: "<evidence>/evals.png", fullPage: true })` before and after the change, both named in the report.

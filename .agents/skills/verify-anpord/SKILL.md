@@ -11,7 +11,7 @@ One command runs every gate a change must pass and leaves its evidence on disk:
 .agents/skills/verify-anpord/scripts/verify.sh
 ```
 
-Run it from the root of the worktree you changed. It prints `PASS`, `FAIL` or `SKIP` per step with its duration and counts, writes each step's full log plus `summary.txt` to the evidence directory it names at the end, and exits 1 if any step failed.
+Run it from the root of the worktree you changed. It prints `PASS`, `FAIL` or `SKIP` per step. Steps that ran show their duration, and passing test, e2e and perf steps also show their counts. Each step that ran writes its full log to the evidence directory named at the end, beside `summary.txt`, and the script exits 1 if any step failed.
 
 | Variable | Default | Effect |
 | --- | --- | --- |
@@ -46,7 +46,7 @@ A scratch database left over from a crashed run is safe to drop. `anpord_dev` an
 
 `features/README.md` maps each user facing feature to its recipe. The verify script drives three of them itself: the local eval run (sdk-smoke), the API and runner surfaces (e2e), and the perf comparison.
 
-For UI changes the script is not enough: open the page in a Chrome you launch with a fresh profile (`apps/perf/src/web/browser.ts` does this, and `signIn` sets the session cookie), take a screenshot before and after, and name both files in the report.
+For UI changes the script is not enough: open the page in a Chrome you launch with a fresh profile (`launchChrome()` in `apps/perf/src/web/browser.ts` does this, and `signedInContext()` there sets the session cookie from the `cookie` that `givenTenant()` in `apps/perf/src/stack/tenant.ts` returns), take a screenshot before and after, and name both files in the report.
 
 ## Evidence
 
@@ -56,7 +56,7 @@ For UI changes the script is not enough: open the page in a Chrome you launch wi
 
 ## Cleanup
 
-The script drops its scratch database on exit, and the perf harness drops its own. The e2e cluster keeps running by design (`bun run e2e -- --stop` stops it). The base checkout the perf step makes lives at `$TMPDIR/anpord-verify-base-<sha>` and is reused for that commit; remove it with `git worktree remove <path>` once the base moves on. Evidence directories are never deleted by the script.
+The script drops its scratch database on exit, and the perf harness drops its own. The e2e step passes `--stop`, so its Postgres cluster stops when it finishes. The base checkout the perf step makes lives at `$TMPDIR/anpord-verify-base-<sha>` and is reused for that commit once `$TMPDIR/anpord-verify-base-<sha>.ready` marks its install as finished; remove it with `git worktree remove <path>` once the base moves on. Evidence directories are never deleted by the script.
 
 ## Helpers
 

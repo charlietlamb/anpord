@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+SCRIPTS=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT" || exit 1
 
@@ -23,23 +24,20 @@ mkdir -p "$EVIDENCE"
 results=()
 failed=0
 
-admin_url() {
+database_url() {
   local from_env=""
   if [ -f "$ROOT/.env.local" ]; then
     from_env=$(grep -E '^DATABASE_URL=' "$ROOT/.env.local" | head -1 | cut -d= -f2-)
   fi
-  local url=${PERF_DATABASE_URL:-${from_env:-postgresql://localhost:5432/postgres}}
-  case "$url" in
-    *localhost*|*127.0.0.1*) ;;
-    *) echo "refusing a non-local database: $url" >&2; return 1 ;;
-  esac
-  printf '%s' "${url%/*}/postgres"
+  bun "$SCRIPTS/database-url.ts" "${PERF_DATABASE_URL:-${from_env:-postgresql://localhost:5432/postgres}}" "$1"
+}
+
+admin_url() {
+  database_url postgres
 }
 
 scratch_url() {
-  local admin
-  admin=$(admin_url) || return 1
-  printf '%s' "${admin%/*}/$SCRATCH_DB"
+  database_url "$SCRATCH_DB"
 }
 
 drop_scratch() {
@@ -81,9 +79,7 @@ route_tree() {
 }
 
 changed_files() {
-  local base
-  base=$(git merge-base HEAD "$BASE_REF")
-  { git diff --name-only --diff-filter=ACMR "$base"; git ls-files --others --exclude-standard; } |
+  { git diff --name-only --diff-filter=ACMR "$1"; git ls-files --others --exclude-standard; } |
     sort -u |
     grep -E '\.(ts|tsx|js|mjs|cjs|json|jsonc|css)$' |
     grep -vE '^(\.claude/worktrees|scripts/fixtures|context)/' |
@@ -91,8 +87,12 @@ changed_files() {
 }
 
 biome_changed() {
-  local files
-  files=$(changed_files)
+  local base files
+  if ! base=$(git merge-base HEAD "$BASE_REF"); then
+    echo "could not find a merge base with $BASE_REF, so there is nothing to diff biome against"
+    return 1
+  fi
+  files=$(changed_files "$base")
   if [ -z "$files" ]; then
     echo "no changed files biome checks"
     return 0
@@ -118,10 +118,19 @@ sdk_smoke() {
 
 base_checkout() {
   local sha dir
-  sha=$(git rev-parse --short "$BASE_REF")
-  dir=${TMPDIR:-/tmp}/anpord-verify-base-$sha
-  if [ ! -d "$dir" ]; then
-    git worktree add --detach "$dir" "$BASE_REF" >&2 && (cd "$dir" && bun install >&2)
+  sha=$(git rev-parse --verify "$BASE_REF^{commit}") || return 1
+  dir=${TMPDIR:-/tmp}/anpord-verify-base-${sha:0:8}
+  if [ ! -f "$dir.ready" ]; then
+    if [ -e "$dir" ]; then
+      if [ "$(git -C "$dir" rev-parse HEAD 2>/dev/null)" != "$sha" ]; then
+        echo "$dir exists but is not a checkout of $sha; remove it with git worktree remove --force $dir" >&2
+        return 1
+      fi
+    else
+      git worktree add --detach "$dir" "$sha" >&2 || return 1
+    fi
+    (cd "$dir" && bun install >&2) || return 1
+    touch "$dir.ready"
   fi
   printf '%s' "$dir"
 }
@@ -142,7 +151,7 @@ step comments bun run check:comments
 step knip bun run knip
 step biome biome_changed
 step test tests_on_scratch
-step e2e bun run e2e
+step e2e bun run e2e -- --stop
 step sdk-smoke sdk_smoke
 if [ "$PERF" = skip ]; then
   results+=("SKIP  perf")
