@@ -1,16 +1,14 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Landing } from "@/components/landing/landing";
-import { getSession } from "@/lib/get-session";
 import { getSidebarState } from "@/lib/get-sidebar-state";
+import { sessionQuery } from "@/lib/session-query";
 
 export const Route = createFileRoute("/_authed")({
-  beforeLoad: async () => {
-    const [{ authenticated }, sidebarOpen] = await Promise.all([
-      getSession(),
-      Promise.resolve(getSidebarState()),
-    ]);
-    return { authenticated, sidebarOpen };
+  beforeLoad: async ({ context }) => {
+    const { authenticated } =
+      await context.queryClient.fetchQuery(sessionQuery);
+    return { authenticated, sidebarOpen: getSidebarState() };
   },
   component: AuthedLayout,
 });
