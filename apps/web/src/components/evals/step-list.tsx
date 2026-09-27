@@ -66,11 +66,15 @@ export function StepListBody({ className, ...props }: ComponentProps<"ul">) {
 
 export function StepListRow({
   className,
+  item,
   selected,
   ...props
-}: ComponentProps<"button"> & { readonly selected: boolean }) {
+}: ComponentProps<"button"> & {
+  readonly item?: ComponentProps<"li"> & { readonly "data-index"?: number };
+  readonly selected: boolean;
+}) {
   return (
-    <li>
+    <li {...item}>
       <button
         aria-pressed={selected}
         className={cn(

@@ -2,6 +2,7 @@ import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useState } from "react";
 
 const OVERSCAN = 8;
+const FIRST_WINDOW = { height: 1080, width: 0 };
 
 const scrollParentOf = (element: HTMLElement) => {
   for (
@@ -61,6 +62,7 @@ export function useVirtualRows<List extends HTMLElement>({
     count,
     estimateSize: () => rowHeight,
     getScrollElement: () => frame?.element ?? null,
+    initialRect: FIRST_WINDOW,
     overscan: OVERSCAN,
     rangeExtractor: (range) =>
       [

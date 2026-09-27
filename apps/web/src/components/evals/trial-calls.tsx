@@ -1,6 +1,7 @@
 import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { counted } from "@anpord/ui/lib/evals/counted";
 import { seconds } from "@anpord/ui/lib/evals/duration";
+import { cn } from "@anpord/ui/lib/utils";
 import { StepLabel } from "@/components/evals/step-label";
 import {
   StepList,
@@ -12,6 +13,10 @@ import {
 import { CALLS_TABLE } from "@/lib/evals/case-tables";
 import { type Call, durationOf, stepFailed } from "@/lib/evals/conversation";
 import { useSelectedStep } from "@/lib/evals/use-selected-step";
+import { useVirtualRows } from "@/lib/use-virtual-rows";
+
+const ROW_HEIGHT = 41;
+const NOTHING_PINNED: readonly number[] = [];
 
 const isCall = (entry: EvalJournalEntry): entry is Call =>
   entry._tag === "command" || entry._tag === "toolCall";
@@ -26,6 +31,12 @@ export function TrialCalls({
   const calls = trajectory.flatMap((entry, at) =>
     isCall(entry) ? [{ at, call: entry }] : []
   );
+  const { height, listRef, measureRow, rows } =
+    useVirtualRows<HTMLUListElement>({
+      count: calls.length,
+      pinned: NOTHING_PINNED,
+      rowHeight: ROW_HEIGHT,
+    });
 
   if (calls.length === 0) {
     return null;
@@ -37,12 +48,26 @@ export function TrialCalls({
     <StepList columns={CALLS_TABLE.columns} label={CALLS_TABLE.label}>
       <StepListHead headings={CALLS_TABLE.headings} />
 
-      <StepListBody>
-        {calls.map(({ at, call }, index) => {
+      <StepListBody
+        className="relative box-content"
+        ref={listRef}
+        style={{ height }}
+      >
+        {rows.map(({ index, offset }) => {
+          const { at, call } = calls[index] as (typeof calls)[number];
           const took = durationOf(call);
 
           return (
             <StepListRow
+              item={{
+                className: cn(
+                  "absolute inset-x-0 top-0",
+                  index > 0 && "border-border border-t"
+                ),
+                "data-index": index,
+                ref: measureRow,
+                style: { transform: `translateY(${offset}px)` },
+              }}
               key={at}
               onClick={() => setStep(step === at ? null : at)}
               selected={step === at}
