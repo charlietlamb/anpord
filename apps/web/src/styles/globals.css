@@ -130,20 +130,6 @@
   }
 }
 
-/* fontsource ships these faces with font-display: swap, which repaints every
-   heading the moment Geist arrives. Optional gives the browser a short window
-   to use the real font and otherwise keeps the fallback for the rest of the
-   page view, so text never reflows under the reader. */
-@font-face {
-  font-family: "Geist Variable";
-  font-display: optional;
-}
-
-@font-face {
-  font-family: "Geist Mono Variable";
-  font-display: optional;
-}
-
 @theme inline {
   --font-heading: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
