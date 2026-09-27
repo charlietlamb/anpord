@@ -11,7 +11,18 @@ const source = readFileSync(
 
 describe("provider-failure.test.ts checks credentials the same way every other integration test does", () => {
   it("imports its readiness flags from the shared fixture", () => {
-    expect(source).toContain('from "../fixtures/credentials"');
+    expect(source).toContain(
+      [
+        "import {",
+        "  hasCloudflare,",
+        "  hasDaytona,",
+        "  hasE2b,",
+        "  hasModal,",
+        "  hasUpstash,",
+        "  hasVercel,",
+        '} from "../fixtures/credentials";',
+      ].join("\n")
+    );
   });
 
   it("does not compute its own env-based readiness formula", () => {
