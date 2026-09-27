@@ -13,7 +13,7 @@ import { tryStore } from "./query";
 
 /* Beyond three attempts the collision is not transient and the caller should
    hear about it. */
-const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
+export const APPEND_RETRY = Schedule.exponential("20 millis").pipe(
   Schedule.jittered,
   Schedule.compose(Schedule.recurs(3))
 );
