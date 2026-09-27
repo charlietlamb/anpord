@@ -15,21 +15,28 @@ const localOf = (url: string) =>
   );
 
 describe("isLocalHost", () => {
-  it("treats every loopback spelling as local", () => {
-    expect(isLocalHost("localhost")).toBe(true);
-    expect(isLocalHost("127.0.0.1")).toBe(true);
-    expect(isLocalHost("0.0.0.0")).toBe(true);
-    expect(isLocalHost("[::1]")).toBe(true);
-    expect(isLocalHost("::1")).toBe(true);
-  });
+  it("treats every loopback spelling as local in any case, and a real hostname as remote", () => {
+    const hosts = [
+      "localhost",
+      "127.0.0.1",
+      "0.0.0.0",
+      "[::1]",
+      "::1",
+      "LOCALHOST",
+      "LocalHost",
+      "db.internal.example.com",
+    ];
 
-  it("ignores case, since hostnames are case-insensitive", () => {
-    expect(isLocalHost("LOCALHOST")).toBe(true);
-    expect(isLocalHost("LocalHost")).toBe(true);
-  });
-
-  it("treats a real hostname as not local", () => {
-    expect(isLocalHost("db.internal.example.com")).toBe(false);
+    expect(hosts.map(isLocalHost)).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+    ]);
   });
 });
 
