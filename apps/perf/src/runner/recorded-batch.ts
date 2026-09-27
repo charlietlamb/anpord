@@ -1,7 +1,6 @@
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import type { EvalBatch, StartedBatch } from "@anpord/schema/domain/evals";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { callV1 } from "../stack/api";
 import type { Stack } from "../stack/stack";
 import type { RecordedSpan, spanRecorder } from "./span-recorder";
 import type { LocalTrialResult, RunnerTarget } from "./target";
@@ -51,8 +50,7 @@ export const runRecordedBatch = async (
   observation: Observation
 ) => {
   const { Effect } = target.effect;
-  const call = <Body>(endpoint: string, payload: unknown) =>
-    callV1<Body>(stack.server.baseUrl, stack.tenant.apiKey, endpoint, payload);
+  const { call } = stack;
   const started = await call<StartedBatch>("runner.start", {
     ...request,
     checksIn: false,

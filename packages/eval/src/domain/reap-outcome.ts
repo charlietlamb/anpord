@@ -1,4 +1,4 @@
-import { Duration, type ParseResult } from "effect";
+import { Array as Arr, Duration, type ParseResult } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import type { SandboxUnavailable } from "./errors";
 
@@ -78,39 +78,24 @@ export const settleFailure = (
 };
 
 export const summarizeReaps = (reaped: readonly Reaped[]): ReapSummary => {
-  const groups = new Map<
-    string,
-    Omit<ReapSummary["failures"][number], "sandboxIds"> & {
-      count: number;
-      sandboxIds: Set<string>;
-    }
-  >();
-
-  for (const one of reaped) {
-    if (one.outcome === "destroyed") {
-      continue;
-    }
-    const key = `${one.outcome} ${one.reason}`;
-    const group = groups.get(key) ?? {
-      count: 0,
-      outcome: one.outcome,
-      reason: one.reason,
-      sandboxIds: new Set<string>(),
-    };
-    group.count += 1;
-    group.sandboxIds.add(one.sandboxId);
-    groups.set(key, group);
-  }
-
   const counted = (outcome: Reaped["outcome"]) =>
     reaped.filter((one) => one.outcome === outcome).length;
+  const settled = reaped.filter(
+    (one): one is Settled => one.outcome !== "destroyed"
+  );
+  const groups = Arr.groupBy(settled, (one) => `${one.outcome} ${one.reason}`);
 
   return {
     abandoned: counted("abandoned"),
     destroyed: counted("destroyed"),
-    failures: [...groups.values()].map((group) => ({
-      ...group,
-      sandboxIds: [...group.sandboxIds].slice(0, SAMPLE_SIZE),
+    failures: Object.values(groups).map((group) => ({
+      count: group.length,
+      outcome: group[0].outcome,
+      reason: group[0].reason,
+      sandboxIds: [...new Set(group.map((one) => one.sandboxId))].slice(
+        0,
+        SAMPLE_SIZE
+      ),
     })),
     gaveUp: counted("gave-up"),
     retrying: counted("retrying"),

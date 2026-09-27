@@ -1,11 +1,10 @@
 import { seedTenant } from "@anpord/e2e/src/harness/seed";
-import { sessionCookie } from "./server";
+import { sessionCookieHeader } from "@anpord/e2e/src/harness/session-cookie";
+import { AUTH_SECRET } from "@anpord/e2e/src/harness/settings";
 
 export interface PerfTenant {
   readonly apiKey: string;
   readonly cookie: string;
-  readonly organizationId: string;
-  readonly sessionToken: string;
 }
 
 const mintKey = async (
@@ -36,11 +35,9 @@ export const givenTenant = async (
   slug: string
 ): Promise<PerfTenant> => {
   const tenant = await seedTenant(databaseUrl, slug);
-  const cookie = await sessionCookie(tenant.sessionToken);
+  const cookie = await sessionCookieHeader(tenant.sessionToken, AUTH_SECRET);
   return {
     apiKey: await mintKey(baseUrl, cookie, tenant.organizationId),
     cookie,
-    organizationId: tenant.organizationId,
-    sessionToken: tenant.sessionToken,
   };
 };

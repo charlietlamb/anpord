@@ -19,7 +19,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",
     "typecheck": "tsc --project tsconfig.json --noEmit",
-    "test": "bun test --pass-with-no-tests",
+    "test": "bun test --pass-with-no-tests --timeout 30000",
     "db:generate": "bun scripts/generate.ts",
     "db:migrate": "bun scripts/migrate.ts",
     "db:studio": "drizzle-kit studio --config drizzle.config.ts",

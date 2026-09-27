@@ -1,6 +1,6 @@
 import { informational, type Metric } from "../report/metric";
 import { median, percentile, single, summarise } from "../report/stats";
-import { alternating } from "../stack/paired";
+import { inRounds } from "../stack/paired";
 import type { Stack } from "../stack/stack";
 import type { Endpoint, Workload } from "./endpoints";
 import { type Credentials, drive, type LoadResult } from "./load";
@@ -67,11 +67,7 @@ const laneMetrics = (name: string, lane: Lane): Record<string, Metric> => {
   };
 };
 
-const openLane = async (
-  stack: Stack,
-  endpoint: Endpoint,
-  total: number
-): Promise<Lane> => {
+const openLane = async (stack: Stack, endpoint: Endpoint): Promise<Lane> => {
   if (stack.world === null) {
     throw new Error("The server suite needs a seeded world.");
   }
@@ -87,7 +83,7 @@ const openLane = async (
     sequential: [],
     stack,
     warmup: [],
-    workload: await endpoint.prepare(stack, stack.world, total),
+    workload: await endpoint.prepare(stack, stack.world),
   };
 };
 
@@ -131,26 +127,18 @@ export const measureEndpoint = async (
   );
   const lanes: Lane[] = [];
   for (const stack of stacks) {
-    lanes.push(
-      await openLane(
-        stack,
-        endpoint,
-        budget.warmup + budget.sequential + budget.requests
-      )
-    );
+    lanes.push(await openLane(stack, endpoint));
   }
 
   for (const lane of lanes) {
     lane.warmup.push(await run(lane, budget.warmup, 1));
   }
-  for (let round = 0; round < settings.rounds; round += 1) {
-    for (const lane of alternating(lanes, round)) {
-      const before = await lane.stack.server.queries();
-      lane.sequential.push(await run(lane, sequential, 1));
-      lane.queries += (await lane.stack.server.queries()) - before;
-      lane.loaded.push(await run(lane, requests, concurrency));
-    }
-  }
+  await inRounds(settings.rounds, lanes, async (lane) => {
+    const before = await lane.stack.server.queries();
+    lane.sequential.push(await run(lane, sequential, 1));
+    lane.queries += (await lane.stack.server.queries()) - before;
+    lane.loaded.push(await run(lane, requests, concurrency));
+  });
   for (const lane of lanes) {
     await lane.workload.cleanup?.();
   }

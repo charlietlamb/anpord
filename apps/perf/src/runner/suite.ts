@@ -2,7 +2,7 @@ import { join } from "node:path";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import { informational, type Metric, type SuiteResult } from "../report/metric";
 import { single, summarise } from "../report/stats";
-import { alternating, bootStacks, teardownAll } from "../stack/paired";
+import { inRounds, withStacks } from "../stack/paired";
 import type { Stack } from "../stack/stack";
 import { timeCliRun } from "./cli-run";
 import {
@@ -112,9 +112,8 @@ const measureRunner = async (
   settings: RunnerSettings,
   log: (line: string) => void,
   judge: FakeJudge
-): Promise<readonly SuiteResult[]> => {
-  const stacks = await bootStacks(targets, { label: "runner", plan: null });
-  try {
+): Promise<readonly SuiteResult[]> =>
+  withStacks(targets, { label: "runner", plan: null }, async (stacks) => {
     const lanes: Lane[] = [];
     for (const target of targets) {
       lanes.push(await openLane(harnessRoot, target));
@@ -122,44 +121,40 @@ const measureRunner = async (
     const indexes = [...lanes.keys()];
     const judgeCalls = lanes.map(() => 0);
 
-    for (let rep = 0; rep < settings.reps; rep += 1) {
-      for (const index of alternating(indexes, rep)) {
-        const lane = lanes[index] as Lane;
-        for (const { fixture, request, seen } of lane.measured) {
-          log(
-            `runner: ${fixture.name} rep ${rep + 1}/${settings.reps} on ${targets[index]}`
-          );
-          const judgedBefore = judge.calls();
-          await runRecordedBatch(
-            lane.target,
+    await inRounds(settings.reps, indexes, async (index, rep) => {
+      const lane = lanes[index] as Lane;
+      for (const { fixture, request, seen } of lane.measured) {
+        log(
+          `runner: ${fixture.name} rep ${rep + 1}/${settings.reps} on ${targets[index]}`
+        );
+        const judgedBefore = judge.calls();
+        await runRecordedBatch(
+          lane.target,
+          stacks[index] as Stack,
+          request,
+          lane.recorder,
+          seen
+        );
+        judgeCalls[index] =
+          (judgeCalls[index] ?? 0) + judge.calls() - judgedBefore;
+      }
+    });
+    await inRounds(settings.cliRuns, indexes, async (index, run) => {
+      for (const { fixture, seen } of (lanes[index] as Lane).measured.filter(
+        (each) => each.fixture.cli
+      )) {
+        log(
+          `runner: ${fixture.name} through the CLI ${run + 1}/${settings.cliRuns}`
+        );
+        seen.cliMs.push(
+          await timeCliRun(
             stacks[index] as Stack,
-            request,
-            lane.recorder,
-            seen
-          );
-          judgeCalls[index] =
-            (judgeCalls[index] ?? 0) + judge.calls() - judgedBefore;
-        }
+            targets[index] as string,
+            fixture.path
+          )
+        );
       }
-    }
-    for (let run = 0; run < settings.cliRuns; run += 1) {
-      for (const index of alternating(indexes, run)) {
-        for (const { fixture, seen } of (lanes[index] as Lane).measured.filter(
-          (each) => each.fixture.cli
-        )) {
-          log(
-            `runner: ${fixture.name} through the CLI ${run + 1}/${settings.cliRuns}`
-          );
-          seen.cliMs.push(
-            await timeCliRun(
-              stacks[index] as Stack,
-              targets[index] as string,
-              fixture.path
-            )
-          );
-        }
-      }
-    }
+    });
 
     return lanes.map((lane, index) => {
       const perBatch = (judgeCalls[index] ?? 0) / settings.reps;
@@ -181,10 +176,7 @@ const measureRunner = async (
         suite: "runner",
       };
     });
-  } finally {
-    await teardownAll(stacks);
-  }
-};
+  });
 
 export const runRunnerSuite = (
   harnessRoot: string,

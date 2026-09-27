@@ -46,3 +46,5 @@ apps/sandbox-lab/.sessions/
 .agents/skills/*
 !.agents/skills/anpord-map
 !.agents/skills/verify-anpord
+
+.audit/

@@ -8,8 +8,6 @@ import { schemaEncoder } from "./schema-encoder";
 
 type Respond = (value: unknown) => Effect.Effect<unknown>;
 
-const unchanged: Respond = Effect.succeed;
-
 const singleJsonSchema = (
   endpoint: HttpApiEndpoint.HttpApiEndpoint.AnyWithProps
 ) => {
@@ -33,7 +31,7 @@ export const jsonSuccess = (
   const schema =
     endpoint === undefined ? Option.none() : singleJsonSchema(endpoint);
   if (Option.isNone(schema)) {
-    return unchanged;
+    return Effect.succeed;
   }
   const encode = schemaEncoder(schema.value);
   const options = {

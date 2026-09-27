@@ -8,35 +8,20 @@ type Fields = Record<PropertyKey, unknown>;
 
 const failed = (value: unknown) => value === MISMATCH || value === UNSUPPORTED;
 
-const owns = (input: object, key: PropertyKey) => Object.hasOwn(input, key);
+const unsupported: Step = () => UNSUPPORTED;
 
-const settled = (result: unknown) => {
-  if (!Either.isEither(result)) {
-    return UNSUPPORTED;
-  }
-  return Either.isRight(result) ? result.right : MISMATCH;
-};
+const settled = (result: unknown) =>
+  Either.isEither(result)
+    ? Either.getOrElse(result, () => MISMATCH)
+    : UNSUPPORTED;
 
 const when =
   (accepts: (input: unknown) => boolean): Step =>
   (input) =>
     accepts(input) ? input : MISMATCH;
 
-const steps = new WeakMap<SchemaAST.AST, Step>();
-
-const stepOf = (ast: SchemaAST.AST): Step => {
-  const known = steps.get(ast);
-  if (known !== undefined) {
-    return known;
-  }
-  let built: Step = () => UNSUPPORTED;
-  steps.set(ast, (input) => built(input));
-  built = Option.isSome(SchemaAST.getParseOptionsAnnotation(ast))
-    ? () => UNSUPPORTED
-    : build(ast);
-  steps.set(ast, built);
-  return built;
-};
+const isObject = (input: unknown): input is Fields =>
+  typeof input === "object" && input !== null && !Array.isArray(input);
 
 const array =
   (item: Step): Step =>
@@ -55,29 +40,20 @@ const array =
     return output;
   };
 
-const record = (ast: SchemaAST.TypeLiteral): Step => {
-  if (
-    (ast.propertySignatures.length === 0 && ast.indexSignatures.length === 0) ||
-    ast.indexSignatures.some(
-      (signature) => signature.parameter._tag !== "StringKeyword"
-    )
-  ) {
-    return () => UNSUPPORTED;
-  }
+const struct = (ast: SchemaAST.TypeLiteral): Step => {
   const fields = ast.propertySignatures.map(
-    (field) => [field.name, field.isOptional, stepOf(field.type)] as const
+    (field) => [field.name, field.isOptional, build(field.type)] as const
   );
-  const declared = new Set<PropertyKey>(fields.map(([name]) => name));
-  const indexes = ast.indexSignatures.map((signature) =>
-    stepOf(signature.type)
-  );
-
-  const named = (source: Fields, output: Fields) => {
+  return (input) => {
+    if (!isObject(input)) {
+      return MISMATCH;
+    }
+    const output: Fields = {};
     for (const [name, optional, step] of fields) {
-      if (optional && !owns(source, name)) {
+      if (optional && !Object.hasOwn(input, name)) {
         continue;
       }
-      const value = step(source[name]);
+      const value = step(input[name]);
       if (failed(value)) {
         return value;
       }
@@ -85,79 +61,45 @@ const record = (ast: SchemaAST.TypeLiteral): Step => {
     }
     return output;
   };
+};
 
-  const indexed = (source: Fields, output: Fields) => {
-    for (const step of indexes) {
-      for (const key of Object.keys(source)) {
-        const value = step(source[key]);
-        if (failed(value)) {
-          return value;
-        }
-        if (!declared.has(key)) {
-          output[key] = value;
-        }
+const record =
+  (item: Step): Step =>
+  (input) => {
+    if (!isObject(input)) {
+      return MISMATCH;
+    }
+    const output: Fields = {};
+    for (const key of Object.keys(input)) {
+      const value = item(input[key]);
+      if (failed(value)) {
+        return value;
       }
+      output[key] = value;
     }
     return output;
   };
 
-  return (input) => {
-    if (typeof input !== "object" || input === null || Array.isArray(input)) {
-      return MISMATCH;
-    }
-    const output = named(input as Fields, {});
-    return failed(output) ? output : indexed(input as Fields, output as Fields);
-  };
-};
-
-const NO_LITERAL = Symbol("no literal");
-
-const literalOf = (ast: SchemaAST.AST, key: PropertyKey): unknown => {
-  switch (ast._tag) {
-    case "TypeLiteral": {
-      const field = ast.propertySignatures.find(
-        (candidate) => candidate.name === key && !candidate.isOptional
-      );
-      const type =
-        field === undefined ? undefined : SchemaAST.typeAST(field.type);
-      return type?._tag === "Literal" ? type.literal : NO_LITERAL;
-    }
-    case "Transformation":
-      return literalOf(ast.to, key);
-    case "Refinement":
-      return literalOf(ast.from, key);
-    default:
-      return NO_LITERAL;
+const typeLiteral = (ast: SchemaAST.TypeLiteral): Step => {
+  const [index, ...more] = ast.indexSignatures;
+  if (index === undefined) {
+    return ast.propertySignatures.length === 0 ? unsupported : struct(ast);
   }
+  return more.length === 0 &&
+    ast.propertySignatures.length === 0 &&
+    index.parameter._tag === "StringKeyword"
+    ? record(build(index.type))
+    : unsupported;
 };
 
-const keysOf = (ast: SchemaAST.AST): readonly PropertyKey[] => {
-  switch (ast._tag) {
-    case "TypeLiteral":
-      return ast.propertySignatures.map((field) => field.name);
-    case "Transformation":
-      return keysOf(ast.to);
-    case "Refinement":
-      return keysOf(ast.from);
-    default:
-      return [];
-  }
-};
-
-const discriminated = (types: readonly SchemaAST.AST[]) => {
-  const key = keysOf(types[0] ?? SchemaAST.neverKeyword).find((candidate) =>
-    types.every((type) => literalOf(type, candidate) !== NO_LITERAL)
+const literalsOf = (ast: SchemaAST.AST) =>
+  new Map(
+    SchemaAST.getPropertySignatures(SchemaAST.typeAST(ast)).flatMap((field) =>
+      !field.isOptional && field.type._tag === "Literal"
+        ? [[field.name, field.type.literal] as const]
+        : []
+    )
   );
-  if (key === undefined) {
-    return;
-  }
-  const byLiteral = new Map<unknown, Step[]>();
-  for (const type of types) {
-    const literal = literalOf(type, key);
-    byLiteral.set(literal, [...(byLiteral.get(literal) ?? []), stepOf(type)]);
-  }
-  return { byLiteral, key };
-};
 
 const firstOnlyMatch = (members: readonly Step[], input: unknown) => {
   let found: unknown = MISMATCH;
@@ -174,66 +116,41 @@ const firstOnlyMatch = (members: readonly Step[], input: unknown) => {
 };
 
 const union = (ast: SchemaAST.Union): Step => {
-  const members = ast.types.map(stepOf);
-  const tags = discriminated(ast.types);
-  if (tags === undefined) {
+  const members = ast.types.map(build);
+  const literals = ast.types.map(literalsOf);
+  const key = [...(literals[0]?.keys() ?? [])].find((name) =>
+    literals.every((fields) => fields.has(name))
+  );
+  if (key === undefined) {
     return (input) => firstOnlyMatch(members, input);
   }
+  const byLiteral = new Map<unknown, Step[]>();
+  members.forEach((member, index) => {
+    const literal = literals[index]?.get(key);
+    byLiteral.set(literal, [...(byLiteral.get(literal) ?? []), member]);
+  });
   return (input) =>
-    typeof input === "object" && input !== null
-      ? firstOnlyMatch(
-          tags.byLiteral.get((input as Fields)[tags.key]) ?? [],
-          input
-        )
+    isObject(input)
+      ? firstOnlyMatch(byLiteral.get(input[key]) ?? [], input)
       : MISMATCH;
 };
 
-const holdsObjects = (ast: SchemaAST.AST): boolean => {
-  switch (ast._tag) {
-    case "TypeLiteral":
-    case "Declaration":
-    case "Suspend":
-      return true;
-    case "TupleType":
-      return [...ast.elements, ...ast.rest].some((element) =>
-        holdsObjects(element.type)
-      );
-    case "Union":
-      return ast.types.some(holdsObjects);
-    case "Refinement":
-      return holdsObjects(ast.from);
-    default:
-      return false;
-  }
-};
-
-const filtered = (
-  ast: SchemaAST.Refinement
-): ((input: unknown, encoded: unknown) => unknown) => {
-  const type = SchemaAST.typeAST(ast.from);
-  if (type === ast.from) {
-    return (_input, encoded) => encoded;
-  }
-  if (!holdsObjects(type)) {
-    return (input) => input;
-  }
-  const validate = ParseResult.validateEither(Schema.make(type));
-  return (input) => Either.getOrElse(validate(input), () => MISMATCH);
-};
-
 const refinement = (ast: SchemaAST.Refinement): Step => {
-  const from = stepOf(ast.from);
-  const typed = filtered(ast);
+  const from = build(ast.from);
+  const type = SchemaAST.typeAST(ast.from);
+  const validate = ParseResult.validateEither(Schema.make(type));
+  const typed =
+    type === ast.from
+      ? (_input: unknown, encoded: unknown) => encoded
+      : (input: unknown) => Either.getOrElse(validate(input), () => MISMATCH);
   return (input) => {
     const value = from(input);
     if (failed(value)) {
       return value;
     }
     const checked = typed(input, value);
-    if (checked === MISMATCH) {
-      return MISMATCH;
-    }
-    return Option.isNone(ast.filter(checked, SchemaAST.defaultParseOption, ast))
+    return checked !== MISMATCH &&
+      Option.isNone(ast.filter(checked, SchemaAST.defaultParseOption, ast))
       ? value
       : MISMATCH;
   };
@@ -241,12 +158,14 @@ const refinement = (ast: SchemaAST.Refinement): Step => {
 
 const renamed = (
   transformation: SchemaAST.TypeLiteralTransformation,
-  encoded: Fields
+  typed: unknown
 ) => {
-  const output = { ...encoded };
+  const output: Fields = { ...(typed as Fields) };
   for (const field of transformation.propertySignatureTransformations) {
     const value = field.encode(
-      owns(output, field.to) ? Option.some(output[field.to]) : Option.none()
+      Object.hasOwn(output, field.to)
+        ? Option.some(output[field.to])
+        : Option.none()
     );
     delete output[field.to];
     if (Option.isSome(value)) {
@@ -256,38 +175,48 @@ const renamed = (
   return output;
 };
 
-const transformation = (ast: SchemaAST.Transformation): Step => {
-  const to = stepOf(ast.to);
-  const from = stepOf(ast.from);
+const encoderOf = (ast: SchemaAST.Transformation) => {
   const change = ast.transformation;
+  switch (change._tag) {
+    case "FinalTransformation":
+      return (typed: unknown, input: unknown) =>
+        settled(change.encode(typed, SchemaAST.defaultParseOption, ast, input));
+    case "TypeLiteralTransformation":
+      return (typed: unknown) => renamed(change, typed);
+    default:
+      return;
+  }
+};
+
+const transformation = (ast: SchemaAST.Transformation): Step => {
+  const encode = encoderOf(ast);
+  if (encode === undefined) {
+    return unsupported;
+  }
+  const to = build(ast.to);
+  const from = build(ast.from);
   return (input) => {
     const typed = to(input);
     if (failed(typed)) {
       return typed;
     }
-    switch (change._tag) {
-      case "ComposeTransformation":
-        return from(typed);
-      case "TypeLiteralTransformation":
-        return from(renamed(change, typed as Fields));
-      case "FinalTransformation": {
-        const encoded = settled(
-          change.encode(typed, SchemaAST.defaultParseOption, ast, input)
-        );
-        return failed(encoded) ? encoded : from(encoded);
-      }
-      default:
-        return UNSUPPORTED;
-    }
+    const encoded = encode(typed, input);
+    return failed(encoded) ? encoded : from(encoded);
   };
 };
 
 const declaration = (ast: SchemaAST.Declaration): Step => {
-  const encode = ast.encodeUnknown(...ast.typeParameters);
+  if (ast.typeParameters.length > 0) {
+    return unsupported;
+  }
+  const encode = ast.encodeUnknown();
   return (input) => settled(encode(input, SchemaAST.defaultParseOption, ast));
 };
 
 const build = (ast: SchemaAST.AST): Step => {
+  if (Option.isSome(SchemaAST.getParseOptionsAnnotation(ast))) {
+    return unsupported;
+  }
   switch (ast._tag) {
     case "StringKeyword":
       return when((input) => typeof input === "string");
@@ -300,15 +229,14 @@ const build = (ast: SchemaAST.AST): Step => {
     case "Literal":
       return when((input) => input === ast.literal);
     case "UnknownKeyword":
-    case "AnyKeyword":
     case "VoidKeyword":
       return (input) => input;
     case "TupleType":
       return ast.elements.length === 0 && ast.rest.length === 1
-        ? array(stepOf((ast.rest[0] as SchemaAST.Type).type))
-        : () => UNSUPPORTED;
+        ? array(build((ast.rest[0] as SchemaAST.Type).type))
+        : unsupported;
     case "TypeLiteral":
-      return record(ast);
+      return typeLiteral(ast);
     case "Union":
       return union(ast);
     case "Refinement":
@@ -317,20 +245,13 @@ const build = (ast: SchemaAST.AST): Step => {
       return transformation(ast);
     case "Declaration":
       return declaration(ast);
-    case "Suspend": {
-      let inner: Step | undefined;
-      return (input) => {
-        inner ??= stepOf(ast.f());
-        return inner(input);
-      };
-    }
     default:
-      return () => UNSUPPORTED;
+      return unsupported;
   }
 };
 
 export const schemaEncoder = <A, I, R>(schema: Schema.Schema<A, I, R>) => {
-  const step = stepOf(schema.ast);
+  const step = build(schema.ast);
   return (value: A): Option.Option<I> => {
     const encoded = step(value);
     return failed(encoded) ? Option.none() : Option.some(encoded as I);

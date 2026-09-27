@@ -68,12 +68,9 @@ const webSettings = {
   ...(values.quick ? { plan: QUICK_PLAN, runs: 1 } : {}),
 };
 
-const SUITES: Readonly<
-  Record<
-    string,
-    (targets: readonly string[]) => Promise<readonly SuiteResult[]>
-  >
-> = {
+type Suite = (targets: readonly string[]) => Promise<readonly SuiteResult[]>;
+
+const SUITES: Readonly<Record<string, Suite>> = {
   runner: (targets) =>
     runRunnerSuite(HARNESS_ROOT, targets, runnerSettings, log),
   server: (targets) => runServerSuite(targets, serverSettings, log),
@@ -120,12 +117,9 @@ const measure = async (
 ) => {
   const perTarget = targets.map((): SuiteResult[] => []);
   for (const name of names) {
-    const results = await (
-      SUITES[name] as (
-        targets: readonly string[]
-      ) => Promise<readonly SuiteResult[]>
-    )(targets);
-    for (const [index, result] of results.entries()) {
+    for (const [index, result] of (
+      await (SUITES[name] as Suite)(targets)
+    ).entries()) {
       perTarget[index]?.push(result);
     }
   }

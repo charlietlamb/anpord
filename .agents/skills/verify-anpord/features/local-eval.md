@@ -17,7 +17,7 @@ A user runs a suite file on their own machine with `anpord eval <file> --local`.
 
 Preconditions:
 
-- `bun --cwd packages/sdk run build` has run in this worktree.
+- `(cd packages/sdk && bun run build)` has run in this worktree.
 - For `local-recorded`, a server you started and a key minted for its organization (the perf and e2e harnesses both do this).
 
 - **Keyless run.** Run `env -u ANPORD_API_KEY ANPORD_BROWSER=none bun packages/sdk/dist/bin.cjs eval scripts/fixtures/local-smoke/smoke.eval.ts --local`. Exit code `0`, and the output names `writes-hello` on `command/probe` as passed.
