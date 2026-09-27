@@ -7,7 +7,7 @@ import {
 import type { ExecOptions, ResumableCommands } from "../ports/sandbox";
 import type { SuspenderShape } from "./suspender";
 
-const FIRST_CHECK_MS = 5000;
+const FIRST_CHECK_MS = 500;
 const SLOWEST_CHECK_MS = 30_000;
 const WIDENING = 1.5;
 
@@ -60,7 +60,10 @@ export const pollUntilDone = (input: PolledCommand) =>
               Math.min(Math.round(current * WIDENING), SLOWEST_CHECK_MS)
             );
 
-            yield* input.suspender.waitFor(Duration.millis(millis));
+            yield* Effect.raceFirst(
+              input.suspender.waitFor(Duration.millis(millis)),
+              input.resumable.settled(started)
+            );
 
             const progress = yield* check;
 
