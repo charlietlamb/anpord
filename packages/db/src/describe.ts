@@ -1,6 +1,6 @@
 import { Config, Effect, Redacted } from "effect";
+import { isLocalHost } from "./local-hosts";
 
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
 const LEADING_SLASH = /^\//;
 
 /* Credentials left behind: this is logged, so a server on the wrong environment says so rather than reading as missing records. */
@@ -11,7 +11,7 @@ export const describeDatabase = Config.redacted("DATABASE_URL").pipe(
       const name = pathname.replace(LEADING_SLASH, "") || "postgres";
       return {
         host: hostname,
-        local: LOCAL_HOSTS.has(hostname),
+        local: isLocalHost(hostname),
         name,
       };
     } catch {

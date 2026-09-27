@@ -9,6 +9,7 @@
     "./describe": "./src/describe.ts",
     "./health": "./src/health.ts",
     "./like": "./src/like.ts",
+    "./local-hosts": "./src/local-hosts.ts",
     "./query": "./src/query.ts",
     "./test-database": "./src/test-database.ts",
     "./schema": "./src/schema.ts",
