@@ -5,10 +5,10 @@ import {
   DataTableChevron,
   DataTableRow,
 } from "@anpord/ui/components/ui/data-table";
+import { counted } from "@anpord/ui/lib/evals/counted";
 import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";
-import { counted } from "@/lib/evals/conversation";
 
 export function CaseListRow({
   subject,
