@@ -1,4 +1,5 @@
-import type { Browser } from "puppeteer-core";
+import type { BrowserContext } from "puppeteer-core";
+import { JOURNAL_COMMANDS } from "../seed/journal";
 
 export interface HeapReading {
   readonly domNodes: number;
@@ -10,7 +11,7 @@ export interface HeapReading {
 const SETTLE_MS = 1000;
 
 export const heapAfterOpening = async (
-  browser: Browser,
+  browser: BrowserContext,
   url: string
 ): Promise<HeapReading> => {
   const page = await browser.newPage();
@@ -24,6 +25,12 @@ export const heapAfterOpening = async (
       );
     }
     await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    const text = await page.evaluate(() => document.body.innerText);
+    if (!JOURNAL_COMMANDS.some((command) => text.includes(command))) {
+      throw new Error(
+        `${url} did not render the seeded journal, so the heap reading would be of the wrong page.`
+      );
+    }
 
     const session = await page.createCDPSession();
     await session.send("HeapProfiler.enable");

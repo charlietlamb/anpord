@@ -3,7 +3,6 @@ const JUDGE_URL = "https://api.openai.com/v1/responses";
 export interface FakeJudge {
   readonly calls: () => number;
   readonly restore: () => void;
-  readonly tokens: () => number;
 }
 
 interface JudgeBody {
@@ -18,7 +17,13 @@ interface JudgeBody {
   };
 }
 
-const USAGE = { input_tokens: 1500, output_tokens: 60, total_tokens: 1560 };
+export const JUDGE_TOKENS_PER_CALL = 1560;
+
+const USAGE = {
+  input_tokens: 1500,
+  output_tokens: 60,
+  total_tokens: JUDGE_TOKENS_PER_CALL,
+};
 
 const answer = (body: JudgeBody) => {
   const [choice] = body.text?.format?.schema?.properties?.choice?.enum ?? [
@@ -61,6 +66,5 @@ export const installFakeJudge = (): FakeJudge => {
     restore: () => {
       globalThis.fetch = real;
     },
-    tokens: () => calls * USAGE.total_tokens,
   };
 };

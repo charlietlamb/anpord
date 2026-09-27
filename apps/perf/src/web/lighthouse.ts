@@ -1,5 +1,5 @@
 import lighthouse from "lighthouse";
-import type { Browser } from "puppeteer-core";
+import type { BrowserContext } from "puppeteer-core";
 
 export interface PageLoad {
   readonly cls: number;
@@ -31,7 +31,7 @@ const sumOf = (
     .reduce((total, item) => total + (item[field] ?? 0), 0);
 
 export const auditPage = async (
-  browser: Browser,
+  browser: BrowserContext,
   url: string
 ): Promise<PageLoad> => {
   const page = await browser.newPage();

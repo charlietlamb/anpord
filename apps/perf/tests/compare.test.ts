@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { compare, regressions } from "../src/report/compare";
-import { flatten, metric } from "../src/report/metric";
+import { flatten, informational, metric } from "../src/report/metric";
 import { median, percentile, summarise } from "../src/report/stats";
 import { seeded } from "../src/seed/random";
 
@@ -66,6 +66,37 @@ describe("compare", () => {
       5
     );
     expect(tiny?.verdict).toBe("same");
+  });
+
+  test("a slower median still inside the slowest earlier sample is noise, not a regression", () => {
+    const spread = (min: number, p95: number) => ({
+      max: p95,
+      min,
+      p95,
+      samples: 3,
+    });
+    const [inside] = compare(
+      [{ p50_ms: metric("ms", 100, spread(90, 130)) }],
+      [{ p50_ms: metric("ms", 120, spread(110, 125)) }],
+      5
+    );
+    const [outside] = compare(
+      [{ p50_ms: metric("ms", 100, spread(90, 110)) }],
+      [{ p50_ms: metric("ms", 120, spread(115, 125)) }],
+      5
+    );
+    expect(inside?.verdict).toBe("same");
+    expect(outside?.verdict).toBe("regressed");
+  });
+
+  test("an informational metric is reported but never fails the comparison", () => {
+    const result = compare(
+      [{ seed_ms: informational(metric("ms", 1000)) }],
+      [{ seed_ms: informational(metric("ms", 2000)) }],
+      5
+    );
+    expect(result[0]?.verdict).toBe("info");
+    expect(regressions(result)).toEqual([]);
   });
 
   test("several runs per side are pooled by their median", () => {

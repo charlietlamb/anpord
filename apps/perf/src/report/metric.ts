@@ -11,6 +11,7 @@ export interface Spread {
 
 export interface Metric {
   readonly better: Better;
+  readonly informational?: true;
   readonly spread?: Spread;
   readonly unit: Unit;
   readonly value: number;
@@ -46,6 +47,11 @@ export const metric = (unit: Unit, value: number, spread?: Spread): Metric => ({
   unit,
   value,
   ...(spread === undefined ? {} : { spread }),
+});
+
+export const informational = (value: Metric): Metric => ({
+  ...value,
+  informational: true,
 });
 
 export const flatten = (file: ResultFile): Metrics =>
