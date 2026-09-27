@@ -52,10 +52,10 @@ export const EvalHomeDay = Schema.Struct({
   passed: Schema.Int,
   scored: Schema.Int,
   suiteId: Schema.String,
-  variantId: Schema.String,
+  variant: Schema.String,
 }).annotations({
   description:
-    "Trials scored on one UTC day for one suite and variant, the unit every trend is summed from.",
+    "Trials scored on one UTC day for one suite and variant label, the unit every trend is summed from.",
   identifier: "EvalHomeDay",
 });
 export type EvalHomeDay = typeof EvalHomeDay.Type;
@@ -72,3 +72,10 @@ export const EvalHome = Schema.Struct({
   identifier: "EvalHome",
 });
 export type EvalHome = typeof EvalHome.Type;
+
+export const variantLabel = ({
+  harness,
+  model,
+  profile,
+}: Pick<EvalVariant, "harness" | "model" | "profile">) =>
+  profile === null ? `${harness}/${model}` : `${harness}/${model}@${profile}`;
