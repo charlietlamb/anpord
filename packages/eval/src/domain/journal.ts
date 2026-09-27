@@ -1,10 +1,6 @@
 import { posix } from "node:path";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 
-/* A harness names a file by wherever it wrote it, which on a local run is an
-   absolute path into a temp workspace. Captured artifacts are already stored
-   relative to the workspace, so changed files are too, and one file keeps one
-   name whichever list it arrives in. */
 export const relativeToWorkspace = (
   workspace: string,
   events: readonly HarnessEvent[]

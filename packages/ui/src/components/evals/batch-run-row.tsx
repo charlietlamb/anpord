@@ -20,8 +20,6 @@ export type RunLink = (target: {
   readonly runId: string;
 }) => ReactElement;
 
-/* A run is worth opening from the moment it starts, before it has opened a
-   trial, so a running row falls back to the run itself rather than going dead. */
 const destination = (
   run: EvalRun,
   linkTo: TrialLink | undefined,
