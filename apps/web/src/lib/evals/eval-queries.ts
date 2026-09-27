@@ -35,6 +35,13 @@ const LIVE = {
   staleTime: RUN_POLL_MS,
 } as const;
 
+const LIST = {
+  placeholderData: keepPreviousData,
+  refetchInterval: RUN_POLL_MS,
+  refetchIntervalInBackground: false,
+  staleTime: RUN_POLL_MS,
+} as const;
+
 const catchUp = async (
   batchId: string,
   held: HeardTail
@@ -49,16 +56,14 @@ export const evalQueries = {
     queryOptions({
       queryKey: evalKeys.cases(filters, cursor),
       queryFn: () => listCases(filters, cursor),
-      placeholderData: keepPreviousData,
-      ...LIVE,
+      ...LIST,
     }),
 
   suites: (cursor: EvalPageCursor | null = null) =>
     queryOptions({
       queryKey: evalKeys.suites(cursor),
       queryFn: () => listSuites(cursor),
-      placeholderData: keepPreviousData,
-      ...LIVE,
+      ...LIST,
     }),
 
   suite: (id: string) =>
