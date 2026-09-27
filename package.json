@@ -43,6 +43,7 @@
     "@tanstack/react-router": "1.170.31",
     "@tanstack/react-router-ssr-query": "1.167.1",
     "@tanstack/react-start": "1.168.48",
+    "@tanstack/react-virtual": "3.14.13",
     "@tanstack/start-server-core": "1.169.14",
     "@tiptap/core": "3.30.1",
     "@tiptap/extensions": "3.30.1",
