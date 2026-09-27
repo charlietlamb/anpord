@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isLocalHost } from "../local-hosts";
 
 const REPOSITORY_ROOT = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -10,8 +11,6 @@ const REPOSITORY_ROOT = resolve(
 const DATABASE_URL_LINE = /^DATABASE_URL=(.+)$/m;
 
 const QUOTED = /^(['"])(.*)\1$/;
-
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 
 const fromEnvFile = (file: string) => {
   const path = resolve(REPOSITORY_ROOT, file);
@@ -31,4 +30,4 @@ export const describeTarget = (url: string) => {
   return `${decodeURIComponent(parsed.pathname.slice(1))} on ${parsed.host}`;
 };
 
-export const isLocal = (url: string) => LOCAL_HOSTS.has(new URL(url).hostname);
+export const isLocal = (url: string) => isLocalHost(new URL(url).hostname);
