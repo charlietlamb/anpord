@@ -40,10 +40,13 @@ export const reapSandboxes = (olderThan: Duration.Duration) =>
 
     const destroy = (found: LiveSandbox) =>
       Effect.gen(function* () {
+        const provider = yield* Schema.decodeUnknown(EvalSandbox)(
+          found.provider
+        );
         yield* sandboxes.destroy({
           credentials: yield* credentialsFor(found),
           id: found.sandboxId,
-          provider: yield* Schema.decodeUnknown(EvalSandbox)(found.provider),
+          provider,
         });
       });
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { Duration, Effect, Layer, Logger, Redacted } from "effect";
 import { CredentialError } from "../../src/credentials/errors";
 import { CredentialResolver } from "../../src/credentials/resolver";
-import { SandboxUnavailable } from "../../src/domain/errors";
+import { EvalStoreError, SandboxUnavailable } from "../../src/domain/errors";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import {
   type LiveSandbox,
@@ -40,9 +40,19 @@ const sandbox = (
   ...overrides,
 });
 
+interface Faults {
+  readonly crashing?: ReadonlySet<string>;
+  readonly storeDown?: boolean;
+  readonly unreachable?: ReadonlySet<string>;
+}
+
 const world = (
   rows: readonly LiveSandbox[],
-  unreachable: ReadonlySet<string> = new Set()
+  {
+    crashing = new Set(),
+    storeDown = false,
+    unreachable = new Set(),
+  }: Faults = {}
 ) => {
   const live = new Map(rows.map((row) => [row.trialInternalId, row]));
   const attempts: string[] = [];
@@ -53,9 +63,16 @@ const world = (
       LiveSandboxes,
       LiveSandboxes.of({
         clear: (trialInternalId) =>
-          Effect.sync(() => {
-            live.delete(trialInternalId);
-          }),
+          storeDown
+            ? Effect.fail(
+                new EvalStoreError({
+                  cause: new Error("connection refused"),
+                  operation: "LiveSandboxes.clear",
+                })
+              )
+            : Effect.sync(() => {
+                live.delete(trialInternalId);
+              }),
         startedBefore: (cutoff) =>
           Effect.sync(() =>
             [...live.values()].filter((row) => row.startedAt < cutoff)
@@ -69,6 +86,9 @@ const world = (
         destroy: (input) =>
           Effect.suspend(() => {
             attempts.push(input.id);
+            if (crashing.has(input.id)) {
+              return Effect.die(new TypeError("provider sdk crashed"));
+            }
             return unreachable.has(input.id)
               ? Effect.fail(
                   new SandboxUnavailable({
@@ -185,13 +205,89 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
     expect([...live.keys()]).toEqual([]);
   });
 
+  it("clears an unknown provider even while its credential store is down", async () => {
+    const { live, sweep } = world([
+      sandbox("trl_floppy_down", {
+        provider: "floppy",
+        sandboxConnectionId: "conn-store-down",
+        sandboxId: "sbx-floppy",
+      }),
+    ]);
+
+    const summary = await sweep();
+
+    expect(summary.failures).toEqual([
+      {
+        count: 1,
+        outcome: "abandoned",
+        reason: "unknown-provider",
+        sandboxIds: ["sbx-floppy"],
+      },
+    ]);
+    expect([...live.keys()]).toEqual([]);
+  });
+
+  it("keeps a destroyed sandbox for the next sweep when its record cannot be cleared", async () => {
+    const { attempts, live, sweep } = world(
+      [sandbox("trl_unsaved", { sandboxId: "sbx-unsaved" })],
+      { storeDown: true }
+    );
+
+    const summary = await sweep();
+
+    expect(summary).toEqual({
+      abandoned: 0,
+      destroyed: 0,
+      failures: [
+        {
+          count: 1,
+          outcome: "retrying",
+          reason: "store-unavailable",
+          sandboxIds: ["sbx-unsaved"],
+        },
+      ],
+      gaveUp: 0,
+      retrying: 1,
+    });
+    expect(attempts).toEqual(["sbx-unsaved"]);
+    expect([...live.keys()]).toEqual(["trl_unsaved"]);
+  });
+
+  it("retries a sandbox whose provider crashed instead of failing the sweep", async () => {
+    const { live, sweep } = world(
+      [
+        sandbox("trl_crash", { sandboxId: "sbx-crash" }),
+        sandbox("trl_fine", { sandboxId: "sbx-fine" }),
+      ],
+      { crashing: new Set(["sbx-crash"]) }
+    );
+
+    const summary = await sweep();
+
+    expect(summary).toEqual({
+      abandoned: 0,
+      destroyed: 1,
+      failures: [
+        {
+          count: 1,
+          outcome: "retrying",
+          reason: "unexpected",
+          sandboxIds: ["sbx-crash"],
+        },
+      ],
+      gaveUp: 0,
+      retrying: 1,
+    });
+    expect([...live.keys()]).toEqual(["trl_crash"]);
+  });
+
   it("keeps a sandbox the provider could not reach and tries it again next sweep", async () => {
     const { attempts, live, sweep } = world(
       [
         sandbox("trl_flaky", { sandboxId: "sbx-flaky" }),
         sandbox("trl_store", { sandboxConnectionId: "conn-store-down" }),
       ],
-      new Set(["sbx-flaky"])
+      { unreachable: new Set(["sbx-flaky"]) }
     );
 
     const first = await sweep();
@@ -214,7 +310,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
           startedAt: new Date(Date.now() - 25 * HOUR),
         }),
       ],
-      new Set(["sbx-ancient"])
+      { unreachable: new Set(["sbx-ancient"]) }
     );
 
     const summary = await sweep();
