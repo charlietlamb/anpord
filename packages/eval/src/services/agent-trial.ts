@@ -47,6 +47,7 @@ import {
   commandsIn,
   failedCommandsIn,
   filesIn,
+  relativeToWorkspace,
   sessionIdOf,
 } from "../domain/journal";
 import { trialSecrets } from "../domain/trial-secrets";
@@ -304,7 +305,10 @@ export const AgentTrialLive = Layer.effect(
           Stream.runDrain
         );
         yield* api.check;
-        const events = [...conversation.events, ...apiEvents];
+        const events = relativeToWorkspace(request.workspace, [
+          ...conversation.events,
+          ...apiEvents,
+        ]);
 
         const modelFinished = yield* Clock.currentTimeMillis;
 
