@@ -13,6 +13,7 @@ import {
   PLACEHOLDER_SUITE_DETAIL,
 } from "@/lib/evals/eval-placeholders";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { crumbFrom } from "@/lib/use-breadcrumbs";
 
 export const Route = createFileRoute("/_authed/evals/suites/$suiteId")({
   ssr: false,
@@ -21,9 +22,11 @@ export const Route = createFileRoute("/_authed/evals/suites/$suiteId")({
   },
   component: SuiteScreen,
   staticData: {
-    crumb: (params, queryClient) =>
-      queryClient.getQueryData(evalQueries.suite(params.suiteId).queryKey)
-        ?.name,
+    crumb: (params) =>
+      crumbFrom(
+        evalQueries.suite(params.suiteId).queryKey,
+        (suite) => suite.name
+      ),
     title: "Suite",
   },
 });
