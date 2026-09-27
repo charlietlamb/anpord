@@ -15,6 +15,9 @@ export const EvalTrialStatus = Schema.Literal(
 );
 export type EvalTrialStatus = typeof EvalTrialStatus.Type;
 
+export const isSettledTrial = (status: EvalTrialStatus) =>
+  status !== "queued" && status !== "running";
+
 const OccurredAtMillis = Schema.NullOr(Schema.Number);
 
 export const EvalUsage = Schema.Struct({
