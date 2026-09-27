@@ -12,7 +12,7 @@ interface InvitationRequest {
   readonly organization: { readonly name: string };
 }
 
-export const inviteUrl = (id: string) => `${WEB_ORIGIN}/invitations/${id}`;
+const inviteUrl = (id: string) => `${WEB_ORIGIN}/invitations/${id}`;
 
 const invitedBy = (inviter: InvitationRequest["inviter"]) =>
   inviter.user.name ?? inviter.user.email;
