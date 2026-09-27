@@ -1,7 +1,7 @@
 import type { Metric, Metrics, Unit } from "./metric";
 import { median } from "./stats";
 
-type Verdict = "added" | "improved" | "regressed" | "removed" | "same";
+type Verdict = "added" | "improved" | "info" | "regressed" | "removed" | "same";
 
 export interface Comparison {
   readonly after: number | null;
@@ -32,11 +32,30 @@ const pooled = (runs: readonly Metrics[], key: string) => {
     : { ...first, value: median(found.map((each) => each.value)) };
 };
 
+const MIN_SPREAD_SAMPLES = 3;
+
+const beyondSpread = (
+  before: Metric,
+  after: Metric,
+  direction: "better" | "worse"
+) => {
+  const spread = before.spread;
+  if (spread === undefined || spread.samples < MIN_SPREAD_SAMPLES) {
+    return true;
+  }
+  const worseIsHigher = before.better === "lower";
+  const movesHigher = direction === "worse" ? worseIsHigher : !worseIsHigher;
+  return movesHigher ? after.value > spread.p95 : after.value < spread.min;
+};
+
 const verdictOf = (
   before: Metric,
   after: Metric,
   thresholdPercent: number
 ): Verdict => {
+  if (before.informational === true) {
+    return "info";
+  }
   const worse =
     before.better === "lower"
       ? after.value - before.value
@@ -47,10 +66,16 @@ const verdictOf = (
   if (Math.abs(worse) <= NOISE_FLOOR[before.unit]) {
     return "same";
   }
-  if (relative * 100 > thresholdPercent) {
+  if (
+    relative * 100 > thresholdPercent &&
+    beyondSpread(before, after, "worse")
+  ) {
     return "regressed";
   }
-  if (relative * 100 < -thresholdPercent) {
+  if (
+    relative * 100 < -thresholdPercent &&
+    beyondSpread(before, after, "better")
+  ) {
     return "improved";
   }
   return "same";

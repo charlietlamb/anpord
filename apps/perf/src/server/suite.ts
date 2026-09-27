@@ -1,19 +1,17 @@
-import type { Metric, SuiteResult } from "../report/metric";
-import { percentile, single, summarise } from "../report/stats";
+import { informational, type Metric, type SuiteResult } from "../report/metric";
+import { single, summarise } from "../report/stats";
 import { DEFAULT_PLAN, type SeedPlan } from "../seed/plan";
+import { alternating, bootStacks, teardownAll } from "../stack/paired";
 import { startServer } from "../stack/server";
-import { bootStack, type Stack } from "../stack/stack";
-import { ENDPOINTS, type Endpoint } from "./endpoints";
-import { type Credentials, drive, type LoadResult } from "./load";
+import type { Stack } from "../stack/stack";
+import { ENDPOINTS } from "./endpoints";
+import { type MeasureSettings, measureEndpoint } from "./measure";
+import { peakMetrics, sampleMemory } from "./memory";
 
-export interface ServerSettings {
+export interface ServerSettings extends MeasureSettings {
   readonly coldStarts: number;
-  readonly concurrency: number;
   readonly endpoints: readonly string[] | null;
   readonly plan: SeedPlan;
-  readonly requests: number;
-  readonly sequential: number;
-  readonly warmup: number;
 }
 
 export const DEFAULT_SERVER_SETTINGS: ServerSettings = {
@@ -22,199 +20,83 @@ export const DEFAULT_SERVER_SETTINGS: ServerSettings = {
   endpoints: null,
   plan: DEFAULT_PLAN,
   requests: 300,
-  sequential: 30,
+  rounds: 5,
+  sequential: 50,
   warmup: 20,
 };
 
-const MEMORY_EVERY_MS = 100;
-
-const sampleMemory = (stack: Stack) => {
-  let peakRss = 0;
-  let peakHeap = 0;
-  let stopped = false;
-  const loop = (async () => {
-    while (!stopped) {
-      const memory = await stack.server
-        .memory()
-        .catch(() => ({ heapUsed: 0, rss: 0 }));
-      peakRss = Math.max(peakRss, memory.rss);
-      peakHeap = Math.max(peakHeap, memory.heapUsed);
-      await new Promise((resolve) => setTimeout(resolve, MEMORY_EVERY_MS));
-    }
-  })();
-  return async () => {
-    stopped = true;
-    await loop;
-    return { peakHeap, peakRss };
-  };
-};
-
-const peakMetrics = async (
-  stop: () => Promise<{ peakHeap: number; peakRss: number }>
-) => {
-  const peak = await stop();
-  return {
-    heap_peak_bytes: single("bytes", peak.peakHeap),
-    rss_peak_bytes: single("bytes", peak.peakRss),
-  };
-};
-
-const latencies = (result: LoadResult) =>
-  result.samples.map((sample) => sample.ms);
-
-const endpointMetrics = (
-  name: string,
-  sequential: LoadResult,
-  loaded: LoadResult,
-  queries: number
-): Record<string, Metric> => {
-  const measured = latencies(loaded);
-  const errors = loaded.samples.filter((sample) => !sample.ok).length;
-  return {
-    [`${name}.c1_p50_ms`]: single("ms", percentile(latencies(sequential), 50)),
-    [`${name}.p50_ms`]: single("ms", percentile(measured, 50)),
-    [`${name}.p95_ms`]: single("ms", percentile(measured, 95)),
-    [`${name}.p99_ms`]: single("ms", percentile(measured, 99)),
-    [`${name}.rps`]: single(
-      "rps",
-      (loaded.samples.length / loaded.wallMs) * 1000
-    ),
-    [`${name}.error_rate`]: single("ratio", errors / loaded.samples.length),
-    [`${name}.queries_per_request`]: single(
-      "count",
-      queries / sequential.samples.length
-    ),
-    [`${name}.response_bytes`]: single(
-      "bytes",
-      percentile(
-        loaded.samples.map((sample) => sample.bytes),
-        50
-      )
-    ),
-  };
-};
-
-const measureEndpoint = async (
-  stack: Stack,
-  endpoint: Endpoint,
-  settings: ServerSettings,
-  log: (line: string) => void
-) => {
-  const world = stack.world;
-  if (world === null) {
-    throw new Error("The server suite needs a seeded world.");
-  }
-  const credentials: Credentials = {
-    apiKey: stack.tenant.apiKey,
-    baseUrl: stack.server.baseUrl,
-    cookie: stack.tenant.cookie,
-  };
-  const budget = endpoint.budget ?? settings;
-  const workload = await endpoint.prepare(
-    stack,
-    world,
-    budget.warmup + budget.sequential + budget.requests
-  );
-
-  await drive(workload, credentials, 0, budget.warmup, 1);
-  const before = await stack.server.queries();
-  const sequential = await drive(
-    workload,
-    credentials,
-    budget.warmup,
-    budget.sequential,
-    1
-  );
-  const queries = (await stack.server.queries()) - before;
-  const loaded = await drive(
-    workload,
-    credentials,
-    budget.warmup + budget.sequential,
-    budget.requests,
-    Math.min(settings.concurrency, endpoint.concurrency ?? settings.concurrency)
-  );
-  await workload.cleanup?.();
-
-  const failed = [...sequential.samples, ...loaded.samples].filter(
-    (sample) => !sample.ok
-  );
-  if (failed.length > 0) {
-    throw new Error(
-      `${endpoint.name}: ${failed.length} requests failed, so its numbers would not be comparable. First: ${failed[0]?.failure}`
-    );
-  }
-  log(
-    `  ${endpoint.name}: p50 ${percentile(latencies(loaded), 50).toFixed(1)} ms`
-  );
-  return endpointMetrics(endpoint.name, sequential, loaded, queries);
-};
-
 const coldStarts = async (
-  stack: Stack,
-  repositoryRoot: string,
+  stacks: readonly Stack[],
+  targets: readonly string[],
   count: number
 ) => {
-  const timings: number[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const server = await startServer({
-      databaseUrl: stack.database.url,
-      repositoryRoot,
-    });
-    timings.push(server.coldStartMs);
-    await server.stop();
+  const timings = stacks.map((): number[] => []);
+  for (let round = 0; round < count; round += 1) {
+    for (const index of alternating([...stacks.keys()], round)) {
+      const server = await startServer({
+        databaseUrl: (stacks[index] as Stack).database.url,
+        repositoryRoot: targets[index] as string,
+      });
+      timings[index]?.push(server.coldStartMs);
+      await server.stop();
+    }
   }
   return timings;
 };
 
 export const runServerSuite = async (
-  repositoryRoot: string,
+  targets: readonly string[],
   settings: ServerSettings,
   log: (line: string) => void
-): Promise<SuiteResult> => {
-  log("server: creating scratch database and seeding");
-  const stack = await bootStack({
+): Promise<readonly SuiteResult[]> => {
+  log(`server: seeding ${targets.length} scratch database(s)`);
+  const stacks = await bootStacks(targets, {
     label: "server",
     plan: settings.plan,
-    repositoryRoot,
   });
   try {
-    log(`server: seeded in ${(stack.seedMs / 1000).toFixed(1)} s`);
-    const idle = await stack.server.memory();
+    const idle = await Promise.all(
+      stacks.map((stack) => stack.server.memory())
+    );
     const selected = ENDPOINTS.filter(
       (endpoint) =>
         settings.endpoints === null ||
         settings.endpoints.includes(endpoint.name)
     );
 
-    const metrics: Record<string, Metric> = {};
-    const stopSampling = sampleMemory(stack);
+    const metrics = stacks.map((): Record<string, Metric> => ({}));
+    const samplers = stacks.map(sampleMemory);
     try {
       for (const endpoint of selected) {
-        Object.assign(
-          metrics,
-          await measureEndpoint(stack, endpoint, settings, log)
-        );
+        const measured = await measureEndpoint(stacks, endpoint, settings, log);
+        for (const [index, each] of measured.entries()) {
+          Object.assign(metrics[index] ?? {}, each);
+        }
       }
     } finally {
-      Object.assign(metrics, await peakMetrics(stopSampling));
+      for (const [index, stop] of samplers.entries()) {
+        Object.assign(metrics[index] ?? {}, await peakMetrics(stop));
+      }
     }
 
     log("server: timing cold starts");
-    return {
+    const starts = await coldStarts(stacks, targets, settings.coldStarts);
+    return stacks.map((stack, index) => ({
       metrics: {
-        cold_start_ms: summarise(
-          "ms",
-          await coldStarts(stack, repositoryRoot, settings.coldStarts)
+        cold_start_ms: summarise("ms", starts[index] ?? []),
+        heap_after_seed_bytes: informational(
+          single("bytes", idle[index]?.heapUsed ?? 0)
         ),
-        seed_ms: single("ms", stack.seedMs),
-        rss_after_seed_bytes: single("bytes", idle.rss),
-        heap_after_seed_bytes: single("bytes", idle.heapUsed),
-        ...metrics,
+        rss_after_seed_bytes: informational(
+          single("bytes", idle[index]?.rss ?? 0)
+        ),
+        seed_ms: informational(single("ms", stack.seedMs)),
+        ...metrics[index],
       },
       settings: { ...settings },
       suite: "server",
-    };
+    }));
   } finally {
-    await stack.teardown();
+    await teardownAll(stacks);
   }
 };

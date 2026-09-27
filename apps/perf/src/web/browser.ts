@@ -44,13 +44,14 @@ export const launchChrome = async (): Promise<OwnBrowser> => {
   };
 };
 
-export const signIn = async (
+export const signedInContext = async (
   browser: Browser,
   baseUrl: string,
   cookieHeader: string
 ) => {
+  const context = await browser.createBrowserContext();
   const separator = cookieHeader.indexOf("=");
-  await browser.setCookie({
+  await context.setCookie({
     domain: new URL(baseUrl).hostname,
     httpOnly: true,
     name: cookieHeader.slice(0, separator),
@@ -58,4 +59,5 @@ export const signIn = async (
     sameSite: "Lax",
     value: cookieHeader.slice(separator + 1),
   });
+  return context;
 };

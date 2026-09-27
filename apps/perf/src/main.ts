@@ -3,7 +3,6 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { cpus, totalmem } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { runAb } from "./ab";
 import { compare, regressions } from "./report/compare";
 import { flatten, type ResultFile, type SuiteResult } from "./report/metric";
 import { comparisonTable, metricsTable } from "./report/table";
@@ -15,11 +14,12 @@ import { DEFAULT_WEB_SETTINGS, runWebSuite } from "./web/suite";
 const HARNESS_ROOT = resolve(import.meta.dir, "../../..");
 const RESULTS = join(HARNESS_ROOT, "apps/perf/results");
 const DEFAULT_THRESHOLD_PERCENT = 5;
+const ALL_SUITES = ["server", "runner", "web"];
 
 const USAGE = `usage:
   bun run perf <server|runner|web|all> [--quick] [--target <checkout>] [--out <file>] [--json] [--only <endpoint,...>]
-  bun run perf compare <before.json[,more.json]> <after.json[,more.json]> [--threshold <percent>]
-  bun run perf ab <server|runner|web|all> --before <checkout> [--after <checkout>] [--rounds <n>] [--quick] [--threshold <percent>]`;
+  bun run perf ab <server|runner|web|all> --before <checkout> [--after <checkout>] [--quick] [--threshold <percent>]
+  bun run perf compare <before.json[,more.json]> <after.json[,more.json]> [--threshold <percent>]`;
 
 const log = (line: string) => process.stdout.write(`${line}\n`);
 
@@ -32,7 +32,6 @@ const { positionals, values } = parseArgs({
     only: { type: "string" },
     out: { type: "string" },
     quick: { default: false, type: "boolean" },
-    rounds: { type: "string" },
     target: { type: "string" },
     threshold: { type: "string" },
   },
@@ -52,8 +51,8 @@ const serverSettings = {
     ? {
         coldStarts: 2,
         plan: QUICK_PLAN,
-        requests: 60,
-        sequential: 10,
+        requests: 90,
+        sequential: 15,
         warmup: 5,
       }
     : {}),
@@ -67,25 +66,27 @@ const webSettings = {
   ...(values.quick ? { plan: QUICK_PLAN, runs: 1 } : {}),
 };
 
-const targetRoot = resolve(values.target ?? HARNESS_ROOT);
-
-const SUITES: Readonly<Record<string, () => Promise<SuiteResult>>> = {
-  runner: () => runRunnerSuite(HARNESS_ROOT, targetRoot, runnerSettings, log),
-  server: () => runServerSuite(targetRoot, serverSettings, log),
-  web: () => runWebSuite(targetRoot, webSettings, log),
+const SUITES: Readonly<
+  Record<
+    string,
+    (targets: readonly string[]) => Promise<readonly SuiteResult[]>
+  >
+> = {
+  runner: (targets) =>
+    runRunnerSuite(HARNESS_ROOT, targets, runnerSettings, log),
+  server: (targets) => runServerSuite(targets, serverSettings, log),
+  web: (targets) => runWebSuite(targets, webSettings, log),
 };
+
+const git = (root: string, args: readonly string[]) =>
+  execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim();
 
 const commitOf = (root: string) => {
   try {
-    const sha = execFileSync(
-      "git",
-      ["-C", root, "rev-parse", "--short", "HEAD"],
-      { encoding: "utf8" }
-    ).trim();
-    const dirty = execFileSync("git", ["-C", root, "status", "--porcelain"], {
-      encoding: "utf8",
-    }).trim();
-    return dirty.length > 0 ? `${sha}-dirty` : sha;
+    const sha = git(root, ["rev-parse", "--short", "HEAD"]);
+    return git(root, ["status", "--porcelain"]).length > 0
+      ? `${sha}-dirty`
+      : sha;
   } catch {
     return "unknown";
   }
@@ -97,36 +98,62 @@ const hostOf = () =>
 const readResult = (path: string) =>
   JSON.parse(readFileSync(path, "utf8")) as ResultFile;
 
-const runSuites = async (names: readonly string[]) => {
-  const suites: SuiteResult[] = [];
-  for (const name of names) {
-    const run = SUITES[name];
-    if (run === undefined) {
-      throw new Error(`No suite called ${name}.\n${USAGE}`);
-    }
-    suites.push(await run());
-  }
-  const file: ResultFile = {
-    commit: commitOf(targetRoot),
-    host: hostOf(),
-    recordedAt: new Date().toISOString(),
-    suites,
-    version: 1,
-  };
-  const out =
-    values.out ??
-    join(
-      RESULTS,
-      `${names.join("-")}-${file.recordedAt.replaceAll(":", "-")}.json`
-    );
-  mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, `${JSON.stringify(file, null, 2)}\n`);
+const writeResult = (path: string, file: ResultFile) => {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, `${JSON.stringify(file, null, 2)}\n`);
+};
 
-  if (values.json) {
-    log(JSON.stringify(file, null, 2));
+const suitesOf = (name: string) => {
+  const names = name === "all" ? ALL_SUITES : [name];
+  const unknown = names.find((each) => SUITES[each] === undefined);
+  if (unknown !== undefined) {
+    throw new Error(`No suite called ${unknown}.\n${USAGE}`);
+  }
+  return names;
+};
+
+const measure = async (
+  names: readonly string[],
+  targets: readonly string[]
+) => {
+  const perTarget = targets.map((): SuiteResult[] => []);
+  for (const name of names) {
+    const results = await (
+      SUITES[name] as (
+        targets: readonly string[]
+      ) => Promise<readonly SuiteResult[]>
+    )(targets);
+    for (const [index, result] of results.entries()) {
+      perTarget[index]?.push(result);
+    }
+  }
+  const recordedAt = new Date().toISOString();
+  return targets.map(
+    (target, index): ResultFile => ({
+      commit: commitOf(target),
+      host: hostOf(),
+      recordedAt,
+      suites: perTarget[index] ?? [],
+      version: 1,
+    })
+  );
+};
+
+const stamp = () => new Date().toISOString().replaceAll(":", "-");
+
+const runOne = async (name: string) => {
+  const names = suitesOf(name);
+  const [file] = await measure(names, [resolve(values.target ?? HARNESS_ROOT)]);
+  if (file === undefined) {
     return;
   }
-  log(`\n${metricsTable(flatten(file))}\n\nwrote ${out}`);
+  const out = values.out ?? join(RESULTS, `${names.join("-")}-${stamp()}.json`);
+  writeResult(out, file);
+  log(
+    values.json
+      ? JSON.stringify(file, null, 2)
+      : `\n${metricsTable(flatten(file))}\n\nwrote ${out}`
+  );
 };
 
 const runCompare = (before: string | undefined, after: string | undefined) => {
@@ -155,31 +182,25 @@ const runCompare = (before: string | undefined, after: string | undefined) => {
   process.exitCode = regressed.length > 0 ? 1 : 0;
 };
 
-const DEFAULT_ROUNDS = 2;
-
-const suitesOf = (name: string) =>
-  name === "all" ? ["server", "runner", "web"] : [name];
-
-const runAbCommand = (suite: string | undefined) => {
-  if (suite === undefined || values.before === undefined) {
+const runAb = async (name: string | undefined) => {
+  if (name === undefined || values.before === undefined) {
     throw new Error(USAGE);
   }
-  const directory = join(
-    RESULTS,
-    `ab-${new Date().toISOString().replaceAll(":", "-")}`
-  );
-  const files = runAb({
-    after: values.after ?? HARNESS_ROOT,
-    before: values.before,
-    directory,
-    quick: values.quick === true,
-    rounds: Number(values.rounds ?? DEFAULT_ROUNDS),
-    suite,
-  });
-  log(
-    `\nbefore ${values.before}, after ${values.after ?? HARNESS_ROOT}, results in ${directory}\n`
-  );
-  runCompare(files.before.join(","), files.after.join(","));
+  const before = resolve(values.before);
+  const after = resolve(values.after ?? HARNESS_ROOT);
+  const [beforeFile, afterFile] = await measure(suitesOf(name), [
+    before,
+    after,
+  ]);
+  const directory = join(RESULTS, `ab-${stamp()}`);
+  const paths = [
+    join(directory, "before.json"),
+    join(directory, "after.json"),
+  ] as const;
+  writeResult(paths[0], beforeFile as ResultFile);
+  writeResult(paths[1], afterFile as ResultFile);
+  log(`\nbefore ${before}\nafter  ${after}\nresults in ${directory}\n`);
+  runCompare(paths[0], paths[1]);
 };
 
 const [command, ...rest] = positionals;
@@ -187,10 +208,10 @@ const [command, ...rest] = positionals;
 if (command === "compare") {
   runCompare(rest[0], rest[1]);
 } else if (command === "ab") {
-  runAbCommand(rest[0]);
+  await runAb(rest[0]);
 } else if (command === undefined) {
   log(USAGE);
   process.exitCode = 1;
 } else {
-  await runSuites(suitesOf(command));
+  await runOne(command);
 }

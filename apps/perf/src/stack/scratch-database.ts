@@ -5,6 +5,7 @@ import { Client } from "pg";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
 const SCRATCH_PREFIX = "anpord_scratch_";
+let created = 0;
 const SAFE_NAME = /^[a-z0-9_]+$/;
 
 export interface ScratchDatabase {
@@ -67,7 +68,8 @@ export const createScratchDatabase = async (
   label: string
 ): Promise<ScratchDatabase> => {
   const base = serverUrl(repositoryRoot);
-  const name = `${SCRATCH_PREFIX}perf_${label}_${process.pid}`;
+  created += 1;
+  const name = `${SCRATCH_PREFIX}perf_${label}_${process.pid}_${created}`;
   assertScratch(name);
 
   await admin(base, async (client) => {

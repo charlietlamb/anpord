@@ -24,7 +24,7 @@ const WORDS = [
   "schema",
 ];
 
-const COMMANDS = [
+export const JOURNAL_COMMANDS = [
   "bun test packages/eval",
   "rg -n 'export const' src",
   "cat package.json",
@@ -71,7 +71,7 @@ const middleEvent = (
     return {
       _tag: "Command",
       at,
-      command: random.pick(COMMANDS),
+      command: random.pick(JOURNAL_COMMANDS),
       exitCode: random.chance(0.85) ? 0 : 1,
       output: prose(random, random.between(10, 160)),
       startedAt: at - random.between(20, 900),
