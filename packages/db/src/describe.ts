@@ -25,15 +25,13 @@ const migrationWarning = (name: string, url: Redacted.Redacted<string>) =>
   Effect.tryPromise(() =>
     inspect(Redacted.value(url), { confirmDataLoss: false })
   ).pipe(
-    Effect.map((inspection) => {
-      if (inspection.problems.length > 0) {
-        return `database ${name} needs attention before it can migrate: ${inspection.problems.join(" ")}`;
-      }
-      if (inspection.pending.length > 0) {
-        return `database ${name} is missing ${inspection.pending.length} migrations (${inspection.pending.join(", ")}). Run bun run db:migrate.`;
-      }
-      return;
-    }),
+    Effect.map((inspection) =>
+      inspection.problems.length > 0
+        ? `database ${name} needs attention before it can migrate: ${inspection.problems.join(" ")}`
+        : inspection.pending.length > 0
+          ? `database ${name} is missing ${inspection.pending.length} migrations (${inspection.pending.join(", ")}). Run bun run db:migrate.`
+          : undefined
+    ),
     Effect.catchAll((error) =>
       Effect.succeed(
         `could not check migrations on ${name}: ${error.cause instanceof Error ? error.cause.message : String(error.cause)}`

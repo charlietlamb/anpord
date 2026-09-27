@@ -1,8 +1,10 @@
 import { afterAll, describe, expect, it } from "bun:test";
+import { randomBytes } from "node:crypto";
 import { ConfigProvider, Effect, Logger } from "effect";
 import { logDatabase } from "../src/describe";
 import { migrationsFolder } from "../src/migrations/folder";
 import { migrate } from "../src/migrations/migrate";
+import { testDatabaseUrl } from "../src/test-database";
 import { scratchDatabases } from "./migrations/scratch-database";
 
 const scratch = scratchDatabases();
@@ -45,13 +47,14 @@ describe.skipIf(scratch.skip)("a local database at boot", () => {
   });
 
   it("says it could not check when Postgres refuses", async () => {
-    const url = new URL(await scratch.create());
-    url.pathname = "/anpord_scratch_absent";
+    const absent = `anpord_scratch_absent_${randomBytes(4).toString("hex")}`;
+    const url = new URL(testDatabaseUrl() ?? "");
+    url.pathname = `/${absent}`;
 
     const warnings = await warningsFor(url.toString());
 
     expect(warnings.map((warning) => warning.split(":")[0])).toEqual([
-      "could not check migrations on anpord_scratch_absent",
+      `could not check migrations on ${absent}`,
     ]);
   });
 
