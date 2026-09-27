@@ -6,7 +6,8 @@
   "exports": {
     "./id": "./src/id.ts",
     "./prefixes": "./src/prefixes.ts",
-    "./layer": "./src/layer.ts"
+    "./layer": "./src/layer.ts",
+    "./generate": "./src/generate.ts"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json --noEmit",

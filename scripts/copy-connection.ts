@@ -9,6 +9,7 @@ import {
   openEnvelope,
   sealEnvelope,
 } from "../packages/eval/src/credentials/envelope";
+import { generateId } from "../packages/ids/src/generate";
 import { arg, required } from "./lib/cli-args";
 
 /*
@@ -85,7 +86,7 @@ if (existing === undefined) {
 
 const opened = await openEnvelope(key, source.sealedPayload, contextOf(source));
 
-const id = `ccn_${randomUUID().replaceAll("-", "")}`;
+const id = await generateId("credentialConnection");
 
 const sealed = await sealEnvelope(
   key,
