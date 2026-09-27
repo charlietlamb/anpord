@@ -5,6 +5,7 @@ import {
   describeStep,
 } from "@anpord/schema/domain/step-title";
 import { formatDuration } from "./duration";
+import type { Palette } from "./paint";
 import { clipped, flat, type Writer } from "./transcript-writer";
 
 type Step = Exclude<EvalJournalEntry, { readonly _tag: "message" }>;
@@ -20,6 +21,13 @@ const BRANCH_WIDTH = 2;
 const VERB_WIDTH = 7;
 const NOTABLE_MS = 1000;
 const GAP = "  ";
+
+const VERB_TONES: Readonly<Record<string, keyof Palette>> = {
+  ran: "sand",
+  read: "slate",
+  search: "teal",
+  wrote: "rose",
+};
 
 const unless = (text: string, tone: (text: string) => string) =>
   text === "" ? "" : tone(text);
@@ -81,7 +89,8 @@ export const stepLine = (step: Step, { branch, paint, room }: Writer) => {
   const label = verb.padEnd(VERB_WIDTH);
   const width =
     room - BRANCH_WIDTH - label.length - 1 - took.length - failed.length;
-  const tone = failure === null ? paint.dim : paint.red;
+  const tone =
+    failure === null ? paint[VERB_TONES[verb] ?? "lavender"] : paint.red;
 
   return branch(
     `${tone(label)} ${clipped(detail, Math.max(1, width))}${unless(took, paint.dim)}${unless(failed, paint.red)}`

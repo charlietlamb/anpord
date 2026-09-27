@@ -12,8 +12,13 @@ const SHADES = {
   cyan: { fallback: 80, rgb: [108, 196, 207] },
   dim: { fallback: 243, rgb: [118, 125, 135] },
   green: { fallback: 114, rgb: [108, 194, 135] },
+  lavender: { fallback: 146, rgb: [170, 160, 204] },
   magenta: { fallback: 141, rgb: [182, 156, 246] },
   red: { fallback: 167, rgb: [229, 104, 107] },
+  rose: { fallback: 181, rgb: [204, 158, 172] },
+  sand: { fallback: 180, rgb: [200, 176, 138] },
+  slate: { fallback: 110, rgb: [138, 164, 204] },
+  teal: { fallback: 109, rgb: [128, 184, 178] },
   yellow: { fallback: 179, rgb: [217, 165, 91] },
 } satisfies Record<string, Shade>;
 
@@ -31,27 +36,18 @@ const unpainted: Paint = (text) => text;
 
 export type Palette = Readonly<Record<keyof typeof SHADES | "bold", Paint>>;
 
-const colouredWith = (trueColour: boolean): Palette => ({
-  blue: wrap(shadeCode(SHADES.blue, trueColour)),
-  bold: wrap("1"),
-  cyan: wrap(shadeCode(SHADES.cyan, trueColour)),
-  dim: wrap(shadeCode(SHADES.dim, trueColour)),
-  green: wrap(shadeCode(SHADES.green, trueColour)),
-  magenta: wrap(shadeCode(SHADES.magenta, trueColour)),
-  red: wrap(shadeCode(SHADES.red, trueColour)),
-  yellow: wrap(shadeCode(SHADES.yellow, trueColour)),
-});
+const colouredWith = (trueColour: boolean) =>
+  Object.fromEntries([
+    ["bold", wrap("1")],
+    ...Object.entries(SHADES).map(([name, shade]) => [
+      name,
+      wrap(shadeCode(shade, trueColour)),
+    ]),
+  ]) as Palette;
 
-const MONOCHROME: Palette = {
-  blue: unpainted,
-  bold: unpainted,
-  cyan: unpainted,
-  dim: unpainted,
-  green: unpainted,
-  magenta: unpainted,
-  red: unpainted,
-  yellow: unpainted,
-};
+const MONOCHROME = Object.fromEntries(
+  ["bold", ...Object.keys(SHADES)].map((name) => [name, unpainted])
+) as Palette;
 
 export const paletteFor = (colour: boolean): Palette =>
   colour

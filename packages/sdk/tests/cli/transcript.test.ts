@@ -140,6 +140,28 @@ describe("the transcript a reader follows", () => {
     ]);
   });
 
+  test("tints each kind of step its own colour in a terminal", () => {
+    const ran = (command: string) => ({
+      _tag: "command" as const,
+      command,
+      exitCode: 0,
+      finishedAtMillis: 0,
+      output: "",
+      startedAtMillis: 0,
+    });
+    const { lines } = transcribe(
+      EMPTY_TRANSCRIPT,
+      [ran("cat a.ts"), ran("rg foo"), ran("npm test")].map((entry) => ({
+        entry,
+        speaker,
+      })),
+      { colour: true, width: 80 }
+    );
+    const tints = lines.slice(-3).map((line) => line.split("m")[2]);
+
+    expect(new Set(tints).size).toBe(3);
+  });
+
   test("closes a turn with its duration and spend when the next one opens", () => {
     const { lines } = run([
       said("hey", 1000),
