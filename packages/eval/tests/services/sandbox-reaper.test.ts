@@ -14,7 +14,10 @@ import { CredentialResolverLive } from "../../src/credentials/resolver-live";
 import { SandboxUnavailable } from "../../src/domain/errors";
 import type { DestroySandbox } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
-import { LiveSandboxesLive } from "../../src/repositories/live-sandboxes";
+import {
+  LiveSandboxes,
+  LiveSandboxesLive,
+} from "../../src/repositories/live-sandboxes";
 import { reapSandboxes } from "../../src/services/sandbox-reaper";
 import {
   seedConnection,
@@ -274,7 +277,7 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
     );
   });
 
-  it("leaves a sandbox a laptop reported alone, in one quiet sweep", async () => {
+  it("never selects a sandbox a laptop reported, and leaves its record alone", async () => {
     await withDb(async (db) => {
       const laptop = await seedRun(db, {
         createdAt: new Date(Date.now() - 12 * HOURS),
@@ -293,7 +296,13 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
       });
     });
 
-    const summary = await reap();
+    const selected = await Effect.runPromise(
+      LiveSandboxes.pipe(
+        Effect.flatMap((live) => live.startedBefore(new Date())),
+        Effect.provide(TestLayer)
+      )
+    );
+    await reap();
     const [trial] = await withDb((db) =>
       db
         .select({ sandboxId: evalTrial.sandboxId })
@@ -301,13 +310,9 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
         .where(inArray(evalTrial.internalId, [laptopTrialId]))
     );
 
-    expect(summary).toEqual({
-      abandoned: 0,
-      destroyed: 0,
-      failures: [],
-      gaveUp: 0,
-      retrying: 0,
-    });
+    expect(
+      selected.filter((live) => live.trialInternalId === laptopTrialId)
+    ).toEqual([]);
     expect(trial?.sandboxId).toBe(laptopSandboxId);
   });
 });

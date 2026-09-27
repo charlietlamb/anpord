@@ -77,8 +77,11 @@ drift back. The server idles near 400 MB and has peaked near 500 MB while evals
 run; on a single 0.5 GB instance that meant 8 kills with exit code 137 in a week,
 each taking the API down until it restarted. 1 GB leaves twice the worst seen,
 and a second instance keeps serving while one is replaced.
-App Runner counts only 2xx as healthy, so an authenticated route returning 401
-fails the check even though the server is up.
+The platform check is `/api/livez`, which answers 200 while the process runs.
+It deliberately ignores the database: `/api/healthz` fails when Postgres is
+unreachable, and as the platform check a short Neon outage would make App Runner
+replace every instance at once. The deploy workflow still waits for
+`/api/healthz` to report the new revision before it succeeds.
 
 The server opens its port only after both APIs have mounted their routes, so a
 new instance refuses connections until it can answer every route rather than

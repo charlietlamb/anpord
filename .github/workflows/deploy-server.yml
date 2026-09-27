@@ -150,18 +150,22 @@ jobs:
           fi
 
           CURRENT="$(aws apprunner describe-service --service-arn "$ARN" --region "$AWS_REGION" \
-            --query 'Service.[InstanceConfiguration.Cpu,InstanceConfiguration.Memory,AutoScalingConfigurationSummary.AutoScalingConfigurationArn,HealthCheckConfiguration.Path,HealthCheckConfiguration.Interval,HealthCheckConfiguration.UnhealthyThreshold]' \
+            --query 'Service.[InstanceConfiguration.Cpu,InstanceConfiguration.Memory,AutoScalingConfigurationSummary.AutoScalingConfigurationArn,HealthCheckConfiguration.Protocol,HealthCheckConfiguration.Path,HealthCheckConfiguration.Interval,HealthCheckConfiguration.Timeout,HealthCheckConfiguration.HealthyThreshold,HealthCheckConfiguration.UnhealthyThreshold]' \
             --output text)"
-          WANTED="$(printf '%s\t%s\t%s\t%s\t%s\t%s' "$CPU" "$MEMORY" "$SCALING" /api/livez 5 3)"
+          WANTED="$(printf '%s\t%s\t%s\tHTTP\t/api/livez\t5\t4\t1\t3' "$CPU" "$MEMORY" "$SCALING")"
           if [ "$CURRENT" = "$WANTED" ]; then
             echo "Service already runs $CPU CPU, $MEMORY MB, $MIN_INSTANCES to $MAX_INSTANCES instances."
             exit 0
           fi
 
+          INSTANCE="Cpu=$CPU,Memory=$MEMORY"
           ROLE="$(aws apprunner describe-service --service-arn "$ARN" --region "$AWS_REGION" \
             --query 'Service.InstanceConfiguration.InstanceRoleArn' --output text)"
+          if [ -n "$ROLE" ] && [ "$ROLE" != "None" ]; then
+            INSTANCE="$INSTANCE,InstanceRoleArn=$ROLE"
+          fi
           aws apprunner update-service --service-arn "$ARN" --region "$AWS_REGION" \
-            --instance-configuration "Cpu=$CPU,Memory=$MEMORY,InstanceRoleArn=$ROLE" \
+            --instance-configuration "$INSTANCE" \
             --auto-scaling-configuration-arn "$SCALING" \
             --health-check-configuration Protocol=HTTP,Path=/api/livez,Interval=5,Timeout=4,HealthyThreshold=1,UnhealthyThreshold=3 \
             >/dev/null
