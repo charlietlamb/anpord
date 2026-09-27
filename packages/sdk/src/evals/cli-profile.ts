@@ -1,6 +1,7 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 import { Effect } from "effect";
 import type { CliDefinition } from "../mock-cli/define";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { bundle } from "./eval-bundle";
 import { appendInstall } from "./profile-compose";
 import { packageProgram } from "./program-package";
@@ -23,7 +24,9 @@ export const compileClis = (
       (path, index) => paths.indexOf(path) !== index
     );
     if (duplicate !== undefined) {
-      return yield* Effect.fail(new Error(`Duplicate CLI: ${duplicate}`));
+      return yield* Effect.fail(
+        new EvalDefinitionInvalid({ reason: `Duplicate CLI: ${duplicate}` })
+      );
     }
 
     return yield* Effect.forEach(

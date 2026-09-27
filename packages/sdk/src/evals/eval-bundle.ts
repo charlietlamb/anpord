@@ -4,6 +4,7 @@ import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { Effect } from "effect";
 import { build, type Loader, type Plugin } from "esbuild";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { sourceFiles } from "./source-files";
 
 const authoringExports = [
@@ -213,5 +214,9 @@ export const bundle = (
             }
           : {}),
       })),
-    catch: (cause) => new Error(`Could not compile ${entry}`, { cause }),
+    catch: (cause) =>
+      new EvalDefinitionInvalid({
+        cause,
+        reason: `Could not compile ${entry}`,
+      }),
   });

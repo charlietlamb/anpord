@@ -1,6 +1,7 @@
 import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
 import { Effect } from "effect";
 import type { McpServerDefinition } from "../mcp/define";
+import { EvalDefinitionInvalid } from "./definition-errors";
 import { bundle } from "./eval-bundle";
 import { applyMcpHarness } from "./mcp-harness";
 import { packageProgram } from "./program-package";
@@ -25,7 +26,9 @@ export const compileMcpServers = (
 
     if (duplicate !== undefined) {
       return yield* Effect.fail(
-        new Error(`Duplicate MCP server: ${duplicate}`)
+        new EvalDefinitionInvalid({
+          reason: `Duplicate MCP server: ${duplicate}`,
+        })
       );
     }
 
