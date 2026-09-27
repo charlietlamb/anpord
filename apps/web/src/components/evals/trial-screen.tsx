@@ -1,10 +1,10 @@
 import type { EvalTrialAddress } from "@anpord/schema/domain/eval-read-models";
 import { useQuery } from "@tanstack/react-query";
+import { LiveTail } from "@/components/evals/live-tail";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
 import { TrialView } from "@/components/evals/trial-view";
 import { ErrorCard } from "@/components/layout/error-card";
 import { evalQueries } from "@/lib/evals/eval-queries";
-import { useLiveRun } from "@/lib/evals/use-live-run";
 
 export function TrialScreen({
   address,
@@ -12,12 +12,6 @@ export function TrialScreen({
   readonly address: EvalTrialAddress;
 }) {
   const { data: run } = useQuery(evalQueries.run(address.runId));
-
-  useLiveRun({
-    batchId: address.batchId,
-    runId: address.runId,
-    running: run?.status === "running",
-  });
 
   if (run === undefined) {
     return <TrialPlaceholder />;
@@ -36,5 +30,12 @@ export function TrialScreen({
     );
   }
 
-  return <TrialView run={run} trial={trial} />;
+  return (
+    <>
+      {run.status === "running" ? (
+        <LiveTail batchId={address.batchId} runId={address.runId} />
+      ) : null}
+      <TrialView run={run} trial={trial} />
+    </>
+  );
 }
