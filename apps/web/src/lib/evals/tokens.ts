@@ -11,13 +11,3 @@ export const dollars = (value: number) => {
 
   return value < 1 ? `$${value.toFixed(3)}` : `$${value.toFixed(2)}`;
 };
-
-export const tokens = (value: number) => {
-  if (value < 1000) {
-    return String(value);
-  }
-
-  return value < 1_000_000
-    ? `${Math.round(value / 100) / 10}k`
-    : `${Math.round(value / 100_000) / 10}M`;
-};

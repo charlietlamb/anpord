@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { dollars, percent, tokens } from "../../../src/lib/evals/tokens";
+import { dollars, percent } from "../../../src/lib/evals/tokens";
 
 describe("dollars", () => {
   /* One precision cannot serve both scales: two decimals buries a sub-cent run at $0.00. */
@@ -27,19 +27,5 @@ describe("percent", () => {
 
   it("reads a full hit as a hundred", () => {
     expect(percent(1)).toBe("100%");
-  });
-});
-
-describe("tokens", () => {
-  it("leaves a small count alone", () => {
-    expect(tokens(742)).toBe("742");
-  });
-
-  it("shortens thousands", () => {
-    expect(tokens(106_457)).toBe("106.5k");
-  });
-
-  it("shortens millions", () => {
-    expect(tokens(2_340_000)).toBe("2.3M");
   });
 });
