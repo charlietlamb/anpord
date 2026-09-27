@@ -1,15 +1,16 @@
-import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
 import { Link } from "@tanstack/react-router";
+import type { Preset, PresetKind } from "@/components/dev/preset-kind";
 import { useViewport } from "@/components/dev/use-viewport";
 import { useWatchedBox } from "@/components/dev/use-watched-box";
-import { Landing } from "@/components/landing/landing";
 
-export function HeaderThumb({
+export function PresetThumb<P extends Preset>({
+  kind,
   number,
   preset,
 }: {
+  readonly kind: PresetKind<P>;
   readonly number: number;
-  readonly preset: HeaderPreset;
+  readonly preset: P;
 }) {
   const viewport = useViewport();
   const box = useWatchedBox<HTMLDivElement>();
@@ -19,7 +20,9 @@ export function HeaderThumb({
       <div
         className="relative overflow-hidden rounded-xl border border-border bg-background transition-colors group-hover:border-foreground/30 group-has-focus-visible:ring-2 group-has-focus-visible:ring-ring"
         ref={box.ref}
-        style={{ aspectRatio: `${viewport.width} / ${viewport.height * 0.55}` }}
+        style={{
+          aspectRatio: `${viewport.width} / ${viewport.height * kind.heightRatio}`,
+        }}
       >
         {box.visible && box.width > 0 && (
           <div
@@ -31,7 +34,7 @@ export function HeaderThumb({
               width: viewport.width,
             }}
           >
-            <Landing header={preset} />
+            {kind.landing(preset)}
           </div>
         )}
       </div>
@@ -40,13 +43,11 @@ export function HeaderThumb({
         <Link
           className="outline-none after:absolute after:inset-0"
           search={{ id: preset.id }}
-          to="/dev/headers"
+          to={kind.to}
         >
           {preset.name}
         </Link>
-        <span className="truncate text-muted-foreground text-xs">
-          {preset.source}
-        </span>
+        {kind.caption?.(preset)}
       </figcaption>
     </figure>
   );
