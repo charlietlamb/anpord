@@ -14,10 +14,7 @@ import { TrialTimeline } from "@/components/evals/trial-timeline";
 import { PageShell } from "@/components/layout/page-shell";
 import { CASE_RUNS_TABLE } from "@/lib/evals/case-tables";
 
-const liveSteps = (
-  run: EvalRun,
-  trajectory: readonly EvalJournalEntry[]
-) => {
+const liveSteps = (run: EvalRun, trajectory: readonly EvalJournalEntry[]) => {
   if (trajectory.length > 0) {
     return (
       <TrialTimeline

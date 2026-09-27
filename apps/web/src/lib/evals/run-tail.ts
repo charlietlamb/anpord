@@ -75,8 +75,7 @@ const following = (
 export const liveTrajectory = (
   runId: string,
   journals: Journals
-): readonly EvalJournalEntry[] =>
-  journals.get(trialKey(runId, 1)) ?? [];
+): readonly EvalJournalEntry[] => journals.get(trialKey(runId, 1)) ?? [];
 
 export const overlayTail = (run: EvalRun, journals: Journals): EvalRun => ({
   ...run,
