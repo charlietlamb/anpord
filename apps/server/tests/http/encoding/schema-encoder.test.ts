@@ -35,22 +35,55 @@ const usage = {
 
 const stamp = "2026-09-27T04:15:36.053Z";
 
-const trial = {
+const trialCosts = {
+  ...costs,
+  laterComponents: [
+    {
+      classification: "estimate",
+      component: "user",
+      detail: { turns: 2 },
+      explanation: "Simulated user turns.",
+      source: "model",
+      usd: 0.01,
+    },
+  ],
+};
+
+const trialOf = (id: string, ordinal: number) => ({
   artifacts: [],
   commands: 1,
-  costs,
+  costs: trialCosts,
   exitCode: 1,
   failedCommands: 1,
   failure: null,
   filesChanged: ["src/the.ts"],
-  id: "trl_7A3E4R17DPWPZ0WYFVG0D1DY",
+  id,
   modelMs: 31_474,
-  ordinal: 1,
+  ordinal,
   sandboxId: "sandbox-1",
   sandboxMs: 2188,
   status: "failed",
   timed: true,
   trajectory: [
+    {
+      _tag: "command",
+      command: "test -f hello.txt",
+      exitCode: 1,
+      finishedAtMillis: 1_788_241_461_500,
+      output: "",
+      outputTruncated: true,
+      startedAtMillis: 1_788_241_461_400,
+    },
+    {
+      _tag: "toolCall",
+      finishedAtMillis: 1_788_241_461_550,
+      input: "{}",
+      name: "write",
+      error: "denied",
+      startedAtMillis: 1_788_241_461_520,
+      status: "error",
+    },
+    { _tag: "fileChange", finishedAtMillis: 1_788_241_461_560, paths: ["a"] },
     {
       _tag: "message",
       finishedAtMillis: 1_788_241_461_613,
@@ -63,7 +96,51 @@ const trial = {
   validations: [],
   verifySteps: [],
   voidFields: [],
-};
+});
+
+const runOf = (id: string, trials: readonly unknown[]) => ({
+  batchId: "bat_31ERCBABFPEWJQK6YMQR0E96",
+  case: { id: "c1", name: "c1" },
+  costs,
+  definitionHash: "9696ed609f5ce5859ec3b33af187fc89",
+  distribution: {
+    commandMax: 1,
+    commandMedian: 1,
+    commandMin: 1,
+    deterministic: true,
+    failed: 1,
+    passRate: 0,
+    passed: 0,
+    scored: 1,
+    trials: 1,
+    voided: 0,
+  },
+  finishedAt: stamp,
+  harnessVersion: "profile",
+  id,
+  local: true,
+  profileVersion: null,
+  setup: {
+    prepare: null,
+    prompt: "Write hello.txt",
+    source: { kind: "empty" },
+    validator: null,
+    verify: "test -f hello.txt",
+  },
+  startedAt: stamp,
+  status: "finished",
+  suite: { id: "s1", name: "s1" },
+  trials,
+  trigger: { source: "cli" },
+  variant: {
+    harness: "command",
+    id: "evar_QQNJ6ST42J74AA1QHYAD01ZK",
+    model: "model-0",
+    profile: null,
+    sandbox: "local",
+    userModel: null,
+  },
+});
 
 const storedBatch = {
   costs,
@@ -72,49 +149,13 @@ const storedBatch = {
   id: "bat_31ERCBABFPEWJQK6YMQR0E96",
   local: true,
   runs: [
-    {
-      batchId: "bat_31ERCBABFPEWJQK6YMQR0E96",
-      case: { id: "c1", name: "c1" },
-      costs,
-      definitionHash: "9696ed609f5ce5859ec3b33af187fc89",
-      distribution: {
-        commandMax: 1,
-        commandMedian: 1,
-        commandMin: 1,
-        deterministic: true,
-        failed: 1,
-        passRate: 0,
-        passed: 0,
-        scored: 1,
-        trials: 1,
-        voided: 0,
-      },
-      finishedAt: stamp,
-      harnessVersion: "profile",
-      id: "run_062W5BX4A2CMP1JYRFB5KS1X",
-      local: true,
-      profileVersion: null,
-      setup: {
-        prepare: null,
-        prompt: "Write hello.txt",
-        source: { kind: "empty" },
-        validator: null,
-        verify: "test -f hello.txt",
-      },
-      startedAt: stamp,
-      status: "finished",
-      suite: { id: "s1", name: "s1" },
-      trials: [trial],
-      trigger: { source: "cli" },
-      variant: {
-        harness: "command",
-        id: "evar_QQNJ6ST42J74AA1QHYAD01ZK",
-        model: "model-0",
-        profile: null,
-        sandbox: "local",
-        userModel: null,
-      },
-    },
+    runOf("run_062W5BX4A2CMP1JYRFB5KS1X", [
+      trialOf("trl_7A3E4R17DPWPZ0WYFVG0D1DY", 1),
+    ]),
+    runOf("run_162W5BX4A2CMP1JYRFB5KS1X", [
+      trialOf("trl_8A3E4R17DPWPZ0WYFVG0D1DY", 1),
+      trialOf("trl_9A3E4R17DPWPZ0WYFVG0D1DY", 2),
+    ]),
   ],
   startedAt: stamp,
   status: "finished",
@@ -186,6 +227,13 @@ describe("schemaEncoder", () => {
       labels: {},
     };
     expect(encode(refused)).toEqual(Option.none());
+  });
+
+  it("refuses an array where a struct or record is declared, as Schema.encode does", () => {
+    const Sized = Schema.Struct({ length: Schema.Number });
+    const Counts = Schema.Record({ key: Schema.String, value: Schema.Number });
+    expect(schemaEncoder(Sized)([] as never)).toEqual(Option.none());
+    expect(schemaEncoder(Counts)([1, 2] as never)).toEqual(Option.none());
   });
 
   it("leaves an empty struct to Schema.encode, which keeps what it was given", () => {
