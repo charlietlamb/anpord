@@ -2,7 +2,8 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { listCases, readCase, runCase } from "../../evals/evals";
+import { runCase } from "../../evals/batch-actions";
+import { listCases, readCase } from "../../evals/catalog-reads";
 
 export const CasesHandlers = HttpApiBuilder.group(
   PublicApi,

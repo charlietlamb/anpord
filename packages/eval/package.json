@@ -71,6 +71,7 @@
     "./ports/model-source": "./src/ports/model-source.ts",
     "./ports/scorer": "./src/ports/scorer.ts",
     "./ports/trial-runner": "./src/ports/trial-runner.ts",
+    "./repositories/case-reads-query": "./src/repositories/case-reads-query.ts",
     "./repositories/trial-artifacts": "./src/repositories/trial-artifacts.ts",
     "./repositories/trial-record": "./src/repositories/trial-record.ts",
     "./services/eval-reads": "./src/services/eval-reads.ts",

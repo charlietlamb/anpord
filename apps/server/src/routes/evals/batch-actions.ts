@@ -1,0 +1,97 @@
+import { Batches } from "@anpord/eval/batch/batches";
+import { EvalReads } from "@anpord/eval/services/eval-reads";
+import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import type { EvalHarness, StartedBatch } from "@anpord/schema/domain/evals";
+import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
+import { CurrentActor } from "@anpord/schema/internal/authentication";
+import type {
+  IdempotencyKey,
+  ReportedTrial,
+} from "@anpord/schema/public/runner-api";
+import { Effect } from "effect";
+import { withEvalErrors } from "../../http/eval-errors";
+import { mintBatchSubscription } from "./batch-subscription";
+import { organization } from "./current-organization";
+import { meterBatch } from "./meter-batch";
+
+const trialsIn = (started: StartedBatch, trials: number) =>
+  started.runs.length * trials;
+
+const metered = (trials: number) => (started: StartedBatch) =>
+  Effect.flatMap(CurrentActor, (actor) =>
+    meterBatch({
+      batchId: started.id,
+      organizationId: actor.organizationId,
+      trials: trialsIn(started, trials),
+    })
+  );
+
+export const startBatch = (
+  request: StartBatchRequest,
+  idempotencyKey: IdempotencyKey | null = null
+) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    const batches = yield* Batches;
+    if (idempotencyKey === null) {
+      return yield* batches
+        .start(actor, request)
+        .pipe(Effect.tap(metered(request.trials)));
+    }
+    const { replayed, started } = yield* batches.startOnce(
+      actor,
+      request,
+      idempotencyKey
+    );
+    if (!replayed) {
+      yield* metered(request.trials)(started);
+    }
+    return started;
+  }).pipe(withEvalErrors);
+
+export const runCase = (
+  caseId: string,
+  request: RunCaseRequest,
+  options: { readonly hostedOnly: boolean; readonly trigger: EvalTrigger }
+) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    return yield* (yield* Batches).runCase({
+      actor,
+      caseId,
+      hostedOnly: options.hostedOnly,
+      trials: request.trials,
+      trigger: options.trigger,
+      variantIds: request.variants ?? null,
+    });
+  }).pipe(Effect.tap(metered(request.trials)), withEvalErrors);
+
+export const reportTrial = (trial: ReportedTrial) =>
+  Effect.gen(function* () {
+    return yield* (yield* Batches).report(yield* organization, trial);
+  }).pipe(withEvalErrors);
+
+export const finishBatch = (batchId: string) =>
+  Effect.gen(function* () {
+    const organizationId = yield* organization;
+    yield* (yield* Batches).finish(organizationId, batchId);
+    return yield* (yield* EvalReads).batch(organizationId, batchId);
+  }).pipe(withEvalErrors);
+
+export const beatBatch = (batchId: string) =>
+  Effect.gen(function* () {
+    yield* (yield* Batches).beat(yield* organization, batchId);
+  }).pipe(withEvalErrors);
+
+export const leaseCredentials = (batchId: string, harness: EvalHarness) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    return yield* (yield* Batches).lease(actor, batchId, harness);
+  }).pipe(withEvalErrors);
+
+export const subscribeToBatch = (batchId: string) =>
+  Effect.gen(function* () {
+    yield* (yield* EvalReads).ownedBatch(yield* organization, batchId);
+    return yield* mintBatchSubscription(batchId);
+  }).pipe(withEvalErrors);
