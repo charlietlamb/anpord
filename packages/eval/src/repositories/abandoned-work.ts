@@ -169,10 +169,22 @@ export const AbandonedWorkLive = Layer.effect(
       });
 
     return AbandonedWork.of({
-      failBatchesSince,
-      failQuietLocalBatches,
-      failRunsSince,
-      voidTrialsRunningSince,
+      failBatchesSince: (cutoff) =>
+        failBatchesSince(cutoff).pipe(
+          Effect.withSpan("AbandonedWork.failBatchesSince")
+        ),
+      failQuietLocalBatches: (quietSince) =>
+        failQuietLocalBatches(quietSince).pipe(
+          Effect.withSpan("AbandonedWork.failQuietLocalBatches")
+        ),
+      failRunsSince: (cutoff) =>
+        failRunsSince(cutoff).pipe(
+          Effect.withSpan("AbandonedWork.failRunsSince")
+        ),
+      voidTrialsRunningSince: (cutoff, now) =>
+        voidTrialsRunningSince(cutoff, now).pipe(
+          Effect.withSpan("AbandonedWork.voidTrialsRunningSince")
+        ),
     });
   })
 );

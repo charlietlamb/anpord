@@ -69,7 +69,7 @@ export const PromptChannelRepositoryLive = Layer.effect(
             .leftJoin(user, eq(user.id, promptChannel.updatedBy))
             .where(eq(promptChannel.promptInternalId, promptInternalId))
             .orderBy(channel.name)
-        ),
+        ).pipe(Effect.withSpan("PromptChannelRepository.list")),
 
       resolve: (promptInternalId, name) =>
         tryStore("promptChannel.resolve", () =>
@@ -100,7 +100,8 @@ export const PromptChannelRepositoryLive = Layer.effect(
             head(rows).pipe(
               Option.map((row) => ({ ...row.version, author: row.author }))
             )
-          )
+          ),
+          Effect.withSpan("PromptChannelRepository.resolve")
         ),
 
       move: (input) =>
@@ -131,7 +132,8 @@ export const PromptChannelRepositoryLive = Layer.effect(
                   )
                 )
               ).pipe(Effect.asVoid)
-          )
+          ),
+          Effect.withSpan("PromptChannelRepository.move")
         ),
     } satisfies PromptChannelRepositoryShape;
   })
