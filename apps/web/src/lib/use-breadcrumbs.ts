@@ -1,6 +1,6 @@
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMatches } from "@tanstack/react-router";
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 declare module "@tanstack/react-router" {
   interface StaticDataRouteOption {
@@ -33,14 +33,14 @@ const labelOf = (match: Match, queryClient: QueryClient) => {
 export function useBreadcrumbs(): Crumb[] {
   const queryClient = useQueryClient();
   const matches = useMatches();
+  const subscribe = useCallback(
+    (onChange: () => void) => queryClient.getQueryCache().subscribe(onChange),
+    [queryClient]
+  );
   const read = () =>
     JSON.stringify(matches.map((match) => labelOf(match, queryClient)));
   const labels: string[] = JSON.parse(
-    useSyncExternalStore(
-      (onChange) => queryClient.getQueryCache().subscribe(onChange),
-      read,
-      read
-    )
+    useSyncExternalStore(subscribe, read, read)
   );
   const crumbs: Crumb[] = [];
 
