@@ -1,6 +1,6 @@
 ---
 name: verify-anpord
-description: Runs anpord's full verification bar in one command (install, typecheck, check, comments, knip, biome on changed files, tests on a scratch database, e2e, the built CLI on the keyless smoke suite) and then an interleaved perf comparison against origin/main. Also says how to launch and drive the server, the dashboard and the CLI by hand. Use before reporting any anpord change as ready, when a gate fails and you need its log, or when you need numbers for a perf claim.
+description: Runs anpord's full verification bar in one command (install, typecheck, check, comments, knip, biome on changed files, tests on a scratch database, e2e, the built CLI on the keyless smoke suite) and then a side by side perf comparison against the PR's base branch. Also says how to launch and drive the server, the dashboard and the CLI by hand. Use before reporting any anpord change as ready, when a gate fails and you need its log, or when you need numbers for a perf claim.
 ---
 
 # Verify anpord
@@ -15,7 +15,7 @@ Run it from the root of the worktree you changed. It prints `PASS`, `FAIL` or `S
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `BASE_REF` | `origin/main` | What biome diffs against and what the perf step measures as "before". |
+| `BASE_REF` | the open PR's base branch (`gh pr view`), else `origin/main` | What biome diffs against and what the perf step measures as "before". It is fetched first. |
 | `PERF` | `full` | `quick` for smaller data and fewer samples, `skip` to leave perf out. |
 | `SKIP` | empty | Space separated step names to skip, such as `SKIP="e2e perf"`. |
 | `EVIDENCE_DIR` | `$TMPDIR/anpord-verify/<branch>-<time>` | Where logs go. |
@@ -56,7 +56,7 @@ For UI changes the script is not enough: open the page in a Chrome you launch wi
 
 ## Cleanup
 
-The script drops its scratch database on exit, and the perf harness drops its own. The e2e cluster keeps running by design (`bun run e2e -- --stop` stops it). The `origin/main` checkout the perf step makes lives at `$TMPDIR/anpord-verify-base-<sha>` and is reused; remove it with `git worktree remove <path>` when `origin/main` moves. Evidence directories are never deleted by the script.
+The script drops its scratch database on exit, and the perf harness drops its own. The e2e cluster keeps running by design (`bun run e2e -- --stop` stops it). The base checkout the perf step makes lives at `$TMPDIR/anpord-verify-base-<sha>` and is reused for that commit; remove it with `git worktree remove <path>` once the base moves on. Evidence directories are never deleted by the script.
 
 ## Helpers
 

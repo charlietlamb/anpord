@@ -4,7 +4,14 @@ set -uo pipefail
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT" || exit 1
 
-BASE_REF=${BASE_REF:-origin/main}
+pr_base() {
+  local base
+  base=$(gh pr view --json baseRefName -q .baseRefName 2>/dev/null) || base=""
+  printf 'origin/%s' "${base:-main}"
+}
+
+BASE_REF=${BASE_REF:-$(pr_base)}
+git fetch -q origin "${BASE_REF#origin/}" 2>/dev/null || true
 PERF=${PERF:-full}
 SKIP=${SKIP:-}
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
@@ -145,5 +152,6 @@ fi
 
 echo
 printf '%s\n' "${results[@]}" | tee "$EVIDENCE/summary.txt"
+echo "base: $BASE_REF ($(git rev-parse --short "$BASE_REF"))"
 echo "evidence: $EVIDENCE"
 exit $((failed > 0))

@@ -16,13 +16,13 @@ bun run perf ab all --before ../main-checkout          # both checkouts side by 
 
 Run it from the repository root. Results land in `apps/perf/results/` (ignored by git) unless `--out` names a file. `--json` prints the result instead of the table. `--only runs.get,api.batch` limits the server suite to those endpoints.
 
-## Comparing a branch against main
+## Comparing a branch against its base
 
 Use `ab`. It boots both checkouts at once, each on its own scratch database seeded with the same data, and alternates between them in small blocks (A B, then B A, then A B) for every endpoint, every trial and every page. Whatever else the machine is doing lands on both sides, which is what makes a 5% threshold meaningful on a shared machine. Two separate runs compared later are not: on this machine, main against main taken 20 minutes apart showed 54 latency "regressions".
 
 ```bash
-git worktree add --detach ../anpord-main origin/main && (cd ../anpord-main && bun install)
-bun run perf ab all --before ../anpord-main           # --after defaults to this checkout
+git worktree add --detach ../anpord-base origin/<PR base branch> && (cd ../anpord-base && bun install)
+bun run perf ab all --before ../anpord-base           # --after defaults to this checkout
 ```
 
 `--target <checkout>` (and `ab`'s `--before` and `--after`) point the suites at another checkout's code while the harness itself stays in this one. The server is started from that checkout's `apps/server`, migrations come from its `packages/db`, the web build is its `apps/web`, and the runner imports its `packages/sdk`. The two checkouts must be different directories, since each builds its own `apps/web`.
@@ -33,7 +33,7 @@ Main against main through `ab all` flags about 3 of the 252 gated metrics (1%), 
 
 ## What each suite does
 
-**Server.** Creates a scratch database named `anpord_scratch_perf_server_<pid>` on the local Postgres from `.env.local` (or `PERF_DATABASE_URL`, or `localhost:5432`), migrates it, and starts the real server against it. Two organizations are seeded through SQL, then a deterministic generator fills one through the real runner API: 6 suites of 10 cases on 3 variants and 3 trials, 3 batches per suite, 40 journal events per trial, one trial with a 4,000 event journal, and 20 prompts. Each endpoint gets 20 warmup requests, then 5 rounds of 10 sequential requests (`c1_p50_ms`, `queries_per_request`) and 60 requests at concurrency 8 (`p50_ms`, `p95_ms`, `p99_ms`, `rps`, `error_rate`, `response_bytes`). A latency metric is the median of its per round values, and the rounds are its spread. `p99_ms` is informational, since 60 requests a round make it the slowest one. Any failed request stops the run, so a broken endpoint cannot pass as a fast one. `runner.start` runs at concurrency 2 and finishes each batch it starts, because an organization may only hold 3 batches open. Its `rps` therefore includes that finish.
+**Server.** Creates a scratch database named `anpord_scratch_perf_server_<pid>_<n>` (checked with `testDatabaseUrl` from `@anpord/db/test-database`, the same guard the tests use) on the local Postgres from `.env.local` (or `PERF_DATABASE_URL`, or `localhost:5432`), migrates it, and starts the real server against it. Two organizations are seeded through SQL, then a deterministic generator fills one through the real runner API: 6 suites of 10 cases on 3 variants and 3 trials, 3 batches per suite, 40 journal events per trial, one trial with a 4,000 event journal, and 20 prompts. Each endpoint gets 20 warmup requests, then 5 rounds of 10 sequential requests (`c1_p50_ms`, `queries_per_request`) and 60 requests at concurrency 8 (`p50_ms`, `p95_ms`, `p99_ms`, `rps`, `error_rate`, `response_bytes`). A latency metric is the median of its per round values, and the rounds are its spread. `p99_ms` is informational, since 60 requests a round make it the slowest one. Any failed request stops the run, so a broken endpoint cannot pass as a fast one. `runner.start` runs at concurrency 2 and finishes each batch it starts, because an organization may only hold 3 batches open. Its `rps` therefore includes that finish.
 
 Queries are counted by a Bun preload (`src/stack/probe-preload.ts`) that wraps `pg`'s `Client.query` inside the server process and reports the count and memory on a side port. Nothing in the server changes for it. Cold start is spawn to the first 200 from `/api/healthz`, measured 5 times against the seeded database.
 
@@ -45,4 +45,4 @@ Pages: `/evals`, a batch, a case, the trial with the 4,000 event journal, and `/
 
 ## Baselines
 
-`baselines/` holds committed results from `main`. Compare a branch against the newest one only when the machine is the one that recorded it (the `host` field says which), and prefer `ab` otherwise.
+`baselines/` holds committed results, one file per base branch and date: `main-2026-09-27.json` and `charlie-cleanup-2026-09-27.json`. Compare a branch against the newest one only when the machine is the one that recorded it (the `host` field says which), and prefer `ab` otherwise.

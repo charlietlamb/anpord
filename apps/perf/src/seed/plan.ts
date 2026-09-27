@@ -3,6 +3,7 @@ import type {
   EvalVariantRequest,
   StartBatchRequest,
 } from "@anpord/schema/domain/eval-definition";
+import { MAX_RUN_TRIALS } from "@anpord/schema/domain/eval-quota";
 
 export interface SeedPlan {
   readonly batchesPerSuite: number;
@@ -29,6 +30,15 @@ export const DEFAULT_PLAN: SeedPlan = {
 };
 
 export const LARGE_SUITE = "perf-large-journal";
+
+export const assertPlanFits = (plan: SeedPlan) => {
+  const trials = plan.casesPerSuite * plan.variants * plan.trials;
+  if (trials > MAX_RUN_TRIALS) {
+    throw new Error(
+      `The seed plan asks for ${trials} trials per batch, and a batch may hold ${MAX_RUN_TRIALS}.`
+    );
+  }
+};
 
 const caseOf = (template: EvalCase, id: string, tag: string): EvalCase => ({
   ...template,
