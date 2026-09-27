@@ -17,6 +17,7 @@
     "./domain/eval-source-files": "./src/domain/eval-source-files.ts",
     "./domain/eval-trigger": "./src/domain/eval-trigger.ts",
     "./domain/eval-conversation": "./src/domain/eval-conversation.ts",
+    "./domain/eval-home": "./src/domain/eval-home.ts",
     "./domain/eval-definition": "./src/domain/eval-definition.ts",
     "./domain/eval-journal": "./src/domain/eval-journal.ts",
     "./domain/eval-tail": "./src/domain/eval-tail.ts",

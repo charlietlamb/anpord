@@ -1,3 +1,4 @@
+import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
 import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
 import type { CaseFilters } from "@/lib/evals/evals-client";
 
@@ -14,6 +15,7 @@ export const evalKeys = {
       filters.tag ?? "all",
       cursor?.id ?? "first",
     ] as const,
+  home: (range: EvalHomeRange) => [...evalKeys.all, "home", range] as const,
   suiteLists: () => [...evalKeys.all, "suites"] as const,
   suites: (cursor: { readonly id: string } | null) =>
     [...evalKeys.suiteLists(), cursor?.id ?? "first"] as const,

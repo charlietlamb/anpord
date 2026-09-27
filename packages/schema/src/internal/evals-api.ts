@@ -2,6 +2,7 @@ import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { BatchSubscription } from "../domain/eval-batch-subscription";
+import { EvalHome, EvalHomeRange } from "../domain/eval-home";
 import {
   CaseOrder,
   CaseSort,
@@ -41,6 +42,11 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
         })
       )
       .addSuccess(EvalCasePage)
+  )
+  .add(
+    HttpApiEndpoint.get("home", "/evals/home")
+      .setUrlParams(Schema.Struct({ range: Schema.optional(EvalHomeRange) }))
+      .addSuccess(EvalHome)
   )
   .add(
     HttpApiEndpoint.get("suites", "/evals/suites")

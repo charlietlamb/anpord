@@ -1,4 +1,5 @@
 import { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
+import { EvalHome, type EvalHomeRange } from "@anpord/schema/domain/eval-home";
 import {
   type CaseOrder,
   type CaseSort,
@@ -96,3 +97,6 @@ export const getTrialAddress = (id: string) =>
 
 export const getArtifact = (input: EvalArtifactRequest) =>
   api.post(EvalArtifact, "/artifacts", input);
+
+export const readHome = (range: EvalHomeRange) =>
+  api.request(EvalHome, `/home${searchOf({ range })}`);

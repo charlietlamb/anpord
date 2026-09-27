@@ -41,7 +41,10 @@ export function timestamp(date: Date | null) {
 }
 
 export const variantOf = (
-  row: typeof evalVariant.$inferSelect
+  row: Pick<
+    typeof evalVariant.$inferSelect,
+    "harness" | "internalId" | "model" | "profile" | "sandbox" | "userModel"
+  >
 ): Option.Option<EvalVariant> =>
   Option.map(namesOf(row), (names) => ({
     harness: names.harness,
