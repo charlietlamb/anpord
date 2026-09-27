@@ -1,21 +1,18 @@
 import { HttpApiEndpoint, HttpApiGroup } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
-import { EvalBatchTail, EvalTailMark } from "../domain/eval-tail";
+import { BatchSubscription } from "../domain/eval-batch-subscription";
 import {
-  BatchSubscription,
-  EvalArtifact,
-  EvalArtifactRequest,
-  EvalBatch,
   EvalCaseDetail,
   EvalCasePage,
-  EvalRun,
   EvalRunPage,
   EvalSuiteDetail,
   EvalSuitePage,
   EvalTrialAddress,
-  StartedBatch,
-} from "../domain/evals";
+} from "../domain/eval-read-models";
+import { EvalBatchTail, EvalTailMark } from "../domain/eval-tail";
+import { EvalArtifact, EvalArtifactRequest } from "../domain/eval-trial";
+import { EvalBatch, EvalRun, StartedBatch } from "../domain/evals";
 import { RunCaseRequest } from "../domain/run-case";
 import { Authentication } from "./authentication";
 

@@ -1,4 +1,5 @@
-import type { EvalRun, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalRun } from "@anpord/schema/domain/evals";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";
 

@@ -1,9 +1,10 @@
 import { expect, test } from "bun:test";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import {
   validationCapture,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
-import type { EvalSetup, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalSetup } from "@anpord/schema/domain/evals";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TRIALS } from "../../../src/components/dev/eval-fixtures";
 import { TrialChecks } from "../../../src/components/evals/trial-checks";

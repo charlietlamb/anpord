@@ -1,6 +1,10 @@
 import { type Option, Schema } from "effect";
+import {
+  EvalArtifactMetadata,
+  EvalTrialStatus,
+  EvalVerifyStep,
+} from "./eval-trial";
 import { EvalValidations } from "./eval-validations";
-import { EvalArtifactMetadata, EvalTrialStatus, EvalVerifyStep } from "./evals";
 
 export const decodeTrialStatus: (
   value: string

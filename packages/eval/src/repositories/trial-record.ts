@@ -5,8 +5,8 @@ import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { IdGenerator } from "@anpord/ids/id";
+import type { EvalArtifact } from "@anpord/schema/domain/eval-trial";
 import { EvalValidations } from "@anpord/schema/domain/eval-validations";
-import type { EvalArtifact } from "@anpord/schema/domain/evals";
 import type {
   HarnessEvent,
   HarnessUsage,

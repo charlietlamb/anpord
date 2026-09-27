@@ -4,7 +4,8 @@ import {
 } from "@anpord/eval/domain/local-heartbeat";
 import { harnessesNeeded } from "@anpord/eval/domain/suite-harnesses";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness, StartedBatch } from "@anpord/schema/domain/evals";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
+import type { StartedBatch } from "@anpord/schema/domain/evals";
 import { AnpordApi, type AnpordClient } from "@anpord/schema/public/client";
 import { IdempotencyKey } from "@anpord/schema/public/runner-api";
 import {

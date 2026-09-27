@@ -1,7 +1,7 @@
 import type {
   EvalArtifactMetadata,
   EvalArtifactRequest,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
 import { CopyButton } from "@anpord/ui/components/copy-button";
 import { CodeContent } from "@anpord/ui/components/ui/code-content";
 import {

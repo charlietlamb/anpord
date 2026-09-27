@@ -1,9 +1,8 @@
 import type {
-  EvalBatch,
   EvalJournalEntry,
-  EvalRun,
   EvalTrial,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { DateTime } from "effect";
 import { useCallback, useEffect, useState } from "react";
 

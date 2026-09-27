@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
-import type { EvalHarness } from "@anpord/schema/domain/evals";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import {
   type HarnessProfile,
   PROFILE_LIMITS,

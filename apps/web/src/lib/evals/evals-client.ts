@@ -1,22 +1,22 @@
+import { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
+import {
+  EvalCaseDetail,
+  EvalCasePage,
+  type EvalPageCursor,
+  EvalRunPage,
+  EvalSuiteDetail,
+  EvalSuitePage,
+  EvalTrialAddress,
+} from "@anpord/schema/domain/eval-read-models";
 import {
   EvalBatchTail,
   type EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
 import {
-  BatchSubscription,
   EvalArtifact,
   type EvalArtifactRequest,
-  EvalBatch,
-  EvalCaseDetail,
-  EvalCasePage,
-  type EvalPageCursor,
-  EvalRun,
-  EvalRunPage,
-  EvalSuiteDetail,
-  EvalSuitePage,
-  EvalTrialAddress,
-  StartedBatch,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
+import { EvalBatch, EvalRun, StartedBatch } from "@anpord/schema/domain/evals";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
 import { createApiClient, searchOf } from "@/lib/api-client";
 

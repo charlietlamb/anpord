@@ -1,4 +1,4 @@
-import type { EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import { RailFact } from "@anpord/ui/components/ui/rail-fact";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { ShareBar } from "@anpord/ui/components/ui/share-bar";

@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { createFileRoute } from "@tanstack/react-router";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";

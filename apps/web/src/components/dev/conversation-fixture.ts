@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 
 const said = (at: number, text: string): EvalJournalEntry => ({
   _tag: "message",

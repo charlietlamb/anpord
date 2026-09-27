@@ -1,5 +1,5 @@
 import { Either, Schema } from "effect";
-import type { EvalJournalEntry } from "./evals";
+import type { EvalJournalEntry } from "./eval-trial";
 import { shellWordOf } from "./shell-word";
 
 export type EntryKind = EvalJournalEntry["_tag"] | "said";

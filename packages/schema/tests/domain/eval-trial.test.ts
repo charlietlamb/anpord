@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { Schema } from "effect";
-import { EvalTrial } from "../../src/domain/evals";
+import { EvalTrial } from "../../src/domain/eval-trial";
 
 const sent = {
   artifacts: [],

@@ -1,4 +1,4 @@
-import type { EvalCosts } from "@anpord/schema/domain/evals";
+import type { EvalCosts } from "@anpord/schema/domain/eval-costs";
 import { Option } from "effect";
 import { formatDuration } from "./duration";
 import { localUsageLines } from "./eval-usage";

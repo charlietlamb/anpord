@@ -1,8 +1,5 @@
-import type {
-  EvalBatch,
-  EvalRun,
-  EvalTrial,
-} from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { Data, Effect, Schema } from "effect";
 import { undecidedIn, verdictLines } from "./eval-verdict";
 import { formatVariant } from "./variant-label";

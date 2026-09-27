@@ -4,11 +4,10 @@ import type {
   EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
 import type {
-  EvalBatch,
   EvalJournalEntry,
-  EvalRun,
   EvalTrial,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 
 type Journals = ReadonlyMap<string, readonly EvalJournalEntry[]>;
 

@@ -1,14 +1,11 @@
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "@effect/platform";
 import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
+import { BatchSubscription } from "../domain/eval-batch-subscription";
 import { StartBatchRequest } from "../domain/eval-definition";
 import { EvalBatchTail, EvalBatchTailRequest } from "../domain/eval-tail";
-import {
-  BatchSubscription,
-  EvalBatch,
-  EvalHarness,
-  StartedBatch,
-} from "../domain/evals";
+import { EvalHarness } from "../domain/eval-trial";
+import { EvalBatch, StartedBatch } from "../domain/evals";
 import {
   HarnessEvent,
   HarnessUsage,

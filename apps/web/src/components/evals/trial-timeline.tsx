@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
 import { SURFACE_FOOTER } from "@anpord/ui/lib/surface";
 import { StepList, StepListBody } from "@/components/evals/step-list";

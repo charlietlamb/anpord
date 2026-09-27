@@ -1,4 +1,4 @@
-import type { EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { ChangedFileRow } from "@/components/evals/changed-file-row";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";

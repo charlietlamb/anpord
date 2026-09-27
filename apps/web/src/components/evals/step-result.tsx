@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import {
   CheckCircleIcon,

@@ -1,12 +1,12 @@
 import { evalCase } from "@anpord/db/schema/evals/eval-cases";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
 import {
-  type EvalArtifactRequest,
   type EvalPageCursor,
   RUN_PAGE_SIZE,
-} from "@anpord/schema/domain/evals";
+} from "@anpord/schema/domain/eval-read-models";
+import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
+import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import { EvalNotFound } from "../domain/errors";

@@ -1,4 +1,4 @@
-import type { EvalVerifyStep } from "@anpord/schema/domain/evals";
+import type { EvalVerifyStep } from "@anpord/schema/domain/eval-trial";
 import { stepsOf } from "@anpord/schema/domain/verify-steps";
 
 /* `a && b && c` reports one exit code, so a failure never says which condition

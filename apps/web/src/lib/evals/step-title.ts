@@ -1,5 +1,5 @@
 import { callSubjectOf, commandText } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 
 export type StepVerb =
   | "agent"

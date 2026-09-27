@@ -1,5 +1,5 @@
 import { callSubjectOf, commandText } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/evals";
+import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import { clipped, flat, type Writer } from "./transcript-writer";
 
 type Step = Exclude<EvalJournalEntry, { readonly _tag: "message" }>;

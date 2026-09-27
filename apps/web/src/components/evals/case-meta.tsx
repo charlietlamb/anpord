@@ -1,4 +1,4 @@
-import type { EvalCaseDetail } from "@anpord/schema/domain/evals";
+import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";

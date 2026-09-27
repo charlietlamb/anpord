@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalHarness } from "@anpord/schema/domain/evals";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import { Schema } from "effect";
 import { parse } from "smol-toml";
 import { applyMcpHarness } from "../../src/evals/mcp-harness";

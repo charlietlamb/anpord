@@ -1,4 +1,5 @@
-import type { EvalDistribution, EvalTrial } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalDistribution } from "@anpord/schema/domain/evals";
 
 const COMMAND_AGREEMENT = 4;
 

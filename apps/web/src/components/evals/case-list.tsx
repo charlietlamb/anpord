@@ -1,4 +1,4 @@
-import type { EvalCaseSummary } from "@anpord/schema/domain/evals";
+import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
 import { GaugeIcon } from "@phosphor-icons/react";
 import type { ComponentProps } from "react";
 import { CasesTable } from "@/components/evals/cases-table";

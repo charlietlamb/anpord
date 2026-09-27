@@ -5,10 +5,10 @@ import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import type { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import type { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
 import type {
   EvalRun,
   EvalSetup,
-  EvalTrial,
   EvalVariant,
 } from "@anpord/schema/domain/evals";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";

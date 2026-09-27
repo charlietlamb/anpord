@@ -7,6 +7,21 @@ export type {
   CatalogueModel,
   ModelCatalogue,
 } from "@anpord/schema/domain/eval-models";
+export type {
+  EvalBatchPage,
+  EvalCaseDetail,
+  EvalCasePage,
+  EvalCaseSummary,
+  EvalCaseVersion,
+  EvalRunPage,
+} from "@anpord/schema/domain/eval-read-models";
+export type {
+  EvalHarness,
+  EvalJournalEntry,
+  EvalTrial,
+  EvalTrialStatus,
+  EvalUsage,
+} from "@anpord/schema/domain/eval-trial";
 export type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 export type {
   EvalValidation,
@@ -15,22 +30,11 @@ export type {
 } from "@anpord/schema/domain/eval-validations";
 export type {
   EvalBatch,
-  EvalBatchPage,
   EvalBatchSummary,
-  EvalCaseDetail,
-  EvalCasePage,
-  EvalCaseSummary,
-  EvalCaseVersion,
   EvalDistribution,
-  EvalHarness,
-  EvalJournalEntry,
   EvalRun,
-  EvalRunPage,
   EvalRunStatus,
   EvalSuite,
-  EvalTrial,
-  EvalTrialStatus,
-  EvalUsage,
   EvalVariant,
   StartedBatch,
 } from "@anpord/schema/domain/evals";

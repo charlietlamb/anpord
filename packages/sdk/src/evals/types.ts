@@ -5,8 +5,8 @@ import type {
   EvalVariantRequest,
 } from "@anpord/schema/domain/eval-definition";
 import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { EvalHarness } from "@anpord/schema/domain/evals";
 import type { McpCall } from "../mcp/calls";
 import type { McpServerDefinition } from "../mcp/define";
 import type { ApiDefinition } from "../mock-api/define";

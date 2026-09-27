@@ -1,4 +1,4 @@
-import type { EvalSuiteSummary } from "@anpord/schema/domain/evals";
+import type { EvalSuiteSummary } from "@anpord/schema/domain/eval-read-models";
 import { AgeCell } from "@anpord/ui/components/evals/age-cell";
 import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
 import {
