@@ -1,5 +1,6 @@
 import { AuthLive } from "@anpord/auth";
 import { AuthConfigLive } from "@anpord/auth/config";
+import { OAuthClientsLive } from "@anpord/auth/oauth/oauth-clients";
 import { OrganizationStoreLive } from "@anpord/auth/organization";
 import { BillingLive } from "@anpord/billing/layer";
 import { CacheConfigLive } from "@anpord/cache/config";
@@ -97,6 +98,7 @@ export const AppLayer = Layer.mergeAll(
   AuthLayer,
   VerifiedKeysLayer,
   OrganizationLayer,
+  OAuthClientsLive.pipe(Layer.provide(DatabaseLayer)),
   DatabaseLayer,
   PromptsServiceLayer,
   CredentialLayer,
