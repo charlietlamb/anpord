@@ -5,7 +5,121 @@ import { EvalValidations } from "@anpord/schema/domain/eval-validations";
 import { EvalBatch } from "@anpord/schema/domain/evals";
 import { Arbitrary, DateTime, FastCheck, Option, Schema } from "effect";
 import { schemaEncoder } from "../../../src/http/encoding/schema-encoder";
-import batch from "./fixtures/batch.json" with { type: "json" };
+
+const costs = {
+  allocatedUsd: 0,
+  estimatedEquivalentUsd: 0,
+  incomplete: true,
+  knownActualUsd: 0,
+  components: [
+    {
+      classification: "unknown",
+      component: "harness",
+      detail: { harness: "command", durationMs: 31_474 },
+      explanation: "The harness cannot be priced.",
+      source: "connection",
+      usd: null,
+    },
+  ],
+  laterComponents: [],
+};
+
+const usage = {
+  cacheReadTokens: 977,
+  cacheWriteTokens: 16,
+  costUsd: 0.005_417_5,
+  inputTokens: 2574,
+  outputTokens: 220,
+  totalTokens: 2794,
+};
+
+const stamp = "2026-09-27T04:15:36.053Z";
+
+const trial = {
+  artifacts: [],
+  commands: 1,
+  costs,
+  exitCode: 1,
+  failedCommands: 1,
+  failure: null,
+  filesChanged: ["src/the.ts"],
+  id: "trl_7A3E4R17DPWPZ0WYFVG0D1DY",
+  modelMs: 31_474,
+  ordinal: 1,
+  sandboxId: "sandbox-1",
+  sandboxMs: 2188,
+  status: "failed",
+  timed: true,
+  trajectory: [
+    {
+      _tag: "message",
+      finishedAtMillis: 1_788_241_461_613,
+      role: "assistant",
+      text: "done",
+      usage,
+    },
+  ],
+  usage,
+  validations: [],
+  verifySteps: [],
+  voidFields: [],
+};
+
+const storedBatch = {
+  costs,
+  failure: null,
+  finishedAt: stamp,
+  id: "bat_31ERCBABFPEWJQK6YMQR0E96",
+  local: true,
+  runs: [
+    {
+      batchId: "bat_31ERCBABFPEWJQK6YMQR0E96",
+      case: { id: "c1", name: "c1" },
+      costs,
+      definitionHash: "9696ed609f5ce5859ec3b33af187fc89",
+      distribution: {
+        commandMax: 1,
+        commandMedian: 1,
+        commandMin: 1,
+        deterministic: true,
+        failed: 1,
+        passRate: 0,
+        passed: 0,
+        scored: 1,
+        trials: 1,
+        voided: 0,
+      },
+      finishedAt: stamp,
+      harnessVersion: "profile",
+      id: "run_062W5BX4A2CMP1JYRFB5KS1X",
+      local: true,
+      profileVersion: null,
+      setup: {
+        prepare: null,
+        prompt: "Write hello.txt",
+        source: { kind: "empty" },
+        validator: null,
+        verify: "test -f hello.txt",
+      },
+      startedAt: stamp,
+      status: "finished",
+      suite: { id: "s1", name: "s1" },
+      trials: [trial],
+      trigger: { source: "cli" },
+      variant: {
+        harness: "command",
+        id: "evar_QQNJ6ST42J74AA1QHYAD01ZK",
+        model: "model-0",
+        profile: null,
+        sandbox: "local",
+        userModel: null,
+      },
+    },
+  ],
+  startedAt: stamp,
+  status: "finished",
+  trigger: { source: "cli" },
+};
 
 const Journal = Schema.Union(
   Schema.Struct({ _tag: Schema.Literal("command"), exitCode: Schema.Int }),
@@ -108,8 +222,8 @@ describe("schemaEncoder", () => {
 
   it("writes a stored batch back out exactly as it was read", () => {
     const encode = schemaEncoder(EvalBatch);
-    const decoded = Schema.decodeUnknownSync(EvalBatch)(batch);
-    expect(bytesOf(encode(decoded))).toBe(JSON.stringify(batch));
+    const decoded = Schema.decodeUnknownSync(EvalBatch)(storedBatch);
+    expect(bytesOf(encode(decoded))).toBe(JSON.stringify(storedBatch));
     sameAsSchemaEncode(EvalBatch, [decoded]);
   });
 
