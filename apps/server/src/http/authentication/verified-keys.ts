@@ -10,8 +10,6 @@ const CAPACITY = 4096;
 const TTL = Duration.seconds(5);
 
 export interface VerifiedKeysShape {
-  /* Called on revocation, which turns the TTL into a ceiling rather than the wait. */
-  readonly forget: (token: string) => Effect.Effect<void>;
   readonly verify: (token: string) => Effect.Effect<Actor, Unauthorized>;
 }
 
@@ -29,8 +27,8 @@ const make = (auth: AuthInstance) =>
   }).pipe(
     Effect.map(
       (cache): VerifiedKeysShape => ({
-        forget: (token) => cache.invalidate(token),
-        verify: (token) => cache.get(token),
+        verify: (token) =>
+          cache.get(token).pipe(Effect.withSpan("VerifiedKeys.verify")),
       })
     )
   );
