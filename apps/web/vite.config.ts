@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { WEB_PORT } from "@anpord/schema/internal/local-ports";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -39,7 +40,7 @@ export default defineConfig({
       },
     },
   },
-  server: { port: 3005 },
+  server: { port: WEB_PORT },
   ssr: { noExternal: [/^@anpord\//] },
   optimizeDeps: { exclude: ["@tanstack/start-server-core"] },
   plugins: [tailwindcss(), tanstackStart(), nitro(), viteReact()],

@@ -1,3 +1,9 @@
+import {
+  LOCAL_SERVER_URL,
+  LOCAL_WEB_ORIGIN,
+  localMcpResource,
+  MCP_PORT,
+} from "@anpord/schema/internal/local-ports";
 import { Config, Context, Layer, type Redacted } from "effect";
 import type { GithubCredentials } from "./github-credentials";
 import { githubCredentials } from "./github-credentials";
@@ -22,7 +28,7 @@ const trustedOrigins = Config.string("AUTH_TRUSTED_ORIGINS").pipe(
       .map((origin) => origin.trim())
       .filter(Boolean)
   ),
-  Config.withDefault<readonly string[]>(["http://localhost:3005"])
+  Config.withDefault<readonly string[]>([LOCAL_WEB_ORIGIN])
 );
 
 export const AuthConfigLive = Layer.effect(
@@ -30,12 +36,12 @@ export const AuthConfigLive = Layer.effect(
   Config.all({
     github: githubCredentials,
     mcpResource: Config.string("MCP_RESOURCE_URL").pipe(
-      Config.withDefault("http://localhost:3010/mcp")
+      Config.withDefault(localMcpResource(MCP_PORT))
     ),
     secret: Config.redacted("BETTER_AUTH_SECRET"),
     trustedOrigins,
     url: Config.string("BETTER_AUTH_URL").pipe(
-      Config.withDefault("http://127.0.0.1:3003")
+      Config.withDefault(LOCAL_SERVER_URL)
     ),
   })
 );
