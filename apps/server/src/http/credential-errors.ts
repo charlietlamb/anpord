@@ -6,26 +6,28 @@ import {
 } from "@anpord/schema/domain/errors";
 import { Effect } from "effect";
 
-const apiError = (error: CredentialError) => {
-  if (error.code === "not-found") {
-    return new NotFound({ message: error.message });
+export const credentialApiError = (error: CredentialError) => {
+  switch (error.code) {
+    case "not-found":
+      return new NotFound({ message: error.message });
+    case "internal":
+    case "undecryptable":
+      return new InternalError({ message: "Credential operation failed" });
+    case undefined:
+      return new BadRequest({ message: error.message });
+    default:
+      return error.code satisfies never;
   }
-
-  if (error.code === "internal" || error.code === "undecryptable") {
-    return new InternalError({ message: "Credential operation failed" });
-  }
-
-  return new BadRequest({ message: error.message });
 };
 
 export const withCredentialErrors = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
-) => effect.pipe(Effect.mapError(apiError));
+) => effect.pipe(Effect.mapError(credentialApiError));
 
 export const withPublicCredentialErrors = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
 ) =>
   effect.pipe(
-    Effect.mapError(apiError),
+    Effect.mapError(credentialApiError),
     Effect.catchTag("InternalError", Effect.die)
   );

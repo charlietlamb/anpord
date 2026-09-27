@@ -1,5 +1,5 @@
 import { layer } from "@anpord/schema/public/client";
-import { API_ORIGIN } from "@anpord/schema/public/origins";
+import { API_ORIGIN, WEB_ORIGIN } from "@anpord/schema/public/origins";
 import { Config, ConfigError, Effect, Either, Layer, Redacted } from "effect";
 
 const API_KEY = "ANPORD_API_KEY";
@@ -17,7 +17,7 @@ export const baseUrlConfig = Config.string("ANPORD_BASE_URL").pipe(
 );
 
 export const webUrlConfig = Config.string("ANPORD_WEB_URL").pipe(
-  Config.withDefault("https://anpord.com")
+  Config.withDefault(WEB_ORIGIN)
 );
 
 export const clientOptionsConfig = Config.all({

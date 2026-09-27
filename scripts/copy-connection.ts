@@ -2,12 +2,14 @@
 
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
+import { resolveEncryptionSecret } from "../packages/eval/src/credentials/cipher";
 import { contextOf } from "../packages/eval/src/credentials/connection-payload";
 import {
   deriveEnvelopeKey,
   openEnvelope,
   sealEnvelope,
 } from "../packages/eval/src/credentials/envelope";
+import { generateId } from "../packages/ids/src/generate";
 import { arg, required } from "./lib/cli-args";
 
 /*
@@ -21,8 +23,9 @@ import { arg, required } from "./lib/cli-args";
 
     bun run scripts/copy-connection.ts --from "Testy" --to "manu-test" --integration codex
 
-  DATABASE_URL and BETTER_AUTH_SECRET name the deployment. For production both
-  live in AWS Secrets Manager under anpord/server/.
+  DATABASE_URL names the deployment. The encryption key is CREDENTIALS_ENCRYPTION_KEY,
+  falling back to BETTER_AUTH_SECRET, the same order the server resolves it in. For
+  production both live in AWS Secrets Manager under anpord/server/.
 */
 
 const from = arg("from");
@@ -35,7 +38,7 @@ if (from === undefined || to === undefined) {
   );
 }
 
-const key = await deriveEnvelopeKey(required("BETTER_AUTH_SECRET"));
+const key = await deriveEnvelopeKey(await resolveEncryptionSecret());
 const db = new Client({ connectionString: required("DATABASE_URL") });
 await db.connect();
 
@@ -83,7 +86,7 @@ if (existing === undefined) {
 
 const opened = await openEnvelope(key, source.sealedPayload, contextOf(source));
 
-const id = `ccn_${randomUUID().replaceAll("-", "")}`;
+const id = await generateId("credentialConnection");
 
 const sealed = await sealEnvelope(
   key,

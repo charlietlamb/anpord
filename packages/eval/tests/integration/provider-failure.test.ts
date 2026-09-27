@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
 import { Chunk, Effect, Stream } from "effect";
 import type { SandboxName } from "../../src/domain/variant";
 import { EvalSandboxLive } from "../../src/layer";
@@ -9,31 +8,14 @@ import {
   TEST_SOURCE,
   VERIFY_COMMAND,
 } from "../fixtures/broken-task";
-
-const read = (name: string) => {
-  const path = process.env.EVAL_KEY_DIR;
-  try {
-    return path === undefined
-      ? undefined
-      : readFileSync(`${path}/${name}`, "utf8").trim();
-  } catch {
-    return;
-  }
-};
-
-process.env.E2B_API_KEY ??= read("e2b.key");
-process.env.DAYTONA_API_KEY ??= read("daytona.key");
-process.env.MODAL_TOKEN_ID ??= read("modal-token-id.key");
-process.env.MODAL_TOKEN_SECRET ??= read("modal-token-secret.key");
-process.env.CLOUDFLARE_API_TOKEN ??= read("cloudflare-api-token.key");
-process.env.CLOUDFLARE_SANDBOX_URL ??= read("cloudflare-sandbox-url.key");
-process.env.CLOUDFLARE_SANDBOX_API_KEY ??= read(
-  "cloudflare-sandbox-api-key.key"
-);
-process.env.VERCEL_OIDC_TOKEN ??= read("vercel-oidc-token.key");
-process.env.VERCEL_TOKEN ??= read("vercel-token.key");
-process.env.VERCEL_TEAM_ID ??= read("vercel-team-id.key");
-process.env.VERCEL_PROJECT_ID ??= read("vercel-project-id.key");
+import {
+  hasCloudflare,
+  hasDaytona,
+  hasE2b,
+  hasModal,
+  hasUpstash,
+  hasVercel,
+} from "../fixtures/credentials";
 
 const failingVerify = (provider: SandboxName) =>
   Effect.runPromise(
@@ -56,30 +38,12 @@ const failingVerify = (provider: SandboxName) =>
 
 describe("a failing command keeps its own words", () => {
   const providers = [
-    ["daytona", Boolean(process.env.DAYTONA_API_KEY)],
-    ["e2b", Boolean(process.env.E2B_API_KEY)],
-    ["upstash", Boolean(process.env.UPSTASH_BOX_API_KEY)],
-    [
-      "modal",
-      Boolean(process.env.MODAL_TOKEN_ID && process.env.MODAL_TOKEN_SECRET),
-    ],
-    [
-      "cloudflare",
-      Boolean(
-        process.env.CLOUDFLARE_SANDBOX_URL &&
-          (process.env.CLOUDFLARE_SANDBOX_API_KEY ||
-            process.env.CLOUDFLARE_API_TOKEN)
-      ),
-    ],
-    [
-      "vercel",
-      Boolean(
-        process.env.VERCEL_OIDC_TOKEN ||
-          (process.env.VERCEL_TOKEN &&
-            process.env.VERCEL_TEAM_ID &&
-            process.env.VERCEL_PROJECT_ID)
-      ),
-    ],
+    ["daytona", hasDaytona],
+    ["e2b", hasE2b],
+    ["upstash", hasUpstash],
+    ["modal", hasModal],
+    ["cloudflare", hasCloudflare],
+    ["vercel", hasVercel],
   ] as const;
 
   for (const [provider, ready] of providers) {

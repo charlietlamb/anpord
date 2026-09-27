@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
+import { isLocalHost } from "../packages/db/src/local-hosts";
 import { arg } from "./lib/cli-args";
 
 /*
@@ -18,15 +19,13 @@ import { arg } from "./lib/cli-args";
   that never verified an email and can sign nothing.
 */
 
-const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost"]);
-
 const url = process.env.DATABASE_URL;
 
 if (!url) {
   throw new Error("DATABASE_URL is not set");
 }
 
-if (!LOCAL_HOSTS.has(new URL(url).hostname)) {
+if (!isLocalHost(new URL(url).hostname)) {
   throw new Error(
     `${new URL(url).hostname} is not a local database. This writes an unverified user, so it only runs against localhost.`
   );

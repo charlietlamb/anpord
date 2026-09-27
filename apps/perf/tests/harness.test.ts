@@ -176,6 +176,9 @@ describe("scratchServerUrl", () => {
     expect(scratchServerUrl("postgresql://[::1]:5432/postgres").hostname).toBe(
       "[::1]"
     );
+    expect(
+      scratchServerUrl("postgresql://0.0.0.0:5432/postgres").hostname
+    ).toBe("0.0.0.0");
     expect(() =>
       scratchServerUrl("postgresql://prod-db:5432/localhost")
     ).toThrow(
