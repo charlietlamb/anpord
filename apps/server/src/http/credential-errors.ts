@@ -18,11 +18,11 @@ const apiError = (error: CredentialError) => {
   return new BadRequest({ message: error.message });
 };
 
-export const handledCredential = <A, R>(
+export const withCredentialErrors = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
 ) => effect.pipe(Effect.mapError(apiError));
 
-export const handledPublicCredential = <A, R>(
+export const withPublicCredentialErrors = <A, R>(
   effect: Effect.Effect<A, CredentialError, R>
 ) =>
   effect.pipe(

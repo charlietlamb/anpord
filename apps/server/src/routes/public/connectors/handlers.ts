@@ -6,7 +6,7 @@ import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { handledPublicCredential } from "../../../http/credential-errors";
+import { withPublicCredentialErrors } from "../../../http/credential-errors";
 
 export const PublicConnectorsHandlers = HttpApiBuilder.group(
   PublicApi,
@@ -23,7 +23,7 @@ export const PublicConnectorsHandlers = HttpApiBuilder.group(
           const actor = yield* CurrentActor;
 
           return yield* (yield* CredentialConnections).list(actor);
-        }).pipe(handledPublicCredential)
+        }).pipe(withPublicCredentialErrors)
       )
       .handle(
         "add",
@@ -33,7 +33,7 @@ export const PublicConnectorsHandlers = HttpApiBuilder.group(
             const actor = yield* CurrentActor;
 
             return yield* (yield* CredentialConnections).create(actor, payload);
-          }).pipe(handledPublicCredential)
+          }).pipe(withPublicCredentialErrors)
       )
       .handle(
         "remove",
@@ -46,6 +46,6 @@ export const PublicConnectorsHandlers = HttpApiBuilder.group(
               actor,
               payload.id
             );
-          }).pipe(handledPublicCredential)
+          }).pipe(withPublicCredentialErrors)
       ).done
 );
