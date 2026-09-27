@@ -4,6 +4,7 @@ import { schema } from "@anpord/db/schema";
 import { IdGenerator } from "@anpord/ids/id";
 import { EmailSender } from "@anpord/notifications/email/sender";
 import { DEFAULT_PLATFORM_ROLE } from "@anpord/schema/domain/permissions";
+import { COOKIE_PREFIX } from "@anpord/schema/internal/authentication";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
 import { admin, jwt, magicLink, organization } from "better-auth/plugins";
@@ -14,7 +15,6 @@ import { mcpPlugin } from "./oauth/mcp-plugin";
 import { attachOrganizationBeforeWrite } from "./organization/attach-organization-before-write";
 import { OrganizationStore } from "./organization/organization-store";
 import { setUpOrganization } from "./organization/set-up-organization";
-import { COOKIE_PREFIX } from "./session/cookies";
 import { MAGIC_LINK_EXPIRY, sendMagicLink } from "./session/send-magic-link";
 
 const SESSION_CACHE_BEFORE_REVOCATION_APPLIES = Duration.minutes(5);

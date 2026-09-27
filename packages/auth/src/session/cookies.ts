@@ -1,8 +1,6 @@
-export const COOKIE_PREFIX = "anpord";
-
-const SESSION_TOKEN = `${COOKIE_PREFIX}.session_token`;
+import { SESSION_COOKIE } from "@anpord/schema/internal/authentication";
 
 export const SESSION_COOKIE_NAMES = [
-  SESSION_TOKEN,
-  `__Secure-${SESSION_TOKEN}`,
+  SESSION_COOKIE,
+  `__Secure-${SESSION_COOKIE}`,
 ] as const;
