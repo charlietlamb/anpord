@@ -43,7 +43,12 @@ export function PresetFull<P extends Preset>({
         <Link className={PILL} search={{}} to={kind.to}>
           All
         </Link>
-        <Link className={PILL} search={{ id: previous.id }} to={kind.to}>
+        <Link
+          aria-label="Previous preset"
+          className={PILL}
+          search={{ id: previous.id }}
+          to={kind.to}
+        >
           ←
         </Link>
         <span className="px-2 text-sm">
@@ -52,7 +57,12 @@ export function PresetFull<P extends Preset>({
           </span>{" "}
           {preset.name}
         </span>
-        <Link className={PILL} search={{ id: next.id }} to={kind.to}>
+        <Link
+          aria-label="Next preset"
+          className={PILL}
+          search={{ id: next.id }}
+          to={kind.to}
+        >
           →
         </Link>
       </nav>
