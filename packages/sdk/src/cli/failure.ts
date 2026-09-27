@@ -1,8 +1,8 @@
+import { WEB_ORIGIN } from "@anpord/schema/public/origins";
 import { Effect } from "effect";
 import { asAnpordError } from "../client/errors";
 
-const MISSING_KEY =
-  "Set ANPORD_API_KEY to an API key from https://www.anpord.com/settings/keys";
+const MISSING_KEY = `Set ANPORD_API_KEY to an API key from ${WEB_ORIGIN}/settings/keys`;
 
 export const EXIT_ERROR = 1;
 const EXIT_GATE_FAILED = 2;

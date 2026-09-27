@@ -1,15 +1,15 @@
+import { API_REFERENCE_URL, DOCS_ORIGIN } from "@anpord/schema/public/origins";
 import { buttonVariants } from "@anpord/ui/lib/button-variants";
 import { cn } from "@anpord/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { PanelCard } from "@/components/layout/panel-card";
 import { RootDocument } from "@/components/layout/root-document";
 import { SiteLayout } from "@/components/layout/site-layout";
-import { DOCS_URL } from "@/lib/urls";
 
 const ELSEWHERE: readonly { readonly href: string; readonly label: string }[] =
   [
-    { href: DOCS_URL, label: "Documentation" },
-    { href: `${DOCS_URL}/api-reference/introduction`, label: "API reference" },
+    { href: DOCS_ORIGIN, label: "Documentation" },
+    { href: API_REFERENCE_URL, label: "API reference" },
   ];
 
 export function RootNotFound() {
