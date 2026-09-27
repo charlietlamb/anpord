@@ -1,17 +1,9 @@
 import type { AuthInstance } from "@anpord/auth";
 import { Actor } from "@anpord/schema/domain/actor";
 import type { Permission } from "@anpord/schema/domain/permissions";
+import { API_SCOPES } from "@anpord/schema/domain/scopes";
 import { Effect, Option, Schema } from "effect";
 import { unauthorized } from "./unauthorized";
-
-const API_KEY_PERMISSIONS: readonly Permission[] = [
-  "prompts:read",
-  "prompts:write",
-  "channels:read",
-  "channels:write",
-  "evals:read",
-  "evals:write",
-];
 
 type VerifiedKey = NonNullable<
   Awaited<ReturnType<AuthInstance["api"]["verifyApiKey"]>>["key"]
@@ -21,8 +13,8 @@ export const resolveApiKeyPermissions = (
   scopes: VerifiedKey["permissions"]
 ): readonly Permission[] =>
   scopes == null
-    ? API_KEY_PERMISSIONS
-    : API_KEY_PERMISSIONS.filter((permission) => {
+    ? API_SCOPES
+    : API_SCOPES.filter((permission) => {
         const [resource, action] = permission.split(":");
         return scopes[resource]?.includes(action) === true;
       });
