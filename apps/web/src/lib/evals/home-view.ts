@@ -220,7 +220,7 @@ const headlineOf = (
       : `All ${tally.total} evals pass.`;
   }
   const period = PERIOD[range];
-  const failing = failingSentence(tally.failing, newlyFailing, period);
+  const failing = failingSentence(tally.failing, newlyFailing);
   if (tally.passRate === null) {
     return failing;
   }
@@ -231,7 +231,7 @@ const headlineOf = (
   return `${failing} Pass rate is ${tally.passRate}%${trend}.`;
 };
 
-const failingSentence = (failing: number, fresh: number, period: string) => {
+const failingSentence = (failing: number, fresh: number) => {
   if (failing === 0) {
     return "No evals are failing.";
   }
@@ -264,17 +264,17 @@ export const homeView = (home: EvalHome, filters: HomeFilters) => {
   const focus = focusOf(filters);
 
   const cards = [...groupBy(evals, (entry) => entry.suite.id)]
-    .map(([suiteId, members]) =>
-      suiteCard(
+    .flatMap(([suiteId, members]) => {
+      const card = suiteCard(
         members,
         dailyRates(
           axis,
           days.filter((day) => day.suiteId === suiteId)
         ),
         focus
-      )
-    )
-    .filter((card) => focus === null || card.listed.length > 0)
+      );
+      return focus === null || card.listed.length > 0 ? [card] : [];
+    })
     .sort(byConcern);
 
   const allVariants = [...new Set(home.evals.map(labelOf))];

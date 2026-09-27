@@ -12,7 +12,7 @@ import { DateTime } from "effect";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
-const NOW = Date.now();
+const NOW = Date.parse("2026-09-27T12:00:00Z");
 const TRIALS = 4;
 
 const variant = (
