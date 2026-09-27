@@ -1,6 +1,6 @@
+import type { Tx } from "@anpord/db/query";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { and, eq } from "drizzle-orm";
-import type { Tx } from "./query";
 
 /* Publishing creates an unused channel so a move never fails on a missing row;
    a conflict means another writer won and its row is the one to use. */

@@ -1,4 +1,4 @@
-import type { Database } from "@anpord/db/client";
+import type { Db } from "@anpord/db/query";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { credentialConnection } from "@anpord/db/schema/credentials/connections";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
@@ -8,8 +8,6 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-
-type Db = Database["Type"];
 
 export const seedOrganization = (db: Db, organizationId: string) =>
   db

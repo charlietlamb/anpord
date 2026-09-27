@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
@@ -12,7 +13,7 @@ import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
 import { DateTime, Effect, Option } from "effect";
 import { rollUp } from "../domain/eval-costs";
 import { nextCursor, pageOf, pageSizeOf } from "../domain/page";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 import { runReadsQuery } from "./run-reads-query";
 import { runStatus } from "./run-view";
 

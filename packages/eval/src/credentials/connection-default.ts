@@ -1,9 +1,7 @@
-import type { Database } from "@anpord/db/client";
+import type { Db } from "@anpord/db/query";
 import { credentialConnection } from "@anpord/db/schema/credentials/connections";
 import { and, eq } from "drizzle-orm";
 import { defaultScope } from "./connection-scope";
-
-type Db = Database["Type"];
 
 interface Owner {
   readonly id: string;

@@ -1,4 +1,5 @@
 import { Database } from "@anpord/db/client";
+import { head } from "@anpord/db/query";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
 import type { OrganizationId } from "@anpord/schema/domain/actor";
@@ -7,7 +8,7 @@ import type { ChannelName } from "@anpord/schema/domain/prompts";
 import { and, asc, count, eq } from "drizzle-orm";
 import { Context, Effect, Layer, type Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
-import { head, tryStore } from "./query";
+import { tryStore } from "./query";
 
 export interface ChannelCountRow {
   readonly color: string;

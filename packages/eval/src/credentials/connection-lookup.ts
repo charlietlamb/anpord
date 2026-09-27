@@ -1,11 +1,9 @@
-import type { Database } from "@anpord/db/client";
+import type { Db } from "@anpord/db/query";
 import { user } from "@anpord/db/schema/auth/users";
 import { credentialConnection } from "@anpord/db/schema/credentials/connections";
 import type { Actor } from "@anpord/schema/domain/actor";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { visibleTo } from "./connection-scope";
-
-type Db = Database["Type"];
 
 export const selectVisible = (db: Db, actor: Actor, id: string) =>
   db

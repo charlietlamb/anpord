@@ -1,13 +1,11 @@
-import type { Database } from "@anpord/db/client";
+import { type Db, head, tryStoreWith } from "@anpord/db/query";
 import { member } from "@anpord/db/schema/auth/members";
 import { organization } from "@anpord/db/schema/auth/organizations";
 import { user } from "@anpord/db/schema/auth/users";
 import { channel } from "@anpord/db/schema/prompts/channels";
 import { and, desc, eq } from "drizzle-orm";
-import { Effect, Option } from "effect";
+import { Effect, type Option } from "effect";
 import { OrganizationStoreError } from "./organization-store-error";
-
-type Db = Database["Type"];
 
 export interface OwnerProfile {
   readonly email: string;
@@ -28,13 +26,7 @@ export interface NewOwnerMembership {
   readonly userId: string;
 }
 
-const tryQuery = <A>(operation: string, run: () => Promise<A>) =>
-  Effect.tryPromise({
-    catch: (cause) => new OrganizationStoreError({ cause, operation }),
-    try: run,
-  });
-
-const firstRow = <A>(rows: readonly A[]) => Option.fromNullable(rows.at(0));
+const tryQuery = tryStoreWith(OrganizationStoreError);
 
 export const findLatestMembership = (db: Db, userId: string) =>
   tryQuery("member.findByUser", () =>
@@ -44,7 +36,7 @@ export const findLatestMembership = (db: Db, userId: string) =>
       .where(eq(member.userId, userId))
       .orderBy(desc(member.createdAt))
       .limit(1)
-  ).pipe(Effect.map(firstRow));
+  ).pipe(Effect.map(head));
 
 /** Scoped to the organisation too: a person holds a different role in each. */
 export const findMemberRole = (
@@ -63,7 +55,7 @@ export const findMemberRole = (
         )
       )
       .limit(1)
-  ).pipe(Effect.map(firstRow));
+  ).pipe(Effect.map(head));
 
 export const findOrganization = (db: Db, organizationId: string) =>
   tryQuery("organization.findById", () =>
@@ -76,7 +68,7 @@ export const findOrganization = (db: Db, organizationId: string) =>
       .from(organization)
       .where(eq(organization.id, organizationId))
       .limit(1)
-  ).pipe(Effect.map(firstRow));
+  ).pipe(Effect.map(head));
 
 export const findOwnerProfile = (db: Db, userId: string) =>
   tryQuery("user.findById", () =>
@@ -85,7 +77,7 @@ export const findOwnerProfile = (db: Db, userId: string) =>
       .from(user)
       .where(eq(user.id, userId))
       .limit(1)
-  ).pipe(Effect.map((rows): Option.Option<OwnerProfile> => firstRow(rows)));
+  ).pipe(Effect.map((rows): Option.Option<OwnerProfile> => head(rows)));
 
 export const insertOrganization = (db: Db, values: NewOrganization) =>
   tryQuery("organization.insert", () => db.insert(organization).values(values));

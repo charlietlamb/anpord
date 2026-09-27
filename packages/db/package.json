@@ -8,6 +8,7 @@
     "./config": "./src/config.ts",
     "./describe": "./src/describe.ts",
     "./health": "./src/health.ts",
+    "./query": "./src/query.ts",
     "./test-database": "./src/test-database.ts",
     "./schema": "./src/schema.ts",
     "./schema/credentials/*": "./src/schema/credentials/*.ts",
