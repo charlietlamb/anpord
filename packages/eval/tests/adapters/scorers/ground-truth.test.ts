@@ -9,18 +9,15 @@ import { Effect, Stream } from "effect";
 import { ScorerGroundTruthLive } from "../../../src/adapters/scorers/ground-truth";
 import { distributionOf } from "../../../src/domain/distribution";
 import { outcomeOf } from "../../../src/domain/trial";
-import type { ExecChunk, SandboxHandle } from "../../../src/ports/sandbox";
+import type { SandboxHandle } from "../../../src/ports/sandbox";
 import { Scorer } from "../../../src/ports/scorer";
-import { declinesEverything } from "../../fixtures/declines-everything";
 import { exit, stderr, stdout } from "../../fixtures/exec-chunk";
+import { fakeSandbox } from "../../fixtures/fake-sandbox";
 
-const sandboxYielding = (chunks: readonly ExecChunk[]): SandboxHandle => ({
-  exec: () => Stream.fromIterable(chunks),
+const sandboxYielding = fakeSandbox({
   home: "/tmp",
   id: "sbx-1",
   provider: "daytona",
-  ...declinesEverything,
-  writeFile: () => Effect.void,
 });
 
 const score = (
