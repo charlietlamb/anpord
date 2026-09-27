@@ -461,12 +461,28 @@ describe.skipIf(skipWithoutDatabase())("the home read model", () => {
   });
 
   it("lists the five newest batches", () => {
-    expect(result.recentBatches.map((batch) => batch.id)).toEqual([
+    expect(result.recentBatches.map((recent) => recent.batch.id)).toEqual([
       `ebat_${suffix}_fresh_live`,
       `ebat_${suffix}_busy_live`,
       `ebat_${suffix}_wobbly_after`,
       `ebat_${suffix}_broken_after`,
       `ebat_${suffix}_slow_only`,
+    ]);
+  });
+
+  it("names what each recent batch ran", () => {
+    expect(
+      result.recentBatches.map(({ caseName, suiteName, suites }) => ({
+        caseName,
+        suiteName,
+        suites,
+      }))
+    ).toEqual([
+      { caseName: "Case fresh", suiteName: "Suite alpha", suites: 1 },
+      { caseName: "Case busy", suiteName: "Suite beta", suites: 1 },
+      { caseName: "Case wobbly", suiteName: "Suite beta", suites: 1 },
+      { caseName: "Case broken", suiteName: "Suite alpha", suites: 1 },
+      { caseName: "Case slow", suiteName: "Suite beta", suites: 1 },
     ]);
   });
 

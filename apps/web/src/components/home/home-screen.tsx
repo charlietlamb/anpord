@@ -21,7 +21,7 @@ export function HomeScreen({
   readonly onFilters: (changed: Partial<HomeFilters>) => void;
 }) {
   const shown = home ?? PLACEHOLDER_HOME;
-  const view = homeView(shown, filters);
+  const view = homeView(shown, { ...filters, range: shown.range });
 
   return (
     <PageShell

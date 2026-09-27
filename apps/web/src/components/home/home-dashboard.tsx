@@ -4,7 +4,7 @@ import { HomeReasons } from "@/components/home/home-reasons";
 import { HomeRecentRuns } from "@/components/home/home-recent-runs";
 import { HomeSuites } from "@/components/home/home-suites";
 import { HomeTrendChart } from "@/components/home/home-trend-chart";
-import { HomeVariantGrid } from "@/components/home/home-variant-grid";
+import { HomeVariants } from "@/components/home/home-variants";
 import type { HomeFilters, HomeView } from "@/lib/evals/home-view";
 
 export function HomeDashboard({
@@ -39,7 +39,7 @@ export function HomeDashboard({
         <HomeTrendChart trend={view.trend} />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
-        <HomeVariantGrid grid={view.grid} />
+        <HomeVariants more={view.moreVariants} variants={view.variants} />
         <HomeRecentRuns runs={view.runs} />
       </div>
     </div>

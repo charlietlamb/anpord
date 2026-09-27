@@ -47,6 +47,33 @@ where batch.organization_id = ${organizationId}
 group by 1, 2, 3
 order by 1, 2, 3`;
 
+interface BatchNameRow extends Record<string, unknown> {
+  readonly batch_id: string;
+  readonly case_name: string;
+  readonly cases: number;
+  readonly suite_name: string;
+  readonly suites: number;
+}
+
+const batchNamesSql = (organizationId: string, batchIds: readonly string[]) =>
+  sql`
+select batch.internal_id as batch_id,
+  count(distinct c.internal_id)::int as cases,
+  min(c.name) as case_name,
+  count(distinct suite.internal_id)::int as suites,
+  min(suite.name) as suite_name
+from eval_batch batch
+join eval_run run on run.batch_internal_id = batch.internal_id
+join eval_variant variant on variant.internal_id = run.variant_internal_id
+join eval_case c on c.internal_id = variant.case_internal_id
+join eval_suite suite on suite.internal_id = c.suite_internal_id
+where batch.organization_id = ${organizationId}
+  and batch.internal_id in (${sql.join(
+    batchIds.map((id) => sql`${id}`),
+    sql`, `
+  )})
+group by batch.internal_id`;
+
 const homeSpendSql = (organizationId: string, since: string) =>
   sql`
 select coalesce(sum(cost.amount_nanos), 0)::text as nanos
@@ -96,6 +123,18 @@ export const homeQuery = Effect.gen(function* () {
         { concurrency: "unbounded" }
       );
 
+      const batchIds = held.recent.batches.map((batch) => batch.id);
+      const names =
+        batchIds.length === 0
+          ? new Map<string, BatchNameRow>()
+          : new Map(
+              (yield* tryStore("home.batchNames", () =>
+                db.execute<BatchNameRow>(
+                  batchNamesSql(input.organizationId, batchIds)
+                )
+              )).rows.map((row) => [row.batch_id, row])
+            );
+
       return {
         days: held.days.rows.map(
           (row): EvalHomeDay => ({
@@ -108,7 +147,15 @@ export const homeQuery = Effect.gen(function* () {
         ),
         evals: held.evals,
         range: input.range,
-        recentBatches: held.recent.batches,
+        recentBatches: held.recent.batches.map((batch) => {
+          const named = names.get(batch.id);
+          return {
+            batch,
+            caseName: named?.cases === 1 ? named.case_name : null,
+            suiteName: named?.suites === 1 ? named.suite_name : null,
+            suites: named?.suites ?? 0,
+          };
+        }),
         spendUsd: dollarsOf(BigInt(held.spend.rows[0]?.nanos ?? "0")),
       } satisfies EvalHome;
     }).pipe(

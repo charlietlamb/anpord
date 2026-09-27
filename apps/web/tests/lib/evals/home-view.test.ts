@@ -110,14 +110,11 @@ describe("homeView", () => {
     expect(view.delta).toBe(-10);
   });
 
-  test("puts the suite with the most failing evals first and lists them", () => {
-    const [first, second] = homeView(HOME, NONE).featured;
+  test("puts the suite with the most failing evals first", () => {
+    const [first, second] = homeView(HOME, NONE).suites;
 
     expect(first.suite.name).toBe("autumn/basics");
-    expect(first.listed.map((entry) => entry.caseName)).toEqual([
-      "free-trial",
-      "refunds",
-    ]);
+    expect(first.tally.failing).toBe(2);
     expect(first.trend).toEqual([100, 90, 80]);
     expect(second.suite.name).toBe("local/smoke");
     expect(second.tally.passRate).toBe(100);
@@ -133,16 +130,15 @@ describe("homeView", () => {
   test("a verdict filter keeps only suites with that verdict and dims the rest", () => {
     const view = homeView(HOME, { ...NONE, verdict: "unscored" });
 
-    expect(view.featured.map((card) => card.suite.name)).toEqual([
-      "autumn/basics",
-    ]);
-    expect(view.featured[0].listed.map((entry) => entry.detail)).toEqual([
-      "timed out after 10m",
-    ]);
-    expect(view.featured[0].cells.filter((cell) => !cell.dim)).toHaveLength(1);
+    expect(view.suites.map((row) => row.suite.name)).toEqual(["autumn/basics"]);
+    expect(
+      view.suites[0].cells
+        .filter((cell) => !cell.dim)
+        .map((cell) => cell.caseName)
+    ).toEqual(["prepare"]);
   });
 
-  test("suite and variant filters narrow evals, trends and the grid", () => {
+  test("suite and variant filters narrow evals, trends and variants", () => {
     const view = homeView(HOME, {
       ...NONE,
       suite: SMOKE.id,
@@ -150,47 +146,68 @@ describe("homeView", () => {
     });
 
     expect(view.tally.total).toBe(1);
-    expect(view.grid).toEqual({
-      rows: [{ cells: [100], suite: SMOKE }],
-      variants: ["claude/opus@setup"],
-    });
+    expect(view.variants.map((row) => [row.label, row.tally.passRate])).toEqual(
+      [["claude/opus@setup", 100]]
+    );
     expect(view.trend.series).toEqual([]);
   });
 
-  test("recent runs name their source and count every trial", () => {
+  test("recent runs name what they ran and show a square per trial", () => {
+    const summary = {
+      cases: 12,
+      failure: null,
+      finishedAt: null,
+      id: "bat_01K5YM",
+      passed: 2,
+      runs: 12,
+      scored: 3,
+      startedAt: DateTime.unsafeMake(0),
+      status: "running",
+      trigger: { source: "cli" },
+      voided: 1,
+    } as const;
     const view = homeView(
       {
         ...HOME,
         recentBatches: [
           {
-            cases: 12,
-            failure: null,
-            finishedAt: null,
-            id: "bat_01K5YM",
-            passed: 12,
-            runs: 12,
-            scored: 14,
-            startedAt: DateTime.unsafeMake(0),
-            status: "running",
-            trigger: { source: "cli" },
-            voided: 1,
+            batch: summary,
+            caseName: null,
+            suiteName: "autumn/basics",
+            suites: 1,
+          },
+          {
+            batch: { ...summary, cases: 1, id: "bat_one" },
+            caseName: "refunds",
+            suiteName: "autumn/basics",
+            suites: 1,
+          },
+          {
+            batch: {
+              ...summary,
+              id: "bat_many",
+              passed: 60,
+              scored: 64,
+              voided: 0,
+            },
+            caseName: null,
+            suiteName: null,
+            suites: 3,
           },
         ],
       },
       NONE
     );
 
-    expect(view.runs).toEqual([
-      {
-        at: DateTime.unsafeMake(0),
-        failed: 2,
-        id: "bat_01K5YM",
-        passed: 12,
-        source: "Local",
-        total: 15,
-        voided: 1,
-      },
+    expect(
+      view.runs.map(({ name, scope, source }) => [name, scope, source])
+    ).toEqual([
+      ["autumn/basics", "12 cases", "Local"],
+      ["refunds", "1 case", "Local"],
+      ["3 suites", "12 cases", "Local"],
     ]);
+    expect(view.runs[0].trials).toEqual(["passed", "passed", "failed", "void"]);
+    expect(view.runs[2].trials).toHaveLength(32);
   });
 
   test("an empty organization has nothing to count", () => {

@@ -1,5 +1,6 @@
 import type {
   EvalHome,
+  EvalHomeBatch,
   EvalHomeDay,
   EvalHomeEval,
   EvalHomeVerdict,
@@ -221,12 +222,30 @@ const batch = (
   voided,
 });
 
+const named = (
+  summary: EvalBatchSummary,
+  names: { readonly caseName?: string; readonly suiteName?: string }
+): EvalHomeBatch => ({
+  batch: summary,
+  caseName: names.caseName ?? null,
+  suiteName: names.suiteName ?? null,
+  suites: names.suiteName === undefined && names.caseName === undefined ? 2 : 1,
+});
+
 const BATCHES = [
-  batch("bat_01K5ZQ", 2, { source: "ci" }, 42, 4, 2),
-  batch("bat_01K5YM", 5, { source: "cli" }, 12, 2, 0),
-  batch("bat_01K5WX", 26, { source: "dashboard" }, 36, 1, 1),
-  batch("bat_01K5T2", 50, { source: "ci" }, 40, 0, 0),
-  batch("bat_01K5R8", 74, { source: "api" }, 38, 3, 1),
+  named(batch("bat_01K5ZQ", 2, { source: "ci" }, 88, 6, 2), {
+    suiteName: "autumn/billing",
+  }),
+  named(batch("bat_01K5YM", 5, { source: "cli" }, 4, 0, 0), {
+    caseName: "basics-pro-growth-clear",
+  }),
+  named(batch("bat_01K5WX", 26, { source: "dashboard" }, 140, 2, 2), {
+    suiteName: "autumn/basics",
+  }),
+  named(batch("bat_01K5T2", 50, { source: "cli" }, 1, 4, 0), {
+    caseName: "push-preview-approval",
+  }),
+  named(batch("bat_01K5R8", 74, { source: "ci" }, 48, 0, 0), {}),
 ];
 
 export const HOME = {
@@ -243,9 +262,12 @@ export const HOME_ALL_GREEN = {
   evals: evalsOf(SUITES, () => "passed"),
   recentBatches: BATCHES.map((entry) => ({
     ...entry,
-    passed: entry.scored + entry.voided,
-    scored: entry.scored + entry.voided,
-    voided: 0,
+    batch: {
+      ...entry.batch,
+      passed: entry.batch.scored + entry.batch.voided,
+      scored: entry.batch.scored + entry.batch.voided,
+      voided: 0,
+    },
   })),
 } satisfies EvalHome;
 

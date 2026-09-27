@@ -60,11 +60,23 @@ export const EvalHomeDay = Schema.Struct({
 });
 export type EvalHomeDay = typeof EvalHomeDay.Type;
 
+export const EvalHomeBatch = Schema.Struct({
+  batch: EvalBatchSummary,
+  caseName: Schema.NullOr(Schema.String),
+  suiteName: Schema.NullOr(Schema.String),
+  suites: Schema.Int,
+}).annotations({
+  description:
+    "A recent batch and what it ran: its only case or only suite by name, and how many suites it touched.",
+  identifier: "EvalHomeBatch",
+});
+export type EvalHomeBatch = typeof EvalHomeBatch.Type;
+
 export const EvalHome = Schema.Struct({
   days: Schema.Array(EvalHomeDay),
   evals: Schema.Array(EvalHomeEval),
   range: EvalHomeRange,
-  recentBatches: Schema.Array(EvalBatchSummary),
+  recentBatches: Schema.Array(EvalHomeBatch),
   spendUsd: Schema.Number,
 }).annotations({
   description:

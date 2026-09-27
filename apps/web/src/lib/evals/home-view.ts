@@ -1,12 +1,13 @@
 import {
   type EvalHome,
+  type EvalHomeBatch,
   type EvalHomeEval,
   type EvalHomeRange,
   type EvalHomeVerdict,
   variantLabel,
 } from "@anpord/schema/domain/eval-home";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { EvalBatchSummary, EvalSuite } from "@anpord/schema/domain/evals";
+import type { EvalSuite } from "@anpord/schema/domain/evals";
 import {
   axisFloor,
   type DailyRate,
@@ -43,17 +44,8 @@ export interface HomeCell {
   readonly verdict: EvalHomeVerdict;
 }
 
-interface HomeListed {
-  readonly caseId: string;
-  readonly caseName: string;
-  readonly detail: string;
-  readonly key: string;
-  readonly verdict: EvalHomeVerdict;
-}
-
-export interface HomeSuiteCard {
+export interface HomeSuiteRow {
   readonly cells: readonly HomeCell[];
-  readonly listed: readonly HomeListed[];
   readonly suite: EvalSuite;
   readonly tally: HomeTally;
   readonly trend: readonly DailyRate[];
@@ -81,32 +73,62 @@ const SOURCE_LABEL: Record<EvalTrigger["source"], string> = {
   mcp: "MCP",
 };
 
+export type TrialOutcome = "passed" | "failed" | "void";
+
 export interface HomeRun {
-  readonly at: EvalBatchSummary["startedAt"];
-  readonly failed: number;
+  readonly at: EvalHomeBatch["batch"]["startedAt"];
   readonly id: string;
-  readonly passed: number;
+  readonly name: string;
+  readonly scope: string;
   readonly source: string;
-  readonly total: number;
-  readonly voided: number;
+  readonly trials: readonly TrialOutcome[];
 }
 
-const runOf = (batch: EvalBatchSummary): HomeRun => ({
-  at: batch.finishedAt ?? batch.startedAt,
-  failed: batch.scored - batch.passed,
-  id: batch.id,
-  passed: batch.passed,
-  source:
-    batch.trigger === null ? "Unknown" : SOURCE_LABEL[batch.trigger.source],
-  total: batch.scored + batch.voided,
-  voided: batch.voided,
-});
+const TRIAL_SQUARES = 32;
 
-const FEATURED = 3;
-const LISTED = 3;
+const plural = (count: number, noun: string) =>
+  count === 1 ? `1 ${noun}` : `${count} ${noun}s`;
+
+const trialsOf = (passed: number, failed: number, voided: number) => {
+  const total = passed + failed + voided;
+  const scale = total > TRIAL_SQUARES ? TRIAL_SQUARES / total : 1;
+  const share = (count: number) =>
+    count === 0 ? 0 : Math.max(1, Math.round(count * scale));
+  return [
+    ...new Array<TrialOutcome>(share(passed)).fill("passed"),
+    ...new Array<TrialOutcome>(share(failed)).fill("failed"),
+    ...new Array<TrialOutcome>(share(voided)).fill("void"),
+  ];
+};
+
+const nameOf = ({ caseName, suiteName, suites }: EvalHomeBatch) =>
+  caseName ?? suiteName ?? plural(suites, "suite");
+
+const runOf = (recent: EvalHomeBatch): HomeRun => {
+  const { batch } = recent;
+  return {
+    at: batch.finishedAt ?? batch.startedAt,
+    id: batch.id,
+    name: nameOf(recent),
+    scope: plural(batch.cases, "case"),
+    source:
+      batch.trigger === null ? "Unknown" : SOURCE_LABEL[batch.trigger.source],
+    trials: trialsOf(batch.passed, batch.scored - batch.passed, batch.voided),
+  };
+};
+
+const SUITES_SHOWN = 6;
+const VARIANTS_SHOWN = 8;
 const UNSCORED_FALLBACK = "Not scored";
 
 const labelOf = (entry: EvalHomeEval) => variantLabel(entry.variant);
+
+const VERDICT_ORDER: Record<EvalHomeVerdict, number> = {
+  passed: 0,
+  flaky: 1,
+  failed: 2,
+  unscored: 3,
+};
 
 const tallyOf = (evals: readonly EvalHomeEval[]): HomeTally => {
   const count = (verdict: EvalHomeVerdict) =>
@@ -145,38 +167,18 @@ const focusOf = (filters: HomeFilters) => {
 const byName = (a: EvalHomeEval, b: EvalHomeEval) =>
   a.caseName.localeCompare(b.caseName) || labelOf(a).localeCompare(labelOf(b));
 
-const suiteCard = (
-  evals: readonly EvalHomeEval[],
-  trend: readonly DailyRate[],
-  focus: ((entry: EvalHomeEval) => boolean) | null
-): HomeSuiteCard => {
-  const sorted = [...evals].sort(byName);
-  const listed = sorted.filter(
-    focus ?? ((entry) => entry.verdict === "failed")
-  );
-  return {
-    cells: sorted.map((entry) => ({
-      caseId: entry.caseId,
-      caseName: entry.caseName,
-      dim: focus !== null && !focus(entry),
-      key: entry.runId,
-      variant: labelOf(entry),
-      verdict: entry.verdict,
-    })),
-    listed: listed.slice(0, LISTED).map((entry) => ({
-      caseId: entry.caseId,
-      caseName: entry.caseName,
-      detail: reasonOf(entry) ?? labelOf(entry),
-      key: entry.runId,
-      verdict: entry.verdict,
-    })),
-    suite: sorted[0].suite,
-    tally: tallyOf(evals),
-    trend,
-  };
-};
+const cellOf =
+  (focus: ((entry: EvalHomeEval) => boolean) | null) =>
+  (entry: EvalHomeEval): HomeCell => ({
+    caseId: entry.caseId,
+    caseName: entry.caseName,
+    dim: focus !== null && !focus(entry),
+    key: entry.runId,
+    variant: labelOf(entry),
+    verdict: entry.verdict,
+  });
 
-const byConcern = (a: HomeSuiteCard, b: HomeSuiteCard) =>
+const byConcern = (a: HomeSuiteRow, b: HomeSuiteRow) =>
   b.tally.failing - a.tally.failing ||
   b.tally.total - a.tally.total ||
   a.suite.name.localeCompare(b.suite.name);
@@ -223,25 +225,41 @@ export const homeView = (home: EvalHome, filters: HomeFilters) => {
   const newlyFailing = evals.filter((entry) => entry.newlyFailing).length;
   const focus = focusOf(filters);
 
-  const cards = [...groupBy(evals, (entry) => entry.suite.id)]
-    .flatMap(([suiteId, members]) => {
-      const card = suiteCard(
-        members,
-        dailyRates(
-          axis,
-          days.filter((day) => day.suiteId === suiteId)
-        ),
-        focus
-      );
-      return focus === null || card.listed.length > 0 ? [card] : [];
+  const suiteRows = [...groupBy(evals, (entry) => entry.suite.id)]
+    .flatMap(([suiteId, members]): HomeSuiteRow[] => {
+      if (focus !== null && !members.some(focus)) {
+        return [];
+      }
+      const sorted = [...members].sort(byName);
+      return [
+        {
+          cells: sorted.map(cellOf(focus)),
+          suite: sorted[0].suite,
+          tally: tallyOf(members),
+          trend: dailyRates(
+            axis,
+            days.filter((day) => day.suiteId === suiteId)
+          ),
+        },
+      ];
     })
     .sort(byConcern);
 
+  const variantRows = [...groupBy(evals, labelOf)]
+    .map(([label, members]) => ({
+      cells: [...members]
+        .sort((a, b) => VERDICT_ORDER[a.verdict] - VERDICT_ORDER[b.verdict])
+        .map(cellOf(focus)),
+      label,
+      tally: tallyOf(members),
+    }))
+    .sort(
+      (a, b) =>
+        (a.tally.passRate ?? 101) - (b.tally.passRate ?? 101) ||
+        a.label.localeCompare(b.label)
+    );
+
   const allVariants = [...new Set(home.evals.map(labelOf))];
-  const variants = [...new Set(evals.map(labelOf))];
-  const suites = [...new Map(evals.map((e) => [e.suite.id, e.suite]))]
-    .map(([, suite]) => suite)
-    .sort((a, b) => a.name.localeCompare(b.name));
   const series = [...new Set(days.map((day) => day.variant))].map((label) => ({
     label,
     slot: allVariants.indexOf(label),
@@ -252,24 +270,9 @@ export const homeView = (home: EvalHome, filters: HomeFilters) => {
   }));
 
   return {
-    compact: cards.slice(FEATURED),
     delta,
-    featured: cards.slice(0, FEATURED),
-    grid: {
-      rows: suites.map((suite) => ({
-        cells: variants.map(
-          (label) =>
-            tallyOf(
-              evals.filter(
-                (entry) =>
-                  entry.suite.id === suite.id && labelOf(entry) === label
-              )
-            ).passRate
-        ),
-        suite,
-      })),
-      variants,
-    },
+    moreSuites: Math.max(0, suiteRows.length - SUITES_SHOWN),
+    moreVariants: Math.max(0, variantRows.length - VARIANTS_SHOWN),
     newlyFailing,
     options: {
       suites: [...new Map(home.evals.map((e) => [e.suite.id, e.suite]))].map(
@@ -279,6 +282,8 @@ export const homeView = (home: EvalHome, filters: HomeFilters) => {
     },
     overall,
     reasons: reasonsOf(evals),
+    suites: suiteRows.slice(0, SUITES_SHOWN),
+    variants: variantRows.slice(0, VARIANTS_SHOWN),
     runs: home.recentBatches.map(runOf),
     tally,
     trend: {

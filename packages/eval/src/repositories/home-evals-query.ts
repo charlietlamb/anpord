@@ -58,6 +58,8 @@ judged as (
       coalesce(run.finished_at, run.created_at) as finished_at,
       row_number() over (order by run.created_at desc, run.internal_id desc) as position
     from eval_run run
+    join eval_batch batch on batch.internal_id = run.batch_internal_id
+      and batch.organization_id = ${organizationId}
     where run.variant_internal_id = scoped.variant_id and run.status <> 'running'
     order by run.created_at desc, run.internal_id desc
     limit 2
