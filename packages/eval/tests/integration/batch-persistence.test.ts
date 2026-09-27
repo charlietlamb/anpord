@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
+import { skipWithoutDatabase } from "@anpord/db/test-database";
 import { Effect, Layer, ManagedRuntime, Redacted } from "effect";
 import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { ScorerGroundTruthLive } from "../../src/adapters/scorers/ground-truth";
@@ -13,7 +14,6 @@ import { EvalReads } from "../../src/services/eval-reads";
 import { SuspenderSleeping } from "../../src/services/suspender";
 import { fixedSource, VERIFY_COMMAND } from "../fixtures/broken-task";
 import { codexCredential, hasCodex, hasDaytona } from "../fixtures/credentials";
-import { skipWithoutDatabase } from "../fixtures/database";
 import { seedConnection, seedOrganization } from "../fixtures/eval-rows";
 import {
   actorOf,
