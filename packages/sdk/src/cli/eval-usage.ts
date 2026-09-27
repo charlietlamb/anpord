@@ -12,7 +12,7 @@ import {
 
 const THOUSAND = 1000;
 const MILLION = 1_000_000;
-const CENT = 0.01;
+export const CENT = 0.01;
 
 interface Usage {
   readonly concerns: readonly UsageConcern[];
