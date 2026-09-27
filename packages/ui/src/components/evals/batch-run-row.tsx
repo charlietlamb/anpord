@@ -15,17 +15,38 @@ export type TrialLink = (target: {
   readonly trialId: string;
 }) => ReactElement;
 
-const openable = (run: EvalRun) => run.trials.at(0);
+export type RunLink = (target: {
+  readonly caseId: string;
+  readonly runId: string;
+}) => ReactElement;
+
+/* A run is worth opening from the moment it starts, before it has opened a
+   trial, so a running row falls back to the run itself rather than going dead. */
+const destination = (
+  run: EvalRun,
+  linkTo: TrialLink | undefined,
+  runLinkTo: RunLink | undefined
+) => {
+  const trial = run.trials.at(0);
+
+  if (trial !== undefined && linkTo !== undefined) {
+    return linkTo({ caseId: run.case.id, trialId: trial.id });
+  }
+
+  return runLinkTo?.({ caseId: run.case.id, runId: run.id });
+};
 
 export function BatchRunRow({
   linkTo,
   run,
+  runLinkTo,
 }: {
   readonly linkTo?: TrialLink;
   readonly run: EvalRun;
+  readonly runLinkTo?: RunLink;
 }) {
-  const trial = openable(run);
-  const opens = trial !== undefined && linkTo !== undefined;
+  const opensAt = destination(run, linkTo, runLinkTo);
+  const opens = opensAt !== undefined;
 
   const body = (
     <>
@@ -46,13 +67,9 @@ export function BatchRunRow({
     </>
   );
 
-  if (trial === undefined || linkTo === undefined) {
+  if (opensAt === undefined) {
     return <DataTableRow>{body}</DataTableRow>;
   }
 
-  return (
-    <DataTableRow render={linkTo({ caseId: run.case.id, trialId: trial.id })}>
-      {body}
-    </DataTableRow>
-  );
+  return <DataTableRow render={opensAt}>{body}</DataTableRow>;
 }

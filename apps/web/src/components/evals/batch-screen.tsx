@@ -30,6 +30,13 @@ const trialLink = (target: { caseId: string; trialId: string }) => (
   />
 );
 
+const runLink = (target: { caseId: string; runId: string }) => (
+  <Link
+    params={{ caseId: target.caseId, runId: target.runId }}
+    to="/evals/cases/$caseId/runs/$runId"
+  />
+);
+
 export function BatchScreen({ batchId }: { readonly batchId: string }) {
   const { batch, error, running } = useLiveBatchRuns(batchId);
   const source = triggerPresentation(batch?.trigger ?? null);
@@ -71,7 +78,7 @@ export function BatchScreen({ batchId }: { readonly batchId: string }) {
     >
       {running ? <LiveTail batchId={batchId} runId={null} /> : null}
       {batch === undefined ? null : (
-        <BatchRuns batch={batch} linkTo={trialLink} />
+        <BatchRuns batch={batch} linkTo={trialLink} runLinkTo={runLink} />
       )}
     </PageShell>
   );
