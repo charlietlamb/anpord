@@ -1,5 +1,6 @@
 import { Config, Effect, Redacted } from "effect";
 import { isLocalHost } from "./local-hosts";
+import { inspect } from "./migrations/inspect";
 
 const LEADING_SLASH = /^\//;
 
@@ -20,8 +21,28 @@ export const describeDatabase = Config.redacted("DATABASE_URL").pipe(
   })
 );
 
-export const logDatabase = Effect.flatMap(describeDatabase, (database) =>
-  Effect.logInfo(
+const pendingMigrations = (url: Redacted.Redacted<string>) =>
+  Effect.tryPromise(() =>
+    inspect(Redacted.value(url), { confirmDataLoss: false })
+  ).pipe(
+    Effect.map((inspection) => inspection.pending),
+    Effect.orElseSucceed((): readonly string[] => [])
+  );
+
+export const logDatabase = Effect.gen(function* () {
+  const database = yield* describeDatabase;
+  yield* Effect.logInfo(
     `database ${database.name} at ${database.host}${database.local ? " (local)" : ""}`
-  )
-);
+  );
+  if (!database.local) {
+    return;
+  }
+  const pending = yield* pendingMigrations(
+    yield* Config.redacted("DATABASE_URL")
+  );
+  if (pending.length > 0) {
+    yield* Effect.logWarning(
+      `database ${database.name} is missing ${pending.length} migrations (${pending.join(", ")}). Run bun run db:migrate.`
+    );
+  }
+});
