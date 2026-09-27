@@ -1,12 +1,13 @@
 import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
 import { useAppForm } from "@anpord/ui/hooks/use-app-form";
 import { PAGE_FRAME, PAGE_WIDTHS } from "@anpord/ui/lib/page-frame";
+import { slugify } from "@anpord/ui/lib/slugify";
 import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ComposerHeading } from "@/components/prompts/composer-heading";
 import { PromptComposerForm } from "@/components/prompts/prompt-composer-form";
-import { toId, useCreatePrompt } from "@/lib/prompts/use-create-prompt";
+import { useCreatePrompt } from "@/lib/prompts/use-create-prompt";
 
 export const Route = createFileRoute("/_authed/prompts/new")({
   component: NewPromptPage,
@@ -56,9 +57,9 @@ function NewPromptPage() {
                       value={field.state.value}
                     />
 
-                    {toId(field.state.value) === "" ? null : (
+                    {slugify(field.state.value) === "" ? null : (
                       <span className="ml-auto shrink-0 truncate font-mono text-muted-foreground text-xs">
-                        {toId(field.state.value)}
+                        {slugify(field.state.value)}
                       </span>
                     )}
                   </>
