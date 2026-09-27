@@ -38,6 +38,7 @@ export const detachedCommands = (
         stdout: logsOf(logs, "stdout"),
       }))
     ),
+  settled: () => Effect.never,
   start: (command, options) =>
     Effect.gen(function* () {
       const session = yield* sessionName;

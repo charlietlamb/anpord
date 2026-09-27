@@ -61,6 +61,7 @@ export interface ResumableCommands {
   readonly progress: (
     started: StartedCommand
   ) => Effect.Effect<CommandProgress, SandboxUnavailable>;
+  readonly settled: (started: StartedCommand) => Effect.Effect<void>;
   readonly start: (
     command: string,
     options?: ExecOptions
