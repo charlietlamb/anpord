@@ -2,7 +2,7 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { listModels } from "../../evals/evals";
+import { listModels } from "../../evals/catalog-reads";
 
 export const ModelsHandlers = HttpApiBuilder.group(
   PublicApi,

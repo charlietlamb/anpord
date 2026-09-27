@@ -2,7 +2,7 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { listCaseRuns, readRun } from "../../evals/evals";
+import { listCaseRuns, readRun } from "../../evals/run-reads";
 
 const read = { permission: Permissions.Evals.Read };
 
