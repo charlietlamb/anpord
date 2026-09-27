@@ -47,15 +47,59 @@ The rules are in `~/.agents/skills/repo-map/SKILL.md`. This file only says where
 | `CurrentActor` read for authorization | `apps/server/src/http/authorization/authorized-group.ts` |
 | Id prefixes | `packages/ids/src/prefixes.ts` |
 | Transport errors | `packages/schema/src/domain/errors.ts` |
-| Error mappers | `apps/server/src/http/<domain>-errors.ts`, each exporting `with<Domain>Errors` |
+| Error mappers | `apps/server/src/http/<domain>-errors.ts`, each exporting `with<Domain>Errors` and switching on `_tag` with `satisfies never` |
+| Shared eval route helpers | `apps/server/src/routes/evals/` (`batch-actions`, `batch-reads`, `catalog-reads`, `run-reads`), called by both API sides |
+| Scratch test database | `@anpord/db/test-database` (`skipWithoutDatabase`, `testDatabase`) |
+| Store query helpers | `@anpord/db/query` (`Db`, `Tx`, `head`, `tryStoreWith`), `@anpord/db/like` |
 | Cache keys | `packages/prompts/src/domain/keys.ts` |
 
 ## Deviations
 
 - Two APIs, not one. `AnpordApi` in `packages/schema/src/internal/api.ts` serves the dashboard. `PublicApi` in `packages/schema/src/public/api.ts` serves the SDK and `/v1`. Groups are `<surface>-api.ts` in the matching folder.
-- Handlers live at `apps/server/src/routes/<internal|public>/<surface>/handlers.ts`. Each side composes its handlers in its own `api-layer.ts`. Adding a surface touches the group file, that side's `api.ts`, a new `handlers.ts`, and that side's `api-layer.ts`.
+- Handlers live at `apps/server/src/routes/<internal|public>/<surface>/handlers.ts`, except `public/evals/`, which has one `<resource>-handlers.ts` per group. Each side composes its handlers in its own `api-layer.ts`. Adding a surface touches the group file, that side's `api.ts`, a new `handlers.ts`, and that side's `api-layer.ts`.
 - `packages/eval` uses `ports/` and `adapters/` (harness, models, runner, sandbox, scorers, simulated user) on top of the default domain layout.
 - Only `prompts` caches today. `eval` has no `domain/keys.ts`.
+
+## Configuration
+
+One module owns each concern. Import it; never repeat the literal.
+
+| Concern | Module |
+|---|---|
+| Production origins (API, web, docs, API reference) | `@anpord/schema/public/origins` |
+| Local dev ports and their default URLs (3003, 3005, 3010) | `@anpord/schema/internal/local-ports` |
+| Session cookie name and prefix | `@anpord/schema/internal/authentication` |
+| Env names the eval writes and the SDK sandbox runtime reads | `@anpord/schema/domain/sandbox-env` |
+| Mock journal paths | `@anpord/schema/domain/api-mocks` |
+| Permissions an API key or OAuth token may carry | `API_SCOPES` in `@anpord/schema/domain/scopes` |
+| Eval source size cap | `SOURCE_LIMIT` in `@anpord/schema/domain/eval-source-files` |
+| Case sort and order | `CaseSort`, `CaseOrder` in `@anpord/schema/domain/eval-read-models` |
+| Eval-run task id and payload | `@anpord/eval/adapters/runner/eval-run-task` |
+
+Environment is read through Effect `Config` in the module that owns it:
+
+| Package | Module | Reads |
+|---|---|---|
+| `db` | `src/config.ts` | `DATABASE_URL`, `DATABASE_POOL_MAX`, `DATABASE_STATEMENT_TIMEOUT` |
+| `cache` | `src/config.ts` | `REDIS_URL`, `CACHE_TTL_SECONDS` |
+| `auth` | `src/config/auth-config.ts`, `github-credentials.ts` | `BETTER_AUTH_*`, `AUTH_TRUSTED_ORIGINS`, `MCP_RESOURCE_URL`, `GITHUB_CLIENT_*` |
+| `billing` | `src/config.ts` | `AUTUMN_*` |
+| `notifications` | `src/email/email-config.ts` | `RESEND_API_KEY`, `EMAIL_FROM` |
+| `eval` | `services/harness-versions.ts`, `services/sandbox-provider.ts`, `services/journal-retention.ts`, `telemetry.ts`, `adapters/runner/trigger.ts`, `adapters/sandbox/*`, `codebase/github-app.ts`, `credentials/cipher.ts` | harness versions, sandbox concurrency and keys, `EVAL_JOURNAL_HOT`, `AXIOM_*`, `TRIGGER_SECRET_KEY`, `GITHUB_APP_*`, `CREDENTIALS_ENCRYPTION_KEY` |
+| `sdk` | `src/client/config.ts`, `src/cli/*` | `ANPORD_API_KEY`, `ANPORD_BASE_URL`, `ANPORD_WEB_URL`, `ANPORD_BROWSER`, GitHub Actions context |
+| `apps/server` | `src/config.ts`, `routes/internal/health/handlers.ts`, `http/authentication/session-authentication.ts` | `HOST`, `PORT`, `SHUTDOWN_DRAIN_TIMEOUT`, `BUILD_REVISION`, `ROLE_CACHE_CAPACITY` |
+| `apps/mcp` | `src/config.ts` | `ANPORD_AUTH_URL`, `ANPORD_BASE_URL`, `PORT`, `MCP_RESOURCE_URL` |
+
+Raw `process.env` stays only where Effect is not running:
+
+- `apps/web`: `import.meta.env` is Vite's build-time replacement, and `lib/server/server-url.ts` runs in Nitro.
+- `packages/db/src/migrations/target.ts` and `scripts/*.ts` are CLIs that run before any layer.
+- `packages/sdk/src/evals/validator-runtime.ts` and `runner-source.ts` run inside the sandbox; they take the names from `sandbox-env`.
+- `packages/eval/src/credentials/env-resolver.ts` and `packages/sdk/src/cli/local-env.ts` enumerate the whole environment, which `Config` cannot.
+- `packages/sdk/src/cli/transcript-writer.ts` checks `NO_COLOR` in a pure formatter.
+- `@anpord/db/test-database` and test setup, and `apps/e2e`, which writes env for the processes it starts.
+
+The ports and origins also appear where TypeScript cannot import them: root `package.json` scripts, `scripts/*.sh`, `.github/workflows/*`, and `turbo.json`. Change them together.
 
 ## Commands
 
