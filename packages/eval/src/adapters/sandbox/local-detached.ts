@@ -26,23 +26,20 @@ export const localDetached = (
 
   return {
     progress: (started) =>
-      Effect.all(
-        [
-          read(fileOf(started.id, "out")),
-          read(fileOf(started.id, "err")),
-          read(fileOf(started.id, "exit")),
-        ],
-        { concurrency: "unbounded" }
-      ).pipe(
-        Effect.map(([stdout, stderr, status]) => ({
-          exitCode:
-            status.trim() === ""
-              ? (closedWith.get(started.id) ?? null)
-              : Number(status.trim()),
+      Effect.gen(function* () {
+        const closed = closedWith.get(started.id);
+        const status = (yield* read(fileOf(started.id, "exit"))).trim();
+        const [stdout, stderr] = yield* Effect.all(
+          [read(fileOf(started.id, "out")), read(fileOf(started.id, "err"))],
+          { concurrency: "unbounded" }
+        );
+
+        return {
+          exitCode: status === "" ? (closed ?? null) : Number(status),
           stderr,
           stdout,
-        }))
-      ),
+        };
+      }),
     settled: (started) => {
       const exit = exits.get(started.id);
 
