@@ -20,8 +20,12 @@ const slowOk = () => {
   return `http://127.0.0.1:${server.port}/`;
 };
 
-const childOptions = (command: string, readyUrl: string) => ({
-  args: [],
+const childOptions = (
+  command: string,
+  readyUrl: string,
+  args: readonly string[] = []
+) => ({
+  args,
   command,
   cwd: process.cwd(),
   env: {},
@@ -45,6 +49,13 @@ describe("spawnUntilReady", () => {
     );
     expect(outcome).toBe("child never became ready:\n");
   });
+});
+
+test("is ready once a running child answers, and stop ends it", async () => {
+  const child = await spawnUntilReady(childOptions("sleep", slowOk(), ["30"]));
+  expect(child.readyMs).toBeGreaterThan(0);
+  const stopped = await child.stop().then(() => "stopped");
+  expect(stopped).toBe("stopped");
 });
 
 describe("runThenTeardown", () => {
