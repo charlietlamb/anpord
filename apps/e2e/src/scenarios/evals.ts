@@ -28,6 +28,16 @@ const printed = (ran: { readonly stderr: string; readonly stdout: string }) =>
 const messageOf = (cause: unknown) =>
   cause instanceof Error ? cause.message : String(cause);
 
+const LONG_TRIAL = `#!/bin/bash
+echo '{"_tag":"Started","sessionId":"e2e","model":"probe-a"}'
+LOG=$(yes 'npm http fetch GET 200 https://registry.npmjs.org/@useautumn%2fsdk 12ms (cache miss)\\n' | head -n 11000 | tr -d '\\n')
+for step in install lint build test typecheck diff; do
+  printf '{"_tag":"Command","command":"npm run %s","exitCode":0,"output":"%s"}\\n' "$step" "$LOG"
+done
+echo done > "$ANPORD_WORKSPACE/done.txt"
+echo '{"_tag":"Finished","reason":"done"}'
+`;
+
 export const evalScenarios: readonly Scenario<World>[] = [
   {
     name: "evals: --local runs a case on every variant, one run each",
@@ -268,6 +278,47 @@ export const evalScenarios: readonly Scenario<World>[] = [
         },
         world.otherKey.key
       );
+    },
+  },
+  {
+    name: "evals: a local trial whose journal outgrows a request is still recorded",
+    run: async (world) => {
+      const suite = givenSuite(
+        world,
+        "e2e-long-trial",
+        [{ id: "long-trial", writes: "done.txt" }],
+        ["probe-a"],
+        LONG_TRIAL
+      );
+
+      const ran = await cli(world, ["eval", suite.file, "--local"]);
+      equals("the gate passes", ran.code, 0);
+      isTrue(
+        "the trial is not void",
+        !printed(ran).includes("was not recorded"),
+        printed(ran)
+      );
+
+      await withClient(world, async (anpord) => {
+        const batch = await anpord.evals.batches.get({
+          id: batchIdIn(printed(ran)),
+        });
+        const [run] = batch.runs;
+        equals("the verdict is recorded", run?.distribution.passed, 1);
+
+        const detail = await anpord.evals.runs.get({ id: run?.id ?? "" });
+        const commands = (detail.trials[0]?.trajectory ?? []).flatMap(
+          (entry) =>
+            entry._tag === "command" && entry.command.startsWith("npm run")
+              ? [`${entry.output.length} ${entry.outputTruncated}`]
+              : []
+        );
+        equals(
+          "every command keeps what the journal shows, marked as cut",
+          commands.join(),
+          Array.from({ length: 6 }, () => "4000 true").join()
+        );
+      });
     },
   },
 ];

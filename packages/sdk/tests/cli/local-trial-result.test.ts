@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { PrepareFailed, TrialTimedOut } from "@anpord/eval/domain/errors";
+import { asEntries } from "@anpord/eval/domain/journal-entries";
 import { Cause } from "effect";
 import {
   brokenBy,
@@ -9,6 +10,7 @@ import {
 } from "../../src/cli/local-trial-result";
 import { verdictLines } from "../../src/cli/transcript-verdict";
 import { PLAIN, writerFor } from "../../src/cli/transcript-writer";
+import { longTrial } from "../fixtures/long-trial";
 
 const timedOut = brokenBy(
   Cause.fail(new TrialTimedOut({ timeoutMs: 1000 })),
@@ -59,5 +61,35 @@ describe("a local trial that could not finish", () => {
         usage: null,
       },
     });
+  });
+});
+
+describe("a long local trial", () => {
+  const { payload } = reportRequest(longTrial, 1, "run_1");
+
+  it("is reported in one request the server takes", () => {
+    expect(Buffer.byteLength(JSON.stringify(payload))).toBeLessThan(
+      4 * 1024 * 1024
+    );
+  });
+
+  it("keeps every command the journal shows, marked as cut", () => {
+    const commands = payload.events.filter((event) => event._tag === "Command");
+
+    expect(
+      commands
+        .flatMap(asEntries)
+        .map((entry) =>
+          entry._tag === "command"
+            ? [entry.command, entry.output.length, entry.outputTruncated]
+            : []
+        )
+    ).toEqual(
+      commands.map((event) => [
+        event._tag === "Command" ? event.command : "",
+        4000,
+        true,
+      ])
+    );
   });
 });

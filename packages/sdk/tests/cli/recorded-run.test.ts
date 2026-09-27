@@ -69,6 +69,7 @@ const GATEWAY_PAGE =
 interface Api {
   readonly calls: Map<string, number>;
   readonly finished: string[];
+  readonly journals: number[];
   readonly reported: {
     readonly failure?: string;
     readonly ordinal: number;
@@ -108,10 +109,12 @@ const fakeApi = (
   request: StartBatchRequest,
   failures: Readonly<Record<string, readonly number[]>>,
   knowsBeat = true,
-  version: "current" | "before-broken-reports" = "current"
+  version: "current" | "before-broken-reports" = "current",
+  maxRequestBodySize = 4 * 1024 * 1024
 ): Api => {
   const calls = new Map<string, number>();
   const finished: string[] = [];
+  const journals: number[] = [];
   const reported: { failure?: string; ordinal: number; runId: string }[] = [];
   const started = Promise.withResolvers<void>();
   const startKeys: (string | null)[] = [];
@@ -145,6 +148,7 @@ const fakeApi = (
   });
 
   const server = Bun.serve({
+    maxRequestBodySize,
     port: 0,
     fetch: async (incoming) => {
       const path = new URL(incoming.url).pathname.replace("/v1/", "");
@@ -191,6 +195,7 @@ const fakeApi = (
           if (refused !== null) {
             return Response.json(refused, { status: 400 });
           }
+          journals.push((body.events as unknown[]).length);
           reported.push({
             ...(typeof body.failure === "string"
               ? { failure: body.failure }
@@ -218,6 +223,7 @@ const fakeApi = (
   return {
     calls,
     finished,
+    journals,
     reported,
     started: started.promise,
     startKeys,
@@ -403,6 +409,38 @@ describe("a local run while the API is flaky", () => {
     expect(api.calls.get("auth.whoami")).toBe(1);
     expect(api.reported).toEqual([{ ordinal: 1, runId: "run_1" }]);
     expect(api.finished).toEqual(["batch_1"]);
+  }, 60_000);
+});
+
+describe("a local trial too large for Anpord to take", () => {
+  it("records its verdict without the journal, and says so", async () => {
+    const request = requestWith(
+      `printf '{"_tag":"Message","role":"assistant","text":"%s"}\\n' "$(head -c 100000 /dev/zero | tr '\\0' a)" && touch done.txt`
+    );
+    const api = fakeApi(request, {}, true, "current", 64 * 1024);
+    const said: string[] = [];
+    const write = spyOn(process.stderr, "write").mockImplementation((text) => {
+      said.push(String(text));
+      return true;
+    });
+
+    const { cases } = await Effect.runPromise(recorded(api, request)).finally(
+      () => write.mockRestore()
+    );
+
+    expect({
+      journals: api.journals,
+      noted: said.filter((line) => line.includes("journal")),
+      reported: api.reported,
+      statuses: cases.map((one) => one.status),
+    }).toEqual({
+      journals: [0],
+      noted: [
+        "The journal of a trial of fixture on command/none@writes-done was too large for Anpord to take, so its verdict was recorded without it.\n",
+      ],
+      reported: [{ ordinal: 1, runId: "run_1" }],
+      statuses: ["passed"],
+    });
   }, 60_000);
 });
 

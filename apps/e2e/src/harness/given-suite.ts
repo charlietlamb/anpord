@@ -44,7 +44,8 @@ export const givenSuite = (
   world: World,
   id: string,
   cases: readonly GivenCase[],
-  models: readonly string[]
+  models: readonly string[],
+  agent = AGENT
 ): GivenSuite => {
   const directory = join(world.directory, id);
   mkdirSync(join(directory, "profile/home"), { recursive: true });
@@ -52,7 +53,7 @@ export const givenSuite = (
     join(directory, "profile/profile.json"),
     '{ "run": "bash $ANPORD_HOME/agent.sh" }\n'
   );
-  writeFileSync(join(directory, "profile/home/agent.sh"), AGENT);
+  writeFileSync(join(directory, "profile/home/agent.sh"), agent);
   writeFileSync(
     join(directory, "suite.eval.ts"),
     suiteSource(id, cases, models)
