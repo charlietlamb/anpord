@@ -1,0 +1,32 @@
+raw env reads: src 21, tests 85, scripts 3
+Config reads by name: 68
+distinct env names: 98
+env names read in more than one file: 28
+  ANPORD_API_KEY	2	packages/sdk/tests/cli/whoami-command.test.ts packages/sdk/tests/client/anpord.test.ts
+  ANPORD_BASE_URL	3	apps/mcp/src/config.ts packages/sdk/src/client/config.ts packages/sdk/tests/cli/whoami-command.test.ts
+  ANPORD_LOCAL_ROOT	3	packages/eval/src/adapters/sandbox/local-roots.ts packages/eval/tests/fixtures/local-root.ts packages/sdk/tests/fixtures/local-root.ts
+  ANPORD_WEB_URL	2	packages/sdk/src/client/config.ts scripts/mint-api-key.ts
+  BETTER_AUTH_SECRET	3	apps/e2e/src/main.ts packages/auth/src/config/auth-config.ts packages/eval/src/credentials/cipher.ts
+  BETTER_AUTH_URL	3	apps/e2e/src/main.ts apps/web/src/lib/server/server-url.ts packages/auth/src/config/auth-config.ts
+  BUILD_REVISION	2	apps/e2e/src/scenarios/api.ts apps/server/src/routes/internal/health/handlers.ts
+  CLOUDFLARE_API_TOKEN	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  CLOUDFLARE_SANDBOX_API_KEY	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  CLOUDFLARE_SANDBOX_URL	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  DATABASE_URL	5	apps/e2e/src/main.ts packages/db/src/config.ts packages/db/src/describe.ts packages/db/src/migrations/target.ts scripts/test-org.ts
+  DAYTONA_API_KEY	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  DEV	3	apps/web/src/lib/analytics/config.ts apps/web/src/routes/__root.tsx apps/web/src/routes/dev.tsx
+  E2B_API_KEY	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  EVAL_KEY_DIR	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  EVAL_REQUIRE_DATABASE	3	apps/server/tests/routes/public/auth/whoami.test.ts packages/db/tests/migrations/scratch-database.ts packages/eval/tests/fixtures/database.ts
+  EVAL_TEST_DATABASE_URL	7	apps/server/tests/routes/public/auth/whoami.test.ts packages/db/tests/migrations/scratch-database.ts packages/eval/tests/credentials/connection-scope-live.test.ts packages/eval/tests/credentials/connections-live.test.ts packages/eval/tests/fixtures/credentials.ts packages/eval/tests/fixtures/database.ts packages/eval/tests/repositories/journal-read.test.ts
+  MCP_RESOURCE_URL	2	apps/mcp/src/config.ts packages/auth/src/config/auth-config.ts
+  MODAL_TOKEN_ID	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  MODAL_TOKEN_SECRET	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  PATH	5	apps/e2e/src/evals/comparison/compiler.test.ts apps/e2e/src/evals/validators.test.ts packages/eval/src/adapters/sandbox/local.ts packages/eval/src/credentials/device-auth.ts packages/sdk/tests/cli/eval-ci.test.ts
+  PORT	3	apps/mcp/src/config.ts apps/server/src/config.ts apps/server/tests/http/listen.test.ts
+  REDIS_URL	2	apps/e2e/src/main.ts packages/cache/src/config.ts
+  UPSTASH_BOX_API_KEY	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  VERCEL_OIDC_TOKEN	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  VERCEL_PROJECT_ID	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  VERCEL_TEAM_ID	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts
+  VERCEL_TOKEN	2	packages/eval/tests/fixtures/credentials.ts packages/eval/tests/integration/provider-failure.test.ts

@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": [".github/actions/eval/run.mjs"]
+      "entry": [".audit/*.mjs", ".github/actions/eval/run.mjs"]
     },
     "apps/docs": {
       "entry": ["style.css"],

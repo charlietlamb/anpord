@@ -1,0 +1,26 @@
+  ┌ writes-hello · command/probe@smoke
+  │
+  │ user
+  │   Write hello.txt containing hello.
+  │
+  │ agent
+  │   Writing hello.txt.
+  │ $ echo hello > hello.txt
+  │ $ bash $ANPORD_HOME/agent.sh
+  │ $ echo '{"_tag":"Started","sessionId":"smoke","model":"'"$ANPORD_MODEL"'"}
+  │ $ printf '{"_tag":"Message","role":"assistant","text":"Writing hello.txt."}…
+  │ $ echo hello > "$ANPORD_WORKSPACE/hello.txt
+  │ $ printf '{"_tag":"Command","command":"echo hello > hello.txt","exitCode":0…
+  │ $ echo '{"_tag":"Finished","reason":"done"}
+  │
+  │ ✓ turn 1 · Nms
+  │
+  │ checks
+  │   ✓ Verify command · Nms
+  │       Returned {"stdout":"","stderr":"","exitCode":0}
+  │
+  └ ✓ passed · 1 of 1 checks passed
+
+local/smoke (smoke.eval.ts): 1 trial on this machine, 1 passed
+  ✓ passed  writes-hello on command/probe@smoke  Nms
+exit 0

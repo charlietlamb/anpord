@@ -1,0 +1,51 @@
+{
+  "source": "packages/schema/src/domain/evals.ts",
+  "specifier": "@anpord/schema/domain/evals",
+  "packageRoot": "packages/schema",
+  "modules": {
+    "eval-trial": [
+      "EvalHarness",
+      "OccurredAtMillis",
+      "EvalTrialStatus",
+      "EvalUsage",
+      "EvalJournalEntry",
+      "EvalVerifyStep",
+      "EvalArtifact",
+      "EvalArtifactMetadata",
+      "EvalArtifactRequest",
+      "EvalTrial"
+    ],
+    "eval-costs": [
+      "CostClassification",
+      "CostComponentName",
+      "COST_COMPONENT_LABELS",
+      "EvalCostComponent",
+      "LEGACY_COMPONENT_NAMES",
+      "WireCostComponent",
+      "isComponentName",
+      "isClassification",
+      "readComponent",
+      "costTotals",
+      "EvalCosts"
+    ],
+    "eval-read-models": [
+      "EVAL_PAGE_SIZE",
+      "EvalPageCursor",
+      "EvalBatchPage",
+      "EvalVariantResult",
+      "EvalCaseSummary",
+      "EvalCasePage",
+      "EvalSuiteFacts",
+      "EvalSuiteSummary",
+      "EvalSuitePage",
+      "EvalSuiteSetup",
+      "EvalSuiteDetail",
+      "EvalCaseVersion",
+      "EvalCaseDetail",
+      "RUN_PAGE_SIZE",
+      "EvalRunPage",
+      "EvalTrialAddress"
+    ],
+    "eval-batch-subscription": ["batchTagOf", "BatchSubscription"]
+  }
+}
