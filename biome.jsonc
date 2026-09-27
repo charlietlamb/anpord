@@ -16,6 +16,8 @@
       "!packages/eval/tests/fixtures/case-files",
       "!packages/sdk/tests/imports/fixtures",
       "!scripts/fixtures",
+      "!apps/perf/baselines",
+      "!apps/perf/results",
       "!**/.claude/worktrees",
       "!.audit"
     ]
