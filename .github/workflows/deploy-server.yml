@@ -124,6 +124,61 @@ jobs:
             sleep 15
           done
 
+      - name: Hold the service's size, scaling and health check
+        env:
+          CPU: "512"
+          MEMORY: "1024"
+          MIN_INSTANCES: "2"
+          MAX_INSTANCES: "4"
+          MAX_CONCURRENCY: "80"
+        run: |
+          ARN="$(aws apprunner list-services --region "$AWS_REGION" \
+            --query "ServiceSummaryList[?ServiceName=='$APPRUNNER_SERVICE'].ServiceArn | [0]" \
+            --output text)"
+
+          SCALING="$(aws apprunner list-auto-scaling-configurations --region "$AWS_REGION" \
+            --auto-scaling-configuration-name "$APPRUNNER_SERVICE" --latest-only \
+            --query 'AutoScalingConfigurationSummaryList[0].AutoScalingConfigurationArn' --output text)"
+          SHAPE="$(aws apprunner describe-auto-scaling-configuration --region "$AWS_REGION" \
+            --auto-scaling-configuration-arn "$SCALING" \
+            --query 'AutoScalingConfiguration.[MinSize,MaxSize,MaxConcurrency]' --output text 2>/dev/null || true)"
+          if [ "$SHAPE" != "$(printf '%s\t%s\t%s' "$MIN_INSTANCES" "$MAX_INSTANCES" "$MAX_CONCURRENCY")" ]; then
+            SCALING="$(aws apprunner create-auto-scaling-configuration --region "$AWS_REGION" \
+              --auto-scaling-configuration-name "$APPRUNNER_SERVICE" \
+              --min-size "$MIN_INSTANCES" --max-size "$MAX_INSTANCES" --max-concurrency "$MAX_CONCURRENCY" \
+              --query 'AutoScalingConfiguration.AutoScalingConfigurationArn' --output text)"
+          fi
+
+          CURRENT="$(aws apprunner describe-service --service-arn "$ARN" --region "$AWS_REGION" \
+            --query 'Service.[InstanceConfiguration.Cpu,InstanceConfiguration.Memory,AutoScalingConfigurationSummary.AutoScalingConfigurationArn,HealthCheckConfiguration.Protocol,HealthCheckConfiguration.Path,HealthCheckConfiguration.Interval,HealthCheckConfiguration.Timeout,HealthCheckConfiguration.HealthyThreshold,HealthCheckConfiguration.UnhealthyThreshold]' \
+            --output text)"
+          WANTED="$(printf '%s\t%s\t%s\tHTTP\t/api/livez\t5\t4\t1\t3' "$CPU" "$MEMORY" "$SCALING")"
+          if [ "$CURRENT" = "$WANTED" ]; then
+            echo "Service already runs $CPU CPU, $MEMORY MB, $MIN_INSTANCES to $MAX_INSTANCES instances."
+            exit 0
+          fi
+
+          INSTANCE="Cpu=$CPU,Memory=$MEMORY"
+          ROLE="$(aws apprunner describe-service --service-arn "$ARN" --region "$AWS_REGION" \
+            --query 'Service.InstanceConfiguration.InstanceRoleArn' --output text)"
+          if [ -n "$ROLE" ] && [ "$ROLE" != "None" ]; then
+            INSTANCE="$INSTANCE,InstanceRoleArn=$ROLE"
+          fi
+          aws apprunner update-service --service-arn "$ARN" --region "$AWS_REGION" \
+            --instance-configuration "$INSTANCE" \
+            --auto-scaling-configuration-arn "$SCALING" \
+            --health-check-configuration Protocol=HTTP,Path=/api/livez,Interval=5,Timeout=4,HealthyThreshold=1,UnhealthyThreshold=3 \
+            >/dev/null
+          for _ in $(seq 1 40); do
+            STATUS="$(aws apprunner describe-service --service-arn "$ARN" \
+              --region "$AWS_REGION" --query 'Service.Status' --output text)"
+            [ "$STATUS" = "RUNNING" ] && exit 0
+            echo "waiting for update: $STATUS"
+            sleep 15
+          done
+          echo "Timed out waiting for the service update."
+          exit 1
+
       - name: Build and push
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}

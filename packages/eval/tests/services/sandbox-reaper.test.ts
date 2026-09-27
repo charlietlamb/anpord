@@ -11,9 +11,13 @@ import {
 import { sealValues } from "../../src/credentials/connection-payload";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { CredentialResolverLive } from "../../src/credentials/resolver-live";
+import { SandboxUnavailable } from "../../src/domain/errors";
 import type { DestroySandbox } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
-import { LiveSandboxesLive } from "../../src/repositories/live-sandboxes";
+import {
+  LiveSandboxes,
+  LiveSandboxesLive,
+} from "../../src/repositories/live-sandboxes";
 import { reapSandboxes } from "../../src/services/sandbox-reaper";
 import {
   seedConnection,
@@ -29,9 +33,16 @@ const recordingSandboxes = Layer.succeed(
   SandboxProvider.of({
     attach: () => Effect.die("a reaper never attaches"),
     destroy: (input) =>
-      Effect.sync(() => {
-        destroyed.push(input);
-      }),
+      input.provider === "local"
+        ? Effect.fail(
+            new SandboxUnavailable({
+              provider: "local",
+              reason: "no local adapter on this server",
+            })
+          )
+        : Effect.sync(() => {
+            destroyed.push(input);
+          }),
     open: () => Effect.die("a reaper never opens"),
   })
 );
@@ -75,6 +86,8 @@ const trialIds = {
   voided: `etri_reap_voided_${suffix}`,
 };
 const foreignTrialId = `etri_reap_foreign_${suffix}`;
+const laptopTrialId = `etri_reap_laptop_${suffix}`;
+const laptopSandboxId = `/var/folders/f2/T/anpord-local-${suffix}`;
 
 describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
   beforeAll(async () => {
@@ -262,5 +275,44 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
     expect(second.failures).not.toContainEqual(
       expect.objectContaining({ sandboxIds: ["sbx-sonnet"] })
     );
+  });
+
+  it("never selects a sandbox a laptop reported, and leaves its record alone", async () => {
+    await withDb(async (db) => {
+      const laptop = await seedRun(db, {
+        createdAt: new Date(Date.now() - 12 * HOURS),
+        local: true,
+        organizationId,
+        sandbox: "local",
+        tag: `reap_laptop_${suffix}`,
+      });
+      await seedTrial(db, {
+        internalId: laptopTrialId,
+        ordinal: 1,
+        runInternalId: laptop.runInternalId,
+        sandboxId: laptopSandboxId,
+        startedAt: new Date(Date.now() - 2 * HOURS),
+        status: "passed",
+      });
+    });
+
+    const selected = await Effect.runPromise(
+      LiveSandboxes.pipe(
+        Effect.flatMap((live) => live.startedBefore(new Date())),
+        Effect.provide(TestLayer)
+      )
+    );
+    await reap();
+    const [trial] = await withDb((db) =>
+      db
+        .select({ sandboxId: evalTrial.sandboxId })
+        .from(evalTrial)
+        .where(inArray(evalTrial.internalId, [laptopTrialId]))
+    );
+
+    expect(
+      selected.filter((live) => live.trialInternalId === laptopTrialId)
+    ).toEqual([]);
+    expect(trial?.sandboxId).toBe(laptopSandboxId);
   });
 });

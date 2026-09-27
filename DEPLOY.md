@@ -70,10 +70,18 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `HOST` | `0.0.0.0` — already set in the image |
 | `PORT` | `3003` — already set in the image |
 
-Suggested size is 0.25 vCPU / 0.5 GB, which is the floor and enough for this
-workload. Set the health check path to `/api/healthz`, which answers 200.
-App Runner counts only 2xx as healthy, so an authenticated route returning 401
-fails the check even though the server is up.
+The service runs 0.5 vCPU / 1 GB with at least 2 instances (up to 4, 80 requests
+each) and a health check on `/api/livez` every 5 seconds, replaced after 3
+misses. The deploy workflow sets all of this on every run, so the service cannot
+drift back. The server idles near 400 MB and has peaked near 500 MB while evals
+run; on a single 0.5 GB instance that meant 8 kills with exit code 137 in a week,
+each taking the API down until it restarted. 1 GB leaves twice the worst seen,
+and a second instance keeps serving while one is replaced.
+The platform check is `/api/livez`, which answers 200 while the process runs.
+It deliberately ignores the database: `/api/healthz` fails when Postgres is
+unreachable, and as the platform check a short Neon outage would make App Runner
+replace every instance at once. The deploy workflow still waits for
+`/api/healthz` to report the new revision before it succeeds.
 
 The server opens its port only after both APIs have mounted their routes, so a
 new instance refuses connections until it can answer every route rather than
@@ -127,8 +135,9 @@ once; the pool has to keep up with the journal each one writes.
 
 ## Cost
 
-App Runner at the minimum size is roughly $5–10/month, billed for provisioned
-memory whether or not requests arrive. ECR storage is pennies with the lifecycle
+Two provisioned 1 GB instances cost about $10/month idle, the same as one
+2 GB instance (App Runner bills provisioned memory whether or not requests
+arrive), plus vCPU time only while requests are running. ECR storage is pennies with the lifecycle
 policy the script applies. Vercel's hobby tier covers the frontend.
 
 To stop paying for the server, pause the App Runner service; that keeps the
