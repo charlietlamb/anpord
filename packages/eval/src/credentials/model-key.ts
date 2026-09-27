@@ -47,25 +47,6 @@ const fallbackKey = (
     return Option.orElse(fromEnv, () => platformKey);
   });
 
-export const apiKeyFor = (
-  credentials: CredentialResolverShape,
-  organizationId: string,
-  integrationId: string,
-  variable: string
-) =>
-  Effect.gen(function* () {
-    const connected = yield* storedKey(
-      credentials,
-      organizationId,
-      integrationId,
-      "apiKey"
-    );
-
-    return Option.isSome(connected)
-      ? connected
-      : yield* fallbackKey(credentials, organizationId, variable);
-  });
-
 export const modelAccessFor = (
   credentials: CredentialResolverShape,
   organizationId: string,
