@@ -3,6 +3,7 @@ import { Database } from "@anpord/db/client";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { validationExecution } from "@anpord/schema/domain/eval-validations";
 import { asc, eq } from "drizzle-orm";
@@ -23,7 +24,6 @@ import {
   BatchRepositoryLive,
 } from "../../src/repositories/batch-repository";
 import { reconcile } from "../../src/services/reconciler";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 import {
   type SeededRun,
   seedOrganization,

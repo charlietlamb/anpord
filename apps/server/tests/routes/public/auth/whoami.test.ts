@@ -7,19 +7,18 @@ import {
 import { OrganizationStoreError } from "@anpord/auth/organization/errors";
 import { AutumnServiceLive } from "@anpord/billing/autumn";
 import { BillingConfig } from "@anpord/billing/config";
-import { Database, DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfig } from "@anpord/db/config";
+import { Database } from "@anpord/db/client";
 import { organization } from "@anpord/db/schema/auth/organizations";
-import { testDatabaseUrl } from "@anpord/db/test-database";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { AuthGroup } from "@anpord/schema/public/auth-api";
 import { HttpApi, HttpApiBuilder, HttpServer } from "@effect/platform";
-import { Duration, Effect, Layer, Redacted } from "effect";
+import { Duration, Effect, Layer } from "effect";
 import { ApiKeyAuthenticationLive } from "../../../../src/http/authentication/api-key-authentication";
 import { VerifiedKeysLive } from "../../../../src/http/authentication/verified-keys";
 import { AuthHandlers } from "../../../../src/routes/public/auth/handlers";
 
-const url = testDatabaseUrl();
+const skip = skipWithoutDatabase();
 
 const suffix = Date.now();
 const organizationId = `org_whoami_${suffix}`;
@@ -51,15 +50,10 @@ const auth = {
   },
 } as unknown as AuthInstance;
 
-const database = DatabaseLive.pipe(
-  Layer.provide(
-    Layer.succeed(DatabaseConfig, {
-      poolMax: 2,
-      statementTimeout: Duration.seconds(10),
-      url: Redacted.make(url ?? ""),
-    })
-  )
-);
+const database = testDatabase({
+  poolMax: 2,
+  statementTimeout: Duration.seconds(10),
+});
 
 const organizations = OrganizationStoreLive.pipe(
   Layer.provide(
@@ -109,7 +103,7 @@ const withDatabase = <A>(run: (db: Database["Type"]) => Promise<A>) =>
     )
   );
 
-describe.skipIf(url === undefined)("POST /v1/auth.whoami", () => {
+describe.skipIf(skip)("POST /v1/auth.whoami", () => {
   const handler = serve();
 
   beforeAll(async () => {

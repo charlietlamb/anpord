@@ -5,6 +5,7 @@ import { evalEvent } from "@anpord/db/schema/evals/eval-events";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { skipWithoutDatabase } from "@anpord/db/test-database";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
 import {
   IdempotencyKey,
@@ -13,7 +14,6 @@ import {
 import { and, count, eq, inArray } from "drizzle-orm";
 import { Cause, Effect, Exit, ManagedRuntime, Option } from "effect";
 import { Batches } from "../../src/batch/batches";
-import { skipWithoutDatabase } from "../fixtures/database";
 import { seedOrganization } from "../fixtures/eval-rows";
 import {
   actorOf,

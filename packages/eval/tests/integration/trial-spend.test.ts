@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
+import { skipWithoutDatabase } from "@anpord/db/test-database";
 import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { validationExecution } from "@anpord/schema/domain/eval-validations";
 import type {
@@ -22,7 +23,6 @@ import { EvalReads } from "../../src/services/eval-reads";
 import { HarnessVersions } from "../../src/services/harness-versions";
 import { AgentTrialJudgedLive } from "../../src/services/judged-trial";
 import { SuspenderSleeping } from "../../src/services/suspender";
-import { skipWithoutDatabase } from "../fixtures/database";
 import { declinesEverything } from "../fixtures/declines-everything";
 import { seedOrganization } from "../fixtures/eval-rows";
 import {

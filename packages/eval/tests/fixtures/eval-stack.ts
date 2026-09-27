@@ -1,4 +1,5 @@
 import type { Database } from "@anpord/db/client";
+import { testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
 import type {
@@ -35,7 +36,6 @@ import {
 } from "../../src/services/agent-trial";
 import { EvalReadsLive } from "../../src/services/eval-reads";
 import { HarnessVersionsLive } from "../../src/services/harness-versions";
-import { testDatabase } from "./database";
 import { seedConnection } from "./eval-rows";
 
 const CONNECTED = ["codex", "claude", "daytona", "e2b", "env", "openai"];
@@ -205,7 +205,7 @@ export const evalStack = <E>(input: {
     ),
     Layer.provideMerge(input.resolver ?? connectedResolver),
     Layer.provideMerge(RepositoriesLive),
-    Layer.provideMerge(testDatabase(8))
+    Layer.provideMerge(testDatabase({ poolMax: 8 }))
   );
 
 export const actorOf = (organizationId: string) =>

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
+import { skipWithoutDatabase } from "@anpord/db/test-database";
 import { Daytona } from "@daytonaio/sdk";
 import {
   ConfigProvider,
@@ -23,7 +24,6 @@ import { AgentTrialLive } from "../../src/services/agent-trial";
 import { EvalReads } from "../../src/services/eval-reads";
 import { SuspenderSleeping } from "../../src/services/suspender";
 import { hasDaytona, hasE2b } from "../fixtures/credentials";
-import { skipWithoutDatabase } from "../fixtures/database";
 import { seedOrganization } from "../fixtures/eval-rows";
 import {
   actorOf,

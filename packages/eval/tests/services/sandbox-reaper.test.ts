@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Database } from "@anpord/db/client";
 import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { inArray } from "drizzle-orm";
 import { ConfigProvider, Duration, Effect, Layer, Redacted } from "effect";
 import { CredentialCipherLive } from "../../src/credentials/cipher";
@@ -10,7 +11,6 @@ import type { DestroySandbox } from "../../src/ports/sandbox";
 import { SandboxProvider } from "../../src/ports/sandbox";
 import { LiveSandboxesLive } from "../../src/repositories/live-sandboxes";
 import { reapSandboxes } from "../../src/services/sandbox-reaper";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 import {
   seedConnection,
   seedOrganization,

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { Effect, Layer } from "effect";
 import {
@@ -6,7 +7,6 @@ import {
   EventRepositoryLive,
 } from "../../src/repositories/event-repository";
 import { JournalArchiveLive } from "../../src/repositories/journal-archive";
-import { skipWithoutDatabase, testDatabase } from "../fixtures/database";
 
 const TestLayer = EventRepositoryLive.pipe(
   Layer.provide(IdGeneratorLive),

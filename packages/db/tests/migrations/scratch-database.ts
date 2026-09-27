@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { Client } from "pg";
-import { testDatabaseUrl } from "../../src/test-database";
+import { skipWithoutDatabase, testDatabaseUrl } from "../../src/test-database";
 
 const withServer = async <A>(
   base: string,
@@ -18,6 +18,7 @@ const withServer = async <A>(
 };
 
 export const scratchDatabases = () => {
+  const skip = skipWithoutDatabase();
   const base = testDatabaseUrl();
   const created: string[] = [];
 
@@ -39,5 +40,5 @@ export const scratchDatabases = () => {
       }
     });
 
-  return { create, dropAll, skip: base === undefined };
+  return { create, dropAll, skip };
 };
