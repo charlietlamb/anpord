@@ -31,6 +31,7 @@ import { CatalogRepository } from "../repositories/catalog-repository";
 import { HarnessProfileRepository } from "../repositories/harness-profile-repository";
 import { startedBatchQuery } from "../repositories/started-batch-query";
 import { HarnessVersions } from "../services/harness-versions";
+import { refuseWhenBusy, tooBusy } from "./in-flight";
 import type { Launch, Launched } from "./launch";
 
 const variantKey = (variant: EvalVariantRequest) =>
@@ -95,15 +96,7 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
       }
     }
 
-    const inFlight = yield* (yield* BatchRepository)
-      .inFlight(actor.organizationId)
-      .pipe(Effect.orDie);
-    if (inFlight >= MAX_ORGANIZATION_RUNS_IN_FLIGHT) {
-      return yield* new StartRefused({
-        reason: `This organization already has ${inFlight} batches going, and may have ${MAX_ORGANIZATION_RUNS_IN_FLIGHT} at once. Wait for one to finish.`,
-        retryable: true,
-      });
-    }
+    yield* refuseWhenBusy(actor.organizationId);
   });
 
 export interface Start {
@@ -142,6 +135,17 @@ export const makeStartBatch = (
           });
         }
         return Option.some(started);
+      });
+
+    const replayRaced = (actor: Actor, keyed: StartKey | null) =>
+      Effect.gen(function* () {
+        const raced = yield* earlier(actor, keyed);
+        if (Option.isNone(raced)) {
+          return yield* Effect.dieMessage(
+            "the start lost a race for its key, and no batch holds that key"
+          );
+        }
+        return { replayed: true, started: raced.value } satisfies Start;
       });
 
     const admitted = (actor: Actor, request: StartBatchRequest) =>
@@ -247,30 +251,29 @@ export const makeStartBatch = (
         const launched = yield* launch({
           checksIn: request.checksIn,
           idempotency: keyed,
+          limit: MAX_ORGANIZATION_RUNS_IN_FLIGHT,
           local: request.local,
           organizationId: actor.organizationId,
           runs: slots.map((slot) => slot.run),
           startedBy: authorIdOf(actor),
           trigger: request.trigger ?? { source: "api" },
         }).pipe(Effect.orDie);
-        if (Option.isNone(launched)) {
-          const raced = yield* earlier(actor, keyed);
-          if (Option.isNone(raced)) {
-            return yield* Effect.dieMessage(
-              "the start lost a race for its key, and no batch holds that key"
-            );
-          }
-          return { replayed: true, started: raced.value } satisfies Start;
+
+        if (launched.kind === "overLimit") {
+          return yield* tooBusy(launched.inFlight);
         }
 
-        const created = launched.value;
+        if (launched.kind === "keyTaken") {
+          return yield* replayRaced(actor, keyed);
+        }
+
         return {
           replayed: false,
           started: {
-            id: created.internalId,
+            id: launched.internalId,
             runs: slots.map((slot, index) => ({
               caseId: slot.caseId,
-              id: created.runInternalIds[index] ?? "",
+              id: launched.runInternalIds[index] ?? "",
               variantId: slot.run.variantInternalId,
             })),
           },

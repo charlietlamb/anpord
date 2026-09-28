@@ -3,6 +3,7 @@ import { Schema } from "effect";
 import { BadRequest, Conflict, Forbidden, NotFound } from "../domain/errors";
 import { BatchSubscription } from "../domain/eval-batch-subscription";
 import { EvalHome, EvalHomeRange } from "../domain/eval-home";
+import { ModelCatalogue } from "../domain/eval-models";
 import {
   CaseOrder,
   CaseSort,
@@ -13,8 +14,13 @@ import {
   EvalSuitePage,
   EvalTrialAddress,
 } from "../domain/eval-read-models";
+import { RerunIntent, RerunPlan, RerunRequest } from "../domain/eval-rerun";
 import { EvalBatchTail, EvalTailMark } from "../domain/eval-tail";
-import { EvalArtifact, EvalArtifactRequest } from "../domain/eval-trial";
+import {
+  EvalArtifact,
+  EvalArtifactRequest,
+  EvalHarness,
+} from "../domain/eval-trial";
 import { EvalBatch, EvalRun, StartedBatch } from "../domain/evals";
 import { RunCaseRequest } from "../domain/run-case";
 import { Authentication } from "./authentication";
@@ -63,6 +69,28 @@ export class EvalsGroup extends HttpApiGroup.make("evals")
     HttpApiEndpoint.get("suite", "/evals/suites/:id")
       .setPath(IdPath)
       .addSuccess(EvalSuiteDetail)
+  )
+  .add(
+    HttpApiEndpoint.get("models", "/evals/models")
+      .setUrlParams(
+        Schema.Struct({
+          harness: EvalHarness,
+          q: Schema.optional(Schema.String),
+        })
+      )
+      .addSuccess(ModelCatalogue)
+  )
+  .add(
+    HttpApiEndpoint.post("planSuiteRerun", "/evals/suites/:id/runs/plan")
+      .setPath(IdPath)
+      .setPayload(RerunIntent)
+      .addSuccess(RerunPlan)
+  )
+  .add(
+    HttpApiEndpoint.post("rerunSuite", "/evals/suites/:id/runs")
+      .setPath(IdPath)
+      .setPayload(RerunRequest)
+      .addSuccess(StartedBatch)
   )
   .add(
     HttpApiEndpoint.get("case", "/evals/cases/:id")

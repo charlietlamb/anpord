@@ -2,6 +2,10 @@ import { Batches } from "@anpord/eval/batch/batches";
 import { BatchSubscriptions } from "@anpord/eval/ports/batch-subscriptions";
 import { EvalReads } from "@anpord/eval/services/eval-reads";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type {
+  RerunIntent,
+  RerunRequest,
+} from "@anpord/schema/domain/eval-rerun";
 import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { StartedBatch } from "@anpord/schema/domain/evals";
@@ -65,6 +69,27 @@ export const runCase = (
       trials: request.trials,
       trigger: options.trigger,
       variantIds: request.variants ?? null,
+    });
+  }).pipe(Effect.tap(metered(request.trials)), withEvalErrors);
+
+export const planSuiteRerun = (suiteId: string, intent: RerunIntent) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    return yield* (yield* Batches).planRerun({ actor, intent, suiteId });
+  }).pipe(withEvalErrors);
+
+export const rerunSuite = (
+  suiteId: string,
+  request: RerunRequest,
+  trigger: EvalTrigger
+) =>
+  Effect.gen(function* () {
+    const actor = yield* CurrentActor;
+    return yield* (yield* Batches).rerunSuite({
+      actor,
+      request,
+      suiteId,
+      trigger,
     });
   }).pipe(Effect.tap(metered(request.trials)), withEvalErrors);
 

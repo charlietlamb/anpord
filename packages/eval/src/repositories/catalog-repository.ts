@@ -5,6 +5,7 @@ import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalSuiteRequest } from "@anpord/schema/domain/eval-definition";
+import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { CaseDefinition } from "../domain/case-identity";
 import type { EvalStoreError } from "../domain/errors";
@@ -26,6 +27,12 @@ export interface RegisterCatalog {
   readonly suite: Pick<EvalSuiteRequest, "id" | "name" | "prompt" | "source">;
 }
 
+export interface RegisterVariants {
+  readonly caseInternalId: string;
+  readonly organizationId: string;
+  readonly variants: readonly VariantIdentity[];
+}
+
 interface RegisteredCase {
   readonly caseInternalId: string;
   readonly caseVersionInternalId: string;
@@ -36,6 +43,9 @@ export interface CatalogRepositoryShape {
   readonly register: (
     input: RegisterCatalog
   ) => Effect.Effect<readonly RegisteredCase[], EvalStoreError>;
+  readonly registerVariants: (
+    input: RegisterVariants
+  ) => Effect.Effect<readonly string[], EvalStoreError>;
 }
 
 export class CatalogRepository extends Context.Tag(
@@ -207,6 +217,69 @@ export const CatalogRepositoryLive = Layer.effect(
         Effect.annotateLogs({ organizationId: input.organizationId })
       );
 
-    return CatalogRepository.of({ register });
+    const registerVariants = (input: RegisterVariants) =>
+      Effect.gen(function* () {
+        const fresh = yield* Effect.forEach(input.variants, () =>
+          ids.generate("evalVariant")
+        );
+
+        return yield* tryStore("catalog.registerVariants", () =>
+          db.transaction(async (tx) => {
+            const owner = only(
+              await tx
+                .select({ internalId: evalCase.internalId })
+                .from(evalCase)
+                .where(
+                  and(
+                    eq(evalCase.internalId, input.caseInternalId),
+                    eq(evalCase.organizationId, input.organizationId)
+                  )
+                ),
+              `case ${input.caseInternalId}`
+            );
+
+            const internalIds: string[] = [];
+
+            for (const [position, variant] of input.variants.entries()) {
+              const stored = only(
+                await tx
+                  .insert(evalVariant)
+                  .values({
+                    caseInternalId: owner.internalId,
+                    harness: variant.harness,
+                    internalId: fresh[position] ?? "",
+                    model: variant.model,
+                    profile: variant.profile,
+                    sandbox: variant.sandbox,
+                    userModel: variant.userModel,
+                  })
+                  .onConflictDoUpdate({
+                    set: { model: variant.model },
+                    target: [
+                      evalVariant.caseInternalId,
+                      evalVariant.harness,
+                      evalVariant.model,
+                      evalVariant.sandbox,
+                      evalVariant.profile,
+                      evalVariant.userModel,
+                    ],
+                  })
+                  .returning({ internalId: evalVariant.internalId }),
+                `variant ${variant.harness} ${variant.model}`
+              );
+              internalIds.push(stored.internalId);
+            }
+
+            return internalIds;
+          })
+        );
+      }).pipe(
+        Effect.withSpan("CatalogRepository.registerVariants", {
+          attributes: { variants: input.variants.length },
+        }),
+        Effect.annotateLogs({ organizationId: input.organizationId })
+      );
+
+    return CatalogRepository.of({ register, registerVariants });
   })
 );

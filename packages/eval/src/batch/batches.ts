@@ -1,5 +1,6 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { RerunPlan } from "@anpord/schema/domain/eval-rerun";
 import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
 import type { StartedBatch } from "@anpord/schema/domain/evals";
 import type {
@@ -18,6 +19,8 @@ import type {
 import { makeExecuteBatch } from "./execute-batch";
 import { makeLaunch } from "./launch";
 import { makeReport } from "./report";
+import { makeRerunPlan, type RerunPlanInput } from "./rerun-plan";
+import { makeRerunSuite, type RerunSuite } from "./rerun-suite";
 import { makeRunCase, type RunCase } from "./run-case";
 import { makeStartBatch, type Start } from "./start-batch";
 
@@ -41,15 +44,24 @@ export interface BatchesShape {
     CredentialLease,
     CredentialError | EvalNotFound | NotRunnable
   >;
+  readonly planRerun: (
+    input: RerunPlanInput
+  ) => Effect.Effect<RerunPlan, EvalNotFound>;
   readonly report: (
     organizationId: string,
     trial: ReportedTrial
   ) => Effect.Effect<void, EvalNotFound | NotRunnable>;
+  readonly rerunSuite: (
+    input: RerunSuite
+  ) => Effect.Effect<
+    StartedBatch,
+    CredentialError | EvalNotFound | StartRefused
+  >;
   readonly runCase: (
     input: RunCase
   ) => Effect.Effect<
     StartedBatch,
-    CredentialError | EvalNotFound | NotRunnable
+    CredentialError | EvalNotFound | NotRunnable | StartRefused
   >;
   readonly start: (
     actor: Actor,
@@ -74,6 +86,8 @@ export const BatchesLive = Layer.effect(
     const launch = yield* makeLaunch(execute);
     const start = yield* makeStartBatch(launch);
     const runCase = yield* makeRunCase(launch);
+    const planned = yield* makeRerunPlan;
+    const rerunSuite = yield* makeRerunSuite(planned, launch);
     const reporting = yield* makeReport;
 
     return Batches.of({
@@ -81,7 +95,10 @@ export const BatchesLive = Layer.effect(
       execute,
       finish: reporting.finish,
       lease: reporting.lease,
+      planRerun: (input) =>
+        planned(input).pipe(Effect.map((ready) => ready.plan)),
       report: reporting.report,
+      rerunSuite,
       runCase,
       start: (actor, request) =>
         start(actor, request, null).pipe(

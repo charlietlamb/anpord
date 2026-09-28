@@ -1,7 +1,11 @@
 import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
 import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
+import type { RerunIntent } from "@anpord/schema/domain/eval-rerun";
 import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
-import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
+import type {
+  EvalArtifactRequest,
+  EvalHarness,
+} from "@anpord/schema/domain/eval-trial";
 import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
@@ -15,7 +19,9 @@ import {
   getTrialAddress,
   listCaseRuns,
   listCases,
+  listModels,
   listSuites,
+  planSuiteRerun,
   readBatchTail,
   readHome,
 } from "@/lib/evals/evals-client";
@@ -29,6 +35,7 @@ import {
 
 const RUN_POLL_MS = 15_000;
 export const TAIL_POLL_MS = 3000;
+const CATALOGUE_STALE_MS = 300_000;
 
 const LIVE = {
   refetchIntervalInBackground: false,
@@ -85,6 +92,20 @@ export const evalQueries = {
     queryOptions({
       queryKey: evalKeys.case(id),
       queryFn: () => getCase(id),
+    }),
+
+  rerunPlan: (suiteId: string, intent: RerunIntent) =>
+    queryOptions({
+      queryKey: evalKeys.rerunPlan(suiteId, intent),
+      queryFn: () => planSuiteRerun(suiteId, intent),
+      staleTime: RUN_POLL_MS,
+    }),
+
+  models: (harness: EvalHarness, q: string | null) =>
+    queryOptions({
+      queryKey: evalKeys.models(harness, q),
+      queryFn: () => listModels(harness, q),
+      staleTime: CATALOGUE_STALE_MS,
     }),
 
   caseRuns: (caseId: string, variant: string | null, page: number) =>

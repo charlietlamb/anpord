@@ -3,6 +3,7 @@ import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CasesTable } from "@/components/evals/cases-table";
+import { RerunButton } from "@/components/evals/rerun-button";
 import { SuiteCases } from "@/components/evals/suite-cases";
 import { SuiteMeta } from "@/components/evals/suite-meta";
 import { SuiteSetup } from "@/components/evals/suite-setup";
@@ -51,6 +52,11 @@ function SuiteScreen() {
   return (
     <SkeletonScope loading={data === undefined}>
       <PageShell
+        actions={
+          data === undefined ? null : (
+            <RerunButton subject={{ kind: "fixed", suite: data }} />
+          )
+        }
         description={<SuiteMeta suite={suite} />}
         title={suite.name}
         width="wide"

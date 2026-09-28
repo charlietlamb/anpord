@@ -6,6 +6,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CASE_DETAIL, CASE_RUNS } from "@/components/dev/case-fixtures";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";
+import { RERUN_PLAN } from "@/components/dev/rerun-fixtures";
 import {
   LOCAL_RUN,
   LOCAL_TRIAL,
@@ -19,6 +20,7 @@ import { CaseActions } from "@/components/evals/case-actions";
 import { CaseMeta } from "@/components/evals/case-meta";
 import { CaseRuns } from "@/components/evals/case-runs";
 import { Conversation } from "@/components/evals/conversation";
+import { RerunPreview } from "@/components/evals/rerun-preview";
 import { TrialCalls } from "@/components/evals/trial-calls";
 import { TrialChecks } from "@/components/evals/trial-checks";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";
@@ -43,6 +45,12 @@ function EvalsPreview() {
           </h1>
           <ThemeToggle />
         </div>
+
+        <PreviewScreen name="Re-running a suite">
+          <div className="mx-auto w-full max-w-2xl px-5 py-5">
+            <RerunPreview plan={RERUN_PLAN} />
+          </div>
+        </PreviewScreen>
 
         <PreviewScreen name="Statuses">
           <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-3 px-5 py-5">

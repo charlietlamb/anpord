@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryStates } from "nuqs";
 import { CaseFilterMenu } from "@/components/evals/case-filter-menu";
 import { CaseList } from "@/components/evals/case-list";
+import { RerunButton } from "@/components/evals/rerun-button";
 import { PageShell } from "@/components/layout/page-shell";
 import { SearchInput } from "@/components/layout/search-input";
 import { SortMenu } from "@/components/layout/sort-menu";
@@ -72,6 +73,13 @@ function EvalsIndex() {
           label="Search cases"
           onChange={(q) => narrow({ q })}
           value={filters.q}
+        />
+        <RerunButton
+          subject={{
+            kind: "chosen",
+            suite: suites.find((entry) => entry.id === selected.suite) ?? null,
+            suites,
+          }}
         />
         <Button render={<Link to="/evals/new" />}>
           <PlusIcon />

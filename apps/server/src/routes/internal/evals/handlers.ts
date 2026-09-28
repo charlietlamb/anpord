@@ -2,10 +2,16 @@ import { Permissions } from "@anpord/schema/domain/permissions";
 import { AnpordApi } from "@anpord/schema/internal/api";
 import { HttpApiBuilder } from "@effect/platform";
 import { authorized } from "../../../http/authorization/authorized-group";
-import { runCase, subscribeToBatch } from "../../evals/batch-actions";
+import {
+  planSuiteRerun,
+  rerunSuite,
+  runCase,
+  subscribeToBatch,
+} from "../../evals/batch-actions";
 import { readBatch, readTail } from "../../evals/batch-reads";
 import {
   listCases,
+  listModels,
   listSuites,
   readCase,
   readSuite,
@@ -46,6 +52,15 @@ export const EvalsHandlers = HttpApiBuilder.group(
         listSuites(cursorOf(urlParams), urlParams.limit)
       )
       .handle("suite", read, ({ path }) => readSuite(path.id))
+      .handle("models", read, ({ urlParams }) =>
+        listModels(urlParams.harness, urlParams.q)
+      )
+      .handle("planSuiteRerun", read, ({ path, payload }) =>
+        planSuiteRerun(path.id, payload)
+      )
+      .handle("rerunSuite", write, ({ path, payload }) =>
+        rerunSuite(path.id, payload, { source: "dashboard" })
+      )
       .handle("case", read, ({ path }) => readCase(path.id))
       .handle("caseRuns", read, ({ path, urlParams }) =>
         listCaseRuns(path.id, urlParams.page, urlParams.variant)

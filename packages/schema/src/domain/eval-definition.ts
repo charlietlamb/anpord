@@ -45,7 +45,7 @@ export const HOSTED_SANDBOXES = EVAL_SANDBOXES.filter(
   (sandbox) => sandbox !== "local"
 );
 
-export const DEFAULT_SANDBOX: EvalSandbox = "e2b";
+export const DEFAULT_SANDBOX = "e2b" satisfies EvalSandbox;
 
 export const EvalSource = Schema.Union(
   Schema.Struct({ kind: Schema.Literal("empty") }),
