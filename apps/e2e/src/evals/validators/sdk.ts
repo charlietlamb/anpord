@@ -6,11 +6,16 @@ import { api, endpoint, withApi } from "anpord/api";
 import { z } from "zod";
 
 export const prepareSdk: Prepare = async ({ exec }): Promise<undefined> => {
-  const result = await exec("bun", ["install"], { timeoutMs: 600_000 });
-  if (result.exitCode !== 0) {
-    throw new Error(
-      `bun install exited ${result.exitCode}: ${result.stderr || result.stdout}`
-    );
+  for (const [file, ...args] of [
+    ["npm", "install", "--global", "bun@1.3.14"],
+    ["bun", "install"],
+  ]) {
+    const result = await exec(file, args, { timeoutMs: 600_000 });
+    if (result.exitCode !== 0) {
+      throw new Error(
+        `${file} ${args.join(" ")} exited ${result.exitCode}: ${result.stderr || result.stdout}`
+      );
+    }
   }
   return;
 };
