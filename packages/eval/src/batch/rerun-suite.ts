@@ -148,7 +148,9 @@ export const makeRerunSuite = (
 
         const resolved = yield* Effect.forEach(plan.slots, (slot) => {
           const subject = byCaseId.get(slot.caseId);
-          if (subject === undefined || subject.caseVersionInternalId === null) {
+          const caseVersionInternalId =
+            subject?.candidate.caseVersionInternalId ?? null;
+          if (subject === undefined || caseVersionInternalId === null) {
             return Effect.dieMessage(
               `the plan named ${slot.caseId}, which has no version to run`
             );
@@ -162,7 +164,7 @@ export const makeRerunSuite = (
           return Effect.succeed({
             ...identityOf(slot.variant),
             caseId: slot.caseId,
-            caseVersionInternalId: subject.caseVersionInternalId,
+            caseVersionInternalId,
             template: subject.templates.get(variantInternalId) ?? null,
             variantInternalId,
           } satisfies ResolvedSlot);

@@ -18,6 +18,7 @@ import {
 } from "../../src/domain/rerun-plan";
 
 const suite: EvalSuite = { id: "checkout", name: "Checkout" };
+const VERSION = "ecav_one";
 
 const distributionOf = (passed: number, scored: number): EvalDistribution => ({
   commandMax: 0,
@@ -88,7 +89,14 @@ describe("passedCleanly", () => {
 describe("planRerun", () => {
   it("skips a case that has never run", () => {
     const plan = planRerun({
-      candidates: [{ caseId: "cold", caseName: "Cold", results: [] }],
+      candidates: [
+        {
+          caseId: "cold",
+          caseName: "Cold",
+          caseVersionInternalId: null,
+          results: [],
+        },
+      ],
       intent: asBefore,
       suite,
     });
@@ -102,7 +110,12 @@ describe("planRerun", () => {
   it("skips a passing case when only failures were asked for", () => {
     const plan = planRerun({
       candidates: [
-        { caseId: "green", caseName: "Green", results: [resultOf({})] },
+        {
+          caseId: "green",
+          caseName: "Green",
+          caseVersionInternalId: VERSION,
+          results: [resultOf({})],
+        },
       ],
       intent: { ...asBefore, scope: "onlyFailures" },
       suite,
@@ -119,6 +132,7 @@ describe("planRerun", () => {
       {
         caseId: "busy",
         caseName: "Busy",
+        caseVersionInternalId: VERSION,
         results: [resultOf({ passed: 0, scored: 0, status: "running" })],
       },
     ];
@@ -149,6 +163,7 @@ describe("planRerun", () => {
         {
           caseId: "broke",
           caseName: "Broke",
+          caseVersionInternalId: VERSION,
           results: [resultOf({ passed: 0, scored: 0, status: "failed" })],
         },
       ],
@@ -172,6 +187,7 @@ describe("planRerun", () => {
         {
           caseId: "laptop",
           caseName: "Laptop",
+          caseVersionInternalId: VERSION,
           results: [
             resultOf({ passed: 0, scored: 2, variant: { sandbox: "local" } }),
           ],
@@ -193,6 +209,7 @@ describe("planRerun", () => {
         {
           caseId: "laptop",
           caseName: "Laptop",
+          caseVersionInternalId: VERSION,
           results: [resultOf({ variant: { sandbox: "local" } })],
         },
       ],
@@ -218,7 +235,12 @@ describe("planRerun", () => {
   it("reuses a variant the case already holds", () => {
     const plan = planRerun({
       candidates: [
-        { caseId: "reuse", caseName: "Reuse", results: [resultOf({})] },
+        {
+          caseId: "reuse",
+          caseName: "Reuse",
+          caseVersionInternalId: VERSION,
+          results: [resultOf({})],
+        },
       ],
       intent: onVariant,
       suite,
@@ -239,6 +261,7 @@ describe("planRerun", () => {
         {
           caseId: "pair",
           caseName: "Pair",
+          caseVersionInternalId: VERSION,
           results: [
             resultOf({}),
             resultOf({ variant: { id: "variant-b", model: "opus" } }),
@@ -260,6 +283,7 @@ describe("planRerun", () => {
     const candidates: RerunCandidate[] = [1, 2, 3, 4, 5, 6].map((index) => ({
       caseId: `case-${index}`,
       caseName: `Case ${index}`,
+      caseVersionInternalId: VERSION,
       results: [
         resultOf({ at: 7000 - index }),
         resultOf({ at: 7000 - index, variant: { id: `variant-${index}b` } }),
@@ -293,8 +317,14 @@ describe("planRerun", () => {
 
 describe("the plan fingerprint", () => {
   const candidates: RerunCandidate[] = [
-    { caseId: "reuse", caseName: "Reuse", results: [resultOf({})] },
+    {
+      caseId: "reuse",
+      caseName: "Reuse",
+      caseVersionInternalId: VERSION,
+      results: [resultOf({})],
+    },
   ];
+  const versions = new Map([["reuse", VERSION]]);
 
   it("names the slots it stands for", () => {
     expect(
@@ -306,14 +336,15 @@ describe("the plan fingerprint", () => {
             variant: { kind: "existing", variant: variantOf({}) },
           },
         ],
-        1
+        1,
+        versions
       )
-    ).toBe(RerunFingerprint.make("9fd5428a6f1ec47f"));
+    ).toBe(RerunFingerprint.make("be02d2dc10f9cdea"));
   });
 
   it("is the one the plan carries", () => {
     expect(planRerun({ candidates, intent: asBefore, suite }).fingerprint).toBe(
-      RerunFingerprint.make("9fd5428a6f1ec47f")
+      RerunFingerprint.make("be02d2dc10f9cdea")
     );
   });
 
@@ -329,6 +360,7 @@ describe("the plan fingerprint", () => {
         {
           caseId: "reuse",
           caseName: "Reuse",
+          caseVersionInternalId: VERSION,
           results: [resultOf({ variant: { id: "variant-b" } })],
         },
       ],
@@ -339,6 +371,26 @@ describe("the plan fingerprint", () => {
     expect(moved.fingerprint).not.toBe(
       planRerun({ candidates, intent: asBefore, suite }).fingerprint
     );
+  });
+
+  it("changes when the case behind a slot moved to a new version", () => {
+    const edited = planRerun({
+      candidates: [
+        {
+          caseId: "reuse",
+          caseName: "Reuse",
+          caseVersionInternalId: "ecav_two",
+          results: [resultOf({})],
+        },
+      ],
+      intent: asBefore,
+      suite,
+    });
+
+    expect(edited.slots).toEqual(
+      planRerun({ candidates, intent: asBefore, suite }).slots
+    );
+    expect(edited.fingerprint).toBe(RerunFingerprint.make("cf7dcf30e5c4d191"));
   });
 
   it("changes when the trial count changes", () => {

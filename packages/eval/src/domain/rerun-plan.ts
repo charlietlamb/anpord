@@ -19,6 +19,7 @@ const FINGERPRINT_LENGTH = 16;
 export interface RerunCandidate {
   readonly caseId: string;
   readonly caseName: string;
+  readonly caseVersionInternalId: string | null;
   readonly results: readonly EvalVariantResult[];
 }
 
@@ -141,13 +142,20 @@ const variantKey = (variant: PlannedVariant) =>
 
 export const fingerprintOf = (
   slots: readonly RerunSlot[],
-  trials: number
+  trials: number,
+  caseVersions: ReadonlyMap<string, string | null>
 ): RerunFingerprint =>
   RerunFingerprint.make(
     createHash("sha256")
       .update(
         `${slots
-          .map((slot) => [slot.caseId, variantKey(slot.variant)].join("\u0000"))
+          .map((slot) =>
+            [
+              slot.caseId,
+              caseVersions.get(slot.caseId) ?? "",
+              variantKey(slot.variant),
+            ].join("\u0000")
+          )
           .join("\n")}\n${trials}`
       )
       .digest("hex")
@@ -189,7 +197,16 @@ export const planRerun = ({
   }
 
   return {
-    fingerprint: fingerprintOf(slots, intent.trials),
+    fingerprint: fingerprintOf(
+      slots,
+      intent.trials,
+      new Map(
+        candidates.map((candidate) => [
+          candidate.caseId,
+          candidate.caseVersionInternalId,
+        ])
+      )
+    ),
     skipped,
     slots,
     suite,

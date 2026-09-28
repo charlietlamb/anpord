@@ -19,7 +19,6 @@ import { runStatus, timestamp, variantOf } from "./run-view";
 export interface SuiteRerunCase {
   readonly candidate: RerunCandidate;
   readonly caseInternalId: string;
-  readonly caseVersionInternalId: string | null;
   readonly templates: ReadonlyMap<string, RunTemplate>;
   readonly userModel: string | null;
 }
@@ -41,9 +40,13 @@ interface NewestRow {
 }
 
 const neverRan = (subject: CaseRow): SuiteRerunCase => ({
-  candidate: { caseId: subject.id, caseName: subject.name, results: [] },
+  candidate: {
+    caseId: subject.id,
+    caseName: subject.name,
+    caseVersionInternalId: null,
+    results: [],
+  },
   caseInternalId: subject.internalId,
-  caseVersionInternalId: null,
   templates: new Map(),
   userModel: null,
 });
@@ -204,10 +207,10 @@ export const suiteRerunQuery = Effect.gen(function* () {
             candidate: {
               caseId: subject.id,
               caseName: subject.name,
+              caseVersionInternalId: latest?.run.caseVersionInternalId ?? null,
               results: own.flatMap(resultOf),
             },
             caseInternalId: subject.internalId,
-            caseVersionInternalId: latest?.run.caseVersionInternalId ?? null,
             templates: new Map(
               own.flatMap((row) =>
                 Option.toArray(
