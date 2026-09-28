@@ -67,6 +67,15 @@ const scratchPackage = async (
   return directory;
 };
 
+const refusal = (directory: string) => {
+  try {
+    vendoredWorkspace(directory);
+  } catch (error) {
+    return (error as Error).message;
+  }
+  throw new Error(`Expected ${directory} to be refused as a workspace.`);
+};
+
 const filesSource = async () => {
   const compiled = await compileEval(
     fileURLToPath(new URL("../sdk.eval.ts", import.meta.url))
@@ -189,12 +198,11 @@ test("refuses a workspace of more files than its budget allows", async () => {
     )
   );
 
-  expect(() => vendoredWorkspace(directory)).toThrow(
-    `workspace is ${SOURCE_FILE_LIMIT + 3} files and`
+  const message = refusal(directory);
+  expect(message).toContain(
+    `workspace is ${SOURCE_FILE_LIMIT + 3} files over the ${SOURCE_FILE_LIMIT} it budgets.`
   );
-  expect(() => vendoredWorkspace(directory)).toThrow(
-    `over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget.`
-  );
+  expect(message).not.toContain("characters over the");
 });
 
 test("refuses a workspace of more characters than its budget allows", async () => {
@@ -202,10 +210,11 @@ test("refuses a workspace of more characters than its budget allows", async () =
     "index.mjs": "x".repeat(SOURCE_LIMIT),
   });
 
-  expect(() => vendoredWorkspace(directory)).toThrow(
-    "workspace is 4 files and"
+  const message = refusal(directory);
+  expect(message).toMatch(
+    new RegExp(
+      `workspace is \\d+ characters over the ${SOURCE_LIMIT} it budgets\\.`
+    )
   );
-  expect(() => vendoredWorkspace(directory)).toThrow(
-    `over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget.`
-  );
+  expect(message).not.toContain("files over the");
 });

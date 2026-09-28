@@ -94,6 +94,16 @@ export const vendoredEntry = (manifest: string): string => {
   return `${VENDOR}/${entry.replace(LEADING_DOT_SLASH, "")}`;
 };
 
+const overBudget = (paths: number, characters: number) =>
+  [
+    paths > SOURCE_FILE_LIMIT
+      ? `${paths} files over the ${SOURCE_FILE_LIMIT} it budgets`
+      : undefined,
+    characters > SOURCE_LIMIT
+      ? `${characters} characters over the ${SOURCE_LIMIT} it budgets`
+      : undefined,
+  ].filter((over) => over !== undefined);
+
 const vendoredPath = (dist: string, file: string) =>
   `${VENDOR}/dist/${relative(dist, file).split(sep).join("/")}`;
 
@@ -130,9 +140,10 @@ export const vendoredWorkspace = (packageDir: string): EvalSource => {
     0
   );
 
-  if (paths.length > SOURCE_FILE_LIMIT || characters > SOURCE_LIMIT) {
+  const over = overBudget(paths.length, characters);
+  if (over.length > 0) {
     throw new Error(
-      `The sdk eval workspace is ${paths.length} files and ${characters} characters, over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget. Ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
+      `The sdk eval workspace is ${over.join(" and ")}. Ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
     );
   }
 
