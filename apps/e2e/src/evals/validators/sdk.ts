@@ -6,17 +6,11 @@ import { api, endpoint, withApi } from "anpord/api";
 import { z } from "zod";
 
 export const prepareSdk: Prepare = async ({ exec }): Promise<undefined> => {
-  for (const [file, ...args] of [
-    ["npm", "install", "--global", "bun@1.3.14"],
-    ["bun", "install", "--frozen-lockfile", "--filter", "./packages/sdk"],
-    ["bun", "--bun", "run", "--cwd", "packages/sdk", "build", "--no-dts"],
-  ]) {
-    const result = await exec(file, args, { timeoutMs: 600_000 });
-    if (result.exitCode !== 0) {
-      throw new Error(
-        `${file} ${args.join(" ")} exited ${result.exitCode}: ${result.stderr || result.stdout}`
-      );
-    }
+  const result = await exec("bun", ["install"], { timeoutMs: 600_000 });
+  if (result.exitCode !== 0) {
+    throw new Error(
+      `bun install exited ${result.exitCode}: ${result.stderr || result.stdout}`
+    );
   }
   return;
 };
@@ -72,7 +66,7 @@ export const validateSdk: Validator = () => {
     }),
     run: async ({ url, calls }) => {
       const module = submissionSchema.parse(
-        await import(pathToFileURL(resolve("apps/e2e/sdk-smoke.mjs")).href)
+        await import(pathToFileURL(resolve("sdk-smoke.mjs")).href)
       );
       const content = await module.resolvePrompt(url, "ci/prompt", "CI");
       const requests = await calls();

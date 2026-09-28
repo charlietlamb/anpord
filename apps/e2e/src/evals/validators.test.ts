@@ -41,7 +41,6 @@ test.each([
     const workspace = await mkdtemp(join(tmpdir(), "anpord-ci-validator-"));
     try {
       await mkdir(join(workspace, ".anpord"));
-      await mkdir(join(workspace, "apps/e2e"), { recursive: true });
       const script = join(workspace, "validator.mjs");
       const answer = join(workspace, "answer.txt");
       await writeFile(script, validator.source);
@@ -51,7 +50,7 @@ test.each([
       );
       if (suite === "sdk") {
         await writeFile(
-          join(workspace, "apps/e2e/sdk-smoke.mjs"),
+          join(workspace, "sdk-smoke.mjs"),
           passed
             ? `import { Anpord } from ${JSON.stringify(sdk.href)};
 export async function resolvePrompt(baseUrl, id, name) {
