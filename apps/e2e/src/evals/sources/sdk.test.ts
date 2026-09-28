@@ -4,11 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { MAX_START_REQUEST_CHARACTERS } from "@anpord/schema/domain/eval-quota";
-import { SOURCE_FILE_LIMIT } from "@anpord/schema/domain/eval-source-files";
 import { compileEval } from "anpord/eval";
 import { vendoredEntry, vendoredTargets, vendoredWorkspace } from "./sdk";
 
 const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
+const WORKSPACE_FILE_BUDGET = 100;
 
 const EXACT_VERSION = /^\d+\.\d+\.\d+/;
 
@@ -108,7 +108,7 @@ test("ships the built SDK as the workspace the agent starts from", async () => {
   expect(
     [...new Set(paths.map((path) => path.slice(path.lastIndexOf("."))))].sort()
   ).toEqual([".json", ".md", ".mjs", ".mts"]);
-  expect(paths.length).toBeLessThanOrEqual(SOURCE_FILE_LIMIT);
+  expect(paths.length).toBeLessThanOrEqual(WORKSPACE_FILE_BUDGET);
   expect(JSON.stringify(files).length).toBeLessThanOrEqual(
     WORKSPACE_CHARACTER_BUDGET
   );
@@ -204,7 +204,7 @@ test("refuses a build missing the entry its manifest points at", async () => {
 test("refuses a workspace of more files than its budget allows", async () => {
   const directory = await scratchPackage(
     Object.fromEntries(
-      Array.from({ length: SOURCE_FILE_LIMIT }, (_, index) => [
+      Array.from({ length: WORKSPACE_FILE_BUDGET }, (_, index) => [
         `part-${index}.mjs`,
         "export const part = 1;",
       ])
@@ -213,7 +213,7 @@ test("refuses a workspace of more files than its budget allows", async () => {
 
   const message = refusal(directory);
   expect(message).toContain(
-    `workspace is ${SOURCE_FILE_LIMIT + 3} files over the ${SOURCE_FILE_LIMIT} it budgets.`
+    `workspace is ${WORKSPACE_FILE_BUDGET + 3} files over the ${WORKSPACE_FILE_BUDGET} it budgets.`
   );
   expect(message).not.toContain("characters over the");
 });

@@ -5,13 +5,14 @@ import {
   MAX_START_REQUEST_CHARACTERS,
   MEGABYTE,
 } from "@anpord/schema/domain/eval-quota";
-import { SOURCE_FILE_LIMIT } from "@anpord/schema/domain/eval-source-files";
 import { type EvalSource, files } from "anpord";
 
 const VENDOR = "vendor/anpord";
 const LEADING_DOT_SLASH = /^\.\//;
 const SHIPPED = [".mjs", ".d.mts"];
 const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
+
+const WORKSPACE_FILE_BUDGET = 100;
 
 const rootManifest = {
   dependencies: { anpord: `file:./${VENDOR}` },
@@ -110,8 +111,8 @@ export const vendoredTargets = (manifest: string): readonly string[] =>
 
 const overBudget = (paths: number, characters: number) =>
   [
-    paths > SOURCE_FILE_LIMIT
-      ? `${paths} files over the ${SOURCE_FILE_LIMIT} it budgets`
+    paths > WORKSPACE_FILE_BUDGET
+      ? `${paths} files over the ${WORKSPACE_FILE_BUDGET} it budgets`
       : undefined,
     characters > WORKSPACE_CHARACTER_BUDGET
       ? `${characters} characters of request JSON over the ${WORKSPACE_CHARACTER_BUDGET} it budgets, half of the ${MAX_START_REQUEST_CHARACTERS / MEGABYTE}MB a batch may submit`
