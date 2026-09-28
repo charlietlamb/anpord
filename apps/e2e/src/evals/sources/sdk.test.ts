@@ -25,7 +25,11 @@ const scratchPackage = async (modules: Readonly<Record<string, string>>) => {
   scratched.push(directory);
   await writeFile(
     join(directory, "package.json"),
-    JSON.stringify({ name: "anpord", version: "0.0.0" })
+    JSON.stringify({
+      name: "anpord",
+      version: "0.0.0",
+      exports: { ".": { import: { default: "./dist/index.mjs" } } },
+    })
   );
   await writeFile(join(directory, "README.md"), "# anpord\n");
   if (Object.keys(modules).length > 0) {
@@ -72,6 +76,21 @@ test("ships the built SDK as the workspace the agent starts from", async () => {
   expect(
     Object.values(files).reduce((total, text) => total + text.length, 0)
   ).toBeLessThanOrEqual(SOURCE_LIMIT);
+});
+
+test("advertises only the ESM build it actually ships", async () => {
+  const files = await filesSource();
+  const vendored = JSON.parse(files["vendor/anpord/package.json"] ?? "");
+
+  expect(vendored.main).toBeUndefined();
+  expect(vendored.module).toBe("./dist/index.mjs");
+  expect(vendored.bin).toEqual({ anpord: "./dist/bin.mjs" });
+  expect(
+    Object.entries(vendored.exports).filter(
+      ([, target]) =>
+        typeof target === "object" && target !== null && "require" in target
+    )
+  ).toEqual([]);
 });
 
 test("asks for a build instead of shipping an empty workspace", async () => {

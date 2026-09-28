@@ -30,9 +30,30 @@ const modulesUnder = (directory: string): readonly string[] =>
     return entry.name.endsWith(".mjs") ? [path] : [];
   });
 
+const withoutRequire = (target: unknown) =>
+  typeof target === "object" && target !== null
+    ? Object.fromEntries(
+        Object.entries(target).filter(([condition]) => condition !== "require")
+      )
+    : target;
+
+const esmExports = (exported: Record<string, unknown> | undefined) =>
+  exported === undefined
+    ? undefined
+    : Object.fromEntries(
+        Object.entries(exported).map(([subpath, target]) => [
+          subpath,
+          withoutRequire(target),
+        ])
+      );
+
 const consumerManifest = (text: string) => {
-  const { devDependencies, ...published } = JSON.parse(text);
-  return `${JSON.stringify(published, null, 2)}\n`;
+  const { devDependencies, main, ...published } = JSON.parse(text);
+  return `${JSON.stringify(
+    { ...published, exports: esmExports(published.exports) },
+    null,
+    2
+  )}\n`;
 };
 
 const vendoredPath = (dist: string, file: string) =>
