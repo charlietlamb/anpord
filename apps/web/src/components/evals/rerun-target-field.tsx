@@ -23,12 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@anpord/ui/components/ui/select";
+import { useDebounced } from "@anpord/ui/hooks/use-debounced";
 import { CaretDownIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { evalQueries } from "@/lib/evals/eval-queries";
 
 const AS_BEFORE = "asBefore";
+const SEARCH_SETTLE_MS = 200;
 
 function ModelField({
   harness,
@@ -41,14 +43,15 @@ function ModelField({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const { data } = useQuery(evalQueries.models(harness, query.trim() || null));
+  const settled = useDebounced(query.trim(), SEARCH_SETTLE_MS);
+  const { data } = useQuery(evalQueries.models(harness, settled || null));
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger
         render={
           <Button
-            aria-label="Model"
+            aria-label={model === "" ? "Model" : `Model, ${model}`}
             className="min-w-0 max-w-56 justify-between"
             size="sm"
             variant="outline"
@@ -122,7 +125,13 @@ export function RerunTargetField({
         onValueChange={choose}
         value={target.kind === AS_BEFORE ? AS_BEFORE : target.harness}
       >
-        <SelectTrigger aria-label="Where to run" className="max-w-56" size="sm">
+        <SelectTrigger
+          aria-label={`Where to run, ${
+            target.kind === AS_BEFORE ? "on the same variants" : target.harness
+          }`}
+          className="max-w-56"
+          size="sm"
+        >
           <SelectValue>
             {target.kind === AS_BEFORE ? (
               "On the same variants"
