@@ -105,7 +105,6 @@ export const evalQueries = {
     queryOptions({
       queryKey: evalKeys.models(harness, q),
       queryFn: () => listModels(harness, q),
-      placeholderData: keepPreviousData,
       staleTime: CATALOGUE_STALE_MS,
     }),
 

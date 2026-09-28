@@ -38,7 +38,7 @@ export const evalKeys = {
       intent.trials,
     ] as const,
   models: (harness: string, q: string | null) =>
-    [...evalKeys.all, "models", harness, q ?? "all"] as const,
+    [...evalKeys.all, "models", harness, q] as const,
   case: (id: string) => [...evalKeys.all, "case", id] as const,
   caseRuns: (caseId: string, variant: string | null, page: number) =>
     [...evalKeys.case(caseId), "runs", variant ?? "all", page] as const,
