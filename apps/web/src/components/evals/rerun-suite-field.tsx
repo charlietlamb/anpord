@@ -58,10 +58,13 @@ export function RerunSuiteField({
                     onSelect(suite);
                     setOpen(false);
                   }}
-                  value={suite.name}
+                  value={`${suite.name} ${suite.id}`}
                 >
                   <StackIcon />
                   <span className="truncate">{suite.name}</span>
+                  <span className="ml-auto shrink-0 text-muted-foreground text-xs">
+                    {suite.id}
+                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>
