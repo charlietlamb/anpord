@@ -32,7 +32,7 @@ export function RerunSuiteField({
       <PopoverTrigger
         render={
           <Button
-            aria-label="Suite"
+            aria-label={selected === null ? "Suite" : `Suite, ${selected.name}`}
             className="min-w-0 max-w-56 justify-between"
             size="sm"
             variant="outline"
