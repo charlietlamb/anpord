@@ -37,6 +37,9 @@ export const passedCleanly = (result: EvalVariantResult) =>
   result.distribution.scored > 0 &&
   result.distribution.passed === result.distribution.scored;
 
+const settledWithoutPassing = (result: EvalVariantResult) =>
+  result.status !== "running" && !passedCleanly(result);
+
 const newestRunMillis = (candidate: RerunCandidate) =>
   candidate.results.reduce(
     (newest, result) =>
@@ -71,7 +74,7 @@ const repeatEachVariant = (
   const taken =
     intent.scope === "everyCase"
       ? hosted
-      : hosted.filter((result) => !passedCleanly(result));
+      : hosted.filter(settledWithoutPassing);
   if (taken.length === 0) {
     return { kind: "skip", reason: "nothingFailed" };
   }
@@ -91,7 +94,7 @@ const onOneVariant = (
 ): Wanted => {
   if (
     intent.scope === "onlyFailures" &&
-    candidate.results.every(passedCleanly)
+    !candidate.results.some(settledWithoutPassing)
   ) {
     return { kind: "skip", reason: "nothingFailed" };
   }

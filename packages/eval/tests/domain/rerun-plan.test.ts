@@ -46,13 +46,14 @@ const resultOf = (input: {
   readonly at?: number;
   readonly passed?: number;
   readonly scored?: number;
+  readonly status?: EvalVariantResult["status"];
   readonly variant?: Partial<EvalVariant>;
 }): EvalVariantResult => ({
   distribution: distributionOf(input.passed ?? 2, input.scored ?? 2),
   lastRunAt: DateTime.unsafeMake(input.at ?? 1000),
   lastRunId: "run-a",
   runs: 1,
-  status: "finished",
+  status: input.status ?? "finished",
   variant: variantOf(input.variant ?? {}),
 });
 
@@ -110,6 +111,58 @@ describe("planRerun", () => {
     expect(plan.slots).toEqual([]);
     expect(plan.skipped).toEqual([
       { caseId: "green", caseName: "Green", reason: "nothingFailed" },
+    ]);
+  });
+
+  it("leaves a still running case alone when only failures were asked for", () => {
+    const candidates: readonly RerunCandidate[] = [
+      {
+        caseId: "busy",
+        caseName: "Busy",
+        results: [resultOf({ passed: 0, scored: 0, status: "running" })],
+      },
+    ];
+
+    expect(
+      planRerun({
+        candidates,
+        intent: { ...asBefore, scope: "onlyFailures" },
+        suite,
+      })
+    ).toMatchObject({
+      skipped: [{ caseId: "busy", caseName: "Busy", reason: "nothingFailed" }],
+      slots: [],
+    });
+
+    expect(
+      planRerun({
+        candidates,
+        intent: { ...onVariant, scope: "onlyFailures" },
+        suite,
+      }).slots
+    ).toEqual([]);
+  });
+
+  it("takes a case whose newest run failed outright", () => {
+    const plan = planRerun({
+      candidates: [
+        {
+          caseId: "broke",
+          caseName: "Broke",
+          results: [resultOf({ passed: 0, scored: 0, status: "failed" })],
+        },
+      ],
+      intent: { ...asBefore, scope: "onlyFailures" },
+      suite,
+    });
+
+    expect(plan.skipped).toEqual([]);
+    expect(plan.slots).toEqual([
+      {
+        caseId: "broke",
+        caseName: "Broke",
+        variant: { kind: "existing", variant: variantOf({}) },
+      },
     ]);
   });
 
