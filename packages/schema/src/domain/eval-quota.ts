@@ -12,6 +12,10 @@ export const MAX_START_VARIANTS = 20;
 
 export const MAX_START_TRIALS = 10;
 
+export const MEGABYTE = 1024 * 1024;
+
+export const MAX_START_REQUEST_CHARACTERS = 3.5 * MEGABYTE;
+
 export interface StartSize {
   readonly cases: number;
   readonly trials: number;
