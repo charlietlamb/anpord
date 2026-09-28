@@ -1,6 +1,7 @@
 import { Schema } from "effect";
 
 export const SOURCE_LIMIT = 1_000_000;
+export const SOURCE_FILE_LIMIT = 100;
 
 export const EvalSourceFile = Schema.Struct({
   path: Schema.String.pipe(
@@ -14,7 +15,7 @@ export const EvalSourceFile = Schema.Struct({
 export type EvalSourceFile = typeof EvalSourceFile.Type;
 
 export const EvalSourceFiles = Schema.Array(EvalSourceFile).pipe(
-  Schema.maxItems(100),
+  Schema.maxItems(SOURCE_FILE_LIMIT),
   Schema.filter(
     (files) => new Set(files.map(({ path }) => path)).size === files.length
   ),

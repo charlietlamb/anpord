@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,6 +7,7 @@ import { withApi } from "anpord/api";
 import { compileEval } from "anpord/eval";
 import { item } from "./fixtures/catalog";
 import { catalogApi } from "./mocks/catalog-api";
+import { SANDBOX_BUN } from "./validators/sdk";
 
 const sdk = new URL("../../../../packages/sdk/dist/index.mjs", import.meta.url);
 
@@ -41,7 +42,6 @@ test.each([
     const workspace = await mkdtemp(join(tmpdir(), "anpord-ci-validator-"));
     try {
       await mkdir(join(workspace, ".anpord"));
-      await mkdir(join(workspace, "apps/e2e"), { recursive: true });
       const script = join(workspace, "validator.mjs");
       const answer = join(workspace, "answer.txt");
       await writeFile(script, validator.source);
@@ -51,7 +51,7 @@ test.each([
       );
       if (suite === "sdk") {
         await writeFile(
-          join(workspace, "apps/e2e/sdk-smoke.mjs"),
+          join(workspace, "sdk-smoke.mjs"),
           passed
             ? `import { Anpord } from ${JSON.stringify(sdk.href)};
 export async function resolvePrompt(baseUrl, id, name) {
@@ -119,3 +119,12 @@ export async function resolvePrompt(baseUrl, id, name) {
     }
   }
 }, 30_000);
+
+test("the sandbox installs the bun this repository pins", async () => {
+  const root = fileURLToPath(
+    new URL("../../../../package.json", import.meta.url)
+  );
+  const { packageManager } = JSON.parse(await readFile(root, "utf8"));
+
+  expect(packageManager).toBe(`bun@${SANDBOX_BUN}`);
+});
