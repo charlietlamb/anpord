@@ -70,7 +70,7 @@ export const vendoredWorkspace = (packageDir: string): EvalSource => {
 
   if (paths.length > SOURCE_FILE_LIMIT || characters > SOURCE_LIMIT) {
     throw new Error(
-      `The sdk eval workspace is ${paths.length} files and ${characters} characters, over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters an eval source may carry. Ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
+      `The sdk eval workspace is ${paths.length} files and ${characters} characters, over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget. Ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
     );
   }
 

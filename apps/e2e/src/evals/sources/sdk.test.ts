@@ -82,7 +82,7 @@ test("asks for a build instead of shipping an empty workspace", async () => {
   );
 });
 
-test("refuses a workspace of more files than a source may carry", async () => {
+test("refuses a workspace of more files than its budget allows", async () => {
   const directory = await scratchPackage(
     Object.fromEntries(
       Array.from({ length: SOURCE_FILE_LIMIT }, (_, index) => [
@@ -96,11 +96,11 @@ test("refuses a workspace of more files than a source may carry", async () => {
     `workspace is ${SOURCE_FILE_LIMIT + 3} files and`
   );
   expect(() => vendoredWorkspace(directory)).toThrow(
-    `over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters an eval source may carry.`
+    `over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget.`
   );
 });
 
-test("refuses a workspace of more characters than a source may carry", async () => {
+test("refuses a workspace of more characters than its budget allows", async () => {
   const directory = await scratchPackage({
     "index.mjs": "x".repeat(SOURCE_LIMIT),
   });
@@ -109,6 +109,6 @@ test("refuses a workspace of more characters than a source may carry", async () 
     "workspace is 4 files and"
   );
   expect(() => vendoredWorkspace(directory)).toThrow(
-    `over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters an eval source may carry.`
+    `over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget.`
   );
 });
