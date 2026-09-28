@@ -26,6 +26,7 @@ import { RerunSuiteField } from "@/components/evals/rerun-suite-field";
 import { RerunTargetField } from "@/components/evals/rerun-target-field";
 import { useRerunSuite } from "@/lib/evals/eval-mutations";
 import { evalQueries } from "@/lib/evals/eval-queries";
+import { HttpError } from "@/lib/http-error";
 
 export type RerunSubject =
   | { readonly kind: "fixed"; readonly suite: EvalSuite }
@@ -51,6 +52,8 @@ const OPENING: RerunIntent = {
   trials: 1,
 };
 
+const PLAN_CHANGED = 409;
+
 const chosen = (target: RerunTarget) =>
   target.kind === "asBefore" || target.model !== "";
 
@@ -65,6 +68,7 @@ export function RerunDialog({
 }) {
   const [suite, setSuite] = useState(subject.suite);
   const [intent, setIntent] = useState(OPENING);
+  const [rechecking, setRechecking] = useState(false);
   const rerun = useRerunSuite(suite?.id ?? "");
   const plan = useQuery({
     ...evalQueries.rerunPlan(suite?.id ?? "", intent),
@@ -95,10 +99,16 @@ export function RerunDialog({
     rerun.mutate(
       { ...intent, expect: ready.fingerprint },
       {
-        onError: (error) =>
+        onError: (error) => {
           toast.error("Couldn't start the re-run", {
             description: error.message,
-          }),
+          });
+
+          if (error instanceof HttpError && error.status === PLAN_CHANGED) {
+            setRechecking(true);
+            plan.refetch().finally(() => setRechecking(false));
+          }
+        },
         onSuccess: () => {
           toast.success(
             `Started ${counted(ready.slots.length, "run", "runs")}`
@@ -188,7 +198,10 @@ export function RerunDialog({
         </Button>
         <Button
           disabled={
-            ready === undefined || ready.slots.length === 0 || rerun.isPending
+            ready === undefined ||
+            ready.slots.length === 0 ||
+            rerun.isPending ||
+            rechecking
           }
           onClick={start}
         >
