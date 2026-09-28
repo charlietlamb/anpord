@@ -22,6 +22,18 @@ export const REPORTED_LIMITS: CaptureLimits = {
   text: 64_000,
 };
 
+const DurationMs = Schema.transform(Schema.Number, Schema.NonNegativeInt, {
+  decode: (value) => Math.max(0, Math.round(value)),
+  encode: (value: number) => value,
+  strict: true,
+});
+
+export const validationDuration = (
+  startedAt: number | null,
+  finished: number
+) =>
+  startedAt === null ? null : Math.max(0, Math.round(finished - startedAt));
+
 const valueWithin = (limit: number) =>
   Schema.Struct({
     text: Schema.String.pipe(Schema.maxLength(limit)),
@@ -48,7 +60,7 @@ const callOf = (value: ValueSchema) =>
       "mcp.calls"
     ),
     startedAt: Schema.Number,
-    durationMs: Schema.NullOr(Schema.NonNegativeInt),
+    durationMs: Schema.NullOr(DurationMs),
     input: value,
     output: value,
     error: Schema.NullOr(value),
@@ -69,7 +81,7 @@ const validationOf = (value: ValueSchema, call: ReturnType<typeof callOf>) =>
       "skipped"
     ),
     startedAt: Schema.NullOr(Schema.Number),
-    durationMs: Schema.NullOr(Schema.NonNegativeInt),
+    durationMs: Schema.NullOr(DurationMs),
     message: Schema.String.pipe(Schema.maxLength(2000)),
     exitCode: Schema.NullOr(Schema.Int),
     truncated: Schema.Boolean,
@@ -136,6 +148,34 @@ export const unavailableValue: ValidationValue = {
   state: "unavailable",
   truncated: false,
 };
+
+const withoutText = (value: ValidationValue): ValidationValue =>
+  value.text === ""
+    ? value
+    : { ...unavailableValue, format: value.format, truncated: true };
+
+const orNull = (value: ValidationValue | null) =>
+  value === null ? null : withoutText(value);
+
+export const validationWithoutEvidence = (
+  value: EvalValidation
+): EvalValidation => ({
+  ...value,
+  calls: value.calls.map((call) => ({
+    ...call,
+    error: orNull(call.error),
+    input: withoutText(call.input),
+    output: withoutText(call.output),
+  })),
+  error: orNull(value.error),
+  input: withoutText(value.input),
+  logs: value.logs.map((log) => ({ ...log, value: withoutText(log.value) })),
+  output: withoutText(value.output),
+  truncated: true,
+  ...(value.metadata === undefined
+    ? {}
+    : { metadata: withoutText(value.metadata) }),
+});
 
 export const validationCapture = (
   enabled = true,

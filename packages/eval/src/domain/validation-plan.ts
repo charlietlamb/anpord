@@ -1,6 +1,7 @@
 import type { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import {
   type EvalValidation,
+  validationDuration,
   validationExecution,
 } from "@anpord/schema/domain/eval-validations";
 
@@ -22,10 +23,7 @@ export const interruptedValidation = (
     ...record,
     status: "error",
     message: "Validation was interrupted",
-    durationMs:
-      record.startedAt === null
-        ? null
-        : Math.max(0, finishedAt - record.startedAt),
+    durationMs: validationDuration(record.startedAt, finishedAt),
   };
 };
 

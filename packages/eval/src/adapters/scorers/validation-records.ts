@@ -3,7 +3,10 @@ import type {
   ValidationValue,
   validationCapture,
 } from "@anpord/schema/domain/eval-validations";
-import { validationSnapshot } from "@anpord/schema/domain/eval-validations";
+import {
+  validationDuration,
+  validationSnapshot,
+} from "@anpord/schema/domain/eval-validations";
 import { resultStatus, validatorResultOf } from "./validator-protocol";
 
 export const completeValidations = (
@@ -33,10 +36,7 @@ export const completeValidations = (
           exitCode,
           message: message ?? "Validator did not return a complete result",
           error: record.error ?? error,
-          durationMs:
-            record.startedAt === null
-              ? null
-              : Math.max(0, finished - record.startedAt),
+          durationMs: validationDuration(record.startedAt, finished),
         };
       }
       if (record.status === "queued" || record.status === "running") {
@@ -70,7 +70,7 @@ export const legacyValidation = (
       raw?.message ?? (raw === null ? "Validator returned no valid result" : "")
     ).slice(0, 2000),
     output: raw === null ? record.output : capture(raw),
-    durationMs: Math.max(0, finished - (record.startedAt ?? finished)),
+    durationMs: validationDuration(record.startedAt ?? finished, finished),
     exitCode: execution.exitCode,
     logs: [
       {
