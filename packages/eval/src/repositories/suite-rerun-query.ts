@@ -123,7 +123,11 @@ export const suiteRerunQuery = Effect.gen(function* () {
                 cases.map((subject) => subject.internalId)
               )
             )
-            .orderBy(evalRun.variantInternalId, desc(evalRun.createdAt))
+            .orderBy(
+              evalRun.variantInternalId,
+              desc(evalRun.createdAt),
+              desc(evalRun.internalId)
+            )
       );
 
       if (newest.length === 0) {
