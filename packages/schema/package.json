@@ -27,6 +27,7 @@
     "./domain/eval-batch-subscription": "./src/domain/eval-batch-subscription.ts",
     "./domain/eval-costs": "./src/domain/eval-costs.ts",
     "./domain/eval-read-models": "./src/domain/eval-read-models.ts",
+    "./domain/eval-rerun": "./src/domain/eval-rerun.ts",
     "./domain/eval-trial": "./src/domain/eval-trial.ts",
     "./domain/evals": "./src/domain/evals.ts",
     "./domain/features": "./src/domain/features.ts",
