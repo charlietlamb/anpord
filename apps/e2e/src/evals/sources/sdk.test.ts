@@ -8,7 +8,7 @@ import {
   SOURCE_LIMIT,
 } from "@anpord/schema/domain/eval-source-files";
 import { compileEval } from "anpord/eval";
-import { vendoredWorkspace } from "./sdk";
+import { vendoredEntry, vendoredWorkspace } from "./sdk";
 
 const EXACT_VERSION = /^\d+\.\d+\.\d+/;
 
@@ -89,7 +89,10 @@ test("ships the built SDK as the workspace the agent starts from", async () => {
   expect(vendored.name).toBe("anpord");
   expect(vendored.devDependencies).toBeUndefined();
   expect(vendored.exports["."].import.default).toBe("./dist/index.mjs");
-  expect(files["vendor/anpord/dist/index.mjs"]).toContain("Anpord =");
+
+  const entry = vendoredEntry(files["vendor/anpord/package.json"] ?? "");
+  expect(entry).toBe("vendor/anpord/dist/index.mjs");
+  expect((files[entry] ?? "").length).toBeGreaterThan(1000);
   expect(files["vendor/anpord/README.md"]).toContain("npm install anpord");
 
   const paths = Object.keys(files);
@@ -163,6 +166,16 @@ test("asks for a build instead of shipping an empty workspace", async () => {
 
   expect(() => vendoredWorkspace(directory)).toThrow(
     `${join(directory, "dist")} is missing, so the sdk eval has no SDK to ship as its workspace. Build it with "bun run --cwd packages/sdk build" before compiling this suite.`
+  );
+});
+
+test("refuses a build missing the entry its manifest points at", async () => {
+  const directory = await scratchPackage({
+    "other.mjs": "export const other = 1;",
+  });
+
+  expect(() => vendoredWorkspace(directory)).toThrow(
+    `The sdk eval workspace does not ship vendor/anpord/dist/index.mjs, the entry vendor/anpord/package.json points at, so nothing the agent writes can import "anpord". Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
   );
 });
 

@@ -8,6 +8,7 @@ import {
 import { type EvalSource, files } from "anpord";
 
 const VENDOR = "vendor/anpord";
+const LEADING_DOT_SLASH = /^\.\//;
 
 const rootManifest = {
   dependencies: { anpord: `file:./${VENDOR}` },
@@ -83,6 +84,16 @@ const consumerManifest = (packageDir: string, text: string) => {
   )}\n`;
 };
 
+export const vendoredEntry = (manifest: string): string => {
+  const entry = JSON.parse(manifest).exports?.["."]?.import?.default;
+  if (typeof entry !== "string") {
+    throw new Error(
+      `${VENDOR}/package.json names no root import entry, so nothing the agent writes can import "anpord".`
+    );
+  }
+  return `${VENDOR}/${entry.replace(LEADING_DOT_SLASH, "")}`;
+};
+
 const vendoredPath = (dist: string, file: string) =>
   `${VENDOR}/dist/${relative(dist, file).split(sep).join("/")}`;
 
@@ -95,12 +106,14 @@ export const vendoredWorkspace = (packageDir: string): EvalSource => {
     );
   }
 
+  const vendoredManifest = consumerManifest(
+    packageDir,
+    readFileSync(join(packageDir, "package.json"), "utf8")
+  );
+
   const contents: Record<string, string> = {
     "package.json": `${JSON.stringify(rootManifest, null, 2)}\n`,
-    [`${VENDOR}/package.json`]: consumerManifest(
-      packageDir,
-      readFileSync(join(packageDir, "package.json"), "utf8")
-    ),
+    [`${VENDOR}/package.json`]: vendoredManifest,
     [`${VENDOR}/README.md`]: readFileSync(
       join(packageDir, "README.md"),
       "utf8"
@@ -120,6 +133,13 @@ export const vendoredWorkspace = (packageDir: string): EvalSource => {
   if (paths.length > SOURCE_FILE_LIMIT || characters > SOURCE_LIMIT) {
     throw new Error(
       `The sdk eval workspace is ${paths.length} files and ${characters} characters, over the ${SOURCE_FILE_LIMIT} files and ${SOURCE_LIMIT} characters this eval keeps as its budget. Ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
+    );
+  }
+
+  const entry = vendoredEntry(vendoredManifest);
+  if (!(entry in contents)) {
+    throw new Error(
+      `The sdk eval workspace does not ship ${entry}, the entry ${VENDOR}/package.json points at, so nothing the agent writes can import "anpord". Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
     );
   }
 
