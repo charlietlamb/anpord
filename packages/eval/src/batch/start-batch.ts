@@ -5,7 +5,6 @@ import type {
   StartBatchRequest,
 } from "@anpord/schema/domain/eval-definition";
 import {
-  MAX_ORGANIZATION_RUNS_IN_FLIGHT,
   MAX_RUN_TRIALS,
   trialsRequested,
 } from "@anpord/schema/domain/eval-quota";
@@ -31,6 +30,7 @@ import { CatalogRepository } from "../repositories/catalog-repository";
 import { HarnessProfileRepository } from "../repositories/harness-profile-repository";
 import { startedBatchQuery } from "../repositories/started-batch-query";
 import { HarnessVersions } from "../services/harness-versions";
+import { refuseWhenBusy } from "./in-flight";
 import type { Launch, Launched } from "./launch";
 
 const variantKey = (variant: EvalVariantRequest) =>
@@ -95,15 +95,7 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
       }
     }
 
-    const inFlight = yield* (yield* BatchRepository)
-      .inFlight(actor.organizationId)
-      .pipe(Effect.orDie);
-    if (inFlight >= MAX_ORGANIZATION_RUNS_IN_FLIGHT) {
-      return yield* new StartRefused({
-        reason: `This organization already has ${inFlight} batches going, and may have ${MAX_ORGANIZATION_RUNS_IN_FLIGHT} at once. Wait for one to finish.`,
-        retryable: true,
-      });
-    }
+    yield* refuseWhenBusy(actor.organizationId);
   });
 
 export interface Start {
