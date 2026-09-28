@@ -4,19 +4,8 @@ import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
-import type { HarnessName, SandboxName } from "../domain/variant";
-import { namesOf } from "../domain/variant";
+import { type RunTemplate, templateOf } from "../domain/run-template";
 import { tryStore } from "./query";
-
-interface RunTemplate {
-  readonly harness: HarnessName;
-  readonly harnessCredentialConnectionId: string | null;
-  readonly harnessVersion: string;
-  readonly profileInternalId: string | null;
-  readonly sandbox: SandboxName;
-  readonly sandboxCredentialConnectionId: string | null;
-  readonly variantInternalId: string;
-}
 
 export interface CaseTemplates {
   readonly caseVersionInternalId: string;
@@ -83,24 +72,7 @@ export const caseTemplatesQuery = Effect.gen(function* () {
 
       return Option.some<CaseTemplates>({
         caseVersionInternalId: version.internalId,
-        runs: rows.flatMap((row) =>
-          Option.match(namesOf(row.variant), {
-            onNone: () => [],
-            onSome: (names) => [
-              {
-                harness: names.harness,
-                harnessCredentialConnectionId:
-                  row.run.harnessCredentialConnectionId,
-                harnessVersion: row.run.harnessVersion,
-                profileInternalId: row.run.profileInternalId,
-                sandbox: names.sandbox,
-                sandboxCredentialConnectionId:
-                  row.run.sandboxCredentialConnectionId,
-                variantInternalId: row.variant.internalId,
-              },
-            ],
-          })
-        ),
+        runs: rows.flatMap((row) => Option.toArray(templateOf(row))),
       });
     }).pipe(
       Effect.withSpan("CaseTemplatesQuery.find", {
