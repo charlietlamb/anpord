@@ -66,9 +66,10 @@ export function RerunDialog({
   readonly open: boolean;
   readonly subject: RerunSubject;
 }) {
-  const [suite, setSuite] = useState(subject.suite);
+  const [picked, setPicked] = useState<EvalSuite | null>(null);
   const [intent, setIntent] = useState(OPENING);
   const [rechecking, setRechecking] = useState(false);
+  const suite = picked ?? subject.suite;
   const rerun = useRerunSuite(suite?.id ?? "");
   const plan = useQuery({
     ...evalQueries.rerunPlan(suite?.id ?? "", intent),
@@ -130,7 +131,7 @@ export function RerunDialog({
       <div className="flex flex-wrap items-center gap-2">
         {subject.kind === "chosen" ? (
           <RerunSuiteField
-            onSelect={setSuite}
+            onSelect={setPicked}
             selected={suite}
             suites={subject.suites}
           />
