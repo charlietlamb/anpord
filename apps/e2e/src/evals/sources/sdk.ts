@@ -30,6 +30,29 @@ const modulesUnder = (directory: string): readonly string[] =>
     return entry.name.endsWith(".mjs") ? [path] : [];
   });
 
+const installedVersion = (packageDir: string, name: string): string => {
+  const manifest = join(packageDir, "node_modules", name, "package.json");
+  if (!existsSync(manifest)) {
+    throw new Error(
+      `${name} is not installed under ${packageDir}, so the sdk eval cannot pin it to the version this repository tests against. Run "bun install --frozen-lockfile" before compiling this suite.`
+    );
+  }
+  return JSON.parse(readFileSync(manifest, "utf8")).version;
+};
+
+const pinnedDependencies = (
+  packageDir: string,
+  dependencies: Record<string, string> | undefined
+) =>
+  dependencies === undefined
+    ? undefined
+    : Object.fromEntries(
+        Object.keys(dependencies).map((name) => [
+          name,
+          installedVersion(packageDir, name),
+        ])
+      );
+
 const withoutRequire = (target: unknown) =>
   typeof target === "object" && target !== null
     ? Object.fromEntries(
@@ -47,10 +70,14 @@ const esmExports = (exported: Record<string, unknown> | undefined) =>
         ])
       );
 
-const consumerManifest = (text: string) => {
+const consumerManifest = (packageDir: string, text: string) => {
   const { devDependencies, main, ...published } = JSON.parse(text);
   return `${JSON.stringify(
-    { ...published, exports: esmExports(published.exports) },
+    {
+      ...published,
+      dependencies: pinnedDependencies(packageDir, published.dependencies),
+      exports: esmExports(published.exports),
+    },
     null,
     2
   )}\n`;
@@ -71,6 +98,7 @@ export const vendoredWorkspace = (packageDir: string): EvalSource => {
   const contents: Record<string, string> = {
     "package.json": `${JSON.stringify(rootManifest, null, 2)}\n`,
     [`${VENDOR}/package.json`]: consumerManifest(
+      packageDir,
       readFileSync(join(packageDir, "package.json"), "utf8")
     ),
     [`${VENDOR}/README.md`]: readFileSync(

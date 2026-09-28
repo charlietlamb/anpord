@@ -10,6 +10,8 @@ import {
 import { compileEval } from "anpord/eval";
 import { vendoredWorkspace } from "./sdk";
 
+const EXACT_VERSION = /^\d+\.\d+\.\d+/;
+
 const scratched: string[] = [];
 
 afterEach(async () => {
@@ -20,15 +22,26 @@ afterEach(async () => {
   );
 });
 
-const scratchPackage = async (modules: Readonly<Record<string, string>>) => {
+const scratchPackage = async (
+  modules: Readonly<Record<string, string>>,
+  installed: Readonly<Record<string, string | null>> = {}
+) => {
   const directory = await mkdtemp(join(tmpdir(), "anpord-vendored-"));
   scratched.push(directory);
+  const declared = Object.keys(installed);
   await writeFile(
     join(directory, "package.json"),
     JSON.stringify({
       name: "anpord",
       version: "0.0.0",
       exports: { ".": { import: { default: "./dist/index.mjs" } } },
+      ...(declared.length > 0
+        ? {
+            dependencies: Object.fromEntries(
+              declared.map((name) => [name, "*"])
+            ),
+          }
+        : {}),
     })
   );
   await writeFile(join(directory, "README.md"), "# anpord\n");
@@ -38,6 +51,17 @@ const scratchPackage = async (modules: Readonly<Record<string, string>>) => {
       Object.entries(modules).map(([name, text]) =>
         writeFile(join(directory, "dist", name), text)
       )
+    );
+  }
+  for (const [name, version] of Object.entries(installed)) {
+    if (version === null) {
+      continue;
+    }
+    const module = join(directory, "node_modules", name);
+    await mkdir(module, { recursive: true });
+    await writeFile(
+      join(module, "package.json"),
+      JSON.stringify({ name, version })
     );
   }
   return directory;
@@ -91,6 +115,47 @@ test("advertises only the ESM build it actually ships", async () => {
         typeof target === "object" && target !== null && "require" in target
     )
   ).toEqual([]);
+});
+
+test("pins every dependency to the version the monorepo installs", async () => {
+  const files = await filesSource();
+  const { dependencies } = JSON.parse(
+    files["vendor/anpord/package.json"] ?? ""
+  );
+
+  expect(Object.keys(dependencies)).toContain("effect");
+  expect(
+    Object.entries(dependencies).filter(
+      ([, version]) => !EXACT_VERSION.test(String(version))
+    )
+  ).toEqual([]);
+});
+
+test("pins a declared dependency to what node_modules holds", async () => {
+  const directory = await scratchPackage(
+    { "index.mjs": "export const anpord = 1;" },
+    { effect: "3.21.2", yaml: "2.9.0" }
+  );
+
+  const source = vendoredWorkspace(directory);
+  if (source.kind !== "files") {
+    throw new Error(`Expected a files source, got ${source.kind}`);
+  }
+
+  expect(
+    JSON.parse(source.files["vendor/anpord/package.json"] ?? "").dependencies
+  ).toEqual({ effect: "3.21.2", yaml: "2.9.0" });
+});
+
+test("asks for an install when a dependency is absent from node_modules", async () => {
+  const directory = await scratchPackage(
+    { "index.mjs": "export const anpord = 1;" },
+    { effect: null }
+  );
+
+  expect(() => vendoredWorkspace(directory)).toThrow(
+    `effect is not installed under ${directory}, so the sdk eval cannot pin it to the version this repository tests against. Run "bun install --frozen-lockfile" before compiling this suite.`
+  );
 });
 
 test("asks for a build instead of shipping an empty workspace", async () => {
