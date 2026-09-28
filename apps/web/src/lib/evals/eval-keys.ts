@@ -1,6 +1,15 @@
 import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
+import type {
+  RerunIntent,
+  RerunTarget,
+} from "@anpord/schema/domain/eval-rerun";
 import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
 import type { CaseFilters } from "@/lib/evals/evals-client";
+
+const targetKey = (target: RerunTarget) =>
+  target.kind === "asBefore"
+    ? "asBefore"
+    : [target.kind, target.harness, target.model, target.sandbox].join("/");
 
 export const evalKeys = {
   all: ["evals"] as const,
@@ -20,6 +29,16 @@ export const evalKeys = {
   suites: (cursor: { readonly id: string } | null) =>
     [...evalKeys.suiteLists(), cursor?.id ?? "first"] as const,
   suite: (id: string) => [...evalKeys.all, "suite", id] as const,
+  rerunPlan: (suiteId: string, intent: RerunIntent) =>
+    [
+      ...evalKeys.suite(suiteId),
+      "rerun-plan",
+      intent.scope,
+      targetKey(intent.target),
+      intent.trials,
+    ] as const,
+  models: (harness: string, q: string | null) =>
+    [...evalKeys.all, "models", harness, q ?? "all"] as const,
   case: (id: string) => [...evalKeys.all, "case", id] as const,
   caseRuns: (caseId: string, variant: string | null, page: number) =>
     [...evalKeys.case(caseId), "runs", variant ?? "all", page] as const,

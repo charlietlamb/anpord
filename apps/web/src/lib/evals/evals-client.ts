@@ -1,5 +1,6 @@
 import { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
 import { EvalHome, type EvalHomeRange } from "@anpord/schema/domain/eval-home";
+import { ModelCatalogue } from "@anpord/schema/domain/eval-models";
 import {
   type CaseOrder,
   type CaseSort,
@@ -12,12 +13,18 @@ import {
   EvalTrialAddress,
 } from "@anpord/schema/domain/eval-read-models";
 import {
+  type RerunIntent,
+  RerunPlan,
+  type RerunRequest,
+} from "@anpord/schema/domain/eval-rerun";
+import {
   EvalBatchTail,
   type EvalTailMark,
 } from "@anpord/schema/domain/eval-tail";
 import {
   EvalArtifact,
   type EvalArtifactRequest,
+  type EvalHarness,
 } from "@anpord/schema/domain/eval-trial";
 import { EvalBatch, EvalRun, StartedBatch } from "@anpord/schema/domain/evals";
 import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
@@ -80,6 +87,15 @@ export const listCaseRuns = (
 
 export const runCase = (caseId: string, request: RunCaseRequest) =>
   api.post(StartedBatch, path("cases", caseId, "runs"), request);
+
+export const listModels = (harness: EvalHarness, q: string | null) =>
+  api.request(ModelCatalogue, `/models${searchOf({ harness, q })}`);
+
+export const planSuiteRerun = (suiteId: string, intent: RerunIntent) =>
+  api.post(RerunPlan, path("suites", suiteId, "runs", "plan"), intent);
+
+export const rerunSuite = (suiteId: string, request: RerunRequest) =>
+  api.post(StartedBatch, path("suites", suiteId, "runs"), request);
 
 export const getRun = (id: string) => api.request(EvalRun, path("runs", id));
 
