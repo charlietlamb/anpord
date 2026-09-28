@@ -5,9 +5,11 @@ import type { Prepare, Validator } from "anpord";
 import { api, endpoint, withApi } from "anpord/api";
 import { z } from "zod";
 
+export const SANDBOX_BUN = "1.3.14";
+
 export const prepareSdk: Prepare = async ({ exec }): Promise<undefined> => {
   for (const [file, ...args] of [
-    ["npm", "install", "--global", "bun@1.3.14"],
+    ["npm", "install", "--global", `bun@${SANDBOX_BUN}`],
     ["bun", "install"],
   ]) {
     const result = await exec(file, args, { timeoutMs: 600_000 });
