@@ -3,12 +3,12 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  SOURCE_FILE_LIMIT,
-  SOURCE_LIMIT,
-} from "@anpord/schema/domain/eval-source-files";
+import { MAX_START_REQUEST_CHARACTERS } from "@anpord/schema/domain/eval-quota";
+import { SOURCE_FILE_LIMIT } from "@anpord/schema/domain/eval-source-files";
 import { compileEval } from "anpord/eval";
-import { vendoredEntry, vendoredWorkspace } from "./sdk";
+import { vendoredEntry, vendoredTargets, vendoredWorkspace } from "./sdk";
+
+const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
 
 const EXACT_VERSION = /^\d+\.\d+\.\d+/;
 
@@ -107,11 +107,11 @@ test("ships the built SDK as the workspace the agent starts from", async () => {
   const paths = Object.keys(files);
   expect(
     [...new Set(paths.map((path) => path.slice(path.lastIndexOf("."))))].sort()
-  ).toEqual([".json", ".md", ".mjs"]);
+  ).toEqual([".json", ".md", ".mjs", ".mts"]);
   expect(paths.length).toBeLessThanOrEqual(SOURCE_FILE_LIMIT);
-  expect(
-    Object.values(files).reduce((total, text) => total + text.length, 0)
-  ).toBeLessThanOrEqual(SOURCE_LIMIT);
+  expect(JSON.stringify(files).length).toBeLessThanOrEqual(
+    WORKSPACE_CHARACTER_BUDGET
+  );
 });
 
 test("advertises only the ESM build it actually ships", async () => {
@@ -127,6 +127,19 @@ test("advertises only the ESM build it actually ships", async () => {
         typeof target === "object" && target !== null && "require" in target
     )
   ).toEqual([]);
+});
+
+test("carries every file its manifest points at, declarations included", async () => {
+  const files = await filesSource();
+  const manifest = files["vendor/anpord/package.json"] ?? "";
+  const vendored = JSON.parse(manifest);
+
+  expect(vendored.types).toBeUndefined();
+  expect(vendored.exports["."].import.types).toBe("./dist/index.d.mts");
+
+  const targets = vendoredTargets(manifest);
+  expect(targets).toContain("vendor/anpord/dist/index.d.mts");
+  expect(targets.filter((target) => !(target in files))).toEqual([]);
 });
 
 test("pins every dependency to the version the monorepo installs", async () => {
@@ -184,7 +197,7 @@ test("refuses a build missing the entry its manifest points at", async () => {
   });
 
   expect(() => vendoredWorkspace(directory)).toThrow(
-    `The sdk eval workspace does not ship vendor/anpord/dist/index.mjs, the entry vendor/anpord/package.json points at, so nothing the agent writes can import "anpord". Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
+    `The sdk eval workspace does not ship vendor/anpord/dist/index.mjs, which vendor/anpord/package.json points at, so the sandbox does not carry the SDK its manifest describes. Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
   );
 });
 
@@ -207,14 +220,12 @@ test("refuses a workspace of more files than its budget allows", async () => {
 
 test("refuses a workspace of more characters than its budget allows", async () => {
   const directory = await scratchPackage({
-    "index.mjs": "x".repeat(SOURCE_LIMIT),
+    "index.mjs": "x".repeat(WORKSPACE_CHARACTER_BUDGET),
   });
 
   const message = refusal(directory);
-  expect(message).toMatch(
-    new RegExp(
-      `workspace is \\d+ characters over the ${SOURCE_LIMIT} it budgets\\.`
-    )
+  expect(message).toContain(
+    `characters of request JSON over the ${WORKSPACE_CHARACTER_BUDGET} it budgets, half of the 3.5MB a batch may submit.`
   );
   expect(message).not.toContain("files over the");
 });

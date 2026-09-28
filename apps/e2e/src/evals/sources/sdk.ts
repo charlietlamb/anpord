@@ -2,13 +2,16 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  SOURCE_FILE_LIMIT,
-  SOURCE_LIMIT,
-} from "@anpord/schema/domain/eval-source-files";
+  MAX_START_REQUEST_CHARACTERS,
+  MEGABYTE,
+} from "@anpord/schema/domain/eval-quota";
+import { SOURCE_FILE_LIMIT } from "@anpord/schema/domain/eval-source-files";
 import { type EvalSource, files } from "anpord";
 
 const VENDOR = "vendor/anpord";
 const LEADING_DOT_SLASH = /^\.\//;
+const SHIPPED = [".mjs", ".d.mts"];
+const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
 
 const rootManifest = {
   dependencies: { anpord: `file:./${VENDOR}` },
@@ -22,13 +25,13 @@ const sdkPackage = fileURLToPath(
   new URL("../../../../../packages/sdk", import.meta.url)
 );
 
-const modulesUnder = (directory: string): readonly string[] =>
+const shippedUnder = (directory: string): readonly string[] =>
   readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) {
-      return modulesUnder(path);
+      return shippedUnder(path);
     }
-    return entry.name.endsWith(".mjs") ? [path] : [];
+    return SHIPPED.some((suffix) => entry.name.endsWith(suffix)) ? [path] : [];
   });
 
 const installedVersion = (packageDir: string, name: string): string => {
@@ -72,7 +75,7 @@ const esmExports = (exported: Record<string, unknown> | undefined) =>
       );
 
 const consumerManifest = (packageDir: string, text: string) => {
-  const { devDependencies, main, ...published } = JSON.parse(text);
+  const { devDependencies, main, types, ...published } = JSON.parse(text);
   return `${JSON.stringify(
     {
       ...published,
@@ -84,6 +87,9 @@ const consumerManifest = (packageDir: string, text: string) => {
   )}\n`;
 };
 
+const inWorkspace = (target: string) =>
+  `${VENDOR}/${target.replace(LEADING_DOT_SLASH, "")}`;
+
 export const vendoredEntry = (manifest: string): string => {
   const entry = JSON.parse(manifest).exports?.["."]?.import?.default;
   if (typeof entry !== "string") {
@@ -91,16 +97,24 @@ export const vendoredEntry = (manifest: string): string => {
       `${VENDOR}/package.json names no root import entry, so nothing the agent writes can import "anpord".`
     );
   }
-  return `${VENDOR}/${entry.replace(LEADING_DOT_SLASH, "")}`;
+  return inWorkspace(entry);
 };
+
+const targetsOf = (target: unknown): readonly string[] =>
+  typeof target === "string"
+    ? [inWorkspace(target)]
+    : Object.values(target as Record<string, unknown>).flatMap(targetsOf);
+
+export const vendoredTargets = (manifest: string): readonly string[] =>
+  Object.values(JSON.parse(manifest).exports ?? {}).flatMap(targetsOf);
 
 const overBudget = (paths: number, characters: number) =>
   [
     paths > SOURCE_FILE_LIMIT
       ? `${paths} files over the ${SOURCE_FILE_LIMIT} it budgets`
       : undefined,
-    characters > SOURCE_LIMIT
-      ? `${characters} characters over the ${SOURCE_LIMIT} it budgets`
+    characters > WORKSPACE_CHARACTER_BUDGET
+      ? `${characters} characters of request JSON over the ${WORKSPACE_CHARACTER_BUDGET} it budgets, half of the ${MAX_START_REQUEST_CHARACTERS / MEGABYTE}MB a batch may submit`
       : undefined,
   ].filter((over) => over !== undefined);
 
@@ -130,27 +144,27 @@ export const vendoredWorkspace = (packageDir: string): EvalSource => {
     ),
   };
 
-  for (const file of modulesUnder(dist)) {
+  for (const file of shippedUnder(dist)) {
     contents[vendoredPath(dist, file)] = readFileSync(file, "utf8");
   }
 
-  const paths = Object.keys(contents);
-  const characters = Object.values(contents).reduce(
-    (total, text) => total + text.length,
-    0
+  const over = overBudget(
+    Object.keys(contents).length,
+    JSON.stringify(contents).length
   );
-
-  const over = overBudget(paths.length, characters);
   if (over.length > 0) {
     throw new Error(
-      `The sdk eval workspace is ${over.join(" and ")}. Ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
+      `The sdk eval workspace is ${over.join(" and ")}. The rest of that budget carries the prompt, the bundled validators and the variants, so ship less of ${packageDir}, such as fewer entry points, or move the consumer to a suite of its own.`
     );
   }
 
-  const entry = vendoredEntry(vendoredManifest);
-  if (!(entry in contents)) {
+  const missing = [
+    vendoredEntry(vendoredManifest),
+    ...vendoredTargets(vendoredManifest),
+  ].filter((target) => !(target in contents));
+  if (missing.length > 0) {
     throw new Error(
-      `The sdk eval workspace does not ship ${entry}, the entry ${VENDOR}/package.json points at, so nothing the agent writes can import "anpord". Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
+      `The sdk eval workspace does not ship ${[...new Set(missing)].join(", ")}, which ${VENDOR}/package.json points at, so the sandbox does not carry the SDK its manifest describes. Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
     );
   }
 
