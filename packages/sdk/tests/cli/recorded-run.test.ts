@@ -436,7 +436,7 @@ describe("a local trial too large for Anpord to take", () => {
     }).toEqual({
       journals: [0],
       noted: [
-        "The journal of a trial of fixture on command/none@writes-done was too large for Anpord to take, so its verdict was recorded without it.\n",
+        "A trial of fixture on command/none@writes-done was too large for Anpord to take, so its verdict was recorded without its journal.\n",
       ],
       reported: [{ ordinal: 1, runId: "run_1" }],
       statuses: ["passed"],
@@ -506,6 +506,36 @@ describe("a local run whose batch Anpord closes while it runs", () => {
       noted: [],
       quick: true,
       reported: [],
+    });
+  }, 60_000);
+});
+
+describe("a local trial still too large without its journal", () => {
+  it("records its verdict without the evidence its checks captured", async () => {
+    const request = requestWith("touch done.txt");
+    const api = fakeApi(request, { "runner.report": [413, 413] });
+    const said: string[] = [];
+    const write = spyOn(process.stderr, "write").mockImplementation((text) => {
+      said.push(String(text));
+      return true;
+    });
+
+    const { cases } = await Effect.runPromise(recorded(api, request)).finally(
+      () => write.mockRestore()
+    );
+
+    expect({
+      journals: api.journals,
+      noted: said.filter((line) => line.includes("journal")),
+      reported: api.reported,
+      statuses: cases.map((one) => one.status),
+    }).toEqual({
+      journals: [0],
+      noted: [
+        "A trial of fixture on command/none@writes-done was too large for Anpord to take, so its verdict was recorded without its journal or the evidence its checks captured.\n",
+      ],
+      reported: [{ ordinal: 1, runId: "run_1" }],
+      statuses: ["passed"],
     });
   }, 60_000);
 });

@@ -32,6 +32,7 @@ import {
   type ReportRequest,
   reportRequest,
   unscoredForOlderServer,
+  withoutEvidence,
   withoutJournal,
 } from "./local-trial-result";
 import { openBrowser } from "./open-browser";
@@ -134,6 +135,15 @@ const tooLarge = (error: unknown) =>
   error._tag === "ResponseError" &&
   error.response.status === TOO_LARGE;
 
+const SHRUNK = [
+  { gaveUp: "its journal", shrink: withoutJournal },
+  {
+    gaveUp: "its journal or the evidence its checks captured",
+    shrink: (result: LocalTrialResult) =>
+      withoutEvidence(withoutJournal(result)),
+  },
+] as const;
+
 const reportTrial = (
   api: AnpordClient,
   result: LocalTrialResult,
@@ -153,16 +163,20 @@ const reportTrial = (
       )
     );
 
-  return sendTrial(result).pipe(
-    Effect.catchIf(tooLarge, () =>
-      sendTrial(withoutJournal(result)).pipe(
-        Effect.zipRight(
-          note(
-            `The journal of a trial of ${trial} was too large for Anpord to take, so its verdict was recorded without it.`
+  return SHRUNK.reduce(
+    (attempt, rung) =>
+      attempt.pipe(
+        Effect.catchIf(tooLarge, () =>
+          sendTrial(rung.shrink(result)).pipe(
+            Effect.zipRight(
+              note(
+                `A trial of ${trial} was too large for Anpord to take, so its verdict was recorded without ${rung.gaveUp}.`
+              )
+            )
           )
         )
-      )
-    )
+      ),
+    sendTrial(result)
   );
 };
 

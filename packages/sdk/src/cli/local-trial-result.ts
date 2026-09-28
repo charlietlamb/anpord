@@ -1,6 +1,7 @@
 import { TrialTimedOut } from "@anpord/eval/domain/errors";
 import { describeCause } from "@anpord/eval/domain/failure";
 import { cutToJournal } from "@anpord/eval/domain/journal-entries";
+import { validationWithoutEvidence } from "@anpord/schema/domain/eval-validations";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import type { TrialOutcome } from "@anpord/schema/domain/trial";
 import type { TokenCounts } from "@anpord/schema/domain/usage-health";
@@ -127,6 +128,19 @@ export const withoutJournal = (result: LocalTrialResult): LocalTrialResult => ({
   ...result,
   events: [],
 });
+
+export const withoutEvidence = (result: LocalTrialResult): LocalTrialResult =>
+  result.kind === "scored"
+    ? {
+        ...result,
+        outcome: {
+          ...result.outcome,
+          validations: result.outcome.validations.map(
+            validationWithoutEvidence
+          ),
+        },
+      }
+    : result;
 
 export const verdictOf = (result: LocalTrialResult): Verdict =>
   result.kind === "scored"
