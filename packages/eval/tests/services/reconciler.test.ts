@@ -7,14 +7,7 @@ import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
 import { IdGeneratorLive } from "@anpord/ids/layer";
 import { validationExecution } from "@anpord/schema/domain/eval-validations";
 import { asc, eq } from "drizzle-orm";
-import {
-  Duration,
-  Effect,
-  Layer,
-  Option,
-  TestClock,
-  TestContext,
-} from "effect";
+import { Duration, Effect, Layer, TestClock, TestContext } from "effect";
 import {
   type AbandonedWork,
   AbandonedWorkLive,
@@ -22,6 +15,7 @@ import {
 import {
   BatchRepository,
   BatchRepositoryLive,
+  type InsertedBatch,
 } from "../../src/repositories/batch-repository";
 import { reconcile } from "../../src/services/reconciler";
 import {
@@ -35,6 +29,13 @@ const TestLayer = Layer.merge(AbandonedWorkLive, BatchRepositoryLive).pipe(
   Layer.provide(IdGeneratorLive),
   Layer.provideMerge(testDatabase())
 );
+
+const insertedRows = (result: InsertedBatch) => {
+  if (result.kind !== "inserted") {
+    throw new Error(`the batch was refused as ${result.kind}`);
+  }
+  return result;
+};
 
 const suffix = Date.now();
 const organizationId = `org_reconcile_${suffix}`;
@@ -245,6 +246,7 @@ describe.skipIf(skipWithoutDatabase())("reconcile", () => {
         return yield* (yield* BatchRepository).insert({
           checksIn: true,
           idempotency: null,
+          limit: null,
           local: true,
           organizationId,
           runs: [
@@ -265,7 +267,7 @@ describe.skipIf(skipWithoutDatabase())("reconcile", () => {
         });
       }).pipe(Effect.provide(TestContext.TestContext))
     );
-    const { internalId, runInternalIds } = Option.getOrThrow(inserted);
+    const { internalId, runInternalIds } = insertedRows(inserted);
     const runInternalId = runInternalIds[0] ?? "";
     await withDb((db) =>
       seedTrial(db, {
@@ -345,6 +347,7 @@ describe.skipIf(skipWithoutDatabase())(
         const inserted = yield* (yield* BatchRepository).insert({
           checksIn,
           idempotency: null,
+          limit: null,
           local: true,
           organizationId: olderId,
           runs: [
@@ -363,7 +366,7 @@ describe.skipIf(skipWithoutDatabase())(
           startedBy: null,
           trigger: null,
         });
-        return Option.getOrThrow(inserted).internalId;
+        return insertedRows(inserted).internalId;
       }).pipe(Effect.provide(TestContext.TestContext));
 
     const statusOf = (internalId: string) =>

@@ -39,6 +39,7 @@ const organizationId = `org_batches_${suffix}`;
 const crowdedId = `org_crowded_${suffix}`;
 const quietId = `org_quiet_${suffix}`;
 const localCrowdId = `org_local_crowd_${suffix}`;
+const raceId = `org_race_${suffix}`;
 const actor = actorOf(organizationId);
 const dispatched: Dispatched[] = [];
 const seen: AgentTrialRequest[] = [];
@@ -140,6 +141,8 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       await seedConnections(db, quietId);
       await seedOrganization(db, localCrowdId);
       await seedConnections(db, localCrowdId);
+      await seedOrganization(db, raceId);
+      await seedConnections(db, raceId);
     });
   });
 
@@ -989,6 +992,45 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
           )
       );
       expect(running).toHaveLength(MAX_ORGANIZATION_RUNS_IN_FLIGHT);
+    });
+
+    it("holds the ceiling when starts arrive in the same instant", async () => {
+      const crowd = actorOf(raceId);
+      const attempts = MAX_ORGANIZATION_RUNS_IN_FLIGHT + 2;
+      const outcomes = await Promise.all(
+        Array.from({ length: attempts }, (_, index) =>
+          exitOf(
+            Batches.pipe(
+              Effect.flatMap((batches) =>
+                batches.start(
+                  crowd,
+                  requestOf({ cases: [caseOf(`race-${index}`)] })
+                )
+              )
+            )
+          )
+        )
+      );
+
+      const running = await query((db) =>
+        db
+          .select({ id: evalBatch.internalId })
+          .from(evalBatch)
+          .where(
+            and(
+              eq(evalBatch.organizationId, raceId),
+              inArray(evalBatch.status, ["running"])
+            )
+          )
+      );
+
+      expect({
+        refused: outcomes.filter(Exit.isFailure).length,
+        running: running.length,
+      }).toEqual({
+        refused: attempts - MAX_ORGANIZATION_RUNS_IN_FLIGHT,
+        running: MAX_ORGANIZATION_RUNS_IN_FLIGHT,
+      });
     });
 
     it("lets local batches past the ceiling, because they open no sandbox", async () => {

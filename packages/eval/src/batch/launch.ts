@@ -1,17 +1,29 @@
-import { Clock, Effect, Option } from "effect";
+import { Clock, Effect } from "effect";
 import { describeFailure } from "../domain/errors";
 import { TrialRunner } from "../ports/trial-runner";
 import {
   BatchRepository,
+  type InsertedBatch,
   type NewBatch,
 } from "../repositories/batch-repository";
+import { tooBusy } from "./in-flight";
 
 export type Launch = NewBatch;
 
-export type Launched = Option.Option<{
-  readonly internalId: string;
-  readonly runInternalIds: readonly string[];
-}>;
+export type Launched = InsertedBatch;
+
+export const keyless = (launched: Launched) =>
+  Effect.gen(function* () {
+    if (launched.kind === "overLimit") {
+      return yield* tooBusy(launched.inFlight);
+    }
+    if (launched.kind === "keyTaken") {
+      return yield* Effect.dieMessage(
+        "a re-run carries no idempotency key, so nothing could have taken one"
+      );
+    }
+    return launched;
+  });
 
 export const makeLaunch = (
   execute: (batchInternalId: string) => Effect.Effect<unknown, unknown>
@@ -23,17 +35,16 @@ export const makeLaunch = (
     return (input: Launch) =>
       Effect.gen(function* () {
         const inserted = yield* batches.insert(input);
-        if (Option.isNone(inserted)) {
+        if (inserted.kind !== "inserted") {
           return inserted;
         }
-        const created = inserted.value;
 
         if (!input.local) {
           yield* runner
             .dispatch({
-              batchId: created.internalId,
+              batchId: inserted.internalId,
               organizationId: input.organizationId,
-              work: execute(created.internalId).pipe(Effect.ignoreLogged),
+              work: execute(inserted.internalId).pipe(Effect.ignoreLogged),
             })
             .pipe(
               Effect.tapErrorCause((cause) =>
@@ -42,7 +53,7 @@ export const makeLaunch = (
                     batches.finish({
                       failure: `The batch could not start: ${describeFailure(cause)}`,
                       finishedAt: new Date(finishedAt),
-                      internalId: created.internalId,
+                      internalId: inserted.internalId,
                       status: "failed",
                     })
                   ),

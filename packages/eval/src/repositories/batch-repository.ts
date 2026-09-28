@@ -1,12 +1,14 @@
 import { Database } from "@anpord/db/client";
+import type { Tx } from "@anpord/db/query";
 import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
 import { evalRun } from "@anpord/db/schema/evals/eval-runs";
 import { IdGenerator } from "@anpord/ids/id";
 import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
 import { and, count, eq } from "drizzle-orm";
-import { Clock, Context, Effect, Layer, Option } from "effect";
+import { Clock, Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
+import { type Refusal, refusalFor, runningHosted } from "./batch-admission";
 import { tryStore } from "./query";
 import { unreportedTrials, voidUnreported } from "./unreported-trials";
 
@@ -32,12 +34,21 @@ export interface StartKey {
 export interface NewBatch {
   readonly checksIn: boolean;
   readonly idempotency: StartKey | null;
+  readonly limit: number | null;
   readonly local: boolean;
   readonly organizationId: string;
   readonly runs: readonly NewRun[];
   readonly startedBy: string | null;
   readonly trigger: EvalTrigger | null;
 }
+
+export type InsertedBatch =
+  | {
+      readonly internalId: string;
+      readonly kind: "inserted";
+      readonly runInternalIds: readonly string[];
+    }
+  | Refusal;
 
 type Settled = "failed" | "finished";
 
@@ -51,13 +62,9 @@ export interface BatchRepositoryShape {
   readonly inFlight: (
     organizationId: string
   ) => Effect.Effect<number, EvalStoreError>;
-  readonly insert: (input: NewBatch) => Effect.Effect<
-    Option.Option<{
-      readonly internalId: string;
-      readonly runInternalIds: readonly string[];
-    }>,
-    EvalStoreError
-  >;
+  readonly insert: (
+    input: NewBatch
+  ) => Effect.Effect<InsertedBatch, EvalStoreError>;
   readonly reopen: (internalId: string) => Effect.Effect<void, EvalStoreError>;
   readonly settleOpenRuns: (input: {
     readonly batchInternalId: string;
@@ -78,6 +85,57 @@ export class BatchRepository extends Context.Tag(
   "@anpord/eval/BatchRepository"
 )<BatchRepository, BatchRepositoryShape>() {}
 
+interface BatchIds {
+  readonly createdAt: Date;
+  readonly internalId: string;
+  readonly runInternalIds: readonly string[];
+}
+
+const writeBatch = async (
+  tx: Tx,
+  input: NewBatch,
+  minted: BatchIds
+): Promise<InsertedBatch> => {
+  const [batch] = await tx
+    .insert(evalBatch)
+    .values({
+      idempotencyKey: input.idempotency?.key ?? null,
+      internalId: minted.internalId,
+      lastSeenAt: input.local && input.checksIn ? minted.createdAt : null,
+      local: input.local,
+      organizationId: input.organizationId,
+      requestHash: input.idempotency?.requestHash ?? null,
+      startedBy: input.startedBy,
+      status: "running",
+      trigger: input.trigger,
+    })
+    .onConflictDoNothing({
+      target: [evalBatch.organizationId, evalBatch.idempotencyKey],
+    })
+    .returning({ internalId: evalBatch.internalId });
+
+  if (batch === undefined) {
+    return { kind: "keyTaken" };
+  }
+
+  if (input.runs.length > 0) {
+    await tx.insert(evalRun).values(
+      input.runs.map((run, index) => ({
+        ...run,
+        batchInternalId: minted.internalId,
+        internalId: minted.runInternalIds[index] ?? "",
+        status: "running",
+      }))
+    );
+  }
+
+  return {
+    internalId: minted.internalId,
+    kind: "inserted",
+    runInternalIds: minted.runInternalIds,
+  };
+};
+
 export const BatchRepositoryLive = Layer.effect(
   BatchRepository,
   Effect.gen(function* () {
@@ -92,45 +150,23 @@ export const BatchRepositoryLive = Layer.effect(
         );
         const createdAt = new Date(yield* Clock.currentTimeMillis);
 
-        const inserted = yield* tryStore("batch.insert", () =>
+        return yield* tryStore("batch.insert", () =>
           db.transaction(async (tx) => {
-            const [batch] = await tx
-              .insert(evalBatch)
-              .values({
-                idempotencyKey: input.idempotency?.key ?? null,
+            const refused = await refusalFor(tx, {
+              idempotencyKey: input.idempotency?.key ?? null,
+              limit: input.limit,
+              organizationId: input.organizationId,
+            });
+            return (
+              refused ??
+              (await writeBatch(tx, input, {
+                createdAt,
                 internalId,
-                lastSeenAt: input.local && input.checksIn ? createdAt : null,
-                local: input.local,
-                organizationId: input.organizationId,
-                requestHash: input.idempotency?.requestHash ?? null,
-                startedBy: input.startedBy,
-                status: "running",
-                trigger: input.trigger,
-              })
-              .onConflictDoNothing({
-                target: [evalBatch.organizationId, evalBatch.idempotencyKey],
-              })
-              .returning({ internalId: evalBatch.internalId });
-            if (batch === undefined) {
-              return false;
-            }
-            if (input.runs.length > 0) {
-              await tx.insert(evalRun).values(
-                input.runs.map((run, index) => ({
-                  ...run,
-                  batchInternalId: internalId,
-                  internalId: runInternalIds[index] ?? "",
-                  status: "running",
-                }))
-              );
-            }
-            return true;
+                runInternalIds,
+              }))
+            );
           })
         );
-
-        return inserted
-          ? Option.some({ internalId, runInternalIds })
-          : Option.none();
       }).pipe(
         Effect.withSpan("BatchRepository.insert", {
           attributes: { runs: input.runs.length },
@@ -164,13 +200,7 @@ export const BatchRepositoryLive = Layer.effect(
         db
           .select({ running: count() })
           .from(evalBatch)
-          .where(
-            and(
-              eq(evalBatch.organizationId, organizationId),
-              eq(evalBatch.status, "running"),
-              eq(evalBatch.local, false)
-            )
-          )
+          .where(runningHosted(organizationId))
       ).pipe(
         Effect.map((rows) => rows[0]?.running ?? 0),
         Effect.withSpan("BatchRepository.inFlight")

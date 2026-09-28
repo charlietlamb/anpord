@@ -7,7 +7,7 @@ import { CredentialResolver } from "../credentials/resolver";
 import { bindCredentials } from "../credentials/variants";
 import { EvalNotFound, NotRunnable } from "../domain/errors";
 import { caseTemplatesQuery } from "../repositories/case-templates-query";
-import type { Launch, Launched } from "./launch";
+import { keyless, type Launch, type Launched } from "./launch";
 
 export interface RunCase {
   readonly actor: Actor;
@@ -84,9 +84,10 @@ export const makeRunCase = (
           }))
         );
 
-        const created = yield* launch({
+        const launched = yield* launch({
           checksIn: false,
           idempotency: null,
+          limit: null,
           local: false,
           organizationId: input.actor.organizationId,
           runs: runs.map((run, index) => ({
@@ -104,13 +105,13 @@ export const makeRunCase = (
           })),
           startedBy: authorIdOf(input.actor),
           trigger: input.trigger,
-        }).pipe(Effect.flatten, Effect.orDie);
+        }).pipe(Effect.orDie, Effect.flatMap(keyless));
 
         return {
-          id: created.internalId,
+          id: launched.internalId,
           runs: runs.map((run, index) => ({
             caseId: input.caseId,
-            id: created.runInternalIds[index] ?? "",
+            id: launched.runInternalIds[index] ?? "",
             variantId: run.variantInternalId,
           })),
         } satisfies StartedBatch;

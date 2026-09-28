@@ -1,5 +1,6 @@
 import type { Actor } from "@anpord/schema/domain/actor";
 import { authorIdOf } from "@anpord/schema/domain/actor";
+import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@anpord/schema/domain/eval-quota";
 import type {
   PlannedVariant,
   RerunRequest,
@@ -18,7 +19,7 @@ import { CatalogRepository } from "../repositories/catalog-repository";
 import type { SuiteRerunCase } from "../repositories/suite-rerun-query";
 import { HarnessVersions } from "../services/harness-versions";
 import { refuseWhenBusy } from "./in-flight";
-import type { Launch, Launched } from "./launch";
+import { keyless, type Launch, type Launched } from "./launch";
 import type { PlannedRerun, RerunPlanInput } from "./rerun-plan";
 
 export interface RerunSuite {
@@ -187,9 +188,10 @@ export const makeRerunSuite = (
           }))
         );
 
-        const created = yield* launch({
+        const launched = yield* launch({
           checksIn: false,
           idempotency: null,
+          limit: MAX_ORGANIZATION_RUNS_IN_FLIGHT,
           local: false,
           organizationId: input.actor.organizationId,
           runs: resolved.map((slot, index) => ({
@@ -202,13 +204,13 @@ export const makeRerunSuite = (
           })),
           startedBy: authorIdOf(input.actor),
           trigger: input.trigger,
-        }).pipe(Effect.flatten, Effect.orDie);
+        }).pipe(Effect.orDie, Effect.flatMap(keyless));
 
         return {
-          id: created.internalId,
+          id: launched.internalId,
           runs: resolved.map((slot, index) => ({
             caseId: slot.caseId,
-            id: created.runInternalIds[index] ?? "",
+            id: launched.runInternalIds[index] ?? "",
             variantId: slot.variantInternalId,
           })),
         } satisfies StartedBatch;

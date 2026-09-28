@@ -61,7 +61,7 @@ export interface BatchesShape {
     input: RunCase
   ) => Effect.Effect<
     StartedBatch,
-    CredentialError | EvalNotFound | NotRunnable
+    CredentialError | EvalNotFound | NotRunnable | StartRefused
   >;
   readonly start: (
     actor: Actor,
