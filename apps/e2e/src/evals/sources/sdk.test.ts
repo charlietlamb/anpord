@@ -229,3 +229,13 @@ test("refuses a workspace of more characters than its budget allows", async () =
   );
   expect(message).not.toContain("files over the");
 });
+
+test("checks the bin the manifest promises, not only its exports", async () => {
+  const files = await filesSource();
+  const manifest = files["vendor/anpord/package.json"] ?? "";
+  const targets = vendoredTargets(manifest);
+
+  expect(JSON.parse(manifest).bin).toBeDefined();
+  expect(targets).toContain("vendor/anpord/dist/bin.mjs");
+  expect(targets.filter((target) => !(target in files))).toEqual([]);
+});

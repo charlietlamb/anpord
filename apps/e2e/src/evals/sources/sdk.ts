@@ -106,8 +106,12 @@ const targetsOf = (target: unknown): readonly string[] =>
     ? [inWorkspace(target)]
     : Object.values(target as Record<string, unknown>).flatMap(targetsOf);
 
-export const vendoredTargets = (manifest: string): readonly string[] =>
-  Object.values(JSON.parse(manifest).exports ?? {}).flatMap(targetsOf);
+export const vendoredTargets = (manifest: string): readonly string[] => {
+  const { bin, exports, module } = JSON.parse(manifest);
+  return [bin, exports, module]
+    .filter((named) => named !== undefined)
+    .flatMap(targetsOf);
+};
 
 const overBudget = (paths: number, characters: number) =>
   [
