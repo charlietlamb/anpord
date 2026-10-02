@@ -23,6 +23,7 @@ export const JudgeCompletion = Schema.Struct({
 });
 export type JudgeCompletion = typeof JudgeCompletion.Type;
 
+import type { ReadJudgeFile } from "../domain/judge-files";
 import type { SandboxName } from "../domain/variant";
 import type { ValidationObserver } from "../ports/scorer";
 
@@ -41,6 +42,7 @@ export interface JudgeRequest {
   readonly capture?: boolean;
   readonly context: JudgeContext;
   readonly events: readonly HarnessEvent[];
+  readonly files?: readonly ReadJudgeFile[];
   readonly index?: number;
   readonly input: string;
   readonly judge: EvalJudge;

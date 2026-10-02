@@ -6,6 +6,7 @@ import { redactSecrets } from "@anpord/schema/domain/secret-text";
 import { Effect, Layer } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
 import { readAnswer } from "../domain/journal";
+import type { JudgeFile } from "../domain/judge-files";
 import { redactEvent } from "../domain/secret-redaction";
 import { trialSecrets } from "../domain/trial-secrets";
 import { evaluateJudge } from "../judges/evaluate";
@@ -64,6 +65,19 @@ export const AgentTrialJudgedLive = Layer.effect(
             };
           }
           const secrets = trialSecrets(request);
+          const captured = new Map(
+            result.judgeFiles.map((file) => [
+              file.path,
+              file.kind === "read"
+                ? { ...file, text: redactSecrets(file.text, secrets) }
+                : file,
+            ])
+          );
+          const filesFor = (paths: readonly string[] = []) =>
+            paths.map(
+              (path): JudgeFile =>
+                captured.get(path) ?? { kind: "missing", path }
+            );
           const judgments = yield* Effect.forEach(
             request.validator.judges,
             (judge, index) =>
@@ -72,6 +86,7 @@ export const AgentTrialJudgedLive = Layer.effect(
                 onValidation: observe,
                 capture: request.validator?.capture !== false,
                 judge,
+                files: filesFor(judge.files),
                 context: request,
                 input: redactSecrets(request.prompt, secrets),
                 output: redactSecrets(readAnswer(result.events), secrets),

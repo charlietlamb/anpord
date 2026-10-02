@@ -78,6 +78,7 @@ const result: AgentTrialResult = {
   events: [],
   failedCommands: 0,
   filesChanged: [],
+  judgeFiles: [],
   outcome: {
     artifacts: [],
     commandCount: 0,

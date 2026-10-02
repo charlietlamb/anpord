@@ -140,6 +140,7 @@ export const scriptedAgent = (seen: AgentTrialRequest[] = []) =>
             events,
             failedCommands: 0,
             filesChanged: [],
+            judgeFiles: [],
             outcome: outcomeFor(status),
             prepared: {},
             sandboxId,

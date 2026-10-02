@@ -1,7 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
+import {
+  type EvalPrepare,
+  EvalValidator,
+} from "@anpord/schema/domain/eval-definition";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { ConfigProvider, Effect } from "effect";
+import { ConfigProvider, Effect, Schema } from "effect";
+import { judgmentsIn } from "../../src/domain/judgments";
 import { EvalLocalLive } from "../../src/local-layer";
 import { LocalTrials } from "../../src/services/local-trial";
 
@@ -183,6 +187,72 @@ describe("what a local trial shows and reports", () => {
     expect([said(streamed), said(outcome.events)]).toEqual([
       ["created [redacted] for the app"],
       ["created [redacted] for the app"],
+    ]);
+  }, 180_000);
+});
+
+describe("what a local judge reads", () => {
+  it("captures the files the agent wrote and voids on a missing or oversized one", async () => {
+    const judge = (name: string, files: readonly string[]) => ({
+      kind: "judge",
+      name,
+      provider: "openai",
+      model: "judge-model",
+      prompt: "The post is clear",
+      choices: { clear: 1, unclear: 0 },
+      files,
+    });
+    const outcome = await LocalTrials.pipe(
+      Effect.flatMap((trials) =>
+        trials.run({
+          caseName: "writes a post",
+          harness: "command",
+          harnessVersion: "1",
+          model: "none",
+          prepare: null,
+          profile: {
+            env: null,
+            files: {},
+            install: null,
+            name: "writer",
+            run: "mkdir -p out && head -c 19989 /dev/zero | tr '\\0' p > out/post.md && printf 'end of post' >> out/post.md && head -c 32001 /dev/zero | tr '\\0' b > big.md",
+            systemPrompt: null,
+          },
+          prompt: "write a post",
+          source: { files: {}, kind: "files" },
+          validator: Schema.decodeUnknownSync(EvalValidator)({
+            kind: "judged",
+            name: "post",
+            checks: [],
+            judges: [
+              judge("grounded", ["out/post.md", "out/missing.md"]),
+              judge("short", ["big.md"]),
+            ],
+          }),
+          verifyCommand: null,
+        })
+      ),
+      Effect.provide(EvalLocalLive),
+      Effect.scoped,
+      Effect.withConfigProvider(opted),
+      Effect.runPromise
+    );
+
+    const [post, missing, big] = outcome.result.judgeFiles;
+    expect(post?.kind === "read" ? post.text.length : null).toBe(20_000);
+    expect(post?.kind === "read" ? post.text.slice(-11) : null).toBe(
+      "end of post"
+    );
+    expect([missing, big]).toEqual([
+      { kind: "missing", path: "out/missing.md" },
+      { kind: "oversized", path: "big.md", limit: "file" },
+    ]);
+    expect(outcome.outcome.status).toBe("void");
+    expect(
+      judgmentsIn(outcome.outcome.validations).map(({ error }) => error)
+    ).toEqual([
+      "Judge file out/missing.md was not in the workspace when the trial finished",
+      "Judge file big.md is over the 32,000 character limit",
     ]);
   }, 180_000);
 });

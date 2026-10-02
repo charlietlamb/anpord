@@ -4,6 +4,26 @@ import { HarnessUsage } from "./harness-event";
 
 const text = Schema.String.pipe(Schema.minLength(1));
 export const EvalScore = Schema.Number.pipe(Schema.between(0, 1));
+const MAX_JUDGE_FILES = 8;
+const DRIVE_LETTER = /^[A-Za-z]:/;
+const JudgeFilePath = text.pipe(
+  Schema.maxLength(512),
+  Schema.filter(
+    (path) =>
+      !(
+        path.startsWith("/") ||
+        path.startsWith("~") ||
+        DRIVE_LETTER.test(path) ||
+        path.includes("\\") ||
+        path.includes("\0") ||
+        path.split("/").includes("..")
+      ),
+    {
+      message: () =>
+        "A judge file must be a path relative to the workspace, without '..'",
+    }
+  )
+);
 const fields = {
   kind: Schema.Literal("judge"),
   name: text.pipe(Schema.maxLength(100)),
@@ -17,6 +37,14 @@ const fields = {
       {
         message: () => "A judge needs between 1 and 20 scored choices",
       }
+    )
+  ),
+  files: Schema.optional(
+    Schema.Array(JudgeFilePath).pipe(
+      Schema.minItems(1),
+      Schema.maxItems(MAX_JUDGE_FILES, {
+        message: () => `A judge reads at most ${MAX_JUDGE_FILES} files`,
+      })
     )
   ),
   threshold: Schema.optionalWith(EvalScore, { default: () => 1 }),

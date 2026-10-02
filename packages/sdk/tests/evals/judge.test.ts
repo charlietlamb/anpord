@@ -43,6 +43,15 @@ describe("judge", () => {
     expect(judge({ ...shared, provider: "openai" }).model).toBe("chosen-model");
   });
 
+  test("keeps the workspace files a judge reads", () => {
+    expect(judge({ ...options, files: ["out/post.md"] }).files).toEqual([
+      "out/post.md",
+    ]);
+    expect(() => judge({ ...options, files: ["../post.md"] })).toThrow(
+      "A judge file must be a path relative to the workspace, without '..'"
+    );
+  });
+
   test("limits the judge prompt to 32,000 characters", () => {
     expect(
       judge({ ...options, prompt: "x".repeat(32_000) }).prompt

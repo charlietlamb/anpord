@@ -7,10 +7,26 @@ import {
 import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import { Clock, Effect, Schema } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
+import {
+  type JudgeFile,
+  judgeFileProblem,
+  type ReadJudgeFile,
+} from "../domain/judge-files";
 import { JudgeFailed, JudgeModel, type JudgeRequest } from "./model";
 import { judgmentSchema } from "./prompt";
 
-export const evaluateJudge = (request: JudgeRequest) =>
+type JudgeEvaluation = Omit<JudgeRequest, "files"> & {
+  readonly files?: readonly JudgeFile[];
+};
+
+const readableFiles = (files: readonly JudgeFile[]) =>
+  Effect.forEach(files, (file) =>
+    file.kind === "read"
+      ? Effect.succeed<ReadJudgeFile>(file)
+      : Effect.fail(new JudgeFailed({ message: judgeFileProblem(file) }))
+  );
+
+export const evaluateJudge = ({ files = [], ...request }: JudgeEvaluation) =>
   Effect.gen(function* () {
     const model = yield* JudgeModel;
     const started = yield* Clock.currentTimeMillis;
@@ -26,78 +42,77 @@ export const evaluateJudge = (request: JudgeRequest) =>
     );
     yield* publishValidation(record, request.onValidation);
     let usage: HarnessUsage | undefined;
-    const result = yield* model
-      .complete({
-        ...request,
-        onRequest: (input) =>
-          Effect.gen(function* () {
-            record = { ...record, input: capture(input) };
-            yield* publishValidation(record, request.onValidation);
-          }),
-      })
-      .pipe(
-        Effect.tap(({ text, ...metadata }) =>
-          Effect.gen(function* () {
-            usage = metadata.usage;
-            record = {
-              ...record,
-              output: capture(text, "text"),
-              metadata: capture(metadata),
-            };
-            yield* publishValidation(record, request.onValidation);
-          })
-        ),
-        Effect.flatMap((response) =>
-          Effect.gen(function* () {
-            if (response.toolCalls?.length) {
-              return yield* Effect.fail(
-                new JudgeFailed({
-                  message:
-                    "The judge used tools instead of scoring the supplied evidence",
-                })
-              );
-            }
-            if (
-              response.refusal !== undefined ||
-              response.incomplete === true
-            ) {
-              return yield* Effect.fail(
-                new JudgeFailed({
-                  message:
-                    response.refusal === undefined
-                      ? "Judge response was incomplete"
-                      : "Judge refused to score the evidence",
-                })
-              );
-            }
-            return yield* Schema.decodeUnknown(
-              Schema.parseJson(judgmentSchema(request.judge.choices)),
-              { onExcessProperty: "error" }
-            )(response.text);
-          })
-        ),
-        Effect.map(({ choice, reason }) => ({
-          choice,
-          reason,
-          score: request.judge.choices[choice] ?? null,
-          error: null,
-        })),
-        Effect.timeoutFail({
-          duration: request.judge.timeoutMs,
-          onTimeout: () => new JudgeFailed({ message: "Judge timed out" }),
-        }),
-        Effect.catchAll((error) =>
-          Effect.succeed({
-            choice: null,
-            score: null,
-            reason: "No valid judgment was produced",
-            error:
-              error._tag === "JudgeFailed"
-                ? error.message
-                : "Judge returned an invalid response",
-          })
-        )
-      );
+    const result = yield* readableFiles(files).pipe(
+      Effect.flatMap((readable) =>
+        model.complete({
+          ...request,
+          files: readable,
+          onRequest: (input) =>
+            Effect.gen(function* () {
+              record = { ...record, input: capture(input) };
+              yield* publishValidation(record, request.onValidation);
+            }),
+        })
+      ),
+      Effect.tap(({ text, ...metadata }) =>
+        Effect.gen(function* () {
+          usage = metadata.usage;
+          record = {
+            ...record,
+            output: capture(text, "text"),
+            metadata: capture(metadata),
+          };
+          yield* publishValidation(record, request.onValidation);
+        })
+      ),
+      Effect.flatMap((response) =>
+        Effect.gen(function* () {
+          if (response.toolCalls?.length) {
+            return yield* Effect.fail(
+              new JudgeFailed({
+                message:
+                  "The judge used tools instead of scoring the supplied evidence",
+              })
+            );
+          }
+          if (response.refusal !== undefined || response.incomplete === true) {
+            return yield* Effect.fail(
+              new JudgeFailed({
+                message:
+                  response.refusal === undefined
+                    ? "Judge response was incomplete"
+                    : "Judge refused to score the evidence",
+              })
+            );
+          }
+          return yield* Schema.decodeUnknown(
+            Schema.parseJson(judgmentSchema(request.judge.choices)),
+            { onExcessProperty: "error" }
+          )(response.text);
+        })
+      ),
+      Effect.map(({ choice, reason }) => ({
+        choice,
+        reason,
+        score: request.judge.choices[choice] ?? null,
+        error: null,
+      })),
+      Effect.timeoutFail({
+        duration: request.judge.timeoutMs,
+        onTimeout: () => new JudgeFailed({ message: "Judge timed out" }),
+      }),
+      Effect.catchAll((error) =>
+        Effect.succeed({
+          choice: null,
+          score: null,
+          reason: "No valid judgment was produced",
+          error:
+            error._tag === "JudgeFailed"
+              ? error.message
+              : "Judge returned an invalid response",
+        })
+      )
+    );
     const judgment = {
       ...result,
       name: request.judge.name,

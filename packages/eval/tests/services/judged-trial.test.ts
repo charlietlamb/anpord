@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { EvalValidator } from "@anpord/schema/domain/eval-definition";
 import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
 import { Effect, Layer, Option, Redacted, Schema } from "effect";
+import type { JudgeFile } from "../../src/domain/judge-files";
 import { judgmentsIn } from "../../src/domain/judgments";
 import { JudgeModel } from "../../src/judges/model";
 import { judgeEvidence } from "../../src/judges/prompt";
@@ -60,6 +61,7 @@ const run = (
     events: [],
     failedCommands: 0,
     filesChanged: [],
+    judgeFiles: [],
     prepared: {},
     sandboxId: "task",
     sessionId: null,
@@ -223,6 +225,139 @@ test("cuts a long command for the judge only after redacting it", async () => {
       command: "cat ~/.codex/auth.json",
       exitCode: 0,
       output: `${"o".repeat(3995)}[reda [truncated]`,
+    },
+  ]);
+});
+
+const withFiles = (judgeFiles: readonly JudgeFile[]) => {
+  const sent: string[] = [];
+  const asked: AgentTrialRequest = {
+    ...request,
+    harnessCredential: Redacted.make({
+      authMethodId: "api-key",
+      connectionId: "conn",
+      integrationId: "codex",
+      revision: 1,
+      values: { apiKey: "opaque-access-token-1" },
+    }),
+    validator: Schema.decodeUnknownSync(EvalValidator)({
+      kind: "judged",
+      name: "post",
+      checks: [],
+      judges: [
+        {
+          kind: "judge",
+          name: "post quality",
+          provider: "openai",
+          model: "judge-model",
+          prompt: "The post is clear",
+          choices: { clear: 1, unclear: 0 },
+          files: ["out/post.md"],
+        },
+      ],
+    }),
+  };
+  const result: AgentTrialResult = {
+    commands: 0,
+    conversationEvents: [],
+    events: [],
+    failedCommands: 0,
+    filesChanged: [],
+    judgeFiles,
+    prepared: {},
+    sandboxId: "task",
+    sessionId: null,
+    turns: [],
+    usage: Option.none(),
+    userSpend: Option.none(),
+    outcome: {
+      artifacts: [],
+      commandCount: 0,
+      exitCode: 0,
+      modelMs: 1,
+      sandboxMs: 1,
+      validations: [],
+      verifySteps: [],
+      voidFields: [],
+      status: "passed",
+    },
+  };
+  const layer = AgentTrialJudgedLive.pipe(
+    Layer.provide(
+      Layer.mergeAll(
+        Layer.succeed(AgentTrial, { run: () => Effect.succeed(result) }),
+        Layer.succeed(JudgeModel, {
+          complete: (input) =>
+            Effect.sync(() => {
+              sent.push(judgeEvidence(input));
+              return { text: '{"choice":"clear","reason":"Clear"}' };
+            }),
+        })
+      )
+    )
+  );
+  return Effect.runPromise(
+    AgentTrial.pipe(
+      Effect.flatMap((trial) => trial.run(asked)),
+      Effect.map((judged) => ({ judged, sent })),
+      Effect.provide(layer)
+    )
+  );
+};
+
+test("a judge reads the full text of each workspace file it names", async () => {
+  const post = `${"p".repeat(19_989)}end of post`;
+  const { judged, sent } = await withFiles([
+    { kind: "read", path: "out/post.md", text: post },
+  ]);
+
+  const files = JSON.parse(sent[0] ?? "{}").files;
+  expect(files.map(({ path }: { path: string }) => path)).toEqual([
+    "out/post.md",
+  ]);
+  expect(files[0].text).toHaveLength(20_000);
+  expect(files[0].text.slice(-11)).toBe("end of post");
+  expect(judged.outcome.status).toBe("passed");
+});
+
+test("a missing judge file voids the trial without asking the judge", async () => {
+  const { judged, sent } = await withFiles([
+    { kind: "missing", path: "out/post.md" },
+  ]);
+
+  expect(sent).toEqual([]);
+  expect(judged.outcome.status).toBe("void");
+  expect(judged.outcome.voidFields).toEqual(["judge:post quality"]);
+  expect(judgmentsIn(judged.outcome.validations)[0]?.error).toBe(
+    "Judge file out/post.md was not in the workspace when the trial finished"
+  );
+});
+
+test("an oversized judge file voids the trial and names the limit", async () => {
+  const { judged, sent } = await withFiles([
+    { kind: "oversized", path: "out/post.md", limit: "file" },
+  ]);
+
+  expect(sent).toEqual([]);
+  expect(judged.outcome.status).toBe("void");
+  expect(judgmentsIn(judged.outcome.validations)[0]?.error).toBe(
+    "Judge file out/post.md is over the 32,000 character limit"
+  );
+});
+
+test("redacts secrets in a judge file before the judge reads it", async () => {
+  const { sent } = await withFiles([
+    {
+      kind: "read",
+      path: "out/post.md",
+      text: "token opaque-access-token-1 and key am_sk_live_abc in the post",
+    },
+  ]);
+
+  expect(JSON.parse(sent[0] ?? "{}").files).toEqual([
+    {
+      path: "out/post.md",
+      text: "token [redacted] and key [redacted] in the post",
     },
   ]);
 });

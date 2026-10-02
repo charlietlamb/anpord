@@ -49,11 +49,33 @@ Code checks run in the trial's sandbox. Judges run after it. A trial passes only
 | `model` | Exact model identifier |
 | `prompt` | Instructions for the judgment, separate from the case prompt |
 | `expected` | Optional reference answer |
+| `files` | Optional workspace files the judge reads, 1 to 8 paths relative to the workspace |
 | `choices` | Labels mapped to scores from 0 to 1 (1 to 20 choices) |
 | `threshold` | Inclusive pass threshold, default 1 |
 | `timeoutMs` | Total judging timeout, default 120,000, range 1,000 to 300,000 |
 
 A case accepts up to 20 validators. `judge()` checks its options when you call it.
+
+## Grade workspace files
+
+Use `files` when the result is a file, not the final answer. A judge that grades a blog post can read the post itself:
+
+```ts
+const quality = judge({
+  name: "post quality",
+  harness: "codex",
+  model: "gpt-5.6-sol",
+  prompt: "The post is accurate, clear and ready to publish.",
+  choices: { publish: 1, revise: 0 },
+  files: ["out/post.md"],
+});
+```
+
+Anpord reads each file after the code checks run, before the trial's sandbox closes. The judge gets the full text of each file with its path. Files are not cut like the conversation. Secrets are redacted the same way as in the answer.
+
+Each file can hold up to 32,000 characters. All judge files in a case together can hold up to 96,000. A path must be relative to the workspace and cannot contain `..`.
+
+If a file is missing or over a limit, the judge is not asked. Its judgment is invalid with an error that names the file, and the trial is void. It never counts as a pass or a fail.
 
 ## Authentication
 
@@ -67,7 +89,7 @@ A judge receives the rendered case prompt, the conversation, the final answer an
 
 Command output, tool input and output, and long messages are cut to 4,000 characters. A conversation longer than 48,000 characters keeps its start and end and marks how many steps were left out of the middle.
 
-A judge does not see the workspace, MCP or CLI configuration, or sandbox environment.
+A judge does not see the rest of the workspace, MCP or CLI configuration, or sandbox environment. To grade a file the agent wrote, name it in [`files`](#grade-workspace-files).
 
 A harness judge starts in a fresh sandbox after the trial's sandbox closes. It is told to grade only the supplied evidence. If it uses tools anyway, the judgment is invalid. Tool use is detected, not blocked by a firewall. To assert on tool use, keep a code validator that reads the mock call log.
 

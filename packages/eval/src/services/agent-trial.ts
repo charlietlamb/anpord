@@ -50,6 +50,7 @@ import {
   relativeToWorkspace,
   sessionIdOf,
 } from "../domain/journal";
+import { type JudgeFile, judgeFilePaths } from "../domain/judge-files";
 import { trialSecrets } from "../domain/trial-secrets";
 import { reportsWholeSession, throughRun } from "../domain/usage-tally";
 import type { HarnessName, SandboxName } from "../domain/variant";
@@ -59,6 +60,7 @@ import { Scorer, type ValidationObserver } from "../ports/scorer";
 import { SimulatedUser } from "../ports/simulated-user";
 import type { TrialProgressShape } from "../ports/trial-progress";
 import { captureArtifacts } from "./capture-artifacts";
+import { captureJudgeFiles } from "./capture-judge-files";
 import { converse, spokenThrough } from "./conversation";
 import { captureCredentialRotation } from "./credential-rotation";
 import { apiInstructions } from "./mock-apis";
@@ -110,6 +112,7 @@ export interface AgentTrialResult {
   readonly events: readonly HarnessEvent[];
   readonly failedCommands: number;
   readonly filesChanged: readonly string[];
+  readonly judgeFiles: readonly JudgeFile[];
   readonly outcome: TrialOutcome;
   readonly prepared: Readonly<Record<string, unknown>>;
   readonly sandboxId: string;
@@ -332,6 +335,11 @@ export const AgentTrialLive = Layer.effect(
           verifyCommand: request.verifyCommand,
           workspace: request.workspace,
         });
+        const judgeFiles = yield* captureJudgeFiles(
+          sandbox,
+          request.workspace,
+          judgeFilePaths(request.validator)
+        );
         const validationApiEvents = yield* api.collect();
         yield* Stream.fromIterable(validationApiEvents).pipe(
           sink.through,
@@ -349,6 +357,7 @@ export const AgentTrialLive = Layer.effect(
           events: [...events, ...validationApiEvents],
           failedCommands: failedCommandsIn(events),
           filesChanged: filesIn(events),
+          judgeFiles,
           outcome: {
             ...(journalLost ? voided(scored) : scored),
             artifacts: artifacts.map(
