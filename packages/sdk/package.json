@@ -105,6 +105,16 @@
         "default": "./dist/runner.cjs"
       }
     },
+    "./runner/eve": {
+      "import": {
+        "types": "./dist/runner-eve.d.mts",
+        "default": "./dist/runner-eve.mjs"
+      },
+      "require": {
+        "types": "./dist/runner-eve.d.cts",
+        "default": "./dist/runner-eve.cjs"
+      }
+    },
     "./mcp/runtime": {
       "import": {
         "types": "./dist/mcp-runtime.d.mts",
@@ -148,6 +158,7 @@
     "@anpord/schema": "workspace:*",
     "@anpord/template": "workspace:*",
     "@modelcontextprotocol/client": "catalog:",
+    "eve": "catalog:",
     "publint": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
@@ -165,8 +176,17 @@
     "smol-toml": "^1.8.0",
     "yaml": "^2.9.0"
   },
+  "peerDependencies": {
+    "eve": "^0.58.1"
+  },
+  "peerDependenciesMeta": {
+    "eve": {
+      "optional": true
+    }
+  },
   "bin": {
-    "anpord": "./dist/bin.mjs"
+    "anpord": "./dist/bin.mjs",
+    "anpord-eve": "./dist/runner-eve-bin.mjs"
   },
   "repository": {
     "type": "git",

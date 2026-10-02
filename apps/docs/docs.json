@@ -46,7 +46,7 @@
           },
           {
             "group": "Workflows",
-            "pages": ["guides/claude-code", "guides/ci"]
+            "pages": ["guides/claude-code", "guides/ci", "guides/eve"]
           },
           {
             "group": "Advanced evals",

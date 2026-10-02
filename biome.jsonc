@@ -64,7 +64,8 @@
       "includes": [
         "packages/db/src/schema.ts",
         "packages/sdk/src/index.ts",
-        "packages/sdk/src/mock-api/index.ts"
+        "packages/sdk/src/mock-api/index.ts",
+        "packages/sdk/src/runner/eve/index.ts"
       ],
       "linter": {
         "rules": {

@@ -1,0 +1,106 @@
+---
+title: "Eval an eve agent"
+description: "Run an agent built on eve as a command harness"
+---
+
+An agent built on [eve](https://github.com/vercel/eve) runs in Anpord as a [command harness](/evals/command-harness). `anpord/runner/eve` starts the agent, sends it the case prompt, and turns what eve streams into the trial journal. You write no event mapping yourself.
+
+## The profile
+
+Put the agent in the profile's `workspace`, with a `package.json` that installs `anpord` and `eve` 0.58:
+
+```
+profile/
+  profile.json
+  workspace/
+    package.json
+    agent/
+      agent.ts
+      instructions.md
+      tools/
+        create_post.ts
+```
+
+```json profile.json
+{
+  "install": "npm install",
+  "run": "node_modules/.bin/anpord-eve"
+}
+```
+
+`anpord-eve` starts `eve dev` in the workspace, waits until it answers, and runs one session with the case prompt. When the agent lives in a subdirectory, pass it: `node_modules/.bin/anpord-eve apps/agent`.
+
+Read the variant's model in the agent, so each variant runs the model it names:
+
+```ts agent/agent.ts
+import { defineAgent } from "eve";
+
+export default defineAgent({
+  model: process.env.ANPORD_MODEL ?? "openai/gpt-5.5",
+});
+```
+
+The model key belongs in an `env` credential, never in the profile.
+
+## The suite
+
+```ts
+import { suite, type Validator } from "anpord";
+
+const created: Validator = async ({ answer }) =>
+  JSON.parse(await answer()).status === "created";
+
+export default suite({
+  id: "changelog-writer",
+  name: "Changelog writer",
+  prompt: "Write one changelog for acme/app from the last 7 days.",
+  cases: [{ id: "changelog", name: "changelog", validate: created }],
+  variants: [
+    {
+      harness: "command",
+      model: "openai/gpt-5.5",
+      profile: { name: "eve-writer", dir: "./profile" },
+    },
+  ],
+});
+```
+
+## What is recorded
+
+| eve event | Journal |
+| --- | --- |
+| The session id | `Started`, with the variant's model |
+| `actions.requested` and its `action.result` | One `ToolCall` with the input, output, status and error, matched by call id |
+| The last `message.completed` that is not a tool call | The answer validators and judges read. With an output schema it is the JSON result |
+| `step.completed` | `Usage` for that model call |
+| `session.waiting` or `session.completed` | `Finished` with `completed` |
+| `turn.failed` or `session.failed` | `Finished` with `failed:` and eve's message |
+| `input.requested` or `authorization.required` | `Finished` with `parked:` and what the agent asked |
+
+Other events are ignored.
+
+## A run that did not finish never passes
+
+A failed or parked session records no answer, so a check that reads the answer fails. The reason is on the `Finished` line in the journal. A tool that needs approval parks the session, because nobody is there to approve it. Turn approval off for the tools a case uses.
+
+`anpord-eve` exits 0 when the session completed, 1 when it failed, and 3 when it parked.
+
+## From code
+
+The pieces are exported for a script of your own:
+
+```ts
+import { createEmitter } from "anpord/runner";
+import { runEve, serveEve } from "anpord/runner/eve";
+
+const server = await serveEve({ cwd: "./agent" });
+const outcome = await runEve({
+  emitter: createEmitter(),
+  model: "openai/gpt-5.5",
+  prompt: "Write one changelog.",
+  url: server.url,
+});
+await server.close();
+```
+
+`reduceEve` is the mapping on its own. It takes the state and one eve event and returns the next state with the lines to print, so you can test it against a recorded stream.

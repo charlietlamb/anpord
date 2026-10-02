@@ -17,6 +17,8 @@ export default defineConfig({
     mcp: "src/mcp/index.ts",
     "mcp-runtime": "src/mcp/runtime.ts",
     runner: "src/runner/index.ts",
+    "runner-eve": "src/runner/eve/index.ts",
+    "runner-eve-bin": "src/runner/eve/bin.ts",
     source: "src/evals/source.ts",
     validators: "src/validators.ts",
     "validator-runtime": "src/evals/validator-runtime.ts",

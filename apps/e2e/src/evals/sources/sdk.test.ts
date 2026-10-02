@@ -120,7 +120,10 @@ test("advertises only the ESM build it actually ships", async () => {
 
   expect(vendored.main).toBeUndefined();
   expect(vendored.module).toBe("./dist/index.mjs");
-  expect(vendored.bin).toEqual({ anpord: "./dist/bin.mjs" });
+  expect(vendored.bin).toEqual({
+    anpord: "./dist/bin.mjs",
+    "anpord-eve": "./dist/runner-eve-bin.mjs",
+  });
   expect(
     Object.entries(vendored.exports).filter(
       ([, target]) =>
