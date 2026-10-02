@@ -31,7 +31,42 @@ The command harness needs a [profile](/evals/profiles). Its `run` is the command
 
 The profile's `env` is set too. Stdin is closed.
 
+## Runner kit
+
+Write the process in TypeScript with `anpord/runner`. It reads the environment and prints the event lines for you, and it rejects a line the server would not accept.
+
+```ts
+import { createEmitter, env } from "anpord/runner";
+
+const { model, prompt } = env();
+const emit = createEmitter();
+
+emit.started({ model, sessionId: "run-1" });
+emit.toolCall({ name: "search", input: { query: prompt }, output: ["total.ts"] });
+emit.message({ text: "The total lives in total.ts." });
+emit.usage({ inputTokens: 900, outputTokens: 40 });
+emit.finished("done");
+```
+
+Set the profile's `run` to start the script, for example `"run": "bun run agent.ts"`.
+
+`env()` returns `prompt`, `model`, `workspace`, `home`, `systemPromptFile` and `traceLog`. It throws when a variable the harness always sets is missing, so a script run by hand fails with the name of the variable.
+
+| Method | Line it prints |
+| --- | --- |
+| `started({ sessionId, model })` | `Started` |
+| `message({ text, role?, usage? })` | `Message`. `role` defaults to `assistant` |
+| `toolCall({ name, input, output?, error?, status?, callId? })` | `ToolCall`. A value that is not a string is written as JSON |
+| `usage({ inputTokens, outputTokens, cacheReadTokens?, cacheWriteTokens? })` | `Usage`. Counts must be whole numbers, zero or more |
+| `command({ command, exitCode, output })` | `Command` |
+| `fileChange(paths)` | `FileChange` |
+| `finished(reason)` | `Finished`. A second call prints nothing |
+
+Every event carries the time it was printed. To collect lines instead of printing them, pass `createEmitter({ write, now })`.
+
 ## Events
+
+The kit prints the lines below. They are also the protocol for a process in any other language.
 
 Print one JSON object per line on stdout. Lines with a known `_tag` are recorded and every other line is ignored, so ordinary logging is fine. `at` is epoch milliseconds and optional. A line without it is stamped when it is read.
 

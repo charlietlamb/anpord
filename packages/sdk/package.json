@@ -95,6 +95,16 @@
         "default": "./dist/mcp.cjs"
       }
     },
+    "./runner": {
+      "import": {
+        "types": "./dist/runner.d.mts",
+        "default": "./dist/runner.mjs"
+      },
+      "require": {
+        "types": "./dist/runner.d.cts",
+        "default": "./dist/runner.cjs"
+      }
+    },
     "./mcp/runtime": {
       "import": {
         "types": "./dist/mcp-runtime.d.mts",

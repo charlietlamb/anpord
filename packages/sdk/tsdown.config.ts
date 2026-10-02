@@ -16,6 +16,7 @@ export default defineConfig({
     index: "src/index.ts",
     mcp: "src/mcp/index.ts",
     "mcp-runtime": "src/mcp/runtime.ts",
+    runner: "src/runner/index.ts",
     source: "src/evals/source.ts",
     validators: "src/validators.ts",
     "validator-runtime": "src/evals/validator-runtime.ts",

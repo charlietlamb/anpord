@@ -31,6 +31,7 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./adapters/harness/command-events": "./src/adapters/harness/command-events.ts",
     "./adapters/models/codex-available": "./src/adapters/models/codex-available.ts",
     "./adapters/runner/eval-run-task": "./src/adapters/runner/eval-run-task.ts",
     "./adapters/runner/trigger": "./src/adapters/runner/trigger.ts",
@@ -55,6 +56,7 @@
     "./credentials/resolver-live": "./src/credentials/resolver-live.ts",
     "./credentials/variants": "./src/credentials/variants.ts",
     "./domain/case-definition": "./src/domain/case-definition.ts",
+    "./domain/command-line": "./src/domain/command-line.ts",
     "./domain/distribution": "./src/domain/distribution.ts",
     "./domain/errors": "./src/domain/errors.ts",
     "./domain/eval-costs": "./src/domain/eval-costs.ts",
