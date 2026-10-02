@@ -3,8 +3,8 @@ import type {
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/eval-definition";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
+} from "@sphynx/schema/domain/eval-definition";
+import type { EvalUser } from "@sphynx/schema/domain/eval-turns";
 import {
   index,
   integer,

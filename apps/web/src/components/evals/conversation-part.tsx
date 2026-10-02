@@ -1,8 +1,8 @@
-import type { EvalArtifactMetadata } from "@anpord/schema/domain/eval-trial";
+import type { EvalArtifactMetadata } from "@sphynx/schema/domain/eval-trial";
 import {
   Message,
   MessageContent,
-} from "@anpord/ui/components/ai-elements/message";
+} from "@sphynx/ui/components/ai-elements/message";
 import { ConversationWork } from "@/components/evals/conversation-work";
 import {
   ConversationWrote,

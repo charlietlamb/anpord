@@ -1,4 +1,4 @@
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { Effect } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";

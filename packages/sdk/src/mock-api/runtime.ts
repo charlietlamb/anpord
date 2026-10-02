@@ -1,13 +1,13 @@
+import { FileSystem } from "@effect/platform";
+import { layer as fileSystemLayer } from "@effect/platform-node/NodeFileSystem";
+import { runMain } from "@effect/platform-node/NodeRuntime";
 import {
   API_CALL_LIMIT,
   API_JOURNAL,
   API_MANIFEST,
   API_READY,
   type ApiCall,
-} from "@anpord/schema/domain/api-mocks";
-import { FileSystem } from "@effect/platform";
-import { layer as fileSystemLayer } from "@effect/platform-node/NodeFileSystem";
-import { runMain } from "@effect/platform-node/NodeRuntime";
+} from "@sphynx/schema/domain/api-mocks";
 import { Deferred, Effect, Ref } from "effect";
 import type { ApiDefinition } from "./define";
 import { ApiMockError } from "./errors";
@@ -62,7 +62,7 @@ export const runApiServers = (definitions: readonly ApiDefinition[]): void =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const fatal = yield* Deferred.make<never, ApiMockError>();
-    yield* fs.makeDirectory(".anpord/api", { recursive: true });
+    yield* fs.makeDirectory(".sphynx/api", { recursive: true });
     yield* fs.writeFileString(API_JOURNAL, "");
     const lock = yield* Effect.makeSemaphore(1);
     const count = yield* Ref.make(0);

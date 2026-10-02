@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { user } from "@anpord/db/schema/auth/users";
-import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
+import { Database } from "@sphynx/db/client";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { user } from "@sphynx/db/schema/auth/users";
+import { credentialAuthAttempt } from "@sphynx/db/schema/credentials/auth-attempts";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
+import { Actor, OrganizationId, UserId } from "@sphynx/schema/domain/actor";
 import {
   Clock,
   ConfigProvider,

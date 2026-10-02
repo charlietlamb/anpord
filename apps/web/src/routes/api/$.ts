@@ -1,4 +1,4 @@
-import { API_ORIGIN, API_REFERENCE_URL } from "@anpord/schema/public/origins";
+import { API_ORIGIN, API_REFERENCE_URL } from "@sphynx/schema/public/origins";
 import { createFileRoute } from "@tanstack/react-router";
 
 const notFound = ({ request }: { request: Request }) =>

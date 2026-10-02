@@ -1,9 +1,9 @@
-import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
+import type { EvalHomeRange } from "@sphynx/schema/domain/eval-home";
 import type {
   RerunIntent,
   RerunTarget,
-} from "@anpord/schema/domain/eval-rerun";
-import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
+} from "@sphynx/schema/domain/eval-rerun";
+import type { EvalArtifactRequest } from "@sphynx/schema/domain/eval-trial";
 import type { CaseFilters } from "@/lib/evals/evals-client";
 
 const targetKey = (target: RerunTarget) =>

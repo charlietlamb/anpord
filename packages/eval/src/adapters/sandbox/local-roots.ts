@@ -18,8 +18,8 @@ const ensure = (path: string) =>
   }).pipe(Effect.orDie, Effect.as(path));
 
 export const localRoots: Effect.Effect<LocalRoots> = Effect.gen(function* () {
-  const base = yield* Config.string("ANPORD_LOCAL_ROOT").pipe(
-    Config.withDefault(join(homedir(), ".anpord", "local")),
+  const base = yield* Config.string("SPHYNX_LOCAL_ROOT").pipe(
+    Config.withDefault(join(homedir(), ".sphynx", "local")),
     Effect.orDie
   );
 

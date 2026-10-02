@@ -1,4 +1,4 @@
-import { Channel } from "@anpord/schema/domain/channels";
+import { Channel } from "@sphynx/schema/domain/channels";
 import { Schema } from "effect";
 import { createApiClient } from "@/lib/api-client";
 

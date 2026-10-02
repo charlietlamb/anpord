@@ -1,4 +1,4 @@
-import type { DialogRegistry } from "@anpord/ui/components/dialog/create-dialog-system";
+import type { DialogRegistry } from "@sphynx/ui/components/dialog/create-dialog-system";
 import { type ComponentType, lazy } from "react";
 import type { DialogMap } from "@/lib/dialog/dialogs";
 

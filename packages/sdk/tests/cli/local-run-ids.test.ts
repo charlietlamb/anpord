@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { StartedBatch } from "@anpord/schema/domain/evals";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import { StartedBatch } from "@sphynx/schema/domain/evals";
 import { Effect, Either, Option, Schema } from "effect";
 import { runIdsFor } from "../../src/cli/local-run-ids";
 import { createBatch, createRun } from "../fixtures/eval-run";

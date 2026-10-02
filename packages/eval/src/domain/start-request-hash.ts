@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 
 const sortedKeys = (value: unknown): unknown => {
   if (Array.isArray(value)) {

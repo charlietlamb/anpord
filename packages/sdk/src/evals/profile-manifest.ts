@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { EnvName } from "@anpord/schema/domain/harness-profile";
+import { EnvName } from "@sphynx/schema/domain/harness-profile";
 import { Effect, Option, Schema } from "effect";
 import {
   ProfileDirectoryUnreadable,

@@ -2,15 +2,15 @@ import {
   EVAL_TAIL_PAGE,
   type EvalBatchTail,
   type EvalTailMark,
-} from "@anpord/schema/domain/eval-tail";
-import type { AnpordApi } from "@anpord/schema/public/client";
+} from "@sphynx/schema/domain/eval-tail";
+import type { SphynxApi } from "@sphynx/schema/public/client";
 import { Duration, Effect, Ref, Schedule, Stream } from "effect";
 
 const FLOOR = Duration.seconds(5);
 
 const SETTLE = Duration.millis(300);
 
-const bellOf = (id: string, api: typeof AnpordApi.Service) =>
+const bellOf = (id: string, api: typeof SphynxApi.Service) =>
   Stream.unwrapScoped(
     Effect.gen(function* () {
       const { tag, token } = yield* api.runner.subscribe({
@@ -42,7 +42,7 @@ const bellOf = (id: string, api: typeof AnpordApi.Service) =>
     })
   ).pipe(Stream.catchAll(() => Stream.empty));
 
-export const followBatch = (id: string, api: typeof AnpordApi.Service) =>
+export const followBatch = (id: string, api: typeof SphynxApi.Service) =>
   Stream.unwrap(
     Effect.gen(function* () {
       const marks = yield* Ref.make<readonly EvalTailMark[]>([]);

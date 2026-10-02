@@ -1,18 +1,18 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import type { Db } from "@anpord/db/query";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
-import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
-import type { EvalHome } from "@anpord/schema/domain/eval-home";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import { Database } from "@sphynx/db/client";
+import type { Db } from "@sphynx/db/query";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalSuite } from "@sphynx/db/schema/evals/eval-suites";
+import { evalTrialCost } from "@sphynx/db/schema/evals/eval-trial-costs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
+import type { EvalHome } from "@sphynx/schema/domain/eval-home";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { eq } from "drizzle-orm";
 import {
   DateTime,

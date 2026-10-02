@@ -1,5 +1,5 @@
-import type { EvalSource } from "@anpord/schema/domain/eval-definition";
-import { InlineCode } from "@anpord/ui/components/ui/inline-code";
+import type { EvalSource } from "@sphynx/schema/domain/eval-definition";
+import { InlineCode } from "@sphynx/ui/components/ui/inline-code";
 import { EmptyValue } from "@/components/evals/empty-value";
 
 export function WorkspaceValue({

@@ -11,10 +11,10 @@ import { freePort, portIsFree } from "./ports";
 import { runOrThrow, runProcess } from "./process";
 
 const SUPERUSER = "postgres";
-const DATABASE = "anpord_e2e";
+const DATABASE = "sphynx_e2e";
 
 /* Postgres caps a unix socket path at 103 bytes, which a scratch data directory alone can exceed. */
-const SOCKET_DIRECTORY = join(tmpdir(), "anpord-e2e-pg");
+const SOCKET_DIRECTORY = join(tmpdir(), "sphynx-e2e-pg");
 
 /* initdb and pg_ctl are not on PATH on Debian; PGBIN names their directory when a machine keeps them elsewhere. */
 const CANDIDATE_BINS = [

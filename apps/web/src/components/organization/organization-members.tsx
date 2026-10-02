@@ -1,9 +1,9 @@
+import { UsersThreeIcon } from "@phosphor-icons/react";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { UsersThreeIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
 import { ListState } from "@/components/layout/list-state";
 import { PageSection } from "@/components/layout/page-section";
 import { InvitationRow } from "@/components/organization/invitation-row";

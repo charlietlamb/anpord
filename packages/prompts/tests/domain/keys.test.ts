@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { OrganizationId } from "@anpord/schema/domain/actor";
+import { OrganizationId } from "@sphynx/schema/domain/actor";
 import {
   ChannelName,
   PromptId,
   VersionNumber,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import { Schema } from "effect";
 import { promptPrefix, selectorKey } from "../../src/domain/keys";
 

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
+import { Database } from "@sphynx/db/client";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
 import { inArray } from "drizzle-orm";
 import { ConfigProvider, Duration, Effect, Layer, Redacted } from "effect";
 import {
@@ -87,7 +87,7 @@ const trialIds = {
 };
 const foreignTrialId = `etri_reap_foreign_${suffix}`;
 const laptopTrialId = `etri_reap_laptop_${suffix}`;
-const laptopSandboxId = `/var/folders/f2/T/anpord-local-${suffix}`;
+const laptopSandboxId = `/var/folders/f2/T/sphynx-local-${suffix}`;
 
 describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
   beforeAll(async () => {

@@ -24,11 +24,11 @@ const failingVerify = (provider: SandboxName) =>
       const sandbox = yield* sandboxes.open({
         autoStopMinutes: 10,
         provider,
-        workspace: "/tmp/anpord-task",
+        workspace: "/tmp/sphynx-task",
       });
 
-      yield* sandbox.writeFile("/tmp/anpord-task/total.mjs", BROKEN_SOURCE);
-      yield* sandbox.writeFile("/tmp/anpord-task/total.test.mjs", TEST_SOURCE);
+      yield* sandbox.writeFile("/tmp/sphynx-task/total.mjs", BROKEN_SOURCE);
+      yield* sandbox.writeFile("/tmp/sphynx-task/total.test.mjs", TEST_SOURCE);
 
       return Chunk.toReadonlyArray(
         yield* Stream.runCollect(sandbox.exec(VERIFY_COMMAND))

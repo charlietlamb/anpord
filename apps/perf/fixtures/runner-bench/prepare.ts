@@ -1,4 +1,4 @@
-import type { Prepare } from "anpord";
+import type { Prepare } from "sphynx-sh";
 
 export const seedWorkspace: Prepare = async ({ exec }) => {
   const seeded = await exec("bash", [

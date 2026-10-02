@@ -1,4 +1,4 @@
-import type { AnpordApi } from "@anpord/schema/public/client";
+import type { SphynxApi } from "@sphynx/schema/public/client";
 import { type Context, Data, Duration, Effect, Layer, Option } from "effect";
 import { apiKeyConfig, ClientLayer } from "../client/config";
 import { compileEvalEffect } from "../evals/compiler";
@@ -19,7 +19,7 @@ class LocalTimeout extends Data.TaggedError("LocalTimeout")<{
   }
 }
 
-type Recorder = Option.Option<Context.Context<AnpordApi>>;
+type Recorder = Option.Option<Context.Context<SphynxApi>>;
 
 const runSuiteLocally = (
   file: string,

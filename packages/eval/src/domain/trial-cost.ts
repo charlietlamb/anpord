@@ -1,4 +1,4 @@
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 import type { Option } from "effect";
 import type { CostComponent } from "./cost-component";
 import {

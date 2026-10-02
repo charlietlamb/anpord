@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import { informational, type Metric, type SuiteResult } from "../report/metric";
 import { single, summarise } from "../report/stats";
 import { inRounds, withStacks } from "../stack/paired";

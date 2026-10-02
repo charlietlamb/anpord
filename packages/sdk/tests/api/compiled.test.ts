@@ -15,11 +15,11 @@ import {
   API_READY,
   ApiCall,
   ApiManifest,
-} from "@anpord/schema/domain/api-mocks";
+} from "@sphynx/schema/domain/api-mocks";
 import {
   EvalValidation,
   VALIDATION_FRAME,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import { Schema } from "effect";
 import { compileFixture } from "../fixtures/compile-eval";
 
@@ -46,7 +46,7 @@ test("Node cancels handlers and records disconnected requests", async () => {
 }, 30_000);
 
 test("compiled HTTP server, prepare, and validator preserve request evidence in Node", async () => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-http-compiled-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-http-compiled-"));
   await mkdir(join(workspace, "node_modules"));
   await symlink(
     join(import.meta.dir, "../../node_modules/zod"),
@@ -63,8 +63,8 @@ test("compiled HTTP server, prepare, and validator preserve request evidence in 
   );
   await writeFile(
     entry,
-    `import { suite, empty } from "anpord";
-import { api, endpoint } from "anpord/api";
+    `import { suite, empty } from "sphynx-sh";
+import { api, endpoint } from "sphynx-sh/api";
 import { z } from "zod";
 import { prepareHttp } from "./prepare";
 export default suite({ id: "fixture", name: "http", source: empty, prompt: "Use catalog", trials: 1,
@@ -94,7 +94,7 @@ export default suite({ id: "fixture", name: "http", source: empty, prompt: "Use 
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, source);
   }
-  server = Bun.spawn(["node", ".anpord/api/server.mjs"], {
+  server = Bun.spawn(["node", ".sphynx/api/server.mjs"], {
     cwd: workspace,
     stdin: "ignore",
     stdout: "pipe",
@@ -129,7 +129,7 @@ export default suite({ id: "fixture", name: "http", source: empty, prompt: "Use 
   const setup = Bun.spawn(["node", "prepare.mjs"], { cwd: workspace });
   const prepared = await new Response(setup.stdout).text();
   expect(await setup.exited).toBe(0);
-  expect(prepared).toContain('ANPORD_PREPARE_RESULT={"item":{"id":"prepare"}}');
+  expect(prepared).toContain('SPHYNX_PREPARE_RESULT={"item":{"id":"prepare"}}');
   expect(await (await fetch(`${url}/items/agent`)).json()).toEqual({
     id: "agent",
   });

@@ -115,8 +115,8 @@ const commands = (provider: ProviderUnderTest) => {
       async () => {
         const chunks = await withSandbox(provider.adapter, (sandbox) =>
           collect(
-            sandbox.exec('echo "[$ANPORD_WANTED]"', {
-              env: { ANPORD_WANTED: "visible" },
+            sandbox.exec('echo "[$SPHYNX_WANTED]"', {
+              env: { SPHYNX_WANTED: "visible" },
             })
           )
         );

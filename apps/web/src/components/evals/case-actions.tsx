@@ -1,5 +1,5 @@
-import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
 import { SlidersHorizontalIcon } from "@phosphor-icons/react";
+import type { EvalCaseDetail } from "@sphynx/schema/domain/eval-read-models";
 import { CaseSetup } from "@/components/evals/case-setup";
 import { CaseVariantMenu } from "@/components/evals/case-variant-menu";
 import { RunCaseButton } from "@/components/evals/run-case-button";

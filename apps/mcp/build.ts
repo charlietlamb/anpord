@@ -27,7 +27,7 @@ await writeFile(
   `${JSON.stringify(
     {
       dependencies: { "mcp-use": root.catalog["mcp-use"] },
-      name: "anpord-mcp",
+      name: "sphynx-mcp",
       private: true,
       scripts: { start: "node main.js" },
       type: "module",

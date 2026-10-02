@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
+import { PageHeading } from "@sphynx/ui/components/ui/page-heading";
 
 export function RailSection({
   action,

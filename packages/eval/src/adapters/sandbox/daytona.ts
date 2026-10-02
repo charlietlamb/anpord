@@ -17,7 +17,7 @@ import { sessionExec } from "./daytona-session";
 import { call, HOME, unavailable } from "./daytona-shell";
 import { type MakeAdapter, providerAdapter } from "./provider-adapter";
 
-const SNAPSHOT = "anpord-eval:4";
+const SNAPSHOT = "sphynx-eval:4";
 const AUTO_DELETE_FACTOR = 6;
 const MKDIR_SECONDS = 30;
 

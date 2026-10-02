@@ -1,4 +1,4 @@
-import { IdGeneratorLive } from "@anpord/ids/layer";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
 import { Layer } from "effect";
 import { ChannelRepositoryLive } from "./repositories/channel-repository";
 import { PromptChannelRepositoryLive } from "./repositories/prompt-channel-repository";

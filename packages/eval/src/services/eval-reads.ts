@@ -1,13 +1,13 @@
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
+import type { EvalHomeRange } from "@sphynx/schema/domain/eval-home";
 import {
   type EvalPageCursor,
   RUN_PAGE_SIZE,
-} from "@anpord/schema/domain/eval-read-models";
-import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
-import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
+} from "@sphynx/schema/domain/eval-read-models";
+import type { EvalTailMark } from "@sphynx/schema/domain/eval-tail";
+import type { EvalArtifactRequest } from "@sphynx/schema/domain/eval-trial";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import { EvalNotFound } from "../domain/errors";
@@ -155,7 +155,7 @@ export const make = Effect.gen(function* () {
   };
 });
 
-export class EvalReads extends Context.Tag("@anpord/eval/EvalReads")<
+export class EvalReads extends Context.Tag("@sphynx/eval/EvalReads")<
   EvalReads,
   Effect.Effect.Success<typeof make>
 >() {}

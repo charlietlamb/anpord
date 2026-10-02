@@ -1,11 +1,11 @@
-import type { Channel } from "@anpord/schema/domain/channels";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
-import { DropdownMenuItem } from "@anpord/ui/components/dropdown-menu";
-import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
+import type { Channel } from "@sphynx/schema/domain/channels";
+import { PRODUCTION } from "@sphynx/schema/domain/prompts";
+import { DropdownMenuItem } from "@sphynx/ui/components/dropdown-menu";
+import { ChannelDot } from "@sphynx/ui/components/ui/channel-dot";
 import {
   DataTableRow,
   DataTableRowLink,
-} from "@anpord/ui/components/ui/data-table";
+} from "@sphynx/ui/components/ui/data-table";
 import { DefaultBadge } from "@/components/layout/default-badge";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";

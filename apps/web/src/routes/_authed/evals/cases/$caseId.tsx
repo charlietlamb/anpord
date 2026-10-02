@@ -1,4 +1,4 @@
-import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
+import type { EvalCaseDetail } from "@sphynx/schema/domain/eval-read-models";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import { evalQueries } from "@/lib/evals/eval-queries";

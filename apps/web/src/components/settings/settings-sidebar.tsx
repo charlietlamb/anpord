@@ -1,6 +1,6 @@
-import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { NAV_ITEM } from "@anpord/ui/lib/nav-item";
 import { GearIcon } from "@phosphor-icons/react";
+import { RailSection } from "@sphynx/ui/components/ui/rail-section";
+import { NAV_ITEM } from "@sphynx/ui/lib/nav-item";
 import { Link } from "@tanstack/react-router";
 import { SETTINGS_NAV } from "@/components/settings/settings-nav";
 

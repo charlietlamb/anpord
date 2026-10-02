@@ -1,4 +1,4 @@
-import type { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
+import type { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
 
 type VersionRow = Pick<
   typeof evalCaseVersion.$inferSelect,

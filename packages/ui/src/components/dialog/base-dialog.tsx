@@ -4,8 +4,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@anpord/ui/components/ui/dialog";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/components/ui/dialog";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 interface BaseDialogProps {

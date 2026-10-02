@@ -3,7 +3,7 @@ title: "Run Claude Code evals"
 description: "Connect Claude once, check one trial, then compare models"
 ---
 
-Anpord runs the real Claude Code CLI in a sandbox. You don't install Claude locally or write an authentication script.
+Sphynx runs the real Claude Code CLI in a sandbox. You don't install Claude locally or write an authentication script.
 
 ## Connect Claude
 
@@ -12,16 +12,16 @@ Anpord runs the real Claude Code CLI in a sandbox. You don't install Claude loca
 3. Enter an Anthropic API key and choose **Everyone in the organization**, so CLI, SDK and CI batches can use it.
 4. Save it. From the connection's actions menu, choose **Make default** if it isn't already, then **Check it works**.
 
-The key stays in Anpord. A local Claude login or Claude subscription does not authenticate these trials: Anpord uses [Claude Code's bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), which requires API credentials.
+The key stays in Sphynx. A local Claude login or Claude subscription does not authenticate these trials: Sphynx uses [Claude Code's bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode), which requires API credentials.
 
-Create an Anpord API key with `evals:read` and `evals:write` in the same organization and set it as `ANPORD_API_KEY` in your shell or CI secrets. Your eval file and GitHub workflow hold no Anthropic key. Hosted E2B sandboxes need no key of their own.
+Create a Sphynx API key with `evals:read` and `evals:write` in the same organization and set it as `SPHYNX_API_KEY` in your shell or CI secrets. Your eval file and GitHub workflow hold no Anthropic key. Hosted E2B sandboxes need no key of their own.
 
 ## Check one trial
 
-Install `anpord`, then create `claude.eval.ts`:
+Install `sphynx-sh`, then create `claude.eval.ts`:
 
 ```ts
-import { command, suite } from "anpord";
+import { command, suite } from "sphynx-sh";
 
 export default suite({
   id: "claude-smoke",
@@ -38,7 +38,7 @@ export default suite({
 ```
 
 ```sh
-npx anpord eval ./claude.eval.ts
+npx sphynx-sh eval ./claude.eval.ts
 ```
 
 This starts a batch with one run: the one case on the one variant, with one trial. A passing trial confirms the connection, the Claude install, its file tools and your check. Open the printed batch link to see the commands and output. One trial says nothing about how reliably the case passes.
@@ -57,7 +57,7 @@ variants: [
 
 The next batch holds one run per case per variant, so the models appear side by side. Use [exact model IDs](https://platform.claude.com/docs/en/models/overview) your Anthropic account can call. Calls are billed to that account.
 
-To test tool use, add [MCP, CLI or HTTP mocks](/evals/mocks). Anpord sets them up in each sandbox for Claude the same way as for other harnesses.
+To test tool use, add [MCP, CLI or HTTP mocks](/evals/mocks). Sphynx sets them up in each sandbox for Claude the same way as for other harnesses.
 
 A batch is capped at 100 trials (cases x variants x trials). Split a larger grid into separate suites. See [API limits](/api-reference/introduction#limits), and [CI](/guides/ci) for trial counts and the GitHub Action.
 

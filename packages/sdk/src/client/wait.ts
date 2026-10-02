@@ -1,4 +1,4 @@
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
 
 export interface WaitOptions {
   readonly maxIntervalMs?: number;

@@ -1,4 +1,4 @@
-import type { CodeLanguage } from "@anpord/ui/lib/highlight";
+import type { CodeLanguage } from "@sphynx/ui/lib/highlight";
 
 const TYPESCRIPT = /\.[cm]?[jt]sx?$/;
 const MARKDOWN = /\.mdx?$/;

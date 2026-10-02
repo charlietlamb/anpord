@@ -1,13 +1,13 @@
+import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { CheckIcon } from "@phosphor-icons/react";
 import {
   MENU_ITEM,
   MENU_LABEL,
   MENU_SEPARATOR,
   POPUP,
   POPUP_MOTION,
-} from "@anpord/ui/lib/popup";
-import { cn } from "@anpord/ui/lib/utils";
-import { Menu as MenuPrimitive } from "@base-ui/react/menu";
-import { CheckIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/lib/popup";
+import { cn } from "@sphynx/ui/lib/utils";
 import type * as React from "react";
 
 const MENU_ITEM_CLASS = cn("group/dropdown-menu-item", MENU_ITEM);

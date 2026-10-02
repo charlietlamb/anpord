@@ -1,4 +1,4 @@
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
+import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
 import { and, eq, or } from "drizzle-orm";
 
 export const visibleTo = (organizationId: string, userId: string) =>

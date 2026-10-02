@@ -1,5 +1,5 @@
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import type { PresentedStatus } from "@anpord/ui/lib/evals/eval-status";
+import { StatusBadge } from "@sphynx/ui/components/ui/status-badge";
+import type { PresentedStatus } from "@sphynx/ui/lib/evals/eval-status";
 
 export function EvalStatusBadge({
   size,

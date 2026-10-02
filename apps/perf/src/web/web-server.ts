@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { runOrThrow } from "@anpord/e2e/src/harness/process";
+import { runOrThrow } from "@sphynx/e2e/src/harness/process";
 import { localUrl, spawnUntilReady } from "../stack/child";
 
 const webEnv = (serverUrl: string, port: number) => ({

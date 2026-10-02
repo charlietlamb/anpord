@@ -1,4 +1,4 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Effect, Either, Option, Redacted } from "effect";
 import type { PrepareHarness, RunHarness } from "../../ports/harness";
 import { CODEX_AUTH_FILE, readRotatedAuth } from "./codex-rotation";

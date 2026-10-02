@@ -24,22 +24,22 @@ describe("reporting a failure", () => {
   test("a server it cannot reach is named, with how to fix it", () => {
     const { code, text } = reported(
       new HttpClientError.RequestError({
-        cause: new Error("getaddrinfo ENOTFOUND api.anpord.test"),
+        cause: new Error("getaddrinfo ENOTFOUND api.sphynx.test"),
         reason: "Transport",
         request: HttpClientRequest.post(
-          "https://api.anpord.test/v1/connectors.list"
+          "https://api.sphynx.test/v1/connectors.list"
         ),
       })
     );
     expect(text).toBe(
-      "Unable to reach Anpord at https://api.anpord.test. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address.\n"
+      "Unable to reach Sphynx at https://api.sphynx.test. Check your network connection, or set SPHYNX_BASE_URL if your Sphynx server is at another address.\n"
     );
     expect(code).toBe(1);
   });
 
   test("a missing key is answered with how to set one", () => {
     const { text } = reported({ _op: "MissingData", _tag: "ConfigError" });
-    expect(text).toContain("ANPORD_API_KEY");
+    expect(text).toContain("SPHYNX_API_KEY");
     expect(text).not.toContain("process context");
   });
 
@@ -49,7 +49,7 @@ describe("reporting a failure", () => {
       message: "Access token is not active",
     });
     expect(text).toContain("Access token is not active");
-    expect(text).toContain("ANPORD_API_KEY");
+    expect(text).toContain("SPHYNX_API_KEY");
   });
 
   test("an api failure is reported without internals", () => {

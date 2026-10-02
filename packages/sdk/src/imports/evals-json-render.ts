@@ -84,7 +84,7 @@ const caseBlock = (subject: EvalsJsonCase) =>
     "    },",
   ].join("\n");
 
-const IMPORTS = 'import { suite, files } from "anpord";';
+const IMPORTS = 'import { suite, files } from "sphynx-sh";';
 
 /* Emitted into the file rather than imported, so an imported suite is one
    self-contained module. Matching is case-insensitive. */

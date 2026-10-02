@@ -1,5 +1,5 @@
-import type { CodebaseFailure } from "@anpord/eval/codebase/codebase-connection";
-import { BadRequest, InternalError } from "@anpord/schema/domain/errors";
+import type { CodebaseFailure } from "@sphynx/eval/codebase/codebase-connection";
+import { BadRequest, InternalError } from "@sphynx/schema/domain/errors";
 import { Effect } from "effect";
 
 const toHttpError = (

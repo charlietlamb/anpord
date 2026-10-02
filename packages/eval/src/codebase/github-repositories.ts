@@ -1,8 +1,8 @@
+import { HttpClient } from "@effect/platform";
 import {
   REPOSITORY_PAGE_SIZE,
   type Repository,
-} from "@anpord/schema/domain/codebase";
-import { HttpClient } from "@effect/platform";
+} from "@sphynx/schema/domain/codebase";
 import { Context, Effect, Layer, type Redacted, Schema } from "effect";
 import { CodebaseError } from "./errors";
 import { githubRequest } from "./github-request";
@@ -44,7 +44,7 @@ export interface GithubRepositoriesShape {
 }
 
 export class GithubRepositories extends Context.Tag(
-  "@anpord/eval/GithubRepositories"
+  "@sphynx/eval/GithubRepositories"
 )<GithubRepositories, GithubRepositoriesShape>() {}
 
 const accountOf = (found: typeof Installation.Type): InstallationAccount => ({

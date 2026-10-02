@@ -3,7 +3,7 @@ import { FetchHttpClient } from "@effect/platform";
 import { Config, Layer, Option, Redacted } from "effect";
 
 const telemetryConfig = Config.all({
-  dataset: Config.string("AXIOM_DATASET").pipe(Config.withDefault("anpord")),
+  dataset: Config.string("AXIOM_DATASET").pipe(Config.withDefault("sphynx")),
   token: Config.redacted("AXIOM_TOKEN").pipe(Config.option),
   url: Config.string("AXIOM_URL").pipe(
     Config.withDefault("https://api.axiom.co")

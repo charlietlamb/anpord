@@ -1,7 +1,7 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
-import { SURFACE_FOOTER } from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import { EmptyNote } from "@sphynx/ui/components/ui/empty-note";
+import { SURFACE_FOOTER } from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 import { StepList, StepListBody } from "@/components/evals/step-list";
 import { TimelineBand } from "@/components/evals/timeline-band";
 import { TimelineSection } from "@/components/evals/timeline-section";

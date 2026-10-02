@@ -2,8 +2,8 @@ import { Command, CommandExecutor } from "@effect/platform";
 import { Config, Effect, Option } from "effect";
 
 /* Named so a run does not land in whichever browser the machine defaults to:
-   ANPORD_BROWSER picks one, and "none" prints the address instead of opening. */
-const browserConfig = Config.string("ANPORD_BROWSER").pipe(
+   SPHYNX_BROWSER picks one, and "none" prints the address instead of opening. */
+const browserConfig = Config.string("SPHYNX_BROWSER").pipe(
   Config.option,
   Config.map(Option.getOrUndefined)
 );

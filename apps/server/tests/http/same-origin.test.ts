@@ -1,13 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import { isSameOrigin } from "../../src/http/request/same-origin";
 
-const TRUSTED = ["https://www.anpord.com", "http://localhost:3005"];
+const TRUSTED = ["https://www.sphynx.sh", "http://localhost:3005"];
 
 const request = (
   method: string,
   headers: Record<string, string> = {}
 ): Request =>
-  new Request("https://api.anpord.com/api/prompts", { method, headers });
+  new Request("https://api.sphynx.sh/api/prompts", { method, headers });
 
 describe("isSameOrigin", () => {
   it("allows a read whatever its origin", () => {
@@ -19,7 +19,7 @@ describe("isSameOrigin", () => {
   it("allows a write from the dashboard", () => {
     expect(
       isSameOrigin(
-        request("POST", { origin: "https://www.anpord.com" }),
+        request("POST", { origin: "https://www.sphynx.sh" }),
         TRUSTED
       )
     ).toBe(true);
@@ -29,7 +29,7 @@ describe("isSameOrigin", () => {
     expect(
       isSameOrigin(
         request("POST", {
-          cookie: "anpord.session_token=abc",
+          cookie: "sphynx.session_token=abc",
           origin: "https://evil.example",
         }),
         TRUSTED
@@ -49,7 +49,7 @@ describe("isSameOrigin", () => {
   it("refuses an origin that merely starts with a trusted one", () => {
     expect(
       isSameOrigin(
-        request("POST", { origin: "https://www.anpord.com.evil.example" }),
+        request("POST", { origin: "https://www.sphynx.sh.evil.example" }),
         TRUSTED
       )
     ).toBe(false);
@@ -62,7 +62,7 @@ describe("isSameOrigin", () => {
   it("refuses a cookie-bearing write that names no origin", () => {
     expect(
       isSameOrigin(
-        request("POST", { cookie: "anpord.session_token=abc" }),
+        request("POST", { cookie: "sphynx.session_token=abc" }),
         TRUSTED
       )
     ).toBe(false);

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { API_REPORTED_LIMITS } from "@anpord/schema/domain/api-mocks";
+import { API_REPORTED_LIMITS } from "@sphynx/schema/domain/api-mocks";
 import { apiCapture } from "../../src/mock-api/capture";
 
 test("reports a body past the stored limit whole, so the host can redact it before cutting", () => {

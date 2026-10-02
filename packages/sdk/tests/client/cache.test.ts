@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
+import type { PublicPromptWithVersions } from "@sphynx/schema/public/shapes";
 import { DateTime, Effect, Ref, TestClock, TestContext } from "effect";
 import { layer, type PromptCache } from "../../src/client/cache/prompt-cache";
 import { resolvePrompt } from "../../src/client/cache/resolve";
 import { settingsFrom } from "../../src/client/cache/settings";
 import type { PromptSelector } from "../../src/client/cache/types";
-import { AnpordError } from "../../src/client/errors";
+import { SphynxError } from "../../src/client/errors";
 
 type Answer = PublicPromptWithVersions;
 
@@ -26,8 +26,8 @@ const answer = (content: string): Answer =>
 /** Counts what reached the network, so a test can say how many calls a run
  * made rather than inferring it from the values that came back. */
 const counting = (
-  answers: readonly (Answer | AnpordError)[],
-  fixed?: Answer | AnpordError
+  answers: readonly (Answer | SphynxError)[],
+  fixed?: Answer | SphynxError
 ) =>
   Effect.gen(function* () {
     const calls = yield* Ref.make(0);
@@ -36,7 +36,7 @@ const counting = (
       Effect.gen(function* () {
         const at = yield* Ref.getAndUpdate(calls, (n) => n + 1);
         const answer = answers[at] ?? fixed ?? answers.at(-1);
-        return answer instanceof AnpordError
+        return answer instanceof SphynxError
           ? yield* Effect.fail(answer)
           : (answer as Answer);
       });
@@ -47,7 +47,7 @@ const counting = (
 const selector: PromptSelector = { id: "greeting" };
 
 const withCache = <A, E>(
-  answers: readonly (Answer | AnpordError)[],
+  answers: readonly (Answer | SphynxError)[],
   body: (calls: Ref.Ref<number>) => Effect.Effect<A, E, PromptCache>,
   options: Parameters<typeof settingsFrom>[0] = {}
 ) =>
@@ -153,7 +153,7 @@ describe("a failure", () => {
   test("is not held, so the next call tries again", async () => {
     const calls = await withCache(
       [
-        new AnpordError("down", { cause: undefined, status: 500 }),
+        new SphynxError("down", { cause: undefined, status: 500 }),
         answer("back"),
       ],
       (counter) =>
@@ -172,7 +172,7 @@ describe("a failure", () => {
     const result = await withCache(
       [
         answer("written"),
-        new AnpordError("down", { cause: undefined, status: 500 }),
+        new SphynxError("down", { cause: undefined, status: 500 }),
       ],
       () =>
         Effect.gen(function* () {
@@ -194,7 +194,7 @@ describe("what the caller is given when the network fails", () => {
     const result = await withCache(
       [
         answer("written"),
-        new AnpordError("down", { cause: undefined, status: 500 }),
+        new SphynxError("down", { cause: undefined, status: 500 }),
       ],
       () =>
         Effect.gen(function* () {
@@ -213,7 +213,7 @@ describe("what the caller is given when the network fails", () => {
 
   test("uses the fallback when nothing was ever written", async () => {
     const result = await withCache(
-      [new AnpordError("down", { cause: undefined, status: 500 })],
+      [new SphynxError("down", { cause: undefined, status: 500 })],
       () => resolvePrompt({ ...selector, fallback: "hardcoded" })
     );
 
@@ -223,7 +223,7 @@ describe("what the caller is given when the network fails", () => {
 
   test("fails when it was given no fallback and holds nothing", async () => {
     const result = await withCache(
-      [new AnpordError("down", { cause: undefined, status: 500 })],
+      [new SphynxError("down", { cause: undefined, status: 500 })],
       () => Effect.either(resolvePrompt(selector))
     );
 
@@ -234,7 +234,7 @@ describe("what the caller is given when the network fails", () => {
    * fallback would hide it until someone wondered why the model was odd. */
   test("refuses a fallback when the server says the prompt is not there", async () => {
     const result = await withCache(
-      [new AnpordError("no such prompt", { cause: undefined, status: 404 })],
+      [new SphynxError("no such prompt", { cause: undefined, status: 404 })],
       () => Effect.either(resolvePrompt({ ...selector, fallback: "hardcoded" }))
     );
 
@@ -243,7 +243,7 @@ describe("what the caller is given when the network fails", () => {
 
   test("refuses a fallback when the key is rejected", async () => {
     const result = await withCache(
-      [new AnpordError("bad key", { cause: undefined, status: 401 })],
+      [new SphynxError("bad key", { cause: undefined, status: 401 })],
       () => Effect.either(resolvePrompt({ ...selector, fallback: "hardcoded" }))
     );
 
@@ -252,7 +252,7 @@ describe("what the caller is given when the network fails", () => {
 
   test("names a version no answer can carry, so a fallback is recognisable", async () => {
     const result = await withCache(
-      [new AnpordError("down", { cause: undefined, status: 503 })],
+      [new SphynxError("down", { cause: undefined, status: 503 })],
       () => resolvePrompt({ ...selector, fallback: "hardcoded" })
     );
 

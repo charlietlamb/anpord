@@ -1,17 +1,17 @@
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalHarnessProfile } from "@sphynx/db/schema/evals/eval-harness-profiles";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 import type {
   CaseCache,
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/eval-definition";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
+} from "@sphynx/schema/domain/eval-definition";
+import type { EvalUser } from "@sphynx/schema/domain/eval-turns";
 import { and, eq } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import type { RequestedProfile } from "../domain/harness-profile";

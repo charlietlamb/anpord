@@ -10,7 +10,7 @@ export interface AvailableModelsShape {
 }
 
 export class AvailableModels extends Context.Tag(
-  "@anpord/eval/AvailableModels"
+  "@sphynx/eval/AvailableModels"
 )<AvailableModels, AvailableModelsShape>() {}
 
 export interface ModelDescription {
@@ -29,7 +29,7 @@ export interface ModelDescriptionsShape {
 }
 
 export class ModelDescriptions extends Context.Tag(
-  "@anpord/eval/ModelDescriptions"
+  "@sphynx/eval/ModelDescriptions"
 )<ModelDescriptions, ModelDescriptionsShape>() {}
 
 export interface ModelPricesShape {
@@ -38,7 +38,7 @@ export interface ModelPricesShape {
   ) => Effect.Effect<Option.Option<ModelPrice>, ModelsUnreadable>;
 }
 
-export class ModelPrices extends Context.Tag("@anpord/eval/ModelPrices")<
+export class ModelPrices extends Context.Tag("@sphynx/eval/ModelPrices")<
   ModelPrices,
   ModelPricesShape
 >() {}

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ChannelName, VersionNumber } from "@anpord/schema/domain/prompts";
+import { ChannelName, VersionNumber } from "@sphynx/schema/domain/prompts";
 import { Schema } from "effect";
 import { answeringChannel, resolutionFor } from "../../src/domain/resolution";
 

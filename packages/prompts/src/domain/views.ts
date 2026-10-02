@@ -1,14 +1,14 @@
-import { Channel } from "@anpord/schema/domain/channels";
+import { Channel } from "@sphynx/schema/domain/channels";
 import {
   type DeploymentKind,
   PromptActivityEntry,
-} from "@anpord/schema/domain/prompt-activity";
+} from "@sphynx/schema/domain/prompt-activity";
 import {
   type ChannelName,
   ChannelPlacement,
   PromptSummary,
   ResolvedPrompt,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import { Effect, ParseResult, Schema } from "effect";
 import type { ChannelCountRow } from "../repositories/channel-repository";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";

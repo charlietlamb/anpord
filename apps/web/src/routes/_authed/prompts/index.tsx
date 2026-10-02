@@ -1,9 +1,9 @@
-import { Button } from "@anpord/ui/components/button";
 import {
   ChatTextIcon,
   MagnifyingGlassIcon,
   PlusIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryStates } from "nuqs";

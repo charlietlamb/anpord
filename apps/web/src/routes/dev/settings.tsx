@@ -1,10 +1,10 @@
-import { Button } from "@anpord/ui/components/button";
+import { PlusIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { PlusIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { PreviewScreen } from "@/components/dev/preview-screen";
@@ -49,7 +49,7 @@ function SettingsPreview() {
               description="Update your organization's name and slug."
               title="General"
             />
-            <OrganizationForm name="Anpord" slug="anpord" />
+            <OrganizationForm name="Sphynx" slug="sphynx" />
           </SettingsFrame>
         </DashboardShell>
       </PreviewScreen>

@@ -1,8 +1,8 @@
-import { MCP_SCOPES, SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
+import { MCP_SCOPES, SUPPORTED_SCOPES } from "@sphynx/schema/domain/scopes";
 import { Clock, Duration, Effect } from "effect";
 import { OAuthError, OAuthErrorCode, oauthCustomProvider } from "mcp-use/oauth";
-import type { AnpordUser } from "./anpord-user";
 import { authUrl, resource } from "./config";
+import type { SphynxUser } from "./sphynx-user";
 
 const endpoint = (name: string) => `${authUrl}/mcp/${name}`;
 export const issuerOf = (url: string) => new URL(url).origin;
@@ -66,7 +66,7 @@ const verifyAccessToken = (verifiedResource: URL) => async (token: string) => {
   };
 };
 
-export const anpordOAuth = oauthCustomProvider<AnpordUser>({
+export const sphynxOAuth = oauthCustomProvider<SphynxUser>({
   createTokenVerifier: (canonical) => ({
     verifyAccessToken: verifyAccessToken(canonical),
   }),

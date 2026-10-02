@@ -1,10 +1,10 @@
-import type { Database } from "@anpord/db/client";
-import { user } from "@anpord/db/schema/auth/users";
-import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
-import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
-import { prompt } from "@anpord/db/schema/prompts/prompts";
-import type { OrganizationId } from "@anpord/schema/domain/actor";
-import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
+import type { Database } from "@sphynx/db/client";
+import { user } from "@sphynx/db/schema/auth/users";
+import { promptEvent } from "@sphynx/db/schema/prompts/prompt-events";
+import { promptVersion } from "@sphynx/db/schema/prompts/prompt-versions";
+import { prompt } from "@sphynx/db/schema/prompts/prompts";
+import type { OrganizationId } from "@sphynx/schema/domain/actor";
+import type { PromptEventKind } from "@sphynx/schema/domain/prompt-events";
 import { aliasedTable, and, desc, eq, sql } from "drizzle-orm";
 import type { ActivityCursorPayload } from "../domain/activity-cursor";
 

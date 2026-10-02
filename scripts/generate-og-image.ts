@@ -5,6 +5,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { wordmarkSvg } from "../packages/ui/src/lib/brand.ts";
 
 /*
   Renders apps/web/public/og.png from the same fonts, logo geometry and colour
@@ -43,16 +44,7 @@ const heading = dataUrl(
 );
 const body = dataUrl(fontFile("geist", "geist-latin-wght-normal.woff2"));
 
-/* The one source of truth for the mark is the Logo component; this is its
-   petal path, repeated on the same six rotations. */
-const PETAL = "M-9-44H9L19-34L9-28L13-23L8-18H-8L-13-23L-9-28L-19-34Z";
-const ANGLES = [0, 60, 120, 180, 240, 300];
-
-const petals = ANGLES.map(
-  (angle) => `<path d="${PETAL}" transform="rotate(${angle})" />`
-).join("");
-
-const logo = `<svg viewBox="-48 -48 96 96" xmlns="http://www.w3.org/2000/svg" fill="currentColor">${petals}</svg>`;
+const logo = wordmarkSvg("currentColor");
 
 const html = `<!doctype html>
 <html>
@@ -107,14 +99,8 @@ const html = `<!doctype html>
           transparent 62%
         );
       }
-      .row { position: relative; display: flex; align-items: center; gap: 12px; }
-      .row svg { width: 30px; height: 30px; }
-      .brand {
-        font-family: "Funnel Display Variable", sans-serif;
-        font-weight: 500;
-        font-size: 30px;
-        letter-spacing: -0.03em;
-      }
+      .row { position: relative; display: flex; align-items: center; }
+      .row svg { width: auto; height: 36px; }
       main { position: relative; }
       h1 {
         font-family: "Funnel Display Variable", sans-serif;
@@ -142,7 +128,7 @@ const html = `<!doctype html>
   <body>
     <div class="dither"></div>
     <div class="glow"></div>
-    <div class="row">${logo}<span class="brand">Anpord</span></div>
+    <div class="row">${logo}</div>
     <main>
       <h1>Evals for harnesses running in sandboxes.</h1>
       <p>
@@ -154,7 +140,7 @@ const html = `<!doctype html>
   </body>
 </html>`;
 
-const work = mkdtempSync(join(tmpdir(), "anpord-og-"));
+const work = mkdtempSync(join(tmpdir(), "sphynx-og-"));
 const page = join(work, "og.html");
 const out = join(root, "apps/web/public/og.png");
 

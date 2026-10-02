@@ -1,6 +1,6 @@
 import type * as React from "react";
-import { FIELD_SURFACE } from "@anpord/ui/lib/field";
-import { cn } from "@anpord/ui/lib/utils";
+import { FIELD_SURFACE } from "@sphynx/ui/lib/field";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export function Textarea({
   className,

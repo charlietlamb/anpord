@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { compileEval } from "anpord/eval";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import { compileEval } from "sphynx-sh/eval";
 import type { SeedPlan } from "../seed/plan";
 import { type SeededWorld, seedWorld } from "../seed/seed";
 import { type CallV1, v1Client } from "./api";

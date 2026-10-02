@@ -1,6 +1,6 @@
-import { Auth } from "@anpord/auth";
-import { AuthConfig } from "@anpord/auth/config";
-import { logDatabase } from "@anpord/db/describe";
+import { Auth } from "@sphynx/auth";
+import { AuthConfig } from "@sphynx/auth/config";
+import { logDatabase } from "@sphynx/db/describe";
 import { Effect, Layer } from "effect";
 import { ServerConfig } from "./config";
 import { listen } from "./http/listen";

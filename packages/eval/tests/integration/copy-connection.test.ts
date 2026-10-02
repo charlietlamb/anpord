@@ -1,15 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { fileURLToPath } from "node:url";
-import { Database } from "@anpord/db/client";
-import { member } from "@anpord/db/schema/auth/members";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { user } from "@anpord/db/schema/auth/users";
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
+import { Database } from "@sphynx/db/client";
+import { member } from "@sphynx/db/schema/auth/members";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { user } from "@sphynx/db/schema/auth/users";
+import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
 import {
   skipWithoutDatabase,
   testDatabase,
   testDatabaseUrl,
-} from "@anpord/db/test-database";
+} from "@sphynx/db/test-database";
 import { eq, inArray } from "drizzle-orm";
 import { Effect } from "effect";
 import {
@@ -151,7 +151,7 @@ describe.skipIf(skipWithoutDatabase())("scripts/copy-connection.ts", () => {
     });
   });
 
-  it("mints the copy's id with the con_ prefix @anpord/ids assigns credentialConnection", async () => {
+  it("mints the copy's id with the con_ prefix @sphynx/ids assigns credentialConnection", async () => {
     const copied = await run(
       Effect.gen(function* () {
         const db = yield* Database;

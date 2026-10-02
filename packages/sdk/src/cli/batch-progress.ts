@@ -1,5 +1,5 @@
-import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
-import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalTailEvent } from "@sphynx/schema/domain/eval-tail";
+import type { EvalBatch, EvalRun } from "@sphynx/schema/domain/evals";
 import { Effect, Ref } from "effect";
 import { batchUsage, usageLines } from "./eval-usage";
 import { paletteFor } from "./paint";

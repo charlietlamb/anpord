@@ -1,10 +1,10 @@
-import type { Channel } from "@anpord/schema/domain/channels";
-import type { SourceControlAccount } from "@anpord/schema/domain/codebase";
+import type { Channel } from "@sphynx/schema/domain/channels";
+import type { SourceControlAccount } from "@sphynx/schema/domain/codebase";
 import type {
   CredentialConnection,
   CredentialIntegration,
-} from "@anpord/schema/domain/credentials";
-import { ChannelName } from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/credentials";
+import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { DateTime } from "effect";
 import type { MemberSummary } from "@/components/organization/member-row";
 import { placeholders, placeholderText } from "@/lib/placeholders";

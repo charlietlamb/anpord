@@ -39,12 +39,12 @@ const probe = `
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const loaded = [
-  typeof (await import("anpord")).suite,
-  typeof (await import("anpord/runner")).createEmitter,
-  typeof require("anpord").suite,
-  typeof require("anpord/runner").createEmitter,
+  typeof (await import("sphynx-sh")).suite,
+  typeof (await import("sphynx-sh/runner")).createEmitter,
+  typeof require("sphynx-sh").suite,
+  typeof require("sphynx-sh/runner").createEmitter,
 ];
-const eve = await import("anpord/runner/eve").then(
+const eve = await import("sphynx-sh/runner/eve").then(
   () => "loaded",
   (error) => error.message.match(/Cannot find package .([^']+)./)?.[1]
 );
@@ -52,13 +52,13 @@ console.log(JSON.stringify({ eve, loaded }));
 `;
 
 const installedWithoutEve = () => {
-  const root = mkdtempSync(join(tmpdir(), "anpord-no-eve-"));
+  const root = mkdtempSync(join(tmpdir(), "sphynx-no-eve-"));
   const modules = join(root, "node_modules");
-  const anpord = join(modules, "anpord");
+  const sphynx = join(modules, "sphynx-sh");
 
-  mkdirSync(anpord, { recursive: true });
-  cpSync(dist, join(anpord, "dist"), { recursive: true });
-  cpSync(join(sdk, "package.json"), join(anpord, "package.json"));
+  mkdirSync(sphynx, { recursive: true });
+  cpSync(dist, join(sphynx, "dist"), { recursive: true });
+  cpSync(join(sdk, "package.json"), join(sphynx, "package.json"));
 
   for (const name of Object.keys(manifest.dependencies)) {
     const target = join(modules, name);
@@ -88,7 +88,7 @@ describe.if(existsSync(join(dist, "runner-eve.mjs")))(
       ]);
     });
 
-    test("anpord and anpord/runner load and only anpord/runner/eve needs eve", () => {
+    test("sphynx-sh and sphynx-sh/runner load and only sphynx-sh/runner/eve needs eve", () => {
       const root = installedWithoutEve();
 
       try {

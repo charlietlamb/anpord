@@ -1,4 +1,4 @@
-import { Button } from "@anpord/ui/components/button";
+import { Button } from "@sphynx/ui/components/button";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ErrorCard } from "@/components/layout/error-card";

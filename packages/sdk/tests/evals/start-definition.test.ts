@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Anpord } from "../../src/client/anpord";
+import { Sphynx } from "../../src/client/sphynx";
 import { smoke } from "./fixtures/named.eval";
 
 const capture = () => {
@@ -33,8 +33,8 @@ describe("starting from an imported eval", () => {
     const { restore, sent } = capture();
 
     try {
-      const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
-      await anpord.evals.batches.start(smoke);
+      const sphynx = new Sphynx({ apiKey: "k", baseUrl: "http://x" });
+      await sphynx.evals.batches.start(smoke);
 
       const body = (await sent[0]?.json()) as {
         cases: { name: string; validator: { source: string } }[];
@@ -53,8 +53,8 @@ describe("starting from an imported eval", () => {
     const { restore, sent } = capture();
 
     try {
-      const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
-      await anpord.evals.batches.startAndWait(smoke).catch(() => undefined);
+      const sphynx = new Sphynx({ apiKey: "k", baseUrl: "http://x" });
+      await sphynx.evals.batches.startAndWait(smoke).catch(() => undefined);
 
       const body = (await sent[0]?.json()) as { suite: { prompt: string } };
       expect(body.suite.prompt).toBe("Create hello.txt");
@@ -67,8 +67,8 @@ describe("starting from an imported eval", () => {
     const { restore, sent } = capture();
 
     try {
-      const anpord = new Anpord({ apiKey: "k", baseUrl: "http://x" });
-      await anpord.evals.batches.start({
+      const sphynx = new Sphynx({ apiKey: "k", baseUrl: "http://x" });
+      await sphynx.evals.batches.start({
         cases: [
           {
             id: "a",

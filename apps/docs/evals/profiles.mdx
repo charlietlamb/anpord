@@ -21,7 +21,7 @@ The first variant is the stock harness. The second is your configured one. Each 
 
 ## The directory
 
-`dir` resolves against the eval file. Anpord reads two directories and nothing else:
+`dir` resolves against the eval file. Sphynx reads two directories and nothing else:
 
 ```
 profile/
@@ -94,7 +94,7 @@ The prompt is always written into the sandbox. Each harness receives it differen
 | `opencode` | `OPENCODE_CONFIG_CONTENT`, merging the profile's own config with the prompt's path in `instructions` |
 | `codex` | `-c developer_instructions=…`, carrying the text, added to the built-in prompt rather than replacing it |
 | `gemini`, `qwen`, `pi`, `fx`, `cursor` | Prepended to the instructions file the agent reads, `GEMINI.md` for Gemini and `AGENTS.md` for the rest |
-| `command` | `ANPORD_SYSTEM_PROMPT_FILE`, holding the path |
+| `command` | `SPHYNX_SYSTEM_PROMPT_FILE`, holding the path |
 
 For file-based delivery, check the trajectory to confirm the harness read the instructions.
 
@@ -106,7 +106,7 @@ The profile **version** is not. It is a hash of the files, system prompt, enviro
 
 ```ts
 const [latest, previous] = (
-  await anpord.evals.runs.list({ caseId: "writes-docs", variant: variantId })
+  await sphynx.evals.runs.list({ caseId: "writes-docs", variant: variantId })
 ).runs;
 
 console.log(previous?.profileVersion, latest?.profileVersion);

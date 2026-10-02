@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import { format } from "node:util";
-import { CLI_JOURNAL, MCP_JOURNAL } from "@anpord/schema/domain/api-mocks";
+import { CLI_JOURNAL, MCP_JOURNAL } from "@sphynx/schema/domain/api-mocks";
 import {
   type EvalValidation,
   REPORTED_LIMITS,
@@ -13,13 +13,13 @@ import {
   validationCapture,
   validationExecution,
   validationSnapshot,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import {
   ANSWER_ENV,
   PREPARE_VALUE_ENV,
   TRANSCRIPT_ENV,
   TURNS_ENV,
-} from "@anpord/schema/domain/sandbox-env";
+} from "@sphynx/schema/domain/sandbox-env";
 import { apiContext } from "../mock-api/context";
 import type { CommandResult, Validator, ValidatorContext } from "./types";
 import {
@@ -282,7 +282,7 @@ export const runValidators = async (
       }
       passed &&= verdict.passed;
     }
-    write(`ANPORD_VALIDATOR_RESULT=${JSON.stringify({ passed, message })}\n`);
+    write(`SPHYNX_VALIDATOR_RESULT=${JSON.stringify({ passed, message })}\n`);
   } finally {
     Object.assign(console, original);
   }

@@ -1,4 +1,4 @@
-import { SURFACE_CONTROL, SURFACE_CONTROL_HOVER } from "@anpord/ui/lib/surface";
+import { SURFACE_CONTROL, SURFACE_CONTROL_HOVER } from "@sphynx/ui/lib/surface";
 import { cva } from "class-variance-authority";
 
 export const buttonVariants = cva(

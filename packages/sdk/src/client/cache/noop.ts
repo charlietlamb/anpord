@@ -1,4 +1,4 @@
-import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
+import type { PublicPromptWithVersions } from "@sphynx/schema/public/shapes";
 import { Effect, Layer } from "effect";
 import { PromptCache, type PromptCacheShape } from "./prompt-cache";
 import type { PromptSelector } from "./types";

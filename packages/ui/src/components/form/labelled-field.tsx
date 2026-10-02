@@ -1,5 +1,5 @@
-import { Label } from "@anpord/ui/components/ui/label";
-import { cn } from "@anpord/ui/lib/utils";
+import { Label } from "@sphynx/ui/components/ui/label";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function LabelledField({

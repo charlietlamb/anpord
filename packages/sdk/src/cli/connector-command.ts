@@ -1,6 +1,6 @@
-import { AnpordApi } from "@anpord/schema/public/client";
-import { WEB_ORIGIN } from "@anpord/schema/public/origins";
 import { Args, Command, Options, Prompt } from "@effect/cli";
+import { SphynxApi } from "@sphynx/schema/public/client";
+import { WEB_ORIGIN } from "@sphynx/schema/public/origins";
 import { Effect, Option, Redacted } from "effect";
 import { attended, json, note, row } from "./render";
 
@@ -58,7 +58,7 @@ const integrations = Command.make(
   { asJson },
   ({ asJson: wantsJson }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const found = yield* api.connectors.integrations({ payload: {} });
 
       if (wantsJson) {
@@ -77,7 +77,7 @@ const integrations = Command.make(
 
 const list = Command.make("list", { asJson }, ({ asJson: wantsJson }) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const found = yield* api.connectors.list({ payload: {} });
 
     if (wantsJson) {
@@ -86,7 +86,7 @@ const list = Command.make("list", { asJson }, ({ asJson: wantsJson }) =>
 
     if (found.length === 0) {
       return yield* note(
-        "No connectors yet. Add one with `anpord connectors add`."
+        "No connectors yet. Add one with `sphynx connectors add`."
       );
     }
 
@@ -110,13 +110,13 @@ const add = Command.make(
     name: wantedName,
   }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const known = yield* api.connectors.integrations({ payload: {} });
       const found = known.find((entry) => entry.id === integration);
 
       if (found === undefined) {
         return yield* note(
-          `No integration called ${integration}. Run \`anpord connectors integrations\` to see them.`
+          `No integration called ${integration}. Run \`sphynx connectors integrations\` to see them.`
         );
       }
 
@@ -165,7 +165,7 @@ const add = Command.make(
 
 const remove = Command.make("remove", { connectorId }, ({ connectorId: id }) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
 
     yield* api.connectors.remove({ payload: { id } });
 

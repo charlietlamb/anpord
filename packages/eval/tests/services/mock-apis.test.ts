@@ -3,8 +3,8 @@ import {
   API_PROGRAM,
   API_READY,
   type ApiCall,
-} from "@anpord/schema/domain/api-mocks";
-import { validationCapture } from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/api-mocks";
+import { validationCapture } from "@sphynx/schema/domain/eval-validations";
 import { Effect, Stream } from "effect";
 import type { RequestedProfile } from "../../src/domain/harness-profile";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
@@ -20,7 +20,7 @@ const manifest = [
 ];
 const profile: RequestedProfile = {
   name: "api",
-  files: { [API_PROGRAM]: JSON.stringify({ entry: ".anpord/api/server.mjs" }) },
+  files: { [API_PROGRAM]: JSON.stringify({ entry: ".sphynx/api/server.mjs" }) },
   env: null,
   install: null,
   run: null,

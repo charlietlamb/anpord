@@ -1,4 +1,4 @@
-import { AnpordApi } from "@anpord/schema/internal/api";
+import { SphynxApi } from "@sphynx/schema/internal/api";
 import { Layer } from "effect";
 import { AuthenticationLive } from "../../http/authentication/session-authentication";
 import { apiSurface } from "../api-surface";
@@ -22,4 +22,4 @@ const GroupsLive = Layer.mergeAll(
   EvalsHandlers
 );
 
-export const ApiLive = apiSurface(AnpordApi, GroupsLive, AuthenticationLive);
+export const ApiLive = apiSurface(SphynxApi, GroupsLive, AuthenticationLive);

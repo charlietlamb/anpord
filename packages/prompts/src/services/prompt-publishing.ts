@@ -1,11 +1,11 @@
-import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
+import { type Actor, authorIdOf } from "@sphynx/schema/domain/actor";
 import type {
   ChannelName,
   ChannelPlacement,
   PromptId,
   SetChannelRequest,
-} from "@anpord/schema/domain/prompts";
-import { LATEST } from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
+import { LATEST } from "@sphynx/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import { ChannelReserved, VersionNotFound } from "../domain/errors";
@@ -36,7 +36,7 @@ export interface PromptPublishingShape {
 }
 
 export class PromptPublishing extends Context.Tag(
-  "@anpord/prompts/PromptPublishing"
+  "@sphynx/prompts/PromptPublishing"
 )<PromptPublishing, PromptPublishingShape>() {}
 
 export const PromptPublishingLive = Layer.effect(

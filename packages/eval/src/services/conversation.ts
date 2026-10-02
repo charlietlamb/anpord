@@ -1,13 +1,13 @@
-import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
+import type { EvalTurn } from "@sphynx/schema/domain/eval-conversation";
 import type {
   EvalScriptedUser,
   EvalTurnsEnded,
   EvalUser,
-} from "@anpord/schema/domain/eval-turns";
+} from "@sphynx/schema/domain/eval-turns";
 import type {
   HarnessEvent,
   ModelSpend,
-} from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/harness-event";
 import { Chunk, Clock, Effect, Either, Option, Scope, Stream } from "effect";
 import type { UserUnavailable } from "../domain/errors";
 import { commandsIn, readAnswer, sessionIdOf } from "../domain/journal";

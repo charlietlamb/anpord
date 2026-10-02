@@ -1,5 +1,5 @@
-import { magicLinkEmail } from "@anpord/notifications/email/magic-link";
-import type { EmailSenderShape } from "@anpord/notifications/email/sender";
+import { magicLinkEmail } from "@sphynx/notifications/email/magic-link";
+import type { EmailSenderShape } from "@sphynx/notifications/email/sender";
 import { Duration, Effect } from "effect";
 
 export const MAGIC_LINK_EXPIRY = Duration.minutes(5);

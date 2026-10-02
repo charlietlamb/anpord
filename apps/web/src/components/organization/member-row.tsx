@@ -1,6 +1,6 @@
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { initials } from "@anpord/ui/lib/initials";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
+import { DataTableRow } from "@sphynx/ui/components/ui/data-table";
+import { initials } from "@sphynx/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { IdentityLabel } from "@/components/dashboard/identity-label";
 import { MemberRole } from "@/components/organization/member-role";

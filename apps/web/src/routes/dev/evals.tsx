@@ -1,7 +1,7 @@
-import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { trialStatus } from "@anpord/ui/lib/evals/eval-status";
+import { EvalStatusBadge } from "@sphynx/ui/components/evals/eval-status-badge";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
+import { PageHeading } from "@sphynx/ui/components/ui/page-heading";
+import { trialStatus } from "@sphynx/ui/lib/evals/eval-status";
 import { createFileRoute } from "@tanstack/react-router";
 import { CASE_DETAIL, CASE_RUNS } from "@/components/dev/case-fixtures";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";

@@ -1,5 +1,5 @@
-import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
 import { GaugeIcon } from "@phosphor-icons/react";
+import type { EvalCaseSummary } from "@sphynx/schema/domain/eval-read-models";
 import type { ComponentProps } from "react";
 import { CasesTable } from "@/components/evals/cases-table";
 import { CursorPagination } from "@/components/layout/cursor-pagination";

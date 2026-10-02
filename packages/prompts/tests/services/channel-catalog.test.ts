@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { IdGenerator } from "@anpord/ids/id";
-import { ChannelName } from "@anpord/schema/domain/prompts";
+import { IdGenerator } from "@sphynx/ids/id";
+import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { Effect, Exit, Layer, Option } from "effect";
 import {
   type ChannelCountRow,

@@ -1,7 +1,7 @@
 import { existsSync, realpathSync } from "node:fs";
 import { basename, dirname, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EvalSourceFiles } from "@anpord/schema/domain/eval-source-files";
+import { EvalSourceFiles } from "@sphynx/schema/domain/eval-source-files";
 import { Schema } from "effect";
 
 const CODE_FILE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
@@ -42,7 +42,7 @@ export const sourceFiles = (map: string, entry: string) => {
       absolute.startsWith(`${sdkRoot}${sep}`) ||
       !CODE_FILE.test(path) ||
       source.includes(":") ||
-      basename(path) === "anpord-eval-entry.ts"
+      basename(path) === "sphynx-eval-entry.ts"
     ) {
       return [];
     }

@@ -1,11 +1,11 @@
 import { expect, test } from "bun:test";
-import { EvalBatchSummary } from "@anpord/schema/domain/evals";
+import { EvalBatchSummary } from "@sphynx/schema/domain/evals";
 import {
   PromptPage,
   ResolvedPrompt,
   Timestamp,
-} from "@anpord/schema/domain/prompts";
-import { relativeTime } from "@anpord/ui/lib/relative-time";
+} from "@sphynx/schema/domain/prompts";
+import { relativeTime } from "@sphynx/ui/lib/relative-time";
 import { DateTime, Schema } from "effect";
 import { fromWire } from "../../src/lib/wire";
 

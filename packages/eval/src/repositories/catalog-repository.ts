@@ -1,10 +1,10 @@
-import { Database } from "@anpord/db/client";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import { IdGenerator } from "@anpord/ids/id";
-import type { EvalSuiteRequest } from "@anpord/schema/domain/eval-definition";
+import { Database } from "@sphynx/db/client";
+import { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalSuite } from "@sphynx/db/schema/evals/eval-suites";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { EvalSuiteRequest } from "@sphynx/schema/domain/eval-definition";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { CaseDefinition } from "../domain/case-identity";
@@ -49,7 +49,7 @@ export interface CatalogRepositoryShape {
 }
 
 export class CatalogRepository extends Context.Tag(
-  "@anpord/eval/CatalogRepository"
+  "@sphynx/eval/CatalogRepository"
 )<CatalogRepository, CatalogRepositoryShape>() {}
 
 const only = <A>(rows: readonly A[], what: string): A => {

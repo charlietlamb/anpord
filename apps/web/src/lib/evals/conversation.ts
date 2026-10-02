@@ -1,5 +1,5 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { counted } from "@anpord/ui/lib/evals/counted";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import { counted } from "@sphynx/ui/lib/evals/counted";
 
 export type ConversationStep = Extract<
   EvalJournalEntry,

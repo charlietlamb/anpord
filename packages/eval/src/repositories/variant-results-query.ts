@@ -1,9 +1,9 @@
-import { Database } from "@anpord/db/client";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import type { EvalVariantResult } from "@anpord/schema/domain/eval-read-models";
-import { decodeTrialStatus } from "@anpord/schema/domain/trial";
+import { Database } from "@sphynx/db/client";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
+import type { EvalVariantResult } from "@sphynx/schema/domain/eval-read-models";
+import { decodeTrialStatus } from "@sphynx/schema/domain/trial";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { distributionOf } from "../domain/distribution";

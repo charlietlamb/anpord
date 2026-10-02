@@ -1,4 +1,4 @@
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import type { ReactNode } from "react";
 
 export function SkeletonPair({

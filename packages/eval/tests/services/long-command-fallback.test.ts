@@ -40,7 +40,7 @@ const run = (sandbox: SandboxHandle, watch?: CommandWatcher) =>
   Effect.runPromise(
     runLongCommand(sandbox, "npm ci", {
       cwd: "/tmp/ws",
-      env: { ANPORD_CACHE_RESTORED: "1" },
+      env: { SPHYNX_CACHE_RESTORED: "1" },
       timeoutMs: 1_800_000,
       watch,
     }).pipe(Effect.provide(Unreachable))
@@ -83,7 +83,7 @@ describe("a provider that cannot resume a command", () => {
     expect(seen.commands).toEqual(["npm ci"]);
     expect(seen.options[0]).toMatchObject({
       cwd: "/tmp/ws",
-      env: { ANPORD_CACHE_RESTORED: "1" },
+      env: { SPHYNX_CACHE_RESTORED: "1" },
       timeoutMs: 1_800_000,
     });
   });

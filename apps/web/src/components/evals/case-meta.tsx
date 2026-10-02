@@ -1,5 +1,5 @@
-import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
+import type { EvalCaseDetail } from "@sphynx/schema/domain/eval-read-models";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
 import { Link } from "@tanstack/react-router";
 import { TagChip } from "@/components/evals/tag-chip";
 

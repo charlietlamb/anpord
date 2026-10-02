@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { EVAL_PAGE_SIZE } from "@anpord/schema/domain/eval-read-models";
+import { EVAL_PAGE_SIZE } from "@sphynx/schema/domain/eval-read-models";
 import {
   MAX_PAGE_SIZE,
   nextCursor,

@@ -37,7 +37,7 @@ const sandbox = {
 } satisfies Pick<SandboxHandle, "exec">;
 
 const workspace = async () => {
-  const path = await mkdtemp(join(tmpdir(), "anpord-artifacts-"));
+  const path = await mkdtemp(join(tmpdir(), "sphynx-artifacts-"));
   roots.push(path);
   return path;
 };

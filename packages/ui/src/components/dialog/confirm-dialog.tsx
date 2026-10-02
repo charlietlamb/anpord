@@ -6,10 +6,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@anpord/ui/components/ui/alert-dialog";
-import { Kbd } from "@anpord/ui/components/ui/kbd";
-import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
-import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
+} from "@sphynx/ui/components/ui/alert-dialog";
+import { Kbd } from "@sphynx/ui/components/ui/kbd";
+import { useMetaKeyLabel } from "@sphynx/ui/hooks/use-meta-key-label";
+import { useShortcut } from "@sphynx/ui/hooks/use-shortcut";
 import { useState } from "react";
 
 export interface ConfirmDialogProps {

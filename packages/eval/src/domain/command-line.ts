@@ -1,4 +1,4 @@
-import { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Schema } from "effect";
 
 /* The one line that is not an event. Cache counts default to none and the total

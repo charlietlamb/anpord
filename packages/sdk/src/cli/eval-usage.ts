@@ -1,14 +1,14 @@
 import {
   COST_COMPONENT_LABELS,
   type EvalCosts,
-} from "@anpord/schema/domain/eval-costs";
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-costs";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
 import {
   CONCERN_REASONS,
   type TokenCounts,
   type UsageConcern,
   usageConcerns,
-} from "@anpord/schema/domain/usage-health";
+} from "@sphynx/schema/domain/usage-health";
 
 const THOUSAND = 1000;
 const MILLION = 1_000_000;

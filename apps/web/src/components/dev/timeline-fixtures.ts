@@ -1,8 +1,8 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 
 const START = Date.UTC(2026, 8, 26, 12, 25, 43);
 const at = (seconds: number) => START + seconds * 1000;
-const WORKSPACE = "/private/var/folders/f2/T/anpord-workspace-nZuB7b";
+const WORKSPACE = "/private/var/folders/f2/T/sphynx-workspace-nZuB7b";
 const SKILLS = `${WORKSPACE}/.codex/skills`;
 
 const say = (seconds: number, text: string): EvalJournalEntry => ({

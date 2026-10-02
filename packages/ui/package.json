@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/ui",
+  "name": "@sphynx/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,8 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/schema": "workspace:*",
-    "@anpord/template": "workspace:*",
+    "@sphynx/schema": "workspace:*",
+    "@sphynx/template": "workspace:*",
     "@base-ui/react": "catalog:",
     "@paper-design/shaders-react": "catalog:",
     "@phosphor-icons/react": "catalog:",

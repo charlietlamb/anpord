@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import { useState } from "react";
 import {
   RerunDialog,

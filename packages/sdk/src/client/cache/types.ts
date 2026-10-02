@@ -1,4 +1,4 @@
-import type { Variables } from "@anpord/template/render";
+import type { Variables } from "@sphynx/template/render";
 
 export interface PromptSelector {
   readonly channel?: string;

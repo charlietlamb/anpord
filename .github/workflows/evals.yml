@@ -18,7 +18,7 @@ jobs:
       github.actor != 'dependabot[bot]' &&
       (github.event_name != 'pull_request' ||
        github.event.pull_request.head.repo.full_name == github.repository)
-    name: Anpord evals (${{ matrix.suite }})
+    name: Sphynx evals (${{ matrix.suite }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -39,13 +39,13 @@ jobs:
       - uses: ./.github/actions/eval
         id: eval
         with:
-          api-key: ${{ secrets.ANPORD_API_KEY }}
+          api-key: ${{ secrets.SPHYNX_API_KEY }}
           working-directory: apps/e2e
           file: src/evals/${{ matrix.suite }}.eval.ts
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always() && steps.eval.outputs.report != ''
         with:
-          name: anpord-${{ matrix.suite }}-${{ github.run_attempt }}
+          name: sphynx-${{ matrix.suite }}-${{ github.run_attempt }}
           path: ${{ steps.eval.outputs.report }}
           if-no-files-found: ignore
           retention-days: 7
@@ -57,4 +57,4 @@ jobs:
        github.event.pull_request.head.repo.full_name != github.repository)
     runs-on: ubuntu-latest
     steps:
-      - run: echo 'Remote evals require trusted code and an Anpord API key. Unit tests still run without secrets.' >> "$GITHUB_STEP_SUMMARY"
+      - run: echo 'Remote evals require trusted code and a Sphynx API key. Unit tests still run without secrets.' >> "$GITHUB_STEP_SUMMARY"

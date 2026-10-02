@@ -1,4 +1,4 @@
-import type { ValidationValue } from "@anpord/schema/domain/eval-validations";
+import type { ValidationValue } from "@sphynx/schema/domain/eval-validations";
 
 const object = (value: unknown): Record<string, unknown> | null =>
   typeof value === "object" && value !== null && !Array.isArray(value)

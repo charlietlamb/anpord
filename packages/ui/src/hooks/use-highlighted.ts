@@ -1,6 +1,6 @@
 "use client";
 
-import { type CodeLanguage, highlight } from "@anpord/ui/lib/highlight";
+import { type CodeLanguage, highlight } from "@sphynx/ui/lib/highlight";
 import { useEffect, useState } from "react";
 
 export function useHighlighted(code: string, lang: CodeLanguage) {

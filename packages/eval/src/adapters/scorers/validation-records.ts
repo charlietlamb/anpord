@@ -2,11 +2,11 @@ import type {
   EvalValidation,
   ValidationValue,
   validationCapture,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import {
   validationDuration,
   validationSnapshot,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import { resultStatus, validatorResultOf } from "./validator-protocol";
 
 export const completeValidations = (

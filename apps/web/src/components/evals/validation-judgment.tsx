@@ -1,4 +1,4 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { MarkdownProse } from "@/components/evals/markdown-prose";
 
 const scoreLine = (judgment: NonNullable<EvalValidation["judgment"]>) => {

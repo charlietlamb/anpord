@@ -1,14 +1,14 @@
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
 import {
   EVAL_TAIL_PAGE,
   type EvalBatchTail,
   type EvalTailMark,
-} from "@anpord/schema/domain/eval-tail";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/eval-tail";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { and, eq, gt, or, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { asEntries } from "../domain/journal-entries";

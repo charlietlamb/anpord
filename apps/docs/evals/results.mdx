@@ -6,7 +6,7 @@ description: "Read a batch, its runs and each trial"
 Starting evals creates a batch with one run per case per variant. Each run holds its trials. `evals.batches.start` returns the batch id and, for each case and variant, a run with its `caseId` and `variantId`, while trials continue on the server. `startAndWait` resolves once the batch stops:
 
 ```ts
-const batch = await anpord.evals.batches.startAndWait(smoke);
+const batch = await sphynx.evals.batches.startAndWait(smoke);
 ```
 
 To wait on a batch you started earlier, pass its id to `evals.batches.wait({ id })`. Both poll `evals.batches.get`, backing off as the batch goes on, and both take `onProgress`, `signal`, `timeoutMs`, `pollIntervalMs` and `maxIntervalMs`.
@@ -87,13 +87,13 @@ Inputs and logs can contain your data. Set `captureValidation: false` on the sui
 
 ### Secrets in evidence
 
-Anpord does not store the value your `prepare` returns. A check can read `prepared` and pass or fail on it, and its evidence shows no input.
+Sphynx does not store the value your `prepare` returns. A check can read `prepared` and pass or fail on it, and its evidence shows no input.
 
 Before evidence is stored or shown, every value, log line and message is checked for credentials. Anything that looks like a key is replaced with `[redacted]`. That covers keys starting with `sk-`, `sk_live_`, `am_sk_`, `anp_`, `ghp_`, `github_pat_`, `xox`, `AKIA` and `AIza`, JSON web tokens, private key blocks, the token after `Bearer`, and the password in a URL such as `postgres://app:password@db`. Every value of the harness and sandbox credentials the trial ran with is replaced too, even when a check reads it back from a file in the sandbox. A forwarded host variable is replaced when its name says it is secret, such as `STRIPE_SECRET_KEY`, or when its value looks like a token. A forwarded address such as `http://localhost:3000` stays readable, and only a password or token inside it is replaced.
 
 The agent's journal gets the same treatment before it is stored, streamed to the dashboard or printed in your terminal. That covers commands, their output, tool calls, messages and changed file paths. Failure reasons, such as the error output of a prepare or a clone, are redacted too.
 
-Code checks still read what the agent actually wrote, so redaction never changes their verdict. Judges read the redacted conversation, so a judge model is never sent a credential Anpord recognizes.
+Code checks still read what the agent actually wrote, so redaction never changes their verdict. Judges read the redacted conversation, so a judge model is never sent a credential Sphynx recognizes.
 
 The files a trial saves from its workspace are redacted the same way before they are stored. Only small text files are saved, so a binary file is never saved or changed. A file whose redacted text still holds something that looks like a password assignment is not saved at all.
 
@@ -105,6 +105,6 @@ Evidence stored before redaction existed is kept as it was. If an older run reco
 
 ## Trigger
 
-Each batch records a `trigger` (Dashboard, CLI, CI, API or MCP), and its runs inherit it. Anpord sets it for you. The CLI records CLI, or CI with a link to the GitHub Actions attempt when it runs there. Batches started through the API record API.
+Each batch records a `trigger` (Dashboard, CLI, CI, API or MCP), and its runs inherit it. Sphynx sets it for you. The CLI records CLI, or CI with a link to the GitHub Actions attempt when it runs there. Batches started through the API record API.
 
 The trigger describes the caller. It grants and verifies nothing. Running a case again records the new trigger, and older runs show Unknown.

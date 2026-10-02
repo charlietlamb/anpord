@@ -1,5 +1,5 @@
-import { EvalReads } from "@anpord/eval/services/eval-reads";
-import type { EvalArtifactRequest } from "@anpord/schema/domain/eval-trial";
+import { EvalReads } from "@sphynx/eval/services/eval-reads";
+import type { EvalArtifactRequest } from "@sphynx/schema/domain/eval-trial";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { organization } from "./current-organization";

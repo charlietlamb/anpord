@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import type { RerunPlan } from "@anpord/schema/domain/eval-rerun";
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import type { RerunPlan } from "@sphynx/schema/domain/eval-rerun";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
 import { renderToStaticMarkup } from "react-dom/server";
 import { RERUN_PLAN } from "../../../src/components/dev/rerun-fixtures";
 import { RerunPreview } from "../../../src/components/evals/rerun-preview";

@@ -1,13 +1,13 @@
-import { DOCS_ORIGIN, WEB_ORIGIN } from "@anpord/schema/public/origins";
+import { DOCS_ORIGIN, WEB_ORIGIN } from "@sphynx/schema/public/origins";
 
 const KEYS_URL = `${WEB_ORIGIN}/settings/keys`;
 
-export const AGENT_PROMPT = `Write an eval for this repository using Anpord, in scripts/eval.ts.
+export const AGENT_PROMPT = `Write an eval for this repository using Sphynx, in scripts/eval.ts.
 
-Set ANPORD_API_KEY in the environment. Create one at ${KEYS_URL}.
+Set SPHYNX_API_KEY in the environment. Create one at ${KEYS_URL}.
 
 \`\`\`ts
-import { Anpord, command, repo, suite } from "anpord";
+import { Sphynx, command, repo, suite } from "sphynx-sh";
 
 const smoke = suite({
   id: "<this-repository>",
@@ -28,13 +28,13 @@ const smoke = suite({
   trials: 3,
 });
 
-const anpord = new Anpord();
-const batch = await anpord.evals.batches.startAndWait(smoke);
+const sphynx = new Sphynx();
+const batch = await sphynx.evals.batches.startAndWait(smoke);
 
 for (const run of batch.runs) {
   console.log(run.case.id, run.variant.harness, run.variant.model, run.distribution.passRate);
 }
-await anpord.dispose();
+await sphynx.dispose();
 \`\`\`
 
 Rules that decide whether the result means anything:

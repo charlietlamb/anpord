@@ -2,8 +2,8 @@ import { describe, expect, it } from "bun:test";
 import {
   type EvalPrepare,
   EvalValidator,
-} from "@anpord/schema/domain/eval-definition";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/eval-definition";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { ConfigProvider, Effect, Schema } from "effect";
 import { judgmentsIn } from "../../src/domain/judgments";
 import { EvalLocalLive } from "../../src/local-layer";
@@ -12,7 +12,7 @@ import { LocalTrials } from "../../src/services/local-trial";
 /* The point of the local provider: no database, no grid, no cloud credential.
    If this needs any of them, it is not a local run. */
 const opted = ConfigProvider.fromMap(
-  new Map([["ANPORD_LOCAL_SANDBOX", "true"]])
+  new Map([["SPHYNX_LOCAL_SANDBOX", "true"]])
 ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()));
 
 const runCase = (
@@ -97,9 +97,9 @@ describe("a trial that runs on this machine", () => {
 
     try {
       const outcome = await runCase(
-        'test "$(curl -s $ANPORD_TEST_BASE)" = ready',
+        'test "$(curl -s $SPHYNX_TEST_BASE)" = ready',
         {},
-        { ANPORD_TEST_BASE: `http://localhost:${server.port}` }
+        { SPHYNX_TEST_BASE: `http://localhost:${server.port}` }
       );
 
       expect(outcome.outcome.status).toBe("passed");
@@ -112,11 +112,11 @@ describe("a trial that runs on this machine", () => {
     const outcome = await runCase(
       "true",
       {},
-      { ANPORD_TEST_PREPARE: "prepared-value" },
+      { SPHYNX_TEST_PREPARE: "prepared-value" },
       {
         name: "reads what was forwarded",
         source:
-          'console.log("ANPORD_PREPARE_RESULT=" + JSON.stringify({ seen: process.env.ANPORD_TEST_PREPARE ?? null }));',
+          'console.log("SPHYNX_PREPARE_RESULT=" + JSON.stringify({ seen: process.env.SPHYNX_TEST_PREPARE ?? null }));',
       }
     );
 
@@ -124,14 +124,14 @@ describe("a trial that runs on this machine", () => {
   }, 180_000);
 
   it("withholds a variable the run did not name", async () => {
-    process.env.ANPORD_TEST_SECRET = "leaked";
+    process.env.SPHYNX_TEST_SECRET = "leaked";
 
     try {
-      const outcome = await runCase('test -z "$ANPORD_TEST_SECRET"');
+      const outcome = await runCase('test -z "$SPHYNX_TEST_SECRET"');
 
       expect(outcome.outcome.status).toBe("passed");
     } finally {
-      process.env.ANPORD_TEST_SECRET = undefined;
+      process.env.SPHYNX_TEST_SECRET = undefined;
     }
   }, 180_000);
 });

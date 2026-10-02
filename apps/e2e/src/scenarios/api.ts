@@ -62,7 +62,7 @@ export const apiScenarios: readonly Scenario<World>[] = [
         JSON.stringify({
           _tag: "NotFound",
           message:
-            "There is no route /health. See the API reference at https://docs.anpord.com/api-reference/introduction",
+            "There is no route /health. See the API reference at https://docs.sphynx.sh/api-reference/introduction",
         })
       );
     },
@@ -169,7 +169,7 @@ export const apiScenarios: readonly Scenario<World>[] = [
         world,
         "prompts.list",
         {},
-        "anpord_not_a_real_key"
+        "sphynx_not_a_real_key"
       );
 
       equals("status", refused.status, 401);

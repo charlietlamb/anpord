@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { batchTagOf } from "@anpord/schema/domain/eval-batch-subscription";
+import { batchTagOf } from "@sphynx/schema/domain/eval-batch-subscription";
 import { ConfigProvider, Effect } from "effect";
 
 const sent: { calls: unknown[] } = { calls: [] };

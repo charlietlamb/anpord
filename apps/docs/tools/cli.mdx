@@ -1,5 +1,5 @@
 ---
-title: "Anpord CLI"
+title: "Sphynx CLI"
 description: "Run eval suites and connect credentials from a terminal"
 ---
 
@@ -8,32 +8,32 @@ description: "Run eval suites and connect credentials from a terminal"
 <CodeGroup>
 
 ```bash npx
-npx anpord --help
+npx sphynx-sh --help
 ```
 
 ```bash global
-npm install -g anpord
-anpord --help
+npm install -g sphynx
+sphynx --help
 ```
 
 </CodeGroup>
 
-Set `ANPORD_API_KEY` before commands that call Anpord. `--help`, `--version`, `eval import` and `eval --local` work without it.
+Set `SPHYNX_API_KEY` before commands that call Sphynx. `--help`, `--version`, `eval import` and `eval --local` work without it.
 
 ## Commands
 
 | Command | Purpose |
 | --- | --- |
-| `anpord eval [file] [options]` | Run suite files, or a stored case, as batches and gate on the results |
-| `anpord eval import --format <format> <path> [--out <file>]` | Turn a case file a team already wrote into a suite |
-| `anpord connectors <subcommand>` | Connect the credentials evals use |
-| `anpord whoami [--json]` | Show the organization and key `ANPORD_API_KEY` acts for |
-| `anpord --completions <shell>` | Print completions for zsh, bash or fish |
+| `sphynx eval [file] [options]` | Run suite files, or a stored case, as batches and gate on the results |
+| `sphynx eval import --format <format> <path> [--out <file>]` | Turn a case file a team already wrote into a suite |
+| `sphynx connectors <subcommand>` | Connect the credentials evals use |
+| `sphynx whoami [--json]` | Show the organization and key `SPHYNX_API_KEY` acts for |
+| `sphynx --completions <shell>` | Print completions for zsh, bash or fish |
 
 ## Check which organization a key uses
 
 ```bash
-anpord whoami
+sphynx whoami
 ```
 
 ```text
@@ -45,20 +45,20 @@ key starts with    anp_AbCd
 permissions        evals:read, evals:write
 ```
 
-Every run, suite and connector a key touches belongs to this organization. `--json` prints the same facts as JSON. The secret is never printed. `anpord eval` also prints the organization once before its first batch.
+Every run, suite and connector a key touches belongs to this organization. `--json` prints the same facts as JSON. The secret is never printed. `sphynx eval` also prints the organization once before its first batch.
 
 ## Run evals
 
 ```bash
-anpord eval
-anpord eval ./evals/smoke.eval.ts
-anpord eval ./evals/smoke.eval.ts --case writes-hello --variant codex/gpt-5.6-sol
-anpord eval --case writes-hello
+sphynx eval
+sphynx eval ./evals/smoke.eval.ts
+sphynx eval ./evals/smoke.eval.ts --case writes-hello --variant codex/gpt-5.6-sol
+sphynx eval --case writes-hello
 ```
 
 With no file, the CLI finds every `*.eval.ts` under the current directory (skipping `node_modules`, `dist`, `build` and hidden folders) and runs them one after another. Each suite file starts one batch: one run per case per variant, each with the suite's number of trials. The command waits for the batch and applies the gate. In an interactive terminal the grid updates as trials finish. Otherwise it prints the final grid once.
 
-With `--case` and no file, the CLI runs a case Anpord already stores again, on its newest version.
+With `--case` and no file, the CLI runs a case Sphynx already stores again, on its newest version.
 
 | Option | Purpose |
 | --- | --- |
@@ -73,13 +73,13 @@ With `--case` and no file, the CLI runs a case Anpord already stores again, on i
 
 Under every gate, a batch that fails to start, fails, or times out fails the command.
 
-`anpord eval import` reads an existing case file (or a directory of them) and prints a suite, or writes it with `--out`. It converts the mechanical assertions and leaves prose ones failing until someone writes the check. It reports how many of each on stderr. See [importing a case file](/evals/import).
+`sphynx eval import` reads an existing case file (or a directory of them) and prints a suite, or writes it with `--out`. It converts the mechanical assertions and leaves prose ones failing until someone writes the check. It reports how many of each on stderr. See [importing a case file](/evals/import).
 
 ## Connect credentials
 
-`anpord connectors add <integration>` connects a credential for the organization. It prompts for the secret, or reads it from stdin when not run in a terminal, so the secret never appears in your shell history. Pass `--default` to make it the one evals use, `--name` to label it and `--auth` to pick an auth method. Integrations that sign in through a browser are connected in the dashboard instead.
+`sphynx connectors add <integration>` connects a credential for the organization. It prompts for the secret, or reads it from stdin when not run in a terminal, so the secret never appears in your shell history. Pass `--default` to make it the one evals use, `--name` to label it and `--auth` to pick an auth method. Integrations that sign in through a browser are connected in the dashboard instead.
 
-`anpord connectors integrations` lists what can be connected, `connectors list` shows what the organization has, and `connectors remove <id>` deletes one.
+`sphynx connectors integrations` lists what can be connected, `connectors list` shows what the organization has, and `connectors remove <id>` deletes one.
 
 ## Exit codes
 
@@ -92,13 +92,13 @@ Under every gate, a batch that fails to start, fails, or times out fails the com
 
 Failures print without a stack trace. Status messages go to stderr.
 
-When Anpord cannot be reached, the error says so and names the address it tried. The first request checks that the server answers and gives up within 5 seconds if it does not. After that, a read that gets no answer in 30 seconds gives up with an error that says the server was slow, not unreachable. A change is never cut off once the server has it, so it cannot be applied twice.
+When Sphynx cannot be reached, the error says so and names the address it tried. The first request checks that the server answers and gives up within 5 seconds if it does not. After that, a read that gets no answer in 30 seconds gives up with an error that says the server was slow, not unreachable. A change is never cut off once the server has it, so it cannot be applied twice.
 
 ## Environment
 
 | Variable | Purpose |
 | --- | --- |
-| `ANPORD_API_KEY` | API key |
-| `ANPORD_BASE_URL` | API origin, default `https://api.anpord.com` |
-| `ANPORD_WEB_URL` | Origin for batch links, default `https://www.anpord.com` |
-| `GITHUB_TOKEN` | Optional. With `GITHUB_REPOSITORY` set, `anpord eval` posts a check named `anpord` on the commit (the PR head on pull requests) |
+| `SPHYNX_API_KEY` | API key |
+| `SPHYNX_BASE_URL` | API origin, default `https://api.sphynx.sh` |
+| `SPHYNX_WEB_URL` | Origin for batch links, default `https://www.sphynx.sh` |
+| `GITHUB_TOKEN` | Optional. With `GITHUB_REPOSITORY` set, `sphynx eval` posts a check named `sphynx` on the commit (the PR head on pull requests) |

@@ -1,5 +1,5 @@
-import { command, suite } from "anpord";
-import { judge } from "anpord/validators";
+import { command, suite } from "sphynx-sh";
+import { judge } from "sphynx-sh/validators";
 import { seedWorkspace } from "./prepare";
 import { wroteReport } from "./validate";
 

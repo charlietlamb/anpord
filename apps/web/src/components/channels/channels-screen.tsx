@@ -1,11 +1,11 @@
-import type { Channel } from "@anpord/schema/domain/channels";
-import { Button } from "@anpord/ui/components/button";
+import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
+import type { Channel } from "@sphynx/schema/domain/channels";
+import { Button } from "@sphynx/ui/components/button";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { BroadcastIcon, PlusIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
 import { ChannelListRow } from "@/components/channels/channel-list-row";
 import { ListState } from "@/components/layout/list-state";
 import { PageHeader } from "@/components/layout/page-header";

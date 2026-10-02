@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/eval",
+  "name": "@sphynx/eval",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,9 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/db": "workspace:*",
-    "@anpord/ids": "workspace:*",
-    "@anpord/schema": "workspace:*",
+    "@sphynx/db": "workspace:*",
+    "@sphynx/ids": "workspace:*",
+    "@sphynx/schema": "workspace:*",
     "@daytonaio/sdk": "catalog:",
     "@trigger.dev/sdk": "catalog:",
     "@effect/opentelemetry": "catalog:",

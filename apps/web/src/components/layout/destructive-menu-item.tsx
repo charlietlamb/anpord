@@ -1,5 +1,5 @@
-import { DropdownMenuItem } from "@anpord/ui/components/dropdown-menu";
-import { cn } from "@anpord/ui/lib/utils";
+import { DropdownMenuItem } from "@sphynx/ui/components/dropdown-menu";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ComponentProps } from "react";
 
 export function DestructiveMenuItem({

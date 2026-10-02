@@ -1,4 +1,4 @@
-import { Providers } from "@anpord/ui/components/providers";
+import { Providers } from "@sphynx/ui/components/providers";
 import { HeadContent, ScriptOnce, Scripts } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Analytics } from "@/components/layout/analytics";

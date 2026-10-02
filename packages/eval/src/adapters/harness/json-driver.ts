@@ -1,4 +1,4 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Effect, Either, Option, Redacted } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { ResumeSupport } from "../../domain/usage-tally";

@@ -1,6 +1,6 @@
-import { Button } from "@anpord/ui/components/button";
-import { SPIN } from "@anpord/ui/lib/utils";
 import { SpinnerGapIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { SPIN } from "@sphynx/ui/lib/utils";
 
 export function ShowMore({
   className,

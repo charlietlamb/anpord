@@ -2,7 +2,7 @@ import {
   type EvalValidation,
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 
 const capture = validationCapture();
 const answer = [

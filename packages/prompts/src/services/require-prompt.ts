@@ -1,5 +1,5 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { PromptId } from "@anpord/schema/domain/prompts";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { PromptId } from "@sphynx/schema/domain/prompts";
 import { Effect, Option } from "effect";
 import { PromptNotFound } from "../domain/errors";
 import type { OwnedPromptId } from "../domain/owned-prompt";

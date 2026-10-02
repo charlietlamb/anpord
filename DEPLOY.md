@@ -2,7 +2,7 @@
 
 Two pieces, deployed separately:
 
-- **`apps/web`** — TanStack Start, on Vercel, serving `anpord.com`
+- **`apps/web`** — TanStack Start, on Vercel, serving `sphynx.sh`
 - **`apps/server`** — long-running Bun process, on AWS App Runner
 
 They are split because the server holds a Postgres pool and a persistent Redis
@@ -28,12 +28,12 @@ offered as "Create new service role" when you pick a private ECR image.
 
 **The environment variables**, set on the service.
 
-The five marked *secret* are stored in Secrets Manager under `anpord/server/<NAME>`
+The five marked *secret* are stored in Secrets Manager under `sphynx/server/<NAME>`
 and referenced by the service as `RuntimeEnvironmentSecrets`, so their values never
 appear in the service configuration. Reading them needs the instance role
-`AppRunnerAnpordInstanceRole`, whose inline policy grants
-`secretsmanager:GetSecretValue` on `anpord/server/*` and nothing else. Rotate one
-with `aws secretsmanager put-secret-value --secret-id anpord/server/<NAME>`; the
+`AppRunnerSphynxInstanceRole`, whose inline policy grants
+`secretsmanager:GetSecretValue` on `sphynx/server/*` and nothing else. Rotate one
+with `aws secretsmanager put-secret-value --secret-id sphynx/server/<NAME>`; the
 service picks it up on its next deployment.
 
 Rotating `BETTER_AUTH_SECRET` additionally invalidates every session, and the
@@ -46,17 +46,17 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `REDIS_URL` | *secret*. Upstash TCP endpoint, unquoted |
 | `BETTER_AUTH_SECRET` | *secret*. 48 random bytes, base64url |
 | `BETTER_AUTH_URL` | The App Runner URL, once known |
-| `WEB_URL` | `https://anpord.com` |
-| `AUTH_TRUSTED_ORIGINS` | `https://anpord.com` |
+| `WEB_URL` | `https://sphynx.sh` |
+| `AUTH_TRUSTED_ORIGINS` | `https://sphynx.sh` |
 | `GITHUB_CLIENT_ID` | |
 | `GITHUB_CLIENT_SECRET` | *secret* |
-| `MCP_RESOURCE_URL` | `https://mcp.anpord.com/mcp`. Set by the deploy workflow from the `MCP_RESOURCE_URL` repository variable, so it only needs setting here to change it. Without it the auth server issues tokens for `http://localhost:3010/mcp` and the MCP client rejects them |
+| `MCP_RESOURCE_URL` | `https://mcp.sphynx.sh/mcp`. Set by the deploy workflow from the `MCP_RESOURCE_URL` repository variable, so it only needs setting here to change it. Without it the auth server issues tokens for `http://localhost:3010/mcp` and the MCP client rejects them |
 | `RESEND_API_KEY` | *secret* |
 | `AXIOM_TOKEN` | *secret*. Optional: without it the server runs without telemetry. Needs ingest permission on the dataset |
-| `AXIOM_DATASET` | Defaults to `anpord`. The dataset must already exist; ingest does not create one |
+| `AXIOM_DATASET` | Defaults to `sphynx`. The dataset must already exist; ingest does not create one |
 | `EMAIL_FROM` | |
 | `GITHUB_APP_ID` | The app's numeric id. Without it, and the two below, the codebase settings answer "No GitHub app is registered for this deployment" and evals clone public repositories only |
-| `GITHUB_APP_SLUG` | `anpord`, which addresses its install page |
+| `GITHUB_APP_SLUG` | `sphynx`, which addresses its install page |
 | `DAYTONA_API_KEY` | *secret*. The sandbox an organisation gets when it has connected none of its own. Without it such a run fails, because the fallback adapter has no account to build itself from |
 | `E2B_API_KEY` | *secret*. Same, for E2B |
 | `TRIGGER_SECRET_KEY` | *secret*. Required to start the server and dispatch runs. Use the production environment key (`tr_prod_*`), not the deployment access token. `TRIGGER_API_KEY` is also accepted |
@@ -74,7 +74,7 @@ The service runs 0.5 vCPU / 1 GB with at least 2 instances (up to 4, 80 requests
 each) and a health check on `/api/livez` every 5 seconds, replaced after 3
 misses. `scripts/apprunner-shape.sh` holds this shape: `apply` sets it with operator
 credentials, and the deploy workflow runs `check` first and refuses to deploy a
-service that has drifted, naming what changed. The CI key (`anpord-ci`) may read
+service that has drifted, naming what changed. The CI key (`sphynx-ci`) may read
 the service and its scaling config and start deployments, but not update the
 service, so it cannot resize production. The same holds for the workflow's
 `MCP_RESOURCE_URL` step: when that variable changes, set it on the service with
@@ -106,13 +106,13 @@ Re-running the script after the service exists is an ordinary deploy.
 
 ```bash
 cd apps/web
-vercel link            # scope charlietlamb, project anpord
+vercel link            # scope charlietlamb, project sphynx
 vercel env add BETTER_AUTH_URL production   # the App Runner URL
 vercel env add AUTH_SERVER_URL production   # same value
 vercel --prod
 ```
 
-Then point `anpord.com` at the project under the domain settings.
+Then point `sphynx.sh` at the project under the domain settings.
 
 ## 3. After both are up
 
@@ -156,14 +156,14 @@ managed uploads and its `npm install` cannot resolve `workspace:*`.
 
 ```bash
 cd apps/mcp && bun run bundle    # writes dist/main.js + a deployable manifest
-cd dist && mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy
+cd dist && mcp-use deploy . --no-github --name sphynx-mcp --env-file .env.deploy
 ```
 
-`.env.deploy` needs `ANPORD_API_KEY` and `ANPORD_BASE_URL`. Both are ignored by
+`.env.deploy` needs `SPHYNX_API_KEY` and `SPHYNX_BASE_URL`. Both are ignored by
 git; the key is an `anp_` key minted against the organization the server should
 act for.
 
-Live at `https://mcp.anpord.com/mcp`. The generated `*.run.mcp-use.com` slug
+Live at `https://mcp.sphynx.sh/mcp`. The generated `*.run.mcp-use.com` slug
 stops routing once the custom domain verifies, so the domain is the only URL a
 client should be given.
 
@@ -174,25 +174,25 @@ and the connector lists no tools.
 
 ## CLI
 
-Published as the `anpord` binary from `packages/sdk`. It reads `ANPORD_API_KEY`
-and optionally `ANPORD_BASE_URL`.
+Published as the `sphynx` binary from `packages/sdk`. It reads `SPHYNX_API_KEY`
+and optionally `SPHYNX_BASE_URL`.
 
 ```bash
-anpord list
-anpord get support-reply              # content on stdout, so > file works
-anpord get support-reply --at 3       # not --version: the CLI owns that flag
-anpord push support-reply - -m "why"  # - reads stdin
-anpord promote support-reply --to production --at 3
+sphynx list
+sphynx get support-reply              # content on stdout, so > file works
+sphynx get support-reply --at 3       # not --version: the CLI owns that flag
+sphynx push support-reply - -m "why"  # - reads stdin
+sphynx promote support-reply --to production --at 3
 ```
 
 ## Verifying a deploy
 
 ```bash
 bun run e2e                                    # against localhost
-API=https://api.anpord.com MCP=https://mcp.anpord.com bun run e2e
+API=https://api.sphynx.sh MCP=https://mcp.sphynx.sh bun run e2e
 ```
 
 Checks discovery metadata, that unauthenticated calls are refused with a
 `WWW-Authenticate` challenge, that the MCP server demands OAuth, and — when
-`ANPORD_API_KEY` is set — that authenticated reads and their error codes work.
+`SPHYNX_API_KEY` is set — that authenticated reads and their error codes work.
 Everything it does is safe against production.

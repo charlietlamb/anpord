@@ -63,7 +63,7 @@ const fakeBox = (seen: Recorded) => ({
 const execWith = (env: Readonly<Record<string, string>> | undefined) =>
   Effect.gen(function* () {
     const seen: Recorded = { commands: [], written: [] };
-    const handle = handleFor(fakeBox(seen), "/tmp/anpord");
+    const handle = handleFor(fakeBox(seen), "/tmp/sphynx");
 
     yield* Stream.runDrain(handle.exec("npm test", { env }));
 

@@ -4,11 +4,11 @@ import {
   ListVersionsRequest,
   PromotePromptRequest,
   UpdatePromptRequest,
-} from "@anpord/schema/public/requests";
+} from "@sphynx/schema/public/requests";
 import { Effect } from "effect";
 import type { MCPServer } from "mcp-use";
-import type { AnpordUser } from "./anpord-user";
 import { callApi } from "./runtime";
+import type { SphynxUser } from "./sphynx-user";
 import { toolInput } from "./tool-input";
 import { asJson, text } from "./tool-output";
 
@@ -16,7 +16,7 @@ const ResolvePrompt = GetPromptRequest.pick("channel", "id", "version");
 
 const AddVersion = UpdatePromptRequest.pick("content", "id", "message");
 
-export const registerPromptTools = (server: MCPServer<AnpordUser>) => {
+export const registerPromptTools = (server: MCPServer<SphynxUser>) => {
   server.tool(
     {
       description:

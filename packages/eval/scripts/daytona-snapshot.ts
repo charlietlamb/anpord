@@ -11,7 +11,7 @@ import { Daytona, Image } from "@daytonaio/sdk";
  * Run when the name in daytona.ts changes:
  *   bun --env-file=../../.env run scripts/daytona-snapshot.ts
  */
-const NAME = "anpord-eval:4";
+const NAME = "sphynx-eval:4";
 
 const image = Image.debianSlim("3.13")
   .runCommands(

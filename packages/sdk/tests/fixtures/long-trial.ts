@@ -1,6 +1,6 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import { validationExecution } from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
+import { validationExecution } from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import type { LocalTrialResult } from "../../src/cli/local-trial-result";
 
 const STARTED_AT = 1_790_000_000_000;

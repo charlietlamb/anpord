@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { oauthApplication } from "@anpord/db/schema/auth/oauth";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
+import { Database } from "@sphynx/db/client";
+import { oauthApplication } from "@sphynx/db/schema/auth/oauth";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
 import { eq } from "drizzle-orm";
 import { Effect, Layer } from "effect";
 import { OAuthClients, OAuthClientsLive } from "../../src/oauth/oauth-clients";

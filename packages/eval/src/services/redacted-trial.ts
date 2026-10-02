@@ -1,5 +1,5 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Effect, Layer } from "effect";
 import { redactEvent, redactValidation } from "../domain/secret-redaction";
 import { trialSecrets } from "../domain/trial-secrets";

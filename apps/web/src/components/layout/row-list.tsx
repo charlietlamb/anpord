@@ -1,5 +1,5 @@
-import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
-import { cn } from "@anpord/ui/lib/utils";
+import { BLEED_ROW } from "@sphynx/ui/lib/bleed-row";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { KeyboardEvent, ReactNode } from "react";
 
 export function RowList({

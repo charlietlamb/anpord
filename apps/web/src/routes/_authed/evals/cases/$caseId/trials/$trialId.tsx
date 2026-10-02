@@ -1,4 +1,4 @@
-import type { EvalTrialAddress } from "@anpord/schema/domain/eval-read-models";
+import type { EvalTrialAddress } from "@sphynx/schema/domain/eval-read-models";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";

@@ -1,15 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@anpord/schema/domain/eval-quota";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalSuite } from "@sphynx/db/schema/evals/eval-suites";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@sphynx/schema/domain/eval-quota";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
 import { Batches } from "../../src/batch/batches";
@@ -847,7 +847,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       });
     });
 
-    it("refuses a beat, a report and a finish once anpord closed it, and stays failed", async () => {
+    it("refuses a beat, a report and a finish once sphynx closed it, and stays failed", async () => {
       const batch = await start(
         requestOf({ cases: [caseOf("went-quiet")], local: true, trials: 1 })
       );
@@ -878,7 +878,7 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
           : failure;
       };
       const closed = [
-        "Anpord closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.",
+        "Sphynx closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.",
       ];
 
       expect([

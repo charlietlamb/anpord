@@ -1,6 +1,6 @@
-import { Button } from "@anpord/ui/components/button";
-import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 import { XIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { PageTabs } from "@sphynx/ui/components/ui/page-tabs";
 import { useState } from "react";
 import { StepDetail } from "@/components/evals/step-detail";
 import { StepDetailBody } from "@/components/evals/step-detail-body";

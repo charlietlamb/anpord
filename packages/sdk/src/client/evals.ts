@@ -1,19 +1,19 @@
-import type { AnpordClient } from "@anpord/schema/public/client";
+import type { SphynxClient } from "@sphynx/schema/public/client";
 import {
   RunCaseBatchRequest,
   SuiteBatchRequest,
-} from "@anpord/schema/public/evals-api";
+} from "@sphynx/schema/public/evals-api";
 import { Either, Schema } from "effect";
 import { compileDefinition } from "../evals/compiler";
 import { sourceUrlOf } from "../evals/define";
 import { tooLargeToSubmit } from "../evals/request-size";
 import type { EvalDefinition } from "../evals/types";
-import { AnpordError, asAnpordError } from "./errors";
+import { asSphynxError, SphynxError } from "./errors";
 import { type Promised, promised } from "./promised";
 import { type WaitOptions, waitForBatch } from "./wait";
 
-type Batches = Promised<AnpordClient["batches"]>;
-type Cases = Promised<AnpordClient["cases"]>;
+type Batches = Promised<SphynxClient["batches"]>;
+type Cases = Promised<SphynxClient["cases"]>;
 type Batch = Awaited<ReturnType<Batches["get"]>>;
 
 export type StartInput = typeof SuiteBatchRequest.Encoded | EvalDefinition;
@@ -37,9 +37,9 @@ export interface CasesSurface extends Omit<Cases, "run"> {
 export interface EvalsSurface {
   readonly batches: BatchesSurface;
   readonly cases: CasesSurface;
-  readonly models: Promised<AnpordClient["models"]>;
-  readonly runs: Promised<AnpordClient["runs"]>;
-  readonly suites: Promised<AnpordClient["suites"]>;
+  readonly models: Promised<SphynxClient["models"]>;
+  readonly runs: Promised<SphynxClient["runs"]>;
+  readonly suites: Promised<SphynxClient["suites"]>;
 }
 
 const decodeStart = Schema.decodeUnknownEither(SuiteBatchRequest);
@@ -47,7 +47,7 @@ const decodeRunCase = Schema.decodeUnknownEither(RunCaseBatchRequest);
 
 const decodedOrThrow = <A, E>(decoded: Either.Either<A, E>) => {
   if (Either.isLeft(decoded)) {
-    throw asAnpordError(decoded.left);
+    throw asSphynxError(decoded.left);
   }
 
   return decoded.right;
@@ -66,13 +66,13 @@ const submittable = async (input: StartInput) => {
   const tooLarge = tooLargeToSubmit(request);
 
   if (tooLarge !== null) {
-    throw new AnpordError(tooLarge, { cause: null });
+    throw new SphynxError(tooLarge, { cause: null });
   }
 
   return request;
 };
 
-const batchesSurface = (client: AnpordClient): BatchesSurface => {
+const batchesSurface = (client: SphynxClient): BatchesSurface => {
   const batches = promised(client.batches);
 
   return {
@@ -86,7 +86,7 @@ const batchesSurface = (client: AnpordClient): BatchesSurface => {
   };
 };
 
-const casesSurface = (client: AnpordClient): CasesSurface => {
+const casesSurface = (client: SphynxClient): CasesSurface => {
   const cases = promised(client.cases);
 
   return {
@@ -95,7 +95,7 @@ const casesSurface = (client: AnpordClient): CasesSurface => {
   };
 };
 
-export const evalsSurface = (client: AnpordClient): EvalsSurface => ({
+export const evalsSurface = (client: SphynxClient): EvalsSurface => ({
   batches: batchesSurface(client),
   cases: casesSurface(client),
   models: promised(client.models),

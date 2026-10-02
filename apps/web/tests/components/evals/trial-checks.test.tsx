@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
 import {
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import type { EvalSetup } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-validations";
+import type { EvalSetup } from "@sphynx/schema/domain/evals";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TRIALS } from "../../../src/components/dev/eval-fixtures";
 import { TrialChecks } from "../../../src/components/evals/trial-checks";
@@ -22,7 +22,7 @@ const SETUP: EvalSetup = {
   ],
   validatorName: "validate",
   verifyCommand: null,
-  workspace: "/tmp/anpord-task",
+  workspace: "/tmp/sphynx-task",
 };
 
 const errored = {

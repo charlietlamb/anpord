@@ -1,10 +1,10 @@
-import type { CredentialIntegration } from "@anpord/schema/domain/credentials";
+import { BracketsCurlyIcon, BrainIcon } from "@phosphor-icons/react";
+import type { CredentialIntegration } from "@sphynx/schema/domain/credentials";
 import {
   harnessPresentation,
   sandboxPresentation,
   VENDOR_MARKS,
-} from "@anpord/ui/components/evals/variant-presentation";
-import { BracketsCurlyIcon, BrainIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/evals/variant-presentation";
 
 export const integrationPresentation = (integration: CredentialIntegration) => {
   if (integration.id === "env") {

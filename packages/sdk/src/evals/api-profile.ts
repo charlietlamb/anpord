@@ -1,4 +1,4 @@
-import { API_PROGRAM } from "@anpord/schema/domain/api-mocks";
+import { API_PROGRAM } from "@sphynx/schema/domain/api-mocks";
 import { Effect } from "effect";
 import type { ApiDefinition } from "../mock-api/define";
 import { EvalDefinitionInvalid } from "./definition-errors";
@@ -23,13 +23,13 @@ export const compileApis = (
     }
     const { source } = yield* bundle(
       `${importsDefinition(ref)}
-import { runApiServers } from "anpord/api/runtime";
+import { runApiServers } from "sphynx-sh/api/runtime";
 runApiServers(definition.api ?? []);`,
       ref.entry,
       { minify: true }
     );
     const program = packageProgram(
-      "workspace/.anpord/api",
+      "workspace/.sphynx/api",
       "server.mjs",
       source
     );
@@ -48,7 +48,7 @@ export const withApis = (
   if (Object.keys(files).length === 0) {
     return variant;
   }
-  const profile = variant.profile ?? { name: "anpord-api", files: {} };
+  const profile = variant.profile ?? { name: "sphynx-api", files: {} };
   for (const path of Object.keys(files)) {
     if (profile.files[path] !== undefined) {
       throw new Error(`Profile file ${path} is reserved for API mocks`);

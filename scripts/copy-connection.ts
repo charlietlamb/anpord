@@ -25,7 +25,7 @@ import { arg, required } from "./lib/cli-args";
 
   DATABASE_URL names the deployment. The encryption key is CREDENTIALS_ENCRYPTION_KEY,
   falling back to BETTER_AUTH_SECRET, the same order the server resolves it in. For
-  production both live in AWS Secrets Manager under anpord/server/.
+  production both live in AWS Secrets Manager under sphynx/server/.
 */
 
 const from = arg("from");

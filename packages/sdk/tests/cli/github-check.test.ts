@@ -4,7 +4,7 @@ import { buildGithubCheck, SUMMARY_LIMIT } from "../../src/cli/github-check";
 import type { SuiteOutcome } from "../../src/cli/suite-outcome";
 import { createBatch, createRun, createTrial } from "../fixtures/eval-run";
 
-const WEB = "https://anpord.test";
+const WEB = "https://sphynx.test";
 const outcome = (batch = createBatch()): SuiteOutcome => ({
   batch,
   batchId: batch.id,

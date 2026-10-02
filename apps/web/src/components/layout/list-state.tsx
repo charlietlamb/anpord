@@ -1,5 +1,5 @@
-import { EmptyState } from "@anpord/ui/components/ui/empty-state";
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+import { EmptyState } from "@sphynx/ui/components/ui/empty-state";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import type { ReactNode } from "react";
 
 interface ListStateProps {

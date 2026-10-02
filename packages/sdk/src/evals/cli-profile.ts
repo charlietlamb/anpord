@@ -1,4 +1,4 @@
-import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
+import type { HarnessProfile } from "@sphynx/schema/domain/harness-profile";
 import { Effect } from "effect";
 import type { CliDefinition } from "../mock-cli/define";
 import { EvalDefinitionInvalid } from "./definition-errors";
@@ -35,7 +35,7 @@ export const compileClis = (
         bundle(cliEntry(ref, index), ref.entry, { minify: true }).pipe(
           Effect.map(({ source }) => ({
             ...packageProgram(
-              `workspace/.anpord/cli/${index}`,
+              `workspace/.sphynx/cli/${index}`,
               "cli.mjs",
               source
             ),
@@ -56,7 +56,7 @@ export const withClis = (
 
   const profile: HarnessProfile = variant.profile ?? {
     files: {},
-    name: "anpord-cli",
+    name: "sphynx-cli",
   };
   const files = { ...profile.files };
 

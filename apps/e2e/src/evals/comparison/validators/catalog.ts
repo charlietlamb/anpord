@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util";
-import type { Validator, ValidatorContext } from "anpord";
+import type { Validator, ValidatorContext } from "sphynx-sh";
 import { answerSchema, getInput } from "../fixtures/catalog";
 import type { RequestEvidence, Scenario } from "../scenarios";
 

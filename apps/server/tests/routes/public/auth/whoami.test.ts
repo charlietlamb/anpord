@@ -1,18 +1,18 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { Auth, type AuthInstance } from "@anpord/auth";
+import { HttpApi, HttpApiBuilder, HttpServer } from "@effect/platform";
+import { Auth, type AuthInstance } from "@sphynx/auth";
 import {
   OrganizationStore,
   OrganizationStoreLive,
-} from "@anpord/auth/organization";
-import { OrganizationStoreError } from "@anpord/auth/organization/errors";
-import { AutumnServiceLive } from "@anpord/billing/autumn";
-import { BillingConfig } from "@anpord/billing/config";
-import { Database } from "@anpord/db/client";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
-import { AuthGroup } from "@anpord/schema/public/auth-api";
-import { HttpApi, HttpApiBuilder, HttpServer } from "@effect/platform";
+} from "@sphynx/auth/organization";
+import { OrganizationStoreError } from "@sphynx/auth/organization/errors";
+import { AutumnServiceLive } from "@sphynx/billing/autumn";
+import { BillingConfig } from "@sphynx/billing/config";
+import { Database } from "@sphynx/db/client";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
+import { AuthGroup } from "@sphynx/schema/public/auth-api";
 import { Duration, Effect, Layer } from "effect";
 import { ApiKeyAuthenticationLive } from "../../../../src/http/authentication/api-key-authentication";
 import { VerifiedKeysLive } from "../../../../src/http/authentication/verified-keys";
@@ -69,7 +69,7 @@ const organizations = OrganizationStoreLive.pipe(
 
 const authLayer = Layer.succeed(Auth, auth);
 
-const WhoamiApi = HttpApi.make("anpord-public").add(AuthGroup).prefix("/v1");
+const WhoamiApi = HttpApi.make("sphynx-public").add(AuthGroup).prefix("/v1");
 
 const serve = () =>
   HttpApiBuilder.toWebHandler(
@@ -86,7 +86,7 @@ const serve = () =>
 
 const whoami = (handler: ReturnType<typeof serve>, token: string) =>
   handler.handler(
-    new Request("http://anpord.test/v1/auth.whoami", {
+    new Request("http://sphynx.test/v1/auth.whoami", {
       body: "{}",
       headers: {
         authorization: `Bearer ${token}`,

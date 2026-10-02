@@ -6,16 +6,16 @@ description: "Start batches and read runs from TypeScript"
 ## Create a client
 
 ```ts
-import { Anpord } from "anpord";
+import { Sphynx } from "sphynx-sh";
 
-const anpord = new Anpord();
+const sphynx = new Sphynx();
 ```
 
-The client reads `ANPORD_API_KEY` and throws if it is missing. Pass `apiKey` or `baseUrl` to override:
+The client reads `SPHYNX_API_KEY` and throws if it is missing. Pass `apiKey` or `baseUrl` to override:
 
 ```ts
-const anpord = new Anpord({
-  apiKey: process.env.MY_ANPORD_KEY,
+const sphynx = new Sphynx({
+  apiKey: process.env.MY_SPHYNX_KEY,
   baseUrl: "http://127.0.0.1:3003",
 });
 ```
@@ -23,7 +23,7 @@ const anpord = new Anpord({
 To see which organization a key acts for:
 
 ```ts
-const { organization, credential, permissions } = await anpord.whoami();
+const { organization, credential, permissions } = await sphynx.whoami();
 ```
 
 `credential` is `{ kind: "apiKey", name, start }` for a key, where `start` is its first characters, never the secret.
@@ -53,31 +53,31 @@ export const smoke = suite({ ... });
 ```ts
 import { smoke } from "./evals/smoke.eval";
 
-const batch = await anpord.evals.batches.startAndWait(smoke);
+const batch = await sphynx.evals.batches.startAndWait(smoke);
 ```
 
 `suite` records the file it was defined in, so `start` and `startAndWait` can compile it and ship its validators and mock servers, with everything they close over, to the sandbox.
 
-The client can't start a batch on the `local` sandbox. Use `anpord eval --local` for that.
+The client can't start a batch on the `local` sandbox. Use `sphynx eval --local` for that.
 
 ## Errors and cleanup
 
 ```ts
-import { AnpordError } from "anpord";
+import { SphynxError } from "sphynx-sh";
 
 try {
-  await anpord.evals.batches.get({ id: "missing" });
+  await sphynx.evals.batches.get({ id: "missing" });
 } catch (error) {
-  if (error instanceof AnpordError) {
+  if (error instanceof SphynxError) {
     console.error(error.status, error.message);
   }
 }
 
-await anpord.dispose();
+await sphynx.dispose();
 ```
 
 Invalid request fields fail before any network call. API failures carry an HTTP status when one is available.
 
-When Anpord cannot be reached, the error says so and names the address it tried. The first request checks that the server answers and gives up within 5 seconds if it does not. After that, a read that gets no answer in 30 seconds gives up with an error that says the server was slow, not unreachable. A change is never cut off once the server has it, so it cannot be applied twice.
+When Sphynx cannot be reached, the error says so and names the address it tried. The first request checks that the server answers and gives up within 5 seconds if it does not. After that, a read that gets no answer in 30 seconds gives up with an error that says the server was slow, not unreachable. A change is never cut off once the server has it, so it cannot be applied twice.
 
 Date fields are Effect `DateTime.Utc` values. Read `epochMillis` for a number.

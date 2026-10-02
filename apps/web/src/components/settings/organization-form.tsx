@@ -1,4 +1,4 @@
-import { DetailList, DetailRow } from "@anpord/ui/components/ui/detail-list";
+import { DetailList, DetailRow } from "@sphynx/ui/components/ui/detail-list";
 import { useOrganizationSettingsForm } from "@/lib/use-organization-settings-form";
 
 export function OrganizationForm({

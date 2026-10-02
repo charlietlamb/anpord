@@ -1,5 +1,5 @@
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
-import { cn } from "@anpord/ui/lib/utils";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
+import { cn } from "@sphynx/ui/lib/utils";
 import { useState } from "react";
 import { z } from "zod";
 import { MagicLinkSent } from "@/components/auth/magic-link-sent";

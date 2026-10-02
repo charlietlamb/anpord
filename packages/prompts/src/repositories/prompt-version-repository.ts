@@ -1,10 +1,10 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { user } from "@anpord/db/schema/auth/users";
-import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
-import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
-import { IdGenerator } from "@anpord/ids/id";
-import type { PromptId } from "@anpord/schema/domain/prompts";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { user } from "@sphynx/db/schema/auth/users";
+import { promptEvent } from "@sphynx/db/schema/prompts/prompt-events";
+import { promptVersion } from "@sphynx/db/schema/prompts/prompt-versions";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { PromptId } from "@sphynx/schema/domain/prompts";
 import { and, desc, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schedule } from "effect";
 import { type PromptStoreError, VersionConflict } from "../domain/errors";
@@ -65,7 +65,7 @@ export interface PromptVersionRepositoryShape {
 }
 
 export class PromptVersionRepository extends Context.Tag(
-  "@anpord/prompts/PromptVersionRepository"
+  "@sphynx/prompts/PromptVersionRepository"
 )<PromptVersionRepository, PromptVersionRepositoryShape>() {}
 
 export const PromptVersionRepositoryLive = Layer.effect(

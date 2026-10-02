@@ -6,8 +6,8 @@ description: "Score answers with a model you choose"
 Use code for exact checks. Add a judge for qualities that need interpretation, such as correctness or clarity.
 
 ```ts
-import { suite } from "anpord";
-import { judge } from "anpord/validators";
+import { suite } from "sphynx-sh";
+import { judge } from "sphynx-sh/validators";
 
 const correctness = judge({
   name: "correctness",
@@ -28,7 +28,7 @@ export default suite({
 });
 ```
 
-The judge model is independent of the variant being measured. Anpord requests exactly the model you name. If it is unavailable, the judgment is unscored. There is no fallback model.
+The judge model is independent of the variant being measured. Sphynx requests exactly the model you name. If it is unavailable, the judgment is unscored. There is no fallback model.
 
 ## Combine checks
 
@@ -71,7 +71,7 @@ const quality = judge({
 });
 ```
 
-Anpord reads each file after the code checks run, before the trial's sandbox closes. The judge gets the full text of each file with its path. Files are not cut like the conversation. Secrets are redacted the same way as in the answer.
+Sphynx reads each file after the code checks run, before the trial's sandbox closes. The judge gets the full text of each file with its path. Files are not cut like the conversation. Secrets are redacted the same way as in the answer.
 
 Each file can hold up to 32,000 characters. All judge files in a case together can hold up to 96,000. A path must be relative to the workspace and cannot contain `..`.
 

@@ -1,14 +1,14 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 import type {
   EvalBatchPage,
   EvalPageCursor,
-} from "@anpord/schema/domain/eval-read-models";
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-read-models";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
 import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { rollUp } from "../domain/eval-costs";

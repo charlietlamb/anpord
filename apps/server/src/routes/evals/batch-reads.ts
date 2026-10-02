@@ -1,6 +1,6 @@
-import { EvalReads } from "@anpord/eval/services/eval-reads";
-import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
-import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
+import { EvalReads } from "@sphynx/eval/services/eval-reads";
+import type { EvalPageCursor } from "@sphynx/schema/domain/eval-read-models";
+import type { EvalTailMark } from "@sphynx/schema/domain/eval-tail";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { organization } from "./current-organization";

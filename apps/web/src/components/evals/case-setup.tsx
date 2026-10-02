@@ -1,6 +1,6 @@
-import type { EvalSetup } from "@anpord/schema/domain/evals";
-import { DetailList, DetailRow } from "@anpord/ui/components/ui/detail-list";
-import { InlineCode } from "@anpord/ui/components/ui/inline-code";
+import type { EvalSetup } from "@sphynx/schema/domain/evals";
+import { DetailList, DetailRow } from "@sphynx/ui/components/ui/detail-list";
+import { InlineCode } from "@sphynx/ui/components/ui/inline-code";
 import { ChecksValue } from "@/components/evals/checks-value";
 import { EmptyValue } from "@/components/evals/empty-value";
 import { PromptValue } from "@/components/evals/prompt-value";

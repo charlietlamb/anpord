@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import { CredentialError } from "@anpord/eval/credentials/errors";
+import { CredentialError } from "@sphynx/eval/credentials/errors";
 import {
   EvalNotFound,
   EvalStoreError,
   NotRunnable,
   StartRefused,
-} from "@anpord/eval/domain/errors";
-import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
+} from "@sphynx/eval/domain/errors";
+import { BadRequest, Conflict, NotFound } from "@sphynx/schema/domain/errors";
 import { Cause, Effect, Exit, Logger, LogLevel, Option } from "effect";
 import { withEvalErrors } from "../../src/http/eval-errors";
 

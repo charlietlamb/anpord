@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { EvalValidator } from "@anpord/schema/domain/eval-definition";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { EvalValidator } from "@sphynx/schema/domain/eval-definition";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Effect, Layer, Option, Redacted, Schema } from "effect";
 import type { JudgeFile } from "../../src/domain/judge-files";
 import { judgmentsIn } from "../../src/domain/judgments";

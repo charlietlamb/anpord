@@ -1,4 +1,4 @@
-import type { ModelCatalogue } from "@anpord/schema/domain/eval-models";
+import type { ModelCatalogue } from "@sphynx/schema/domain/eval-models";
 import { Context, Effect, Layer } from "effect";
 import { ModelDescriptionsLive } from "../adapters/models/descriptions";
 import { AvailableModelsLive } from "../adapters/models/resolve";
@@ -32,7 +32,7 @@ export interface ModelCatalogueShape {
 }
 
 export class ModelCatalogues extends Context.Tag(
-  "@anpord/eval/ModelCatalogues"
+  "@sphynx/eval/ModelCatalogues"
 )<ModelCatalogues, ModelCatalogueShape>() {}
 
 const NO_IDS: readonly string[] = [];

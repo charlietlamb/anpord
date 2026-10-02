@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { AuthInstance } from "@anpord/auth";
+import type { AuthInstance } from "@sphynx/auth";
 import { routeRequest } from "../../../src/http/request/route-request";
 
 const reached = (name: string) => ({
@@ -15,7 +15,7 @@ const route = routeRequest({
 
 const send = async (method: string, path: string) => {
   const response = await route(
-    new Request(`http://anpord.test${path}`, { method })
+    new Request(`http://sphynx.test${path}`, { method })
   );
   return {
     allow: response.headers.get("allow"),
@@ -44,7 +44,7 @@ describe("a request that matches no route", () => {
       body: JSON.stringify({
         _tag: "NotFound",
         message:
-          "There is no route /v1/evals.suites.lsit. See the API reference at https://docs.anpord.com/api-reference/introduction",
+          "There is no route /v1/evals.suites.lsit. See the API reference at https://docs.sphynx.sh/api-reference/introduction",
       }),
       status: 404,
       type: "application/json",
@@ -58,7 +58,7 @@ describe("a request that matches no route", () => {
     expect(JSON.parse(body)).toEqual({
       _tag: "NotFound",
       message:
-        "There is no route /health. See the API reference at https://docs.anpord.com/api-reference/introduction",
+        "There is no route /health. See the API reference at https://docs.sphynx.sh/api-reference/introduction",
     });
   });
 

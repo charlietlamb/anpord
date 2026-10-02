@@ -16,7 +16,7 @@ afterEach(async () => {
 });
 
 const eventFile = async (body: string) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-event-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-event-"));
   const path = join(workspace, "event.json");
   await writeFile(path, body);
   return path;
@@ -109,7 +109,7 @@ describe("finding the job a check belongs to", () => {
     const { context } = await resolved({
       ...PUSH,
       GITHUB_EVENT_NAME: "pull_request",
-      GITHUB_EVENT_PATH: join(tmpdir(), "anpord-no-such-event.json"),
+      GITHUB_EVENT_PATH: join(tmpdir(), "sphynx-no-such-event.json"),
     });
 
     expect(Option.map(context, (found) => found.sha)).toEqual(
@@ -120,7 +120,7 @@ describe("finding the job a check belongs to", () => {
   test("stays quiet without a token, whatever the event file holds", async () => {
     const { context, stderr } = await resolved({
       GITHUB_EVENT_NAME: "pull_request",
-      GITHUB_EVENT_PATH: join(tmpdir(), "anpord-no-such-event.json"),
+      GITHUB_EVENT_PATH: join(tmpdir(), "sphynx-no-such-event.json"),
       GITHUB_REPOSITORY: "acme/widgets",
       GITHUB_SHA: "abc123",
     });

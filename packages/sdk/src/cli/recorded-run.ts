@@ -1,14 +1,14 @@
+import { HttpClientError } from "@effect/platform";
 import {
   LOCAL_BEAT_EVERY,
   LOCAL_QUIET_AFTER,
-} from "@anpord/eval/domain/local-heartbeat";
-import { harnessesNeeded } from "@anpord/eval/domain/suite-harnesses";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import type { StartedBatch } from "@anpord/schema/domain/evals";
-import { AnpordApi, type AnpordClient } from "@anpord/schema/public/client";
-import { IdempotencyKey } from "@anpord/schema/public/runner-api";
-import { HttpClientError } from "@effect/platform";
+} from "@sphynx/eval/domain/local-heartbeat";
+import { harnessesNeeded } from "@sphynx/eval/domain/suite-harnesses";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
+import { SphynxApi, type SphynxClient } from "@sphynx/schema/public/client";
+import { IdempotencyKey } from "@sphynx/schema/public/runner-api";
 import {
   Array as Arr,
   Cause,
@@ -21,7 +21,7 @@ import {
   Schedule,
 } from "effect";
 import { webUrlConfig } from "../client/config";
-import { asAnpordError } from "../client/errors";
+import { asSphynxError } from "../client/errors";
 import { labelOfRequest, runLocally } from "./eval-local";
 import { reportStarted } from "./eval-report";
 import { evalTrigger } from "./eval-trigger";
@@ -41,7 +41,7 @@ import { retryTransient } from "./transient";
 
 const leasesFor = (request: StartBatchRequest, batchId: string) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const leased = yield* Effect.forEach(harnessesNeeded(request), (harness) =>
       retryTransient(
         api.runner.lease({ payload: { harness, id: batchId } })
@@ -59,18 +59,18 @@ const leasesFor = (request: StartBatchRequest, batchId: string) =>
 const CLOSED_BATCH = 409;
 
 const finishBatch = (batchId: string) =>
-  AnpordApi.pipe(
+  SphynxApi.pipe(
     Effect.flatMap((api) =>
       retryTransient(api.runner.finish({ payload: { id: batchId } }))
     ),
     Effect.map((batch) => batch.costs),
     Effect.catchAll((error) => {
-      const refused = asAnpordError(error);
+      const refused = asSphynxError(error);
 
       return note(
         refused.status === CLOSED_BATCH
           ? refused.message
-          : `Batch ${batchId} was not closed. Anpord marks it failed ${Duration.toMinutes(LOCAL_QUIET_AFTER)} minutes after this machine stops checking in. ${refused.message}`
+          : `Batch ${batchId} was not closed. Sphynx marks it failed ${Duration.toMinutes(LOCAL_QUIET_AFTER)} minutes after this machine stops checking in. ${refused.message}`
       ).pipe(Effect.as(null));
     })
   );
@@ -85,7 +85,7 @@ const startKey = Effect.map(
 
 const openBatch = (request: StartBatchRequest) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const trigger = yield* evalTrigger;
     const key = yield* startKey;
 
@@ -115,10 +115,10 @@ const closedBy = (exit: Exit.Exit<unknown, unknown>) =>
   );
 
 const untilClosed = (batchId: string) =>
-  AnpordApi.pipe(
+  SphynxApi.pipe(
     Effect.flatMap((api) => api.runner.beat({ payload: { id: batchId } })),
     Effect.catchAll((error) => {
-      const refused = asAnpordError(error);
+      const refused = asSphynxError(error);
 
       return refused.status === CLOSED_BATCH
         ? Effect.fail(new BatchClosed({ message: refused.message }))
@@ -145,7 +145,7 @@ const SHRUNK = [
 ] as const;
 
 const reportTrial = (
-  api: AnpordClient,
+  api: SphynxClient,
   result: LocalTrialResult,
   ordinal: number,
   runId: string,
@@ -170,7 +170,7 @@ const reportTrial = (
           sendTrial(rung.shrink(result)).pipe(
             Effect.zipRight(
               note(
-                `A trial of ${trial} was too large for Anpord to take, so its verdict was recorded without ${rung.gaveUp}.`
+                `A trial of ${trial} was too large for Sphynx to take, so its verdict was recorded without ${rung.gaveUp}.`
               )
             )
           )
@@ -187,7 +187,7 @@ const recordInto = (
   started: StartedBatch
 ) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const link = batchUrl(yield* webUrlConfig, started.id);
 
     yield* reportStarted(label, started.id);
@@ -210,7 +210,7 @@ const recordInto = (
         return reportTrial(api, result, ordinal, runIdOf(slot), trial).pipe(
           Effect.catchAll((error) =>
             note(
-              `A trial of ${trial} was not recorded, so it shows as void. ${asAnpordError(error).message}`
+              `A trial of ${trial} was not recorded, so it shows as void. ${asSphynxError(error).message}`
             )
           )
         );

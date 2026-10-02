@@ -1,7 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
-import { ComposerSurface } from "@anpord/ui/components/composer";
-import { MarkdownEditor } from "@anpord/ui/components/editor/markdown-editor";
-import { cn } from "@anpord/ui/lib/utils";
+import { Button } from "@sphynx/ui/components/button";
+import { ComposerSurface } from "@sphynx/ui/components/composer";
+import { MarkdownEditor } from "@sphynx/ui/components/editor/markdown-editor";
+import { cn } from "@sphynx/ui/lib/utils";
 
 interface PromptComposerProps {
   readonly bounded?: boolean;

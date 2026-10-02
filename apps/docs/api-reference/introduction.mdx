@@ -1,9 +1,9 @@
 ---
 title: "API overview"
-description: "Call the Anpord API over HTTP"
+description: "Call the Sphynx API over HTTP"
 ---
 
-The public API is at `https://api.anpord.com/v1`. Every operation is a `POST` with a JSON body, reads included, and there are no path or query parameters:
+The public API is at `https://api.sphynx.sh/v1`. Every operation is a `POST` with a JSON body, reads included, and there are no path or query parameters:
 
 ```text
 POST /v1/evals.batches.start
@@ -16,8 +16,8 @@ POST /v1/evals.cases.run
 Pass an API key as a bearer token:
 
 ```bash
-curl https://api.anpord.com/v1/evals.batches.list \
-  -H "authorization: Bearer $ANPORD_API_KEY" \
+curl https://api.sphynx.sh/v1/evals.batches.list \
+  -H "authorization: Bearer $SPHYNX_API_KEY" \
   -H "content-type: application/json" \
   -d '{"limit":20}'
 ```
@@ -29,8 +29,8 @@ A key belongs to one organization. OAuth access tokens also work. Reading evals 
 `evals.batches.start` creates a batch that runs every case of a suite on every variant. It returns right away with the batch `id` and a `runs` list holding one run per case per variant, each with its `caseId` and `variantId`, while the trials continue on the server:
 
 ```bash
-curl https://api.anpord.com/v1/evals.batches.start \
-  -H "authorization: Bearer $ANPORD_API_KEY" \
+curl https://api.sphynx.sh/v1/evals.batches.start \
+  -H "authorization: Bearer $SPHYNX_API_KEY" \
   -H "content-type: application/json" \
   -d '{
     "suite": { "id": "smoke", "name": "Smoke", "prompt": "{{task}}" },
@@ -50,7 +50,7 @@ curl https://api.anpord.com/v1/evals.batches.start \
 
 `trials` is the number of trials in each run. `verify` is the shell command that decides whether a trial passed, which the SDK writes as `validate: command("...")`. Poll `evals.batches.get` with the returned `id` until `status` is `finished` or `failed`.
 
-The API can't run the `local` sandbox. Run those with `anpord eval --local`.
+The API can't run the `local` sandbox. Run those with `sphynx eval --local`.
 
 Starting a batch is not idempotent. If the response is lost, list recent batches with `evals.batches.list` before retrying.
 
@@ -59,8 +59,8 @@ Starting a batch is not idempotent. If the response is lost, list recent batches
 `evals.cases.run` starts a batch for a stored case's newest version. Name variant ids from `evals.cases.get` to pick variants, or leave `variants` out to run every variant the case has run on. `trials` defaults to 1:
 
 ```bash
-curl https://api.anpord.com/v1/evals.cases.run \
-  -H "authorization: Bearer $ANPORD_API_KEY" \
+curl https://api.sphynx.sh/v1/evals.cases.run \
+  -H "authorization: Bearer $SPHYNX_API_KEY" \
   -H "content-type: application/json" \
   -d '{"id":"writes-hello","trials":3}'
 ```
@@ -87,4 +87,4 @@ A batch over a size limit is refused with `400`. A start while three batches are
 | `404` | Resource not found |
 | `409` | Request conflicts with current state |
 
-The errors above return JSON with a `message`. The [TypeScript client](/sdk/client) decodes responses and throws `AnpordError` on failure.
+The errors above return JSON with a `message`. The [TypeScript client](/sdk/client) decodes responses and throws `SphynxError` on failure.

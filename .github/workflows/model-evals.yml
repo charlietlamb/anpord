@@ -34,7 +34,7 @@ jobs:
       - uses: ./.github/actions/eval
         id: eval
         with:
-          api-key: ${{ secrets.ANPORD_API_KEY }}
+          api-key: ${{ secrets.SPHYNX_API_KEY }}
           working-directory: apps/e2e
           file: src/evals/comparison/${{ inputs.suite }}.eval.ts
           timeout: '3300'

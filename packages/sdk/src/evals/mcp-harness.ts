@@ -1,5 +1,5 @@
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import { HarnessProfile } from "@anpord/schema/domain/harness-profile";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import { HarnessProfile } from "@sphynx/schema/domain/harness-profile";
 import { Schema } from "effect";
 import { parse, stringify } from "smol-toml";
 import type { CompiledMcpServer } from "./mcp-profile";

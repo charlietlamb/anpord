@@ -1,5 +1,5 @@
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { formatDate } from "@anpord/ui/lib/format-date";
+import { DataTableRow } from "@sphynx/ui/components/ui/data-table";
+import { formatDate } from "@sphynx/ui/lib/format-date";
 import { MemberRole } from "@/components/organization/member-role";
 import type { OrganizationInvitation } from "@/lib/use-organization-members";
 

@@ -1,12 +1,12 @@
-import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
-import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
-import type { RerunIntent } from "@anpord/schema/domain/eval-rerun";
-import { EVAL_TAIL_PAGE } from "@anpord/schema/domain/eval-tail";
+import type { EvalHomeRange } from "@sphynx/schema/domain/eval-home";
+import type { EvalPageCursor } from "@sphynx/schema/domain/eval-read-models";
+import type { RerunIntent } from "@sphynx/schema/domain/eval-rerun";
+import { EVAL_TAIL_PAGE } from "@sphynx/schema/domain/eval-tail";
 import type {
   EvalArtifactRequest,
   EvalHarness,
-} from "@anpord/schema/domain/eval-trial";
-import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@sphynx/schema/domain/evals";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import {

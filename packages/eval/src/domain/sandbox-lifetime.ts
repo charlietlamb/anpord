@@ -1,4 +1,4 @@
-import { DEFAULT_TIMEOUT_MS } from "@anpord/schema/domain/eval-limits";
+import { DEFAULT_TIMEOUT_MS } from "@sphynx/schema/domain/eval-limits";
 import { Duration } from "effect";
 
 const AUTO_STOP = Duration.minutes(15);

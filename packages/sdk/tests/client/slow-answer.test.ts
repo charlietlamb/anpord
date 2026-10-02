@@ -1,6 +1,6 @@
 import { afterAll, expect, test } from "bun:test";
-import { make } from "@anpord/schema/public/client";
 import { FetchHttpClient } from "@effect/platform";
+import { make } from "@sphynx/schema/public/client";
 import {
   Cause,
   Duration,
@@ -11,7 +11,7 @@ import {
   TestClock,
   TestContext,
 } from "effect";
-import { asAnpordError } from "../../src/client/errors";
+import { asSphynxError } from "../../src/client/errors";
 
 const posted: (() => void)[] = [];
 const unanswered: ((response: Response) => void)[] = [];
@@ -61,9 +61,9 @@ test("a server that took the request but never answered is not called unreachabl
 
   expect(
     Exit.isFailure(exit)
-      ? asAnpordError(Cause.squash(exit.cause)).message
+      ? asSphynxError(Cause.squash(exit.cause)).message
       : null
   ).toBe(
-    `Anpord at ${origin} took more than 30 seconds to answer. Try again in a moment.`
+    `Sphynx at ${origin} took more than 30 seconds to answer. Try again in a moment.`
   );
 });

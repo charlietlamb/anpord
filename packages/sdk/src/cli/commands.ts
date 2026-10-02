@@ -1,13 +1,13 @@
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
+import { Args, Command, Options } from "@effect/cli";
+import { FileSystem } from "@effect/platform";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 import {
   ChannelName,
   PromptId,
   VersionNumber,
-} from "@anpord/schema/domain/prompts";
-import { AnpordApi } from "@anpord/schema/public/client";
-import { extractVariables } from "@anpord/template/extract";
-import { Args, Command, Options } from "@effect/cli";
-import { FileSystem } from "@effect/platform";
+} from "@sphynx/schema/domain/prompts";
+import { SphynxApi } from "@sphynx/schema/public/client";
+import { extractVariables } from "@sphynx/template/extract";
 import { Effect, Option } from "effect";
 import { ClientLayer } from "../client/config";
 import { connectors } from "./connector-command";
@@ -48,7 +48,7 @@ const get = Command.make(
   { asJson, channel, promptId, version },
   ({ asJson: wantsJson, channel: wantedChannel, promptId: id, version: pin }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const prompt = yield* api.prompts.get({
         payload: {
           channel: Option.getOrUndefined(wantedChannel),
@@ -62,7 +62,7 @@ const get = Command.make(
 
 const list = Command.make("list", { asJson }, ({ asJson: wantsJson }) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const { data } = yield* api.prompts.list({ payload: {} });
 
     if (wantsJson) {
@@ -76,7 +76,7 @@ const list = Command.make("list", { asJson }, ({ asJson: wantsJson }) =>
 
 const versions = Command.make("versions", { promptId }, ({ promptId: id }) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const prompt = yield* api.prompts.get({
       payload: { id, includeVersions: true },
     });
@@ -99,7 +99,7 @@ const promote = Command.make(
   },
   ({ channel: to, promptId: id, version: pin }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       yield* api.prompts.promote({
         payload: { channel: to, id, version: pin },
       });
@@ -134,7 +134,7 @@ const push = Command.make(
   { message, target },
   ({ message: why, target: [id, content] }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const body = content === "-" ? yield* readStdin : content;
 
       const prompt = yield* api.prompts.update({
@@ -150,14 +150,14 @@ const push = Command.make(
 
 const out = Options.file("out").pipe(
   Options.withDescription("Where to write the declarations"),
-  Options.withDefault("anpord-env.d.ts")
+  Options.withDefault("sphynx-env.d.ts")
 );
 
 const READ_AT_ONCE = 8;
 
 const writeDeclarations = ({ out: path }: { readonly out: string }) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const fs = yield* FileSystem.FileSystem;
     const { data } = yield* api.prompts.list({ payload: {} });
 

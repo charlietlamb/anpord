@@ -23,7 +23,7 @@ export const scratchDatabases = () => {
   const created: string[] = [];
 
   const create = async () => {
-    const name = `anpord_migrate_test_${randomBytes(4).toString("hex")}`;
+    const name = `sphynx_migrate_test_${randomBytes(4).toString("hex")}`;
     await withServer(base ?? "", (client) =>
       client.query(`create database ${name}`)
     );

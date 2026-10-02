@@ -1,14 +1,14 @@
-import { TrialTimedOut } from "@anpord/eval/domain/errors";
-import { describeCause } from "@anpord/eval/domain/failure";
-import { cutToJournal } from "@anpord/eval/domain/journal-entries";
-import { validationWithoutEvidence } from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
-import type { TokenCounts } from "@anpord/schema/domain/usage-health";
+import { TrialTimedOut } from "@sphynx/eval/domain/errors";
+import { describeCause } from "@sphynx/eval/domain/failure";
+import { cutToJournal } from "@sphynx/eval/domain/journal-entries";
+import { validationWithoutEvidence } from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
+import type { TokenCounts } from "@sphynx/schema/domain/usage-health";
 import type {
   BrokenTrialReport,
   ScoredTrialReport,
-} from "@anpord/schema/public/runner-api";
+} from "@sphynx/schema/public/runner-api";
 import { Cause, Option } from "effect";
 import type { Verdict } from "./transcript-verdict";
 

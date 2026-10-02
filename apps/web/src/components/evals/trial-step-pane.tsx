@@ -1,8 +1,8 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
 import {
   ResizableHandle,
   ResizablePanel,
-} from "@anpord/ui/components/ui/resizable";
+} from "@sphynx/ui/components/ui/resizable";
 // biome-ignore lint/correctness/noUnresolvedImports: biome cannot see the Suspense export in the react types
 import { Suspense } from "react";
 import { selectedStepOf } from "@/lib/evals/selected-step";

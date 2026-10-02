@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { DailyRate } from "@/lib/evals/home-trend";
 
 const PAD = 2;

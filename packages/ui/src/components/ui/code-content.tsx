@@ -1,8 +1,8 @@
 "use client";
 
-import { useHighlighted } from "@anpord/ui/hooks/use-highlighted";
-import type { CodeLanguage } from "@anpord/ui/lib/highlight";
-import { cn } from "@anpord/ui/lib/utils";
+import { useHighlighted } from "@sphynx/ui/hooks/use-highlighted";
+import type { CodeLanguage } from "@sphynx/ui/lib/highlight";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export function CodeContent({
   code,

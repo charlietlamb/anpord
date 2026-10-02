@@ -1,6 +1,6 @@
-import { organizationInviteEmail } from "@anpord/notifications/email/organization-invite";
-import type { EmailSenderShape } from "@anpord/notifications/email/sender";
-import { WEB_ORIGIN } from "@anpord/schema/public/origins";
+import { organizationInviteEmail } from "@sphynx/notifications/email/organization-invite";
+import type { EmailSenderShape } from "@sphynx/notifications/email/sender";
+import { WEB_ORIGIN } from "@sphynx/schema/public/origins";
 import { Effect } from "effect";
 
 interface InvitationRequest {

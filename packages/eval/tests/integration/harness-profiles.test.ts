@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
-import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
+import { Database } from "@sphynx/db/client";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
+import type { HarnessProfile } from "@sphynx/schema/domain/harness-profile";
 import { Effect, ManagedRuntime } from "effect";
 import { Batches } from "../../src/batch/batches";
 import {

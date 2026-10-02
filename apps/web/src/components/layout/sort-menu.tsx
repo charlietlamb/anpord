@@ -1,4 +1,9 @@
-import { Button } from "@anpord/ui/components/button";
+import {
+  ArrowsDownUpIcon,
+  SortAscendingIcon,
+  SortDescendingIcon,
+} from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,12 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
-import {
-  ArrowsDownUpIcon,
-  SortAscendingIcon,
-  SortDescendingIcon,
-} from "@phosphor-icons/react";
+} from "@sphynx/ui/components/dropdown-menu";
 
 type SortDirection = "asc" | "desc";
 

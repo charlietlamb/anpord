@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Effect, Either, Option, Redacted, Stream } from "effect";
 import { HARNESS_DRIVERS } from "../../../src/adapters/harness/resolve";
 import type { HarnessDriverShape } from "../../../src/ports/harness";

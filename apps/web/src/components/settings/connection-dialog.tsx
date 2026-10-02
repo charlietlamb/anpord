@@ -1,7 +1,7 @@
-import type { CredentialIntegration } from "@anpord/schema/domain/credentials";
-import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { LabelledSelect } from "@anpord/ui/components/form/labelled-select";
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
+import type { CredentialIntegration } from "@sphynx/schema/domain/credentials";
+import { FormDialog } from "@sphynx/ui/components/dialog/form-dialog";
+import { LabelledSelect } from "@sphynx/ui/components/form/labelled-select";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
 import { VariantLabel } from "@/components/evals/variant-label";
 import { CredentialFields } from "@/components/settings/credential-fields";
 import { DeviceChallenge } from "@/components/settings/device-challenge";
@@ -33,7 +33,7 @@ const COPY = {
   },
   sandbox: {
     description:
-      "Run sandboxes on your own account instead of Anpord's. Secret values are encrypted and never shown again.",
+      "Run sandboxes on your own account instead of Sphynx's. Secret values are encrypted and never shown again.",
     field: "Sandbox",
     title: "Add sandbox",
   },

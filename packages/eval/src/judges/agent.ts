@@ -9,7 +9,7 @@ import { HarnessVersions } from "../services/harness-versions";
 import { JudgeFailed, type JudgeRequest } from "./model";
 import { judgeEvidence, judgeInstructions } from "./prompt";
 
-const WORKSPACE = "/tmp/anpord-judge";
+const WORKSPACE = "/tmp/sphynx-judge";
 
 export const makeAgentJudge = Effect.gen(function* () {
   const harnesses = yield* Harnesses;

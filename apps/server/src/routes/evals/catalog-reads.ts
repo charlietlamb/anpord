@@ -1,8 +1,8 @@
-import type { ListCases } from "@anpord/eval/repositories/case-reads-query";
-import { EvalReads } from "@anpord/eval/services/eval-reads";
-import { ModelCatalogues } from "@anpord/eval/services/model-catalogue";
-import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
+import type { ListCases } from "@sphynx/eval/repositories/case-reads-query";
+import { EvalReads } from "@sphynx/eval/services/eval-reads";
+import { ModelCatalogues } from "@sphynx/eval/services/model-catalogue";
+import type { EvalPageCursor } from "@sphynx/schema/domain/eval-read-models";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { organization } from "./current-organization";

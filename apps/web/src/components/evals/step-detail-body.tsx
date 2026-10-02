@@ -1,11 +1,11 @@
-import { labelOf } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import { labelOf } from "@sphynx/schema/domain/eval-journal";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 import {
   ToolInput,
   ToolOutput,
   ToolSection,
-} from "@anpord/ui/components/ai-elements/tool";
-import { ShellText } from "@anpord/ui/components/ui/shell-text";
+} from "@sphynx/ui/components/ai-elements/tool";
+import { ShellText } from "@sphynx/ui/components/ui/shell-text";
 import { MarkdownProse } from "@/components/evals/markdown-prose";
 
 export type StepPart = "all" | "input" | "output";

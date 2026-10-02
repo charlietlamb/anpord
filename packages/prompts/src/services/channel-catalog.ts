@@ -1,11 +1,11 @@
-import { IdGenerator } from "@anpord/ids/id";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import type {
   Channel,
   CreateChannelRequest,
   UpdateChannelRequest,
-} from "@anpord/schema/domain/channels";
-import type { ChannelName } from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/channels";
+import type { ChannelName } from "@sphynx/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import {
@@ -38,7 +38,7 @@ export interface ChannelCatalogShape {
 }
 
 export class ChannelCatalog extends Context.Tag(
-  "@anpord/prompts/ChannelCatalog"
+  "@sphynx/prompts/ChannelCatalog"
 )<ChannelCatalog, ChannelCatalogShape>() {}
 
 export const ChannelCatalogLive = Layer.effect(

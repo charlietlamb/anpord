@@ -1,4 +1,4 @@
-import type { Validator } from "anpord";
+import type { Validator } from "sphynx-sh";
 import { item } from "../fixtures/catalog";
 
 export const validateApi: Validator = async ({ api, answer }) => {

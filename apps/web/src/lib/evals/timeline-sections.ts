@@ -1,9 +1,9 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 import {
   describeStep,
   plainText,
   type StepTitle,
-} from "@anpord/schema/domain/step-title";
+} from "@sphynx/schema/domain/step-title";
 import { stepFailed } from "@/lib/evals/conversation";
 
 export interface TimelineStep {

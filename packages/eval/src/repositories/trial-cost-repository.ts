@@ -1,6 +1,6 @@
-import { Database } from "@anpord/db/client";
-import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import { IdGenerator } from "@anpord/ids/id";
+import { Database } from "@sphynx/db/client";
+import { evalTrialCost } from "@sphynx/db/schema/evals/eval-trial-costs";
+import { IdGenerator } from "@sphynx/ids/id";
 import { inArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { CostComponent } from "../domain/cost-component";
@@ -20,7 +20,7 @@ export interface TrialCostRepositoryShape {
 }
 
 export class TrialCostRepository extends Context.Tag(
-  "@anpord/eval/TrialCostRepository"
+  "@sphynx/eval/TrialCostRepository"
 )<TrialCostRepository, TrialCostRepositoryShape>() {}
 
 export const TrialCostRepositoryLive = Layer.effect(

@@ -23,7 +23,7 @@ export const launchChrome = async (): Promise<OwnBrowser> => {
       `No Chrome found. Looked in:\n  ${CHROME_CANDIDATES.join("\n  ")}\nSet CHROME_PATH.`
     );
   }
-  const profile = await mkdtemp(join(tmpdir(), "anpord-perf-chrome-"));
+  const profile = await mkdtemp(join(tmpdir(), "sphynx-perf-chrome-"));
   const browser = await puppeteer
     .launch({
       args: [

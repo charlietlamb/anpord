@@ -1,4 +1,4 @@
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { Data, Duration, Schema } from "effect";
 import { SandboxName } from "./variant";
 

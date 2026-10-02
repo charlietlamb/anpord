@@ -1,9 +1,9 @@
-import { CopyButton } from "@anpord/ui/components/copy-button";
-import { CodeContent } from "@anpord/ui/components/ui/code-content";
-import type { CodeLanguage } from "@anpord/ui/lib/highlight";
-import { SURFACE_BODY } from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
 import { CaretRightIcon } from "@phosphor-icons/react";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
+import { CodeContent } from "@sphynx/ui/components/ui/code-content";
+import type { CodeLanguage } from "@sphynx/ui/lib/highlight";
+import { SURFACE_BODY } from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 import { EvidenceLabel } from "./evidence-label";
 import { MarkdownProse } from "./markdown-prose";

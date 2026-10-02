@@ -1,4 +1,4 @@
-import type { ValidationValue as Captured } from "@anpord/schema/domain/eval-validations";
+import type { ValidationValue as Captured } from "@sphynx/schema/domain/eval-validations";
 import type { ComponentProps } from "react";
 import { EvidenceValue } from "@/components/evals/evidence-value";
 

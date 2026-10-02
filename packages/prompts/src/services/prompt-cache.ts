@@ -1,6 +1,6 @@
-import { Cache } from "@anpord/cache/cache";
-import type { OrganizationId } from "@anpord/schema/domain/actor";
-import type { PromptId } from "@anpord/schema/domain/prompts";
+import { Cache } from "@sphynx/cache/cache";
+import type { OrganizationId } from "@sphynx/schema/domain/actor";
+import type { PromptId } from "@sphynx/schema/domain/prompts";
 import { Context, Effect, Layer } from "effect";
 import { organizationPrefix, promptPrefix } from "../domain/keys";
 
@@ -14,7 +14,7 @@ export interface PromptCacheShape {
   ) => Effect.Effect<void>;
 }
 
-export class PromptCache extends Context.Tag("@anpord/prompts/PromptCache")<
+export class PromptCache extends Context.Tag("@sphynx/prompts/PromptCache")<
   PromptCache,
   PromptCacheShape
 >() {}

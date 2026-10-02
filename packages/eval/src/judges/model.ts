@@ -1,13 +1,13 @@
 import type {
   CredentialValues,
   ResolvedCredential,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 
-import type { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import type { EvalJudge } from "@sphynx/schema/domain/eval-judges";
 import {
   type HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/harness-event";
 import { Context, Data, type Effect, type Redacted, Schema } from "effect";
 
 export const JudgeCompletion = Schema.Struct({
@@ -51,7 +51,7 @@ export interface JudgeRequest {
   readonly output: string;
 }
 
-export class JudgeModel extends Context.Tag("@anpord/eval/JudgeModel")<
+export class JudgeModel extends Context.Tag("@sphynx/eval/JudgeModel")<
   JudgeModel,
   {
     readonly complete: (

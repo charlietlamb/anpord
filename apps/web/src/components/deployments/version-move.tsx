@@ -1,5 +1,5 @@
-import { cn } from "@anpord/ui/lib/utils";
 import { ArrowRightIcon } from "@phosphor-icons/react";
+import { cn } from "@sphynx/ui/lib/utils";
 
 interface VersionMoveProps {
   readonly className?: string;

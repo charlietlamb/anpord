@@ -171,7 +171,7 @@ describe("stopSamplers", () => {
 describe("scratchServerUrl", () => {
   test("accepts quoted and IPv6 loopback URLs and refuses remote hosts", () => {
     expect(
-      scratchServerUrl('"postgresql://localhost:5432/anpord_dev"').hostname
+      scratchServerUrl('"postgresql://localhost:5432/sphynx_dev"').hostname
     ).toBe("localhost");
     expect(scratchServerUrl("postgresql://[::1]:5432/postgres").hostname).toBe(
       "[::1]"

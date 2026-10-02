@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Chunk, Effect, Ref, Stream } from "effect";
 import { EvalStoreError } from "../../src/domain/errors";
 import { progressSink } from "../../src/services/trial-progress-sink";

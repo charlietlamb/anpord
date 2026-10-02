@@ -1,9 +1,3 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import {
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@anpord/ui/components/ui/resizable";
 import {
   ChatsCircleIcon,
   CheckSquareIcon,
@@ -13,6 +7,12 @@ import {
   SlidersHorizontalIcon,
   SquaresFourIcon,
 } from "@phosphor-icons/react";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
+import {
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@sphynx/ui/components/ui/resizable";
 import { CaseSetup } from "@/components/evals/case-setup";
 import { RunCaseButton } from "@/components/evals/run-case-button";
 import { TrialDetails } from "@/components/evals/trial-details";

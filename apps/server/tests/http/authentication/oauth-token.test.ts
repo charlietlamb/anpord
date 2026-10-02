@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { AuthInstance } from "@anpord/auth";
+import type { AuthInstance } from "@sphynx/auth";
 import { Effect, Exit, Option } from "effect";
 import { resolveOAuthToken } from "../../../src/http/authentication/oauth-token";
 

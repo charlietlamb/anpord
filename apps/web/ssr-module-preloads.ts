@@ -5,7 +5,7 @@ const ID = "virtual:ssr-module-preloads";
 let preloads: Record<string, string[]> = {};
 
 export const dynamicChunkPreloads = (root: string): Plugin => ({
-  name: "anpord:ssr-module-preloads",
+  name: "sphynx:ssr-module-preloads",
   sharedDuringBuild: true,
   resolveId: (id) => (id === ID ? `\0${ID}` : undefined),
   load: (id) =>

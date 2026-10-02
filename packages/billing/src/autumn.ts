@@ -11,7 +11,7 @@ export interface AutumnShape {
   ) => Effect.Effect<void, BillingUnavailable>;
 }
 
-export class AutumnService extends Context.Tag("@anpord/billing/Autumn")<
+export class AutumnService extends Context.Tag("@sphynx/billing/Autumn")<
   AutumnService,
   AutumnShape
 >() {}

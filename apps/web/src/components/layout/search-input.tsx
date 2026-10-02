@@ -1,7 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
-import { Input } from "@anpord/ui/components/input";
-import { cn } from "@anpord/ui/lib/utils";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { Input } from "@sphynx/ui/components/input";
+import { cn } from "@sphynx/ui/lib/utils";
 
 interface SearchInputProps {
   readonly className?: string;

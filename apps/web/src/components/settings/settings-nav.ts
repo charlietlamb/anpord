@@ -1,4 +1,3 @@
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import {
   BrainIcon,
   BroadcastIcon,
@@ -11,6 +10,7 @@ import {
   UsersThreeIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 
 interface SettingsNavItem {
   icon: Icon;

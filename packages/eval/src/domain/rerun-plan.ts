@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { MAX_RUN_TRIALS } from "@anpord/schema/domain/eval-quota";
-import type { EvalVariantResult } from "@anpord/schema/domain/eval-read-models";
+import { MAX_RUN_TRIALS } from "@sphynx/schema/domain/eval-quota";
+import type { EvalVariantResult } from "@sphynx/schema/domain/eval-read-models";
 import type {
   PlannedVariant,
   RerunIntent,
@@ -9,9 +9,9 @@ import type {
   RerunSkipReason,
   RerunSlot,
   RerunTarget,
-} from "@anpord/schema/domain/eval-rerun";
-import { RerunFingerprint } from "@anpord/schema/domain/eval-rerun";
-import type { EvalSuite } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-rerun";
+import { RerunFingerprint } from "@sphynx/schema/domain/eval-rerun";
+import type { EvalSuite } from "@sphynx/schema/domain/evals";
 import { DateTime } from "effect";
 
 const FINGERPRINT_LENGTH = 16;

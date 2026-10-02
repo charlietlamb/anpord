@@ -1,4 +1,4 @@
-import { harnessPresentation } from "@anpord/ui/components/evals/variant-presentation";
+import { harnessPresentation } from "@sphynx/ui/components/evals/variant-presentation";
 
 const UNNAMED = "none";
 

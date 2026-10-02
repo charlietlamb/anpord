@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { PrepareFailed, TrialTimedOut } from "@anpord/eval/domain/errors";
-import { asEntries } from "@anpord/eval/domain/journal-entries";
+import { PrepareFailed, TrialTimedOut } from "@sphynx/eval/domain/errors";
+import { asEntries } from "@sphynx/eval/domain/journal-entries";
 import { Cause } from "effect";
 import {
   brokenBy,

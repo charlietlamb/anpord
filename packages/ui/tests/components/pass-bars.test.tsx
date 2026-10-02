@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { PassBars } from "@anpord/ui/components/evals/pass-bars";
+import { PassBars } from "@sphynx/ui/components/evals/pass-bars";
 import { renderToStaticMarkup } from "react-dom/server";
 
 const squares = (html: string, tone: string) =>

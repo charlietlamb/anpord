@@ -1,7 +1,7 @@
-import { Database } from "@anpord/db/client";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { Database } from "@sphynx/db/client";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { Effect, Option } from "effect";
 import { type RunTemplate, templateOf } from "../domain/run-template";

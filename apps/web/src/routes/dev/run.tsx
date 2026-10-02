@@ -1,6 +1,6 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
 import { createFileRoute } from "@tanstack/react-router";
 import { RUN } from "@/components/dev/eval-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";

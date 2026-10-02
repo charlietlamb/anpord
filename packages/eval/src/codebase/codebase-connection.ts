@@ -1,8 +1,8 @@
-import type { Actor } from "@anpord/schema/domain/actor";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import type {
   Repository,
   SourceControlAccount,
-} from "@anpord/schema/domain/codebase";
+} from "@sphynx/schema/domain/codebase";
 import { Context, Data, Effect, Layer, Option } from "effect";
 import type { CodebaseError } from "./errors";
 import { GithubApp, type GithubAppShape } from "./github-app";
@@ -111,7 +111,7 @@ export const make = Effect.gen(function* () {
 });
 
 export class CodebaseConnection extends Context.Tag(
-  "@anpord/eval/CodebaseConnection"
+  "@sphynx/eval/CodebaseConnection"
 )<CodebaseConnection, Effect.Effect.Success<typeof make>>() {}
 
 export const CodebaseConnectionLive = Layer.effect(CodebaseConnection, make);

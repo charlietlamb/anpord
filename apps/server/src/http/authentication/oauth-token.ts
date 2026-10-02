@@ -1,7 +1,7 @@
-import type { AuthInstance } from "@anpord/auth";
-import { Actor } from "@anpord/schema/domain/actor";
-import type { Permission } from "@anpord/schema/domain/permissions";
-import { API_SCOPES } from "@anpord/schema/domain/scopes";
+import type { AuthInstance } from "@sphynx/auth";
+import { Actor } from "@sphynx/schema/domain/actor";
+import type { Permission } from "@sphynx/schema/domain/permissions";
+import { API_SCOPES } from "@sphynx/schema/domain/scopes";
 import { Effect, Option, Schema } from "effect";
 import { unauthorized } from "./unauthorized";
 

@@ -1,4 +1,4 @@
-import { Anpord } from "anpord";
+import { Sphynx } from "sphynx-sh";
 import { cli } from "../harness/cli";
 import { contains, equals, isTrue, rejects } from "../harness/expect";
 import { batchIdIn, givenSuite } from "../harness/given-suite";
@@ -6,19 +6,19 @@ import type { Scenario } from "../harness/run";
 import type { World } from "../world";
 
 const client = (world: World, key = world.writeKey.key) =>
-  new Anpord({ apiKey: key, baseUrl: world.baseUrl });
+  new Sphynx({ apiKey: key, baseUrl: world.baseUrl });
 
 const withClient = async (
   world: World,
-  use: (anpord: Anpord) => Promise<void>,
+  use: (sphynx: Sphynx) => Promise<void>,
   key?: string
 ) => {
-  const anpord = client(world, key);
+  const sphynx = client(world, key);
 
   try {
-    await use(anpord);
+    await use(sphynx);
   } finally {
-    await anpord.dispose();
+    await sphynx.dispose();
   }
 };
 
@@ -34,7 +34,7 @@ LOG=$(yes 'npm http fetch GET 200 https://registry.npmjs.org/@useautumn%2fsdk 12
 for step in install lint build test typecheck diff; do
   printf '{"_tag":"Command","command":"npm run %s","exitCode":0,"output":"%s"}\\n' "$step" "$LOG"
 done
-echo done > "$ANPORD_WORKSPACE/done.txt"
+echo done > "$SPHYNX_WORKSPACE/done.txt"
 echo '{"_tag":"Finished","reason":"done"}'
 `;
 
@@ -54,8 +54,8 @@ export const evalScenarios: readonly Scenario<World>[] = [
       contains("names the first variant", printed(ran), "command/probe-a");
       contains("names the second variant", printed(ran), "command/probe-b");
 
-      await withClient(world, async (anpord) => {
-        const batch = await anpord.evals.batches.get({
+      await withClient(world, async (sphynx) => {
+        const batch = await sphynx.evals.batches.get({
           id: batchIdIn(printed(ran)),
         });
         equals("one run per variant", batch.runs.length, 2);
@@ -87,24 +87,24 @@ export const evalScenarios: readonly Scenario<World>[] = [
         0
       );
 
-      await withClient(world, async (anpord) => {
-        const listed = await anpord.evals.cases.list({ suite: suite.id });
+      await withClient(world, async (sphynx) => {
+        const listed = await sphynx.evals.cases.list({ suite: suite.id });
         equals(
           "the suite holds the case",
           listed.cases.map((subject) => subject.id).join(),
           "reads-back"
         );
 
-        const detail = await anpord.evals.cases.get({ id: "reads-back" });
+        const detail = await sphynx.evals.cases.get({ id: "reads-back" });
         equals("the case knows its suite", detail.suite.id, suite.id);
         equals("the name defaults to the id", detail.name, "reads-back");
         equals("the case has both variants", detail.variants.length, 2);
 
-        const runs = await anpord.evals.runs.list({ caseId: "reads-back" });
+        const runs = await sphynx.evals.runs.list({ caseId: "reads-back" });
         equals("one run per variant", runs.runs.length, 2);
 
         const [first] = runs.runs;
-        const run = await anpord.evals.runs.get({ id: first?.id ?? "" });
+        const run = await sphynx.evals.runs.get({ id: first?.id ?? "" });
         equals("the run holds its trial", run.trials.length, 1);
         equals("the run is the case's", run.case.id, "reads-back");
       });
@@ -159,8 +159,8 @@ export const evalScenarios: readonly Scenario<World>[] = [
       ]);
       equals("the picked run passes", ran.code, 0);
 
-      await withClient(world, async (anpord) => {
-        const batch = await anpord.evals.batches.get({
+      await withClient(world, async (sphynx) => {
+        const batch = await sphynx.evals.batches.get({
           id: batchIdIn(printed(ran)),
         });
         equals("only one run started", batch.runs.length, 1);
@@ -211,9 +211,9 @@ export const evalScenarios: readonly Scenario<World>[] = [
   {
     name: "evals: the public api refuses the local sandbox",
     run: async (world) => {
-      await withClient(world, async (anpord) => {
+      await withClient(world, async (sphynx) => {
         const refused = await rejects("a local batch is refused", () =>
-          anpord.evals.batches.start({
+          sphynx.evals.batches.start({
             cases: [{ id: "a-case", verify: "true" }],
             suite: { id: "e2e-public-local", prompt: "Write done.txt." },
             trials: 1,
@@ -225,7 +225,7 @@ export const evalScenarios: readonly Scenario<World>[] = [
         contains(
           "points at the CLI",
           messageOf(refused),
-          "anpord eval --local"
+          "sphynx eval --local"
         );
       });
     },
@@ -245,9 +245,9 @@ export const evalScenarios: readonly Scenario<World>[] = [
         0
       );
 
-      await withClient(world, async (anpord) => {
+      await withClient(world, async (sphynx) => {
         const refused = await rejects("the rerun is refused", () =>
-          anpord.evals.cases.run({ id: "reruns" })
+          sphynx.evals.cases.run({ id: "reruns" })
         );
         contains(
           "says where it can run",
@@ -271,9 +271,9 @@ export const evalScenarios: readonly Scenario<World>[] = [
 
       await withClient(
         world,
-        async (anpord) => {
+        async (sphynx) => {
           await rejects("another organization is refused", () =>
-            anpord.evals.batches.get({ id: batchIdIn(printed(ran)) })
+            sphynx.evals.batches.get({ id: batchIdIn(printed(ran)) })
           );
         },
         world.otherKey.key
@@ -299,14 +299,14 @@ export const evalScenarios: readonly Scenario<World>[] = [
         printed(ran)
       );
 
-      await withClient(world, async (anpord) => {
-        const batch = await anpord.evals.batches.get({
+      await withClient(world, async (sphynx) => {
+        const batch = await sphynx.evals.batches.get({
           id: batchIdIn(printed(ran)),
         });
         const [run] = batch.runs;
         equals("the verdict is recorded", run?.distribution.passed, 1);
 
-        const detail = await anpord.evals.runs.get({ id: run?.id ?? "" });
+        const detail = await sphynx.evals.runs.get({ id: run?.id ?? "" });
         const commands = (detail.trials[0]?.trajectory ?? []).flatMap(
           (entry) =>
             entry._tag === "command" && entry.command.startsWith("npm run")

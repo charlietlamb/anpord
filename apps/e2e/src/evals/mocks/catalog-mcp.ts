@@ -1,4 +1,4 @@
-import { server, tool } from "anpord/mcp";
+import { server, tool } from "sphynx-sh/mcp";
 import {
   getItem,
   getItemInput,

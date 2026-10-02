@@ -1,6 +1,6 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
-import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { PromptActivityPage } from "@sphynx/schema/domain/prompt-activity";
+import type { PromptEventKind } from "@sphynx/schema/domain/prompt-events";
 import { Context, Effect, Layer } from "effect";
 import {
   ActivityCursorPayload,
@@ -27,7 +27,7 @@ export interface PromptActivityShape {
 }
 
 export class PromptActivity extends Context.Tag(
-  "@anpord/prompts/PromptActivity"
+  "@sphynx/prompts/PromptActivity"
 )<PromptActivity, PromptActivityShape>() {}
 
 export const PromptActivityLive = Layer.effect(

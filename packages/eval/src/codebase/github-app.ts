@@ -30,7 +30,7 @@ interface GithubAppConfigShape {
 }
 
 export class GithubAppConfig extends Context.Tag(
-  "@anpord/eval/GithubAppConfig"
+  "@sphynx/eval/GithubAppConfig"
 )<GithubAppConfig, Option.Option<GithubAppConfigShape>>() {}
 
 const failureOf = (tag: "ParseError" | "RequestError" | "ResponseError") => {
@@ -84,7 +84,7 @@ export interface GithubAppShape {
   ) => Effect.Effect<Redacted.Redacted<string>, CodebaseError>;
 }
 
-export class GithubApp extends Context.Tag("@anpord/eval/GithubApp")<
+export class GithubApp extends Context.Tag("@sphynx/eval/GithubApp")<
   GithubApp,
   GithubAppShape | undefined
 >() {}

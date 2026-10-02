@@ -1,4 +1,4 @@
-import type { AuthInstance } from "@anpord/auth";
+import type { AuthInstance } from "@sphynx/auth";
 import { isAuthRoute } from "./auth-route";
 import { withAuthenticateChallenge } from "./authenticate-challenge";
 import { isAuthorizeRoute, withConsentPrompt } from "./consent-route";

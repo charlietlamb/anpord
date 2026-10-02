@@ -1,5 +1,5 @@
-import type { Db } from "@anpord/db/query";
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
+import type { Db } from "@sphynx/db/query";
+import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
 import { and, eq } from "drizzle-orm";
 import { defaultScope } from "./connection-scope";
 

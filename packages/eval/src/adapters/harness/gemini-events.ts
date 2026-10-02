@@ -1,4 +1,4 @@
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import { promptInclusiveUsage } from "../../domain/prompt-inclusive-usage";
 import type { DecodedOutput } from "./session";

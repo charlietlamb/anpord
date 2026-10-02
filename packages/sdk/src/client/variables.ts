@@ -1,18 +1,18 @@
-import type { Variables } from "@anpord/template/render";
+import type { Variables } from "@sphynx/template/render";
 
-/** Filled in by `anpord generate`; empty here so callers who never generate
+/** Filled in by `sphynx generate`; empty here so callers who never generate
  * stay unconstrained. */
 // biome-ignore lint/suspicious/noEmptyInterface: the generated file fills it
-export interface AnpordPromptVariables {}
+export interface SphynxPromptVariables {}
 
-type Known = keyof AnpordPromptVariables & string;
+type Known = keyof SphynxPromptVariables & string;
 
 /** A widened id cannot be looked up, so a runtime-built one keeps the loose
  * shape rather than being refused. */
 type IsLiteral<Id extends string> = string extends Id ? false : true;
 
 type Declared<Id extends string> = Id extends Known
-  ? AnpordPromptVariables[Id]
+  ? SphynxPromptVariables[Id]
   : never;
 
 /** No declared variables reads as "unknown", not "none", so a variable added

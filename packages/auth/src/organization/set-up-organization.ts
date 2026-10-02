@@ -1,6 +1,6 @@
-import type { AutumnShape } from "@anpord/billing/autumn";
-import type { Database } from "@anpord/db/client";
-import type { IdGeneratorShape } from "@anpord/ids/id";
+import type { AutumnShape } from "@sphynx/billing/autumn";
+import type { Database } from "@sphynx/db/client";
+import type { IdGeneratorShape } from "@sphynx/ids/id";
 import { Clock, Effect } from "effect";
 import { insertDefaultChannel } from "./organization-queries";
 

@@ -1,4 +1,4 @@
-import type { RerunRequest } from "@anpord/schema/domain/eval-rerun";
+import type { RerunRequest } from "@sphynx/schema/domain/eval-rerun";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { evalKeys } from "@/lib/evals/eval-keys";
 import { rerunSuite, runCase } from "@/lib/evals/evals-client";

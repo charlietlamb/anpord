@@ -1,5 +1,5 @@
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import { WarningCircleIcon } from "@phosphor-icons/react";
+import { StatusBadge } from "@sphynx/ui/components/ui/status-badge";
 
 export function ExitCode({ code }: { readonly code: number | null }) {
   if (code === null || code === 0) {

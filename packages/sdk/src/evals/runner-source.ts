@@ -1,7 +1,7 @@
 import {
   CACHE_RESTORED_ENV,
   PREPARE_RESULT_MARKER,
-} from "@anpord/schema/domain/sandbox-env";
+} from "@sphynx/schema/domain/sandbox-env";
 
 export interface DefinitionRef {
   readonly entry: string;
@@ -15,7 +15,7 @@ export const importsDefinition = ({ entry, exportName }: DefinitionRef) =>
 
 export const validatorEntry = (module: string, name: string) => `
 import { ${name} as validate } from ${JSON.stringify(module)};
-import { runValidators } from "anpord/validators/runtime";
+import { runValidators } from "sphynx-sh/validators/runtime";
 await runValidators([{ index: 0, name: ${JSON.stringify(name)}, validate }]);`;
 
 export const validatorCaseEntry = (
@@ -24,14 +24,14 @@ export const validatorCaseEntry = (
   names: readonly { index: number; name: string }[] = []
 ) =>
   `${importsDefinition(ref)}
-import { runValidators } from "anpord/validators/runtime";
+import { runValidators } from "sphynx-sh/validators/runtime";
 const selected = definition.cases[${index}].validate;
 const names = ${JSON.stringify(names)};
 const checks = (Array.isArray(selected) ? selected : [selected]).flatMap((validate, index) => typeof validate === "function" ? [{ index, name: names.find(check => check.index === index)?.name ?? "Validator " + (index + 1), validate }] : []);
 await runValidators(checks, definition.captureValidation !== false);`;
 
 const prepareRuntime = `
-import { apiContext } from "anpord/api/context";
+import { apiContext } from "sphynx-sh/api/context";
 import { access, readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 
@@ -84,7 +84,7 @@ export const definitionEntry = (ref: DefinitionRef) =>
 
 export const mcpEntry = (ref: DefinitionRef, index: number) =>
   `${importsDefinition(ref)}
-import { runMcpServer } from "anpord/mcp/runtime";
+import { runMcpServer } from "sphynx-sh/mcp/runtime";
 const server = definition.mcp?.[${index}];
 if (server === undefined) throw new Error("MCP server ${index} is missing");
 runMcpServer(server);`;
@@ -92,7 +92,7 @@ runMcpServer(server);`;
 export const cliEntry = (ref: DefinitionRef, index: number) =>
   `import { fileURLToPath } from "node:url";
 ${importsDefinition(ref)}
-import { runCli } from "anpord/cli/runtime";
+import { runCli } from "sphynx-sh/cli/runtime";
 const cli = definition.cli?.[${index}];
 if (cli === undefined) throw new Error("CLI ${index} is missing");
 await runCli(cli, fileURLToPath(new URL("../../cli-calls.jsonl", import.meta.url)));`;

@@ -1,4 +1,4 @@
-import type { CostClassification } from "@anpord/schema/domain/eval-costs";
+import type { CostClassification } from "@sphynx/schema/domain/eval-costs";
 import type { CostComponent } from "./cost-component";
 
 /* Cents cannot hold a trial costing a fraction of one, and floats drift when

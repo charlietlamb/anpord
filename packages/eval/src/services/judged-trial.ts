@@ -1,8 +1,8 @@
 import {
   type EvalValidation,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+} from "@sphynx/schema/domain/eval-validations";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { Effect, Layer } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
 import { readAnswer } from "../domain/journal";

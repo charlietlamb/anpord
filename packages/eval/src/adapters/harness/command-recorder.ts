@@ -1,7 +1,7 @@
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 
-export const COMMAND_RECORDER = `anpord_escape() {
+export const COMMAND_RECORDER = `sphynx_escape() {
   local s=$1
   s=\${s//\\\\/\\\\\\\\}
   s=\${s//\\"/\\\\\\"}
@@ -11,30 +11,30 @@ export const COMMAND_RECORDER = `anpord_escape() {
   printf '%s' "$s"
 }
 
-anpord_trace() {
-  [ -n "$ANPORD_TRACING" ] && return
+sphynx_trace() {
+  [ -n "$SPHYNX_TRACING" ] && return
   case "$BASH_COMMAND" in
-    anpord_trace* | anpord_escape*) return ;;
+    sphynx_trace* | sphynx_escape*) return ;;
   esac
-  ANPORD_TRACING=1
+  SPHYNX_TRACING=1
   printf '{"at":"%s","cwd":"%s","argv":"%s","source":"trap"}\\n' \\
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \\
-    "$(anpord_escape "$PWD")" \\
-    "$(anpord_escape "$BASH_COMMAND")" \\
-    >> "$ANPORD_TRACE_LOG" 2>/dev/null
-  ANPORD_TRACING=
+    "$(sphynx_escape "$PWD")" \\
+    "$(sphynx_escape "$BASH_COMMAND")" \\
+    >> "$SPHYNX_TRACE_LOG" 2>/dev/null
+  SPHYNX_TRACING=
 }
 
-if [ -n "$ANPORD_TRACE_LOG" ]; then
+if [ -n "$SPHYNX_TRACE_LOG" ]; then
   if [ -n "$ZSH_VERSION" ]; then
-    mkdir -p "$(dirname "$ANPORD_TRACE_LOG")" 2>/dev/null
-    anpord_zsh_trace() {
-      BASH_COMMAND=$ZSH_DEBUG_CMD anpord_trace
+    mkdir -p "$(dirname "$SPHYNX_TRACE_LOG")" 2>/dev/null
+    sphynx_zsh_trace() {
+      BASH_COMMAND=$ZSH_DEBUG_CMD sphynx_trace
     }
-    trap anpord_zsh_trace DEBUG
+    trap sphynx_zsh_trace DEBUG
   elif [ -n "$BASH_VERSION" ]; then
-    mkdir -p "$(dirname "$ANPORD_TRACE_LOG")" 2>/dev/null
-    trap anpord_trace DEBUG
+    mkdir -p "$(dirname "$SPHYNX_TRACE_LOG")" 2>/dev/null
+    trap sphynx_trace DEBUG
   fi
 fi
 `;

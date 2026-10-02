@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { withApi } from "anpord/api";
+import { withApi } from "sphynx-sh/api";
 import { getItem, items, listItems } from "./fixtures/catalog";
 import { evidenceContext } from "./fixtures/evidence";
 import { catalogApi } from "./mocks/api";

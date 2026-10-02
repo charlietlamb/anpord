@@ -14,7 +14,7 @@ export interface CredentialCipherShape {
 }
 
 export class CredentialCipher extends Context.Tag(
-  "@anpord/eval/CredentialCipher"
+  "@sphynx/eval/CredentialCipher"
 )<CredentialCipher, CredentialCipherShape>() {}
 
 export const keyConfig = Config.redacted("CREDENTIALS_ENCRYPTION_KEY").pipe(

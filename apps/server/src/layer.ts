@@ -1,31 +1,31 @@
-import { AuthLive } from "@anpord/auth";
-import { AuthConfigLive } from "@anpord/auth/config";
-import { OAuthClientsLive } from "@anpord/auth/oauth/oauth-clients";
-import { OrganizationStoreLive } from "@anpord/auth/organization";
-import { BillingLive } from "@anpord/billing/layer";
-import { CacheConfigLive } from "@anpord/cache/config";
-import { CacheLive } from "@anpord/cache/layer";
-import { DatabaseLive } from "@anpord/db/client";
-import { DatabaseConfigLive } from "@anpord/db/config";
-import { TrialRunnerTrigger } from "@anpord/eval/adapters/runner/trigger";
-import { BatchSubscriptionsTrigger } from "@anpord/eval/adapters/runner/trigger-subscriptions";
-import { CodebaseConnectionLive } from "@anpord/eval/codebase/codebase-connection";
-import { GithubRepositoriesLive } from "@anpord/eval/codebase/github-repositories";
-import { CredentialCipherLive } from "@anpord/eval/credentials/cipher";
-import { CredentialConnectionsLive } from "@anpord/eval/credentials/connections";
-import { DeviceAuthLive } from "@anpord/eval/credentials/device-auth";
+import { FetchHttpClient } from "@effect/platform";
+import { BunContext } from "@effect/platform-bun";
+import { AuthLive } from "@sphynx/auth";
+import { AuthConfigLive } from "@sphynx/auth/config";
+import { OAuthClientsLive } from "@sphynx/auth/oauth/oauth-clients";
+import { OrganizationStoreLive } from "@sphynx/auth/organization";
+import { BillingLive } from "@sphynx/billing/layer";
+import { CacheConfigLive } from "@sphynx/cache/config";
+import { CacheLive } from "@sphynx/cache/layer";
+import { DatabaseLive } from "@sphynx/db/client";
+import { DatabaseConfigLive } from "@sphynx/db/config";
+import { TrialRunnerTrigger } from "@sphynx/eval/adapters/runner/trigger";
+import { BatchSubscriptionsTrigger } from "@sphynx/eval/adapters/runner/trigger-subscriptions";
+import { CodebaseConnectionLive } from "@sphynx/eval/codebase/codebase-connection";
+import { GithubRepositoriesLive } from "@sphynx/eval/codebase/github-repositories";
+import { CredentialCipherLive } from "@sphynx/eval/credentials/cipher";
+import { CredentialConnectionsLive } from "@sphynx/eval/credentials/connections";
+import { DeviceAuthLive } from "@sphynx/eval/credentials/device-auth";
 import {
   EvalCodebaseLive,
   EvalCredentialsLive,
   EvalSweepsLive,
   evalStackWith,
-} from "@anpord/eval/layer";
-import { layer as ModelCatalogueLive } from "@anpord/eval/services/model-catalogue";
-import { IdGeneratorLive } from "@anpord/ids/layer";
-import { EmailSenderLive } from "@anpord/notifications/email/layer";
-import { PromptsLayer } from "@anpord/prompts/layer";
-import { FetchHttpClient } from "@effect/platform";
-import { BunContext } from "@effect/platform-bun";
+} from "@sphynx/eval/layer";
+import { layer as ModelCatalogueLive } from "@sphynx/eval/services/model-catalogue";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
+import { EmailSenderLive } from "@sphynx/notifications/email/layer";
+import { PromptsLayer } from "@sphynx/prompts/layer";
 import { Layer } from "effect";
 import { ServerConfigLive } from "./config";
 import { VerifiedKeysLive } from "./http/authentication/verified-keys";

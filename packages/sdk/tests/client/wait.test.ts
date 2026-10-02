@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
 import { EvalAborted, EvalTimeout, waitForBatch } from "../../src/client/wait";
 
 const run = (status: EvalBatch["status"]) =>

@@ -140,8 +140,8 @@ export const cliScenarios: readonly Scenario<World>[] = [
 
       const written = declarations(world, "gen.d.ts");
 
-      contains("augments the sdk", written, 'import "anpord"');
-      contains("declares the registry", written, "AnpordPromptVariables");
+      contains("augments the sdk", written, 'import "sphynx-sh"');
+      contains("declares the registry", written, "SphynxPromptVariables");
       const entry = new RegExp(`"${id}":\\s*\\{[^}]*customer_name[^}]*product`);
       isTrue(
         "names this prompt with both of its variables",

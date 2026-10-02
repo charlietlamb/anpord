@@ -6,7 +6,7 @@ description: "Run an eval on your machine so it can reach local services"
 A cloud sandbox cannot reach `localhost`. When the thing you are testing runs on your machine, `--local` runs the eval there instead:
 
 ```bash
-anpord eval --local ./checkout.eval.ts
+sphynx eval --local ./checkout.eval.ts
 ```
 
 Every case runs on every variant, with the suite's number of trials, and the results print in the terminal. `--case <id>` and `--variant` narrow what runs. `--variant` takes a variant's label, `harness/model` or `harness/model@profile`, or a profile name, and repeats for more. See [variants](/evals/variants#pick-variants-from-the-command-line). Without a file, every `*.eval.ts` under the current directory runs. A local run always waits and prints a transcript, so it can't take `--no-wait`, `--json` or `--output`.
@@ -42,16 +42,16 @@ Addresses only. A variable is forwarded when both are true:
 
 ## Model credentials
 
-The agent does not read a model key from your machine. With an API key set, Anpord leases the credential your organization connected for each harness the suite needs: the variant's, and any harness that plays the person or judges. Each lease is used only for its own harness. The lease expires after 15 minutes and is held in memory, never written to disk. Sandbox credentials are never leased, because a local batch opens no cloud sandbox.
+The agent does not read a model key from your machine. With an API key set, Sphynx leases the credential your organization connected for each harness the suite needs: the variant's, and any harness that plays the person or judges. Each lease is used only for its own harness. The lease expires after 15 minutes and is held in memory, never written to disk. Sandbox credentials are never leased, because a local batch opens no cloud sandbox.
 
 ## What gets recorded
 
-With an API key set, `--local` starts a local batch: one run per case per variant, marked local and visible in the dashboard with its journal. Each trial is priced like a hosted one when its report arrives, with the model, the simulated user and the judges on separate lines. Your machine is listed as the sandbox and costs nothing. Without an API key, nothing is sent anywhere and the results only print. An empty or blank `ANPORD_API_KEY` counts as no key.
+With an API key set, `--local` starts a local batch: one run per case per variant, marked local and visible in the dashboard with its journal. Each trial is priced like a hosted one when its report arrives, with the model, the simulated user and the judges on separate lines. Your machine is listed as the sandbox and costs nothing. Without an API key, nothing is sent anywhere and the results only print. An empty or blank `SPHYNX_API_KEY` counts as no key.
 
 The exit code reflects the results either way, so CI can gate on it:
 
 ```bash
-anpord eval --local ./checkout.eval.ts || exit 1
+sphynx eval --local ./checkout.eval.ts || exit 1
 ```
 
 ## When a trial cannot finish
@@ -69,30 +69,30 @@ checkout (checkout.eval.ts): 3 trials on this machine, 1 passed, 1 void, 1 timed
                The agent ran past its time limit of 5m
   26k tokens (25k in, 1k out), $0.46 est.
   model $0.42, simulated user $0.03, judges $0.01
-  Results: https://www.anpord.com/evals/batch_...
+  Results: https://www.sphynx.sh/evals/batch_...
 ```
 
 The command exits with 2 when any trial did not pass, so CI fails on a void or timed out trial as well as a failed one. `--fail-on never` exits 0 whatever the trials did. Ctrl+C stops the run straight away and closes the batch, and the trials it never reached show as void.
 
 ## When the network drops
 
-A local run keeps going when Anpord stops answering for a moment. Starting the batch, leasing credentials, reporting a trial and finishing the batch each try again for up to two minutes on a dropped connection or a 429, 502, 503 or 504, and the terminal says so while it waits.
+A local run keeps going when Sphynx stops answering for a moment. Starting the batch, leasing credentials, reporting a trial and finishing the batch each try again for up to two minutes on a dropped connection or a 429, 502, 503 or 504, and the terminal says so while it waits.
 
-If the CLI cannot reach Anpord at all when the run starts, because the address does not resolve, the connection is refused, TLS fails or the server never answers, it stops within 5 seconds and names the address it tried. Check your network, or set `ANPORD_BASE_URL` if your Anpord server is at another address.
+If the CLI cannot reach Sphynx at all when the run starts, because the address does not resolve, the connection is refused, TLS fails or the server never answers, it stops within 5 seconds and names the address it tried. Check your network, or set `SPHYNX_BASE_URL` if your Sphynx server is at another address.
 
 A trial whose report still does not land shows as void, not missing. The run closes its batch however it ends: done, failed, timed out or stopped with Ctrl+C.
 
-While it runs, the CLI checks in with Anpord every minute. If the machine goes quiet for 10 minutes, because it crashed, lost the network or was closed, the batch stops counting toward your organization's 3 batches at once and is marked failed soon after. Trials it never reported show as void. If the machine comes back, the CLI stops the run, says the batch was closed and exits with 1. Run the eval again for a full result. An older CLI never checks in, so its batch follows the six-hour rule in [results](/evals/results) instead.
+While it runs, the CLI checks in with Sphynx every minute. If the machine goes quiet for 10 minutes, because it crashed, lost the network or was closed, the batch stops counting toward your organization's 3 batches at once and is marked failed soon after. Trials it never reported show as void. If the machine comes back, the CLI stops the run, says the batch was closed and exits with 1. Run the eval again for a full result. An older CLI never checks in, so its batch follows the six-hour rule in [results](/evals/results) instead.
 
 ## Requirements
 
 The agent runs as you, in a temporary workspace with its own `HOME`. It is not a container: a case can read and write anything you can. Only run evals you wrote or trust.
 
-Each harness version installs once into `~/.anpord/local/harness` and is shared by every run after, so the first time you use a harness version locally is slower. Local runs can go side by side: each trial gets its own `HOME`, and a failed install says what went wrong.
+Each harness version installs once into `~/.sphynx/local/harness` and is shared by every run after, so the first time you use a harness version locally is slower. Local runs can go side by side: each trial gets its own `HOME`, and a failed install says what went wrong.
 
 ## Disk space
 
-Local runs keep their files in `~/.anpord/local`, or wherever `ANPORD_LOCAL_ROOT` points:
+Local runs keep their files in `~/.sphynx/local`, or wherever `SPHYNX_LOCAL_ROOT` points:
 
 | Folder | Holds |
 | --- | --- |
@@ -102,4 +102,4 @@ Local runs keep their files in `~/.anpord/local`, or wherever `ANPORD_LOCAL_ROOT
 
 Each run tidies up as it starts. It removes installs and cache entries unused for 30 days, staging left by a run that crashed, and the shared `home` folder older CLIs used. Installs no longer keep the npm cache they were built with. Nothing a run is using is touched.
 
-To see how much space local runs take, run `du -sh ~/.anpord/local/*`. To reclaim all of it, delete `~/.anpord/local` while no local run is going. The next run installs what it needs again.
+To see how much space local runs take, run `du -sh ~/.sphynx/local/*`. To reclaim all of it, delete `~/.sphynx/local` while no local run is going. The next run installs what it needs again.

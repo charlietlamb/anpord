@@ -18,7 +18,7 @@ describe("rewriting a verifier to report its steps", () => {
 
     expect(script.command).toContain("{ test -f a ; }");
     expect(script.command).toContain("{ test -f b ; }");
-    expect(script.command).toContain('|| exit "$__anpord_rc"');
+    expect(script.command).toContain('|| exit "$__sphynx_rc"');
     expect(script.command.indexOf("test -f a")).toBeLessThan(
       script.command.indexOf("test -f b")
     );
@@ -40,9 +40,9 @@ describe("reading the trail back", () => {
   it("reads every step that ran, in order, with its exit code", () => {
     const output = [
       "",
-      "@@anpord-verify 1 0",
+      "@@sphynx-verify 1 0",
       "some output",
-      "@@anpord-verify 2 1",
+      "@@sphynx-verify 2 1",
       "",
     ].join("\n");
 
@@ -57,12 +57,12 @@ describe("reading the trail back", () => {
   });
 
   it("ignores a mark for a step the script does not have", () => {
-    expect(stepResultsOf(script, "@@anpord-verify 9 0\n")).toEqual([]);
+    expect(stepResultsOf(script, "@@sphynx-verify 9 0\n")).toEqual([]);
   });
 
   it("strips the marks from what the verifier printed", () => {
     expect(
-      withoutMarks("hello\n@@anpord-verify 1 0\nworld\n@@anpord-verify 2 0\n")
+      withoutMarks("hello\n@@sphynx-verify 1 0\nworld\n@@sphynx-verify 2 0\n")
     ).toBe("hello\nworld\n");
   });
 });

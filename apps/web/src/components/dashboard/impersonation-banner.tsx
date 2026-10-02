@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
 import { UserSwitchIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import { useSession } from "@/lib/auth-client";
 import { useImpersonation } from "@/lib/use-impersonation";
 

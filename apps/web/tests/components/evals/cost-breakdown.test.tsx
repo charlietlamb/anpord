@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { EvalCostComponent } from "@anpord/schema/domain/eval-costs";
+import type { EvalCostComponent } from "@sphynx/schema/domain/eval-costs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CostBreakdown } from "../../../src/components/evals/cost-breakdown";
 

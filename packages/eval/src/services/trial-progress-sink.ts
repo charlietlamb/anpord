@@ -1,4 +1,4 @@
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Chunk, Effect, Ref, Schedule, Stream } from "effect";
 import type { TrialProgressShape } from "../ports/trial-progress";
 

@@ -1,8 +1,8 @@
-import type { Actor } from "@anpord/schema/domain/actor";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import type {
   CredentialBindings,
   ResolvedCredential,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { Effect, Option, Redacted } from "effect";
 import type { HarnessName, SandboxName } from "../domain/variant";
 import { CredentialError } from "./errors";

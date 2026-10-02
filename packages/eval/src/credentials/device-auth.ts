@@ -1,10 +1,10 @@
-import { IdGenerator } from "@anpord/ids/id";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import type {
   DeviceAuthChallenge,
   DeviceAuthStatus,
   StartDeviceAuth,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { Clock, Config, Context, DateTime, Effect, Layer } from "effect";
 import {
   CredentialAuthAttemptRepository,
@@ -34,7 +34,7 @@ export interface DeviceAuthShape {
   ) => Effect.Effect<DeviceAuthStatus, CredentialError>;
 }
 
-export class DeviceAuth extends Context.Tag("@anpord/eval/DeviceAuth")<
+export class DeviceAuth extends Context.Tag("@sphynx/eval/DeviceAuth")<
   DeviceAuth,
   DeviceAuthShape
 >() {}

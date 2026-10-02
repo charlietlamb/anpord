@@ -9,7 +9,7 @@ import { declinesEverything } from "../fixtures/declines-everything";
    that resumes is polled, and one that does not is streamed. Five of six
    providers are the second kind, which is the case that used to fail
    outright. */
-const RETURNED_NOTHING = "built\nANPORD_PREPARE_RESULT={}\n";
+const RETURNED_NOTHING = "built\nSPHYNX_PREPARE_RESULT={}\n";
 
 const sandboxSaying = (exitCode: number, stdout: string, stderr = "") => {
   const commands: string[] = [];
@@ -83,7 +83,7 @@ describe("running a workspace setup", () => {
   test("reads back what the setup returned", async () => {
     const { sandbox } = sandboxSaying(
       0,
-      'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n'
+      'SPHYNX_PREPARE_RESULT={"rendererPort":4173}\n'
     );
 
     expect(await Effect.runPromise(run(sandbox))).toEqual({
@@ -140,7 +140,7 @@ describe("running a workspace setup", () => {
     );
 
     expect(asked).toEqual(["deps-abc"]);
-    expect(environments[0]?.ANPORD_CACHE_RESTORED).toBe("1");
+    expect(environments[0]?.SPHYNX_CACHE_RESTORED).toBe("1");
   });
 
   test("does not claim a restore that did not happen", async () => {
@@ -163,7 +163,7 @@ describe("running a workspace setup", () => {
       }).pipe(Effect.provide(SuspenderSleeping))
     );
 
-    expect(environments[0]?.ANPORD_CACHE_RESTORED).toBeUndefined();
+    expect(environments[0]?.SPHYNX_CACHE_RESTORED).toBeUndefined();
   });
 
   /* Caching what a failed install left behind is how a broken cache outlives
@@ -212,7 +212,7 @@ describe("a prepare on a provider that cannot resume a command", () => {
   test("runs, and returns what it reported", async () => {
     const { sandbox } = sandboxSaying(
       0,
-      'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n'
+      'SPHYNX_PREPARE_RESULT={"rendererPort":4173}\n'
     );
 
     expect(await Effect.runPromise(run(sandbox))).toEqual({
@@ -221,7 +221,7 @@ describe("a prepare on a provider that cannot resume a command", () => {
   });
 
   test("returns the same value a provider that resumes would", async () => {
-    const output = 'ANPORD_PREPARE_RESULT={"rendererPort":4173}\n';
+    const output = 'SPHYNX_PREPARE_RESULT={"rendererPort":4173}\n';
     const { polled } = sandboxSaying(0, output);
     const { sandbox } = sandboxSaying(0, output);
 
@@ -250,6 +250,6 @@ describe("a prepare on a provider that cannot resume a command", () => {
       }).pipe(Effect.provide(SuspenderSleeping))
     );
 
-    expect(environments[0]?.ANPORD_CACHE_RESTORED).toBe("1");
+    expect(environments[0]?.SPHYNX_CACHE_RESTORED).toBe("1");
   });
 });

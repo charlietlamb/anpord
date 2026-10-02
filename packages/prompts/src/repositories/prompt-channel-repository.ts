@@ -1,11 +1,11 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { user } from "@anpord/db/schema/auth/users";
-import { channel } from "@anpord/db/schema/prompts/channels";
-import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
-import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
-import { IdGenerator } from "@anpord/ids/id";
-import type { ChannelName } from "@anpord/schema/domain/prompts";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { user } from "@sphynx/db/schema/auth/users";
+import { channel } from "@sphynx/db/schema/prompts/channels";
+import { promptChannel } from "@sphynx/db/schema/prompts/prompt-channels";
+import { promptVersion } from "@sphynx/db/schema/prompts/prompt-versions";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { ChannelName } from "@sphynx/schema/domain/prompts";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptStoreError } from "../domain/errors";
@@ -37,7 +37,7 @@ export interface PromptChannelRepositoryShape {
 }
 
 export class PromptChannelRepository extends Context.Tag(
-  "@anpord/prompts/PromptChannelRepository"
+  "@sphynx/prompts/PromptChannelRepository"
 )<PromptChannelRepository, PromptChannelRepositoryShape>() {}
 
 export const PromptChannelRepositoryLive = Layer.effect(

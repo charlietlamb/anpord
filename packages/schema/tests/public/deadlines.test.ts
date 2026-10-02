@@ -92,7 +92,7 @@ const run = <A, E>(effect: Effect.Effect<A, E>) =>
 
 const unreachable = { _tag: "RequestError", reason: "Transport" };
 
-describe("a request Anpord never answers", () => {
+describe("a request Sphynx never answers", () => {
   it("fails a read in 4 seconds when the server never answers at all", async () => {
     const server = await silent();
 
@@ -174,7 +174,7 @@ describe("a request Anpord never answers", () => {
   });
 });
 
-describe("checking that Anpord answers", () => {
+describe("checking that Sphynx answers", () => {
   it("asks once for a client, however many requests run at once or after", async () => {
     const server = serving({ answersCalls: true, answersProbe: () => true });
 

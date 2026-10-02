@@ -3,9 +3,9 @@ import { join } from "node:path";
 import type { World } from "../world";
 
 const AGENT = `#!/bin/bash
-echo '{"_tag":"Started","sessionId":"e2e","model":"'"$ANPORD_MODEL"'"}'
-echo done > "$ANPORD_WORKSPACE/done.txt"
-printf '{"_tag":"Message","role":"assistant","text":"Wrote done.txt with %s."}\\n' "$ANPORD_MODEL"
+echo '{"_tag":"Started","sessionId":"e2e","model":"'"$SPHYNX_MODEL"'"}'
+echo done > "$SPHYNX_WORKSPACE/done.txt"
+printf '{"_tag":"Message","role":"assistant","text":"Wrote done.txt with %s."}\\n' "$SPHYNX_MODEL"
 echo '{"_tag":"Finished","reason":"done"}'
 `;
 
@@ -23,7 +23,7 @@ const suiteSource = (
   id: string,
   cases: readonly GivenCase[],
   models: readonly string[]
-) => `import { command, suite } from "anpord";
+) => `import { command, suite } from "sphynx-sh";
 
 const profile = { dir: "./profile", name: "e2e" };
 
@@ -51,7 +51,7 @@ export const givenSuite = (
   mkdirSync(join(directory, "profile/home"), { recursive: true });
   writeFileSync(
     join(directory, "profile/profile.json"),
-    '{ "run": "bash $ANPORD_HOME/agent.sh" }\n'
+    '{ "run": "bash $SPHYNX_HOME/agent.sh" }\n'
   );
   writeFileSync(join(directory, "profile/home/agent.sh"), agent);
   writeFileSync(

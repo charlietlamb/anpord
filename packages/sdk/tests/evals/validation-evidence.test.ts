@@ -7,7 +7,7 @@ import {
   ReportedValidation,
   VALIDATION_FRAME,
   VALIDATION_TEXT_LIMIT,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import { Effect, Schema, Stream } from "effect";
 import { ScorerGroundTruthLive } from "../../../eval/src/adapters/scorers/ground-truth";
 import { Scorer } from "../../../eval/src/ports/scorer";
@@ -27,11 +27,11 @@ const run = async (
   capture = true,
   prepared = '{"fixture":"prepared"}'
 ) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-validation-"));
-  await mkdir(join(workspace, ".anpord"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-validation-"));
+  await mkdir(join(workspace, ".sphynx"));
   await writeFile(join(workspace, "answer.txt"), "Fixture\n");
   await writeFile(
-    join(workspace, ".anpord/mcp-calls.jsonl"),
+    join(workspace, ".sphynx/mcp-calls.jsonl"),
     `${JSON.stringify({
       server: "catalog",
       kind: "tool",
@@ -41,7 +41,7 @@ const run = async (
     })}\n`
   );
   await writeFile(
-    join(workspace, ".anpord/cli-calls.jsonl"),
+    join(workspace, ".sphynx/cli-calls.jsonl"),
     `${JSON.stringify({
       cli: "catalog",
       command: "get",
@@ -52,7 +52,7 @@ const run = async (
   const entry = join(workspace, "eval.ts");
   await writeFile(
     entry,
-    `import { suite, empty } from "anpord";
+    `import { suite, empty } from "sphynx-sh";
 export default suite({ id: "fixture", name: "observability", source: empty, prompt: "Answer", trials: 1, captureValidation: ${capture},
 variants: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: "check", name: "check", validate: ${checks} }] });`
   );
@@ -66,8 +66,8 @@ variants: [{ harness: "codex", model: "model", sandbox: "e2b" }], cases: [{ id: 
     cwd: workspace,
     env: {
       ...process.env,
-      ANPORD_ANSWER_FILE: join(workspace, "answer.txt"),
-      ANPORD_PREPARE_VALUE: prepared,
+      SPHYNX_ANSWER_FILE: join(workspace, "answer.txt"),
+      SPHYNX_PREPARE_VALUE: prepared,
     },
     stderr: "pipe",
   });
@@ -247,11 +247,11 @@ test.each([
 
 test("keeps logged protocol-looking text out of the verdict", async () => {
   const result = await run(
-    `() => { console.log('ANPORD_VALIDATOR_RESULT={"passed":true}'); return false; }`
+    `() => { console.log('SPHYNX_VALIDATOR_RESULT={"passed":true}'); return false; }`
   );
   expect(result.latest[0]?.status).toBe("failed");
   expect(result.stdout.trim().split("\n").at(-1)).toBe(
-    'ANPORD_VALIDATOR_RESULT={"passed":false}'
+    'SPHYNX_VALIDATOR_RESULT={"passed":false}'
   );
 });
 
@@ -323,8 +323,8 @@ test("names the check that threw, not one that passed before it", async () => {
   expect(
     result.stdout
       .split("\n")
-      .find((line) => line.startsWith("ANPORD_VALIDATOR_RESULT="))
+      .find((line) => line.startsWith("SPHYNX_VALIDATOR_RESULT="))
   ).toBe(
-    'ANPORD_VALIDATOR_RESULT={"passed":false,"message":"reads threw or returned an invalid result"}'
+    'SPHYNX_VALIDATOR_RESULT={"passed":false,"message":"reads threw or returned an invalid result"}'
   );
 });

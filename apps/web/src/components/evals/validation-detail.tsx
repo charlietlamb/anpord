@@ -1,10 +1,10 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 import {
   BracketsCurlyIcon,
   ListMagnifyingGlassIcon,
   SignInIcon,
 } from "@phosphor-icons/react";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
+import { PageTabs } from "@sphynx/ui/components/ui/page-tabs";
 import { useState } from "react";
 import { ReadEvidence } from "@/components/evals/read-evidence";
 import { ValidationExecution } from "@/components/evals/validation-execution";

@@ -1,9 +1,9 @@
-import { CredentialConnections } from "@anpord/eval/credentials/connections";
-import { credentialIntegrations } from "@anpord/eval/credentials/integrations";
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
-import { PublicApi } from "@anpord/schema/public/api";
 import { HttpApiBuilder } from "@effect/platform";
+import { CredentialConnections } from "@sphynx/eval/credentials/connections";
+import { credentialIntegrations } from "@sphynx/eval/credentials/integrations";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
+import { PublicApi } from "@sphynx/schema/public/api";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withPublicCredentialErrors } from "../../../http/credential-errors";

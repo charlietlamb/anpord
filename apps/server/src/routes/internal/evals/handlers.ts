@@ -1,6 +1,6 @@
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { AnpordApi } from "@anpord/schema/internal/api";
 import { HttpApiBuilder } from "@effect/platform";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { SphynxApi } from "@sphynx/schema/internal/api";
 import { authorized } from "../../../http/authorization/authorized-group";
 import {
   planSuiteRerun,
@@ -29,7 +29,7 @@ const read = { permission: Permissions.Evals.Read };
 const write = { permission: Permissions.Evals.Write };
 
 export const EvalsHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "evals",
   (handlers) =>
     authorized(handlers)

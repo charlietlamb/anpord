@@ -1,9 +1,9 @@
-import type { ApiCall } from "@anpord/schema/domain/api-mocks";
 import {
   HttpRouter,
   HttpServerRequest,
   HttpServerResponse,
 } from "@effect/platform";
+import type { ApiCall } from "@sphynx/schema/domain/api-mocks";
 import { Clock, Effect, Option, Ref, Schema } from "effect";
 import { apiCapture } from "./capture";
 import type { ApiDefinition, EndpointDefinition } from "./define";

@@ -1,4 +1,4 @@
-import { VARIABLE_PATTERN, variableAtStart } from "@anpord/template/syntax";
+import { VARIABLE_PATTERN, variableAtStart } from "@sphynx/template/syntax";
 import { Node, nodeInputRule } from "@tiptap/core";
 
 const TYPED_VARIABLE = new RegExp(`(?:^|[^{])(${VARIABLE_PATTERN})$`);

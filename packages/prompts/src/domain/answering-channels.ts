@@ -1,4 +1,4 @@
-import { ChannelName } from "@anpord/schema/domain/prompts";
+import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { Effect, ParseResult, Schema } from "effect";
 import type { ChannelRow } from "../repositories/prompt-channel-repository";
 import { PromptStoreError } from "./errors";

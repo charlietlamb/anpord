@@ -1,12 +1,12 @@
 import { MCPServer } from "mcp-use";
-import type { AnpordUser } from "./anpord-user";
-import { anpordOAuth } from "./oauth";
+import { sphynxOAuth } from "./oauth";
+import type { SphynxUser } from "./sphynx-user";
 import { register, serverDescription } from "./tools";
 
-const server = new MCPServer<AnpordUser>({
+const server = new MCPServer<SphynxUser>({
   description: serverDescription(),
-  name: "anpord",
-  oauth: anpordOAuth,
+  name: "sphynx",
+  oauth: sphynxOAuth,
   version: "0.2.0",
 });
 

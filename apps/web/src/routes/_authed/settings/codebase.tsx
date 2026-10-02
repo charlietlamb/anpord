@@ -1,6 +1,6 @@
-import { REPOSITORY_PAGE_SIZE } from "@anpord/schema/domain/codebase";
-import { Button } from "@anpord/ui/components/button";
 import { GitBranchIcon } from "@phosphor-icons/react";
+import { REPOSITORY_PAGE_SIZE } from "@sphynx/schema/domain/codebase";
+import { Button } from "@sphynx/ui/components/button";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";

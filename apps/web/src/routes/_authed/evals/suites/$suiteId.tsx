@@ -1,5 +1,5 @@
-import type { EvalSuiteDetail } from "@anpord/schema/domain/eval-read-models";
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+import type { EvalSuiteDetail } from "@sphynx/schema/domain/eval-read-models";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CasesTable } from "@/components/evals/cases-table";

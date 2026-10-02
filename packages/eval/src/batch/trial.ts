@@ -1,5 +1,5 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { Clock, Effect, Option, Redacted, Ref } from "effect";
 import { describeCause } from "../domain/failure";
 import { autoStopMinutesFor } from "../domain/sandbox-lifetime";
@@ -11,7 +11,7 @@ import { TrialRecorder } from "../repositories/trial-record";
 import { AgentTrial } from "../services/agent-trial";
 import { makeTrialPricing } from "./trial-pricing";
 
-const WORKSPACE = "/tmp/anpord-task";
+const WORKSPACE = "/tmp/sphynx-task";
 
 export interface TrialCredentials {
   readonly harness: Redacted.Redacted<ResolvedCredential>;

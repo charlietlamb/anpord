@@ -1,14 +1,14 @@
+import { PlusIcon } from "@phosphor-icons/react";
 import type {
   CredentialConnection,
   CredentialIntegration,
-} from "@anpord/schema/domain/credentials";
-import { Button } from "@anpord/ui/components/button";
+} from "@sphynx/schema/domain/credentials";
+import { Button } from "@sphynx/ui/components/button";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { PlusIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ListState } from "@/components/layout/list-state";

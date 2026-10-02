@@ -1,11 +1,11 @@
 import { afterAll, describe, expect, it } from "bun:test";
 import { createServer, type Socket } from "node:net";
-import { make } from "@anpord/schema/public/client";
 import {
   FetchHttpClient,
   HttpClientError,
   HttpClientRequest,
 } from "@effect/platform";
+import { make } from "@sphynx/schema/public/client";
 import {
   Duration,
   Effect,
@@ -16,7 +16,7 @@ import {
   TestContext,
 } from "effect";
 import { retryTransient } from "../../src/cli/transient";
-import { asAnpordError } from "../../src/client/errors";
+import { asSphynxError } from "../../src/client/errors";
 
 const held: Socket[] = [];
 const silent = createServer((socket) => {
@@ -33,7 +33,7 @@ afterAll(() => {
 });
 
 const unreachable = (origin: string) =>
-  `Unable to reach Anpord at ${origin}. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address.`;
+  `Unable to reach Sphynx at ${origin}. Check your network connection, or set SPHYNX_BASE_URL if your Sphynx server is at another address.`;
 
 const contact = async (baseUrl: string, holding = false) => {
   const startedAt = Date.now();
@@ -50,12 +50,12 @@ const contact = async (baseUrl: string, holding = false) => {
   return {
     elapsedMs: Date.now() - startedAt,
     said: Either.isLeft(result)
-      ? asAnpordError(result.left).message
+      ? asSphynxError(result.left).message
       : "answered",
   };
 };
 
-describe("first contact with Anpord", () => {
+describe("first contact with Sphynx", () => {
   it("gives up fast on a refused connection, and says how to fix it", async () => {
     const reached = await contact("http://127.0.0.1:1");
 

@@ -1,8 +1,8 @@
+import { ArrowDownIcon, ArrowUpIcon } from "@phosphor-icons/react";
 import type {
   EvalHomeRange,
   EvalHomeVerdict,
-} from "@anpord/schema/domain/eval-home";
-import { ArrowDownIcon, ArrowUpIcon } from "@phosphor-icons/react";
+} from "@sphynx/schema/domain/eval-home";
 import { HomeKpi } from "@/components/home/home-kpi";
 import { HomePanel } from "@/components/home/home-panel";
 import { Sparkline } from "@/components/home/sparkline";

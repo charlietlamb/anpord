@@ -2,12 +2,12 @@ import type {
   EvalBatchTail,
   EvalTailEvent,
   EvalTailMark,
-} from "@anpord/schema/domain/eval-tail";
+} from "@sphynx/schema/domain/eval-tail";
 import type {
   EvalJournalEntry,
   EvalTrial,
-} from "@anpord/schema/domain/eval-trial";
-import type { EvalBatch, EvalRun } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-trial";
+import type { EvalBatch, EvalRun } from "@sphynx/schema/domain/evals";
 
 type Journals = ReadonlyMap<string, readonly EvalJournalEntry[]>;
 

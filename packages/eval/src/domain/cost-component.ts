@@ -1,7 +1,7 @@
 import {
   CostClassification,
   CostComponentName,
-} from "@anpord/schema/domain/eval-costs";
+} from "@sphynx/schema/domain/eval-costs";
 import { type Option, Schema } from "effect";
 
 /* Decoded, not asserted: both columns are plain text with no check constraint. */

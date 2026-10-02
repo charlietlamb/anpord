@@ -1,4 +1,4 @@
-import type { ValidatorContext } from "anpord";
+import type { ValidatorContext } from "sphynx-sh";
 import type { RequestEvidence } from "../scenarios";
 import type { Transport } from "../validators/catalog";
 

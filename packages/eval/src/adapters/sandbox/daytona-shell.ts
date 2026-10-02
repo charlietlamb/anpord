@@ -17,7 +17,7 @@ export const sessionName = Effect.gen(function* () {
   const at = yield* Clock.currentTimeMillis;
   const salt = yield* Random.nextIntBetween(0, 1_000_000);
 
-  return `anpord-${at}-${salt}`;
+  return `sphynx-${at}-${salt}`;
 });
 
 export const startSessionCommand = (

@@ -1,7 +1,7 @@
-import { entryKindOf, labelOf } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { ShellText } from "@anpord/ui/components/ui/shell-text";
-import { cn } from "@anpord/ui/lib/utils";
+import { entryKindOf, labelOf } from "@sphynx/schema/domain/eval-journal";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import { ShellText } from "@sphynx/ui/components/ui/shell-text";
+import { cn } from "@sphynx/ui/lib/utils";
 import { CallName } from "@/components/evals/call-name";
 import { ExitCode } from "@/components/evals/exit-code";
 import { KindIcon } from "@/components/evals/kind-icon";

@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "almond",
-  "name": "Anpord",
+  "name": "Sphynx",
   "description": "Evals for coding agents",
   "colors": {
     "primary": "#008aaf",
@@ -27,7 +27,7 @@
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg",
-    "href": "https://www.anpord.com"
+    "href": "https://www.sphynx.sh"
   },
   "navigation": {
     "tabs": [
@@ -150,18 +150,18 @@
   "navbar": {
     "primary": {
       "type": "github",
-      "href": "https://github.com/charlietlamb/anpord"
+      "href": "https://github.com/charlietlamb/sphynx"
     },
     "links": [
       {
         "label": "Dashboard",
-        "href": "https://www.anpord.com"
+        "href": "https://www.sphynx.sh"
       }
     ]
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/charlietlamb/anpord"
+      "github": "https://github.com/charlietlamb/sphynx"
     }
   }
 }

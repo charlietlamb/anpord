@@ -1,5 +1,5 @@
-import type { ChannelPlacement } from "@anpord/schema/domain/prompts";
-import { PRODUCTION } from "@anpord/schema/domain/prompts";
+import type { ChannelPlacement } from "@sphynx/schema/domain/prompts";
+import { PRODUCTION } from "@sphynx/schema/domain/prompts";
 import { toast } from "sonner";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { useSetPromptChannel } from "@/lib/query/use-set-prompt-channel";

@@ -1,4 +1,4 @@
-import { judge } from "anpord/validators";
+import { judge } from "sphynx-sh/validators";
 import { item } from "../fixtures/catalog";
 
 export const correctItem = judge({

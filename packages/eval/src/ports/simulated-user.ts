@@ -1,9 +1,9 @@
 import type {
   CredentialValues,
   ResolvedCredential,
-} from "@anpord/schema/domain/credentials";
-import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
-import type { ModelSpend } from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/credentials";
+import type { EvalSimulatedUser } from "@sphynx/schema/domain/eval-turns";
+import type { ModelSpend } from "@sphynx/schema/domain/harness-event";
 import {
   Context,
   Effect,
@@ -50,7 +50,7 @@ export interface SimulatedUserShape {
   ) => Effect.Effect<UserConversation, UserUnavailable, Scope.Scope>;
 }
 
-export class SimulatedUser extends Context.Tag("@anpord/eval/SimulatedUser")<
+export class SimulatedUser extends Context.Tag("@sphynx/eval/SimulatedUser")<
   SimulatedUser,
   SimulatedUserShape
 >() {}

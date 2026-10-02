@@ -1,4 +1,4 @@
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
 import { and, eq, isNotNull, lt, type SQL } from "drizzle-orm";
 
 export const quietLocalBatch = (since: Date) =>

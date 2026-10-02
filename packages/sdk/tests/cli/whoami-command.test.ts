@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import type { Whoami } from "@anpord/schema/public/auth-api";
 import { Command } from "@effect/cli";
 import { FetchHttpClient } from "@effect/platform";
 import { NodeContext } from "@effect/platform-node";
+import type { Whoami } from "@sphynx/schema/public/auth-api";
 import { Effect, Layer } from "effect";
 import {
   announceOrganization,
@@ -34,8 +34,8 @@ const server = Bun.serve({
 const environment = { ...process.env };
 
 beforeAll(() => {
-  process.env.ANPORD_API_KEY = "anp_secret";
-  process.env.ANPORD_BASE_URL = server.url.href.slice(0, -1);
+  process.env.SPHYNX_API_KEY = "anp_secret";
+  process.env.SPHYNX_BASE_URL = server.url.href.slice(0, -1);
 });
 
 afterAll(() => {
@@ -66,22 +66,22 @@ const captured = async (run: () => Promise<unknown>) => {
 };
 
 const cli = Command.run(
-  Command.make("anpord").pipe(
+  Command.make("sphynx").pipe(
     Command.withSubcommands([Command.provide(whoami, ClientLayer)])
   ),
-  { name: "Anpord", version: "0.0.0" }
+  { name: "Sphynx", version: "0.0.0" }
 );
 
 const runCli = (...args: string[]) =>
   captured(() =>
     Effect.runPromise(
-      cli(["node", "anpord", ...args]).pipe(
+      cli(["node", "sphynx", ...args]).pipe(
         Effect.provide(Layer.mergeAll(NodeContext.layer, FetchHttpClient.layer))
       )
     )
   );
 
-describe("anpord whoami", () => {
+describe("sphynx whoami", () => {
   test("prints one fact per line, aligned", async () => {
     answer = { body: ACME, status: 200 };
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { EvalTrialStatus } from "@anpord/schema/domain/eval-trial";
+import type { EvalTrialStatus } from "@sphynx/schema/domain/eval-trial";
 import { distributionOf } from "../../src/domain/distribution";
 
 const outcome = (status: EvalTrialStatus, commands: number) => ({

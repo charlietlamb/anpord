@@ -1,11 +1,11 @@
 "use client";
 
-import { FieldInfo } from "@anpord/ui/components/form/field-info";
-import { Label } from "@anpord/ui/components/ui/label";
-import { useFieldContext } from "@anpord/ui/hooks/form-context";
-import { FIELD_SURFACE } from "@anpord/ui/lib/field";
-import { cn } from "@anpord/ui/lib/utils";
 import { XIcon } from "@phosphor-icons/react";
+import { FieldInfo } from "@sphynx/ui/components/form/field-info";
+import { Label } from "@sphynx/ui/components/ui/label";
+import { useFieldContext } from "@sphynx/ui/hooks/form-context";
+import { FIELD_SURFACE } from "@sphynx/ui/lib/field";
+import { cn } from "@sphynx/ui/lib/utils";
 import { type KeyboardEvent, useState } from "react";
 
 interface TagsFieldProps {

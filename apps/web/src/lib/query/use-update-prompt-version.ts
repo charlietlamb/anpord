@@ -1,4 +1,4 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import type { ResolvedPrompt } from "@sphynx/schema/domain/prompts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateVersion } from "@/lib/prompts-client";
 import { activityKeys } from "@/lib/query/activity-keys";

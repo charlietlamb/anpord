@@ -1,5 +1,5 @@
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
 import { HttpClient } from "@effect/platform";
+import type { CredentialValues } from "@sphynx/schema/domain/credentials";
 import { Effect, Layer, Record, Redacted } from "effect";
 import type { SandboxName } from "../../domain/variant";
 import { SandboxAdapters } from "../../ports/sandbox";

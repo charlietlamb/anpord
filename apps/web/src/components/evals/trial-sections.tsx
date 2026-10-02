@@ -1,5 +1,5 @@
-import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
 import type { Icon } from "@phosphor-icons/react";
+import { PageTabs } from "@sphynx/ui/components/ui/page-tabs";
 import { parseAsString, useQueryState } from "nuqs";
 // biome-ignore lint/correctness/noUnresolvedImports: biome cannot see the Suspense export in the react types
 import { type ReactNode, Suspense } from "react";

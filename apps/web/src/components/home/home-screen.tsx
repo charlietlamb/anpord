@@ -1,6 +1,6 @@
-import type { EvalHome } from "@anpord/schema/domain/eval-home";
-import { Button } from "@anpord/ui/components/button";
 import { HouseIcon, PlusIcon } from "@phosphor-icons/react";
+import type { EvalHome } from "@sphynx/schema/domain/eval-home";
+import { Button } from "@sphynx/ui/components/button";
 import { Link } from "@tanstack/react-router";
 import { HomeDashboard } from "@/components/home/home-dashboard";
 import { HomeToolbar } from "@/components/home/home-toolbar";

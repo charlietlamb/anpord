@@ -1,8 +1,8 @@
-import { type Db, head, tryStoreWith } from "@anpord/db/query";
-import { member } from "@anpord/db/schema/auth/members";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { user } from "@anpord/db/schema/auth/users";
-import { channel } from "@anpord/db/schema/prompts/channels";
+import { type Db, head, tryStoreWith } from "@sphynx/db/query";
+import { member } from "@sphynx/db/schema/auth/members";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { user } from "@sphynx/db/schema/auth/users";
+import { channel } from "@sphynx/db/schema/prompts/channels";
 import { and, desc, eq } from "drizzle-orm";
 import { Effect, type Option } from "effect";
 import { OrganizationStoreError } from "./organization-store-error";

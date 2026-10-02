@@ -1,11 +1,11 @@
-import type { CredentialError } from "@anpord/eval/credentials/errors";
+import type { CredentialError } from "@sphynx/eval/credentials/errors";
 import type {
   EvalNotFound,
   EvalStoreError,
   NotRunnable,
   StartRefused,
-} from "@anpord/eval/domain/errors";
-import { BadRequest, Conflict, NotFound } from "@anpord/schema/domain/errors";
+} from "@sphynx/eval/domain/errors";
+import { BadRequest, Conflict, NotFound } from "@sphynx/schema/domain/errors";
 import { Effect } from "effect";
 import { credentialApiError } from "./credential-errors";
 import { logAndDie } from "./log-and-die";

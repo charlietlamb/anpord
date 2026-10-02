@@ -4,7 +4,7 @@ export interface RunBellShape {
   readonly ring: Effect.Effect<void>;
 }
 
-export class RunBell extends Context.Tag("@anpord/eval/RunBell")<
+export class RunBell extends Context.Tag("@sphynx/eval/RunBell")<
   RunBell,
   RunBellShape
 >() {}

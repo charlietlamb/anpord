@@ -1,7 +1,7 @@
 import {
   Repository,
   SourceControlAccount,
-} from "@anpord/schema/domain/codebase";
+} from "@sphynx/schema/domain/codebase";
 import { Schema } from "effect";
 import { createApiClient } from "@/lib/api-client";
 

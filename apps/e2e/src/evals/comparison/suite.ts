@@ -1,4 +1,4 @@
-import { type EvalVariantDefinition, empty, suite } from "anpord";
+import { type EvalVariantDefinition, empty, suite } from "sphynx-sh";
 import { catalogApi } from "./mocks/api";
 import { catalogCli } from "./mocks/cli";
 import { catalogMcp } from "./mocks/mcp";
@@ -16,8 +16,8 @@ export const comparisonSuite = (
   variants: readonly EvalVariantDefinition[]
 ) =>
   suite({
-    id: `anpord-models-${name}`,
-    name: `anpord-models/${name}`,
+    id: `sphynx-models-${name}`,
+    name: `sphynx-models/${name}`,
     source: empty,
     mcp: [catalogMcp],
     cli: [catalogCli],

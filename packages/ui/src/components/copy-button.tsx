@@ -1,6 +1,6 @@
-import { Button } from "@anpord/ui/components/button";
-import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { useCopy } from "@sphynx/ui/hooks/use-copy";
 
 export const COPY_RESET_MS = 1500;
 

@@ -24,7 +24,7 @@ The screenshot's older CI run used `61a3f3d`, before source capture reached main
 
 - 54 focused offline tests pass. Coverage includes compiled validators, exact method results, stdout/stderr, exceptions, exact TypeScript, mock CLI/MCP evidence, judge request contents, choice mapping, invalid output, timeouts, and verdict composition.
 - Scoped SDK/eval typechecks and formatting checks pass.
-- [Production CI 34042873968](https://github.com/charlietlamb/anpord/actions/runs/34042873968) passed all nine trials under Anpord CI (`4hlLjOnlVfxKtRKJRlfL8PtHJVadmSaP`).
+- [Production CI 34042873968](https://github.com/charlietlamb/sphynx/actions/runs/34042873968) passed all nine trials under Sphynx CI (`4hlLjOnlVfxKtRKJRlfL8PtHJVadmSaP`).
 - API reports contain five source files for CLI, five for MCP, and three for SDK. All 13 copies match local source text exactly. Every report retains the CI trigger link.
 - CLI: `run_8VC5VECJB5MDHMZGEACRGWAK`; MCP: `run_B9AQ6TK075XEYJC45DRKD1KP`; SDK: `run_6DAYMD55VP77E842EMN20NSB`.
 - These CI suites contain code validators, not LLM judges. Their empty `judgments` arrays are expected.

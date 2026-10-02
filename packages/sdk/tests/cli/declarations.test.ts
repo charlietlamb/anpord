@@ -7,7 +7,7 @@ describe("the generated declarations", () => {
   test("import the module before augmenting it", () => {
     const file = declarationFile([["a", ["x"]]]);
 
-    expect(file.indexOf('import "anpord";')).toBeLessThan(
+    expect(file.indexOf('import "sphynx-sh";')).toBeLessThan(
       file.indexOf("declare module")
     );
   });

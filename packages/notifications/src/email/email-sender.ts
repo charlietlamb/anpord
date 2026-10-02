@@ -13,5 +13,5 @@ export interface EmailSenderShape {
 }
 
 export class EmailSender extends Context.Tag(
-  "@anpord/notifications/EmailSender"
+  "@sphynx/notifications/EmailSender"
 )<EmailSender, EmailSenderShape>() {}

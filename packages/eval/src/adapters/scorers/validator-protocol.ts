@@ -2,7 +2,7 @@ import {
   ANSWER_ENV,
   TRANSCRIPT_ENV,
   TURNS_ENV,
-} from "@anpord/schema/domain/sandbox-env";
+} from "@sphynx/schema/domain/sandbox-env";
 import { Effect, Option, Schema } from "effect";
 import {
   ANSWER_PATH,
@@ -13,7 +13,7 @@ import { readAnswer, transcriptOf } from "../../domain/journal";
 import type { SandboxHandle } from "../../ports/sandbox";
 import type { ScoreRequest } from "../../ports/scorer";
 
-const RESULT = "ANPORD_VALIDATOR_RESULT=";
+const RESULT = "SPHYNX_VALIDATOR_RESULT=";
 
 export const validatorResultOf = (output: string) => {
   const line = output.split("\n").findLast((entry) => entry.startsWith(RESULT));

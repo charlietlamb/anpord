@@ -78,7 +78,7 @@ diff --git a/packages/sdk/tests/evals/validator-answer.test.ts b/packages/sdk/te
 +
 +    expect(result).toEqual({
 +      exitCode: 0,
-+      output: `Checking fixture\nANPORD_VALIDATOR_RESULT=${JSON.stringify({
++      output: `Checking fixture\nSPHYNX_VALIDATOR_RESULT=${JSON.stringify({
 +        passed: true,
 +        message: JSON.stringify({
 +          input: "fixture\n",
@@ -95,7 +95,7 @@ diff --git a/packages/sdk/tests/evals/validator-answer.test.ts b/packages/sdk/te
 +      {}
 +    );
 +    expect(result.exitCode).toBe(1);
-+    expect(result.output).not.toContain("ANPORD_VALIDATOR_RESULT=");
++    expect(result.output).not.toContain("SPHYNX_VALIDATOR_RESULT=");
 +    expect(result.stderr).toContain("Error: Fixture unavailable");
 +  });
 +

@@ -1,7 +1,7 @@
 import type {
   CreatePromptRequest,
   UpdatePromptRequest,
-} from "@anpord/schema/public/requests";
+} from "@sphynx/schema/public/requests";
 
 export const fromPublicCreate = (payload: typeof CreatePromptRequest.Type) => ({
   commitMessage: payload.message,

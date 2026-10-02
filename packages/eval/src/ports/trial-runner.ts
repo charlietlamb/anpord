@@ -10,7 +10,7 @@ export interface TrialRunnerShape {
   readonly dispatch: (input: BatchDispatch) => Effect.Effect<void>;
 }
 
-export class TrialRunner extends Context.Tag("@anpord/eval/TrialRunner")<
+export class TrialRunner extends Context.Tag("@sphynx/eval/TrialRunner")<
   TrialRunner,
   TrialRunnerShape
 >() {}

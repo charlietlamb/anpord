@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { runStatus } from "@anpord/ui/lib/evals/eval-status";
+import { runStatus } from "@sphynx/ui/lib/evals/eval-status";
 
 const run = (
   status: "failed" | "finished" | "running",

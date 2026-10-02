@@ -1,5 +1,6 @@
-import type { EvalSuite } from "@anpord/schema/domain/evals";
-import { Button } from "@anpord/ui/components/button";
+import { CaretDownIcon, StackIcon } from "@phosphor-icons/react";
+import type { EvalSuite } from "@sphynx/schema/domain/evals";
+import { Button } from "@sphynx/ui/components/button";
 import {
   Command,
   CommandEmpty,
@@ -7,13 +8,12 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@anpord/ui/components/ui/command";
+} from "@sphynx/ui/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anpord/ui/components/ui/popover";
-import { CaretDownIcon, StackIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/popover";
 import { useState } from "react";
 
 export function RerunSuiteField({

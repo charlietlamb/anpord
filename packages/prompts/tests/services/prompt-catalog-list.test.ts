@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { IdGenerator } from "@anpord/ids/id";
-import type { PromptSortOrder } from "@anpord/schema/domain/prompts";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { PromptSortOrder } from "@sphynx/schema/domain/prompts";
 import { Effect, Exit, Layer } from "effect";
 import { ChannelRepository } from "../../src/repositories/channel-repository";
 import type { PromptListRow } from "../../src/repositories/prompt-list-query";

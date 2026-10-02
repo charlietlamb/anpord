@@ -1,4 +1,4 @@
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
+import { Actor, OrganizationId, UserId } from "@sphynx/schema/domain/actor";
 
 export const systemActor = (organizationId: string) =>
   Actor.make({

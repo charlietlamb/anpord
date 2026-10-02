@@ -1,5 +1,5 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { extractVariables } from "@anpord/template/extract";
+import type { ResolvedPrompt } from "@sphynx/schema/domain/prompts";
+import { extractVariables } from "@sphynx/template/extract";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PromptActivityFeed } from "@/components/prompts/prompt-activity-feed";

@@ -1,7 +1,7 @@
-import type { EvalVariant } from "@anpord/schema/domain/evals";
-import { Button } from "@anpord/ui/components/button";
-import { cn, SPIN } from "@anpord/ui/lib/utils";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
+import type { EvalVariant } from "@sphynx/schema/domain/evals";
+import { Button } from "@sphynx/ui/components/button";
+import { cn, SPIN } from "@sphynx/ui/lib/utils";
 import { toast } from "sonner";
 import { useRunCase } from "@/lib/evals/eval-mutations";
 

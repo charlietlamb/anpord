@@ -1,8 +1,8 @@
-import { Auth } from "@anpord/auth";
-import { API_KEY_PREFIX } from "@anpord/auth/credentials/api-key-prefix";
-import { OrganizationStore } from "@anpord/auth/organization";
-import { ApiKeyAuthentication } from "@anpord/schema/public/authentication";
 import { HttpApiBuilder } from "@effect/platform";
+import { Auth } from "@sphynx/auth";
+import { API_KEY_PREFIX } from "@sphynx/auth/credentials/api-key-prefix";
+import { OrganizationStore } from "@sphynx/auth/organization";
+import { ApiKeyAuthentication } from "@sphynx/schema/public/authentication";
 import { Effect, Layer, Redacted } from "effect";
 import { resolveOAuthToken } from "./oauth-token";
 import { VerifiedKeys } from "./verified-keys";

@@ -3,7 +3,7 @@ title: "Command harness"
 description: "Run your own agent as a process inside the sandbox"
 ---
 
-The `command` harness runs a process you own instead of a coding agent Anpord installs. Anpord starts it in the sandbox, passes it the case through environment variables, reads events from its stdout, and scores the trial with the case's `validate`.
+The `command` harness runs a process you own instead of a coding agent Sphynx installs. Sphynx starts it in the sandbox, passes it the case through environment variables, reads events from its stdout, and scores the trial with the case's `validate`.
 
 ```ts
 variants: [
@@ -22,21 +22,21 @@ The command harness needs a [profile](/evals/profiles). Its `run` is the command
 
 | Variable | Value |
 | --- | --- |
-| `ANPORD_PROMPT` | The case prompt |
-| `ANPORD_MODEL` | The variant's `model`, verbatim |
-| `ANPORD_HOME` | The sandbox home directory |
-| `ANPORD_WORKSPACE` | The workspace, and the working directory when the process starts |
-| `ANPORD_SYSTEM_PROMPT_FILE` | Path to the profile's system prompt, when it has one |
-| `ANPORD_TRACE_LOG` | Where the shell recorder appends what it sees |
+| `SPHYNX_PROMPT` | The case prompt |
+| `SPHYNX_MODEL` | The variant's `model`, verbatim |
+| `SPHYNX_HOME` | The sandbox home directory |
+| `SPHYNX_WORKSPACE` | The workspace, and the working directory when the process starts |
+| `SPHYNX_SYSTEM_PROMPT_FILE` | Path to the profile's system prompt, when it has one |
+| `SPHYNX_TRACE_LOG` | Where the shell recorder appends what it sees |
 
 The profile's `env` is set too. Stdin is closed.
 
 ## Runner kit
 
-Write the process in TypeScript with `anpord/runner`. It reads the environment and prints the event lines for you, and it rejects a line the server would not accept.
+Write the process in TypeScript with `sphynx-sh/runner`. It reads the environment and prints the event lines for you, and it rejects a line the server would not accept.
 
 ```ts
-import { createEmitter, env } from "anpord/runner";
+import { createEmitter, env } from "sphynx-sh/runner";
 
 const { model, prompt } = env();
 const emit = createEmitter();
@@ -92,13 +92,13 @@ Print one JSON object per line on stdout. Lines with a known `_tag` are recorded
 
 ## Exit
 
-A non-zero exit does not fail the trial or discard earlier events. If the process never prints `Finished`, Anpord records one with the reason `exit N`. The trial is scored either way.
+A non-zero exit does not fail the trial or discard earlier events. If the process never prints `Finished`, Sphynx records one with the reason `exit N`. The trial is scored either way.
 
 The process shares the case's [time limit](/evals/cases#limits) with every other turn of the trial, 15 minutes by default. If it is still running when the limit runs out, it is stopped and the trial ends as timed out.
 
 ## The recorder
 
-Anpord sources a small script into every non-interactive bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `ANPORD_TRACE_LOG`. Each line becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with exactly the same text. The log is cleared after each turn, so a turn records only the commands it ran.
+Sphynx sources a small script into every non-interactive bash the process starts, through `BASH_ENV`. Its `DEBUG` trap appends one line per command to `SPHYNX_TRACE_LOG`. Each line becomes a `Command` in the journal with a `null` exit code, unless you already printed a `Command` with exactly the same text. The log is cleared after each turn, so a turn records only the commands it ran.
 
 It only sees bash and zsh, the two shells with a `DEBUG` trap:
 

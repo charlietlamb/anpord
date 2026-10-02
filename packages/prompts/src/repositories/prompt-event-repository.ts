@@ -1,8 +1,8 @@
-import { Database } from "@anpord/db/client";
-import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
-import { IdGenerator } from "@anpord/ids/id";
-import type { OrganizationId } from "@anpord/schema/domain/actor";
-import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
+import { Database } from "@sphynx/db/client";
+import { promptEvent } from "@sphynx/db/schema/prompts/prompt-events";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { OrganizationId } from "@sphynx/schema/domain/actor";
+import type { PromptEventKind } from "@sphynx/schema/domain/prompt-events";
 import { Context, Effect, Layer } from "effect";
 import type { PromptStoreError } from "../domain/errors";
 import {
@@ -46,7 +46,7 @@ export interface PromptEventRepositoryShape {
 }
 
 export class PromptEventRepository extends Context.Tag(
-  "@anpord/prompts/PromptEventRepository"
+  "@sphynx/prompts/PromptEventRepository"
 )<PromptEventRepository, PromptEventRepositoryShape>() {}
 
 export const PromptEventRepositoryLive = Layer.effect(

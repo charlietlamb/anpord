@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import type { EvalTrialStatus } from "@anpord/schema/domain/eval-trial";
-import { decodeTrialStatus } from "@anpord/schema/domain/trial";
+import type { EvalTrialStatus } from "@sphynx/schema/domain/eval-trial";
+import { decodeTrialStatus } from "@sphynx/schema/domain/trial";
 import { Option } from "effect";
 import { outcomeOf } from "../../src/domain/trial";
 

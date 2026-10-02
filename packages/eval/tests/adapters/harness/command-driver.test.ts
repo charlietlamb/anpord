@@ -13,7 +13,7 @@ import {
   WORKSPACE,
 } from "./command-fake";
 
-const TRACE = `${HOME}/.anpord/trace-sandbox.ndjson`;
+const TRACE = `${HOME}/.sphynx/trace-sandbox.ndjson`;
 
 describe("the command harness command line", () => {
   it("carries the case in variables a shell cannot reinterpret", async () => {
@@ -24,12 +24,12 @@ describe("the command harness command line", () => {
       [
         `cd '${WORKSPACE}'`,
         "&&",
-        "ANPORD_PROMPT='fix it'\\''s broken'",
-        "ANPORD_MODEL='vendor/model'",
-        `ANPORD_HOME='${HOME}'`,
-        `ANPORD_WORKSPACE='${WORKSPACE}'`,
-        `ANPORD_TRACE_LOG='${TRACE}'`,
-        `BASH_ENV='${HOME}/.anpord/trace.sh'`,
+        "SPHYNX_PROMPT='fix it'\\''s broken'",
+        "SPHYNX_MODEL='vendor/model'",
+        `SPHYNX_HOME='${HOME}'`,
+        `SPHYNX_WORKSPACE='${WORKSPACE}'`,
+        `SPHYNX_TRACE_LOG='${TRACE}'`,
+        `BASH_ENV='${HOME}/.sphynx/trace.sh'`,
         "bash -c './agent.sh'",
         "< /dev/null",
       ].join(" ")
@@ -37,11 +37,11 @@ describe("the command harness command line", () => {
   });
 
   it("keeps each sandbox's commands in its own trace, so trials sharing a home never mix", () => {
-    const first = tracePath({ home: HOME, id: "/tmp/anpord-local-a" });
-    const second = tracePath({ home: HOME, id: "/tmp/anpord-local-b" });
+    const first = tracePath({ home: HOME, id: "/tmp/sphynx-local-a" });
+    const second = tracePath({ home: HOME, id: "/tmp/sphynx-local-b" });
 
     expect(first).not.toBe(second);
-    expect(first).toBe(`${HOME}/.anpord/trace--tmp-anpord-local-a.ndjson`);
+    expect(first).toBe(`${HOME}/.sphynx/trace--tmp-sphynx-local-a.ndjson`);
   });
 
   it("names the system prompt only when the profile ships one", async () => {
@@ -50,7 +50,7 @@ describe("the command harness command line", () => {
     await Effect.runPromise(
       CommandDriver.run({
         ...request(sandbox, profile()),
-        systemPromptPath: Option.some(`${HOME}/.anpord/system-prompt.md`),
+        systemPromptPath: Option.some(`${HOME}/.sphynx/system-prompt.md`),
       }).pipe(
         Effect.flatMap((session) => Stream.runDrain(session.events)),
         Effect.scoped
@@ -58,7 +58,7 @@ describe("the command harness command line", () => {
     );
 
     expect(commands[0]).toContain(
-      `ANPORD_SYSTEM_PROMPT_FILE='${HOME}/.anpord/system-prompt.md'`
+      `SPHYNX_SYSTEM_PROMPT_FILE='${HOME}/.sphynx/system-prompt.md'`
     );
   });
 });
@@ -85,7 +85,7 @@ describe("the command harness driver", () => {
 
     expect(env).toEqual({});
     expect(writes.map(({ path }) => path)).toEqual([
-      `${HOME}/.anpord/trace.sh`,
+      `${HOME}/.sphynx/trace.sh`,
     ]);
     /* The install runs once, in the workspace step, where the profile's own
        files already exist for it to read. */

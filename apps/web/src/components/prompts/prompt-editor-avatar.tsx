@@ -1,5 +1,5 @@
-import type { Author } from "@anpord/schema/domain/prompts";
-import { initials } from "@anpord/ui/lib/initials";
+import type { Author } from "@sphynx/schema/domain/prompts";
+import { initials } from "@sphynx/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 
 export function PromptEditorAvatar({

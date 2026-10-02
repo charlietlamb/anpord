@@ -1,10 +1,10 @@
-import type { Channel } from "@anpord/schema/domain/channels";
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { Button } from "@anpord/ui/components/button";
-import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
-import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
-import { BLEED_ROW } from "@anpord/ui/lib/bleed-row";
-import { cn } from "@anpord/ui/lib/utils";
+import type { Channel } from "@sphynx/schema/domain/channels";
+import type { ResolvedPrompt } from "@sphynx/schema/domain/prompts";
+import { Button } from "@sphynx/ui/components/button";
+import { ChannelDot } from "@sphynx/ui/components/ui/channel-dot";
+import { useRelativeTime } from "@sphynx/ui/hooks/use-relative-time";
+import { BLEED_ROW } from "@sphynx/ui/lib/bleed-row";
+import { cn } from "@sphynx/ui/lib/utils";
 import { VersionActions } from "@/components/prompts/version-actions";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 

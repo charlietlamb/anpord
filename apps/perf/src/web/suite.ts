@@ -1,4 +1,4 @@
-import { freePort } from "@anpord/e2e/src/harness/ports";
+import { freePort } from "@sphynx/e2e/src/harness/ports";
 import type { BrowserContext } from "puppeteer-core";
 import {
   informational,

@@ -1,5 +1,5 @@
-import { IdGeneratorLive } from "@anpord/ids/layer";
 import { FetchHttpClient } from "@effect/platform";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
 import { Layer } from "effect";
 import type { ConfigError } from "effect/ConfigError";
 import { HarnessesLive } from "./adapters/harness/resolve";

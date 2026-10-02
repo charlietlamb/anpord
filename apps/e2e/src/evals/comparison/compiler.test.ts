@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { compileEval } from "anpord/eval";
+import { compileEval } from "sphynx-sh/eval";
 import { journals } from "./fixtures/evidence";
 import { scenarios } from "./scenarios";
 import { transports } from "./validators/catalog";
@@ -34,7 +34,7 @@ test.each([
   for (const task of compiled.variants) {
     expect(task.harness).toBe(agent);
     expect(
-      task.profile?.files["workspace/.anpord/api/program.json"]
+      task.profile?.files["workspace/.sphynx/api/program.json"]
     ).toBeDefined();
     if (agent === "claude") {
       expect(task.profile?.files["workspace/.mcp.json"]).toBeDefined();
@@ -62,19 +62,19 @@ test.each([
         )
       ).toBe(true);
       const workspace = await mkdtemp(
-        join(tmpdir(), "anpord-model-validator-")
+        join(tmpdir(), "sphynx-model-validator-")
       );
       try {
-        await mkdir(join(workspace, ".anpord/api"), { recursive: true });
-        await writeFile(join(workspace, ".anpord/api/calls.jsonl"), "");
+        await mkdir(join(workspace, ".sphynx/api"), { recursive: true });
+        await writeFile(join(workspace, ".sphynx/api/calls.jsonl"), "");
         const script = join(workspace, "validator.mjs");
         const answer = join(workspace, "answer.txt");
         await writeFile(script, validator.source);
         await writeFile(answer, JSON.stringify(scenario.expected));
         const path =
           transport === "api"
-            ? ".anpord/api/calls.jsonl"
-            : `.anpord/${transport}-calls.jsonl`;
+            ? ".sphynx/api/calls.jsonl"
+            : `.sphynx/${transport}-calls.jsonl`;
         await writeFile(
           join(workspace, path),
           journals(scenario.requests)
@@ -83,7 +83,7 @@ test.each([
         );
         const child = Bun.spawn(["node", script], {
           cwd: workspace,
-          env: { PATH: process.env.PATH, ANPORD_ANSWER_FILE: answer },
+          env: { PATH: process.env.PATH, SPHYNX_ANSWER_FILE: answer },
           stdout: "pipe",
           stderr: "pipe",
         });
@@ -94,8 +94,8 @@ test.each([
         ]);
         expect(error).toBe("");
         expect(exitCode, output).toBe(0);
-        expect(output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true');
-        expect(output).toContain("ANPORD_VALIDATION=");
+        expect(output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true');
+        expect(output).toContain("SPHYNX_VALIDATION=");
       } finally {
         await rm(workspace, { recursive: true, force: true });
       }

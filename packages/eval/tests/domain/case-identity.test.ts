@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { EvalValidator } from "@anpord/schema/domain/eval-definition";
+import { EvalValidator } from "@sphynx/schema/domain/eval-definition";
 import { Schema } from "effect";
 import {
   type CaseDefinition,

@@ -1,4 +1,4 @@
-import { batchTagOf } from "@anpord/schema/domain/eval-batch-subscription";
+import { batchTagOf } from "@sphynx/schema/domain/eval-batch-subscription";
 import { Config, Effect, Layer, Redacted } from "effect";
 import { TrialRunner } from "../../ports/trial-runner";
 import { EVAL_RUN, type EvalBatchPayload } from "./eval-run-task";

@@ -5,7 +5,7 @@ import {
   ResolvedPrompt,
   type SetChannelRequest,
   type UpdatePromptRequest,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import { Schema } from "effect";
 import { createApiClient, searchOf } from "@/lib/api-client";
 

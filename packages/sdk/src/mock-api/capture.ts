@@ -1,8 +1,8 @@
-import { API_REPORTED_LIMITS } from "@anpord/schema/domain/api-mocks";
+import { API_REPORTED_LIMITS } from "@sphynx/schema/domain/api-mocks";
 import {
   unavailableValue,
   validationCapture,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 
 const SECRET_KEYS = [
   "authorization",

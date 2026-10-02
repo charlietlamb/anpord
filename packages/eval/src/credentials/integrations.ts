@@ -1,7 +1,7 @@
 import type {
   CredentialAuthMethod,
   CredentialIntegration,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { Effect } from "effect";
 import { MODEL_PROVIDERS } from "../domain/model-providers";
 import { CredentialError } from "./errors";

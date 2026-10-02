@@ -1,10 +1,10 @@
+import { CaretRightIcon } from "@phosphor-icons/react";
 import {
   Collapsible,
   CollapsiblePanel,
   CollapsibleTrigger,
-} from "@anpord/ui/components/ui/collapsible";
-import { elapsed, wholeSeconds } from "@anpord/ui/lib/evals/duration";
-import { CaretRightIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/collapsible";
+import { elapsed, wholeSeconds } from "@sphynx/ui/lib/evals/duration";
 import { TimelineSteps } from "@/components/evals/timeline-steps";
 import { VerbBadge } from "@/components/evals/verb-badge";
 import { countVerbs } from "@/lib/evals/timeline-kinds";

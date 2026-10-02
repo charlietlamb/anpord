@@ -1,8 +1,9 @@
-import { DEFAULT_SANDBOX } from "@anpord/schema/domain/eval-definition";
-import type { RerunTarget } from "@anpord/schema/domain/eval-rerun";
-import { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import { Button } from "@anpord/ui/components/button";
-import { VariantName } from "@anpord/ui/components/evals/variant-name";
+import { CaretDownIcon } from "@phosphor-icons/react";
+import { DEFAULT_SANDBOX } from "@sphynx/schema/domain/eval-definition";
+import type { RerunTarget } from "@sphynx/schema/domain/eval-rerun";
+import { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import { Button } from "@sphynx/ui/components/button";
+import { VariantName } from "@sphynx/ui/components/evals/variant-name";
 import {
   Command,
   CommandEmpty,
@@ -10,21 +11,20 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@anpord/ui/components/ui/command";
+} from "@sphynx/ui/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anpord/ui/components/ui/popover";
+} from "@sphynx/ui/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anpord/ui/components/ui/select";
-import { useDebounced } from "@anpord/ui/hooks/use-debounced";
-import { CaretDownIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/select";
+import { useDebounced } from "@sphynx/ui/hooks/use-debounced";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { evalQueries } from "@/lib/evals/eval-queries";

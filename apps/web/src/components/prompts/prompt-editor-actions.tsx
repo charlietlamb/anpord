@@ -1,9 +1,3 @@
-import { Button } from "@anpord/ui/components/button";
-import { ActionCluster } from "@anpord/ui/components/ui/action-cluster";
-import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
-import { CopyAction } from "@anpord/ui/components/ui/copy-action";
-import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { cn, SPIN } from "@anpord/ui/lib/utils";
 import {
   ArrowUpIcon,
   IdentificationCardIcon,
@@ -11,6 +5,12 @@ import {
   SpinnerGapIcon,
   XIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { ActionCluster } from "@sphynx/ui/components/ui/action-cluster";
+import { ActionTooltip } from "@sphynx/ui/components/ui/action-tooltip";
+import { CopyAction } from "@sphynx/ui/components/ui/copy-action";
+import { ShortcutButton } from "@sphynx/ui/components/ui/shortcut-button";
+import { cn, SPIN } from "@sphynx/ui/lib/utils";
 
 interface PromptEditorActionsProps {
   readonly correctingVersion: number | null;

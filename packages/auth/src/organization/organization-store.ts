@@ -1,7 +1,7 @@
-import { AutumnService } from "@anpord/billing/autumn";
-import { Database } from "@anpord/db/client";
-import { IdGenerator } from "@anpord/ids/id";
-import type { WhoamiOrganization } from "@anpord/schema/public/auth-api";
+import { AutumnService } from "@sphynx/billing/autumn";
+import { Database } from "@sphynx/db/client";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { WhoamiOrganization } from "@sphynx/schema/public/auth-api";
 import { Context, Effect, Layer, Option } from "effect";
 import {
   findLatestMembership,
@@ -32,7 +32,7 @@ export interface OrganizationStoreShape {
 }
 
 export class OrganizationStore extends Context.Tag(
-  "@anpord/auth/OrganizationStore"
+  "@sphynx/auth/OrganizationStore"
 )<OrganizationStore, OrganizationStoreShape>() {}
 
 const make = Effect.gen(function* () {

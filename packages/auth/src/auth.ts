@@ -1,11 +1,11 @@
-import { AutumnService } from "@anpord/billing/autumn";
-import { Database } from "@anpord/db/client";
-import { schema } from "@anpord/db/schema";
-import { IdGenerator } from "@anpord/ids/id";
-import { EmailSender } from "@anpord/notifications/email/sender";
-import { DEFAULT_PLATFORM_ROLE } from "@anpord/schema/domain/permissions";
-import { COOKIE_PREFIX } from "@anpord/schema/internal/authentication";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { AutumnService } from "@sphynx/billing/autumn";
+import { Database } from "@sphynx/db/client";
+import { schema } from "@sphynx/db/schema";
+import { IdGenerator } from "@sphynx/ids/id";
+import { EmailSender } from "@sphynx/notifications/email/sender";
+import { DEFAULT_PLATFORM_ROLE } from "@sphynx/schema/domain/permissions";
+import { COOKIE_PREFIX } from "@sphynx/schema/internal/authentication";
 import { betterAuth } from "better-auth";
 import { admin, jwt, magicLink, organization } from "better-auth/plugins";
 import { Context, Duration, Effect, Layer, Redacted } from "effect";
@@ -95,7 +95,7 @@ const makeAuth = Effect.gen(function* () {
 
 export type AuthInstance = Effect.Effect.Success<typeof makeAuth>;
 
-export class Auth extends Context.Tag("@anpord/auth/Auth")<
+export class Auth extends Context.Tag("@sphynx/auth/Auth")<
   Auth,
   AuthInstance
 >() {}

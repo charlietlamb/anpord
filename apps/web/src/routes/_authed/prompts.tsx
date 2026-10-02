@@ -1,4 +1,4 @@
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/prompts")({

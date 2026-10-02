@@ -12,13 +12,13 @@ afterEach(async () => {
 });
 
 const compile = async (validate: string) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-judged-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-judged-"));
   const entry = join(workspace, "eval.ts");
   await writeFile(
     entry,
     `
-import { suite, empty } from "anpord";
-import { judge } from "anpord/validators";
+import { suite, empty } from "sphynx-sh";
+import { judge } from "sphynx-sh/validators";
 const correctness = judge({ name: "correctness", harness: "codex", model: "exact-model", prompt: "Matches expected", choices: { correct: 1, incorrect: 0 } });
 export default suite({ id: "fixture", name: "judged", source: empty, prompt: "Answer", trials: 1,
   variants: [{ harness: "codex", model: "task-model", provider: "e2b" }],

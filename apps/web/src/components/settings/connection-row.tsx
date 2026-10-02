@@ -1,15 +1,15 @@
+import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import type {
   CredentialConnection,
   CredentialIntegration,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@anpord/ui/components/dropdown-menu";
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/dropdown-menu";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
+import { DataTableRow } from "@sphynx/ui/components/ui/data-table";
+import { StatusBadge } from "@sphynx/ui/components/ui/status-badge";
 import { DefaultBadge } from "@/components/layout/default-badge";
 import { DestructiveMenuItem } from "@/components/layout/destructive-menu-item";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";

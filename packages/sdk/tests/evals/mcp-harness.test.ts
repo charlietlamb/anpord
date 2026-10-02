@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import { Schema } from "effect";
 import { parse } from "smol-toml";
 import { applyMcpHarness } from "../../src/evals/mcp-harness";
@@ -31,7 +31,7 @@ const CodexConfig = Schema.Struct({
   }),
 });
 const servers = [
-  { entry: "workspace/.anpord/mcp/0/server.mjs", files: {}, name: "example" },
+  { entry: "workspace/.sphynx/mcp/0/server.mjs", files: {}, name: "example" },
 ];
 const profile = { files: {}, name: "profile" } as const;
 
@@ -52,7 +52,7 @@ describe("MCP harness adapters", () => {
     );
 
     expect(config.mcpServers.example).toEqual({
-      args: [".anpord/mcp/0/server.mjs"],
+      args: [".sphynx/mcp/0/server.mjs"],
       command: "node",
       ...(trusted ? { trust: true } : {}),
     });
@@ -78,7 +78,7 @@ describe("MCP harness adapters", () => {
     );
 
     expect(config.mcp.example).toEqual({
-      command: ["node", ".anpord/mcp/0/server.mjs"],
+      command: ["node", ".sphynx/mcp/0/server.mjs"],
       enabled: true,
       required: true,
       type: "local",
@@ -93,7 +93,7 @@ describe("MCP harness adapters", () => {
     );
 
     expect(config.mcp_servers?.example).toEqual({
-      args: [".anpord/mcp/0/server.mjs"],
+      args: [".sphynx/mcp/0/server.mjs"],
       command: "node",
       default_tools_approval_mode: "approve",
       required: true,
@@ -108,7 +108,7 @@ describe("MCP harness adapters", () => {
     );
 
     expect(config.mcp.example).toEqual({
-      command: ["node", ".anpord/mcp/0/server.mjs"],
+      command: ["node", ".sphynx/mcp/0/server.mjs"],
       enabled: true,
       type: "local",
     });

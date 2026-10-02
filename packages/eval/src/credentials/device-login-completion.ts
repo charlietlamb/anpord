@@ -1,5 +1,5 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { StartDeviceAuth } from "@anpord/schema/domain/credentials";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { StartDeviceAuth } from "@sphynx/schema/domain/credentials";
 import { Effect } from "effect";
 import type { CredentialAuthAttemptRepositoryShape } from "./auth-attempt-repository";
 import { sealAttemptState } from "./auth-attempt-state";

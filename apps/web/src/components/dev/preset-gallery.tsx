@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import { PresetFull } from "@/components/dev/preset-full";
 import type { Preset, PresetKind } from "@/components/dev/preset-kind";
 import { PresetThumb } from "@/components/dev/preset-thumb";

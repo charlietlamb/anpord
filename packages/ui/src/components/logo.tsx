@@ -1,4 +1,5 @@
-import { LogoPetals } from "@anpord/ui/components/logo-petals";
+import { LogoMark } from "@sphynx/ui/components/logo-mark";
+import { MARK_VIEWBOX } from "@sphynx/ui/lib/brand";
 import type * as React from "react";
 import { cn } from "../lib/utils";
 
@@ -8,12 +9,12 @@ export function Logo({ className, ...props }: React.ComponentProps<"svg">) {
       className={cn("size-6", className)}
       fill="currentColor"
       role="img"
-      viewBox="-48 -48 96 96"
+      viewBox={MARK_VIEWBOX}
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <title>Anpord</title>
-      <LogoPetals />
+      <title>Sphynx</title>
+      <LogoMark />
     </svg>
   );
 }

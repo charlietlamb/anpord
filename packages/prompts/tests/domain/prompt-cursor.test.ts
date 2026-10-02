@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { PromptId, PromptName } from "@anpord/schema/domain/prompts";
+import { PromptId, PromptName } from "@sphynx/schema/domain/prompts";
 import { Effect, Exit } from "effect";
 import { encodeCursor } from "../../src/domain/cursor-codec";
 import {

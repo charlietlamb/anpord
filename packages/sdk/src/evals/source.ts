@@ -1,5 +1,5 @@
-import type { EvalSource } from "@anpord/schema/domain/eval-definition";
-import { cloneUrlOf, parseRepo } from "@anpord/schema/domain/repo-spec";
+import type { EvalSource } from "@sphynx/schema/domain/eval-definition";
+import { cloneUrlOf, parseRepo } from "@sphynx/schema/domain/repo-spec";
 
 export const repo = (spec: string): EvalSource => {
   const parsed = parseRepo(spec);

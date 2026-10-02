@@ -54,7 +54,7 @@ describe("the generated suite", () => {
       oneCase([{ kind: "content_contains_any", needles: ["a"], text: "any" }])
     );
 
-    expect(source).toContain('import { suite, files } from "anpord";');
+    expect(source).toContain('import { suite, files } from "sphynx-sh";');
     expect(source).toContain("const containsAny = (answer: string");
   });
 

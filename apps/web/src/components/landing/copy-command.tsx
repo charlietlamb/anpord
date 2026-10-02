@@ -1,7 +1,7 @@
-import { useCopy } from "@anpord/ui/hooks/use-copy";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
+import { useCopy } from "@sphynx/ui/hooks/use-copy";
 
-const COMMAND = "npx anpord eval";
+const COMMAND = "npx sphynx-sh eval";
 
 export function CopyCommand() {
   const { copied, copy } = useCopy();

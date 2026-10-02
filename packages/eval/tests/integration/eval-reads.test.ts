@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { Database } from "@sphynx/db/client";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import type {
   EvalCasePage,
   EvalPageCursor,
-} from "@anpord/schema/domain/eval-read-models";
-import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
+} from "@sphynx/schema/domain/eval-read-models";
+import type { EvalTailMark } from "@sphynx/schema/domain/eval-tail";
 import { Cause, Effect, Exit, ManagedRuntime, Option } from "effect";
 import { Batches } from "../../src/batch/batches";
 import { EvalReads } from "../../src/services/eval-reads";

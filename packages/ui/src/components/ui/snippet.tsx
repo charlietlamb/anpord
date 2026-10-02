@@ -1,11 +1,11 @@
-import { Button } from "@anpord/ui/components/button";
-import { CopyButton } from "@anpord/ui/components/copy-button";
+import { Button } from "@sphynx/ui/components/button";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
 import {
   SURFACE_BODY,
   SURFACE_FRAME,
   SURFACE_HEAD,
-} from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Tabs } from "@base-ui/react/tabs";
 import { XIcon } from "@phosphor-icons/react";
 import { useState } from "react";

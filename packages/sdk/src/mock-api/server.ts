@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
-import type { ApiCall } from "@anpord/schema/domain/api-mocks";
 import { HttpRouter } from "@effect/platform";
 import { make as makeHttpServer } from "@effect/platform-node/NodeHttpServer";
+import type { ApiCall } from "@sphynx/schema/domain/api-mocks";
 import { Effect, Ref } from "effect";
 import { type ApiDefinition, api } from "./define";
 import { ApiMockError } from "./errors";

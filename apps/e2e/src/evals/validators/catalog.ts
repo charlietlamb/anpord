@@ -1,4 +1,4 @@
-import type { McpCall, Validator } from "anpord";
+import type { McpCall, Validator } from "sphynx-sh";
 import { getItemInput, item } from "../fixtures/catalog";
 
 const validateRetrieval = (

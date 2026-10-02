@@ -1,4 +1,4 @@
-import { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Schema } from "effect";
 
 /* The version is pinned: a format change is a migration that rewrites the rows,

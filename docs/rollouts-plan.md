@@ -1,7 +1,7 @@
 # Rollouts
 
 A plan for turning a channel from a pointer into a policy, without turning
-anpord into a feature-flag platform.
+sphynx into a feature-flag platform.
 
 ## The decision
 
@@ -45,7 +45,7 @@ the lie is told before anyone clicks.
 The request gains one optional field:
 
 ```ts
-anpord.prompts.get({ id: "support-reply", for: workspace.id })
+sphynx.prompts.get({ id: "support-reply", for: workspace.id })
 ```
 
 `for` is an **opaque string**. We hash it and never interpret it.

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Anpord } from "../../src/client/anpord";
+import { Sphynx } from "../../src/client/sphynx";
 
 const capture = () => {
   const sent: Request[] = [];
@@ -31,7 +31,7 @@ describe("running a stored case again", () => {
     const { restore, sent } = capture();
 
     try {
-      await new Anpord({ apiKey: "k", baseUrl: "http://x" }).evals.cases.run({
+      await new Sphynx({ apiKey: "k", baseUrl: "http://x" }).evals.cases.run({
         id: "writes-done",
       });
 
@@ -47,7 +47,7 @@ describe("running a stored case again", () => {
 
     try {
       await expect(
-        new Anpord({ apiKey: "k", baseUrl: "http://x" }).evals.cases.run({
+        new Sphynx({ apiKey: "k", baseUrl: "http://x" }).evals.cases.run({
           id: "Not A Handle",
         })
       ).rejects.toThrow();

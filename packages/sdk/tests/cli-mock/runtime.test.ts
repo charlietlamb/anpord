@@ -38,7 +38,7 @@ const fixture = cli({
 });
 
 const execute = async (args: readonly string[]) => {
-  directory ??= await mkdtemp(join(tmpdir(), "anpord-cli-"));
+  directory ??= await mkdtemp(join(tmpdir(), "sphynx-cli-"));
   return executeCli(fixture, args, join(directory, "calls.jsonl"));
 };
 

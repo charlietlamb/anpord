@@ -1,17 +1,17 @@
-import { Database } from "@anpord/db/client";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalTrialArtifact } from "@anpord/db/schema/evals/eval-trial-artifacts";
-import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { IdGenerator } from "@anpord/ids/id";
-import type { EvalArtifact } from "@anpord/schema/domain/eval-trial";
-import { EvalValidations } from "@anpord/schema/domain/eval-validations";
+import { Database } from "@sphynx/db/client";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import { evalTrialArtifact } from "@sphynx/db/schema/evals/eval-trial-artifacts";
+import { evalTrialCost } from "@sphynx/db/schema/evals/eval-trial-costs";
+import { evalTrialJournal } from "@sphynx/db/schema/evals/eval-trial-journal";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { EvalArtifact } from "@sphynx/schema/domain/eval-trial";
+import { EvalValidations } from "@sphynx/schema/domain/eval-validations";
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -82,7 +82,7 @@ export interface TrialRecorderShape {
   readonly settle: (input: SettleTrial) => Effect.Effect<void, EvalStoreError>;
 }
 
-export class TrialRecorder extends Context.Tag("@anpord/eval/TrialRecorder")<
+export class TrialRecorder extends Context.Tag("@sphynx/eval/TrialRecorder")<
   TrialRecorder,
   TrialRecorderShape
 >() {}

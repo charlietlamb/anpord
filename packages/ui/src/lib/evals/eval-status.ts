@@ -1,12 +1,3 @@
-import type { EvalTrialStatus } from "@anpord/schema/domain/eval-trial";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import type {
-  EvalDistribution,
-  EvalRunStatus,
-} from "@anpord/schema/domain/evals";
-import type { StepVerdict } from "@anpord/schema/domain/verify-verdicts";
-import type { StatusTone } from "@anpord/ui/components/ui/status-badge";
-import { counted } from "@anpord/ui/lib/evals/counted";
 import {
   CheckCircleIcon,
   CircleDashedIcon,
@@ -17,6 +8,15 @@ import {
   WarningCircleIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
+import type { EvalTrialStatus } from "@sphynx/schema/domain/eval-trial";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
+import type {
+  EvalDistribution,
+  EvalRunStatus,
+} from "@sphynx/schema/domain/evals";
+import type { StepVerdict } from "@sphynx/schema/domain/verify-verdicts";
+import type { StatusTone } from "@sphynx/ui/components/ui/status-badge";
+import { counted } from "@sphynx/ui/lib/evals/counted";
 
 export interface PresentedStatus {
   readonly icon: Icon;

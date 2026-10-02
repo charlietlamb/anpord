@@ -13,20 +13,20 @@ afterEach(async () => {
 });
 
 const compiled = async (caseBody: string) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-prepare-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-prepare-"));
 
   /* Its own file, because a prepare is bundled from the module that exports it
      and the compiler refuses to read one back out of the entry. */
   await writeFile(
     join(workspace, "install.ts"),
-    `import type { Prepare } from "anpord";
+    `import type { Prepare } from "sphynx-sh";
 
 export const install: Prepare = ({ cached }) => ({ skipped: cached });`
   );
 
   await writeFile(
     join(workspace, "eval.ts"),
-    `import { command, suite } from "anpord";
+    `import { command, suite } from "sphynx-sh";
 import { install } from "./install";
 
 export default suite({
@@ -45,7 +45,7 @@ export default suite({
 const runScript = async (script: string, cwd: string, restored: boolean) => {
   const process = Bun.spawn(["node", script], {
     cwd,
-    env: { ...Bun.env, ANPORD_CACHE_RESTORED: restored ? "1" : "" },
+    env: { ...Bun.env, SPHYNX_CACHE_RESTORED: restored ? "1" : "" },
   });
 
   return await new Response(process.stdout).text();

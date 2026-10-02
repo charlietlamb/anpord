@@ -1,14 +1,14 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { user } from "@anpord/db/schema/auth/users";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
+import { Database } from "@sphynx/db/client";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { user } from "@sphynx/db/schema/auth/users";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
 import {
   type Actor,
   OrganizationId,
   UserId,
-} from "@anpord/schema/domain/actor";
+} from "@sphynx/schema/domain/actor";
 import { Duration, Effect, Layer } from "effect";
 import {
   CredentialConnectionRepository,

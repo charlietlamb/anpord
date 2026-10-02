@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+} from "@sphynx/schema/domain/eval-validations";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { redactValidation } from "../../src/domain/secret-redaction";
 
 const OPENAI = "sk-proj-4fQ9x2LmPq7RtY8uVw3ZaB1cD";
@@ -26,9 +26,9 @@ describe("redacting credentials from evidence text", () => {
     ],
     ["a Stripe secret key", "sk_live_51HqLyjWDarjtT1zdp7dc", "[redacted]"],
     [
-      "an anpord key",
-      "ANPORD_API_KEY=anp_Zk3PqL9mRt2VwX7yBn4Cd8Ef",
-      "ANPORD_API_KEY=[redacted]",
+      "a sphynx key",
+      "SPHYNX_API_KEY=anp_Zk3PqL9mRt2VwX7yBn4Cd8Ef",
+      "SPHYNX_API_KEY=[redacted]",
     ],
     ["a GitHub token", `token ${GITHUB} used`, "token [redacted] used"],
     [
@@ -77,7 +77,7 @@ describe("redacting credentials from evidence text", () => {
     ["a slug that starts like a key", "sk-hynix-memory-prices-rising-again"],
     ["a word in a sentence", "the task-sk-list is empty"],
     ["prose about bearer tokens", "Send a Bearer authentication-scheme header"],
-    ["a short anpord key preview", "your key starts anp_7Kq"],
+    ["a short sphynx key preview", "your key starts anp_7Kq"],
     ["a git sha", "HEAD is at 9f8e7d6c5b4a39281706f5e4d3c2b1a0"],
     ["a UUID", "trial 3f2b8c1e-4d5a-4f6b-9c7d-8e9f0a1b2c3d"],
     ["a URL", "listening on http://localhost:4173/api?token=short"],

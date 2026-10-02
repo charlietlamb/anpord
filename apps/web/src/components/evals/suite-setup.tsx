@@ -1,5 +1,5 @@
-import type { EvalSuiteSetup } from "@anpord/schema/domain/eval-read-models";
-import { DetailList, DetailRow } from "@anpord/ui/components/ui/detail-list";
+import type { EvalSuiteSetup } from "@sphynx/schema/domain/eval-read-models";
+import { DetailList, DetailRow } from "@sphynx/ui/components/ui/detail-list";
 import { EmptyValue } from "@/components/evals/empty-value";
 import { PromptValue } from "@/components/evals/prompt-value";
 import { WorkspaceValue } from "@/components/evals/workspace-value";

@@ -1,5 +1,5 @@
-import type { EvalVerifyStep } from "@anpord/schema/domain/eval-trial";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+import type { EvalVerifyStep } from "@sphynx/schema/domain/eval-trial";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Either } from "effect";
 
 const VOID_PATTERNS: readonly RegExp[] = [

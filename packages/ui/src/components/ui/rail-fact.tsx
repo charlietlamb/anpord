@@ -2,8 +2,8 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/components/tooltip";
+import { cn } from "@sphynx/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentType, ReactNode } from "react";
 

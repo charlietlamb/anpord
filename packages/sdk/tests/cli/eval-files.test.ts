@@ -16,7 +16,7 @@ afterEach(async () => {
 });
 
 const treeWith = async (paths: readonly string[]) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-files-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-files-"));
 
   for (const path of paths) {
     const full = join(workspace, path);
@@ -35,15 +35,15 @@ const found = (directory: string) =>
 describe("finding the eval files in a repository", () => {
   test("takes every eval file, wherever it sits", async () => {
     const cwd = await treeWith([
-      "anpord.eval.ts",
+      "sphynx.eval.ts",
       "evals/smoke.eval.ts",
       "evals/parser.eval.ts",
     ]);
 
     expect(await found(cwd)).toEqual([
-      "anpord.eval.ts",
       "evals/parser.eval.ts",
       "evals/smoke.eval.ts",
+      "sphynx.eval.ts",
     ]);
   });
 

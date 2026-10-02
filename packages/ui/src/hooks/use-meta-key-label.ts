@@ -1,4 +1,4 @@
-import { isMac } from "@anpord/ui/hooks/use-shortcut";
+import { isMac } from "@sphynx/ui/hooks/use-shortcut";
 import { useSyncExternalStore } from "react";
 
 const NEVER_CHANGES = () => () => undefined;

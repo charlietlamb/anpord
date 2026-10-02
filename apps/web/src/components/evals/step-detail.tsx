@@ -1,4 +1,4 @@
-import { elapsed, seconds } from "@anpord/ui/lib/evals/duration";
+import { elapsed, seconds } from "@sphynx/ui/lib/evals/duration";
 import type { ReactNode } from "react";
 import { StepDetailBody } from "@/components/evals/step-detail-body";
 import { StepProperties } from "@/components/evals/step-properties";

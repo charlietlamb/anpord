@@ -8,7 +8,7 @@ export interface SourceTokensShape {
   ) => Effect.Effect<Option.Option<Redacted.Redacted<string>>>;
 }
 
-export class SourceTokens extends Context.Tag("@anpord/eval/SourceTokens")<
+export class SourceTokens extends Context.Tag("@sphynx/eval/SourceTokens")<
   SourceTokens,
   SourceTokensShape
 >() {}

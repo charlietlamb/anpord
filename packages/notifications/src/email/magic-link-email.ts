@@ -11,7 +11,7 @@ export const magicLinkEmail = ({
   expiresInMinutes,
   url,
 }: MagicLinkInvitation): EmailMessage => ({
-  subject: "Sign in to Anpord",
+  subject: "Sign in to Sphynx",
   text: [
     `Click the link below to sign in. It expires in ${expiresInMinutes} minutes and can only be used once.`,
     "",

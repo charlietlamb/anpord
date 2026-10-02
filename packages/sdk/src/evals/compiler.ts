@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import { Effect, Schema } from "effect";
 import { compileApis, withApis } from "./api-profile";
 import { type CompiledCli, compileClis, withClis } from "./cli-profile";

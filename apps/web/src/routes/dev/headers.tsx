@@ -2,7 +2,7 @@ import {
   HEADER_FAMILIES,
   HEADER_PRESETS,
   type HeaderPreset,
-} from "@anpord/ui/lib/header-presets";
+} from "@sphynx/ui/lib/header-presets";
 import { createFileRoute } from "@tanstack/react-router";
 import { PresetGallery } from "@/components/dev/preset-gallery";
 import type { PresetKind } from "@/components/dev/preset-kind";

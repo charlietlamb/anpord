@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import type { Database } from "@anpord/db/client";
-import { OrganizationId } from "@anpord/schema/domain/actor";
-import { PromptId, PromptName } from "@anpord/schema/domain/prompts";
+import type { Database } from "@sphynx/db/client";
+import { OrganizationId } from "@sphynx/schema/domain/actor";
+import { PromptId, PromptName } from "@sphynx/schema/domain/prompts";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { PgDialect } from "drizzle-orm/pg-core";
 import {

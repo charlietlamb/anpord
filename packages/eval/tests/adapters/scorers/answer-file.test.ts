@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Effect, Stream } from "effect";
 import { ScorerGroundTruthLive } from "../../../src/adapters/scorers/ground-truth";
 import { ANSWER_PATH, TRANSCRIPT_PATH } from "../../../src/domain/answer-file";
@@ -142,8 +142,8 @@ describe("where a verifier is told to look", () => {
     await score(sandbox, spoken, "test -f a");
 
     expect(env[0]).toMatchObject({
-      ANPORD_ANSWER_FILE: ANSWER_PATH(HOME),
-      ANPORD_TRANSCRIPT_FILE: TRANSCRIPT_PATH(HOME),
+      SPHYNX_ANSWER_FILE: ANSWER_PATH(HOME),
+      SPHYNX_TRANSCRIPT_FILE: TRANSCRIPT_PATH(HOME),
     });
   });
 
@@ -153,9 +153,9 @@ describe("where a verifier is told to look", () => {
     await score(sandbox, spoken, null, { name: "v", source: "source" });
 
     expect(env[0]).toMatchObject({
-      ANPORD_ANSWER_FILE: ANSWER_PATH(HOME),
-      ANPORD_PREPARE_VALUE: "{}",
-      ANPORD_TRANSCRIPT_FILE: TRANSCRIPT_PATH(HOME),
+      SPHYNX_ANSWER_FILE: ANSWER_PATH(HOME),
+      SPHYNX_PREPARE_VALUE: "{}",
+      SPHYNX_TRANSCRIPT_FILE: TRANSCRIPT_PATH(HOME),
     });
   });
 });

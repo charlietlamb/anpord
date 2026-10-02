@@ -1,8 +1,8 @@
-import { Forbidden } from "@anpord/schema/domain/errors";
-import type { Permission } from "@anpord/schema/domain/permissions";
-import { grants } from "@anpord/schema/domain/permissions";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import type { HttpApiBuilder, HttpApiEndpoint } from "@effect/platform";
+import { Forbidden } from "@sphynx/schema/domain/errors";
+import type { Permission } from "@sphynx/schema/domain/permissions";
+import { grants } from "@sphynx/schema/domain/permissions";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect } from "effect";
 import { jsonSuccess } from "../encoding/json-success";
 

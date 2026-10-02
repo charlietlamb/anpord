@@ -1,20 +1,20 @@
-import { Batches } from "@anpord/eval/batch/batches";
-import { BatchSubscriptions } from "@anpord/eval/ports/batch-subscriptions";
-import { EvalReads } from "@anpord/eval/services/eval-reads";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { Batches } from "@sphynx/eval/batch/batches";
+import { BatchSubscriptions } from "@sphynx/eval/ports/batch-subscriptions";
+import { EvalReads } from "@sphynx/eval/services/eval-reads";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import type {
   RerunIntent,
   RerunRequest,
-} from "@anpord/schema/domain/eval-rerun";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { StartedBatch } from "@anpord/schema/domain/evals";
-import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
+} from "@sphynx/schema/domain/eval-rerun";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import type { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
+import type { RunCaseRequest } from "@sphynx/schema/domain/run-case";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import type {
   IdempotencyKey,
   ReportedTrial,
-} from "@anpord/schema/public/runner-api";
+} from "@sphynx/schema/public/runner-api";
 import { Effect } from "effect";
 import { withEvalErrors } from "../../http/eval-errors";
 import { organization } from "./current-organization";

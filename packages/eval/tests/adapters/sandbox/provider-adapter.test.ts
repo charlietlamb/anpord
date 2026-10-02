@@ -40,7 +40,7 @@ const opening = (
       adapter.open({
         autoStopMinutes: 5,
         provider: "e2b",
-        workspace: "/tmp/anpord-task",
+        workspace: "/tmp/sphynx-task",
       })
     )
   ).then((outcome) => ({ discarded, outcome }));

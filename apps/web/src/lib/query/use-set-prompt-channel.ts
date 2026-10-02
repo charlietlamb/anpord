@@ -1,4 +1,4 @@
-import { SetChannelRequest } from "@anpord/schema/domain/prompts";
+import { SetChannelRequest } from "@sphynx/schema/domain/prompts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Schema } from "effect";
 import { setChannel } from "@/lib/prompts-client";

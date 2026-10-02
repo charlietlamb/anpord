@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REGION="${AWS_REGION:-us-east-2}"
-SERVICE="${APPRUNNER_SERVICE:-anpord-server}"
+SERVICE="${APPRUNNER_SERVICE:-sphynx-server}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Credentials, stored in Secrets Manager. The Vercel team and project ids
@@ -29,7 +29,7 @@ for NAME in "${NAMES[@]}"; do
 
   [ -n "${VALUE}" ] || { echo "  ${NAME} is not set in .env, skipping"; continue; }
 
-  SECRET="anpord/server/${NAME}"
+  SECRET="sphynx/server/${NAME}"
 
   if aws secretsmanager describe-secret --secret-id "${SECRET}" --region "${REGION}" >/dev/null 2>&1; then
     echo "==> Updating ${SECRET}"

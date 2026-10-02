@@ -1,5 +1,5 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { StartedBatch } from "@anpord/schema/domain/evals";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
 import { mapLimit } from "../concurrency";
 import type { CallV1 } from "../stack/api";
 import { JOURNAL_EPOCH, trialReport } from "./journal";

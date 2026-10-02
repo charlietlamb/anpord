@@ -1,7 +1,7 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { credentialAuthAttempt } from "@sphynx/db/schema/credentials/auth-attempts";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import { tryStore } from "../repositories/query";
@@ -24,7 +24,7 @@ export interface CredentialAuthAttemptRepositoryShape {
 }
 
 export class CredentialAuthAttemptRepository extends Context.Tag(
-  "@anpord/eval/CredentialAuthAttemptRepository"
+  "@sphynx/eval/CredentialAuthAttemptRepository"
 )<CredentialAuthAttemptRepository, CredentialAuthAttemptRepositoryShape>() {}
 
 const attemptNotFound = () =>

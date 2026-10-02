@@ -1,11 +1,11 @@
-import { DropdownMenuItem } from "@anpord/ui/components/dropdown-menu";
-import { useCopy } from "@anpord/ui/hooks/use-copy";
 import {
   ArrowSquareOutIcon,
   CheckIcon,
   CopyIcon,
   LinkIcon,
 } from "@phosphor-icons/react";
+import { DropdownMenuItem } from "@sphynx/ui/components/dropdown-menu";
+import { useCopy } from "@sphynx/ui/hooks/use-copy";
 import { Link } from "@tanstack/react-router";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 

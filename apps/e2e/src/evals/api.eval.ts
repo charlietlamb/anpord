@@ -1,12 +1,12 @@
-import { empty, suite } from "anpord";
+import { empty, suite } from "sphynx-sh";
 import { trials, variants } from "./config";
 import { catalogApi } from "./mocks/catalog-api";
 import { validateApi } from "./validators/api";
 import { correctItem } from "./validators/judges";
 
 export default suite({
-  id: "anpord-ci-api",
-  name: "anpord-ci/api",
+  id: "sphynx-ci-api",
+  name: "sphynx-ci/api",
   source: empty,
   api: [catalogApi],
   prompt:

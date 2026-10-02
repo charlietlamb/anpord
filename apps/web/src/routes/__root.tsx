@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { WEB_ORIGIN } from "@anpord/schema/public/origins";
+import { WEB_ORIGIN } from "@sphynx/schema/public/origins";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
@@ -12,11 +12,11 @@ import devCss from "../styles/globals.css?url";
 
 const FAVICON = import.meta.env.DEV ? "/favicon-dev.svg" : "/favicon.svg";
 
-const TITLE = "Anpord";
+const TITLE = "Sphynx";
 const DESCRIPTION =
   "Evals for Claude Code and Codex. Hand a coding agent a repo and a real shell, then score what it built.";
 
-const OG_IMAGE = `${WEB_ORIGIN}/og.png?v=funnel-display`;
+const OG_IMAGE = `${WEB_ORIGIN}/og.png?v=wordmark`;
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;

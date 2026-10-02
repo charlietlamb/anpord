@@ -1,6 +1,6 @@
-import { seedTenant } from "@anpord/e2e/src/harness/seed";
-import { sessionCookieHeader } from "@anpord/e2e/src/harness/session-cookie";
-import { AUTH_SECRET } from "@anpord/e2e/src/harness/settings";
+import { seedTenant } from "@sphynx/e2e/src/harness/seed";
+import { sessionCookieHeader } from "@sphynx/e2e/src/harness/session-cookie";
+import { AUTH_SECRET } from "@sphynx/e2e/src/harness/settings";
 
 export interface PerfTenant {
   readonly apiKey: string;

@@ -6,7 +6,7 @@ export interface SuspenderShape {
   readonly waitFor: (duration: Duration.Duration) => Effect.Effect<void>;
 }
 
-export class Suspender extends Context.Tag("@anpord/eval/Suspender")<
+export class Suspender extends Context.Tag("@sphynx/eval/Suspender")<
   Suspender,
   SuspenderShape
 >() {}

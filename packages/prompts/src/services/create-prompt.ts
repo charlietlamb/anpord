@@ -1,7 +1,7 @@
-import type { IdGeneratorShape } from "@anpord/ids/id";
-import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
-import type { CreatePromptRequest } from "@anpord/schema/domain/prompts";
-import { ChannelName } from "@anpord/schema/domain/prompts";
+import type { IdGeneratorShape } from "@sphynx/ids/id";
+import { type Actor, authorIdOf } from "@sphynx/schema/domain/actor";
+import type { CreatePromptRequest } from "@sphynx/schema/domain/prompts";
+import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { Effect, Option } from "effect";
 import { toResolved } from "../domain/views";
 import type { ChannelRepositoryShape } from "../repositories/channel-repository";

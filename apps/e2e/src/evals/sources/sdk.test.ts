@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { MAX_START_REQUEST_CHARACTERS } from "@anpord/schema/domain/eval-quota";
-import { compileEval } from "anpord/eval";
+import { MAX_START_REQUEST_CHARACTERS } from "@sphynx/schema/domain/eval-quota";
+import { compileEval } from "sphynx-sh/eval";
 import { vendoredEntry, vendoredTargets, vendoredWorkspace } from "./sdk";
 
 const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
@@ -26,13 +26,13 @@ const scratchPackage = async (
   modules: Readonly<Record<string, string>>,
   installed: Readonly<Record<string, string | null>> = {}
 ) => {
-  const directory = await mkdtemp(join(tmpdir(), "anpord-vendored-"));
+  const directory = await mkdtemp(join(tmpdir(), "sphynx-vendored-"));
   scratched.push(directory);
   const declared = Object.keys(installed);
   await writeFile(
     join(directory, "package.json"),
     JSON.stringify({
-      name: "anpord",
+      name: "sphynx-sh",
       version: "0.0.0",
       exports: { ".": { import: { default: "./dist/index.mjs" } } },
       ...(declared.length > 0
@@ -44,7 +44,7 @@ const scratchPackage = async (
         : {}),
     })
   );
-  await writeFile(join(directory, "README.md"), "# anpord\n");
+  await writeFile(join(directory, "README.md"), "# sphynx\n");
   if (Object.keys(modules).length > 0) {
     await mkdir(join(directory, "dist"));
     await Promise.all(
@@ -91,18 +91,20 @@ test("ships the built SDK as the workspace the agent starts from", async () => {
   const files = await filesSource();
 
   expect(JSON.parse(files["package.json"] ?? "").dependencies).toEqual({
-    anpord: "file:./vendor/anpord",
+    "sphynx-sh": "file:./vendor/sphynx-sh",
   });
 
-  const vendored = JSON.parse(files["vendor/anpord/package.json"] ?? "");
-  expect(vendored.name).toBe("anpord");
+  const vendored = JSON.parse(files["vendor/sphynx-sh/package.json"] ?? "");
+  expect(vendored.name).toBe("sphynx-sh");
   expect(vendored.devDependencies).toBeUndefined();
   expect(vendored.exports["."].import.default).toBe("./dist/index.mjs");
 
-  const entry = vendoredEntry(files["vendor/anpord/package.json"] ?? "");
-  expect(entry).toBe("vendor/anpord/dist/index.mjs");
+  const entry = vendoredEntry(files["vendor/sphynx-sh/package.json"] ?? "");
+  expect(entry).toBe("vendor/sphynx-sh/dist/index.mjs");
   expect((files[entry] ?? "").length).toBeGreaterThan(1000);
-  expect(files["vendor/anpord/README.md"]).toContain("npm install anpord");
+  expect(files["vendor/sphynx-sh/README.md"]).toContain(
+    "npm install sphynx-sh"
+  );
 
   const paths = Object.keys(files);
   expect(
@@ -116,13 +118,13 @@ test("ships the built SDK as the workspace the agent starts from", async () => {
 
 test("advertises only the ESM build it actually ships", async () => {
   const files = await filesSource();
-  const vendored = JSON.parse(files["vendor/anpord/package.json"] ?? "");
+  const vendored = JSON.parse(files["vendor/sphynx-sh/package.json"] ?? "");
 
   expect(vendored.main).toBeUndefined();
   expect(vendored.module).toBe("./dist/index.mjs");
   expect(vendored.bin).toEqual({
-    anpord: "./dist/bin.mjs",
-    "anpord-eve": "./dist/runner-eve-bin.mjs",
+    sphynx: "./dist/bin.mjs",
+    "sphynx-eve": "./dist/runner-eve-bin.mjs",
   });
   expect(
     Object.entries(vendored.exports).filter(
@@ -134,21 +136,21 @@ test("advertises only the ESM build it actually ships", async () => {
 
 test("carries every file its manifest points at, declarations included", async () => {
   const files = await filesSource();
-  const manifest = files["vendor/anpord/package.json"] ?? "";
+  const manifest = files["vendor/sphynx-sh/package.json"] ?? "";
   const vendored = JSON.parse(manifest);
 
   expect(vendored.types).toBeUndefined();
   expect(vendored.exports["."].import.types).toBe("./dist/index.d.mts");
 
   const targets = vendoredTargets(manifest);
-  expect(targets).toContain("vendor/anpord/dist/index.d.mts");
+  expect(targets).toContain("vendor/sphynx-sh/dist/index.d.mts");
   expect(targets.filter((target) => !(target in files))).toEqual([]);
 });
 
 test("pins every dependency to the version the monorepo installs", async () => {
   const files = await filesSource();
   const { dependencies } = JSON.parse(
-    files["vendor/anpord/package.json"] ?? ""
+    files["vendor/sphynx-sh/package.json"] ?? ""
   );
 
   expect(Object.keys(dependencies)).toContain("effect");
@@ -161,7 +163,7 @@ test("pins every dependency to the version the monorepo installs", async () => {
 
 test("pins a declared dependency to what node_modules holds", async () => {
   const directory = await scratchPackage(
-    { "index.mjs": "export const anpord = 1;" },
+    { "index.mjs": "export const sphynx = 1;" },
     { effect: "3.21.2", yaml: "2.9.0" }
   );
 
@@ -171,13 +173,13 @@ test("pins a declared dependency to what node_modules holds", async () => {
   }
 
   expect(
-    JSON.parse(source.files["vendor/anpord/package.json"] ?? "").dependencies
+    JSON.parse(source.files["vendor/sphynx-sh/package.json"] ?? "").dependencies
   ).toEqual({ effect: "3.21.2", yaml: "2.9.0" });
 });
 
 test("asks for an install when a dependency is absent from node_modules", async () => {
   const directory = await scratchPackage(
-    { "index.mjs": "export const anpord = 1;" },
+    { "index.mjs": "export const sphynx = 1;" },
     { effect: null }
   );
 
@@ -200,7 +202,7 @@ test("refuses a build missing the entry its manifest points at", async () => {
   });
 
   expect(() => vendoredWorkspace(directory)).toThrow(
-    `The sdk eval workspace does not ship vendor/anpord/dist/index.mjs, which vendor/anpord/package.json points at, so the sandbox does not carry the SDK its manifest describes. Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
+    `The sdk eval workspace does not ship vendor/sphynx-sh/dist/index.mjs, which vendor/sphynx-sh/package.json points at, so the sandbox does not carry the SDK its manifest describes. Rebuild it with "bun run --cwd packages/sdk build" before compiling this suite.`
   );
 });
 
@@ -235,10 +237,10 @@ test("refuses a workspace of more characters than its budget allows", async () =
 
 test("checks the bin the manifest promises, not only its exports", async () => {
   const files = await filesSource();
-  const manifest = files["vendor/anpord/package.json"] ?? "";
+  const manifest = files["vendor/sphynx-sh/package.json"] ?? "";
   const targets = vendoredTargets(manifest);
 
   expect(JSON.parse(manifest).bin).toBeDefined();
-  expect(targets).toContain("vendor/anpord/dist/bin.mjs");
+  expect(targets).toContain("vendor/sphynx-sh/dist/bin.mjs");
   expect(targets.filter((target) => !(target in files))).toEqual([]);
 });

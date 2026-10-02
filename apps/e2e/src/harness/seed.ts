@@ -26,7 +26,7 @@ export const seedTenant = async (
     const userId = randomUUID();
     const organizationId = randomUUID();
     const memberId = randomUUID();
-    const userEmail = `${name}@e2e.anpord.test`;
+    const userEmail = `${name}@e2e.sphynx.test`;
     const now = new Date();
 
     await client.query(

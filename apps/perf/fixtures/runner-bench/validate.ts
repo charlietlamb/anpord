@@ -1,4 +1,4 @@
-import type { Validator } from "anpord";
+import type { Validator } from "sphynx-sh";
 
 export const wroteReport: Validator = async ({ readText }) => ({
   message: "report.txt says done",

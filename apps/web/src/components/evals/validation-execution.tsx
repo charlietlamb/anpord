@@ -1,4 +1,4 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { ValidationValue } from "@/components/evals/validation-value";
 
 const rowsOf = (validation: EvalValidation) => [

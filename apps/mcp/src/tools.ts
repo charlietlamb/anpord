@@ -1,8 +1,8 @@
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 import type { MCPServer } from "mcp-use";
-import type { AnpordUser } from "./anpord-user";
 import { registerEvalTools } from "./eval-tools";
 import { registerPromptTools } from "./prompt-tools";
+import type { SphynxUser } from "./sphynx-user";
 
 export const serverDescription = (prompts = PROMPTS_ENABLED) =>
   prompts
@@ -10,7 +10,7 @@ export const serverDescription = (prompts = PROMPTS_ENABLED) =>
     : "Run coding agent evals.";
 
 export const register = (
-  server: MCPServer<AnpordUser>,
+  server: MCPServer<SphynxUser>,
   prompts = PROMPTS_ENABLED
 ) => {
   registerEvalTools(server);

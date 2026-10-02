@@ -1,15 +1,15 @@
 import {
   localMcpResource,
   MCP_PORT,
-} from "@anpord/schema/internal/local-ports";
-import { API_ORIGIN, WEB_ORIGIN } from "@anpord/schema/public/origins";
+} from "@sphynx/schema/internal/local-ports";
+import { API_ORIGIN, WEB_ORIGIN } from "@sphynx/schema/public/origins";
 import { Config, Effect, Option } from "effect";
 
 const settings = Config.all({
-  authUrl: Config.string("ANPORD_AUTH_URL").pipe(
+  authUrl: Config.string("SPHYNX_AUTH_URL").pipe(
     Config.withDefault(`${WEB_ORIGIN}/api/auth`)
   ),
-  baseUrl: Config.string("ANPORD_BASE_URL").pipe(
+  baseUrl: Config.string("SPHYNX_BASE_URL").pipe(
     Config.withDefault(API_ORIGIN)
   ),
   port: Config.integer("PORT").pipe(Config.withDefault(MCP_PORT)),

@@ -1,10 +1,10 @@
-import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
 import {
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
 } from "@effect/platform";
+import type { EvalSimulatedUser } from "@sphynx/schema/domain/eval-turns";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 import { Effect, Option, Redacted, Ref, Schema } from "effect";
 import { modelAccessFor } from "../../credentials/model-key";
 import { CredentialResolver } from "../../credentials/resolver";

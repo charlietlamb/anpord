@@ -6,7 +6,7 @@ describe("magicLinkEmail", () => {
     const message = magicLinkEmail({
       email: "charlie@example.com",
       expiresInMinutes: 5,
-      url: "https://anpord.dev/magic/abc",
+      url: "https://sphynx.dev/magic/abc",
     });
 
     expect(message.to).toBe("charlie@example.com");
@@ -16,7 +16,7 @@ describe("magicLinkEmail", () => {
     const message = magicLinkEmail({
       email: "charlie@example.com",
       expiresInMinutes: 15,
-      url: "https://anpord.dev/magic/abc",
+      url: "https://sphynx.dev/magic/abc",
     });
 
     expect(message.text).toContain("15 minutes");
@@ -26,9 +26,9 @@ describe("magicLinkEmail", () => {
     const message = magicLinkEmail({
       email: "charlie@example.com",
       expiresInMinutes: 5,
-      url: "https://anpord.dev/magic/abc",
+      url: "https://sphynx.dev/magic/abc",
     });
 
-    expect(message.text.split("\n")).toContain("https://anpord.dev/magic/abc");
+    expect(message.text.split("\n")).toContain("https://sphynx.dev/magic/abc");
   });
 });

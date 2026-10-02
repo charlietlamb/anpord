@@ -1,9 +1,9 @@
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@anpord/ui/components/ui/sidebar";
+} from "@sphynx/ui/components/ui/sidebar";
 import { ClientOnly } from "@tanstack/react-router";
 import { Hydrate } from "@tanstack/react-start";
 import { idle } from "@tanstack/react-start/hydration";

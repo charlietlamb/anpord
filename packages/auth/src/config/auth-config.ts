@@ -3,7 +3,7 @@ import {
   LOCAL_WEB_ORIGIN,
   localMcpResource,
   MCP_PORT,
-} from "@anpord/schema/internal/local-ports";
+} from "@sphynx/schema/internal/local-ports";
 import { Config, Context, Layer, type Redacted } from "effect";
 import type { GithubCredentials } from "./github-credentials";
 import { githubCredentials } from "./github-credentials";
@@ -16,7 +16,7 @@ export interface AuthConfigShape {
   readonly url: string;
 }
 
-export class AuthConfig extends Context.Tag("@anpord/auth/AuthConfig")<
+export class AuthConfig extends Context.Tag("@sphynx/auth/AuthConfig")<
   AuthConfig,
   AuthConfigShape
 >() {}

@@ -1,5 +1,5 @@
-import type { Tx } from "@anpord/db/query";
-import { channel } from "@anpord/db/schema/prompts/channels";
+import type { Tx } from "@sphynx/db/query";
+import { channel } from "@sphynx/db/schema/prompts/channels";
 import { and, eq } from "drizzle-orm";
 
 /* Publishing creates an unused channel so a move never fails on a missing row;

@@ -1,4 +1,4 @@
-import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
+import type { HarnessProfile } from "@sphynx/schema/domain/harness-profile";
 
 export interface ProfileContent {
   readonly env: Readonly<Record<string, string>> | null;

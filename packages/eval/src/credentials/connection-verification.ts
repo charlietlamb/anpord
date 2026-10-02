@@ -1,4 +1,4 @@
-import type { Actor } from "@anpord/schema/domain/actor";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import { Clock, Effect, Either, Redacted } from "effect";
 import type { CredentialCipherShape } from "./cipher";
 import { openValues } from "./connection-payload";

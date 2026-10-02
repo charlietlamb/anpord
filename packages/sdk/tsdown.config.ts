@@ -2,7 +2,7 @@ import { defineConfig } from "tsdown";
 
 export default defineConfig({
   clean: true,
-  deps: { alwaysBundle: [/^@anpord\//] },
+  deps: { alwaysBundle: [/^@sphynx\//] },
   dts: { eager: true },
   entry: {
     api: "src/mock-api/index.ts",

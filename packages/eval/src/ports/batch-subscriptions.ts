@@ -1,4 +1,4 @@
-import type { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
+import type { BatchSubscription } from "@sphynx/schema/domain/eval-batch-subscription";
 import { Context, type Effect } from "effect";
 
 export interface BatchSubscriptionsShape {
@@ -6,5 +6,5 @@ export interface BatchSubscriptionsShape {
 }
 
 export class BatchSubscriptions extends Context.Tag(
-  "@anpord/eval/BatchSubscriptions"
+  "@sphynx/eval/BatchSubscriptions"
 )<BatchSubscriptions, BatchSubscriptionsShape>() {}

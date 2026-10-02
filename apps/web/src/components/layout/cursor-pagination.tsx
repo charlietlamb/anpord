@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
 import { ArrowLeftIcon, ArrowRightIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 
 export function CursorPagination({
   canGoNext,

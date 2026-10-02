@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function InlineCode({

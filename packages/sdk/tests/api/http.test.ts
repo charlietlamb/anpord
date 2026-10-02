@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { API_REPORTED_LIMITS } from "@anpord/schema/domain/api-mocks";
+import { API_REPORTED_LIMITS } from "@sphynx/schema/domain/api-mocks";
 import { z } from "zod";
 import { api, endpoint, withApi } from "../../src/mock-api";
 

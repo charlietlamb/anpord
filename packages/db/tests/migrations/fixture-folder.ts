@@ -13,7 +13,7 @@ export const fixtureFolder = (
   migrations: readonly FixtureMigration[],
   acknowledged: Record<string, string> = {}
 ) => {
-  const root = mkdtempSync(join(tmpdir(), "anpord-migrations-"));
+  const root = mkdtempSync(join(tmpdir(), "sphynx-migrations-"));
   mkdirSync(join(root, "meta"));
   writeFileSync(
     join(root, "meta", "_journal.json"),

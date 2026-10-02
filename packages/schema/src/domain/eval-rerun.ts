@@ -10,7 +10,7 @@ export const HostedSandbox = EvalSandbox.pipe(
     (sandbox): sandbox is Exclude<EvalSandbox, "local"> => sandbox !== "local",
     {
       message: () =>
-        "The local sandbox runs on your machine. Start it with anpord eval --local.",
+        "The local sandbox runs on your machine. Start it with sphynx eval --local.",
     }
   )
 ).annotations({

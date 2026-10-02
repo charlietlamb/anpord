@@ -1,6 +1,6 @@
-import { BatchSubscription } from "@anpord/schema/domain/eval-batch-subscription";
-import { EvalHome, type EvalHomeRange } from "@anpord/schema/domain/eval-home";
-import { ModelCatalogue } from "@anpord/schema/domain/eval-models";
+import { BatchSubscription } from "@sphynx/schema/domain/eval-batch-subscription";
+import { EvalHome, type EvalHomeRange } from "@sphynx/schema/domain/eval-home";
+import { ModelCatalogue } from "@sphynx/schema/domain/eval-models";
 import {
   type CaseOrder,
   type CaseSort,
@@ -11,23 +11,23 @@ import {
   EvalSuiteDetail,
   EvalSuitePage,
   EvalTrialAddress,
-} from "@anpord/schema/domain/eval-read-models";
+} from "@sphynx/schema/domain/eval-read-models";
 import {
   type RerunIntent,
   RerunPlan,
   type RerunRequest,
-} from "@anpord/schema/domain/eval-rerun";
+} from "@sphynx/schema/domain/eval-rerun";
 import {
   EvalBatchTail,
   type EvalTailMark,
-} from "@anpord/schema/domain/eval-tail";
+} from "@sphynx/schema/domain/eval-tail";
 import {
   EvalArtifact,
   type EvalArtifactRequest,
   type EvalHarness,
-} from "@anpord/schema/domain/eval-trial";
-import { EvalBatch, EvalRun, StartedBatch } from "@anpord/schema/domain/evals";
-import type { RunCaseRequest } from "@anpord/schema/domain/run-case";
+} from "@sphynx/schema/domain/eval-trial";
+import { EvalBatch, EvalRun, StartedBatch } from "@sphynx/schema/domain/evals";
+import type { RunCaseRequest } from "@sphynx/schema/domain/run-case";
 import { createApiClient, searchOf } from "@/lib/api-client";
 
 const api = createApiClient("/api/evals");

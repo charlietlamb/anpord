@@ -1,6 +1,6 @@
-import { Auth, type AuthInstance } from "@anpord/auth";
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { Unauthorized } from "@anpord/schema/domain/errors";
+import { Auth, type AuthInstance } from "@sphynx/auth";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { Unauthorized } from "@sphynx/schema/domain/errors";
 import { Cache, Context, Duration, Effect, Exit, Layer } from "effect";
 import { resolveApiKey } from "./api-key";
 
@@ -13,7 +13,7 @@ export interface VerifiedKeysShape {
   readonly verify: (token: string) => Effect.Effect<Actor, Unauthorized>;
 }
 
-export class VerifiedKeys extends Context.Tag("@anpord/server/VerifiedKeys")<
+export class VerifiedKeys extends Context.Tag("@sphynx/server/VerifiedKeys")<
   VerifiedKeys,
   VerifiedKeysShape
 >() {}

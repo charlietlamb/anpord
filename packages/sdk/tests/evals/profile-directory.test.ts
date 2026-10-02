@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PROFILE_LIMITS } from "@anpord/schema/domain/harness-profile";
+import { PROFILE_LIMITS } from "@sphynx/schema/domain/harness-profile";
 import { Effect } from "effect";
 import { profileVariant } from "../../src/evals/profile-directory";
 
@@ -20,7 +20,7 @@ afterEach(async () => {
    walker must skip cannot be committed: git refuses a nested .git and ignores
    node_modules. */
 const copyOfFixture = async () => {
-  scratch = await mkdtemp(join(tmpdir(), "anpord-profile-"));
+  scratch = await mkdtemp(join(tmpdir(), "sphynx-profile-"));
   const dir = join(scratch, "profile");
 
   await cp(FIXTURE, dir, { recursive: true });
@@ -170,7 +170,7 @@ describe("reading a profile directory", () => {
   });
 
   test("names a directory that is not there", async () => {
-    scratch = await mkdtemp(join(tmpdir(), "anpord-profile-"));
+    scratch = await mkdtemp(join(tmpdir(), "sphynx-profile-"));
     const outcome = await compiled(join(scratch, "profile"));
 
     expect(outcome._tag === "Left" && outcome.left._tag).toBe(

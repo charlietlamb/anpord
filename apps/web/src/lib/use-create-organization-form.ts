@@ -1,5 +1,5 @@
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
-import { handleMutationResult } from "@anpord/ui/lib/mutation-result";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
+import { handleMutationResult } from "@sphynx/ui/lib/mutation-result";
 import { useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 import { authClient } from "@/lib/auth-client";

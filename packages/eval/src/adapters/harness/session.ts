@@ -1,7 +1,7 @@
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/harness-event";
 import { Effect, Option, Ref, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import { reportsModel } from "../../domain/harness-models";

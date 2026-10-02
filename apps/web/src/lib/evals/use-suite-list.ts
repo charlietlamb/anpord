@@ -1,4 +1,4 @@
-import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
+import type { EvalPageCursor } from "@sphynx/schema/domain/eval-read-models";
 import { useQuery } from "@tanstack/react-query";
 import { PLACEHOLDER_SUITE_PAGE } from "@/lib/evals/eval-placeholders";
 import { evalQueries } from "@/lib/evals/eval-queries";

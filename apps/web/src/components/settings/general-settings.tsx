@@ -1,5 +1,5 @@
-import { EmptyState } from "@anpord/ui/components/ui/empty-state";
 import { BuildingsIcon } from "@phosphor-icons/react";
+import { EmptyState } from "@sphynx/ui/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { OrganizationForm } from "@/components/settings/organization-form";
 import { useOrganizations } from "@/lib/use-organizations";

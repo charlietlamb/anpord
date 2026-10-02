@@ -1,4 +1,4 @@
-import { PromptSummary, ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { PromptSummary, ResolvedPrompt } from "@sphynx/schema/domain/prompts";
 import { Schema } from "effect";
 import { placeholders, placeholderText } from "@/lib/placeholders";
 

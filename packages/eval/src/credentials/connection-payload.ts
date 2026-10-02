@@ -1,4 +1,4 @@
-import { CredentialValues } from "@anpord/schema/domain/credentials";
+import { CredentialValues } from "@sphynx/schema/domain/credentials";
 import { Effect, Redacted, Schema } from "effect";
 import type { CredentialCipherShape } from "./cipher";
 import { CredentialError } from "./errors";

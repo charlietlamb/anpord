@@ -1,4 +1,4 @@
-import { cli, command } from "anpord/cli";
+import { cli, command } from "sphynx-sh/cli";
 import {
   getInput,
   getItem,

@@ -5,7 +5,7 @@ import type {
   SandboxHandle,
 } from "../../../../src/ports/sandbox";
 
-export const WORKSPACE = "/tmp/anpord-conformance";
+export const WORKSPACE = "/tmp/sphynx-conformance";
 
 export const collect = (stream: Stream.Stream<ExecChunk, unknown>) =>
   Stream.runCollect(stream).pipe(Effect.map(Chunk.toReadonlyArray));

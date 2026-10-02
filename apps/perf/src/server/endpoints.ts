@@ -2,8 +2,8 @@ import {
   MAX_ORGANIZATION_RUNS_IN_FLIGHT,
   MAX_RUN_TRIALS,
   MAX_START_TRIALS,
-} from "@anpord/schema/domain/eval-quota";
-import type { StartedBatch } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-quota";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
 import { mapLimit } from "../concurrency";
 import { JOURNAL_EPOCH, trialReport } from "../seed/journal";
 import { suiteRequest } from "../seed/plan";

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { SURFACE_BODY, SURFACE_FRAME } from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+import { SURFACE_BODY, SURFACE_FRAME } from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export function Surface({
   children,

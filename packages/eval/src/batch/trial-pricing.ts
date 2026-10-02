@@ -1,8 +1,8 @@
 import type {
   HarnessUsage,
   ModelSpend,
-} from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Effect, Option } from "effect";
 import { judgmentsIn } from "../domain/judgments";
 import { costOf, type ModelPrice } from "../domain/model-price";

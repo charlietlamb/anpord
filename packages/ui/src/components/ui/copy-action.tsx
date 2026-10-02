@@ -1,7 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
-import { COPY_RESET_MS } from "@anpord/ui/components/copy-button";
-import { ActionTooltip } from "@anpord/ui/components/ui/action-tooltip";
-import { useCopy } from "@anpord/ui/hooks/use-copy";
+import { Button } from "@sphynx/ui/components/button";
+import { COPY_RESET_MS } from "@sphynx/ui/components/copy-button";
+import { ActionTooltip } from "@sphynx/ui/components/ui/action-tooltip";
+import { useCopy } from "@sphynx/ui/hooks/use-copy";
 import { CheckIcon, type Icon } from "@phosphor-icons/react";
 
 interface CopyActionProps {

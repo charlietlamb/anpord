@@ -1,7 +1,7 @@
-import { Dither } from "@anpord/ui/components/ui/dither";
-import type { DitherPreset } from "@anpord/ui/lib/dither-presets";
-import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
-import { cn } from "@anpord/ui/lib/utils";
+import { Dither } from "@sphynx/ui/components/ui/dither";
+import type { DitherPreset } from "@sphynx/ui/lib/dither-presets";
+import type { HeaderPreset } from "@sphynx/ui/lib/header-presets";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 

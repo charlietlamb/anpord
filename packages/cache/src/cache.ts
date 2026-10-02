@@ -13,7 +13,7 @@ export interface CacheShape {
   ) => Effect.Effect<void>;
 }
 
-export class Cache extends Context.Tag("@anpord/cache/Cache")<
+export class Cache extends Context.Tag("@sphynx/cache/Cache")<
   Cache,
   CacheShape
 >() {}

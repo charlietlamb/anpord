@@ -29,7 +29,7 @@ export const PROVIDERS: readonly ProviderUnderTest[] = [
   {
     adapter: makeLocalAdapter.pipe(
       Effect.withConfigProvider(
-        ConfigProvider.fromMap(new Map([["ANPORD_LOCAL_SANDBOX", "true"]]), {
+        ConfigProvider.fromMap(new Map([["SPHYNX_LOCAL_SANDBOX", "true"]]), {
           pathDelim: ".",
         }).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()))
       )

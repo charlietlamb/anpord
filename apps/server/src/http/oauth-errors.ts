@@ -1,8 +1,8 @@
 import type {
   OAuthClientNotFound,
   OAuthClientUnreadable,
-} from "@anpord/auth/oauth/errors";
-import { InternalError, NotFound } from "@anpord/schema/domain/errors";
+} from "@sphynx/auth/oauth/errors";
+import { InternalError, NotFound } from "@sphynx/schema/domain/errors";
 import { Effect } from "effect";
 
 type OAuthDomainError = OAuthClientNotFound | OAuthClientUnreadable;

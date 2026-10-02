@@ -1,5 +1,5 @@
-import { PREPARE_RESULT_MARKER as MARKER } from "@anpord/schema/domain/sandbox-env";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+import { PREPARE_RESULT_MARKER as MARKER } from "@sphynx/schema/domain/sandbox-env";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { Either, Schema } from "effect";
 
 const PREPARED_LIMIT = 16_000;

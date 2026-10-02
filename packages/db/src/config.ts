@@ -10,7 +10,7 @@ export interface DatabaseConfigShape {
   readonly url: Redacted<string>;
 }
 
-export class DatabaseConfig extends Context.Tag("@anpord/db/DatabaseConfig")<
+export class DatabaseConfig extends Context.Tag("@sphynx/db/DatabaseConfig")<
   DatabaseConfig,
   DatabaseConfigShape
 >() {}

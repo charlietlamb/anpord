@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
+import type { EvalPrepare } from "@sphynx/schema/domain/eval-definition";
 
 const LENGTH = 16;
 
@@ -17,7 +17,7 @@ export const cacheKeyOf = (
 ) =>
   prepare === null
     ? undefined
-    : `anpord-${createHash("sha256")
+    : `sphynx-${createHash("sha256")
         .update(organizationId)
         .update("\u0000")
         .update(meaningOf(prepare.source))

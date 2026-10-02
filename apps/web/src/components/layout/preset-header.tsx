@@ -1,6 +1,6 @@
-import { Wordmark } from "@anpord/ui/components/wordmark";
-import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
-import { cn } from "@anpord/ui/lib/utils";
+import { Wordmark } from "@sphynx/ui/components/wordmark";
+import type { HeaderPreset } from "@sphynx/ui/lib/header-presets";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { HeaderActions } from "@/components/layout/header-actions";
@@ -63,7 +63,7 @@ export function PresetHeader({ preset }: { readonly preset: HeaderPreset }) {
             )}
           >
             <Link
-              aria-label="Anpord home"
+              aria-label="Sphynx home"
               className="text-foreground transition-opacity hover:opacity-70"
               to="/"
             >

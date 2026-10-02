@@ -1,15 +1,15 @@
-import { PromptActivity } from "@anpord/prompts/activity";
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { PAGE_LIMIT_DEFAULT } from "@anpord/schema/domain/prompts";
-import { AnpordApi } from "@anpord/schema/internal/api";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
+import { PromptActivity } from "@sphynx/prompts/activity";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { PAGE_LIMIT_DEFAULT } from "@sphynx/schema/domain/prompts";
+import { SphynxApi } from "@sphynx/schema/internal/api";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withPromptErrors } from "../../../http/prompt-errors";
 
 export const ActivityHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "activity",
   (handlers) =>
     authorized(handlers).handle(

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 import {
   artifactFor,
   conversationOf,

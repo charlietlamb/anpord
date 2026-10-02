@@ -1,79 +1,79 @@
 import { describe, expect, test } from "bun:test";
-import { Anpord } from "../../src/client/anpord";
 import {
-  AnpordError,
-  asAnpordError,
+  asSphynxError,
   MissingApiKey,
+  SphynxError,
 } from "../../src/client/errors";
+import { Sphynx } from "../../src/client/sphynx";
 
 const withoutEnvKey = <A>(run: () => A) => {
-  const previous = process.env.ANPORD_API_KEY;
-  process.env.ANPORD_API_KEY = "";
+  const previous = process.env.SPHYNX_API_KEY;
+  process.env.SPHYNX_API_KEY = "";
   try {
     return run();
   } finally {
-    process.env.ANPORD_API_KEY = previous ?? "";
+    process.env.SPHYNX_API_KEY = previous ?? "";
   }
 };
 
 describe("credentials", () => {
   test("an explicit key is accepted", () => {
-    expect(new Anpord({ apiKey: "explicit" })).toBeInstanceOf(Anpord);
+    expect(new Sphynx({ apiKey: "explicit" })).toBeInstanceOf(Sphynx);
   });
 
   test("the environment supplies the key when the caller does not", () => {
-    process.env.ANPORD_API_KEY = "from-environment";
-    expect(new Anpord()).toBeInstanceOf(Anpord);
+    process.env.SPHYNX_API_KEY = "from-environment";
+    expect(new Sphynx()).toBeInstanceOf(Sphynx);
   });
 
   test("a key of only whitespace counts as missing", () => {
-    const previous = process.env.ANPORD_API_KEY;
-    process.env.ANPORD_API_KEY = "   ";
+    const previous = process.env.SPHYNX_API_KEY;
+    process.env.SPHYNX_API_KEY = "   ";
     try {
-      expect(() => new Anpord()).toThrow(MissingApiKey);
+      expect(() => new Sphynx()).toThrow(MissingApiKey);
     } finally {
-      process.env.ANPORD_API_KEY = previous ?? "";
+      process.env.SPHYNX_API_KEY = previous ?? "";
     }
   });
 
   test("a missing key fails at construction rather than on first call", () => {
     withoutEnvKey(() => {
-      expect(() => new Anpord()).toThrow(MissingApiKey);
+      expect(() => new Sphynx()).toThrow(MissingApiKey);
     });
   });
 });
 
 describe("surface", () => {
   test("every endpoint in the group is reachable", () => {
-    const anpord = new Anpord({ apiKey: "k" });
-    expect(Object.keys(anpord.evals).toSorted()).toEqual([
+    const sphynx = new Sphynx({ apiKey: "k" });
+    expect(Object.keys(sphynx.evals).toSorted()).toEqual([
       "batches",
       "cases",
       "models",
       "runs",
       "suites",
     ]);
-    expect(Object.keys(anpord.evals.batches).toSorted()).toEqual([
+    expect(Object.keys(sphynx.evals.batches).toSorted()).toEqual([
       "get",
       "list",
       "start",
       "startAndWait",
       "wait",
     ]);
-    expect(Object.keys(anpord.evals.cases).toSorted()).toEqual([
+    expect(Object.keys(sphynx.evals.cases).toSorted()).toEqual([
       "get",
       "list",
       "run",
     ]);
-    expect(Object.keys(anpord.evals.runs).toSorted()).toEqual(["get", "list"]);
-    expect(Object.keys(anpord.evals.models)).toEqual(["list"]);
-    expect(Object.keys(anpord).toSorted()).toEqual([
+    expect(Object.keys(sphynx.evals.runs).toSorted()).toEqual(["get", "list"]);
+    expect(Object.keys(sphynx.evals.models)).toEqual(["list"]);
+    expect(Object.keys(sphynx).toSorted()).toEqual([
       "evals",
       "prompts",
       "runtime",
       "whoami",
     ]);
-    expect(Object.keys(anpord.prompts).toSorted()).toEqual([
+    expect(Object.keys(sphynx.prompts).toSorted()).toEqual([
       "create",
       "get",
       "list",
@@ -83,21 +83,21 @@ describe("surface", () => {
   });
 
   test("a result is the decoded value, not a tuple carrying the response", () => {
-    const reachable = async (anpord: Anpord) => {
-      const prompt = await anpord.prompts.get({
+    const reachable = async (sphynx: Sphynx) => {
+      const prompt = await sphynx.prompts.get({
         id: "greeting",
       });
-      const listed = await anpord.prompts.list();
-      const created = await anpord.prompts.create({
+      const listed = await sphynx.prompts.list();
+      const created = await sphynx.prompts.create({
         content: "hello",
         id: "greeting",
         name: "Greeting",
       });
-      const updated = await anpord.prompts.update({
+      const updated = await sphynx.prompts.update({
         content: "hello again",
         id: "greeting",
       });
-      const promoted = await anpord.prompts.promote({
+      const promoted = await sphynx.prompts.promote({
         channel: "production",
         id: "greeting",
         version: 1,
@@ -122,28 +122,28 @@ const MODEL_ERROR = /model/;
 
 describe("validation", () => {
   test("an id the api would refuse is named, not dumped as a schema", async () => {
-    const anpord = new Anpord({ apiKey: "unused" });
-    const failure = anpord.prompts.get({ id: "NOT A VALID ID" });
+    const sphynx = new Sphynx({ apiKey: "unused" });
+    const failure = sphynx.prompts.get({ id: "NOT A VALID ID" });
     await expect(failure).rejects.toThrow(EXPLAINS_THE_RULE);
   });
 
   test("a rejected field never reaches the network", async () => {
-    const anpord = new Anpord({
+    const sphynx = new Sphynx({
       apiKey: "unused",
       baseUrl: "http://127.0.0.1:1",
     });
-    await expect(anpord.prompts.get({ id: "" })).rejects.toThrow(
+    await expect(sphynx.prompts.get({ id: "" })).rejects.toThrow(
       NAMES_THE_FIELD
     );
   });
 
   test("a batch rejects a local sandbox before the network", async () => {
-    const anpord = new Anpord({
+    const sphynx = new Sphynx({
       apiKey: "unused",
       baseUrl: "http://127.0.0.1:1",
     });
     await expect(
-      anpord.evals.batches.start({
+      sphynx.evals.batches.start({
         cases: [
           {
             variables: { task: "Write hello.txt" },
@@ -164,12 +164,12 @@ describe("validation", () => {
   });
 
   test("a batch rejects an empty model before the network", async () => {
-    const anpord = new Anpord({
+    const sphynx = new Sphynx({
       apiKey: "unused",
       baseUrl: "http://127.0.0.1:1",
     });
     await expect(
-      anpord.evals.batches.start({
+      sphynx.evals.batches.start({
         cases: [
           {
             variables: { task: "Write hello.txt" },
@@ -190,34 +190,34 @@ describe("validation", () => {
 
 describe("errors", () => {
   test("a tagged failure keeps its message and gains a status", () => {
-    const error = asAnpordError({
+    const error = asSphynxError({
       _tag: "NotFound",
       message: 'No prompt with id "missing"',
     });
-    expect(error).toBeInstanceOf(AnpordError);
+    expect(error).toBeInstanceOf(SphynxError);
     expect(error.status).toBe(404);
     expect(error.message).toBe('No prompt with id "missing"');
   });
 
   test("a refused permission keeps its forbidden status", () => {
     expect(
-      asAnpordError({ _tag: "Forbidden", message: "no grant" }).status
+      asSphynxError({ _tag: "Forbidden", message: "no grant" }).status
     ).toBe(403);
   });
 
   test("an unrecognised failure still becomes a usable error", () => {
-    const error = asAnpordError({ _tag: "SomethingElse" });
+    const error = asSphynxError({ _tag: "SomethingElse" });
     expect(error.status).toBeUndefined();
     expect(error.message).toBe("SomethingElse");
   });
 
   test("the original failure survives for callers who need it", () => {
     const cause = { _tag: "Conflict", message: "taken" };
-    expect(asAnpordError(cause).cause).toBe(cause);
+    expect(asSphynxError(cause).cause).toBe(cause);
   });
 
   test("an error is not rewrapped", () => {
-    const error = new AnpordError("already mapped", { cause: null });
-    expect(asAnpordError(error)).toBe(error);
+    const error = new SphynxError("already mapped", { cause: null });
+    expect(asSphynxError(error)).toBe(error);
   });
 });

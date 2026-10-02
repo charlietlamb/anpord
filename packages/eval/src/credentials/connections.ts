@@ -1,11 +1,11 @@
-import { IdGenerator } from "@anpord/ids/id";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import type {
   CreateCredentialConnection,
   CredentialConnection,
   CredentialValues,
   IntegrationAwareness,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { Clock, Context, Effect, Layer } from "effect";
 import { CredentialCipher } from "./cipher";
 import { sealValues } from "./connection-payload";
@@ -49,7 +49,7 @@ export interface CredentialConnectionsShape {
 }
 
 export class CredentialConnections extends Context.Tag(
-  "@anpord/eval/CredentialConnections"
+  "@sphynx/eval/CredentialConnections"
 )<CredentialConnections, CredentialConnectionsShape>() {}
 
 export const CredentialConnectionsLive = Layer.effect(

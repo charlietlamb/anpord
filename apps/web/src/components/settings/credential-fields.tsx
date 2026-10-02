@@ -1,7 +1,7 @@
-import type { CredentialAuthMethod } from "@anpord/schema/domain/credentials";
-import { LabelledField } from "@anpord/ui/components/form/labelled-field";
-import { Input } from "@anpord/ui/components/input";
-import { cn } from "@anpord/ui/lib/utils";
+import type { CredentialAuthMethod } from "@sphynx/schema/domain/credentials";
+import { LabelledField } from "@sphynx/ui/components/form/labelled-field";
+import { Input } from "@sphynx/ui/components/input";
+import { cn } from "@sphynx/ui/lib/utils";
 import { EnvFields } from "@/components/settings/env-fields";
 
 export function CredentialFields({

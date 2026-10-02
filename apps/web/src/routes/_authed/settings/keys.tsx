@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
 import { PlusIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/layout/page-header";

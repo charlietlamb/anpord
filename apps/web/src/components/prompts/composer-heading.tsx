@@ -1,4 +1,4 @@
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
+import { PageHeading } from "@sphynx/ui/components/ui/page-heading";
 import { useCurrentUser } from "@/lib/use-current-user";
 import { useIsClient } from "@/lib/use-is-client";
 

@@ -1,23 +1,23 @@
-import { MAX_START_TRIALS } from "@anpord/schema/domain/eval-quota";
+import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
+import { MAX_START_TRIALS } from "@sphynx/schema/domain/eval-quota";
 import {
   type RerunIntent,
   RerunScope,
   type RerunTarget,
-} from "@anpord/schema/domain/eval-rerun";
-import type { EvalSuite } from "@anpord/schema/domain/evals";
-import { Button } from "@anpord/ui/components/button";
-import { BaseDialog } from "@anpord/ui/components/dialog/base-dialog";
-import { DialogFooter } from "@anpord/ui/components/ui/dialog";
+} from "@sphynx/schema/domain/eval-rerun";
+import type { EvalSuite } from "@sphynx/schema/domain/evals";
+import { Button } from "@sphynx/ui/components/button";
+import { BaseDialog } from "@sphynx/ui/components/dialog/base-dialog";
+import { DialogFooter } from "@sphynx/ui/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anpord/ui/components/ui/select";
-import { counted } from "@anpord/ui/lib/evals/counted";
-import { cn, SPIN } from "@anpord/ui/lib/utils";
-import { ArrowsClockwiseIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/select";
+import { counted } from "@sphynx/ui/lib/evals/counted";
+import { cn, SPIN } from "@sphynx/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";

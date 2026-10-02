@@ -1,5 +1,5 @@
-import type { OrganizationId } from "@anpord/schema/domain/actor";
-import type { PromptId, PromptSelector } from "@anpord/schema/domain/prompts";
+import type { OrganizationId } from "@sphynx/schema/domain/actor";
+import type { PromptId, PromptSelector } from "@sphynx/schema/domain/prompts";
 import { resolutionFor } from "./resolution";
 
 const NAMESPACE = "prompt";

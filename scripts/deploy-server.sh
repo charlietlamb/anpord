@@ -5,8 +5,8 @@
 set -euo pipefail
 
 REGION="${AWS_REGION:-us-east-2}"
-REPO="${ECR_REPO:-anpord-server}"
-SERVICE="${APPRUNNER_SERVICE:-anpord-server}"
+REPO="${ECR_REPO:-sphynx-server}"
+SERVICE="${APPRUNNER_SERVICE:-sphynx-server}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"

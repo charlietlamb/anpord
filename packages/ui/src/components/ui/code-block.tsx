@@ -1,6 +1,6 @@
-import { CopyButton } from "@anpord/ui/components/copy-button";
-import { SURFACE_FILL } from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
+import { SURFACE_FILL } from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function CodeBlock({

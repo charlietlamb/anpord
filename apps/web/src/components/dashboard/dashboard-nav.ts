@@ -1,4 +1,3 @@
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import {
   ChatTextIcon,
   GaugeIcon,
@@ -7,6 +6,7 @@ import {
   type Icon,
   StackIcon,
 } from "@phosphor-icons/react";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 
 interface NavItem {
   icon: Icon;

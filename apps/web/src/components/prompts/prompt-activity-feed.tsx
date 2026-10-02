@@ -1,4 +1,4 @@
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
+import { PageHeading } from "@sphynx/ui/components/ui/page-heading";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ShowMore } from "@/components/layout/show-more";
 import { ActivityRow } from "@/components/prompts/activity-row";

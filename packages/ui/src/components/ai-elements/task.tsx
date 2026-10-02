@@ -1,6 +1,6 @@
-import { cn } from "@anpord/ui/lib/utils";
 import { Collapsible } from "@base-ui/react/collapsible";
 import { CaretDownIcon, type Icon } from "@phosphor-icons/react";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ComponentProps } from "react";
 
 const PANEL =

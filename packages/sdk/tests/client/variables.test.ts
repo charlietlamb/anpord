@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { VariablesFor } from "../../src/client/variables";
 
 declare module "../../src/client/variables" {
-  interface AnpordPromptVariables {
+  interface SphynxPromptVariables {
     readonly "no-variables": Record<string, never>;
     readonly "support-reply": { readonly product: string };
   }

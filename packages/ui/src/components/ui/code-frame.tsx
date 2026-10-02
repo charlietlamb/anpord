@@ -3,8 +3,8 @@ import {
   SURFACE_BODY,
   SURFACE_FRAME,
   SURFACE_HEAD,
-} from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export const CODE_FRAME_ACTION =
   "shrink-0 opacity-0 transition-opacity duration-150 ease-out focus-visible:opacity-100 group-hover/code:opacity-100";

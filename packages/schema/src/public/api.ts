@@ -12,7 +12,7 @@ import { API_ORIGIN } from "./origins";
 import { PublicPromptsGroup } from "./prompts-api";
 import { RunnerGroup } from "./runner-api";
 
-export class PublicApi extends HttpApi.make("anpord-public")
+export class PublicApi extends HttpApi.make("sphynx-public")
   .add(AuthGroup)
   .add(PublicConnectorsGroup)
   .add(BatchesGroup)
@@ -23,7 +23,7 @@ export class PublicApi extends HttpApi.make("anpord-public")
   .add(RunnerGroup)
   .add(PublicPromptsGroup)
   .prefix("/v1")
-  .annotate(OpenApi.Title, "Anpord API")
+  .annotate(OpenApi.Title, "Sphynx API")
   .annotate(OpenApi.Version, "1.0.0")
   .annotate(
     OpenApi.Description,

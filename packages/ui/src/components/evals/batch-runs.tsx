@@ -1,18 +1,18 @@
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
 import {
   BatchRunRow,
   type RunLink,
   type TrialLink,
-} from "@anpord/ui/components/evals/batch-run-row";
+} from "@sphynx/ui/components/evals/batch-run-row";
 import {
   DataTable,
   DataTableBody,
   DataTableFooter,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
-import { BATCH_RUNS_TABLE } from "@anpord/ui/lib/evals/batch-runs-table";
-import { counted } from "@anpord/ui/lib/evals/counted";
+} from "@sphynx/ui/components/ui/data-table";
+import { EmptyNote } from "@sphynx/ui/components/ui/empty-note";
+import { BATCH_RUNS_TABLE } from "@sphynx/ui/lib/evals/batch-runs-table";
+import { counted } from "@sphynx/ui/lib/evals/counted";
 
 const settledOf = (batch: EvalBatch) =>
   batch.runs.filter((run) => run.status !== "running").length;

@@ -1,4 +1,4 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 
 const said = (at: number, text: string): EvalJournalEntry => ({
   _tag: "message",
@@ -44,7 +44,7 @@ export const CONVERSATION: readonly EvalJournalEntry[] = [
     6400,
     6450,
     'pwd && rg --files -g "!node_modules" -g "!*.lock" | sort && printf "\\n--- package/config references ---\\n" && rg -n "atmn|autumn" .',
-    '/tmp/anpord-task\nAGENTS.md\npackage-lock.json\npackage.json\n\n--- package/config references ---\n./package.json:9:    "atmn": "^2.0.0"'
+    '/tmp/sphynx-task\nAGENTS.md\npackage-lock.json\npackage.json\n\n--- package/config references ---\n./package.json:9:    "atmn": "^2.0.0"'
   ),
   ran(7000, 8400, "npx atmn push --help", "error: unknown command", 1),
   ran(9000, 9500, "npx atmn skills autumn-catalog", ""),
@@ -65,7 +65,7 @@ export const CONVERSATION: readonly EvalJournalEntry[] = [
   {
     _tag: "fileChange",
     finishedAtMillis: 31_000,
-    paths: ["/tmp/anpord-task/autumn.config.ts"],
+    paths: ["/tmp/sphynx-task/autumn.config.ts"],
   },
   ran(33_000, 35_200, "npx atmn push --yes", "pushed pro: $20 / month"),
   replied(

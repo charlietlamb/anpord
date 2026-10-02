@@ -6,7 +6,7 @@ import { prepareWorkspace } from "../../src/services/workspace";
 import { declinesEverything } from "../fixtures/declines-everything";
 
 const HOME = "/home/agent";
-const CREDENTIALS = `${HOME}/.anpord-git-credentials`;
+const CREDENTIALS = `${HOME}/.sphynx-git-credentials`;
 
 const recording = (exitCode: number) => {
   const steps: string[] = [];

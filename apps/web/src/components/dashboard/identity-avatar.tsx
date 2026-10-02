@@ -2,8 +2,8 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@anpord/ui/components/avatar";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/components/avatar";
+import { cn } from "@sphynx/ui/lib/utils";
 
 interface IdentityAvatarProps {
   className?: string;

@@ -1,4 +1,4 @@
-import type { ChannelColor } from "@anpord/schema/domain/channels";
+import type { ChannelColor } from "@sphynx/schema/domain/channels";
 
 export const CHANNEL_SWATCHES: Record<ChannelColor, string> = {
   amber: "bg-amber-500",

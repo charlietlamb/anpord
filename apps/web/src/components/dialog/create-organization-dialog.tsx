@@ -1,5 +1,5 @@
-import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { slugify } from "@anpord/ui/lib/slugify";
+import { FormDialog } from "@sphynx/ui/components/dialog/form-dialog";
+import { slugify } from "@sphynx/ui/lib/slugify";
 import { useRef } from "react";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 import { useCreateOrganizationForm } from "@/lib/use-create-organization-form";

@@ -8,7 +8,7 @@ import { HealthGroup } from "./health-api";
 import { OAuthGroup } from "./oauth-api";
 import { PromptsGroup } from "./prompts-api";
 
-export class AnpordApi extends HttpApi.make("anpord")
+export class SphynxApi extends HttpApi.make("sphynx")
   .add(HealthGroup)
   .add(OAuthGroup)
   .add(PromptsGroup)

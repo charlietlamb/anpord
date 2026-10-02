@@ -1,8 +1,8 @@
 "use client";
 
-import { FieldInfo } from "@anpord/ui/components/form/field-info";
-import { LabelledSelect } from "@anpord/ui/components/form/labelled-select";
-import { useFieldContext } from "@anpord/ui/hooks/form-context";
+import { FieldInfo } from "@sphynx/ui/components/form/field-info";
+import { LabelledSelect } from "@sphynx/ui/components/form/labelled-select";
+import { useFieldContext } from "@sphynx/ui/hooks/form-context";
 
 interface SelectOption {
   label: string;

@@ -1,4 +1,4 @@
-import { CommandLine } from "@anpord/eval/domain/command-line";
+import { CommandLine } from "@sphynx/eval/domain/command-line";
 import { Schema } from "effect";
 
 export interface RunnerEnv {
@@ -23,12 +23,12 @@ const required = (name: string): string => {
 };
 
 export const env = (): RunnerEnv => ({
-  home: required("ANPORD_HOME"),
-  model: required("ANPORD_MODEL"),
-  prompt: required("ANPORD_PROMPT"),
-  systemPromptFile: process.env.ANPORD_SYSTEM_PROMPT_FILE || undefined,
-  traceLog: required("ANPORD_TRACE_LOG"),
-  workspace: required("ANPORD_WORKSPACE"),
+  home: required("SPHYNX_HOME"),
+  model: required("SPHYNX_MODEL"),
+  prompt: required("SPHYNX_PROMPT"),
+  systemPromptFile: process.env.SPHYNX_SYSTEM_PROMPT_FILE || undefined,
+  traceLog: required("SPHYNX_TRACE_LOG"),
+  workspace: required("SPHYNX_WORKSPACE"),
 });
 
 const UsageCountsSchema = Schema.Struct({

@@ -1,5 +1,5 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import { ShellBlock } from "@anpord/ui/components/ui/shell-block";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import { ShellBlock } from "@sphynx/ui/components/ui/shell-block";
 
 export function CommandsHint({ trial }: { readonly trial: EvalTrial }) {
   const failed = trial.trajectory.filter(

@@ -1,4 +1,4 @@
-import type { CredentialAuthMethod } from "@anpord/schema/domain/credentials";
+import type { CredentialAuthMethod } from "@sphynx/schema/domain/credentials";
 
 export const incompleteCredential = (
   method: CredentialAuthMethod,

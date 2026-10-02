@@ -1,7 +1,7 @@
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import { promptInclusiveUsage } from "../../domain/prompt-inclusive-usage";
 import type { DecodedOutput } from "./session";

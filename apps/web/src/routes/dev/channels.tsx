@@ -1,4 +1,4 @@
-import type { Channel } from "@anpord/schema/domain/channels";
+import type { Channel } from "@sphynx/schema/domain/channels";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ChannelsScreen } from "@/components/channels/channels-screen";

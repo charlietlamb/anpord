@@ -40,7 +40,7 @@ const trial = Effect.gen(function* () {
     prepare: null,
     source: { kind: "files", files: { "note.txt": "nothing to fix" } },
     verifyCommand: null,
-    workspace: "/tmp/anpord-timing",
+    workspace: "/tmp/sphynx-timing",
   });
 });
 

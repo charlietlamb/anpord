@@ -1,8 +1,8 @@
 "use client";
 
-import { FieldShell } from "@anpord/ui/components/form/field-shell";
-import { Textarea } from "@anpord/ui/components/ui/textarea";
-import { useFieldContext } from "@anpord/ui/hooks/form-context";
+import { FieldShell } from "@sphynx/ui/components/form/field-shell";
+import { Textarea } from "@sphynx/ui/components/ui/textarea";
+import { useFieldContext } from "@sphynx/ui/hooks/form-context";
 
 export function TextareaField({
   description,

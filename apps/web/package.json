@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/web",
+  "name": "@sphynx/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,9 +12,9 @@
     "test:reload": "node scripts/verify-reload.ts"
   },
   "dependencies": {
-    "@anpord/schema": "workspace:*",
-    "@anpord/template": "workspace:*",
-    "@anpord/ui": "workspace:*",
+    "@sphynx/schema": "workspace:*",
+    "@sphynx/template": "workspace:*",
+    "@sphynx/ui": "workspace:*",
     "@better-auth/api-key": "catalog:",
     "@databuddy/sdk": "catalog:",
     "@fontsource-variable/geist": "catalog:",

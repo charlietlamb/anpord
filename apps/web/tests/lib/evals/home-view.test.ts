@@ -4,7 +4,7 @@ import type {
   EvalHomeDay,
   EvalHomeEval,
   EvalHomeVerdict,
-} from "@anpord/schema/domain/eval-home";
+} from "@sphynx/schema/domain/eval-home";
 import { DateTime } from "effect";
 import { regressionIndex } from "@/lib/evals/home-trend";
 import { type HomeFilters, homeView } from "@/lib/evals/home-view";

@@ -1,7 +1,7 @@
 import {
   EVAL_PAGE_SIZE,
   type EvalPageCursor,
-} from "@anpord/schema/domain/eval-read-models";
+} from "@sphynx/schema/domain/eval-read-models";
 
 export const MAX_PAGE_SIZE = 100;
 

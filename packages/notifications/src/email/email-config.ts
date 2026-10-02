@@ -8,7 +8,7 @@ export interface EmailConfigShape {
 }
 
 export class EmailConfig extends Context.Tag(
-  "@anpord/notifications/EmailConfig"
+  "@sphynx/notifications/EmailConfig"
 )<EmailConfig, EmailConfigShape>() {}
 
 const resendCredentials = Config.all({

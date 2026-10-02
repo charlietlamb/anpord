@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Anpord API",
+    "title": "Sphynx API",
     "version": "1.0.0",
     "description": "Run agent evals and manage prompts. Every endpoint takes a JSON body over POST and authenticates with a bearer API key."
   },
@@ -3895,7 +3895,7 @@
               },
               "additionalProperties": false
             },
-            "description": "Components named after anpord 0.1.25, kept out of `components` so clients from then still decode the response."
+            "description": "Components named after sphynx 0.1.25, kept out of `components` so clients from then still decode the response."
           }
         },
         "additionalProperties": false,
@@ -6302,7 +6302,7 @@
   "servers": [
     {
       "description": "Production",
-      "url": "https://api.anpord.com"
+      "url": "https://api.sphynx.sh"
     }
   ]
 }

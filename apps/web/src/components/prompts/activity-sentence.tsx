@@ -1,4 +1,4 @@
-import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
+import type { PromptActivityEntry } from "@sphynx/schema/domain/prompt-activity";
 import { VersionMove } from "@/components/deployments/version-move";
 import { VersionLabel } from "@/components/prompts/version-label";
 

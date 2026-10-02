@@ -1,9 +1,9 @@
+import { KeyIcon } from "@phosphor-icons/react";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { KeyIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
 import { ListState } from "@/components/layout/list-state";
 import { ApiKeyRow } from "@/components/settings/api-key-row";
 import { PLACEHOLDER_API_KEYS } from "@/lib/settings/settings-placeholders";

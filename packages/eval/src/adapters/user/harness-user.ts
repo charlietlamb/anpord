@@ -1,5 +1,5 @@
-import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+import type { EvalSimulatedUser } from "@sphynx/schema/domain/eval-turns";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 import { Chunk, Effect, Option, Random, Redacted, Ref, Stream } from "effect";
 import { CredentialResolver } from "../../credentials/resolver";
 import { systemActor } from "../../credentials/system-actor";
@@ -32,7 +32,7 @@ const openingPrompt = (user: EvalSimulatedUser, request: UserTurnRequest) =>
   ].join("\n\n");
 
 const workspaceOf = Random.nextIntBetween(0x10_00_00_00, 0x7f_ff_ff_ff).pipe(
-  Effect.map((suffix) => `/tmp/anpord-user-${suffix.toString(16)}`)
+  Effect.map((suffix) => `/tmp/sphynx-user-${suffix.toString(16)}`)
 );
 
 export const makeHarnessUser = Effect.gen(function* () {

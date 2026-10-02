@@ -1,14 +1,14 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
-import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
+import { EvalStatusBadge } from "@sphynx/ui/components/evals/eval-status-badge";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
-import { runStatus } from "@anpord/ui/lib/evals/eval-status";
+} from "@sphynx/ui/components/ui/data-table";
+import { EmptyNote } from "@sphynx/ui/components/ui/empty-note";
+import { runStatus } from "@sphynx/ui/lib/evals/eval-status";
 import { RunTrialRow } from "@/components/evals/run-trial-row";
 import { TrialTimeline } from "@/components/evals/trial-timeline";
 import { PageShell } from "@/components/layout/page-shell";

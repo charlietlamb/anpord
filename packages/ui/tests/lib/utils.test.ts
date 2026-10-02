@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 
 describe("cn", () => {
   test("keeps a theme font size beside a text colour", () => {

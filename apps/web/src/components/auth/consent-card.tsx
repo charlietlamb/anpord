@@ -1,9 +1,9 @@
-import { Button } from "@anpord/ui/components/button";
-import { Logo } from "@anpord/ui/components/logo";
-import { DetailList, DetailRow } from "@anpord/ui/components/ui/detail-list";
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { Surface } from "@anpord/ui/components/ui/surface";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { Logo } from "@sphynx/ui/components/logo";
+import { DetailList, DetailRow } from "@sphynx/ui/components/ui/detail-list";
+import { PageHeading } from "@sphynx/ui/components/ui/page-heading";
+import { Surface } from "@sphynx/ui/components/ui/surface";
 import { useMutation } from "@tanstack/react-query";
 import { authClient, useSession } from "@/lib/auth-client";
 
@@ -54,7 +54,7 @@ export function ConsentCard({
           <PageHeading title={clientName} />
         </h1>
         <p className="text-muted-foreground text-sm">
-          wants to access your Anpord account
+          wants to access your Sphynx account
         </p>
       </div>
 

@@ -5,7 +5,7 @@ import type { SandboxCache } from "../../ports/sandbox";
 import { shellQuote } from "../harness/process";
 import { call, unavailable } from "./daytona-shell";
 
-export const CACHE_PATH = "/anpord-cache";
+export const CACHE_PATH = "/sphynx-cache";
 export const CACHE_SECONDS = 900;
 const VOLUME_CHECK = Duration.seconds(1);
 const VOLUME_CHECKS = 60;

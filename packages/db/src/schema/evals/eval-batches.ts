@@ -1,4 +1,4 @@
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import type { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
 import {
   boolean,
   index,

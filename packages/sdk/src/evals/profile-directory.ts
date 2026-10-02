@@ -1,12 +1,12 @@
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import {
   type HarnessProfile,
   PROFILE_LIMITS,
   ProfilePath,
   profileFitsHarness,
-} from "@anpord/schema/domain/harness-profile";
+} from "@sphynx/schema/domain/harness-profile";
 import { Effect, Schema } from "effect";
 import {
   CommandProfileNeedsRun,

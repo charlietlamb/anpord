@@ -12,10 +12,10 @@
   },
   "iconLibrary": "phosphor",
   "aliases": {
-    "components": "@anpord/ui/components",
-    "hooks": "@anpord/ui/hooks",
-    "lib": "@anpord/ui/lib",
-    "ui": "@anpord/ui/components/ui",
-    "utils": "@anpord/ui/lib/utils"
+    "components": "@sphynx/ui/components",
+    "hooks": "@sphynx/ui/hooks",
+    "lib": "@sphynx/ui/lib",
+    "ui": "@sphynx/ui/components/ui",
+    "utils": "@sphynx/ui/lib/utils"
   }
 }

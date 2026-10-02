@@ -74,7 +74,7 @@ export const SuiteBatchRequest = StartBatchRequest.omit("local", "trigger")
         request.variants.every((variant) => variant.sandbox !== "local"),
       {
         message: () =>
-          "The local sandbox runs on your machine. Start it with anpord eval --local.",
+          "The local sandbox runs on your machine. Start it with sphynx eval --local.",
       }
     ),
     Schema.filter(hasOneCheckPerCase, ONE_CHECK_PER_CASE)

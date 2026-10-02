@@ -2,12 +2,12 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "anpord": ["../../packages/sdk/src/index.ts"],
-      "anpord/api": ["../../packages/sdk/src/mock-api/index.ts"],
-      "anpord/validators": ["../../packages/sdk/src/validators.ts"],
-      "anpord/cli": ["../../packages/sdk/src/mock-cli/index.ts"],
-      "anpord/eval": ["../../packages/sdk/src/evals/compiler.ts"],
-      "anpord/mcp": ["../../packages/sdk/src/mcp/index.ts"]
+      "sphynx-sh": ["../../packages/sdk/src/index.ts"],
+      "sphynx-sh/api": ["../../packages/sdk/src/mock-api/index.ts"],
+      "sphynx-sh/validators": ["../../packages/sdk/src/validators.ts"],
+      "sphynx-sh/cli": ["../../packages/sdk/src/mock-cli/index.ts"],
+      "sphynx-sh/eval": ["../../packages/sdk/src/evals/compiler.ts"],
+      "sphynx-sh/mcp": ["../../packages/sdk/src/mcp/index.ts"]
     },
     "types": ["bun"]
   },

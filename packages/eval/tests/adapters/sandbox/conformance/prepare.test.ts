@@ -8,7 +8,7 @@ import { PROVIDERS, type ProviderUnderTest } from "./providers";
 const SOURCE = `
 const total = [1, 2, 3].reduce((sum, n) => sum + n, 0);
 console.log("preparing the workspace");
-console.log("ANPORD_PREPARE_RESULT=" + JSON.stringify({ rendererPort: 4173, total }));
+console.log("SPHYNX_PREPARE_RESULT=" + JSON.stringify({ rendererPort: 4173, total }));
 `;
 
 const FAILING = `

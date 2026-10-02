@@ -1,11 +1,11 @@
-import { Batches } from "@anpord/eval/batch/batches";
-import { telemetryFor } from "@anpord/eval/telemetry";
+import { Batches } from "@sphynx/eval/batch/batches";
+import { telemetryFor } from "@sphynx/eval/telemetry";
 import { AbortTaskRunError } from "@trigger.dev/sdk";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { WorkerLayer } from "../layer";
 
 const runtime = ManagedRuntime.make(
-  Layer.merge(WorkerLayer, telemetryFor("anpord-worker"))
+  Layer.merge(WorkerLayer, telemetryFor("sphynx-worker"))
 );
 
 export const executeBatch = (input: {

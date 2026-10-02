@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import {
   DEFAULT_USER_MODEL,
   type EvalUser,
-} from "@anpord/schema/domain/eval-turns";
+} from "@sphynx/schema/domain/eval-turns";
 import { ConfigProvider, Effect, Option } from "effect";
 import {
   namesOf,
@@ -54,7 +54,7 @@ describe("the model that plays the user", () => {
 
   it("reads the configured model", () => {
     expect(
-      configured(new Map([["ANPORD_USER_MODEL", "anthropic/claude-haiku"]]))
+      configured(new Map([["SPHYNX_USER_MODEL", "anthropic/claude-haiku"]]))
     ).toBe("anthropic/claude-haiku");
   });
 

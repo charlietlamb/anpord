@@ -1,4 +1,4 @@
-import type { EvalVariantDefinition } from "anpord";
+import type { EvalVariantDefinition } from "sphynx-sh";
 
 /* Named rather than left to the default, so this suite keeps testing the same
    sandbox if the default ever moves. */

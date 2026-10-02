@@ -1,7 +1,7 @@
-import type { EvalCaseId } from "@anpord/schema/domain/eval-limits";
-import { AnpordApi } from "@anpord/schema/public/client";
+import type { EvalCaseId } from "@sphynx/schema/domain/eval-limits";
+import { SphynxApi } from "@sphynx/schema/public/client";
 import { Effect } from "effect";
-import { asAnpordError } from "../client/errors";
+import { asSphynxError } from "../client/errors";
 import { compileEvalEffect } from "../evals/compiler";
 import { type HostedOptions, settleBatch } from "./batch-outcome";
 import { reportStarted } from "./eval-report";
@@ -18,7 +18,7 @@ interface Started {
 const failedOutcome = (started: Started, error: unknown): SuiteOutcome => ({
   ...started,
   batch: null,
-  error: asAnpordError(error).message,
+  error: asSphynxError(error).message,
   problems: [],
 });
 
@@ -32,7 +32,7 @@ export const runSuiteFile = (
     const known: Started = { batchId: null, file, suite: null };
 
     return yield* Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const request = yield* selectFrom(
         file,
         yield* compileEvalEffect(file),
@@ -68,7 +68,7 @@ export const runStoredCase = (
     const known: Started = { batchId: null, file: null, suite: null };
 
     return yield* Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const stored = yield* api.cases.get({ payload: { id: caseId } });
       known.suite = stored.suite.name;
       const started = yield* api.cases.run({

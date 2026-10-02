@@ -1,11 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { isLocalHost } from "@anpord/db/local-hosts";
-import { testDatabaseUrl } from "@anpord/db/test-database";
-import { runOrThrow } from "@anpord/e2e/src/harness/process";
+import { isLocalHost } from "@sphynx/db/local-hosts";
+import { testDatabaseUrl } from "@sphynx/db/test-database";
+import { runOrThrow } from "@sphynx/e2e/src/harness/process";
 import { Client } from "pg";
 
-const SCRATCH_PREFIX = "anpord_scratch_";
+const SCRATCH_PREFIX = "sphynx_scratch_";
 const QUOTED = /^(["'])(.*)\1$/;
 let created = 0;
 

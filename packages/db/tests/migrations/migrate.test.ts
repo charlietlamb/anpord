@@ -97,7 +97,7 @@ describe.skipIf(scratch.skip)("migrating a real database", () => {
       say: quiet,
     });
 
-    expect(refused).toStartWith("anpord_migrate_test_");
+    expect(refused).toStartWith("sphynx_migrate_test_");
     expect(refused).toContain("was made with drizzle-kit push");
     expect(recorded.applied).toEqual([]);
     expect(

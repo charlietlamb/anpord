@@ -1,5 +1,5 @@
-import { AutumnService } from "@anpord/billing/autumn";
-import type { OrganizationId } from "@anpord/schema/domain/actor";
+import { AutumnService } from "@sphynx/billing/autumn";
+import type { OrganizationId } from "@sphynx/schema/domain/actor";
 import { Effect } from "effect";
 
 export const meterBatch = (input: {

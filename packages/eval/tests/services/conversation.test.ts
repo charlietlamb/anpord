@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { DEFAULT_MAX_TURNS } from "@anpord/schema/domain/eval-limits";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { DEFAULT_MAX_TURNS } from "@sphynx/schema/domain/eval-limits";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Chunk, Effect, Layer, Option, Redacted, Stream } from "effect";
 import { UserUnavailable } from "../../src/domain/errors";
 import {

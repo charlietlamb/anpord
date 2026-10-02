@@ -1,7 +1,7 @@
 import {
   type ChannelColor,
   DEFAULT_CHANNEL_COLOR,
-} from "@anpord/schema/domain/channels";
+} from "@sphynx/schema/domain/channels";
 import { useQuery } from "@tanstack/react-query";
 import { channelQueries } from "@/lib/query/channel-queries";
 

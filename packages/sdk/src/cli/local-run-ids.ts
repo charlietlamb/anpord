@@ -1,12 +1,12 @@
 import type {
   EvalVariantRequest,
   StartBatchRequest,
-} from "@anpord/schema/domain/eval-definition";
+} from "@sphynx/schema/domain/eval-definition";
 import type {
   EvalBatch,
   EvalVariant,
   StartedBatch,
-} from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/evals";
 import { Data, Effect } from "effect";
 import { type LocalSlot, labelOfRequest } from "./eval-local";
 

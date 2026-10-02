@@ -5,23 +5,23 @@ import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { useIsMobile } from "@anpord/ui/hooks/use-mobile"
-import { cn } from "@anpord/ui/lib/utils"
-import { Button } from "@anpord/ui/components/button"
-import { Input } from "@anpord/ui/components/input"
-import { Separator } from "@anpord/ui/components/ui/separator"
+import { useIsMobile } from "@sphynx/ui/hooks/use-mobile"
+import { cn } from "@sphynx/ui/lib/utils"
+import { Button } from "@sphynx/ui/components/button"
+import { Input } from "@sphynx/ui/components/input"
+import { Separator } from "@sphynx/ui/components/ui/separator"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@anpord/ui/components/ui/sheet"
+} from "@sphynx/ui/components/ui/sheet"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anpord/ui/components/tooltip"
+} from "@sphynx/ui/components/tooltip"
 import { SidebarIcon } from "@phosphor-icons/react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"

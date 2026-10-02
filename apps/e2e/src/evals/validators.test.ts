@@ -3,8 +3,8 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { withApi } from "anpord/api";
-import { compileEval } from "anpord/eval";
+import { withApi } from "sphynx-sh/api";
+import { compileEval } from "sphynx-sh/eval";
 import { item } from "./fixtures/catalog";
 import { catalogApi } from "./mocks/catalog-api";
 import { SANDBOX_BUN } from "./validators/sdk";
@@ -39,9 +39,9 @@ test.each([
     "wrong-answer",
   ] as const) {
     const passed = scenario === "passed";
-    const workspace = await mkdtemp(join(tmpdir(), "anpord-ci-validator-"));
+    const workspace = await mkdtemp(join(tmpdir(), "sphynx-ci-validator-"));
     try {
-      await mkdir(join(workspace, ".anpord"));
+      await mkdir(join(workspace, ".sphynx"));
       const script = join(workspace, "validator.mjs");
       const answer = join(workspace, "answer.txt");
       await writeFile(script, validator.source);
@@ -53,9 +53,9 @@ test.each([
         await writeFile(
           join(workspace, "sdk-smoke.mjs"),
           passed
-            ? `import { Anpord } from ${JSON.stringify(sdk.href)};
+            ? `import { Sphynx } from ${JSON.stringify(sdk.href)};
 export async function resolvePrompt(baseUrl, id, name) {
-  const client = new Anpord({ apiKey: "ci-fixture", baseUrl, cache: false });
+  const client = new Sphynx({ apiKey: "ci-fixture", baseUrl, cache: false });
   try { return (await client.prompts.get({ id, variables: { name } })).content; }
   finally { await client.dispose(); }
 }`
@@ -70,9 +70,9 @@ export async function resolvePrompt(baseUrl, id, name) {
             return calls();
           },
         });
-        await mkdir(join(workspace, ".anpord/api"));
+        await mkdir(join(workspace, ".sphynx/api"));
         await writeFile(
-          join(workspace, ".anpord/api/calls.jsonl"),
+          join(workspace, ".sphynx/api/calls.jsonl"),
           scenario === "missing-evidence"
             ? ""
             : calls.map((call) => JSON.stringify(call)).join("\n")
@@ -90,13 +90,13 @@ export async function resolvePrompt(baseUrl, id, name) {
                 { ...call, input: { id: item.id } },
               ];
         await writeFile(
-          join(workspace, `.anpord/${suite}-calls.jsonl`),
+          join(workspace, `.sphynx/${suite}-calls.jsonl`),
           calls.map((entry) => JSON.stringify(entry)).join("\n")
         );
       }
       const child = Bun.spawn(["node", script], {
         cwd: workspace,
-        env: { PATH: process.env.PATH, ANPORD_ANSWER_FILE: answer },
+        env: { PATH: process.env.PATH, SPHYNX_ANSWER_FILE: answer },
         stdout: "pipe",
         stderr: "pipe",
       });
@@ -107,8 +107,8 @@ export async function resolvePrompt(baseUrl, id, name) {
       ]);
       expect(error).toBe("");
       expect(code).toBe(0);
-      expect(output).toContain(`ANPORD_VALIDATOR_RESULT={"passed":${passed}`);
-      expect(output).toContain("ANPORD_VALIDATION=");
+      expect(output).toContain(`SPHYNX_VALIDATOR_RESULT={"passed":${passed}`);
+      expect(output).toContain("SPHYNX_VALIDATION=");
       if (suite !== "sdk") {
         expect(output).toContain(
           suite === "api" ? "Catalog HTTP requests" : "Catalog requests"

@@ -1,6 +1,6 @@
-import type { Whoami } from "@anpord/schema/public/auth-api";
-import { AnpordApi } from "@anpord/schema/public/client";
 import { Command, Options } from "@effect/cli";
+import type { Whoami } from "@sphynx/schema/public/auth-api";
+import { SphynxApi } from "@sphynx/schema/public/client";
 import { Effect } from "effect";
 import { labelled } from "./labelled-row";
 import { paletteFor } from "./paint";
@@ -47,7 +47,7 @@ export const whoami = Command.make(
   { asJson },
   ({ asJson: wantsJson }) =>
     Effect.gen(function* () {
-      const api = yield* AnpordApi;
+      const api = yield* SphynxApi;
       const found = yield* api.auth.whoami({ payload: {} });
 
       if (wantsJson) {
@@ -58,11 +58,11 @@ export const whoami = Command.make(
     })
 ).pipe(
   Command.withDescription(
-    "Show the organization and key ANPORD_API_KEY acts for"
+    "Show the organization and key SPHYNX_API_KEY acts for"
   )
 );
 
-export const announceOrganization = AnpordApi.pipe(
+export const announceOrganization = SphynxApi.pipe(
   Effect.flatMap((api) => api.auth.whoami({ payload: {} })),
   Effect.flatMap(({ organization }) =>
     note(

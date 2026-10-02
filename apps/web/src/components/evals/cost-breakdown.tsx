@@ -1,8 +1,8 @@
 import type {
   EvalCostComponent,
   EvalCosts,
-} from "@anpord/schema/domain/eval-costs";
-import { RailFact } from "@anpord/ui/components/ui/rail-fact";
+} from "@sphynx/schema/domain/eval-costs";
+import { RailFact } from "@sphynx/ui/components/ui/rail-fact";
 import { CostLine } from "@/components/evals/cost-line";
 
 const ORDER: readonly EvalCostComponent["component"][] = [

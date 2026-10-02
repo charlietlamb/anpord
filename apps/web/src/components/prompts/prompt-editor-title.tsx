@@ -1,8 +1,8 @@
-import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
-import { headingVariants } from "@anpord/ui/components/ui/page-heading";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { cn } from "@anpord/ui/lib/utils";
 import { EyeIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { InlineEdit } from "@sphynx/ui/components/ui/inline-edit";
+import { headingVariants } from "@sphynx/ui/components/ui/page-heading";
+import { StatusBadge } from "@sphynx/ui/components/ui/status-badge";
+import { cn } from "@sphynx/ui/lib/utils";
 import { toast } from "sonner";
 import { useDebouncedSave } from "@/lib/query/use-debounced-save";
 import { useUpdatePrompt } from "@/lib/query/use-update-prompt";

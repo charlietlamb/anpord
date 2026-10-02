@@ -1,14 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
-import { EvalJudge } from "@anpord/schema/domain/eval-judges";
-import { validationExecution } from "@anpord/schema/domain/eval-validations";
+import { FetchHttpClient } from "@effect/platform";
+import { Database } from "@sphynx/db/client";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
+import { EvalJudge } from "@sphynx/schema/domain/eval-judges";
+import { validationExecution } from "@sphynx/schema/domain/eval-validations";
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
-import { FetchHttpClient } from "@effect/platform";
+} from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Effect, Layer, ManagedRuntime, Option, Schema, Stream } from "effect";
 import { SimulatedUserLive } from "../../src/adapters/user/layer";
 import { Batches } from "../../src/batch/batches";

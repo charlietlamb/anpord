@@ -1,4 +1,4 @@
-import { api, endpoint } from "anpord/api";
+import { api, endpoint } from "sphynx-sh/api";
 import { z } from "zod";
 import {
   getInput,

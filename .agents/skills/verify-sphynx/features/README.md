@@ -1,11 +1,11 @@
-# Anpord verification map
+# Sphynx verification map
 
-The maintained source for proving anpord's user facing behavior. Read this index, then use the matching feature file as the recipe.
+The maintained source for proving sphynx's user facing behavior. Read this index, then use the matching feature file as the recipe.
 
 ## Baseline preconditions
 
 - Work from the root of your own worktree, after `bun install`.
-- Every database is a scratch one named `anpord_scratch_<something>` on the local Postgres, or the e2e harness's own cluster. Never `anpord_dev`, `anpord_test`, or anything remote.
+- Every database is a scratch one named `sphynx_scratch_<something>` on the local Postgres, or the e2e harness's own cluster. Never `sphynx_dev`, `sphynx_test`, or anything remote.
 - Every server, web app and Chrome you drive is one you started on a free port. Never the operator's `bun run dev` on 3003 and 3005 unless they asked.
 - No live model runs. The command harness and the fake judge cost nothing.
 
@@ -13,7 +13,7 @@ The maintained source for proving anpord's user facing behavior. Read this index
 
 - The API is driven with `fetch` or `curl` against `/v1/<endpoint>` with `authorization: Bearer <key>`, or `/api/...` with the session cookie.
 - The dashboard is driven with puppeteer on a Chrome launched with a fresh `--user-data-dir`.
-- The CLI is driven as a subprocess with `ANPORD_BROWSER=none`.
+- The CLI is driven as a subprocess with `SPHYNX_BROWSER=none`.
 
 ## Proof and skip reporting
 

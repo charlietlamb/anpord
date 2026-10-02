@@ -1,9 +1,9 @@
-import { OrganizationStore } from "@anpord/auth/organization";
-import { OrganizationMissing } from "@anpord/auth/organization/errors";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
-import { PublicApi } from "@anpord/schema/public/api";
-import type { WhoamiCredential } from "@anpord/schema/public/auth-api";
 import { HttpApiBuilder } from "@effect/platform";
+import { OrganizationStore } from "@sphynx/auth/organization";
+import { OrganizationMissing } from "@sphynx/auth/organization/errors";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
+import { PublicApi } from "@sphynx/schema/public/api";
+import type { WhoamiCredential } from "@sphynx/schema/public/auth-api";
 import { Effect, Option } from "effect";
 import { withOrganizationErrors } from "../../../http/organization-errors";
 

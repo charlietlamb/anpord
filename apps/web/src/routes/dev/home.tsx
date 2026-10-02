@@ -1,5 +1,5 @@
-import type { EvalHome } from "@anpord/schema/domain/eval-home";
-import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
+import type { EvalHome } from "@sphynx/schema/domain/eval-home";
+import { PageTabs } from "@sphynx/ui/components/ui/page-tabs";
 import { createFileRoute } from "@tanstack/react-router";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 import {

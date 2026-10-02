@@ -5,15 +5,15 @@ import {
   type Actor,
   OrganizationId,
   UserId,
-} from "@anpord/schema/domain/actor";
+} from "@sphynx/schema/domain/actor";
 import type {
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/eval-definition";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/eval-definition";
+import type { EvalUser } from "@sphynx/schema/domain/eval-turns";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Clock, Context, Effect, Layer } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
@@ -43,7 +43,7 @@ const LOCAL_ACTOR: Actor = {
    own VM, but on one machine it is shared, and a case would read what the last
    one left behind. */
 const workspace = Effect.acquireRelease(
-  Effect.promise(() => mkdtemp(join(tmpdir(), "anpord-workspace-"))),
+  Effect.promise(() => mkdtemp(join(tmpdir(), "sphynx-workspace-"))),
   (made) => Effect.promise(() => rm(made, { force: true, recursive: true }))
 );
 
@@ -93,7 +93,7 @@ export interface LocalTrialsShape {
   ) => Effect.Effect<LocalTrialOutcome, LocalTrialError>;
 }
 
-export class LocalTrials extends Context.Tag("@anpord/eval/LocalTrials")<
+export class LocalTrials extends Context.Tag("@sphynx/eval/LocalTrials")<
   LocalTrials,
   LocalTrialsShape
 >() {}

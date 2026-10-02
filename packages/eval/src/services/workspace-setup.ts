@@ -1,6 +1,6 @@
-import type { EvalPrepare } from "@anpord/schema/domain/eval-definition";
-import { CACHE_RESTORED_ENV } from "@anpord/schema/domain/sandbox-env";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+import type { EvalPrepare } from "@sphynx/schema/domain/eval-definition";
+import { CACHE_RESTORED_ENV } from "@sphynx/schema/domain/sandbox-env";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { Effect, Either, Option, Ref } from "effect";
 import { shellQuote } from "../adapters/harness/process";
 import { runCommandForOutcome } from "../adapters/sandbox/run-command";
@@ -19,7 +19,7 @@ const SETUP_TIMEOUT_MS = 1_800_000;
 const scriptIn = (sandbox: SandboxHandle, source: string) =>
   Effect.acquireRelease(
     Effect.gen(function* () {
-      const path = `${sandbox.home}/.anpord-setup.mjs`;
+      const path = `${sandbox.home}/.sphynx-setup.mjs`;
       yield* sandbox.writeFile(path, source);
 
       return path;

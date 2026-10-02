@@ -1,6 +1,6 @@
-import type { ChannelColor } from "@anpord/schema/domain/channels";
-import { CHANNEL_SWATCHES } from "@anpord/ui/lib/channel-colors";
-import { cn } from "@anpord/ui/lib/utils";
+import type { ChannelColor } from "@sphynx/schema/domain/channels";
+import { CHANNEL_SWATCHES } from "@sphynx/ui/lib/channel-colors";
+import { cn } from "@sphynx/ui/lib/utils";
 
 interface ChannelDotProps {
   readonly color?: ChannelColor;

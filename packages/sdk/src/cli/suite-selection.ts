@@ -1,8 +1,8 @@
 import type {
   EvalVariantRequest,
   StartBatchRequest,
-} from "@anpord/schema/domain/eval-definition";
-import type { EvalCaseId } from "@anpord/schema/domain/eval-limits";
+} from "@sphynx/schema/domain/eval-definition";
+import type { EvalCaseId } from "@sphynx/schema/domain/eval-limits";
 import { Data, Effect, Option } from "effect";
 import { labelOfRequest } from "./eval-local";
 

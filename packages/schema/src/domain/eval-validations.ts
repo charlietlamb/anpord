@@ -5,7 +5,7 @@ import { redactSecrets } from "./secret-text";
 export const VALIDATION_TEXT_LIMIT = 16_000;
 export const VALIDATION_BUDGET = 64_000;
 export const VALIDATION_ENTRY_LIMIT = 64;
-export const VALIDATION_FRAME = "ANPORD_VALIDATION=";
+export const VALIDATION_FRAME = "SPHYNX_VALIDATION=";
 
 export interface CaptureLimits {
   readonly budget: number;

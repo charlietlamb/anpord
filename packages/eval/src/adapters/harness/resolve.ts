@@ -1,4 +1,4 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Effect, Either, Layer } from "effect";
 import type { HarnessName } from "../../domain/variant";
 import { type HarnessDriverShape, Harnesses } from "../../ports/harness";

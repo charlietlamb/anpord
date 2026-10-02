@@ -1,8 +1,8 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import {
   MAX_START_REQUEST_CHARACTERS,
   MEGABYTE,
-} from "@anpord/schema/domain/eval-quota";
+} from "@sphynx/schema/domain/eval-quota";
 
 const megabytes = (bytes: number) => `${(bytes / MEGABYTE).toFixed(1)}MB`;
 

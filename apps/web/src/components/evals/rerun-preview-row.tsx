@@ -1,7 +1,7 @@
-import type { RerunSlot } from "@anpord/schema/domain/eval-rerun";
-import { VariantCell } from "@anpord/ui/components/evals/variant-cell";
-import { Badge } from "@anpord/ui/components/ui/badge";
-import { DataTableRow } from "@anpord/ui/components/ui/data-table";
+import type { RerunSlot } from "@sphynx/schema/domain/eval-rerun";
+import { VariantCell } from "@sphynx/ui/components/evals/variant-cell";
+import { Badge } from "@sphynx/ui/components/ui/badge";
+import { DataTableRow } from "@sphynx/ui/components/ui/data-table";
 
 export function RerunPreviewRow({ slot }: { readonly slot: RerunSlot }) {
   const { variant } = slot;

@@ -1,10 +1,10 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { tryStore } from "./query";

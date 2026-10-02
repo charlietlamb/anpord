@@ -3,14 +3,14 @@
 # Everything here is unauthenticated or uses a key you pass in, so it is safe
 # to point at production.
 #
-#   ANPORD_API_KEY=anp_... bash scripts/e2e-v1.sh
-#   API=https://api.anpord.com MCP=https://mcp.anpord.com bash scripts/e2e-v1.sh
+#   SPHYNX_API_KEY=anp_... bash scripts/e2e-v1.sh
+#   API=https://api.sphynx.sh MCP=https://mcp.sphynx.sh bash scripts/e2e-v1.sh
 
 set -u
 
 API="${API:-http://127.0.0.1:3003}"
 MCP="${MCP:-http://127.0.0.1:3010}"
-KEY="${ANPORD_API_KEY:-}"
+KEY="${SPHYNX_API_KEY:-}"
 J='content-type: application/json'
 
 pass=0
@@ -76,7 +76,7 @@ fi
 
 echo "--- authenticated reads ---"
 if [ -z "$KEY" ]; then
-  echo "SKIP  set ANPORD_API_KEY to check authenticated calls"
+  echo "SKIP  set SPHYNX_API_KEY to check authenticated calls"
   skip=$((skip + 1))
 else
   auth="authorization: Bearer $KEY"
@@ -116,22 +116,22 @@ fi
 echo "--- published sdk ---"
 sdk_dist="$(cd "$(dirname "$0")/.." && pwd)/packages/sdk/dist/index.mjs"
 if [ -z "$KEY" ]; then
-  echo "SKIP  set ANPORD_API_KEY to check the sdk"
+  echo "SKIP  set SPHYNX_API_KEY to check the sdk"
   skip=$((skip + 1))
 elif [ ! -f "$sdk_dist" ]; then
   echo "SKIP  run 'bun run build' to check the sdk"
   skip=$((skip + 1))
 else
-  sdk_out=$(ANPORD_SDK="$sdk_dist" ANPORD_BASE="$API" bun -e '
-    const { Anpord, AnpordError } = await import(process.env.ANPORD_SDK);
-    const anpord = new Anpord({ baseUrl: process.env.ANPORD_BASE });
-    const { data } = await anpord.prompts.list();
+  sdk_out=$(SPHYNX_SDK="$sdk_dist" SPHYNX_BASE="$API" bun -e '
+    const { Sphynx, SphynxError } = await import(process.env.SPHYNX_SDK);
+    const sphynx = new Sphynx({ baseUrl: process.env.SPHYNX_BASE });
+    const { data } = await sphynx.prompts.list();
     console.log(`list:${Array.isArray(data)}`);
     try {
-      await anpord.prompts.get({ id: "definitely-not-a-prompt" });
+      await sphynx.prompts.get({ id: "definitely-not-a-prompt" });
       console.log("missing:no-throw");
     } catch (error) {
-      console.log(`missing:${error instanceof AnpordError}:${error.status}`);
+      console.log(`missing:${error instanceof SphynxError}:${error.status}`);
     }
   ' 2>&1 || true)
   contains "reads through the sdk" 'list:true' "$sdk_out"

@@ -1,3 +1,3 @@
-import { telemetryFor } from "@anpord/eval/telemetry";
+import { telemetryFor } from "@sphynx/eval/telemetry";
 
-export const TelemetryLive = telemetryFor("anpord-server");
+export const TelemetryLive = telemetryFor("sphynx-server");

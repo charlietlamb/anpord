@@ -1,16 +1,16 @@
 import { createHash } from "node:crypto";
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
 import {
   type HttpClient,
   type HttpClientRequest,
   type HttpClientResponse,
   HttpClientRequest as Request,
 } from "@effect/platform";
+import type { CredentialValues } from "@sphynx/schema/domain/credentials";
 import { Config, Effect, Schema } from "effect";
 import type { SandboxUnavailable } from "../../domain/errors";
 import { unavailableFor } from "./provider-adapter";
 
-const WORKER = "anpord-sandbox-bridge";
+const WORKER = "sphynx-sandbox-bridge";
 const ERROR_BODY_LIMIT = 300;
 const WHITESPACE = /\s+/g;
 const TRAILING_SLASH = /\/$/;
@@ -124,7 +124,7 @@ export const configuration = (
       (token === undefined
         ? undefined
         : createHash("sha256")
-            .update(`anpord-cloudflare-sandbox:${token}`)
+            .update(`sphynx-cloudflare-sandbox:${token}`)
             .digest("hex"));
     const url =
       values?.sandboxUrl ||

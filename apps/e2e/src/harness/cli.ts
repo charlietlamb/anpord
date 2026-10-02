@@ -17,8 +17,8 @@ export const cli = (world: World, args: readonly string[], stdin?: string) =>
       cwd: world.directory,
       env: {
         ...process.env,
-        ANPORD_API_KEY: world.writeKey.key,
-        ANPORD_BASE_URL: world.baseUrl,
+        SPHYNX_API_KEY: world.writeKey.key,
+        SPHYNX_BASE_URL: world.baseUrl,
       },
       stdin,
     }

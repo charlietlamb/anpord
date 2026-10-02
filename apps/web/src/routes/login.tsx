@@ -1,5 +1,5 @@
-import { Dither } from "@anpord/ui/components/ui/dither";
-import { LANDING_DITHER } from "@anpord/ui/lib/dither-presets";
+import { Dither } from "@sphynx/ui/components/ui/dither";
+import { LANDING_DITHER } from "@sphynx/ui/lib/dither-presets";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { LandingNav } from "@/components/landing/landing-nav";

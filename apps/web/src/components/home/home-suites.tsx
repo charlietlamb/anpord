@@ -1,4 +1,4 @@
-import { Button } from "@anpord/ui/components/button";
+import { Button } from "@sphynx/ui/components/button";
 import { Link } from "@tanstack/react-router";
 import { HomePanel } from "@/components/home/home-panel";
 import { HomeSuiteRow } from "@/components/home/home-suite-row";

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
 import { Command } from "@effect/cli";
 import { FetchHttpClient } from "@effect/platform";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 import { Cause, Effect, Exit, Layer, Option } from "effect";
 import { version } from "../../package.json";
 import { commands } from "./commands";
 import { EXIT_ERROR, EXIT_INTERRUPTED, reportFailure } from "./failure";
 
-const anpord = Command.make("anpord").pipe(
+const sphynx = Command.make("sphynx").pipe(
   Command.withDescription(
     PROMPTS_ENABLED
       ? "Run evals and manage prompts from the terminal"
@@ -24,8 +24,8 @@ const exitCodeOf = (exit: Exit.Exit<unknown, unknown>) => {
   return Cause.isInterruptedOnly(exit.cause) ? EXIT_INTERRUPTED : EXIT_ERROR;
 };
 
-Command.run(anpord, {
-  name: "Anpord",
+Command.run(sphynx, {
+  name: "Sphynx",
   version,
 })(process.argv).pipe(
   Effect.provide(Layer.mergeAll(NodeContext.layer, FetchHttpClient.layer)),

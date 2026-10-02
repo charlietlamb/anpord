@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { validationExecution } from "@anpord/schema/domain/eval-validations";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+import { validationExecution } from "@sphynx/schema/domain/eval-validations";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Effect, Layer, Stream } from "effect";
 import { ScorerChecksLive } from "../../../src/adapters/scorers/checks";
 import { Scorer } from "../../../src/ports/scorer";

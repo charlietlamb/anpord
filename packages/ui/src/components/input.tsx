@@ -1,6 +1,6 @@
-import { fieldVariants } from "@anpord/ui/lib/field";
-import { cn } from "@anpord/ui/lib/utils";
 import { Input as InputPrimitive } from "@base-ui/react/input";
+import { fieldVariants } from "@sphynx/ui/lib/field";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { VariantProps } from "class-variance-authority";
 import type * as React from "react";
 

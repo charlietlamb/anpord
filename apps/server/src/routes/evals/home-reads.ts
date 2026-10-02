@@ -1,5 +1,5 @@
-import { EvalReads } from "@anpord/eval/services/eval-reads";
-import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
+import { EvalReads } from "@sphynx/eval/services/eval-reads";
+import type { EvalHomeRange } from "@sphynx/schema/domain/eval-home";
 import { Effect } from "effect";
 import { organization } from "./current-organization";
 

@@ -43,7 +43,7 @@ describe("the summary a local run ends with", () => {
         "checkout (checkout.eval.ts)",
         cases,
         null,
-        Option.some("https://anpord.test/evals/batch_1")
+        Option.some("https://sphynx.test/evals/batch_1")
       )
     ).toEqual([
       "  ✓ completes  codex/luna@autumn-setup  41.2s",
@@ -54,7 +54,7 @@ describe("the summary a local run ends with", () => {
       "",
       "  Suite    checkout (checkout.eval.ts)",
       "  Trials   1 timed out | 1 void | 1 passed (3)",
-      "  Results  https://anpord.test/evals/batch_1",
+      "  Results  https://sphynx.test/evals/batch_1",
     ]);
   });
 
@@ -109,7 +109,7 @@ describe("the summary a local run ends with", () => {
           incomplete: false,
           knownActualUsd: 0,
         },
-        Option.some("https://anpord.test/evals/batch_1")
+        Option.some("https://sphynx.test/evals/batch_1")
       )
     ).toEqual([
       "  ✓ writes  codex/luna@autumn-setup  900ms",
@@ -118,7 +118,7 @@ describe("the summary a local run ends with", () => {
       "  Trials   1 passed (1)",
       "  Usage    26k tokens (25k in, 1k out), $0.45 est.",
       "           model $0.42, simulated user $0.03",
-      "  Results  https://anpord.test/evals/batch_1",
+      "  Results  https://sphynx.test/evals/batch_1",
     ]);
   });
 

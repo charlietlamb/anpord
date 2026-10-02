@@ -1,5 +1,5 @@
-import { VariantName } from "@anpord/ui/components/evals/variant-name";
-import { Badge } from "@anpord/ui/components/ui/badge";
+import { VariantName } from "@sphynx/ui/components/evals/variant-name";
+import { Badge } from "@sphynx/ui/components/ui/badge";
 
 export function VariantCell({
   harness,

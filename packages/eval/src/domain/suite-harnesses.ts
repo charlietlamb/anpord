@@ -1,5 +1,5 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 
 type Case = StartBatchRequest["cases"][number];
 

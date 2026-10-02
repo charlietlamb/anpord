@@ -1,14 +1,14 @@
-import { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import { EvalJudge } from "@sphynx/schema/domain/eval-judges";
 import {
   EvalScriptedUser,
   EvalSimulatedUser,
-} from "@anpord/schema/domain/eval-turns";
+} from "@sphynx/schema/domain/eval-turns";
 import { Schema } from "effect";
 
 export type {
   EvalJudge as Judge,
   EvalJudgment as Judgment,
-} from "@anpord/schema/domain/eval-judges";
+} from "@sphynx/schema/domain/eval-judges";
 
 export type JudgeOptions = typeof EvalJudge.Encoded extends infer Options
   ? Options extends { readonly kind: "judge" }
@@ -22,8 +22,8 @@ export const judge = (options: JudgeOptions): EvalJudge =>
     { onExcessProperty: "error" }
   );
 
-export type { EvalTurn as Turn } from "@anpord/schema/domain/eval-conversation";
-export type { EvalUser as User } from "@anpord/schema/domain/eval-turns";
+export type { EvalTurn as Turn } from "@sphynx/schema/domain/eval-conversation";
+export type { EvalUser as User } from "@sphynx/schema/domain/eval-turns";
 
 export type HumanOptions = typeof EvalSimulatedUser.Encoded extends infer O
   ? O extends { readonly kind: "simulated" }

@@ -1,9 +1,9 @@
-import { InlineEdit } from "@anpord/ui/components/ui/inline-edit";
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
-import { PAGE_FRAME, PAGE_WIDTHS } from "@anpord/ui/lib/page-frame";
-import { slugify } from "@anpord/ui/lib/slugify";
-import { cn } from "@anpord/ui/lib/utils";
 import { PlusIcon } from "@phosphor-icons/react";
+import { InlineEdit } from "@sphynx/ui/components/ui/inline-edit";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
+import { PAGE_FRAME, PAGE_WIDTHS } from "@sphynx/ui/lib/page-frame";
+import { slugify } from "@sphynx/ui/lib/slugify";
+import { cn } from "@sphynx/ui/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { ComposerHeading } from "@/components/prompts/composer-heading";
 import { PromptComposerForm } from "@/components/prompts/prompt-composer-form";

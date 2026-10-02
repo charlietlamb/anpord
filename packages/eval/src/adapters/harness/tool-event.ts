@@ -1,4 +1,4 @@
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 
 const ToolInput = Schema.Struct({

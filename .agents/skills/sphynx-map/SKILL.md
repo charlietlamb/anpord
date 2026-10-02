@@ -1,28 +1,28 @@
 ---
-name: anpord-map
-description: Where everything lives in anpord. Real packages, apps, ports, paths for each cross-package rule, deviations from the default architecture, gate commands, and how to run an eval against the local stack. Read before adding a package, service, endpoint, table, or id in anpord, and before running the CLI locally. The rules themselves live in repo-map.
+name: sphynx-map
+description: Where everything lives in sphynx. Real packages, apps, ports, paths for each cross-package rule, deviations from the default architecture, gate commands, and how to run an eval against the local stack. Read before adding a package, service, endpoint, table, or id in sphynx, and before running the CLI locally. The rules themselves live in repo-map.
 ---
 
-# Anpord map
+# Sphynx map
 
-The rules are in `~/.agents/skills/repo-map/SKILL.md`. This file only says where they live in anpord and where anpord differs. When the two disagree, this file wins.
+The rules are in `~/.agents/skills/repo-map/SKILL.md`. This file only says where they live in sphynx and where sphynx differs. When the two disagree, this file wins.
 
 ## Packages
 
 | Package | Owns | Depends on |
 |---|---|---|
-| `@anpord/schema` | Wire contracts, branded types, HTTP API groups, transport errors | nothing |
-| `@anpord/ids` | Prefixed id generation | nothing |
-| `@anpord/template` | Prompt template syntax, extraction, rendering | nothing |
-| `@anpord/db` | Drizzle schema, pool, migrations | `schema` |
-| `@anpord/cache` | Redis behind a `Cache` tag, no-op fallback | nothing |
-| `@anpord/billing` | Autumn billing | nothing |
-| `@anpord/notifications` | Email | nothing |
-| `@anpord/auth` | Better Auth, sessions, OAuth, organizations, credentials | `billing`, `db`, `ids`, `notifications`, `schema` |
-| `@anpord/prompts` | Prompt domain | `cache`, `db`, `ids`, `schema` |
-| `@anpord/eval` | Eval domain: batches, trials, judges, codebases, sandbox adapters | `db`, `ids`, `schema` |
-| `@anpord/ui` | Shared React components | `schema`, `template` |
-| `anpord` (`packages/sdk`) | Published client, CLI, and MCP | `eval`, `schema`, `template` |
+| `@sphynx/schema` | Wire contracts, branded types, HTTP API groups, transport errors | nothing |
+| `@sphynx/ids` | Prefixed id generation | nothing |
+| `@sphynx/template` | Prompt template syntax, extraction, rendering | nothing |
+| `@sphynx/db` | Drizzle schema, pool, migrations | `schema` |
+| `@sphynx/cache` | Redis behind a `Cache` tag, no-op fallback | nothing |
+| `@sphynx/billing` | Autumn billing | nothing |
+| `@sphynx/notifications` | Email | nothing |
+| `@sphynx/auth` | Better Auth, sessions, OAuth, organizations, credentials | `billing`, `db`, `ids`, `notifications`, `schema` |
+| `@sphynx/prompts` | Prompt domain | `cache`, `db`, `ids`, `schema` |
+| `@sphynx/eval` | Eval domain: batches, trials, judges, codebases, sandbox adapters | `db`, `ids`, `schema` |
+| `@sphynx/ui` | Shared React components | `schema`, `template` |
+| `sphynx-sh` (`packages/sdk`) | Published client, CLI, and MCP | `eval`, `schema`, `template` |
 
 ## Apps
 
@@ -31,7 +31,7 @@ The rules are in `~/.agents/skills/repo-map/SKILL.md`. This file only says where
 | `apps/server` | Effect HTTP server, layer composition | port 3003, `bun --watch run src/server.ts` |
 | `apps/web` | TanStack Start frontend | port 3005, `vite dev` |
 | `apps/mcp` | MCP server (`mcp-use`) | port 3010 |
-| `apps/worker` | Trigger.dev tasks | `trigger dev --profile anpord` |
+| `apps/worker` | Trigger.dev tasks | `trigger dev --profile sphynx` |
 | `apps/sandbox-bridge` | Cloudflare Worker exposing Cloudflare Sandbox to evals | `wrangler` |
 | `apps/e2e` | Scenarios driving the API, SDK, and CLI against a real server and database | `bun run e2e` |
 | `apps/docs` | Mintlify docs | `bun run docs` |
@@ -49,13 +49,13 @@ The rules are in `~/.agents/skills/repo-map/SKILL.md`. This file only says where
 | Transport errors | `packages/schema/src/domain/errors.ts` |
 | Error mappers | `apps/server/src/http/<domain>-errors.ts`, each exporting `with<Domain>Errors` and switching on `_tag` with `satisfies never` |
 | Shared eval route helpers | `apps/server/src/routes/evals/` (`batch-actions`, `batch-reads`, `catalog-reads`, `run-reads`), called by both API sides |
-| Scratch test database | `@anpord/db/test-database` (`skipWithoutDatabase`, `testDatabase`) |
-| Store query helpers | `@anpord/db/query` (`Db`, `Tx`, `head`, `tryStoreWith`), `@anpord/db/like` |
+| Scratch test database | `@sphynx/db/test-database` (`skipWithoutDatabase`, `testDatabase`) |
+| Store query helpers | `@sphynx/db/query` (`Db`, `Tx`, `head`, `tryStoreWith`), `@sphynx/db/like` |
 | Cache keys | `packages/prompts/src/domain/keys.ts` |
 
 ## Deviations
 
-- Two APIs, not one. `AnpordApi` in `packages/schema/src/internal/api.ts` serves the dashboard. `PublicApi` in `packages/schema/src/public/api.ts` serves the SDK and `/v1`. Groups are `<surface>-api.ts` in the matching folder.
+- Two APIs, not one. `SphynxApi` in `packages/schema/src/internal/api.ts` serves the dashboard. `PublicApi` in `packages/schema/src/public/api.ts` serves the SDK and `/v1`. Groups are `<surface>-api.ts` in the matching folder.
 - Handlers live at `apps/server/src/routes/<internal|public>/<surface>/handlers.ts`, except `public/evals/`, which has one `<resource>-handlers.ts` per group. Each side composes its handlers in its own `api-layer.ts`. Adding a surface touches the group file, that side's `api.ts`, a new `handlers.ts`, and that side's `api-layer.ts`.
 - `packages/eval` uses `ports/` and `adapters/` (harness, models, runner, sandbox, scorers, simulated user) on top of the default domain layout.
 - Only `prompts` caches today. `eval` has no `domain/keys.ts`.
@@ -66,15 +66,15 @@ One module owns each concern. Import it; never repeat the literal.
 
 | Concern | Module |
 |---|---|
-| Production origins (API, web, docs, API reference) | `@anpord/schema/public/origins` |
-| Local dev ports and their default URLs (3003, 3005, 3010) | `@anpord/schema/internal/local-ports` |
-| Session cookie name and prefix | `@anpord/schema/internal/authentication` |
-| Env names the eval writes and the SDK sandbox runtime reads | `@anpord/schema/domain/sandbox-env` |
-| Mock journal paths | `@anpord/schema/domain/api-mocks` |
-| Permissions an API key or OAuth token may carry | `API_SCOPES` in `@anpord/schema/domain/scopes` |
-| Eval source size cap | `SOURCE_LIMIT` in `@anpord/schema/domain/eval-source-files` |
-| Case sort and order | `CaseSort`, `CaseOrder` in `@anpord/schema/domain/eval-read-models` |
-| Eval-run task id and payload | `@anpord/eval/adapters/runner/eval-run-task` |
+| Production origins (API, web, docs, API reference) | `@sphynx/schema/public/origins` |
+| Local dev ports and their default URLs (3003, 3005, 3010) | `@sphynx/schema/internal/local-ports` |
+| Session cookie name and prefix | `@sphynx/schema/internal/authentication` |
+| Env names the eval writes and the SDK sandbox runtime reads | `@sphynx/schema/domain/sandbox-env` |
+| Mock journal paths | `@sphynx/schema/domain/api-mocks` |
+| Permissions an API key or OAuth token may carry | `API_SCOPES` in `@sphynx/schema/domain/scopes` |
+| Eval source size cap | `SOURCE_LIMIT` in `@sphynx/schema/domain/eval-source-files` |
+| Case sort and order | `CaseSort`, `CaseOrder` in `@sphynx/schema/domain/eval-read-models` |
+| Eval-run task id and payload | `@sphynx/eval/adapters/runner/eval-run-task` |
 
 Environment is read through Effect `Config` in the module that owns it:
 
@@ -86,9 +86,9 @@ Environment is read through Effect `Config` in the module that owns it:
 | `billing` | `src/config.ts` | `AUTUMN_*` |
 | `notifications` | `src/email/email-config.ts` | `RESEND_API_KEY`, `EMAIL_FROM` |
 | `eval` | `services/harness-versions.ts`, `services/sandbox-provider.ts`, `services/journal-retention.ts`, `telemetry.ts`, `adapters/runner/trigger.ts`, `adapters/sandbox/*`, `codebase/github-app.ts`, `credentials/cipher.ts` | harness versions, sandbox concurrency and keys, `EVAL_JOURNAL_HOT`, `AXIOM_*`, `TRIGGER_SECRET_KEY`, `GITHUB_APP_*`, `CREDENTIALS_ENCRYPTION_KEY` |
-| `sdk` | `src/client/config.ts`, `src/cli/*` | `ANPORD_API_KEY`, `ANPORD_BASE_URL`, `ANPORD_WEB_URL`, `ANPORD_BROWSER`, GitHub Actions context |
+| `sdk` | `src/client/config.ts`, `src/cli/*` | `SPHYNX_API_KEY`, `SPHYNX_BASE_URL`, `SPHYNX_WEB_URL`, `SPHYNX_BROWSER`, GitHub Actions context |
 | `apps/server` | `src/config.ts`, `routes/internal/health/handlers.ts`, `http/authentication/session-authentication.ts` | `HOST`, `PORT`, `SHUTDOWN_DRAIN_TIMEOUT`, `BUILD_REVISION`, `ROLE_CACHE_CAPACITY` |
-| `apps/mcp` | `src/config.ts` | `ANPORD_AUTH_URL`, `ANPORD_BASE_URL`, `PORT`, `MCP_RESOURCE_URL` |
+| `apps/mcp` | `src/config.ts` | `SPHYNX_AUTH_URL`, `SPHYNX_BASE_URL`, `PORT`, `MCP_RESOURCE_URL` |
 
 Raw `process.env` stays only where Effect is not running:
 
@@ -97,7 +97,7 @@ Raw `process.env` stays only where Effect is not running:
 - `packages/sdk/src/evals/validator-runtime.ts` and `runner-source.ts` run inside the sandbox; they take the names from `sandbox-env`.
 - `packages/eval/src/credentials/env-resolver.ts` and `packages/sdk/src/cli/local-env.ts` enumerate the whole environment, which `Config` cannot.
 - `packages/sdk/src/cli/transcript-writer.ts` checks `NO_COLOR` in a pure formatter.
-- `@anpord/db/test-database` and test setup, and `apps/e2e`, which writes env for the processes it starts.
+- `@sphynx/db/test-database` and test setup, and `apps/e2e`, which writes env for the processes it starts.
 
 The ports and origins also appear where TypeScript cannot import them: root `package.json` scripts, `scripts/*.sh`, `.github/workflows/*`, and `turbo.json`. Change them together.
 
@@ -137,9 +137,9 @@ bun packages/sdk/dist/bin.cjs eval <file> --local --ui
 ```
 
 - The server must be running (`bun run dev`). The key comes from the endpoint the dashboard calls, not from the table.
-- It mints against the organization the browser is signed into, so the batch it opens is one you can see. `ANPORD_TEST_ORG` names another, created if missing.
+- It mints against the organization the browser is signed into, so the batch it opens is one you can see. `SPHYNX_TEST_ORG` names another, created if missing.
 - `bun run test-org` creates an organization on its own. It refuses any database that isn't localhost, because it writes an unverified user.
-- `ANPORD_BROWSER` picks the browser. `none` prints the address and opens nothing, which is what automated runs want.
+- `SPHYNX_BROWSER` picks the browser. `none` prints the address and opens nothing, which is what automated runs want.
 - `scripts/fixtures/local-smoke` is a keyless suite on the `command` harness. It needs no model credential and settles in under a second, so it's the fastest end-to-end proof.
 
 ## Local setup

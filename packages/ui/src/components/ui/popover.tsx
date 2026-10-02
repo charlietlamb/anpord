@@ -1,6 +1,6 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
-import { POPUP, POPUP_MOTION } from "@anpord/ui/lib/popup";
-import { cn } from "@anpord/ui/lib/utils";
+import { POPUP, POPUP_MOTION } from "@sphynx/ui/lib/popup";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root {...props} />;

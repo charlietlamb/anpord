@@ -44,7 +44,7 @@ describe("compileEval", () => {
   });
 
   test("adds MCP, CLI, and API mocks to every built-in agent task", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-mcp-eval-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-mcp-eval-"));
     await mkdir(join(workspace, "node_modules"));
     await symlink(
       join(import.meta.dir, "../../node_modules/zod"),
@@ -52,10 +52,10 @@ describe("compileEval", () => {
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
-import { cli, command as cliCommand } from "anpord/cli";
-import { server, tool } from "anpord/mcp";
-import { api as httpApi, endpoint } from "anpord/api";
+      `import { command, suite } from "sphynx-sh";
+import { cli, command as cliCommand } from "sphynx-sh/cli";
+import { server, tool } from "sphynx-sh/mcp";
+import { api as httpApi, endpoint } from "sphynx-sh/api";
 import { z } from "zod";
 const client = cli({
   path: "example-cli",
@@ -104,18 +104,18 @@ export default suite({
     const payload = await compileFixture(join(workspace, "eval.ts"));
 
     for (const task of payload.variants) {
-      expect(task.profile?.files["workspace/.anpord/api/server.mjs"]).toContain(
+      expect(task.profile?.files["workspace/.sphynx/api/server.mjs"]).toContain(
         "gunzipSync"
       );
-      expect(task.profile?.name).toBe("anpord-mcp");
+      expect(task.profile?.name).toBe("sphynx-mcp");
       expect(
-        task.profile?.files["workspace/.anpord/mcp/0/server.mjs"]
+        task.profile?.files["workspace/.sphynx/mcp/0/server.mjs"]
       ).toContain("gunzipSync");
-      expect(task.profile?.files["workspace/.anpord/cli/0/cli.mjs"]).toContain(
+      expect(task.profile?.files["workspace/.sphynx/cli/0/cli.mjs"]).toContain(
         "gunzipSync"
       );
       expect(task.profile?.install).toContain(
-        'ln -sf "$PWD/.anpord/cli/0/cli.mjs" ~/.local/bin/example-cli'
+        'ln -sf "$PWD/.sphynx/cli/0/cli.mjs" ~/.local/bin/example-cli'
       );
     }
 
@@ -131,7 +131,7 @@ export default suite({
       execFileSync(
         "node",
         [
-          join(workspace, ".anpord/cli/0/cli.mjs"),
+          join(workspace, ".sphynx/cli/0/cli.mjs"),
           "users",
           "get",
           "--id",
@@ -142,7 +142,7 @@ export default suite({
     ).toContain('"id": "user_1"');
     expect(
       JSON.parse(
-        await readFile(join(workspace, ".anpord/cli-calls.jsonl"), "utf8")
+        await readFile(join(workspace, ".sphynx/cli-calls.jsonl"), "utf8")
       )
     ).toMatchObject({ command: "users get", input: { id: "user_1" } });
 
@@ -154,7 +154,7 @@ export default suite({
     ).toEqual({
       mcp: {
         example: {
-          command: ["node", ".anpord/mcp/0/server.mjs"],
+          command: ["node", ".sphynx/mcp/0/server.mjs"],
           enabled: true,
           type: "local",
         },
@@ -192,10 +192,10 @@ export default suite({
   });
 
   test("bundles a directly referenced TypeScript validator", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-validator-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-validator-"));
     await writeFile(
       join(workspace, "validator.ts"),
-      `import type { Validator } from "anpord";
+      `import type { Validator } from "sphynx-sh";
 export const hasGreeting: Validator = async ({ readText }) => ({
   message: "result.txt contains hello",
   passed: (await readText("result.txt")).includes("hello"),
@@ -203,7 +203,7 @@ export const hasGreeting: Validator = async ({ readText }) => ({
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 import { hasGreeting } from "./validator";
 export default suite({
   id: "fixture",
@@ -234,7 +234,7 @@ export default suite({
 
     expect(await process.exited).toBe(0);
     expect(
-      JSON.parse(output.trim().split("ANPORD_VALIDATOR_RESULT=")[1] ?? "")
+      JSON.parse(output.trim().split("SPHYNX_VALIDATOR_RESULT=")[1] ?? "")
     ).toEqual({
       message: "result.txt contains hello",
       passed: true,
@@ -242,10 +242,10 @@ export default suite({
   });
 
   test("resolves the source helpers a definition imports", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-source-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-source-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite, empty, repo } from "anpord";
+      `import { command, suite, empty, repo } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [
@@ -271,7 +271,7 @@ export default suite({
   });
 
   test("reads beside the eval file and leaves nothing there", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-in-place-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-in-place-"));
     await mkdir(join(workspace, "node_modules/greeter"), { recursive: true });
     await writeFile(
       join(workspace, "node_modules/greeter/index.js"),
@@ -282,7 +282,7 @@ export default suite({
       join(workspace, "eval.ts"),
       `import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { command, suite } from "anpord";
+import { command, suite } from "sphynx-sh";
 const task = readFileSync(new URL("./task.txt", import.meta.url), "utf8").trim();
 const named = "greeter";
 const greeting = createRequire(import.meta.url)(named).hello;
@@ -306,10 +306,10 @@ export default suite({
   });
 
   test("refuses a repository nobody could read, at the definition", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-bad-source-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-bad-source-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite, repo } from "anpord";
+      `import { command, suite, repo } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [{ id: "a-case", variables: { task: "g" }, name: "c", validate: command("true") }],
@@ -325,10 +325,10 @@ export default suite({
   });
 
   test("reads a repository named as a plain string", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-bare-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-bare-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [
@@ -358,10 +358,10 @@ export default suite({
   });
 
   test("carries the turn and time limits a case sets", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-limits-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-limits-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [
@@ -389,10 +389,10 @@ export default suite({
   });
 
   test("refuses a turn limit of zero", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-limits-bad-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-limits-bad-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [{ id: "none", maxTurns: 0, validate: command("true") }],
@@ -408,10 +408,10 @@ export default suite({
   });
 
   test("refuses a plain string that is not a repository", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-bare-bad-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-bare-bad-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [{ id: "a-case", variables: { task: "g" }, name: "c", validate: command("true") }],
@@ -427,7 +427,7 @@ export default suite({
   });
 
   test("starts from an empty workspace rather than adopting the surrounding repository", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-local-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-local-"));
     const git = (...args: string[]) =>
       execFileSync("git", args, { cwd: workspace, stdio: "pipe" });
 
@@ -436,7 +436,7 @@ export default suite({
 
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [{ id: "a-case", variables: { task: "add a test" }, name: "c", validate: command("true") }],
@@ -453,10 +453,10 @@ export default suite({
   });
 
   test("a named source is not replaced by the surrounding repository", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-named-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-named-"));
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "fixture",
   cases: [{ id: "a-case", variables: { task: "g" }, name: "c", validate: command("true") }],
@@ -478,10 +478,10 @@ export default suite({
   });
 
   test("bundles a typed setup beside its validator", async () => {
-    workspace = await mkdtemp(join(tmpdir(), "anpord-setup-"));
+    workspace = await mkdtemp(join(tmpdir(), "sphynx-setup-"));
     await writeFile(
       join(workspace, "prepare.ts"),
-      `import type { Validator, Prepare } from "anpord";
+      `import type { Validator, Prepare } from "sphynx-sh";
 
 export const prepareRepoImage: Prepare = async ({ exec }) => {
   await exec("npm", ["ci", "--workspace", "renderer"]);
@@ -493,7 +493,7 @@ export const validateRepoImage: Validator = ({ setup }) =>
     );
     await writeFile(
       join(workspace, "eval.ts"),
-      `import { command, suite } from "anpord";
+      `import { command, suite } from "sphynx-sh";
 import { prepareRepoImage, validateRepoImage } from "./prepare";
 
 export default suite({

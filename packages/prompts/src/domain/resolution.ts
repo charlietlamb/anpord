@@ -2,8 +2,8 @@ import type {
   ChannelName,
   PromptSelector,
   VersionNumber,
-} from "@anpord/schema/domain/prompts";
-import { LATEST } from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
+import { LATEST } from "@sphynx/schema/domain/prompts";
 
 /* `Default` names nothing and is settled by the service that can read the
    organisation's setting; `Latest` is read from the version table. */

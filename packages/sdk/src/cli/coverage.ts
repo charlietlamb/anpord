@@ -1,6 +1,6 @@
-import { PublicApi } from "@anpord/schema/public/api";
 import { Command } from "@effect/cli";
 import { HttpApi } from "@effect/platform";
+import { PublicApi } from "@sphynx/schema/public/api";
 import { HashSet } from "effect";
 import { commandsWith } from "./commands";
 

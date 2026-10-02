@@ -1,5 +1,5 @@
-import { wholeSeconds } from "@anpord/ui/lib/evals/duration";
-import { cn } from "@anpord/ui/lib/utils";
+import { wholeSeconds } from "@sphynx/ui/lib/evals/duration";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { CSSProperties } from "react";
 import { verbColour } from "@/lib/evals/timeline-kinds";
 import { lengthOf, type TimelineSection } from "@/lib/evals/timeline-sections";

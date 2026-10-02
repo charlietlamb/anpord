@@ -1,12 +1,12 @@
-import { empty, suite } from "anpord";
+import { empty, suite } from "sphynx-sh";
 import { trials, variants } from "./config";
 import { catalogMcp } from "./mocks/catalog-mcp";
 import { validateMcp } from "./validators/catalog";
 import { correctItem } from "./validators/judges";
 
 export default suite({
-  id: "anpord-ci-mcp",
-  name: "anpord-ci/mcp",
+  id: "sphynx-ci-mcp",
+  name: "sphynx-ci/mcp",
   source: empty,
   mcp: [catalogMcp],
   prompt:

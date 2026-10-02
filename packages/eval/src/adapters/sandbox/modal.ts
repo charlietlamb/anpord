@@ -10,7 +10,7 @@ import {
   unavailableFor,
 } from "./provider-adapter";
 
-const APP = "anpord-evals";
+const APP = "sphynx-evals";
 const HOME = "/root";
 const IMAGE = "node:22-bookworm";
 

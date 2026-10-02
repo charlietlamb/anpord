@@ -4,7 +4,7 @@ import { collect, outputOf, WORKSPACE, withSandbox } from "./harness";
 import { PROVIDERS, type ProviderUnderTest } from "./providers";
 import { declared, reportCapabilities } from "./summary";
 
-const CACHE_STORE = "anpord-conformance-cache";
+const CACHE_STORE = "sphynx-conformance-cache";
 
 /**
  * A capability is either implemented and proved, or declined and absent.

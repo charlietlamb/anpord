@@ -1,4 +1,4 @@
-import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
+import type { PublicPromptWithVersions } from "@sphynx/schema/public/shapes";
 import {
   Cache,
   Clock,
@@ -36,7 +36,7 @@ export interface PromptCacheShape {
   ) => Effect.Effect<Option.Option<Held>>;
 }
 
-export class PromptCache extends Context.Tag("@anpord/sdk/PromptCache")<
+export class PromptCache extends Context.Tag("@sphynx/sdk/PromptCache")<
   PromptCache,
   PromptCacheShape
 >() {}

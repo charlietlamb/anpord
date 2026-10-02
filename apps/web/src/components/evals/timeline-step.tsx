@@ -1,6 +1,6 @@
-import { commandText } from "@anpord/schema/domain/eval-journal";
-import { elapsed, seconds } from "@anpord/ui/lib/evals/duration";
-import { cn } from "@anpord/ui/lib/utils";
+import { commandText } from "@sphynx/schema/domain/eval-journal";
+import { elapsed, seconds } from "@sphynx/ui/lib/evals/duration";
+import { cn } from "@sphynx/ui/lib/utils";
 import { ExitCode } from "@/components/evals/exit-code";
 import { VerbBadge } from "@/components/evals/verb-badge";
 import {

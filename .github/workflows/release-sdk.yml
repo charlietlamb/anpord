@@ -47,7 +47,7 @@ jobs:
             echo "Tag ${GITHUB_REF_NAME} does not match packages/sdk version ${PACKAGED}."
             exit 1
           fi
-          echo "Publishing anpord@${PACKAGED}"
+          echo "Publishing sphynx-sh@${PACKAGED}"
 
       # The same gates as CI: a tag can be pushed without a green run behind it,
       # so the release re-proves the workspace rather than trusting the branch.
@@ -64,8 +64,8 @@ jobs:
       - name: Verify the version is unpublished
         run: |
           VERSION="$(node -p "require('./packages/sdk/package.json').version")"
-          if npm view "anpord@${VERSION}" version >/dev/null 2>&1; then
-            echo "anpord@${VERSION} is already on npm. Bump the version and tag again."
+          if npm view "sphynx-sh@${VERSION}" version >/dev/null 2>&1; then
+            echo "sphynx-sh@${VERSION} is already on npm. Bump the version and tag again."
             exit 1
           fi
 
@@ -81,6 +81,6 @@ jobs:
         run: |
           VERSION="$(node -p "require('./packages/sdk/package.json').version")"
           gh release create "${GITHUB_REF_NAME}" \
-            --title "anpord v${VERSION}" \
-            --notes "\`npm install anpord@${VERSION}\`" \
+            --title "sphynx v${VERSION}" \
+            --notes "\`npm install sphynx-sh@${VERSION}\`" \
             --verify-tag

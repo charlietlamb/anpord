@@ -1,7 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import { cn } from "@anpord/ui/lib/utils";
+import { Button } from "@sphynx/ui/components/button";
+import { CodeBlock } from "@sphynx/ui/components/ui/code-block";
+import { buttonVariants } from "@sphynx/ui/lib/button-variants";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { PanelCard } from "@/components/layout/panel-card";
 

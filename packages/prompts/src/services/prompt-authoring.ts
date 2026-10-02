@@ -1,11 +1,11 @@
-import { type Actor, authorIdOf } from "@anpord/schema/domain/actor";
+import { type Actor, authorIdOf } from "@sphynx/schema/domain/actor";
 import type {
   AddVersionRequest,
   PromptId,
   ResolvedPrompt,
   UpdateVersionRequest,
-} from "@anpord/schema/domain/prompts";
-import { ChannelName } from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
+import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import { answeringChannels } from "../domain/answering-channels";
 import type { PromptError } from "../domain/errors";
@@ -38,7 +38,7 @@ export interface PromptAuthoringShape {
 }
 
 export class PromptAuthoring extends Context.Tag(
-  "@anpord/prompts/PromptAuthoring"
+  "@sphynx/prompts/PromptAuthoring"
 )<PromptAuthoring, PromptAuthoringShape>() {}
 
 export const PromptAuthoringLive = Layer.effect(

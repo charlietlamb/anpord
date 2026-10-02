@@ -1,4 +1,4 @@
-import { DEFAULT_TIMEOUT_MS } from "@anpord/schema/domain/eval-limits";
+import { DEFAULT_TIMEOUT_MS } from "@sphynx/schema/domain/eval-limits";
 import { Duration, Effect, Option, Stream } from "effect";
 import { HarnessUnavailable } from "../../domain/errors";
 import type { HarnessName } from "../../domain/variant";

@@ -1,9 +1,9 @@
-import { Button } from "@anpord/ui/components/button";
-import { BaseDialog } from "@anpord/ui/components/dialog/base-dialog";
 import {
   ArrowCounterClockwiseIcon,
   PencilSimpleIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { BaseDialog } from "@sphynx/ui/components/dialog/base-dialog";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 
 interface EditVersionDialogProps {

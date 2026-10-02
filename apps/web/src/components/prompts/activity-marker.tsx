@@ -1,7 +1,7 @@
-import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
-import { CHANNEL_SWATCHES } from "@anpord/ui/lib/channel-colors";
-import { initials } from "@anpord/ui/lib/initials";
-import { cn } from "@anpord/ui/lib/utils";
+import type { PromptActivityEntry } from "@sphynx/schema/domain/prompt-activity";
+import { CHANNEL_SWATCHES } from "@sphynx/ui/lib/channel-colors";
+import { initials } from "@sphynx/ui/lib/initials";
+import { cn } from "@sphynx/ui/lib/utils";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 

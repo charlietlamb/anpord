@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { EvalCase } from "@anpord/schema/domain/eval-definition";
+import { EvalCase } from "@sphynx/schema/domain/eval-definition";
 import { Schema } from "effect";
 import { caseDefinitionOf } from "../../src/domain/case-definition";
 

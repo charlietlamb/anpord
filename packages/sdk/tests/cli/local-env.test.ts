@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { localEnv } from "../../src/cli/local-env";
 
 const withFiles = (files: Readonly<Record<string, string>>) => {
-  const directory = mkdtempSync(join(tmpdir(), "anpord-env-"));
+  const directory = mkdtempSync(join(tmpdir(), "sphynx-env-"));
 
   for (const [name, contents] of Object.entries(files)) {
     writeFileSync(join(directory, name), contents);
@@ -74,14 +74,14 @@ describe("what a local run is given", () => {
 
   /* The shell is the last word, so a directory with no files is not empty. */
   it("takes an address from the shell", () => {
-    process.env.ANPORD_TEST_URL = "http://localhost:4321";
+    process.env.SPHYNX_TEST_URL = "http://localhost:4321";
 
     try {
-      expect(localEnv(withFiles({})).ANPORD_TEST_URL).toBe(
+      expect(localEnv(withFiles({})).SPHYNX_TEST_URL).toBe(
         "http://localhost:4321"
       );
     } finally {
-      process.env.ANPORD_TEST_URL = undefined;
+      process.env.SPHYNX_TEST_URL = undefined;
     }
   });
 

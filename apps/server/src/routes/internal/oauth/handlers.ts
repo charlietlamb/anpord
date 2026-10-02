@@ -1,11 +1,11 @@
-import { OAuthClients } from "@anpord/auth/oauth/oauth-clients";
-import { AnpordApi } from "@anpord/schema/internal/api";
 import { HttpApiBuilder } from "@effect/platform";
+import { OAuthClients } from "@sphynx/auth/oauth/oauth-clients";
+import { SphynxApi } from "@sphynx/schema/internal/api";
 import { Effect } from "effect";
 import { withOAuthErrors } from "../../../http/oauth-errors";
 
 export const OAuthHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "oauth",
   (handlers) =>
     handlers.handle("client", ({ path }) =>

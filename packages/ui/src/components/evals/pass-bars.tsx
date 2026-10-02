@@ -1,5 +1,5 @@
-import type { EvalTally } from "@anpord/schema/domain/evals";
-import { cn } from "@anpord/ui/lib/utils";
+import type { EvalTally } from "@sphynx/schema/domain/evals";
+import { cn } from "@sphynx/ui/lib/utils";
 
 const MOST = 10;
 

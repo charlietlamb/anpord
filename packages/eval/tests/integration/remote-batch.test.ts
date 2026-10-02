@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
+import { Database } from "@sphynx/db/client";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { Batches } from "../../src/batch/batches";
 import { AgentTrial } from "../../src/services/agent-trial";

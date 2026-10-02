@@ -1,5 +1,5 @@
-import { PAGE_FRAME, PAGE_WIDTHS } from "@anpord/ui/lib/page-frame";
-import { cn } from "@anpord/ui/lib/utils";
+import { PAGE_FRAME, PAGE_WIDTHS } from "@sphynx/ui/lib/page-frame";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 import { SettingsSidebar } from "@/components/settings/settings-sidebar";
 

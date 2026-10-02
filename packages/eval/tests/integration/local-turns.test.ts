@@ -2,21 +2,21 @@ import { afterEach, describe, expect, it } from "bun:test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { EvalTurn } from "@sphynx/schema/domain/eval-conversation";
+import type { EvalUser } from "@sphynx/schema/domain/eval-turns";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { ConfigProvider, Effect } from "effect";
 import { EvalLocalLive } from "../../src/local-layer";
 import { LocalTrials } from "../../src/services/local-trial";
 
 const opted = ConfigProvider.fromMap(
-  new Map([["ANPORD_LOCAL_SANDBOX", "true"]])
+  new Map([["SPHYNX_LOCAL_SANDBOX", "true"]])
 ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()));
 
 const AGENT = `
 const say = (line) => console.log(JSON.stringify(line));
 say({ _tag: "Started", model: "none", sessionId: "s-1" });
-if (process.env.ANPORD_PROMPT.startsWith("fix")) {
+if (process.env.SPHYNX_PROMPT.startsWith("fix")) {
   say({ _tag: "Command", command: "npm test", exitCode: 1, output: "1 failing" });
   require("node:fs").writeFileSync("config.json", "{}");
   say({ _tag: "FileChange", paths: [process.cwd() + "/config.json"] });
@@ -37,7 +37,7 @@ afterEach(async () => {
 });
 
 const runCase = async (user: EvalUser | null) => {
-  kept = await mkdtemp(join(tmpdir(), "anpord-turns-"));
+  kept = await mkdtemp(join(tmpdir(), "sphynx-turns-"));
   const copied = join(kept, "turns.json");
   const journal: HarnessEvent[] = [];
 
@@ -63,7 +63,7 @@ const runCase = async (user: EvalUser | null) => {
         prompt: "fix the config",
         source: { files: { "agent.cjs": AGENT }, kind: "files" },
         user,
-        verifyCommand: `cp "$ANPORD_TURNS_FILE" ${copied}`,
+        verifyCommand: `cp "$SPHYNX_TURNS_FILE" ${copied}`,
       })
     ),
     Effect.provide(EvalLocalLive),

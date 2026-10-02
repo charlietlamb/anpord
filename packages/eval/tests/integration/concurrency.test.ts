@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
 import { Daytona } from "@daytonaio/sdk";
+import { Database } from "@sphynx/db/client";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
 import {
   ConfigProvider,
   Effect,
@@ -74,7 +74,7 @@ const configFor = (provider: SandboxName, trials: number) =>
   ConfigProvider.fromMap(
     new Map([
       [`EVAL_${provider.toUpperCase()}_CONCURRENCY`, `${trials}`],
-      ["ANPORD_LOCAL_SANDBOX", "true"],
+      ["SPHYNX_LOCAL_SANDBOX", "true"],
     ])
   ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()));
 

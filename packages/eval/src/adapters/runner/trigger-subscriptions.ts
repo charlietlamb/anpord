@@ -1,4 +1,4 @@
-import { batchTagOf } from "@anpord/schema/domain/eval-batch-subscription";
+import { batchTagOf } from "@sphynx/schema/domain/eval-batch-subscription";
 import { Clock, Effect, Layer } from "effect";
 import { BatchSubscriptions } from "../../ports/batch-subscriptions";
 import { triggerSdk, triggerSecretKey } from "./trigger";

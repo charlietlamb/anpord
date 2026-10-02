@@ -11,14 +11,14 @@ case "${MODE}" in
 esac
 
 REGION="${AWS_REGION:-us-east-2}"
-SERVICE="${APPRUNNER_SERVICE:-anpord-server}"
+SERVICE="${APPRUNNER_SERVICE:-sphynx-server}"
 
 CPU="512"
 MEMORY="1024"
 MIN_INSTANCES="2"
 MAX_INSTANCES="4"
 MAX_CONCURRENCY="80"
-INSTANCE_ROLE="AppRunnerAnpordInstanceRole"
+INSTANCE_ROLE="AppRunnerSphynxInstanceRole"
 HEALTH_PATH="/api/livez"
 HEALTH="Protocol=HTTP,Path=${HEALTH_PATH},Interval=5,Timeout=4,HealthyThreshold=1,UnhealthyThreshold=3"
 

@@ -32,7 +32,7 @@ export default defineConfig({
         {
           isSecret: true,
           name: "DATABASE_URL",
-          value: await serverSecret("anpord/server/DATABASE_URL"),
+          value: await serverSecret("sphynx/server/DATABASE_URL"),
         },
       ]),
     ],

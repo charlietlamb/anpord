@@ -1,15 +1,15 @@
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
+} from "@sphynx/ui/components/ui/data-table";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-} from "@anpord/ui/components/ui/sidebar";
+} from "@sphynx/ui/components/ui/sidebar";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChannelsScreen } from "@/components/channels/channels-screen";
 import { NavUserIdentity } from "@/components/dashboard/nav-user-identity";
@@ -190,7 +190,7 @@ function SkeletonsPreview() {
           </SkeletonPair>
 
           <SkeletonPair name="Organization">
-            <OrganizationForm name="Anpord" slug="anpord" />
+            <OrganizationForm name="Sphynx" slug="sphynx" />
           </SkeletonPair>
 
           <SkeletonPair name="Prompts">
@@ -223,7 +223,7 @@ function SkeletonsPreview() {
                 <SidebarMenuButton size="lg">
                   <NavUserIdentity
                     user={{
-                      email: "charlie@anpord.com",
+                      email: "charlie@sphynx.sh",
                       initials: "CL",
                       name: "Charlie Lamb",
                     }}

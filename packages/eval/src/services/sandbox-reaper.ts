@@ -1,4 +1,4 @@
-import { EvalSandbox } from "@anpord/schema/domain/eval-definition";
+import { EvalSandbox } from "@sphynx/schema/domain/eval-definition";
 import { Clock, Duration, Effect, Redacted, Schema } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
 import {

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, spyOn } from "bun:test";
 import { resolve } from "node:path";
-import type { EvalCosts } from "@anpord/schema/domain/eval-costs";
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { EvalBatch } from "@anpord/schema/domain/evals";
-import { TrialOutcome } from "@anpord/schema/domain/trial";
 import { HttpApiDecodeError } from "@effect/platform/HttpApiError";
 import { NodeContext } from "@effect/platform-node";
+import type { EvalCosts } from "@sphynx/schema/domain/eval-costs";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import { EvalBatch } from "@sphynx/schema/domain/evals";
+import { TrialOutcome } from "@sphynx/schema/domain/trial";
 import {
   Cause,
   ConfigProvider,
@@ -19,7 +19,7 @@ import {
 import { runRecorded } from "../../src/cli/recorded-run";
 import { runSuitesLocally } from "../../src/cli/suite-local";
 import { ClientLayer } from "../../src/client/config";
-import { asAnpordError } from "../../src/client/errors";
+import { asSphynxError } from "../../src/client/errors";
 import { compileFixture } from "../fixtures/compile-eval";
 import { createBatch, createRun } from "../fixtures/eval-run";
 
@@ -61,7 +61,7 @@ const PRICED: EvalCosts = {
 };
 
 const CLOSED =
-  "Anpord closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.";
+  "Sphynx closed this run after it stopped hearing from this machine, so it no longer takes results. Run the eval again.";
 
 const GATEWAY_PAGE =
   "<html><body><h1>503 Service Temporarily Unavailable</h1></body></html>";
@@ -239,9 +239,9 @@ const recorded = (api: Api, request: StartBatchRequest) =>
     Effect.withConfigProvider(
       ConfigProvider.fromMap(
         new Map([
-          ["ANPORD_API_KEY", "fixture"],
-          ["ANPORD_BASE_URL", api.url],
-          ["ANPORD_WEB_URL", "https://anpord.test"],
+          ["SPHYNX_API_KEY", "fixture"],
+          ["SPHYNX_BASE_URL", api.url],
+          ["SPHYNX_WEB_URL", "https://sphynx.test"],
         ])
       )
     )
@@ -319,7 +319,7 @@ describe("a local run while the API is flaky", () => {
       },
     ]);
     expect(api.finished).toEqual(["batch_1"]);
-    expect(Option.getOrNull(link)).toBe("https://anpord.test/evals/batch_1");
+    expect(Option.getOrNull(link)).toBe("https://sphynx.test/evals/batch_1");
   }, 60_000);
 
   it("still lands a broken trial on a server that predates broken reports", async () => {
@@ -336,7 +336,7 @@ describe("a local run while the API is flaky", () => {
     expect(api.finished).toEqual(["batch_1"]);
   }, 60_000);
 
-  it("stops within seconds when Anpord cannot be reached at all", async () => {
+  it("stops within seconds when Sphynx cannot be reached at all", async () => {
     const request = requestWith("touch done.txt");
     const startedAt = Date.now();
 
@@ -347,8 +347,8 @@ describe("a local run while the API is flaky", () => {
         Effect.withConfigProvider(
           ConfigProvider.fromMap(
             new Map([
-              ["ANPORD_API_KEY", "fixture"],
-              ["ANPORD_BASE_URL", "http://127.0.0.1:1"],
+              ["SPHYNX_API_KEY", "fixture"],
+              ["SPHYNX_BASE_URL", "http://127.0.0.1:1"],
             ])
           )
         )
@@ -358,10 +358,10 @@ describe("a local run while the API is flaky", () => {
     expect(Date.now() - startedAt).toBeLessThan(5000);
     expect(
       Exit.isFailure(exit)
-        ? asAnpordError(Cause.squash(exit.cause)).message
+        ? asSphynxError(Cause.squash(exit.cause)).message
         : null
     ).toBe(
-      "Unable to reach Anpord at http://127.0.0.1:1. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address."
+      "Unable to reach Sphynx at http://127.0.0.1:1. Check your network connection, or set SPHYNX_BASE_URL if your Sphynx server is at another address."
     );
   }, 60_000);
 
@@ -379,7 +379,7 @@ describe("a local run while the API is flaky", () => {
     expect(api.finished).toEqual(["batch_1"]);
   }, 60_000);
 
-  it("checks once that Anpord answers, for the organization and the whole run", async () => {
+  it("checks once that Sphynx answers, for the organization and the whole run", async () => {
     const file = resolve(
       import.meta.dir,
       "../../../../scripts/fixtures/local-smoke/smoke.eval.ts"
@@ -396,9 +396,9 @@ describe("a local run while the API is flaky", () => {
         Effect.withConfigProvider(
           ConfigProvider.fromMap(
             new Map([
-              ["ANPORD_API_KEY", "fixture"],
-              ["ANPORD_BASE_URL", api.url],
-              ["ANPORD_WEB_URL", "https://anpord.test"],
+              ["SPHYNX_API_KEY", "fixture"],
+              ["SPHYNX_BASE_URL", api.url],
+              ["SPHYNX_WEB_URL", "https://sphynx.test"],
             ])
           )
         )
@@ -412,7 +412,7 @@ describe("a local run while the API is flaky", () => {
   }, 60_000);
 });
 
-describe("a local trial too large for Anpord to take", () => {
+describe("a local trial too large for Sphynx to take", () => {
   it("records its verdict without the journal, and says so", async () => {
     const request = requestWith(
       `printf '{"_tag":"Message","role":"assistant","text":"%s"}\\n' "$(head -c 100000 /dev/zero | tr '\\0' a)" && touch done.txt`
@@ -436,7 +436,7 @@ describe("a local trial too large for Anpord to take", () => {
     }).toEqual({
       journals: [0],
       noted: [
-        "A trial of fixture on command/none@writes-done was too large for Anpord to take, so its verdict was recorded without its journal.\n",
+        "A trial of fixture on command/none@writes-done was too large for Sphynx to take, so its verdict was recorded without its journal.\n",
       ],
       reported: [{ ordinal: 1, runId: "run_1" }],
       statuses: ["passed"],
@@ -444,8 +444,8 @@ describe("a local trial too large for Anpord to take", () => {
   }, 60_000);
 });
 
-describe("a local run whose batch Anpord already closed", () => {
-  it("says so once, without claiming Anpord will close it later", async () => {
+describe("a local run whose batch Sphynx already closed", () => {
+  it("says so once, without claiming Sphynx will close it later", async () => {
     const request = requestWith("touch done.txt");
     const api = fakeApi(request, { "runner.finish": [409] });
     const said: string[] = [];
@@ -467,7 +467,7 @@ describe("a local run whose batch Anpord already closed", () => {
 });
 
 describe("starting a local batch", () => {
-  it("tells Anpord this CLI checks in, so a silent machine is noticed", async () => {
+  it("tells Sphynx this CLI checks in, so a silent machine is noticed", async () => {
     const request = requestWith("touch done.txt");
     const api = fakeApi(request, {});
 
@@ -477,7 +477,7 @@ describe("starting a local batch", () => {
   }, 60_000);
 });
 
-describe("a local run whose batch Anpord closes while it runs", () => {
+describe("a local run whose batch Sphynx closes while it runs", () => {
   it("stops at once and fails with the one refusal, instead of reporting into a closed batch", async () => {
     const request = requestWith("sleep 30 && touch done.txt");
     const api = fakeApi(request, { "runner.beat": [409] });
@@ -494,7 +494,7 @@ describe("a local run whose batch Anpord closes while it runs", () => {
 
     expect({
       failure: Exit.isFailure(exit)
-        ? asAnpordError(Cause.squash(exit.cause)).message
+        ? asSphynxError(Cause.squash(exit.cause)).message
         : null,
       finished: api.finished,
       noted: said.filter((line) => line.includes("closed")),
@@ -532,7 +532,7 @@ describe("a local trial still too large without its journal", () => {
     }).toEqual({
       journals: [0],
       noted: [
-        "A trial of fixture on command/none@writes-done was too large for Anpord to take, so its verdict was recorded without its journal or the evidence its checks captured.\n",
+        "A trial of fixture on command/none@writes-done was too large for Sphynx to take, so its verdict was recorded without its journal or the evidence its checks captured.\n",
       ],
       reported: [{ ordinal: 1, runId: "run_1" }],
       statuses: ["passed"],

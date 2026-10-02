@@ -15,14 +15,14 @@ afterEach(async () => {
 });
 
 const compiledFrom = async (source: string) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-command-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-command-"));
   const entry = join(workspace, "eval.ts");
   await writeFile(entry, source);
   return await compileFixture(entry);
 };
 
 const definitionWith = (validate: string, id = '"checks"') => `
-import { command, suite } from "anpord";
+import { command, suite } from "sphynx-sh";
 export default suite({
   id: ${id},
   name: "checks",
@@ -80,7 +80,7 @@ describe("a suite id", () => {
 describe("a name", () => {
   test("defaults to the id for a suite and a case that leave it out", async () => {
     const request = await compiledFrom(`
-import { command, suite } from "anpord";
+import { command, suite } from "sphynx-sh";
 export default suite({
   id: "unnamed",
   prompt: "Write hello.txt",

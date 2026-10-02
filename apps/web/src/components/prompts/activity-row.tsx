@@ -1,5 +1,5 @@
-import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
-import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
+import type { PromptActivityEntry } from "@sphynx/schema/domain/prompt-activity";
+import { useRelativeTime } from "@sphynx/ui/hooks/use-relative-time";
 import { ActivityMarker } from "@/components/prompts/activity-marker";
 import { ActivitySentence } from "@/components/prompts/activity-sentence";
 

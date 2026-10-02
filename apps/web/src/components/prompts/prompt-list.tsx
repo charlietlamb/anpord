@@ -1,11 +1,11 @@
-import type { PromptSummary } from "@anpord/schema/domain/prompts";
+import type { PromptSummary } from "@sphynx/schema/domain/prompts";
 import {
   DataTable,
   DataTableBody,
   DataTableFooter,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { counted } from "@anpord/ui/lib/evals/counted";
+} from "@sphynx/ui/components/ui/data-table";
+import { counted } from "@sphynx/ui/lib/evals/counted";
 import { ShowMore } from "@/components/layout/show-more";
 import { PromptRow } from "@/components/prompts/prompt-row";
 import { PROMPTS_TABLE } from "@/lib/prompts/prompt-tables";

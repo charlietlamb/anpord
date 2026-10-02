@@ -1,6 +1,6 @@
-import { Button } from "@anpord/ui/components/button";
-import { BaseDialog } from "@anpord/ui/components/dialog/base-dialog";
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
+import { Button } from "@sphynx/ui/components/button";
+import { BaseDialog } from "@sphynx/ui/components/dialog/base-dialog";
+import { CodeBlock } from "@sphynx/ui/components/ui/code-block";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 
 interface ApiKeyCreatedDialogProps {

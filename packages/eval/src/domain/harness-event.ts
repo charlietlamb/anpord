@@ -1,4 +1,4 @@
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 
 const countOf = (value: number | undefined) =>
   typeof value === "number" && Number.isFinite(value) ? value : 0;

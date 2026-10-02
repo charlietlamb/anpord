@@ -1,4 +1,12 @@
 import {
+  BuildingsIcon,
+  MoonIcon,
+  PlusIcon,
+  SignOutIcon,
+  SunIcon,
+  UserSwitchIcon,
+} from "@phosphor-icons/react";
+import {
   Command,
   CommandDialog,
   CommandEmpty,
@@ -8,17 +16,9 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@anpord/ui/components/ui/command";
-import { useDebounced } from "@anpord/ui/hooks/use-debounced";
-import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
-import {
-  BuildingsIcon,
-  MoonIcon,
-  PlusIcon,
-  SignOutIcon,
-  SunIcon,
-  UserSwitchIcon,
-} from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/command";
+import { useDebounced } from "@sphynx/ui/hooks/use-debounced";
+import { useShortcut } from "@sphynx/ui/hooks/use-shortcut";
 import { useNavigate } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { useCallback, useState } from "react";

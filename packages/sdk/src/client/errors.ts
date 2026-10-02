@@ -1,5 +1,5 @@
-import { ANSWER_BUDGET, answerOverdue } from "@anpord/schema/public/deadlines";
 import { HttpClientError } from "@effect/platform";
+import { ANSWER_BUDGET, answerOverdue } from "@sphynx/schema/public/deadlines";
 import { Duration } from "effect";
 import type { ParseError } from "effect/ParseResult";
 import { ArrayFormatter } from "effect/ParseResult";
@@ -9,7 +9,7 @@ export class MissingApiKey extends Error {
 
   constructor() {
     super(
-      "No API key. Pass { apiKey } to the Anpord constructor or set ANPORD_API_KEY."
+      "No API key. Pass { apiKey } to the Sphynx constructor or set SPHYNX_API_KEY."
     );
   }
 }
@@ -26,12 +26,12 @@ const transportMessage = (error: unknown) => {
   const { origin } = new URL(error.request.url);
 
   return answerOverdue(error)
-    ? `Anpord at ${origin} took more than ${Duration.toSeconds(ANSWER_BUDGET)} seconds to answer. Try again in a moment.`
-    : `Unable to reach Anpord at ${origin}. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address.`;
+    ? `Sphynx at ${origin} took more than ${Duration.toSeconds(ANSWER_BUDGET)} seconds to answer. Try again in a moment.`
+    : `Unable to reach Sphynx at ${origin}. Check your network connection, or set SPHYNX_BASE_URL if your Sphynx server is at another address.`;
 };
 
-export class AnpordError extends Error {
-  readonly name = "AnpordError";
+export class SphynxError extends Error {
+  readonly name = "SphynxError";
   readonly status: number | undefined;
   readonly cause: unknown;
 
@@ -101,10 +101,10 @@ const messageOf = (error: unknown) => {
   return "The request failed.";
 };
 
-export const asAnpordError = (error: unknown) =>
-  error instanceof AnpordError
+export const asSphynxError = (error: unknown) =>
+  error instanceof SphynxError
     ? error
-    : new AnpordError(messageOf(error), {
+    : new SphynxError(messageOf(error), {
         cause: error,
         status: statusOf(error),
       });

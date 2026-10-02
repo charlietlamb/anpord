@@ -1,9 +1,9 @@
-import type { EvalVerifyStep } from "@anpord/schema/domain/eval-trial";
-import { stepsOf } from "@anpord/schema/domain/verify-steps";
+import type { EvalVerifyStep } from "@sphynx/schema/domain/eval-trial";
+import { stepsOf } from "@sphynx/schema/domain/verify-steps";
 
 /* `a && b && c` reports one exit code, so a failure never says which condition
    failed; the rewrite keeps one shell, so a `cd` or `export` still carries across. */
-const MARK = "@@anpord-verify";
+const MARK = "@@sphynx-verify";
 
 const MARK_LINE = new RegExp(`^${MARK} (\\d+) (\\d+)$`, "gm");
 
@@ -25,9 +25,9 @@ export const verifyScriptOf = (verifier: string): VerifyScript => {
     .map((step, index) =>
       [
         `{ ${step} ; }`,
-        "__anpord_rc=$?",
-        `printf '\\n${MARK} %d %d\\n' ${index + 1} "$__anpord_rc"`,
-        '[ "$__anpord_rc" -eq 0 ] || exit "$__anpord_rc"',
+        "__sphynx_rc=$?",
+        `printf '\\n${MARK} %d %d\\n' ${index + 1} "$__sphynx_rc"`,
+        '[ "$__sphynx_rc" -eq 0 ] || exit "$__sphynx_rc"',
       ].join("\n")
     )
     .join("\n");

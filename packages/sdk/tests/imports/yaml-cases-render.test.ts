@@ -103,13 +103,13 @@ describe("the generated suite", () => {
     expect(parseErrorsIn(source)).toHaveLength(0);
   });
 
-  /** Anpord has no step budget, so dropping the number silently would lose
+  /** Sphynx has no step budget, so dropping the number silently would lose
    * the one fact that says how much room the case had. */
   test("keeps the step budget as a note rather than a limit", () => {
     const source = renderYamlSuite(oneCase({ max_steps: 12 }));
 
     expect(source).toContain("The file allowed 12 steps");
-    expect(source).toContain("Anpord does not cap steps");
+    expect(source).toContain("Sphynx does not cap steps");
   });
 
   test("names the file each case came from", () => {

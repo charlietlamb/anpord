@@ -1,9 +1,9 @@
 import type {
   EvalCaseDetail,
   EvalRunPage,
-} from "@anpord/schema/domain/eval-read-models";
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalDistribution, EvalRun } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-read-models";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalDistribution, EvalRun } from "@sphynx/schema/domain/evals";
 import { DateTime } from "effect";
 import { FAILED_TRIAL, RUN, TRIALS } from "@/components/dev/eval-fixtures";
 import { VALIDATION_TRIALS } from "@/components/dev/validation-fixtures";

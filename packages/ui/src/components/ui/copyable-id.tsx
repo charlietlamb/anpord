@@ -1,7 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
-import { COPY_RESET_MS } from "@anpord/ui/components/copy-button";
-import { useCopy } from "@anpord/ui/hooks/use-copy";
-import { cn } from "@anpord/ui/lib/utils";
+import { Button } from "@sphynx/ui/components/button";
+import { COPY_RESET_MS } from "@sphynx/ui/components/copy-button";
+import { useCopy } from "@sphynx/ui/hooks/use-copy";
+import { cn } from "@sphynx/ui/lib/utils";
 import { CheckIcon, CopyIcon } from "@phosphor-icons/react";
 
 interface CopyableIdProps {

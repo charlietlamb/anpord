@@ -1,4 +1,4 @@
-export interface AnpordUser {
+export interface SphynxUser {
   readonly email?: string;
   readonly id: string;
   readonly name?: string;

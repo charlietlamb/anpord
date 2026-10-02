@@ -1,4 +1,4 @@
-import type { UpdatePromptRequest } from "@anpord/schema/domain/prompts";
+import type { UpdatePromptRequest } from "@sphynx/schema/domain/prompts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updatePrompt } from "@/lib/prompts-client";
 import { promptKeys } from "@/lib/query/prompt-keys";

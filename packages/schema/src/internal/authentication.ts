@@ -3,17 +3,17 @@ import { Context } from "effect";
 import type { Actor } from "../domain/actor";
 import { Unauthorized } from "../domain/errors";
 
-export const COOKIE_PREFIX = "anpord";
+export const COOKIE_PREFIX = "sphynx";
 
 export const SESSION_COOKIE = `${COOKIE_PREFIX}.session_token`;
 
-export class CurrentActor extends Context.Tag("@anpord/schema/CurrentActor")<
+export class CurrentActor extends Context.Tag("@sphynx/schema/CurrentActor")<
   CurrentActor,
   Actor
 >() {}
 
 export class Authentication extends HttpApiMiddleware.Tag<Authentication>()(
-  "@anpord/schema/Authentication",
+  "@sphynx/schema/Authentication",
   {
     failure: Unauthorized,
     provides: CurrentActor,

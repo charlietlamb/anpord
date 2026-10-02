@@ -1,9 +1,9 @@
-import type { EvalCodeValidator } from "@anpord/schema/domain/eval-definition";
+import type { EvalCodeValidator } from "@sphynx/schema/domain/eval-definition";
 import {
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import { PREPARE_VALUE_ENV } from "@anpord/schema/domain/sandbox-env";
+} from "@sphynx/schema/domain/eval-validations";
+import { PREPARE_VALUE_ENV } from "@sphynx/schema/domain/sandbox-env";
 import { Clock, Effect, Random } from "effect";
 import type { ScoreRequest } from "../../ports/scorer";
 import { shellQuote } from "../harness/process";
@@ -18,7 +18,7 @@ export const scoreValidator = (
   Effect.gen(function* () {
     const started = yield* Clock.currentTimeMillis;
     const suffix = yield* Random.nextIntBetween(0x10_00_00_00, 0x7f_ff_ff_ff);
-    const path = `${request.sandbox.home}/.anpord-validator-${suffix.toString(16)}.mjs`;
+    const path = `${request.sandbox.home}/.sphynx-validator-${suffix.toString(16)}.mjs`;
     const manifest = request.validator.manifest ?? [
       { index: 0, name: request.validator.name },
     ];

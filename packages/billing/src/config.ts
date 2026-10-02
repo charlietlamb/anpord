@@ -11,7 +11,7 @@ export interface BillingConfigShape {
     | undefined;
 }
 
-export class BillingConfig extends Context.Tag("@anpord/billing/BillingConfig")<
+export class BillingConfig extends Context.Tag("@sphynx/billing/BillingConfig")<
   BillingConfig,
   BillingConfigShape
 >() {}

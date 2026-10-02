@@ -1,4 +1,4 @@
-import { BaseDialog } from "@anpord/ui/components/dialog/base-dialog";
+import { BaseDialog } from "@sphynx/ui/components/dialog/base-dialog";
 import type { ReactNode } from "react";
 
 interface FormDialogProps {

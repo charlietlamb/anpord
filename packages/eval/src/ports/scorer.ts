@@ -1,8 +1,8 @@
-import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
-import type { EvalValidator } from "@anpord/schema/domain/eval-definition";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+import type { EvalTurn } from "@sphynx/schema/domain/eval-conversation";
+import type { EvalValidator } from "@sphynx/schema/domain/eval-definition";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Context, type Effect } from "effect";
 import type { SandboxUnavailable } from "../domain/errors";
 import type { SandboxHandle } from "./sandbox";
@@ -36,7 +36,7 @@ export interface ScorerShape {
   ) => Effect.Effect<TrialOutcome, SandboxUnavailable>;
 }
 
-export class Scorer extends Context.Tag("@anpord/eval/Scorer")<
+export class Scorer extends Context.Tag("@sphynx/eval/Scorer")<
   Scorer,
   ScorerShape
 >() {}

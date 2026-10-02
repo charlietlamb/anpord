@@ -5,8 +5,8 @@ import { CaseCache } from "../src/domain/eval-definition";
 test.each([
   ".",
   "./",
-  ".anpord",
-  "./.anpord/api",
+  ".sphynx",
+  "./.sphynx/api",
   "../cache",
   "/cache",
 ])("rejects cache path %s", (path) => {

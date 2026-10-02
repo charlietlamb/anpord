@@ -4,8 +4,8 @@ import {
   type ShellToken,
   type ShellTokenKind,
   shellTokens,
-} from "@anpord/ui/lib/highlight";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/lib/highlight";
+import { cn } from "@sphynx/ui/lib/utils";
 import { useEffect, useState } from "react";
 
 export const SHELL_CLASSES: Record<ShellTokenKind, string> = {

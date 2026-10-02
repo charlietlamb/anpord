@@ -6,7 +6,7 @@ description: "Give agents typed local MCP servers, CLIs and HTTP APIs"
 Mocks are TypeScript objects. Their schemas type your handlers and validate requests and responses at runtime. Each trial gets its own copy of every MCP server, CLI and HTTP API. Keep fixtures in shared files and assertions in validators.
 
 ```bash
-npm install anpord zod
+npm install sphynx-sh zod
 ```
 
 ## Share fixtures
@@ -33,7 +33,7 @@ export const getUser = (id: string) => {
 ## MCP
 
 ```ts mcp/users.ts
-import { resource, server, tool } from "anpord/mcp";
+import { resource, server, tool } from "sphynx-sh/mcp";
 import { GetUserInput, User, getUser, user } from "../fixtures/users";
 
 export const usersMcp = server({
@@ -63,7 +63,7 @@ MCP mocks support tools and fixed-URI resources. Schemas must implement Standard
 ## CLI
 
 ```ts cli/users.ts
-import { cli, command } from "anpord/cli";
+import { cli, command } from "sphynx-sh/cli";
 import { GetUserInput, User, getUser } from "../fixtures/users";
 
 export const usersCli = cli({
@@ -88,14 +88,14 @@ export const usersCli = cli({
 
 The runtime generates help and version output, validates output, prints JSON to stdout and exits nonzero on failure.
 
-`anpord` also exports a `command` for `validate`. If one file needs both, import one under another name.
+`sphynx-sh` also exports a `command` for `validate`. If one file needs both, import one under another name.
 
 ## Attach and validate
 
 Attach MCP and CLI mocks on the suite, then check the call logs in a validator.
 
 ```ts users.eval.ts
-import { suite, type Validator } from "anpord";
+import { suite, type Validator } from "sphynx-sh";
 import { usersCli } from "./cli/users";
 import { GetUserInput, user } from "./fixtures/users";
 import { usersMcp } from "./mcp/users";
@@ -138,7 +138,7 @@ Check both the recorded call and the outcome. Call inputs and outputs are `unkno
 Define endpoints with `api()` and `endpoint()`. Standard Schema types the handler input and checks each response against the schema for its status code. Handlers are plain TypeScript.
 
 ```ts mocks/catalog.ts
-import { api, endpoint } from "anpord/api";
+import { api, endpoint } from "sphynx-sh/api";
 import { z } from "zod";
 
 const item = { id: "fixture", name: "Test item" };
@@ -168,7 +168,7 @@ Move `item` and `Item` into a shared fixture file to reuse them with MCP and CLI
 ### Attach an API
 
 ```ts catalog.eval.ts
-import { suite, type Validator } from "anpord";
+import { suite, type Validator } from "sphynx-sh";
 import { catalog } from "./mocks/catalog";
 
 const validate: Validator = async ({ api, answer }) => ({
@@ -187,7 +187,7 @@ export default suite({
 });
 ```
 
-In each trial, Anpord starts a loopback HTTP server on a free port and adds its base URL and endpoint list to the agent's input. Your prompt is unchanged. Curl, Python and SDK clients can call it directly.
+In each trial, Sphynx starts a loopback HTTP server on a free port and adds its base URL and endpoint list to the agent's input. Your prompt is unchanged. Curl, Python and SDK clients can call it directly.
 
 Prepare functions and validators get the URL from `await api.url("catalog")`. No environment variables or global `fetch` are replaced.
 
@@ -214,7 +214,7 @@ Authorization headers, cookies and common secret fields are redacted before reco
 Use `withApi()` when a validator needs its own server with hidden test data. The server closes when the callback finishes or fails.
 
 ```ts
-import { withApi } from "anpord/api";
+import { withApi } from "sphynx-sh/api";
 
 await withApi({
   api: catalog,
@@ -240,4 +240,4 @@ Mocks never call an upstream service, but they do not stop the agent from contac
 
 Mocks apply to every variant in the suite. Put variants in separate eval files when they need different mocks. CLI mocks are installed for every harness. MCP mocks are configured for every [built-in harness](/evals/variants), but not the [command harness](/evals/command-harness).
 
-Handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox, so keep secrets out of it. Running the eval still needs `ANPORD_API_KEY` and a model connection.
+Handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox, so keep secrets out of it. Running the eval still needs `SPHYNX_API_KEY` and a model connection.

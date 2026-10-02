@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ChannelName } from "@anpord/schema/domain/prompts";
+import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { Effect, Exit, Layer, Option } from "effect";
 import { ChannelRepository } from "../../src/repositories/channel-repository";
 import {

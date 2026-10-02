@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/auth",
+  "name": "@sphynx/auth",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -19,11 +19,11 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/billing": "workspace:*",
-    "@anpord/db": "workspace:*",
-    "@anpord/ids": "workspace:*",
-    "@anpord/notifications": "workspace:*",
-    "@anpord/schema": "workspace:*",
+    "@sphynx/billing": "workspace:*",
+    "@sphynx/db": "workspace:*",
+    "@sphynx/ids": "workspace:*",
+    "@sphynx/notifications": "workspace:*",
+    "@sphynx/schema": "workspace:*",
     "@better-auth/api-key": "catalog:",
     "@better-auth/drizzle-adapter": "catalog:",
     "better-auth": "catalog:",

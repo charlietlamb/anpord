@@ -12,7 +12,7 @@ export const loadDefinition = (ref: DefinitionRef) =>
   bundle(definitionEntry(ref), ref.entry, { atSource: true }).pipe(
     Effect.flatMap(({ inputs, source }) =>
       Effect.acquireUseRelease(
-        Effect.tryPromise(() => mkdtemp(join(tmpdir(), "anpord-eval-"))),
+        Effect.tryPromise(() => mkdtemp(join(tmpdir(), "sphynx-eval-"))),
         (directory) =>
           Effect.tryPromise({
             try: async () => {

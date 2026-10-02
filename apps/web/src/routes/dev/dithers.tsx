@@ -2,7 +2,7 @@ import {
   DITHER_FAMILIES,
   DITHER_PRESETS,
   type DitherPreset,
-} from "@anpord/ui/lib/dither-presets";
+} from "@sphynx/ui/lib/dither-presets";
 import { createFileRoute } from "@tanstack/react-router";
 import { PresetGallery } from "@/components/dev/preset-gallery";
 import type { PresetKind } from "@/components/dev/preset-kind";

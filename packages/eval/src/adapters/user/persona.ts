@@ -1,4 +1,4 @@
-import type { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
+import type { EvalSimulatedUser } from "@sphynx/schema/domain/eval-turns";
 import { Option } from "effect";
 
 const DONE = "<<DONE>>";

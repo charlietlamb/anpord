@@ -3,8 +3,8 @@ import {
   DataTableBody,
   DataTableFooter,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { counted } from "@anpord/ui/lib/evals/counted";
+} from "@sphynx/ui/components/ui/data-table";
+import { counted } from "@sphynx/ui/lib/evals/counted";
 import type { ReactNode } from "react";
 
 export function SummaryTable<T>({

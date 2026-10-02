@@ -1,4 +1,4 @@
-import { PublicApi } from "@anpord/schema/public/api";
+import { PublicApi } from "@sphynx/schema/public/api";
 import { Layer } from "effect";
 import { ApiKeyAuthenticationLive } from "../../http/authentication/api-key-authentication";
 import { apiSurface } from "../api-surface";

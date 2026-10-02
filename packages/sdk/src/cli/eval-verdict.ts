@@ -1,5 +1,5 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 
 const MARKS: Record<EvalValidation["status"], string> = {
   error: "!",

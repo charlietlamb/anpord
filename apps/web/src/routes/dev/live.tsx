@@ -1,9 +1,9 @@
-import { Button } from "@anpord/ui/components/button";
-import { BatchRuns } from "@anpord/ui/components/evals/batch-runs";
-import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
-import { LivePip } from "@anpord/ui/components/evals/live-pip";
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
-import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
+import { Button } from "@sphynx/ui/components/button";
+import { BatchRuns } from "@sphynx/ui/components/evals/batch-runs";
+import { EvalStatusBadge } from "@sphynx/ui/components/evals/eval-status-badge";
+import { LivePip } from "@sphynx/ui/components/evals/live-pip";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
+import { distributionStatus } from "@sphynx/ui/lib/evals/eval-status";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMockRun } from "@/components/dev/use-mock-run";
 import { TrialView } from "@/components/evals/trial-view";

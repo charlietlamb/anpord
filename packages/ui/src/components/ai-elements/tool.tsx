@@ -1,10 +1,3 @@
-import { CopyButton } from "@anpord/ui/components/copy-button";
-import {
-  StatusBadge,
-  type StatusTone,
-} from "@anpord/ui/components/ui/status-badge";
-import { SURFACE_FILL } from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
 import { Collapsible } from "@base-ui/react/collapsible";
 import {
   CaretDownIcon,
@@ -13,6 +6,13 @@ import {
   type Icon,
   XCircleIcon,
 } from "@phosphor-icons/react";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
+import {
+  StatusBadge,
+  type StatusTone,
+} from "@sphynx/ui/components/ui/status-badge";
+import { SURFACE_FILL } from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ComponentProps, ReactNode } from "react";
 
 export type ToolState = "completed" | "error" | "running";

@@ -1,12 +1,12 @@
 "use client";
 
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
+import { CodeBlock } from "@sphynx/ui/components/ui/code-block";
 import {
   SHELL_CLASSES,
   SHELL_INVERTED,
   useShellTokens,
-} from "@anpord/ui/components/ui/shell-text";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/components/ui/shell-text";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export function ShellBlock({
   className,

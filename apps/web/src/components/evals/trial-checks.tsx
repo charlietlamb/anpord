@@ -1,13 +1,13 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalSetup } from "@anpord/schema/domain/evals";
+import { FileCodeIcon } from "@phosphor-icons/react";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalSetup } from "@sphynx/schema/domain/evals";
 import {
   DataTable,
   DataTableBody,
   DataTableFooter,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
-import { FileCodeIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
+import { EmptyNote } from "@sphynx/ui/components/ui/empty-note";
 import { useState } from "react";
 import { CheckRow } from "@/components/evals/check-row";
 import { ValidationDetail } from "@/components/evals/validation-detail";

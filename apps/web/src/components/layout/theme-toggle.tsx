@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
 import { MoonIcon, SunIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import { useTheme } from "next-themes";
 
 export function ThemeToggle() {

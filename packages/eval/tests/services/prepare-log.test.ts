@@ -7,7 +7,7 @@ import { runPrepare } from "../../src/services/workspace-setup";
 import { emptyEnvCredential } from "../fixtures/credentials";
 import { declinesEverything } from "../fixtures/declines-everything";
 
-const RESULT = 'ANPORD_PREPARE_RESULT={"secretKey":"am_sk_test_x"}\n';
+const RESULT = 'SPHYNX_PREPARE_RESULT={"secretKey":"am_sk_test_x"}\n';
 
 const Immediate = Layer.succeed(
   Suspender,
@@ -103,7 +103,7 @@ describe("what a prepare shows while it runs", () => {
 
   test("a result line split across two polls is still kept out", async () => {
     const { lines, prepared } = await logged(
-      polled(["", "installing\nANPORD_PREPARE_RES", `installing\n${RESULT}`])
+      polled(["", "installing\nSPHYNX_PREPARE_RES", `installing\n${RESULT}`])
     );
 
     expect(prepared).toEqual({ secretKey: "am_sk_test_x" });

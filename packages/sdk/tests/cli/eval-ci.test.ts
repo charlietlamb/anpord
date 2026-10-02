@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { EvalBatch } from "@anpord/schema/domain/evals";
+import { EvalBatch } from "@sphynx/schema/domain/evals";
 import { Schema } from "effect";
 import { SuiteOutcome } from "../../src/cli/suite-outcome";
 import { createBatch, createRun, createTrial } from "../fixtures/eval-run";
@@ -15,7 +15,7 @@ const action = resolve(root, ".github/actions/eval/run.mjs");
 const decodeReport = Schema.decodeUnknownSync(
   Schema.parseJson(Schema.Array(SuiteOutcome))
 );
-const definition = `import { command, empty, suite } from "anpord";
+const definition = `import { command, empty, suite } from "sphynx-sh";
 export default suite({id:"ci",name:"CI",source:empty,prompt:"test",cases:[{id:"fixture",name:"fixture",validate:command("true")}],variants:[{harness:"codex",model:"test",sandbox:"e2b"}],trials:1});`;
 
 const execute = async (
@@ -26,7 +26,7 @@ const execute = async (
     readonly timeout?: number;
   } = {}
 ) => {
-  const directory = await mkdtemp(resolve(tmpdir(), "anpord-ci-test-"));
+  const directory = await mkdtemp(resolve(tmpdir(), "sphynx-ci-test-"));
   const file = resolve(directory, "suite with spaces.eval.ts");
   const output = resolve(directory, "outputs");
   const summary = resolve(directory, "summary.md");
@@ -69,11 +69,11 @@ const execute = async (
         env: {
           PATH: process.env.PATH,
           TMPDIR: directory,
-          ANPORD_API_KEY: options.key ?? "fixture",
-          ANPORD_BASE_URL: server.url.href.slice(0, -1),
-          ANPORD_WEB_URL: "https://anpord.test",
-          ANPORD_EVAL_FILE: file,
-          ANPORD_EVAL_TIMEOUT: String(options.timeout ?? 10),
+          SPHYNX_API_KEY: options.key ?? "fixture",
+          SPHYNX_BASE_URL: server.url.href.slice(0, -1),
+          SPHYNX_WEB_URL: "https://sphynx.test",
+          SPHYNX_EVAL_FILE: file,
+          SPHYNX_EVAL_TIMEOUT: String(options.timeout ?? 10),
           GITHUB_STEP_SUMMARY: summary,
           GITHUB_OUTPUT: output,
         },
@@ -120,7 +120,7 @@ describe.if(existsSync(binary))("CI runner", () => {
   test("writes results and a link for a non-interactive single suite", async () => {
     const result = await execute(createBatch());
     expect(result.code).toBe(0);
-    expect(result.stderr).toContain("https://anpord.test/evals/batch_fixture");
+    expect(result.stderr).toContain("https://sphynx.test/evals/batch_fixture");
     expect(result.summary).toContain("Eval gate passed");
     expect(result.report[0].batch?.status).toBe("finished");
     expect(result.report[0].suite).toBe("CI");

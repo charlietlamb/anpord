@@ -1,7 +1,7 @@
-import type { SourceControlAccount } from "@anpord/schema/domain/codebase";
-import { DropdownMenuItem } from "@anpord/ui/components/dropdown-menu";
-import { DetailList, DetailRow } from "@anpord/ui/components/ui/detail-list";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import type { SourceControlAccount } from "@sphynx/schema/domain/codebase";
+import { DropdownMenuItem } from "@sphynx/ui/components/dropdown-menu";
+import { DetailList, DetailRow } from "@sphynx/ui/components/ui/detail-list";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 

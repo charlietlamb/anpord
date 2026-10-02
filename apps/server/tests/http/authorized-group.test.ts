@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import type { Actor } from "@anpord/schema/domain/actor";
-import { OrganizationId, UserId } from "@anpord/schema/domain/actor";
-import type { Permission } from "@anpord/schema/domain/permissions";
-import { ROLE_PERMISSIONS } from "@anpord/schema/domain/permissions";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import { OrganizationId, UserId } from "@sphynx/schema/domain/actor";
+import type { Permission } from "@sphynx/schema/domain/permissions";
+import { ROLE_PERMISSIONS } from "@sphynx/schema/domain/permissions";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect, Exit } from "effect";
 import { authorized } from "../../src/http/authorization/authorized-group";
 

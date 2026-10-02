@@ -2,8 +2,8 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-} from "@anpord/ui/components/ui/command";
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+} from "@sphynx/ui/components/ui/command";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { staffQueries } from "@/lib/query/staff-queries";
 

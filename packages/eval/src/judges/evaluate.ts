@@ -1,10 +1,10 @@
-import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
+import type { EvalJudgment } from "@sphynx/schema/domain/eval-judges";
 import {
   type EvalValidation,
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/eval-validations";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 import { Clock, Effect, Schema } from "effect";
 import { publishValidation } from "../adapters/scorers/validation";
 import {

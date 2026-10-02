@@ -1,7 +1,7 @@
-import { isSettledTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import { counted } from "@anpord/ui/lib/evals/counted";
-import { cn } from "@anpord/ui/lib/utils";
+import { isSettledTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
+import { counted } from "@sphynx/ui/lib/evals/counted";
+import { cn } from "@sphynx/ui/lib/utils";
 
 const TONE = {
   failed: "bg-destructive",

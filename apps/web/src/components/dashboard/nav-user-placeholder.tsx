@@ -2,8 +2,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@anpord/ui/components/ui/sidebar";
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+} from "@sphynx/ui/components/ui/sidebar";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import { NAV_USER_BUTTON } from "@/components/dashboard/nav-user-button";
 import { NavUserIdentity } from "@/components/dashboard/nav-user-identity";
 

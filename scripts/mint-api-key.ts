@@ -23,9 +23,9 @@ import { arg, required } from "./lib/cli-args";
   production both live in AWS Secrets Manager:
 
     export BETTER_AUTH_SECRET=$(aws secretsmanager get-secret-value \
-      --secret-id anpord/server/BETTER_AUTH_SECRET --query SecretString --output text)
+      --secret-id sphynx/server/BETTER_AUTH_SECRET --query SecretString --output text)
     export DATABASE_URL=$(aws secretsmanager get-secret-value \
-      --secret-id anpord/server/DATABASE_URL --query SecretString --output text)
+      --secret-id sphynx/server/DATABASE_URL --query SecretString --output text)
 */
 
 const SESSION_MINUTES = 10;
@@ -40,10 +40,10 @@ if (organization === undefined) {
 }
 
 const label = arg("name") ?? "test";
-const baseUrl = process.env.ANPORD_SERVER_URL ?? API_ORIGIN;
+const baseUrl = process.env.SPHYNX_SERVER_URL ?? API_ORIGIN;
 /* Better Auth checks the origin against its trusted list, which names the web
    app rather than the API. */
-const origin = process.env.ANPORD_WEB_URL ?? WEB_ORIGIN;
+const origin = process.env.SPHYNX_WEB_URL ?? WEB_ORIGIN;
 /* Better Auth prefixes the cookie with __Secure- once it is served over https. */
 const cookieName = baseUrl.startsWith("https:")
   ? `__Secure-${SESSION_COOKIE}`

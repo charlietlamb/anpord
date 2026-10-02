@@ -1,7 +1,7 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
-import { IdGenerator } from "@anpord/ids/id";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { evalHarnessProfile } from "@sphynx/db/schema/evals/eval-harness-profiles";
+import { IdGenerator } from "@sphynx/ids/id";
 import { and, eq, inArray } from "drizzle-orm";
 import { Context, Effect, Layer, Option } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -33,7 +33,7 @@ export interface HarnessProfileRepositoryShape {
 }
 
 export class HarnessProfileRepository extends Context.Tag(
-  "@anpord/eval/HarnessProfileRepository"
+  "@sphynx/eval/HarnessProfileRepository"
 )<HarnessProfileRepository, HarnessProfileRepositoryShape>() {}
 
 const toStoredProfile = (row: ProfileRow): StoredProfile => ({

@@ -1,7 +1,7 @@
 import type {
   CredentialValues,
   ResolvedCredential,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { Option, Redacted, Schema } from "effect";
 
 const SECRET_WORDS = new Set([

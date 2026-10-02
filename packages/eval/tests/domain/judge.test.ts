@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { EvalJudge } from "@anpord/schema/domain/eval-judges";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import { EvalJudge } from "@sphynx/schema/domain/eval-judges";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { Effect, Redacted, Schema } from "effect";
 import { evaluateJudge } from "../../src/judges/evaluate";
 import {

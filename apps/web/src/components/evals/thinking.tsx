@@ -1,7 +1,7 @@
 import {
   Message,
   MessageContent,
-} from "@anpord/ui/components/ai-elements/message";
+} from "@sphynx/ui/components/ai-elements/message";
 
 const DELAYS = ["0ms", "160ms", "320ms"] as const;
 

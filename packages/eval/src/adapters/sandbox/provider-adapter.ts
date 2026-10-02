@@ -1,4 +1,4 @@
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
+import type { CredentialValues } from "@sphynx/schema/domain/credentials";
 import { Effect } from "effect";
 import {
   describeFailure,

@@ -1,8 +1,8 @@
-import { CodebaseConnection } from "@anpord/eval/codebase/codebase-connection";
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { AnpordApi } from "@anpord/schema/internal/api";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
+import { CodebaseConnection } from "@sphynx/eval/codebase/codebase-connection";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { SphynxApi } from "@sphynx/schema/internal/api";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withCodebaseErrors } from "../../../http/codebase-errors";
@@ -11,7 +11,7 @@ const read = { permission: Permissions.Credentials.Read };
 const write = { permission: Permissions.Credentials.Write };
 
 export const CodebaseHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "codebase",
   (handlers) =>
     authorized(handlers)

@@ -9,7 +9,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { ConfigProvider, Effect, Option, Redacted } from "effect";
 import { binPath } from "../../../src/adapters/harness/install";
 import { jsonDriver, keyAs } from "../../../src/adapters/harness/json-driver";
@@ -23,7 +23,7 @@ afterAll(() =>
 );
 
 const freshRoot = async () => {
-  const root = await mkdtemp(join(tmpdir(), "anpord-concurrent-"));
+  const root = await mkdtemp(join(tmpdir(), "sphynx-concurrent-"));
   roots.push(root);
   return root;
 };
@@ -49,8 +49,8 @@ const inLocalRoot = (root: string) =>
   Effect.withConfigProvider(
     ConfigProvider.fromMap(
       new Map([
-        ["ANPORD_LOCAL_SANDBOX", "true"],
-        ["ANPORD_LOCAL_ROOT", join(root, "store")],
+        ["SPHYNX_LOCAL_SANDBOX", "true"],
+        ["SPHYNX_LOCAL_ROOT", join(root, "store")],
       ])
     ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()))
   );

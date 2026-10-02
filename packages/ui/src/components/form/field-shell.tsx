@@ -1,5 +1,5 @@
-import { FieldInfo } from "@anpord/ui/components/form/field-info";
-import { LabelledField } from "@anpord/ui/components/form/labelled-field";
+import { FieldInfo } from "@sphynx/ui/components/form/field-info";
+import { LabelledField } from "@sphynx/ui/components/form/labelled-field";
 import type { AnyFieldApi } from "@tanstack/react-form";
 import type { ReactNode } from "react";
 

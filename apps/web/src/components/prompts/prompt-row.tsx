@@ -1,9 +1,9 @@
-import type { PromptSummary } from "@anpord/schema/domain/prompts";
+import type { PromptSummary } from "@sphynx/schema/domain/prompts";
 import {
   DataTableRow,
   DataTableRowLink,
-} from "@anpord/ui/components/ui/data-table";
-import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
+} from "@sphynx/ui/components/ui/data-table";
+import { useRelativeTime } from "@sphynx/ui/hooks/use-relative-time";
 import { Link } from "@tanstack/react-router";
 import { PromptEditorAvatar } from "@/components/prompts/prompt-editor-avatar";
 import { PromptRowActions } from "@/components/prompts/prompt-row-actions";

@@ -1,8 +1,8 @@
-import type { Channel } from "@anpord/schema/domain/channels";
+import type { Channel } from "@sphynx/schema/domain/channels";
 import type {
   ChannelPlacement,
   ResolvedPrompt,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import type { KeyboardEvent } from "react";
 import { RowList } from "@/components/layout/row-list";
 import { VersionRow } from "@/components/prompts/version-row";

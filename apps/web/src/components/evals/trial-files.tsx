@@ -1,12 +1,12 @@
 import type {
   EvalArtifactMetadata,
   EvalArtifactRequest,
-} from "@anpord/schema/domain/eval-trial";
+} from "@sphynx/schema/domain/eval-trial";
 import {
   DataTable,
   DataTableBody,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
+} from "@sphynx/ui/components/ui/data-table";
 import { useState } from "react";
 import { FileSheet } from "@/components/evals/file-sheet";
 import { TrialFileRow } from "@/components/evals/trial-file-row";

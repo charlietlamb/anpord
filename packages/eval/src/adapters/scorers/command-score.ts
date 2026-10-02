@@ -3,7 +3,7 @@ import {
   validationCapture,
   validationExecution,
   validationSnapshot,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import { Clock, Effect } from "effect";
 import { outcomeOf } from "../../domain/trial";
 import {

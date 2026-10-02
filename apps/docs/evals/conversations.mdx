@@ -6,8 +6,8 @@ description: "Test an agent over a conversation, not a single prompt"
 A case sends one prompt and reads one answer unless it sets `user`. With `user`, the agent's reply goes to a simulated person, they answer what it actually said, and the harness continues the same session. That lets an eval check things like whether the agent asked before it acted.
 
 ```ts
-import { suite, type Validator } from "anpord";
-import { human } from "anpord/validators";
+import { suite, type Validator } from "sphynx-sh";
+import { human } from "sphynx-sh/validators";
 
 const askedFirst: Validator = async ({ cli, turns }) => {
   const conversation = await turns();
@@ -48,7 +48,7 @@ Write the brief the way the person would say it, one fact per line. The person i
 
 ## Who plays the person
 
-By default a model plays the person. It is fixed for all cases, not chosen per case, and defaults to `gpt-5.4-mini`. A weak simulator can approve a summary that contradicts its own brief, so the case passes for the wrong reason. The `ANPORD_USER_MODEL` environment variable on the runner overrides it.
+By default a model plays the person. It is fixed for all cases, not chosen per case, and defaults to `gpt-5.4-mini`. A weak simulator can approve a summary that contradicts its own brief, so the case passes for the wrong reason. The `SPHYNX_USER_MODEL` environment variable on the runner overrides it.
 
 That model needs a model [connection](/connections). Without one, a batch that contains a case with a simulated person is refused when it starts.
 
@@ -69,7 +69,7 @@ A harness person gets a sandbox of its own, separate from the agent's workspace,
 
 On `codex` and `claude`, the person keeps one session for the whole conversation, and each later turn sends only the agent's latest reply. Other harnesses start a new session every turn and are sent everything said so far.
 
-In a local run, Anpord leases a credential for every harness the suite needs, including one that plays the person. Each is used only for its own harness.
+In a local run, Sphynx leases a credential for every harness the suite needs, including one that plays the person. Each is used only for its own harness.
 
 Whoever plays the person, model or harness and model, is part of the variant, so results from different people are never mixed. Changing it creates a new variant. A harness and model named in the case are also part of the case, so changing them creates a new case version.
 
@@ -86,7 +86,7 @@ If the person stops answering mid-conversation (for example, the user model or h
 When the order of events matters more than the conversation, give the replies up front:
 
 ```ts
-import { script } from "anpord/validators";
+import { script } from "sphynx-sh/validators";
 
 user: script(["yes, go ahead", "that looks right"]);
 ```

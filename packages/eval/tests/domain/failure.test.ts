@@ -60,7 +60,7 @@ describe("describeCause", () => {
     deep.stack = [
       "Error: connect ECONNREFUSED 10.0.0.1:443",
       "    at TCPConnectWrap.afterConnect (node:net:1611:16)",
-      "    at /Users/someone/anpord/packages/eval/src/adapters/sandbox.ts:24:9",
+      "    at /Users/someone/sphynx/packages/eval/src/adapters/sandbox.ts:24:9",
     ].join("\n");
 
     const failure = describeCause(Cause.die(deep));

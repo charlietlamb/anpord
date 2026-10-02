@@ -1,7 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
-import { Badge } from "@anpord/ui/components/ui/badge";
-import { cn, SPIN } from "@anpord/ui/lib/utils";
+import { Badge } from "@sphynx/ui/components/ui/badge";
+import { cn, SPIN } from "@sphynx/ui/lib/utils";
 
 export type StatusTone = "destructive" | "pending" | "positive" | "secondary";
 

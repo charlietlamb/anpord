@@ -1,7 +1,7 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import { authorIdOf } from "@anpord/schema/domain/actor";
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { StartedBatch } from "@anpord/schema/domain/evals";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import { authorIdOf } from "@sphynx/schema/domain/actor";
+import type { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
 import { Effect, Option } from "effect";
 import { CredentialResolver } from "../credentials/resolver";
 import { bindCredentials } from "../credentials/variants";

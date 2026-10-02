@@ -1,6 +1,6 @@
-import { Database } from "@anpord/db/client";
-import { verification } from "@anpord/db/schema/auth/verifications";
-import { credentialAuthAttempt } from "@anpord/db/schema/credentials/auth-attempts";
+import { Database } from "@sphynx/db/client";
+import { verification } from "@sphynx/db/schema/auth/verifications";
+import { credentialAuthAttempt } from "@sphynx/db/schema/credentials/auth-attempts";
 import { lt } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -17,7 +17,7 @@ export interface ExpiredRowsShape {
   >;
 }
 
-export class ExpiredRows extends Context.Tag("@anpord/eval/ExpiredRows")<
+export class ExpiredRows extends Context.Tag("@sphynx/eval/ExpiredRows")<
   ExpiredRows,
   ExpiredRowsShape
 >() {}

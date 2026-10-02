@@ -1,13 +1,13 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
-import { CopyableId } from "@anpord/ui/components/ui/copyable-id";
-import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { useRelativeTime } from "@anpord/ui/hooks/use-relative-time";
-import { initials } from "@anpord/ui/lib/initials";
 import {
   ClockCounterClockwiseIcon,
   FloppyDiskIcon,
   HashIcon,
 } from "@phosphor-icons/react";
+import type { ResolvedPrompt } from "@sphynx/schema/domain/prompts";
+import { CopyableId } from "@sphynx/ui/components/ui/copyable-id";
+import { RailSection } from "@sphynx/ui/components/ui/rail-section";
+import { useRelativeTime } from "@sphynx/ui/hooks/use-relative-time";
+import { initials } from "@sphynx/ui/lib/initials";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";
 import { DetailRow } from "@/components/prompts/detail-row";
 import { DetailRowFrame } from "@/components/prompts/detail-row-frame";

@@ -1,10 +1,10 @@
-import type { Channel } from "@anpord/schema/domain/channels";
+import type { Channel } from "@sphynx/schema/domain/channels";
 import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-} from "@anpord/ui/components/dropdown-menu";
-import { ChannelDot } from "@anpord/ui/components/ui/channel-dot";
+} from "@sphynx/ui/components/dropdown-menu";
+import { ChannelDot } from "@sphynx/ui/components/ui/channel-dot";
 import { RowActionsMenu } from "@/components/layout/row-actions-menu";
 import { useChannelColor } from "@/lib/query/use-channel-colors";
 

@@ -1,5 +1,5 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { RerunIntent, RerunPlan } from "@anpord/schema/domain/eval-rerun";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { RerunIntent, RerunPlan } from "@sphynx/schema/domain/eval-rerun";
 import { Effect, Option } from "effect";
 import { EvalNotFound } from "../domain/errors";
 import { planRerun } from "../domain/rerun-plan";

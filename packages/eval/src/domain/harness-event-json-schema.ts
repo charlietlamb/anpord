@@ -1,4 +1,4 @@
-import { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { JSONSchema } from "effect";
 import { CommandLine } from "./command-line";
 

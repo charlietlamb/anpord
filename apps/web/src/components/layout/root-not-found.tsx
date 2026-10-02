@@ -1,6 +1,6 @@
-import { API_REFERENCE_URL, DOCS_ORIGIN } from "@anpord/schema/public/origins";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import { cn } from "@anpord/ui/lib/utils";
+import { API_REFERENCE_URL, DOCS_ORIGIN } from "@sphynx/schema/public/origins";
+import { buttonVariants } from "@sphynx/ui/lib/button-variants";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { PanelCard } from "@/components/layout/panel-card";
 import { RootDocument } from "@/components/layout/root-document";

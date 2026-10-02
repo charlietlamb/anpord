@@ -92,7 +92,7 @@ export const EvalCosts = Schema.transform(
       default: () => [],
     }).annotations({
       description:
-        "Components named after anpord 0.1.25, kept out of `components` so clients from then still decode the response.",
+        "Components named after sphynx 0.1.25, kept out of `components` so clients from then still decode the response.",
     }),
   }),
   Schema.Struct({

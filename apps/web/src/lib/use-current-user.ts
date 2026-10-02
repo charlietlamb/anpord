@@ -1,4 +1,4 @@
-import { initials } from "@anpord/ui/lib/initials";
+import { initials } from "@sphynx/ui/lib/initials";
 import { useSession } from "@/lib/auth-client";
 
 export interface CurrentUser {

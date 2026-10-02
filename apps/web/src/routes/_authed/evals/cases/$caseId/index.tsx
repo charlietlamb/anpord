@@ -1,4 +1,4 @@
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CaseActions } from "@/components/evals/case-actions";

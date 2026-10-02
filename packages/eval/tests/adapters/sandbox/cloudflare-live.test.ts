@@ -6,7 +6,7 @@ import type { ExecChunk } from "../../../src/ports/sandbox";
 import { hasCloudflare } from "../../fixtures/credentials";
 
 const SANDBOX_ID = /^[a-z2-7]+$/;
-const WORKSPACE = "/tmp/anpord-bridge";
+const WORKSPACE = "/tmp/sphynx-bridge";
 
 const collect = (stream: Stream.Stream<ExecChunk, unknown>) =>
   Stream.runCollect(stream).pipe(Effect.map(Chunk.toReadonlyArray));

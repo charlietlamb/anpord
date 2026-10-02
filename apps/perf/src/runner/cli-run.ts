@@ -17,9 +17,9 @@ export const timeCliRun = (stack: Stack, targetRoot: string, fixture: string) =>
       {
         env: {
           ...inherited,
-          ANPORD_API_KEY: stack.tenant.apiKey,
-          ANPORD_BASE_URL: stack.server.baseUrl,
-          ANPORD_BROWSER: "none",
+          SPHYNX_API_KEY: stack.tenant.apiKey,
+          SPHYNX_BASE_URL: stack.server.baseUrl,
+          SPHYNX_BROWSER: "none",
         },
         stdio: ["ignore", "ignore", "pipe"],
       }

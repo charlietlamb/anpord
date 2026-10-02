@@ -1,6 +1,6 @@
 import { Effect, Option } from "effect";
 import { webUrlConfig } from "../client/config";
-import { asAnpordError } from "../client/errors";
+import { asSphynxError } from "../client/errors";
 import { failWhen } from "./eval-gate";
 import { reportFinished, writeReport } from "./eval-report";
 import { buildGithubCheck } from "./github-check";
@@ -25,7 +25,7 @@ const reportToGithub = (outcomes: readonly SuiteOutcome[]) =>
     yield* postCheckRun(context.value, buildGithubCheck(outcomes, webUrl));
   }).pipe(
     Effect.catchAll((error) =>
-      note(`The GitHub check was not posted. ${asAnpordError(error).message}`)
+      note(`The GitHub check was not posted. ${asSphynxError(error).message}`)
     )
   );
 

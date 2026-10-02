@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/perf",
+  "name": "@sphynx/perf",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,10 +8,10 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/db": "workspace:*",
-    "@anpord/e2e": "workspace:*",
-    "@anpord/schema": "workspace:*",
-    "anpord": "workspace:*",
+    "@sphynx/db": "workspace:*",
+    "@sphynx/e2e": "workspace:*",
+    "@sphynx/schema": "workspace:*",
+    "sphynx-sh": "workspace:*",
     "effect": "catalog:",
     "pg": "catalog:"
   },

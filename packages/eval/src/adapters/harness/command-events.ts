@@ -1,7 +1,7 @@
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import { CommandLine, type CommandUsageLine } from "../../domain/command-line";
 import type { HarnessExit } from "./process";

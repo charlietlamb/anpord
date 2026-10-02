@@ -9,7 +9,7 @@ export interface EnvFile {
 }
 
 const nameFor = Random.nextInt.pipe(
-  Effect.map((value) => `.anpord-env-${Math.abs(value).toString(36)}`)
+  Effect.map((value) => `.sphynx-env-${Math.abs(value).toString(36)}`)
 );
 
 export const envFileFor = (

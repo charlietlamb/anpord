@@ -1,6 +1,6 @@
-import { commandText } from "@anpord/schema/domain/eval-journal";
-import { validationSummary } from "@anpord/schema/domain/eval-validation-results";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import { commandText } from "@sphynx/schema/domain/eval-journal";
+import { validationSummary } from "@sphynx/schema/domain/eval-validation-results";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { formatDuration } from "./duration";
 import { outcomeMark } from "./outcome-mark";
 import type { Writer } from "./transcript-writer";

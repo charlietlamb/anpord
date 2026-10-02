@@ -1,6 +1,6 @@
-import { MCP_JOURNAL as JOURNAL } from "@anpord/schema/domain/api-mocks";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
+import { MCP_JOURNAL as JOURNAL } from "@sphynx/schema/domain/api-mocks";
 import { Effect } from "effect";
 import { appendCall, decodeStandard, errorOf } from "../mock-journal";
 import type {

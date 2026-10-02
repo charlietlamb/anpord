@@ -1,18 +1,18 @@
-import type { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import type { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import type { evalHarnessProfile } from "@anpord/db/schema/evals/eval-harness-profiles";
-import type { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import type { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import type { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import type { evalVariant } from "@anpord/db/schema/evals/eval-variants";
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import type { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import type { evalHarnessProfile } from "@sphynx/db/schema/evals/eval-harness-profiles";
+import type { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import type { evalTrialCost } from "@sphynx/db/schema/evals/eval-trial-costs";
+import type { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import type { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
 import type {
   EvalRun,
   EvalSetup,
   EvalVariant,
-} from "@anpord/schema/domain/evals";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { decodeTrialStatus } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/evals";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import { decodeTrialStatus } from "@sphynx/schema/domain/trial";
 import { DateTime, Option } from "effect";
 import { distributionOf } from "../domain/distribution";
 import { costsOf, rollUp } from "../domain/eval-costs";

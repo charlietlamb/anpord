@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { EvalBatch } from "@anpord/schema/domain/evals";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
 import { formatBatch } from "../../src/cli/batch-progress";
 
 const COLOUR = new RegExp(`${String.fromCharCode(27)}\\[[\\d;]+m`, "g");

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { EvalCosts } from "@anpord/schema/domain/eval-costs";
-import { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { EvalValidations } from "@anpord/schema/domain/eval-validations";
-import { EvalBatch } from "@anpord/schema/domain/evals";
+import { EvalCosts } from "@sphynx/schema/domain/eval-costs";
+import { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import { EvalValidations } from "@sphynx/schema/domain/eval-validations";
+import { EvalBatch } from "@sphynx/schema/domain/evals";
 import { Arbitrary, DateTime, FastCheck, Option, Schema } from "effect";
 import { schemaEncoder } from "../../../src/http/encoding/schema-encoder";
 

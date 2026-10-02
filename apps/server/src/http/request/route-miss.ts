@@ -1,6 +1,6 @@
-import { PublicApi } from "@anpord/schema/public/api";
-import { API_REFERENCE_URL } from "@anpord/schema/public/origins";
 import { HttpApi } from "@effect/platform";
+import { PublicApi } from "@sphynx/schema/public/api";
+import { API_REFERENCE_URL } from "@sphynx/schema/public/origins";
 
 const PREFLIGHT = "OPTIONS";
 

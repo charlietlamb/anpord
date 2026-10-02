@@ -1,5 +1,5 @@
-import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { cn } from "@anpord/ui/lib/utils";
+import type { RailIcon } from "@sphynx/ui/components/ui/rail-fact";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function VariantLabel({

@@ -1,4 +1,5 @@
-import { Logo } from "@anpord/ui/components/logo";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { Logo } from "@sphynx/ui/components/logo";
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@anpord/ui/components/ui/sidebar";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/sidebar";
 import { ClientOnly, Link, useLocation } from "@tanstack/react-router";
 import {
   activeNavPath,

@@ -1,4 +1,4 @@
-import type { CatalogueModel } from "@anpord/schema/domain/eval-models";
+import type { CatalogueModel } from "@sphynx/schema/domain/eval-models";
 
 /* Curated: models.dev publishes no popularity signal, and reseller count ranks
    open-weight models above single-vendor Claude and GPT. */

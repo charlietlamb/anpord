@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { EvalCaseId } from "@anpord/schema/domain/eval-limits";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import { EvalCaseId } from "@sphynx/schema/domain/eval-limits";
 import { Effect, Either, Option, Schema } from "effect";
 import { selectFrom } from "../../src/cli/suite-selection";
 

@@ -1,4 +1,4 @@
-import type { EvalHomeVerdict } from "@anpord/schema/domain/eval-home";
+import type { EvalHomeVerdict } from "@sphynx/schema/domain/eval-home";
 import { HomeOverview } from "@/components/home/home-overview";
 import { HomeReasons } from "@/components/home/home-reasons";
 import { HomeRecentRuns } from "@/components/home/home-recent-runs";

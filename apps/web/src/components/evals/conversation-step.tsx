@@ -1,4 +1,4 @@
-import { commandText } from "@anpord/schema/domain/eval-journal";
+import { commandText } from "@sphynx/schema/domain/eval-journal";
 import {
   Tool,
   ToolContent,
@@ -7,9 +7,9 @@ import {
   ToolOutput,
   ToolSection,
   type ToolState,
-} from "@anpord/ui/components/ai-elements/tool";
-import { ShellText } from "@anpord/ui/components/ui/shell-text";
-import { seconds } from "@anpord/ui/lib/evals/duration";
+} from "@sphynx/ui/components/ai-elements/tool";
+import { ShellText } from "@sphynx/ui/components/ui/shell-text";
+import { seconds } from "@sphynx/ui/lib/evals/duration";
 import { CallName } from "@/components/evals/call-name";
 import { KindIcon } from "@/components/evals/kind-icon";
 import { type Call, durationOf, stepFailed } from "@/lib/evals/conversation";

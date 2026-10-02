@@ -60,7 +60,7 @@ for (const [provider, ready] of [
             prepare: null,
             source: brokenSource,
             verifyCommand: VERIFY_COMMAND,
-            workspace: "/tmp/anpord-task",
+            workspace: "/tmp/sphynx-task",
           });
         }).pipe(Effect.provide(TestLayer))
       );
@@ -104,7 +104,7 @@ describe.skipIf(!hasE2b)("a command trial against e2b", () => {
           provider: "e2b",
           source: { files: {}, kind: "files" },
           verifyCommand: `grep -q -F ${JSON.stringify(NOTE)} notes.txt`,
-          workspace: "/tmp/anpord-command",
+          workspace: "/tmp/sphynx-command",
         });
       }).pipe(Effect.provide(TestLayer))
     );

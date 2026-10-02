@@ -1,7 +1,7 @@
 import {
   EvalHomeRange,
   EvalHomeVerdict,
-} from "@anpord/schema/domain/eval-home";
+} from "@sphynx/schema/domain/eval-home";
 import { parseAsString, parseAsStringLiteral } from "nuqs";
 
 export const homeParsers = {

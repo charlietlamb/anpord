@@ -1,9 +1,9 @@
-import type { CredentialError } from "@anpord/eval/credentials/errors";
+import type { CredentialError } from "@sphynx/eval/credentials/errors";
 import {
   BadRequest,
   InternalError,
   NotFound,
-} from "@anpord/schema/domain/errors";
+} from "@sphynx/schema/domain/errors";
 import { Effect } from "effect";
 
 export const credentialApiError = (error: CredentialError) => {

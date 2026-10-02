@@ -1,18 +1,18 @@
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import { EvalCaseId } from "@anpord/schema/domain/eval-limits";
-import { PROFILE_HARNESS_RULE } from "@anpord/schema/domain/harness-profile";
-import { RunCaseRequest } from "@anpord/schema/domain/run-case";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import { EvalCaseId } from "@sphynx/schema/domain/eval-limits";
+import { PROFILE_HARNESS_RULE } from "@sphynx/schema/domain/harness-profile";
+import { RunCaseRequest } from "@sphynx/schema/domain/run-case";
 import {
   ById,
   ListBatchesRequest,
   ListCasesRequest,
   ListModelsRequest,
   ListRunsRequest,
-} from "@anpord/schema/public/evals-api";
+} from "@sphynx/schema/public/evals-api";
 import { Effect, Schema } from "effect";
 import type { MCPServer } from "mcp-use";
-import type { AnpordUser } from "./anpord-user";
 import { callApi } from "./runtime";
+import type { SphynxUser } from "./sphynx-user";
 import { toolInput } from "./tool-input";
 import { asJson } from "./tool-output";
 
@@ -20,7 +20,7 @@ const StartSuite = StartBatchRequest.omit("local", "trigger");
 
 const StartCase = Schema.Struct({ id: EvalCaseId, ...RunCaseRequest.fields });
 
-export const registerEvalTools = (server: MCPServer<AnpordUser>) => {
+export const registerEvalTools = (server: MCPServer<SphynxUser>) => {
   server.tool(
     {
       description:

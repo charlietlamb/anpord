@@ -1,4 +1,4 @@
-import { useShortAge } from "@anpord/ui/hooks/use-relative-time";
+import { useShortAge } from "@sphynx/ui/hooks/use-relative-time";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "effect";
 import { TrialSquares } from "@/components/home/trial-squares";

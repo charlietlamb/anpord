@@ -1,5 +1,5 @@
-import { Database } from "@anpord/db/client";
-import { oauthApplication } from "@anpord/db/schema/auth/oauth";
+import { Database } from "@sphynx/db/client";
+import { oauthApplication } from "@sphynx/db/schema/auth/oauth";
 import { eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import { OAuthClientNotFound, OAuthClientUnreadable } from "./errors";
@@ -10,7 +10,7 @@ export interface OAuthClientsShape {
   ) => Effect.Effect<string, OAuthClientNotFound | OAuthClientUnreadable>;
 }
 
-export class OAuthClients extends Context.Tag("@anpord/auth/OAuthClients")<
+export class OAuthClients extends Context.Tag("@sphynx/auth/OAuthClients")<
   OAuthClients,
   OAuthClientsShape
 >() {}

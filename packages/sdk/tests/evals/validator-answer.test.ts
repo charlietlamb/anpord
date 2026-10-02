@@ -16,7 +16,7 @@ afterEach(async () => {
 });
 
 const directory = async () => {
-  workspace ??= await mkdtemp(join(tmpdir(), "anpord-answer-"));
+  workspace ??= await mkdtemp(join(tmpdir(), "sphynx-answer-"));
 
   return workspace;
 };
@@ -59,9 +59,9 @@ const wrote = async (name: string, content: string) => {
 describe("a validator reading what the agent said", () => {
   test("reads and filters CLI calls", async () => {
     const root = await directory();
-    await mkdir(join(root, ".anpord"));
+    await mkdir(join(root, ".sphynx"));
     await writeFile(
-      join(root, ".anpord/cli-calls.jsonl"),
+      join(root, ".sphynx/cli-calls.jsonl"),
       `${JSON.stringify({ cli: "mcp-use", command: "servers list", input: { json: true } })}\n`
     );
 
@@ -70,14 +70,14 @@ describe("a validator reading what the agent said", () => {
       {}
     );
 
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   test("reads and filters MCP calls", async () => {
     const root = await directory();
-    await mkdir(join(root, ".anpord"));
+    await mkdir(join(root, ".sphynx"));
     await writeFile(
-      join(root, ".anpord/mcp-calls.jsonl"),
+      join(root, ".sphynx/mcp-calls.jsonl"),
       `${JSON.stringify({ input: { id: "user_1" }, kind: "tool", name: "users_get", server: "example" })}\n${JSON.stringify({ input: {}, kind: "tool", name: "other", server: "other" })}\n`
     );
 
@@ -86,18 +86,18 @@ describe("a validator reading what the agent said", () => {
       {}
     );
 
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   test("is handed the answer from the file the scorer named", async () => {
     const path = await wrote("answer.txt", "There are eight planets.");
     const result = await runValidator(
       "async (context) => ({ passed: (await context.answer()).includes('eight') })",
-      { ANPORD_ANSWER_FILE: path }
+      { SPHYNX_ANSWER_FILE: path }
     );
 
     expect(result.exitCode).toBe(0);
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   test("is handed the transcript separately from the answer", async () => {
@@ -110,12 +110,12 @@ describe("a validator reading what the agent said", () => {
     const result = await runValidator(
       "async (context) => ({ passed: (await context.transcript()).startsWith('Checking.') && (await context.answer()) === 'There are eight.' })",
       {
-        ANPORD_ANSWER_FILE: answer,
-        ANPORD_TRANSCRIPT_FILE: transcript,
+        SPHYNX_ANSWER_FILE: answer,
+        SPHYNX_TRANSCRIPT_FILE: transcript,
       }
     );
 
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   /* A validator written against a harness that has not been taught to write
@@ -128,17 +128,17 @@ describe("a validator reading what the agent said", () => {
     );
 
     expect(result.exitCode).toBe(0);
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   test("reads an empty answer when the file is gone", async () => {
     const result = await runValidator(
       "async (context) => ({ passed: (await context.answer()) === '' })",
-      { ANPORD_ANSWER_FILE: "/nowhere/answer.txt" }
+      { SPHYNX_ANSWER_FILE: "/nowhere/answer.txt" }
     );
 
     expect(result.exitCode).toBe(0);
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   test("reads what the agent ran in the turn it ran it", async () => {
@@ -165,24 +165,24 @@ describe("a validator reading what the agent said", () => {
     );
     const result = await runValidator(
       "async ({ turns }) => ({ passed: (await turns())[0].events.some((event) => event._tag === 'command' && event.command === 'cat SKILL.md') })",
-      { ANPORD_TURNS_FILE: path }
+      { SPHYNX_TURNS_FILE: path }
     );
 
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 
   test("does not read a damaged turns file as an empty conversation", async () => {
     const path = await wrote("turns.json", "[{");
     const result = await runValidator(
       "async ({ turns }) => ({ passed: (await turns()).length === 0 })",
-      { ANPORD_TURNS_FILE: path }
+      { SPHYNX_TURNS_FILE: path }
     );
 
     expect(result.output).toContain(
       '"message":"Validator threw or returned an invalid result"'
     );
     expect(result.output).toContain(
-      'ANPORD_VALIDATOR_RESULT={"passed":false,"message":"check threw or returned an invalid result"}'
+      'SPHYNX_VALIDATOR_RESULT={"passed":false,"message":"check threw or returned an invalid result"}'
     );
   });
 
@@ -191,11 +191,11 @@ describe("a validator reading what the agent said", () => {
     const result = await runValidator(
       "async (context) => ({ passed: context.prepared.tag === 'sha-abc' && (await context.answer()) === 'done' })",
       {
-        ANPORD_ANSWER_FILE: path,
-        ANPORD_PREPARE_VALUE: JSON.stringify({ tag: "sha-abc" }),
+        SPHYNX_ANSWER_FILE: path,
+        SPHYNX_PREPARE_VALUE: JSON.stringify({ tag: "sha-abc" }),
       }
     );
 
-    expect(result.output).toContain('ANPORD_VALIDATOR_RESULT={"passed":true}');
+    expect(result.output).toContain('SPHYNX_VALIDATOR_RESULT={"passed":true}');
   });
 });

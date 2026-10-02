@@ -4,7 +4,7 @@ import {
   API_MANIFEST,
   ApiCall,
   ApiManifest,
-} from "@anpord/schema/domain/api-mocks";
+} from "@sphynx/schema/domain/api-mocks";
 import { Schema } from "effect";
 
 export const apiContext = {

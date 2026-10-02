@@ -1,12 +1,12 @@
 import { Schema } from "effect";
 import { type CaptureLimits, ReportedValue } from "./eval-validations";
 
-export const API_PROGRAM = "workspace/.anpord/api/program.json";
-export const API_MANIFEST = ".anpord/api/manifest.json";
-export const API_JOURNAL = ".anpord/api/calls.jsonl";
-export const CLI_JOURNAL = ".anpord/cli-calls.jsonl";
-export const MCP_JOURNAL = ".anpord/mcp-calls.jsonl";
-export const API_READY = "ANPORD_API_READY=";
+export const API_PROGRAM = "workspace/.sphynx/api/program.json";
+export const API_MANIFEST = ".sphynx/api/manifest.json";
+export const API_JOURNAL = ".sphynx/api/calls.jsonl";
+export const CLI_JOURNAL = ".sphynx/cli-calls.jsonl";
+export const MCP_JOURNAL = ".sphynx/mcp-calls.jsonl";
+export const API_READY = "SPHYNX_API_READY=";
 export const API_CALL_LIMIT = 256;
 export const API_REPORTED_LIMITS: CaptureLimits = {
   budget: 96_000,
@@ -14,7 +14,7 @@ export const API_REPORTED_LIMITS: CaptureLimits = {
 };
 
 export const ApiProgram = Schema.Struct({
-  entry: Schema.Literal(".anpord/api/server.mjs"),
+  entry: Schema.Literal(".sphynx/api/server.mjs"),
 });
 export const ApiManifest = Schema.Array(
   Schema.Struct({

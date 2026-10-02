@@ -2,7 +2,7 @@ import {
   PromptId,
   PromptName,
   type PromptSortOrder,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import { Effect, Schema } from "effect";
 import type { PromptListRow } from "../repositories/prompt-list-query";
 import { decodeCursor } from "./cursor-codec";

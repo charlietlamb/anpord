@@ -1,4 +1,4 @@
-import type { EvalSource } from "@anpord/schema/domain/eval-definition";
+import type { EvalSource } from "@sphynx/schema/domain/eval-definition";
 import {
   index,
   jsonb,

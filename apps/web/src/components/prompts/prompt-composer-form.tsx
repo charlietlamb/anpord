@@ -1,14 +1,14 @@
-import { extractVariables } from "@anpord/template/extract";
+import type { Icon } from "@phosphor-icons/react";
+import { BracketsCurlyIcon, SpinnerGapIcon } from "@phosphor-icons/react";
+import { extractVariables } from "@sphynx/template/extract";
 import {
   ComposerContext,
   ComposerToolbar,
   ComposerToolbarGroup,
-} from "@anpord/ui/components/composer";
-import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
-import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { SPIN } from "@anpord/ui/lib/utils";
-import type { Icon } from "@phosphor-icons/react";
-import { BracketsCurlyIcon, SpinnerGapIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/composer";
+import { ToolbarButton } from "@sphynx/ui/components/toolbar-button";
+import { ShortcutButton } from "@sphynx/ui/components/ui/shortcut-button";
+import { SPIN } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 import { PromptComposer } from "@/components/prompts/prompt-composer";
 

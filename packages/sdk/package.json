@@ -1,5 +1,5 @@
 {
-  "name": "anpord",
+  "name": "sphynx-sh",
   "version": "0.1.29",
   "description": "TypeScript SDK and CLI for coding agent evals and prompt management.",
   "license": "MIT",
@@ -127,7 +127,7 @@
     }
   },
   "keywords": [
-    "anpord",
+    "sphynx",
     "evals",
     "agents",
     "sandboxes",
@@ -139,7 +139,7 @@
     "sdk",
     "cli"
   ],
-  "homepage": "https://anpord.com",
+  "homepage": "https://sphynx.sh",
   "engines": {
     "node": ">=20"
   },
@@ -154,9 +154,9 @@
     "prepublishOnly": "bun run build"
   },
   "devDependencies": {
-    "@anpord/eval": "workspace:*",
-    "@anpord/schema": "workspace:*",
-    "@anpord/template": "workspace:*",
+    "@sphynx/eval": "workspace:*",
+    "@sphynx/schema": "workspace:*",
+    "@sphynx/template": "workspace:*",
     "@modelcontextprotocol/client": "catalog:",
     "eve": "catalog:",
     "publint": "catalog:",
@@ -185,15 +185,15 @@
     }
   },
   "bin": {
-    "anpord": "./dist/bin.mjs",
-    "anpord-eve": "./dist/runner-eve-bin.mjs"
+    "sphynx": "./dist/bin.mjs",
+    "sphynx-eve": "./dist/runner-eve-bin.mjs"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/charlietlamb/anpord.git",
+    "url": "git+https://github.com/charlietlamb/sphynx.git",
     "directory": "packages/sdk"
   },
   "bugs": {
-    "url": "https://github.com/charlietlamb/anpord/issues"
+    "url": "https://github.com/charlietlamb/sphynx/issues"
   }
 }

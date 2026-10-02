@@ -5,7 +5,7 @@ const text = Schema.String.pipe(Schema.minLength(1));
 
 /* Pinned here rather than chosen per case: a weak simulator approves a
    summary contradicting its own brief, so the case passes for the wrong
-   reason. ANPORD_USER_MODEL overrides it for a whole run. */
+   reason. SPHYNX_USER_MODEL overrides it for a whole run. */
 export const DEFAULT_USER_MODEL = "gpt-5.4-mini";
 
 const simulated = {

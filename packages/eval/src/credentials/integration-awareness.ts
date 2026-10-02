@@ -1,4 +1,4 @@
-import type { IntegrationAwareness } from "@anpord/schema/domain/credentials";
+import type { IntegrationAwareness } from "@sphynx/schema/domain/credentials";
 
 export const groupOwners = (
   rows: readonly { integrationId: string; owner: string }[]

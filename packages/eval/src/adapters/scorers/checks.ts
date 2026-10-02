@@ -1,4 +1,4 @@
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Effect, Layer } from "effect";
 import { outcomeOf } from "../../domain/trial";
 import { Scorer } from "../../ports/scorer";

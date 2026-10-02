@@ -1,5 +1,5 @@
 import { posix } from "node:path";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 
 export const relativeToWorkspace = (
   workspace: string,

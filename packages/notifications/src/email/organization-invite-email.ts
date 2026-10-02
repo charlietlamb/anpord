@@ -13,11 +13,11 @@ export const organizationInviteEmail = ({
   organization,
   url,
 }: OrganizationInvite): EmailMessage => ({
-  subject: `Join ${organization} on Anpord`,
+  subject: `Join ${organization} on Sphynx`,
   text: [
     invitedBy === null
-      ? `You have been invited to join ${organization} on Anpord.`
-      : `${invitedBy} has invited you to join ${organization} on Anpord.`,
+      ? `You have been invited to join ${organization} on Sphynx.`
+      : `${invitedBy} has invited you to join ${organization} on Sphynx.`,
     "",
     "Open the link below to accept:",
     "",

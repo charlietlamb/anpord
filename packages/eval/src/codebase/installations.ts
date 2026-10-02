@@ -1,7 +1,7 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { githubInstallation } from "@anpord/db/schema/credentials/installations";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { githubInstallation } from "@sphynx/db/schema/credentials/installations";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import { eq } from "drizzle-orm";
 import { Clock, Context, Effect, Layer, type Option } from "effect";
 import { tryStore } from "../repositories/query";
@@ -24,7 +24,7 @@ export interface InstallationsShape {
   readonly remove: (actor: Actor) => Effect.Effect<void, CodebaseError>;
 }
 
-export class Installations extends Context.Tag("@anpord/eval/Installations")<
+export class Installations extends Context.Tag("@sphynx/eval/Installations")<
   Installations,
   InstallationsShape
 >() {}

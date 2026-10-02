@@ -1,6 +1,6 @@
-# Anpord
+# Sphynx
 
-Anpord runs coding agent evals. A suite holds cases, each case runs on variants (a harness, model and sandbox), and a batch starts those runs together so variants can be compared. Every run records its trials, command trajectories and pass rate.
+Sphynx runs coding agent evals. A suite holds cases, each case runs on variants (a harness, model and sandbox), and a batch starts those runs together so variants can be compared. Every run records its trials, command trajectories and pass rate.
 
 ## Repository
 
@@ -8,7 +8,7 @@ This is a Bun and Turbo TypeScript monorepo containing:
 
 - the TanStack Start dashboard
 - the Effect HTTP API
-- the `anpord` TypeScript SDK and CLI
+- the `sphynx-sh` TypeScript SDK and CLI
 - the hosted MCP server
 - the eval runtime and sandbox adapters
 - Product documentation

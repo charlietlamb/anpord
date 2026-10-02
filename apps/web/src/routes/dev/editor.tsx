@@ -1,9 +1,9 @@
-import type { Channel } from "@anpord/schema/domain/channels";
+import type { Channel } from "@sphynx/schema/domain/channels";
 import type {
   ChannelPlacement,
   ResolvedPrompt,
-} from "@anpord/schema/domain/prompts";
-import { extractVariables } from "@anpord/template/extract";
+} from "@sphynx/schema/domain/prompts";
+import { extractVariables } from "@sphynx/template/extract";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";

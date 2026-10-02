@@ -1,5 +1,10 @@
-import type { EvalSandbox } from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
+import {
+  CpuIcon,
+  DesktopTowerIcon,
+  TerminalWindowIcon,
+} from "@phosphor-icons/react";
+import type { EvalSandbox } from "@sphynx/schema/domain/eval-definition";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import {
   AlibabaMark,
   CerebrasMark,
@@ -25,14 +30,9 @@ import {
   VercelMark,
   XaiMark,
   ZaiMark,
-} from "@anpord/ui/components/brand/provider-marks";
-import type { RailIcon } from "@anpord/ui/components/ui/rail-fact";
-import { shortProfileVersion } from "@anpord/ui/lib/evals/profile-version";
-import {
-  CpuIcon,
-  DesktopTowerIcon,
-  TerminalWindowIcon,
-} from "@phosphor-icons/react";
+} from "@sphynx/ui/components/brand/provider-marks";
+import type { RailIcon } from "@sphynx/ui/components/ui/rail-fact";
+import { shortProfileVersion } from "@sphynx/ui/lib/evals/profile-version";
 
 interface Presentation {
   readonly Icon: RailIcon;
@@ -168,7 +168,7 @@ export interface LabelledProfile {
 }
 
 const profileLabel = (profile: LabelledProfile) =>
-  ["anpord-api", "anpord-cli", "anpord-mcp"].includes(profile.name)
+  ["sphynx-api", "sphynx-cli", "sphynx-mcp"].includes(profile.name)
     ? ""
     : `${profile.name}@${shortProfileVersion(profile.version)}`;
 

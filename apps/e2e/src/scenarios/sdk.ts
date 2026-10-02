@@ -1,4 +1,4 @@
-import { Anpord, type AnpordOptions } from "anpord";
+import { Sphynx, type SphynxOptions } from "sphynx-sh";
 import { contains, equals, isTrue, rejects } from "../harness/expect";
 import { givenPrompt } from "../harness/given";
 import type { Scenario } from "../harness/run";
@@ -11,10 +11,10 @@ const UNREACHABLE = "http://127.0.0.1:1";
 /* Always disposed: a leaked client keeps a background refresh fiber alive and the run never ends. */
 const withClient = async (
   world: World,
-  options: Omit<AnpordOptions, "apiKey">,
-  use: (client: Anpord) => Promise<void>
+  options: Omit<SphynxOptions, "apiKey">,
+  use: (client: Sphynx) => Promise<void>
 ) => {
-  const client = new Anpord({
+  const client = new Sphynx({
     apiKey: world.writeKey.key,
     baseUrl: world.baseUrl,
     ...options,
@@ -27,7 +27,7 @@ const withClient = async (
   }
 };
 
-const sdkSurface = (client: Anpord) => ({
+const sdkSurface = (client: Sphynx) => ({
   get: (id: string, selector?: { readonly channel?: string }) =>
     client.prompts.get({ id, ...selector }),
   promote: async (id: string, channel: string, version: number) => {
@@ -47,11 +47,11 @@ export const sdkScenarios: readonly Scenario<World>[] = [
 
       await withClient(world, {}, async (client) => {
         const first = await client.prompts.get({ id });
-        equals("served from the api", first.anpord.freshness, "fresh");
+        equals("served from the api", first.sphynx.freshness, "fresh");
         contains("content", first.content, "Summarise");
 
         const second = await client.prompts.get({ id });
-        equals("the second read is held", second.anpord.freshness, "cached");
+        equals("the second read is held", second.sphynx.freshness, "cached");
       });
     },
   },
@@ -75,11 +75,11 @@ export const sdkScenarios: readonly Scenario<World>[] = [
       await withClient(world, {}, async (client) => {
         const filled = await client.prompts.get({
           id,
-          variables: { customer_name: "Ada", product: "Anpord" },
+          variables: { customer_name: "Ada", product: "Sphynx" },
         });
 
         contains("name is substituted", filled.content, "Ada");
-        contains("product is substituted", filled.content, "Anpord");
+        contains("product is substituted", filled.content, "Sphynx");
         isTrue(
           "no braces survive",
           !filled.content.includes("{{"),
@@ -112,7 +112,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
         });
 
         contains("fallback is used", prompt.content, "Grace");
-        equals("marked as a fallback", prompt.anpord.freshness, "fallback");
+        equals("marked as a fallback", prompt.sphynx.freshness, "fallback");
       });
     },
   },
@@ -142,8 +142,8 @@ export const sdkScenarios: readonly Scenario<World>[] = [
         const first = await client.prompts.get({ id });
         const second = await client.prompts.get({ id });
 
-        equals("first is fresh", first.anpord.freshness, "fresh");
-        equals("second is fresh too", second.anpord.freshness, "fresh");
+        equals("first is fresh", first.sphynx.freshness, "fresh");
+        equals("second is fresh too", second.sphynx.freshness, "fresh");
       });
     },
   },
@@ -193,7 +193,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
         /* Cold reads are not coalesced; asserted so adding single flight is a change this scenario notices. */
         equals(
           "none of them was served from the cache",
-          cold.filter((prompt) => prompt.anpord.freshness === "cached").length,
+          cold.filter((prompt) => prompt.sphynx.freshness === "cached").length,
           0
         );
 
@@ -202,7 +202,7 @@ export const sdkScenarios: readonly Scenario<World>[] = [
         );
         equals(
           "once filled, every read is",
-          warm.filter((prompt) => prompt.anpord.freshness === "cached").length,
+          warm.filter((prompt) => prompt.sphynx.freshness === "cached").length,
           12
         );
       });

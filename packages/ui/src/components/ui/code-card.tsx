@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { CopyButton } from "@anpord/ui/components/copy-button";
-import { CodeContent } from "@anpord/ui/components/ui/code-content";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
+import { CodeContent } from "@sphynx/ui/components/ui/code-content";
 import {
   CODE_FRAME_ACTION,
   CodeFrame,
-} from "@anpord/ui/components/ui/code-frame";
-import type { CodeLanguage } from "@anpord/ui/lib/highlight";
+} from "@sphynx/ui/components/ui/code-frame";
+import type { CodeLanguage } from "@sphynx/ui/lib/highlight";
 
 export function CodeCard({
   className,

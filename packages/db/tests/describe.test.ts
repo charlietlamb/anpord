@@ -47,7 +47,7 @@ describe.skipIf(scratch.skip)("a local database at boot", () => {
   });
 
   it("says it could not check when Postgres refuses", async () => {
-    const absent = `anpord_scratch_absent_${randomBytes(4).toString("hex")}`;
+    const absent = `sphynx_scratch_absent_${randomBytes(4).toString("hex")}`;
     const url = new URL(testDatabaseUrl() ?? "");
     url.pathname = `/${absent}`;
 

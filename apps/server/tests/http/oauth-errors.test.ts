@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   OAuthClientNotFound,
   OAuthClientUnreadable,
-} from "@anpord/auth/oauth/errors";
+} from "@sphynx/auth/oauth/errors";
 import { Effect, Logger } from "effect";
 import { withOAuthErrors } from "../../src/http/oauth-errors";
 

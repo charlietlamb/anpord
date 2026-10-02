@@ -1,6 +1,6 @@
 import { dirname } from "node:path";
 import { Writable } from "node:stream";
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
+import type { CredentialValues } from "@sphynx/schema/domain/credentials";
 import { Sandbox } from "@vercel/sandbox";
 import { Config, Effect, Option } from "effect";
 import {
@@ -122,7 +122,7 @@ export const vercelAdapter: MakeAdapter = (values) =>
                 ...found,
                 image: "vercel/sandbox/universal:latest",
                 persistent: false,
-                tags: { purpose: "eval", service: "anpord" },
+                tags: { purpose: "eval", service: "sphynx" },
                 timeout: request.autoStopMinutes * 60_000,
               })
             )

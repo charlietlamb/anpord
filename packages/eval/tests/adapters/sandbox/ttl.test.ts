@@ -45,7 +45,7 @@ describe("every sandbox carries a provider-side stop", () => {
             yield* sandboxes.open({
               autoStopMinutes: 15,
               provider: "daytona",
-              workspace: "/tmp/anpord-task",
+              workspace: "/tmp/sphynx-task",
             });
           })
         ).pipe(
@@ -73,7 +73,7 @@ describe("every sandbox carries a provider-side stop", () => {
             yield* sandboxes.open({
               autoStopMinutes: 10,
               provider: "e2b",
-              workspace: "/tmp/anpord-task",
+              workspace: "/tmp/sphynx-task",
             });
           })
         ).pipe(

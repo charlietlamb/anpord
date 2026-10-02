@@ -3,28 +3,28 @@ title: "Quickstart"
 description: "Define a suite and run it on a coding agent"
 ---
 
-`anpord` is the TypeScript package for defining and running evals for coding agents. Suites, mocks and validators live in your repository next to the code they test.
+`sphynx-sh` is the TypeScript package for defining and running evals for coding agents. Suites, mocks and validators live in your repository next to the code they test.
 
 ## Prerequisites
 
 Add a [harness connection](/connections), then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
 
 ```bash
-export ANPORD_API_KEY="anp_..."
+export SPHYNX_API_KEY="anp_..."
 ```
 
-Save harness credentials in Anpord, never in eval definitions. Hosted sandboxes and mocks need no keys of their own.
+Save harness credentials in Sphynx, never in eval definitions. Hosted sandboxes and mocks need no keys of their own.
 
 ## Install
 
 <CodeGroup>
 
 ```bash npm
-npm install anpord
+npm install sphynx-sh
 ```
 
 ```bash bun
-bun add anpord
+bun add sphynx-sh
 ```
 
 </CodeGroup>
@@ -34,7 +34,7 @@ bun add anpord
 Create `smoke.eval.ts`:
 
 ```ts
-import { command, suite } from "anpord";
+import { command, suite } from "sphynx-sh";
 
 export default suite({
   id: "smoke",
@@ -54,7 +54,7 @@ export default suite({
 ## Run it
 
 ```bash
-npx anpord eval ./smoke.eval.ts
+npx sphynx-sh eval ./smoke.eval.ts
 ```
 
 The CLI compiles the file on your machine, including imported fixtures and validators, and starts a batch. Each trial runs in its own hosted sandbox. The [GitHub Action](/guides/ci) runs the same command, and you can also [start a batch from your own code](/guides/run-from-code).
@@ -74,13 +74,13 @@ The suite above has one case, one variant and three trials, so its batch holds o
 
 | Import | Use |
 | --- | --- |
-| `anpord` | [`suite`, `command`, `repo`, `files`, `empty` and validator types](/evals/cases) |
-| `anpord` | [`Anpord` client for batches, cases and runs](/sdk/client) |
-| `anpord/mcp` | [`server`, `tool`, `resource`](/evals/mocks#mcp) |
-| `anpord/cli` | [`cli`, `command`](/evals/mocks#cli) |
-| `anpord/api` | [`api`, `endpoint`, `withApi`](/evals/mocks#http-apis) |
-| `anpord/validators` | [`judge`](/evals/judges), [`human`, `script`](/evals/conversations) |
-| `anpord/eval` | [`compileEval`, `compileDefinition`](/guides/run-from-code) |
+| `sphynx-sh` | [`suite`, `command`, `repo`, `files`, `empty` and validator types](/evals/cases) |
+| `sphynx-sh` | [`Sphynx` client for batches, cases and runs](/sdk/client) |
+| `sphynx-sh/mcp` | [`server`, `tool`, `resource`](/evals/mocks#mcp) |
+| `sphynx-sh/cli` | [`cli`, `command`](/evals/mocks#cli) |
+| `sphynx-sh/api` | [`api`, `endpoint`, `withApi`](/evals/mocks#http-apis) |
+| `sphynx-sh/validators` | [`judge`](/evals/judges), [`human`, `script`](/evals/conversations) |
+| `sphynx-sh/eval` | [`compileEval`, `compileDefinition`](/guides/run-from-code) |
 
 Definitions are plain objects and handlers are ordinary functions. Mock inputs use Standard Schema for types and runtime checks (the examples use Zod). You don't need Effect or a separate model client.
 

@@ -1,4 +1,4 @@
-import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@anpord/schema/domain/eval-quota";
+import { MAX_ORGANIZATION_RUNS_IN_FLIGHT } from "@sphynx/schema/domain/eval-quota";
 import { Effect } from "effect";
 import { StartRefused } from "../domain/errors";
 import { BatchRepository } from "../repositories/batch-repository";

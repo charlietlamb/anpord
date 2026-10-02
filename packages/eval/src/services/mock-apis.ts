@@ -5,10 +5,10 @@ import {
   ApiCall,
   ApiManifest,
   ApiProgram,
-} from "@anpord/schema/domain/api-mocks";
-import { VALIDATION_TEXT_LIMIT } from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+} from "@sphynx/schema/domain/api-mocks";
+import { VALIDATION_TEXT_LIMIT } from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import {
   Deferred,
   Effect,

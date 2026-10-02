@@ -3,15 +3,15 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 
-import { MENU_ITEM, MENU_SEPARATOR } from "@anpord/ui/lib/popup"
-import { cn } from "@anpord/ui/lib/utils"
+import { MENU_ITEM, MENU_SEPARATOR } from "@sphynx/ui/lib/popup"
+import { cn } from "@sphynx/ui/lib/utils"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@anpord/ui/components/ui/dialog"
+} from "@sphynx/ui/components/ui/dialog"
 import { MagnifyingGlassIcon, CheckIcon } from "@phosphor-icons/react"
 
 function Command({

@@ -1,5 +1,5 @@
-import { EvalBatch } from "@anpord/schema/domain/evals";
 import type { FileSystem } from "@effect/platform";
+import { EvalBatch } from "@sphynx/schema/domain/evals";
 import { type Effect, Schema } from "effect";
 
 export const SuiteOutcome = Schema.Struct({

@@ -1,5 +1,5 @@
-import type { credentialConnection } from "@anpord/db/schema/credentials/connections";
-import { CredentialConnection } from "@anpord/schema/domain/credentials";
+import type { credentialConnection } from "@sphynx/db/schema/credentials/connections";
+import { CredentialConnection } from "@sphynx/schema/domain/credentials";
 import { Schema } from "effect";
 import { timestamp } from "../repositories/run-view";
 

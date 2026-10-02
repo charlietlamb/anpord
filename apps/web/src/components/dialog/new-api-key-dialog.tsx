@@ -1,5 +1,5 @@
-import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
+import { FormDialog } from "@sphynx/ui/components/dialog/form-dialog";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
 import { z } from "zod";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 

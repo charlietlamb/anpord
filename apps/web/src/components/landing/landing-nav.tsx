@@ -1,5 +1,5 @@
-import { DOCS_ORIGIN } from "@anpord/schema/public/origins";
-import { Wordmark } from "@anpord/ui/components/wordmark";
+import { DOCS_ORIGIN } from "@sphynx/schema/public/origins";
+import { Wordmark } from "@sphynx/ui/components/wordmark";
 import { Link } from "@tanstack/react-router";
 import { GITHUB_URL } from "@/lib/urls";
 
@@ -10,7 +10,7 @@ export function LandingNav({ signIn = true }: { readonly signIn?: boolean }) {
   return (
     <header className="absolute inset-x-0 top-0 flex h-16 items-center justify-between px-6 lg:px-[72px]">
       <Link
-        aria-label="Anpord home"
+        aria-label="Sphynx home"
         className="text-foreground transition-opacity duration-150 hover:opacity-70"
         to="/"
       >

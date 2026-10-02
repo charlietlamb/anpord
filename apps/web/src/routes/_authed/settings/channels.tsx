@@ -1,5 +1,5 @@
-import type { Channel } from "@anpord/schema/domain/channels";
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
+import type { Channel } from "@sphynx/schema/domain/channels";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";

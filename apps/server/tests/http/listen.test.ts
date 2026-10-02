@@ -54,7 +54,7 @@ const call = async (port: number, path: string, seconds = 2) => {
 
 const KEEP_ALIVE_CLIENT = `
 const socket = require("node:net").connect(Number(process.env.PORT), "127.0.0.1", () =>
-  socket.write("GET /idle HTTP/1.1\\r\\nHost: anpord.test\\r\\n\\r\\n")
+  socket.write("GET /idle HTTP/1.1\\r\\nHost: sphynx.test\\r\\n\\r\\n")
 );
 socket.once("data", () => process.stdout.write("answered\\n"));
 socket.on("close", () => {

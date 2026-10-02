@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const binary = join(packageRoot, "dist", "bin.mjs");
@@ -21,7 +21,7 @@ const run = async (
 ) => {
   const child = Bun.spawn(["node", binary, ...args], {
     cwd,
-    env: { ...process.env, ANPORD_API_KEY: "", ...env },
+    env: { ...process.env, SPHYNX_API_KEY: "", ...env },
     stderr: "pipe",
     stdout: "pipe",
   });
@@ -55,7 +55,7 @@ describe.if(built)("the published binary", () => {
   });
 
   test("eval finds the eval files in a directory without being told", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "anpord-cli-"));
+    const directory = await mkdtemp(join(tmpdir(), "sphynx-cli-"));
     const requests: { pathname: string; payload: unknown }[] = [];
     const server = Bun.serve({
       port: 0,
@@ -82,7 +82,7 @@ describe.if(built)("the published binary", () => {
     try {
       const nested = join(directory, "evals");
       const dependencies = join(directory, "node_modules", "fixture");
-      const definition = `import { command, suite } from "anpord";
+      const definition = `import { command, suite } from "sphynx-sh";
 export default suite({
   id: "NAME",
   name: "NAME",
@@ -111,8 +111,8 @@ export default suite({
       const { code, stderr, stdout } = await run(
         ["eval", "--no-wait"],
         {
-          ANPORD_API_KEY: "unused",
-          ANPORD_BASE_URL: server.url.href.slice(0, -1),
+          SPHYNX_API_KEY: "unused",
+          SPHYNX_BASE_URL: server.url.href.slice(0, -1),
         },
         directory
       );
@@ -139,7 +139,7 @@ export default suite({
     async () => {
       const { code, stderr, stdout } = await run(["connectors", "list"]);
       expect(stdout).toBe("");
-      expect(stderr).toContain("ANPORD_API_KEY");
+      expect(stderr).toContain("SPHYNX_API_KEY");
       expect(code).toBe(1);
     },
     CLI_TIMEOUT
@@ -155,8 +155,8 @@ export default suite({
     "an id that cannot be one is refused before the network",
     async () => {
       const { code, stdout } = await run(["get", "NOT A VALID ID"], {
-        ANPORD_API_KEY: "unused",
-        ANPORD_BASE_URL: "http://127.0.0.1:1",
+        SPHYNX_API_KEY: "unused",
+        SPHYNX_BASE_URL: "http://127.0.0.1:1",
       });
       expect(stdout).toBe("");
       expect(code).toBe(1);

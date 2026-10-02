@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
 import type { ComponentProps } from "react";
 

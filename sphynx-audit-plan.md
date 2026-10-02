@@ -1,6 +1,6 @@
 # Resolving the audit
 
-The audit in `anpord-audit.md` raises about forty points across the server and
+The audit in `sphynx-audit.md` raises about forty points across the server and
 every package. Nearly all of them are five recurring problems, so this plan is
 organised by problem rather than by the directory each was noticed in: fixing a
 theme once, everywhere, is what stops it growing back.
@@ -110,7 +110,7 @@ carries its unit in its name because the type cannot.
 `prompt-errors.ts` sits in `http/request` while other domains keep errors
 elsewhere. The repo map already says where they belong: domain errors in the
 owning package's `domain/errors.ts`, transport errors in
-`@anpord/schema/errors`. Move them there.
+`@sphynx/schema/errors`. Move them there.
 
 Docs: `http/authentication/README.md` is good and the audit says so. Rather
 than one documentation folder, keep each next to what it documents and add a

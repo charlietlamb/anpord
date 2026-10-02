@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
-import { validationExecution } from "@anpord/schema/domain/eval-validations";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
+import { validationExecution } from "@sphynx/schema/domain/eval-validations";
 import { asc, eq } from "drizzle-orm";
 import { Duration, Effect, Layer, TestClock, TestContext } from "effect";
 import {

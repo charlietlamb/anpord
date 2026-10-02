@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 
 const emptyStateVariants = cva(
   "m-auto flex w-full max-w-md flex-none flex-col items-center justify-center gap-3 rounded-xl px-6 py-10 text-center text-balance",

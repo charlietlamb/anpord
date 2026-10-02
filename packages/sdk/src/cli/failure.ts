@@ -1,8 +1,8 @@
-import { WEB_ORIGIN } from "@anpord/schema/public/origins";
+import { WEB_ORIGIN } from "@sphynx/schema/public/origins";
 import { Effect } from "effect";
-import { asAnpordError } from "../client/errors";
+import { asSphynxError } from "../client/errors";
 
-const MISSING_KEY = `Set ANPORD_API_KEY to an API key from ${WEB_ORIGIN}/settings/keys`;
+const MISSING_KEY = `Set SPHYNX_API_KEY to an API key from ${WEB_ORIGIN}/settings/keys`;
 
 export const EXIT_ERROR = 1;
 const EXIT_GATE_FAILED = 2;
@@ -17,7 +17,7 @@ const describe = (error: unknown) => {
   if (tagOf(error) === "ConfigError") {
     return MISSING_KEY;
   }
-  const { message, status } = asAnpordError(error);
+  const { message, status } = asSphynxError(error);
   return status === 401 ? `${message}. ${MISSING_KEY}` : message;
 };
 

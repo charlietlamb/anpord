@@ -13,7 +13,7 @@ const POSTGRES_PROTOCOLS: ReadonlySet<string> = new Set([
 
 const notPostgres = () =>
   new Error(
-    "EVAL_TEST_DATABASE_URL is not a postgres URL. Set it to a test database, such as postgresql://localhost:5432/anpord_test."
+    "EVAL_TEST_DATABASE_URL is not a postgres URL. Set it to a test database, such as postgresql://localhost:5432/sphynx_test."
   );
 
 const databaseNameIn = (url: string) => {
@@ -44,7 +44,7 @@ export const testDatabaseUrl = (env: Env = process.env) => {
 
   if (!DISPOSABLE_NAME.test(name)) {
     throw new Error(
-      `EVAL_TEST_DATABASE_URL points at "${name}", which is not a test database. Tests write and delete rows, so they only run against a database named with test or scratch, such as anpord_test or anpord_scratch_reaper.`
+      `EVAL_TEST_DATABASE_URL points at "${name}", which is not a test database. Tests write and delete rows, so they only run against a database named with test or scratch, such as sphynx_test or sphynx_scratch_reaper.`
     );
   }
 

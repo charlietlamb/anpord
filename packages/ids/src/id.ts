@@ -5,7 +5,7 @@ export interface IdGeneratorShape {
   readonly generate: (entity: IdEntity) => Effect.Effect<string>;
 }
 
-export class IdGenerator extends Context.Tag("@anpord/ids/IdGenerator")<
+export class IdGenerator extends Context.Tag("@sphynx/ids/IdGenerator")<
   IdGenerator,
   IdGeneratorShape
 >() {}

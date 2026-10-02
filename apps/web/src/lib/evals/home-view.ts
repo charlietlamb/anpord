@@ -5,9 +5,9 @@ import {
   type EvalHomeRange,
   type EvalHomeVerdict,
   variantLabel,
-} from "@anpord/schema/domain/eval-home";
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { EvalSuite } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-home";
+import type { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
+import type { EvalSuite } from "@sphynx/schema/domain/evals";
 import {
   axisFloor,
   type DailyRate,

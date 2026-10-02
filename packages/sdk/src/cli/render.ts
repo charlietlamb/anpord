@@ -1,4 +1,4 @@
-import type { PublicPrompt } from "@anpord/schema/public/shapes";
+import type { PublicPrompt } from "@sphynx/schema/public/shapes";
 import { Console, Effect } from "effect";
 
 export const json = (value: unknown) =>

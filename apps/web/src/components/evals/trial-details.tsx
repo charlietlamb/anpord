@@ -1,5 +1,5 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import { RailSection } from "@anpord/ui/components/ui/rail-section";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import { RailSection } from "@sphynx/ui/components/ui/rail-section";
 import { ChangedFileRow } from "@/components/evals/changed-file-row";
 import { CostBreakdown } from "@/components/evals/cost-breakdown";
 import { TrialCost } from "@/components/evals/trial-cost";

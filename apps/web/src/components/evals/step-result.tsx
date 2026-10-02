@@ -1,10 +1,10 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
 import {
   CheckCircleIcon,
   CircleNotchIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import { StatusBadge } from "@sphynx/ui/components/ui/status-badge";
 import { stepFailed } from "@/lib/evals/conversation";
 import { isInFlight } from "@/lib/evals/timeline-sections";
 

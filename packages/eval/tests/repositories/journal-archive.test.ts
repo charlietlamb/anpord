@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+import { Database } from "@sphynx/db/client";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import { evalTrialJournal } from "@sphynx/db/schema/evals/eval-trial-journal";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { eq } from "drizzle-orm";
 import { Duration, Effect, Layer } from "effect";
 import {

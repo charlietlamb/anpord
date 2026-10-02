@@ -1,10 +1,10 @@
-import type { Channel } from "@anpord/schema/domain/channels";
+import type { Channel } from "@sphynx/schema/domain/channels";
 import type {
   ChannelPlacement,
   ResolvedPrompt,
-} from "@anpord/schema/domain/prompts";
-import { RailSection } from "@anpord/ui/components/ui/rail-section";
-import { RAIL_FRAME } from "@anpord/ui/lib/rail-frame";
+} from "@sphynx/schema/domain/prompts";
+import { RailSection } from "@sphynx/ui/components/ui/rail-section";
+import { RAIL_FRAME } from "@sphynx/ui/lib/rail-frame";
 import type { ReactNode } from "react";
 import { PromptDetails } from "@/components/prompts/prompt-details";
 import { PromptVariables } from "@/components/prompts/prompt-variables";

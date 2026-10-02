@@ -15,71 +15,71 @@ const authoringExports = [
 
 const authoringDir = dirname(fileURLToPath(import.meta.url));
 
-const ANPORD_MODULE = /^anpord$/;
+const SPHYNX_MODULE = /^sphynx-sh$/;
 const ANY_MODULE = /.*/;
 const localModules = [
   {
     built: "api.mjs",
-    filter: /^anpord\/api$/,
-    namespace: "anpord-api-authoring",
+    filter: /^sphynx-sh\/api$/,
+    namespace: "sphynx-api-authoring",
     source: "../mock-api/index.ts",
   },
   {
     built: "api-runtime.mjs",
-    filter: /^anpord\/api\/runtime$/,
-    namespace: "anpord-api-runtime",
+    filter: /^sphynx-sh\/api\/runtime$/,
+    namespace: "sphynx-api-runtime",
     source: "../mock-api/runtime.ts",
   },
   {
     built: "api-context.mjs",
-    filter: /^anpord\/api\/context$/,
-    namespace: "anpord-api-context",
+    filter: /^sphynx-sh\/api\/context$/,
+    namespace: "sphynx-api-context",
     source: "../mock-api/context.ts",
   },
   {
     built: "validator-runtime.mjs",
-    filter: /^anpord\/validators\/runtime$/,
-    namespace: "anpord-validator-runtime",
+    filter: /^sphynx-sh\/validators\/runtime$/,
+    namespace: "sphynx-validator-runtime",
     source: "validator-runtime.ts",
   },
   {
     built: "validators.mjs",
-    filter: /^anpord\/validators$/,
-    namespace: "anpord-validators",
+    filter: /^sphynx-sh\/validators$/,
+    namespace: "sphynx-validators",
     source: "../validators.ts",
   },
   {
     built: "cli.mjs",
-    filter: /^anpord\/cli$/,
-    namespace: "anpord-cli-authoring",
+    filter: /^sphynx-sh\/cli$/,
+    namespace: "sphynx-cli-authoring",
     source: "../mock-cli/index.ts",
   },
   {
     built: "cli-runtime.mjs",
-    filter: /^anpord\/cli\/runtime$/,
-    namespace: "anpord-cli-runtime",
+    filter: /^sphynx-sh\/cli\/runtime$/,
+    namespace: "sphynx-cli-runtime",
     source: "../mock-cli/runtime.ts",
   },
   {
     built: "mcp.mjs",
-    filter: /^anpord\/mcp$/,
-    namespace: "anpord-mcp-authoring",
+    filter: /^sphynx-sh\/mcp$/,
+    namespace: "sphynx-mcp-authoring",
     source: "../mcp/index.ts",
   },
   {
     built: "mcp-runtime.mjs",
-    filter: /^anpord\/mcp\/runtime$/,
-    namespace: "anpord-mcp-runtime",
+    filter: /^sphynx-sh\/mcp\/runtime$/,
+    namespace: "sphynx-mcp-runtime",
     source: "../mcp/runtime.ts",
   },
 ] as const;
 
 const authoringModule: Plugin = {
-  name: "anpord-authoring",
+  name: "sphynx-authoring",
   setup: (compiler) => {
-    compiler.onResolve({ filter: ANPORD_MODULE }, () => ({
-      namespace: "anpord-authoring",
-      path: "anpord",
+    compiler.onResolve({ filter: SPHYNX_MODULE }, () => ({
+      namespace: "sphynx-authoring",
+      path: "sphynx-sh",
     }));
     for (const module of localModules) {
       compiler.onResolve({ filter: module.filter }, ({ path }) => ({
@@ -102,7 +102,7 @@ const authoringModule: Plugin = {
       );
     }
     compiler.onLoad(
-      { filter: ANY_MODULE, namespace: "anpord-authoring" },
+      { filter: ANY_MODULE, namespace: "sphynx-authoring" },
       () => ({
         contents: authoringExports,
         loader: "js",
@@ -134,7 +134,7 @@ const locationOf = (path: string, field: string) => {
 };
 
 const sourceLocations: Plugin = {
-  name: "anpord-source-locations",
+  name: "sphynx-source-locations",
   setup: (compiler) => {
     compiler.onLoad(
       { filter: SOURCE_FILE, namespace: "file" },
@@ -156,7 +156,7 @@ const sourceLocations: Plugin = {
 };
 
 const requireFrom = (url: string) =>
-  `import { createRequire as anpordCreateRequire } from "node:module"; const require = anpordCreateRequire(${url});`;
+  `import { createRequire as sphynxCreateRequire } from "node:module"; const require = sphynxCreateRequire(${url});`;
 
 export const bundle = (
   contents: string,
@@ -182,7 +182,7 @@ export const bundle = (
         format: "esm",
         metafile: true,
         minify: options.minify,
-        outfile: resolve(dirname(entry), "anpord-bundle.mjs"),
+        outfile: resolve(dirname(entry), "sphynx-bundle.mjs"),
         sourcemap: options.captureSource ? "external" : false,
         platform: "node",
         resolveExtensions: [".ts", ".mjs", ".js", ".cjs", ".json"],
@@ -192,7 +192,7 @@ export const bundle = (
         stdin: {
           contents,
           resolveDir: process.cwd(),
-          sourcefile: "anpord-eval-entry.ts",
+          sourcefile: "sphynx-eval-entry.ts",
         },
         target: "node18",
         treeShaking: true,

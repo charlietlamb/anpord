@@ -1,10 +1,10 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import { ChatsCircleIcon } from "@phosphor-icons/react";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 import {
   ConversationContent,
   Conversation as ConversationLog,
-} from "@anpord/ui/components/ai-elements/conversation";
-import { EmptyState } from "@anpord/ui/components/ui/empty-state";
-import { ChatsCircleIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ai-elements/conversation";
+import { EmptyState } from "@sphynx/ui/components/ui/empty-state";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import {

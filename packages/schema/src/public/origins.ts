@@ -1,7 +1,9 @@
-export const API_ORIGIN = "https://api.anpord.com";
+export const SPHYNX_DOMAIN = "sphynx.sh";
 
-export const WEB_ORIGIN = "https://www.anpord.com";
+export const API_ORIGIN = `https://api.${SPHYNX_DOMAIN}`;
 
-export const DOCS_ORIGIN = "https://docs.anpord.com";
+export const WEB_ORIGIN = `https://www.${SPHYNX_DOMAIN}`;
+
+export const DOCS_ORIGIN = `https://docs.${SPHYNX_DOMAIN}`;
 
 export const API_REFERENCE_URL = `${DOCS_ORIGIN}/api-reference/introduction`;

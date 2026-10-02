@@ -1,4 +1,4 @@
-import type { PublicPromptWithVersions } from "@anpord/schema/public/shapes";
+import type { PublicPromptWithVersions } from "@sphynx/schema/public/shapes";
 import { DateTime } from "effect";
 import type { PromptFallback, PromptSelector } from "./types";
 

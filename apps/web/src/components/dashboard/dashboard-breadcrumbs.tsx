@@ -5,8 +5,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@anpord/ui/components/ui/breadcrumb";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/components/ui/breadcrumb";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useBreadcrumbs } from "@/lib/use-breadcrumbs";
 

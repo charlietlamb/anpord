@@ -1,5 +1,5 @@
-import { ToolbarButton } from "@anpord/ui/components/toolbar-button";
 import { PlusIcon, TextTIcon } from "@phosphor-icons/react";
+import { ToolbarButton } from "@sphynx/ui/components/toolbar-button";
 import { useState } from "react";
 import { PromptComposerForm } from "@/components/prompts/prompt-composer-form";
 

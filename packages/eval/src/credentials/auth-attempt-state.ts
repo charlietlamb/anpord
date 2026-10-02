@@ -1,4 +1,4 @@
-import { DeviceAuthStatus } from "@anpord/schema/domain/credentials";
+import { DeviceAuthStatus } from "@sphynx/schema/domain/credentials";
 import { Effect, Redacted, Schema } from "effect";
 import type { CredentialCipherShape } from "./cipher";
 import { CredentialError } from "./errors";

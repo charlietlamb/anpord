@@ -1,7 +1,7 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PROMPTS_ENABLED } from "@anpord/schema/domain/features";
+import { PROMPTS_ENABLED } from "@sphynx/schema/domain/features";
 import { Effect } from "effect";
 import { ApiKeyStore } from "./harness/api-keys";
 import { migrateDatabase, resetDatabase } from "./harness/database";

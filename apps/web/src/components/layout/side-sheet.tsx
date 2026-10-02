@@ -1,4 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
+import type { Icon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import {
   Sheet,
   SheetContent,
@@ -6,9 +7,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@anpord/ui/components/ui/sheet";
-import { cn } from "@anpord/ui/lib/utils";
-import type { Icon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/sheet";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function SideSheet({

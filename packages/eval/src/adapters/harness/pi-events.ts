@@ -1,4 +1,4 @@
-import type { HarnessUsage } from "@anpord/schema/domain/harness-event";
+import type { HarnessUsage } from "@sphynx/schema/domain/harness-event";
 import { Option, Schema } from "effect";
 import type { DecodedOutput } from "./session";
 import { toolOf } from "./tool-event";

@@ -19,7 +19,7 @@ export const localDetached = (
   path: string,
   env: Readonly<Record<string, string>>
 ): ResumableCommands => {
-  const runs = join(root, ".anpord-runs");
+  const runs = join(root, ".sphynx-runs");
   const fileOf = (id: string, suffix: string) => join(runs, `${id}.${suffix}`);
   const exits = new Map<string, Promise<void>>();
   const closedWith = new Map<string, number>();

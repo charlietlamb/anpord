@@ -1,4 +1,4 @@
-import type { EvalHomeVerdict } from "@anpord/schema/domain/eval-home";
+import type { EvalHomeVerdict } from "@sphynx/schema/domain/eval-home";
 
 export const VERDICT_FILL: Record<EvalHomeVerdict, string> = {
   failed: "bg-destructive",

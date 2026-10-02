@@ -1,7 +1,7 @@
 import {
   EVAL_RUN,
   EvalBatchPayload,
-} from "@anpord/eval/adapters/runner/eval-run-task";
+} from "@sphynx/eval/adapters/runner/eval-run-task";
 import { schemaTask } from "@trigger.dev/sdk";
 import { Schema } from "effect";
 

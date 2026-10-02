@@ -1,5 +1,5 @@
-import type { PromptError } from "@anpord/prompts/errors";
-import { Conflict, NotFound } from "@anpord/schema/domain/errors";
+import type { PromptError } from "@sphynx/prompts/errors";
+import { Conflict, NotFound } from "@sphynx/schema/domain/errors";
 import { Effect } from "effect";
 import { logAndDie } from "./log-and-die";
 

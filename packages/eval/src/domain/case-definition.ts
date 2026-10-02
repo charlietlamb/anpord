@@ -1,4 +1,4 @@
-import type { EvalCase } from "@anpord/schema/domain/eval-definition";
+import type { EvalCase } from "@sphynx/schema/domain/eval-definition";
 import type { CaseDefinition } from "./case-identity";
 import { renderPrompt } from "./prompt";
 

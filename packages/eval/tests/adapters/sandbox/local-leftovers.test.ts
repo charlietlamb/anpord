@@ -10,7 +10,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { ConfigProvider, Effect, Option, Redacted } from "effect";
 import {
   installHarness,
@@ -26,7 +26,7 @@ afterAll(() =>
 );
 
 const freshRoot = async () => {
-  const root = await mkdtemp(join(tmpdir(), "anpord-leftovers-"));
+  const root = await mkdtemp(join(tmpdir(), "sphynx-leftovers-"));
   roots.push(root);
   return root;
 };
@@ -86,8 +86,8 @@ describe("what a local run leaves on disk", () => {
         Effect.withConfigProvider(
           ConfigProvider.fromMap(
             new Map([
-              ["ANPORD_LOCAL_SANDBOX", "true"],
-              ["ANPORD_LOCAL_ROOT", join(root, "store")],
+              ["SPHYNX_LOCAL_SANDBOX", "true"],
+              ["SPHYNX_LOCAL_ROOT", join(root, "store")],
               ["PATH", `${bin}:/usr/bin:/bin`],
             ])
           )

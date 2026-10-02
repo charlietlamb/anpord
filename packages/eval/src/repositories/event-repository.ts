@@ -1,6 +1,6 @@
-import { Database } from "@anpord/db/client";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { Database } from "@sphynx/db/client";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { asc, inArray } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -18,7 +18,7 @@ export interface EventRepositoryShape {
 }
 
 export class EventRepository extends Context.Tag(
-  "@anpord/eval/EventRepository"
+  "@sphynx/eval/EventRepository"
 )<EventRepository, EventRepositoryShape>() {}
 
 export const EventRepositoryLive = Layer.effect(

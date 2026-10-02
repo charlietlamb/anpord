@@ -1,5 +1,5 @@
-import { Kbd } from "@anpord/ui/components/ui/kbd";
-import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
+import { Kbd } from "@sphynx/ui/components/ui/kbd";
+import { useMetaKeyLabel } from "@sphynx/ui/hooks/use-meta-key-label";
 
 const SHORTCUT_GLYPHS: Record<string, string> = {
   enter: "↵",

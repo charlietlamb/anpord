@@ -6,7 +6,7 @@ description: "Define what the agent does and how it passes"
 A suite is a system prompt and shared setup for many cases. Each case is one eval: it fills in the prompt, sets up the workspace and checks the result.
 
 ```ts
-import { command, repo, suite } from "anpord";
+import { command, repo, suite } from "sphynx-sh";
 
 export default suite({
   id: "api",
@@ -49,7 +49,7 @@ The suite's `name` also defaults to its `id`.
 `source` is the workspace the agent starts in. Leave it out for an empty workspace.
 
 ```ts
-import { files, repo } from "anpord";
+import { files, repo } from "sphynx-sh";
 
 source: repo("acme/api@8f31c4a");
 source: files({ "src/add.ts": "export const add = () => 0;" });
@@ -62,7 +62,7 @@ source: files({ "src/add.ts": "export const add = () => 0;" });
 `prepare` receives typed filesystem and process helpers. Whatever it returns reaches the validator as `prepared`.
 
 ```ts
-import type { Prepare } from "anpord";
+import type { Prepare } from "sphynx-sh";
 
 export const install: Prepare = async ({ cached, exec }) => {
   if (!cached) await exec("npm", ["ci"], { timeoutMs: 600_000 });
@@ -79,7 +79,7 @@ export const install: Prepare = async ({ cached, exec }) => {
 
 `cached` is `true` when the cache directory was restored. The cache path must stay inside the workspace.
 
-`prepare` can return a key it creates, such as a test API key. Anpord hands the value to your validator and never prints it in logs or the terminal or stores it as evidence. Output the prepare prints itself is logged while it runs, with anything that looks like a key replaced by `[redacted]`.
+`prepare` can return a key it creates, such as a test API key. Sphynx hands the value to your validator and never prints it in logs or the terminal or stores it as evidence. Output the prepare prints itself is logged while it runs, with anything that looks like a key replaced by `[redacted]`.
 
 ## Limits
 
@@ -105,7 +105,7 @@ Changing either limit creates a new version of the case.
 Use a validator when the check is clearer in TypeScript than in a shell command:
 
 ```ts
-import type { Validator } from "anpord";
+import type { Validator } from "sphynx-sh";
 
 export const hasHealthRoute: Validator = async ({ readText }) => ({
   message: "the health route exists",
@@ -113,7 +113,7 @@ export const hasHealthRoute: Validator = async ({ readText }) => ({
 });
 ```
 
-Set `validate: hasHealthRoute` on the case. Anpord bundles the function and its imports with the case. A validator can also return a plain boolean.
+Set `validate: hasHealthRoute` on the case. Sphynx bundles the function and its imports with the case. A validator can also return a plain boolean.
 
 The validator receives `answer`, `transcript`, `turns`, `readText`, `exists`, `exec`, `prepared`, and the call logs of any [mocks](/evals/mocks) (`api`, `cli`, `mcp`). Every check of a trial receives the same context object, so checks can share work, such as one request to your app, by caching on it.
 
@@ -129,6 +129,6 @@ The dashboard's **Validation** panel shows the validator source as you wrote it,
 
 ## Run
 
-`anpord eval` runs every `*.eval.ts` file it finds. Pass a path to run one: `anpord eval ./smoke.eval.ts`. Add `--case <id>` to run one case from the file.
+`sphynx eval` runs every `*.eval.ts` file it finds. Pass a path to run one: `sphynx eval ./smoke.eval.ts`. Add `--case <id>` to run one case from the file.
 
 See [variants](/evals/variants) for harnesses, models and sandboxes, and [profiles](/evals/profiles) for custom harness configuration.

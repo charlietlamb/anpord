@@ -1,4 +1,4 @@
-import { command, suite } from "anpord";
+import { command, suite } from "sphynx-sh";
 
 const profile = { dir: "./profile", name: "watch" };
 

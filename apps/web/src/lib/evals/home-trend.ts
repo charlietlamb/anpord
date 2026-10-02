@@ -1,4 +1,4 @@
-import type { EvalHomeDay } from "@anpord/schema/domain/eval-home";
+import type { EvalHomeDay } from "@sphynx/schema/domain/eval-home";
 
 export type DailyRate = number | null;
 

@@ -1,6 +1,6 @@
-import type { EvalHomeRange } from "@anpord/schema/domain/eval-home";
-import type { EvalSuite } from "@anpord/schema/domain/evals";
-import { PageTabs } from "@anpord/ui/components/ui/page-tabs";
+import type { EvalHomeRange } from "@sphynx/schema/domain/eval-home";
+import type { EvalSuite } from "@sphynx/schema/domain/evals";
+import { PageTabs } from "@sphynx/ui/components/ui/page-tabs";
 import { HomeFilterMenu } from "@/components/home/home-filter-menu";
 
 const RANGES = [

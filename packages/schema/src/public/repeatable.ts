@@ -1,6 +1,6 @@
 import { Context } from "effect";
 
-export class Repeatable extends Context.Tag("@anpord/schema/public/Repeatable")<
+export class Repeatable extends Context.Tag("@sphynx/schema/public/Repeatable")<
   Repeatable,
   true
 >() {}

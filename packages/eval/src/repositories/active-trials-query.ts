@@ -1,6 +1,6 @@
-import { Database } from "@anpord/db/client";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
+import { Database } from "@sphynx/db/client";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
 import { and, count, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { tryStore } from "./query";

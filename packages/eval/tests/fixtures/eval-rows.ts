@@ -1,13 +1,13 @@
-import type { Db } from "@anpord/db/query";
-import { organization } from "@anpord/db/schema/auth/organizations";
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import type { Db } from "@sphynx/db/query";
+import { organization } from "@sphynx/db/schema/auth/organizations";
+import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalSuite } from "@sphynx/db/schema/evals/eval-suites";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 
 export const seedOrganization = (db: Db, organizationId: string) =>
   db

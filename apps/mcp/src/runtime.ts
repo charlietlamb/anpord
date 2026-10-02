@@ -1,8 +1,8 @@
 import {
-  AnpordApi,
-  type AnpordClient,
   layer,
-} from "@anpord/schema/public/client";
+  SphynxApi,
+  type SphynxClient,
+} from "@sphynx/schema/public/client";
 import { Effect, Redacted } from "effect";
 
 import { baseUrl } from "./config";
@@ -23,9 +23,9 @@ export interface ToolContext {
 
 export const callApi = <A, E>(
   ctx: ToolContext,
-  use: (api: AnpordClient) => Effect.Effect<A, E>
+  use: (api: SphynxClient) => Effect.Effect<A, E>
 ) =>
-  Effect.flatMap(AnpordApi, use).pipe(
+  Effect.flatMap(SphynxApi, use).pipe(
     Effect.provide(
       layer({ apiKey: Redacted.make(ctx.auth.accessToken), baseUrl })
     ),

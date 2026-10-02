@@ -3,9 +3,9 @@ import {
   type EvalValidation,
   type ValidationValue,
   validationSnapshot,
-} from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+} from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 
 const MESSAGE_LIMIT = 2000;
 

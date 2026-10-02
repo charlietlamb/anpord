@@ -1,4 +1,13 @@
-import { DOCS_ORIGIN } from "@anpord/schema/public/origins";
+import {
+  BookOpenIcon,
+  CaretRightIcon,
+  CheckIcon,
+  MoonIcon,
+  PlusIcon,
+  SignOutIcon,
+  UserIcon,
+} from "@phosphor-icons/react";
+import { DOCS_ORIGIN } from "@sphynx/schema/public/origins";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,23 +19,14 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
+} from "@sphynx/ui/components/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@anpord/ui/components/ui/sidebar";
-import { cn } from "@anpord/ui/lib/utils";
-import {
-  BookOpenIcon,
-  CaretRightIcon,
-  CheckIcon,
-  MoonIcon,
-  PlusIcon,
-  SignOutIcon,
-  UserIcon,
-} from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/sidebar";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { IdentityAvatar } from "@/components/dashboard/identity-avatar";

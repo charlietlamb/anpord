@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { Prepare, Validator } from "anpord";
-import { api, endpoint, withApi } from "anpord/api";
+import type { Prepare, Validator } from "sphynx-sh";
+import { api, endpoint, withApi } from "sphynx-sh/api";
 import { z } from "zod";
 
 export const SANDBOX_BUN = "1.3.14";
@@ -43,7 +43,7 @@ export const validateSdk: Validator = () => {
   const nonce = randomUUID();
   return withApi({
     api: api({
-      name: "anpord",
+      name: "sphynx",
       endpoints: [
         endpoint({
           method: "POST",

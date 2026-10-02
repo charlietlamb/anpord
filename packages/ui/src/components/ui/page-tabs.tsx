@@ -1,5 +1,5 @@
-import { SURFACE_FILL } from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+import { SURFACE_FILL } from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Tabs } from "@base-ui/react/tabs";
 import type { ComponentType } from "react";
 

@@ -1,8 +1,8 @@
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
-import { BatchRuns } from "@anpord/ui/components/evals/batch-runs";
-import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
-import { LivePip } from "@anpord/ui/components/evals/live-pip";
-import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
+import { BatchRuns } from "@sphynx/ui/components/evals/batch-runs";
+import { EvalStatusBadge } from "@sphynx/ui/components/evals/eval-status-badge";
+import { LivePip } from "@sphynx/ui/components/evals/live-pip";
+import { distributionStatus } from "@sphynx/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
 import { LiveTail } from "@/components/evals/live-tail";
 import { ErrorCard } from "@/components/layout/error-card";

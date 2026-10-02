@@ -1,5 +1,5 @@
-import { EvalValidator } from "@anpord/schema/domain/eval-definition";
-import { EvalJudge } from "@anpord/schema/domain/eval-judges";
+import { EvalValidator } from "@sphynx/schema/domain/eval-definition";
+import { EvalJudge } from "@sphynx/schema/domain/eval-judges";
 import { Effect, Schema } from "effect";
 import { type Command, isCommand } from "./command";
 import { EvalDefinitionInvalid } from "./definition-errors";

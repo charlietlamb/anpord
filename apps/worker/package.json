@@ -1,17 +1,17 @@
 {
-  "name": "@anpord/worker",
+  "name": "@sphynx/worker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_NO_WARNINGS=1 trigger dev --profile anpord",
+    "dev": "NODE_NO_WARNINGS=1 trigger dev --profile sphynx",
     "deploy": "trigger deploy",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/db": "workspace:*",
-    "@anpord/eval": "workspace:*",
+    "@sphynx/db": "workspace:*",
+    "@sphynx/eval": "workspace:*",
     "@trigger.dev/sdk": "catalog:",
     "effect": "catalog:"
   },

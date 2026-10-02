@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import { Schema } from "effect";
 import { harnessesNeeded } from "../../src/domain/suite-harnesses";
 

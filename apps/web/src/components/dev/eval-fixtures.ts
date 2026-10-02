@@ -1,5 +1,5 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
 import { DateTime } from "effect";
 
 const START = 1_787_000_000_000;
@@ -31,7 +31,7 @@ const TRAJECTORY = [
     exitCode: 0,
     finished: 7893,
     output:
-      "/tmp/anpord-task\npublic/logos/slack-dark.svg\npublic/logos/slack-light.svg\n",
+      "/tmp/sphynx-task\npublic/logos/slack-dark.svg\npublic/logos/slack-light.svg\n",
     started: 7673,
   }),
   command({

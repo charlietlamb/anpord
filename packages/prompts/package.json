@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/prompts",
+  "name": "@sphynx/prompts",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -19,10 +19,10 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/cache": "workspace:*",
-    "@anpord/db": "workspace:*",
-    "@anpord/ids": "workspace:*",
-    "@anpord/schema": "workspace:*",
+    "@sphynx/cache": "workspace:*",
+    "@sphynx/db": "workspace:*",
+    "@sphynx/ids": "workspace:*",
+    "@sphynx/schema": "workspace:*",
     "drizzle-orm": "catalog:",
     "effect": "catalog:"
   },

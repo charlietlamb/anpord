@@ -1,4 +1,4 @@
-import { Button } from "@anpord/ui/components/button";
+import { Button } from "@sphynx/ui/components/button";
 import { PanelCard } from "@/components/layout/panel-card";
 
 export function MagicLinkSent({

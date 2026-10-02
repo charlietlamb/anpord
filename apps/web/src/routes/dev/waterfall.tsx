@@ -1,5 +1,5 @@
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
 import { CheckSquareIcon, SquaresFourIcon } from "@phosphor-icons/react";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
 import { createFileRoute } from "@tanstack/react-router";
 import { CONVERSATION } from "@/components/dev/conversation-fixture";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";

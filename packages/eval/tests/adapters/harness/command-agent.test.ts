@@ -9,14 +9,14 @@ const FIXTURES = join(import.meta.dir, "../../fixtures");
 const PROMPT = "Add a note";
 
 const runAgent = (script: string) => {
-  const workspace = mkdtempSync(join(tmpdir(), "anpord-command-agent-"));
+  const workspace = mkdtempSync(join(tmpdir(), "sphynx-command-agent-"));
   const result = Bun.spawnSync(["bash", join(FIXTURES, script)], {
     env: {
       ...process.env,
-      ANPORD_HOME: workspace,
-      ANPORD_MODEL: "sample/model",
-      ANPORD_PROMPT: PROMPT,
-      ANPORD_WORKSPACE: workspace,
+      SPHYNX_HOME: workspace,
+      SPHYNX_MODEL: "sample/model",
+      SPHYNX_PROMPT: PROMPT,
+      SPHYNX_WORKSPACE: workspace,
     },
     stdin: "ignore",
   });

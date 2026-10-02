@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
 import { Effect, Layer } from "effect";
 import {
   EventRepository,

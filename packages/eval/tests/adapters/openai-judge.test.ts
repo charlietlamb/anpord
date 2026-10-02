@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { EvalJudge } from "@anpord/schema/domain/eval-judges";
 import { HttpClient, HttpClientResponse } from "@effect/platform";
+import { EvalJudge } from "@sphynx/schema/domain/eval-judges";
 import { ConfigProvider, Effect, Layer, Redacted, Schema } from "effect";
 import { connectionNotFound } from "../../src/credentials/errors";
 import { CredentialResolver } from "../../src/credentials/resolver";

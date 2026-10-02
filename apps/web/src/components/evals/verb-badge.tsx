@@ -1,5 +1,5 @@
-import type { StepVerb } from "@anpord/schema/domain/step-title";
-import { Badge } from "@anpord/ui/components/ui/badge";
+import type { StepVerb } from "@sphynx/schema/domain/step-title";
+import { Badge } from "@sphynx/ui/components/ui/badge";
 import { VERBS } from "@/lib/evals/timeline-kinds";
 
 export function VerbBadge({

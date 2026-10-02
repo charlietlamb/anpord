@@ -3,9 +3,9 @@
 import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
 
-import { MODAL, OVERLAY } from "@anpord/ui/lib/popup"
-import { cn } from "@anpord/ui/lib/utils"
-import { Button } from "@anpord/ui/components/button"
+import { MODAL, OVERLAY } from "@sphynx/ui/lib/popup"
+import { cn } from "@sphynx/ui/lib/utils"
+import { Button } from "@sphynx/ui/components/button"
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />

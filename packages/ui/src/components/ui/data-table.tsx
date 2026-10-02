@@ -7,8 +7,8 @@ import {
   SURFACE_FOOTER,
   SURFACE_FRAME,
   SURFACE_HEAD,
-} from "@anpord/ui/lib/surface";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/lib/surface";
+import { cn } from "@sphynx/ui/lib/utils";
 
 const COLUMNS =
   "grid grid-cols-[var(--data-table-columns)] items-center gap-4 px-4";

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { decodeCommandLine } from "@anpord/eval/adapters/harness/command-events";
+import { decodeCommandLine } from "@sphynx/eval/adapters/harness/command-events";
 import { createEmitter, env } from "../../src/runner";
 
 const FIXED_NOW = 1_788_300_000_000;
@@ -216,12 +216,12 @@ describe("createEmitter", () => {
 
 describe("env", () => {
   const names = [
-    "ANPORD_HOME",
-    "ANPORD_MODEL",
-    "ANPORD_PROMPT",
-    "ANPORD_SYSTEM_PROMPT_FILE",
-    "ANPORD_TRACE_LOG",
-    "ANPORD_WORKSPACE",
+    "SPHYNX_HOME",
+    "SPHYNX_MODEL",
+    "SPHYNX_PROMPT",
+    "SPHYNX_SYSTEM_PROMPT_FILE",
+    "SPHYNX_TRACE_LOG",
+    "SPHYNX_WORKSPACE",
   ] as const;
   const saved = Object.fromEntries(names.map((n) => [n, process.env[n]]));
 
@@ -235,34 +235,34 @@ describe("env", () => {
     }
   });
 
-  test("throws a clear error without ANPORD_PROMPT", () => {
-    process.env.ANPORD_HOME = "/home/agent";
-    process.env.ANPORD_MODEL = "fixture";
-    process.env.ANPORD_TRACE_LOG = "/home/agent/.anpord/trace.ndjson";
-    process.env.ANPORD_WORKSPACE = "/workspace";
-    delete process.env.ANPORD_PROMPT;
+  test("throws a clear error without SPHYNX_PROMPT", () => {
+    process.env.SPHYNX_HOME = "/home/agent";
+    process.env.SPHYNX_MODEL = "fixture";
+    process.env.SPHYNX_TRACE_LOG = "/home/agent/.sphynx/trace.ndjson";
+    process.env.SPHYNX_WORKSPACE = "/workspace";
+    delete process.env.SPHYNX_PROMPT;
 
-    expect(() => env()).toThrow("ANPORD_PROMPT is not set");
+    expect(() => env()).toThrow("SPHYNX_PROMPT is not set");
   });
 
   test("returns the variables the command harness sets", () => {
-    process.env.ANPORD_HOME = "/home/agent";
-    process.env.ANPORD_MODEL = "fixture";
-    process.env.ANPORD_PROMPT = "Write hello.txt";
-    process.env.ANPORD_TRACE_LOG = "/home/agent/.anpord/trace.ndjson";
-    process.env.ANPORD_WORKSPACE = "/workspace";
-    delete process.env.ANPORD_SYSTEM_PROMPT_FILE;
+    process.env.SPHYNX_HOME = "/home/agent";
+    process.env.SPHYNX_MODEL = "fixture";
+    process.env.SPHYNX_PROMPT = "Write hello.txt";
+    process.env.SPHYNX_TRACE_LOG = "/home/agent/.sphynx/trace.ndjson";
+    process.env.SPHYNX_WORKSPACE = "/workspace";
+    delete process.env.SPHYNX_SYSTEM_PROMPT_FILE;
 
     expect(env()).toEqual({
       home: "/home/agent",
       model: "fixture",
       prompt: "Write hello.txt",
       systemPromptFile: undefined,
-      traceLog: "/home/agent/.anpord/trace.ndjson",
+      traceLog: "/home/agent/.sphynx/trace.ndjson",
       workspace: "/workspace",
     });
 
-    process.env.ANPORD_SYSTEM_PROMPT_FILE = "/home/agent/system.md";
+    process.env.SPHYNX_SYSTEM_PROMPT_FILE = "/home/agent/system.md";
 
     expect(env().systemPromptFile).toBe("/home/agent/system.md");
   });

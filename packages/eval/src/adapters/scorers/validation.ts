@@ -4,8 +4,8 @@ import {
   VALIDATION_FRAME,
   VALIDATION_TEXT_LIMIT,
   validationSnapshot,
-} from "@anpord/schema/domain/eval-validations";
-import { redactSecrets } from "@anpord/schema/domain/secret-text";
+} from "@sphynx/schema/domain/eval-validations";
+import { redactSecrets } from "@sphynx/schema/domain/secret-text";
 import { Effect, Exit, Option, Ref, Schema, Stream } from "effect";
 import { redactValidation } from "../../domain/secret-redaction";
 import type { ExecOptions, SandboxHandle } from "../../ports/sandbox";

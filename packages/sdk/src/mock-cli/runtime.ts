@@ -1,4 +1,4 @@
-import { CLI_JOURNAL as JOURNAL } from "@anpord/schema/domain/api-mocks";
+import { CLI_JOURNAL as JOURNAL } from "@sphynx/schema/domain/api-mocks";
 import { Effect } from "effect";
 import { appendCall, decodeStandard, errorOf } from "../mock-journal";
 import {

@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
-import { EmptyNote } from "@anpord/ui/components/ui/empty-note";
+import { Button } from "@sphynx/ui/components/button";
+import { EmptyNote } from "@sphynx/ui/components/ui/empty-note";
 
 export function ArtifactPending({
   onRetry,

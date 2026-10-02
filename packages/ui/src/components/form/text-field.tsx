@@ -1,8 +1,8 @@
 "use client";
 
-import { FieldShell } from "@anpord/ui/components/form/field-shell";
-import { Input } from "@anpord/ui/components/input";
-import { useFieldContext } from "@anpord/ui/hooks/form-context";
+import { FieldShell } from "@sphynx/ui/components/form/field-shell";
+import { Input } from "@sphynx/ui/components/input";
+import { useFieldContext } from "@sphynx/ui/hooks/form-context";
 
 interface TextFieldProps {
   autoComplete?: string;

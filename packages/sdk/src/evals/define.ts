@@ -1,9 +1,9 @@
 import { pathToFileURL } from "node:url";
-import { EvalSuiteId } from "@anpord/schema/domain/eval-limits";
+import { EvalSuiteId } from "@sphynx/schema/domain/eval-limits";
 import { Schema } from "effect";
 import type { EvalDefinition } from "./types";
 
-const SOURCE_URL = Symbol.for("anpord.sourceUrl");
+const SOURCE_URL = Symbol.for("sphynx.sourceUrl");
 
 interface CallSite {
   readonly getFileName: () => string | undefined;

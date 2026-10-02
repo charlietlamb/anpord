@@ -63,7 +63,7 @@ jobs:
             exit 1
           fi
 
-          WANTED="${MCP_RESOURCE_URL:-https://mcp.anpord.com/mcp}"
+          WANTED="${MCP_RESOURCE_URL:-https://mcp.sphynx.sh/mcp}"
 
           aws apprunner describe-service --service-arn "$ARN" --region "$AWS_REGION" \
             --query 'Service.SourceConfiguration' --output json > /tmp/source-current.json
@@ -149,6 +149,8 @@ jobs:
           echo "Deploying to $ARN"
 
       - name: Wait for the deployment to settle
+        env:
+          API_URL: ${{ vars.SPHYNX_API_URL || 'https://api.sphynx.sh' }}
         run: |
           ARN="$(aws apprunner list-services --region "$AWS_REGION" \
             --query "ServiceSummaryList[?ServiceName=='$APPRUNNER_SERVICE'].ServiceArn | [0]" \
@@ -160,7 +162,7 @@ jobs:
             case "$STATUS" in
               RUNNING)
                 if curl --fail --silent --show-error --max-time 10 \
-                  https://api.anpord.com/api/healthz \
+                  "$API_URL/api/healthz" \
                   | jq --exit-status --arg revision "${{ github.sha }}" \
                     '.ok == true and .revision == $revision' >/dev/null; then
                   exit 0

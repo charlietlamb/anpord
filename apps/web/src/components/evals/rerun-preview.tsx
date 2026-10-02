@@ -3,14 +3,14 @@ import type {
   RerunSkip,
   RerunSkipReason,
   RerunSlot,
-} from "@anpord/schema/domain/eval-rerun";
+} from "@sphynx/schema/domain/eval-rerun";
 import {
   DataTable,
   DataTableBody,
   DataTableFooter,
   DataTableHead,
-} from "@anpord/ui/components/ui/data-table";
-import { counted } from "@anpord/ui/lib/evals/counted";
+} from "@sphynx/ui/components/ui/data-table";
+import { counted } from "@sphynx/ui/lib/evals/counted";
 import { RerunPreviewRow } from "@/components/evals/rerun-preview-row";
 import { RERUN_SLOTS_TABLE } from "@/lib/evals/rerun-tables";
 

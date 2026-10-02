@@ -1,19 +1,19 @@
-import { Database } from "@anpord/db/client";
-import { escapeLike } from "@anpord/db/like";
-import { head } from "@anpord/db/query";
-import { user } from "@anpord/db/schema/auth/users";
-import { evalCaseVersion } from "@anpord/db/schema/evals/eval-case-versions";
-import { evalCase } from "@anpord/db/schema/evals/eval-cases";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalSuite } from "@anpord/db/schema/evals/eval-suites";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { Database } from "@sphynx/db/client";
+import { escapeLike } from "@sphynx/db/like";
+import { head } from "@sphynx/db/query";
+import { user } from "@sphynx/db/schema/auth/users";
+import { evalCaseVersion } from "@sphynx/db/schema/evals/eval-case-versions";
+import { evalCase } from "@sphynx/db/schema/evals/eval-cases";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalSuite } from "@sphynx/db/schema/evals/eval-suites";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 import type {
   CaseOrder,
   CaseSort,
   EvalCaseDetail,
   EvalCasePage,
   EvalPageCursor,
-} from "@anpord/schema/domain/eval-read-models";
+} from "@sphynx/schema/domain/eval-read-models";
 import type { SQL } from "drizzle-orm";
 import { and, asc, desc, eq, ilike, inArray, max, or, sql } from "drizzle-orm";
 import { Effect, Option } from "effect";

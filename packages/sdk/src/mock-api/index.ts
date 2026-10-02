@@ -1,4 +1,4 @@
-export type { ApiCall } from "@anpord/schema/domain/api-mocks";
+export type { ApiCall } from "@sphynx/schema/domain/api-mocks";
 export type {
   ApiDefinition,
   ApiHandlerContext,

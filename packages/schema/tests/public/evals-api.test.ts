@@ -68,9 +68,9 @@ describe("starting a batch", () => {
       variants: [{ ...request.variants[0], sandbox: "local" }],
     };
 
-    expect(() => decode(local)).toThrow("anpord eval --local");
+    expect(() => decode(local)).toThrow("sphynx eval --local");
     expect(() => decode({ ...local, local: true })).toThrow(
-      "anpord eval --local"
+      "sphynx eval --local"
     );
   });
 

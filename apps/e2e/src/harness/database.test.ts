@@ -14,7 +14,7 @@ import { freePort } from "./ports";
 
 const CLUSTER_TIMEOUT = 60_000;
 
-const checkout = () => mkdtempSync(join(tmpdir(), "anpord-e2e-checkout-"));
+const checkout = () => mkdtempSync(join(tmpdir(), "sphynx-e2e-checkout-"));
 
 const started: Cluster[] = [];
 const checkouts: string[] = [];
@@ -27,7 +27,7 @@ const own = async (state: string) => {
 
 const markerIn = async (cluster: Cluster) =>
   (
-    await psql(cluster.port, "select note from marker", "anpord_e2e")
+    await psql(cluster.port, "select note from marker", "sphynx_e2e")
   ).stdout.trim();
 
 afterAll(async () => {
@@ -52,11 +52,11 @@ describe.skipIf(findPostgresBin() === undefined)("the e2e cluster", () => {
       expect(a.dataDirectory).not.toBe(b.dataDirectory);
 
       await resetDatabase(a);
-      await psql(a.port, "create table marker (note text)", "anpord_e2e");
+      await psql(a.port, "create table marker (note text)", "sphynx_e2e");
       await psql(
         a.port,
         "insert into marker values ('first checkout')",
-        "anpord_e2e"
+        "sphynx_e2e"
       );
 
       await resetDatabase(b);

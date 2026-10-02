@@ -35,7 +35,7 @@ export const startCodexLogin = (
   Effect.gen(function* () {
     const home = yield* Effect.tryPromise({
       catch: couldNotStart,
-      try: () => mkdtemp(join(tmpdir(), "anpord-codex-")),
+      try: () => mkdtemp(join(tmpdir(), "sphynx-codex-")),
     });
     const child = yield* Effect.try({
       catch: couldNotStart,

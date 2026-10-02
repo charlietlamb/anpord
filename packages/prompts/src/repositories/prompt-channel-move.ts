@@ -1,13 +1,13 @@
-import type { Tx } from "@anpord/db/query";
-import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
-import { promptEvent } from "@anpord/db/schema/prompts/prompt-events";
-import { promptReleaseVersion } from "@anpord/db/schema/prompts/prompt-release-versions";
-import { promptRelease } from "@anpord/db/schema/prompts/prompt-releases";
-import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
-import { prompt } from "@anpord/db/schema/prompts/prompts";
-import { DEFAULT_CHANNEL_COLOR } from "@anpord/schema/domain/channels";
-import type { ChannelName, VersionNumber } from "@anpord/schema/domain/prompts";
-import { pinned } from "@anpord/schema/domain/releases";
+import type { Tx } from "@sphynx/db/query";
+import { promptChannel } from "@sphynx/db/schema/prompts/prompt-channels";
+import { promptEvent } from "@sphynx/db/schema/prompts/prompt-events";
+import { promptReleaseVersion } from "@sphynx/db/schema/prompts/prompt-release-versions";
+import { promptRelease } from "@sphynx/db/schema/prompts/prompt-releases";
+import { promptVersion } from "@sphynx/db/schema/prompts/prompt-versions";
+import { prompt } from "@sphynx/db/schema/prompts/prompts";
+import { DEFAULT_CHANNEL_COLOR } from "@sphynx/schema/domain/channels";
+import type { ChannelName, VersionNumber } from "@sphynx/schema/domain/prompts";
+import { pinned } from "@sphynx/schema/domain/releases";
 import { and, eq } from "drizzle-orm";
 import { claimChannel } from "./claim-channel";
 

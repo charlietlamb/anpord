@@ -1,12 +1,12 @@
-import { LabelledField } from "@anpord/ui/components/form/labelled-field";
+import { LabelledField } from "@sphynx/ui/components/form/labelled-field";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@anpord/ui/components/ui/select";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/components/ui/select";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function LabelledSelect({

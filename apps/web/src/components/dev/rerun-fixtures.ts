@@ -1,8 +1,8 @@
 import {
   RerunFingerprint,
   type RerunPlan,
-} from "@anpord/schema/domain/eval-rerun";
-import type { EvalVariant } from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/eval-rerun";
+import type { EvalVariant } from "@sphynx/schema/domain/evals";
 
 const variant = (
   id: string,

@@ -1,9 +1,9 @@
+import { PlusIcon } from "@phosphor-icons/react";
 import type {
   CaseOrder,
   CaseSort,
-} from "@anpord/schema/domain/eval-read-models";
-import { Button } from "@anpord/ui/components/button";
-import { PlusIcon } from "@phosphor-icons/react";
+} from "@sphynx/schema/domain/eval-read-models";
+import { Button } from "@sphynx/ui/components/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CaseFilterMenu } from "@/components/evals/case-filter-menu";

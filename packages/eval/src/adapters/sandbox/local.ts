@@ -69,11 +69,11 @@ const refusing = (reason: string): SandboxAdapterShape => ({
 });
 
 const OFF =
-  "the local sandbox runs commands on this machine, so it opens only where ANPORD_LOCAL_SANDBOX is set";
+  "the local sandbox runs commands on this machine, so it opens only where SPHYNX_LOCAL_SANDBOX is set";
 
 export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
   function* () {
-    const enabled = yield* Config.boolean("ANPORD_LOCAL_SANDBOX").pipe(
+    const enabled = yield* Config.boolean("SPHYNX_LOCAL_SANDBOX").pipe(
       Config.withDefault(false)
     );
 
@@ -96,7 +96,7 @@ export const makeLocalAdapter: Effect.Effect<SandboxAdapterShape> = Effect.gen(
       open: (request) =>
         Effect.gen(function* () {
           const root = yield* call(() =>
-            mkdtemp(join(tmpdir(), "anpord-local-"))
+            mkdtemp(join(tmpdir(), "sphynx-local-"))
           );
 
           const home = join(root, "home");

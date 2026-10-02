@@ -1,8 +1,8 @@
 "use client";
 
-import { ShortcutButton } from "@anpord/ui/components/ui/shortcut-button";
-import { useFormContext } from "@anpord/ui/hooks/form-context";
-import { cn } from "@anpord/ui/lib/utils";
+import { ShortcutButton } from "@sphynx/ui/components/ui/shortcut-button";
+import { useFormContext } from "@sphynx/ui/hooks/form-context";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 interface SubmitButtonProps {

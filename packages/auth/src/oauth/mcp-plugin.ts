@@ -1,4 +1,4 @@
-import { MCP_SCOPES, SUPPORTED_SCOPES } from "@anpord/schema/domain/scopes";
+import { MCP_SCOPES, SUPPORTED_SCOPES } from "@sphynx/schema/domain/scopes";
 import { mcp } from "better-auth/plugins";
 
 const LOGIN_PAGE = "/login";

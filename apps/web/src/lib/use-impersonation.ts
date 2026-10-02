@@ -1,8 +1,8 @@
 import {
   Permissions,
   permissionsForPlatformRole,
-} from "@anpord/schema/domain/permissions";
-import { handleMutationResult } from "@anpord/ui/lib/mutation-result";
+} from "@sphynx/schema/domain/permissions";
+import { handleMutationResult } from "@sphynx/ui/lib/mutation-result";
 import { useCallback } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 

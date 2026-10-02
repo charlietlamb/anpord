@@ -1,7 +1,7 @@
-import { pingDatabase } from "@anpord/db/health";
-import { AnpordApi } from "@anpord/schema/internal/api";
-import { Unhealthy } from "@anpord/schema/internal/health-api";
 import { HttpApiBuilder } from "@effect/platform";
+import { pingDatabase } from "@sphynx/db/health";
+import { SphynxApi } from "@sphynx/schema/internal/api";
+import { Unhealthy } from "@sphynx/schema/internal/health-api";
 import { Config, Duration, Effect } from "effect";
 
 /* Shorter than the statement timeout, so the probe answers before the platform gives up on it. */
@@ -27,7 +27,7 @@ const health = pingDatabase.pipe(
 );
 
 export const HealthHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "health",
   (handlers) =>
     handlers

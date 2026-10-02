@@ -1,9 +1,9 @@
 import type {
   CredentialAuthMethod,
   CredentialConnection,
-} from "@anpord/schema/domain/credentials";
-import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
+} from "@sphynx/schema/domain/credentials";
+import { FormDialog } from "@sphynx/ui/components/dialog/form-dialog";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
 import { CredentialFields } from "@/components/settings/credential-fields";
 import { credentialsClient } from "@/lib/credentials-client";
 import { incompleteCredential } from "@/lib/settings/credential-values";

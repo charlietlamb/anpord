@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
-import { TURNS_ENV } from "@anpord/schema/domain/sandbox-env";
+import type { EvalTurn } from "@sphynx/schema/domain/eval-conversation";
+import { TURNS_ENV } from "@sphynx/schema/domain/sandbox-env";
 import { Effect } from "effect";
 import {
   answerEnv,

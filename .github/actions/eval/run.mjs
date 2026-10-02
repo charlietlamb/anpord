@@ -4,8 +4,8 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
-if (!process.env.ANPORD_API_KEY?.trim()) {
-  console.error("Set the action's api-key input to an ANPORD_API_KEY secret.");
+if (!process.env.SPHYNX_API_KEY?.trim()) {
+  console.error("Set the action's api-key input to a SPHYNX_API_KEY secret.");
   process.exit(1);
 }
 
@@ -13,11 +13,11 @@ const require = createRequire(join(process.cwd(), "package.json"));
 let binary;
 try {
   binary = join(
-    dirname(require.resolve("anpord/package.json")),
+    dirname(require.resolve("sphynx-sh/package.json")),
     "dist/bin.mjs"
   );
 } catch {
-  console.error("Install anpord in the project before running this action.");
+  console.error("Install sphynx-sh in the project before running this action.");
   process.exit(1);
 }
 
@@ -36,16 +36,16 @@ const listOf = (value) =>
     .filter((item) => item !== "");
 
 const report = join(
-  mkdtempSync(join(tmpdir(), "anpord-eval-")),
+  mkdtempSync(join(tmpdir(), "sphynx-eval-")),
   "results.json"
 );
 output("report", report);
 
-const file = process.env.ANPORD_EVAL_FILE;
-const gate = process.env.ANPORD_EVAL_GATE;
-const timeout = process.env.ANPORD_EVAL_TIMEOUT;
-const caseId = process.env.ANPORD_EVAL_CASE?.trim();
-const variants = listOf(process.env.ANPORD_EVAL_VARIANTS);
+const file = process.env.SPHYNX_EVAL_FILE;
+const gate = process.env.SPHYNX_EVAL_GATE;
+const timeout = process.env.SPHYNX_EVAL_TIMEOUT;
+const caseId = process.env.SPHYNX_EVAL_CASE?.trim();
+const variants = listOf(process.env.SPHYNX_EVAL_VARIANTS);
 const result = spawnSync(
   process.execPath,
   [

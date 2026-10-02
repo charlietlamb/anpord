@@ -1,4 +1,4 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-process.env.ANPORD_LOCAL_ROOT ??= join(tmpdir(), "anpord-tests-local");
+process.env.SPHYNX_LOCAL_ROOT ??= join(tmpdir(), "sphynx-tests-local");

@@ -4,11 +4,11 @@ import type {
   EvalHomeDay,
   EvalHomeEval,
   EvalHomeVerdict,
-} from "@anpord/schema/domain/eval-home";
+} from "@sphynx/schema/domain/eval-home";
 import type {
   EvalBatchSummary,
   EvalVariant,
-} from "@anpord/schema/domain/evals";
+} from "@sphynx/schema/domain/evals";
 import { DateTime } from "effect";
 
 const HOUR = 3_600_000;

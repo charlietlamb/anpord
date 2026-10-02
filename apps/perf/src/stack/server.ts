@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import { freePort } from "@anpord/e2e/src/harness/ports";
-import { AUTH_SECRET } from "@anpord/e2e/src/harness/settings";
+import { freePort } from "@sphynx/e2e/src/harness/ports";
+import { AUTH_SECRET } from "@sphynx/e2e/src/harness/settings";
 import { localUrl, spawnUntilReady } from "./child";
 
 const PROBE_TIMEOUT_MS = 10_000;

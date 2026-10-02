@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 import {
   MAX_START_REQUEST_CHARACTERS,
   MEGABYTE,
-} from "@anpord/schema/domain/eval-quota";
-import { type EvalSource, files } from "anpord";
+} from "@sphynx/schema/domain/eval-quota";
+import { type EvalSource, files } from "sphynx-sh";
 
-const VENDOR = "vendor/anpord";
+const VENDOR = "vendor/sphynx-sh";
 const LEADING_DOT_SLASH = /^\.\//;
 const SHIPPED = [".mjs", ".d.mts"];
 const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
@@ -15,8 +15,8 @@ const WORKSPACE_CHARACTER_BUDGET = MAX_START_REQUEST_CHARACTERS / 2;
 const WORKSPACE_FILE_BUDGET = 100;
 
 const rootManifest = {
-  dependencies: { anpord: `file:./${VENDOR}` },
-  name: "anpord-sdk-smoke",
+  dependencies: { "sphynx-sh": `file:./${VENDOR}` },
+  name: "sphynx-sdk-smoke",
   private: true,
   type: "module",
   version: "0.0.0",
@@ -95,7 +95,7 @@ export const vendoredEntry = (manifest: string): string => {
   const entry = JSON.parse(manifest).exports?.["."]?.import?.default;
   if (typeof entry !== "string") {
     throw new Error(
-      `${VENDOR}/package.json names no root import entry, so nothing the agent writes can import "anpord".`
+      `${VENDOR}/package.json names no root import entry, so nothing the agent writes can import "sphynx-sh".`
     );
   }
   return inWorkspace(entry);

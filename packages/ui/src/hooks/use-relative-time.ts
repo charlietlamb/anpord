@@ -1,4 +1,4 @@
-import { relativeTime, shortAge } from "@anpord/ui/lib/relative-time";
+import { relativeTime, shortAge } from "@sphynx/ui/lib/relative-time";
 import { useSyncExternalStore } from "react";
 
 const NEVER_CHANGES = () => () => undefined;

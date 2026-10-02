@@ -1,5 +1,3 @@
-import type { EntryKind } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
 import {
   BrainIcon,
   ChatCircleDotsIcon,
@@ -9,6 +7,8 @@ import {
   UserIcon,
   WrenchIcon,
 } from "@phosphor-icons/react";
+import type { EntryKind } from "@sphynx/schema/domain/eval-journal";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 
 export type JournalKind = EntryKind | "thinking";
 

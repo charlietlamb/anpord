@@ -3,9 +3,9 @@
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
-import { buttonVariants } from "@anpord/ui/lib/button-variants"
-import { MENU_ITEM, MENU_LABEL, MENU_SEPARATOR, POPUP, POPUP_MOTION } from "@anpord/ui/lib/popup"
-import { cn } from "@anpord/ui/lib/utils"
+import { buttonVariants } from "@sphynx/ui/lib/button-variants"
+import { MENU_ITEM, MENU_LABEL, MENU_SEPARATOR, POPUP, POPUP_MOTION } from "@sphynx/ui/lib/popup"
+import { cn } from "@sphynx/ui/lib/utils"
 import { CaretDownIcon, CheckIcon, CaretUpIcon } from "@phosphor-icons/react"
 
 const Select = SelectPrimitive.Root

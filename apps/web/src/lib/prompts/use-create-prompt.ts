@@ -1,5 +1,5 @@
-import { CreatePromptRequest } from "@anpord/schema/domain/prompts";
-import { slugify } from "@anpord/ui/lib/slugify";
+import { CreatePromptRequest } from "@sphynx/schema/domain/prompts";
+import { slugify } from "@sphynx/ui/lib/slugify";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Effect, Schema } from "effect";

@@ -54,17 +54,17 @@ jobs:
       # so a whole deploy is attempted more than once before the job gives up.
       - name: Deploy
         env:
-          ANPORD_API_URL: ${{ vars.ANPORD_API_URL }}
-          ANPORD_AUTH_URL: ${{ vars.ANPORD_AUTH_URL }}
+          SPHYNX_API_URL: ${{ vars.SPHYNX_API_URL }}
+          SPHYNX_AUTH_URL: ${{ vars.SPHYNX_AUTH_URL }}
           MANUFACT_ORG_ID: ${{ secrets.MANUFACT_ORG_ID }}
           MANUFACT_SERVER_ID: ${{ secrets.MANUFACT_SERVER_ID }}
           MCP_RESOURCE_URL: ${{ vars.MCP_RESOURCE_URL }}
         run: |
           cd apps/mcp/dist
           {
-            echo "ANPORD_BASE_URL=${ANPORD_API_URL:-https://api.anpord.com}"
-            echo "ANPORD_AUTH_URL=${ANPORD_AUTH_URL:-https://www.anpord.com/api/auth}"
-            echo "MCP_RESOURCE_URL=${MCP_RESOURCE_URL:-https://mcp.anpord.com/mcp}"
+            echo "SPHYNX_BASE_URL=${SPHYNX_API_URL:-https://api.sphynx.sh}"
+            echo "SPHYNX_AUTH_URL=${SPHYNX_AUTH_URL:-https://www.sphynx.sh/api/auth}"
+            echo "MCP_RESOURCE_URL=${MCP_RESOURCE_URL:-https://mcp.sphynx.sh/mcp}"
           } > .env.deploy
 
           # Bundling clears dist, and without this file a deploy creates a new
@@ -87,7 +87,7 @@ jobs:
 
           for deploy_attempt in 1 2 3; do
             echo "::group::deploy attempt $deploy_attempt"
-            mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy --yes
+            mcp-use deploy . --no-github --name sphynx-mcp --env-file .env.deploy --yes
 
             outcome=pending
             for attempt in $(seq 1 40); do
@@ -119,7 +119,7 @@ jobs:
         run: |
           url="$(mcp-use servers list --json | node -e "
             const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            const server = data.items.find((item) => item.name === 'anpord-mcp');
+            const server = data.items.find((item) => item.name === 'sphynx-mcp');
             process.stdout.write(server.mcpUrl);
           ")"
           echo "verifying $url"

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { Whoami } from "@anpord/schema/public/auth-api";
-import { Anpord } from "../../src/client/anpord";
+import type { Whoami } from "@sphynx/schema/public/auth-api";
+import { Sphynx } from "../../src/client/sphynx";
 
 const WHOAMI: Whoami = {
   credential: { kind: "apiKey", name: "ci", start: "anp_whoa" },
@@ -36,7 +36,7 @@ describe("whoami", () => {
     const { restore, sent } = answering(WHOAMI);
 
     try {
-      const found = await new Anpord({
+      const found = await new Sphynx({
         apiKey: "anp_secret",
         baseUrl: "http://x",
       }).whoami();
@@ -51,15 +51,15 @@ describe("whoami", () => {
   });
 });
 
-describe("an Anpord server that cannot be reached", () => {
+describe("a Sphynx server that cannot be reached", () => {
   test("rejects with the address it tried and how to fix it", async () => {
     await expect(
-      new Anpord({
+      new Sphynx({
         apiKey: "anp_secret",
         baseUrl: "http://127.0.0.1:1",
       }).whoami()
     ).rejects.toThrow(
-      "Unable to reach Anpord at http://127.0.0.1:1. Check your network connection, or set ANPORD_BASE_URL if your Anpord server is at another address."
+      "Unable to reach Sphynx at http://127.0.0.1:1. Check your network connection, or set SPHYNX_BASE_URL if your Sphynx server is at another address."
     );
   });
 });

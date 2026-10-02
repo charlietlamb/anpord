@@ -1,10 +1,10 @@
-import { Database } from "@anpord/db/client";
-import type { Tx } from "@anpord/db/query";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { IdGenerator } from "@anpord/ids/id";
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
-import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
+import { Database } from "@sphynx/db/client";
+import type { Tx } from "@sphynx/db/query";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
+import type { IdempotencyKey } from "@sphynx/schema/public/runner-api";
 import { and, count, eq } from "drizzle-orm";
 import { Clock, Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -82,7 +82,7 @@ export interface BatchRepositoryShape {
 }
 
 export class BatchRepository extends Context.Tag(
-  "@anpord/eval/BatchRepository"
+  "@sphynx/eval/BatchRepository"
 )<BatchRepository, BatchRepositoryShape>() {}
 
 interface BatchIds {

@@ -1,7 +1,7 @@
-import { Cache } from "@anpord/cache/cache";
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { PromptId, PromptSelector } from "@anpord/schema/domain/prompts";
-import { ChannelName, ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import { Cache } from "@sphynx/cache/cache";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { PromptId, PromptSelector } from "@sphynx/schema/domain/prompts";
+import { ChannelName, ResolvedPrompt } from "@sphynx/schema/domain/prompts";
 import { Context, Effect, Layer, Option } from "effect";
 import type { PromptError } from "../domain/errors";
 import {
@@ -28,7 +28,7 @@ export interface PromptResolutionShape {
 }
 
 export class PromptResolution extends Context.Tag(
-  "@anpord/prompts/PromptResolution"
+  "@sphynx/prompts/PromptResolution"
 )<PromptResolution, PromptResolutionShape>() {}
 
 export const PromptResolutionLive = Layer.effect(

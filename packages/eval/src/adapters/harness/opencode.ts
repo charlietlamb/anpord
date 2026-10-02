@@ -1,4 +1,4 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Either, Option } from "effect";
 import type { RunHarness } from "../../ports/harness";
 import { installedPath } from "./install";

@@ -1,4 +1,4 @@
-import { formatDate } from "@anpord/ui/lib/format-date";
+import { formatDate } from "@sphynx/ui/lib/format-date";
 import { differenceInCalendarDays, formatDistanceStrict } from "date-fns";
 
 const RECENT_DAYS = 7;

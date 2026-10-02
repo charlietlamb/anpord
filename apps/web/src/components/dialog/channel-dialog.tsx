@@ -1,10 +1,10 @@
 import {
   type ChannelColor,
   DEFAULT_CHANNEL_COLOR,
-} from "@anpord/schema/domain/channels";
-import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
-import { ColorPicker } from "@anpord/ui/components/ui/color-picker";
-import { useAppForm } from "@anpord/ui/hooks/use-app-form";
+} from "@sphynx/schema/domain/channels";
+import { FormDialog } from "@sphynx/ui/components/dialog/form-dialog";
+import { ColorPicker } from "@sphynx/ui/components/ui/color-picker";
+import { useAppForm } from "@sphynx/ui/hooks/use-app-form";
 import { z } from "zod";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 

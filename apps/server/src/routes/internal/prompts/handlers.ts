@@ -1,18 +1,18 @@
-import { PromptAuthoring } from "@anpord/prompts/authoring";
-import { PromptCatalog } from "@anpord/prompts/catalog";
-import { PromptPublishing } from "@anpord/prompts/publishing";
-import { PromptResolution } from "@anpord/prompts/resolution";
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { PAGE_LIMIT_DEFAULT } from "@anpord/schema/domain/prompts";
-import { AnpordApi } from "@anpord/schema/internal/api";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
+import { PromptAuthoring } from "@sphynx/prompts/authoring";
+import { PromptCatalog } from "@sphynx/prompts/catalog";
+import { PromptPublishing } from "@sphynx/prompts/publishing";
+import { PromptResolution } from "@sphynx/prompts/resolution";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { PAGE_LIMIT_DEFAULT } from "@sphynx/schema/domain/prompts";
+import { SphynxApi } from "@sphynx/schema/internal/api";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withPromptErrors } from "../../../http/prompt-errors";
 
 export const PromptsHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "prompts",
   (handlers) =>
     authorized(handlers)

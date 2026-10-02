@@ -156,7 +156,7 @@ const CARD: HeaderFamily = {
     preset(
       "framed",
       "Framed",
-      "Anpord",
+      "Sphynx",
       "The frame treatment from the app: a padded shell around an inner bar.",
       {
         bar: "rounded-2xl bg-muted/70 p-1 shadow-sm backdrop-blur-xl dark:bg-card/70",
@@ -206,7 +206,7 @@ const GLASS: HeaderFamily = {
     preset(
       "inset-glow",
       "Inset glow",
-      "Anpord",
+      "Sphynx",
       "The glass button treatment scaled up to the full bar.",
       {
         bar: "rounded-2xl border-0 bg-[linear-gradient(to_bottom,color-mix(in_oklch,var(--foreground)_9%,transparent),color-mix(in_oklch,var(--foreground)_4%,transparent))] shadow-[inset_0_1px_0_0_rgb(255_255_255/0.6),inset_0_0_0_1px_color-mix(in_oklch,var(--foreground)_12%,transparent),0_1px_2px_0_rgb(0_0_0/0.08)] backdrop-blur-md dark:shadow-[inset_0_1px_0_0_rgb(255_255_255/0.12),inset_0_0_0_1px_rgb(255_255_255/0.08),0_1px_3px_0_rgb(0_0_0/0.5)]",

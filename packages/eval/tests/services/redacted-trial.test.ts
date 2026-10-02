@@ -3,8 +3,8 @@ import {
   type EvalValidation,
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Effect, Layer, Option, Redacted } from "effect";
 import {
   AgentTrial,

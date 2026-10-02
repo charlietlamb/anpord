@@ -1,4 +1,4 @@
-import { SERVER_PORT } from "@anpord/schema/internal/local-ports";
+import { SERVER_PORT } from "@sphynx/schema/internal/local-ports";
 import { Config, Context, Duration, Layer } from "effect";
 
 export interface ServerConfigShape {
@@ -7,7 +7,7 @@ export interface ServerConfigShape {
   readonly port: number;
 }
 
-export class ServerConfig extends Context.Tag("@anpord/server/ServerConfig")<
+export class ServerConfig extends Context.Tag("@sphynx/server/ServerConfig")<
   ServerConfig,
   ServerConfigShape
 >() {}

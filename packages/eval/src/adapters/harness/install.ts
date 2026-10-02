@@ -50,7 +50,7 @@ export const installHarness = (
   });
 };
 
-const NPM_CACHE = "~/.anpord-npm-cache";
+const NPM_CACHE = "~/.sphynx-npm-cache";
 
 export const npmInstall =
   (

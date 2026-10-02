@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "anpord",
+      "name": "sphynx",
       "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@types/bun": "catalog:",
@@ -19,21 +19,21 @@
       },
     },
     "apps/docs": {
-      "name": "@anpord/docs",
+      "name": "@sphynx/docs",
       "version": "0.0.0",
       "devDependencies": {
         "mint": "catalog:",
       },
     },
     "apps/e2e": {
-      "name": "@anpord/e2e",
+      "name": "@sphynx/e2e",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/auth": "workspace:*",
-        "@anpord/schema": "workspace:*",
-        "anpord": "workspace:*",
+        "@sphynx/auth": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "effect": "catalog:",
         "pg": "catalog:",
+        "sphynx-sh": "workspace:*",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -42,10 +42,10 @@
       },
     },
     "apps/mcp": {
-      "name": "@anpord/mcp",
+      "name": "@sphynx/mcp",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/schema": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "effect": "catalog:",
         "mcp-use": "catalog:",
       },
@@ -55,15 +55,15 @@
       },
     },
     "apps/perf": {
-      "name": "@anpord/perf",
+      "name": "@sphynx/perf",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/db": "workspace:*",
-        "@anpord/e2e": "workspace:*",
-        "@anpord/schema": "workspace:*",
-        "anpord": "workspace:*",
+        "@sphynx/db": "workspace:*",
+        "@sphynx/e2e": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "effect": "catalog:",
         "pg": "catalog:",
+        "sphynx-sh": "workspace:*",
       },
       "devDependencies": {
         "@types/bun": "catalog:",
@@ -74,7 +74,7 @@
       },
     },
     "apps/sandbox-bridge": {
-      "name": "@anpord/sandbox-bridge",
+      "name": "@sphynx/sandbox-bridge",
       "version": "0.0.0",
       "dependencies": {
         "@cloudflare/sandbox": "catalog:",
@@ -86,20 +86,20 @@
       },
     },
     "apps/server": {
-      "name": "@anpord/server",
+      "name": "@sphynx/server",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/auth": "workspace:*",
-        "@anpord/billing": "workspace:*",
-        "@anpord/cache": "workspace:*",
-        "@anpord/db": "workspace:*",
-        "@anpord/eval": "workspace:*",
-        "@anpord/ids": "workspace:*",
-        "@anpord/notifications": "workspace:*",
-        "@anpord/prompts": "workspace:*",
-        "@anpord/schema": "workspace:*",
         "@effect/platform": "catalog:",
         "@effect/platform-bun": "catalog:",
+        "@sphynx/auth": "workspace:*",
+        "@sphynx/billing": "workspace:*",
+        "@sphynx/cache": "workspace:*",
+        "@sphynx/db": "workspace:*",
+        "@sphynx/eval": "workspace:*",
+        "@sphynx/ids": "workspace:*",
+        "@sphynx/notifications": "workspace:*",
+        "@sphynx/prompts": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "effect": "catalog:",
       },
       "devDependencies": {
@@ -108,12 +108,9 @@
       },
     },
     "apps/web": {
-      "name": "@anpord/web",
+      "name": "@sphynx/web",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/schema": "workspace:*",
-        "@anpord/template": "workspace:*",
-        "@anpord/ui": "workspace:*",
         "@better-auth/api-key": "catalog:",
         "@databuddy/sdk": "catalog:",
         "@fontsource-variable/geist": "catalog:",
@@ -121,6 +118,9 @@
         "@icons-pack/react-simple-icons": "catalog:",
         "@phosphor-icons/react": "catalog:",
         "@posthog/react": "catalog:",
+        "@sphynx/schema": "workspace:*",
+        "@sphynx/template": "workspace:*",
+        "@sphynx/ui": "workspace:*",
         "@tanstack/react-query": "catalog:",
         "@tanstack/react-router": "catalog:",
         "@tanstack/react-router-ssr-query": "catalog:",
@@ -155,11 +155,11 @@
       },
     },
     "apps/worker": {
-      "name": "@anpord/worker",
+      "name": "@sphynx/worker",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/db": "workspace:*",
-        "@anpord/eval": "workspace:*",
+        "@sphynx/db": "workspace:*",
+        "@sphynx/eval": "workspace:*",
         "@trigger.dev/sdk": "catalog:",
         "effect": "catalog:",
       },
@@ -171,16 +171,16 @@
       },
     },
     "packages/auth": {
-      "name": "@anpord/auth",
+      "name": "@sphynx/auth",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/billing": "workspace:*",
-        "@anpord/db": "workspace:*",
-        "@anpord/ids": "workspace:*",
-        "@anpord/notifications": "workspace:*",
-        "@anpord/schema": "workspace:*",
         "@better-auth/api-key": "catalog:",
         "@better-auth/drizzle-adapter": "catalog:",
+        "@sphynx/billing": "workspace:*",
+        "@sphynx/db": "workspace:*",
+        "@sphynx/ids": "workspace:*",
+        "@sphynx/notifications": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "better-auth": "catalog:",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
@@ -190,7 +190,7 @@
       },
     },
     "packages/billing": {
-      "name": "@anpord/billing",
+      "name": "@sphynx/billing",
       "version": "0.0.0",
       "dependencies": {
         "autumn-js": "catalog:",
@@ -198,7 +198,7 @@
       },
     },
     "packages/cache": {
-      "name": "@anpord/cache",
+      "name": "@sphynx/cache",
       "version": "0.0.0",
       "dependencies": {
         "effect": "catalog:",
@@ -209,10 +209,10 @@
       },
     },
     "packages/db": {
-      "name": "@anpord/db",
+      "name": "@sphynx/db",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/schema": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
         "pg": "catalog:",
@@ -224,17 +224,17 @@
       },
     },
     "packages/eval": {
-      "name": "@anpord/eval",
+      "name": "@sphynx/eval",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/db": "workspace:*",
-        "@anpord/ids": "workspace:*",
-        "@anpord/schema": "workspace:*",
         "@daytonaio/sdk": "catalog:",
         "@effect/opentelemetry": "catalog:",
         "@effect/platform": "catalog:",
         "@opentelemetry/sdk-logs": "catalog:",
         "@opentelemetry/sdk-trace-base": "catalog:",
+        "@sphynx/db": "workspace:*",
+        "@sphynx/ids": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "@trigger.dev/sdk": "catalog:",
         "@upstash/box": "catalog:",
         "@vercel/sandbox": "catalog:",
@@ -249,7 +249,7 @@
       },
     },
     "packages/ids": {
-      "name": "@anpord/ids",
+      "name": "@sphynx/ids",
       "version": "0.0.0",
       "dependencies": {
         "effect": "catalog:",
@@ -259,7 +259,7 @@
       },
     },
     "packages/notifications": {
-      "name": "@anpord/notifications",
+      "name": "@sphynx/notifications",
       "version": "0.0.0",
       "dependencies": {
         "effect": "catalog:",
@@ -270,13 +270,13 @@
       },
     },
     "packages/prompts": {
-      "name": "@anpord/prompts",
+      "name": "@sphynx/prompts",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/cache": "workspace:*",
-        "@anpord/db": "workspace:*",
-        "@anpord/ids": "workspace:*",
-        "@anpord/schema": "workspace:*",
+        "@sphynx/cache": "workspace:*",
+        "@sphynx/db": "workspace:*",
+        "@sphynx/ids": "workspace:*",
+        "@sphynx/schema": "workspace:*",
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
       },
@@ -285,7 +285,7 @@
       },
     },
     "packages/schema": {
-      "name": "@anpord/schema",
+      "name": "@sphynx/schema",
       "version": "0.0.0",
       "dependencies": {
         "@effect/platform": "catalog:",
@@ -296,10 +296,11 @@
       },
     },
     "packages/sdk": {
-      "name": "anpord",
+      "name": "sphynx-sh",
       "version": "0.1.29",
       "bin": {
-        "anpord": "./dist/bin.mjs",
+        "sphynx": "./dist/bin.mjs",
+        "sphynx-eve": "./dist/runner-eve-bin.mjs",
       },
       "dependencies": {
         "@effect/cli": "^0.75.2",
@@ -314,10 +315,10 @@
         "yaml": "^2.9.0",
       },
       "devDependencies": {
-        "@anpord/eval": "workspace:*",
-        "@anpord/schema": "workspace:*",
-        "@anpord/template": "workspace:*",
         "@modelcontextprotocol/client": "catalog:",
+        "@sphynx/eval": "workspace:*",
+        "@sphynx/schema": "workspace:*",
+        "@sphynx/template": "workspace:*",
         "eve": "catalog:",
         "publint": "catalog:",
         "tsdown": "catalog:",
@@ -332,21 +333,21 @@
       ],
     },
     "packages/template": {
-      "name": "@anpord/template",
+      "name": "@sphynx/template",
       "version": "0.0.0",
       "devDependencies": {
         "typescript": "catalog:",
       },
     },
     "packages/ui": {
-      "name": "@anpord/ui",
+      "name": "@sphynx/ui",
       "version": "0.0.0",
       "dependencies": {
-        "@anpord/schema": "workspace:*",
-        "@anpord/template": "workspace:*",
         "@base-ui/react": "catalog:",
         "@paper-design/shaders-react": "catalog:",
         "@phosphor-icons/react": "catalog:",
+        "@sphynx/schema": "workspace:*",
+        "@sphynx/template": "workspace:*",
         "@tanstack/react-form": "catalog:",
         "@tiptap/core": "catalog:",
         "@tiptap/extensions": "catalog:",
@@ -495,44 +496,6 @@
     "@ai-sdk/provider-utils": ["@ai-sdk/provider-utils@5.0.53", "", { "dependencies": { "@ai-sdk/provider": "4.0.21", "@standard-schema/spec": "^1.1.0", "@workflow/serde": "4.1.0", "eventsource-parser": "^3.0.8", "undici": "^7.29.0" }, "peerDependencies": { "zod": "^3.25.76 || ^4.1.8" } }, "sha512-VVe6UDd0y0/B4TfauuKKzcppqvhTmSluwwUVT4WG2/8h7gFbyFm7PM4UGM+ZXe3/RI6bv+Vl1cw/7aiBoQqdxg=="],
 
     "@alcalzone/ansi-tokenize": ["@alcalzone/ansi-tokenize@0.2.5", "", { "dependencies": { "ansi-styles": "^6.2.1", "is-fullwidth-code-point": "^5.0.0" } }, "sha512-3NX/MpTdroi0aKz134A6RC2Gb2iXVECN4QaAXnvCIxxIm3C3AVB1mkUe8NaaiyvOpDfsrqWhYtj+Q6a62RrTsw=="],
-
-    "@anpord/auth": ["@anpord/auth@workspace:packages/auth"],
-
-    "@anpord/billing": ["@anpord/billing@workspace:packages/billing"],
-
-    "@anpord/cache": ["@anpord/cache@workspace:packages/cache"],
-
-    "@anpord/db": ["@anpord/db@workspace:packages/db"],
-
-    "@anpord/docs": ["@anpord/docs@workspace:apps/docs"],
-
-    "@anpord/e2e": ["@anpord/e2e@workspace:apps/e2e"],
-
-    "@anpord/eval": ["@anpord/eval@workspace:packages/eval"],
-
-    "@anpord/ids": ["@anpord/ids@workspace:packages/ids"],
-
-    "@anpord/mcp": ["@anpord/mcp@workspace:apps/mcp"],
-
-    "@anpord/notifications": ["@anpord/notifications@workspace:packages/notifications"],
-
-    "@anpord/perf": ["@anpord/perf@workspace:apps/perf"],
-
-    "@anpord/prompts": ["@anpord/prompts@workspace:packages/prompts"],
-
-    "@anpord/sandbox-bridge": ["@anpord/sandbox-bridge@workspace:apps/sandbox-bridge"],
-
-    "@anpord/schema": ["@anpord/schema@workspace:packages/schema"],
-
-    "@anpord/server": ["@anpord/server@workspace:apps/server"],
-
-    "@anpord/template": ["@anpord/template@workspace:packages/template"],
-
-    "@anpord/ui": ["@anpord/ui@workspace:packages/ui"],
-
-    "@anpord/web": ["@anpord/web@workspace:apps/web"],
-
-    "@anpord/worker": ["@anpord/worker@workspace:apps/worker"],
 
     "@apm-js-collab/code-transformer": ["@apm-js-collab/code-transformer@0.18.1", "", { "dependencies": { "@types/estree": "^1.0.8", "astring": "^1.9.0", "esquery": "^1.7.0", "meriyah": "^6.1.4", "semifies": "^1.0.0", "source-map": "^0.6.0" }, "bin": { "code-transformer": "cli.js" } }, "sha512-u1Hb6bHjWtkSpiprwVP6YaHC1DTN4RAU3zYkUDUe7WMnJwdyU1pwTL9dFKiSJB9IiLue/EQovmyx6xhU7FFtAQ=="],
 
@@ -1556,6 +1519,44 @@
 
     "@speed-highlight/core": ["@speed-highlight/core@1.2.24", "", {}, "sha512-qeW2e1l78afw8VhRPfPQ1Gjj+KU5XFQ/OFV5ti6eTa9bruO7mJyZtA4vw0ofqmA3tKCkROE9xLk3VZoeRc98nw=="],
 
+    "@sphynx/auth": ["@sphynx/auth@workspace:packages/auth"],
+
+    "@sphynx/billing": ["@sphynx/billing@workspace:packages/billing"],
+
+    "@sphynx/cache": ["@sphynx/cache@workspace:packages/cache"],
+
+    "@sphynx/db": ["@sphynx/db@workspace:packages/db"],
+
+    "@sphynx/docs": ["@sphynx/docs@workspace:apps/docs"],
+
+    "@sphynx/e2e": ["@sphynx/e2e@workspace:apps/e2e"],
+
+    "@sphynx/eval": ["@sphynx/eval@workspace:packages/eval"],
+
+    "@sphynx/ids": ["@sphynx/ids@workspace:packages/ids"],
+
+    "@sphynx/mcp": ["@sphynx/mcp@workspace:apps/mcp"],
+
+    "@sphynx/notifications": ["@sphynx/notifications@workspace:packages/notifications"],
+
+    "@sphynx/perf": ["@sphynx/perf@workspace:apps/perf"],
+
+    "@sphynx/prompts": ["@sphynx/prompts@workspace:packages/prompts"],
+
+    "@sphynx/sandbox-bridge": ["@sphynx/sandbox-bridge@workspace:apps/sandbox-bridge"],
+
+    "@sphynx/schema": ["@sphynx/schema@workspace:packages/schema"],
+
+    "@sphynx/server": ["@sphynx/server@workspace:apps/server"],
+
+    "@sphynx/template": ["@sphynx/template@workspace:packages/template"],
+
+    "@sphynx/ui": ["@sphynx/ui@workspace:packages/ui"],
+
+    "@sphynx/web": ["@sphynx/web@workspace:apps/web"],
+
+    "@sphynx/worker": ["@sphynx/worker@workspace:apps/worker"],
+
     "@stablelib/base64": ["@stablelib/base64@1.0.1", "", {}, "sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ=="],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
@@ -1907,8 +1908,6 @@
     "ajv-errors": ["ajv-errors@3.0.0", "", { "peerDependencies": { "ajv": "^8.0.1" } }, "sha512-V3wD15YHfHz6y0KdhYFjyy9vWtEVALT9UrxfN3zqlI6dMioHnJrqOYfyPKol3oqrnCM9uwkcdCwkJ0WUcbLMTQ=="],
 
     "ajv-formats": ["ajv-formats@3.0.1", "", { "dependencies": { "ajv": "^8.0.0" } }, "sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ=="],
-
-    "anpord": ["anpord@workspace:packages/sdk"],
 
     "ansi-colors": ["ansi-colors@4.1.3", "", {}, "sha512-/6w/C21Pm1A7aZitlI5Ni/2J6FFQN8i1Cvz3kHABAAbw93v/NlvKdVOqz7CCWz/3iv/JplRSEEZ83XION15ovw=="],
 
@@ -3639,6 +3638,8 @@
     "space-separated-tokens": ["space-separated-tokens@2.0.2", "", {}, "sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q=="],
 
     "speedline-core": ["speedline-core@1.4.3", "", { "dependencies": { "@types/node": "*", "image-ssim": "^0.2.0", "jpeg-js": "^0.4.1" } }, "sha512-DI7/OuAUD+GMpR6dmu8lliO2Wg5zfeh+/xsdyJZCzd8o5JgFUjCeLsBDuZjIQJdwXS3J0L/uZYrELKYqx+PXog=="],
+
+    "sphynx-sh": ["sphynx-sh@workspace:packages/sdk"],
 
     "split-on-first": ["split-on-first@3.0.0", "", {}, "sha512-qxQJTx2ryR0Dw0ITYyekNQWpz6f8dGd7vffGNflQQ3Iqj9NJ6qiZ7ELpZsJ/QBhIVAiDfXdag3+Gp8RvWa62AA=="],
 

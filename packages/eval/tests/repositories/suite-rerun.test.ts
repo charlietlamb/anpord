@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
 import { Effect, Option } from "effect";
 import { suiteRerunQuery } from "../../src/repositories/suite-rerun-query";
 import { seedOrganization, seedRun, seedTrial } from "../fixtures/eval-rows";

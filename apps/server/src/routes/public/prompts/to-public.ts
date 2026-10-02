@@ -1,12 +1,12 @@
 import type {
   PromptSummary,
   ResolvedPrompt,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import type {
   PublicPrompt,
   PublicPromptSummary,
   PublicVersion,
-} from "@anpord/schema/public/shapes";
+} from "@sphynx/schema/public/shapes";
 import { DateTime } from "effect";
 
 const instant = (value: Date) => DateTime.unsafeFromDate(new Date(value));

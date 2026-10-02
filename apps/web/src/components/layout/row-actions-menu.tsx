@@ -1,11 +1,11 @@
-import { Button } from "@anpord/ui/components/button";
+import { DotsThreeIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@anpord/ui/components/dropdown-menu";
-import { cn } from "@anpord/ui/lib/utils";
-import { DotsThreeIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/dropdown-menu";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 
 export function RowActionsMenu({

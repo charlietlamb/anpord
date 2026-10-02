@@ -112,7 +112,7 @@ describe("harness drivers", () => {
 });
 
 const SYSTEM_PROMPT = "Answer in one word.";
-const PROMPT_PATH = "/home/agent/.anpord/system-prompt.md";
+const PROMPT_PATH = "/home/agent/.sphynx/system-prompt.md";
 
 const withProfile = (
   files: Readonly<Record<string, string>>,

@@ -1,6 +1,5 @@
 "use client";
 
-import { cn, SPIN } from "@anpord/ui/lib/utils";
 import {
   CheckCircleIcon,
   InfoIcon,
@@ -8,6 +7,7 @@ import {
   WarningIcon,
   XCircleIcon,
 } from "@phosphor-icons/react";
+import { cn, SPIN } from "@sphynx/ui/lib/utils";
 import { useTheme } from "next-themes";
 import type * as React from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";

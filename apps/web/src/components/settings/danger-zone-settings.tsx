@@ -1,5 +1,5 @@
-import { Button } from "@anpord/ui/components/button";
-import { DetailList, DetailRow } from "@anpord/ui/components/ui/detail-list";
+import { Button } from "@sphynx/ui/components/button";
+import { DetailList, DetailRow } from "@sphynx/ui/components/ui/detail-list";
 import { PageHeader } from "@/components/layout/page-header";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { useDeleteOrganization } from "@/lib/use-delete-organization";

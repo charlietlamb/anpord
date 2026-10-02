@@ -2,8 +2,8 @@ import {
   PAGE_FRAME,
   PAGE_WIDTHS,
   type PageWidth,
-} from "@anpord/ui/lib/page-frame";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/lib/page-frame";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 

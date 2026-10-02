@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 const connected = async () => {
-  directory = await mkdtemp(join(tmpdir(), "anpord-mcp-"));
+  directory = await mkdtemp(join(tmpdir(), "sphynx-mcp-"));
   const journal = join(directory, "calls.jsonl");
   const definition = server({
     name: "example",
@@ -115,7 +115,7 @@ describe("MCP mocks", () => {
   });
 
   test("rejects handler output outside its schema", async () => {
-    directory = await mkdtemp(join(tmpdir(), "anpord-mcp-"));
+    directory = await mkdtemp(join(tmpdir(), "sphynx-mcp-"));
     const definition = server({
       name: "example",
       tools: [

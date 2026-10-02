@@ -1,4 +1,4 @@
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 
 const TEXT_LIMIT = 4000;
 const CONVERSATION_LIMIT = 48_000;

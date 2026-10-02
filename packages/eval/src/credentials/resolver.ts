@@ -1,5 +1,5 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Context, type Effect, type Redacted } from "effect";
 import type { CredentialError } from "./errors";
 
@@ -33,5 +33,5 @@ export interface CredentialResolverShape {
 }
 
 export class CredentialResolver extends Context.Tag(
-  "@anpord/eval/CredentialResolver"
+  "@sphynx/eval/CredentialResolver"
 )<CredentialResolver, CredentialResolverShape>() {}

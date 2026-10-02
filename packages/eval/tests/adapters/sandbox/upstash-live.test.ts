@@ -14,7 +14,7 @@ describe.skipIf(!hasUpstash)("an Upstash box the run is done with", () => {
           const sandbox = yield* adapter.open({
             autoStopMinutes: 5,
             provider: "upstash",
-            workspace: "/tmp/anpord-billing",
+            workspace: "/tmp/sphynx-billing",
           });
 
           yield* adapter.destroy(sandbox);

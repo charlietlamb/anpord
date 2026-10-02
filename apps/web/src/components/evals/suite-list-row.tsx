@@ -1,12 +1,12 @@
-import type { EvalSuiteSummary } from "@anpord/schema/domain/eval-read-models";
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
-import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
+import type { EvalSuiteSummary } from "@sphynx/schema/domain/eval-read-models";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
+import { EvalStatusBadge } from "@sphynx/ui/components/evals/eval-status-badge";
 import {
   DataTableChevron,
   DataTableRow,
-} from "@anpord/ui/components/ui/data-table";
-import { counted } from "@anpord/ui/lib/evals/counted";
-import { distributionStatus } from "@anpord/ui/lib/evals/eval-status";
+} from "@sphynx/ui/components/ui/data-table";
+import { counted } from "@sphynx/ui/lib/evals/counted";
+import { distributionStatus } from "@sphynx/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
 
 export function SuiteListRow({ suite }: { readonly suite: EvalSuiteSummary }) {

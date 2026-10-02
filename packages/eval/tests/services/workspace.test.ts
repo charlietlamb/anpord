@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import { Effect, Redacted, Stream } from "effect";
 import type { RequestedProfile } from "../../src/domain/harness-profile";
 import type { ExecChunk, SandboxHandle } from "../../src/ports/sandbox";
@@ -94,7 +94,7 @@ describe("a profile materialised around the workspace", () => {
       indexOf(steps, `write ${HOME}/.config/opencode/opencode.json`)
     ).toBeLessThan(indexOf(steps, "clone"));
     expect(
-      indexOf(steps, `write ${HOME}/.anpord/system-prompt.md`)
+      indexOf(steps, `write ${HOME}/.sphynx/system-prompt.md`)
     ).toBeLessThan(indexOf(steps, "clone"));
   });
 
@@ -120,7 +120,7 @@ describe("a profile materialised around the workspace", () => {
 
     expect(mkdirs).toEqual([
       `exec mkdir -p ${WORKSPACE}`,
-      `exec mkdir -p '${HOME}/.config/opencode' '${HOME}/.config/opencode/plugin' '${HOME}/.anpord'`,
+      `exec mkdir -p '${HOME}/.config/opencode' '${HOME}/.config/opencode/plugin' '${HOME}/.sphynx'`,
       `exec mkdir -p '${WORKSPACE}' '${WORKSPACE}/skills/one'`,
     ]);
   });
@@ -163,9 +163,9 @@ describe("the environment a profile cell runs under", () => {
 
   test("names the sandbox so a profile's own scripts can find it", async () => {
     expect(await envOf({})).toMatchObject({
-      ANPORD_HOME: HOME,
-      ANPORD_MODEL: "vendor/model",
-      ANPORD_WORKSPACE: WORKSPACE,
+      SPHYNX_HOME: HOME,
+      SPHYNX_MODEL: "vendor/model",
+      SPHYNX_WORKSPACE: WORKSPACE,
     });
   });
 

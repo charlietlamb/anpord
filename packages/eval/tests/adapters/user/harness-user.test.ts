@@ -1,13 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import { existsSync } from "node:fs";
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
-import { DEFAULT_MAX_TURNS } from "@anpord/schema/domain/eval-limits";
-import { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
+import { FetchHttpClient } from "@effect/platform";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
+import { DEFAULT_MAX_TURNS } from "@sphynx/schema/domain/eval-limits";
+import { EvalSimulatedUser } from "@sphynx/schema/domain/eval-turns";
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
-import { FetchHttpClient } from "@effect/platform";
+} from "@sphynx/schema/domain/harness-event";
 import {
   ConfigProvider,
   Effect,
@@ -30,7 +30,7 @@ import { HarnessVersions } from "../../../src/services/harness-versions";
 import { declinesEverything } from "../../fixtures/declines-everything";
 import "../../fixtures/local-root";
 
-const OWN_WORKSPACE = /^\/tmp\/anpord-user-[0-9a-f]+$/;
+const OWN_WORKSPACE = /^\/tmp\/sphynx-user-[0-9a-f]+$/;
 
 const credentialOf = (integrationId: string, connectionId: string) =>
   Redacted.make<ResolvedCredential>({
@@ -110,7 +110,7 @@ const onThisMachine = Layer.effect(
 ).pipe(
   Layer.provide(
     Layer.setConfigProvider(
-      ConfigProvider.fromMap(new Map([["ANPORD_LOCAL_SANDBOX", "true"]])).pipe(
+      ConfigProvider.fromMap(new Map([["SPHYNX_LOCAL_SANDBOX", "true"]])).pipe(
         ConfigProvider.orElse(ConfigProvider.fromEnv)
       )
     )

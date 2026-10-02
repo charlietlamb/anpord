@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import { HomePanel } from "@/components/home/home-panel";
 import { VerdictSquares } from "@/components/home/verdict-squares";
 import type { HomeView } from "@/lib/evals/home-view";

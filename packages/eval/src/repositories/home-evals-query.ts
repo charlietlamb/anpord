@@ -1,8 +1,8 @@
-import { Database } from "@anpord/db/client";
+import { Database } from "@sphynx/db/client";
 import type {
   EvalHomeEval,
   EvalHomeVerdict,
-} from "@anpord/schema/domain/eval-home";
+} from "@sphynx/schema/domain/eval-home";
 import { sql } from "drizzle-orm";
 import { DateTime, Effect, Option } from "effect";
 import { unscoredReasonOf } from "../domain/unscored-reason";

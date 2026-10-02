@@ -1,5 +1,5 @@
-import type { EvalCaseSummary } from "@anpord/schema/domain/eval-read-models";
-import { TooltipProvider } from "@anpord/ui/components/tooltip";
+import type { EvalCaseSummary } from "@sphynx/schema/domain/eval-read-models";
+import { TooltipProvider } from "@sphynx/ui/components/tooltip";
 import { createFileRoute } from "@tanstack/react-router";
 import { CASE_DETAIL } from "@/components/dev/case-fixtures";
 import { PreviewScreen } from "@/components/dev/preview-screen";

@@ -1,14 +1,14 @@
-import type { Database } from "@anpord/db/client";
-import { testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
-import { Actor, OrganizationId, UserId } from "@anpord/schema/domain/actor";
+import type { Database } from "@sphynx/db/client";
+import { testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
+import { Actor, OrganizationId, UserId } from "@sphynx/schema/domain/actor";
 import type {
   EvalCase,
   EvalVariantRequest,
   StartBatchRequest,
-} from "@anpord/schema/domain/eval-definition";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/eval-definition";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Effect, Layer, Option, Redacted } from "effect";
 import { BatchesLive } from "../../src/batch/batches";
 import { SourceTokensNone } from "../../src/codebase/source-token";

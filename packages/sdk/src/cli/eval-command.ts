@@ -1,5 +1,5 @@
-import { EvalCaseId } from "@anpord/schema/domain/eval-limits";
 import { Args, Command, Options } from "@effect/cli";
+import { EvalCaseId } from "@sphynx/schema/domain/eval-limits";
 import { Data, Effect, Option, Schema } from "effect";
 import { ClientLayer } from "../client/config";
 import type { HostedOptions } from "./batch-outcome";

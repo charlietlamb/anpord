@@ -169,11 +169,11 @@ export const CaseCache = Schema.Struct({
         const directory = value
           .split("/")
           .find((part) => part !== "" && part !== ".");
-        return directory !== undefined && directory !== ".anpord";
+        return directory !== undefined && directory !== ".sphynx";
       },
       {
         message: () =>
-          "a cache must name a subdirectory outside the reserved .anpord runtime",
+          "a cache must name a subdirectory outside the reserved .sphynx runtime",
       }
     )
   ),

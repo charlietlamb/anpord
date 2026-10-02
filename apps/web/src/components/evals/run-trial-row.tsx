@@ -1,13 +1,13 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalRun } from "@anpord/schema/domain/evals";
-import { AgeCell } from "@anpord/ui/components/evals/age-cell";
-import { EvalStatusBadge } from "@anpord/ui/components/evals/eval-status-badge";
-import { VariantCell } from "@anpord/ui/components/evals/variant-cell";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
+import { AgeCell } from "@sphynx/ui/components/evals/age-cell";
+import { EvalStatusBadge } from "@sphynx/ui/components/evals/eval-status-badge";
+import { VariantCell } from "@sphynx/ui/components/evals/variant-cell";
 import {
   DataTableChevron,
   DataTableRow,
-} from "@anpord/ui/components/ui/data-table";
-import { trialStatus } from "@anpord/ui/lib/evals/eval-status";
+} from "@sphynx/ui/components/ui/data-table";
+import { trialStatus } from "@sphynx/ui/lib/evals/eval-status";
 import { Link } from "@tanstack/react-router";
 import { SourceLabel } from "@/components/evals/source-label";
 import { trialVerdict } from "@/lib/evals/trial-verdict";

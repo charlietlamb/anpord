@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/e2e",
+  "name": "@sphynx/e2e",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,9 +9,9 @@
     "e2e": "bun run src/main.ts"
   },
   "dependencies": {
-    "@anpord/auth": "workspace:*",
-    "@anpord/schema": "workspace:*",
-    "anpord": "workspace:*",
+    "@sphynx/auth": "workspace:*",
+    "@sphynx/schema": "workspace:*",
+    "sphynx-sh": "workspace:*",
     "effect": "catalog:",
     "pg": "catalog:",
     "zod": "catalog:"

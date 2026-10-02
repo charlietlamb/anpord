@@ -1,8 +1,8 @@
-import { DOCS_ORIGIN } from "@anpord/schema/public/origins";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
-import { cn } from "@anpord/ui/lib/utils";
 import { ArrowRightIcon, BookOpenIcon } from "@phosphor-icons/react";
+import { DOCS_ORIGIN } from "@sphynx/schema/public/origins";
+import { buttonVariants } from "@sphynx/ui/lib/button-variants";
+import type { HeaderPreset } from "@sphynx/ui/lib/header-presets";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { ShortcutChip } from "@/components/layout/shortcut-chip";
@@ -20,7 +20,7 @@ export function HeaderActions({ preset }: { readonly preset: HeaderPreset }) {
       {preset.extra === "shortcut" && <ShortcutChip />}
 
       <a
-        aria-label="Anpord on GitHub"
+        aria-label="Sphynx on GitHub"
         className={cn(
           buttonVariants({ size: "icon-sm", variant: "ghost" }),
           preset.link,

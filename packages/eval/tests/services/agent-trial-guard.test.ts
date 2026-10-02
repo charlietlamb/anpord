@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { Effect, Layer, Option, Redacted, Stream } from "effect";
 import { layerTestResolver } from "../../src/credentials/layer-test-resolver";
 import { EvalStoreError } from "../../src/domain/errors";
@@ -105,7 +105,7 @@ const request: AgentTrialRequest = {
   provider: "daytona",
   source: { kind: "empty" },
   verifyCommand: "true",
-  workspace: "/tmp/anpord-task",
+  workspace: "/tmp/sphynx-task",
 };
 
 const runWith = (order: string[], extra: Partial<AgentTrialRequest>) =>

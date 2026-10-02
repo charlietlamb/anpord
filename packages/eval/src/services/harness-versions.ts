@@ -31,7 +31,7 @@ export interface HarnessVersionsShape {
 }
 
 export class HarnessVersions extends Context.Tag(
-  "@anpord/eval/HarnessVersions"
+  "@sphynx/eval/HarnessVersions"
 )<HarnessVersions, HarnessVersionsShape>() {}
 
 export const HarnessVersionsLive = Layer.effect(

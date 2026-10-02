@@ -1,8 +1,8 @@
-import type { Whoami } from "@anpord/schema/public/auth-api";
-import { type AnpordClient, make } from "@anpord/schema/public/client";
-import { API_ORIGIN } from "@anpord/schema/public/origins";
-import { render, type Variables } from "@anpord/template/render";
 import { FetchHttpClient } from "@effect/platform";
+import type { Whoami } from "@sphynx/schema/public/auth-api";
+import { make, type SphynxClient } from "@sphynx/schema/public/client";
+import { API_ORIGIN } from "@sphynx/schema/public/origins";
+import { render, type Variables } from "@sphynx/template/render";
 import { Cause, Effect, Exit, ManagedRuntime, Option, Redacted } from "effect";
 import { noopLayer } from "./cache/noop";
 import { layer, PromptCache } from "./cache/prompt-cache";
@@ -18,12 +18,12 @@ import type {
   PromptSelector,
 } from "./cache/types";
 import { apiKeyConfig } from "./config";
-import { asAnpordError, MissingApiKey } from "./errors";
+import { asSphynxError, MissingApiKey } from "./errors";
 import { type EvalsSurface, evalsSurface } from "./evals";
 import { type Promised, promised } from "./promised";
 import type { VariablesFor } from "./variables";
 
-export interface AnpordOptions {
+export interface SphynxOptions {
   readonly apiKey?: string;
   readonly baseUrl?: string;
 
@@ -43,10 +43,10 @@ const resolveApiKey = (provided: string | undefined) => {
   );
 };
 
-type Prompts = Promised<AnpordClient["prompts"]>;
+type Prompts = Promised<SphynxClient["prompts"]>;
 type Prompt = Awaited<ReturnType<Prompts["get"]>>;
 
-export type PromptResult = Prompt & { readonly anpord: PromptMetadata };
+export type PromptResult = Prompt & { readonly sphynx: PromptMetadata };
 
 export interface PromptsSurface extends Omit<Prompts, "get"> {
   readonly get: <const Id extends string, const Given extends Variables>(
@@ -57,14 +57,14 @@ export interface PromptsSurface extends Omit<Prompts, "get"> {
   ) => Promise<PromptResult>;
 }
 
-export class Anpord {
+export class Sphynx {
   readonly evals: EvalsSurface;
   readonly prompts: PromptsSurface;
   readonly whoami: () => Promise<Whoami>;
 
   private readonly runtime: ManagedRuntime.ManagedRuntime<PromptCache, never>;
 
-  constructor(options: AnpordOptions = {}) {
+  constructor(options: SphynxOptions = {}) {
     const apiKey = resolveApiKey(options.apiKey);
     const client = make({
       apiKey: Redacted.make(apiKey),
@@ -111,7 +111,7 @@ export class Anpord {
   private async resolve(options: GetPromptOptions): Promise<PromptResult> {
     const exit = await this.runtime.runPromiseExit(resolvePrompt(options));
     if (Exit.isFailure(exit)) {
-      throw asAnpordError(
+      throw asSphynxError(
         Cause.failureOption(exit.cause).pipe(
           Option.getOrElse(() => Cause.squash(exit.cause))
         )
@@ -128,7 +128,7 @@ export class Anpord {
             content: render(prompt.content, options.variables).content,
           };
 
-    return Object.defineProperty(value, "anpord", {
+    return Object.defineProperty(value, "sphynx", {
       enumerable: false,
       value: exit.value.metadata,
     }) as PromptResult;

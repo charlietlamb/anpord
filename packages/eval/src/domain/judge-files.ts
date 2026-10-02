@@ -1,4 +1,4 @@
-import type { EvalValidator } from "@anpord/schema/domain/eval-definition";
+import type { EvalValidator } from "@sphynx/schema/domain/eval-definition";
 
 export const JUDGE_FILE_LIMIT = 32_000;
 export const JUDGE_FILES_LIMIT = 96_000;

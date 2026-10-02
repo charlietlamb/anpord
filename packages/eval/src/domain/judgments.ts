@@ -1,5 +1,5 @@
-import type { EvalJudgment } from "@anpord/schema/domain/eval-judges";
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { EvalJudgment } from "@sphynx/schema/domain/eval-judges";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 
 export const judgmentsIn = (
   validations: readonly EvalValidation[]

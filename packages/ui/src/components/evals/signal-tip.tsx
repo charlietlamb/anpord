@@ -2,7 +2,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
+} from "@sphynx/ui/components/tooltip";
 import type { ReactNode } from "react";
 
 interface SignalTipProps {

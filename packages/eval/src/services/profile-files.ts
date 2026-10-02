@@ -20,7 +20,7 @@ export const MKDIR_TIMEOUT_MS = 60_000;
 export const WRITE_CONCURRENCY = 4;
 
 export const systemPromptPath = (home: string) =>
-  `${home}/.anpord/system-prompt.md`;
+  `${home}/.sphynx/system-prompt.md`;
 
 const parentOf = (path: string) => path.slice(0, path.lastIndexOf("/"));
 

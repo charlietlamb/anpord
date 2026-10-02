@@ -1,4 +1,4 @@
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
+import type { CredentialValues } from "@sphynx/schema/domain/credentials";
 import {
   Context,
   type Effect,
@@ -114,7 +114,7 @@ export interface SandboxProviderShape {
 }
 
 export class SandboxProvider extends Context.Tag(
-  "@anpord/eval/SandboxProvider"
+  "@sphynx/eval/SandboxProvider"
 )<SandboxProvider, SandboxProviderShape>() {}
 
 export interface SandboxAdapterShape {
@@ -131,7 +131,7 @@ export interface SandboxAdapterShape {
 }
 
 export class SandboxAdapters extends Context.Tag(
-  "@anpord/eval/SandboxAdapters"
+  "@sphynx/eval/SandboxAdapters"
 )<
   SandboxAdapters,
   {

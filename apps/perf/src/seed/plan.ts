@@ -2,8 +2,8 @@ import type {
   EvalCase,
   EvalVariantRequest,
   StartBatchRequest,
-} from "@anpord/schema/domain/eval-definition";
-import { MAX_RUN_TRIALS } from "@anpord/schema/domain/eval-quota";
+} from "@sphynx/schema/domain/eval-definition";
+import { MAX_RUN_TRIALS } from "@sphynx/schema/domain/eval-quota";
 
 export interface SeedPlan {
   readonly batchesPerSuite: number;

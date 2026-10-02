@@ -1,5 +1,11 @@
-import type { EvalSuite } from "@anpord/schema/domain/evals";
-import { Button } from "@anpord/ui/components/button";
+import {
+  FunnelSimpleIcon,
+  StackIcon,
+  TagIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import type { EvalSuite } from "@sphynx/schema/domain/evals";
+import { Button } from "@sphynx/ui/components/button";
 import {
   Command,
   CommandEmpty,
@@ -8,19 +14,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@anpord/ui/components/ui/command";
+} from "@sphynx/ui/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@anpord/ui/components/ui/popover";
-import { cn } from "@anpord/ui/lib/utils";
-import {
-  FunnelSimpleIcon,
-  StackIcon,
-  TagIcon,
-  XIcon,
-} from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/popover";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export function CaseFilterMenu({
   onClear,

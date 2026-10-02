@@ -1,15 +1,15 @@
 "use client";
 
-import { FieldInfo } from "@anpord/ui/components/form/field-info";
-import { Label } from "@anpord/ui/components/ui/label";
+import { XIcon } from "@phosphor-icons/react";
+import { FieldInfo } from "@sphynx/ui/components/form/field-info";
+import { Label } from "@sphynx/ui/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@anpord/ui/components/ui/select";
-import { useFieldContext } from "@anpord/ui/hooks/form-context";
-import { XIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/select";
+import { useFieldContext } from "@sphynx/ui/hooks/form-context";
 
 interface MultiSelectOption {
   label: string;

@@ -1,7 +1,7 @@
-import { EvalSandbox } from "@anpord/schema/domain/eval-definition";
-import { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
-import { DEFAULT_USER_MODEL } from "@anpord/schema/domain/eval-turns";
+import { EvalSandbox } from "@sphynx/schema/domain/eval-definition";
+import { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import type { EvalUser } from "@sphynx/schema/domain/eval-turns";
+import { DEFAULT_USER_MODEL } from "@sphynx/schema/domain/eval-turns";
 import { Config, Effect, Option, Schema } from "effect";
 import { MODEL_PROVIDERS } from "./model-providers";
 
@@ -19,7 +19,7 @@ export interface VariantIdentity {
   readonly userModel: string | null;
 }
 
-export const userModel = Config.string("ANPORD_USER_MODEL").pipe(
+export const userModel = Config.string("SPHYNX_USER_MODEL").pipe(
   Config.withDefault(DEFAULT_USER_MODEL),
   Effect.orDie
 );

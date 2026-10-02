@@ -1,10 +1,10 @@
-import { DitherField } from "@anpord/ui/components/ui/dither-field";
+import { DitherField } from "@sphynx/ui/components/ui/dither-field";
 import {
   CURRENT_DITHER,
   type DitherClumps,
   type DitherLayer,
   type DitherPreset,
-} from "@anpord/ui/lib/dither-presets";
+} from "@sphynx/ui/lib/dither-presets";
 import type { CSSProperties } from "react";
 
 const clumpsImage = ({

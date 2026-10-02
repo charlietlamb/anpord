@@ -2,7 +2,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
+} from "@sphynx/ui/components/tooltip";
 import { fileIcon } from "@/lib/evals/file-presentation";
 
 export function ChangedFileRow({ path }: { readonly path: string }) {

@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/db",
+  "name": "@sphynx/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,7 +28,7 @@
     "db:status": "bun scripts/status.ts"
   },
   "dependencies": {
-    "@anpord/schema": "workspace:*",
+    "@sphynx/schema": "workspace:*",
     "drizzle-orm": "catalog:",
     "effect": "catalog:",
     "pg": "catalog:"

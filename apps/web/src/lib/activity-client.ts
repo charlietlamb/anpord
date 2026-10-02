@@ -1,5 +1,5 @@
-import { PromptActivityPage } from "@anpord/schema/domain/prompt-activity";
-import type { PromptEventKind } from "@anpord/schema/domain/prompt-events";
+import { PromptActivityPage } from "@sphynx/schema/domain/prompt-activity";
+import type { PromptEventKind } from "@sphynx/schema/domain/prompt-events";
 import { createApiClient, searchOf } from "@/lib/api-client";
 
 const api = createApiClient("/api/activity");

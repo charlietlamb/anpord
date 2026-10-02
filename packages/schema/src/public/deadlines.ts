@@ -51,8 +51,8 @@ const notHeard = (
     cause,
     description:
       cause._tag === "Overdue"
-        ? "Anpord took too long to answer"
-        : "Anpord did not answer in time",
+        ? "Sphynx took too long to answer"
+        : "Sphynx did not answer in time",
     reason: "Transport",
     request,
   });

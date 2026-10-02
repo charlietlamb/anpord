@@ -1,8 +1,8 @@
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { IdGenerator } from "@anpord/ids/id";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { IdGenerator } from "@sphynx/ids/id";
 import { and, eq, exists, inArray, lt, sql } from "drizzle-orm";
 import { Clock, Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -29,7 +29,7 @@ export interface AbandonedWorkShape {
   ) => Effect.Effect<number, EvalStoreError>;
 }
 
-export class AbandonedWork extends Context.Tag("@anpord/eval/AbandonedWork")<
+export class AbandonedWork extends Context.Tag("@sphynx/eval/AbandonedWork")<
   AbandonedWork,
   AbandonedWorkShape
 >() {}

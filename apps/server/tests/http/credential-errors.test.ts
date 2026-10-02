@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { CredentialError } from "@anpord/eval/credentials/errors";
+import { CredentialError } from "@sphynx/eval/credentials/errors";
 import { Effect } from "effect";
 import { withCredentialErrors } from "../../src/http/credential-errors";
 

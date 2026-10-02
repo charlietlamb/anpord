@@ -1,7 +1,7 @@
-import type { EvalTailEvent } from "@anpord/schema/domain/eval-tail";
-import { isSettledTrial } from "@anpord/schema/domain/eval-trial";
-import type { EvalBatch } from "@anpord/schema/domain/evals";
-import { AnpordApi } from "@anpord/schema/public/client";
+import type { EvalTailEvent } from "@sphynx/schema/domain/eval-tail";
+import { isSettledTrial } from "@sphynx/schema/domain/eval-trial";
+import type { EvalBatch } from "@sphynx/schema/domain/evals";
+import { SphynxApi } from "@sphynx/schema/public/client";
 import { Clock, Data, Duration, Effect, Fiber, Ref, Stream } from "effect";
 import { followBatch } from "./batch-stream";
 
@@ -36,7 +36,7 @@ export const waitForBatch = (
   timeoutSeconds: number
 ) =>
   Effect.gen(function* () {
-    const api = yield* AnpordApi;
+    const api = yield* SphynxApi;
     const startedAt = yield* Clock.currentTimeMillis;
     const latest = yield* Ref.make<EvalBatch | null>(null);
 

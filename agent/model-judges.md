@@ -6,11 +6,11 @@ Braintrust separates the task from named scorers. Its LLM classifier accepts a p
 
 Its [scorer guidance](https://www.braintrust.dev/docs/best-practices/scorers) recommends explicit, narrow criteria and calibration against human-labeled examples. Deterministic checks remain useful alongside model judgments. Thresholds turn scores into pass conditions without discarding the underlying score.
 
-## Anpord decisions
+## Sphynx decisions
 
 - `judge({ ... })` is a serializable validator, not a model client or callback. Consumers do not need Effect.
 - `validate` composes code checks and judges. Existing single-function validators still work.
-- The model chooses a label. Anpord maps it to a declared score and compares it with an inclusive threshold.
+- The model chooses a label. Sphynx maps it to a declared score and compares it with an inclusive threshold.
 - Judge prompt, reference answer, model, scores, and thresholds participate in case identity. Stored runs retain their original definitions.
 - Failures are unscored, not zero or a pass. A trial with any judge error is void.
 - OpenAI uses the [Responses API's structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), without tools or response storage.
@@ -27,7 +27,7 @@ Offline tests cover authoring, compilation, choice mapping, invalid output, verd
 
 ### Release verification: 2026-09-06
 
-- Published `anpord@0.1.12` from `045e9a6`; installed it in the separate customer spike and passed its mock MCP and CLI tests and scoped strict typecheck.
+- Published `sphynx-sh@0.1.12` from `045e9a6`; installed it in the separate customer spike and passed its mock MCP and CLI tests and scoped strict typecheck.
 - Real Codex `gpt-5.6-sol` judges in E2B scored the positive arithmetic control 1 and the negative control 0.
 - Workspace checks and CI passed. The existing API/SDK/CLI integration suite passed 46/46 scenarios. A fresh Postgres database accepted the complete migration journal; database-backed tests passed.
 - Production has the validator and judgment columns. Trigger worker `20260906.6` executed both mock suites with Codex `0.153.4` and model `gpt-5.6-sol`.

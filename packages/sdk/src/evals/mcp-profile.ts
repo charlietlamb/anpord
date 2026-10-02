@@ -1,4 +1,4 @@
-import type { HarnessProfile } from "@anpord/schema/domain/harness-profile";
+import type { HarnessProfile } from "@sphynx/schema/domain/harness-profile";
 import { Effect } from "effect";
 import type { McpServerDefinition } from "../mcp/define";
 import { EvalDefinitionInvalid } from "./definition-errors";
@@ -38,7 +38,7 @@ export const compileMcpServers = (
         bundle(mcpEntry(ref, index), ref.entry, { minify: true }).pipe(
           Effect.map(({ source }) => ({
             ...packageProgram(
-              `workspace/.anpord/mcp/${index}`,
+              `workspace/.sphynx/mcp/${index}`,
               "server.mjs",
               source
             ),
@@ -59,7 +59,7 @@ export const withMcpServers = (
 
   const profile: HarnessProfile = variant.profile ?? {
     files: {},
-    name: "anpord-mcp",
+    name: "sphynx-mcp",
   };
   const files = { ...profile.files };
 

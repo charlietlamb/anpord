@@ -1,8 +1,8 @@
-import { layer } from "@anpord/schema/public/client";
-import { API_ORIGIN, WEB_ORIGIN } from "@anpord/schema/public/origins";
+import { layer } from "@sphynx/schema/public/client";
+import { API_ORIGIN, WEB_ORIGIN } from "@sphynx/schema/public/origins";
 import { Config, ConfigError, Effect, Either, Layer, Redacted } from "effect";
 
-const API_KEY = "ANPORD_API_KEY";
+const API_KEY = "SPHYNX_API_KEY";
 
 export const apiKeyConfig = Config.string(API_KEY).pipe(
   Config.mapOrFail((key) =>
@@ -12,11 +12,11 @@ export const apiKeyConfig = Config.string(API_KEY).pipe(
   )
 );
 
-export const baseUrlConfig = Config.string("ANPORD_BASE_URL").pipe(
+export const baseUrlConfig = Config.string("SPHYNX_BASE_URL").pipe(
   Config.withDefault(API_ORIGIN)
 );
 
-export const webUrlConfig = Config.string("ANPORD_WEB_URL").pipe(
+export const webUrlConfig = Config.string("SPHYNX_WEB_URL").pipe(
   Config.withDefault(WEB_ORIGIN)
 );
 

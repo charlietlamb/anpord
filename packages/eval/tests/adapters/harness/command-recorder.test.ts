@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import {
   COMMAND_RECORDER,
   traceToEvents,
@@ -91,13 +91,13 @@ describe("withoutReported", () => {
 
 describe("the recorder script", () => {
   it("installs nothing without a log to write to", () => {
-    expect(COMMAND_RECORDER).toContain('if [ -n "$ANPORD_TRACE_LOG" ]; then');
+    expect(COMMAND_RECORDER).toContain('if [ -n "$SPHYNX_TRACE_LOG" ]; then');
   });
 
   it("guards the trap against tracing itself", () => {
-    expect(COMMAND_RECORDER).toContain('[ -n "$ANPORD_TRACING" ] && return');
+    expect(COMMAND_RECORDER).toContain('[ -n "$SPHYNX_TRACING" ] && return');
     expect(COMMAND_RECORDER).toContain(
-      "anpord_trace* | anpord_escape*) return"
+      "sphynx_trace* | sphynx_escape*) return"
     );
   });
 

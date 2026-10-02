@@ -1,4 +1,3 @@
-import { cn } from "@anpord/ui/lib/utils";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -6,6 +5,7 @@ import {
   type Icon,
   WarningIcon,
 } from "@phosphor-icons/react";
+import { cn } from "@sphynx/ui/lib/utils";
 
 const SLOTS: Record<string, { Glyph: Icon; tone: string }> = {
   Arguments: { Glyph: ArrowUpIcon, tone: "text-muted-foreground" },

@@ -1,11 +1,11 @@
-import type { EvalArtifactMetadata } from "@anpord/schema/domain/eval-trial";
+import { CheckCircleIcon, MinusCircleIcon } from "@phosphor-icons/react";
+import type { EvalArtifactMetadata } from "@sphynx/schema/domain/eval-trial";
 import {
   DataTableChevron,
   DataTableRow,
-} from "@anpord/ui/components/ui/data-table";
-import { StatusBadge } from "@anpord/ui/components/ui/status-badge";
-import { bytes } from "@anpord/ui/lib/evals/duration";
-import { CheckCircleIcon, MinusCircleIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ui/data-table";
+import { StatusBadge } from "@sphynx/ui/components/ui/status-badge";
+import { bytes } from "@sphynx/ui/lib/evals/duration";
 import { fileIcon } from "@/lib/evals/file-presentation";
 
 export function TrialFileRow({

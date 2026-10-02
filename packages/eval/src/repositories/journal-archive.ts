@@ -1,8 +1,8 @@
-import { Database } from "@anpord/db/client";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalTrialJournal } from "@anpord/db/schema/evals/eval-trial-journal";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { Database } from "@sphynx/db/client";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import { evalTrialJournal } from "@sphynx/db/schema/evals/eval-trial-journal";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { asc, eq, inArray, lt, max, notInArray, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import { EvalStoreError } from "../domain/errors";
@@ -37,7 +37,7 @@ export interface JournalArchiveShape {
   >;
 }
 
-export class JournalArchive extends Context.Tag("@anpord/eval/JournalArchive")<
+export class JournalArchive extends Context.Tag("@sphynx/eval/JournalArchive")<
   JournalArchive,
   JournalArchiveShape
 >() {}

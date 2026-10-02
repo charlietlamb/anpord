@@ -1,7 +1,7 @@
 import type {
   CredentialConnection,
   CredentialIntegration,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { DateTime } from "effect";
 import type { MemberSummary } from "@/components/organization/member-row";
 
@@ -63,13 +63,13 @@ export const MEMBERS = [
     createdAt: new Date(NOW - 40 * DAY),
     id: "mem_1",
     role: "owner",
-    user: { email: "charlie@anpord.com", image: null, name: "Charlie Lamb" },
+    user: { email: "charlie@sphynx.sh", image: null, name: "Charlie Lamb" },
   },
   {
     createdAt: new Date(NOW - 3 * DAY),
     id: "mem_2",
     role: "member",
-    user: { email: "sam@anpord.com", image: null, name: "" },
+    user: { email: "sam@sphynx.sh", image: null, name: "" },
   },
 ] satisfies readonly MemberSummary[];
 

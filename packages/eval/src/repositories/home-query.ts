@@ -1,9 +1,9 @@
-import { Database } from "@anpord/db/client";
+import { Database } from "@sphynx/db/client";
 import type {
   EvalHome,
   EvalHomeDay,
   EvalHomeRange,
-} from "@anpord/schema/domain/eval-home";
+} from "@sphynx/schema/domain/eval-home";
 import { sql } from "drizzle-orm";
 import { Clock, Duration, Effect } from "effect";
 import { dollarsOf } from "../domain/cost-arithmetic";

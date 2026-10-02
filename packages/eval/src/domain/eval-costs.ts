@@ -2,7 +2,7 @@ import type {
   CostClassification,
   CostComponentName,
   EvalCosts,
-} from "@anpord/schema/domain/eval-costs";
+} from "@sphynx/schema/domain/eval-costs";
 import { Option } from "effect";
 import { dollarsOf, summaryOf } from "./cost-arithmetic";
 import {

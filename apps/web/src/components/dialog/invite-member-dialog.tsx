@@ -1,4 +1,4 @@
-import { FormDialog } from "@anpord/ui/components/dialog/form-dialog";
+import { FormDialog } from "@sphynx/ui/components/dialog/form-dialog";
 import { useDialog, useDialogOpen } from "@/lib/dialog/dialogs";
 import {
   MEMBER_ROLES,

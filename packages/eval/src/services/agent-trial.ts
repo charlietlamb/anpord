@@ -1,25 +1,25 @@
 import type {
   CredentialValues,
   ResolvedCredential,
-} from "@anpord/schema/domain/credentials";
-import type { EvalTurn } from "@anpord/schema/domain/eval-conversation";
+} from "@sphynx/schema/domain/credentials";
+import type { EvalTurn } from "@sphynx/schema/domain/eval-conversation";
 import type {
   EvalPrepare,
   EvalSource,
   EvalValidator,
-} from "@anpord/schema/domain/eval-definition";
+} from "@sphynx/schema/domain/eval-definition";
 import {
   DEFAULT_MAX_TURNS,
   DEFAULT_TIMEOUT_MS,
-} from "@anpord/schema/domain/eval-limits";
-import type { EvalArtifact } from "@anpord/schema/domain/eval-trial";
-import type { EvalUser } from "@anpord/schema/domain/eval-turns";
+} from "@sphynx/schema/domain/eval-limits";
+import type { EvalArtifact } from "@sphynx/schema/domain/eval-trial";
+import type { EvalUser } from "@sphynx/schema/domain/eval-turns";
 import type {
   HarnessEvent,
   HarnessUsage,
   ModelSpend,
-} from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import {
   Chunk,
   Clock,
@@ -136,7 +136,7 @@ export interface AgentTrialShape {
   >;
 }
 
-export class AgentTrial extends Context.Tag("@anpord/eval/AgentTrial")<
+export class AgentTrial extends Context.Tag("@sphynx/eval/AgentTrial")<
   AgentTrial,
   AgentTrialShape
 >() {}

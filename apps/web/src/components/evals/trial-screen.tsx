@@ -1,4 +1,4 @@
-import type { EvalTrialAddress } from "@anpord/schema/domain/eval-read-models";
+import type { EvalTrialAddress } from "@sphynx/schema/domain/eval-read-models";
 import { useQuery } from "@tanstack/react-query";
 import { LiveTail } from "@/components/evals/live-tail";
 import { TrialPlaceholder } from "@/components/evals/trial-placeholder";

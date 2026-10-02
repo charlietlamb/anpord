@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import { Either, Schema } from "effect";
 
 const decode = Schema.decodeUnknownEither(HarnessEvent);

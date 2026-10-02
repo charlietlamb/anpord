@@ -1,8 +1,8 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { IntegrationAwareness } from "@anpord/schema/domain/credentials";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { IntegrationAwareness } from "@sphynx/schema/domain/credentials";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import { tryStore } from "../repositories/query";
@@ -87,7 +87,7 @@ export interface CredentialConnectionRepositoryShape {
 }
 
 export class CredentialConnectionRepository extends Context.Tag(
-  "@anpord/eval/CredentialConnectionRepository"
+  "@sphynx/eval/CredentialConnectionRepository"
 )<CredentialConnectionRepository, CredentialConnectionRepositoryShape>() {}
 
 const firstOrNotFound = (rows: readonly ConnectionRow[]) =>

@@ -17,14 +17,14 @@ const inLocalRoot = (root: string) =>
   Effect.withConfigProvider(
     ConfigProvider.fromMap(
       new Map([
-        ["ANPORD_LOCAL_SANDBOX", "true"],
-        ["ANPORD_LOCAL_ROOT", join(root, "store")],
+        ["SPHYNX_LOCAL_SANDBOX", "true"],
+        ["SPHYNX_LOCAL_ROOT", join(root, "store")],
       ])
     ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()))
   );
 
 const timedLongCommand = async (command: string) => {
-  const root = await mkdtemp(join(tmpdir(), "anpord-settled-"));
+  const root = await mkdtemp(join(tmpdir(), "sphynx-settled-"));
   roots.push(root);
 
   return Effect.gen(function* () {

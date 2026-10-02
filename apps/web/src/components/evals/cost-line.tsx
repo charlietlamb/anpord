@@ -1,10 +1,4 @@
 import {
-  COST_COMPONENT_LABELS,
-  type EvalCostComponent,
-} from "@anpord/schema/domain/eval-costs";
-import { RailFact } from "@anpord/ui/components/ui/rail-fact";
-import { count } from "@anpord/ui/lib/evals/duration";
-import {
   CpuIcon,
   CurrencyDollarIcon,
   RobotIcon,
@@ -12,6 +6,12 @@ import {
   StackIcon,
   UserIcon,
 } from "@phosphor-icons/react";
+import {
+  COST_COMPONENT_LABELS,
+  type EvalCostComponent,
+} from "@sphynx/schema/domain/eval-costs";
+import { RailFact } from "@sphynx/ui/components/ui/rail-fact";
+import { count } from "@sphynx/ui/lib/evals/duration";
 import { dollars } from "@/lib/evals/tokens";
 
 const ICONS = {

@@ -1,17 +1,17 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { createHash } from "node:crypto";
-import { Database } from "@anpord/db/client";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { skipWithoutDatabase, testDatabase } from "@anpord/db/test-database";
-import { IdGeneratorLive } from "@anpord/ids/layer";
+import { Database } from "@sphynx/db/client";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { skipWithoutDatabase, testDatabase } from "@sphynx/db/test-database";
+import { IdGeneratorLive } from "@sphynx/ids/layer";
 import {
   type EvalValidation,
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
-import type { TrialOutcome } from "@anpord/schema/domain/trial";
+} from "@sphynx/schema/domain/eval-validations";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
+import type { TrialOutcome } from "@sphynx/schema/domain/trial";
 import { eq } from "drizzle-orm";
 import { Effect, Layer, Option } from "effect";
 import { judgmentsIn } from "../../src/domain/judgments";

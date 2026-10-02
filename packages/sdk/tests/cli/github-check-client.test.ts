@@ -20,8 +20,8 @@ const context: GithubContext = {
 
 const check: CheckRun = {
   conclusion: "success",
-  details_url: "https://anpord.test/evals/run_1",
-  name: "anpord",
+  details_url: "https://sphynx.test/evals/run_1",
+  name: "sphynx",
   output: { summary: "| a |", title: "No cell regressed" },
 };
 

@@ -1,5 +1,5 @@
-import type { StepReading } from "@anpord/schema/domain/verify-steps";
-import { InlineCode } from "@anpord/ui/components/ui/inline-code";
+import type { StepReading } from "@sphynx/schema/domain/verify-steps";
+import { InlineCode } from "@sphynx/ui/components/ui/inline-code";
 
 export function VerifyReading({
   reading,

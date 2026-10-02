@@ -20,10 +20,10 @@ export const tallyOf = (files: readonly YamlCaseFile[]): ImportTally => ({
   ),
 });
 
-/* Anpord has no step budget, so the source suite's number survives as a note
+/* Sphynx has no step budget, so the source suite's number survives as a note
    rather than being dropped. */
 const budgetComment = (subject: YamlCase) =>
-  `      /* The file allowed ${subject.max_steps} steps. Anpord does not cap steps, so this is a note, not a limit. */`;
+  `      /* The file allowed ${subject.max_steps} steps. Sphynx does not cap steps, so this is a note, not a limit. */`;
 
 const UNJUDGED =
   "This case named no judge context. Write what a good answer is.";
@@ -71,7 +71,7 @@ const suiteName = (files: readonly YamlCaseFile[]) =>
 
 export const renderYamlSuite = (files: readonly YamlCaseFile[]) =>
   `${[
-    'import { suite, files } from "anpord";',
+    'import { suite, files } from "sphynx-sh";',
     "",
     placeholderBlock,
     "",

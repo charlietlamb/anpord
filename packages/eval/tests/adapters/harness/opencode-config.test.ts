@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { opencodeConfigContent } from "../../../src/adapters/harness/opencode-config";
 
-const PROMPT = "/home/agent/.anpord/system-prompt.md";
+const PROMPT = "/home/agent/.sphynx/system-prompt.md";
 
 const decoded = (env: Readonly<Record<string, string>>) =>
   JSON.parse(opencodeConfigContent(env, PROMPT)) as Record<string, unknown>;

@@ -1,6 +1,6 @@
-import type { Tx } from "@anpord/db/query";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import type { IdempotencyKey } from "@anpord/schema/public/runner-api";
+import type { Tx } from "@sphynx/db/query";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import type { IdempotencyKey } from "@sphynx/schema/public/runner-api";
 import { and, count, eq, sql } from "drizzle-orm";
 
 export type Refusal =

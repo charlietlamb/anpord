@@ -1,5 +1,5 @@
-import type { CredentialValues } from "@anpord/schema/domain/credentials";
 import { HttpClient, HttpClientRequest as Request } from "@effect/platform";
+import type { CredentialValues } from "@sphynx/schema/domain/credentials";
 import { Effect, Schema } from "effect";
 import { shellQuote } from "../harness/process";
 import { configuration, decoded, environment } from "./cloudflare-bridge";

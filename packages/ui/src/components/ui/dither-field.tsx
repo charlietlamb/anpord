@@ -1,5 +1,5 @@
-import { useReducedMotion } from "@anpord/ui/hooks/use-reduced-motion";
-import { cn } from "@anpord/ui/lib/utils";
+import { useReducedMotion } from "@sphynx/ui/hooks/use-reduced-motion";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
 import type { CSSProperties } from "react";
 

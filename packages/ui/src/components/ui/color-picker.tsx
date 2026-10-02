@@ -1,4 +1,4 @@
-import { ChannelColor } from "@anpord/schema/domain/channels";
+import { ChannelColor } from "@sphynx/schema/domain/channels";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Button } from "../button";
 import { CHANNEL_SWATCHES } from "../../lib/channel-colors";

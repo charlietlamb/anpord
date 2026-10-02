@@ -1,5 +1,5 @@
-import { PageHeading } from "@anpord/ui/components/ui/page-heading";
-import { Surface } from "@anpord/ui/components/ui/surface";
+import { PageHeading } from "@sphynx/ui/components/ui/page-heading";
+import { Surface } from "@sphynx/ui/components/ui/surface";
 import type { ReactNode } from "react";
 
 export function PanelCard({

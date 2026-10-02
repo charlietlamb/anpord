@@ -1,13 +1,13 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { RerunPlan } from "@anpord/schema/domain/eval-rerun";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import type { StartedBatch } from "@anpord/schema/domain/evals";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import type { RerunPlan } from "@sphynx/schema/domain/eval-rerun";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
 import type {
   CredentialLease,
   IdempotencyKey,
   ReportedTrial,
-} from "@anpord/schema/public/runner-api";
+} from "@sphynx/schema/public/runner-api";
 import { Context, Effect, Layer } from "effect";
 import type { CredentialError } from "../credentials/errors";
 import type {
@@ -74,7 +74,7 @@ export interface BatchesShape {
   ) => Effect.Effect<Start, CredentialError | StartRefused>;
 }
 
-export class Batches extends Context.Tag("@anpord/eval/Batches")<
+export class Batches extends Context.Tag("@sphynx/eval/Batches")<
   Batches,
   BatchesShape
 >() {}

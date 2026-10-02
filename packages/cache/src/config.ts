@@ -6,7 +6,7 @@ export interface CacheConfigShape {
   readonly url: Option.Option<Redacted<string>>;
 }
 
-export class CacheConfig extends Context.Tag("@anpord/cache/CacheConfig")<
+export class CacheConfig extends Context.Tag("@sphynx/cache/CacheConfig")<
   CacheConfig,
   CacheConfigShape
 >() {}

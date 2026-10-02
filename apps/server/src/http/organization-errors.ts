@@ -1,8 +1,8 @@
 import type {
   OrganizationMissing,
   OrganizationStoreError,
-} from "@anpord/auth/organization/errors";
-import { InternalError, NotFound } from "@anpord/schema/domain/errors";
+} from "@sphynx/auth/organization/errors";
+import { InternalError, NotFound } from "@sphynx/schema/domain/errors";
 import { Effect } from "effect";
 
 type OrganizationDomainError = OrganizationMissing | OrganizationStoreError;

@@ -67,9 +67,9 @@ describe("naming a variant", () => {
   });
 
   it.each([
-    "anpord-api",
-    "anpord-cli",
-    "anpord-mcp",
+    "sphynx-api",
+    "sphynx-cli",
+    "sphynx-mcp",
   ])("omits the generated %s profile from the label", (name) => {
     expect(
       harnessLabel("codex", "0.153.4", { name, version: "a1b2c3d4" })

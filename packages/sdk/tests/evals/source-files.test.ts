@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { EvalValidator } from "@anpord/schema/domain/eval-definition";
+import { EvalValidator } from "@sphynx/schema/domain/eval-definition";
 import { Schema } from "effect";
 import { compileEval } from "../../src/evals/compiler";
 
@@ -14,7 +14,7 @@ afterEach(async () => {
 });
 
 const create = async (captureSource = true) => {
-  workspace = await mkdtemp(join(tmpdir(), "anpord-source-"));
+  workspace = await mkdtemp(join(tmpdir(), "sphynx-source-"));
   await mkdir(join(workspace, "evals"));
   await writeFile(join(workspace, "package.json"), '{"type":"module"}');
   await writeFile(join(workspace, ".env"), "NOT_SOURCE=private");
@@ -24,12 +24,12 @@ const create = async (captureSource = true) => {
   );
   await writeFile(
     join(workspace, "check.ts"),
-    'import type { Validator } from "anpord";\r\n\r\n// Exact formatting ✓\r\nexport const check: Validator = () => true;\r\n'
+    'import type { Validator } from "sphynx-sh";\r\n\r\n// Exact formatting ✓\r\nexport const check: Validator = () => true;\r\n'
   );
   const entry = join(workspace, "evals/example.eval.ts");
   await writeFile(
     entry,
-    `import { suite, empty } from "anpord";
+    `import { suite, empty } from "sphynx-sh";
 import { check } from "../check";
 export default suite({
   id: "fixture",

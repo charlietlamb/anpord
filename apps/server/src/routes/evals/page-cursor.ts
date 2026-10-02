@@ -1,4 +1,4 @@
-import type { EvalPageCursor } from "@anpord/schema/domain/eval-read-models";
+import type { EvalPageCursor } from "@sphynx/schema/domain/eval-read-models";
 
 export const cursorOf = (params: {
   readonly cursorId?: string | undefined;

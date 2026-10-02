@@ -1,4 +1,4 @@
-import type { ResolvedPrompt } from "@anpord/schema/domain/prompts";
+import type { ResolvedPrompt } from "@sphynx/schema/domain/prompts";
 import { useState } from "react";
 
 type Selection =

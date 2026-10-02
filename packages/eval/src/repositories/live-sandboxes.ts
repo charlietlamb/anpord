@@ -1,8 +1,8 @@
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { evalVariant } from "@anpord/db/schema/evals/eval-variants";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { evalVariant } from "@sphynx/db/schema/evals/eval-variants";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import type { EvalStoreError } from "../domain/errors";
@@ -26,7 +26,7 @@ export interface LiveSandboxesShape {
   ) => Effect.Effect<readonly LiveSandbox[], EvalStoreError>;
 }
 
-export class LiveSandboxes extends Context.Tag("@anpord/eval/LiveSandboxes")<
+export class LiveSandboxes extends Context.Tag("@sphynx/eval/LiveSandboxes")<
   LiveSandboxes,
   LiveSandboxesShape
 >() {}

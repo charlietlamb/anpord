@@ -1,17 +1,17 @@
-import { credentialResolverFrom } from "@anpord/eval/credentials/env-resolver";
-import { caseDefinitionOf } from "@anpord/eval/domain/case-definition";
-import { profileOfRequest } from "@anpord/eval/domain/harness-profile";
-import { asEntries } from "@anpord/eval/domain/journal-entries";
-import { EvalLocalLive, evalLocalWith } from "@anpord/eval/local-layer";
-import { HarnessVersions } from "@anpord/eval/services/harness-versions";
-import { LocalTrials } from "@anpord/eval/services/local-trial";
+import { credentialResolverFrom } from "@sphynx/eval/credentials/env-resolver";
+import { caseDefinitionOf } from "@sphynx/eval/domain/case-definition";
+import { profileOfRequest } from "@sphynx/eval/domain/harness-profile";
+import { asEntries } from "@sphynx/eval/domain/journal-entries";
+import { EvalLocalLive, evalLocalWith } from "@sphynx/eval/local-layer";
+import { HarnessVersions } from "@sphynx/eval/services/harness-versions";
+import { LocalTrials } from "@sphynx/eval/services/local-trial";
 import type {
   EvalCase,
   EvalVariantRequest,
   StartBatchRequest,
-} from "@anpord/schema/domain/eval-definition";
-import type { EvalHarness } from "@anpord/schema/domain/eval-trial";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/eval-definition";
+import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import {
   Array as Arr,
   Cause,
@@ -71,7 +71,7 @@ const casesAtOnce = Config.string("EVAL_LOCAL_CASES_AT_ONCE").pipe(
 
 const localConfig = ConfigProvider.fromEnv().pipe(
   ConfigProvider.orElse(() =>
-    ConfigProvider.fromMap(new Map([["ANPORD_LOCAL_SANDBOX", "true"]]))
+    ConfigProvider.fromMap(new Map([["SPHYNX_LOCAL_SANDBOX", "true"]]))
   )
 );
 

@@ -13,7 +13,7 @@ const openOne = (entries: Readonly<Record<string, string>>) =>
       adapter.open({
         autoStopMinutes: 1,
         provider: "local",
-        workspace: "/tmp/anpord-gate",
+        workspace: "/tmp/sphynx-gate",
       })
     ),
     withEnv(entries),
@@ -31,7 +31,7 @@ describe("the local sandbox gate", () => {
   });
 
   it("refuses to open when the opt-in is off", async () => {
-    const exit = await openOne({ ANPORD_LOCAL_SANDBOX: "false" });
+    const exit = await openOne({ SPHYNX_LOCAL_SANDBOX: "false" });
 
     expect(Exit.isFailure(exit)).toBe(true);
   });
@@ -43,7 +43,7 @@ describe("the local sandbox gate", () => {
       ? JSON.stringify(exit.cause)
       : "it opened";
 
-    expect(reason).toContain("ANPORD_LOCAL_SANDBOX");
+    expect(reason).toContain("SPHYNX_LOCAL_SANDBOX");
   });
 
   it("reports itself rather than standing in for a cloud provider", async () => {

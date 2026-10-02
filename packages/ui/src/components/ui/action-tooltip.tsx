@@ -2,9 +2,9 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@anpord/ui/components/tooltip";
-import { Kbd } from "@anpord/ui/components/ui/kbd";
-import { useMetaKeyLabel } from "@anpord/ui/hooks/use-meta-key-label";
+} from "@sphynx/ui/components/tooltip";
+import { Kbd } from "@sphynx/ui/components/ui/kbd";
+import { useMetaKeyLabel } from "@sphynx/ui/hooks/use-meta-key-label";
 import type { ReactElement, ReactNode } from "react";
 
 interface ActionTooltipProps {

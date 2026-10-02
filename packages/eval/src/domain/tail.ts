@@ -1,5 +1,5 @@
-import type { EvalTailMark } from "@anpord/schema/domain/eval-tail";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { EvalTailMark } from "@sphynx/schema/domain/eval-tail";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 
 export interface TailEvent extends EvalTailMark {
   readonly event: HarnessEvent;

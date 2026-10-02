@@ -1,4 +1,4 @@
-import { handleMutationResult } from "@anpord/ui/lib/mutation-result";
+import { handleMutationResult } from "@sphynx/ui/lib/mutation-result";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { signOut } from "@/lib/auth-client";

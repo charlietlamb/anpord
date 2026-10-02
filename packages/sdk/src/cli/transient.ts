@@ -1,5 +1,5 @@
-import { neverAnswered } from "@anpord/schema/public/deadlines";
 import { HttpClientError } from "@effect/platform";
+import { neverAnswered } from "@sphynx/schema/public/deadlines";
 import { Duration, Effect, Schedule, ScheduleDecision } from "effect";
 import { note } from "./render";
 
@@ -21,7 +21,7 @@ const whileTransient = Schedule.exponential(Duration.millis(500)).pipe(
   Schedule.whileInput(isTransient),
   Schedule.onDecision((_, decision) =>
     ScheduleDecision.isContinue(decision)
-      ? note("Anpord is not answering. Trying again.")
+      ? note("Sphynx is not answering. Trying again.")
       : Effect.void
   )
 );

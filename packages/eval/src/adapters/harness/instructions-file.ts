@@ -10,7 +10,7 @@ export const instructionsPrefix = (request: RunHarness): string =>
     onNone: () => "",
     onSome: (path) => {
       const file = `${request.workspace}/${instructionsFileOf(request.harness)}`;
-      const staged = shellQuote(`${file}.anpord`);
+      const staged = shellQuote(`${file}.sphynx`);
 
       return [
         `{ cat ${shellQuote(path)}; printf '\\n\\n---\\n\\n';`,

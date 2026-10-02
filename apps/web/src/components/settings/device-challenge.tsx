@@ -1,7 +1,7 @@
-import type { DeviceAuthChallenge } from "@anpord/schema/domain/credentials";
-import { CopyButton } from "@anpord/ui/components/copy-button";
-import { Surface } from "@anpord/ui/components/ui/surface";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import type { DeviceAuthChallenge } from "@sphynx/schema/domain/credentials";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
+import { Surface } from "@sphynx/ui/components/ui/surface";
 
 export function DeviceChallenge({
   challenge,

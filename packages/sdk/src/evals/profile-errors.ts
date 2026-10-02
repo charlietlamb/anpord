@@ -1,4 +1,4 @@
-import { PROFILE_LIMITS } from "@anpord/schema/domain/harness-profile";
+import { PROFILE_LIMITS } from "@sphynx/schema/domain/harness-profile";
 import { Data } from "effect";
 
 export class ProfileDirectoryUnreadable extends Data.TaggedError(

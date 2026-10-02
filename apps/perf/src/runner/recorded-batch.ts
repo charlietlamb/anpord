@@ -1,6 +1,6 @@
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
-import type { EvalBatch, StartedBatch } from "@anpord/schema/domain/evals";
-import type { HarnessEvent } from "@anpord/schema/domain/harness-event";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
+import type { EvalBatch, StartedBatch } from "@sphynx/schema/domain/evals";
+import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import type { Stack } from "../stack/stack";
 import type { RecordedSpan, spanRecorder } from "./span-recorder";
 import type { LocalTrialResult, RunnerTarget } from "./target";

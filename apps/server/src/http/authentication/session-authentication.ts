@@ -1,15 +1,15 @@
-import { Auth } from "@anpord/auth";
+import { HttpApiBuilder, HttpServerRequest } from "@effect/platform";
+import { Auth } from "@sphynx/auth";
 import {
   OrganizationStore,
   type OrganizationStoreShape,
-} from "@anpord/auth/organization";
-import { Actor } from "@anpord/schema/domain/actor";
+} from "@sphynx/auth/organization";
+import { Actor } from "@sphynx/schema/domain/actor";
 import {
   permissionsForPlatformRole,
   permissionsForRole,
-} from "@anpord/schema/domain/permissions";
-import { Authentication } from "@anpord/schema/internal/authentication";
-import { HttpApiBuilder, HttpServerRequest } from "@effect/platform";
+} from "@sphynx/schema/domain/permissions";
+import { Authentication } from "@sphynx/schema/internal/authentication";
 import {
   Cache,
   Config,

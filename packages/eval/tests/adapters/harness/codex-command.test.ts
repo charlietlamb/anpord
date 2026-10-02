@@ -15,7 +15,7 @@ const request = (overrides: Partial<RunHarness> = {}): RunHarness =>
     prompt: "add a footer",
     sandbox: declinesEverything as RunHarness["sandbox"],
     systemPromptPath: Option.none(),
-    workspace: "/tmp/anpord-task",
+    workspace: "/tmp/sphynx-task",
     ...overrides,
   }) as RunHarness;
 
@@ -49,7 +49,7 @@ describe("the codex command", () => {
   });
 
   it("keeps a hostile model to one argument", async () => {
-    const hostile = "x'; touch /tmp/anpord-pwned; echo '";
+    const hostile = "x'; touch /tmp/sphynx-pwned; echo '";
 
     expect(
       await argumentsOf(codexCommand(request({ model: hostile })))
@@ -57,7 +57,7 @@ describe("the codex command", () => {
   });
 
   it("keeps a hostile prompt to one argument", async () => {
-    const hostile = "y'; touch /tmp/anpord-pwned; echo '";
+    const hostile = "y'; touch /tmp/sphynx-pwned; echo '";
 
     expect(
       await argumentsOf(codexCommand(request({ prompt: hostile })))
@@ -73,7 +73,7 @@ describe("the codex command", () => {
 
   it("never lets subscription authentication override an explicit model", () => {
     expect(
-      codexCommand(request({ env: { ANPORD_CODEX_ACCOUNT_MODEL: "1" } }))
+      codexCommand(request({ env: { SPHYNX_CODEX_ACCOUNT_MODEL: "1" } }))
     ).toContain("--model 'gpt-5.6-sol'");
   });
 

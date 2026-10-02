@@ -1,16 +1,16 @@
-import { CredentialConnections } from "@anpord/eval/credentials/connections";
-import { DeviceAuth } from "@anpord/eval/credentials/device-auth";
-import { credentialIntegrations } from "@anpord/eval/credentials/integrations";
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { AnpordApi } from "@anpord/schema/internal/api";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
+import { CredentialConnections } from "@sphynx/eval/credentials/connections";
+import { DeviceAuth } from "@sphynx/eval/credentials/device-auth";
+import { credentialIntegrations } from "@sphynx/eval/credentials/integrations";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { SphynxApi } from "@sphynx/schema/internal/api";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withCredentialErrors } from "../../../http/credential-errors";
 
 export const CredentialsHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "credentials",
   (handlers) =>
     authorized(handlers)

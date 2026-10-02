@@ -1,13 +1,13 @@
 import type {
   EvalArtifactMetadata,
   EvalArtifactRequest,
-} from "@anpord/schema/domain/eval-trial";
-import { CopyButton } from "@anpord/ui/components/copy-button";
-import { CodeContent } from "@anpord/ui/components/ui/code-content";
+} from "@sphynx/schema/domain/eval-trial";
+import { CopyButton } from "@sphynx/ui/components/copy-button";
+import { CodeContent } from "@sphynx/ui/components/ui/code-content";
 import {
   CODE_FRAME_ACTION,
   CodeFrame,
-} from "@anpord/ui/components/ui/code-frame";
+} from "@sphynx/ui/components/ui/code-frame";
 import { useQuery } from "@tanstack/react-query";
 import { ArtifactPending } from "@/components/evals/artifact-pending";
 import { codeLanguage } from "@/lib/evals/code-language";

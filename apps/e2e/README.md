@@ -1,4 +1,4 @@
-# @anpord/e2e
+# @sphynx/e2e
 
 End-to-end scenarios that drive the API, the SDK, and the CLI against a real
 server and a real database.
@@ -15,7 +15,7 @@ bun run e2e -- --stop # run everything, then stop the test cluster
    runs reuse the same cluster. Your own Postgres and other worktrees' clusters
    keep their ports and data: the harness checks the data directory a port
    reports, and refuses to touch any cluster it did not start.
-2. Drops and recreates `anpord_e2e`, then applies the real migrations, so a run
+2. Drops and recreates `sphynx_e2e`, then applies the real migrations, so a run
    also proves the journal applies cleanly from nothing.
 3. Seeds two organizations. The second exists so tenant isolation is something a
    scenario can actually check rather than assume.
@@ -32,7 +32,7 @@ run, so start one against the test database first:
 
 ```bash
 PG_PORT=$(node -p "require('./.e2e/postgres.json').port")
-cd ../server && DATABASE_URL=postgresql://postgres@127.0.0.1:$PG_PORT/anpord_e2e \
+cd ../server && DATABASE_URL=postgresql://postgres@127.0.0.1:$PG_PORT/sphynx_e2e \
   BETTER_AUTH_SECRET=e2e-secret-that-is-at-least-32-characters-long \
   PORT=3099 bun run src/server.ts
 ```
@@ -40,8 +40,8 @@ cd ../server && DATABASE_URL=postgresql://postgres@127.0.0.1:$PG_PORT/anpord_e2e
 Then, from this directory:
 
 ```bash
-export ANPORD_API_KEY=$(node -p "require('./.e2e/api-keys.json').keys['e2e-writer'].key")
-export ANPORD_BASE_URL=http://127.0.0.1:3099
+export SPHYNX_API_KEY=$(node -p "require('./.e2e/api-keys.json').keys['e2e-writer'].key")
+export SPHYNX_BASE_URL=http://127.0.0.1:3099
 bun run ../../packages/sdk/src/cli/main.ts list
 ```
 

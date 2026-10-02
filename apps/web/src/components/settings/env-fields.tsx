@@ -1,5 +1,5 @@
-import { LabelledField } from "@anpord/ui/components/form/labelled-field";
-import { Textarea } from "@anpord/ui/components/ui/textarea";
+import { LabelledField } from "@sphynx/ui/components/form/labelled-field";
+import { Textarea } from "@sphynx/ui/components/ui/textarea";
 import { useState } from "react";
 import { parseEnvLines } from "@/lib/settings/env-lines";
 

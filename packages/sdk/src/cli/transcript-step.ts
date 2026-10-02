@@ -1,9 +1,9 @@
-import { callSubjectOf, commandText } from "@anpord/schema/domain/eval-journal";
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
+import { callSubjectOf, commandText } from "@sphynx/schema/domain/eval-journal";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
 import {
   describeCommand,
   describeStep,
-} from "@anpord/schema/domain/step-title";
+} from "@sphynx/schema/domain/step-title";
 import { formatDuration } from "./duration";
 import type { Palette } from "./paint";
 import { clipped, flat, type Writer } from "./transcript-writer";

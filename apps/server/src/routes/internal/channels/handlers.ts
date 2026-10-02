@@ -1,14 +1,14 @@
-import { ChannelCatalog } from "@anpord/prompts/channels";
-import { Permissions } from "@anpord/schema/domain/permissions";
-import { AnpordApi } from "@anpord/schema/internal/api";
-import { CurrentActor } from "@anpord/schema/internal/authentication";
 import { HttpApiBuilder } from "@effect/platform";
+import { ChannelCatalog } from "@sphynx/prompts/channels";
+import { Permissions } from "@sphynx/schema/domain/permissions";
+import { SphynxApi } from "@sphynx/schema/internal/api";
+import { CurrentActor } from "@sphynx/schema/internal/authentication";
 import { Effect } from "effect";
 import { authorized } from "../../../http/authorization/authorized-group";
 import { withPromptErrors } from "../../../http/prompt-errors";
 
 export const ChannelsHandlers = HttpApiBuilder.group(
-  AnpordApi,
+  SphynxApi,
   "channels",
   (handlers) =>
     authorized(handlers)

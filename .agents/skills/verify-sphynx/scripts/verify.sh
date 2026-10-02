@@ -17,8 +17,8 @@ PERF=${PERF:-full}
 SKIP=${SKIP:-}
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
 BRANCH=$(git rev-parse --abbrev-ref HEAD | tr '/' '-')
-EVIDENCE=${EVIDENCE_DIR:-${TMPDIR:-/tmp}/anpord-verify/$BRANCH-$STAMP}
-SCRATCH_DB=anpord_scratch_verify_$$
+EVIDENCE=${EVIDENCE_DIR:-${TMPDIR:-/tmp}/sphynx-verify/$BRANCH-$STAMP}
+SCRATCH_DB=sphynx_scratch_verify_$$
 mkdir -p "$EVIDENCE"
 
 results=()
@@ -113,13 +113,13 @@ tests_on_scratch() {
 
 sdk_smoke() {
   (cd packages/sdk && bun run build) &&
-    env -u ANPORD_API_KEY ANPORD_BROWSER=none bun packages/sdk/dist/bin.cjs eval scripts/fixtures/local-smoke/smoke.eval.ts --local
+    env -u SPHYNX_API_KEY SPHYNX_BROWSER=none bun packages/sdk/dist/bin.cjs eval scripts/fixtures/local-smoke/smoke.eval.ts --local
 }
 
 base_checkout() {
   local sha dir
   sha=$(git rev-parse --verify "$BASE_REF^{commit}") || return 1
-  dir=${TMPDIR:-/tmp}/anpord-verify-base-${sha:0:8}
+  dir=${TMPDIR:-/tmp}/sphynx-verify-base-${sha:0:8}
   if [ ! -f "$dir.ready" ]; then
     if [ -e "$dir" ]; then
       if [ "$(git -C "$dir" rev-parse HEAD 2>/dev/null)" != "$sha" ]; then

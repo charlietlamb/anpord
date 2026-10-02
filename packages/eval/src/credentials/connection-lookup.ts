@@ -1,7 +1,7 @@
-import type { Db } from "@anpord/db/query";
-import { user } from "@anpord/db/schema/auth/users";
-import { credentialConnection } from "@anpord/db/schema/credentials/connections";
-import type { Actor } from "@anpord/schema/domain/actor";
+import type { Db } from "@sphynx/db/query";
+import { user } from "@sphynx/db/schema/auth/users";
+import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { visibleTo } from "./connection-scope";
 

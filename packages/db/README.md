@@ -1,4 +1,4 @@
-# @anpord/db
+# @sphynx/db
 
 The Drizzle schema, the connection pool, and the migrations that shape every database.
 
@@ -58,10 +58,10 @@ Use `db:migrate`, not `drizzle-kit migrate` or `drizzle-kit push`. Push records 
 Tests that write rows read only `EVAL_TEST_DATABASE_URL`, never `DATABASE_URL`, and refuse to start unless the database name has `test` or `scratch` in it. That keeps them off your dev database and anything hosted. Make a scratch database, migrate it, point the tests at it, then drop it:
 
 ```sh
-createdb anpord_scratch_mine
-DATABASE_URL=postgresql://localhost:5432/anpord_scratch_mine bun run db:migrate
-EVAL_REQUIRE_DATABASE=1 EVAL_TEST_DATABASE_URL=postgresql://localhost:5432/anpord_scratch_mine bun run test
-dropdb anpord_scratch_mine
+createdb sphynx_scratch_mine
+DATABASE_URL=postgresql://localhost:5432/sphynx_scratch_mine bun run db:migrate
+EVAL_REQUIRE_DATABASE=1 EVAL_TEST_DATABASE_URL=postgresql://localhost:5432/sphynx_scratch_mine bun run test
+dropdb sphynx_scratch_mine
 ```
 
 `EVAL_REQUIRE_DATABASE=1` turns a missing URL into an error instead of a silent skip.

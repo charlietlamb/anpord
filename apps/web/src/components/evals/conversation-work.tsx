@@ -1,11 +1,11 @@
-import { labelOf } from "@anpord/schema/domain/eval-journal";
+import { CirclesFourIcon } from "@phosphor-icons/react";
+import { labelOf } from "@sphynx/schema/domain/eval-journal";
 import {
   Task,
   TaskContent,
   TaskItem,
   TaskTrigger,
-} from "@anpord/ui/components/ai-elements/task";
-import { CirclesFourIcon } from "@phosphor-icons/react";
+} from "@sphynx/ui/components/ai-elements/task";
 import { ConversationWorkItem } from "@/components/evals/conversation-work-item";
 import {
   type ConversationStep as Step,

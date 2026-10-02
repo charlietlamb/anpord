@@ -1,4 +1,4 @@
-import type { EvalRun } from "@anpord/schema/domain/evals";
+import type { EvalRun } from "@sphynx/schema/domain/evals";
 import { Schema } from "effect";
 import { outcomeLabel, type SuiteOutcome } from "./suite-outcome";
 import { formatVariant } from "./variant-label";
@@ -6,7 +6,7 @@ import { formatVariant } from "./variant-label";
 export const CheckRun = Schema.Struct({
   conclusion: Schema.Literal("failure", "neutral", "success"),
   details_url: Schema.optional(Schema.String),
-  name: Schema.Literal("anpord"),
+  name: Schema.Literal("sphynx"),
   output: Schema.Struct({ summary: Schema.String, title: Schema.String }),
 });
 export type CheckRun = typeof CheckRun.Type;
@@ -81,7 +81,7 @@ export const buildGithubCheck = (
   return {
     conclusion,
     details_url: first?.batchId ? batchUrl(webUrl, first.batchId) : undefined,
-    name: "anpord",
+    name: "sphynx",
     output: {
       title: TITLES[conclusion],
       summary:

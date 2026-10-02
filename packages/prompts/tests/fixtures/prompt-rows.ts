@@ -1,7 +1,7 @@
-import type { Actor } from "@anpord/schema/domain/actor";
-import { OrganizationId, UserId } from "@anpord/schema/domain/actor";
-import { ROLE_PERMISSIONS } from "@anpord/schema/domain/permissions";
-import { PromptId } from "@anpord/schema/domain/prompts";
+import type { Actor } from "@sphynx/schema/domain/actor";
+import { OrganizationId, UserId } from "@sphynx/schema/domain/actor";
+import { ROLE_PERMISSIONS } from "@sphynx/schema/domain/permissions";
+import { PromptId } from "@sphynx/schema/domain/prompts";
 import { Effect } from "effect";
 import type { VersionRow } from "../../src/repositories/prompt-version-repository";
 import type { PromptCacheShape } from "../../src/services/prompt-cache";

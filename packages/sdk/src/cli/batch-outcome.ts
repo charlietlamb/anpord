@@ -1,4 +1,4 @@
-import type { StartedBatch } from "@anpord/schema/domain/evals";
+import type { StartedBatch } from "@sphynx/schema/domain/evals";
 import { Effect } from "effect";
 import { webUrlConfig } from "../client/config";
 import {

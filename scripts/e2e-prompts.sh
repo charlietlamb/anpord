@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # End-to-end check of the prompts API through the web proxy.
 # Requires the dev servers running and a session whose org is active:
-#   ANPORD_SESSION_COOKIE='anpord.session_token=...' bash scripts/e2e-prompts.sh
+#   SPHYNX_SESSION_COOKIE='sphynx.session_token=...' bash scripts/e2e-prompts.sh
 
 set -u
-C="${ANPORD_SESSION_COOKIE:?set ANPORD_SESSION_COOKIE to a signed-in session cookie}"
+C="${SPHYNX_SESSION_COOKIE:?set SPHYNX_SESSION_COOKIE to a signed-in session cookie}"
 B=http://localhost:3005/api/prompts
 J='content-type: application/json'
 ID="e2e-$(date +%s)"

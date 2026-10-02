@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Sparkline } from "@/components/home/sparkline";
 import { VerdictSquares } from "@/components/home/verdict-squares";

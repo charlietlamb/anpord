@@ -1,6 +1,6 @@
-import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import { cn } from "@anpord/ui/lib/utils";
+import { useShortcut } from "@sphynx/ui/hooks/use-shortcut";
+import { buttonVariants } from "@sphynx/ui/lib/button-variants";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { Preset, PresetKind } from "@/components/dev/preset-kind";
 

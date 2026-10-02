@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const item = { id: "ci_fixture", name: "Anpord CI fixture" };
+export const item = { id: "ci_fixture", name: "Sphynx CI fixture" };
 export const itemSchema = z.object({ id: z.string(), name: z.string() });
 export const getItemInput = z.object({ id: z.string() });
 export const listItemsInput = z.object({});

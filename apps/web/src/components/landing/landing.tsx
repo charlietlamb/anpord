@@ -1,10 +1,10 @@
-import { Dither } from "@anpord/ui/components/ui/dither";
+import { Dither } from "@sphynx/ui/components/ui/dither";
 import {
   type DitherPreset,
   LANDING_DITHER,
-} from "@anpord/ui/lib/dither-presets";
-import type { HeaderPreset } from "@anpord/ui/lib/header-presets";
-import { cn } from "@anpord/ui/lib/utils";
+} from "@sphynx/ui/lib/dither-presets";
+import type { HeaderPreset } from "@sphynx/ui/lib/header-presets";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { CopyCommand } from "@/components/landing/copy-command";
 import { LandingNav } from "@/components/landing/landing-nav";

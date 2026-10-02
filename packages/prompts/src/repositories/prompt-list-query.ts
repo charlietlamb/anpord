@@ -1,15 +1,15 @@
-import type { Database } from "@anpord/db/client";
-import { escapeLike } from "@anpord/db/like";
-import { user } from "@anpord/db/schema/auth/users";
-import { channel } from "@anpord/db/schema/prompts/channels";
-import { promptChannel } from "@anpord/db/schema/prompts/prompt-channels";
-import { promptVersion } from "@anpord/db/schema/prompts/prompt-versions";
-import { prompt } from "@anpord/db/schema/prompts/prompts";
-import type { OrganizationId } from "@anpord/schema/domain/actor";
+import type { Database } from "@sphynx/db/client";
+import { escapeLike } from "@sphynx/db/like";
+import { user } from "@sphynx/db/schema/auth/users";
+import { channel } from "@sphynx/db/schema/prompts/channels";
+import { promptChannel } from "@sphynx/db/schema/prompts/prompt-channels";
+import { promptVersion } from "@sphynx/db/schema/prompts/prompt-versions";
+import { prompt } from "@sphynx/db/schema/prompts/prompts";
+import type { OrganizationId } from "@sphynx/schema/domain/actor";
 import type {
   PromptSortOrder,
   PromptStatusFilter,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import {
   and,
   asc,

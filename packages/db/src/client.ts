@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import { DatabaseConfig } from "./config";
 import { schema } from "./schema";
 
-export class Database extends Context.Tag("@anpord/db/Database")<
+export class Database extends Context.Tag("@sphynx/db/Database")<
   Database,
   NodePgDatabase<typeof schema>
 >() {}

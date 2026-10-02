@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@anpord/ui/components/button";
-import { FieldShell } from "@anpord/ui/components/form/field-shell";
-import { useFieldContext } from "@anpord/ui/hooks/form-context";
 import { MinusIcon, PlusIcon } from "@phosphor-icons/react";
+import { Button } from "@sphynx/ui/components/button";
+import { FieldShell } from "@sphynx/ui/components/form/field-shell";
+import { useFieldContext } from "@sphynx/ui/hooks/form-context";
 
 export function NumberField({
   description,

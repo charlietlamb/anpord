@@ -1,6 +1,6 @@
-import type { EvalSetup } from "@anpord/schema/domain/evals";
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
 import { CheckCircleIcon } from "@phosphor-icons/react";
+import type { EvalSetup } from "@sphynx/schema/domain/evals";
+import { CodeBlock } from "@sphynx/ui/components/ui/code-block";
 import { EmptyValue } from "@/components/evals/empty-value";
 
 export function ChecksValue({ setup }: { readonly setup: EvalSetup }) {

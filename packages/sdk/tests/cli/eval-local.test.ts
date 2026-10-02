@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import { Effect, Schema } from "effect";
 import { runLocally } from "../../src/cli/eval-local";
 import { localUsage } from "../../src/cli/eval-usage";
@@ -21,7 +21,7 @@ const request = Schema.decodeUnknownSync(StartBatchRequest)({
       profile: {
         files: {},
         name: "echoes-the-prompt",
-        run: 'printf %s "$ANPORD_PROMPT" > prompt-seen.txt',
+        run: 'printf %s "$SPHYNX_PROMPT" > prompt-seen.txt',
       },
     },
   ],
@@ -62,7 +62,7 @@ const mixed = Schema.decodeUnknownSync(StartBatchRequest)({
     {
       harness: "command",
       model: "none",
-      profile: { files: {}, name: "obeys", run: 'eval "$ANPORD_PROMPT"' },
+      profile: { files: {}, name: "obeys", run: 'eval "$SPHYNX_PROMPT"' },
     },
   ],
 });

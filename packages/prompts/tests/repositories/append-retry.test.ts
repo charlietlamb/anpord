@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { PromptId } from "@anpord/schema/domain/prompts";
+import { PromptId } from "@sphynx/schema/domain/prompts";
 import { Effect } from "effect";
 import { VersionConflict } from "../../src/domain/errors";
 import { APPEND_RETRY } from "../../src/repositories/prompt-version-repository";

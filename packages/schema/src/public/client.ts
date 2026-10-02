@@ -27,14 +27,14 @@ export const make = ({ apiKey, baseUrl = API_ORIGIN }: ClientOptions) =>
     })
   );
 
-export type AnpordClient = Effect.Effect.Success<ReturnType<typeof make>>;
+export type SphynxClient = Effect.Effect.Success<ReturnType<typeof make>>;
 
-export class AnpordApi extends Effect.Tag("@anpord/sdk/AnpordApi")<
-  AnpordApi,
-  AnpordClient
+export class SphynxApi extends Effect.Tag("@sphynx/sdk/SphynxApi")<
+  SphynxApi,
+  SphynxClient
 >() {}
 
 export const layer = (options: ClientOptions) =>
-  Layer.effect(AnpordApi, make(options)).pipe(
+  Layer.effect(SphynxApi, make(options)).pipe(
     Layer.provide(FetchHttpClient.layer)
   );

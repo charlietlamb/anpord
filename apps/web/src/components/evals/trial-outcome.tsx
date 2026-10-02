@@ -1,7 +1,7 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
-import { RailFact } from "@anpord/ui/components/ui/rail-fact";
-import { RailSection } from "@anpord/ui/components/ui/rail-section";
 import { SignOutIcon, TerminalWindowIcon } from "@phosphor-icons/react";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
+import { RailFact } from "@sphynx/ui/components/ui/rail-fact";
+import { RailSection } from "@sphynx/ui/components/ui/rail-section";
 import { CommandsHint } from "@/components/evals/commands-hint";
 import { VoidReason } from "@/components/evals/void-reason";
 

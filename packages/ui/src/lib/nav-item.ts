@@ -1,5 +1,5 @@
-import { BLEED_ROW_FULL } from "@anpord/ui/lib/bleed-row";
-import { cn } from "@anpord/ui/lib/utils";
+import { BLEED_ROW_FULL } from "@sphynx/ui/lib/bleed-row";
+import { cn } from "@sphynx/ui/lib/utils";
 
 export const NAV_ITEM = cn(
   BLEED_ROW_FULL,

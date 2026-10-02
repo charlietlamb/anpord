@@ -1,7 +1,7 @@
-import { EmptyState } from "@anpord/ui/components/ui/empty-state";
-import { buttonVariants } from "@anpord/ui/lib/button-variants";
-import { cn } from "@anpord/ui/lib/utils";
 import { TextTIcon } from "@phosphor-icons/react";
+import { EmptyState } from "@sphynx/ui/components/ui/empty-state";
+import { buttonVariants } from "@sphynx/ui/lib/button-variants";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 
 interface PromptUnavailableProps {

@@ -1,4 +1,4 @@
-import type { ChannelPlacement } from "@anpord/schema/domain/prompts";
+import type { ChannelPlacement } from "@sphynx/schema/domain/prompts";
 import { toast } from "sonner";
 import { useDialog } from "@/lib/dialog/dialogs";
 import { useAddPromptVersion } from "@/lib/query/use-add-prompt-version";

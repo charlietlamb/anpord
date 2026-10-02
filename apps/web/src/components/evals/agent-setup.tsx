@@ -1,18 +1,18 @@
-import { CodeCard } from "@anpord/ui/components/ui/code-card";
-import type { SnippetCommand } from "@anpord/ui/components/ui/snippet";
-import { Snippet } from "@anpord/ui/components/ui/snippet";
-import { useDismissed } from "@anpord/ui/hooks/use-dismissed";
+import { CodeCard } from "@sphynx/ui/components/ui/code-card";
+import type { SnippetCommand } from "@sphynx/ui/components/ui/snippet";
+import { Snippet } from "@sphynx/ui/components/ui/snippet";
+import { useDismissed } from "@sphynx/ui/hooks/use-dismissed";
 import { PageSection } from "@/components/layout/page-section";
 import { AGENT_PROMPT } from "@/lib/agent-prompt";
 
 const INSTALL: readonly SnippetCommand[] = [
-  { command: "bun add anpord", label: "bun" },
-  { command: "npm install anpord", label: "npm" },
-  { command: "pnpm add anpord", label: "pnpm" },
+  { command: "bun add sphynx-sh", label: "bun" },
+  { command: "npm install sphynx-sh", label: "npm" },
+  { command: "pnpm add sphynx-sh", label: "pnpm" },
 ];
 
 export function AgentSetup() {
-  const { dismiss, dismissed } = useDismissed("anpord.install-dismissed");
+  const { dismiss, dismissed } = useDismissed("sphynx.install-dismissed");
 
   return (
     <div className="flex flex-col gap-10">

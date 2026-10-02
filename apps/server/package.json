@@ -1,5 +1,5 @@
 {
-  "name": "@anpord/server",
+  "name": "@sphynx/server",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,15 +11,15 @@
     "test": "bun test --pass-with-no-tests"
   },
   "dependencies": {
-    "@anpord/auth": "workspace:*",
-    "@anpord/billing": "workspace:*",
-    "@anpord/cache": "workspace:*",
-    "@anpord/db": "workspace:*",
-    "@anpord/eval": "workspace:*",
-    "@anpord/ids": "workspace:*",
-    "@anpord/notifications": "workspace:*",
-    "@anpord/prompts": "workspace:*",
-    "@anpord/schema": "workspace:*",
+    "@sphynx/auth": "workspace:*",
+    "@sphynx/billing": "workspace:*",
+    "@sphynx/cache": "workspace:*",
+    "@sphynx/db": "workspace:*",
+    "@sphynx/eval": "workspace:*",
+    "@sphynx/ids": "workspace:*",
+    "@sphynx/notifications": "workspace:*",
+    "@sphynx/prompts": "workspace:*",
+    "@sphynx/schema": "workspace:*",
     "@effect/platform": "catalog:",
     "@effect/platform-bun": "catalog:",
     "effect": "catalog:"

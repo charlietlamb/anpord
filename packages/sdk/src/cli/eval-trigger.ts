@@ -1,4 +1,4 @@
-import { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
+import { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
 import { Config, Effect, Schema } from "effect";
 
 export const evalTrigger = Effect.gen(function* () {

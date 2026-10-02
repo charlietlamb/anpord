@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
-import type { EvalCodeValidator } from "@anpord/schema/domain/eval-definition";
+import type { EvalCodeValidator } from "@sphynx/schema/domain/eval-definition";
 import {
   VALIDATION_FRAME,
   validationCapture,
   validationExecution,
-} from "@anpord/schema/domain/eval-validations";
+} from "@sphynx/schema/domain/eval-validations";
 import { Effect, Stream } from "effect";
 import { ScorerGroundTruthLive } from "../../../src/adapters/scorers/ground-truth";
 import { distributionOf } from "../../../src/domain/distribution";
@@ -66,7 +66,7 @@ describe("ScorerGroundTruthLive", () => {
   ])("never accepts a passing marker with process exit %s", async (code) => {
     const outcome = await score(
       sandboxYielding([
-        stdout('ANPORD_VALIDATOR_RESULT={"passed":true}\n'),
+        stdout('SPHYNX_VALIDATOR_RESULT={"passed":true}\n'),
         ...(code === null ? [] : [exit(code)]),
       ]),
       null,
@@ -80,7 +80,7 @@ describe("ScorerGroundTruthLive", () => {
     const outcome = await score(
       sandboxYielding([
         stdout(
-          'ANPORD_VALIDATOR_RESULT={"passed":true,"message":"No tests found permission denied"}\n'
+          'SPHYNX_VALIDATOR_RESULT={"passed":true,"message":"No tests found permission denied"}\n'
         ),
         exit(0),
       ]),
@@ -97,7 +97,7 @@ describe("ScorerGroundTruthLive", () => {
     const outcome = await score(
       sandboxYielding([
         stdout(
-          'ANPORD_VALIDATION={}\nANPORD_VALIDATOR_RESULT={"passed":true}\n'
+          'SPHYNX_VALIDATION={}\nSPHYNX_VALIDATOR_RESULT={"passed":true}\n'
         ),
         exit(0),
       ]),
@@ -111,7 +111,7 @@ describe("ScorerGroundTruthLive", () => {
     const outcome = await score(
       sandboxYielding([
         stdout(
-          'ANPORD_VALIDATOR_RESULT={"passed":true,"message":"image is valid"}\n'
+          'SPHYNX_VALIDATOR_RESULT={"passed":true,"message":"image is valid"}\n'
         ),
         exit(0),
       ]),
@@ -197,7 +197,7 @@ describe("a verifier of several conditions", () => {
   it("records which conditions held", async () => {
     const outcome = await score(
       sandboxYielding([
-        stdout("\n@@anpord-verify 1 0\n\n@@anpord-verify 2 1\n"),
+        stdout("\n@@sphynx-verify 1 0\n\n@@sphynx-verify 2 1\n"),
         exit(1),
       ]),
       "test -f a && test -f b && test -f c"
@@ -213,7 +213,7 @@ describe("a verifier of several conditions", () => {
   it("does not let the trail count as the verifier having printed", async () => {
     const outcome = await score(
       sandboxYielding([
-        stdout("\n@@anpord-verify 1 0\n\n@@anpord-verify 2 0\n"),
+        stdout("\n@@sphynx-verify 1 0\n\n@@sphynx-verify 2 0\n"),
         exit(0),
       ]),
       "test -f a && test -f b"
@@ -235,7 +235,7 @@ describe("a verifier of several conditions", () => {
 
     await score(sandbox, "test -f a && test -f b");
 
-    expect(seen[0]).toContain("@@anpord-verify");
+    expect(seen[0]).toContain("@@sphynx-verify");
     expect(seen[0]).toContain("{ test -f a ; }");
   });
 });
@@ -307,7 +307,7 @@ describe("a code validator built by an older SDK", () => {
     const outcome = await score(
       sandboxYielding([
         stdout(`${VALIDATION_FRAME}${JSON.stringify(reported)}\n`),
-        stdout('ANPORD_VALIDATOR_RESULT={"passed":true}\n'),
+        stdout('SPHYNX_VALIDATOR_RESULT={"passed":true}\n'),
         exit(0),
       ]),
       null,
@@ -339,7 +339,7 @@ describe("a validator whose stderr outgrows what is kept", () => {
           modelMs: 0,
           sandbox: sandboxYielding([
             stderr(`${"y".repeat(15_995)}opaque-access-token-1\n`),
-            stdout('ANPORD_VALIDATOR_RESULT={"passed":false}\n'),
+            stdout('SPHYNX_VALIDATOR_RESULT={"passed":false}\n'),
             exit(0),
           ]),
           secrets: ["opaque-access-token-1"],

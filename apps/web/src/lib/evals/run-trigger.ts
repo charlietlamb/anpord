@@ -1,4 +1,3 @@
-import type { EvalTrigger } from "@anpord/schema/domain/eval-trigger";
 import {
   BrowserIcon,
   CodeIcon,
@@ -7,6 +6,7 @@ import {
   QuestionIcon,
   TerminalIcon,
 } from "@phosphor-icons/react";
+import type { EvalTrigger } from "@sphynx/schema/domain/eval-trigger";
 import { GithubIcon } from "@/components/icons/github-icon";
 
 const triggers = {

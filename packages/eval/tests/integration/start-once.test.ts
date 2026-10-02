@@ -1,16 +1,16 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { Database } from "@anpord/db/client";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalEvent } from "@anpord/db/schema/evals/eval-events";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
-import { evalTrialCost } from "@anpord/db/schema/evals/eval-trial-costs";
-import { evalTrial } from "@anpord/db/schema/evals/eval-trials";
-import { skipWithoutDatabase } from "@anpord/db/test-database";
-import type { StartBatchRequest } from "@anpord/schema/domain/eval-definition";
+import { Database } from "@sphynx/db/client";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalEvent } from "@sphynx/db/schema/evals/eval-events";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
+import { evalTrialCost } from "@sphynx/db/schema/evals/eval-trial-costs";
+import { evalTrial } from "@sphynx/db/schema/evals/eval-trials";
+import { skipWithoutDatabase } from "@sphynx/db/test-database";
+import type { StartBatchRequest } from "@sphynx/schema/domain/eval-definition";
 import {
   IdempotencyKey,
   type ReportedTrial,
-} from "@anpord/schema/public/runner-api";
+} from "@sphynx/schema/public/runner-api";
 import { and, count, eq, inArray } from "drizzle-orm";
 import { Cause, Effect, Exit, ManagedRuntime, Option } from "effect";
 import { Batches } from "../../src/batch/batches";

@@ -7,7 +7,7 @@ import {
   IntegrationAwareness,
   type RotateCredentialConnection,
   type StartDeviceAuth,
-} from "@anpord/schema/domain/credentials";
+} from "@sphynx/schema/domain/credentials";
 import { Schema } from "effect";
 import { createApiClient } from "@/lib/api-client";
 

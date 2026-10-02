@@ -1,4 +1,4 @@
-import { span } from "@anpord/ui/lib/evals/duration";
+import { span } from "@sphynx/ui/lib/evals/duration";
 import type { CSSProperties } from "react";
 import { TimelineSegment } from "@/components/evals/timeline-segment";
 import { TimelineStat } from "@/components/evals/timeline-stat";

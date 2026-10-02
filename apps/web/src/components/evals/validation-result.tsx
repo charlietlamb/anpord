@@ -1,4 +1,4 @@
-import type { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import type { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { ValidationJudgment } from "@/components/evals/validation-judgment";
 import { ValidationValue } from "@/components/evals/validation-value";
 

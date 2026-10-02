@@ -3,7 +3,7 @@ import { Either } from "effect";
 import { readPrepareValue } from "../../src/domain/prepare-output";
 
 const printed = (value: unknown) =>
-  `installing\nANPORD_PREPARE_RESULT=${JSON.stringify(value)}`;
+  `installing\nSPHYNX_PREPARE_RESULT=${JSON.stringify(value)}`;
 
 describe("what a prepare reports back", () => {
   test("is the value it printed", () => {
@@ -26,7 +26,7 @@ describe("what a prepare reports back", () => {
 
   test.each([
     ["nothing was printed", "installing\ndone", "printed no result"],
-    ["the line is not json", "ANPORD_PREPARE_RESULT={oops", "not valid JSON"],
+    ["the line is not json", "SPHYNX_PREPARE_RESULT={oops", "not valid JSON"],
     ["it is not an object", printed(["a"]), "other than an object"],
     [
       "it is too large to be a summary",

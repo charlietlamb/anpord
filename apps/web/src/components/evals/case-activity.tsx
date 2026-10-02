@@ -1,5 +1,5 @@
-import type { EvalCaseDetail } from "@anpord/schema/domain/eval-read-models";
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+import type { EvalCaseDetail } from "@sphynx/schema/domain/eval-read-models";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import { CaseRuns } from "@/components/evals/case-runs";
 import { PLACEHOLDER_RUN_PAGE } from "@/lib/evals/eval-placeholders";
 import { useCaseRuns } from "@/lib/evals/use-case-runs";

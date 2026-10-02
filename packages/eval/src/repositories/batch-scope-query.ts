@@ -1,7 +1,7 @@
-import { Database } from "@anpord/db/client";
-import { head } from "@anpord/db/query";
-import { evalBatch } from "@anpord/db/schema/evals/eval-batches";
-import { evalRun } from "@anpord/db/schema/evals/eval-runs";
+import { Database } from "@sphynx/db/client";
+import { head } from "@sphynx/db/query";
+import { evalBatch } from "@sphynx/db/schema/evals/eval-batches";
+import { evalRun } from "@sphynx/db/schema/evals/eval-runs";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { tryStore } from "./query";

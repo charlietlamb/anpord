@@ -1,8 +1,8 @@
-import { command, empty, suite } from "anpord";
+import { command, empty, suite } from "sphynx-sh";
 
 export default suite({
-  id: "anpord-models-claude-smoke",
-  name: "anpord-models/claude-smoke",
+  id: "sphynx-models-claude-smoke",
+  name: "sphynx-models/claude-smoke",
   source: empty,
   prompt:
     "Create hello.txt containing exactly hello. Do not install tools or contact external APIs.",

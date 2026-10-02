@@ -1,4 +1,4 @@
-import { useShortcut } from "@anpord/ui/hooks/use-shortcut";
+import { useShortcut } from "@sphynx/ui/hooks/use-shortcut";
 import { useRef } from "react";
 
 export function useShortcutClick<Element extends HTMLElement>(

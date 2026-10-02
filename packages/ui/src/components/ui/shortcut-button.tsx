@@ -1,7 +1,7 @@
-import { Button } from "@anpord/ui/components/button";
-import { ShortcutKeys } from "@anpord/ui/components/ui/shortcut-keys";
-import { useShortcutClick } from "@anpord/ui/hooks/use-shortcut-click";
-import { cn } from "@anpord/ui/lib/utils";
+import { Button } from "@sphynx/ui/components/button";
+import { ShortcutKeys } from "@sphynx/ui/components/ui/shortcut-keys";
+import { useShortcutClick } from "@sphynx/ui/hooks/use-shortcut-click";
+import { cn } from "@sphynx/ui/lib/utils";
 import type { ComponentProps } from "react";
 
 interface ShortcutButtonProps extends ComponentProps<typeof Button> {

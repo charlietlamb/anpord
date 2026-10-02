@@ -1,6 +1,6 @@
-import { CodeBlock } from "@anpord/ui/components/ui/code-block";
-import { InlineCode } from "@anpord/ui/components/ui/inline-code";
-import { cn } from "@anpord/ui/lib/utils";
+import { CodeBlock } from "@sphynx/ui/components/ui/code-block";
+import { InlineCode } from "@sphynx/ui/components/ui/inline-code";
+import { cn } from "@sphynx/ui/lib/utils";
 import { isValidElement, type ReactNode } from "react";
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";

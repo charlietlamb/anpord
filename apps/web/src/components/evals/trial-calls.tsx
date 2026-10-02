@@ -1,7 +1,7 @@
-import type { EvalJournalEntry } from "@anpord/schema/domain/eval-trial";
-import { counted } from "@anpord/ui/lib/evals/counted";
-import { seconds } from "@anpord/ui/lib/evals/duration";
-import { cn } from "@anpord/ui/lib/utils";
+import type { EvalJournalEntry } from "@sphynx/schema/domain/eval-trial";
+import { counted } from "@sphynx/ui/lib/evals/counted";
+import { seconds } from "@sphynx/ui/lib/evals/duration";
+import { cn } from "@sphynx/ui/lib/utils";
 import { StepLabel } from "@/components/evals/step-label";
 import {
   StepList,

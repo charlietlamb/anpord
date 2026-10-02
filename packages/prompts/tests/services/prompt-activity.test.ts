@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { PromptActivityEntry } from "@anpord/schema/domain/prompt-activity";
+import type { PromptActivityEntry } from "@sphynx/schema/domain/prompt-activity";
 import { Effect, Layer } from "effect";
 import {
   PromptEventRepository,

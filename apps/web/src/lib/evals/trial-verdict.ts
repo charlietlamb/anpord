@@ -1,4 +1,4 @@
-import type { EvalTrial } from "@anpord/schema/domain/eval-trial";
+import type { EvalTrial } from "@sphynx/schema/domain/eval-trial";
 
 export const trialVerdict = (trial: EvalTrial) => {
   if (trial.status === "running" || trial.status === "queued") {

@@ -1,8 +1,8 @@
-import type { ResolvedCredential } from "@anpord/schema/domain/credentials";
+import type { ResolvedCredential } from "@sphynx/schema/domain/credentials";
 import type {
   HarnessEvent,
   HarnessUsage,
-} from "@anpord/schema/domain/harness-event";
+} from "@sphynx/schema/domain/harness-event";
 import {
   Context,
   type Duration,
@@ -65,7 +65,7 @@ export interface HarnessDriverShape {
   ) => Effect.Effect<HarnessSessionShape, HarnessUnavailable, Scope.Scope>;
 }
 
-export class Harnesses extends Context.Tag("@anpord/eval/Harnesses")<
+export class Harnesses extends Context.Tag("@sphynx/eval/Harnesses")<
   Harnesses,
   {
     readonly resolve: (

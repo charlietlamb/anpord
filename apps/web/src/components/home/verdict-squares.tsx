@@ -1,4 +1,4 @@
-import { cn } from "@anpord/ui/lib/utils";
+import { cn } from "@sphynx/ui/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { VERDICT_FILL, VERDICT_LABEL } from "@/components/home/verdict-tone";
 import type { HomeCell } from "@/lib/evals/home-view";

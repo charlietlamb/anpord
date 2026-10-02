@@ -3,9 +3,9 @@
 import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
-import { OVERLAY } from "@anpord/ui/lib/popup"
-import { cn } from "@anpord/ui/lib/utils"
-import { Button } from "@anpord/ui/components/button"
+import { OVERLAY } from "@sphynx/ui/lib/popup"
+import { cn } from "@sphynx/ui/lib/utils"
+import { Button } from "@sphynx/ui/components/button"
 import { XIcon } from "@phosphor-icons/react"
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {

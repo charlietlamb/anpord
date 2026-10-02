@@ -1,4 +1,4 @@
-import type { ChannelName, VersionNumber } from "@anpord/schema/domain/prompts";
+import type { ChannelName, VersionNumber } from "@sphynx/schema/domain/prompts";
 
 interface Addressed {
   readonly channel?: ChannelName;

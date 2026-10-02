@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { EvalJudge } from "@anpord/schema/domain/eval-judges";
-import { EvalValidation } from "@anpord/schema/domain/eval-validations";
+import { EvalJudge } from "@sphynx/schema/domain/eval-judges";
+import { EvalValidation } from "@sphynx/schema/domain/eval-validations";
 import { Effect, Layer, Schema } from "effect";
 import { HarnessesLive } from "../../src/adapters/harness/resolve";
 import { makeAgentJudge } from "../../src/judges/agent";

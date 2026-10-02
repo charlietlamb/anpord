@@ -4,7 +4,7 @@ import { EvalLocalLive } from "../../src/local-layer";
 import { LocalTrials } from "../../src/services/local-trial";
 
 const opted = ConfigProvider.fromMap(
-  new Map([["ANPORD_LOCAL_SANDBOX", "true"]])
+  new Map([["SPHYNX_LOCAL_SANDBOX", "true"]])
 ).pipe(ConfigProvider.orElse(() => ConfigProvider.fromEnv()));
 
 const agentTaking = (milliseconds: number) => `

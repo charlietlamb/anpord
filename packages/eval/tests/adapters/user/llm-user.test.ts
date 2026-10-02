@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { EvalSimulatedUser } from "@anpord/schema/domain/eval-turns";
 import { HttpClient, HttpClientResponse } from "@effect/platform";
+import { EvalSimulatedUser } from "@sphynx/schema/domain/eval-turns";
 import { ConfigProvider, Effect, Option, Redacted, Schema } from "effect";
 import { makeLlmUser } from "../../../src/adapters/user/llm-user";
 import { nothingConnected } from "../../fixtures/nothing-connected";
@@ -56,7 +56,7 @@ describe("a person played by a model", () => {
         Effect.withConfigProvider(
           ConfigProvider.fromMap(
             new Map([
-              ["ANPORD_USER_MODEL", "openai/person-model"],
+              ["SPHYNX_USER_MODEL", "openai/person-model"],
               ["OPENAI_API_KEY", "platform-key"],
             ])
           )

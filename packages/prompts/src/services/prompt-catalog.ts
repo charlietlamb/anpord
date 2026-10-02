@@ -1,5 +1,5 @@
-import { IdGenerator } from "@anpord/ids/id";
-import type { Actor } from "@anpord/schema/domain/actor";
+import { IdGenerator } from "@sphynx/ids/id";
+import type { Actor } from "@sphynx/schema/domain/actor";
 import type {
   CreatePromptRequest,
   PromptId,
@@ -8,7 +8,7 @@ import type {
   PromptStatusFilter,
   ResolvedPrompt,
   UpdatePromptRequest,
-} from "@anpord/schema/domain/prompts";
+} from "@sphynx/schema/domain/prompts";
 import { Clock, Context, Effect, Layer } from "effect";
 import { encodeCursor } from "../domain/cursor-codec";
 import type { PromptError } from "../domain/errors";
@@ -51,7 +51,7 @@ export interface PromptCatalogShape {
   ) => Effect.Effect<void, PromptError>;
 }
 
-export class PromptCatalog extends Context.Tag("@anpord/prompts/PromptCatalog")<
+export class PromptCatalog extends Context.Tag("@sphynx/prompts/PromptCatalog")<
   PromptCatalog,
   PromptCatalogShape
 >() {}

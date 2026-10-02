@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { SkeletonScope } from "@anpord/ui/components/ui/skeleton-scope";
+import { SkeletonScope } from "@sphynx/ui/components/ui/skeleton-scope";
 import { renderToStaticMarkup } from "react-dom/server";
 
 test("a loading scope hides its placeholder content from assistive tech and input", () => {
