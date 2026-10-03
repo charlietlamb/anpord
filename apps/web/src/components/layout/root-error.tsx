@@ -9,7 +9,7 @@ export function RootErrorComponent({ error, reset }: ErrorComponentProps) {
       <SiteLayout center>
         <ErrorCard
           description="Something went wrong while loading this page."
-          detail={error.message}
+          detail={error instanceof Error ? error.message : String(error)}
           onRetry={reset}
           title="Unexpected error"
         />
