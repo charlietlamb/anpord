@@ -51,6 +51,7 @@ export interface BatchPlan {
   readonly local: boolean;
   readonly organizationId: string;
   readonly runs: readonly RunPlan[];
+  readonly startedBy: string | null;
 }
 
 export const batchPlanQuery = Effect.gen(function* () {
@@ -151,6 +152,7 @@ export const batchPlanQuery = Effect.gen(function* () {
         local: first.batch.local,
         organizationId: first.batch.organizationId,
         runs,
+        startedBy: first.batch.startedBy,
       });
     }).pipe(
       Effect.withSpan("BatchPlanQuery.find", {

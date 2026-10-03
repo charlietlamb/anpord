@@ -30,6 +30,8 @@ const file = Args.file({ exists: "yes", name: "file" }).pipe(
   Args.optional
 );
 
+const TRAILING_NEWLINE = /\r?\n$/;
+
 const scopeOf = (wantsPersonal: boolean) =>
   wantsPersonal ? ("personal" as const) : ("organization" as const);
 
@@ -46,7 +48,7 @@ const readValue = (label: string) =>
     if (yield* attended) {
       return Redacted.value(yield* Prompt.password({ message: label }));
     }
-    return (yield* readStdin).trim();
+    return (yield* readStdin).replace(TRAILING_NEWLINE, "");
   });
 
 const usedBy = (name: string) =>

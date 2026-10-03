@@ -11,6 +11,7 @@ import { CredentialError } from "../credentials/errors";
 import { openVariable, sealVariable } from "./variable-payload";
 import {
   ownerOf,
+  type VariableOwner,
   VariableRepository,
   VariableRepositoryLive,
 } from "./variable-repository";
@@ -136,6 +137,26 @@ export const EnvironmentVariablesLive = Layer.effect(
         Effect.annotateLogs({ organizationId: actor.organizationId })
       );
 
+    const scopeFree = (
+      owner: VariableOwner,
+      row: VariableRow,
+      change: UpdateVariable
+    ) =>
+      Effect.gen(function* () {
+        const scope = change.scope;
+        if (scope === undefined || scope === row.scope) {
+          return;
+        }
+        const taken = (yield* repository.named(owner, [row.name])).some(
+          (other) => other.scope === scope
+        );
+        if (taken) {
+          return yield* new CredentialError({
+            message: `${row.name} is already set for ${scope === "personal" ? "you" : "the organization"}`,
+          });
+        }
+      });
+
     const shownAs = (row: VariableRow, change: UpdateVariable) =>
       Effect.gen(function* () {
         const secret = change.secret ?? row.secret;
@@ -161,6 +182,7 @@ export const EnvironmentVariablesLive = Layer.effect(
         }
         const owner = ownerOf(actor);
         const row = yield* repository.find(owner, id);
+        yield* scopeFree(owner, row, change);
         const shown = yield* shownAs(row, change);
         const sealedValue =
           change.value === undefined

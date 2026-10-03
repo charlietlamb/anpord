@@ -35,6 +35,7 @@ describe("a profile's version", () => {
   });
 
   const edits: readonly [string, ProfileContent][] = [
+    ["a variable", { ...profile, variables: ["SEARCH_API_KEY"] }],
     [
       "a file's content",
       {

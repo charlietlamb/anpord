@@ -56,6 +56,12 @@ const refuseUnsetVariables = (actor: Actor, request: StartBatchRequest) =>
           organizationId: actor.organizationId,
         })
         .pipe(Effect.either);
+      if (Either.isLeft(named) && named.left.code === "internal") {
+        return yield* new StartRefused({
+          reason: "The environment could not be read. Try again.",
+          retryable: true,
+        });
+      }
       if (Either.isLeft(named)) {
         return yield* new StartRefused({
           reason: `A profile names variables that are not set. ${named.left.message}.`,

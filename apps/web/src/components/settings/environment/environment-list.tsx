@@ -64,7 +64,7 @@ export function EnvironmentList({
         </DataTable>
         <p className="px-1 text-muted-foreground text-xs">
           Known names like ANTHROPIC_API_KEY are picked up on their own. Others
-          reach a run when its suite names them.
+          reach a run when its profile names them.
         </p>
       </div>
     </ListState>

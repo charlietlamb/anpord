@@ -10,24 +10,27 @@ const LINE = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/;
 const unquoted = (raw: string) => {
   const trimmed = raw.trim();
   const quote = trimmed[0];
-  if ((quote === '"' || quote === "'") && trimmed.endsWith(quote)) {
-    return trimmed.slice(1, -1);
+  if (quote === '"' || quote === "'") {
+    const closing = trimmed.indexOf(quote, 1);
+    if (closing !== -1) {
+      return trimmed.slice(1, closing);
+    }
   }
   const comment = trimmed.search(INLINE_COMMENT);
   return comment === -1 ? trimmed : trimmed.slice(0, comment).trimEnd();
 };
 
-export const parseEnvFile = (text: string): readonly EnvFileEntry[] =>
-  text.split(NEWLINE).flatMap((line) => {
+export const parseEnvFile = (text: string): readonly EnvFileEntry[] => {
+  const entries = new Map<string, string>();
+  for (const line of text.split(NEWLINE)) {
     const trimmed = line.trim();
-    if (trimmed === "" || trimmed.startsWith("#")) {
-      return [];
-    }
-    const match = LINE.exec(trimmed);
-    if (match === null) {
-      return [];
-    }
-    const [, name = "", raw = ""] = match;
+    const match = trimmed.startsWith("#") ? null : LINE.exec(trimmed);
+    const [, name = "", raw = ""] = match ?? [];
     const value = unquoted(raw);
-    return value === "" ? [] : [{ name, value }];
-  });
+    if (name !== "" && value !== "") {
+      entries.delete(name);
+      entries.set(name, value);
+    }
+  }
+  return [...entries].map(([name, value]) => ({ name, value }));
+};

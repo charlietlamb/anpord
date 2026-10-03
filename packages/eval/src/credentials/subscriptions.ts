@@ -53,7 +53,8 @@ const parsesAsJson = (authJson: string) =>
     try: () => JSON.parse(authJson) as unknown,
   }).pipe(
     Effect.filterOrFail(
-      (parsed) => typeof parsed === "object" && parsed !== null,
+      (parsed) =>
+        typeof parsed === "object" && parsed !== null && !Array.isArray(parsed),
       () =>
         new CredentialError({ message: "The auth file is not a JSON object" })
     )

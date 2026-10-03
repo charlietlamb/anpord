@@ -1,3 +1,4 @@
+import { keptOnServer } from "@sphynx/schema/domain/known-variables";
 import { Effect, Layer, Redacted } from "effect";
 import { credentialFromVariables } from "../environment/variable-credentials";
 import { CredentialError } from "./errors";
@@ -54,6 +55,12 @@ const answering = (
           )
         ),
       variables: ({ names }) => {
+        const withheld = names.filter(keptOnServer);
+        if (withheld.length > 0) {
+          return Effect.fail(
+            notHeld(`${withheld.join(", ")} never reaches a profile`)
+          );
+        }
         const missing = names.filter((name) => variables[name] === undefined);
         return missing.length > 0
           ? Effect.fail(

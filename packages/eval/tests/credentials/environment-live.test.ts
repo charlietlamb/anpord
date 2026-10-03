@@ -434,6 +434,33 @@ describe.skipIf(skipWithoutDatabase())("the environment", () => {
     expect(failure.message).toBe("E2B_API_KEY never reaches a profile");
   });
 
+  it("names the clash when a move would collide with a value already set", async () => {
+    const failure = await run(
+      Effect.gen(function* () {
+        const variables = yield* EnvironmentVariables;
+        yield* variables.add(actor, {
+          scope: "organization",
+          variables: [
+            { name: "DEEPSEEK_API_KEY", secret: true, value: "team" },
+          ],
+        });
+        const [mine] = yield* variables.add(actor, {
+          scope: "personal",
+          variables: [
+            { name: "DEEPSEEK_API_KEY", secret: true, value: "mine" },
+          ],
+        });
+        return yield* Effect.flip(
+          variables.update(actor, mine?.id ?? "", { scope: "organization" })
+        );
+      })
+    );
+
+    expect(failure.message).toBe(
+      "DEEPSEEK_API_KEY is already set for the organization"
+    );
+  });
+
   it("refuses a personal variable from an API key", async () => {
     const failure = await run(
       Effect.flip(

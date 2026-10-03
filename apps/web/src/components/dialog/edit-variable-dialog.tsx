@@ -85,16 +85,20 @@ export function EditVariableDialog({ variable }: EditVariableDialogProps) {
           form.handleSubmit();
         }}
       >
-        <form.AppField name="value">
-          {(field) => (
-            <field.TextField
-              autoComplete="off"
-              label="New value"
-              placeholder={`Leave empty to keep ${variable.preview}`}
-              type={variable.secret ? "password" : "text"}
-            />
+        <form.Subscribe selector={(state) => state.values.shown}>
+          {(shown) => (
+            <form.AppField name="value">
+              {(field) => (
+                <field.TextField
+                  autoComplete="off"
+                  label="New value"
+                  placeholder={`Leave empty to keep ${variable.preview}`}
+                  type={shown === "secret" ? "password" : "text"}
+                />
+              )}
+            </form.AppField>
           )}
-        </form.AppField>
+        </form.Subscribe>
         <form.AppField name="scope">
           {(field) => (
             <LabelledSelect
