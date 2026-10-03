@@ -18,6 +18,7 @@ interface VariableChange {
   readonly preview?: string;
   readonly scope?: "organization" | "personal";
   readonly sealedValue?: string;
+  readonly secret?: boolean;
 }
 
 export interface VariableRepositoryShape {
@@ -160,6 +161,9 @@ export const VariableRepositoryLive = Layer.effect(
                     revision: row.revision + 1,
                     sealedValue: change.sealedValue,
                   }),
+              ...(change.secret === undefined
+                ? {}
+                : { preview: change.preview, secret: change.secret }),
               ...(change.scope === undefined
                 ? {}
                 : {

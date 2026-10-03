@@ -49,6 +49,7 @@ export type AddVariables = typeof AddVariables.Type;
 
 export const UpdateVariable = Schema.Struct({
   scope: Schema.optional(CredentialScope),
+  secret: Schema.optional(Schema.Boolean),
   value: Schema.optional(
     Schema.String.pipe(Schema.minLength(1), Schema.maxLength(32_768))
   ),
@@ -57,7 +58,7 @@ export type UpdateVariable = typeof UpdateVariable.Type;
 
 const SECRET_WORDS = /KEY|TOKEN|SECRET|PASSWORD|PASS|AUTH|CREDENTIAL|PRIVATE/;
 const PLAIN_ADDRESS =
-  /^(?:https?:\/\/[^@\s/]+(?:\/\S*)?|[a-z0-9-]+(?:\.[a-z0-9-]+)+(?::\d+)?(?:\/\S*)?|\d{2,5})$/i;
+  /^(?:https?:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*|[a-z0-9-]+(?:\.[a-z0-9-]+)+)(?::\d{2,5})?\/?$/i;
 
 export const secretByDefault = (
   name: string,

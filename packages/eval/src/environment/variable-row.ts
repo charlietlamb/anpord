@@ -7,6 +7,7 @@ export type VariableRow = typeof environmentVariable.$inferSelect;
 
 const SHOWN_PLAIN = 64;
 const SHOWN_EDGE = 4;
+const SHOWN_FROM = 20;
 
 export const previewOf = (value: string, secret: boolean) => {
   if (!secret) {
@@ -14,9 +15,9 @@ export const previewOf = (value: string, secret: boolean) => {
       ? `${value.slice(0, SHOWN_PLAIN)}…`
       : value;
   }
-  return value.length <= SHOWN_EDGE * 3
+  return value.length < SHOWN_FROM
     ? "••••••••"
-    : `${value.slice(0, SHOWN_EDGE)}…${value.slice(-SHOWN_EDGE)}`;
+    : `••••${value.slice(-SHOWN_EDGE)}`;
 };
 
 export const summaryOfVariable = (row: VariableRow): EnvironmentVariable =>

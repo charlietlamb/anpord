@@ -18,7 +18,7 @@ Every run needs a key for its [harness](/evals/variants), because model usage is
 
 Settings > Environment holds one table of variables and subscriptions. Choose **Add variable** and enter `NAME=value` pairs. You can paste a whole `.env` file into any name field, and known names autocomplete as you type. Adding a name that already exists replaces its value.
 
-Values are encrypted on arrival. A secret is never shown again, only a preview such as `sk-a…7f2a`. A plain value, such as a URL, stays readable. Names starting with `SPHYNX_` are reserved.
+Values are encrypted on arrival. A secret is never shown again, only its last four characters, such as `••••7f2a`, and a short secret shows none. A plain value, such as a URL, stays readable. Names starting with `SPHYNX_` are reserved.
 
 ## Known names
 

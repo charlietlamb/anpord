@@ -109,3 +109,10 @@ const BY_NAME = new Map(KNOWN_VARIABLES.map((known) => [known.name, known]));
 
 export const knownVariable = (name: string): KnownVariable | undefined =>
   BY_NAME.get(name);
+
+export const keptOnServer = (name: string) => {
+  const known = knownVariable(name);
+  return (
+    known !== undefined && !known.uses.some((use) => use.kind === "harness")
+  );
+};

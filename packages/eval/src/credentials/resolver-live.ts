@@ -1,4 +1,5 @@
 import type { Actor } from "@sphynx/schema/domain/actor";
+import { keptOnServer } from "@sphynx/schema/domain/known-variables";
 import { Clock, Effect, Layer, Redacted } from "effect";
 import { namedValues, revisionOf, valuesOf } from "../environment/named-values";
 import {
@@ -121,10 +122,7 @@ export const CredentialResolverLive = Layer.effect(
         ? connections
             .findActive(actor, integrationId, ref.connectionId)
             .pipe(Effect.flatMap(openRow))
-        : fromVariables(
-            { organizationId: actor.organizationId, userId: ref.userId },
-            integrationId
-          );
+        : fromVariables(ownerOf(actor), integrationId);
     };
 
     return CredentialResolver.of({
@@ -183,6 +181,12 @@ export const CredentialResolverLive = Layer.effect(
       },
       variables: (input) =>
         Effect.gen(function* () {
+          const withheld = input.names.filter(keptOnServer);
+          if (withheld.length > 0) {
+            return yield* new CredentialError({
+              message: `${withheld.join(", ")} never reaches a profile`,
+            });
+          }
           const owner = yield* ownerOfRef(
             input.organizationId,
             input.credentialRef

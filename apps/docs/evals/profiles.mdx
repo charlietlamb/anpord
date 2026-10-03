@@ -85,6 +85,10 @@ A profile names variables that are not set. Set SEARCH_API_KEY in Settings > Env
 
 A built-in harness picks up its own key, such as `ANTHROPIC_API_KEY` for `claude`, so you don't name it. A [command harness](/evals/command-harness) gets only what its profile names.
 
+Keys only a judge or sandbox uses, such as `E2B_API_KEY` or `GROQ_API_KEY`, stay on the server. A profile that names one is refused.
+
+Anyone who can run evals can name a variable in a profile and read it, so only set values every eval author is trusted with.
+
 ## Limits
 
 | Limit | Value |

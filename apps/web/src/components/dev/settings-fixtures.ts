@@ -42,11 +42,11 @@ const variable = (
 });
 
 const VARIABLES: readonly EnvironmentVariable[] = [
-  variable("ANTHROPIC_API_KEY", "sk-ant-…4f2a"),
-  variable("OPENAI_API_KEY", "sk-…9Qd1", { scope: "personal" }),
-  variable("AI_GATEWAY_API_KEY", "vck_…7c0e", { lastUsedAt: null }),
+  variable("ANTHROPIC_API_KEY", "••••4f2a"),
+  variable("OPENAI_API_KEY", "••••9Qd1", { scope: "personal" }),
+  variable("AI_GATEWAY_API_KEY", "••••7c0e", { lastUsedAt: null }),
   variable("APP_BASE_URL", "https://staging.acme.dev", { secret: false }),
-  variable("SEARCH_API_KEY", "srch_…11ab"),
+  variable("SEARCH_API_KEY", "••••11ab"),
 ];
 
 export const ENVIRONMENT: readonly EnvironmentRow[] = environmentRows(

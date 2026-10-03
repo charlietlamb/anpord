@@ -1,8 +1,7 @@
 import type { Actor } from "@sphynx/schema/domain/actor";
-import { EvalSandbox } from "@sphynx/schema/domain/eval-definition";
 import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import type { ReportedTrial } from "@sphynx/schema/public/runner-api";
-import { Clock, DateTime, Effect, Option, Redacted, Schema } from "effect";
+import { Clock, DateTime, Effect, Option, Redacted } from "effect";
 import { variablesRef } from "../credentials/credential-ref";
 import { CredentialResolver } from "../credentials/resolver";
 import { EvalNotFound, NotRunnable } from "../domain/errors";
@@ -66,6 +65,15 @@ export const makeReport = Effect.gen(function* () {
         });
       }
       return found.value;
+    });
+
+  const runningBatch = (organizationId: string, batchId: string) =>
+    Effect.gen(function* () {
+      const batch = yield* localBatch(organizationId, batchId);
+      if (batch.status !== "running") {
+        return yield* closed(batchId, batch.status);
+      }
+      return batch;
     });
 
   const report = (organizationId: string, trial: ReportedTrial) =>
@@ -189,14 +197,7 @@ export const makeReport = Effect.gen(function* () {
 
   const lease = (actor: Actor, batchId: string, harness: EvalHarness) =>
     Effect.gen(function* () {
-      yield* localBatch(actor.organizationId, batchId);
-
-      if (Schema.is(EvalSandbox)(harness)) {
-        return yield* new NotRunnable({
-          id: batchId,
-          problems: [`credentials for ${harness} are not leased to a caller`],
-        });
-      }
+      yield* runningBatch(actor.organizationId, batchId);
 
       const credential = yield* credentials.resolve({
         actor,
@@ -220,7 +221,21 @@ export const makeReport = Effect.gen(function* () {
     names: readonly string[]
   ) =>
     Effect.gen(function* () {
-      yield* localBatch(actor.organizationId, batchId);
+      const batch = yield* runningBatch(actor.organizationId, batchId);
+      const declared = new Set(
+        Option.match(yield* plans(batch.internalId).pipe(Effect.orDie), {
+          onNone: () => [],
+          onSome: ({ runs }) =>
+            runs.flatMap((run) => run.profile?.variables ?? []),
+        })
+      );
+      const undeclared = names.filter((name) => !declared.has(name));
+      if (undeclared.length > 0) {
+        return yield* new NotRunnable({
+          id: batchId,
+          problems: [`no profile in this batch names ${undeclared.join(", ")}`],
+        });
+      }
       const values = yield* credentials.variables({
         credentialRef: variablesRef(ownerOf(actor)),
         names,

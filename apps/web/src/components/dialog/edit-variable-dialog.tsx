@@ -11,19 +11,30 @@ import { environmentClient } from "@/lib/environment-client";
 import { SCOPE_OPTIONS, scopeOf } from "@/lib/settings/scopes";
 import { useEnvironmentMutation } from "@/lib/settings/use-environment-mutation";
 
+const SHOWN_OPTIONS = [
+  { label: "Readable", value: "plain" },
+  { label: "Secret", value: "secret" },
+] as const;
+
 interface EditVariableDialogProps {
   readonly variable: EnvironmentVariable;
 }
 
 const changesOf = (
   variable: EnvironmentVariable,
-  value: { readonly scope: string; readonly value: string }
+  value: {
+    readonly scope: string;
+    readonly shown: string;
+    readonly value: string;
+  }
 ): UpdateVariable => {
   const scope = scopeOf(value.scope);
+  const secret = value.shown === "secret";
 
   return {
     ...(value.value === "" ? {} : { value: value.value }),
     ...(scope === variable.scope ? {} : { scope }),
+    ...(secret === variable.secret ? {} : { secret }),
   };
 };
 
@@ -36,7 +47,11 @@ export function EditVariableDialog({ variable }: EditVariableDialogProps) {
   });
 
   const form = useAppForm({
-    defaultValues: { scope: variable.scope as string, value: "" },
+    defaultValues: {
+      scope: variable.scope as string,
+      shown: variable.secret ? "secret" : "plain",
+      value: "",
+    },
     onSubmit: async ({ value }) => {
       const changes = changesOf(variable, value);
 
@@ -91,6 +106,19 @@ export function EditVariableDialog({ variable }: EditVariableDialogProps) {
             />
           )}
         </form.AppField>
+        {variable.secret ? null : (
+          <form.AppField name="shown">
+            {(field) => (
+              <LabelledSelect
+                id="variable-shown"
+                label="Value"
+                onChange={field.handleChange}
+                options={SHOWN_OPTIONS}
+                value={field.state.value}
+              />
+            )}
+          </form.AppField>
+        )}
         <form.AppForm>
           <form.SubmitButton label="Save" loadingLabel="Saving…" />
         </form.AppForm>

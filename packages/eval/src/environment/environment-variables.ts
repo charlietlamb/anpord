@@ -5,16 +5,16 @@ import type {
   EnvironmentVariable,
   UpdateVariable,
 } from "@sphynx/schema/domain/environment";
-import { Clock, Context, Effect, Layer } from "effect";
+import { Clock, Context, Effect, Layer, Redacted } from "effect";
 import { CredentialCipher } from "../credentials/cipher";
 import { CredentialError } from "../credentials/errors";
-import { sealVariable } from "./variable-payload";
+import { openVariable, sealVariable } from "./variable-payload";
 import {
   ownerOf,
   VariableRepository,
   VariableRepositoryLive,
 } from "./variable-repository";
-import { previewOf, summaryOfVariable } from "./variable-row";
+import { previewOf, summaryOfVariable, type VariableRow } from "./variable-row";
 
 export interface EnvironmentVariablesShape {
   readonly add: (
@@ -88,8 +88,9 @@ export const EnvironmentVariablesLive = Layer.effect(
                 owner,
                 row,
                 {
-                  preview: previewOf(variable.value, row.secret),
+                  preview: previewOf(variable.value, variable.secret),
                   sealedValue,
+                  secret: variable.secret,
                 },
                 at
               )
@@ -135,6 +136,24 @@ export const EnvironmentVariablesLive = Layer.effect(
         Effect.annotateLogs({ organizationId: actor.organizationId })
       );
 
+    const shownAs = (row: VariableRow, change: UpdateVariable) =>
+      Effect.gen(function* () {
+        const secret = change.secret ?? row.secret;
+        if (row.secret && !secret && change.value === undefined) {
+          return yield* new CredentialError({
+            message: "Give a new value to make a secret readable",
+          });
+        }
+        if (change.value !== undefined) {
+          return { preview: previewOf(change.value, secret), secret };
+        }
+        if (secret === row.secret) {
+          return {};
+        }
+        const value = Redacted.value(yield* openVariable(cipher, row));
+        return { preview: previewOf(value, secret), secret };
+      });
+
     const update = (actor: Actor, id: string, change: UpdateVariable) =>
       Effect.gen(function* () {
         if (change.scope !== undefined) {
@@ -142,6 +161,7 @@ export const EnvironmentVariablesLive = Layer.effect(
         }
         const owner = ownerOf(actor);
         const row = yield* repository.find(owner, id);
+        const shown = yield* shownAs(row, change);
         const sealedValue =
           change.value === undefined
             ? undefined
@@ -151,9 +171,8 @@ export const EnvironmentVariablesLive = Layer.effect(
           row,
           {
             ...(change.scope === undefined ? {} : { scope: change.scope }),
-            ...(sealedValue === undefined || change.value === undefined
-              ? {}
-              : { preview: previewOf(change.value, row.secret), sealedValue }),
+            ...shown,
+            ...(sealedValue === undefined ? {} : { sealedValue }),
           },
           yield* now
         );

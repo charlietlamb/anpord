@@ -1,5 +1,6 @@
 import { Schema } from "effect";
 import { VariableName } from "./environment";
+import { keptOnServer } from "./known-variables";
 
 export const PROFILE_LIMITS = {
   /* Cloudflare and Daytona pass file content in one shell argument, capping a file near 128 KiB encoded. */
@@ -7,6 +8,13 @@ export const PROFILE_LIMITS = {
   files: 256,
   totalChars: 2_000_000,
 } as const;
+
+export const ProfileVariableName = VariableName.pipe(
+  Schema.filter((name) => !keptOnServer(name), {
+    message: (issue) =>
+      `${String(issue.actual)} is used by a judge or sandbox, so it never reaches a profile`,
+  })
+);
 
 export const ProfileName = Schema.String.pipe(
   Schema.pattern(/^[a-z0-9][a-z0-9-]{0,63}$/),
@@ -65,7 +73,7 @@ export const HarnessProfile = Schema.Struct({
   name: ProfileName,
   run: Schema.optional(Schema.String),
   systemPrompt: Schema.optional(Schema.String),
-  variables: Schema.optional(Schema.Array(VariableName)),
+  variables: Schema.optional(Schema.Array(ProfileVariableName)),
 }).annotations({
   description:
     "Configuration layered on a harness: files written under the sandbox home and workspace, a system prompt, environment, an install command run before the harness, and for the command harness the run command.",

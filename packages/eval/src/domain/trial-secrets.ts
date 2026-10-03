@@ -73,6 +73,11 @@ const valueSecrets = (values: CredentialValues) =>
       })
     );
 
+const variableSecrets = (values: Readonly<Record<string, string>>) => [
+  ...Object.values(values),
+  ...valueSecrets(values),
+];
+
 const forwardedSecrets = ([name, value]: readonly [string, string]) =>
   Option.match(addressOf(value), {
     onNone: () => (secretNamed(name) || tokenShaped(value) ? [value] : []),
@@ -92,5 +97,5 @@ export const trialSecrets = (request: {
   ...Object.entries(request.forwarded ?? {}).flatMap(forwardedSecrets),
   ...(request.variables === undefined
     ? []
-    : valueSecrets(Redacted.value(request.variables))),
+    : variableSecrets(Redacted.value(request.variables))),
 ];

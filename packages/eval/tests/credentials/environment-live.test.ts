@@ -172,10 +172,10 @@ describe.skipIf(skipWithoutDatabase())("the environment", () => {
       })
     );
 
-    expect(result.first?.preview).toBe("sk-a…0001");
+    expect(result.first?.preview).toBe("••••••••");
     expect(result.second?.id).toBe(result.first?.id);
     expect(result.second?.revision).toBe(2);
-    expect(result.second?.preview).toBe("sk-a…0002");
+    expect(result.second?.preview).toBe("••••••••");
     expect(result.row?.sealedValue).not.toContain("sk-ant");
     expect(result.resolved).toMatchObject({
       authMethodId: "api-key",
@@ -332,6 +332,106 @@ describe.skipIf(skipWithoutDatabase())("the environment", () => {
     expect(result.missing.message).toBe(
       "Set NEVER_SET in Settings > Environment"
     );
+  });
+
+  it("shows only the last four of a long secret", async () => {
+    const [shown] = await run(
+      Effect.flatMap(EnvironmentVariables, (variables) =>
+        variables.add(actor, {
+          scope: "organization",
+          variables: [
+            {
+              name: "GROQ_API_KEY",
+              secret: true,
+              value: "gsk_live_0123456789abcdef",
+            },
+          ],
+        })
+      )
+    );
+
+    expect(shown?.preview).toBe("••••cdef");
+  });
+
+  it("hides a readable value on request, and never reveals a secret without a new value", async () => {
+    const result = await run(
+      Effect.gen(function* () {
+        const variables = yield* EnvironmentVariables;
+        const [plain] = yield* variables.add(actor, {
+          scope: "organization",
+          variables: [
+            {
+              name: "WEBHOOK_ADDRESS",
+              secret: false,
+              value: "https://hooks.example.com/services/abcdefghijklmnop",
+            },
+          ],
+        });
+        const hidden = yield* variables.update(actor, plain?.id ?? "", {
+          secret: true,
+        });
+        const refused = yield* Effect.flip(
+          variables.update(actor, plain?.id ?? "", { secret: false })
+        );
+        return { hidden, refused };
+      })
+    );
+
+    expect(result.hidden).toMatchObject({ preview: "••••mnop", secret: true });
+    expect(result.refused.message).toBe(
+      "Give a new value to make a secret readable"
+    );
+  });
+
+  it("binds a run to the caller's own variables whatever ref it names", async () => {
+    const result = await run(
+      Effect.gen(function* () {
+        yield* (yield* EnvironmentVariables).add(actor, {
+          scope: "personal",
+          variables: [
+            {
+              name: "MOONSHOT_API_KEY",
+              secret: true,
+              value: "victim-personal",
+            },
+          ],
+        });
+        yield* (yield* EnvironmentVariables).add(actor, {
+          scope: "organization",
+          variables: [
+            { name: "MOONSHOT_API_KEY", secret: true, value: "team-shared" },
+          ],
+        });
+        const resolver = yield* CredentialResolver;
+        const found = yield* resolver.resolve({
+          actor: otherActor,
+          credentialRef: variablesRef({ organizationId, userId }),
+          integrationId: "moonshotai",
+        });
+        return Redacted.value(found);
+      })
+    );
+
+    expect(result.values).toEqual({ apiKey: "team-shared" });
+    expect(result.connectionId).toBe(
+      variablesRef({ organizationId, userId: otherUserId })
+    );
+  });
+
+  it("never hands a judge or sandbox key to a profile", async () => {
+    const failure = await run(
+      Effect.flatMap(CredentialResolver, (resolver) =>
+        Effect.flip(
+          resolver.variables({
+            credentialRef: variablesRef({ organizationId, userId }),
+            names: ["E2B_API_KEY"],
+            organizationId,
+          })
+        )
+      )
+    );
+
+    expect(failure.message).toBe("E2B_API_KEY never reaches a profile");
   });
 
   it("refuses a personal variable from an API key", async () => {
