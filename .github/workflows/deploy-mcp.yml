@@ -87,7 +87,7 @@ jobs:
 
           for deploy_attempt in 1 2 3; do
             echo "::group::deploy attempt $deploy_attempt"
-            mcp-use deploy . --no-github --name sphynx-mcp --env-file .env.deploy --yes
+            mcp-use deploy . --no-github --name anpord-mcp --env-file .env.deploy --yes
 
             outcome=pending
             for attempt in $(seq 1 40); do
@@ -119,7 +119,7 @@ jobs:
         run: |
           url="$(mcp-use servers list --json | node -e "
             const data = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-            const server = data.items.find((item) => item.name === 'sphynx-mcp');
+            const server = data.items.find((item) => item.name === 'anpord-mcp');
             process.stdout.write(server.mcpUrl);
           ")"
           echo "verifying $url"

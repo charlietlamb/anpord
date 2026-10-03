@@ -3246,6 +3246,20 @@
                             "minLength": 1
                           }
                         },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "description": "a string at most 512 character(s) long",
+                            "title": "maxLength(512)",
+                            "minLength": 1,
+                            "maxLength": 512
+                          },
+                          "description": "an array of at most 8 item(s)",
+                          "title": "maxItems(8)",
+                          "minItems": 1,
+                          "maxItems": 8
+                        },
                         "threshold": {
                           "type": "number",
                           "description": "a number between 0 and 1",
@@ -3343,6 +3357,20 @@
                             "title": "minLength(1)",
                             "minLength": 1
                           }
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "description": "a string at most 512 character(s) long",
+                            "title": "maxLength(512)",
+                            "minLength": 1,
+                            "maxLength": 512
+                          },
+                          "description": "an array of at most 8 item(s)",
+                          "title": "maxItems(8)",
+                          "minItems": 1,
+                          "maxItems": 8
                         },
                         "threshold": {
                           "type": "number",

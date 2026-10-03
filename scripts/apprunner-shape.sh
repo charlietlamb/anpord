@@ -18,7 +18,7 @@ MEMORY="1024"
 MIN_INSTANCES="2"
 MAX_INSTANCES="4"
 MAX_CONCURRENCY="80"
-INSTANCE_ROLE="AppRunnerSphynxInstanceRole"
+INSTANCE_ROLE="AppRunnerAnpordInstanceRole"
 HEALTH_PATH="/api/livez"
 HEALTH="Protocol=HTTP,Path=${HEALTH_PATH},Interval=5,Timeout=4,HealthyThreshold=1,UnhealthyThreshold=3"
 

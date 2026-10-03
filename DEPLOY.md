@@ -31,7 +31,7 @@ offered as "Create new service role" when you pick a private ECR image.
 The five marked *secret* are stored in Secrets Manager under `sphynx/server/<NAME>`
 and referenced by the service as `RuntimeEnvironmentSecrets`, so their values never
 appear in the service configuration. Reading them needs the instance role
-`AppRunnerSphynxInstanceRole`, whose inline policy grants
+`AppRunnerAnpordInstanceRole`, whose inline policy grants
 `secretsmanager:GetSecretValue` on `sphynx/server/*` and nothing else. Rotate one
 with `aws secretsmanager put-secret-value --secret-id sphynx/server/<NAME>`; the
 service picks it up on its next deployment.
