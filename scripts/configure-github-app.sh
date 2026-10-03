@@ -6,13 +6,13 @@
 set -euo pipefail
 
 REGION="${AWS_REGION:-us-east-2}"
-SERVICE="${APPRUNNER_SERVICE:-sphynx-server}"
+SERVICE="${APPRUNNER_SERVICE:-anpord-server}"
 KEY_PATH="${GITHUB_APP_PRIVATE_KEY_PATH:-.secrets/github-app.pem}"
 SECRET="sphynx/server/GITHUB_APP_PRIVATE_KEY"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-APP_ID="${GITHUB_APP_ID:-4744741}"
-APP_SLUG="${GITHUB_APP_SLUG:-sphynx}"
+APP_ID="${GITHUB_APP_ID:?Set GITHUB_APP_ID to the GitHub App id}"
+APP_SLUG="${GITHUB_APP_SLUG:?Set GITHUB_APP_SLUG to the GitHub App slug}"
 
 [ -f "${ROOT}/${KEY_PATH}" ] || {
   echo "No private key at ${KEY_PATH}" >&2
