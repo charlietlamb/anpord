@@ -6,6 +6,7 @@ export interface ProfileContent {
   readonly install: string | null;
   readonly run: string | null;
   readonly systemPrompt: string | null;
+  readonly variables: readonly string[] | null;
 }
 
 /* Its row, internal id, and version exist only once the start has registered it. */
@@ -25,4 +26,5 @@ export const profileOfRequest = (
         name: profile.name,
         run: profile.run ?? null,
         systemPrompt: profile.systemPrompt ?? null,
+        variables: profile.variables ?? null,
       };

@@ -2,20 +2,17 @@ import { Database } from "@sphynx/db/client";
 import { head } from "@sphynx/db/query";
 import { credentialConnection } from "@sphynx/db/schema/credentials/connections";
 import type { Actor } from "@sphynx/schema/domain/actor";
-import type { IntegrationAwareness } from "@sphynx/schema/domain/credentials";
 import { and, eq } from "drizzle-orm";
 import { Context, Effect, Layer } from "effect";
 import { tryStore } from "../repositories/query";
 import {
   insertClaimingDefault,
   type NewConnection,
-  promoteToDefault,
 } from "./connection-default";
 import {
   selectActive,
   selectAllVisible,
   selectBound,
-  selectPersonalOwners,
   selectVisible,
 } from "./connection-lookup";
 import type { ConnectionRow } from "./connection-row";
@@ -25,12 +22,8 @@ import {
   connectionNotFound,
   storeUnavailable,
 } from "./errors";
-import { groupOwners } from "./integration-awareness";
 
 export interface CredentialConnectionRepositoryShape {
-  readonly awareness: (
-    actor: Actor
-  ) => Effect.Effect<readonly IntegrationAwareness[], CredentialError>;
   readonly find: (
     actor: Actor,
     id: string
@@ -52,12 +45,6 @@ export interface CredentialConnectionRepositoryShape {
   readonly list: (
     actor: Actor
   ) => Effect.Effect<readonly ConnectionRow[], CredentialError>;
-  readonly recordVerification: (
-    actor: Actor,
-    id: string,
-    verified: boolean,
-    now: Date
-  ) => Effect.Effect<ConnectionRow, CredentialError>;
   readonly remove: (
     actor: Actor,
     id: string
@@ -68,17 +55,6 @@ export interface CredentialConnectionRepositoryShape {
     sealedPayload: string,
     now: Date
   ) => Effect.Effect<void, CredentialError>;
-  readonly rotate: (
-    actor: Actor,
-    row: ConnectionRow,
-    sealedPayload: string,
-    now: Date
-  ) => Effect.Effect<ConnectionRow, CredentialError>;
-  readonly setDefault: (
-    actor: Actor,
-    row: ConnectionRow,
-    now: Date
-  ) => Effect.Effect<ConnectionRow, CredentialError>;
   readonly touch: (
     organizationId: string,
     id: string,
@@ -105,10 +81,6 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
     const db = yield* Database;
 
     return CredentialConnectionRepository.of({
-      awareness: (actor) =>
-        stored("awareness", () => selectPersonalOwners(db, actor)).pipe(
-          Effect.map(groupOwners)
-        ),
       find: (actor, id) =>
         stored("find", () => selectVisible(db, actor, id)).pipe(
           Effect.flatMap(firstOrNotFound)
@@ -126,22 +98,6 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
           insertClaimingDefault(db, actor, row, wantsDefault)
         ).pipe(Effect.flatMap(firstOrNotFound)),
       list: (actor) => stored("list", () => selectAllVisible(db, actor)),
-      recordVerification: (actor, id, verified, now) =>
-        stored("recordVerification", () =>
-          db
-            .update(credentialConnection)
-            .set({
-              status: verified ? "active" : "invalid",
-              updatedAt: now,
-            })
-            .where(
-              and(
-                visibleTo(actor.organizationId, actor.id),
-                eq(credentialConnection.id, id)
-              )
-            )
-            .returning()
-        ).pipe(Effect.flatMap(firstOrNotFound)),
       remove: (actor, id) =>
         stored("remove", () =>
           db
@@ -170,28 +126,6 @@ export const CredentialConnectionRepositoryLive = Layer.effect(
               )
             )
         ).pipe(Effect.asVoid),
-      rotate: (actor, row, sealedPayload, now) =>
-        stored("rotate", () =>
-          db
-            .update(credentialConnection)
-            .set({
-              revision: row.revision + 1,
-              sealedPayload,
-              status: "active",
-              updatedAt: now,
-            })
-            .where(
-              and(
-                visibleTo(actor.organizationId, actor.id),
-                eq(credentialConnection.id, row.id)
-              )
-            )
-            .returning()
-        ).pipe(Effect.flatMap(firstOrNotFound)),
-      setDefault: (actor, row, now) =>
-        stored("setDefault", () => promoteToDefault(db, actor, row, now)).pipe(
-          Effect.flatMap(firstOrNotFound)
-        ),
       touch: (organizationId, id, now) =>
         stored("touch", () =>
           db

@@ -60,7 +60,7 @@ export const makeHarnessUser = Effect.gen(function* () {
               Effect.mapError(
                 () =>
                   new UserUnavailable({
-                    reason: `no ${harness} connection is configured for this organization`,
+                    reason: `nothing in Settings > Environment runs ${harness}`,
                   })
               )
             );

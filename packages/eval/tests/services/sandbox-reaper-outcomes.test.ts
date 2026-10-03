@@ -34,7 +34,7 @@ const sandbox = (
 ): LiveSandbox => ({
   organizationId: "org_fake",
   provider: "daytona",
-  sandboxConnectionId: null,
+  sandboxRef: null,
   sandboxId: `sbx-${trialInternalId}`,
   startedAt: new Date(Date.now() - 2 * HOUR),
   trialInternalId,
@@ -107,13 +107,14 @@ const world = (
       CredentialResolver.of({
         persist: () => Effect.void,
         resolve: () => Effect.die("a reaper resolves bound credentials"),
+        variables: () => Effect.die("a reaper reads no variables"),
         resolveBound: (input) => {
-          const failure = failingConnections[input.connectionId];
+          const failure = failingConnections[input.credentialRef];
           return failure === undefined
             ? Effect.succeed(
                 Redacted.make({
                   authMethodId: "api-key",
-                  connectionId: input.connectionId,
+                  connectionId: input.credentialRef,
                   integrationId: "daytona",
                   revision: 1,
                   values: { apiKey: "key" },
@@ -167,7 +168,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
   it("clears a sandbox whose credential cannot be decrypted and never tries it again", async () => {
     const { attempts, live, sweep } = world([
       sandbox("trl_foreign", {
-        sandboxConnectionId: "conn-foreign-key",
+        sandboxRef: "conn-foreign-key",
         sandboxId: "sbx-gpt-5",
       }),
     ]);
@@ -188,7 +189,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
 
   it("clears a sandbox whose connection was deleted or whose provider is unknown", async () => {
     const { live, sweep } = world([
-      sandbox("trl_deleted", { sandboxConnectionId: "conn-deleted" }),
+      sandbox("trl_deleted", { sandboxRef: "conn-deleted" }),
       sandbox("trl_floppy", { provider: "floppy" }),
     ]);
 
@@ -205,7 +206,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
     const { live, sweep } = world([
       sandbox("trl_floppy_down", {
         provider: "floppy",
-        sandboxConnectionId: "conn-store-down",
+        sandboxRef: "conn-store-down",
         sandboxId: "sbx-floppy",
       }),
     ]);
@@ -260,7 +261,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
     const { attempts, live, sweep } = world(
       [
         sandbox("trl_flaky", { sandboxId: "sbx-flaky" }),
-        sandbox("trl_store", { sandboxConnectionId: "conn-store-down" }),
+        sandbox("trl_store", { sandboxRef: "conn-store-down" }),
       ],
       { unreachable: new Set(["sbx-flaky"]) }
     );
@@ -300,7 +301,7 @@ describe("what a sweep does with a sandbox it cannot destroy", () => {
   });
 
   it("logs one summary per sweep with a few sample ids instead of a warning per sandbox", async () => {
-    const foreign = { sandboxConnectionId: "conn-foreign-key" };
+    const foreign = { sandboxRef: "conn-foreign-key" };
     const { sweep, warnings } = world([
       sandbox("trl_1", { ...foreign, sandboxId: "sbx-sonnet" }),
       sandbox("trl_2", { ...foreign, sandboxId: "sbx-sonnet" }),

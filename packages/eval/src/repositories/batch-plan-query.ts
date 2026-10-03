@@ -36,13 +36,13 @@ interface CasePlan {
 export interface RunPlan {
   readonly case: CasePlan;
   readonly harness: HarnessName;
-  readonly harnessCredentialConnectionId: string | null;
+  readonly harnessCredentialRef: string | null;
   readonly harnessVersion: string;
   readonly internalId: string;
   readonly model: string;
   readonly profile: RequestedProfile | null;
   readonly sandbox: SandboxName;
-  readonly sandboxCredentialConnectionId: string | null;
+  readonly sandboxCredentialRef: string | null;
   readonly trialCount: number;
 }
 
@@ -51,6 +51,7 @@ export interface BatchPlan {
   readonly local: boolean;
   readonly organizationId: string;
   readonly runs: readonly RunPlan[];
+  readonly startedBy: string | null;
 }
 
 export const batchPlanQuery = Effect.gen(function* () {
@@ -122,8 +123,7 @@ export const batchPlanQuery = Effect.gen(function* () {
                 verify: row.version.verify,
               },
               harness: names.harness,
-              harnessCredentialConnectionId:
-                row.run.harnessCredentialConnectionId,
+              harnessCredentialRef: row.run.harnessCredentialRef,
               harnessVersion: row.run.harnessVersion,
               internalId: row.run.internalId,
               model: row.variant.model,
@@ -137,10 +137,10 @@ export const batchPlanQuery = Effect.gen(function* () {
                       name: row.profile.name,
                       run: row.profile.run,
                       systemPrompt: row.profile.systemPrompt,
+                      variables: row.profile.variables,
                     },
               sandbox: names.sandbox,
-              sandboxCredentialConnectionId:
-                row.run.sandboxCredentialConnectionId,
+              sandboxCredentialRef: row.run.sandboxCredentialRef,
               trialCount: row.run.trialCount,
             },
           ],
@@ -152,6 +152,7 @@ export const batchPlanQuery = Effect.gen(function* () {
         local: first.batch.local,
         organizationId: first.batch.organizationId,
         runs,
+        startedBy: first.batch.startedBy,
       });
     }).pipe(
       Effect.withSpan("BatchPlanQuery.find", {

@@ -25,6 +25,7 @@ const profile: RequestedProfile = {
   install: null,
   run: null,
   systemPrompt: null,
+  variables: null,
 };
 const capture = validationCapture();
 const call: ApiCall = {

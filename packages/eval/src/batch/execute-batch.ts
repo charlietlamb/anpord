@@ -1,5 +1,6 @@
 import { Clock, Effect, Either, Option } from "effect";
 import { SourceTokens } from "../codebase/source-token";
+import { variablesRef } from "../credentials/credential-ref";
 import { CredentialError } from "../credentials/errors";
 import { CredentialResolver } from "../credentials/resolver";
 import { KEYLESS_HARNESSES, unkeyed } from "../credentials/variants";
@@ -7,7 +8,11 @@ import { describeFailure, NotRunnable } from "../domain/errors";
 import { ModelPrices } from "../ports/model-source";
 import { SimulatedUser } from "../ports/simulated-user";
 import { activeTrialsQuery } from "../repositories/active-trials-query";
-import { batchPlanQuery, type RunPlan } from "../repositories/batch-plan-query";
+import {
+  type BatchPlan,
+  batchPlanQuery,
+  type RunPlan,
+} from "../repositories/batch-plan-query";
 import { BatchRepository } from "../repositories/batch-repository";
 import { makeRunTrial, type TrialCredentials } from "./trial";
 
@@ -23,15 +28,13 @@ export const makeExecuteBatch = Effect.gen(function* () {
   const runTrial = yield* makeRunTrial;
   const sourceTokens = yield* SourceTokens;
 
-  const credentialsFor = (organizationId: string, plan: RunPlan) =>
+  const credentialsFor = (batch: BatchPlan, plan: RunPlan) =>
     Effect.gen(function* () {
-      const bound = (connectionId: string) =>
-        credentials.resolveBound({ connectionId, organizationId });
+      const keyless = KEYLESS_HARNESSES.has(plan.harness);
+      const harnessRef = plan.harnessCredentialRef;
+      const { organizationId } = batch;
 
-      if (
-        plan.harnessCredentialConnectionId === null &&
-        !KEYLESS_HARNESSES.has(plan.harness)
-      ) {
+      if (harnessRef === null && !keyless) {
         return yield* new CredentialError({
           code: "not-found",
           message: `No credential is bound to ${plan.harness}`,
@@ -39,25 +42,47 @@ export const makeExecuteBatch = Effect.gen(function* () {
       }
 
       const harness =
-        plan.harnessCredentialConnectionId === null
+        keyless || harnessRef === null
           ? unkeyed()
-          : yield* bound(plan.harnessCredentialConnectionId);
+          : yield* credentials.resolveBound({
+              credentialRef: harnessRef,
+              integrationId: plan.harness,
+              organizationId,
+            });
 
       const sandbox =
-        plan.sandboxCredentialConnectionId === null
+        plan.sandboxCredentialRef === null
           ? undefined
-          : yield* bound(plan.sandboxCredentialConnectionId);
+          : yield* credentials.resolveBound({
+              credentialRef: plan.sandboxCredentialRef,
+              integrationId: plan.sandbox,
+              organizationId,
+            });
 
-      return { harness, sandbox } satisfies TrialCredentials;
+      const names = plan.profile?.variables ?? [];
+      const variables =
+        names.length === 0
+          ? undefined
+          : yield* credentials.variables({
+              credentialRef: variablesRef({
+                organizationId,
+                userId: batch.startedBy,
+              }),
+              names,
+              organizationId,
+            });
+
+      return { harness, sandbox, variables } satisfies TrialCredentials;
     });
 
   const runOne = (
-    organizationId: string,
+    batch: BatchPlan,
     plan: RunPlan,
     sourceToken: Parameters<typeof runTrial>[0]["sourceToken"]
   ) =>
     Effect.gen(function* () {
-      const bound = yield* credentialsFor(organizationId, plan);
+      const bound = yield* credentialsFor(batch, plan);
+      const { organizationId } = batch;
 
       const outcomes = yield* Effect.all(
         Array.from({ length: plan.trialCount }, (_, index) =>
@@ -131,7 +156,7 @@ export const makeExecuteBatch = Effect.gen(function* () {
 
       const outcomes = yield* Effect.forEach(
         plan.runs,
-        (run) => Effect.either(runOne(plan.organizationId, run, sourceToken)),
+        (run) => Effect.either(runOne(plan, run, sourceToken)),
         { concurrency: RUNS_AT_ONCE }
       );
 

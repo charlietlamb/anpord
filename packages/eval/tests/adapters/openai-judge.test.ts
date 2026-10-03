@@ -69,16 +69,18 @@ const complete = (
           })
         );
       }
-      return authenticated
+      return authenticated && integrationId === "openai"
         ? Effect.succeed(
             Redacted.make({
               ...Redacted.value(emptyEnvCredential),
-              values: { OPENAI_API_KEY: "test-secret" },
+              integrationId,
+              values: { apiKey: "test-secret" },
             })
           )
         : Effect.fail(connectionNotFound());
     },
     resolveBound: () => Effect.fail(connectionNotFound()),
+    variables: () => Effect.fail(connectionNotFound()),
   });
   return Effect.runPromise(
     Effect.gen(function* () {

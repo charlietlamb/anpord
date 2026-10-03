@@ -5,16 +5,16 @@ import type { CredentialAuthAttemptRepositoryShape } from "./auth-attempt-reposi
 import { sealAttemptState } from "./auth-attempt-state";
 import type { CredentialCipherShape } from "./cipher";
 import type { CodexLogin } from "./codex-login";
-import type { CredentialConnectionsShape } from "./connections";
+import type { SubscriptionsShape } from "./subscriptions";
 
 interface Completion {
   readonly attempts: CredentialAuthAttemptRepositoryShape;
   readonly cipher: CredentialCipherShape;
-  readonly connections: CredentialConnectionsShape;
+  readonly subscriptions: SubscriptionsShape;
 }
 
 export const completeDeviceLogin = (
-  { attempts, cipher, connections }: Completion,
+  { attempts, cipher, subscriptions }: Completion,
   login: CodexLogin,
   actor: Actor,
   attemptId: string,
@@ -22,18 +22,11 @@ export const completeDeviceLogin = (
 ) =>
   login.authJson.pipe(
     Effect.flatMap((authJson) =>
-      connections.create(actor, {
-        authMethodId: "chatgpt",
-        integrationId: "codex",
-        isDefault: false,
-        name: input.name,
-        scope: input.scope,
-        values: { authJson },
-      })
+      subscriptions.addChatGpt(actor, authJson, input.scope)
     ),
-    Effect.flatMap((connection) =>
+    Effect.flatMap((subscription) =>
       sealAttemptState(cipher, actor.organizationId, attemptId, {
-        connectionId: connection.id,
+        connectionId: subscription.id,
       }).pipe(
         Effect.flatMap((state) =>
           attempts.finish(attemptId, {

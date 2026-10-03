@@ -5,6 +5,7 @@ export const ID_PREFIXES = {
   channel: "chl",
   credentialAuthAttempt: "caa",
   credentialConnection: "con",
+  environmentVariable: "env",
   evalCase: "ecas",
   evalBatch: "bat",
   evalCaseVersion: "ecv",

@@ -1,13 +1,10 @@
 import type { Channel } from "@sphynx/schema/domain/channels";
 import type { SourceControlAccount } from "@sphynx/schema/domain/codebase";
-import type {
-  CredentialConnection,
-  CredentialIntegration,
-} from "@sphynx/schema/domain/credentials";
 import { ChannelName } from "@sphynx/schema/domain/prompts";
 import { DateTime } from "effect";
 import type { MemberSummary } from "@/components/organization/member-row";
 import { placeholders, placeholderText } from "@/lib/placeholders";
+import type { EnvironmentRow } from "@/lib/settings/environment-rows";
 
 const EPOCH = new Date(0);
 
@@ -32,27 +29,23 @@ export const PLACEHOLDER_API_KEYS = placeholders(3, (index) => ({
   start: "anp_0000",
 }));
 
-export const PLACEHOLDER_INTEGRATION: CredentialIntegration = {
-  authMethods: [
-    { fields: [], id: "placeholder", kind: "secret", label: "API key" },
-  ],
-  category: "harness",
-  id: "placeholder",
-  label: "Placeholder",
-};
-
-export const PLACEHOLDER_CONNECTIONS: readonly CredentialConnection[] =
-  placeholders(2, (index) => ({
-    authMethodId: "placeholder",
-    createdAt: DateTime.unsafeMake(0),
-    id: `placeholder-connection-${index}`,
-    integrationId: PLACEHOLDER_INTEGRATION.id,
-    isDefault: false,
-    lastUsedAt: DateTime.unsafeMake(0),
-    name: placeholderText(index),
-    scope: "organization",
-    status: "active",
-  }));
+export const PLACEHOLDER_ENVIRONMENT: readonly EnvironmentRow[] = placeholders(
+  3,
+  (index) => ({
+    kind: "variable",
+    variable: {
+      createdAt: DateTime.unsafeMake(0),
+      id: `placeholder-variable-${index}`,
+      lastUsedAt: DateTime.unsafeMake(0),
+      name: "PLACEHOLDER_API_KEY",
+      preview: "sk-…0000",
+      revision: 1,
+      scope: "organization",
+      secret: true,
+      updatedAt: DateTime.unsafeMake(0),
+    },
+  })
+);
 
 export const PLACEHOLDER_CHANNELS: readonly Channel[] = placeholders(
   3,

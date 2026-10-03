@@ -252,11 +252,11 @@ describe.skipIf(skipWithoutDatabase())("reconcile", () => {
           runs: [
             {
               caseVersionInternalId: fixture.versionInternalId,
-              harnessCredentialConnectionId: null,
+              harnessCredentialRef: null,
               harnessCredentialRevision: null,
               harnessVersion: "0.144.4",
               profileInternalId: null,
-              sandboxCredentialConnectionId: null,
+              sandboxCredentialRef: null,
               sandboxCredentialRevision: null,
               trialCount: 2,
               variantInternalId: fixture.variantInternalId,
@@ -353,11 +353,11 @@ describe.skipIf(skipWithoutDatabase())(
           runs: [
             {
               caseVersionInternalId: fixture.versionInternalId,
-              harnessCredentialConnectionId: null,
+              harnessCredentialRef: null,
               harnessCredentialRevision: null,
               harnessVersion: "0.144.4",
               profileInternalId: null,
-              sandboxCredentialConnectionId: null,
+              sandboxCredentialRef: null,
               sandboxCredentialRevision: null,
               trialCount: 1,
               variantInternalId: fixture.variantInternalId,

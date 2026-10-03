@@ -57,12 +57,13 @@ Better Auth generates a fresh one, or MCP token signing breaks.
 | `EMAIL_FROM` | |
 | `GITHUB_APP_ID` | The app's numeric id. Without it, and the two below, the codebase settings answer "No GitHub app is registered for this deployment" and evals clone public repositories only |
 | `GITHUB_APP_SLUG` | `sphynx`, which addresses its install page |
-| `DAYTONA_API_KEY` | *secret*. The sandbox an organisation gets when it has connected none of its own. Without it such a run fails, because the fallback adapter has no account to build itself from |
+| `DAYTONA_API_KEY` | *secret*. The sandbox an organisation gets when it has set no sandbox key of its own in Settings > Environment. Without it such a run fails, because the fallback adapter has no account to build itself from |
 | `E2B_API_KEY` | *secret*. Same, for E2B |
 | `TRIGGER_SECRET_KEY` | *secret*. Required to start the server and dispatch runs. Use the production environment key (`tr_prod_*`), not the deployment access token. `TRIGGER_API_KEY` is also accepted |
 | `VERCEL_TOKEN` | *secret*. Same, for Vercel Sandbox, which also needs the two below |
 | `VERCEL_TEAM_ID` | Identifier rather than a secret |
 | `VERCEL_PROJECT_ID` | Identifier rather than a secret |
+| `OPENAI_API_KEY` | *secret*. Optional. Judges and simulated people fall back to it when an organisation has set no `OPENAI_API_KEY` in Settings > Environment |
 | `EVAL_JOURNAL_HOT` | Defaults to `30 days`. How long a settled trial keeps one row per event before the journal is folded into one; the run page reads either |
 | `AUTUMN_API_KEY` | *secret*. Without it usage goes uncounted, since the meter fails open |
 | `GITHUB_APP_PRIVATE_KEY` | *secret*. The `.pem` GitHub issued, whole. `./scripts/configure-github-app.sh` puts all three on the service |

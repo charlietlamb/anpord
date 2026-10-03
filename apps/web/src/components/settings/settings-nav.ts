@@ -1,12 +1,10 @@
 import {
-  BrainIcon,
+  BracketsAngleIcon,
   BroadcastIcon,
-  CubeIcon,
   GearIcon,
   GitBranchIcon,
   type Icon,
   KeyIcon,
-  RobotIcon,
   UsersThreeIcon,
   WarningIcon,
 } from "@phosphor-icons/react";
@@ -35,9 +33,11 @@ export const SETTINGS_NAV: SettingsNavSection[] = [
   {
     label: "Connections",
     items: [
-      { label: "Harnesses", to: "/settings/harnesses", icon: RobotIcon },
-      { label: "Models", to: "/settings/models", icon: BrainIcon },
-      { label: "Sandboxes", to: "/settings/sandboxes", icon: CubeIcon },
+      {
+        label: "Environment",
+        to: "/settings/environment",
+        icon: BracketsAngleIcon,
+      },
       { label: "Codebase", to: "/settings/codebase", icon: GitBranchIcon },
     ],
   },

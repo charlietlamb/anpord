@@ -18,18 +18,18 @@ A variant is the harness, model and sandbox (plus an optional [profile](/evals/p
 
 ## Harnesses
 
-| Agent | `harness` | Credential | Reports |
+| Agent | `harness` | Environment | Reports |
 | --- | --- | --- | --- |
-| Codex | `codex` | API key or ChatGPT | Commands, files, tokens |
-| Claude Code | `claude` | API key | Commands, files, tokens |
-| OpenCode | `opencode` | Auth file | Commands, files, tokens |
-| Pi | `pi` | Auth file | Commands, files, tokens |
-| Gemini CLI | `gemini` | API key | Commands, files, tokens |
-| Qwen Code | `qwen` | API key | Commands, files, tokens |
-| Cursor Agent | `cursor` | API key | Commands, files |
-| FX | `fx` | AI Gateway key or ChatGPT auth file | Tool names, answer |
+| Codex | `codex` | ChatGPT subscription or `OPENAI_API_KEY` | Commands, files, tokens |
+| Claude Code | `claude` | `ANTHROPIC_API_KEY` | Commands, files, tokens |
+| OpenCode | `opencode` | OpenCode subscription | Commands, files, tokens |
+| Pi | `pi` | Pi subscription | Commands, files, tokens |
+| Gemini CLI | `gemini` | `GEMINI_API_KEY` | Commands, files, tokens |
+| Qwen Code | `qwen` | `DASHSCOPE_API_KEY` | Commands, files, tokens |
+| Cursor Agent | `cursor` | `CURSOR_API_KEY` | Commands, files |
+| FX | `fx` | `AI_GATEWAY_API_KEY` | Tool names, answer |
 
-Each harness needs a [connection](/connections). Harnesses that report less are scored the same way but leave less trajectory and cost data. To run your own agent, use the [command harness](/evals/command-harness).
+Each harness needs its key or subscription in [Settings > Environment](/environment). Harnesses that report less are scored the same way but leave less trajectory and cost data. To run your own agent, use the [command harness](/evals/command-harness).
 
 For Claude Code, follow the [setup guide](/guides/claude-code) and check one trial before comparing models.
 

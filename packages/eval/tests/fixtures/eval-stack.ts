@@ -38,7 +38,7 @@ import { EvalReadsLive } from "../../src/services/eval-reads";
 import { HarnessVersionsLive } from "../../src/services/harness-versions";
 import { seedConnection } from "./eval-rows";
 
-const CONNECTED = ["codex", "claude", "daytona", "e2b", "env", "openai"];
+const CONNECTED = ["codex", "claude", "daytona", "e2b", "opencode", "openai"];
 
 export const connectionOf = (organizationId: string, integrationId: string) =>
   `conn_${organizationId}_${integrationId}`;
@@ -79,18 +79,26 @@ const connectedResolver = Layer.succeed(
     persist: () => Effect.void,
     resolve: (input: ResolveCredential) =>
       CONNECTED.includes(input.integrationId) ||
-      input.connectionId !== undefined
+      input.credentialRef !== undefined
         ? Effect.succeed(
             credential(
               input.actor.organizationId,
               input.integrationId,
-              input.connectionId
+              input.credentialRef
             )
           )
         : Effect.fail(missing(input.integrationId)),
     resolveBound: (input) =>
       Effect.succeed(
-        credential(input.organizationId, "bound", input.connectionId)
+        credential(input.organizationId, "bound", input.credentialRef)
+      ),
+    variables: (input) =>
+      Effect.succeed(
+        Redacted.make(
+          Object.fromEntries(
+            input.names.map((name) => [name, `value-of-${name}`])
+          )
+        )
       ),
   })
 );

@@ -51,7 +51,7 @@ export class AuthGroup extends HttpApiGroup.make("auth")
       .annotate(OpenApi.Summary, "Show which organization a credential uses")
       .annotate(
         OpenApi.Description,
-        "Runs, suites, and connectors started with this credential land in this organization."
+        "Runs, suites, and variables set with this credential land in this organization."
       )
   )
   .middleware(ApiKeyAuthentication)

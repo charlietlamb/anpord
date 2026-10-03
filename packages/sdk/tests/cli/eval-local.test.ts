@@ -148,12 +148,20 @@ describe("credentials a local run leased", () => {
   it("answers the person's harness from the leases, not this machine", async () => {
     const results = await Effect.runPromise(
       runLocally(personOnAnotherHarness, {
-        credentials: new Map([["claude", { ANTHROPIC_API_KEY: "leased" }]]),
+        credentials: {
+          credentials: new Map([
+            [
+              "claude",
+              { authMethodId: "api-key", values: { apiKey: "leased" } },
+            ],
+          ]),
+          variables: {},
+        },
       })
     );
 
     expect(results.map((one) => [one.status, one.reason])).toEqual([
-      ["void", "no codex connection is configured for this organization"],
+      ["void", "nothing in Settings > Environment runs codex"],
     ]);
   }, 180_000);
 });

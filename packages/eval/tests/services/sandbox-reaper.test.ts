@@ -108,7 +108,7 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
         createdAt: new Date(Date.now() - 12 * HOURS),
         organizationId,
         sandbox: "e2b",
-        sandboxConnectionId: connectionId,
+        sandboxRef: connectionId,
         tag: `reap_keyed_${suffix}`,
       });
       const twoHoursAgo = new Date(Date.now() - 2 * HOURS);
@@ -232,7 +232,7 @@ describe.skipIf(skipWithoutDatabase())("reapSandboxes", () => {
         createdAt: new Date(Date.now() - 12 * HOURS),
         organizationId,
         sandbox: "e2b",
-        sandboxConnectionId: foreignConnectionId,
+        sandboxRef: foreignConnectionId,
         tag: `reap_foreign_${suffix}`,
       });
       await seedTrial(db, {

@@ -6,9 +6,9 @@ Validators require recorded requests in order, the specified transport, and an e
 
 ## Run Claude Code
 
-In **Sphynx CI → Settings → Harnesses**, add a shared **Claude Code** connection with an Anthropic API key. This integration currently supports API keys, not Claude subscription login. Model and sandbox credentials are not embedded in eval files.
+In the **Sphynx CI** organization, open **Settings > Environment** and add the variable `ANTHROPIC_API_KEY` for **Everyone in the organization**. Claude Code runs on API keys, not Claude subscription login. Model and sandbox keys are not embedded in eval files.
 
-Make the connection available to **Everyone in the organization**, set it as the Claude default, and choose **Verify**. A personal connection cannot authenticate CI runs. The Anthropic key stays in Sphynx; GitHub only needs the existing `SPHYNX_API_KEY` repository secret for the same organization.
+A personal value cannot authenticate CI runs. The Anthropic key stays in Sphynx. GitHub only needs the existing `SPHYNX_API_KEY` repository secret for the same organization.
 
 Run the **Model comparisons** GitHub workflow with `claude-smoke` first. It creates one file in one Haiku trial, checking installation, credentials, agent execution and scoring before the larger matrix. After it passes, the default `all` runs every case on the three Claude models and the two Codex models in one batch: 90 trials. Select `claude` or `codex` to run one harness alone. The workflow is available after these files are merged into the default branch.
 
@@ -22,7 +22,7 @@ bunx --no-install sphynx eval src/evals/comparison/claude.eval.ts
 bunx --no-install sphynx eval src/evals/comparison/all.eval.ts
 ```
 
-`claude.eval.ts` runs Haiku 4.5, Sonnet 5 and Opus 5 through the actual Claude Code CLI on E2B. `codex.eval.ts` compares Sol and Terra through Codex. Explicit model IDs avoid moving `sonnet` or `opus` aliases. Availability still depends on the connected account. [Claude model IDs](https://platform.claude.com/docs/en/models/overview), [headless Claude Code](https://code.claude.com/docs/en/headless).
+`claude.eval.ts` runs Haiku 4.5, Sonnet 5 and Opus 5 through the actual Claude Code CLI on E2B. `codex.eval.ts` compares Sol and Terra through Codex. Explicit model IDs avoid moving `sonnet` or `opus` aliases. Availability still depends on the account behind the key. [Claude model IDs](https://platform.claude.com/docs/en/models/overview), [headless Claude Code](https://code.claude.com/docs/en/headless).
 
 The default is one trial per run: 54 trials for Claude, 36 for Codex, or 90 for both. This is a wiring and capability check, not a reliability estimate. For three repetitions, split the matrix into one model per eval file: 18 cases × 1 model × 3 trials = 54 trials. Keeping the full matrices with three repetitions would exceed the 100-trial batch limit. Larger matrices are manual-only; ordinary PR smoke tests are unchanged.
 

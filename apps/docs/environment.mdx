@@ -1,0 +1,114 @@
+---
+title: "Environment"
+description: "The keys and subscriptions your evals use"
+---
+
+Every run needs a key for its [harness](/evals/variants), because model usage is charged to your account. Set one under **Settings > Environment** before you start your first batch. The eval API does not accept raw model keys.
+
+| Surface | Credential |
+| --- | --- |
+| Sphynx CLI and SDK | `SPHYNX_API_KEY` |
+| Harness | Its key or subscription in Settings > Environment |
+| Hosted sandbox | None. Uses Sphynx's account unless you set your own |
+| Judge that calls a provider, or a simulated person | Its provider key in Settings > Environment |
+| Mock product MCP or CLI | None |
+| [Sphynx MCP](/tools/mcp) | OAuth 2.1 |
+
+## Variables
+
+Settings > Environment holds one table of variables and subscriptions. Choose **Add variable** and enter `NAME=value` pairs. You can paste a whole `.env` file into any name field, and known names autocomplete as you type. Adding a name that already exists replaces its value.
+
+Values are encrypted on arrival. A secret is never shown again, only its last four characters, such as `••••7f2a`, and a short secret shows none. A plain value, such as a URL, stays readable. Names starting with `SPHYNX_` are reserved.
+
+## Known names
+
+Sphynx picks these up on its own. You don't name them anywhere.
+
+| Name | Used by |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Claude Code, Anthropic judges |
+| `OPENAI_API_KEY` | Codex by key, OpenAI judges |
+| `AI_GATEWAY_API_KEY` | FX |
+| `GEMINI_API_KEY` | Gemini CLI, Google judges |
+| `CURSOR_API_KEY` | Cursor Agent |
+| `DASHSCOPE_API_KEY`, optional `QWEN_BASE_URL` | Qwen Code |
+| `XAI_API_KEY`, `MOONSHOT_API_KEY`, `DEEPSEEK_API_KEY`, `GROQ_API_KEY`, `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY` | Judges and simulated people |
+| `DAYTONA_API_KEY` | Daytona sandboxes on your account |
+| `E2B_API_KEY` | E2B sandboxes on your account |
+| `UPSTASH_BOX_API_KEY` | Upstash Box sandboxes on your account |
+| `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET` | Modal sandboxes on your account |
+| `CLOUDFLARE_API_TOKEN`, optional `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_SANDBOX_API_KEY`, `CLOUDFLARE_SANDBOX_URL` | Cloudflare sandboxes on your account |
+| `VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `VERCEL_PROJECT_ID` | Vercel sandboxes on your account |
+
+A harness gets only its own key. Judge and sandbox keys stay on the server and never enter the agent's sandbox. Without a sandbox key, trials run on Sphynx's hosted account.
+
+## Subscriptions
+
+Choose **Add subscription** to run a harness on a plan instead of a key.
+
+| Subscription | Runs | How |
+| --- | --- | --- |
+| ChatGPT | Codex | Sign in with a device code. It renews itself |
+| OpenCode | OpenCode | Paste the output of `cat ~/.local/share/opencode/auth.json` |
+| Pi | Pi | Paste the output of `cat ~/.pi/agent/auth.json` |
+
+Codex uses a ChatGPT subscription over `OPENAI_API_KEY` when both are set. A ChatGPT subscription is not an OpenAI API key, so OpenAI judges still need `OPENAI_API_KEY`.
+
+## Your own variables
+
+Any other name is yours. It reaches a run only when the variant's [profile](/evals/profiles) names it:
+
+```json profile.json
+{
+  "variables": ["SEARCH_API_KEY"]
+}
+```
+
+A named variable reaches the profile's process, the install command, the case's prepare step and code checks. A hosted batch whose profile names a variable that is not set is refused before it starts:
+
+```text
+A profile names variables that are not set. Set SEARCH_API_KEY in Settings > Environment.
+```
+
+## From the terminal
+
+```bash
+sphynx env list
+sphynx env set ANTHROPIC_API_KEY
+sphynx env import .env
+sphynx env remove SEARCH_API_KEY
+```
+
+`set` prompts for the value instead of taking it as an argument, since an argument ends up in shell history and the process list. In a script, pipe it in:
+
+```bash
+echo "$ANTHROPIC_API_KEY" | sphynx env set ANTHROPIC_API_KEY
+```
+
+See the [CLI](/tools/cli#environment-variables) for every flag. Subscriptions are added in the dashboard.
+
+## Judges and simulated people
+
+A [judge](/evals/judges) that names a `harness` runs on that harness's key or subscription. A judge declared with `provider: "openai"` needs `OPENAI_API_KEY`.
+
+A case that states a [human](/evals/conversations) needs a model to play them. `openai`, `anthropic`, `google`, `xai`, `moonshotai`, `deepseek`, `groq` and `openrouter` all serve the same chat-completions API, so the human runs on the first of their keys it finds. Provider judges call OpenAI's responses API, which the others don't serve, so a case scored by one needs `OPENAI_API_KEY`.
+
+On a self-hosted deployment, `OPENAI_API_KEY` in the server and worker environment works as a fallback.
+
+A missing judge key is not a startup error. The judge that needs it fails when a case reaches it, and names what was missing.
+
+Keep keys out of eval definitions and fixtures. Runs read everything they need from Settings > Environment.
+
+## Everyone or only me
+
+A variable for **Everyone in the organization** reaches every run in it. One for **Only me** reaches only your runs, and overrides the organization's value of the same name, so you can run on your own account without changing what your team uses. An API key acts for the organization, so it uses only the organization's values.
+
+## Missing or removed
+
+```text
+Set ANTHROPIC_API_KEY in Settings > Environment to run claude
+```
+
+When the harness key is missing, the batch is refused, nothing is charged and no sandbox opens.
+
+Removing a variable leaves past runs readable. A run already holding the value finishes.

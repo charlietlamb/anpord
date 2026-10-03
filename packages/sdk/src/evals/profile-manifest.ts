@@ -1,6 +1,9 @@
 import { readFile, stat } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { EnvName } from "@sphynx/schema/domain/harness-profile";
+import {
+  EnvName,
+  ProfileVariableName,
+} from "@sphynx/schema/domain/harness-profile";
 import { Effect, Option, Schema } from "effect";
 import {
   ProfileDirectoryUnreadable,
@@ -13,6 +16,7 @@ const Manifest = Schema.Struct({
   install: Schema.optional(Schema.String),
   run: Schema.optional(Schema.String),
   systemPrompt: Schema.optional(Schema.String),
+  variables: Schema.optional(Schema.Array(ProfileVariableName)),
 });
 
 const ManifestJson = Schema.parseJson(Manifest);
@@ -93,5 +97,8 @@ export const readProfileManifest = (dir: string) =>
       ...(install === undefined ? {} : { install }),
       ...(run === undefined ? {} : { run }),
       ...(systemPrompt === undefined ? {} : { systemPrompt }),
+      ...(manifest.variables === undefined
+        ? {}
+        : { variables: manifest.variables }),
     } satisfies ProfileManifest;
   });

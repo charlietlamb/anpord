@@ -17,9 +17,9 @@ import {
 } from "./auth-attempt-state";
 import { CredentialCipher } from "./cipher";
 import { startCodexLogin } from "./codex-login";
-import { CredentialConnections } from "./connections";
 import { completeDeviceLogin } from "./device-login-completion";
 import { CredentialError } from "./errors";
+import { Subscriptions } from "./subscriptions";
 
 const DEVICE_TTL_MS = 15 * 60 * 1000;
 
@@ -43,7 +43,7 @@ export const DeviceAuthLive = Layer.effect(
   DeviceAuth,
   Effect.gen(function* () {
     const cipher = yield* CredentialCipher;
-    const connections = yield* CredentialConnections;
+    const subscriptions = yield* Subscriptions;
     const attempts = yield* CredentialAuthAttemptRepository;
     const ids = yield* IdGenerator;
     const codex = yield* Config.string("CODEX_BIN_PATH").pipe(
@@ -91,7 +91,7 @@ export const DeviceAuthLive = Layer.effect(
 
             yield* Effect.forkDaemon(
               completeDeviceLogin(
-                { attempts, cipher, connections },
+                { attempts, cipher, subscriptions },
                 login,
                 actor,
                 attemptId,
@@ -108,10 +108,7 @@ export const DeviceAuthLive = Layer.effect(
           }).pipe(Effect.onError(() => login.cleanup));
         }).pipe(
           Effect.withSpan("DeviceAuth.start"),
-          Effect.annotateLogs({
-            integrationId: input.integrationId,
-            organizationId: actor.organizationId,
-          })
+          Effect.annotateLogs({ organizationId: actor.organizationId })
         ),
       status: (actor, id) =>
         attempts.find(actor, id).pipe(

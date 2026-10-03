@@ -10,11 +10,6 @@ export function DeviceChallenge({
 }) {
   return (
     <Surface className="flex flex-col gap-3 p-3.5">
-      <p className="text-muted-foreground text-xs">
-        Open the link below, enter this code, and this window will finish on its
-        own.
-      </p>
-
       <div className="flex items-center justify-between gap-3">
         <span className="font-mono text-foreground text-lg tracking-widest">
           {challenge.code}
@@ -28,7 +23,7 @@ export function DeviceChallenge({
         rel="noreferrer"
         target="_blank"
       >
-        {challenge.verificationUrl}
+        Open ChatGPT
         <ArrowSquareOutIcon aria-hidden="true" className="size-3.5" />
       </a>
     </Surface>

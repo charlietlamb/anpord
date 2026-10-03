@@ -1,4 +1,7 @@
-import { credentialResolverFrom } from "@sphynx/eval/credentials/env-resolver";
+import {
+  credentialResolverFrom,
+  type LocalCredentials,
+} from "@sphynx/eval/credentials/env-resolver";
 import { caseDefinitionOf } from "@sphynx/eval/domain/case-definition";
 import { profileOfRequest } from "@sphynx/eval/domain/harness-profile";
 import { asEntries } from "@sphynx/eval/domain/journal-entries";
@@ -10,7 +13,6 @@ import type {
   EvalVariantRequest,
   StartBatchRequest,
 } from "@sphynx/schema/domain/eval-definition";
-import type { EvalHarness } from "@sphynx/schema/domain/eval-trial";
 import type { HarnessEvent } from "@sphynx/schema/domain/harness-event";
 import {
   Array as Arr,
@@ -40,10 +42,7 @@ export interface LocalSlot {
 }
 
 export interface LocalRunOptions {
-  readonly credentials?: ReadonlyMap<
-    EvalHarness,
-    Readonly<Record<string, string>>
-  >;
+  readonly credentials?: LocalCredentials;
   readonly onTrial?: (
     slot: LocalSlot,
     result: LocalTrialResult,
@@ -185,7 +184,7 @@ const runVariant = (
     );
   }).pipe(
     Effect.provide(
-      options.credentials === undefined || options.credentials.size === 0
+      options.credentials === undefined
         ? EvalLocalLive
         : evalLocalWith(credentialResolverFrom(options.credentials))
     ),

@@ -26,26 +26,12 @@ const storedKey = (
       Effect.orElseSucceed(() => Option.none<string>())
     );
 
-const fallbackKey = (
-  credentials: CredentialResolverShape,
-  organizationId: string,
-  variable: string
-) =>
-  Effect.gen(function* () {
-    const fromEnv = yield* storedKey(
-      credentials,
-      organizationId,
-      "env",
-      variable
-    );
-    const platformKey = yield* Config.string(variable).pipe(
-      Config.option,
-      Effect.orDie,
-      Effect.map(Option.flatMap(usable))
-    );
-
-    return Option.orElse(fromEnv, () => platformKey);
-  });
+const platformKey = (variable: string) =>
+  Config.string(variable).pipe(
+    Config.option,
+    Effect.orDie,
+    Effect.map(Option.flatMap(usable))
+  );
 
 export const modelAccessFor = (
   credentials: CredentialResolverShape,
@@ -76,11 +62,7 @@ export const modelAccessFor = (
       return Option.none<ModelAccess>();
     }
 
-    const fallback = yield* fallbackKey(
-      credentials,
-      organizationId,
-      "OPENAI_API_KEY"
-    );
+    const fallback = yield* platformKey("OPENAI_API_KEY");
 
     return Option.map(
       fallback,

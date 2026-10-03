@@ -39,9 +39,9 @@ interface ResolvedSlot {
 }
 
 const NO_CREDENTIALS = {
-  harnessCredentialConnectionId: null,
+  harnessCredentialRef: null,
   harnessCredentialRevision: null,
-  sandboxCredentialConnectionId: null,
+  sandboxCredentialRef: null,
   sandboxCredentialRevision: null,
 };
 
@@ -180,10 +180,8 @@ export const makeRerunSuite = (
           input.actor,
           resolved.map((slot) => ({
             credentials: {
-              harnessConnectionId:
-                slot.template?.harnessCredentialConnectionId ?? undefined,
-              sandboxConnectionId:
-                slot.template?.sandboxCredentialConnectionId ?? undefined,
+              harnessRef: slot.template?.harnessCredentialRef ?? undefined,
+              sandboxRef: slot.template?.sandboxCredentialRef ?? undefined,
             },
             harness: slot.harness,
             sandbox: slot.sandbox,

@@ -1,6 +1,6 @@
 import { HttpApi, OpenApi } from "@effect/platform";
 import { AuthGroup } from "./auth-api";
-import { PublicConnectorsGroup } from "./connectors-api";
+import { PublicEnvironmentGroup } from "./environment-api";
 import {
   BatchesGroup,
   CasesGroup,
@@ -14,7 +14,7 @@ import { RunnerGroup } from "./runner-api";
 
 export class PublicApi extends HttpApi.make("sphynx-public")
   .add(AuthGroup)
-  .add(PublicConnectorsGroup)
+  .add(PublicEnvironmentGroup)
   .add(BatchesGroup)
   .add(SuitesGroup)
   .add(CasesGroup)

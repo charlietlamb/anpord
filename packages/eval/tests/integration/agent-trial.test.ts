@@ -82,6 +82,7 @@ const commandProfile = (script: string): RequestedProfile => ({
   name: "sample",
   run: readFileSync(join(import.meta.dir, "../fixtures", script), "utf8"),
   systemPrompt: null,
+  variables: null,
 });
 
 const NOTE = "append this line to notes.txt";

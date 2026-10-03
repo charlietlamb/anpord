@@ -7,7 +7,7 @@ Install `sphynx-sh` in your project and commit the lockfile. Name suite files `*
 
 Create an API key with `evals:read` and `evals:write` and save it as the `SPHYNX_API_KEY` repository secret. Use a dedicated organization for CI.
 
-In that organization, connect the harness under **Settings > Harnesses** and make it the default, shared with everyone in the organization. API keys cannot use personal connections. Provider credentials stay in Sphynx, not in GitHub or the suite.
+In that organization, set the harness key under **Settings > Environment** for **Everyone in the organization**. API keys cannot use personal values. Provider keys stay in Sphynx, not in GitHub or the suite.
 
 ```yaml
 name: Agent evals

@@ -40,7 +40,15 @@ export default defineAgent({
 });
 ```
 
-The model key belongs in an `env` credential, never in the profile.
+Set the model key as `AI_GATEWAY_API_KEY` in [Settings > Environment](/environment), never in the profile, and name it in the manifest so the agent gets it:
+
+```json profile.json
+{
+  "install": "npm install",
+  "run": "node_modules/.bin/sphynx-eve",
+  "variables": ["AI_GATEWAY_API_KEY"]
+}
+```
 
 ## The suite
 

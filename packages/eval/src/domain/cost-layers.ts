@@ -7,7 +7,7 @@ import { costOf, type ModelPrice } from "./model-price";
 /* Failures included: a trial that ran and failed consumed what a passing one did. */
 const PLATFORM_UNITS = 1;
 
-const subscriptionAuth = new Set(["chatgpt", "legacy-auth-json"]);
+const subscriptionAuth = new Set(["auth-json", "chatgpt", "legacy-auth-json"]);
 
 const connectionMode = (authMethodId: string | null) => {
   if (authMethodId === null) {

@@ -79,9 +79,9 @@ If a file is missing or over a limit, the judge is not asked. Its judgment is in
 
 ## Authentication
 
-A harness judge uses your organization's connection for that harness. A Codex judge can use a ChatGPT subscription connection and needs no OpenAI API key. When the variant uses the same harness, the judge reuses the variant's connection.
+A harness judge runs on that harness's key or subscription in Settings > Environment. A Codex judge can use a ChatGPT subscription and needs no `OPENAI_API_KEY`. The key stays on the server and never enters the agent's sandbox.
 
-A `provider: "openai"` judge needs its own OpenAI credential. See [connections](/connections).
+A `provider: "openai"` judge needs `OPENAI_API_KEY`. See [environment](/environment).
 
 ## Evidence and isolation
 

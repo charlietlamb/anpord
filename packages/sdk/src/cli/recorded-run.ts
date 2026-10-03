@@ -1,4 +1,8 @@
 import { HttpClientError } from "@effect/platform";
+import type {
+  LeasedCredential,
+  LocalCredentials,
+} from "@sphynx/eval/credentials/env-resolver";
 import {
   LOCAL_BEAT_EVERY,
   LOCAL_QUIET_AFTER,
@@ -39,6 +43,22 @@ import { openBrowser } from "./open-browser";
 import { note } from "./render";
 import { retryTransient } from "./transient";
 
+const namedVariables = (request: StartBatchRequest) => [
+  ...new Set(
+    request.variants.flatMap((variant) => variant.profile?.variables ?? [])
+  ),
+];
+
+const fromShell = (names: readonly string[]) =>
+  Object.fromEntries(
+    names.flatMap((name) => {
+      const value = process.env[name];
+      return value === undefined || value === ""
+        ? []
+        : [[name, value] as const];
+    })
+  );
+
 const leasesFor = (request: StartBatchRequest, batchId: string) =>
   Effect.gen(function* () {
     const api = yield* SphynxApi;
@@ -46,14 +66,37 @@ const leasesFor = (request: StartBatchRequest, batchId: string) =>
       retryTransient(
         api.runner.lease({ payload: { harness, id: batchId } })
       ).pipe(
-        Effect.map((lease) => [harness, lease.values] as const),
+        Effect.map(
+          (lease) =>
+            [
+              harness,
+              { authMethodId: lease.authMethodId, values: lease.values },
+            ] as const
+        ),
         Effect.option
       )
     );
+    const names = namedVariables(request);
+    const shell = fromShell(names);
+    const missing = names.filter((name) => shell[name] === undefined);
+    const variables =
+      missing.length === 0
+        ? {}
+        : yield* retryTransient(
+            api.runner.leaseVariables({
+              payload: { id: batchId, names: missing },
+            })
+          ).pipe(
+            Effect.map((lease) => lease.values),
+            Effect.orElseSucceed(() => ({}))
+          );
 
-    return new Map<EvalHarness, Readonly<Record<string, string>>>(
-      leased.flatMap(Option.toArray)
-    );
+    return {
+      credentials: new Map<EvalHarness, LeasedCredential>(
+        leased.flatMap(Option.toArray)
+      ),
+      variables: { ...variables, ...shell },
+    } satisfies LocalCredentials;
   });
 
 const CLOSED_BATCH = 409;

@@ -38,11 +38,15 @@ Addresses only. A variable is forwarded when both are true:
 - Its name is `URL`, `URI`, `HOST`, `PORT`, `ENDPOINT`, `ORIGIN` or `BASE`, or ends in `_` plus one of them.
 - Its value is an `http(s)` address with no credentials, a hostname, or a port.
 
-`DATABASE_URL=postgres://user:password@host/db` has an address name but a password in its value, so it is withheld. Anything forwarded reaches the agent's context and the trial's journal.
+`DATABASE_URL=postgres://user:password@host/db` has an address name but a password in its value, so it is withheld. To pass a secret, name it in the profile's `variables`. See [keys and variables](#keys-and-variables). Anything forwarded reaches the agent's context and the trial's journal.
 
-## Model credentials
+## Keys and variables
 
-The agent does not read a model key from your machine. With an API key set, Sphynx leases the credential your organization connected for each harness the suite needs: the variant's, and any harness that plays the person or judges. Each lease is used only for its own harness. The lease expires after 15 minutes and is held in memory, never written to disk. Sandbox credentials are never leased, because a local batch opens no cloud sandbox.
+With an API key set, Sphynx leases what the suite needs from [Settings > Environment](/environment): the key for each harness the suite needs, the variant's and any harness that plays the person or judges, the judge keys, and the variables the profile names. Each harness key is used only for its own harness. The lease expires after 15 minutes and is held in memory, never written to disk. Sandbox keys are never leased, because a local batch opens no cloud sandbox.
+
+A named variable set in your own shell wins over the leased value.
+
+Without an API key, the run reads known names such as `ANTHROPIC_API_KEY`, and the variables the profile names, from your shell.
 
 ## What gets recorded
 
@@ -76,7 +80,7 @@ The command exits with 2 when any trial did not pass, so CI fails on a void or t
 
 ## When the network drops
 
-A local run keeps going when Sphynx stops answering for a moment. Starting the batch, leasing credentials, reporting a trial and finishing the batch each try again for up to two minutes on a dropped connection or a 429, 502, 503 or 504, and the terminal says so while it waits.
+A local run keeps going when Sphynx stops answering for a moment. Starting the batch, leasing keys, reporting a trial and finishing the batch each try again for up to two minutes on a dropped connection or a 429, 502, 503 or 504, and the terminal says so while it waits.
 
 If the CLI cannot reach Sphynx at all when the run starts, because the address does not resolve, the connection is refused, TLS fails or the server never answers, it stops within 5 seconds and names the address it tried. Check your network, or set `SPHYNX_BASE_URL` if your Sphynx server is at another address.
 

@@ -59,6 +59,7 @@ const runCase = async (user: EvalUser | null) => {
           name: "scripted",
           run: "node agent.cjs",
           systemPrompt: null,
+          variables: null,
         },
         prompt: "fix the config",
         source: { files: { "agent.cjs": AGENT }, kind: "files" },

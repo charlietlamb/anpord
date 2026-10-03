@@ -25,6 +25,9 @@ export const profileVersionOf = (profile: ProfileContent): string =>
         install: profile.install ?? null,
         run: profile.run ?? null,
         systemPrompt: profile.systemPrompt ?? null,
+        ...(profile.variables?.length
+          ? { variables: profile.variables.toSorted(byCodeUnit) }
+          : {}),
       })
     )
     .digest("hex")

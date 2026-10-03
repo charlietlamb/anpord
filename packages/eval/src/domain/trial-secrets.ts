@@ -73,6 +73,11 @@ const valueSecrets = (values: CredentialValues) =>
       })
     );
 
+const variableSecrets = (values: Readonly<Record<string, string>>) => [
+  ...Object.values(values),
+  ...valueSecrets(values),
+];
+
 const forwardedSecrets = ([name, value]: readonly [string, string]) =>
   Option.match(addressOf(value), {
     onNone: () => (secretNamed(name) || tokenShaped(value) ? [value] : []),
@@ -83,10 +88,14 @@ export const trialSecrets = (request: {
   readonly forwarded?: Readonly<Record<string, string>>;
   readonly harnessCredential: Redacted.Redacted<ResolvedCredential>;
   readonly sandboxCredentials?: Redacted.Redacted<CredentialValues>;
+  readonly variables?: Redacted.Redacted<Readonly<Record<string, string>>>;
 }): readonly string[] => [
   ...valueSecrets(Redacted.value(request.harnessCredential).values),
   ...(request.sandboxCredentials === undefined
     ? []
     : valueSecrets(Redacted.value(request.sandboxCredentials))),
   ...Object.entries(request.forwarded ?? {}).flatMap(forwardedSecrets),
+  ...(request.variables === undefined
+    ? []
+    : variableSecrets(Redacted.value(request.variables))),
 ];

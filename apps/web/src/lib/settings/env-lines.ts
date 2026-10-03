@@ -1,49 +1,61 @@
-export type ParsedEnvLines =
-  | { readonly problem: string; readonly values: null }
-  | {
-      readonly problem: null;
-      readonly values: Readonly<Record<string, string>>;
-    };
+export interface EnvEntry {
+  readonly name: string;
+  readonly value: string;
+}
 
-const ENV_KEY = /^[A-Z_][A-Z0-9_]*$/;
+const EXPORT_PREFIX = /^export\s+/;
+const INLINE_COMMENT = /\s+#.*$/;
+const DOUBLE_ESCAPE = /\\(["\\nrt])/g;
+const LINE_BREAK = /\r?\n/;
+const ESCAPES: Readonly<Record<string, string>> = {
+  '"': '"',
+  "\\": "\\",
+  n: "\n",
+  r: "\r",
+  t: "\t",
+};
 
-const meaningful = (line: string) => line !== "" && !line.startsWith("#");
+const unescapeDouble = (value: string) =>
+  value.replaceAll(DOUBLE_ESCAPE, (_, char: string) => ESCAPES[char] ?? char);
 
-export const parseEnvLines = (text: string): ParsedEnvLines => {
-  const values: Record<string, string> = {};
+const valueFrom = (raw: string) => {
+  const quote = raw[0];
 
-  for (const [index, raw] of text.split("\n").entries()) {
-    const line = raw.trim();
+  if (quote === '"' || quote === "'") {
+    const end = raw.lastIndexOf(quote);
+    const inner = end > 0 ? raw.slice(1, end) : raw.slice(1);
 
-    if (!meaningful(line)) {
-      continue;
-    }
-
-    const separator = line.indexOf("=");
-
-    if (separator < 0) {
-      return {
-        problem: `Line ${index + 1} needs a = between name and value`,
-        values: null,
-      };
-    }
-
-    const key = line.slice(0, separator).trim();
-    const value = line.slice(separator + 1).trim();
-
-    if (!ENV_KEY.test(key)) {
-      return {
-        problem: `${key || "A variable"} needs an uppercase name like API_KEY`,
-        values: null,
-      };
-    }
-
-    if (value === "") {
-      return { problem: `${key} has no value`, values: null };
-    }
-
-    values[key] = value;
+    return quote === '"' ? unescapeDouble(inner) : inner;
   }
 
-  return { problem: null, values };
+  return raw.replace(INLINE_COMMENT, "").trim();
 };
+
+const entryOf = (raw: string): EnvEntry | null => {
+  const line = raw.trim().replace(EXPORT_PREFIX, "");
+
+  if (line === "" || line.startsWith("#")) {
+    return null;
+  }
+
+  const separator = line.indexOf("=");
+
+  if (separator <= 0) {
+    return null;
+  }
+
+  return {
+    name: line.slice(0, separator).trim(),
+    value: valueFrom(line.slice(separator + 1).trim()),
+  };
+};
+
+export const parseEnvLines = (text: string): readonly EnvEntry[] =>
+  text.split(LINE_BREAK).flatMap((line) => {
+    const entry = entryOf(line);
+
+    return entry === null ? [] : [entry];
+  });
+
+export const looksLikeEnv = (text: string) =>
+  text.includes("\n") || text.includes("=");

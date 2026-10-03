@@ -240,4 +240,4 @@ Mocks never call an upstream service, but they do not stop the agent from contac
 
 Mocks apply to every variant in the suite. Put variants in separate eval files when they need different mocks. CLI mocks are installed for every harness. MCP mocks are configured for every [built-in harness](/evals/variants), but not the [command harness](/evals/command-harness).
 
-Handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox, so keep secrets out of it. Running the eval still needs `SPHYNX_API_KEY` and a model connection.
+Handlers need no credentials for the service they simulate. Fixture data is bundled into the sandbox, so keep secrets out of it. Running the eval still needs `SPHYNX_API_KEY` and the harness key in [Settings > Environment](/environment).

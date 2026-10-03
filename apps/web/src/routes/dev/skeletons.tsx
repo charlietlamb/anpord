@@ -15,12 +15,7 @@ import { ChannelsScreen } from "@/components/channels/channels-screen";
 import { NavUserIdentity } from "@/components/dashboard/nav-user-identity";
 import { CASE_DETAIL, CASE_RUNS } from "@/components/dev/case-fixtures";
 import { RUN, TRIALS } from "@/components/dev/eval-fixtures";
-import {
-  CODEX,
-  CONNECTIONS,
-  KEYS,
-  MEMBERS,
-} from "@/components/dev/settings-fixtures";
+import { ENVIRONMENT, KEYS, MEMBERS } from "@/components/dev/settings-fixtures";
 import { SkeletonPair } from "@/components/dev/skeleton-pair";
 import {
   VALIDATED_SETUP,
@@ -41,7 +36,7 @@ import { MemberRow } from "@/components/organization/member-row";
 import { PromptEditor } from "@/components/prompts/prompt-editor";
 import { PromptList } from "@/components/prompts/prompt-list";
 import { ApiKeyList } from "@/components/settings/api-key-list";
-import { ConnectionRow } from "@/components/settings/connection-row";
+import { EnvironmentList } from "@/components/settings/environment/environment-list";
 import { InstalledAccount } from "@/components/settings/installed-account";
 import { OrganizationForm } from "@/components/settings/organization-form";
 import { PLACEHOLDER_CASE_PAGE } from "@/lib/evals/eval-placeholders";
@@ -50,10 +45,7 @@ import {
   placeholderVersions,
 } from "@/lib/prompts/prompt-placeholders";
 import { PLACEHOLDER_CHANNELS } from "@/lib/settings/settings-placeholders";
-import {
-  CONNECTIONS_TABLE,
-  MEMBERS_TABLE,
-} from "@/lib/settings/settings-tables";
+import { MEMBERS_TABLE } from "@/lib/settings/settings-tables";
 
 export const Route = createFileRoute("/dev/skeletons")({
   component: SkeletonsPreview,
@@ -143,25 +135,15 @@ function SkeletonsPreview() {
             />
           </SkeletonPair>
 
-          <SkeletonPair name="Connections">
-            <DataTable
-              columns={CONNECTIONS_TABLE.columns}
-              label={CONNECTIONS_TABLE.label}
-            >
-              <DataTableHead headings={CONNECTIONS_TABLE.headings} />
-              <DataTableBody>
-                {CONNECTIONS.map((row) => (
-                  <ConnectionRow
-                    connection={row}
-                    integration={CODEX}
-                    key={row.id}
-                    onDefault={NOTHING}
-                    onRemove={NOTHING}
-                    onVerify={NOTHING}
-                  />
-                ))}
-              </DataTableBody>
-            </DataTable>
+          <SkeletonPair name="Environment">
+            <EnvironmentList
+              error={null}
+              loading={false}
+              onDisconnect={NOTHING}
+              onEdit={NOTHING}
+              onRemove={NOTHING}
+              rows={ENVIRONMENT}
+            />
           </SkeletonPair>
 
           <SkeletonPair name="Channels">

@@ -207,11 +207,11 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
 
     const payCodex = runs.find((row) => row.internalId === batch.runs[0]?.id);
     expect(payCodex?.caseVersionInternalId).toBe(payVersion?.internalId);
-    expect(payCodex?.harnessCredentialConnectionId).toBe(
+    expect(payCodex?.harnessCredentialRef).toBe(
       connectionOf(organizationId, "codex")
     );
     expect(payCodex?.harnessCredentialRevision).toBe(1);
-    expect(payCodex?.sandboxCredentialConnectionId).toBe(
+    expect(payCodex?.sandboxCredentialRef).toBe(
       connectionOf(organizationId, "daytona")
     );
 
@@ -788,6 +788,21 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       expect(failureOf(hosted)).toMatchObject({ _tag: "NotRunnable" });
     });
 
+    it("leases no variable its profiles did not name", async () => {
+      const undeclared = await exitOf(
+        Batches.pipe(
+          Effect.flatMap((batches) =>
+            batches.leaseVariables(actor, local.batchId, ["SEARCH_API_KEY"])
+          )
+        )
+      );
+
+      expect(failureOf(undeclared)).toMatchObject({
+        _tag: "NotRunnable",
+        problems: ["no profile in this batch names SEARCH_API_KEY"],
+      });
+    });
+
     it("finishes with its open runs, voiding the trial it never reported", async () => {
       await run(
         Batches.pipe(
@@ -804,6 +819,15 @@ describe.skipIf(skipWithoutDatabase())("batches against the record", () => {
       expect(runs[0]?.finishedAt).not.toBeNull();
       expect(batch?.status).toBe("finished");
       expect(batch?.failure).toBeNull();
+
+      const afterwards = await exitOf(
+        Batches.pipe(
+          Effect.flatMap((batches) =>
+            batches.lease(actor, local.batchId, "codex")
+          )
+        )
+      );
+      expect(failureOf(afterwards)).toMatchObject({ _tag: "NotRunnable" });
 
       const finished = await run(
         EvalReads.pipe(

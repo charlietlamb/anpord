@@ -7,13 +7,13 @@ description: "Define a suite and run it on a coding agent"
 
 ## Prerequisites
 
-Add a [harness connection](/connections), then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
+Set your harness key, such as `OPENAI_API_KEY` for Codex, under [Settings > Environment](/environment). Then create an API key with `evals:write` and `evals:read` under **Settings > API keys**.
 
 ```bash
 export SPHYNX_API_KEY="anp_..."
 ```
 
-Save harness credentials in Sphynx, never in eval definitions. Hosted sandboxes and mocks need no keys of their own.
+Keep keys in Settings > Environment, never in eval definitions. Hosted sandboxes and mocks need no keys of their own.
 
 ## Install
 

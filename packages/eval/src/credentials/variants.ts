@@ -5,7 +5,9 @@ import type {
 } from "@sphynx/schema/domain/credentials";
 import { Effect, Option, Redacted } from "effect";
 import type { HarnessName, SandboxName } from "../domain/variant";
-import { CredentialError } from "./errors";
+import { ownerOf } from "../environment/variable-repository";
+import { variablesRef } from "./credential-ref";
+import type { CredentialError } from "./errors";
 import type { CredentialResolverShape } from "./resolver";
 
 export interface BindVariant {
@@ -15,15 +17,15 @@ export interface BindVariant {
 }
 
 export interface BoundCredentials {
-  readonly harnessCredentialConnectionId: string | null;
+  readonly harnessCredentialRef: string | null;
   readonly harnessCredentialRevision: number | null;
-  readonly sandboxCredentialConnectionId: string | null;
+  readonly sandboxCredentialRef: string | null;
   readonly sandboxCredentialRevision: number | null;
 }
 
 export const KEYLESS_HARNESSES: ReadonlySet<HarnessName> = new Set(["command"]);
 
-const found = (
+const optional = (
   effect: Effect.Effect<Redacted.Redacted<ResolvedCredential>, CredentialError>,
   explicit: string | undefined
 ) =>
@@ -35,18 +37,12 @@ const found = (
     )
   );
 
-const bindingOf = (
-  credential: Option.Option<Redacted.Redacted<ResolvedCredential>>
-) =>
-  Option.match(credential, {
-    onNone: () => ({ connectionId: null, revision: null }),
-    onSome: (resolved) => {
-      const value = Redacted.value(resolved);
-      return value.revision === 0
-        ? { connectionId: null, revision: null }
-        : { connectionId: value.connectionId, revision: value.revision };
-    },
-  });
+const bindingOf = (credential: Redacted.Redacted<ResolvedCredential>) => {
+  const value = Redacted.value(credential);
+  return value.revision === 0
+    ? { ref: null, revision: null }
+    : { ref: value.connectionId, revision: value.revision };
+};
 
 export const bindCredentials = (
   resolver: CredentialResolverShape,
@@ -55,46 +51,36 @@ export const bindCredentials = (
 ) =>
   Effect.forEach(variants, (variant) =>
     Effect.gen(function* () {
-      const harnessIn = (integrationId: string) =>
-        resolver.resolve({
-          actor,
-          connectionId: variant.credentials?.harnessConnectionId,
-          integrationId,
-        });
-      const harness = yield* found(
-        harnessIn(variant.harness).pipe(
-          Effect.catchIf(
-            (error) => error.code === "not-found",
-            () => harnessIn("env")
-          )
+      const harness = KEYLESS_HARNESSES.has(variant.harness)
+        ? { ref: variablesRef(ownerOf(actor)), revision: null }
+        : bindingOf(
+            yield* resolver.resolve({
+              actor,
+              credentialRef: variant.credentials?.harnessRef,
+              integrationId: variant.harness,
+            })
+          );
+
+      const sandbox = Option.match(
+        yield* optional(
+          resolver.resolve({
+            actor,
+            credentialRef: variant.credentials?.sandboxRef,
+            integrationId: variant.sandbox,
+          }),
+          variant.credentials?.sandboxRef
         ),
-        variant.credentials?.harnessConnectionId
+        {
+          onNone: () => ({ ref: null, revision: null }),
+          onSome: bindingOf,
+        }
       );
-
-      if (Option.isNone(harness) && !KEYLESS_HARNESSES.has(variant.harness)) {
-        return yield* new CredentialError({
-          code: "not-found",
-          message: `No credential configured for ${variant.harness}`,
-        });
-      }
-
-      const sandbox = yield* found(
-        resolver.resolve({
-          actor,
-          connectionId: variant.credentials?.sandboxConnectionId,
-          integrationId: variant.sandbox,
-        }),
-        variant.credentials?.sandboxConnectionId
-      );
-
-      const harnessBinding = bindingOf(harness);
-      const sandboxBinding = bindingOf(sandbox);
 
       return {
-        harnessCredentialConnectionId: harnessBinding.connectionId,
-        harnessCredentialRevision: harnessBinding.revision,
-        sandboxCredentialConnectionId: sandboxBinding.connectionId,
-        sandboxCredentialRevision: sandboxBinding.revision,
+        harnessCredentialRef: harness.ref,
+        harnessCredentialRevision: harness.revision,
+        sandboxCredentialRef: sandbox.ref,
+        sandboxCredentialRevision: sandbox.revision,
       } satisfies BoundCredentials;
     })
   ).pipe(
@@ -106,9 +92,9 @@ export const bindCredentials = (
 
 export const unkeyed = () =>
   Redacted.make<ResolvedCredential>({
-    authMethodId: "env",
-    connectionId: "env-none",
-    integrationId: "env",
+    authMethodId: "none",
+    connectionId: "none",
+    integrationId: "none",
     revision: 0,
     values: {},
   });

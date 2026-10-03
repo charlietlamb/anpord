@@ -27,7 +27,7 @@ describe("reporting a failure", () => {
         cause: new Error("getaddrinfo ENOTFOUND api.sphynx.test"),
         reason: "Transport",
         request: HttpClientRequest.post(
-          "https://api.sphynx.test/v1/connectors.list"
+          "https://api.sphynx.test/v1/environment.list"
         ),
       })
     );

@@ -16,6 +16,7 @@ const WORKSPACE = "/tmp/sphynx-task";
 export interface TrialCredentials {
   readonly harness: Redacted.Redacted<ResolvedCredential>;
   readonly sandbox?: Redacted.Redacted<ResolvedCredential>;
+  readonly variables?: Redacted.Redacted<Readonly<Record<string, string>>>;
 }
 
 const upsert = (
@@ -110,6 +111,7 @@ export const makeRunTrial = Effect.gen(function* () {
         timeoutMs: plan.case.timeoutMs,
         user: plan.case.user,
         validator: plan.case.validator,
+        variables: input.credentials.variables,
         verifyCommand: plan.case.verify,
         workspace: WORKSPACE,
       });

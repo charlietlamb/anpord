@@ -6,4 +6,5 @@ export const nothingConnected = Layer.succeed(CredentialResolver, {
   persist: () => Effect.void,
   resolve: () => Effect.fail(connectionNotFound()),
   resolveBound: () => Effect.fail(connectionNotFound()),
+  variables: () => Effect.fail(connectionNotFound()),
 });

@@ -14,6 +14,7 @@ import { user } from "./schema/auth/users";
 import { verification } from "./schema/auth/verifications";
 import { credentialAuthAttempt } from "./schema/credentials/auth-attempts";
 import { credentialConnection } from "./schema/credentials/connections";
+import { environmentVariable } from "./schema/credentials/environment-variables";
 import { githubInstallation } from "./schema/credentials/installations";
 import { evalBatch } from "./schema/evals/eval-batches";
 import { evalCaseVersion } from "./schema/evals/eval-case-versions";
@@ -69,5 +70,6 @@ export const schema = {
   verification,
   credentialAuthAttempt,
   credentialConnection,
+  environmentVariable,
   githubInstallation,
 };

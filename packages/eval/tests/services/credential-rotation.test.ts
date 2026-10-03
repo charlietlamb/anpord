@@ -25,6 +25,7 @@ const recording = () => {
       }),
     resolve: () => Effect.die("unused"),
     resolveBound: () => Effect.die("unused"),
+    variables: () => Effect.die("unused"),
   };
 
   return { credentials, written };
@@ -96,6 +97,7 @@ describe("capturing a credential the harness rotated", () => {
       persist: () => Effect.die("store down"),
       resolve: () => Effect.die("unused"),
       resolveBound: () => Effect.die("unused"),
+      variables: () => Effect.die("unused"),
     };
 
     const result = await capture(

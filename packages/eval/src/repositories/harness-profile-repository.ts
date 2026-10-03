@@ -44,6 +44,7 @@ const toStoredProfile = (row: ProfileRow): StoredProfile => ({
   name: row.name,
   run: row.run,
   systemPrompt: row.systemPrompt,
+  variables: row.variables,
   version: row.version,
 });
 
@@ -108,6 +109,8 @@ export const HarnessProfileRepositoryLive = Layer.effect(
                 organizationId: input.organizationId,
                 run: input.run,
                 systemPrompt: input.systemPrompt,
+                variables:
+                  input.variables === null ? null : [...input.variables],
                 version: input.version,
               })
               /* Left alone on conflict, unlike variants: the version hashes the

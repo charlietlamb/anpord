@@ -11,7 +11,8 @@ import {
 } from "@sphynx/schema/domain/eval-quota";
 import type { StartedBatch } from "@sphynx/schema/domain/evals";
 import type { IdempotencyKey } from "@sphynx/schema/public/runner-api";
-import { Effect, Option } from "effect";
+import { Effect, Either, Option } from "effect";
+import { variablesRef } from "../credentials/credential-ref";
 import { modelAccessFor } from "../credentials/model-key";
 import { CredentialResolver } from "../credentials/resolver";
 import { bindCredentials } from "../credentials/variants";
@@ -23,6 +24,7 @@ import { profileVersionOf } from "../domain/profile-identity";
 import { startRequestHashOf } from "../domain/start-request-hash";
 import { userHarness } from "../domain/suite-harnesses";
 import { userModel, userModelOf, userModelRoute } from "../domain/variant";
+import { ownerOf } from "../environment/variable-repository";
 import {
   BatchRepository,
   type StartKey,
@@ -41,6 +43,33 @@ const variantKey = (variant: EvalVariantRequest) =>
     variant.sandbox,
     variant.profile?.name ?? "",
   ].join("\u0000");
+
+const refuseUnsetVariables = (actor: Actor, request: StartBatchRequest) =>
+  Effect.gen(function* () {
+    for (const names of request.variants.flatMap((variant) =>
+      variant.profile?.variables?.length ? [variant.profile.variables] : []
+    )) {
+      const named = yield* (yield* CredentialResolver)
+        .variables({
+          credentialRef: variablesRef(ownerOf(actor)),
+          names,
+          organizationId: actor.organizationId,
+        })
+        .pipe(Effect.either);
+      if (Either.isLeft(named) && named.left.code === "internal") {
+        return yield* new StartRefused({
+          reason: "The environment could not be read. Try again.",
+          retryable: true,
+        });
+      }
+      if (Either.isLeft(named)) {
+        return yield* new StartRefused({
+          reason: `A profile names variables that are not set. ${named.left.message}.`,
+          retryable: false,
+        });
+      }
+    }
+  });
 
 const admit = (actor: Actor, request: StartBatchRequest) =>
   Effect.gen(function* () {
@@ -65,15 +94,18 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
     }
 
     for (const harness of new Set(request.cases.flatMap(userHarness))) {
-      const connection = yield* (yield* CredentialResolver)
+      const credential = yield* (yield* CredentialResolver)
         .resolve({ actor, integrationId: harness })
-        .pipe(Effect.option);
-      if (Option.isNone(connection)) {
+        .pipe(Effect.either);
+      if (Either.isLeft(credential)) {
         return yield* new StartRefused({
-          reason: `A case asks ${harness} to play the human, and this organization has no ${harness} connection. Connect one under settings.`,
+          reason: `A case asks ${harness} to play the human. ${credential.left.message}.`,
           retryable: false,
         });
       }
+    }
+    if (!request.local) {
+      yield* refuseUnsetVariables(actor, request);
     }
     if (
       request.cases.some(
@@ -90,7 +122,7 @@ const admit = (actor: Actor, request: StartBatchRequest) =>
       if (Option.isNone(access)) {
         return yield* new StartRefused({
           reason:
-            "A case states a human, which needs a model to play them. Connect one under settings, models.",
+            "A case states a human, which needs a model to play them. Set OPENAI_API_KEY in Settings > Environment.",
           retryable: false,
         });
       }
@@ -234,9 +266,9 @@ export const makeStartBatch = (
             caseId: request.cases[caseIndex]?.id ?? "",
             run: {
               ...(bound[variantIndex] ?? {
-                harnessCredentialConnectionId: null,
+                harnessCredentialRef: null,
                 harnessCredentialRevision: null,
-                sandboxCredentialConnectionId: null,
+                sandboxCredentialRef: null,
                 sandboxCredentialRevision: null,
               }),
               caseVersionInternalId: subject.caseVersionInternalId,

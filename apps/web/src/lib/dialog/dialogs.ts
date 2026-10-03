@@ -1,8 +1,11 @@
 import type { ChannelColor } from "@sphynx/schema/domain/channels";
+import type { EnvironmentVariable } from "@sphynx/schema/domain/environment";
 import type { ConfirmDialogProps } from "@sphynx/ui/components/dialog/confirm-dialog";
 import { createDialogSystem } from "@sphynx/ui/components/dialog/create-dialog-system";
 
 export interface DialogMap {
+  addSubscription: Record<never, never>;
+  addVariables: { existing: readonly EnvironmentVariable[] };
   apiKeyCreated: { apiKey: string; name: string };
   channel: {
     color?: ChannelColor;
@@ -11,6 +14,7 @@ export interface DialogMap {
   };
   confirm: Omit<ConfirmDialogProps, "open" | "onClose">;
   createOrganization: Record<never, never>;
+  editVariable: { variable: EnvironmentVariable };
   editVersion: {
     onCorrect: () => void;
     onEditFrom: () => void;
